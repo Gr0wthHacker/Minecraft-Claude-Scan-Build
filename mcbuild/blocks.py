@@ -105,9 +105,13 @@ def server_authoritative() -> bool:
 
 
 def available(name: str) -> bool:
-    """Can this actually be placed on the server. Falls back to `exists` if no server list is set."""
+    """Can this actually be placed on the server.
+
+    Currently a no-op: `enforce` is false, because the provisional list held only ~191 of 1.19's
+    blocks and rejected ordinary things like `allium`. Jack's call is to assume everything is usable
+    and flag problems in game. Flip `enforce` in the data file to turn the gate back on."""
     srv = _server()
-    if not srv:
+    if not srv or not srv.get("enforce", True):
         return exists(name)
     return _short(name) in set(srv.get("blocks", ()))
 

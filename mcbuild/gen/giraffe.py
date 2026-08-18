@@ -146,8 +146,11 @@ def _legs(hide: set, accent: dict, ctx, fx, fy, fz, f, s, p):
     # (t up the leg, half-width) - thick where it meets the body, thin at the ankle, flared at the hoof
     KEYS = [(0.00, lr + 0.6), (0.10, lr + 0.1), (0.45, lr - 0.2), (0.72, lr + 0.05), (1.00, lr + 0.15)]
     for along, side in ((bl // 2 - 3, 1), (bl // 2 - 3, -1), (-(bl // 2 - 3), 1), (-(bl // 2 - 3), -1)):
-        lx = fx + f[0] * along + s[0] * round(br - 1.4) * side
-        lz = fz + f[1] * along + s[1] * round(br - 1.4) * side
+        # tuck the leg under the barrel. At `br - 1.4` the outer edge of a 2.0-radius leg landed at
+        # 6.0 against a body edge of 4.9, so the legs splayed out past the body in front view.
+        off = max(1, round(br - lr - 0.4))
+        lx = fx + f[0] * along + s[0] * off * side
+        lz = fz + f[1] * along + s[1] * off * side
         hoof = fy
         if ctx is not None:
             for probe in range(fy + 6, fy - 8, -1):
@@ -258,7 +261,9 @@ def _face(hide: set, accent: dict, hx, hy, hz, ax, az, hl, hr, f, s, p):
     # The whole front of the face, not just the underside - a band across the top of the snout too.
     for c in list(hide):
         along = (c[0] - hx) * f[0] + (c[2] - hz) * f[1]
-        if along >= hl - 3:
+        # the LOWER front of the face only. Painting the whole front third at every height put a big
+        # pale slab on the end of the head where a giraffe has a pale lip and a dark nose.
+        if along >= hl - 3 and c[1] <= hy:
             accent[c] = p["muzzle"]
     for b in (-1, 0, 1):
         for dy in (-1, 0):
@@ -266,17 +271,25 @@ def _face(hide: set, accent: dict, hx, hy, hz, ax, az, hl, hr, f, s, p):
             if c in hide and abs(b) + abs(dy) < 2:
                 accent[c] = p["dark"]                           # nostrils and lip line
     for side in (1, -1):
-        # eye: a two-tall dark bead ringed in pale, on the SIDE of the brow where a giraffe's sits.
-        # One dark block on a head this size disappears from any distance you would view it at.
-        for b in range(int(hr - 1), int(hr + 2)):
-            for k in (0, 1):
-                c = (int(ax + s[0] * b * side), int(round(hy + k)), int(az + s[1] * b * side))
+        # eye: a dark bead on the OUTER SURFACE of the brow, ringed in pale.
+        # Do not guess how wide the brow is - walk outward and take the first cell that is actually
+        # there. Assuming a width put the eye across b=1..3 on both sides of a brow only 5 cells wide,
+        # which merged the two eyes into one dark band right across the face: a bandit mask.
+        for k in (0, 1):
+            y = int(round(hy + k))
+            edge = None
+            for b in range(int(hr) + 2, 0, -1):
+                c = (int(ax + s[0] * b * side), y, int(az + s[1] * b * side))
                 if c in hide:
-                    accent[c] = p["dark"]
-            for k in (-1, 2):                                   # the pale ring above and below
-                c = (int(ax + s[0] * b * side), int(round(hy + k)), int(az + s[1] * b * side))
-                if c in hide:
-                    accent[c] = p["muzzle"]
+                    edge = c
+                    break
+            if edge is None:
+                continue
+            accent[edge] = p["dark"]
+            for dy in (-1, 2):                                  # pale lid above and cheek below
+                ring = (edge[0], int(round(hy + dy)), edge[2])
+                if ring in hide and ring not in accent:
+                    accent[ring] = p["muzzle"]
         # ear: a plate two courses tall, swept BACK and slightly down as it goes out. One course
         # tall it reads as an antenna; a giraffe's ear is a broad leaf shape held out and back.
         for b in range(1, 4):
@@ -301,12 +314,22 @@ def _face(hide: set, accent: dict, hx, hy, hz, ax, az, hl, hr, f, s, p):
 
 
 def _tail(hide: set, accent: dict, fx, belly, fz, f, s, p):
-    """Hangs clear of the rump - inside the silhouette it reads as nothing at all."""
+    """A tail with a switch on the end.
+
+    One block wide it is invisible: the rump slice held exactly 11 cells and the render showed nothing
+    at all. So it is two wide at the root, drops to one down the length, and finishes in a dark tassel
+    three wide - which is what you actually see on a giraffe."""
     half = int(p["body_len"]) // 2
     x = int(fx - f[0] * (half + 1))
     z = int(fz - f[1] * (half + 1))
     top = int(belly + int(p["hips"]) - 2)
-    for k in range(11):
-        hide.add((x, top - k, z))
-        if k >= 8:
-            accent[(x, top - k, z)] = p["dark"]                 # the tuft
+    for k in range(13):
+        cells = [(x, top - k, z)]
+        if k < 3:                                               # thick where it leaves the body
+            cells.append((int(x - f[0]), top - k, int(z - f[1])))
+        if 9 <= k < 12:                                         # the tassel, tapering to a point
+            cells += [(int(x + s[0] * b), top - k, int(z + s[1] * b)) for b in (-1, 1)]
+        for c in cells:
+            hide.add(c)
+            if k >= 9:
+                accent[c] = p["dark"]

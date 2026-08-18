@@ -78,19 +78,14 @@ def test_every_shipped_state_is_legal():
     assert not bad, bad[:10]
 
 
-def test_server_is_older_than_the_client():
-    """skyblock.net runs 1.19; the client runs 26.2. Anything newer than the server cannot be placed."""
+def test_server_gate_is_off_but_still_wired():
+    """The gate is disabled by choice (see the note in server_blocks.json) - assume every block is
+    usable and flag problems in game. This asserts it is genuinely off, not silently half-on."""
     assert B.server_version() == "1.19"
-    for n in ("bamboo_planks", "cherry_planks", "crafter", "trial_spawner", "vault", "copper_chest",
-              "pale_oak_planks", "tuff_bricks", "chiseled_bookshelf", "decorated_pot"):
-        assert B.exists(n), f"{n} should be in the 26.2 registry"
-        assert not B.available(n), f"{n} is post-1.19 and must not be offered"
-    for n in ("stone_bricks", "smooth_sandstone", "smooth_red_sandstone", "bone_block", "oak_planks"):
+    assert not B._server().get("enforce", True)
+    for n in ("bamboo_planks", "crafter", "stone_bricks", "smooth_sandstone"):
         assert B.available(n), n
-
-
-def test_colour_pool_never_offers_a_block_the_server_lacks():
-    assert all(B.available(n) for n in B.candidates())
+    assert len(B.candidates()) > 400, "the full palette pool should be back"
 
 
 def test_no_design_uses_a_confirmed_post_server_block():

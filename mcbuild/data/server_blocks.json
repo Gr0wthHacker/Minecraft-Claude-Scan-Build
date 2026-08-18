@@ -194,5 +194,7 @@
   "white_wool",
   "yellow_terracotta",
   "yellow_wool"
- ]
+ ],
+ "enforce": false,
+ "note": "OFF by Jack's call: assume every block is usable and flag problems in game. The list and `tools/server_blocks.py` stay so this can be switched back on - set enforce true, or regenerate with --reports from a real 1.19 dump."
 }
