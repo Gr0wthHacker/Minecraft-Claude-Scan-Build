@@ -146,6 +146,22 @@ chunkscan 0.2 also captures entities (item frames, armor stands, paintings, boat
 as `schematics/scans/<name>_<yyyyMMdd-HHmm>.litematic` so history can be diffed. Dressing kits: `chimney`,
 `footing` (configs `chimneys.yaml`, `footings.yaml`).
 
+## Daily loop
+
+```bash
+python -m mcbuild sync            # after /cscan: cut latest scan, regenerate remaining belly, progress + shop for every design, learn
+python -m mcbuild card <design> --world out/island_now.litematic   # one PNG for chat
+python -m mcbuild place <designs...>                                # Litematica placements (game closed)
+```
+
+`profile.yaml` holds the machine/server paths (teammates edit that, nothing else). `sync.yaml` lists which
+designs get regenerated / reported. Optional `prices.yaml` ({block: coins}) turns `shop` into a cost sheet.
+Verification also reports free-floating clusters (need a temporary scaffold) for every design.
+
+Dressing kits: `hem` (rim), `paths` (+ `lightposts`, terrain-following, MST over A* routes that reuse existing
+path fragments; sidecar has the dig list and torches to pull), `entrance`, `ridelights`, `apiary`,
+`birdlanterns`, `chimney`, `footing`.
+
 ## Image references — honest scope
 
 A single image gives a **silhouette and colours**, not depth. `fromimage` builds a
