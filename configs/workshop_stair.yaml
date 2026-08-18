@@ -26,9 +26,10 @@ params:
   kerb: stone_brick_slab
   rail: stone_brick_wall
   lanterns: 3
-  apron: 5                  # foyer around the head. The chest-wall keep box takes the whole west
+  apron: 2                  # foyer around the head. The chest-wall keep box takes the whole west
   apron_carpet: 0.5         # side, so the foyer spreads east into the open floor instead.
-  apron_posts: 6
+  apron_posts: 4
+  container_clear: 3        # derived halo round every container and workstation in the capture
   keep_boxes:               # the foyer stays out of the workshop's working areas
     - [-24209, 195, 29993, -24203, 198, 30018]   # chest wall aisle, anvil, mob-drop sorter
     - [-24200, 195, 30001, -24194, 199, 30012]   # smelter feed chute

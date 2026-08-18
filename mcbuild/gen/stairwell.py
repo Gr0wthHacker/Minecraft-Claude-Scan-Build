@@ -38,6 +38,9 @@ STAIRWELL = {
     "apron_carpet": 0.42,      # share of apron cells carpeted - laid flat so it never trips the walk
     "apron_posts": 4,          # fence-and-lantern posts around the apron
     "keep_boxes": [],          # world [x1,y1,z1,x2,y2,z2]: the foyer never reaches in here
+    "container_clear": 3,      # cells of clearance around ANY container, furnace or workbench found in
+                               # the capture - enough to stand and work. Derived rather than configured:
+                               # storage moves, and a hand-written box goes stale the moment it does.
     "cut_names": ["stone_bricks", "moss_block", "mossy_stone_bricks", "cobblestone", "stone"],
     "seed": 0,
 }
@@ -66,7 +69,7 @@ def build_stairwell(cfg: dict, donors=None) -> Canvas:
         _case(ctx, w, dig, cx, cz, yb, yt, r, p)
     _head(ctx, w, dig, cx, cz, yt, r, p, seed)
     if int(p["apron"]):
-        _apron(ctx, w, cx, cz, yt, r, p, seed)
+        _apron(ctx, w, cx, cz, yt, r, p, seed, _containers(ctx, cx, cz, yt, p))
     _settle_walls(w, ctx or _NoCtx(), p["rail"] or "stone_brick_wall")
 
     return w.canvas({"kind": "stairwell", "center": [cx, cz], "y_bottom": yb, "y_top": yt,
@@ -169,19 +172,42 @@ def _head(ctx, w: World, dig, cx: int, cz: int, yt: int, r: int, p, seed: int):
                   east="none", west="none", waterlogged="false")
 
 
-def _apron(ctx, w: World, cx: int, cz: int, yt: int, r: int, p, seed: int):
+def _containers(ctx, cx: int, cz: int, yt: int, p) -> set:
+    """Cells within `container_clear` of a chest, barrel or furnace in the capture.
+
+    Read off the world instead of listed in the config: the storage wall is what it is on the day you
+    generate, and a hand-written box is wrong as soon as you move a chest."""
+    if ctx is None or not int(p["container_clear"]):
+        return set()
+    c = int(p["container_clear"])
+    reach = 12 + c
+    out = set()
+    for x in range(cx - reach, cx + reach + 1):
+        for z in range(cz - reach, cz + reach + 1):
+            for y in range(yt - 1, yt + 3):
+                n = ctx.name_at(x, y, z)
+                if any(k in n for k in ("chest", "barrel", "furnace", "shulker", "hopper",
+                                        "crafting_table", "anvil", "smoker", "brewing", "lectern")):
+                    for dx in range(-c, c + 1):
+                        for dz in range(-c, c + 1):
+                            out.add((x + dx, z + dz))
+    return out
+
+
+def _apron(ctx, w: World, cx: int, cz: int, yt: int, r: int, p, seed: int, near_storage: set):
     """A foyer around the stair head: carpet laid flat on the deck floor and a few lantern posts.
 
     Carpet rather than slabs - a slab course would put a half-block step across the whole workshop
     floor. Everything here is skipped where the world already holds something, so it dresses the gaps
     between the machines instead of burying them."""
     a = int(p["apron"])
+    # a band hugging the head, not a square: at apron 5 the old test scattered carpet seven cells out
     ring = [(cx + dx, cz + dz) for dx in range(-r - 1 - a, r + 2 + a)
             for dz in range(-r - 1 - a, r + 2 + a)
-            if max(abs(dx), abs(dz)) > r + 1]
+            if r + 1 < max(abs(dx), abs(dz)) <= r + 1 + a]
     posts = 0
     for (x, z) in ring:
-        if _off_limits(p, x, yt, z) or w.has(x, yt, z):
+        if _off_limits(p, x, yt, z) or w.has(x, yt, z) or (x, z) in near_storage:
             continue
         if ctx is not None and (ctx.name_at(x, yt, z) not in AIRY or ctx.name_at(x, yt - 1, z) in AIRY):
             continue                                   # nothing to lay it on, or something already there

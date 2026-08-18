@@ -117,7 +117,12 @@ design without regenerating it.
 9. **Anything that clings needs a FULL block, tested against the world as it is today.** Belly hung
    three vines off the vault's wall railings because "solid" meant "not air" and the anchor test ran
    against the pre-build baseline. Use `audit._is_solid_name`, and test against `world`, not `under`.
-10. **Overlap means the world holds something DIFFERENT.** A design cell the world already matches is
+10. **Leave ~3 blocks of working room around anything you use.** Unless a design is deliberately
+   about storage, it must not come within about 3 blocks of a chest, barrel, furnace, hopper or
+   workbench — you need room to stand, open the thing and walk past it. Derive that clearance from
+   the capture (`container_clear`), never from a hand-written box: the storage moves and the box
+   goes stale the same day.
+11. **Overlap means the world holds something DIFFERENT.** A design cell the world already matches is
    built, not a collision — otherwise every design reports hundreds of overlaps the moment you build it.
 
 ## The island (as of 2026-08-18)
