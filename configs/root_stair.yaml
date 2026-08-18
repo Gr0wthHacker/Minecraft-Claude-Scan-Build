@@ -13,17 +13,19 @@ params:
   center: [-24200, 30018]
   y0: 152                   # first tread, one step up off the islet shelf
   y1: 186                   # the deck skin is solid at Y189, so stop with 2 clear above the landing
-  clearance: 3              # 2 clipped a root strand at -24200,162,30016 - the taper follows the
-                            # root's max radius per course, and a strand can bulge inside that
+  fixed_radius: 7           # half-side of the square ring. 7 clears the root everywhere (its head
+                            # is 5.8). Geometry: ~8h treads a lap and a walkable stair rises at
+                            # most 1 a tread, so 35 blocks of climb is 0.62 of a lap. More laps
+                            # needs half-side 4 or less, which the root will not allow.
+  clearance: 3
   min_radius: 3.0
-  start_angle: -1.5708      # start on the NORTH side and wind N-E-S, so the low turns are not
-                            # over the shop awning at Y154 - the stair reaches south around Y173
+  start_angle: 6            # perimeter offset in cells: start clear of the shop awning
   direction: 1
   width: 1                  # 1 ONLY. With 2 the inward fill of each course lands on the tread of
                             # the course below and buries it - swept every pitch, never climbable.
-  step_low: stone_brick_slab    # slab then block = 0.5 a tread, walkable without jumping.
-  step_high: mossy_stone_bricks # NOT stairs: the game recomputes a stair's shape from its
-  inner: mossy_stone_bricks     # neighbours, so treads silently merge into corner pieces.
+  tread: stone_brick_stairs     # only ever inside a straight run, all facing the same way, so
+  step_high: mossy_stone_bricks # the game never merges them; corners are flat landings instead
+  inner: mossy_stone_bricks
   rail: stone_brick_wall
   lantern_every: 8
   seed: 0

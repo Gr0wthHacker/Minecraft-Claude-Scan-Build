@@ -360,6 +360,8 @@ def check_climb(m: Model, *, max_step: float = 0.5, max_drop: float = 3.5) -> li
         if n.endswith("_slab"):
             t = nbt.state_props(m.palette[i]).get("type")
             surf[(x, z)].append(y + (0.5 if t == "bottom" else 1.0))
+        elif n.endswith("_stairs"):
+            surf[(x, z)] += [y + 0.5, y + 1.0]   # step onto the low half, stand on the high back
         else:
             surf[(x, z)].append(y + 1.0)
     if not surf:
@@ -375,6 +377,12 @@ def check_climb(m: Model, *, max_step: float = 0.5, max_drop: float = 3.5) -> li
     q = collections.deque(seen)
     while q:
         x, z, h = q.popleft()
+        # Standing on a stair, you are on its high back as well as its low front - the same column
+        # offers both surfaces, and walking up its own slope is free.
+        for h2 in surf.get((x, z), []):
+            if 0 < h2 - h <= 0.5 and head(x, z, h2) and (x, z, h2) not in seen:
+                seen.add((x, z, h2))
+                q.append((x, z, h2))
         for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
             nx, nz = x + dx, z + dz
             for h2 in surf.get((nx, nz), []):
