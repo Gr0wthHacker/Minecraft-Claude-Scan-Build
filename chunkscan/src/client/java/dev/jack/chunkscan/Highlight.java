@@ -16,7 +16,7 @@ import java.util.List;
 final class Highlight {
 	private static final List<Batch> BATCHES = new ArrayList<>();
 	/** Particles stop rendering well past this; the belly dig list is far bigger than one screenful. */
-	private static final int RADIUS = 128;
+	static final int RADIUS = 128;
 
 	private record Batch(String id, List<BlockPos> blocks, int color, long until) {}
 
@@ -49,7 +49,7 @@ final class Highlight {
 		if (mc.level == null || mc.player == null || BATCHES.isEmpty()) return;
 		long now = System.currentTimeMillis();
 		BATCHES.removeIf(b -> b.until() < now);
-		if ((mc.level.getGameTime() % 4) != 0) return;                 // 5 times a second is plenty
+		if ((mc.level.getGameTime() % 2) != 0) return;                 // 10 times a second: dust is faint
 		BlockPos me = mc.player.blockPosition();
 		for (Batch b : BATCHES) {
 			DustParticleOptions dust = new DustParticleOptions(b.color(), 1.4f);

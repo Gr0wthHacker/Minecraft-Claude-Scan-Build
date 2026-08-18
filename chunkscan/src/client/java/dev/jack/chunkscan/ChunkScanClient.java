@@ -273,9 +273,26 @@ public final class ChunkScanClient implements ClientModInitializer {
 		String name = StringArgumentType.getString(ctx, "design");
 		try {
 			Designs.Design d = Designs.load(dir(src), name);
-			if (d.dig().isEmpty()) { ok(src, d.name() + " has no dig list"); return 1; }
+			if (d.dig().isEmpty()) {
+				ok(src, d.name() + " has no dig list - nothing needs breaking for it");
+				return 1;
+			}
 			Highlight.show("dig", d.dig(), 0xFF4040, 120);
+			// Say where they ARE, not just how many. Particles are easy to miss, easy to switch off,
+			// and useless past the highlight radius - without this a far-away or invisible dig list
+			// looks exactly like a broken command.
+			BlockPos me = src.getClient().player.blockPosition();
+			BlockPos near = d.dig().get(0);
+			for (BlockPos q : d.dig()) {
+				if (q.distSqr(me) < near.distSqr(me)) near = q;
+			}
+			int dist = (int) Math.sqrt(near.distSqr(me));
 			ok(src, d.name() + ": " + d.dig().size() + " block(s) to clear, marked red for 2 minutes");
+			ok(src, "  nearest is " + near.getX() + " " + near.getY() + " " + near.getZ()
+				+ " - " + dist + "m " + Storage.direction(me, near));
+			if (dist > Highlight.RADIUS) {
+				ok(src, "  you are past the " + Highlight.RADIUS + "m highlight range, so nothing will show yet");
+			}
 			return 1;
 		} catch (Exception e) {
 			src.sendError(Component.literal("[cscan] " + e.getMessage()));
