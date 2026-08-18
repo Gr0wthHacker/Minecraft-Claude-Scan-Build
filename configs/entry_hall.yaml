@@ -1,0 +1,34 @@
+# The entry: a threshold at the workshop stair head and a paved route east to the Store Hall.
+#
+# This design DEPENDS on the west chest wall coming out. The stair arrives four blocks from it, which
+# is why the foyer had to be dropped the first time and why the arrival still feels like a squeeze.
+# The 61 general containers move to the Store Hall; their cells are in this design's dig list, so
+# `/cscan dig "Entry Hall"` shows you exactly what has to go before this can be laid.
+#
+# The palette is the atelier's four greys on purpose: the court below and the workshop above should
+# read as the same hand.
+name: Entry Hall
+gen: vestibule
+params:
+  under: out/island_now.litematic
+  head: [-24202, 30009]     # the workshop stair head
+  to: [-24194, 30026]       # the Store Hall's west door
+  floor_y: 194
+  threshold: 4
+  spine: 3
+  pale: smooth_stone
+  mid: stone_bricks
+  figure: cracked_stone_bricks
+  verge: mossy_stone_bricks
+  post: stone_brick_wall
+  posts: 4
+  clear_names: [chest, trapped_chest, barrel]
+  clear_box: [-24211, 29995, -24204, 30015]   # the west wall, and only that
+  seed: 0
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine]
+  verify_against: out/island_now.litematic

@@ -1,0 +1,27 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 150,
+    "z": 29949
+  },
+  "size": {
+    "x": 57,
+    "y": 44,
+    "z": 77
+  },
+  "generated_by": "storehall",
+  "kind": "storehall",
+  "box": [
+    -24213,
+    30017,
+    -24195,
+    30025
+  ],
+  "floor_y": 190,
+  "chests": 42,
+  "signs": 4,
+  "lanterns": 5,
+  "interior": 119,
+  "file": "Undercroft Store.litematic",
+  "name": "Undercroft Store"
+}

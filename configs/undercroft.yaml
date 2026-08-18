@@ -1,0 +1,35 @@
+# The bulk store in the air gap under the workshop.
+#
+# There are 952 dead cells between the belly skin at Y190 and the deck floor at Y194, with exactly
+# 3 courses of headroom. That is enough to walk in and enough for two tiers of barrels with a lintel
+# above - and the deck floor makes a ceiling to hang lanterns from, which the Store Hall upstairs
+# does not have.
+#
+# Sited on the largest clear rectangle in that gap: 19x9 at x-24213..-24195 / z30017..30025, eight
+# blocks from the workshop stair shaft.
+#
+# ACCESS: the shaft is cased at Y191-193. Knock out x-24200 at Y191 and Y192, z30009, to get in -
+# they are in this design's dig list.
+name: Undercroft Store
+gen: storehall
+params:
+  under: out/island_now.litematic
+  box: [-24213, 30017, -24195, 30025]
+  floor_y: 190              # the belly skin you stand on
+  tiers: 2                  # Y191-192; lintel and signs at Y193, ceiling is the deck at Y194
+  door: west                # faces back toward the shaft
+  door_width: 3
+  chest: barrel             # barrels, not chests: nothing can open above them down here
+  lintel: mossy_stone_bricks
+  sign: oak_wall_sign
+  labels: [bulk stone, bulk wood, spare tools, seed and sapling stock]
+  lantern_every: 4
+  clear: 3                  # keeps it off the smelter's hopper chain, which runs through this gap
+  seed: 0
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine]
+  verify_against: out/island_now.litematic
