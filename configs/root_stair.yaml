@@ -13,21 +13,18 @@ params:
   center: [-24200, 30018]
   y0: 152                   # first tread, one step up off the islet shelf
   y1: 186                   # the deck skin is solid at Y189, so stop with 2 clear above the landing
-  fixed_radius: 7           # half-side of the square ring. 7 clears the root everywhere (its head
-                            # is 5.8). Geometry: ~8h treads a lap and a walkable stair rises at
-                            # most 1 a tread, so 35 blocks of climb is 0.62 of a lap. More laps
-                            # needs half-side 4 or less, which the root will not allow.
-  clearance: 3
-  min_radius: 3.0
-  start_angle: 6            # perimeter offset in cells: start clear of the shop awning
+  clearance: 2              # inner edge of the tread, outside the root
+  min_radius: 3.0           # the inner edge sets the pitch: one cell of arc there per half-step
+  start_angle: 1.35         # radians. Swept every rotation against the climb check and the
+                            # collision count: this one clears the shop awning and the old
+                            # build with a single overlapping cell.
   direction: 1
-  width: 1                  # 1 ONLY. With 2 the inward fill of each course lands on the tread of
-                            # the course below and buries it - swept every pitch, never climbable.
-  tread: stone_brick_stairs     # only ever inside a straight run, all facing the same way, so
-  step_high: mossy_stone_bricks # the game never merges them; corners are flat landings instead
-  inner: mossy_stone_bricks
+  width: 4                  # tread depth outward from the inner edge, as in the reference
+  slab: stone_brick_slab        # ONLY slabs: bottom then top gives 0.5 a tread, and a slab has no
+  slab_alt: mossy_stone_brick_slab   # facing or shape, so the curve costs nothing
+  alt_rate: 0.35
   rail: stone_brick_wall
-  lantern_every: 8
+  lantern_every: 12
   seed: 0
 origin_lock: [-24251, 130, 29949]   # below-island corner, NOT the global one
 finish:

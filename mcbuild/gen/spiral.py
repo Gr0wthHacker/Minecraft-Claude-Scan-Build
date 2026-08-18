@@ -1,18 +1,17 @@
 """A helical stair wound around a vertical design (the taproot).
 
-    spiral: reads the thing it wraps and tapers with it. The taproot is a cone - radius 1.4 near its
-            tip, 5.8 at its head - so a constant-radius helix would either clip the root at the top or
-            hang in space at the bottom. Radius here is measured off the target per course, plus a
-            clearance, so the stair hugs the root the whole way up.
+Modelled on a reference build Jack supplied. Two things that make it work, both of which I got wrong
+on my own:
 
-Pitch: `rise_every` treads per block of rise, and an angular step of 1/r radians so consecutive
-treads touch. One tread per rise is too steep - each course's rail lands exactly where the next
-tread wants to go - so the default is two.
+1. It is built ONLY from slabs, alternating `bottom` (surface y+0.5) and `top` (y+1.0), so every
+   course gives two half-steps and the rise is 0.5 a tread. Slabs carry no facing and no shape, so a
+   curve costs nothing - stairs, by contrast, have their `shape` recomputed by the game from their
+   neighbours and silently merge into corner pieces wherever the path turns.
 
-The audit will report this design as MULTIPLE COMPONENTS, and that is correct. A walkable stair
-rises diagonally (you step from one tread onto the next, one along and one up), and diagonal cells
-are not face-connected. Forcing 6-connectivity means stacking a tread directly over another, which
-buries the step below it. Walkable wins; the component count is the wrong metric for a helix.
+2. A tread is a radial SPOKE three or four cells wide, not a single cell. That is what sets the
+   pitch: consecutive spokes need only touch at the INNER edge, so the angular step is 1/inner_radius
+   and the outer end just makes the tread wide. Treating each tread as one cell at a fixed radius is
+   what limited the earlier attempt to 0.6 of a lap.
 """
 from __future__ import annotations
 
@@ -26,26 +25,17 @@ SPIRAL = {
     "under": None,             # capture, for collision checks
     "around": None,            # design .litematic to wrap (its radius per course drives the taper)
     "center": None,            # world (x, z); defaults to the wrapped design's centre
-    "y0": None, "y1": None,    # first and last tread
-    "clearance": 2,            # treads sit this far outside the wrapped design
+    "y0": None, "y1": None,    # first and last course
+    "clearance": 2,            # inner edge sits this far outside the wrapped design
     "min_radius": 3.0,
-    "fixed_radius": None,      # square ring half-side. A taper moves the ring sideways mid-run, which
-                               # reads as a direction change, so the stair becomes all corner landings
-                               # and never climbs. A spiral wants ONE ring size.
+    "width": 4,                # tread depth, measured outward from the inner edge
     "start_angle": 0.0,
     "direction": 1,            # +1 anticlockwise, -1 clockwise
-    "width": 2,                # tread depth, measured outward from the inner edge
-    # NOT stairs. A stair's `shape` is recomputed by the game from its neighbours, so a schematic
-    # cannot dictate it - treads next to each other silently become inner/outer corner pieces. A
-    # half-slab then a full block gives a 0.5 rise per tread, which walks smoothly and has no
-    # neighbour-dependent state at all.
-    "tread": "stone_brick_stairs",   # only ever in a straight run, all facing the same way
-    "step_high": "mossy_stone_bricks",  # corner landings
-    "inner": "mossy_stone_bricks",
+    "slab": "stone_brick_slab",
+    "slab_alt": "mossy_stone_brick_slab",
+    "alt_rate": 0.35,          # share of treads in the second slab, so it is not one flat tone
     "rail": "stone_brick_wall",
-    "rise_every": 2,           # treads per block of rise; 2 = slab, block, slab, block -> 0.5 a tread
-    "top_landing": True,       # widen the last tread so the arrival is standable
-    "lantern_every": 8,        # a lantern on the rail every N steps; 0 for none
+    "lantern_every": 12,       # a lantern on the rail every N treads; 0 for none
     "seed": 0,
 }
 
@@ -56,64 +46,96 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
     p = {**SPIRAL, **cfg}
     ctx = Ctx(p["under"]) if p.get("under") else None
     prof, (cx, cz), (ry0, ry1) = _target(p)
-    if p["fixed_radius"]:
-        prof = {y: float(p["fixed_radius"]) for y in range(int(p["y0"] or ry0), int(p["y1"] or ry1) + 1)}
-    else:
-        prof = _smooth(prof, float(p["clearance"]), float(p["min_radius"]))
     y0 = int(p["y0"]) if p["y0"] is not None else ry0
     y1 = int(p["y1"]) if p["y1"] is not None else ry1
     if y1 <= y0:
         raise ValueError(f"spiral needs y1 > y0 (got {y0}..{y1})")
+    prof = _smooth(prof, float(p["clearance"]), float(p["min_radius"]))
 
     w = World()
     spin = 1 if int(p["direction"]) >= 0 else -1
-    treads, cells, lanterns = [], set(), 0
-    t = float(p["start_angle"])                         # now a perimeter offset, in cells
-    h0 = prof.get(y0) or float(p["min_radius"])
-    prev = _ring(t, h0, cx, cz)
-    prev_dir = None
-    y = y0
-    laps = 0.0
-    guard = 0
-    while y <= y1 and guard < 4000:
-        guard += 1
-        h = prof.get(y) or float(p["min_radius"])
-        t += spin
-        laps += 1.0 / max(1.0, 8 * h)
-        cur = _ring(t, h, cx, cz)
-        if cur == prev:
-            continue
-        for (px, pz) in _walk(prev, cur):
-            d = (px - prev[0], pz - prev[1])
-            corner = prev_dir is not None and d != prev_dir
-            # A corner landing must be LEVEL with the back of the stair that arrives at it. Placed a
-            # course higher it is a full block step, which needs a jump and stops the climb dead.
-            place_y = max(y0, y - 1) if corner else y
-            # A stair only ever sits in a straight run, where every tread faces the same way. Corners
-            # get a flat landing instead: two stairs of different facing side by side is exactly what
-            # the game turns into an inner/outer corner piece.
-            _tread(w, px, place_y, pz, cx, cz, h, corner, _dirname(d), p, cells)
-            treads.append([px, place_y, pz])
-            prev_dir = d
-            prev = (px, pz)
-            if not corner:
-                y += 1
-                if y > y1:
-                    break
-        if p["lantern_every"] and len(treads) % int(p["lantern_every"]) == 0:
-            if _lantern(w, prev[0], y - 1, prev[1], cx, cz, h, p):
-                lanterns += 1
-    turns = round(laps, 2)
+    theta = float(p["start_angle"])
+    width, seed = int(p["width"]), int(p["seed"])
+    steps = (y1 - y0 + 1) * 2                          # two half-steps to a course
+    treads, laps, prev_inner = [], 0.0, None
+    for k in range(steps):
+        y = y0 + k // 2
+        low = (k % 2) == 0                             # bottom slab, then top slab, then up a course
+        r_in = prof.get(y) or float(p["min_radius"])
+        cells = _spoke(cx, cz, theta, r_in, r_in + width)
+        # Consecutive spokes can land two cells apart at the inner edge, which is a hole you cannot
+        # walk over. Bridge it so the inner rail of the helix is always continuous.
+        if cells and prev_inner is not None:
+            cells = _bridge(prev_inner, cells[0]) + cells
+        if cells:
+            prev_inner = cells[-1] if False else _spoke(cx, cz, theta, r_in, r_in)[0]
+        for (x, z) in cells:
+            name = p["slab_alt"] if hash01(x, z, 19, seed) < p["alt_rate"] else p["slab"]
+            w.put(x, y, z, name, type="bottom" if low else "top", waterlogged="false")
+        if cells:
+            treads.append([cells[0][0], y, cells[0][1]])
+        d = spin / max(1.0, r_in)                      # one cell of arc at the inner edge
+        theta += d
+        laps += abs(d) / (2 * math.pi)
 
-    _clear_heads(w, cells, p)
-    if p["top_landing"]:
-        _landing(w, treads[-1], cx, cz, p, cells)
-    _settle_walls(w, ctx or _NoCtx(), p["rail"])
-    hits = 0 if ctx is None else sum(1 for (x, y, z) in w.cells
-                                     if ctx.name_at(x, y, z) not in ("air", "cave_air", "void_air", "vine"))
+    rails = _rails(w, ctx, cx, cz, prof, y0, y1, width, p, seed)
     return w.canvas({"kind": "spiral", "center": [cx, cz], "y0": y0, "y1": y1,
-                     "treads": len(treads), "turns": round(turns, 2), "lanterns": lanterns,
-                     "collisions": hits, "first": treads[0], "last": treads[-1]})
+                     "treads": len(treads), "turns": round(laps, 2), "rails": rails,
+                     "width": width})
+
+
+def _spoke(cx: int, cz: int, theta: float, r_in: float, r_out: float) -> list:
+    """The cells of one tread: a radial line from the inner edge outward, no gaps."""
+    ux, uz = math.cos(theta), math.sin(theta)
+    out, seen = [], set()
+    r = r_in
+    while r <= r_out:
+        cell = (cx + int(round(r * ux)), cz + int(round(r * uz)))
+        if cell not in seen:
+            seen.add(cell)
+            out.append(cell)
+        r += 0.34                                      # fine enough that the line never skips a cell
+    return out
+
+
+def _bridge(a, b) -> list:
+    """Face-adjacent cells from a to b, exclusive of both ends."""
+    (x0, z0), (x1, z1) = a, b
+    out, x, z = [], x0, z0
+    while (x, z) != (x1, z1):
+        if x != x1:
+            x += 1 if x1 > x else -1
+        elif z != z1:
+            z += 1 if z1 > z else -1
+        if (x, z) != (x1, z1):
+            out.append((x, z))
+    return out
+
+
+def _rails(w: World, ctx, cx: int, cz: int, prof: dict, y0: int, y1: int, width: int,
+           p: dict, seed: int) -> int:
+    """A wall on the outer lip, one course above whatever tread is under it, plus the odd lantern."""
+    n = 0
+    tread_cells = {(x, y, z) for (x, y, z) in w.cells}
+    for (x, y, z) in sorted(tread_cells):
+        r = math.hypot(x - cx, z - cz)
+        r_in = prof.get(y) or float(p["min_radius"])
+        if r < r_in + width - 0.7:                     # only the outermost ring of each tread
+            continue
+        if (x, y + 1, z) in tread_cells or w.has(x, y + 1, z):
+            continue
+        if ctx is not None and ctx.name_at(x, y + 1, z) not in ("air", "cave_air", "void_air", "vine"):
+            continue
+        w.put(x, y + 1, z, p["rail"], up="true", north="none", south="none",
+              east="none", west="none", waterlogged="false")
+        n += 1
+    if p["lantern_every"]:
+        posts = [c for c in sorted(w.cells) if w.name(*c) == p["rail"]]
+        for i, (x, y, z) in enumerate(posts):
+            if i % int(p["lantern_every"]) == 0 and not w.has(x, y + 1, z):
+                w.put(x, y + 1, z, "lantern", hanging="false", waterlogged="false")
+    _settle_walls(w, ctx or _NoCtx(), p["rail"])
+    return n
 
 
 # ------------------------------------------------------------------ the thing being wrapped
@@ -161,141 +183,6 @@ def _smooth(prof: dict, clearance: float, min_r: float) -> dict:
 
 
 # ------------------------------------------------------------------ pieces
-
-def _tread(w: World, x: int, y: int, z: int, cx: int, cz: int, r: float, corner: bool, facing: str,
-           p: dict, treads: set):
-    """A stair in a straight run, or a flat landing block at a corner."""
-    if corner:
-        w.put(x, y, z, p["step_high"])
-    else:
-        w.put(x, y, z, p["tread"], facing=facing, half="bottom", shape="straight", waterlogged="false")
-    treads.add((x, y, z))
-    ux, uz = _outward(x, z, cx, cz)
-    for k in range(1, int(p["width"])):                 # widen INWARD, toward the root
-        w.put(x - ux * k, y, z - uz * k, p["inner"])    # structural: never skipped, it carries the walk
-    rx, rz = x + ux, z + uz                             # the cell just outside the tread
-    if w.has(rx, y + 1, rz) or not _free(treads, rx, y, rz) or not _free(treads, rx, y + 1, rz):
-        return
-    w.put(rx, y, rz, p["inner"])                        # the rail needs something to stand on
-    w.put(rx, y + 1, rz, p["rail"], up="true", north="none", south="none",
-          east="none", west="none", waterlogged="false")
-
-
-def _clear_heads(w: World, treads: set, p: dict):
-    """Drop any rail sitting on a tread's head.
-
-    Within one course the rail is placed before the treads that follow it, so a later tread can land
-    under an earlier rail. Guarding at placement time cannot see that; sweeping afterwards can. Rails
-    are decorative - the walk and the connectivity live in the treads and their fill."""
-    for (x, y, z) in list(treads):
-        for k in (1, 2):
-            if w.name(x, y + k, z) == p["rail"]:
-                del w.cells[(x, y + k, z)]
-
-
-def _free(treads: set, x: int, y: int, z: int) -> bool:
-    """False when this cell is directly over a tread (or two over, where a rail would sit)."""
-    return (x, y - 1, z) not in treads and (x, y - 2, z) not in treads
-
-
-def _landing(w: World, last, cx: int, cz: int, p: dict, treads: set):
-    """Widen the final tread into a small platform, so the climb ends somewhere rather than stopping."""
-    x, y, z = last
-    ux, uz = _outward(x, z, cx, cz)
-    for a in (-1, 0, 1):
-        px, pz = (x + a, z) if uz else (x, z + a)
-        for k in range(0, int(p["width"])):
-            qx, qz = px - ux * k, pz - uz * k
-            # never widen over the tread that the final run arrives on: that walls off the approach
-            if w.has(qx, y, qz) or (qx, y - 1, qz) in treads:
-                continue
-            w.put(qx, y, qz, p["inner"])
-
-
-def _lantern(w: World, x: int, y: int, z: int, cx: int, cz: int, r: float, p: dict) -> bool:
-    ux, uz = _outward(x, z, cx, cz)
-    rx, rz = x + ux, z + uz
-    if w.name(rx, y + 1, rz) != p["rail"] or w.has(rx, y + 2, rz):
-        return False
-    w.put(rx, y + 2, rz, "lantern", hanging="false", waterlogged="false")
-    return True
-
-
-def _outward(x: int, z: int, cx: int, cz: int) -> tuple[int, int]:
-    """Unit step away from the axis, snapped to whichever of x/z dominates."""
-    dx, dz = x - cx, z - cz
-    if abs(dx) >= abs(dz):
-        return (1 if dx > 0 else -1), 0
-    return 0, (1 if dz > 0 else -1)
-
-
-def _ring(t: float, h: float, cx: int, cz: int) -> tuple[int, int]:
-    """Point at perimeter distance `t` around a SQUARE of half-side h.
-
-    A square, not a circle: sampling a circle on a block grid gives a diagonal zigzag that changes
-    direction every few treads, and stairs that keep turning into each other. A square gives long
-    straight runs with four clean corners."""
-    side = max(1.0, 2 * h)
-    per = 4 * side
-    u = t % per
-    if u < side:
-        return int(round(cx - h + u)), int(round(cz - h))
-    if u < 2 * side:
-        return int(round(cx + h)), int(round(cz - h + (u - side)))
-    if u < 3 * side:
-        return int(round(cx + h - (u - 2 * side))), int(round(cz + h))
-    return int(round(cx - h)), int(round(cz + h - (u - 3 * side)))
-
-
-def _walk(prev, cur):
-    """Face-adjacent cells from prev to cur (x first, then z)."""
-    (x0, z0), (x1, z1) = prev, cur
-    out, x, z = [], x0, z0
-    while x != x1:
-        x += 1 if x1 > x else -1
-        out.append((x, z))
-    while z != z1:
-        z += 1 if z1 > z else -1
-        out.append((x, z))
-    return out or [cur]
-
-
-def _dirname(d) -> str:
-    dx, dz = d
-    if abs(dx) >= abs(dz):
-        return "east" if dx > 0 else "west"
-    return "south" if dz > 0 else "north"
-
-
-def _path(prev, cur, y):
-    """Face-adjacent cells from prev to cur, ALL on the same course.
-
-    Dropping the intermediates a course lower seemed tidier, but then the next step's fill lands on
-    their heads and you cannot stand on them. Keeping the walk flat makes a two-cell move read as a
-    small landing, which is what a spiral wants anyway; yields (cell, y, is_last)."""
-    (x0, z0), (x1, z1) = prev, cur
-    cells = []
-    x, z = x0, z0
-    while x != x1:
-        x += 1 if x1 > x else -1
-        cells.append((x, z))
-    while z != z1:
-        z += 1 if z1 > z else -1
-        cells.append((x, z))
-    if not cells:
-        cells = [cur]
-    return [(c, y, i == len(cells) - 1) for i, c in enumerate(cells)]
-
-
-def _facing(prev, cur) -> str:
-    """Stairs face the way you are travelling, so you ascend into the riser."""
-    if prev is None:
-        return "north"
-    dx, dz = cur[0] - prev[0], cur[1] - prev[1]
-    if abs(dx) >= abs(dz):
-        return "east" if dx > 0 else "west"
-    return "south" if dz > 0 else "north"
-
 
 class _NoCtx:
     """Stand-in when no capture is given: nothing exists, so walls only see their own neighbours."""
