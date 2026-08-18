@@ -1,0 +1,17 @@
+# Owl Altar: shrine inside the hollow owl. Doorway dug in the east face (toward the lawn), slab aisle,
+# 3x3 stone-brick altar against the west wall with a soul lantern on a wall pillar, candles, flanking lanterns,
+# a lectern facing the door, soul lanterns hanging from the shell ceiling. Dig list in the sidecar.
+name: Owl Altar
+gen: altar
+params:
+  under: out/island_now.litematic
+  box: [-24248, 30011, -24230, 30031]
+  floor_y: 203
+  door: {side: east, z: 30021, width: 2, height: 3}
+  aisle_width: 3
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/island_now.litematic

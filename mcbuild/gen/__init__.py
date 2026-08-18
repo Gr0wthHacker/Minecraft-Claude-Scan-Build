@@ -37,6 +37,7 @@ GENERATORS = {
     "ridelights": _Wrap(dressing.build_ridelights, dressing.RIDELIGHTS),
     "apiary": _Wrap(dressing.build_apiary, dressing.APIARY),
     "birdlanterns": _Wrap(dressing.build_birdlanterns, dressing.BIRDLANTERNS),
+    "altar": _Wrap(dressing.build_altar, dressing.ALTAR),
 }
 
 __all__ = ["GENERATORS", "Canvas", "hash01"]

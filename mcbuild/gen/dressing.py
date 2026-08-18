@@ -433,3 +433,155 @@ def build_birdlanterns(cfg: dict, donors=None) -> Canvas:
         w.put(x, y - d - 1, z, "lantern", hanging="true", waterlogged="false")
         placed.append((x, z))
     return w.canvas({"kind": "birdlanterns", "count": len(placed)})
+
+# ================================================================== altar inside a hollow build
+
+ALTAR = {"under": None, "box": None, "floor_y": 203, "door": {"side": "east", "z": None, "x": None, "width": 2, "height": 3},
+         "aisle_width": 3, "inset": 3, "seed": 0}
+
+
+def build_altar(cfg: dict, donors=None) -> Canvas:
+    """Shrine inside a hollow statue: dug doorway (dig list in sidecar), slab aisle from the door, a 3x3
+    stone-brick altar against the far wall with a soul lantern on a wall pillar, candles, flanking lanterns,
+    a lectern facing the door, and soul lanterns hanging from the shell ceiling."""
+    p = {**ALTAR, **cfg}
+    ctx = Ctx(p["under"])
+    x1, z1, x2, z2 = p["box"]; fy = int(p["floor_y"]); seed = int(p["seed"])
+    interior = _interior(ctx, (x1, z1, x2, z2), fy + 2)
+    if not interior:
+        raise ValueError("no enclosed interior found in the box at floor_y+2")
+    floor = {(x, z) for (x, z) in interior if ctx.name_at(x, fy, z) == "air" and ctx.name_at(x, fy - 1, z) not in ("air", "vine")}
+    cx = round(sum(x for x, _ in floor) / len(floor)); cz = round(sum(z for _, z in floor) / len(floor))
+    door, dig = _doorway(ctx, p["door"], (x1, z1, x2, z2), fy, interior)
+    dx, dz = _door_dir(p["door"]["side"])                       # unit vector pointing INTO the room
+    w = World()
+    # altar 3x3 against the far wall (opposite the door), 2 in from the wall
+    far = _far_point(floor, cx, cz, dx, dz)
+    ax, az = far[0] - int(p["inset"]) * dx, far[1] - int(p["inset"]) * dz
+    _altar_block(w, ctx, ax, az, fy, dx, dz, floor)
+    # aisle from the door to the altar
+    _aisle(w, ctx, door, (ax, az), fy, int(p["aisle_width"]), floor, seed)
+    # ceiling soul lanterns
+    _ceiling_lights(w, ctx, interior, fy, seed)
+    return w.canvas({"kind": "altar", "interior_cells": len(interior), "floor_cells": len(floor), "altar_at": [ax, fy, az],
+                     "door": door, "dig": [list(d) for d in dig]})
+
+
+def _door_dir(side):
+    return {"east": (-1, 0), "west": (1, 0), "south": (0, -1), "north": (0, 1)}[side]
+
+
+def _interior(ctx: Ctx, box, y):
+    """2-D flood from the box centre at height y, bounded by solid; empty if it leaks out of the box."""
+    x1, z1, x2, z2 = box
+    sx, sz = (x1 + x2) // 2, (z1 + z2) // 2
+    seen, stack = set(), [(sx, sz)]
+    while stack:
+        x, z = stack.pop()
+        if (x, z) in seen:
+            continue
+        if not (x1 <= x <= x2 and z1 <= z <= z2):
+            return set()
+        if ctx.name_at(x, y, z) not in ("air", "vine"):
+            continue
+        seen.add((x, z))
+        stack += [(x + 1, z), (x - 1, z), (x, z + 1), (x, z - 1)]
+    return seen
+
+
+def _doorway(ctx: Ctx, d, box, fy, interior):
+    """Cells to dig for a width x height opening through the wall on `side`, at the given z (E/W) or x (N/S)."""
+    x1, z1, x2, z2 = box
+    side, wdt, hgt = d["side"], int(d["width"]), int(d["height"])
+    dig = []
+    if side in ("east", "west"):
+        zc = int(d["z"]); xs = range(x2, x1 - 1, -1) if side == "east" else range(x1, x2 + 1)
+        # walk inward from the box edge until interior is reached; dig every solid on the way
+        cols = [(x, z) for z in range(zc - wdt // 2, zc - wdt // 2 + wdt) for x in xs]
+        stop = {}
+        for (x, z) in cols:
+            if (x, z) in interior:
+                stop[z] = True
+            if not stop.get(z):
+                for y in range(fy, fy + hgt):
+                    if ctx.name_at(x, y, z) not in ("air", "vine"):
+                        dig.append((x, y, z, ctx.name_at(x, y, z)))
+        inner = [(x, z) for (x, z) in cols if (x, z) in interior]
+        door = inner[0] if inner else cols[-1]
+    else:
+        xc = int(d["x"]); zs = range(z2, z1 - 1, -1) if side == "south" else range(z1, z2 + 1)
+        cols = [(x, z) for x in range(xc - wdt // 2, xc - wdt // 2 + wdt) for z in zs]
+        stop = {}
+        for (x, z) in cols:
+            if (x, z) in interior:
+                stop[x] = True
+            if not stop.get(x):
+                for y in range(fy, fy + hgt):
+                    if ctx.name_at(x, y, z) not in ("air", "vine"):
+                        dig.append((x, y, z, ctx.name_at(x, y, z)))
+        inner = [(x, z) for (x, z) in cols if (x, z) in interior]
+        door = inner[0] if inner else cols[-1]
+    return list(door), dig
+
+
+def _far_point(floor, cx, cz, dx, dz):
+    return max(floor, key=lambda c: (c[0] - cx) * dx + (c[1] - cz) * dz)
+
+
+def _altar_block(w, ctx, ax, az, fy, dx, dz, floor):
+    S = lambda x, y, z, n, **pr: (w.put(x, y, z, n, **pr) if (x, z) in floor and ctx.name_at(x, y, z) == "air" else None)
+    for ddx in (-1, 0, 1):
+        for ddz in (-1, 0, 1):
+            x, z = ax + ddx, az + ddz
+            S(x, fy, z, "mossy_stone_bricks" if (ddx + ddz) % 2 else "stone_bricks")
+    # centre pillar + soul lantern
+    S(ax, fy + 1, az, "stone_brick_wall", up="true", north="none", south="none", east="none", west="none", waterlogged="false")
+    S(ax, fy + 2, az, "stone_brick_wall", up="true", north="none", south="none", east="none", west="none", waterlogged="false")
+    S(ax, fy + 3, az, "soul_lantern", hanging="false", waterlogged="false")
+    # candles on the two front corners (toward the door), lanterns on posts at the back corners
+    px, pz = -dz, dx                                             # perpendicular
+    fx, fz = ax - dx, az - dz                                    # one step toward the door
+    for s in (-1, 1):
+        S(fx + s * px, fy + 1, fz + s * pz, "candle", candles="3", lit="true", waterlogged="false")
+        bx, bz = ax + dx + s * px, az + dz + s * pz
+        S(bx, fy + 1, bz, "stone_brick_wall", up="true", north="none", south="none", east="none", west="none", waterlogged="false")
+        S(bx, fy + 2, bz, "lantern", hanging="false", waterlogged="false")
+    # lectern facing the door, two steps in front of the altar
+    lx, lz = ax - 3 * dx, az - 3 * dz
+    facing = {(-1, 0): "west", (1, 0): "east", (0, -1): "north", (0, 1): "south"}[(-dx, -dz)]
+    S(lx, fy, lz, "lectern", facing=facing, has_book="false", powered="false")
+
+
+def _aisle(w, ctx, door, altar, fy, width, floor, seed):
+    (x0, z0), (x1, z1) = tuple(door), altar
+    n = max(abs(x1 - x0), abs(z1 - z0), 1)
+    px, pz = (0, 1) if abs(x1 - x0) >= abs(z1 - z0) else (1, 0)
+    for i in range(n + 1):
+        t = i / n
+        cx, cz = round(x0 + (x1 - x0) * t), round(z0 + (z1 - z0) * t)
+        for k in range(-(width // 2), width - width // 2):
+            x, z = cx + k * px, cz + k * pz
+            if (x, z) in floor and ctx.name_at(x, fy, z) == "air" and not w.has(x, fy, z):
+                name = "mossy_stone_brick_slab" if hash01(x, z, 131, seed) < 0.4 else "stone_brick_slab"
+                w.put(x, fy, z, name, type="bottom", waterlogged="false")
+
+
+def _ceiling_lights(w, ctx, interior, fy, seed):
+    """Three soul lanterns on chains from the highest interior ceiling above the room's middle."""
+    cells = sorted(interior, key=lambda c: hash01(c[0], c[1], 137, seed))
+    placed = 0
+    for (x, z) in cells:
+        if placed >= 3:
+            break
+        if any(abs(x - qx) + abs(z - qz) < 4 for (qx, qy, qz) in w.cells if w.cells[(qx, qy, qz)][0] == "soul_lantern" and qy > fy + 4):
+            continue
+        y = fy + 3
+        while ctx.name_at(x, y + 1, z) == "air" and y < fy + 40:
+            y += 1
+        if ctx.name_at(x, y + 1, z) in ("air", "vine") or y - fy < 8:
+            continue
+        drop = 3 + int(hash01(x, z, 139, seed) * 3)
+        for i in range(drop):
+            w.put(x, y - i, z, "iron_chain", axis="y", waterlogged="false")
+        w.put(x, y - drop, z, "soul_lantern", hanging="true", waterlogged="false")
+        placed += 1
