@@ -316,7 +316,17 @@ public final class ChunkScanClient implements ClientModInitializer {
 		try {
 			Map<String, Storage.Container> all = Storage.load(dir(src));
 			int items = all.values().stream().mapToInt(Storage.Container::total).sum();
+			long stale = all.values().stream().filter(c -> c.fullness() < 0).count();
 			ok(src, all.size() + " containers indexed, " + items + " items total. Open a container to index it; /cscan find <item> to locate one.");
+			BlockPos me = src.getClient().player.blockPosition();
+			List<Storage.Container> full = new ArrayList<>(all.values());
+			full.removeIf(c -> c.fullness() < 80);
+			full.sort((a, b) -> Integer.compare(b.fullness(), a.fullness()));
+			for (Storage.Container c : full.subList(0, Math.min(6, full.size()))) {
+				ok(src, "  " + c.fullness() + "% full: " + c.describe() + " " + (int) Math.sqrt(c.pos().distSqr(me))
+					+ "m " + Storage.direction(me, c.pos()));
+			}
+			if (stale > 0) ok(src, "  " + stale + " indexed before fullness was recorded - reopen them to fill it in");
 			return 1;
 		} catch (Exception e) {
 			src.sendError(Component.literal("[cscan] " + e.getMessage()));

@@ -169,6 +169,10 @@ def cmd_storage(a):
 
 
 def cmd_place(a):
+    print("note: /cscan place in game does the same thing and does not need the game closed.
+"
+          "      Litematica rewrites this config on exit, so anything written while it runs is lost.",
+          file=sys.stderr)
     print(coop.place(a.designs, server=a.server, dim=a.dim, game_dir=a.game_dir, enabled=not a.disabled, dry=a.dry))
 
 
@@ -229,7 +233,7 @@ def main(argv=None):
     p.set_defaults(fn=cmd_shop)
     p = sub.add_parser("storage", help="what chunkscan has indexed inside your containers")
     p.set_defaults(fn=cmd_storage)
-    p = sub.add_parser("place", help="write Litematica placements (schematic + origin) into the per-world config; game must be closed")
+    p = sub.add_parser("place", help="DEPRECATED, prefer /cscan place in game: writes Litematica placements into the per-world config; the game must be CLOSED or Litematica overwrites them on exit")
     p.add_argument("designs", nargs="+"); p.add_argument("--server"); p.add_argument("--dim")
     p.add_argument("--game-dir"); p.add_argument("--disabled", action="store_true"); p.add_argument("--dry", action="store_true"); p.set_defaults(fn=cmd_place)
     p = sub.add_parser("work", help="write <design>.work.json so /cscan need|next|check can read it")
