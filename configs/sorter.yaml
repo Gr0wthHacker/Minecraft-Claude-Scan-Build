@@ -1,0 +1,23 @@
+# Auto item sorter on the 3x16 strip east of the vault colonnade - dead space otherwise.
+# Lane order follows the taxonomy already on your chest-wall signs.
+#
+# The generator cannot put items in hoppers. Each filter hopper needs ONE of its target item plus
+# FOUR unstackable filler items (name tags, saddles, buckets - anything that will not stack).
+# The list is in the sidecar under `filter_stock`.
+name: Item Sorter
+gen: sorter
+params:
+  under: out/island_now.litematic
+  start: [-24190, 195, 30018]   # first lane; the run heads south down the free strip
+  run: z+
+  lanes: 16
+  filters: [cobblestone, stone, deepslate, oak_log, oak_sapling, wheat_seeds, moss_block,
+            azalea, bone, arrow, string, white_wool, ink_sac, ice, iron_ingot, redstone]
+  body: stone_bricks
+  chest: chest
+finish:
+  cheapen: false        # redstone is not decoration; nothing here may be substituted
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/island_now.litematic

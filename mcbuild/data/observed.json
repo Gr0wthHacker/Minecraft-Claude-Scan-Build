@@ -1,207 +1,379 @@
 {
+ "palette": {
+  "acacia_stairs": 4,
+  "acacia_trapdoor": 6,
+  "anvil": 2,
+  "attached_pumpkin_stem": 2,
+  "azalea": 76,
+  "azalea_leaves": 1158,
+  "barrel": 6,
+  "bedrock": 2,
+  "bee_nest": 2,
+  "beehive": 46,
+  "birch_door": 4,
+  "birch_leaves": 256,
+  "birch_log": 26,
+  "birch_sign": 6,
+  "birch_stairs": 2,
+  "birch_trapdoor": 104,
+  "birch_wall_sign": 10,
+  "black_terracotta": 26,
+  "black_wool": 794,
+  "blue_wool": 10,
+  "bone_block": 72,
+  "bookshelf": 92,
+  "brown_terracotta": 144,
+  "brown_wool": 38,
+  "bubble_column": 44,
+  "cake": 4,
+  "campfire": 2,
+  "candle": 2,
+  "chest": 278,
+  "cobblestone": 9630,
+  "cobblestone_slab": 238,
+  "cobblestone_wall": 54,
+  "comparator": 2,
+  "composter": 4,
+  "cracked_stone_bricks": 892,
+  "crafting_table": 6,
+  "cyan_terracotta": 46,
+  "cyan_wool": 72,
+  "dandelion": 2,
+  "dirt": 20,
+  "dispenser": 34,
+  "farmland": 150,
+  "flowering_azalea": 92,
+  "flowering_azalea_leaves": 572,
+  "furnace": 14,
+  "glass": 12,
+  "glass_pane": 78,
+  "glowstone": 12,
+  "grass_block": 4,
+  "gray_concrete": 4,
+  "gray_wool": 8,
+  "green_terracotta": 118,
+  "green_wool": 766,
+  "hopper": 60,
+  "ice": 44,
+  "iron_chain": 92,
+  "jukebox": 2,
+  "jungle_leaves": 22,
+  "jungle_trapdoor": 2,
+  "ladder": 10,
+  "lantern": 244,
+  "lava": 10,
+  "lectern": 4,
+  "lever": 4,
+  "light_blue_carpet": 14,
+  "light_blue_wool": 72,
+  "light_gray_wool": 1298,
+  "lily_of_the_valley": 16,
+  "lily_pad": 12,
+  "lime_terracotta": 40,
+  "lime_wool": 2044,
+  "magma_block": 26,
+  "mangrove_door": 8,
+  "mangrove_fence": 64,
+  "mangrove_fence_gate": 2,
+  "mangrove_leaves": 4,
+  "mangrove_planks": 22,
+  "mangrove_slab": 12,
+  "mangrove_stairs": 8,
+  "mangrove_trapdoor": 36,
+  "moss_block": 17682,
+  "moss_carpet": 762,
+  "mossy_cobblestone": 1834,
+  "mossy_cobblestone_slab": 354,
+  "mossy_cobblestone_wall": 8,
+  "mossy_stone_brick_slab": 406,
+  "mossy_stone_bricks": 1424,
+  "note_block": 6,
+  "oak_button": 2,
+  "oak_fence": 650,
+  "oak_leaves": 6140,
+  "oak_log": 876,
+  "oak_planks": 370,
+  "oak_pressure_plate": 6,
+  "oak_sign": 12,
+  "oak_slab": 144,
+  "oak_stairs": 14,
+  "oak_trapdoor": 52,
+  "oak_wall_sign": 30,
+  "oak_wood": 562,
+  "observer": 12,
+  "ochre_froglight": 2,
+  "orange_concrete": 8,
+  "orange_terracotta": 52,
+  "orange_wool": 1702,
+  "pink_tulip": 172,
+  "pink_wool": 74,
+  "piston": 10,
+  "piston_head": 4,
+  "poppy": 2,
+  "potted_crimson_fungus": 2,
+  "potted_lily_of_the_valley": 2,
+  "potted_red_mushroom": 2,
+  "powered_rail": 122,
+  "pumpkin": 2,
+  "pumpkin_stem": 100,
+  "purple_bed": 4,
+  "rail": 122,
+  "red_carpet": 16,
+  "red_shulker_box": 2,
+  "red_wool": 402,
+  "redstone_torch": 34,
+  "redstone_wall_torch": 6,
+  "redstone_wire": 68,
+  "repeater": 28,
+  "sculk_sensor": 2,
+  "short_grass": 244,
+  "shroomlight": 60,
+  "smooth_stone": 200,
+  "smooth_stone_slab": 128,
+  "snow_block": 4212,
+  "soul_lantern": 2,
+  "soul_sand": 10,
+  "spawner": 8,
+  "spore_blossom": 2,
+  "spruce_button": 2,
+  "spruce_fence": 170,
+  "spruce_leaves": 44,
+  "spruce_log": 106,
+  "spruce_planks": 744,
+  "spruce_sign": 24,
+  "spruce_slab": 356,
+  "spruce_stairs": 426,
+  "spruce_trapdoor": 140,
+  "spruce_wall_sign": 64,
+  "sticky_piston": 10,
+  "stone": 2718,
+  "stone_brick_slab": 704,
+  "stone_brick_stairs": 472,
+  "stone_brick_wall": 294,
+  "stone_bricks": 6172,
+  "stone_button": 6,
+  "stripped_mangrove_log": 104,
+  "stripped_oak_log": 2,
+  "stripped_oak_wood": 8,
+  "stripped_spruce_log": 516,
+  "sweet_berry_bush": 16,
+  "tall_grass": 28,
+  "terracotta": 2,
+  "torch": 140,
+  "vine": 19042,
+  "wall_torch": 132,
+  "water": 632,
+  "wheat": 32,
+  "white_carpet": 6,
+  "white_terracotta": 408,
+  "white_tulip": 58,
+  "white_wool": 624,
+  "yellow_terracotta": 86,
+  "yellow_wool": 806
+ },
  "rules": {
   "carpet": {
    "below": {
-    "azalea_leaves": 55,
-    "flowering_azalea_leaves": 75,
-    "ice": 5,
-    "lime_wool": 10,
-    "moss_block": 1114,
-    "oak_leaves": 370,
-    "oak_log": 15,
-    "red_wool": 40,
-    "spruce_planks": 35,
-    "stone": 5,
-    "stone_brick_slab": 3,
-    "stone_bricks": 10,
-    "water": 11,
-    "white_wool": 15
+    "azalea_leaves": 77,
+    "flowering_azalea_leaves": 105,
+    "ice": 7,
+    "lime_wool": 14,
+    "moss_block": 1652,
+    "oak_leaves": 518,
+    "oak_log": 21,
+    "red_wool": 56,
+    "spruce_planks": 49,
+    "stone": 7,
+    "stone_brick_slab": 5,
+    "stone_bricks": 14,
+    "water": 15,
+    "white_wool": 21
    }
   },
   "chain": {
    "above": {
-    "azalea_leaves": 15,
-    "flowering_azalea_leaves": 10,
-    "iron_chain": 115,
-    "light_gray_wool": 10,
-    "lime_wool": 5,
-    "moss_block": 20,
-    "oak_leaves": 25,
-    "oak_wood": 5,
-    "shroomlight": 5
+    "azalea_leaves": 21,
+    "flowering_azalea_leaves": 14,
+    "iron_chain": 161,
+    "light_gray_wool": 14,
+    "lime_wool": 7,
+    "moss_block": 28,
+    "oak_leaves": 35,
+    "oak_wood": 7,
+    "shroomlight": 7
    }
   },
   "ladder": {
    "behind": {
-    "spruce_planks": 15,
-    "spruce_slab": 5,
-    "white_wool": 5
+    "spruce_planks": 21,
+    "spruce_slab": 7,
+    "white_wool": 7
    }
   },
   "lantern": {
    "above": {
-    "cobblestone": 16,
-    "cracked_stone_bricks": 3,
-    "cyan_wool": 5,
-    "iron_chain": 95,
-    "moss_block": 36,
-    "oak_fence": 20,
-    "oak_log": 8,
-    "oak_slab": 65,
-    "red_wool": 5,
-    "spruce_planks": 5,
-    "spruce_slab": 5,
-    "spruce_stairs": 80,
-    "stone_brick_slab": 10,
-    "stripped_spruce_log": 10
+    "cobblestone": 24,
+    "cracked_stone_bricks": 5,
+    "cyan_wool": 7,
+    "iron_chain": 133,
+    "moss_block": 52,
+    "oak_fence": 28,
+    "oak_log": 12,
+    "oak_slab": 91,
+    "red_wool": 7,
+    "spruce_planks": 7,
+    "spruce_slab": 7,
+    "spruce_stairs": 112,
+    "stone_brick_slab": 14,
+    "stripped_spruce_log": 14
    },
    "below": {
-    "crafting_table": 10,
-    "moss_block": 25,
-    "mossy_cobblestone_wall": 9,
-    "mossy_stone_brick_slab": 20,
-    "oak_fence": 92,
-    "oak_log": 5,
-    "spruce_log": 20,
-    "spruce_planks": 5,
-    "spruce_slab": 5,
-    "spruce_trapdoor": 5,
-    "stone_bricks": 10
+    "crafting_table": 14,
+    "moss_block": 35,
+    "mossy_cobblestone_wall": 15,
+    "mossy_stone_brick_slab": 28,
+    "oak_fence": 140,
+    "oak_log": 7,
+    "spruce_log": 28,
+    "spruce_planks": 7,
+    "spruce_slab": 7,
+    "spruce_trapdoor": 7,
+    "stone_bricks": 14
    }
   },
   "plant:azalea": {
    "below": {
-    "moss_block": 158
+    "moss_block": 234
    }
   },
   "plant:dandelion": {
    "below": {
-    "moss_block": 5
+    "moss_block": 7
    }
   },
   "plant:flowering_azalea": {
    "below": {
-    "moss_block": 210
+    "moss_block": 302
    }
   },
   "plant:lily_of_the_valley": {
    "below": {
-    "moss_block": 40
+    "moss_block": 56
    }
   },
   "plant:pink_tulip": {
    "below": {
-    "moss_block": 430
+    "moss_block": 602
    }
   },
   "plant:poppy": {
    "below": {
-    "moss_block": 7
+    "moss_block": 9
    }
   },
   "plant:short_grass": {
    "below": {
-    "moss_block": 600
+    "moss_block": 844
    }
   },
   "plant:sweet_berry_bush": {
    "below": {
-    "farmland": 40
+    "farmland": 56
    }
   },
   "plant:tall_grass": {
    "below": {
-    "moss_block": 35,
-    "tall_grass": 35
+    "moss_block": 49,
+    "tall_grass": 49
    }
   },
   "plant:white_tulip": {
    "below": {
-    "moss_block": 146
+    "moss_block": 204
    }
   },
   "torch": {
    "below": {
-    "black_wool": 20,
-    "bookshelf": 5,
-    "cobblestone": 72,
-    "light_gray_wool": 15,
-    "moss_block": 145,
-    "oak_planks": 65,
-    "orange_wool": 5,
-    "smooth_stone": 15,
-    "snow_block": 5,
-    "spruce_fence": 30,
-    "spruce_planks": 20,
-    "stone_bricks": 35
+    "black_wool": 28,
+    "bookshelf": 7,
+    "cobblestone": 102,
+    "light_gray_wool": 21,
+    "moss_block": 203,
+    "oak_planks": 91,
+    "orange_wool": 7,
+    "smooth_stone": 21,
+    "snow_block": 7,
+    "spruce_fence": 42,
+    "spruce_planks": 28,
+    "stone_bricks": 49
    }
   },
   "vine": {
    "above": {
-    "azalea_leaves": 30,
-    "cobblestone": 161,
-    "cracked_stone_bricks": 15,
-    "flowering_azalea_leaves": 30,
-    "lime_wool": 20,
-    "moss_block": 270,
-    "mossy_cobblestone": 36,
-    "mossy_stone_brick_slab": 4,
-    "mossy_stone_bricks": 24,
-    "oak_leaves": 90,
+    "azalea_leaves": 42,
+    "cobblestone": 237,
+    "cracked_stone_bricks": 27,
+    "flowering_azalea_leaves": 42,
+    "lime_wool": 28,
+    "moss_block": 414,
+    "mossy_cobblestone": 64,
+    "mossy_stone_brick_slab": 6,
+    "mossy_stone_bricks": 28,
+    "oak_leaves": 126,
     "oak_planks": 1,
-    "oak_wood": 10,
-    "snow_block": 11,
-    "stone": 48,
-    "stone_bricks": 51,
-    "vine": 70420
+    "oak_wood": 14,
+    "snow_block": 17,
+    "stone": 70,
+    "stone_bricks": 75,
+    "vine": 88398
    },
    "side": {
-    "azalea_leaves": 75,
-    "brown_wool": 5,
-    "cobblestone": 548,
-    "cracked_stone_bricks": 47,
-    "flowering_azalea_leaves": 20,
-    "green_wool": 5,
-    "lime_wool": 16,
-    "moss_block": 625,
-    "mossy_cobblestone": 108,
-    "mossy_cobblestone_slab": 3,
-    "mossy_stone_brick_slab": 150,
-    "mossy_stone_bricks": 56,
-    "oak_leaves": 155,
-    "oak_log": 145,
-    "oak_wood": 145,
-    "stone": 124,
-    "stone_bricks": 146
+    "azalea_leaves": 105,
+    "brown_wool": 7,
+    "cobblestone": 796,
+    "cracked_stone_bricks": 73,
+    "flowering_azalea_leaves": 28,
+    "green_wool": 7,
+    "lime_wool": 24,
+    "moss_block": 901,
+    "mossy_cobblestone": 168,
+    "mossy_cobblestone_slab": 5,
+    "mossy_stone_brick_slab": 210,
+    "mossy_stone_bricks": 68,
+    "oak_leaves": 217,
+    "oak_log": 203,
+    "oak_wood": 203,
+    "stone": 210,
+    "stone_bricks": 226
    }
   },
   "wall_sign": {
    "behind": {
-    "birch_stairs": 10,
-    "chest": 120,
-    "cobblestone": 15,
-    "moss_block": 45,
-    "red_wool": 5,
-    "stone_bricks": 65
+    "birch_stairs": 14,
+    "chest": 168,
+    "cobblestone": 21,
+    "moss_block": 63,
+    "red_wool": 7,
+    "stone_bricks": 91
    }
   },
   "wall_torch": {
    "behind": {
-    "birch_log": 10,
-    "black_wool": 5,
-    "cobblestone": 15,
-    "cyan_terracotta": 5,
-    "green_wool": 5,
-    "light_gray_wool": 10,
-    "moss_block": 140,
-    "oak_log": 5,
-    "oak_planks": 5,
-    "orange_wool": 50,
-    "snow_block": 35,
-    "stone_bricks": 40,
-    "stripped_spruce_log": 10,
-    "white_wool": 5,
-    "yellow_wool": 5
+    "birch_log": 14,
+    "black_wool": 7,
+    "cobblestone": 21,
+    "cyan_terracotta": 7,
+    "green_wool": 7,
+    "light_gray_wool": 14,
+    "moss_block": 196,
+    "oak_log": 7,
+    "oak_planks": 7,
+    "orange_wool": 70,
+    "snow_block": 49,
+    "stone_bricks": 56,
+    "stripped_spruce_log": 14,
+    "white_wool": 7,
+    "yellow_wool": 7
    }
   }
  },

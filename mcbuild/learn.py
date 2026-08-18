@@ -112,7 +112,36 @@ def load_observed() -> dict:
         return json.load(f)
 
 
-def merge_into_file(new: dict, source: str) -> tuple[dict, int]:
+def mine_palette(m) -> dict:
+    """How often each block appears. Placement rules say what is LEGAL; this says what the island is
+    actually made of, so a generator can match its texture instead of using hand-tuned weights."""
+    import collections
+    import numpy as np
+    names = [n.split(":")[-1] for n in m.names]
+    out = collections.Counter()
+    ids, counts = np.unique(m.ids, return_counts=True)
+    for i, c in zip(ids.tolist(), counts.tolist()):
+        n = names[i]
+        if n in ("air", "cave_air", "void_air"):
+            continue
+        out[n] += int(c)
+    return dict(out)
+
+
+def palette_mix(family: set[str] | None = None, top: int = 12) -> list[tuple[str, float]]:
+    """Observed blocks as weights that sum to 1, optionally restricted to a family."""
+    counts = load_observed().get("palette", {})
+    if family:
+        counts = {k: v for k, v in counts.items() if k in family}
+    total = sum(counts.values())
+    if not total:
+        return []
+    ranked = sorted(counts.items(), key=lambda kv: -kv[1])[:top]
+    scale = sum(c for _, c in ranked)
+    return [(n, c / scale) for n, c in ranked]
+
+
+def merge_into_file(new: dict, source: str, palette: dict | None = None) -> tuple[dict, int]:
     """Merge counts into observed.json; returns (data, number of new (kind, rel, neighbour) triples)."""
     data = load_observed()
     rules = data.setdefault("rules", {})
@@ -124,6 +153,10 @@ def merge_into_file(new: dict, source: str) -> tuple[dict, int]:
                 if nb not in bucket:
                     added += 1
                 bucket[nb] = bucket.get(nb, 0) + int(c)
+    if palette:
+        bucket = data.setdefault("palette", {})
+        for n, c in palette.items():
+            bucket[n] = bucket.get(n, 0) + int(c)
     data.setdefault("sources", [])
     if source not in data["sources"]:
         data["sources"].append(source)
@@ -141,7 +174,7 @@ def learn(names_or_paths: list[str]) -> str:
         except FileNotFoundError:
             m = schem.load(item)
         mined, anomalies = mine(m)
-        _, added = merge_into_file(mined, os.path.basename(item))
+        _, added = merge_into_file(mined, os.path.basename(item), mine_palette(m))
         triples = sum(len(c) for rels in mined.values() for c in rels.values())
         lines.append(f"{item}: {triples} distinct (block, relation, support) triples, {added} new; "
                      f"{len(anomalies)} anomalies (attached to air)")

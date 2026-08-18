@@ -25,4 +25,5 @@ progress:                           # designs reported (% built, left, shop list
   - out/Bird Lanterns.litematic
   - out/Deck Vault.litematic     # NOT in regen: `under` is pinned to the pre-vault capture (see configs/vault.yaml)
   - out/Sky Well Court.litematic # same - pinned to out/court_before.litematic
+  - out/Item Sorter.litematic
 learn: true

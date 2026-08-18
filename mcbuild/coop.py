@@ -356,10 +356,16 @@ def sync(cfg_path: str = "sync.yaml", verbose: bool = True) -> str:
                            capture_output=True, text=True, encoding="utf-8", errors="replace")
         tail = [l for l in r.stdout.splitlines() if l.startswith(("in context", "paste origin", "shipped", "buildability"))]
         lines.append(f"regen {c}: " + " | ".join(tail) if r.returncode == 0 else f"regen {c}: FAILED\n{r.stdout[-800:]}{r.stderr[-800:]}")
+    rows = {}
     for d in cfg.get("progress", []):
-        lines.append(progress(d, world_out).report(top=8))
+        pr = progress(d, world_out)
+        rows[os.path.basename(d)] = (pr.built, pr.total)
+        lines.append(pr.report(top=8))
     if cfg.get("progress"):
         lines.append(shop(cfg["progress"], world_out))
+        from . import history as history_mod
+        history_mod.record(rows)                       # one row per sync: gives progress a slope
+        lines.append(history_mod.report())
     if cfg.get("learn", True):
         lines.append(learn_mod.learn([world_out]).splitlines()[0])
     return "\n".join(lines)

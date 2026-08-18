@@ -232,6 +232,10 @@ def main(argv=None):
     p = sub.add_parser("place", help="write Litematica placements (schematic + origin) into the per-world config; game must be closed")
     p.add_argument("designs", nargs="+"); p.add_argument("--server"); p.add_argument("--dim")
     p.add_argument("--game-dir"); p.add_argument("--disabled", action="store_true"); p.add_argument("--dry", action="store_true"); p.set_defaults(fn=cmd_place)
+    p = sub.add_parser("work", help="write <design>.work.json so /cscan need|next|check can read it")
+    p.add_argument("designs", nargs="+"); p.add_argument("--ship", action="store_true"); p.set_defaults(fn=cmd_work)
+    p = sub.add_parser("history", help="blocks placed per sync and how many syncs are left")
+    p.set_defaults(fn=cmd_history)
     p = sub.add_parser("sync", help="after /cscan: cut latest scan, regenerate remaining designs, progress + shop, learn")
     p.add_argument("--config", default="sync.yaml"); p.set_defaults(fn=cmd_sync)
     p = sub.add_parser("card", help="one PNG per design for chat: renders + origin + BOM (+ progress with --world)")
@@ -250,3 +254,23 @@ def main(argv=None):
 
 if __name__ == "__main__":
     main()
+
+
+def cmd_work(a):
+    import shutil
+    from . import work as work_mod
+    from .profile import load as load_profile
+    prof = load_profile()
+    for d in a.designs:
+        out = work_mod.regenerate(d, prof["schem_dir"])
+        print("wrote", out)
+        if a.ship:
+            dest = os.path.join(prof["schem_dir"], os.path.basename(out))
+            if os.path.abspath(dest) != os.path.abspath(out):
+                shutil.copy(out, dest)
+                print("shipped ->", dest)
+
+
+def cmd_history(a):
+    from . import history as history_mod
+    print(history_mod.report())

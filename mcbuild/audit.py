@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from . import morph, palette
+from . import morph, nbt, palette
 from .schem import Model
 
 # blocks that need something specific to hold them up / against
@@ -224,7 +224,8 @@ def check_symmetry(m: Model, axis: str = "x", rows_from: int = 0) -> bool:
 
 
 def audit(m: Model, *, ground: bool = True, symmetry: bool = False,
-          symmetry_rows_from: int = 0, ground_block: str | None = None) -> Result:
+          symmetry_rows_from: int = 0, ground_block: str | None = None,
+          states: bool = True, reach: bool = False) -> Result:
     r = Result()
     s = m.solid()
     r.size = m.shape_xyz
@@ -239,6 +240,91 @@ def audit(m: Model, *, ground: bool = True, symmetry: bool = False,
     cav = (~s) & ~ext
     r.cavity_cells = int(cav.sum())
     r.problems = check_supports(m, ground_block=ground_block)
+    if states:
+        r.problems += check_states(m)
+    if reach:
+        r.problems += check_reach(m)
     if symmetry:
         r.symmetric = check_symmetry(m, rows_from=symmetry_rows_from)
     return r
+
+
+# ------------------------------------------------------------------ state sanity
+
+# A block state the game computes from its neighbours. If the design disagrees, Litematica paints the
+# cell red forever even though you placed the right block - the vault's wall railings hit exactly this.
+_FACING = {"stairs", "furnace", "chest", "trapped_chest", "ladder", "anvil", "dispenser", "dropper",
+           "observer", "piston", "sticky_piston", "repeater", "comparator", "hopper", "loom",
+           "smoker", "blast_furnace", "lectern", "beehive", "bee_nest", "carved_pumpkin"}
+
+
+def check_states(m: Model) -> list:
+    """Block states that cannot be right: a missing required property, or a value out of its set."""
+    out = []
+    s = m.solid()
+    seen = {}
+    for i, e in enumerate(m.palette):
+        name = nbt.state_name(e).split(":")[-1]
+        props = nbt.state_props(e)
+        bad = _state_problem(name, props)
+        if bad:
+            seen[i] = bad
+    if not seen:
+        return out
+    ys, zs, xs = np.where(s)
+    for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist()):
+        i = int(m.ids[y, z, x])
+        if i in seen:
+            out.append(Problem("state", x, y, z, seen[i]))
+    return out
+
+
+def _state_problem(name: str, props: dict) -> str | None:
+    base = name.rsplit("_", 1)[-1]
+    if name.endswith("_stairs"):
+        for k, allowed in (("facing", {"north", "south", "east", "west"}), ("half", {"top", "bottom"}),
+                           ("shape", {"straight", "inner_left", "inner_right", "outer_left", "outer_right"})):
+            if props.get(k) not in allowed:
+                return f"{name} {k}={props.get(k)!r}"
+    if name.endswith("_slab") and props.get("type") not in {"top", "bottom", "double"}:
+        return f"{name} type={props.get('type')!r}"
+    if name.endswith("_wall"):
+        for k in ("north", "south", "east", "west"):
+            if props.get(k) not in {"none", "low", "tall"}:
+                return f"{name} {k}={props.get(k)!r}"
+        if props.get("up") not in {"true", "false"}:
+            return f"{name} up={props.get('up')!r}"
+    if base in _FACING and "facing" in props and props["facing"] not in {
+            "north", "south", "east", "west", "up", "down"}:
+        return f"{name} facing={props['facing']!r}"
+    if name == "lantern" and props.get("hanging") not in {"true", "false"}:
+        return f"lantern hanging={props.get('hanging')!r}"
+    return None
+
+
+# ------------------------------------------------------------------ reachability
+
+def check_reach(m: Model, *, head: int = 2) -> list:
+    """Cells with nowhere for a player to stand while placing them.
+
+    `check_supports` says a block CAN exist; this says you can get to it. A cell is reachable when
+    some neighbour within one step is open for `head` blocks - that is where you stand. Under-island
+    work is where this bites, which is most of this island."""
+    out = []
+    s = m.solid()
+    sy, sz, sx = s.shape
+    open_ = ~s
+    stand = open_.copy()
+    for d in range(1, head):
+        stand &= np.concatenate([open_[d:], np.zeros((d, sz, sx), bool)], axis=0)
+    ys, zs, xs = np.where(s)
+    for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist()):
+        ok = False
+        for dy, dz, dx in ((0, 0, 1), (0, 0, -1), (0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0)):
+            ny, nz, nx = y + dy, z + dz, x + dx
+            if 0 <= ny < sy and 0 <= nz < sz and 0 <= nx < sx and stand[ny, nz, nx]:
+                ok = True
+                break
+        if not ok:
+            out.append(Problem("reach", x, y, z, "no open cell beside it to stand in and place from"))
+    return out

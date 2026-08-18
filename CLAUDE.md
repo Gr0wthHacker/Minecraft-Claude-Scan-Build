@@ -56,6 +56,14 @@ python -m mcbuild card <design> --world out/island_now.litematic     # one PNG f
 python -m mcbuild diff <old scan> <new scan>
 ```
 In game: `/cscan island` to scan, `/cscan place` to place every design at its recorded origin.
+While building:
+```
+/cscan need <design>     materials for the unbuilt cells within 48 blocks + which chest holds each
+/cscan next <design>     the next 24 cells, marked green, lowest first so you never build past reach
+/cscan check <design>    cells where the world holds something else, marked amber
+```
+These read `<design>.work.json`, so run `python -m mcbuild work <design> --ship` if you hand-edit a
+design without regenerating it.
 
 ## Architecture
 
@@ -67,13 +75,19 @@ In game: `/cscan island` to scan, `/cscan place` to place every design at its re
 - `learn.py` — mines (block, relation, support) triples into `mcbuild/data/observed.json`.
 - `gen/` — one module per generator, registered in `gen/__init__.py`; `belly.py` (island underside),
   `vertical.py` (taproot, shard + the `World`/`Ctx` helpers), `dressing.py` (hem, paths, lightposts,
-  entrance, ridelights, apiary, birdlanterns, chimney, footing, altar), plus the older statue generators.
+  entrance, ridelights, apiary, birdlanterns, chimney, footing, altar), `interior.py` (the deck vault),
+  `courtyard.py` (the sky-well court), `redstone.py` (item sorter), plus the older statue generators.
+- `work.py` — `<design>.work.json`: the design flattened to world-coordinate cells so the mod can diff
+  it against the live world without an NBT reader. Written on every `gen`, shipped with the design.
+- `history.py` — `out/history.json`, one row per sync, so `progress` has a slope: blocks per sync and
+  how many syncs are left.
 - `pipeline.py` — `run_config` → source → polish → finish → save; handles `verify_against` and `origin_lock`.
 
 **`chunkscan/`** (client only, `src/client/java/dev/jack/chunkscan/`)
 `ChunkScanClient` (commands) · `WorldCapture` (chunks → `Capture`) · `LitematicWriter` (NBT out) ·
 `SidecarWriter` · `ScanRunner` (glue + archive) · `Litematica` (reflection bridge, soft dependency) ·
-`Markers` · `Storage` + `ContainerWatcher` (container index) · `Highlight` (particles) · `AutoScan` · `Designs`.
+`Markers` · `Storage` + `ContainerWatcher` (container index) · `Highlight` (particles) · `AutoScan` ·
+`Designs` · `Work` (reads `.work.json`, diffs against the live world).
 
 ## Rules that were learned the hard way
 
@@ -100,6 +114,11 @@ In game: `/cscan island` to scan, `/cscan place` to place every design at its re
    rotation/mirror on the placement, or a locked placement — not the frame.
 8. **`mcbuild place` needs the game closed** (Litematica rewrites its config on exit). `/cscan place`
    in game does not — prefer it.
+9. **Anything that clings needs a FULL block, tested against the world as it is today.** Belly hung
+   three vines off the vault's wall railings because "solid" meant "not air" and the anchor test ran
+   against the pre-build baseline. Use `audit._is_solid_name`, and test against `world`, not `under`.
+10. **Overlap means the world holds something DIFFERENT.** A design cell the world already matches is
+   built, not a collision — otherwise every design reports hundreds of overlaps the moment you build it.
 
 ## The island (as of 2026-08-18)
 
