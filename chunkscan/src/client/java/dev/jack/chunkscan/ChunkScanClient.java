@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -53,6 +54,16 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.executes(ctx -> { Highlight.clear(); ctx.getSource().sendFeedback(Component.literal("[cscan] highlights cleared")); return 1; })
 					.then(argument("design", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::dig)))
+				.then(literal("need")
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ctx -> need(ctx, 48))))
+				.then(literal("next")
+					.executes(ctx -> { Highlight.clear("next"); ok(ctx.getSource(), "work queue cleared"); return 1; })
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ctx -> next(ctx, 24))))
+				.then(literal("check")
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::check)))
 				.then(literal("find")
 					.then(argument("query", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::find)))
@@ -78,7 +89,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.executes(ctx -> run(ctx, DEFAULT_RADIUS, false))
 					.then(argument("radius", IntegerArgumentType.integer(0, MAX_RADIUS))
 						.executes(ctx -> run(ctx, IntegerArgumentType.getInteger(ctx, "radius"), false))))));
-		LOG.info("chunkscan ready: scan | place | mark | dig | find | chests | label | auto | sel");
+		LOG.info("chunkscan ready: scan | place | need | next | check | mark | dig | find | chests | label | auto | sel");
 	}
 
 	// ---------------------------------------------------------------- helpers
@@ -129,6 +140,87 @@ public final class ChunkScanClient implements ClientModInitializer {
 		}
 	}
 
+	/** What to carry: materials for the unbuilt cells in reach, and which chest holds them. */
+	private static int need(CommandContext<FabricClientCommandSource> ctx, int radius) {
+		FabricClientCommandSource src = ctx.getSource();
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Minecraft mc = src.getClient();
+			BlockPos me = mc.player.blockPosition();
+			Work.Split sp = Work.split(mc.level, dir(src), name, me, radius);
+			if (sp.todo().isEmpty()) {
+				ok(src, sp.name() + ": nothing left within " + radius + " blocks (" + sp.built() + " built here"
+					+ (sp.wrong().isEmpty() ? ")" : ", " + sp.wrong().size() + " deviate - /cscan check " + name + ")"));
+				return 1;
+			}
+			Map<String, Storage.Container> all = Storage.load(dir(src));
+			ok(src, sp.name() + ": " + sp.todo().size() + " block(s) left within " + radius);
+			for (var e : Work.tally(sp.todo()).entrySet()) {
+				List<Storage.Hit> hits = Storage.find(all, e.getKey(), me);
+				String where = " - not in any indexed chest";
+				if (!hits.isEmpty()) {
+					Storage.Hit h = hits.get(0);
+					where = " - " + h.count() + " in " + h.container().describe() + " "
+						+ (int) h.distance() + "m " + Storage.direction(me, h.container().pos());
+				}
+				ok(src, "  " + e.getValue() + "x " + e.getKey() + where);
+			}
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/** The next few cells to place, marked green, lowest first so you never build past your reach. */
+	private static int next(CommandContext<FabricClientCommandSource> ctx, int n) {
+		FabricClientCommandSource src = ctx.getSource();
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Minecraft mc = src.getClient();
+			BlockPos me = mc.player.blockPosition();
+			Work.Split sp = Work.split(mc.level, dir(src), name, me, 0);
+			if (sp.todo().isEmpty()) { ok(src, sp.name() + " is complete in every loaded chunk"); return 1; }
+			List<Work.Cell> take = sp.todo().subList(0, Math.min(n, sp.todo().size()));
+			Highlight.show("next", Work.positions(take, n), 0x40FF60, 180);
+			Work.Cell first = take.get(0);
+			ok(src, sp.name() + ": " + sp.todo().size() + " left, next " + take.size() + " marked green");
+			ok(src, "  start at " + first.pos().getX() + " " + first.pos().getY() + " " + first.pos().getZ()
+				+ " (" + first.block() + ", " + (int) Math.sqrt(first.pos().distSqr(me)) + "m "
+				+ Storage.direction(me, first.pos()) + ")");
+			for (var e : Work.tally(take).entrySet()) ok(src, "  " + e.getValue() + "x " + e.getKey());
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/** Cells where the world holds something other than what the design wants. */
+	private static int check(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Minecraft mc = src.getClient();
+			Work.Split sp = Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
+			int pct = sp.total() == 0 ? 0 : Math.round(100f * sp.built() / sp.total());
+			ok(src, sp.name() + ": " + sp.built() + "/" + sp.total() + " built (" + pct + "%) in loaded chunks, "
+				+ sp.todo().size() + " to place, " + sp.wrong().size() + " deviating");
+			if (sp.wrong().isEmpty()) return 1;
+			Highlight.show("check", Work.positions(sp.wrong(), 200), 0xFFC000, 180);
+			for (Work.Cell c : sp.wrong().subList(0, Math.min(8, sp.wrong().size()))) {
+				String have = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(c.pos()).getBlock()).getPath();
+				ok(src, "  " + c.pos().getX() + " " + c.pos().getY() + " " + c.pos().getZ()
+					+ ": want " + c.block() + ", have " + have);
+			}
+			ok(src, "  marked amber" + (sp.wrong().size() > 8 ? " (" + (sp.wrong().size() - 8) + " more)" : ""));
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
 	private static int mark(CommandContext<FabricClientCommandSource> ctx) {
 		FabricClientCommandSource src = ctx.getSource();
 		String label = StringArgumentType.getString(ctx, "label");
@@ -137,7 +229,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 			BlockPos p = targeted(mc);
 			Markers.put(dir(src), label, p, mc.level.dimension().identifier().toString());
 			ok(src, "marked '" + label + "' at " + p.getX() + " " + p.getY() + " " + p.getZ());
-			Highlight.show(List.of(p), 0x55FF55, 10);
+			Highlight.show("mark", List.of(p), 0x55FF55, 10);
 			return 1;
 		} catch (Exception e) {
 			src.sendError(Component.literal("[cscan] mark failed: " + e.getMessage()));
@@ -156,7 +248,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 				ok(src, String.format("%-18s %d %d %d  (%.0fm)", m.label(), m.x(), m.y(), m.z(), m.distance(me)));
 				pts.add(new BlockPos(m.x(), m.y(), m.z()));
 			}
-			Highlight.show(pts, 0x55FF55, 20);
+			Highlight.show("marks", pts, 0x55FF55, 20);
 			return 1;
 		} catch (Exception e) {
 			src.sendError(Component.literal("[cscan] " + e.getMessage()));
@@ -182,7 +274,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 		try {
 			Designs.Design d = Designs.load(dir(src), name);
 			if (d.dig().isEmpty()) { ok(src, d.name() + " has no dig list"); return 1; }
-			Highlight.show(d.dig(), 0xFF4040, 120);
+			Highlight.show("dig", d.dig(), 0xFF4040, 120);
 			ok(src, d.name() + ": " + d.dig().size() + " block(s) to clear, marked red for 2 minutes");
 			return 1;
 		} catch (Exception e) {
@@ -210,7 +302,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 				pts.add(c.pos());
 			}
 			if (hits.size() > shown) ok(src, "... " + (hits.size() - shown) + " more");
-			Highlight.show(pts, 0x40A0FF, 60);
+			Highlight.show("find", pts, 0x40A0FF, 60);
 			ok(src, "marked blue for 60s");
 			return 1;
 		} catch (Exception e) {

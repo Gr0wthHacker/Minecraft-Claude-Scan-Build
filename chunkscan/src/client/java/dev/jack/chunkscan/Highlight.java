@@ -15,8 +15,10 @@ import java.util.List;
  */
 final class Highlight {
 	private static final List<Batch> BATCHES = new ArrayList<>();
+	/** Particles stop rendering well past this; the belly dig list is far bigger than one screenful. */
+	private static final int RADIUS = 128;
 
-	private record Batch(List<BlockPos> blocks, int color, long until) {}
+	private record Batch(String id, List<BlockPos> blocks, int color, long until) {}
 
 	private Highlight() {}
 
@@ -24,9 +26,15 @@ final class Highlight {
 		ClientTickEvents.END_CLIENT_TICK.register(Highlight::tick);
 	}
 
-	static void show(List<BlockPos> blocks, int color, int seconds) {
-		BATCHES.removeIf(b -> b.color() == color);
-		BATCHES.add(new Batch(new ArrayList<>(blocks), color, System.currentTimeMillis() + seconds * 1000L));
+	/** Replace the batch with this id. Keyed by id, not colour: two designs sharing a colour used to
+	 *  silently wipe each other out. */
+	static void show(String id, List<BlockPos> blocks, int color, int seconds) {
+		BATCHES.removeIf(b -> b.id().equals(id));
+		BATCHES.add(new Batch(id, new ArrayList<>(blocks), color, System.currentTimeMillis() + seconds * 1000L));
+	}
+
+	static void clear(String id) {
+		BATCHES.removeIf(b -> b.id().equals(id));
 	}
 
 	static void clear() {
@@ -46,7 +54,7 @@ final class Highlight {
 		for (Batch b : BATCHES) {
 			DustParticleOptions dust = new DustParticleOptions(b.color(), 1.4f);
 			for (BlockPos p : b.blocks()) {
-				if (p.distSqr(me) > 64 * 64) continue;
+				if (p.distSqr(me) > RADIUS * RADIUS) continue;
 				mc.level.addParticle(dust, true, true, p.getX() + 0.5, p.getY() + 0.55, p.getZ() + 0.5, 0, 0, 0);
 			}
 		}

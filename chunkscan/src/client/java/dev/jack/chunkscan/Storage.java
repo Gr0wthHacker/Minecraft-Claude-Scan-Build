@@ -32,6 +32,8 @@ final class Storage {
 		String label = "";          // set with /cscan label
 		String zone = "";           // nearest marker at capture time
 		String updated = "";
+		int slots;                  // container size, so "how full is it" is answerable
+		int used;                   // slots holding something
 		final Map<String, Integer> items = new LinkedHashMap<>();
 
 		String key() {
@@ -49,6 +51,11 @@ final class Storage {
 		String describe() {
 			String name = !label.isEmpty() ? label : (!zone.isEmpty() ? zone : block);
 			return "#" + id + " " + name;
+		}
+
+		/** Percent of slots in use, or -1 when the container was indexed before this was recorded. */
+		int fullness() {
+			return slots <= 0 ? -1 : Math.round(100f * used / slots);
 		}
 	}
 

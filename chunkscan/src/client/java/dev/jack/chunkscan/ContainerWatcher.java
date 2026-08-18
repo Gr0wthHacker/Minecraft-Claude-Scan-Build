@@ -49,12 +49,13 @@ final class ContainerWatcher {
 			final BlockPos pos = lastUsed;
 			final String block = lastBlock;
 			final Map<String, Integer> latest = new LinkedHashMap<>();
-			final int[] slots = {0};
+			final int[] slots = {0, 0};                      // {container size, slots in use}
 			ScreenEvents.afterTick(screen).register(s -> {
 				Map<String, Integer> items = new LinkedHashMap<>();
-				int n = read(mc, cs, items);
-				if (n > 0) {
-					slots[0] = n;
+				int[] n = read(mc, cs, items);
+				if (n[0] > 0) {
+					slots[0] = n[0];
+					slots[1] = n[1];
 					latest.clear();
 					latest.putAll(items);
 				}
@@ -62,7 +63,7 @@ final class ContainerWatcher {
 			ScreenEvents.remove(screen).register(s -> {
 				if (slots[0] == 0) return;                       // crafting table / anvil / other non-storage menu
 				try {
-					write(mc, cs, pos, block, latest);
+					write(mc, cs, pos, block, latest, slots[0], slots[1]);
 				} catch (Exception e) {
 					ChunkScanClient.LOG.warn("container capture failed", e);
 				}
@@ -70,23 +71,24 @@ final class ContainerWatcher {
 		});
 	}
 
-	/** Container slots only (never the player's own inventory); returns how many there were. */
-	private static int read(Minecraft mc, AbstractContainerScreen<?> cs, Map<String, Integer> items) {
-		if (mc.player == null) return 0;
+	/** Container slots only (never the player's own inventory); returns {size, slots in use}. */
+	private static int[] read(Minecraft mc, AbstractContainerScreen<?> cs, Map<String, Integer> items) {
+		if (mc.player == null) return new int[] {0, 0};
 		Inventory inv = mc.player.getInventory();
-		int slots = 0;
+		int slots = 0, used = 0;
 		for (Slot s : cs.getMenu().slots) {
 			if (s.container == inv) continue;
 			slots++;
 			ItemStack st = s.getItem();
 			if (st.isEmpty()) continue;
+			used++;
 			items.merge(BuiltInRegistries.ITEM.getKey(st.getItem()).toString(), st.getCount(), Integer::sum);
 		}
-		return slots;
+		return new int[] {slots, used};
 	}
 
 	private static void write(Minecraft mc, AbstractContainerScreen<?> cs, BlockPos lastUsed, String lastBlock,
-							  Map<String, Integer> items) throws Exception {
+							  Map<String, Integer> items, int slots, int used) throws Exception {
 		if (mc.player == null || mc.level == null) return;
 		Path dir = ScanRunner.schematicsDir(mc);
 		Map<String, Storage.Container> all = Storage.load(dir);
@@ -103,6 +105,8 @@ final class ContainerWatcher {
 			&& !title.equalsIgnoreCase("Barrel") && !title.equalsIgnoreCase("Shulker Box")) {
 			c.label = title;                                     // a renamed container names itself
 		}
+		c.slots = slots;
+		c.used = used;
 		c.items.putAll(items);
 		Storage.upsert(all, c);
 		Storage.save(dir, all);

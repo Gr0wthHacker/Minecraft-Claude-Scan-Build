@@ -174,6 +174,8 @@ def _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, 
         side_path = scan_mod.save_pair(out_path, m, {
             "origin": {"x": world_origin[0], "y": world_origin[1], "z": world_origin[2]},
             "size": {"x": sx, "y": sy, "z": sz}, "generated_by": cfg.get("gen"), **gen_meta}, name=name)
+        from . import work as work_mod
+        work_path = work_mod.write(out_path, m, world_origin, name, gen_meta.get("dig", []))
         if verbose:
             print(f"paste origin {world_origin[0]} {world_origin[1]} {world_origin[2]}  ({os.path.basename(side_path)})")
     if render_sheet:
@@ -183,6 +185,7 @@ def _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, 
         shutil.copy(out_path, os.path.join(st.schem_dir, f"{name}.litematic"))
         if side_path:
             shutil.copy(side_path, os.path.join(st.schem_dir, os.path.basename(side_path)))
+            shutil.copy(work_path, os.path.join(st.schem_dir, os.path.basename(work_path)))
         if verbose:
             print("shipped ->", os.path.join(st.schem_dir, f"{name}.litematic"))
     if verbose:
