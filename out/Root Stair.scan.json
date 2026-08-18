@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 61,
-    "y": 58,
+    "y": 59,
     "z": 80
   },
   "generated_by": "spiral",
@@ -19,7 +19,7 @@
   "y1": 186,
   "treads": 70,
   "turns": 2.5,
-  "rails": 70,
+  "rails": 152,
   "width": 4,
   "file": "Root Stair.litematic",
   "name": "Root Stair",

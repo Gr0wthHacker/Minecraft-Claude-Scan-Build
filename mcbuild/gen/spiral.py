@@ -57,24 +57,18 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
     theta = float(p["start_angle"])
     width, seed = int(p["width"]), int(p["seed"])
     steps = (y1 - y0 + 1) * 2                          # two half-steps to a course
-    treads, laps, prev_inner = [], 0.0, None
+    treads, laps = [], 0.0
     for k in range(steps):
         y = y0 + k // 2
         low = (k % 2) == 0                             # bottom slab, then top slab, then up a course
         r_in = prof.get(y) or float(p["min_radius"])
-        cells = _spoke(cx, cz, theta, r_in, r_in + width)
-        # Consecutive spokes can land two cells apart at the inner edge, which is a hole you cannot
-        # walk over. Bridge it so the inner rail of the helix is always continuous.
-        if cells and prev_inner is not None:
-            cells = _bridge(prev_inner, cells[0]) + cells
-        if cells:
-            prev_inner = cells[-1] if False else _spoke(cx, cz, theta, r_in, r_in)[0]
+        d = spin / max(1.0, r_in)                      # one cell of arc at the inner edge
+        cells = _spoke(cx, cz, theta, theta + d, r_in, r_in + width)
         for (x, z) in cells:
             name = p["slab_alt"] if hash01(x, z, 19, seed) < p["alt_rate"] else p["slab"]
             w.put(x, y, z, name, type="bottom" if low else "top", waterlogged="false")
         if cells:
             treads.append([cells[0][0], y, cells[0][1]])
-        d = spin / max(1.0, r_in)                      # one cell of arc at the inner edge
         theta += d
         laps += abs(d) / (2 * math.pi)
 
@@ -84,17 +78,28 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
                      "width": width})
 
 
-def _spoke(cx: int, cz: int, theta: float, r_in: float, r_out: float) -> list:
-    """The cells of one tread: a radial line from the inner edge outward, no gaps."""
-    ux, uz = math.cos(theta), math.sin(theta)
-    out, seen = [], set()
-    r = r_in
-    while r <= r_out:
-        cell = (cx + int(round(r * ux)), cz + int(round(r * uz)))
-        if cell not in seen:
-            seen.add(cell)
-            out.append(cell)
-        r += 0.34                                      # fine enough that the line never skips a cell
+def _spoke(cx: int, cz: int, t0: float, t1: float, r_in: float, r_out: float) -> list:
+    """Every cell in the WEDGE between two angles, across the tread's radial band.
+
+    A single radial line leaves holes: the angular step is one cell of arc at the INNER edge, so by
+    the outer edge consecutive treads are two or more cells apart. Filling the wedge makes each tread
+    a compact patch that shares an edge with the next, which is how the reference build reads solid."""
+    lo, hi = (t0, t1) if t1 >= t0 else (t1, t0)
+    span = hi - lo
+    rr = int(math.ceil(r_out)) + 1
+    out = []
+    for dx in range(-rr, rr + 1):
+        for dz in range(-rr, rr + 1):
+            r = math.hypot(dx, dz)
+            if not (r_in - 0.5 <= r <= r_out + 0.5):
+                continue
+            a = math.atan2(dz, dx)
+            # bring the cell's angle into [lo, lo + 2pi) so the comparison survives wraparound
+            while a < lo:
+                a += 2 * math.pi
+            if a - lo <= span:
+                out.append((cx + dx, cz + dz))
+    out.sort(key=lambda c: math.hypot(c[0] - cx, c[1] - cz))
     return out
 
 
