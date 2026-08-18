@@ -1,11 +1,11 @@
 {
   "origin": {
-    "x": -24223,
+    "x": -24224,
     "y": 97,
     "z": 29972
   },
   "size": {
-    "x": 11,
+    "x": 13,
     "y": 58,
     "z": 34
   },
@@ -23,7 +23,7 @@
   "height": 54,
   "top_y": 154,
   "neck_top_y": 149.0,
-  "collisions": 44,
+  "collisions": 48,
   "file": "Void Giraffe.litematic",
   "name": "Void Giraffe"
 }

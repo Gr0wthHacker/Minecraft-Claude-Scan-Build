@@ -22,13 +22,13 @@ params:
   # away hard from the shoulder. v3 had neck 19 on body 18 with a level back, and that is an alpaca.
   leg: 20
   hoof: 2                     # 3 courses on a flared ankle read as boots
-  leg_r: 2.0                  # v5 legs read spindly at 1.7
+  leg_r: 2.2
   body_len: 16
-  body_r: 4.9                 # the barrel was too slight to carry the neck
+  body_r: 6.1
   withers: 10                 # body depth at the shoulder
   hips: 6                     # ...and at the rump. The 4-block drop IS the giraffe profile
   neck: 21
-  neck_r0: 3.0
+  neck_r0: 3.4
   neck_r1: 1.95               # a giraffe's neck is THICKER than its head
   neck_lean: 0.40
   head_len: 10                # long and narrow: v5's head was twice the neck's width
@@ -43,6 +43,13 @@ params:
   dark: black_wool
   patch_scale: 5.5
   grout: 0.85                 # the pale channel between patches - a giraffe's signature
+  # Smoothing, chosen by `python tools/smoothness.py configs/giraffe.yaml --sweep` over 63 valid
+  # variants, not by eye. Best score 5.89 (spikes 51, jerk 5.38) against 9.07 for the grid's first
+  # guess and 9.39 for the unsmoothed v7. `relax_keep: 12` shatters thin features, so 11 is the edge.
+  relax_rounds: 4
+  relax_fill: 11
+  relax_keep: 11
+  section_n: 2.2               # sweep winner; see the note above
   seed: 0
 origin_lock: false          # LOUD: it stands at Y100-150, its own corner; nothing else is near it
 finish:
