@@ -1,3 +1,6 @@
+# RETIRED - built and verified in world on 2026-08-18; Jack adjusted it during the build and
+# his version is the one standing. Kept only as the record of how the shaft was derived.
+# Not in sync.yaml; regenerating it will fight what is actually there.
 # The shaft joining the root stair to the inside of the workshop deck.
 #
 # The root stair tops out at surface Y187. The deck skin at Y190 is already open above it, and the

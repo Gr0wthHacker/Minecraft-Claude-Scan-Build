@@ -7,178 +7,92 @@
   "size": {
     "x": 63,
     "y": 49,
-    "z": 84
+    "z": 72
   },
   "generated_by": "sorter",
   "kind": "sorter",
   "run": "z+",
-  "lanes": 12,
+  "lanes": 4,
   "skipped": [
     [
       -24190,
       195,
+      30012
+    ],
+    [
+      -24190,
+      195,
+      30013
+    ],
+    [
+      -24190,
+      195,
+      30015
+    ],
+    [
+      -24190,
+      195,
+      30016
+    ],
+    [
+      -24190,
+      195,
+      30017
+    ],
+    [
+      -24190,
+      195,
       30021
-    ],
-    [
-      -24190,
-      195,
-      30022
-    ],
-    [
-      -24190,
-      195,
-      30023
-    ],
-    [
-      -24190,
-      195,
-      30033
     ]
   ],
   "cells": [
     [
       -24190,
       195,
+      30014,
+      "oak_log"
+    ],
+    [
+      -24190,
+      195,
       30018,
-      "cobblestone"
-    ],
-    [
-      -24190,
-      195,
-      30019,
-      "stone"
-    ],
-    [
-      -24190,
-      195,
-      30020,
-      "deepslate"
-    ],
-    [
-      -24190,
-      195,
-      30024,
-      "moss_block"
-    ],
-    [
-      -24190,
-      195,
-      30025,
-      "azalea"
-    ],
-    [
-      -24190,
-      195,
-      30026,
       "bone"
     ],
     [
       -24190,
       195,
-      30027,
+      30019,
       "arrow"
     ],
     [
       -24190,
       195,
-      30028,
+      30020,
       "string"
-    ],
-    [
-      -24190,
-      195,
-      30029,
-      "white_wool"
-    ],
-    [
-      -24190,
-      195,
-      30030,
-      "ink_sac"
-    ],
-    [
-      -24190,
-      195,
-      30031,
-      "ice"
-    ],
-    [
-      -24190,
-      195,
-      30032,
-      "iron_ingot"
     ]
   ],
   "filter_stock": [
     {
       "lane": 0,
-      "item": "cobblestone",
+      "item": "oak_log",
       "target": 1,
       "filler": 4
     },
     {
       "lane": 1,
-      "item": "stone",
-      "target": 1,
-      "filler": 4
-    },
-    {
-      "lane": 2,
-      "item": "deepslate",
-      "target": 1,
-      "filler": 4
-    },
-    {
-      "lane": 3,
-      "item": "moss_block",
-      "target": 1,
-      "filler": 4
-    },
-    {
-      "lane": 4,
-      "item": "azalea",
-      "target": 1,
-      "filler": 4
-    },
-    {
-      "lane": 5,
       "item": "bone",
       "target": 1,
       "filler": 4
     },
     {
-      "lane": 6,
+      "lane": 2,
       "item": "arrow",
       "target": 1,
       "filler": 4
     },
     {
-      "lane": 7,
+      "lane": 3,
       "item": "string",
-      "target": 1,
-      "filler": 4
-    },
-    {
-      "lane": 8,
-      "item": "white_wool",
-      "target": 1,
-      "filler": 4
-    },
-    {
-      "lane": 9,
-      "item": "ink_sac",
-      "target": 1,
-      "filler": 4
-    },
-    {
-      "lane": 10,
-      "item": "ice",
-      "target": 1,
-      "filler": 4
-    },
-    {
-      "lane": 11,
-      "item": "iron_ingot",
       "target": 1,
       "filler": 4
     }

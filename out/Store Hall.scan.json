@@ -1,0 +1,27 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 150,
+    "z": 29949
+  },
+  "size": {
+    "x": 64,
+    "y": 50,
+    "z": 81
+  },
+  "generated_by": "storehall",
+  "kind": "storehall",
+  "box": [
+    -24194,
+    30023,
+    -24188,
+    30029
+  ],
+  "floor_y": 194,
+  "chests": 68,
+  "signs": 4,
+  "lanterns": 3,
+  "interior": 25,
+  "file": "Store Hall.litematic",
+  "name": "Store Hall"
+}

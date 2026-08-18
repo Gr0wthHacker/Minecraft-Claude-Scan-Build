@@ -28,8 +28,7 @@ progress:                           # designs reported (% built, left, shop list
   - out/Bird Lanterns.litematic
   - out/Deck Vault.litematic     # NOT in regen: `under` is pinned to the pre-vault capture (see configs/vault.yaml)
   - out/Sky Well Court.litematic # same - pinned to out/court_before.litematic
-  - out/Item Sorter.litematic
+  - out/Store Hall.litematic
   - out/Shop Islet.litematic     # below-island: its own locked origin -24251 130 29949
   - out/Root Stair.litematic     # same origin as the islet
-  - out/Workshop Stair.litematic # the shaft joining the root stair to the deck; same origin
 learn: true

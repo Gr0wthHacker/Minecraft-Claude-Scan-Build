@@ -1,0 +1,34 @@
+# The storage hall: 61 general-storage containers taken off a 35-block wall and banked around one room.
+#
+# Sited on the largest rectangle that is both clear of everything and three blocks clear of every
+# fixture in the capture - x-24194..-24188 / z30023..30029, measured, 49 cells. Perimeter banks three
+# tiers high give 63 chest slots for the 61 that move. The other 39 containers stay where they are:
+# they sit within 3 of a grinder, the moss farm or the smelter and belong to those machines.
+#
+# Standing in the middle of this room every chest is within four blocks.
+name: Store Hall
+gen: storehall
+params:
+  under: out/island_now.litematic
+  box: [-24194, 30023, -24188, 30029]
+  floor_y: 194
+  tiers: 4                  # Y195-Y198, lintel and signs at Y199. A 7x7 room has only 20
+                            # non-corner wall cells and the door takes 3, so three tiers gave
+                            # 51 slots for 61 containers. Four gives 68. The top course is
+                            # still inside arm's reach from the floor.
+  door: west                # faces back down the spine toward the stair head
+  door_width: 3
+  chest: chest
+  lintel: stone_bricks
+  sign: oak_wall_sign
+  labels: [ore and stone, wood and saplings, moss and plants, food and crops]
+  lantern_every: 4
+  clear: 3                  # the working-room rule, derived from the capture
+  seed: 0
+finish:
+  cheapen: false            # chests and signs are the point; nothing here may be substituted
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine]
+  verify_against: out/island_now.litematic

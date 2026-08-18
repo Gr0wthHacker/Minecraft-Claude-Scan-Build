@@ -1,3 +1,7 @@
+# BLOCKED until the old storage wall comes out. Every clear run left on the deck is broken up
+# by the colonnade pillars - the best site now fits FOUR lanes, which is not worth building.
+# Once phase 4 clears the west bank (x-24211..-24205, z29995..30015) there is a straight
+# 20-long run there. Build it then, not now.
 # Auto item sorter on the 3x16 strip east of the vault colonnade - dead space otherwise.
 # Lane order follows the taxonomy already on your chest-wall signs.
 #
@@ -8,11 +12,15 @@ name: Item Sorter
 gen: sorter
 params:
   under: out/island_now.litematic
-  start: [-24190, 195, 30018]   # first lane; the run heads south down the free strip
+  start: [-24190, 195, 30012]   # north of the Store Hall, running south to meet it. The old
+                                # site at z30018 ran straight through where the hall now is,
+                                # and no 16-long clear run survives that - the colonnade
+                                # pillars break the band up. Ten lanes fit; the sorter's
+                                # output is a chest a lane, so it feeds the hall directly.
   run: z+
-  lanes: 16
-  filters: [cobblestone, stone, deepslate, oak_log, oak_sapling, wheat_seeds, moss_block,
-            azalea, bone, arrow, string, white_wool, ink_sac, ice, iron_ingot, redstone]
+  lanes: 10
+  filters: [cobblestone, stone, oak_log, oak_sapling, wheat_seeds, moss_block,
+            bone, arrow, string, ink_sac]
   body: stone_bricks
   chest: chest
 finish:
