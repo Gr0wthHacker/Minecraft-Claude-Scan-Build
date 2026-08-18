@@ -1,0 +1,34 @@
+# A helical stair wound around the taproot, from the shop islet up to the root's head.
+#
+# Radius is measured off the taproot per course, so the stair tapers with it: the root is 1.4 wide
+# near its tip and 5.8 at its head. Pitch follows from the radius - one block of rise per step and an
+# angular step of 1/r - so the treads always touch.
+#
+# Below-island origin, same corner as the islet: see the note in configs/shop_islet.yaml.
+name: Root Stair
+gen: spiral
+params:
+  under: out/island_now.litematic
+  around: out/Taproot.litematic
+  center: [-24200, 30018]
+  y0: 152                   # first tread, one step up off the islet shelf
+  y1: 186                   # the deck skin is solid at Y189, so stop with 2 clear above the landing
+  clearance: 3              # 2 clipped a root strand at -24200,162,30016 - the taper follows the
+                            # root's max radius per course, and a strand can bulge inside that
+  min_radius: 3.0
+  start_angle: -1.5708      # start on the NORTH side and wind N-E-S, so the low turns are not
+                            # over the shop awning at Y154 - the stair reaches south around Y173
+  direction: 1
+  width: 2
+  tread: stone_brick_stairs
+  inner: mossy_stone_bricks
+  rail: stone_brick_wall
+  lantern_every: 8
+  seed: 0
+origin_lock: [-24251, 130, 29949]   # below-island corner, NOT the global one
+finish:
+  cheapen: true
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: [out/island_now.litematic, out/Taproot.litematic, out/Shop Islet.litematic]

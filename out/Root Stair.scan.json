@@ -1,0 +1,36 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 130,
+    "z": 29949
+  },
+  "size": {
+    "x": 61,
+    "y": 58,
+    "z": 77
+  },
+  "generated_by": "spiral",
+  "kind": "spiral",
+  "center": [
+    -24200,
+    30018
+  ],
+  "y0": 152,
+  "y1": 186,
+  "treads": 94,
+  "turns": 2.23,
+  "lanterns": 5,
+  "collisions": 0,
+  "first": [
+    -24199,
+    152,
+    30015
+  ],
+  "last": [
+    -24192,
+    186,
+    30017
+  ],
+  "file": "Root Stair.litematic",
+  "name": "Root Stair"
+}
