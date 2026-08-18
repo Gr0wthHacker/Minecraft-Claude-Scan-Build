@@ -1,0 +1,37 @@
+# The sky-well between the owl lobe and the working deck: a moss court that gets real daylight.
+#
+# The floor is a ONE-BLOCK moss skin over open air (225 of 280 cells have nothing at Y193), so the
+# pool is built up rather than dug in, and `pool_inset` keeps water two cells clear of the lip.
+#
+# `under` is PINNED to out/court_before.litematic. Do not repoint it at out/island_now.litematic and
+# do not add this config to sync.yaml's regen list - once the court is planted the generator would
+# read its own foliage as occupied and shrink the design.
+name: Sky Well Court
+gen: court
+params:
+  under: out/court_before.litematic
+  floor_y: 194              # the moss skin
+  box: [-24236, 29998, -24216, 30032]
+  sky_probe: 20             # 103 of the cells in this box are open to the sky
+  pool_r: 6.0               # a 42-cell pond; smaller radii read as a puddle
+  pool_wobble: 1.5
+  pool_inset: 1             # the 3x3 around every water cell must have floor, so the rim never floats
+  rill: false               # at this pool size the channel had nowhere to run - the pond reaches
+                            # the edge of what the skin can safely hold
+  sink_lanterns: 0.18       # hidden lighting: lanterns under the water
+  lichen: 0.20              # and glow lichen on the rock; light 7 stops every spawn
+  carpet: 0.30
+  azalea: 0.07
+  grass: 0.11
+  dripleaf: 0.03
+  dripstone: 0.10           # tips hanging off the owl's underside over the covered apron
+  edge_slabs: true
+  clear_names: [redstone_wire, repeater, comparator, stone_button, lever, redstone_torch]
+  seed: 0
+finish:
+  cheapen: false            # the palette here is the point; do not substitute the foliage
+  hollow: false
+  ground: false
+  drop_floaters: false      # dripstone hangs off the statue, which is not in this file
+  verify_against: out/island_now.litematic
+  verify_replaceable: [vine, redstone_wire, repeater, comparator, stone_button, lever, redstone_torch]
