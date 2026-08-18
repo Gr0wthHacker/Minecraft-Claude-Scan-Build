@@ -3,20 +3,31 @@ package dev.jack.chunkscan;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.gizmos.GizmoStyle;
+import net.minecraft.gizmos.Gizmos;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
- * Marks blocks in the world with coloured dust particles for a while — used to show a design's dig list
- * and to point at the containers a search matched. Particles instead of a custom renderer: same job,
- * no render-pipeline coupling, works through walls at close range.
+ * Marks blocks in the world with outlined, filled boxes - a design's dig list, the next cells to
+ * place, the containers a search matched.
+ *
+ * This used to be coloured dust particles, and they were the wrong tool for "these blocks must go":
+ * faint, washed out against a mossy floor, easy to switch off in video settings, and a thin trail of
+ * smoke never tells you WHICH block. MC 26.2 ships a gizmo system, so a highlight is a real box now -
+ * a bright stroke, a translucent fill, and always-on-top so the ones behind walls still read.
+ *
+ * Gizmos are collected per tick and drawn for that frame, so batches are re-submitted every tick
+ * rather than registered once. That is what Minecraft.collectPerTickGizmos() is for.
  */
 final class Highlight {
 	private static final List<Batch> BATCHES = new ArrayList<>();
-	/** Particles stop rendering well past this; the belly dig list is far bigger than one screenful. */
+	/** Past this the boxes are noise, and thousands of them cost frames. */
 	static final int RADIUS = 128;
+	/** Hard cap per batch: a belly dig list runs to thousands and you only act on the near ones. */
+	private static final int MAX_PER_BATCH = 512;
 
 	private record Batch(String id, List<BlockPos> blocks, int color, long until) {}
 
@@ -45,17 +56,44 @@ final class Highlight {
 		return BATCHES.stream().mapToInt(b -> b.blocks().size()).sum();
 	}
 
+	/** How many of a batch are actually being drawn, so a command can say when you are out of range. */
+	static int visible(Minecraft mc, String id) {
+		if (mc.player == null) return 0;
+		BlockPos me = mc.player.blockPosition();
+		long r2 = (long) RADIUS * RADIUS;
+		for (Batch b : BATCHES) {
+			if (!b.id().equals(id)) continue;
+			int n = 0;
+			for (BlockPos p : b.blocks()) {
+				if (p.distSqr(me) <= r2) n++;
+			}
+			return Math.min(n, MAX_PER_BATCH);
+		}
+		return 0;
+	}
+
 	private static void tick(Minecraft mc) {
 		if (mc.level == null || mc.player == null || BATCHES.isEmpty()) return;
 		long now = System.currentTimeMillis();
 		BATCHES.removeIf(b -> b.until() < now);
-		if ((mc.level.getGameTime() % 2) != 0) return;                 // 10 times a second: dust is faint
+		if (BATCHES.isEmpty()) return;
 		BlockPos me = mc.player.blockPosition();
-		for (Batch b : BATCHES) {
-			DustParticleOptions dust = new DustParticleOptions(b.color(), 1.4f);
-			for (BlockPos p : b.blocks()) {
-				if (p.distSqr(me) > RADIUS * RADIUS) continue;
-				mc.level.addParticle(dust, true, true, p.getX() + 0.5, p.getY() + 0.55, p.getZ() + 0.5, 0, 0, 0);
+		long r2 = (long) RADIUS * RADIUS;
+		try (var ignored = mc.collectPerTickGizmos()) {
+			for (Batch b : BATCHES) {
+				GizmoStyle style = GizmoStyle.strokeAndFill(0xFF000000 | b.color(), 2.5f,
+					0x40000000 | (b.color() & 0xFFFFFF));
+				List<BlockPos> near = new ArrayList<>();
+				for (BlockPos p : b.blocks()) {
+					if (p.distSqr(me) <= r2) near.add(p);
+				}
+				if (near.size() > MAX_PER_BATCH) {
+					near.sort(Comparator.comparingDouble(p -> p.distSqr(me)));
+					near = near.subList(0, MAX_PER_BATCH);
+				}
+				for (BlockPos p : near) {
+					Gizmos.cuboid(p, style).setAlwaysOnTop();
+				}
 			}
 		}
 	}
