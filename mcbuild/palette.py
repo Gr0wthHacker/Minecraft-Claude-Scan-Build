@@ -100,16 +100,71 @@ COLORS: dict[str, tuple[int, int, int]] = {
     "redstone_wire": (200, 40, 30), "crafting_table": (120, 90, 55), "spruce_door": (114, 84, 48),
     "mossy_stone_brick_stairs": (110, 118, 100), "yellow_wool": (248, 197, 39),
     "birch_trapdoor": (214, 205, 170),
+    # --- redstone / rails / mechanisms -------------------------------------
+    "rail": (124, 110, 96), "powered_rail": (160, 130, 60), "detector_rail": (150, 116, 84),
+    "activator_rail": (140, 96, 70), "repeater": (188, 182, 178), "comparator": (188, 182, 178),
+    "redstone_torch": (170, 50, 40), "redstone_wall_torch": (170, 50, 40), "lever": (124, 102, 74),
+    "piston": (150, 133, 105), "sticky_piston": (130, 145, 90), "piston_head": (150, 133, 105),
+    "note_block": (98, 73, 48), "jukebox": (85, 60, 44), "sculk_sensor": (18, 52, 60),
+    "spawner": (55, 64, 74), "furnace": (110, 110, 110), "lectern": (156, 124, 74),
+    "anvil": (68, 68, 68), "bookshelf": (110, 86, 55), "red_shulker_box": (140, 50, 50),
+    # --- liquids / hot / cold ----------------------------------------------
+    "ice": (145, 183, 235), "bubble_column": (60, 120, 200), "lava": (215, 110, 30),
+    "magma_block": (142, 68, 38), "soul_sand": (81, 62, 50), "bedrock": (85, 85, 85),
+    "ochre_froglight": (218, 201, 139),
+    # --- plants / decor -----------------------------------------------------
+    "glow_lichen": (124, 140, 116), "spore_blossom": (216, 120, 160), "pink_tulip": (224, 160, 196),
+    "pumpkin": (198, 118, 24), "pumpkin_stem": (120, 150, 60), "attached_pumpkin_stem": (188, 150, 60),
+    "bee_nest": (198, 153, 79), "cake": (240, 225, 215), "candle": (226, 204, 168),
+    "purple_bed": (125, 62, 178),
+    "potted_crimson_fungus": (150, 98, 76), "potted_lily_of_the_valley": (150, 98, 76),
+    "potted_red_mushroom": (150, 98, 76),
+    # --- wood / leaves missing from the families above ----------------------
+    "jungle_leaves": (48, 110, 26), "mangrove_leaves": (60, 130, 55),
+    "mangrove_planks": (117, 54, 48), "stripped_mangrove_log": (139, 66, 58),
+    # --- carpets ------------------------------------------------------------
+    "white_carpet": (234, 236, 237), "red_carpet": (160, 39, 34), "light_blue_carpet": (58, 175, 217),
 }
 FALLBACK_COLOR = (255, 0, 255)
 
 
+# A variant is the colour of the block it is cut from, so walls, gates, slabs and signs never need
+# their own entry - and neither will the next wood set Mojang ships. Longest suffix first: a
+# fence_gate is not a gate, and a wall_sign is not a sign.
+_VARIANT_SUFFIXES = ("_pressure_plate", "_hanging_sign", "_fence_gate", "_wall_sign", "_trapdoor",
+                     "_stairs", "_button", "_carpet", "_fence", "_slab", "_door", "_sign", "_wall",
+                     "_bars", "_pane", "_gate")
+_BASE_FORMS = ("", "s", "_block", "_planks", "_log")
+
+
+def _derive(short: str) -> tuple[int, int, int] | None:
+    for suf in _VARIANT_SUFFIXES:
+        if not short.endswith(suf):
+            continue
+        stem = short[: -len(suf)]
+        for form in _BASE_FORMS:
+            hit = COLORS.get(stem + form)
+            if hit:
+                return hit
+    return None
+
+
 def color_of(name: str) -> tuple[int, int, int]:
-    return COLORS.get(name.split(":")[-1], FALLBACK_COLOR)
+    short = name.split(":")[-1]
+    got = COLORS.get(short)
+    if got is not None:
+        return got
+    return _derive(short) or FALLBACK_COLOR
 
 
 def missing_colors(names) -> list[str]:
-    return sorted({n.split(":")[-1] for n in names if n.split(":")[-1] not in COLORS})
+    """Names that will render magenta - neither listed nor derivable from the block they are cut from."""
+    out = set()
+    for n in names:
+        short = n.split(":")[-1]
+        if short not in COLORS and _derive(short) is None:
+            out.add(short)
+    return sorted(out)
 
 
 # ------------------------------------------------------------- cost tiers
