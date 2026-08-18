@@ -15,15 +15,16 @@ params:
   under: out/island_void.litematic
   feet: [-24218, 100, 29982]      # far NW side of the void isle
   look_at: [-24206, 150, 30010]   # the taproot platform's near rim
-  leg: 20
-  body: [13, 8, 8]
-  neck: 18
+  leg: 22
+  body: [18, 10, 9]     # deep chest, shoulder hump, sloping back
+  neck: 19
   coat: white_wool
   patch: orange_wool
   dark: black_wool
   muzzle: light_gray_wool
-  patch_scale: 3
-  patch_rate: 0.52
+  eye: black_wool
+  patch_scale: 6            # patches 5-6 blocks across, not speckle
+  patch_rate: 0.50
   seed: 0
 origin_lock: false          # LOUD: it stands at Y100-150, its own corner; nothing else is near it
 finish:
