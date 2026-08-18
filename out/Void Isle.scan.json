@@ -1,0 +1,33 @@
+{
+  "origin": {
+    "x": -24231,
+    "y": 86,
+    "z": 29973
+  },
+  "size": {
+    "x": 44,
+    "y": 17,
+    "z": 37
+  },
+  "generated_by": "voidisle",
+  "kind": "voidisle",
+  "center": [
+    -24209,
+    29991
+  ],
+  "top_y": 100,
+  "surface_cells": 1023,
+  "water_cells": 193,
+  "water_y": 98,
+  "beach_cells": 40,
+  "trees": 3,
+  "vines": 247,
+  "lanterns": 16,
+  "outflow": [
+    -24217,
+    98,
+    29991
+  ],
+  "file": "Void Isle.litematic",
+  "name": "Void Isle"
+}

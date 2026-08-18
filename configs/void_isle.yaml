@@ -1,0 +1,44 @@
+# A floating island far below, with a lake on it, sited where the island's stream actually lands.
+#
+# The stream is real and already there: a single water column at x-24209 z29991 falling from Y202
+# past Y60 - found by looking for tall water columns in the capture, not by picking a spot. The isle
+# centres on that line so the fall arrives in the lake, and NO spout block is needed.
+#
+# This replaces configs/void_lake.yaml, which was 44 blocks away on the wrong side and was a basin
+# rather than a landform.
+name: Void Isle
+gen: voidisle
+params:
+  under: out/island_void.litematic
+  center: [-24209, 29991]   # directly under the existing waterfall
+  top_y: 100                # "about level 100"; the height field moves +-3 around it
+  rx: 20.0
+  rz: 17.0
+  relief: 3                 # the surface rolls, so it is not a table
+  depth: 10                 # rock beneath the middle, undercut toward the rim
+  wobble: 2.4
+  lake_at: [-24209, 29991]  # the lake sits under the fall
+  lake_rx: 7.0
+  lake_rz: 6.0
+  lake_drop: 3
+  carpet: 0.26
+  grass: 0.14
+  azalea: 0.05
+  fern: 0.05
+  trees: 3
+  vine_rate: 0.18
+  vine_len: [3, 9]
+  lantern_reach: 8
+  outflow: true             # the stream leaves again and carries on down, as it does today
+  seed: 0
+origin_lock: false          # LOUD: sits around Y88-108, far below every other lock corner
+finish:
+  cheapen: true
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_replaceable: [water]   # the stream currently falls THROUGH this space to bedrock. Its
+                            # cells are not an obstruction - the isle catches it instead, and
+                            # the outflow notch lets it carry on down.
+  context_clear: [vine]
+  verify_against: out/island_void.litematic

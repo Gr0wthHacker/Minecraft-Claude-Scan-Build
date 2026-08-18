@@ -1,3 +1,7 @@
+# SUPERSEDED by configs/void_isle.yaml. Two things were wrong: it sat at x-24198 z30035, which
+# is 44 blocks from where the island's stream actually falls (x-24209 z29991 - found by
+# looking for tall water columns in the capture, which I should have done first), and it was
+# a basin rather than a landform. Kept only as the record.
 # The lake far below the island, and the fall that feeds it.
 #
 # Sited on the one spout that works: the belly bottoms out at Y173 above x-24198 z30035, and from
