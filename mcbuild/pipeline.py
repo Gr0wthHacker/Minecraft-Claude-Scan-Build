@@ -225,6 +225,7 @@ def _verify_in_context(m, res, capture, origin, verbose: bool, ignore: set | Non
         s.model.ids[max(0, min(y1, y2) - oy):max(y1, y2) - oy + 1, max(0, min(z1, z2) - oz):max(z1, z2) - oz + 1,
                     max(0, min(x1, x2) - ox):max(x1, x2) - ox + 1] = 0
     merged, overlap = scan_mod.merge(s, m, origin)
+    overlap -= _already_built_cells(m, origin, s)   # a cell the world already holds correctly is built, not a collision
     ctx = audit_mod.audit(merged, ground=False)
     if verbose:
         print(f"in context of {', '.join(os.path.basename(f) for f in files)}: overlap {overlap} cells, "
@@ -300,3 +301,27 @@ def _coerce(v):
         if v.startswith("[") and v.endswith("]"):
             return [_coerce(x.strip()) for x in v[1:-1].split(",") if x.strip()]
     return v
+
+
+def _already_built_cells(m, origin, s) -> int:
+    """Design cells whose world block is a match: the design is built there, so it is not a collision.
+
+    Without this every finished design reports its own blocks as overlaps the moment you build it."""
+    import numpy as np
+    from .coop import _same
+    ox, oy, oz = s.origin
+    mx, my, mz = origin
+    csy, csz, csx = s.model.ids.shape
+    msy, msz, msx = m.ids.shape
+    wn = [n.split(":")[-1] for n in s.model.names]
+    dn = [n.split(":")[-1] for n in m.names]
+    n = 0
+    ys, zs, xs = np.where(m.ids > 0)
+    for y, z, x in zip(ys, zs, xs):
+        wy_, wz_, wx_ = my + y - oy, mz + z - oz, mx + x - ox
+        if not (0 <= wy_ < csy and 0 <= wz_ < csz and 0 <= wx_ < csx):
+            continue
+        wi = s.model.ids[wy_, wz_, wx_]
+        if wi and _same(dn[m.ids[y, z, x]], wn[wi], True):
+            n += 1
+    return n

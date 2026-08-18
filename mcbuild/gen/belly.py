@@ -17,6 +17,7 @@ import os
 
 import numpy as np
 
+from .. import audit as audit_mod
 from .canvas import Canvas, hash01
 from .. import morph, schem
 
@@ -217,7 +218,7 @@ def build(cfg: dict, donors: list | None = None) -> Canvas:
     soft = np.concatenate([np.zeros((PAD,) + E0.shape[1:], bool), _mask_by_name(um, _is_soft)], axis=0)
 
     B = _geometry(E, hang, soft, lo, (ox, oz), p)
-    Wnew = _already_built(p, E, E0.shape, (ox, oy, oz), PAD)
+    Wnew, Wsolid = _already_built(p, E, E0.shape, (ox, oy, oz), PAD)
     B = _drop_small(B & ~Wnew, int(p["min_fragment"]))
     B = _hollow(B, E | Wnew, int(p["wall"]))     # shell against air; built rock counts as mass
     Bfull = B | Wnew                              # decorate against what will actually be there
@@ -226,7 +227,7 @@ def build(cfg: dict, donors: list | None = None) -> Canvas:
     c = Canvas(*[E.shape[i] for i in (2, 0, 1)], donors)
     p = {**p, "_wo": (ox, oy - PAD, oz), "_ymax": lo - 1}   # world offset for texture; vines never climb above the plate underside
     _paint(c, B, E, outside, p)
-    _vines(c, Bfull, E | Wnew, outside, p)
+    _vines(c, Bfull, Wsolid, outside, p)
     _lanterns(c, Bfull, E | Wnew, outside, p)
     c.world_origin = (ox, oy - PAD, oz)
     c.meta = {"encase_below": int(ey_world), "under": os.path.basename(p["under"]), "clear": ["vine"],
@@ -257,10 +258,14 @@ def _geometry(E, hang, soft, lo, origin_xz, p) -> np.ndarray:
     return foot[None] & (ys <= top[None]) & (ys > (top - depth)[None]) & ~E & ~dilate(hang & E, 1)
 
 
-def _already_built(p, E, shape0, origin, PAD) -> np.ndarray:
-    """Cells the player has already placed (present in `world`, absent from the geometry baseline)."""
+def _already_built(p, E, shape0, origin, PAD):
+    """(cells the player has already placed, full blocks in `world` that things may cling to).
+
+    The second mask matters for decoration: `under` is the PRE-build baseline, so a block that has
+    since been mined still reads as solid there. Anything that clings to a neighbour has to test
+    against what is in the world today, not against the baseline."""
     if not p.get("world"):
-        return np.zeros_like(E)
+        return np.zeros_like(E), E.copy()   # no world file: the baseline is all we know
     ox, oy, oz = origin
     wm, (wx, wy, wz) = _load_under(p["world"])
     W0 = _existing_solid(wm, set(p["strip"]))
@@ -272,7 +277,12 @@ def _already_built(p, E, shape0, origin, PAD) -> np.ndarray:
     src0, dst0 = max(0, -y0), max(0, y0)
     n = min(W0.shape[0] - src0, E.shape[0] - dst0)
     W[dst0:dst0 + n] = W0[src0:src0 + n]
-    return W & ~E
+    # Anchors are stricter than "not air": a vine needs a full block face, so walls, fences, slabs
+    # and stairs in the world are NOT something to cling to (audit.check_supports agrees).
+    F0 = _mask_by_name(wm, audit_mod._is_solid_name)
+    F = np.zeros_like(E)
+    F[dst0:dst0 + n] = F0[src0:src0 + n]
+    return W & ~E, F
 
 
 def _hollow(B: np.ndarray, E: np.ndarray, wall: int) -> np.ndarray:
@@ -301,8 +311,11 @@ def _paint(c: Canvas, B: np.ndarray, E: np.ndarray, outside: np.ndarray, p: dict
 
 
 
-def _vines(c: Canvas, B: np.ndarray, E: np.ndarray, outside: np.ndarray, p: dict) -> None:
-    """Strands down the outer side faces: side-attached while beside rock, vine-under-vine below."""
+def _vines(c: Canvas, B: np.ndarray, held: np.ndarray, outside: np.ndarray, p: dict) -> None:
+    """Strands down the outer side faces: side-attached while beside rock, vine-under-vine below.
+
+    `held` is what is solid in the world TODAY - a vine may only cling to something this file places
+    or something that is really there."""
     seed = int(p["seed"])
     lo, hi = p["vine_len"]
     # (dz, dx) = offset from the vine cell to the belly cell it clings to; prop name = that direction
@@ -324,6 +337,13 @@ def _vines(c: Canvas, B: np.ndarray, E: np.ndarray, outside: np.ndarray, p: dict
                     hang += 1
                     if hang > L:
                         break
+                # A side-attached vine needs its neighbour to exist for real: either this file places
+                # it, or the world already has it. `B` here is the FULL belly, which still contains
+                # rock that `_already_built` dropped - clinging to that leaves an orphan strand.
+                anchored = c.get(vx + dx, y, vz + dz) != 0 or held[y, vz + dz, vx + dx]
+                above = c.get(vx, y + 1, vz) != 0
+                if not anchored and not above:
+                    break
                 c.put(vx, y, vz, c.vine(vx, y, vz, dname))
                 y -= 1
 
