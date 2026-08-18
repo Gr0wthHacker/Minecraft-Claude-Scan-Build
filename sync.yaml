@@ -32,6 +32,7 @@ progress:                           # designs reported (% built, left, shop list
   - out/Undercroft Store.litematic
   - out/Entry Hall.litematic
   - out/Atelier Court.litematic  # below-island origin -24251 130 29949
+  - out/Void Giraffe.litematic   # Y99-150, its own origin
   - out/Void Isle.litematic      # Y86-108, its own origin (origin_lock: false)
   - out/Shop Islet.litematic     # below-island: its own locked origin -24251 130 29949
   - out/Root Stair.litematic     # same origin as the islet
