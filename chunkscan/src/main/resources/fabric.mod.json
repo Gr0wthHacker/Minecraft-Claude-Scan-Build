@@ -3,7 +3,7 @@
 	"id": "chunkscan",
 	"version": "${version}",
 	"name": "ChunkScan",
-	"description": "Client-side: dump the loaded chunks around you to a .litematic (air, tile entities and entities included) plus a JSON sidecar with world coordinates; every scan is archived under schematics/scans/ with a timestamp. /cscan <name> [radius], /cscan chunks <name> [radius].",
+	"description": "Client-side world capture and build helper: /cscan scans loaded chunks (or a Litematica selection) to a .litematic + .scan.json, places designs in Litematica at their recorded origin, marks named coordinates, highlights a design's dig list, auto-scans on a timer, and indexes every container you open so you can find items by name.",
 	"authors": ["Jack Gierlich"],
 	"license": "MIT",
 	"environment": "client",
@@ -11,6 +11,9 @@
 		"client": [
 			"dev.jack.chunkscan.ChunkScanClient"
 		]
+	},
+	"suggests": {
+		"litematica": "*"
 	},
 	"depends": {
 		"fabricloader": ">=0.19.3",

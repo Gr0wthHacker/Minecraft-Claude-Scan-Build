@@ -239,6 +239,36 @@ def _paste_columns(ids, pal, key_index, g: Grid, own: np.ndarray, origin):
 
 # ------------------------------------------------------------------ shop
 
+def load_storage(schem_dir: str | None = None) -> collections.Counter:
+    """What chunkscan has seen inside your containers: {item: count} from schematics/storage.json."""
+    path = os.path.join(schem_dir or load_profile()["schem_dir"], "storage.json")
+    have = collections.Counter()
+    if not os.path.exists(path):
+        return have
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    for c in data.get("containers", []):
+        for item, n in (c.get("items") or {}).items():
+            have[item.split(":")[-1]] += int(n)
+    return have
+
+
+def storage_report(schem_dir: str | None = None) -> str:
+    path = os.path.join(schem_dir or load_profile()["schem_dir"], "storage.json")
+    if not os.path.exists(path):
+        return "no storage.json yet - open some containers in game with chunkscan 0.3 running"
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    rows = data.get("containers", [])
+    lines = [f"{len(rows)} containers indexed"]
+    for c in sorted(rows, key=lambda c: -sum((c.get("items") or {}).values()))[:15]:
+        items = c.get("items") or {}
+        top = ", ".join(f"{k.split(':')[-1]}:{v}" for k, v in sorted(items.items(), key=lambda kv: -kv[1])[:4])
+        name = c.get("label") or c.get("zone") or c.get("block")
+        lines.append(f"  #{c['id']:<3} {name:<18} {c['x']} {c['y']} {c['z']}  {sum(items.values()):5d} items  {top}")
+    return "\n".join(lines)
+
+
 def load_prices(path: str = "prices.yaml") -> dict:
     """Optional {block_name: coins} table (your server's shop). Absent -> tiers only."""
     if not os.path.exists(path):
@@ -248,7 +278,7 @@ def load_prices(path: str = "prices.yaml") -> dict:
         return {str(k).split(":")[-1]: float(v) for k, v in (yaml.safe_load(f) or {}).items()}
 
 
-def shop(designs: list[str], world: str | None = None, prices: dict | None = None) -> str:
+def shop(designs: list[str], world: str | None = None, prices: dict | None = None, have: collections.Counter | None = None) -> str:
     prices = load_prices() if prices is None else prices
     need = collections.Counter()
     for dpath in designs:
@@ -258,12 +288,15 @@ def shop(designs: list[str], world: str | None = None, prices: dict | None = Non
         else:
             for _, n in Grid(scan.load(dpath)).cells():
                 need[n] += 1
-    lines = [f"{'block':26s} {'count':>6s} {'stacks':>7s} {'shulk':>6s}  tier" + ("   coins" if prices else "")]
+    lines = [f"{'block':26s} {'count':>6s} {'stacks':>7s} {'shulk':>6s}  tier" + ("      have  short" if have is not None else "") + ("   coins" if prices else "")]
     total_coins = 0.0
     for name, n in need.most_common():
         tier = palette.tier("minecraft:" + name)
         cost = prices.get(name)
         line = f"{name:26s} {n:6d} {n / 64:7.1f} {n / 1728:6.2f}  {tier}"
+        if have is not None:
+            got = have.get(name, 0)
+            line += f"  {got:8d}  {max(0, n - got):5d}"
         if prices:
             line += f"   {n * cost:8.0f}" if cost is not None else "        ?"
             total_coins += n * (cost or 0)
@@ -272,6 +305,9 @@ def shop(designs: list[str], world: str | None = None, prices: dict | None = Non
     by_tier = collections.Counter()
     for name, n in need.items():
         by_tier[palette.tier("minecraft:" + name)] += n
+    if have is not None:
+        short = sum(max(0, n - have.get(k, 0)) for k, n in need.items())
+        lines.append(f"in your indexed containers: {sum(min(n, have.get(k, 0)) for k, n in need.items())} of {total}; still short {short}")
     lines.append(f"total {total} blocks = {total / 64:.0f} stacks = {total / 1728:.1f} shulkers; "
                  + ", ".join(f"{k} {v}" for k, v in by_tier.most_common())
                  + (f"; ~{total_coins:.0f} coins (priced items only)" if prices else ""))

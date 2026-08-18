@@ -19,16 +19,37 @@ final class ScanRunner {
 
 	private ScanRunner() {}
 
+	static Path schematicsDir(Minecraft mc) {
+		return mc.gameDirectory.toPath().resolve("schematics");
+	}
+
+	/** Capture exactly the box Litematica currently has selected. */
+	static ScanResult scanSelection(Minecraft mc, String name) throws ScanException, IOException {
+		int[] box;
+		try {
+			box = Litematica.present() ? Litematica.currentSelection() : null;
+		} catch (Exception e) {
+			throw new ScanException("could not read the Litematica selection: " + e);
+		}
+		if (box == null) throw new ScanException("no Litematica area selection (make one, or use /cscan <name>)");
+		return scan(mc, name, 0, false, box);
+	}
+
 	static ScanResult scan(Minecraft mc, String name, int radius, boolean chunkAligned) throws ScanException, IOException {
+		return scan(mc, name, radius, chunkAligned, null);
+	}
+
+	static ScanResult scan(Minecraft mc, String name, int radius, boolean chunkAligned, int[] box) throws ScanException, IOException {
 		ClientLevel level = mc.level;
 		LocalPlayer player = mc.player;
 		if (level == null || player == null) throw new ScanException("not in a world");
 		if (!SAFE_NAME.matcher(name).matches()) throw new ScanException("name: letters, digits, _ - . only");
 
 		long t0 = System.nanoTime();
-		Capture cap = WorldCapture.capture(level, player.chunkPosition(), radius, chunkAligned);
+		Capture cap = box != null ? WorldCapture.captureBox(level, box)
+			: WorldCapture.capture(level, player.chunkPosition(), radius, chunkAligned);
 
-		Path dir = mc.gameDirectory.toPath().resolve("schematics");
+		Path dir = schematicsDir(mc);
 		Files.createDirectories(dir);
 		Path lit = dir.resolve(name + ".litematic");
 		Path json = dir.resolve(name + ".scan.json");
@@ -37,7 +58,7 @@ final class ScanRunner {
 		String author = player.getName().getString();
 		String description = "chunkscan | " + where + " | origin "
 			+ cap.originX() + " " + cap.originY() + " " + cap.originZ()
-			+ (chunkAligned ? " | chunk-aligned" : "") + " | r=" + radius;
+			+ (box != null ? " | selection" : chunkAligned ? " | chunk-aligned" : "") + " | r=" + radius;
 		LitematicWriter.write(lit, cap, name, author, description);
 		SidecarWriter.write(json, cap, name, lit.getFileName().toString(), mc, level, player, radius, chunkAligned);
 		archive(dir, name, lit, json);

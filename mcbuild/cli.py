@@ -161,7 +161,11 @@ def cmd_merge(a):
 
 
 def cmd_shop(a):
-    print(coop.shop(a.designs, a.world))
+    print(coop.shop(a.designs, a.world, have=coop.load_storage() if a.have else None))
+
+
+def cmd_storage(a):
+    print(coop.storage_report())
 
 
 def cmd_place(a):
@@ -220,7 +224,11 @@ def main(argv=None):
     p = sub.add_parser("merge", help="merge several captures into one (newest scan wins per loaded chunk)")
     p.add_argument("captures", nargs="+"); p.add_argument("--out", required=True); p.set_defaults(fn=cmd_merge)
     p = sub.add_parser("shop", help="shopping list in stacks/shulkers, optionally minus what is built (--world)")
-    p.add_argument("designs", nargs="+"); p.add_argument("--world"); p.set_defaults(fn=cmd_shop)
+    p.add_argument("designs", nargs="+"); p.add_argument("--world")
+    p.add_argument("--have", action="store_true", help="subtract what chunkscan has indexed in your containers")
+    p.set_defaults(fn=cmd_shop)
+    p = sub.add_parser("storage", help="what chunkscan has indexed inside your containers")
+    p.set_defaults(fn=cmd_storage)
     p = sub.add_parser("place", help="write Litematica placements (schematic + origin) into the per-world config; game must be closed")
     p.add_argument("designs", nargs="+"); p.add_argument("--server"); p.add_argument("--dim")
     p.add_argument("--game-dir"); p.add_argument("--disabled", action="store_true"); p.add_argument("--dry", action="store_true"); p.set_defaults(fn=cmd_place)

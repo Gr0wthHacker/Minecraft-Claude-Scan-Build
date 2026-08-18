@@ -8,21 +8,28 @@ Sends nothing to the server; works on any multiplayer server.
 ## In game
 
 ```
-/cscan <name> [radius]          # loaded chunks within radius (default 8) → cropped to non-air bounds + 2 air margin
-/cscan chunks <name> [radius]   # same, but XZ stays on the exact chunk grid (full 16x16 cells, air and all)
+/cscan <name> [radius]          # loaded chunks within radius (default 8), cropped to non-air bounds + 2 air margin
+/cscan chunks <name> [radius]   # same, but XZ stays on the exact chunk grid
+/cscan sel <name>               # capture exactly the current Litematica area selection
+/cscan auto <name> <minutes>    # rescan on a timer while building   (/cscan auto off, /cscan auto)
+
+/cscan place [design]           # add Litematica placements at each design's recorded origin (all designs if omitted)
+/cscan dig <design>             # highlight the design's dig list in red for 2 min   (/cscan dig = clear)
+
+/cscan mark <label>             # name the block you are looking at -> markers.json   (/cscan marks, /cscan unmark)
+
+/cscan find <item>              # which container holds it: number, zone, coords, distance, direction + blue highlight
+/cscan chests                   # how much is indexed
+/cscan label <text>             # name the container you are looking at
 ```
 
-Writes to the Litematica folder (`<gameDir>/schematics/`):
+**Placements** (`/cscan place`) read each design's `.scan.json` origin and add an enabled placement with
+rotation and mirror NONE — no typing coordinates, no stale placement settings. Needs Litematica loaded;
+everything else works without it.
 
-- `<name>.litematic` — Litematica v7, one region at (0,0,0), palette[0] = air, tile entities and entities (item frames, armor stands, paintings…) included
-- `scans/<name>_<yyyyMMdd-HHmm>.litematic` + `.scan.json` — an archived copy of every scan, for `mcbuild diff`
-- `<name>.scan.json` — server, dimension, `origin` (world XYZ of region [0,0,0] = paste origin),
-  size, chunks included, chunks inside the box that were **not loaded** (saved as air — walk closer and rescan)
-
-Chat shows origin/size/blocks/palette. Give the same origin to a teammate and their Litematica placement lines up.
-
-Limits: only what the server sends (its view distance, not your render distance); chest/shulker
-contents only if you've opened them; entity data is what the client knows (frames' items, stand poses, painting variants — not mob inventories).
+**Containers** index themselves whenever you open one: position, block, contents, the screen title as a
+label, the nearest marker as a zone, and a stable number that never changes. `/cscan find diamond` then
+answers *which* container, so you never open a hundred by hand.
 
 ## From Python
 
@@ -44,7 +51,7 @@ toolchain into `~/.gradle/jdks` on first build.
 cd C:/Users/Jack/mctest/chunkscan
 export JAVA_HOME="C:/Users/Jack/AppData/Roaming/CCBlueX/LiquidLauncher/data/runtimes/temurin_25/jdk-25.0.3+9-jre"
 ./gradlew build test
-cp build/libs/chunkscan-0.2.0.jar "$APPDATA/CCBlueX/LiquidLauncher/data/custom_mods/nextgen-26.2/"
+cp build/libs/chunkscan-0.3.0.jar "$APPDATA/CCBlueX/LiquidLauncher/data/custom_mods/nextgen-26.2/"
 ```
 
 `test` writes `build/test-out/synthetic.litematic` through the real writer; then from `mctest`:

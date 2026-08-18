@@ -142,7 +142,7 @@ python -m mcbuild shop out/Taproot.litematic "out/Shed Shard.litematic" --world 
 python -m mcbuild place out/Taproot.litematic --server skyblock.net                                 # Litematica placements at the right origin (game closed!)
 ```
 
-chunkscan 0.2 also captures entities (item frames, armor stands, paintings, boats) and archives every scan
+chunkscan 0.3 also captures entities (item frames, armor stands, paintings, boats) and archives every scan
 as `schematics/scans/<name>_<yyyyMMdd-HHmm>.litematic` so history can be diffed. Dressing kits: `chimney`,
 `footing` (configs `chimneys.yaml`, `footings.yaml`).
 
@@ -157,6 +157,8 @@ python -m mcbuild place <designs...>                                # Litematica
 `profile.yaml` holds the machine/server paths (teammates edit that, nothing else). `sync.yaml` lists which
 designs get regenerated / reported. Optional `prices.yaml` ({block: coins}) turns `shop` into a cost sheet.
 Verification also reports free-floating clusters (need a temporary scaffold) for every design.
+`python -m mcbuild storage` shows what the mod has indexed inside your containers; `shop --have`
+subtracts it from the shopping list. See `CLAUDE.md` for the full picture.
 
 Dressing kits: `hem` (rim), `paths` (+ `lightposts`, terrain-following, MST over A* routes that reuse existing
 path fragments; sidecar has the dig list and torches to pull), `entrance`, `ridelights`, `apiary`,

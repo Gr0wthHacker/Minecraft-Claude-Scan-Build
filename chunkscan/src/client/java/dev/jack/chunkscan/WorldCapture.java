@@ -42,6 +42,17 @@ final class WorldCapture {
 		return fill(level, box, radius, center);
 	}
 
+	/** Capture an explicit world box {minX,minY,minZ,maxX,maxY,maxZ}, air and all. */
+	static Capture captureBox(ClientLevel level, int[] b) throws ScanException {
+		Bounds box = Bounds.empty();
+		box.include(b[0], b[1], b[2]);
+		box.include(b[3], b[4], b[5]);
+		box = box.clampY(level.getMinY(), level.getMaxY());
+		Capture cap = fill(level, box, 0, new ChunkPos(b[0] >> 4, b[2] >> 4));
+		if (cap.chunksIncluded().isEmpty()) throw new ScanException("none of that box is loaded");
+		return cap;
+	}
+
 	private static List<LevelChunk> loadedChunksAround(ClientLevel level, ChunkPos center, int radius) {
 		List<LevelChunk> out = new ArrayList<>();
 		for (int cx = center.x() - radius; cx <= center.x() + radius; cx++) {
