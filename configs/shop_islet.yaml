@@ -10,9 +10,13 @@ params:
   under: out/island_deep.litematic   # island_now is cut at Y150; below-island work needs deeper
   center: [-24200, 30018]
   top_y: 150                # taproot foot is Y152, so the shelf sits 2 below it
+  shop_offset: [3, 3]       # swept against the stair: [0,3] put an awning post inside a tread
   spike: [-24200, 30018]    # raised one course to Y151 to meet the root
-  rx: 8.0
-  rz: 7.0
+  rx: 12.0                  # was 8/7. Enlarging is purely additive - the 763 cells already built
+  rz: 11.0                  # stay valid - and there is a step change here: the raft finally
+                            # reaches past the stair's shadow, so usable court floor goes
+                            # 42 -> 190 cells. Cost per extra court cell also IMPROVES,
+                            # 28 blocks at rx10 down to 7.2 at rx12.
   depth: 9
   wobble: 2.2
   moss: 0.55

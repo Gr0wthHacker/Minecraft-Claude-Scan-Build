@@ -14,23 +14,31 @@
 name: Atelier Court
 gen: atelier
 params:
-  under: out/island_deep.litematic
-  center: [-24196, 30018]   # centroid of the OPEN floor, not of the raft - the stair owns the west
+  under: out/islet_planned.litematic   # world + the ENLARGED islet design, merged. Reading the
+                            # raw capture designs the court onto the raft as it stands today,
+                            # which is the small one - rebuild this file whenever the islet
+                            # changes:  python -m mcbuild merge out/island_deep.litematic
+                            #           "out/Shop Islet.litematic" --out out/islet_planned.litematic
+  center: [-24196, 30018]   # the OPEN floor's own centre, not the raft's. Centring on the raft puts
+                            # the middle of the pattern under the stair, so there is nowhere to lay
+                            # the medallion and the court loses its focal point. The court is its own
+                            # space east of the stair, and this is where its middle actually is.
   floor_y: 150              # the shelf course; the old moss and rock there go in the dig list
-  radius: 12
+  radius: 15
   headroom: 5
   pale: smooth_stone
   mid: stone_bricks
   figure: cracked_stone_bricks
   verge: mossy_cobblestone
   medallion: chiseled_stone_bricks
-  spokes: 4                 # four, not eight: the coherent floor is about 6x5 and eight spokes on
-                            # that reads as noise rather than figure
+  spokes: 8                 # the raft was enlarged to rx12/rz11, so the coherent floor is ~190
+                            # cells at r~9. Eight spokes read as figure at that size; on the
+                            # old 6x5 they were noise.
   spoke_width: 0.30
-  verge_width: 1.0
+  verge_width: 1.6          # a wider verge suits a bigger court
   stations: [anvil, grindstone, smithing_table, stonecutter, loom, cartography_table,
              fletching_table, cauldron]
-  station_gap: 2
+  station_gap: 3            # more rim to spread across; 3 gives each station elbow room
   balustrade: stone_brick_wall
   lantern_every: 5
   floor_lantern_reach: 6    # nothing on this platform sees sky; lanterns are the only light there is

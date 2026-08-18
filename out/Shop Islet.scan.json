@@ -5,9 +5,9 @@
     "z": 29949
   },
   "size": {
-    "x": 61,
+    "x": 64,
     "y": 25,
-    "z": 77
+    "z": 81
   },
   "generated_by": "islet",
   "kind": "islet",
@@ -16,8 +16,8 @@
     30018
   ],
   "top_y": 150,
-  "shelf_cells": 163,
-  "collisions": 764,
+  "shelf_cells": 387,
+  "collisions": 743,
   "file": "Shop Islet.litematic",
   "name": "Shop Islet"
 }
