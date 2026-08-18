@@ -128,7 +128,7 @@ def _finish(m, cfg, world_origin, gen_meta, verbose):
             print(f"dropped {n} floating fragment blocks")
     m.compact_palette()
 
-    res = audit_mod.audit(m, ground=fin.get("ground", True),
+    res = audit_mod.audit(m, ground=fin.get("ground", True), climb=bool(fin.get("climb")),
                           symmetry=bool(fin.get("symmetry")), symmetry_rows_from=int(fin.get("symmetry_rows_from", 0)),
                           ground_block=fin.get("ground_block"))
     if verbose:

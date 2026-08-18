@@ -8,7 +8,7 @@
 name: Root Stair
 gen: spiral
 params:
-  under: out/island_now.litematic
+  under: out/island_deep.litematic   # island_now is cut at Y150; below-island work needs deeper
   around: out/Taproot.litematic
   center: [-24200, 30018]
   y0: 152                   # first tread, one step up off the islet shelf
@@ -19,16 +19,23 @@ params:
   start_angle: -1.5708      # start on the NORTH side and wind N-E-S, so the low turns are not
                             # over the shop awning at Y154 - the stair reaches south around Y173
   direction: 1
-  width: 2
-  tread: stone_brick_stairs
-  inner: mossy_stone_bricks
+  width: 1                  # 1 ONLY. With 2 the inward fill of each course lands on the tread of
+                            # the course below and buries it - swept every pitch, never climbable.
+  step_low: stone_brick_slab    # slab then block = 0.5 a tread, walkable without jumping.
+  step_high: mossy_stone_bricks # NOT stairs: the game recomputes a stair's shape from its
+  inner: mossy_stone_bricks     # neighbours, so treads silently merge into corner pieces.
   rail: stone_brick_wall
   lantern_every: 8
   seed: 0
 origin_lock: [-24251, 130, 29949]   # below-island corner, NOT the global one
 finish:
+  climb: true               # gate it: this design shipped unclimbable once
   cheapen: true
   hollow: false
   ground: false
   drop_floaters: false
-  verify_against: [out/island_now.litematic, out/Taproot.litematic, out/Shop Islet.litematic]
+  context_clear: [vine]     # any cut truncates vine strands at its top edge, and the orphans are
+                            # the box's fault, not this design's
+  # both cuts: deep covers Y130-215, island_now Y150-270. Merged they have no interior edge,
+  # so nothing gets flagged just for hanging past the top of a box.
+  verify_against: [out/island_deep.litematic, out/island_now.litematic, out/Taproot.litematic, out/Shop Islet.litematic]

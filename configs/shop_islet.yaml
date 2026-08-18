@@ -7,7 +7,7 @@
 name: Shop Islet
 gen: islet
 params:
-  under: out/island_now.litematic
+  under: out/island_deep.litematic   # island_now is cut at Y150; below-island work needs deeper
   center: [-24200, 30018]
   top_y: 150                # taproot foot is Y152, so the shelf sits 2 below it
   spike: [-24200, 30018]    # raised one course to Y151 to meet the root
@@ -35,4 +35,6 @@ finish:
   hollow: false
   ground: false             # it hangs in the void; there is no ground under it
   drop_floaters: false
-  verify_against: out/island_now.litematic
+  context_clear: [vine]     # any cut truncates vine strands at its top edge, and the orphans are
+                            # the box's fault, not this design's
+  verify_against: [out/island_deep.litematic, out/island_now.litematic]

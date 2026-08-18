@@ -219,6 +219,10 @@ def build(cfg: dict, donors: list | None = None) -> Canvas:
 
     B = _geometry(E, hang, soft, lo, (ox, oz), p)
     Wnew, Wsolid = _already_built(p, E, E0.shape, (ox, oy, oz), PAD)
+    # "Already built" means a cell of THIS design you have placed - not any block that has appeared
+    # since the baseline. Without the mask, a new build under the island (the root stair) becomes part
+    # of the belly, and its vines then hang off it below the origin lock.
+    Wnew &= B
     B = _drop_small(B & ~Wnew, int(p["min_fragment"]))
     B = _hollow(B, E | Wnew, int(p["wall"]))     # shell against air; built rock counts as mass
     Bfull = B | Wnew                              # decorate against what will actually be there
@@ -227,7 +231,9 @@ def build(cfg: dict, donors: list | None = None) -> Canvas:
     c = Canvas(*[E.shape[i] for i in (2, 0, 1)], donors)
     p = {**p, "_wo": (ox, oy - PAD, oz), "_ymax": lo - 1}   # world offset for texture; vines never climb above the plate underside
     _paint(c, B, E, outside, p)
-    _vines(c, Bfull, Wsolid, outside, p)
+    # The anchor mask is world-solid AND belly: a vine may only cling to a belly cell that is really
+    # there, never to something else that happens to be standing in the same place.
+    _vines(c, Bfull, Wsolid & Bfull, Wsolid, outside, p)
     _lanterns(c, Bfull, E | Wnew, outside, p)
     c.world_origin = (ox, oy - PAD, oz)
     c.meta = {"encase_below": int(ey_world), "under": os.path.basename(p["under"]), "clear": ["vine"],
@@ -311,11 +317,12 @@ def _paint(c: Canvas, B: np.ndarray, E: np.ndarray, outside: np.ndarray, p: dict
 
 
 
-def _vines(c: Canvas, B: np.ndarray, held: np.ndarray, outside: np.ndarray, p: dict) -> None:
+def _vines(c: Canvas, B: np.ndarray, held: np.ndarray, taken: np.ndarray, outside: np.ndarray, p: dict) -> None:
     """Strands down the outer side faces: side-attached while beside rock, vine-under-vine below.
 
-    `held` is what is solid in the world TODAY - a vine may only cling to something this file places
-    or something that is really there."""
+    `held` is belly that is really there today (a legal anchor); `taken` is everything solid in the
+    world today (never build into it). The baseline predates anything you have built since, so
+    without `taken` the strand runs straight through, say, the taproot you just put up."""
     seed = int(p["seed"])
     lo, hi = p["vine_len"]
     # (dz, dx) = offset from the vine cell to the belly cell it clings to; prop name = that direction
@@ -332,7 +339,7 @@ def _vines(c: Canvas, B: np.ndarray, held: np.ndarray, outside: np.ndarray, p: d
             y = int(rows.max())
             L = lo + int(hash01(x, z, 37, seed) * (hi - lo + 1))
             hang = 0
-            while y >= 0 and c.get(vx, y, vz) == 0 and outside[y, vz, vx]:
+            while y >= 0 and c.get(vx, y, vz) == 0 and outside[y, vz, vx] and not taken[y, vz, vx]:
                 if not B[y, vz + dz, vx + dx]:
                     hang += 1
                     if hang > L:
@@ -340,7 +347,11 @@ def _vines(c: Canvas, B: np.ndarray, held: np.ndarray, outside: np.ndarray, p: d
                 # A side-attached vine needs its neighbour to exist for real: either this file places
                 # it, or the world already has it. `B` here is the FULL belly, which still contains
                 # rock that `_already_built` dropped - clinging to that leaves an orphan strand.
-                anchored = c.get(vx + dx, y, vz + dz) != 0 or held[y, vz + dz, vx + dx]
+                # Must be a BELLY cell, and really there: either this file places it or the world
+                # already has it. Without the B test a vine will happily cling to anything solid that
+                # turns up nearby - the root stair, once built - and hang below the origin lock.
+                anchored = B[y, vz + dz, vx + dx] and (
+                    c.get(vx + dx, y, vz + dz) != 0 or held[y, vz + dz, vx + dx])
                 above = c.get(vx, y + 1, vz) != 0
                 if not anchored and not above:
                     break

@@ -225,7 +225,7 @@ def check_symmetry(m: Model, axis: str = "x", rows_from: int = 0) -> bool:
 
 def audit(m: Model, *, ground: bool = True, symmetry: bool = False,
           symmetry_rows_from: int = 0, ground_block: str | None = None,
-          states: bool = True, reach: bool = False) -> Result:
+          states: bool = True, reach: bool = False, climb: bool = False) -> Result:
     r = Result()
     s = m.solid()
     r.size = m.shape_xyz
@@ -244,6 +244,8 @@ def audit(m: Model, *, ground: bool = True, symmetry: bool = False,
         r.problems += check_states(m)
     if reach:
         r.problems += check_reach(m)
+    if climb:
+        r.problems += check_climb(m)
     if symmetry:
         r.symmetric = check_symmetry(m, rows_from=symmetry_rows_from)
     return r
@@ -331,3 +333,60 @@ def check_reach(m: Model, *, head: int = 2) -> list:
         if not ok:
             out.append(Problem("reach", x, y, z, "no open cell beside it to stand in and place from"))
     return out
+
+
+# ------------------------------------------------------------------ can you climb it
+
+def check_climb(m: Model, *, max_step: float = 0.5, max_drop: float = 3.5) -> list:
+    """Walk the design from its lowest surface and report if you cannot reach the top WITHOUT jumping.
+
+    This exists because a stair that audits clean, has no overlaps and is fully supported can still
+    be unclimbable, and the only way to find out was to build it. Slabs give a 0.5 surface, full
+    blocks 1.0; a step over `max_step` needs a jump, so it does not count as walkable.
+    """
+    import collections
+    import math
+    names = [n.split(":")[-1] for n in m.names]
+    soft = {"lantern", "torch", "wall_torch", "vine", "glow_lichen", "short_grass", "moss_carpet"}
+    surf: dict = collections.defaultdict(list)
+    occ = set()
+    ys, zs, xs = np.where(m.ids > 0)
+    for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist()):
+        i = int(m.ids[y, z, x])
+        n = names[i]
+        occ.add((x, y, z))
+        if n in soft or n.endswith("_wall"):
+            continue
+        if n.endswith("_slab"):
+            t = nbt.state_props(m.palette[i]).get("type")
+            surf[(x, z)].append(y + (0.5 if t == "bottom" else 1.0))
+        else:
+            surf[(x, z)].append(y + 1.0)
+    if not surf:
+        return []
+    top = max(h for v in surf.values() for h in v)
+
+    def head(x, z, h):
+        base = math.ceil(h)
+        return not any((x, base + k, z) in occ for k in (0, 1))
+
+    start = min((h, x, z) for (x, z), v in surf.items() for h in v)
+    seen = {(start[1], start[2], start[0])}
+    q = collections.deque(seen)
+    while q:
+        x, z, h = q.popleft()
+        for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nx, nz = x + dx, z + dz
+            for h2 in surf.get((nx, nz), []):
+                if h2 - h > max_step or h - h2 > max_drop or not head(nx, nz, h2):
+                    continue
+                k = (nx, nz, h2)
+                if k not in seen:
+                    seen.add(k)
+                    q.append(k)
+    reach = max(h for _, _, h in seen)
+    if reach >= top - 0.5:
+        return []
+    return [Problem("climb", int(start[1]), int(start[0]), int(start[2]),
+                    f"cannot be walked up without jumping: reaches {reach}, top is {top} "
+                    f"({top - reach:.1f} blocks short)")]

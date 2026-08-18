@@ -1,6 +1,6 @@
 {
-  "name": "island_now",
-  "file": "island_now.litematic",
+  "name": "island_deep",
+  "file": "island_deep.litematic",
   "format": "litematic",
   "created": "2026-08-18T14:35:08.199385200Z",
   "player": "Enroniti",
@@ -12,12 +12,12 @@
   "data_version": 4903,
   "origin": {
     "x": -24251,
-    "y": 150,
+    "y": 130,
     "z": 29949
   },
   "size": {
     "x": 103,
-    "y": 121,
+    "y": 86,
     "z": 103
   },
   "player_pos": {
@@ -27,8 +27,8 @@
   },
   "air_margin": 2,
   "total_volume": 3554015,
-  "non_air_blocks": 47180,
-  "palette_size": 520,
+  "non_air_blocks": 40050,
+  "palette_size": 508,
   "tile_entities": 314,
   "entities": 7,
   "cut_from": "island.litematic"

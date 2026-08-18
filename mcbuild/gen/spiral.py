@@ -32,10 +32,15 @@ SPIRAL = {
     "start_angle": 0.0,
     "direction": 1,            # +1 anticlockwise, -1 clockwise
     "width": 2,                # tread depth, measured outward from the inner edge
-    "tread": "stone_brick_stairs",
+    # NOT stairs. A stair's `shape` is recomputed by the game from its neighbours, so a schematic
+    # cannot dictate it - treads next to each other silently become inner/outer corner pieces. A
+    # half-slab then a full block gives a 0.5 rise per tread, which walks smoothly and has no
+    # neighbour-dependent state at all.
+    "step_low": "stone_brick_slab",
+    "step_high": "mossy_stone_bricks",
     "inner": "mossy_stone_bricks",
     "rail": "stone_brick_wall",
-    "rise_every": 2,           # treads per block of rise; 1 is too steep to leave room for the rail
+    "rise_every": 2,           # treads per block of rise; 2 = slab, block, slab, block -> 0.5 a tread
     "top_landing": True,       # widen the last tread so the arrival is standable
     "lantern_every": 8,        # a lantern on the rail every N steps; 0 for none
     "seed": 0,
@@ -75,11 +80,10 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
             turns += (1.0 / max(1.0, r)) / (2 * math.pi)
             cur = (cx + int(round(r * math.cos(theta))), cz + int(round(r * math.sin(theta))))
             spin_guard += 1
-        walk = prev
+        low = (step % rise) == 0                        # slab, then block, then up a course
         for (px, pz), _yy, _last in _path(prev, cur, y):
-            _tread(w, px, y, pz, cx, cz, r, _facing(walk, (px, pz)), p, cells)
+            _tread(w, px, y, pz, cx, cz, r, low, p, cells)
             treads.append([px, y, pz])
-            walk = (px, pz)
         if step % rise == 0 and p["lantern_every"] and (step // rise) % int(p["lantern_every"]) == 0:
             if _lantern(w, cur[0], y, cur[1], cx, cz, r, p):
                 lanterns += 1
@@ -145,13 +149,13 @@ def _smooth(prof: dict, clearance: float, min_r: float) -> dict:
 
 # ------------------------------------------------------------------ pieces
 
-def _tread(w: World, x: int, y: int, z: int, cx: int, cz: int, r: float, facing: str, p: dict, treads: set):
-    """One step: a stair on the travel line, filled inward to `width`, railed on the outside.
-
-    The radius grows as the stair climbs, so a later course reaches back over an earlier one - its
-    fill and rail would land on the head of a tread below and make it unwalkable. `_free` refuses
-    any cell sitting directly on a tread."""
-    w.put(x, y, z, p["tread"], facing=facing, half="bottom", shape="straight", waterlogged="false")
+def _tread(w: World, x: int, y: int, z: int, cx: int, cz: int, r: float, low: bool, p: dict, treads: set):
+    """One step. `low` alternates: a bottom slab (walking surface y+0.5) then a full block (y+1), so
+    each tread is half a block above the last and you walk up without jumping."""
+    if low:
+        w.put(x, y, z, p["step_low"], type="bottom", waterlogged="false")
+    else:
+        w.put(x, y, z, p["step_high"])
     treads.add((x, y, z))
     ux, uz = _outward(x, z, cx, cz)
     for k in range(1, int(p["width"])):                 # widen INWARD, toward the root

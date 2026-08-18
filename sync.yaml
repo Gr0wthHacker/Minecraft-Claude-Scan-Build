@@ -2,6 +2,9 @@
 scan: island
 cut: [-24251, 150, 29949, -24149, 270, 30051]
 world_out: out/island_now.litematic
+deep_out: out/island_deep.litematic   # Y130-200: below-island designs verify against this
+deep_cut: [-24251, 130, 29949, -24149, 215, 30051]   # top must clear the plate: cutting at 200
+                                                     # truncates vines whose anchor is above it
 regen:                              # regenerated against the new scan (they key off ground state, so they self-heal)
   - configs/belly.yaml
   - configs/hem.yaml
