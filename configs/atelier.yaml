@@ -1,0 +1,46 @@
+# The workshop court on the shop islet, where the root stair lands.
+#
+# The platform is ragged and the stair's lower turns take its whole west half, so the open floor is
+# 61 cells in the centre-east - measured, not assumed. A radial pattern is the only kind that lays
+# gracefully on an outline like that: medallion, concentric rings, eight spokes, mossy verge where
+# the rock runs out.
+#
+# Palette is four greys the island already contains in quantity, so nothing here needs a trip out:
+# smooth_stone 100, stone_bricks 3199, cracked_stone_bricks 485, mossy_cobblestone 1119.
+#
+# No sky reaches this platform, so unlike the sky-well court nothing here can freeze.
+#
+# Below-island origin, same corner as the islet and the stairs.
+name: Atelier Court
+gen: atelier
+params:
+  under: out/island_deep.litematic
+  center: [-24196, 30018]   # centroid of the OPEN floor, not of the raft - the stair owns the west
+  floor_y: 150              # the shelf course; the old moss and rock there go in the dig list
+  radius: 12
+  headroom: 5
+  pale: smooth_stone
+  mid: stone_bricks
+  figure: cracked_stone_bricks
+  verge: mossy_cobblestone
+  medallion: chiseled_stone_bricks
+  spokes: 4                 # four, not eight: the coherent floor is about 6x5 and eight spokes on
+                            # that reads as noise rather than figure
+  spoke_width: 0.30
+  verge_width: 1.0
+  stations: [anvil, grindstone, smithing_table, stonecutter, loom, cartography_table,
+             fletching_table, cauldron]
+  station_gap: 2
+  balustrade: stone_brick_wall
+  lantern_every: 5
+  floor_lantern_reach: 6    # nothing on this platform sees sky; lanterns are the only light there is
+  planters: 0.10
+  seed: 0
+origin_lock: [-24251, 130, 29949]
+finish:
+  cheapen: false            # the four-tone palette IS the design; nothing may be substituted
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine]
+  verify_against: [out/island_deep.litematic, out/island_now.litematic]
