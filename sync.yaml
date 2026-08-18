@@ -31,4 +31,5 @@ progress:                           # designs reported (% built, left, shop list
   - out/Item Sorter.litematic
   - out/Shop Islet.litematic     # below-island: its own locked origin -24251 130 29949
   - out/Root Stair.litematic     # same origin as the islet
+  - out/Workshop Stair.litematic # the shaft joining the root stair to the deck; same origin
 learn: true

@@ -1,0 +1,45 @@
+# The shaft joining the root stair to the inside of the workshop deck.
+#
+# The root stair tops out at surface Y187. The deck skin at Y190 is already open above it, and the
+# deck floor at Y194 is the only thing in the way - a 3x3 core at x-24203..-24201 / z30008..30010 is
+# clear at every other level, verified against the capture.
+#
+# Below-island origin, same corner as the islet and the stair.
+name: Workshop Stair
+gen: stairwell
+params:
+  under: out/island_deep.litematic
+  center: [-24202, 30009]   # middle of the clear 3x3
+  radius: 1                 # 3x3 shaft, middle left open as a newel
+  y_bottom: 186             # a course BELOW the root stair's top tread, so the two interleave.
+                            # At 187 the first tread landed directly on the root stair's last
+                            # one and you could not stand there - the route stopped dead.
+  y_top: 195                # deck floor level: you step off onto Y194's top face
+  start_angle: 1.5          # swept against the full islet-to-deck walk
+  direction: 1
+  slab: stone_brick_slab
+  slab_alt: mossy_stone_brick_slab
+  alt_rate: 0.3
+  casing: stone_bricks
+  entry_dir: west           # the root stair tops out just west of the shaft
+  entry_high: 3
+  kerb: stone_brick_slab
+  rail: stone_brick_wall
+  lanterns: 3
+  apron: 5                  # foyer around the head. The chest-wall keep box takes the whole west
+  apron_carpet: 0.5         # side, so the foyer spreads east into the open floor instead.
+  apron_posts: 6
+  keep_boxes:               # the foyer stays out of the workshop's working areas
+    - [-24209, 195, 29993, -24203, 198, 30018]   # chest wall aisle, anvil, mob-drop sorter
+    - [-24200, 195, 30001, -24194, 199, 30012]   # smelter feed chute
+  cut_names: [stone_bricks, moss_block, mossy_stone_bricks, cobblestone, stone]
+  seed: 0
+origin_lock: [-24251, 130, 29949]
+finish:
+  climb: true               # gate it, like the root stair
+  cheapen: true
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine]
+  verify_against: [out/island_deep.litematic, out/island_now.litematic]
