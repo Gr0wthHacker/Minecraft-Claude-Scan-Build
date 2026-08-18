@@ -68,7 +68,11 @@ def _segment(solid, sy):
         area.append(int(m.sum()))
         zs, xs = np.where(m)
         xext.append(int(xs.max() - xs.min() + 1))
-        zext.append(int(zs.max() - zs.min() + 1))
+        # THICK extent only. A cat's tail is 22 blocks long and one wide; counting it made the
+        # barrel measure 48 blocks and the head 38. Only z-slices with real width count as body.
+        per_z = np.bincount(zs, minlength=m.shape[0])
+        thick = np.where(per_z >= max(2, per_z.max() * 0.3))[0]
+        zext.append(int(thick.max() - thick.min() + 1) if len(thick) else 0)
 
     filled = [y for y in range(sy) if area[y]]
     lo, hi = filled[0], filled[-1]
@@ -89,6 +93,41 @@ def _segment(solid, sy):
     waist = min(above, key=lambda y: zext[y]) if above else withers
     head = next((y for y in range(waist, ceiling) if zext[y] > zext[waist] * 1.5), waist)
     return belly, withers, head, xext, zext, parts, area
+
+
+def _neck_len(land, head, withers) -> float:
+    """Along the neck's OWN axis, not the height it gains.
+
+    A giraffe's neck is nearly vertical so the two agree; a jaguar's is nearly horizontal, and the
+    height difference reported a 4-block neck on one twice that length."""
+    a, b = land.get("shoulder_at"), land.get("neck_top_at")
+    if a and b:
+        return sum((float(p) - float(qq)) ** 2 for p, qq in zip(a, b)) ** 0.5
+    return max(0, head - withers)
+
+
+def _along_extent(solid, land, part, H):
+    """The real solid extent inside the window the generator recorded for a part.
+
+    A window, not a value: the design says roughly where its head is, and this measures how much of
+    it actually got built there. Without it, `head length` on a jaguar measured 38 blocks - the whole
+    back - because the head is at body height and no height-based rule can separate them.
+    """
+    win = ((land.get("along") or {}).get(part))
+    if not win:
+        return (0, 0)
+    facing = land.get("facing") or [0, 1]
+    sy, sz, sx = solid.shape
+    # `along` is measured from the feet; the feet sit at the model's own origin offset
+    ys, zs, xs = np.where(solid)
+    along = (xs - xs.mean()) * facing[0] + (zs - zs.mean()) * facing[1]
+    lo, hi = min(win), max(win)
+    mid = (lo + hi) / 2.0
+    sel = (along >= (lo - mid)) & (along <= (hi - mid))
+    if not sel.any():
+        return (0, 0)
+    a = along[sel]
+    return (int(a.max() - a.min() + 1), int(sel.sum()))
 
 
 def _leg_width(solid, y):
@@ -128,8 +167,27 @@ def main() -> None:
     # landmark, use it: guessing at a joint the design already knows the answer to is silly.
     land = getattr(s, "meta", None) or {}
     oy = (land.get("origin") or {}).get("y")
-    if "neck_top_y" in land and oy is not None:
-        head = int(round(float(land["neck_top_y"]) - oy))
+    # Landmarks ONLY where shape cannot tell. Belly and withers are found reliably from the
+    # course profile, and they measure what was BUILT; the recorded values are what was DESIGNED,
+    # which is a different question and under-reported the giraffe's barrel by a third.
+    # Each joint from whichever source is actually authoritative for it:
+    #   belly    the DESIGN knows exactly - it is where the legs stop (feet + leg length). Shape
+    #            detection guesses it from part counts and misfires badly on a low-slung animal,
+    #            where the barrel nearly touches the legs; on a jaguar it under-read the body depth
+    #            by 88%.
+    #   withers  must be MEASURED, since relax changes how deep the built barrel ends up.
+    #   head     recorded, because on a cat head and body sit at the same height and no height rule
+    #            can separate them.
+    if oy is not None:
+        if "belly_y" in land:
+            belly = max(0, int(round(float(land["belly_y"]) - oy)))
+            withers = max(withers, belly + 2)
+        if "back_y" in land:
+            # the greater of measured and designed: relax can deepen the barrel, and on a low animal
+            # the shape rule under-reads it badly
+            withers = max(withers, int(round(float(land["back_y"]) - oy)))
+        if "neck_top_y" in land:
+            head = int(round(float(land["neck_top_y"]) - oy))
     body = range(belly, withers + 1)
     got = {
         "withers height": withers / H,
@@ -137,12 +195,12 @@ def main() -> None:
         # belly-to-withers, a VERTICAL measure. The first version used the z-extent here, which is
         # the body's LENGTH, and so reported the barrel as 46% too deep when it was not.
         "body depth": (withers - belly) / H,
-        "body length": max((zext[y] for y in body), default=0) / H,
+        "body length": _along_extent(solid, land, "body", H)[0] / H,
         # median across the barrel, not max: the max catches the belly course where the
         # haunches are still spreading and reports the leg span as the body width
         "body width": float(np.median([xext[y] for y in body] or [0])) / H,
-        "neck length": max(0, head - withers) / H,
-        "head length": max((zext[y] for y in range(head, sy)), default=0) / H,
+        "neck length": _neck_len(land, head, withers) / H,
+        "head length": _along_extent(solid, land, "head", H)[0] / H,
         "leg width": _leg_width(solid, max(1, belly // 2)) / H,
     }
 

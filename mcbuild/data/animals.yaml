@@ -41,3 +41,16 @@ deer:
   neck length: 0.35
   head length: 0.32
   leg width: 0.08
+
+jaguar:
+  # Head-up total height. A jaguar is LONGER THAN IT IS TALL - body length exceeds total height,
+  # which no other animal in this table does, and it is the measure that most defines the species.
+  total_m: 0.85
+  withers height: 0.72
+  leg (ground->belly): 0.40
+  body depth: 0.32
+  body length: 0.95
+  body width: 0.30
+  neck length: 0.18
+  head length: 0.28
+  leg width: 0.11

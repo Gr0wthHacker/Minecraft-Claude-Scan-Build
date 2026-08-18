@@ -1,0 +1,26 @@
+# A jaguar prowling the void isle, 23 blocks clear of the giraffe and facing the taproot platform.
+#
+# The site was picked by measuring the capture, not by eye: the flattest 9x9 on the isle that is far
+# enough from the giraffe not to crowd it (3 blocks of relief across the pad).
+#
+# Everything about the ANIMAL lives in PROFILES["jaguar"] in mcbuild/gen/quadruped.py. A jaguar is the
+# giraffe's opposite in every dimension - longer than it is tall, head level with the back on a short
+# thick neck, a tail as long as the body - and none of that needed new generator code.
+#
+#   python tools/proportions.py "Void Jaguar"       measured against a real jaguar
+#   python tools/views.py "Void Jaguar" --zoom 10   shaded side / face / top
+name: Void Jaguar
+gen: quadruped
+params:
+  profile: jaguar
+  under: out/island_void.litematic
+  feet: [-24202, 101, 29998]      # flattest pad on the isle, clear of the giraffe
+  look_at: [-24206, 150, 30010]   # facing the taproot platform, like the giraffe
+origin_lock: false          # LOUD: it stands on the void isle, its own corner
+finish:
+  cheapen: false            # the coat IS the design
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine]
+  verify_against: out/island_void.litematic

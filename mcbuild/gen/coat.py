@@ -67,6 +67,37 @@ def _two_nearest(x, y, z, scale, jitter, seed):
     return d1, d2, abs(owner)
 
 
+def rosettes(cells, ring, ground, *, centre=None, scale: float = 5.0, thickness: float = 0.42,
+             broken: float = 0.22, radius: float = 0.60, seed: int = 0) -> dict:
+    """A big cat's coat: BROKEN dark rings with a lighter middle, not solid spots.
+
+    That distinction is the whole animal. A leopard has solid spots; a jaguar has rosettes, and a
+    voxel build that fills them in reads as a leopard, or as a cow. The ring is the thing.
+
+    Built on the same cellular field as `voronoi`: each seed owns a cell, and the ring is the band of
+    cells at a set distance from the seed. `broken` drops a share of the ring so it reads as a cluster
+    of marks rather than a drawn circle - real rosettes are made of separate blotches.
+
+    radius     ring radius as a fraction of the seed spacing. Too small and the marks scatter with
+               bare ground between them; it wants to be near the cell size so rosettes nearly touch.
+    thickness  width of the ring as a fraction of that radius
+    broken     share of ring cells left as ground, breaking the outline up
+    centre     block for the inside of the rosette (a jaguar's is warmer than its ground); None = ground
+    """
+    out = {}
+    for (x, y, z) in cells:
+        d1, _d2, owner = _two_nearest(x, y, z, scale, 0.85, seed)
+        r = scale * radius
+        inner = r * (1.0 - thickness)
+        if inner <= d1 <= r and hash01(x, y, z, 211, seed + owner % 97) > broken:
+            out[(x, y, z)] = ring
+        elif centre is not None and d1 < inner * 0.72:
+            out[(x, y, z)] = centre
+        else:
+            out[(x, y, z)] = ground
+    return out
+
+
 def blotches(cells, patch, ground, *, scale: float = 5.0, rate: float = 0.5, seed: int = 0) -> dict:
     """Soft value-noise blobs. Right for a cow or a fox; wrong for a giraffe."""
     sc = max(1.0, scale)

@@ -62,15 +62,21 @@ QUADRUPED = {
     "leg": 17, "hoof": 2, "leg_r": 1.9,
     "body_len": 22, "withers": 13, "hips": 8, "body_r": 4.9,
     "neck": 26, "neck_r0": 3.4, "neck_r1": 1.95, "neck_lean": 0.40,
+    "neck_from": 1.0,           # where the neck leaves the barrel, as a fraction of the withers.
+                                # 1.0 is the top of the shoulder (a giraffe); a cat is nearer 0.75,
+                                # which is what carries its head level with its back instead of above it.
     "head_len": 8, "head_r": 2.45,
     "section_n": 2.2,
     # -- features
     "mane": True,               # a ridge down the back of the neck
     "horns": "ossicone",        # ossicone | none
     "ears": True,
-    "tail": "tassel",           # tassel | plain | none
+    "tail": "tassel",           # tassel | plain | long (a cat's) | none
+    "tail_len": 0.75,           # `long` only: length as a fraction of body length
     # -- palette and pattern
-    "coat_pattern": "voronoi",  # voronoi (patches with grout) | blotches (soft) | plain
+    "coat_pattern": "voronoi",  # voronoi (patches with grout) | blotches | rosettes | plain
+    "belly_block": None,        # pale underside; None leaves the coat alone
+    "belly_frac": 0.30,         # share of the body's depth counted as underside
     "coat_block": "smooth_sandstone",
     "patch": "smooth_red_sandstone",
     "patch_alt": "cut_red_sandstone",
@@ -105,6 +111,23 @@ PROFILES = {
         "head_len": 10, "head_r": 2.2,
         "mane": True, "horns": "none", "tail": "plain", "coat_pattern": "plain",
         "coat_block": "brown_terracotta", "patch": "brown_terracotta",
+    },
+    # A jaguar is the giraffe's opposite in every dimension: LONGER THAN IT IS TALL, head carried
+    # level with the back on a short thick neck, heavy forequarters, and a tail as long as the body.
+    # The rosette coat is what separates it from a leopard - broken rings, not solid spots.
+    "jaguar": {
+        "leg": 10, "leg_r": 1.8, "hoof": 0,
+        "body_len": 26, "withers": 9, "hips": 8, "body_r": 3.6,
+        "neck": 2, "neck_r0": 3.4, "neck_r1": 2.9, "neck_lean": 0.9, "neck_from": 0.78,
+        "head_len": 7, "head_r": 2.8,
+        "mane": False, "horns": "none", "ears": True, "tail": "long", "tail_len": 0.62,
+        "coat_pattern": "rosettes", "patch_scale": 4.0,
+        "coat_block": "stripped_oak_wood",       # golden tan
+        "patch": "dark_oak_wood",                # the rosette rings
+        "patch_alt": "stripped_oak_log",         # rosette centres: same hue, different grain
+        "belly_block": "bone_block", "belly_frac": 0.30,
+        "muzzle": "bone_block", "dark": "black_wool", "hoof_block": "dark_oak_wood",
+        "section_n": 2.1,
     },
     # Light and short-bodied, neck carried high, no mane.
     "deer": {
@@ -170,6 +193,9 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
         _tail(hide, accent, fx, belly, fz, f, s, p)
 
     skin = _coat(hide, p)
+    if p.get("belly_block"):
+        _underside(hide, accent, belly, float(p["withers"]), p, fx, fz, f,
+                   int(p["body_len"]) // 2)
     w = World()
     for cell in sorted(hide):
         w.put(*cell, accent.get(cell) or skin.get(cell, p["coat_block"]))
@@ -178,13 +204,59 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
     hits = 0 if ctx is None else sum(1 for c in hide if ctx.name_at(*c) not in AIRY)
     return w.canvas({"kind": p.get("profile") or "quadruped", "feet": [fx, fy, fz],
                      "facing": list(f), "height": hi - fy, "top_y": hi,
-                     "neck_top_y": neck_top[1], "collisions": hits})
+                     # the joints, so an audit does not have to infer them from shape. On a cat the
+                     # head, neck and barrel are one continuous mass and no shape heuristic can.
+                     "belly_y": belly, "withers_y": shoulder[1],
+                     # the TOP OF THE BARREL, which is not the same as where the neck leaves it -
+                     # on a cat the neck leaves well below the back, and shape cannot find the back
+                     # either because the neck is nearly as wide as the body.
+                     "back_y": belly + int(p["withers"]), "neck_top_y": neck_top[1],
+                     # both ENDPOINTS, so neck length can be measured along its own axis. Taking it
+                     # as a difference in height reads near zero on any animal that carries its head
+                     # forward rather than up, which is every cat.
+                     "shoulder_at": [round(float(v), 1) for v in shoulder],
+                     "neck_top_at": [round(float(v), 1) for v in neck_top],
+                     # WINDOWS along the heading for each part, measured from `feet`. A tall animal
+                     # can have its parts told apart by height; a long low one cannot - a cat's head
+                     # sits at body height, so "the extent above the neck" measures its whole back.
+                     # The audit measures the real solid extent INSIDE each window.
+                     "along": {"body": [-(int(p["body_len"]) // 2),
+                                        int(p["body_len"]) - int(p["body_len"]) // 2],
+                               "head": [int((head_at[0] - fx) * f[0] + (head_at[2] - fz) * f[1]),
+                                        int((head_at[0] - fx) * f[0] + (head_at[2] - fz) * f[1])
+                                        + int(p["head_len"])]},
+                     "collisions": hits})
+
+
+def _underside(hide, accent, belly, withers, p, fx, fz, f, half):
+    """Countershading: a pale belly with a BROKEN edge, on the barrel only.
+
+    Three attempts. A flat y-cut painted a dead-straight stripe along the flank - the giveaway that a
+    statue was coloured by a rule. Following each column's floor instead climbed the sides and turned
+    the whole flank pale. What actually reads right is a waterline, roughly level, with its boundary
+    broken up by noise, and confined to the body: legs and tail keep the coat.
+    """
+    from .canvas import hash01
+    seed = int(p["seed"])
+    cut = belly + withers * float(p["belly_frac"])
+    for c in hide:
+        along = (c[0] - fx) * f[0] + (c[2] - fz) * f[1]
+        if not (-half - 1 <= along <= half + 2):
+            continue                                     # tail and neck keep the coat
+        if c[1] < belly:
+            continue                                     # legs too
+        edge = cut + 1.6 * (hash01(c[0], 0, c[2], 61, seed) - 0.4)
+        if c[1] <= edge and c not in accent:
+            accent[c] = p["belly_block"]
 
 
 def _coat(hide, p) -> dict:
     kind = p["coat_pattern"]
     if kind == "plain":
         return {}
+    if kind == "rosettes":
+        return coat_mod.rosettes(hide, p["patch"], p["coat_block"], centre=p.get("patch_alt"),
+                                 scale=float(p["patch_scale"]), seed=int(p["seed"]))
     if kind == "blotches":
         return coat_mod.blotches(hide, p["patch"], p["coat_block"],
                                  scale=float(p["patch_scale"]), seed=int(p["seed"]))
@@ -206,7 +278,14 @@ def _leg_gap(hoofs, belly, leg_r, keys) -> set:
     outright. And the band must stop below the haunch, where the legs are meant to merge anyway.
     """
     flare = max(d for _t, d in keys["leg"])
-    reach = leg_r + flare + 0.6
+    # Clamp the reach to HALF the closest leg spacing. On a jaguar the legs sit 4 apart while
+    # leg_r + flare came to 3.6, so every cell between them was inside some leg's reach, nothing was
+    # forbidden, and the fill pass welded the legs into a slab exactly as before. A protective radius
+    # wider than the gap it is protecting protects nothing.
+    pairs = [((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+             for i, a in enumerate(hoofs) for b in hoofs[i + 1:]]
+    closest = min(pairs) if pairs else 99.0
+    reach = min(leg_r + flare + 0.6, max(leg_r + 0.3, closest / 2.0 - 0.5))
     gap = set()
     lowest = min(g for (_a, _b, g, _c) in hoofs) - 1
     span = int(reach) + 5
@@ -236,7 +315,10 @@ def _legs(hide, ctx, fx, fy, fz, f, s, p, keys) -> list:
     KEYS = [[t, lr + d] for t, d in keys["leg"]]
     out = []
     for along, side in ((bl // 2 - 3, 1), (bl // 2 - 3, -1), (-(bl // 2 - 3), 1), (-(bl // 2 - 3), -1)):
-        off = max(1, round(br - lr - 0.4))               # tucked under the barrel, not splayed past it
+        # Under the barrel's edge, but never closer together than the legs are wide. `br - lr - 0.4`
+        # collapses to 1 on a narrow-bodied animal, putting a jaguar's legs 2 apart when each is 3
+        # wide - they merged into a slab whatever the smoothing did. Giraffe lands on 3 either way.
+        off = max(1, round(max(lr + 1.0, br * 0.62)))
         lx = int(fx + f[0] * along + s[0] * off * side)
         lz = int(fz + f[1] * along + s[1] * off * side)
         hoof = fy
@@ -266,7 +348,8 @@ def _body(hide, fx, belly, fz, f, s, p, keys) -> tuple:
         rb, back = loft.lerp(KEYS, (a + half) / max(1, bl - 1))
         loft.rib(hide, fx + f[0] * a, belly + back / 2.0, fz + f[1] * a, f, s,
                  rb, back / 2.0, n, squash_lo=1.12)
-    return (fx + f[0] * (half - 2), belly + withers - 1.0, fz + f[1] * (half - 2))
+    rise = belly + max(1.0, withers * float(p.get("neck_from", 1.0))) - 1.0
+    return (fx + f[0] * (half - 2), rise, fz + f[1] * (half - 2))
 
 
 def _neck(hide, shoulder, f, s, p, keys):
@@ -386,13 +469,47 @@ def _face(hide, accent, head_at, f, s, p):
                     accent[ring] = p["muzzle"]
 
 
+def _tail_long(hide, accent, x, z, top, f, s, p):
+    """A cat's tail: as long as the body, leaving the rump roughly level and drooping toward the tip.
+
+    The hanging tail every hoofed animal here uses is wrong for a cat - it is the single feature that
+    most says "big cat" in silhouette, and it has to carry BACKWARD before it falls."""
+    length = max(6, int(round(float(p["tail_len"]) * int(p["body_len"]))))
+    y = float(top)
+    prev = int(round(y))
+    for k in range(length):
+        t = k / max(1, length - 1)
+        y -= 0.05 + 0.75 * t * t                         # level at the root, falling at the tip
+        cy = int(round(y))
+        cx = int(round(x - f[0] * k))
+        cz = int(round(z - f[1] * k))
+        # fill the whole vertical run since the last segment: near the tip the drop exceeds one block
+        # per step, and stepping straight to the new height left the tail in disconnected pieces.
+        for yy in range(min(cy, prev), max(cy, prev) + 1):
+            hide.add((cx, yy, cz))
+        prev = cy
+        if t < 0.45:                                     # thick at the base
+            hide.add((cx, cy + 1, cz))
+        if k >= length - 2:
+            accent[(cx, cy, cz)] = p["dark"]
+
+
 def _tail(hide, accent, fx, belly, fz, f, s, p):
     """One block wide a tail is invisible - the rump slice held exactly 11 cells and rendered as
     nothing. Two wide at the root, and a dark switch on the end."""
     half = int(p["body_len"]) // 2
-    x = int(fx - f[0] * (half + 1))
-    z = int(fz - f[1] * (half + 1))
     top = int(belly + int(p["hips"]) - 2)
+    # ANCHOR to the rump's real surface. Placed at the computed body length it hung a block clear of
+    # a rump that relax had shaved back, and came out as a 45-cell floating tail - the same mistake
+    # as the mane and the eyes, which is why `loft.surface_out` exists.
+    x, z = int(fx - f[0] * (half + 1)), int(fz - f[1] * (half + 1))
+    for d in range(half + 2, 0, -1):
+        probe = (int(fx - f[0] * d), top, int(fz - f[1] * d))
+        if probe in hide:
+            x, z = int(probe[0] - f[0]), int(probe[2] - f[1])
+            break
+    if p["tail"] == "long":
+        return _tail_long(hide, accent, x, z, top, f, s, p)
     tassel = p["tail"] == "tassel"
     # SCALE the tail with the animal. At a fixed 13 blocks it was longer than a deer's legs, ran into
     # the ground and broke the model into two components. Every feature measured in absolute blocks

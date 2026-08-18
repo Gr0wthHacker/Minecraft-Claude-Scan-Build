@@ -22,7 +22,30 @@
   ],
   "height": 56,
   "top_y": 156,
+  "belly_y": 117,
+  "withers_y": 126.0,
+  "back_y": 127,
   "neck_top_y": 151.0,
+  "shoulder_at": [
+    -24218.0,
+    126.0,
+    29991.0
+  ],
+  "neck_top_at": [
+    -24218.0,
+    151.0,
+    30002.6
+  ],
+  "along": {
+    "body": [
+      -11,
+      11
+    ],
+    "head": [
+      20,
+      28
+    ]
+  },
   "collisions": 15,
   "file": "Void Giraffe.litematic",
   "name": "Void Giraffe"
