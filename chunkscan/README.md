@@ -48,10 +48,10 @@ Needs no system JDK: Gradle runs on the launcher's Java 25 runtime and provision
 toolchain into `~/.gradle/jdks` on first build.
 
 ```bash
-cd C:/Users/Jack/mctest/chunkscan
-export JAVA_HOME="C:/Users/Jack/AppData/Roaming/CCBlueX/LiquidLauncher/data/runtimes/temurin_25/jdk-25.0.3+9-jre"
+cd chunkscan
+export JAVA_HOME=/path/to/a/jdk-21-or-newer     # no system JDK needed; Gradle provisions its own
 ./gradlew build test
-cp build/libs/chunkscan-0.3.0.jar "$APPDATA/CCBlueX/LiquidLauncher/data/custom_mods/nextgen-26.2/"
+# then upload build/libs/chunkscan-<version>.jar through your launcher's mod manager
 ```
 
 `test` writes `build/test-out/synthetic.litematic` through the real writer; then from `mctest`:

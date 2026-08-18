@@ -128,19 +128,6 @@ def mine_palette(m) -> dict:
     return dict(out)
 
 
-def palette_mix(family: set[str] | None = None, top: int = 12) -> list[tuple[str, float]]:
-    """Observed blocks as weights that sum to 1, optionally restricted to a family."""
-    counts = load_observed().get("palette", {})
-    if family:
-        counts = {k: v for k, v in counts.items() if k in family}
-    total = sum(counts.values())
-    if not total:
-        return []
-    ranked = sorted(counts.items(), key=lambda kv: -kv[1])[:top]
-    scale = sum(c for _, c in ranked)
-    return [(n, c / scale) for n, c in ranked]
-
-
 def merge_into_file(new: dict, source: str, palette: dict | None = None) -> tuple[dict, int]:
     """Merge counts into observed.json; returns (data, number of new (kind, rel, neighbour) triples)."""
     data = load_observed()

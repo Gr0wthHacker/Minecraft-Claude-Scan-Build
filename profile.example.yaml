@@ -1,4 +1,6 @@
-# Machine/server profile (teammates: copy + edit). Everything path- or server-specific lives here.
+# Copy to profile.yaml and edit for your machine. Everything path- or server-specific lives here,
+# and profile.yaml is gitignored so your paths never land in a commit.
+# The scan/cut/origin_lock values below describe ONE island; yours will differ.
 schem_dir: C:/Users/Jack/AppData/Roaming/CCBlueX/LiquidLauncher/data/gameDir/nextgen/schematics
 game_dir: C:/Users/Jack/AppData/Roaming/CCBlueX/LiquidLauncher/data/gameDir/nextgen
 server: skyblock.net

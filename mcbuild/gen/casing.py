@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from .vertical import resolve_capture
 from .canvas import Canvas, hash01
 from ..ops.hollow import hollow
 
@@ -29,7 +30,7 @@ DEFAULTS = {"under": None, "wall": 3, "belly": 12, "headroom": 8, "lanterns": 10
 def build(cfg: dict, donors=None) -> Canvas:
     p = {**DEFAULTS, **cfg}
     from .. import schem as _schem
-    ex = _schem.load(p["under"])
+    ex = _schem.load(resolve_capture(p["under"]))
     es = ex.solid()
     EY, EZ, EX = es.shape
     W, B, H = int(p["wall"]), int(p["belly"]), int(p["headroom"])

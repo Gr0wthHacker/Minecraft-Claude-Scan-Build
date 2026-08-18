@@ -6,9 +6,13 @@ configs; new designs are a YAML file or an image away.
 
 Zero exotic dependencies: numpy, Pillow, PyYAML.
 
-```
+```bash
+cp profile.example.yaml profile.yaml     # then edit the paths for your machine
 python -m mcbuild --help
 ```
+
+`profile.yaml` is gitignored and is the only machine-specific file. A hard-coded path
+anywhere else is a bug. MIT licensed.
 
 ## Quickstart
 
@@ -38,6 +42,13 @@ python -m mcbuild fromimage ref.png --height 27 --depth 10 --hollow 2
 ```
 
 ## What the audit checks (every time)
+
+Opt-in extras: `finish.climb: true` walks a design and fails if the top cannot be
+reached without jumping; `audit(reach=True)` finds cells with nowhere to stand while
+placing them. Block states are validated by default - a stair `shape` or wall
+connection the game would compute differently paints the Litematica overlay red
+forever.
+
 
 * **placement validity** — vines have an attachment, chains/lanterns hang from
   something, ladders have a wall behind, carpets/plants sit on the right block,
@@ -190,12 +201,36 @@ mcbuild/
   render.py     elevations, slices, ascii maps, contact sheets
   pipeline.py   YAML config runner
   cli.py        python -m mcbuild
+  work.py       <design>.work.json - cells flattened for the mod to diff in game
+  history.py    out/history.json - one row per sync, so progress has a slope
+  learn.py      mine placement rules from real captures into data/observed.json
+  coop.py       progress, remaining, diff, merge, shop, card, place, sync, storage
+  scan.py       .scan.json sidecars: load, cut, merge, save_pair
   ops/          downscale, hollow, cheapen, polish, imageref
-  gen/          canvas (shapes/hash) + tree, fox, tower, underside
+  gen/          canvas (shapes/hash) + 36 generators, see the index below
 configs/        one YAML per design
-tests/          regenerate every design, assert audit passes
-out/            outputs (gitignored)
+tests/          regenerate every design, assert the audit passes, import every module
+out/            designs (.litematic/.scan.json/.work.json are committed; the rest ignored)
 ```
+
+## Generator index
+
+`python -c "from mcbuild.gen import GENERATORS; print(sorted(GENERATORS))"` is the
+authoritative list. Grouped by what they are for:
+
+| Group | Generators |
+|---|---|
+| Island mass | `belly`, `underside`, `casing`, `islet` |
+| Vertical | `taproot`, `shard`, `spiral`, `stairwell` |
+| Interior | `vault`, `storehall`, `court` |
+| Dressing | `hem`, `paths`, `pathkit`, `lightposts`, `entrance`, `ridelights`, `apiary`, `birdlanterns`, `chimney`, `footing`, `altar` |
+| Garden | `pond`, `bench`, `planter`, `well`, `lamp`, `scatter`, `farm` |
+| Functional | `sorter` |
+| Statues | `tree`, `fox`, `tower`, `sloth`, `gecko`, `dragonfly` |
+
+Anything that reads the world takes `under:` — a capture name or path, resolved
+against `profile.yaml`'s `schem_dir` if it is not found as given.
+
 
 ## Adding a new generated design
 
@@ -217,3 +252,31 @@ out/            outputs (gitignored)
 * Faces at small scale need to be *designed*, not filtered — repaint them.
 * If a build wraps around something the user built, measure that thing; don't
   guess its shape.
+* **A stair's `shape` is computed by the game, not the schematic.** Write
+  `shape=straight` and the game silently turns neighbouring treads into inner/outer
+  corner pieces. Use stairs only in straight runs where every tread faces the same
+  way; anywhere the path turns, use slabs.
+* **Alternating bottom and top slabs is the way to build a curved stair.** Each
+  course gives two half-steps, the rise is 0.5 a tread, and a slab carries no facing
+  and no shape, so a curve costs nothing.
+* **A tread is a patch, not a cell.** For a helix, the angular step is one cell of arc
+  at the *inner* edge and the outer end just makes the tread wide - fill the wedge
+  between consecutive angles or you get holes you can see through.
+* **A design can audit clean and still be unbuildable.** Zero overlaps, full support,
+  valid states - and unclimbable. That is what `check_climb` is for, and it caught
+  three separate faults that had already shipped.
+* **Two designs that are each correct can still fail to join.** A shaft walled off the
+  stair that was meant to arrive in it; a tread landed exactly on the one below it.
+  Test the whole route, not each design.
+* **Anything that clings needs a FULL block, tested against the world as it is today.**
+  "Solid" is not "not air": walls, fences and slabs will not hold a vine. And the
+  pre-build baseline still contains blocks that have since been mined.
+* **Overlap means the world holds something DIFFERENT.** A design cell the world
+  already matches is built, not a collision - otherwise every design reports hundreds
+  of overlaps the moment you build it.
+* **Leave ~3 blocks of working room around anything you use.** Derive it from the
+  capture, never from a hand-written box: storage moves and the box goes stale.
+* **Measure before you assert.** A colonnade that looked like a 24-pillar grid had six
+  usable alcoves; a 7x7 room has 20 non-corner wall cells, not the 21 assumed. Both
+  numbers were wrong in a plan until they were counted.
+

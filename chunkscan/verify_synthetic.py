@@ -1,7 +1,7 @@
 """Cross-implementation check: decode build/test-out/synthetic.litematic (written by the Java
 writer) with mcbuild's reader and compare against the expected ids the test wrote.
 
-Run from C:/Users/Jack/mctest:  python chunkscan/verify_synthetic.py
+Run from the repo root:  python chunkscan/verify_synthetic.py
 """
 from __future__ import annotations
 

@@ -50,11 +50,24 @@ class World:
 
 
 def load_capture(path: str):
+    path = resolve_capture(path)
     m = schem.load(path)
     side = path[:-len(".litematic")] + ".scan.json"
     with open(side, encoding="utf-8") as f:
         o = json.load(f)["origin"]
     return m, (int(o["x"]), int(o["y"]), int(o["z"]))
+
+
+def resolve_capture(path: str) -> str:
+    """Let a config name a capture without spelling out a machine path.
+
+    Tried as given first, then relative to the profile's schematics folder. A generator should never
+    need an absolute path in its config - that is what profile.yaml is for."""
+    if os.path.exists(path):
+        return path
+    from ..profile import load as load_profile
+    cand = os.path.join(load_profile()["schem_dir"], path)
+    return cand if os.path.exists(cand) else path
 
 
 class Ctx:

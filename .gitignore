@@ -11,5 +11,10 @@ chunkscan/run/
 out/*
 !out/*.litematic
 !out/*.scan.json
+# the mod reads these to diff a design against the live world; they ship with the designs
+!out/*.work.json
 !out/_test/
 out/_test/*
+
+# your machine's paths stay yours; copy profile.example.yaml instead
+profile.yaml

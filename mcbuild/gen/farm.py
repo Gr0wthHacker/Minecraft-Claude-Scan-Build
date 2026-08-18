@@ -45,7 +45,7 @@ from .canvas import Canvas, hash01
 
 DEFAULTS = {
     "footprint": "build-farm-area.litematic",
-    "schem_dir": r"C:/Users/Jack/AppData/Roaming/CCBlueX/LiquidLauncher/data/gameDir/nextgen/schematics",
+    "schem_dir": None,                 # None = whatever profile.yaml says; never hard-code a path here
     "surface_y": 1, "surface_block": "moss_block",
     "size": [28, 16],
     "pad_north": 3,                  # rows added north of the footprint for the forecourt + gate
@@ -132,9 +132,10 @@ def _load_mask(p: dict, SX: int, SZ: int, pad: int = 0) -> np.ndarray:
     if not fp:
         mask[:] = True
         return mask
-    full = fp if os.path.isabs(fp) else os.path.join(p["schem_dir"], fp)
     from .. import schem
-    m = schem.load(full)
+    from .vertical import resolve_capture
+    full = fp if os.path.isabs(fp) else os.path.join(p["schem_dir"], fp) if p.get("schem_dir") else fp
+    m = schem.load(resolve_capture(full))
     y = int(p["surface_y"])
     want = p["surface_block"] if ":" in p["surface_block"] else "minecraft:" + p["surface_block"]
     for z in range(min(m.shape_xyz[2], SZ - pad)):

@@ -7,7 +7,7 @@ donors:
   - Cherry Hall-from-abfielder.litematic
   - Flower Lake Treehouse.litematic
 params:
-  under: C:/Users/Jack/AppData/Roaming/CCBlueX/LiquidLauncher/data/gameDir/nextgen/schematics/Unnamed.litematic
+  under: Unnamed.litematic   # resolved against profile.yaml schem_dir
   wall: 3
   belly: 12
   headroom: 8

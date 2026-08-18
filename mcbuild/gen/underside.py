@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from .vertical import resolve_capture
 from .canvas import Canvas, hash01
 from ..ops.hollow import hollow
 
@@ -35,7 +36,7 @@ def build(cfg: dict, donors: list | None = None) -> Canvas:
     existing = None
     if p.get("under"):
         from .. import schem as _schem
-        existing = _schem.load(p["under"])
+        existing = _schem.load(resolve_capture(p["under"]))
         ex_s = existing.solid()
         SX, SZ = ex_s.shape[2], ex_s.shape[1]
         # per-column lowest existing block (relative to the existing file's y0)

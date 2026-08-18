@@ -18,6 +18,7 @@ import os
 import numpy as np
 
 from .. import audit as audit_mod
+from .vertical import resolve_capture
 from .canvas import Canvas, hash01
 from .. import morph, schem
 
@@ -100,7 +101,7 @@ def edge_distance(footprint: np.ndarray, cap: int) -> np.ndarray:
 # ---------------------------------------------------------------- capture side
 
 def _load_under(path: str):
-    m = schem.load(path)
+    m = schem.load(resolve_capture(path))
     side = path[:-len(".litematic")] + ".scan.json" if path.endswith(".litematic") else None
     origin = (0, 0, 0)
     if side and os.path.exists(side):

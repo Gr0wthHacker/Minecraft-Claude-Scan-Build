@@ -1,7 +1,10 @@
 """Machine/server profile: where Litematica lives, which server, which dimension.
 
-Looked up in order: $MCBUILD_PROFILE, ./profile.yaml (repo root), built-in defaults (Jack's LiquidLauncher).
-Teammates copy profile.yaml and edit paths; nothing else in the tooling is machine-specific.
+Looked up in order: $MCBUILD_PROFILE, ./profile.yaml, ./profile.example.yaml, built-in defaults.
+
+Copy profile.example.yaml to profile.yaml and edit the paths for your machine - profile.yaml is
+gitignored, so your own paths never end up in a commit. Nothing else in the tooling is
+machine-specific; if you find a hard-coded path anywhere else, it is a bug.
 """
 from __future__ import annotations
 
@@ -9,10 +12,18 @@ import os
 
 import yaml
 
+def _default_schem_dir() -> str:
+    """Best guess at a Litematica schematics folder, so a fresh clone does something sensible."""
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        return os.path.join(appdata, ".minecraft", "schematics").replace("\\", "/")
+    return os.path.expanduser("~/.minecraft/schematics")
+
+
 DEFAULTS = {
-    "schem_dir": r"C:/Users/Jack/AppData/Roaming/CCBlueX/LiquidLauncher/data/gameDir/nextgen/schematics",
-    "game_dir": r"C:/Users/Jack/AppData/Roaming/CCBlueX/LiquidLauncher/data/gameDir/nextgen",
-    "server": "skyblock.net",
+    "schem_dir": _default_schem_dir(),
+    "game_dir": os.path.dirname(_default_schem_dir()),
+    "server": "localhost",
     "dim": "minecraft:overworld",
     "scan": "island",
     "cut": [-24251, 150, 29949, -24149, 270, 30051],
@@ -26,7 +37,12 @@ _cache = None
 def load() -> dict:
     global _cache
     if _cache is None:
-        path = os.environ.get("MCBUILD_PROFILE") or ("profile.yaml" if os.path.exists("profile.yaml") else None)
+        path = os.environ.get("MCBUILD_PROFILE")
+        if not path:
+            for cand in ("profile.yaml", "profile.example.yaml"):
+                if os.path.exists(cand):
+                    path = cand
+                    break
         data = {}
         if path and os.path.exists(path):
             with open(path, encoding="utf-8") as f:
