@@ -1,0 +1,18 @@
+{
+  "origin": {
+    "x": -24162,
+    "y": 168,
+    "z": 30040
+  },
+  "size": {
+    "x": 9,
+    "y": 26,
+    "z": 7
+  },
+  "generated_by": "shard",
+  "kind": "shard",
+  "hangs_from_y": 189,
+  "top_y": 173,
+  "file": "Shed Shard.litematic",
+  "name": "Shed Shard"
+}

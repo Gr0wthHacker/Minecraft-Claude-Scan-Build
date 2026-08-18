@@ -1,0 +1,20 @@
+# Lantern Moss Tree (standalone) — paste onto an existing moss platform.
+name: Lantern Moss Tree standalone
+gen: tree
+donors:
+  - Flower Lake Treehouse.litematic
+  - Cherry_blossom_watchtower3-from-abfielder.litematic
+  - Fisherman House by Heldorya Studio-from-abfielder.litematic
+  - Oak Tree Building Package04.litematic
+  - Ancient Banyan Blessing Pavilion.litematic
+params:
+  size: [25, 36, 25]
+  trunk_height: 16
+  twist_deg: 70
+  canopy_r: 9.8
+  lantern_strings: 17
+  berry_strings: 3
+  wood: oak_log
+finish:
+  cheapen: true
+  hollow: false

@@ -1,0 +1,21 @@
+# One path network: hub south of the tree, statues, farm/bee, east (gecko/rail), pond, neck bridge, entrance.
+name: Path Network
+gen: paths
+params:
+  under: out/island_now.litematic
+  nodes:
+    - [-24200, 30029]     # hub, south of the tree trunk
+    - [-24236, 30021]     # between fox and owl
+    - [-24204, 30036]     # farm / bee house
+    - [-24182, 30022]     # east: gecko wall / rail departure
+    - [-24207, 30006]     # pond, west bank
+    - [-24200, 29994]     # neck bridge start
+    - [-24190, 29993]     # top of the vine ladder to the deck
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/island_now.litematic
+  verify_dig_above: true
+  verify_replaceable: [short_grass, tall_grass, moss_carpet, pink_tulip, white_tulip, poppy, dandelion, azalea, flowering_azalea, lily_of_the_valley, fern]

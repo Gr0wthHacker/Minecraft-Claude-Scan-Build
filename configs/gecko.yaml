@@ -1,0 +1,15 @@
+# Wall gecko for the island cliff face. Paste with the z=0 face flush against
+# the wall; head points down, tail curls up-right.
+name: Wall Gecko
+gen: gecko
+donors:
+  - Warm Snooze Fox.litematic
+  - Lantern Moss Tree 25x25.litematic
+params:
+  size: [30, 38, 6]
+  seed: 0
+finish:
+  cheapen: true
+  hollow: false
+  drop_floaters: false
+  ground: false

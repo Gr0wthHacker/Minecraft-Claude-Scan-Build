@@ -1,0 +1,24 @@
+# Path kit — meandering slab/moss path with lamp posts + edge dressing on a
+# 41x41 canvas. Sits on grass/moss. Cut the section you need and orient it.
+name: Island Path Kit 41x41
+gen: pathkit
+donors:
+  - Flower Lake Treehouse.litematic
+  - Fisherman House by Heldorya Studio-from-abfielder.litematic
+  - Lantern Moss Tree 25x25.litematic
+params:
+  size: 41
+  # one path: enters left-middle, swings a wide loop clockwise around the
+  # centre, then cuts straight across the middle to the right edge
+  routes:
+    - [[0, 20], [3, 32], [16, 39], [29, 34], [32, 24], [24, 12], [10, 12]]
+    - [[10, 12], [15, 17], [26, 18], [40, 17]]
+  post_spacing: 7
+  half_width: 1.25
+  gap_p: 0.08
+  seed: 0
+finish:
+  cheapen: true
+  hollow: false
+  drop_floaters: false
+  ground_block: grass_block

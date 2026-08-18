@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "chunkscan",
+	"version": "${version}",
+	"name": "ChunkScan",
+	"description": "Client-side: dump the loaded chunks around you to a .litematic (air, tile entities and entities included) plus a JSON sidecar with world coordinates; every scan is archived under schematics/scans/ with a timestamp. /cscan <name> [radius], /cscan chunks <name> [radius].",
+	"authors": ["Jack Gierlich"],
+	"license": "MIT",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"dev.jack.chunkscan.ChunkScanClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

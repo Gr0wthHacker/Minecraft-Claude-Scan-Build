@@ -1,0 +1,15 @@
+out/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+chunkscan/build/
+chunkscan/.gradle/
+chunkscan/run/
+# keep the small, shareable artefacts: baseline + current scans and design outputs (regenerable, but teammates want them)
+!out/
+out/*
+!out/*.litematic
+!out/*.scan.json
+!out/_test/
+out/_test/*

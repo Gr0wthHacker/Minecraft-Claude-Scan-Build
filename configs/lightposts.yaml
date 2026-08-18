@@ -1,0 +1,5 @@
+# Lanterns on oak fence posts every ~9 path cells; sidecar lists surface torches to pull.
+name: Light Posts
+gen: lightposts
+params: {under: out/island_now.litematic, paths: out/Path Network.litematic, every: 9}
+finish: {cheapen: false, hollow: false, ground: false, drop_floaters: false, verify_against: out/island_now.litematic}

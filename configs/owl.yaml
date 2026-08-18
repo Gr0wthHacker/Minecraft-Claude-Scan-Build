@@ -1,0 +1,16 @@
+# Stump Perched Owl at 1:2 — derived from the download, cheap + hollow.
+name: Stump Perched Owl 1-2 scale
+source: Stump Perched Owl.litematic
+downscale:
+  factor: 2
+  threshold: 0.42
+polish:
+  - op: despeckle
+    max_size: 2
+    protected: [black_terracotta, gray_wool, gray_concrete, orange_concrete, orange_wool,
+                orange_terracotta, yellow_terracotta, yellow_wool, yellow_concrete, oak_log,
+                stripped_oak_log, brown_wool, brown_terracotta, brown_concrete, white_concrete, white_wool]
+finish:
+  cheapen: true
+  keep: [orange_concrete]        # 4-block beak: keep the saturated orange
+  hollow: {shell: 2, ground: true, keep_floor: true}

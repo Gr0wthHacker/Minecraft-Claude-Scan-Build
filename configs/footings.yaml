@@ -1,0 +1,10 @@
+# Statue footings: ragged moss-carpet / azalea / grass rings on the lawn around the fox and the owl.
+name: Statue Footings
+gen: footing
+params:
+  under: out/island_now.litematic
+  boxes:
+    - [-24240, 30000, -24230, 30011]   # fox
+    - [-24247, 30012, -24231, 30030]   # owl
+  ring: 2
+finish: {cheapen: false, hollow: false, ground: false, drop_floaters: false, verify_against: out/island_now.litematic}

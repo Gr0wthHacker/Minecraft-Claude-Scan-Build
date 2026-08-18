@@ -1,0 +1,30 @@
+{
+  "origin": {
+    "x": -24207,
+    "y": 211,
+    "z": 29963
+  },
+  "size": {
+    "x": 14,
+    "y": 5,
+    "z": 83
+  },
+  "generated_by": "chimney",
+  "kind": "chimney",
+  "placed": [
+    [
+      -24195,
+      211,
+      29964,
+      "campfire"
+    ],
+    [
+      -24206,
+      215,
+      30044,
+      "soul_campfire"
+    ]
+  ],
+  "file": "Chimneys.litematic",
+  "name": "Chimneys"
+}

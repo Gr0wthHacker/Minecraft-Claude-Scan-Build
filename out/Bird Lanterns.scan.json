@@ -1,0 +1,17 @@
+{
+  "origin": {
+    "x": -24228,
+    "y": 247,
+    "z": 29978
+  },
+  "size": {
+    "x": 48,
+    "y": 20,
+    "z": 28
+  },
+  "generated_by": "birdlanterns",
+  "kind": "birdlanterns",
+  "count": 6,
+  "file": "Bird Lanterns.litematic",
+  "name": "Bird Lanterns"
+}

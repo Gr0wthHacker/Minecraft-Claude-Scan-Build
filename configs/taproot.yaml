@@ -1,0 +1,16 @@
+# The centre tree's roots break through the deck skin and twist down into the void.
+name: Taproot
+gen: taproot
+params:
+  under: out/island_now.litematic
+  belly: out/Island Belly Full.litematic
+  x: -24200
+  z: 30018
+  length: 34
+  strands: 3
+  top_radius: 3.2
+  twist: 2.2
+  moss: 0.16
+  vine_rate: 0.25
+  lanterns: 3
+finish: {cheapen: true, hollow: false, ground: false, drop_floaters: false, verify_against: [out/island_now.litematic, out/Island Belly Full.litematic], context_clear: [vine]}

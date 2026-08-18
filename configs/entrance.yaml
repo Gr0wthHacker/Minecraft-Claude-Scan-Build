@@ -1,0 +1,5 @@
+# Top of the vine ladder to the deck (north edge): flanking wall posts, lantern, mossy slab landing.
+name: Deck Entrance
+gen: entrance
+params: {under: out/island_now.litematic, ladder: [-24190, 29991], landing_z: 29992}
+finish: {cheapen: false, hollow: false, ground: false, drop_floaters: false, verify_against: out/island_now.litematic}

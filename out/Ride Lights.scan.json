@@ -1,0 +1,17 @@
+{
+  "origin": {
+    "x": -24197,
+    "y": 199,
+    "z": 29990
+  },
+  "size": {
+    "x": 46,
+    "y": 2,
+    "z": 41
+  },
+  "generated_by": "ridelights",
+  "kind": "ridelights",
+  "count": 9,
+  "file": "Ride Lights.litematic",
+  "name": "Ride Lights"
+}

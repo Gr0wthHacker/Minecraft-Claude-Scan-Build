@@ -1,0 +1,9 @@
+# Machine/server profile (teammates: copy + edit). Everything path- or server-specific lives here.
+schem_dir: C:/Users/Jack/AppData/Roaming/CCBlueX/LiquidLauncher/data/gameDir/nextgen/schematics
+game_dir: C:/Users/Jack/AppData/Roaming/CCBlueX/LiquidLauncher/data/gameDir/nextgen
+server: skyblock.net
+dim: minecraft:overworld
+scan: island
+cut: [-24251, 150, 29949, -24149, 270, 30051]
+baseline: out/island_top.litematic
+world_out: out/island_now.litematic

@@ -1,0 +1,16 @@
+[project]
+name = "mcbuild"
+version = "0.1.0"
+description = "Generate, downscale, cheapen, hollow, audit and render Litematica schematics"
+requires-python = ">=3.10"
+dependencies = ["numpy", "Pillow", "PyYAML"]
+
+[project.scripts]
+mcbuild = "mcbuild.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["mcbuild*"]

@@ -1,0 +1,29 @@
+# Apothecary Farm v3 — Great Skep apiary, stepped crop terrace, honey hall
+# underground. Fits build-farm-area (28x15). Paste at build-farm-area's
+# origin shifted DOWN by 5 (depth-1) with replace = "with non-air".
+name: Apothecary Farm
+gen: farm
+donors:
+  - Flower Lake Treehouse.litematic
+  - Fisherman House by Heldorya Studio-from-abfielder.litematic
+  - Ancient Banyan Blessing Pavilion.litematic
+  - Cherry_blossom_watchtower3-from-abfielder.litematic
+  - Howl's Moving Castle.litematic
+  - Lantern Moss Tree 25x25.litematic
+  - Small Cozy Japanese House-from-abfielder.litematic
+params:
+  footprint: build-farm-area.litematic
+  depth: 6
+  pad_north: 3
+  skep: {cx: 10.0, cz: 10.0, r: 4.5, corner: 1.4, wall_h: 3}
+  cistern: {x: 23, z: 11}
+  cellar: {x: [7, 26], z: [4, 13], hive_x0: 11, hives: 12, stair_z: 9}
+  arbor_x: 18
+  tree_at: [20, 13]
+  crops: [wheat, carrots, potatoes]
+  seed: 0
+finish:
+  cheapen: true
+  hollow: false
+  drop_floaters: false
+  ground_block: moss_block

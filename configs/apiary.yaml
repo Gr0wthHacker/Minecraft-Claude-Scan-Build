@@ -1,0 +1,5 @@
+# Flowering azalea + tulips on the lawn above the bee house so the bees have flowers in reach.
+name: Apiary Flowers
+gen: apiary
+params: {under: out/island_now.litematic, center: [-24203, 30040], radius: 9, count: 12}
+finish: {cheapen: false, hollow: false, ground: false, drop_floaters: false, verify_against: out/island_now.litematic}

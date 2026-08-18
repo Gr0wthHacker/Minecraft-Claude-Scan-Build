@@ -1,0 +1,22 @@
+{
+  "origin": {
+    "x": -24204,
+    "y": 152,
+    "z": 30014
+  },
+  "size": {
+    "x": 10,
+    "y": 37,
+    "z": 9
+  },
+  "generated_by": "taproot",
+  "kind": "taproot",
+  "attach": [
+    -24200,
+    188,
+    30018
+  ],
+  "tip_y": 154,
+  "file": "Taproot.litematic",
+  "name": "Taproot"
+}

@@ -1,0 +1,10 @@
+# Smoke: campfire chimneys on the tent-hut and the spruce farm building; soul fire on the farm one.
+name: Chimneys
+gen: chimney
+params:
+  under: out/island_now.litematic
+  points:
+    - [-24195, 29964]     # NW tent-hut, rear corner of the roof
+    - [-24206, 30044]     # spruce farm building, roof ridge
+  soul: [1]
+finish: {cheapen: false, hollow: false, ground: false, drop_floaters: false, verify_against: out/island_now.litematic}

@@ -1,0 +1,30 @@
+{
+  "origin": {
+    "x": -24249,
+    "y": 203,
+    "z": 30002
+  },
+  "size": {
+    "x": 21,
+    "y": 1,
+    "z": 30
+  },
+  "generated_by": "footing",
+  "kind": "footing",
+  "boxes": [
+    [
+      -24240,
+      30000,
+      -24230,
+      30011
+    ],
+    [
+      -24247,
+      30012,
+      -24231,
+      30030
+    ]
+  ],
+  "file": "Statue Footings.litematic",
+  "name": "Statue Footings"
+}

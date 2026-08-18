@@ -1,0 +1,16 @@
+# Hanging sloth for the island underside. Paste with the TOP layer (the two
+# log stubs) touching the underside blocks; the branch hangs one below.
+name: Hanging Sloth
+gen: sloth
+donors:
+  - Warm Snooze Fox.litematic
+  - Stump Perched Owl.litematic
+  - Lantern Moss Tree 25x25.litematic
+params:
+  size: [28, 19, 11]
+  seed: 0
+finish:
+  cheapen: true
+  hollow: {shell: 1, ground: false, keep_floor: false}
+  drop_floaters: false
+  ground: false

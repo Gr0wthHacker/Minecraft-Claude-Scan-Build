@@ -1,0 +1,18 @@
+# Mossy Ruined Watchtower — skyline spike. Round, hollow, climbable.
+name: Mossy Ruined Watchtower
+gen: tower
+donors:
+  - Ancient gateway.litematic
+  - Ancient Stone Statue Portal.litematic
+  - Howl's Moving Castle.litematic
+  - Lantern Moss Tree 25x25.litematic
+  - Cherry_blossom_watchtower3-from-abfielder.litematic
+  - Flower Lake Treehouse.litematic
+  - Fisherman House by Heldorya Studio-from-abfielder.litematic
+params:
+  size: [15, 36, 15]
+  wall_top: 26
+  collapse_from: 14
+finish:
+  cheapen: true
+  hollow: false

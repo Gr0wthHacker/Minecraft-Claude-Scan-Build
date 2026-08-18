@@ -1,0 +1,13 @@
+# Small dragonfly with a 3-tall fence perch. Set perch: 0 for a hovering one.
+name: Dragonfly
+gen: dragonfly
+donors:
+  - Flower Lake Treehouse.litematic
+params:
+  length: 14
+  perch: 3
+finish:
+  cheapen: true
+  hollow: false
+  drop_floaters: false
+  ground: false

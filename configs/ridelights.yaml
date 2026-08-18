@@ -1,0 +1,5 @@
+# Chain + lantern from the plate underside above the rail loop where it runs under the plate.
+name: Ride Lights
+gen: ridelights
+params: {under: out/island_now.litematic, every: 6}
+finish: {cheapen: false, hollow: false, ground: false, drop_floaters: false, verify_against: out/island_now.litematic}

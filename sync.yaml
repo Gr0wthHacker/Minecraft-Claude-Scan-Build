@@ -1,0 +1,20 @@
+# One command after each /cscan:  python -m mcbuild sync
+scan: island
+cut: [-24251, 150, 29949, -24149, 270, 30051]
+world_out: out/island_now.litematic
+regen:                              # designs regenerated as remaining-work against the new scan
+  - configs/belly.yaml
+progress:                           # designs reported (% built, left, shop list)
+  - out/Island Belly Full.litematic
+  - out/Taproot.litematic
+  - out/Shed Shard.litematic
+  - out/Chimneys.litematic
+  - out/Statue Footings.litematic
+  - out/Rim Hem.litematic
+  - out/Path Network.litematic
+  - out/Light Posts.litematic
+  - out/Deck Entrance.litematic
+  - out/Ride Lights.litematic
+  - out/Apiary Flowers.litematic
+  - out/Bird Lanterns.litematic
+learn: true

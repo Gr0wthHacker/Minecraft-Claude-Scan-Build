@@ -1,0 +1,5 @@
+# Six chain-and-lantern strings from the underside of the sky bird.
+name: Bird Lanterns
+gen: birdlanterns
+params: {under: out/island_now.litematic, min_y: 245, count: 6, drop: [6, 10]}
+finish: {cheapen: false, hollow: false, ground: false, drop_floaters: false, verify_against: out/island_now.litematic}

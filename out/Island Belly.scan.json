@@ -1,0 +1,31 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 172,
+    "z": 29949
+  },
+  "size": {
+    "x": 103,
+    "y": 30,
+    "z": 103
+  },
+  "generated_by": "belly",
+  "encase_below": 200,
+  "under": "island_top.litematic",
+  "clear": [
+    "vine"
+  ],
+  "exclude_boxes": [
+    [
+      -24202,
+      181,
+      29956,
+      -24186,
+      184,
+      29974
+    ]
+  ],
+  "belly_cells": 3527,
+  "file": "Island Belly.litematic",
+  "name": "Island Belly"
+}

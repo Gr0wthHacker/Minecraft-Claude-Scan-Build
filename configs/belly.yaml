@@ -1,0 +1,37 @@
+# Underbelly fitted to the real island capture (chunkscan /cscan island -> out/island_top).
+# hug mode: rock follows the built underside (plate, lower deck, bee house, rail supports), never rises
+# beside anything hanging lower (side_gap), organic depth by distance to the footprint edge.
+name: Island Belly
+gen: belly
+params:
+  under: out/island_top.litematic     # pre-build scan = geometry
+  world: out/island_now.litematic     # latest scan = what is already built (removed from this file)
+  mode: hug
+  side_gap: 2
+  sub_plate: skin            # nothing under the flat redstone/chest deck or the rail/walkway bridges...
+  skin_depth: 1
+  skin_boxes:
+    - [-24221, 29992, -24178, 30034]   # ...except a 1-block skin hugging the moss animal platforms
+  min_plate_width: 5         # thin plate necks between lobes = bridges: no rock
+  cut_boxes:
+    - [-24204, 29977, -24196, 29991]     # the 5-7 wide bridge to the NW tree island
+  overhang: 0
+  encase_below: 200          # plate level; hug hangs from solid blocks up to 12 above it (raised terraces), ignores canopy/plants/lanterns
+  depth_max: 20              # "medium"
+  depth_min: 1
+  ramp: 12                   # blocks from the rim over which depth grows to depth_max
+  wall: 1                    # shell thickness
+  exclude_boxes:
+    - [-24202, 181, 29956, -24186, 184, 29974]   # the Dragonfly: re-hang it under the finished belly
+  moss_bottom: 0.30
+  vine_rate: 0.05
+  vine_len: [3, 8]
+  lanterns_out: 14
+  lanterns_in: 12
+  seed: 0
+finish:
+  cheapen: true
+  hollow: false              # generator hollows itself
+  ground: false
+  drop_floaters: false       # cavern lanterns hang from the plate, which isn't in this file
+  verify_against: out/island_now.litematic

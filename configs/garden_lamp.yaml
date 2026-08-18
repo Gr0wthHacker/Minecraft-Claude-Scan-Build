@@ -1,0 +1,17 @@
+name: Garden lamp
+gen: lamp
+donors:
+  - Flower Lake Treehouse.litematic
+  - Fisherman House by Heldorya Studio-from-abfielder.litematic
+  - Ancient Banyan Blessing Pavilion.litematic
+  - Cherry_blossom_watchtower3-from-abfielder.litematic
+  - Howl's Moving Castle.litematic
+  - Ancient Stone Statue Portal.litematic
+  - Lantern Moss Tree 25x25.litematic
+  - Holding Flowers Rabbit 1-2 scale.litematic
+params: {}
+finish:
+  cheapen: true
+  hollow: false
+  drop_floaters: false
+  ground_block: moss_block

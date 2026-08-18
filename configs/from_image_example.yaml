@@ -1,0 +1,10 @@
+# Example: image reference -> statue starting point. Run:
+#   mcbuild fromimage ref.png --height 27 --depth 10 --out out/ref.litematic
+# (fromimage is a CLI command, not a config; this file documents the knobs)
+image: ref.png
+height: 27
+depth: 10
+profile: loft          # loft | slab
+tiers: [cheap]         # allowed block cost tiers for colour matching
+mirror: false
+hollow_shell: 2

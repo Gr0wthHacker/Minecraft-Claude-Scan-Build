@@ -1,0 +1,17 @@
+# Sitting Fox — companion for the owl. Built at target scale.
+name: Sitting Fox
+gen: fox
+donors:
+  - Stump Perched Owl 1-2 scale.litematic
+  - Lantern Moss Tree standalone.litematic
+params:
+  size: [13, 28, 15]
+  body: orange_wool
+  white: snow_block
+  dark: black_wool
+  ear_inner: red_wool
+finish:
+  cheapen: true
+  hollow: false
+  symmetry: true
+  symmetry_rows_from: 7

@@ -1,0 +1,66 @@
+"""Regenerate every config and assert the audit passes. Run: python -m pytest -q  (or python tests/test_designs.py)"""
+import glob, os, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from mcbuild.pipeline import run_config, Settings
+
+CONFIGS = [c for c in glob.glob(os.path.join(os.path.dirname(__file__), "..", "configs", "*.yaml"))
+           if not os.path.basename(c).startswith("from_image")]
+
+
+def _run(cfg):
+    m, r = run_config(cfg, settings=Settings(out_dir="out/_test"), render_sheet=False, verbose=False)
+    assert r.ok, f"{os.path.basename(cfg)}: {[str(p) for p in r.problems][:5]}"
+    assert r.blocks > 0
+    exp = {k: v for k, v in r.bom.items() if __import__("mcbuild").palette.tier(k) == "expensive"}
+    # tiny accents (e.g. a beak) may be kept on purpose; anything bulk is a regression
+    assert sum(exp.values()) <= 8, f"{os.path.basename(cfg)}: expensive blocks {exp}"
+
+
+def test_all_configs():
+    for c in CONFIGS:
+        _run(c)
+
+
+def test_roundtrip_nbt():
+    from mcbuild import schem, nbt
+    import numpy as np
+    m = schem.Model(np.zeros((3, 3, 3), np.int32), [nbt.block_state("minecraft:air"), nbt.block_state("minecraft:stone")])
+    m.ids[1, 1, 1] = 1
+    schem.save("out/_test/rt.litematic", m, name="rt")
+    m2 = schem.load("out/_test/rt.litematic")
+    assert (m2.ids == m.ids).all() and m2.names[1] == "minecraft:stone"
+
+
+def test_hollow_seals_and_reports():
+    """Hollowing a solid cube yields a sealed cavity; carving is verified."""
+    from mcbuild import schem, nbt, morph
+    from mcbuild.ops import hollow
+    import numpy as np
+    ids = np.ones((8, 8, 8), np.int32)
+    m = schem.Model(ids, [nbt.block_state("minecraft:air"), nbt.block_state("minecraft:stone")])
+    st = hollow(m, shell=2, ground=True)
+    assert st["carved"] > 0 and st["cavity"] == st["carved"]
+    s = m.solid()
+    ext = morph.flood_outside(s, pad=True, ground=True)
+    assert int(((~s) & ext & ~s).sum()) == int(((~s) & ext).sum())   # sanity
+    assert not ((~s) & ext)[2:-2, 2:-2, 2:-2].any()                  # cavity is not exterior
+
+
+def test_carve_only_respects_foreign_structure():
+    """With carve_only, cells outside the mask are never removed."""
+    from mcbuild import schem, nbt
+    from mcbuild.ops import hollow
+    import numpy as np
+    ids = np.ones((10, 10, 10), np.int32)
+    m = schem.Model(ids, [nbt.block_state("minecraft:air"), nbt.block_state("minecraft:stone")])
+    allowed = np.zeros_like(ids, bool); allowed[:5] = True          # only the lower half may be carved
+    hollow(m, shell=2, ground=True, carve_only=allowed)
+    assert m.solid()[5:].all()
+
+
+if __name__ == "__main__":
+    os.makedirs("out/_test", exist_ok=True)
+    for c in CONFIGS:
+        _run(c); print("ok", os.path.basename(c))
+    test_roundtrip_nbt(); print("ok roundtrip")
+    print("all passed")

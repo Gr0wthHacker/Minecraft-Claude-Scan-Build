@@ -1,0 +1,19 @@
+# Island Underside Belly — hangs BELOW an existing island's skirt.
+# Top layer of the schematic = layer directly under your skirt's bottom edge.
+name: Island Underside Belly 41x41
+gen: underside
+donors:
+  - Lantern Moss Tree 25x25.litematic
+  - Fisherman House by Heldorya Studio-from-abfielder.litematic
+  - Cherry Hall-from-abfielder.litematic
+  - Flower Lake Treehouse.litematic
+params:
+  footprint: 41
+  cap_depth: 16
+  footprint_shape: rounded
+  roundness: 4.0
+  lanterns: 10
+finish:
+  cheapen: true
+  hollow: false        # generator hollows itself (needs ceiling mode)
+  ground: false

@@ -1,0 +1,5 @@
+# Rim hem: moss carpet / azalea / grass on the outer 2 columns of the lawn, occasional mossy stair off the lip.
+name: Rim Hem
+gen: hem
+params: {under: out/island_now.litematic, ring: 2}
+finish: {cheapen: false, hollow: false, ground: false, drop_floaters: false, verify_against: out/island_now.litematic}

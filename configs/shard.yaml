@@ -1,0 +1,14 @@
+# A calved rock fragment hanging on chains under the SE lobe (mushroom side), one lantern.
+name: Shed Shard
+gen: shard
+params:
+  under: out/island_now.litematic
+  belly: out/Island Belly Full.litematic
+  x: -24158
+  z: 30043
+  gap: 16
+  rx: 4.0
+  ry: 2.5
+  rz: 3.5
+  chains: 2
+finish: {cheapen: true, hollow: false, ground: false, drop_floaters: false, verify_against: [out/island_now.litematic, out/Island Belly Full.litematic], context_clear: [vine]}

@@ -1,0 +1,19 @@
+# Rock casing AROUND the hanging workspace box (Unnamed.litematic).
+name: Island Underside Casing
+gen: casing
+donors:
+  - Lantern Moss Tree 25x25.litematic
+  - Fisherman House by Heldorya Studio-from-abfielder.litematic
+  - Cherry Hall-from-abfielder.litematic
+  - Flower Lake Treehouse.litematic
+params:
+  under: C:/Users/Jack/AppData/Roaming/CCBlueX/LiquidLauncher/data/gameDir/nextgen/schematics/Unnamed.litematic
+  wall: 3
+  belly: 12
+  headroom: 8
+  lanterns: 10
+finish:
+  cheapen: true
+  hollow: false
+  ground: false
+  drop_floaters: true
