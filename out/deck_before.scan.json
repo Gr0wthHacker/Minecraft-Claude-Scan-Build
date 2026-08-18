@@ -1,0 +1,34 @@
+{
+  "name": "deck_before",
+  "file": "deck_before.litematic",
+  "format": "litematic",
+  "created": "2026-08-18T03:03:42.962024Z",
+  "player": "Enroniti",
+  "server": {
+    "name": "Unknown Server",
+    "ip": "skyblock.net"
+  },
+  "dimension": "minecraft:overworld",
+  "data_version": 4903,
+  "origin": {
+    "x": -24230,
+    "y": 190,
+    "z": 29985
+  },
+  "size": {
+    "x": 61,
+    "y": 13,
+    "z": 61
+  },
+  "player_pos": {
+    "x": -24188,
+    "y": 203,
+    "z": 30003
+  },
+  "air_margin": 2,
+  "total_volume": 3554015,
+  "non_air_blocks": 12976,
+  "palette_size": 234,
+  "tile_entities": 242,
+  "cut_from": "island.litematic"
+}

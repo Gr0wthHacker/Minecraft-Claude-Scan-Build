@@ -23,4 +23,5 @@ progress:                           # designs reported (% built, left, shop list
   - out/Ride Lights.litematic
   - out/Apiary Flowers.litematic
   - out/Bird Lanterns.litematic
+  - out/Deck Vault.litematic     # NOT in regen: `under` is pinned to the pre-vault capture (see configs/vault.yaml)
 learn: true

@@ -1,0 +1,38 @@
+# The working deck under the plate read as one room: rim railing, colonnade on a fixed bay grid,
+# coffered lattice under the plate, lanterns hung from it.
+#
+# `under` is PINNED to out/deck_before.litematic (the 2026-08-18 capture, cut to the deck box).
+# Do not repoint it at out/island_now.litematic and do not add this config to sync.yaml's regen list:
+# once pillars are standing they would read as "occupied", the generator would skip them and the
+# design would shrink toward nothing. Progress against the newest scan is `mcbuild progress`'s job.
+name: Deck Vault
+gen: vault
+params:
+  under: out/deck_before.litematic
+  floor_y: 194              # the deck slab
+  ceil_y: 201               # underside of the island plate
+  box: [-24222, 29991, -24177, 30035]
+  bay: 4                    # 13 columns fit the open floor; 6 left only 5 and read as scattered posts
+  anchor: [-24186, 30016]   # grid runs through the open centre-east, clear of every machine
+  clearance: 1
+  lantern_bay: 2            # lanterns every 8 blocks along the beams: worst floor cell sits near
+                            # light 7, so nothing in the hall spawns
+  keep_boxes:               # constraints geometry cannot see - spawn volumes, sightlines, access aisles.
+                            # y ranges are deliberate: a box that stops below 200 still lets the coffer
+                            # cross over it, which is what keeps the room reading as one hall.
+    - [-24223, 195, 29999, -24213, 200, 30016]   # piglin spawner: spawn volume + AFK line. Full height,
+                                                 # NO lantern here - light may stop the spawner (untested)
+    - [-24224, 195, 30020, -24215, 200, 30030]   # squid spawner pair + "Mobs die here"
+    - [-24209, 195, 29993, -24203, 198, 30018]   # chest wall access aisle, anvil, mob-drop sorter lanes
+    - [-24200, 195, 30001, -24194, 199, 30012]   # smelter feed chute ("Fuel Here" / "Smelty Things Here")
+    - [-24211, 195, 30021, -24191, 199, 30043]   # auto-moss farm: dispensers, pistons, observers, lever
+  pillar: stone_bricks
+  beam: mossy_stone_bricks
+  seed: 0
+finish:
+  cheapen: true
+  hollow: false
+  ground: false             # an interior: nothing stands on soil
+  drop_floaters: false      # beams and lanterns hang off the plate, which is not in this file
+  verify_against: out/island_now.litematic
+  verify_replaceable: [vine]
