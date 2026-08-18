@@ -1,60 +1,25 @@
 # A giraffe standing on the void isle, craning up at the taproot platform.
 #
-# It stands on the FAR side of the isle - the island with the water - so the neck reaches back across
-# the lake toward the platform, and the head arrives level with the platform's rim about 26 blocks
-# away. That is the "just peeking" distance: close enough to read as looking at you when you are on
-# the platform, far enough that it is not leaning on it.
+# It stands on the FAR side of the isle so the neck reaches back across the lake toward the platform
+# and the head arrives at the rim about 26 blocks away - close enough to read as looking at you when
+# you are on the platform, far enough that it is not leaning on it.
 #
-# Feet at Y100 (the isle's far surface), head at Y150 (the platform shelf). The height is not chosen -
-# it falls out of those two numbers.
+# Everything about the ANIMAL now lives in `PROFILES["giraffe"]` in mcbuild/gen/quadruped.py: the
+# proportions, the section keyframes, the coat, which features it wears. This file only says where it
+# stands and what it looks at. A second giraffe elsewhere is four lines.
 #
-# PALETTE AND FORM COME FROM JACK'S REFERENCE BUILD, not from guesswork. Two corrections it forced:
-#   - Muted clay, not bright wool. Earth-brown blotches on bone_block. orange_wool read as a toy.
-#   - Rectangular masses, not ellipsoids, and the heading snapped to a cardinal so they stay square
-#     to the grid. Rounded blobs are what made the first two versions look melted.
+# Audit it with:
+#   python tools/proportions.py "Void Giraffe"          measured against a real giraffe
+#   python tools/smoothness.py configs/giraffe.yaml     spikes, notches, area jerk
+#   python tools/views.py "Void Giraffe" --zoom 10      shaded side / face / top
 name: Void Giraffe
-gen: giraffe
+gen: quadruped
 params:
+  profile: giraffe
   under: out/island_void.litematic
   feet: [-24218, 100, 29982]      # far NW side of the void isle
   look_at: [-24206, 150, 30010]   # the taproot platform's near rim
-  # PROPORTION is what names the animal. neck > body length, legs ~= neck, and a back that falls
-  # away hard from the shoulder. v3 had neck 19 on body 18 with a level back, and that is an alpaca.
-  leg: 17                     # audit: shifted length from leg to neck. At leg 20 the neck measured
-                              # 15 courses against an anatomical 23 - a giraffe carries its height in
-                              # the NECK, and the legs were at the top of tolerance
-  hoof: 2                     # 3 courses on a flared ankle read as boots
-  leg_r: 1.9                  # audit: the legs had fused into an 11-wide slab
-  body_len: 22                # audit: 19 measured -20% against a real giraffe's barrel
-  body_r: 4.9                 # audit: 13 wide against a target of 9.5. A giraffe is deep and
-                              # SLAB-SIDED, not a barrel - and every smoothness sweep wants to fatten it
-  withers: 10                 # body depth at the shoulder
-  hips: 6                     # ...and at the rump. The 4-block drop IS the giraffe profile
-  neck: 26
-  neck_r0: 3.4
-  neck_r1: 1.95               # a giraffe's neck is THICKER than its head
-  neck_lean: 0.40
-  head_len: 8                 # audit: 10 was +46% on a real giraffe's head
-  head_r: 2.45
-  # Palette picked by `blocks.nearest` out of all 1193 real block colours, not from memory.
-  # NOTE red_sand is the closest ochre in the game and cheap - and it FALLS. It would have poured
-  # the whole statue into the void. `blocks.falls` now keeps gravity blocks out of the candidates.
-  coat_block: smooth_sandstone
-  patch: smooth_red_sandstone
-  patch_alt: cut_red_sandstone
-  hoof_block: dark_oak_wood
-  dark: black_wool
-  patch_scale: 5.5
-  grout: 0.85                 # the pale channel between patches - a giraffe's signature
-  # Smoothing, chosen by `python tools/smoothness.py configs/giraffe.yaml --sweep` over 63 valid
-  # variants, not by eye. Best score 5.89 (spikes 51, jerk 5.38) against 9.07 for the grid's first
-  # guess and 9.39 for the unsmoothed v7. `relax_keep: 12` shatters thin features, so 11 is the edge.
-  relax_rounds: 4
-  relax_fill: 11
-  relax_keep: 11
-  section_n: 2.2               # sweep winner; see the note above
-  seed: 0
-origin_lock: false          # LOUD: it stands at Y100-150, its own corner; nothing else is near it
+origin_lock: false          # LOUD: it stands at Y100-156, its own corner; nothing else is near it
 finish:
   cheapen: false            # the coat IS the design
   hollow: false

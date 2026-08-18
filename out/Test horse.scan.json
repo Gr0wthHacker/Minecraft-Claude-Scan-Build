@@ -1,0 +1,29 @@
+{
+  "origin": {
+    "x": -24223,
+    "y": 100,
+    "z": 29967
+  },
+  "size": {
+    "x": 11,
+    "y": 39,
+    "z": 41
+  },
+  "generated_by": "quadruped",
+  "kind": "horse",
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 38,
+  "top_y": 138,
+  "neck_top_y": 136.0,
+  "collisions": 3,
+  "file": "Test horse.litematic",
+  "name": "Test horse"
+}

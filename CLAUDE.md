@@ -53,6 +53,34 @@ generators emitting `chain` (renamed `iron_chain` in 26.x), barrels carrying che
 (`type`/`waterlogged` instead of `facing`/`open`), and `lily_pad[rotation=0]` — lily pads have no
 properties at all in 26.2.
 
+## Building an animal
+
+```yaml
+gen: quadruped
+params: {profile: giraffe, feet: [...], look_at: [...], under: <capture>}
+```
+Everything about the species lives in `PROFILES` in `gen/quadruped.py`; the config only says where it
+stands. The build ORDER is load-bearing and was learned the hard way:
+
+1. **mass** — legs, body, neck, head lofted; nothing thin, nothing coloured
+2. **relax** — cellular smoothing over that mass alone
+3. **features** — mane, ears, horns, tail; *after*, because the rule that shaves a one-block pimple
+   off a shoulder eats a horn whole
+4. **face** — read off the SMOOTHED skin with `loft.surface_out`, never from a computed radius
+5. **coat** — the pattern, over the finished shape
+
+Traps, each of which cost a rebuild:
+- Smoothing **welds legs together** (two surfaces across a narrow gap look exactly like a dent).
+  `relax(forbid=...)` bars the air between them — but the reach must cover the leg's *widest*
+  section or it carves the haunch off instead, which severed a deer's leg outright.
+- Smoothing **eats thin limbs**: `keep` counts neighbours a slender leg does not have. Legs are
+  passed as `protect`.
+- **Feature sizes must scale with the animal.** A tail hardcoded at 13 blocks was longer than a
+  deer's legs and broke the model in two. Anything in absolute blocks has this bug latent in it.
+- **Palette by measurement**: `blocks.nearest()` over all 1193 real colours, excluding what the
+  server lacks. Sandstone does not exist on this skyblock — the giraffe's coat is bone_block +
+  acacia (the two acacias give tonal variety at one hue).
+
 ## Auditing a shape
 
 Three tools, because "it looks lumpy / it feels off" is not actionable and the eye passes bad shapes:
@@ -124,8 +152,13 @@ design without regenerating it.
 - `gen/` — one module per generator, registered in `gen/__init__.py`; `belly.py` (island underside),
   `vertical.py` (taproot, shard + the `World`/`Ctx` helpers), `dressing.py` (hem, paths, lightposts,
   entrance, ridelights, apiary, birdlanterns, chimney, footing, altar), `interior.py` (the deck vault),
-  `courtyard.py` (the sky-well court), `redstone.py` (item sorter), `coat.py` (patterned hide:
-  Voronoi patches with grout, and soft blotches), plus the older statue generators.
+  `courtyard.py` (the sky-well court), `redstone.py` (item sorter), plus the older statue generators.
+- **Animals**: `quadruped.py` builds any four-legged animal from a PROFILE (proportions + four
+  keyframe tables + coat + which features it wears) — a new species is a dict, not a generator.
+  Supported by `loft.py` (superellipse sections swept along a spine; `surface_out`/`crest` for
+  finding the skin), `coat.py` (Voronoi patches with grout, or soft blotches) and `smooth.py`
+  (`relax` cellular smoothing, `roughness` metrics). `data/animals.yaml` holds real-animal
+  proportions for the audit.
 - `work.py` — `<design>.work.json`: the design flattened to world-coordinate cells so the mod can diff
   it against the live world without an NBT reader. Written on every `gen`, shipped with the design.
 - `history.py` — `out/history.json`, one row per sync, so `progress` has a slope: blocks per sync and

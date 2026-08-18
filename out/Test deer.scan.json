@@ -1,0 +1,29 @@
+{
+  "origin": {
+    "x": -24221,
+    "y": 100,
+    "z": 29969
+  },
+  "size": {
+    "x": 7,
+    "y": 27,
+    "z": 30
+  },
+  "generated_by": "quadruped",
+  "kind": "deer",
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 26,
+  "top_y": 126,
+  "neck_top_y": 126.0,
+  "collisions": 5,
+  "file": "Test deer.litematic",
+  "name": "Test deer"
+}

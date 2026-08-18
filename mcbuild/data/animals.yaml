@@ -1,0 +1,43 @@
+# Real-animal proportions, as fractions of TOTAL HEIGHT - the only measure that survives a change of
+# scale. `tools/proportions.py` checks a built statue against these.
+#
+# Add a species here and its statue can be audited; the shape itself is a PROFILE in gen/quadruped.py.
+# The two are separate on purpose: the profile says what to build, this says what right looks like.
+#
+# The WIDTH figures are the ones voxel builds get wrong, because thickening a shape makes every
+# smoothness metric happier. They have to be checked or the animal inflates one tuning run at a time.
+
+giraffe:
+  total_m: 5.5
+  withers height: 3.2      # the shoulder - what makes it look like it stands on stilts
+  leg (ground->belly): 1.9
+  body depth: 1.3          # belly to withers
+  body length: 2.3         # chest to rump
+  body width: 0.9          # NARROW: a giraffe is deep and slab-sided, not a barrel
+  neck length: 2.2
+  head length: 0.65
+  leg width: 0.28
+
+horse:
+  # total is HEAD-UP height, not the withers figure usually quoted for horses - the statue is measured
+  # from hoof to the top of the head, so the reference has to be too.
+  total_m: 2.40
+  withers height: 1.55
+  leg (ground->belly): 0.95
+  body depth: 0.60
+  body length: 1.60
+  body width: 0.45
+  neck length: 0.70
+  head length: 0.60
+  leg width: 0.14
+
+deer:
+  total_m: 1.50            # head-up, as above
+  withers height: 1.05
+  leg (ground->belly): 0.62
+  body depth: 0.43
+  body length: 1.10
+  body width: 0.28
+  neck length: 0.35
+  head length: 0.32
+  leg width: 0.08

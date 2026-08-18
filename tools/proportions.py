@@ -32,17 +32,18 @@ import numpy as np
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from mcbuild import scan                                    # noqa: E402
 
-REAL_H = 5.5
-REF = {
-    "withers height": 3.2 / REAL_H,
-    "leg (ground->belly)": 1.9 / REAL_H,
-    "body depth": 1.3 / REAL_H,
-    "body length": 2.3 / REAL_H,
-    "body width": 0.9 / REAL_H,
-    "neck length": 2.2 / REAL_H,
-    "head length": 0.65 / REAL_H,
-    "leg width": 0.28 / REAL_H,
-}
+ANIMALS = pathlib.Path(__file__).resolve().parent.parent / "mcbuild/data/animals.yaml"
+
+
+def reference(species: str) -> dict:
+    """Real-animal measurements as fractions of total height, from mcbuild/data/animals.yaml."""
+    import yaml
+    table = yaml.safe_load(ANIMALS.read_text(encoding="utf-8"))
+    if species not in table:
+        raise SystemExit(f"no reference for {species!r}; have {sorted(table)}")
+    row = dict(table[species])
+    h = float(row.pop("total_m"))
+    return {k: float(v) / h for k, v in row.items()}
 
 
 def _segment(solid, sy):
@@ -108,10 +109,14 @@ def _leg_width(solid, y):
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("design")
+    ap.add_argument("--species", help="which row of animals.yaml to compare against; "
+                                      "defaults to the design's own `kind`")
     ap.add_argument("--tol", type=float, default=0.20, help="fractional tolerance before flagging")
     a = ap.parse_args()
 
     s = scan.load(a.design)
+    species = a.species or (getattr(s, "meta", None) or {}).get("kind") or "giraffe"
+    REF = reference(species)
     ids = s.model.ids
     solid = ids > 0
     sy, sz, sx = ids.shape
@@ -141,7 +146,7 @@ def main() -> None:
         "leg width": _leg_width(solid, max(1, belly // 2)) / H,
     }
 
-    print(f"{a.design}: {int(solid.sum())} blocks, {H} courses tall\n")
+    print(f"{a.design}: {int(solid.sum())} blocks, {H} courses tall, against a real {species}\n")
     print(f"{'measure':22s} {'built':>7s} {'real':>7s} {'blocks':>7s} {'want':>7s}   verdict")
     bad = []
     for k, ref in REF.items():
