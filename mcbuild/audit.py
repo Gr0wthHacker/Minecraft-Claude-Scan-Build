@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from . import morph, nbt, palette
+from . import blocks, morph, nbt, palette
 from .schem import Model
 
 # blocks that need something specific to hold them up / against
@@ -47,8 +47,16 @@ def _held(kind: str, rel: str, neighbour: str) -> bool:
 
 
 def _center_support(n: str) -> bool:
-    """Vanilla: a standing lantern only needs centre support - fences, walls, posts qualify."""
-    return n.endswith("_fence") or n.endswith("_wall") or n in ("end_rod", "lightning_rod")
+    """Vanilla: a standing lantern only needs its CENTRE supported, not a full face.
+
+    So a fence, wall or rod qualifies - and so does any block with a sturdy top, which is every slab
+    and stair as well as every full cube. `LanternBlock` overrides canSurvive (javap, 26.2 jar) and
+    calls canSupportCenter on the block below; a bottom slab's top face satisfies that, which is why
+    you can stand a lantern on a slab in game.
+    """
+    if n.endswith("_fence") or n.endswith("_wall") or n in ("end_rod", "lightning_rod"):
+        return True
+    return _supports_top(n)
 
 
 def _is_chain(n: str) -> bool:
@@ -66,9 +74,17 @@ DIRT_LIKE = {"dirt", "grass_block", "moss_block", "podzol", "coarse_dirt", "root
 
 
 def _is_solid_name(n: str) -> bool:
-    """Full-cube-ish blocks that can support things. Conservative."""
+    """Full-cube blocks - what a vine, ladder or torch can actually cling to.
+
+    Answered by the game: `blocks.is_full_cube` reads Mojang's own block type for `n`. The suffix
+    heuristics below are the fallback for when the knowledge base has not been generated, and they
+    were wrong in both directions - they called a slab solid (it is not; things fall off it) and had
+    to special-case `oak_leaves` by name because `_leaves` matched the not-solid list.
+    """
     if n in ("air", "cave_air", "void_air", "OOB"):
         return False
+    if blocks.loaded() and blocks.exists(n):
+        return blocks.is_full_cube(n)
     if _is_chain(n):
         return False
     non = HANGERS | GROUND_PLANTS | {"ladder", "torch", "wall_torch", "moss_carpet", "iron_bars",
@@ -81,6 +97,13 @@ def _is_solid_name(n: str) -> bool:
         if n.endswith(suf) and n != "oak_leaves":
             return n.endswith("_leaves")          # leaves count as support for carpets/vines
     return True
+
+
+def _supports_top(n: str) -> bool:
+    """Can something stand on it. A slab or stair is not a full cube but you can still build up from it."""
+    if blocks.loaded() and blocks.exists(n):
+        return blocks.supports_top(n)
+    return _is_solid_name(n)
 
 
 @dataclass
@@ -159,8 +182,11 @@ def check_supports(m: Model, ground_block: str | None = None) -> list[Problem]:
             if not ok:
                 out.append(Problem("vine", x, y, z, "no attachment"))
         elif _is_chain(n):
-            if p.get("axis", "y") == "y" and not (_held("chain", "above", nm(x, y + 1, z)) or _is_chain(nm(x, y + 1, z))):
-                out.append(Problem("chain", x, y, z, "nothing above"))
+            # No check. `ChainBlock extends RotatedPillarBlock` and does NOT override canSurvive
+            # (javap'd against the 26.2 client jar), so a chain survives anywhere - unlike vine and
+            # lantern, which both do override it. The old "nothing above" rule was ours, not the
+            # game's, and it failed a perfectly legal chain hung under a slab.
+            pass
         elif n in ("lantern", "soul_lantern"):
             if p.get("hanging") == "true":
                 if not (_held("lantern", "above", nm(x, y + 1, z)) or _is_chain(nm(x, y + 1, z))):
@@ -282,6 +308,21 @@ def check_states(m: Model) -> list:
 
 
 def _state_problem(name: str, props: dict) -> str | None:
+    """Is this block+state one the game would actually accept?
+
+    Answered by the registry now: `blocks.validate` checks the name against all 1196 blocks and every
+    property against its legal value set, straight out of Mojang's data generator. That covers all
+    32366 states, not the five block families the hand-written rules below happened to know about -
+    and it catches a misspelt block name, which nothing here ever did.
+    """
+    if blocks.loaded():
+        bad = blocks.validate(name, props)
+        return "; ".join(bad) if bad else None
+    return _state_problem_legacy(name, props)
+
+
+def _state_problem_legacy(name: str, props: dict) -> str | None:
+    """Fallback for when `mcbuild/data/blocks.json` has not been generated."""
     base = name.rsplit("_", 1)[-1]
     if name.endswith("_stairs"):
         for k, allowed in (("facing", {"north", "south", "east", "west"}), ("half", {"top", "bottom"}),

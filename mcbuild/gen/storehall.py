@@ -28,6 +28,18 @@ STOREHALL = {
     "seed": 0,
 }
 
+def _container_state(name: str, facing: str) -> dict:
+    """Only the properties this container actually declares, filled from its own defaults."""
+    from .. import blocks
+    legal = blocks.props(name)
+    if not legal:                                    # knowledge base absent: chest-shaped guess
+        return {"facing": facing, "type": "single", "waterlogged": "false"}
+    st = dict(blocks.default(name))
+    if "facing" in legal:
+        st["facing"] = facing
+    return {k: v for k, v in st.items() if k in legal}
+
+
 AIRY = ("air", "cave_air", "void_air", "vine")
 FIXTURES = ("chest", "barrel", "furnace", "hopper", "shulker", "crafting_table", "anvil",
             "dispenser", "observer", "piston", "lever", "comparator", "repeater", "spawner")
@@ -56,8 +68,10 @@ def build_storehall(cfg: dict, donors=None) -> Canvas:
             if (x, z) in blocked or (ctx is not None and _busy(ctx, x, fy, z, tiers + 1)):
                 continue
             for t in range(tiers):
-                w.put(x, fy + 1 + t, z, p["chest"], facing=INWARD[wall], type="single",
-                      waterlogged="false")
+                # This hall serves chests AND barrels, and they take different properties: a chest has
+                # type/waterlogged, a barrel has facing/open. Emitting the chest set on a barrel is an
+                # illegal state the game refuses - ask the registry which properties this one has.
+                w.put(x, fy + 1 + t, z, p["chest"], **_container_state(p["chest"], INWARD[wall]))
                 placed += 1
             w.put(x, fy + 1 + tiers, z, p["lintel"])
     labelled = _signs(ctx, w, runs, blocked, x1, z1, x2, z2, fy, tiers, p)

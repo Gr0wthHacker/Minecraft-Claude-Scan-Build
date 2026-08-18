@@ -80,12 +80,13 @@ def _states(c: Canvas) -> dict:
         "log_y": st("spruce_log", axis="y"), "log_x": st("spruce_log", axis="x"),
         "planks": st("spruce_planks"), "oak": st("oak_planks"), "birch": raw("birch_planks"),
         "sslab": st("spruce_slab", type="bottom", waterlogged="false"),
+        "leaf": st("oak_leaves", distance="7", persistent="true", waterlogged="false"),
         "bslab": raw("birch_slab", type="bottom", waterlogged="false"),
         "oslab": st("oak_slab", type="bottom", waterlogged="false"),
         "fence": st("oak_fence", north="false", south="false", east="false", west="false", waterlogged="false"),
         "sfence": st("spruce_fence", north="false", south="false", east="false", west="false", waterlogged="false"),
         "trap": st("spruce_trapdoor", facing="north", half="top", open="false", powered="false", waterlogged="false"),
-        "chain": st("chain", axis="y", waterlogged="false"), "chain_x": raw("chain", axis="x", waterlogged="false"),
+        "chain": st("iron_chain", axis="y", waterlogged="false"), "chain_x": raw("iron_chain", axis="x", waterlogged="false"),
         "lant_h": st("lantern", hanging="true", waterlogged="false"),
         "farmland": raw("farmland", moisture="7"),
         "wheat": raw("wheat", age="7"), "carrots": raw("carrots", age="7"),
@@ -275,6 +276,10 @@ class _Farm:
         for z in p["path_z"]:
             self.put(x - 1, B + 4, z, S["trap"]); self.put(x + 1, B + 4, z, S["trap"])
         self.put(x, B + 3, p["path_z"][0], S["lant_h"])
+        # A vine hanging from below needs a FULL cube above it, and the arbour roof is slabs - the
+        # strand would have popped the moment the chunk loaded. Break the slab run with one leaf
+        # block over this bay: it holds the vine and reads as growth over the arch.
+        self.put(x, B + 4, p["path_z"][1], S["leaf"])
         self.put(x, B + 3, p["path_z"][1], self.c.vine(x, B + 3, p["path_z"][1], "up"))
 
     # -- octagonal apiary pavilion --------------------------------------------

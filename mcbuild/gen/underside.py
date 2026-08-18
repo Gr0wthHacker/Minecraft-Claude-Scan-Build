@@ -67,7 +67,7 @@ def build(cfg: dict, donors: list | None = None) -> Canvas:
         "cobble": c.state("cobblestone"), "mosscobble": c.state("mossy_cobblestone"),
         "andesite": c.state("andesite"), "tuff": c.raw_state("tuff"),
         "roots": c.raw_state("hanging_roots", waterlogged="false"),
-        "chain": c.state("chain", axis="y", waterlogged="false"),
+        "chain": c.state("iron_chain", axis="y", waterlogged="false"),
         "lant_h": c.state("lantern", hanging="true", waterlogged="false"),
         "soul_h": c.state("soul_lantern", hanging="true", waterlogged="false"),
         "drip_tip": c.state("pointed_dripstone", vertical_direction="down", thickness="tip", waterlogged="false"),

@@ -48,7 +48,7 @@ def _states(c: Canvas) -> dict:
         "trap_open_s": c.raw_state("spruce_trapdoor", facing="south", half="bottom", open="true", powered="false", waterlogged="false"),
         "trap_open_e": c.raw_state("spruce_trapdoor", facing="east", half="bottom", open="true", powered="false", waterlogged="false"),
         "trap_open_w": c.raw_state("spruce_trapdoor", facing="west", half="bottom", open="true", powered="false", waterlogged="false"),
-        "chain": c.state("chain", axis="y", waterlogged="false"),
+        "chain": c.state("iron_chain", axis="y", waterlogged="false"),
         "lant": c.state("lantern", hanging="false", waterlogged="false"),
         "lant_h": c.state("lantern", hanging="true", waterlogged="false"),
         "azalea": c.state("azalea"), "fazalea": c.state("flowering_azalea"),

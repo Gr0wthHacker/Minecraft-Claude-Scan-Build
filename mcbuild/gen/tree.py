@@ -44,7 +44,7 @@ def build(cfg: dict, donors: list | None = None) -> Canvas:
         "flower": c.state(p["flower_leaf"], persistent="true", distance="7", waterlogged="false"),
         "moss": c.state("moss_block"), "carpet": c.state("moss_carpet"),
         "fence": c.state("oak_fence", north="false", south="false", east="false", west="false", waterlogged="false"),
-        "chain": c.state("chain", axis="y", waterlogged="false"),
+        "chain": c.state("iron_chain", axis="y", waterlogged="false"),
         "lant": c.state("lantern", hanging="false", waterlogged="false"),
         "lant_h": c.state("lantern", hanging="true", waterlogged="false"),
         "soul_h": c.state("soul_lantern", hanging="true", waterlogged="false"),

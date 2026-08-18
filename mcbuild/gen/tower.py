@@ -26,7 +26,7 @@ def build(cfg: dict, donors: list | None = None) -> Canvas:
         "log": c.state("spruce_log", axis="y"),
         "ladder": c.state("ladder", facing="west", waterlogged="false"),
         "bars": c.state("iron_bars", north="false", south="false", east="false", west="false", waterlogged="false"),
-        "chain": c.state("chain", axis="y", waterlogged="false"),
+        "chain": c.state("iron_chain", axis="y", waterlogged="false"),
         "lant_h": c.state("lantern", hanging="true", waterlogged="false"),
         "lant": c.state("lantern", hanging="false", waterlogged="false"),
         "carpet": c.state("moss_carpet"),

@@ -99,7 +99,7 @@ def _fill(w: World, inside, wy, depth, p, seed) -> int:
             w.put(x, y, z, "water", level="0")
             n += 1
         if hash01(x, z, 19, seed) < p["lily"] and w.name(x, wy, z) == "water":
-            w.put(x, wy + 1, z, "lily_pad", rotation="0")
+            w.put(x, wy + 1, z, "lily_pad")
     return n
 
 
