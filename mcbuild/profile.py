@@ -18,6 +18,7 @@ DEFAULTS = {
     "cut": [-24251, 150, 29949, -24149, 270, 30051],
     "baseline": "out/island_top.litematic",
     "world_out": "out/island_now.litematic",
+    "origin_lock": [-24251, 150, 29949],   # every design is padded to this corner: ONE paste origin for everything
 }
 _cache = None
 

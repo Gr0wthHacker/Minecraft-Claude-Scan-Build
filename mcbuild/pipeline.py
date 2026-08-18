@@ -142,7 +142,28 @@ def _finish(m, cfg, world_origin, gen_meta, verbose):
     return res
 
 
+def _lock_origin(m, world_origin, lock):
+    """Pad the model with air so its origin corner is `lock` (must be <= the natural origin on every axis).
+    Every design then shares one paste origin, and regenerating never moves it."""
+    import numpy as np
+    lx, ly, lz = lock
+    wx, wy, wz = world_origin
+    if wx < lx or wy < ly or wz < lz:
+        raise ValueError(f"origin_lock {lock} is not <= the design's natural origin {world_origin}; enlarge the lock box")
+    sy, sz, sx = m.ids.shape
+    ids = np.zeros((sy + wy - ly, sz + wz - lz, sx + wx - lx), np.int32)
+    ids[wy - ly:, wz - lz:, wx - lx:] = m.ids
+    m.ids = ids
+    for t in m.tile_entities:
+        for k, d in (("x", wx - lx), ("y", wy - ly), ("z", wz - lz)):
+            t.value[k] = type(t.value[k])(t.value[k].id, t.value[k].value + d)
+    return m, (lx, ly, lz)
+
+
 def _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, verbose):
+    lock = cfg.get("origin_lock", _profile().get("origin_lock"))
+    if world_origin is not None and lock and cfg.get("origin_lock") is not False:
+        m, world_origin = _lock_origin(m, world_origin, tuple(int(v) for v in lock))
     os.makedirs(st.out_dir, exist_ok=True)
     out_path = os.path.join(st.out_dir, f"{name}.litematic")
     schem.save(out_path, m, name=name, author=st.author)
