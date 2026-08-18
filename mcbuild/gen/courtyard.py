@@ -22,7 +22,10 @@ COURT = {
     "pool_r": 4.6, "pool_wobble": 1.5, "pool_inset": 1,   # every cell around the water must have floor,
                                                           # so the rim never hangs off the lip of the skin
     "rill": True,                # a channel running from the pool toward the covered side
-    "sink_lanterns": 0.12,       # share of pool cells with a submerged lantern (the hidden light)
+    "freeze_guard": 4,           # max distance from any water cell to a submerged lantern. THIS IS NOT
+                                 # DECORATION: the well is open to the sky in a snowy biome, so water
+                                 # under block light 10 turns to ice. A lantern is light 15, so 4 keeps
+                                 # the whole pond liquid. 0 disables the guard.
     "lichen": 0.20,              # share of eligible rock faces that get glow lichen
     "carpet": 0.30, "azalea": 0.07, "grass": 0.11, "dripleaf": 0.03,
     "dripstone": 0.10,           # share of the covered ceiling that grows a dripstone tip
@@ -125,15 +128,28 @@ def _pool(ctx, w, dig, pool, wy, p, seed):
                 continue
             kind = "mossy_cobblestone" if hash01(nx, nz, 37, seed) < 0.55 else "moss_block"
             _put(w, dig, ctx, nx, wy, nz, kind)
-    for (X, Z) in pool:                               # the light lives under the water
-        if hash01(X, Z, 41, seed) < p["sink_lanterns"] and _held(w, X, wy, Z):
-            w.put(X, wy, Z, "lantern", hanging="false", waterlogged="true")
+    _unfreeze(w, pool, wy, int(p["freeze_guard"]))
 
 
-def _held(w, X, y, Z) -> bool:
-    """Only sink a lantern where the design itself walls all four sides - never against raw air."""
-    return all(w.name(X + dx, y, Z + dz) in ("water", "moss_block", "mossy_cobblestone")
-               for _, dx, dz in DIRS)
+def _unfreeze(w: World, pool, wy: int, guard: int):
+    """Sink lanterns until every water cell is within `guard` of one.
+
+    Hash-scattering them is not good enough - a cell that happens to land in a gap freezes, and then
+    the ice buries the lanterns too. Greedy cover: take the least-covered cell, light it, repeat."""
+    if guard <= 0 or not pool:
+        return
+    need = set(pool)
+    lit = []
+    while need:
+        best = max(need, key=lambda c: (sum(1 for d in need if _within(c, d, guard)), -c[0], -c[1]))
+        w.put(best[0], wy, best[1], "lantern", hanging="false", waterlogged="true")
+        lit.append(best)
+        need = {d for d in need if not _within(best, d, guard)}
+    return lit
+
+
+def _within(a, b, r: int) -> bool:
+    return abs(a[0] - b[0]) + abs(a[1] - b[1]) <= r
 
 
 def _rill(ctx, w, dig, pool, openc, floor, wy, p) -> list:

@@ -18,7 +18,9 @@ params:
   pool_inset: 1             # the 3x3 around every water cell must have floor, so the rim never floats
   rill: false               # at this pool size the channel had nowhere to run - the pond reaches
                             # the edge of what the skin can safely hold
-  sink_lanterns: 0.18       # hidden lighting: lanterns under the water
+  freeze_guard: 4           # the well is open to the sky in a SNOWY biome: water below block
+                            # light 10 turns to ice. This covers every water cell with a
+                            # submerged lantern. The first build froze - 29 ice blocks.
   lichen: 0.20              # and glow lichen on the rock; light 7 stops every spawn
   carpet: 0.30
   azalea: 0.07

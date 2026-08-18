@@ -2,7 +2,7 @@
   "name": "island_now",
   "file": "island_now.litematic",
   "format": "litematic",
-  "created": "2026-08-18T04:38:26.099343Z",
+  "created": "2026-08-18T13:12:10.958245400Z",
   "player": "Enroniti",
   "server": {
     "name": "Unknown Server",
@@ -21,15 +21,15 @@
     "z": 103
   },
   "player_pos": {
-    "x": -24201,
-    "y": 195,
-    "z": 30019
+    "x": -24189,
+    "y": 236,
+    "z": 30000
   },
   "air_margin": 2,
   "total_volume": 3554015,
-  "non_air_blocks": 47233,
-  "palette_size": 507,
+  "non_air_blocks": 51514,
+  "palette_size": 514,
   "tile_entities": 304,
-  "entities": 19,
+  "entities": 13,
   "cut_from": "island.litematic"
 }
