@@ -53,7 +53,10 @@ def _states(c: Canvas) -> dict:
         "lant_h": c.state("lantern", hanging="true", waterlogged="false"),
         "azalea": c.state("azalea"), "fazalea": c.state("flowering_azalea"),
         "daisy": c.state("oxeye_daisy"), "allium": c.state("allium"), "orchid": c.state("blue_orchid"),
-        "petals": c.state("pink_petals", facing="north", flower_amount="3", waterlogged="false"),
+        # `pink_petals` is a 1.20 block (it arrived with cherry groves) and the SERVER is 1.19.
+        # It passed every other check - real block, legal state, renders - and would simply have
+        # failed to place. A pink tulip is the nearest thing 1.19 has for a scatter of pink.
+        "petals": c.state("pink_tulip"),
         "berry": c.state("sweet_berry_bush", age="3"),
         "green": c.state("lime_wool"), "dark": c.state("green_wool"), "belly": c.state("yellow_wool"),
         "black": c.state("black_wool"), "white": c.state("white_wool"),

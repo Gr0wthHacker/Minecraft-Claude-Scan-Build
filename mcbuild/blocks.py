@@ -24,6 +24,7 @@ import math
 import pathlib
 
 DATA = pathlib.Path(__file__).resolve().parent / "data/blocks.json"
+SERVER = pathlib.Path(__file__).resolve().parent / "data/server_blocks.json"
 
 # Types that do NOT fill the whole cube. Everything else does. Stated as the exclusion list because
 # it is the shorter and far more stable half - new full blocks arrive every update, new SHAPES rarely.
@@ -83,6 +84,32 @@ def _db() -> dict:
     if not DATA.exists():
         return {}
     return json.loads(DATA.read_text(encoding="utf-8"))
+
+
+@functools.lru_cache(maxsize=1)
+def _server() -> dict:
+    """The SERVER's block list. The client runs 26.2; skyblock.net runs 1.19, and a block added after
+    1.19 exists in the client registry, renders, audits clean - and cannot be placed."""
+    if not SERVER.exists():
+        return {}
+    return json.loads(SERVER.read_text(encoding="utf-8"))
+
+
+def server_version() -> str:
+    return _server().get("version", "")
+
+
+def server_authoritative() -> bool:
+    """True only when the list came from the server version's OWN registry dump, not from captures."""
+    return bool(_server().get("authoritative"))
+
+
+def available(name: str) -> bool:
+    """Can this actually be placed on the server. Falls back to `exists` if no server list is set."""
+    srv = _server()
+    if not srv:
+        return exists(name)
+    return _short(name) in set(srv.get("blocks", ()))
 
 
 def _short(name: str) -> str:
@@ -169,12 +196,17 @@ def _dist(a, b) -> float:
 
 
 def candidates(full_only: bool = True, tier: set[str] | None = None, exclude: tuple = (),
-               allow_falling: bool = False) -> list[str]:
-    """Every block worth considering for a surface. Excludes gravity blocks unless you ask for them."""
+               allow_falling: bool = False, server_only: bool = True) -> list[str]:
+    """Every block worth considering for a surface.
+
+    `server_only` is ON by default: picking a colour out of the 26.2 registry when the server is 1.19
+    would quietly choose blocks that cannot be placed. Excludes gravity blocks unless you ask."""
     from . import palette
     out = []
     for n, rec in _db().items():
         if "rgb" not in rec or n in AIRY:
+            continue
+        if server_only and not available(n):
             continue
         if full_only and not is_full_cube(n):
             continue

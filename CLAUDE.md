@@ -15,7 +15,8 @@ Everything is anchored in **world coordinates** carried by the `.scan.json` side
 | | |
 |---|---|
 | Game | Minecraft **26.2**, Fabric Loader 0.19.3, **LiquidLauncher** (CCBlueX) |
-| Server | `skyblock.net`, `minecraft:overworld`, player `Enroniti` |
+| Server | `skyblock.net`, **Minecraft 1.19**, `minecraft:overworld`, player `Enroniti` |
+| ⚠ Version split | The client is **26.2**, the server is **1.19**. A block added after 1.19 is in the client registry, has legal states, renders in a card, passes every audit — and **cannot be placed**. `mcbuild/data/server_blocks.json` is the allowlist; `blocks.available()` is the check. |
 | Mods folder | `%APPDATA%/CCBlueX/LiquidLauncher/data/custom_mods/nextgen-26.2/` |
 | Schematics | `%APPDATA%/CCBlueX/LiquidLauncher/data/gameDir/nextgen/schematics/` |
 | Java | no system JDK — `JAVA_HOME=%APPDATA%/CCBlueX/LiquidLauncher/data/runtimes/temurin_25/jdk-25.0.3+9-jre`; Gradle provisions JDK 25 into `~/.gradle/jdks` |
@@ -154,15 +155,26 @@ design without regenerating it.
    registry. When a rule and the game disagree, the game is right: chains were being audited for
    support they do not need (`ChainBlock` never overrides `canSurvive`), while lanterns standing on
    slabs were being rejected even though `canSupportCenter` accepts them.
-12. **Gravity blocks cannot be used in anything with air under it.** `red_sand` is the best ochre in
+12. **Build for the SERVER's version, not the client's.** 26.2 client, 1.19 server. `pink_petals`
+   sailed through every check in the pipeline and is a 1.20 block. `blocks.candidates()` filters to
+   the server list by default. The allowlist is currently **provisional** — built from what the
+   captures happen to contain plus a curated seed, so it holds ~191 of 1.19's blocks and would reject
+   `allium`. Because of that the audit only *reports* unavailable blocks; it does not fail on them
+   until a real 1.19 registry dump is supplied:
+   ```bash
+   # download a 1.19 server jar, then, as with 26.2:
+   java -cp "<1.19 server jar>;<libs>" net.minecraft.data.Main --reports --output <dir>
+   python tools/server_blocks.py --reports <dir>     # flips it to authoritative; the gate goes hard
+   ```
+13. **Gravity blocks cannot be used in anything with air under it.** `red_sand` is the best ochre in
    the game and cheap — and it would have poured the giraffe into the void. `blocks.falls` keeps sand,
    gravel, concrete powder and the rest out of `candidates()` unless you ask for them.
-13. **Proportion names an animal; detail does not.** The giraffe was rebuilt three times. What fixed
+14. **Proportion names an animal; detail does not.** The giraffe was rebuilt three times. What fixed
    it was neck > body length, legs ≈ neck, and a back that drops hard from withers to hips — not more
    blocks. And a giraffe's coat is a **Voronoi diagram with pale grout**, not noise: value noise makes
    merging clouds that read as a cow, because the thing that identifies the animal is a *boundary
    between regions* and value noise has no regions.
-14. **Overlap means the world holds something DIFFERENT.** A design cell the world already matches is
+15. **Overlap means the world holds something DIFFERENT.** A design cell the world already matches is
    built, not a collision — otherwise every design reports hundreds of overlaps the moment you build it.
 
 ## The island (as of 2026-08-18)

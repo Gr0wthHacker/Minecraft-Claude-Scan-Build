@@ -76,3 +76,46 @@ def test_every_shipped_state_is_legal():
                           if "=" in kv)
             bad += [f"{os.path.basename(f)}: {p}" for p in B.validate(n, st)]
     assert not bad, bad[:10]
+
+
+def test_server_is_older_than_the_client():
+    """skyblock.net runs 1.19; the client runs 26.2. Anything newer than the server cannot be placed."""
+    assert B.server_version() == "1.19"
+    for n in ("bamboo_planks", "cherry_planks", "crafter", "trial_spawner", "vault", "copper_chest",
+              "pale_oak_planks", "tuff_bricks", "chiseled_bookshelf", "decorated_pot"):
+        assert B.exists(n), f"{n} should be in the 26.2 registry"
+        assert not B.available(n), f"{n} is post-1.19 and must not be offered"
+    for n in ("stone_bricks", "smooth_sandstone", "smooth_red_sandstone", "bone_block", "oak_planks"):
+        assert B.available(n), n
+
+
+def test_colour_pool_never_offers_a_block_the_server_lacks():
+    assert all(B.available(n) for n in B.candidates())
+
+
+def test_no_design_uses_a_confirmed_post_server_block():
+    """Only blocks CONFIRMED newer than the server. The allowlist is provisional (built from what the
+    captures happen to contain), so it cannot be used as a whitelist yet - it is missing most of 1.19
+    and would reject `allium`. Until a real 1.19 registry is supplied, gate on a blacklist instead."""
+    import glob
+    from mcbuild import scan
+    POST_1_19 = {"pink_petals", "cherry_planks", "cherry_log", "bamboo_planks", "bamboo_mosaic",
+                 "chiseled_bookshelf", "decorated_pot", "suspicious_sand", "suspicious_gravel",
+                 "sniffer_egg", "pitcher_plant", "torchflower", "calibrated_sculk_sensor",
+                 "crafter", "trial_spawner", "vault", "heavy_core", "copper_bulb", "tuff_bricks",
+                 "chiseled_copper", "copper_grate", "pale_oak_planks", "pale_oak_log", "resin_block",
+                 "creaking_heart", "leaf_litter", "wildflowers", "firefly_bush", "cactus_flower",
+                 "copper_chest", "copper_golem_statue", "shelf"}
+    bad = []
+    for f in sorted(glob.glob(os.path.join(os.path.dirname(__file__), "..", "out", "*.litematic"))):
+        if os.path.basename(f).startswith("island"):
+            continue
+        try:
+            s = scan.load(f)
+        except Exception:
+            continue
+        for full in s.model.names:
+            n = full.split(":", 1)[-1].split("[")[0]
+            if n in POST_1_19:
+                bad.append(f"{os.path.basename(f)}: {n}")
+    assert not bad, sorted(set(bad))

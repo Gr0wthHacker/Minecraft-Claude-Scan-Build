@@ -317,8 +317,24 @@ def _state_problem(name: str, props: dict) -> str | None:
     """
     if blocks.loaded():
         bad = blocks.validate(name, props)
+        # The client is 26.2 and the SERVER is 1.19. A block added after 1.19 passes every check above
+        # - it is in the registry, its state is legal, it renders - and simply cannot be placed.
+        # ...but only FAIL on it when the list is authoritative. The provisional list is built from
+        # what captures happen to contain, so it is missing most of 1.19 and would reject `allium`.
+        # A gate that cries wolf gets switched off; see `report_server_blocks` for the advisory form.
+        if (not bad and blocks.server_authoritative() and not blocks.available(name)):
+            bad = [f"{name}: not in Minecraft {blocks.server_version()} (the server's version)"]
         return "; ".join(bad) if bad else None
     return _state_problem_legacy(name, props)
+
+
+def report_server_blocks(m: Model) -> list[str]:
+    """Blocks the server may not have. Advisory while the allowlist is provisional."""
+    if not blocks.server_version():
+        return []
+    return sorted({n.split(":")[-1].split("[")[0] for n in m.names
+                   if n.split(":")[-1].split("[")[0] != "air"
+                   and not blocks.available(n)})
 
 
 def _state_problem_legacy(name: str, props: dict) -> str | None:
