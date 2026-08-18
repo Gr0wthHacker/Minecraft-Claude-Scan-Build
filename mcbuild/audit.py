@@ -308,8 +308,11 @@ def check_reach(m: Model, *, head: int = 2) -> list:
     """Cells with nowhere for a player to stand while placing them.
 
     `check_supports` says a block CAN exist; this says you can get to it. A cell is reachable when
-    some neighbour within one step is open for `head` blocks - that is where you stand. Under-island
-    work is where this bites, which is most of this island."""
+    some neighbour within one step is open for `head` blocks - that is where you stand.
+
+    CAVEAT, which is why this is opt-in: it measures the FINISHED design, not the build sequence. In
+    a solid mass every interior cell fails, and correctly so - you place those first and bury them.
+    It is meaningful for hollow, sparse or hanging work (walkways, lattices, shells), not for rock."""
     out = []
     s = m.solid()
     sy, sz, sx = s.shape

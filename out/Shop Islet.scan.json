@@ -1,0 +1,23 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 130,
+    "z": 29949
+  },
+  "size": {
+    "x": 61,
+    "y": 25,
+    "z": 77
+  },
+  "generated_by": "islet",
+  "kind": "islet",
+  "center": [
+    -24200,
+    30018
+  ],
+  "top_y": 150,
+  "shelf_cells": 163,
+  "collisions": 0,
+  "file": "Shop Islet.litematic",
+  "name": "Shop Islet"
+}

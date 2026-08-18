@@ -1,0 +1,38 @@
+# A sheared-off chunk of the island hanging under the taproot's foot, with a trading post on it.
+#
+# The taproot (configs/taproot.yaml) ends at a single cell, -24200 152 30018, and currently dangles
+# into nothing. This is what it arrives at. Build the two together or neither makes sense.
+#
+# Site checked against the capture: the 25x17x25 box at Y138-154 was 0/10625 occupied.
+name: Shop Islet
+gen: islet
+params:
+  under: out/island_now.litematic
+  center: [-24200, 30018]
+  top_y: 150                # taproot foot is Y152, so the shelf sits 2 below it
+  spike: [-24200, 30018]    # raised one course to Y151 to meet the root
+  rx: 8.0
+  rz: 7.0
+  depth: 9
+  wobble: 2.2
+  moss: 0.55
+  grass: 0.10
+  carpet: 0.18
+  vine_rate: 0.16
+  vine_len: [2, 7]
+  shop: true
+  counter_len: 5
+  labels: [stone, wood, food, moss, tools]
+  lanterns: 4
+  seed: 0
+# LOUD NOTE, per rule 1: this design does NOT use the global origin_lock. The islet hangs at Y138-153,
+# below the shared lock corner of Y150, and lowering that corner would repad and MOVE every existing
+# design. So below-island work gets its own fixed corner instead - still locked, still unmovable by
+# regeneration, just a second origin you have to place at. Anything else built down here must reuse it.
+origin_lock: [-24251, 130, 29949]
+finish:
+  cheapen: true
+  hollow: false
+  ground: false             # it hangs in the void; there is no ground under it
+  drop_floaters: false
+  verify_against: out/island_now.litematic
