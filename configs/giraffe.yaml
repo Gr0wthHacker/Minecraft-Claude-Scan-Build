@@ -21,14 +21,18 @@ params:
   # PROPORTION is what names the animal. neck > body length, legs ~= neck, and a back that falls
   # away hard from the shoulder. v3 had neck 19 on body 18 with a level back, and that is an alpaca.
   leg: 20
-  body_len: 14
+  hoof: 2                     # 3 courses on a flared ankle read as boots
+  leg_r: 2.0                  # v5 legs read spindly at 1.7
+  body_len: 16
+  body_r: 4.9                 # the barrel was too slight to carry the neck
   withers: 10                 # body depth at the shoulder
   hips: 6                     # ...and at the rump. The 4-block drop IS the giraffe profile
   neck: 21
-  neck_w0: 5
-  neck_w1: 3                  # tapers to the jaw. A constant-width neck is a pipe
+  neck_r0: 3.0
+  neck_r1: 1.95               # a giraffe's neck is THICKER than its head
   neck_lean: 0.40
-  head_len: 8
+  head_len: 10                # long and narrow: v5's head was twice the neck's width
+  head_r: 2.45
   # Palette picked by `blocks.nearest` out of all 1193 real block colours, not from memory.
   # NOTE red_sand is the closest ochre in the game and cheap - and it FALLS. It would have poured
   # the whole statue into the void. `blocks.falls` now keeps gravity blocks out of the candidates.
