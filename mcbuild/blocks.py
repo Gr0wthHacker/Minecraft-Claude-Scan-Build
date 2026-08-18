@@ -71,6 +71,10 @@ NOT_FULL = {
 }
 # Not full cubes, but you can stand on them and plants root in them.
 STANDABLE_PARTIAL = {"farmland", "dirt_path", "snow_layer", "slab", "stair"}
+# Gravity. These fall the instant nothing holds them, so they cannot be used anywhere a design has
+# air underneath - which for a statue in the void is nearly everywhere. `red_sand` is the trap: it is
+# the best orange in the game and cheap, and it would have poured the giraffe into the void.
+FALLING = {"sand", "colored_falling", "concrete_powder", "brushable", "anvil", "dragon_egg"}
 AIRY = {"air", "cave_air", "void_air"}
 
 
@@ -117,6 +121,11 @@ def is_full_cube(name: str) -> bool:
     return kind(n) not in NOT_FULL
 
 
+def falls(name: str) -> bool:
+    """Gravity-affected: unsupported, it drops. Never build a floating shape out of one."""
+    return kind(name) in FALLING
+
+
 def supports_top(name: str) -> bool:
     """Can something stand, or be placed, on top of this."""
     n = _short(name)
@@ -159,14 +168,17 @@ def _dist(a, b) -> float:
     return math.sqrt((2 + rm / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rm) / 256) * db * db)
 
 
-def candidates(full_only: bool = True, tier: set[str] | None = None, exclude: tuple = ()) -> list[str]:
-    """Every block worth considering for a surface."""
+def candidates(full_only: bool = True, tier: set[str] | None = None, exclude: tuple = (),
+               allow_falling: bool = False) -> list[str]:
+    """Every block worth considering for a surface. Excludes gravity blocks unless you ask for them."""
     from . import palette
     out = []
     for n, rec in _db().items():
         if "rgb" not in rec or n in AIRY:
             continue
         if full_only and not is_full_cube(n):
+            continue
+        if not allow_falling and falls(n):
             continue
         if any(s in n for s in exclude):
             continue

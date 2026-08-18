@@ -151,19 +151,32 @@ def _derive(short: str) -> tuple[int, int, int] | None:
 
 
 def color_of(name: str) -> tuple[int, int, int]:
-    short = name.split(":")[-1]
+    """Hand-tuned entry, then the block's REAL texture colour, then the cut-from rule.
+
+    `COLORS` stays first because a few entries here are deliberate render choices (water reads better
+    a little brighter than its texture average). Everything it does not know now falls through to
+    `blocks.color`, which has all 1193 blocks straight from the client jar - so a design using a
+    block outside this table renders in its true colour instead of magenta. Three renders in one
+    session came back magenta before this was wired up.
+    """
+    short = name.split(":")[-1].split("[")[0]
     got = COLORS.get(short)
     if got is not None:
         return got
+    from . import blocks
+    real = blocks.color(short)
+    if real:
+        return real
     return _derive(short) or FALLBACK_COLOR
 
 
 def missing_colors(names) -> list[str]:
     """Names that will render magenta - neither listed nor derivable from the block they are cut from."""
+    from . import blocks
     out = set()
     for n in names:
-        short = n.split(":")[-1]
-        if short not in COLORS and _derive(short) is None:
+        short = n.split(":")[-1].split("[")[0]
+        if short not in COLORS and not blocks.color(short) and _derive(short) is None:
             out.add(short)
     return sorted(out)
 

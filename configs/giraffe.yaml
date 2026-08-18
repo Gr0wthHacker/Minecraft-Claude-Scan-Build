@@ -18,19 +18,27 @@ params:
   under: out/island_void.litematic
   feet: [-24218, 100, 29982]      # far NW side of the void isle
   look_at: [-24206, 150, 30010]   # the taproot platform's near rim
-  leg: 22
-  hoof: 4
-  body: [18, 10, 11]        # length, depth, width - a deep slab with a shoulder hump
-  neck: 19
-  neck_w: 5                 # thick. A 2-wide neck is a pipe, not a giraffe
-  head: [9, 6, 7]           # big enough to carry a readable eye, ear and muzzle
-  coat: bone_block          # cheap tier, and the exact cream of the reference
-  patch: packed_mud         # dirt + wheat. terracotta is the reference colour but costs 10 grass
-                            # EACH - ~14,400 grass for the coat, for a hue you cannot tell apart.
-  hoof_block: dark_oak_log
+  # PROPORTION is what names the animal. neck > body length, legs ~= neck, and a back that falls
+  # away hard from the shoulder. v3 had neck 19 on body 18 with a level back, and that is an alpaca.
+  leg: 20
+  body_len: 14
+  withers: 10                 # body depth at the shoulder
+  hips: 6                     # ...and at the rump. The 4-block drop IS the giraffe profile
+  neck: 21
+  neck_w0: 5
+  neck_w1: 3                  # tapers to the jaw. A constant-width neck is a pipe
+  neck_lean: 0.40
+  head_len: 8
+  # Palette picked by `blocks.nearest` out of all 1193 real block colours, not from memory.
+  # NOTE red_sand is the closest ochre in the game and cheap - and it FALLS. It would have poured
+  # the whole statue into the void. `blocks.falls` now keeps gravity blocks out of the candidates.
+  coat_block: smooth_sandstone
+  patch: smooth_red_sandstone
+  patch_alt: cut_red_sandstone
+  hoof_block: dark_oak_wood
   dark: black_wool
-  patch_scale: 3            # ~6-block patches, matching the reference. 5 gave one blob per limb
-  patch_rate: 0.53          # ~42% clay, matching the reference. Cream must stay dominant
+  patch_scale: 5.5
+  grout: 0.85                 # the pale channel between patches - a giraffe's signature
   seed: 0
 origin_lock: false          # LOUD: it stands at Y100-150, its own corner; nothing else is near it
 finish:

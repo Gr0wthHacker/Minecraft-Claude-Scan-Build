@@ -32,6 +32,26 @@ guides: `ChunkPos` is a record (`x()`/`z()`), `Level.isClientSide()` is a method
 javap -cp ~/.gradle/caches/fabric-loom/26.2/minecraft-client.jar net.minecraft.world.level.Level | grep -i something
 ```
 
+## The block knowledge base
+
+Nothing about blocks is remembered — it is extracted from the game and checked in:
+
+```bash
+# 1. Mojang's own data generator: registry + every legal block state
+java -cp "<client.jar>;<every jar under ~/.gradle/caches/modules-2>" net.minecraft.data.Main --reports --output <dir>
+# 2. that, plus the client jar's textures, into mcbuild/data/blocks.json
+python tools/extract_blocks.py --reports <dir>
+```
+
+Java `@argfile` needs **forward slashes** — it treats `\` as an escape. The JDK is `~/.gradle/jdks`
+(the launcher's runtime is a JRE: no `javap`, no `jar`).
+
+`audit` now validates every emitted state against this, so an illegal block state fails a test here
+instead of Litematica silently refusing it in game an hour later. Wiring it up immediately found five
+generators emitting `chain` (renamed `iron_chain` in 26.x), barrels carrying chest properties
+(`type`/`waterlogged` instead of `facing`/`open`), and `lily_pad[rotation=0]` — lily pads have no
+properties at all in 26.2.
+
 ## Build & test
 
 ```bash
@@ -71,12 +91,17 @@ design without regenerating it.
 - `nbt.py` / `schem.py` — Litematica v7 NBT, straddling bit-packed block states, `Model(ids[y,z,x], palette)`.
 - `scan.py` — `.scan.json` sidecars: `load`, `cut` (world-coord sub-box), `merge`, `save_pair`.
 - `coop.py` — `progress`, `remaining`, `diff`, `merge_scans`, `shop`, `card`, `place`, `sync`, `storage`.
+- `blocks.py` — **what the game says about blocks**, from `data/blocks.json`: 1196 blocks, all 32366
+  legal states, and the real colour of 1193 of them. `validate` (is this state legal), `is_full_cube` /
+  `supports_top` / `falls`, `nearest` / `ramp` (pick blocks by colour out of the whole registry).
+  Regenerate with `tools/extract_blocks.py` when the game updates — see below.
 - `audit.py` — placement validity, geometry, cost tiers. Rules **learn from real captures**.
 - `learn.py` — mines (block, relation, support) triples into `mcbuild/data/observed.json`.
 - `gen/` — one module per generator, registered in `gen/__init__.py`; `belly.py` (island underside),
   `vertical.py` (taproot, shard + the `World`/`Ctx` helpers), `dressing.py` (hem, paths, lightposts,
   entrance, ridelights, apiary, birdlanterns, chimney, footing, altar), `interior.py` (the deck vault),
-  `courtyard.py` (the sky-well court), `redstone.py` (item sorter), plus the older statue generators.
+  `courtyard.py` (the sky-well court), `redstone.py` (item sorter), `coat.py` (patterned hide:
+  Voronoi patches with grout, and soft blotches), plus the older statue generators.
 - `work.py` — `<design>.work.json`: the design flattened to world-coordinate cells so the mod can diff
   it against the live world without an NBT reader. Written on every `gen`, shipped with the design.
 - `history.py` — `out/history.json`, one row per sync, so `progress` has a slope: blocks per sync and
@@ -122,7 +147,22 @@ design without regenerating it.
    workbench — you need room to stand, open the thing and walk past it. Derive that clearance from
    the capture (`container_clear`), never from a hand-written box: the storage moves and the box
    goes stale the same day.
-11. **Overlap means the world holds something DIFFERENT.** A design cell the world already matches is
+11. **Ask the game, not your memory.** `blocks.py` beats a hand-written table every time. The
+   `palette.COLORS` list had ~150 typed-in RGBs and everything outside it rendered **magenta** —
+   three renders in one session were silently wrong. `_is_solid_name` had a suffix heuristic that
+   called a slab solid, which hid a vine hung off a slab roof in `farm`. Both now defer to the
+   registry. When a rule and the game disagree, the game is right: chains were being audited for
+   support they do not need (`ChainBlock` never overrides `canSurvive`), while lanterns standing on
+   slabs were being rejected even though `canSupportCenter` accepts them.
+12. **Gravity blocks cannot be used in anything with air under it.** `red_sand` is the best ochre in
+   the game and cheap — and it would have poured the giraffe into the void. `blocks.falls` keeps sand,
+   gravel, concrete powder and the rest out of `candidates()` unless you ask for them.
+13. **Proportion names an animal; detail does not.** The giraffe was rebuilt three times. What fixed
+   it was neck > body length, legs ≈ neck, and a back that drops hard from withers to hips — not more
+   blocks. And a giraffe's coat is a **Voronoi diagram with pale grout**, not noise: value noise makes
+   merging clouds that read as a cow, because the thing that identifies the animal is a *boundary
+   between regions* and value noise has no regions.
+14. **Overlap means the world holds something DIFFERENT.** A design cell the world already matches is
    built, not a collision — otherwise every design reports hundreds of overlaps the moment you build it.
 
 ## The island (as of 2026-08-18)
