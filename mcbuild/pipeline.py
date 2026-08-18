@@ -227,12 +227,18 @@ def _verify_in_context(m, res, capture, origin, verbose: bool, ignore: set | Non
     for x1, y1, z1, x2, y2, z2 in ignore_boxes:          # decor the player re-hangs afterwards
         s.model.ids[max(0, min(y1, y2) - oy):max(y1, y2) - oy + 1, max(0, min(z1, z2) - oz):max(z1, z2) - oz + 1,
                     max(0, min(x1, x2) - ox):max(x1, x2) - ox + 1] = 0
+    # Audit the context ALONE first. Every finite cut truncates vines, chains and lanterns at its
+    # edges, so a capture has problems of its own - island_deep has 42, island_void 72 - and reporting
+    # them against the design sends you hunting faults you did not cause.
+    baseline = {(pr.kind, pr.x, pr.y, pr.z) for pr in audit_mod.audit(s.model, ground=False).problems}
     merged, overlap = scan_mod.merge(s, m, origin)
     overlap -= _already_built_cells(m, origin, s)   # a cell the world already holds correctly is built, not a collision
     ctx = audit_mod.audit(merged, ground=False)
+    ctx.problems = [pr for pr in ctx.problems if (pr.kind, pr.x, pr.y, pr.z) not in baseline]
     if verbose:
         print(f"in context of {', '.join(os.path.basename(f) for f in files)}: overlap {overlap} cells, "
-              f"problems {len(ctx.problems)}, cavity cells {ctx.cavity_cells}, leaks {ctx.leaks}")
+              f"NEW problems {len(ctx.problems)} (capture already had {len(baseline)}), "
+              f"cavity cells {ctx.cavity_cells}, leaks {ctx.leaks}")
         for pr in ctx.problems[:15]:
             print("  ", pr)
     n_cl, n_cells = _floating(m, origin, s)

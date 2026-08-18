@@ -1,0 +1,32 @@
+{
+  "origin": {
+    "x": -24214,
+    "y": 96,
+    "z": 30022
+  },
+  "size": {
+    "x": 32,
+    "y": 77,
+    "z": 27
+  },
+  "generated_by": "lake",
+  "kind": "lake",
+  "center": [
+    -24198,
+    30035
+  ],
+  "water_y": 100,
+  "depth": 3,
+  "water_cells": 794,
+  "shore_cells": 109,
+  "rim_cells": 97,
+  "lichen": 16,
+  "lanterns": 21,
+  "spout": [
+    -24198,
+    172,
+    30035
+  ],
+  "file": "Void Lake.litematic",
+  "name": "Void Lake"
+}

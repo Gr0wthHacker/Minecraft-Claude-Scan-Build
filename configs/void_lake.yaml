@@ -1,0 +1,43 @@
+# The lake far below the island, and the fall that feeds it.
+#
+# Sited on the one spout that works: the belly bottoms out at Y173 above x-24198 z30035, and from
+# there it is a clear 68-block drop to Y105 - verified against the capture, and clear of the shop
+# islet's footprint so it survives the raft being regenerated. The lake is centred on where that
+# fall lands, which is the composition you want anyway: water arriving in the middle of the pool.
+#
+# Water is filled as SOURCE blocks so the surface is still. The fall itself is only its source block
+# and a lip - Minecraft draws the other 68 blocks, and Litematica will not nag about cells physics
+# owns.
+#
+# Nothing down here sees sky: no freezing (unlike the sky-well court) but also no light at all, so
+# the lantern cover is not decoration.
+name: Void Lake
+gen: lake
+params:
+  under: out/island_void.litematic
+  center: [-24198, 30035]
+  water_y: 100              # "about level 100"
+  depth: 3                  # floor sits 3 below the surface at the middle, shallower at the edges
+  rx: 14.0
+  rz: 12.0
+  wobble: 2.0
+  shore_width: 1.6
+  lily: 0.04
+  lichen: 0.14
+  lantern_reach: 7
+  spout: [-24198, 172, 30035]
+  spout_lip: true
+  seed: 0
+origin_lock: false          # LOUD: this sits at Y96-173, far below every other lock corner. Its own
+                            # origin comes from its content box; nothing else is anywhere near it.
+finish:
+  cheapen: true
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine]     # the basin cuts through the vine curtain that runs from the island
+                            # to bedrock. Those strands come down when you dig the bowl - you
+                            # cannot build a lake through them - and everything hanging below
+                            # the cut goes with them.
+  # both cuts: the void file stops at Y160, so on its own the spout at Y172 verifies as OOB
+  verify_against: [out/island_void.litematic, out/island_deep.litematic]

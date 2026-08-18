@@ -30,6 +30,7 @@ progress:                           # designs reported (% built, left, shop list
   - out/Sky Well Court.litematic # same - pinned to out/court_before.litematic
   - out/Store Hall.litematic
   - out/Atelier Court.litematic  # below-island origin -24251 130 29949
+  - out/Void Lake.litematic      # Y96-173, its own origin -24214 96 30022 (origin_lock: false)
   - out/Shop Islet.litematic     # below-island: its own locked origin -24251 130 29949
   - out/Root Stair.litematic     # same origin as the islet
 learn: true
