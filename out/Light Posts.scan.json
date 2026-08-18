@@ -11,7 +11,8 @@
   },
   "generated_by": "lightposts",
   "kind": "lightposts",
-  "posts": 32,
+  "posts": 16,
+  "existing_posts": 24,
   "remove_torches": [
     [
       -24203,
@@ -102,11 +103,6 @@
       -24197,
       203,
       30014
-    ],
-    [
-      -24232,
-      203,
-      30021
     ],
     [
       -24161,

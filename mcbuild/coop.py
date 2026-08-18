@@ -23,7 +23,15 @@ from .pipeline import DEFAULT_SCHEM_DIR
 from .profile import load as load_profile
 
 AIR = {"air", "cave_air", "void_air"}
+# ground cover a design is allowed to replace: counts as "still to build (clear first)", never as a deviation
+REPLACEABLE = {"vine", "short_grass", "tall_grass", "fern", "large_fern", "moss_carpet", "snow", "dead_bush",
+               "pink_tulip", "white_tulip", "red_tulip", "orange_tulip", "poppy", "dandelion", "azalea",
+               "flowering_azalea", "lily_of_the_valley", "cornflower", "oxeye_daisy", "azure_bluet", "allium",
+               "sweet_berry_bush", "pink_petals", "glow_lichen", "water"}
 ROCK_FAMILY = {"cobblestone", "stone", "mossy_cobblestone", "stone_bricks", "mossy_stone_bricks", "cracked_stone_bricks", "moss_block"}
+SLAB_FAMILY = {"stone_brick_slab", "mossy_stone_brick_slab", "cobblestone_slab", "mossy_cobblestone_slab", "smooth_stone_slab"}
+# families whose members are interchangeable: the texture mix is cosmetic, so any member counts as built
+LOOSE_FAMILIES = (ROCK_FAMILY, SLAB_FAMILY)
 
 
 def _names(m: schem.Model) -> np.ndarray:
@@ -66,6 +74,7 @@ class Progress:
     wrong_by: collections.Counter = field(default_factory=collections.Counter)
     missing_regions: collections.Counter = field(default_factory=collections.Counter)
     remaining_cells: list = field(default_factory=list)          # ((x,y,z), name)
+    clear_first: collections.Counter = field(default_factory=collections.Counter)   # world blocks in the way
 
     @property
     def pct(self) -> float:
@@ -75,6 +84,8 @@ class Progress:
         lines = [f"{self.design}: {self.built}/{self.total} built ({self.pct:.0f}%), {self.wrong} cells hold a different block, "
                  f"{self.oob} outside the scan box (unknown)",
                  "left: " + ", ".join(f"{k}:{v}" for k, v in self.missing_by.most_common(top))]
+        if self.clear_first:
+            lines.append("clear first: " + ", ".join(f"{k}:{v}" for k, v in self.clear_first.most_common(8)))
         if self.wrong_by:
             lines.append("deviations (design -> world): " + ", ".join(f"{a}->{b}:{n}" for (a, b), n in self.wrong_by.most_common(8)))
         if self.missing_regions:
@@ -85,11 +96,13 @@ class Progress:
 def _same(want: str, have: str, loose_rock: bool) -> bool:
     if want == have:
         return True
-    return loose_rock and want in ROCK_FAMILY and have in ROCK_FAMILY
+    return loose_rock and any(want in fam and have in fam for fam in LOOSE_FAMILIES)
 
 
-def progress(design: str, world: str, *, loose_rock: bool = True, ignore_world: tuple = ("vine",)) -> Progress:
-    """`loose_rock`: any belly-palette rock counts as built (texture variants are cosmetic)."""
+def progress(design: str, world: str, *, loose_rock: bool = True, ignore_world: set | None = None) -> Progress:
+    """`loose_rock`: any belly-palette rock counts as built (texture variants are cosmetic).
+    `ignore_world`: world blocks a design may replace -> counted as still-to-build, not as a deviation."""
+    ignore_world = REPLACEABLE if ignore_world is None else set(ignore_world)
     d = Grid(scan.load(design)); w = Grid(scan.load(world))
     p = Progress(os.path.basename(d.s.litematic_path))
     for (x, y, z), want in d.cells():
@@ -101,6 +114,8 @@ def progress(design: str, world: str, *, loose_rock: bool = True, ignore_world: 
         if _same(want, have, loose_rock):
             p.built += 1
         elif have in AIR or have in ignore_world:
+            if have not in AIR:
+                p.clear_first[have] += 1
             p.missing_by[want] += 1
             p.missing_regions[(x // 16 * 16, z // 16 * 16)] += 1
             p.remaining_cells.append(((x, y, z), want))

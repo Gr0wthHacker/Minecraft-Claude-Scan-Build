@@ -305,7 +305,10 @@ def build_lightposts(cfg: dict, donors=None) -> Canvas:
     cells += [(int(x + ctx.ox), int(z + ctx.oz)) for z, x in np.argwhere(existing)]
     cells = sorted(set(cells), key=lambda t: (t[0] + t[1], t[0]))
     cellset = set(cells)
-    w = World(); k = 0; placed = []
+    # posts already standing in the world seed the spacing rule, so regenerating never crowds them
+    placed = [(int(x + ctx.ox), int(z + ctx.oz)) for y, z, x in np.argwhere(ctx.names[ctx.m.ids] == "oak_fence")
+              if y + ctx.oy >= ly and str(ctx.names[ctx.m.ids[y + 1, z, x]]) in ("lantern", "soul_lantern")]
+    w = World(); k = 0
     for (x, z) in cells:
         if any(abs(x - qx) + abs(z - qz) < int(p["every"]) for qx, qz in placed):
             continue
@@ -319,7 +322,7 @@ def build_lightposts(cfg: dict, donors=None) -> Canvas:
             placed.append((bx, bz)); k += 1
             break
     torches = [(int(x + ctx.ox), int(y + ctx.oy), int(z + ctx.oz)) for y, z, x in np.argwhere(np.isin(ctx.names[ctx.m.ids], ["torch", "wall_torch"])) if y + ctx.oy >= ly]
-    return w.canvas({"kind": "lightposts", "posts": k, "remove_torches": torches})
+    return w.canvas({"kind": "lightposts", "posts": k, "existing_posts": len(placed) - k, "remove_torches": torches})
 
 
 # ================================================================== entrance frame

@@ -2,8 +2,14 @@
 scan: island
 cut: [-24251, 150, 29949, -24149, 270, 30051]
 world_out: out/island_now.litematic
-regen:                              # designs regenerated as remaining-work against the new scan
+regen:                              # regenerated against the new scan (they key off ground state, so they self-heal)
   - configs/belly.yaml
+  - configs/hem.yaml
+  - configs/footings.yaml
+  - configs/paths.yaml
+  - configs/lightposts.yaml
+  - configs/apiary.yaml
+  - configs/entrance.yaml
 progress:                           # designs reported (% built, left, shop list)
   - out/Island Belly Full.litematic
   - out/Taproot.litematic
