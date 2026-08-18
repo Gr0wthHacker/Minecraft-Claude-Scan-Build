@@ -44,28 +44,50 @@ final class ContainerWatcher {
 		ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
 			if (!enabled || !(screen instanceof AbstractContainerScreen<?> cs)) return;
 			if (lastUsed == null || System.currentTimeMillis() - lastUsedAt > 4000) return;   // not opened from a block
-			try {
-				capture(mc, cs);
-			} catch (Exception e) {
-				ChunkScanClient.LOG.warn("container capture failed", e);
-			}
+			// The server sends the contents AFTER the screen is built, so reading the slots here always
+			// yields an empty container. Snapshot every tick instead and write the last one out on close.
+			final BlockPos pos = lastUsed;
+			final String block = lastBlock;
+			final Map<String, Integer> latest = new LinkedHashMap<>();
+			final int[] slots = {0};
+			ScreenEvents.afterTick(screen).register(s -> {
+				Map<String, Integer> items = new LinkedHashMap<>();
+				int n = read(mc, cs, items);
+				if (n > 0) {
+					slots[0] = n;
+					latest.clear();
+					latest.putAll(items);
+				}
+			});
+			ScreenEvents.remove(screen).register(s -> {
+				if (slots[0] == 0) return;                       // crafting table / anvil / other non-storage menu
+				try {
+					write(mc, cs, pos, block, latest);
+				} catch (Exception e) {
+					ChunkScanClient.LOG.warn("container capture failed", e);
+				}
+			});
 		});
 	}
 
-	private static void capture(Minecraft mc, AbstractContainerScreen<?> cs) throws Exception {
-		if (mc.player == null || mc.level == null) return;
-		Map<String, Integer> items = new LinkedHashMap<>();
+	/** Container slots only (never the player's own inventory); returns how many there were. */
+	private static int read(Minecraft mc, AbstractContainerScreen<?> cs, Map<String, Integer> items) {
+		if (mc.player == null) return 0;
 		Inventory inv = mc.player.getInventory();
 		int slots = 0;
 		for (Slot s : cs.getMenu().slots) {
-			if (s.container == inv) continue;                    // skip the player's own inventory
+			if (s.container == inv) continue;
 			slots++;
 			ItemStack st = s.getItem();
 			if (st.isEmpty()) continue;
 			items.merge(BuiltInRegistries.ITEM.getKey(st.getItem()).toString(), st.getCount(), Integer::sum);
 		}
-		if (slots == 0) return;                                  // crafting table / anvil / other non-storage menu
+		return slots;
+	}
 
+	private static void write(Minecraft mc, AbstractContainerScreen<?> cs, BlockPos lastUsed, String lastBlock,
+							  Map<String, Integer> items) throws Exception {
+		if (mc.player == null || mc.level == null) return;
 		Path dir = ScanRunner.schematicsDir(mc);
 		Map<String, Storage.Container> all = Storage.load(dir);
 		Storage.Container c = new Storage.Container();
