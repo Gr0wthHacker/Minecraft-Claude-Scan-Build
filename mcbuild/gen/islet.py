@@ -10,6 +10,7 @@ rock to meet it, otherwise the root ends in mid-air two blocks above the ground.
 from __future__ import annotations
 
 from .canvas import Canvas, hash01
+from .ground import AIRY, holds, is_soil
 from .vertical import Ctx, World, rock_name
 
 ISLET = {
@@ -44,14 +45,15 @@ def build_islet(cfg: dict, donors=None) -> Canvas:
     w = World()
 
     shelf = _raft(w, cx, cz, ty, p, seed)
-    _dress(w, shelf, ty, p, seed)
+    _dress(w, shelf, ty, p, seed, ctx)
     if p["shop"]:
         ox, oz = (int(v) for v in p["shop_offset"])
         _shop(w, shelf, cx + ox, cz + oz, ty, p, seed)
     if p["spike"]:                                     # after the shop, so nothing overwrites the boss
         sx, sz = (int(v) for v in p["spike"])
         w.put(sx, ty + 1, sz, "mossy_cobblestone")     # one course only: the root's tip lantern owns ty+2
-    _vines(w, shelf, ty, p, seed)
+    _vines(w, shelf, ty, p, seed, ctx)
+    _prune_vines(w, ctx)
 
     hits = _collisions(ctx, w)
     return w.canvas({"kind": "islet", "center": [cx, cz], "top_y": ty, "shelf_cells": len(shelf),
@@ -84,7 +86,7 @@ def _raft(w: World, cx: int, cz: int, ty: int, p: dict, seed: int) -> list:
     return shelf
 
 
-def _dress(w: World, shelf, ty: int, p: dict, seed: int):
+def _dress(w: World, shelf, ty: int, p: dict, seed: int, ctx=None):
     """Top course: mostly moss, with grass and carpet so the shelf is not a flat slab of one block."""
     for (x, z) in shelf:
         h = hash01(x, z, 23, seed)
@@ -95,7 +97,12 @@ def _dress(w: World, shelf, ty: int, p: dict, seed: int):
                 w.put(x, ty, z, name if name != "moss_block" or h < p["moss"] else "mossy_cobblestone")
                 break
     for (x, z) in shelf:
-        if w.name(x, ty, z) != "moss_block" or w.has(x, ty + 1, z):
+        # plant against what will REALLY be underfoot: where the world already holds something the
+        # design does not, that block is what the grass has to root in.
+        under = w.name(x, ty, z)
+        if ctx is not None and ctx.name_at(x, ty, z) not in AIRY:
+            under = ctx.name_at(x, ty, z)
+        if not is_soil(under) or w.has(x, ty + 1, z):
             continue
         h = hash01(x, z, 29, seed)
         if h < p["grass"]:
@@ -104,7 +111,7 @@ def _dress(w: World, shelf, ty: int, p: dict, seed: int):
             w.put(x, ty + 1, z, "moss_carpet")
 
 
-def _vines(w: World, shelf, ty: int, p: dict, seed: int):
+def _vines(w: World, shelf, ty: int, p: dict, seed: int, ctx=None):
     """Strands off the torn rim, so the raft reads as hanging rather than floating."""
     lo, hi = p["vine_len"]
     edge = set(shelf)
@@ -117,16 +124,57 @@ def _vines(w: World, shelf, ty: int, p: dict, seed: int):
         for dx, dz, facing in ((1, 0, "west"), (-1, 0, "east"), (0, 1, "north"), (0, -1, "south")):
             if (x + dx, z + dz) in on or hash01(x, z, 31, seed) >= p["vine_rate"]:
                 continue
+            anchor = w.name(x, ty, z)
+            if ctx is not None and ctx.name_at(x, ty, z) not in AIRY:
+                anchor = ctx.name_at(x, ty, z)
+            if not holds(anchor):
+                continue                                # a slab or a wall will not hold a strand
             base = _lowest(w, x, ty, z)
             L = lo + int(hash01(x, z, 37, seed) * (hi - lo + 1))
             for k in range(L):
                 y = base - k
                 if w.has(x + dx, y, z + dz):
                     break
+                # the strand may only continue while something REAL is beside it or a vine is above
+                beside = w.name(x, y, z) or (ctx.name_at(x, y, z) if ctx is not None else "air")
+                above = w.name(x + dx, y + 1, z + dz)
+                if not holds(beside) and above != "vine":
+                    break
                 props = {"east": "false", "north": "false", "south": "false", "west": "false", "up": "false"}
                 props[facing] = "true"
                 w.put(x + dx, y, z + dz, "vine", **props)
             break
+
+
+def _prune_vines(w: World, ctx=None):
+    """Drop any vine that nothing holds.
+
+    A strand is legal if the face it names is a full block, or a vine hangs directly above it. Neither
+    can be settled while placing - the block above may be something the WORLD has and this design does
+    not know about - so sweep afterwards, top down, until nothing more falls."""
+    face = {"north": (0, -1), "south": (0, 1), "east": (1, 0), "west": (-1, 0)}
+    changed = True
+    while changed:
+        changed = False
+        for (x, y, z), (name, props) in sorted(w.cells.items(), key=lambda kv: -kv[0][1]):
+            if name != "vine":
+                continue
+            held = False
+            for d, (dx, dz) in face.items():
+                if props.get(d) != "true":
+                    continue
+                nb = w.name(x + dx, y, z + dz)
+                if nb is None and ctx is not None:
+                    nb = ctx.name_at(x + dx, y, z + dz)
+                if nb and holds(nb):
+                    held = True
+            # a vine above only saves it if the WORLD leaves room for that vine: where the world
+            # already holds a block there, the capture wins the merge and the strand is orphaned.
+            above_ok = w.name(x, y + 1, z) == "vine" and (
+                ctx is None or ctx.name_at(x, y + 1, z) in AIRY)
+            if not held and not above_ok:
+                del w.cells[(x, y, z)]
+                changed = True
 
 
 def _lowest(w: World, x: int, ty: int, z: int) -> int:

@@ -13,6 +13,7 @@ from __future__ import annotations
 import math
 
 from .canvas import Canvas, hash01
+from .ground import prune_plants
 from .vertical import Ctx, World, rock_name
 
 VOIDISLE = {
@@ -63,6 +64,7 @@ def build_voidisle(cfg: dict, donors=None) -> Canvas:
     notch = _outflow(w, surf, lake, water_y, cx, cz, p) if p["outflow"] else None
     vines = _vines(w, surf, p, seed)
     lit = _lanterns(w, surf, lake, water_y, p)
+    prune_plants(w, ctx)
 
     return w.canvas({"kind": "voidisle", "center": [cx, cz], "top_y": ty,
                      "surface_cells": len(surf), "water_cells": wet, "water_y": water_y,
