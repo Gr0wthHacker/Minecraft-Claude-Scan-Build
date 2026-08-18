@@ -73,19 +73,24 @@ def roughness(cells, *, spike_below: int = 11, notch_above: int = 18) -> dict:
             "jerk_rel": round(100.0 * jerk / max(1.0, mean_area), 2)}
 
 
-def relax(cells, *, rounds: int = 2, fill: int = 15, keep: int = 8, protect=()) -> set:
-    """Cellular smoothing. `protect` is never removed and never used to justify removal elsewhere.
+def relax(cells, *, rounds: int = 2, fill: int = 15, keep: int = 8, protect=(), forbid=()) -> set:
+    """Cellular smoothing. `protect` is never removed; `forbid` is never filled.
+
+    `forbid` exists because filling is blind to anatomy: it sees two leg surfaces facing each other
+    across a narrow gap as a dent worth filling, and welds the legs into a slab. On the first run the
+    giraffe's four legs merged into one or two parts for the whole lower half - the audit measured a
+    "leg" 11 blocks wide against a target of 3. Pass the air between the legs here and the gap stays.
 
     Order matters: fill first, then shave. Shaving first can disconnect a thin waist before the fill
     pass has had a chance to thicken it.
     """
-    keepset = set(protect)
-    out = set(cells)
+    keepset, banned = set(protect), set(forbid)
+    out = set(cells) - banned
     for _ in range(max(0, rounds)):
         a, origin = _grid(out | keepset)
         n26 = morph.neighbor_count(a, conn=26)
         grown = a | (~a & (n26 >= fill))
         n2 = morph.neighbor_count(grown, conn=26)
         kept = grown & (n2 >= keep)
-        out = _unpack(kept, origin) | keepset
+        out = (_unpack(kept, origin) | keepset) - banned
     return out

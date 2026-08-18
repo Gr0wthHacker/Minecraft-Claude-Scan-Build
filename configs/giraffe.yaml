@@ -20,18 +20,21 @@ params:
   look_at: [-24206, 150, 30010]   # the taproot platform's near rim
   # PROPORTION is what names the animal. neck > body length, legs ~= neck, and a back that falls
   # away hard from the shoulder. v3 had neck 19 on body 18 with a level back, and that is an alpaca.
-  leg: 20
+  leg: 17                     # audit: shifted length from leg to neck. At leg 20 the neck measured
+                              # 15 courses against an anatomical 23 - a giraffe carries its height in
+                              # the NECK, and the legs were at the top of tolerance
   hoof: 2                     # 3 courses on a flared ankle read as boots
-  leg_r: 2.2
-  body_len: 16
-  body_r: 6.1
+  leg_r: 1.9                  # audit: the legs had fused into an 11-wide slab
+  body_len: 22                # audit: 19 measured -20% against a real giraffe's barrel
+  body_r: 4.9                 # audit: 13 wide against a target of 9.5. A giraffe is deep and
+                              # SLAB-SIDED, not a barrel - and every smoothness sweep wants to fatten it
   withers: 10                 # body depth at the shoulder
   hips: 6                     # ...and at the rump. The 4-block drop IS the giraffe profile
-  neck: 21
+  neck: 26
   neck_r0: 3.4
   neck_r1: 1.95               # a giraffe's neck is THICKER than its head
   neck_lean: 0.40
-  head_len: 10                # long and narrow: v5's head was twice the neck's width
+  head_len: 8                 # audit: 10 was +46% on a real giraffe's head
   head_r: 2.45
   # Palette picked by `blocks.nearest` out of all 1193 real block colours, not from memory.
   # NOTE red_sand is the closest ochre in the game and cheap - and it FALLS. It would have poured

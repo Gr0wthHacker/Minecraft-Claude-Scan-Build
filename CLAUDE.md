@@ -53,6 +53,29 @@ generators emitting `chain` (renamed `iron_chain` in 26.x), barrels carrying che
 (`type`/`waterlogged` instead of `facing`/`open`), and `lily_pad[rotation=0]` — lily pads have no
 properties at all in 26.2.
 
+## Auditing a shape
+
+Three tools, because "it looks lumpy / it feels off" is not actionable and the eye passes bad shapes:
+
+```bash
+python tools/views.py "<design>" --zoom 10 --views side,face,top   # shaded ortho views, any zoom
+python tools/proportions.py "<design>"      # measured against the real animal, as fractions of height
+python tools/smoothness.py <config> --sweep # rank parameter variants; connectivity is a hard gate
+```
+
+`views.py` distinguishes **face** (far-z end) from **rear** (z=0). Getting them the wrong way round
+means auditing an animal's backside, which happened.
+
+**The two metrics pull against each other and you must referee.** Thickening any shape makes it
+smoother — fewer spikes per unit surface — so a smoothness sweep left alone will inflate an animal one
+run at a time. It gave the giraffe tree-trunk legs that merged into the body. `proportions.py` is the
+counterweight; when they disagree, anatomy wins.
+
+Watch for metrics that are secretly measuring size: raw spike/jerk counts scale with the model, so
+ranking on them just picks the smallest variant. Normalise spikes by **surface** cells (not volume —
+surface-to-volume falls as a shape fattens, which reintroduces the same bias) and jerk by mean
+cross-section.
+
 ## Build & test
 
 ```bash
@@ -169,7 +192,11 @@ design without regenerating it.
 13. **Gravity blocks cannot be used in anything with air under it.** `red_sand` is the best ochre in
    the game and cheap — and it would have poured the giraffe into the void. `blocks.falls` keeps sand,
    gravel, concrete powder and the rest out of `candidates()` unless you ask for them.
-14. **Proportion names an animal; detail does not.** The giraffe was rebuilt three times. What fixed
+14. **Proportion names an animal; detail does not, and it must be MEASURED.** Every giraffe rebuild
+   until the audit existed was tuned by eye, and every one was wrong somewhere: the legs had fused
+   into an 11-block slab (the smoothing pass welds two surfaces facing each other across a narrow
+   gap — `smooth.relax(forbid=...)` bars the air between the legs), the barrel was 37% too wide, and
+   the neck was 35% short. `tools/proportions.py` measures all of it as fractions of total height. The giraffe was rebuilt three times. What fixed
    it was neck > body length, legs ≈ neck, and a back that drops hard from withers to hips — not more
    blocks. And a giraffe's coat is a **Voronoi diagram with pale grout**, not noise: value noise makes
    merging clouds that read as a cow, because the thing that identifies the animal is a *boundary

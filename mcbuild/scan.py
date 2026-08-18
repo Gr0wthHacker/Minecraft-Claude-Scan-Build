@@ -36,14 +36,24 @@ class Scan:
 
 
 def resolve(name_or_path: str, schem_dir: str = DEFAULT_SCHEM_DIR) -> tuple[str, str]:
-    """Return (litematic_path, sidecar_path) for a bare name or either file's path."""
+    """Return (litematic_path, sidecar_path) for a bare name or either file's path.
+
+    A bare NAME resolves to whichever of `out/` and the schematics folder was written most recently.
+    It used to mean the schematics folder only, so anything generated without `--ship` was read back
+    as the previous build - which silently produced a stale render three times in one session, and
+    once produced a whole set of body measurements for a giraffe that no longer existed.
+    """
     p = name_or_path
     if p.endswith(".scan.json"):
-        base = p[: -len(".scan.json")]
-    elif p.endswith(".litematic"):
-        base = p[: -len(".litematic")]
-    else:
-        base = os.path.join(schem_dir, p)
+        return p[: -len(".scan.json")] + ".litematic", p
+    if p.endswith(".litematic"):
+        return p, p[: -len(".litematic")] + ".scan.json"
+    best, best_mtime = None, -1.0
+    for d in ("out", schem_dir):
+        lit = os.path.join(d, p + ".litematic")
+        if os.path.exists(lit) and os.path.getmtime(lit) > best_mtime:
+            best, best_mtime = os.path.join(d, p), os.path.getmtime(lit)
+    base = best if best is not None else os.path.join(schem_dir, p)
     return base + ".litematic", base + ".scan.json"
 
 

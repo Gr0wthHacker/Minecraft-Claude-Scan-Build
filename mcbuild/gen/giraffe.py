@@ -92,8 +92,22 @@ def build_giraffe(cfg: dict, donors=None) -> Canvas:
     # It runs on the MASS ALONE: an ossicone or a tail has few neighbours by nature, and the same
     # rule that shaves a pimple eats them whole. They are added after.
     if int(p["relax_rounds"]):
-        hide = smooth.relax(hide, rounds=int(p["relax_rounds"]),
-                            fill=int(p["relax_fill"]), keep=int(p["relax_keep"]))
+        # The air BETWEEN the legs is barred from filling. Left to itself the fill pass reads two leg
+        # surfaces facing each other across a narrow gap as a dent and welds them: the audit found
+        # the four legs merged into one or two parts for the whole lower half, an 11-block "leg"
+        # against a target of 3. Below the belly, only cells near a leg's own axis may be filled.
+        gap = set()
+        reach = float(p["leg_r"]) + 1.4
+        for (lx, lz, gy, _r) in hoofs:
+            for y in range(min(g for (_a, _b, g, _c) in hoofs) - 1, belly + 1):
+                for dx in range(-int(reach) - 4, int(reach) + 5):
+                    for dz in range(-int(reach) - 4, int(reach) + 5):
+                        c = (lx + dx, y, lz + dz)
+                        if all((abs(c[0] - ax) ** 2 + (c[2] - az) ** 2) ** 0.5 > reach
+                               for (ax, az, _g, _rr) in hoofs):
+                            gap.add(c)
+        hide = smooth.relax(hide, rounds=int(p["relax_rounds"]), fill=int(p["relax_fill"]),
+                            keep=int(p["relax_keep"]), forbid=gap)
 
     # ---- 3. thin features and colour, onto the smoothed mass
     for (lx, lz, gy, lrad) in hoofs:
