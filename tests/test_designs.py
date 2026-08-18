@@ -68,3 +68,14 @@ if __name__ == "__main__":
         _run(c); print("ok", os.path.basename(c))
     test_roundtrip_nbt(); print("ok roundtrip")
     print("all passed")
+
+
+def test_every_module_imports():
+    """cli.py is not on any other test's import path, so a syntax error there ships silently.
+    Import every module in the package."""
+    import importlib, pkgutil
+    import mcbuild
+    for mod in pkgutil.walk_packages(mcbuild.__path__, "mcbuild."):
+        if mod.name.endswith(".__main__"):
+            continue                      # importing it runs the CLI against pytest's argv
+        importlib.import_module(mod.name)

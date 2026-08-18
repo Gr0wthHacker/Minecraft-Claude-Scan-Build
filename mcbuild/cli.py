@@ -169,9 +169,8 @@ def cmd_storage(a):
 
 
 def cmd_place(a):
-    print("note: /cscan place in game does the same thing and does not need the game closed.
-"
-          "      Litematica rewrites this config on exit, so anything written while it runs is lost.",
+    print("note: /cscan place in game does the same thing and does not need the game closed. "
+          "Litematica rewrites this config on exit, so anything written while it runs is lost.",
           file=sys.stderr)
     print(coop.place(a.designs, server=a.server, dim=a.dim, game_dir=a.game_dir, enabled=not a.disabled, dry=a.dry))
 
