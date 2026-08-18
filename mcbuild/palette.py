@@ -41,6 +41,7 @@ COLORS: dict[str, tuple[int, int, int]] = {
     "dirt": (134, 96, 67), "coarse_dirt": (119, 85, 59), "rooted_dirt": (144, 103, 76),
     "podzol": (90, 60, 30), "grass_block": (95, 159, 53), "moss_block": (89, 109, 45),
     "moss_carpet": (99, 121, 50), "mud": (60, 57, 60), "clay": (160, 166, 179),
+    "packed_mud": (142, 106, 79), "mud_bricks": (137, 102, 78),
     # wood
     "oak_log": (109, 85, 50), "oak_wood": (109, 85, 50), "stripped_oak_log": (160, 130, 80),
     "stripped_oak_wood": (160, 130, 80), "oak_planks": (162, 130, 78), "oak_slab": (162, 130, 78),
