@@ -371,6 +371,40 @@ def sync(cfg_path: str = "sync.yaml", verbose: bool = True) -> str:
     return "\n".join(lines)
 
 
+def adopt(design: str, world: str, *, loose_rock: bool = True) -> str:
+    """Rewrite a design so the blocks you actually placed become the design.
+
+    Every cell where the world holds something DIFFERENT from the design takes the world's block.
+    Cells the world has not built yet are left alone, so remaining-work reporting still works - this
+    only silences deviations you have already decided you are happy with.
+    """
+    d = scan.load(design)
+    wsc = scan.load(world)
+    g = Grid(wsc)
+    dn = _names(d.model)
+    changed = collections.Counter()
+    ys, zs, xs = np.where(d.model.ids > 0)
+    for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist()):
+        X, Y, Z = x + d.origin[0], y + d.origin[1], z + d.origin[2]
+        if not g.inside(X, Y, Z):
+            continue
+        have = g.name(X, Y, Z)
+        want = dn[d.model.ids[y, z, x]]
+        if have in AIR or have == want or _same(want, have, loose_rock):
+            continue
+        idx = d.model.ensure_state(have, **wsc.model.props_at(X - wsc.origin[0], Y - wsc.origin[1],
+                                                             Z - wsc.origin[2]))
+        d.model.ids[y, z, x] = idx
+        changed[f"{want} -> {have}"] += 1
+    if not changed:
+        return f"{os.path.basename(design)}: nothing to adopt - no deviations"
+    d.model.compact_palette()
+    schem.save(d.litematic_path, d.model, name=d.meta.get("name", "design"))
+    total = sum(changed.values())
+    top = ", ".join(f"{k} x{v}" for k, v in changed.most_common(6))
+    return f"{os.path.basename(design)}: adopted {total} cell(s) - {top}"
+
+
 # ------------------------------------------------------------------ design card
 
 def card(design: str, out: str, world: str | None = None) -> str:

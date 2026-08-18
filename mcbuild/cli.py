@@ -235,6 +235,9 @@ def main(argv=None):
     p = sub.add_parser("place", help="DEPRECATED, prefer /cscan place in game: writes Litematica placements into the per-world config; the game must be CLOSED or Litematica overwrites them on exit")
     p.add_argument("designs", nargs="+"); p.add_argument("--server"); p.add_argument("--dim")
     p.add_argument("--game-dir"); p.add_argument("--disabled", action="store_true"); p.add_argument("--dry", action="store_true"); p.set_defaults(fn=cmd_place)
+    p = sub.add_parser("adopt", help="take the blocks you actually placed as the design, so progress stops flagging them")
+    p.add_argument("designs", nargs="+"); p.add_argument("--world", default="out/island_now.litematic")
+    p.set_defaults(fn=cmd_adopt)
     p = sub.add_parser("work", help="write <design>.work.json so /cscan need|next|check can read it")
     p.add_argument("designs", nargs="+"); p.add_argument("--ship", action="store_true"); p.set_defaults(fn=cmd_work)
     p = sub.add_parser("history", help="blocks placed per sync and how many syncs are left")
@@ -277,3 +280,8 @@ def cmd_work(a):
 def cmd_history(a):
     from . import history as history_mod
     print(history_mod.report())
+
+
+def cmd_adopt(a):
+    for d in a.designs:
+        print(coop.adopt(d, a.world))
