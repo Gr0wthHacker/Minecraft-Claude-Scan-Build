@@ -1,0 +1,38 @@
+# The head of the taproot staircase - the entrance you arrive at on the deck.
+#
+# Jack cut a well through the deck floor and left it raw. Every number below is measured off the
+# 2026-08-19 19:09 capture, not assumed:
+#
+#   Y200-201  ceiling over the well (6-7 courses of headroom)
+#   Y194      the deck floor, well cut through it at X-24205..-24200 / Z30002..30010,
+#             narrowing to a 3-wide neck at X-24205..-24203 for Z30002..30004
+#   Y191-193  open undercroft; the shaft is cased at Z30010-30011
+#   Y190      the belly skin you land on, with a 3x3 hole at X-24203..-24201 / Z30008..30010
+#   Y189 down the existing workshop stairwell, then the root stair
+#
+# So the entrance carries you four courses from the deck to the undercroft floor and hands you to
+# the shaft that is already built. Everything else is what makes it read as architecture rather
+# than as a hole with steps in it.
+#
+# IT USES REAL STAIRS. The project rule said no stairs because nothing in the capture recorded a
+# stair's state to settle `facing` from. The 19:09 capture holds 463 placed stairs WITH their
+# properties, and the convention is read off Jack's own flight at X-24213..-24210 / Y195-198:
+# a flight ascending toward D has every tread facing=D. This one descends south, so facing=north.
+name: Taproot Entrance
+gen: stairhead
+params:
+  under: out/island_now.litematic
+  well:  [-24205, 30002, -24200, 30010]
+  neck:  [-24205, 30002, -24203, 30004]
+  shaft: [-24203, 30008, -24201, 30010]
+  floor_y: 194
+  under_y: 190
+  ceiling_y: 200
+  apron: 2
+  mouth_w: 3
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/island_now.litematic

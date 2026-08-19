@@ -605,11 +605,20 @@ straight-on view. The fix is a lighter face mask on the ursid coat, not more geo
   operation but reads as a gap wherever the thing being cut is thin: the elephant's ears are
   flanges and it cut slots through them. The thickness guard catches a sheet lying flat and not one
   standing on edge. It was 17 cells against the top surface's 112, so little is lost.
-- **No stairs.** The geometry in `shell.py` is ready for them and they would cut convex corners far
-  better than a slab can. They are not used because a stair is DIRECTIONAL, `facing` is easy to get
-  backwards, and a mirrored stair would be invisible in our own renderer. The capture holds ten
-  stair blocks and none records its state, so there was nothing to settle the convention from.
-  `shell._STAIR_NOTE` says the one thing to check in game.
+- **~~No stairs.~~ SETTLED 2026-08-19 — the convention is now known and stairs are in use.** The
+  rule rested on two claims and both were false. The capture does not hold ten stair blocks, it
+  holds **463**; and their states are not missing, they are in the palette NBT — the earlier
+  reading looked at the bare NAME list, which drops properties. Reading them properly off Jack's
+  own flight at X-24213..-24210 / Y195–198 / Z30028 (four consecutive straight bottom-half treads,
+  all `facing=east`, each one course up and one step east) gives:
+
+      A FLIGHT THAT ASCENDS TOWARD D HAS EVERY TREAD facing=D, half=bottom.
+
+  So a flight *descending south* is built `facing=north` — you climb north out of it. Built the
+  other way the risers face into the descent and you cannot walk up it, and **our renderer draws
+  both identically**, so this is asserted in `tests/test_stairhead.py` rather than eyeballed.
+  `gen/stairhead.py` is the first user. `shell.py` can now take them for convex corners, which is
+  what it was always ready for.
 - **A brown bear cannot have its shoulder hump.** It is the real field mark separating it from a
   polar bear, `hump` exists in the generator, and building one MEASURED WORSE: proportion 6/8 → 4/8
   in tolerance, total −0.06, and the gap to the polar bear SHRANK 0.134 → 0.104. The cause is the
@@ -619,6 +628,42 @@ straight-on view. The fix is a lighter face mask on the ursid coat, not more geo
   mane works (shape 0.30 from its nearest sibling, against 0.11 for jaguar-vs-leopard, which is
   correct — they are the same animal). The bears do not: shape 0.16, coat 0.86, so a polar bear is
   a brown bear painted white. `tools/compare.py` prints both halves for every pair.
+
+## The taproot staircase head (2026-08-19)
+
+`configs/taproot_entrance.yaml`, `mcbuild/gen/stairhead.py`. Jack cut a well through the deck floor
+and left it raw; this turns the hole into a front door. 263 blocks, 0 new problems in context.
+
+**The site, all measured off the 19:09 capture:**
+
+| | |
+|---|---|
+| Y200–201 | ceiling over the well — 6–7 courses of headroom |
+| Y194 | the deck floor, well cut through it at X-24205..-24200 / Z30002..30010, narrowing to a 3-wide neck at X-24205..-24203 for Z30002..30004 |
+| Y191–193 | open undercroft; the shaft cased at Z30010–30011 |
+| Y190 | the belly skin you land on, with a 3×3 hole at X-24203..-24201 / Z30008..30010 |
+| Y189 ↓ | the existing workshop stairwell, then the root stair |
+
+So the entrance has exactly one job in the vertical — carry you four courses from the deck to the
+undercroft floor and hand you to the shaft that is already built. The neck is 3 wide, which is a
+flight. Everything else is what makes it read as architecture rather than as a hole with steps in
+it: an apron ringed out of the deck paving, a dark `deepslate_bricks` lip that draws the opening, a
+revetment lining the cut faces (or the handsome opening looks down onto a building site), a
+balustrade of wall-plus-slab at 1.5 blocks, four corner piers carrying lanterns, and lanterns on
+chains hung over the well so the light falls down the shaft rather than onto the deck.
+
+**A chain hangs from the block ABOVE it**, so each string finds a real ceiling first — placed blind
+one of the four came away as loose links and the audit called it out as a cluster with nothing to
+place against. Same failure as the bat perch's vines.
+
+The palette is the atelier's four greys on purpose — the court below, the workshop above and this
+head between them should read as one hand. `deepslate_bricks` is the one addition, for the reason
+the void tower needed it: cracked/chiseled/plain stone brick are all within 4 RGB of each other, so
+they carry texture but no tone and cannot draw a line.
+
+**It repaves 52 cells of existing deck** for the apron. That is intentional — the apron is what
+stops the opening reading as a rectangle punched in a field of stone brick — but it is 52 blocks to
+break, so it is stated here rather than discovered.
 
 ## Build & test
 
