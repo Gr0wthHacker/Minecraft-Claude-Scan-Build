@@ -33,6 +33,15 @@ BAT = {
     # ...or give `hang`, the world block its claws grip. A bat is placed by the ceiling it
     # holds on to, not by the corner of its box.
     "hang": None,
+    # A PERCH: its own small floating rock, so the bat does not need a ceiling to exist under. It
+    # can then hang in open air anywhere - which is the only way to put one in the gap between two
+    # island lobes, where there is nothing overhead to grip.
+    "perch": False,
+    "perch_h": 8,                # courses of rock above the claws
+    "perch_r": 7.0,              # its radius, in the design's own units
+    "rock": ["stone", "cobblestone", "deepslate", "mossy_cobblestone"],
+    "moss": "moss_block",
+    "vine": "vine",
     "spread": 0.75,              # 0 = furled tight, 1 = wings fully out
     # dark, and deliberately NOT made of the ceiling it hangs from: the lowland's roof is stone,
     # cobble, deepslate and moss, so a bat in those would vanish the way the elephant did.
@@ -93,7 +102,44 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
     S = {k: st(p[k]) for k in ("fur", "fur_dark", "skin", "skin_edge", "strut", "eye", "claw")}
     cx, cz = SX / 2.0, SZ / 2.0
     u = sc
-    roof = SY - 1                                     # y counts DOWN from here: the bat hangs
+    perch = bool(p.get("perch"))
+    ph = int(round(float(p["perch_h"]) * sc)) if perch else 0
+    roof = SY - 1 - ph                                # y counts DOWN from here: the bat hangs
+
+    # ---- THE PERCH. A ragged lump of the island's own rock, wider than it is deep and thickest in
+    # the middle, with moss on top and a couple of vines off the rim - so it reads as a piece that
+    # broke off the plate rather than as a sphere someone parked there.
+    if perch:
+        h0 = lambda *a: hash01(*a, seed)
+        rock = [st(b) for b in p["rock"]]
+        moss, vine = st(p["moss"]), st(p["vine"])
+        pr = float(p["perch_r"]) * sc
+        for k in range(ph + 1):
+            f_ = k / max(1, ph)                       # 0 at the bat's grip, 1 at the top
+            r = pr * (0.45 + 0.75 * f_ - 0.35 * f_ * f_)
+            for dx in range(-int(r) - 2, int(r) + 3):
+                for dz in range(-int(r) - 2, int(r) + 3):
+                    d = (dx * dx + dz * dz) ** 0.5
+                    # ragged, but not SO ragged that the edge sheds islands - the noise is
+                    # smoothed along k so a column cannot appear with nothing under it
+                    if d > r * (0.86 + 0.18 * h0(dx, 0, dz, 5)):
+                        continue
+                    y = roof + k
+                    blk = moss if k == ph else rock[int(h0(dx, k, dz, 9) * len(rock)) % len(rock)]
+                    c.put(int(round(cx + dx)), int(y), int(round(cz + dz)), blk)
+        # vines off the rim. A vine hangs from the block ABOVE it, so each strand starts only
+        # where there is rock to hang from and stops the moment the run breaks - placed blind they
+        # came away as nine separate floating threads.
+        for j in range(max(3, int(round(6 * sc)))):
+            a = h0(j, 1, 2, 13) * 6.283
+            rx = int(round(cx + pr * 0.82 * np.cos(a)))
+            rz = int(round(cz + pr * 0.82 * np.sin(a)))
+            if not c.get(rx, roof, rz):
+                continue                              # nothing to hang from here
+            for k in range(1, 2 + int(6 * h0(j, 3, 4, 17))):
+                if not c.get(rx, roof - k + 1, rz):
+                    break
+                c.put(rx, roof - k, rz, vine)
 
     # ---- FEET, gripping the roof. Two hooked claws, which is the detail that says "hanging"
     # rather than "falling" - without them the whole thing reads as a bat mid-air, upside down.

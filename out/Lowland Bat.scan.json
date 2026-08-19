@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": -24236,
-    "y": 53,
-    "z": 29968
+    "x": -24200,
+    "y": 99,
+    "z": 30033
   },
   "size": {
     "x": 56,
@@ -12,7 +12,7 @@
   "generated_by": "bat",
   "kind": "bat",
   "scale": 1.0,
-  "spread": 0.85,
+  "spread": 0.5,
   "profile_view": "face",
   "features_built": {
     "wings": 2,

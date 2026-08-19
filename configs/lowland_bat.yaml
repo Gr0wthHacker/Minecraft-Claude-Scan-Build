@@ -1,23 +1,32 @@
-# A BAT hanging from the void isle's underside, over the lowland.
+# A BAT ON ITS OWN FLOATING ROCK, in the gap between the bee farm and the mushroom lobe.
 #
-# It uses a surface nothing else on this island touches. The lowland is ROOFED - 4,193 of its
-# columns sit under the plate and 1,504 under the void isle, and only 154 are open to the sky - so
-# there is a ceiling overhead wherever you stand down there and not one thing hanging from it.
+# The bat itself is all plane and no volume, which is the whole reason it and the birds are the two
+# things this system builds well: a membrane one block thick stretched between finger struts, and
+# not a gram of the compound volumetric muscle that every mammal here foundered on.
 #
-# `hang` is the block its claws grip. Y150 is the ISLAND'S OWN UNDERSIDE - the lowest block of
-# the plate above - rather than the void isle's Y86, because the birds below stand 90 blocks
-# tall and a bat hung at 86 had a heron's neck passing straight through its wing. Hanging it
-# from the true roof puts it above everything and makes it something you find by looking UP.
+# WHY IT CARRIES ITS OWN ROCK. A bat needs a ceiling to grip, and there is none out here - this is
+# open air off the island's south-east corner, twenty blocks under the plate. `perch` builds a
+# ragged lump of the island's own stone above the claws, mossed on top with a few vines off the rim,
+# so it reads as a piece that broke off the plate and took a passenger with it. That also frees the
+# bat from having to hang under something already built, which is what forced it over the lowland
+# before and made it fight the herons for airspace.
+#
+# The site: the bee farm runs X -24213..-24186 / Z 29995..30048 and the mushroom lobe sits out at
+# X -24158 / Z 30040, so the gap between them is around X -24172, Z 30044. The column is empty in
+# both captures and the plate's lowest block is Y150, which leaves this hanging clear at Y130.
 name: Lowland Bat
 gen: bat
 params:
   scale: 1.0
   seed: 0
-  spread: 0.85
-  hang: [-24208, 92, 29979]
+  spread: 0.5                # ROOSTING, not flying: a bat at rest on a rock keeps its wings in
+  perch: true                # it brings its own ceiling
+  perch_h: 8
+  perch_r: 8.5
+  hang: [-24172, 130, 30044] # the block the claws grip - the underside of its own rock
 finish:
   cheapen: false
   hollow: false
   ground: false
   drop_floaters: false
-origin_lock: false
+origin_lock: false           # LOUD: hangs in open air at Y121-138, its own corner of the sky
