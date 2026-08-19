@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 15,
-    "y": 27,
+    "y": 16,
     "z": 51
   },
   "generated_by": "quadruped",
@@ -20,20 +20,20 @@
     0,
     1
   ],
-  "height": 25,
-  "top_y": 126,
-  "belly_y": 104,
-  "withers_y": 122.48,
-  "back_y": 113,
-  "neck_top_y": 123.48,
+  "height": 14,
+  "top_y": 115,
+  "belly_y": 103,
+  "withers_y": 111.42,
+  "back_y": 112,
+  "neck_top_y": 112.42,
   "shoulder_at": [
     -24202.0,
-    122.5,
+    111.4,
     30009.0
   ],
   "neck_top_at": [
     -24202.0,
-    123.5,
+    112.4,
     30013.5
   ],
   "along": {
@@ -47,6 +47,6 @@
     ]
   },
   "collisions": 22,
-  "file": "Void Jaguar.litematic",
-  "name": "Void Jaguar"
+  "file": "J couchant.litematic",
+  "name": "J couchant"
 }

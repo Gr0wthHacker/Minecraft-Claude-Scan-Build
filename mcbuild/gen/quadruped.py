@@ -53,11 +53,35 @@ BASE_KEYS = {
              [0.65, -0.50, -0.50, -0.45], [0.88, -0.85, -1.00, -0.70], [1.00, -0.95, -1.25, -0.80]],
 }
 
+# A pose is a set of MULTIPLIERS on the skeleton, not a separate build path. Front and hind legs
+# shorten independently, the belly line tilts, and the neck can be re-aimed - which between them
+# cover every resting posture a four-legged animal actually takes.
+#
+#   fore / hind    leg length as a fraction of standing
+#   fold           extra girth on a shortened leg: a folded limb is bunched, not a shrunken post
+#   pitch          belly rise from rump to chest, as a fraction of standing leg length. Positive is
+#                  head-up (sitting); negative is head-down (drinking, stalking downhill).
+#   lean / from    overrides on the neck's forward lean and where it leaves the barrel
+#   drop           head lowered by this fraction of the neck's length (grazing, stalking)
+POSES = {
+    "standing": {},
+    # haunches folded under, forelegs straight, chest lifted - a cat or a dog at rest, alert
+    "sitting": {"fore": 1.00, "hind": 0.30, "fold": 1.55, "pitch": 0.42, "from": 0.92},
+    # all four folded, belly close to the ground, head still up. A resting big cat.
+    "couchant": {"fore": 0.26, "hind": 0.22, "fold": 1.70, "pitch": 0.05, "from": 0.88},
+    # everything lowered and lengthened, head carried low and forward - hunting
+    "prowling": {"fore": 0.74, "hind": 0.70, "fold": 1.12, "pitch": -0.05, "from": 0.72,
+                 "lean": 1.35, "drop": 0.30},
+    # head down to the ground; the rest stands normally
+    "grazing": {"drop": 1.15, "lean": 1.30, "from": 0.80},
+}
+
 QUADRUPED = {
     "under": None,
     "feet": None,               # world (x, y, z) the hooves stand on
     "look_at": None,            # world (x, y, z) it faces; snapped to the nearest cardinal
     "profile": None,            # a key of PROFILES; params below override whatever it sets
+    "pose": "standing",         # a key of POSES - see `python tools/stance.py` to choose one
     # -- proportions (blocks). Check them with `python tools/proportions.py <design>`.
     "leg": 17, "hoof": 2, "leg_r": 1.9,
     "body_len": 22, "withers": 13, "hips": 8, "body_r": 4.9,
@@ -151,6 +175,9 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
         if p.get(k) is None:
             raise ValueError(f"quadruped needs params.{k}")
     keys = {**BASE_KEYS, **{k: [list(r) for r in v] for k, v in (p.get("keys") or {}).items()}}
+    if p.get("pose") not in POSES:
+        raise ValueError(f"unknown pose {p.get('pose')!r}; have {sorted(POSES)}")
+    pose = POSES[p["pose"]]
 
     ctx = Ctx(p["under"]) if p.get("under") else None
     fx, fy, fz = (int(v) for v in p["feet"])
@@ -162,12 +189,18 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
     # 1. mass
     hide: set = set()
     accent: dict = {}
-    belly = fy + int(p["leg"])
     legs_only: set = set()
-    hoofs = _legs(legs_only, ctx, fx, fy, fz, f, s, p, keys)
+    hoofs = _legs(legs_only, ctx, fx, fy, fz, f, s, p, keys, pose)
     hide |= legs_only
-    shoulder = _body(hide, fx, belly, fz, f, s, p, keys)
-    neck_top, neck_r = _neck(hide, shoulder, f, s, p, keys)
+    belly = fy + int(p["leg"])
+    # The belly line is derived from where the legs actually END - it is not a free parameter.
+    # Shortening a leg without lowering the body over it leaves the leg hanging in the air, which is
+    # exactly what the first sitting jaguar did: four detached stumps under a floating barrel.
+    rump = fy + max(2, int(round(int(p["leg"]) * float(pose.get("hind", 1.0)))))
+    chest = fy + max(2, int(round(int(p["leg"]) * float(pose.get("fore", 1.0)))))
+    shoulder = _body(hide, fx, (rump, chest), fz, f, s, p, keys, pose)
+    belly = min(rump, chest)
+    neck_top, neck_r = _neck(hide, shoulder, f, s, p, keys, pose)
     head_at = _head(hide, neck_top, neck_r, f, s, p, keys)
 
     # 2. relax, with the air between the legs barred from filling
@@ -194,7 +227,7 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
 
     skin = _coat(hide, p)
     if p.get("belly_block"):
-        _underside(hide, accent, belly, float(p["withers"]), p, fx, fz, f,
+        _underside(hide, accent, (rump, chest), float(p["withers"]), p, fx, fz, f,
                    int(p["body_len"]) // 2)
     w = World()
     for cell in sorted(hide):
@@ -238,14 +271,19 @@ def _underside(hide, accent, belly, withers, p, fx, fz, f, half):
     """
     from .canvas import hash01
     seed = int(p["seed"])
-    cut = belly + withers * float(p["belly_frac"])
+    # The waterline follows the POSED floor line, sloping with it from rump to chest. Holding it at
+    # the standing belly height put pale bands round the legs of a sitting cat, because the body had
+    # dropped below the line and the legs were the only thing still crossing it.
+    rump, chest = belly if isinstance(belly, tuple) else (belly, belly)
     for c in hide:
         along = (c[0] - fx) * f[0] + (c[2] - fz) * f[1]
         if not (-half - 1 <= along <= half + 2):
             continue                                     # tail and neck keep the coat
-        if c[1] < belly:
+        t = min(1.0, max(0.0, (along + half) / max(1, 2 * half)))
+        floor = rump + (chest - rump) * t
+        if c[1] < floor:
             continue                                     # legs too
-        edge = cut + 1.6 * (hash01(c[0], 0, c[2], 61, seed) - 0.4)
+        edge = floor + withers * float(p["belly_frac"]) + 1.6 * (hash01(c[0], 0, c[2], 61, seed) - 0.4)
         if c[1] <= edge and c not in accent:
             accent[c] = p["belly_block"]
 
@@ -303,7 +341,7 @@ def _leg_gap(hoofs, belly, leg_r, keys) -> set:
 
 # ------------------------------------------------------------------ mass
 
-def _legs(hide, ctx, fx, fy, fz, f, s, p, keys) -> list:
+def _legs(hide, ctx, fx, fy, fz, f, s, p, keys, pose=None) -> list:
     """Four legs, each finding its OWN ground - terrain rolls, and a level hoof line either floats on
     the high side or buries its feet on the low.
 
@@ -311,10 +349,15 @@ def _legs(hide, ctx, fx, fy, fz, f, s, p, keys) -> list:
     rather than a post pushed into a wall; relax then blends that corner."""
     bl, br, lr = int(p["body_len"]), float(p["body_r"]), float(p["leg_r"])
     n = float(p["section_n"])
-    top = fy + int(p["leg"])
-    KEYS = [[t, lr + d] for t, d in keys["leg"]]
+    pose = pose or {}
+    fold = float(pose.get("fold", 1.0))
+    KEYS = [[t, lr * fold + d] for t, d in keys["leg"]]
     out = []
     for along, side in ((bl // 2 - 3, 1), (bl // 2 - 3, -1), (-(bl // 2 - 3), 1), (-(bl // 2 - 3), -1)):
+        # fore and hind shorten independently - that difference IS the pose. A sitting animal has
+        # straight forelegs and folded haunches; shortening all four equally just makes it small.
+        scale = float(pose.get("fore" if along > 0 else "hind", 1.0))
+        top = fy + max(2, int(round(int(p["leg"]) * scale)))
         # Under the barrel's edge, but never closer together than the legs are wide. `br - lr - 0.4`
         # collapses to 1 on a narrow-bodied animal, putting a jaguar's legs 2 apart when each is 3
         # wide - they merged into a slab whatever the smoothing did. Giraffe lands on 3 either way.
@@ -335,7 +378,7 @@ def _legs(hide, ctx, fx, fy, fz, f, s, p, keys) -> list:
     return out
 
 
-def _body(hide, fx, belly, fz, f, s, p, keys) -> tuple:
+def _body(hide, fx, belly, fz, f, s, p, keys, pose=None) -> tuple:
     """A barrel whose back line and belly line are set independently, so it deepens toward the chest.
 
     The withers-to-hips drop is what separates a giraffe from a horse; it is a profile number."""
@@ -344,20 +387,35 @@ def _body(hide, fx, belly, fz, f, s, p, keys) -> tuple:
     n = float(p["section_n"])
     half = bl // 2
     KEYS = [[t, br + dw, hips + (withers - hips) * hh] for t, dw, hh in keys["body"]]
+    pose = pose or {}
+    # The floor line runs from where the HIND legs end to where the FORE legs end. It is derived,
+    # not chosen: shortening a leg without lowering the body over it leaves the leg hanging, which is
+    # exactly what the first sitting jaguar did - four detached stumps under a floating barrel.
+    rump, chest = belly if isinstance(belly, tuple) else (belly, belly)
+    extra = float(pose.get("pitch", 0.0)) * int(p["leg"])
     for a in range(-half, bl - half):
-        rb, back = loft.lerp(KEYS, (a + half) / max(1, bl - 1))
-        loft.rib(hide, fx + f[0] * a, belly + back / 2.0, fz + f[1] * a, f, s,
+        t = (a + half) / max(1, bl - 1)
+        rb, back = loft.lerp(KEYS, t)
+        floor = rump + (chest - rump) * t + extra * t
+        loft.rib(hide, fx + f[0] * a, floor + back / 2.0, fz + f[1] * a, f, s,
                  rb, back / 2.0, n, squash_lo=1.12)
-    rise = belly + max(1.0, withers * float(p.get("neck_from", 1.0))) - 1.0
+    frm = float(pose.get("from", p.get("neck_from", 1.0)))
+    rise = chest + extra + max(1.0, withers * frm) - 1.0
     return (fx + f[0] * (half - 2), rise, fz + f[1] * (half - 2))
 
 
-def _neck(hide, shoulder, f, s, p, keys):
+def _neck(hide, shoulder, f, s, p, keys, pose=None):
     """Tapers smoothly and leans forward. The lean is carried as a FLOAT and the section re-centred
     every course, so the neck is a clean diagonal rather than a staircase."""
     sx, sy, sz = shoulder
     ln, r0, r1 = int(p["neck"]), float(p["neck_r0"]), float(p["neck_r1"])
-    n, lean = float(p["section_n"]), float(p["neck_lean"])
+    pose = pose or {}
+    n = float(p["section_n"])
+    lean = float(pose.get("lean", p["neck_lean"]))
+    # `drop` carries the head DOWN the neck's length instead of up - grazing, drinking, stalking.
+    # Without it every pose still ends with the head at the top of a rising neck, which is the one
+    # thing a resting or feeding animal never does.
+    rise = 1.0 - 2.0 * float(pose.get("drop", 0.0))
     KEYS = [[t, r1 + (r0 - r1) * taper + flare] for t, taper, flare in keys["neck"]]
     x, z = float(sx), float(sz)
     top = (sx, sy, sz)

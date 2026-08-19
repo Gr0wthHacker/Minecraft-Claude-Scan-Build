@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": -24209,
+    "x": -24208,
     "y": 100,
     "z": 29969
   },
   "size": {
-    "x": 15,
-    "y": 27,
+    "x": 13,
+    "y": 22,
     "z": 51
   },
   "generated_by": "quadruped",
@@ -20,20 +20,20 @@
     0,
     1
   ],
-  "height": 25,
-  "top_y": 126,
-  "belly_y": 104,
-  "withers_y": 122.48,
-  "back_y": 113,
-  "neck_top_y": 123.48,
+  "height": 20,
+  "top_y": 121,
+  "belly_y": 111,
+  "withers_y": 117.02,
+  "back_y": 120,
+  "neck_top_y": 118.02,
   "shoulder_at": [
     -24202.0,
-    122.5,
+    117.0,
     30009.0
   ],
   "neck_top_at": [
     -24202.0,
-    123.5,
+    118.0,
     30013.5
   ],
   "along": {
@@ -46,7 +46,7 @@
       22
     ]
   },
-  "collisions": 22,
-  "file": "Void Jaguar.litematic",
-  "name": "Void Jaguar"
+  "collisions": 11,
+  "file": "J standing.litematic",
+  "name": "J standing"
 }

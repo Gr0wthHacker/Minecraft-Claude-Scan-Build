@@ -81,6 +81,27 @@ Traps, each of which cost a rebuild:
   server lacks. Sandstone does not exist on this skyblock — the giraffe's coat is bone_block +
   acacia (the two acacias give tonal variety at one hue).
 
+## Stance
+
+Pose is most of what makes a statue read as an animal rather than a specimen. `POSES` in
+`gen/quadruped.py` holds standing / sitting / couchant / prowling / grazing as multipliers on the
+skeleton — fore and hind legs shorten independently, the belly line tilts, the neck is re-aimed.
+Nothing about a pose is a separate build path.
+
+```bash
+python tools/stance.py configs/jaguar.yaml --from -24206 150 30010
+```
+scores every pose on three measurable things and says why: **behaviour** (what the species actually
+does, from `animals.yaml` — a sitting giraffe is a sick animal, not a style choice), **site** (each
+pose is BUILT and its real contact footprint tested against the relief under it), and **legibility**
+(silhouette height against viewing distance; past ~30 blocks a couchant animal is a lump). They
+disagree often, which is the point — for the jaguar, standing won on site, couchant on behaviour and
+sitting on legibility.
+
+Anything derived from the standing skeleton must follow the POSED one: leg length sets the belly
+line, and the belly line sets the countershading. Getting that wrong leaves legs floating under a
+hovering barrel, or pale bands painted round a sitting cat's knees.
+
 ## Auditing a shape
 
 Three tools, because "it looks lumpy / it feels off" is not actionable and the eye passes bad shapes:

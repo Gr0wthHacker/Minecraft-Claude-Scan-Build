@@ -13,6 +13,11 @@ name: Void Jaguar
 gen: quadruped
 params:
   profile: jaguar
+  # Chosen by `python tools/stance.py configs/jaguar.yaml --from -24206 150 30010`, which scored it
+  # 0.77 against couchant 0.74 and standing 0.66. The three factors genuinely disagree here: standing
+  # sits easiest on the ground, couchant is what a jaguar does most, and sitting is the one that still
+  # reads at 51 blocks. Sitting wins by holding the silhouette without being a pose a cat never takes.
+  pose: sitting
   under: out/island_void.litematic
   feet: [-24202, 101, 29998]      # flattest pad on the isle, clear of the giraffe
   look_at: [-24206, 150, 30010]   # facing the taproot platform, like the giraffe

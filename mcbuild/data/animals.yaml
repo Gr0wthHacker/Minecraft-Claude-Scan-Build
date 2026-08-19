@@ -17,6 +17,9 @@ giraffe:
   neck length: 2.2
   head length: 0.65
   leg width: 0.28
+  # How much of its life the species spends in each stance. 0 means do not build it: a giraffe going
+  # down is not a stylistic choice, it is a sick or calving animal. They sleep standing.
+  poses: {standing: 1.00, grazing: 0.80, couchant: 0.12, sitting: 0.02, prowling: 0.00}
 
 horse:
   # total is HEAD-UP height, not the withers figure usually quoted for horses - the statue is measured
@@ -30,6 +33,7 @@ horse:
   neck length: 0.70
   head length: 0.60
   leg width: 0.14
+  poses: {standing: 1.00, grazing: 0.85, couchant: 0.25, sitting: 0.00, prowling: 0.00}
 
 deer:
   total_m: 1.50            # head-up, as above
@@ -41,6 +45,7 @@ deer:
   neck length: 0.35
   head length: 0.32
   leg width: 0.08
+  poses: {standing: 0.95, grazing: 0.90, couchant: 0.60, sitting: 0.05, prowling: 0.10}
 
 jaguar:
   # Head-up total height. A jaguar is LONGER THAN IT IS TALL - body length exceeds total height,
@@ -54,3 +59,6 @@ jaguar:
   neck length: 0.18
   head length: 0.28
   leg width: 0.11
+  # A cat is the mirror image of a giraffe here: it spends most of its life NOT standing, so a
+  # standing jaguar is the odd one out and the resting poses are the honest choices.
+  poses: {standing: 0.55, couchant: 1.00, sitting: 0.85, prowling: 0.95, grazing: 0.10}
