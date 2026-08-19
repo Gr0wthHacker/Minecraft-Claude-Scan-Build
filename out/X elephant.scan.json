@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": -24229,
+    "x": -24228,
     "y": 100,
-    "z": 29964
+    "z": 29965
   },
   "size": {
-    "x": 23,
-    "y": 39,
-    "z": 55
+    "x": 21,
+    "y": 36,
+    "z": 51
   },
   "generated_by": "quadruped",
   "kind": "elephant",
@@ -21,35 +21,43 @@
     0,
     1
   ],
-  "height": 38,
-  "top_y": 138,
-  "belly_y": 119,
-  "withers_y": 130.9,
-  "rump_y": 119,
-  "chest_y": 119,
-  "back_y": 134,
-  "neck_top_y": 132.9,
+  "height": 35,
+  "top_y": 135,
+  "features_built": {
+    "crown": 132,
+    "face": 73,
+    "trunk": 368,
+    "tail": 9,
+    "eyes": 4
+  },
+  "anat_top_y": 135,
+  "belly_y": 117,
+  "withers_y": 128.04,
+  "rump_y": 117,
+  "chest_y": 117,
+  "back_y": 131,
+  "neck_top_y": 130.04,
   "shoulder_at": [
     -24218.0,
-    130.9,
-    29996.0
+    128.0,
+    29995.0
   ],
   "neck_top_at": [
     -24218.0,
-    132.9,
-    30000.2
+    130.0,
+    29999.2
   ],
   "along": {
     "body": [
-      -16,
-      17
+      -15,
+      15
     ],
     "head": [
-      18,
-      28
+      17,
+      26
     ]
   },
-  "collisions": 60,
+  "collisions": 53,
   "file": "X elephant.litematic",
   "name": "X elephant"
 }

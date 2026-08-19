@@ -241,8 +241,18 @@ def _leg_width(solid, y):
 
 def measure(solid, land, sy) -> dict:
     """Every proportion, as a fraction of total height. Shared with tools/stance.py so the
-    pose comparison and the audit can never drift apart."""
-    H = sy
+    pose comparison and the audit can never drift apart.
+
+    Height means ANATOMICAL height - feet to the top of the head mass - not the bounding box. A
+    trunk, a set of ears or a pair of ossicones changes the box without changing the animal, and
+    normalising by the box made every proportion read low on exactly those species. That was papered
+    over with a per-family `crown_bias` multiplier, which was a fudge: it inflated the animal until
+    the numbers came right. Measuring the same quantity the derivation uses needs no correction."""
+    oy_ = (land.get("origin") or {}).get("y")
+    if oy_ is not None and land.get("anat_top_y") is not None and land.get("feet"):
+        H = max(4, int(round(float(land["anat_top_y"]) - float(land["feet"][1]))))
+    else:
+        H = sy
     belly, withers, head, xext, zext, _parts, _area = _segment(solid, sy)
     # The neck/head boundary is genuinely hard to find by shape - and it is hard precisely BECAUSE
     # the model is smoothly blended, which is what we wanted. Where the generator recorded the

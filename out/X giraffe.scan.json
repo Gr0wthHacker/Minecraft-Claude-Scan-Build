@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 13,
-    "y": 60,
+    "y": 57,
     "z": 39
   },
   "generated_by": "quadruped",
@@ -21,28 +21,36 @@
     0,
     1
   ],
-  "height": 59,
-  "top_y": 159,
-  "belly_y": 121,
-  "withers_y": 134.0,
-  "rump_y": 121,
-  "chest_y": 121,
-  "back_y": 135,
-  "neck_top_y": 156.0,
+  "height": 56,
+  "top_y": 156,
+  "features_built": {
+    "mane": 3,
+    "crown": 6,
+    "face": 0,
+    "tail": 24,
+    "eyes": 2
+  },
+  "anat_top_y": 154,
+  "belly_y": 120,
+  "withers_y": 132.0,
+  "rump_y": 120,
+  "chest_y": 120,
+  "back_y": 133,
+  "neck_top_y": 153.0,
   "shoulder_at": [
     -24218.0,
-    134.0,
+    132.0,
     29992.0
   ],
   "neck_top_at": [
     -24218.0,
-    156.0,
-    30002.4
+    153.0,
+    30002.0
   ],
   "along": {
     "body": [
       -12,
-      13
+      12
     ],
     "head": [
       20,

@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 13,
-    "y": 27,
+    "y": 28,
     "z": 60
   },
   "generated_by": "quadruped",
@@ -21,8 +21,20 @@
     0,
     1
   ],
-  "height": 26,
-  "top_y": 126,
+  "height": 27,
+  "top_y": 127,
+  "features_built": {
+    "mane": 304,
+    "crown": 18,
+    "face": 41,
+    "tail": 31,
+    "eyes": 7
+  },
+  "anat_top_y": 127,
+  "asymmetry": {
+    "leg_phase": 0,
+    "head_turn": 0
+  },
   "belly_y": 112,
   "withers_y": 118.8,
   "rump_y": 112,

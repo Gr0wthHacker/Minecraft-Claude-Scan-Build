@@ -23,6 +23,17 @@
   ],
   "height": 27,
   "top_y": 127,
+  "features_built": {
+    "crown": 18,
+    "face": 27,
+    "tail": 33,
+    "eyes": 7
+  },
+  "anat_top_y": 127,
+  "asymmetry": {
+    "leg_phase": 0,
+    "head_turn": 0
+  },
   "belly_y": 113,
   "withers_y": 119.8,
   "rump_y": 113,

@@ -106,7 +106,6 @@ proboscid:
     hoof: 0
     ear_size: 2.6
     trunk: 1.6
-    crown_bias: 1.09         # ears this big stand above the skull and inflate the bounding box
     section_n: 2.0
     relax_rounds: 4
     relax_fill: 11
@@ -168,7 +167,6 @@ giraffid:
     mane: true
     horns: ossicone
     hoof: 2
-    crown_bias: 1.05         # ossicones add height the animal does not anatomically have
     section_n: 2.2
     relax_rounds: 4
     relax_fill: 11

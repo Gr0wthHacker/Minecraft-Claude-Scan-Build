@@ -50,7 +50,7 @@ leopard:
 lion:
   family: felid
   height: 26
-  build: {body_r: 3.8, mane: true}       # the mane is the only structural difference in the family
+  build: {body_r: 3.8, mane_volume: 2.6, head_r_ratio: 0.46}   # the mane is the whole difference
   coat:
     coat_pattern: shaded
     coat_ramp: [spruce_planks, coarse_dirt, dirt, oak_log, stripped_oak_log]
@@ -67,7 +67,7 @@ lion:
 bear:
   family: ursid
   height: 24
-  build: {}
+  build: {head_turn: 1}
   coat:
     coat_pattern: shaded
     coat_ramp: [dark_oak_planks, stripped_dark_oak_wood, mangrove_wood, spruce_planks, coarse_dirt]
@@ -82,10 +82,12 @@ bear:
 polar_bear:
   family: ursid
   height: 26                             # the largest bear; otherwise identical in shape
-  build: {}
+  build: {head_turn: 1}
   coat:
     coat_pattern: shaded
-    coat_ramp: [stripped_oak_log, bone_block, birch_wood, white_wool, snow_block]
+    # a NARROW ramp. Spanning tan to white made the shading paint the back snow and the
+    # legs oak, so it read as two different animals joined together.
+    coat_ramp: [bone_block, bone_block, birch_wood, white_wool, snow_block]
     shade_strength: 1.2                  # a white animal lives or dies on its shading
     coat_block: bone_block
     patch: bone_block
@@ -98,7 +100,7 @@ polar_bear:
 elephant:
   family: proboscid
   height: 34
-  build: {}
+  build: {head_turn: 1}
   coat:
     coat_pattern: shaded
     coat_ramp: [deepslate, tuff, stone, andesite, smooth_stone]
@@ -115,7 +117,7 @@ capybara:
   height: 25                             # `tools/scale.py` puts the caviomorph floor at 23, bound by
                                          # neck length; at 21 the neck fell below three blocks and the
                                          # rubric's legibility gate refused it outright
-  build: {}
+  build: {head_turn: 1}
   coat:
     coat_pattern: shaded
     coat_ramp: [spruce_planks, coarse_dirt, dirt, jungle_log, stripped_jungle_log]
@@ -130,7 +132,7 @@ capybara:
 giraffe:
   family: giraffid
   height: 57
-  build: {}
+  build: {head_turn: 1}
   coat:
     coat_pattern: voronoi
     patch_scale: 5.5

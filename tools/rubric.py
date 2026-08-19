@@ -59,7 +59,7 @@ def score(solid, names, meta, species, pose, model=None, spec=None):
         "features": _features(spec, species, names, meta, solid),
         "surface": _surface(solid),
         "palette": _palette(names),
-        "symmetry": _symmetry(solid),
+        "symmetry": _symmetry(solid, meta),
     }
     w = spec["weights"]
     return sum(w[k] * v[0] for k, v in dims.items()), dims
@@ -203,49 +203,76 @@ def _silhouette(s, solid, meta, species, pose):
 
 
 def _form(s, solid, names):
-    """Does the skin carry light. Range of tone used, and whether tone tracks sky exposure."""
+    """Does the skin carry light: how much tone it uses, and whether tone follows exposure.
+
+    The gradient is measured on BINNED MEANS rather than on raw cells. A raw correlation is destroyed
+    by any coat pattern - a giraffe's patches swing luminance far harder than its shading does, so a
+    patterned animal scored near zero whether or not it was shaded, and the metric was really
+    detecting "is it patterned". Averaging within each exposure bin cancels the pattern, because a
+    patch is equally likely at any exposure, and leaves the trend that shading actually creates.
+    """
     lum = {i: sum(palette.color_of(n)) / 3.0 for i, n in enumerate(names)}
     n6 = morph.neighbor_count(solid, conn=6)
     ys, zs, xs = np.where(solid & (n6 < 6))
     if len(xs) < 20:
         return 0.0, "no surface"
     vals = np.array([lum[int(s.model.ids[y, z, x])] for y, z, x in zip(ys, zs, xs)])
-    # sky exposure: how many of the 4 cells above are clear
     sky = np.zeros(len(xs))
     for k in range(1, 5):
         yy = np.clip(ys + k, 0, solid.shape[0] - 1)
         sky += (~solid[yy, zs, xs]).astype(float)
     rng = (np.percentile(vals, 95) - np.percentile(vals, 5)) / 255.0
-    grad = abs(np.corrcoef(vals, sky)[0, 1]) if vals.std() > 1e-6 and sky.std() > 1e-6 else 0.0
-    score = max(0.0, min(1.0, 0.55 * min(1.0, rng / 0.30) + 0.45 * min(1.0, grad / 0.55)))
-    return score, f"tonal range {rng:.0%} of white, luminance/sky correlation {grad:.2f}"
+    means = [vals[sky == b].mean() for b in range(5) if (sky == b).sum() >= 8]
+    if len(means) < 3:
+        grad = 0.0
+    else:
+        m = np.array(means)
+        # monotone rise from buried to open, scaled by how much of the tonal range it spans
+        steps = np.diff(m)
+        mono = float((steps > 0).sum()) / max(1, len(steps))
+        span = (m.max() - m.min()) / 255.0
+        grad = mono * min(1.0, span / 0.12)
+    score = max(0.0, min(1.0, 0.45 * min(1.0, rng / 0.30) + 0.55 * grad))
+    return score, f"tonal range {rng:.0%}, shading trend {grad:.2f} over {len(means)} exposure bins"
 
 
 def _features(spec, species, names, meta, solid):
+    """Verified from what the generator RECORDED emitting, not asserted.
+
+    The previous version hardcoded seven of its fourteen checks to True - ears, ossicones, mane,
+    tail, tassel, blunt muzzle, hump - so a feature that relax had shaved off still scored full
+    marks, and 15% of the rubric's weight was noise. `features_built` counts cells at the moment of
+    emission, and each feature has a size below which it exists but cannot be seen.
+    """
     from mcbuild.gen import taxonomy
     want = taxonomy.required_features(species) or (spec.get("features") or {}).get(species) or []
     if not want:
         return 0.6, "no feature list for this species"
-    present = set()
-    have = set(names)
-    kind = meta.get("kind", "")
-    # each identifying feature leaves a specific trace in the model
-    checks = {
-        "eyes": any("wool" in n and ("black" in n) for n in have),
-        "ears": True, "big_ears": solid.shape[2] >= 12,
-        "trunk": float(meta.get("trunk", 0) or 0) > 0 or "elephant" in kind,
-        "ossicones": True, "mane": True, "tail": True, "tail_tassel": True,
-        "long_tail": solid.shape[1] > solid.shape[0] * 1.4,
-        "muzzle": any("bone" in n or "white" in n or "stripped" in n for n in have),
-        "blunt_muzzle": True, "pale_belly": any("bone" in n or "white" in n for n in have),
-        "patches": len(have) >= 4, "rosettes": len(have) >= 4, "hump": True,
+    built = meta.get("features_built") or {}
+    if not built:
+        return 0.5, "generator recorded no features (rebuild to populate)"
+    coat_blocks = len({n for n in names if n != "air"})
+    # (which recorded group backs it, how many cells it needs to be legible)
+    NEED = {
+        "eyes": ("eyes", 2), "ears": ("crown", 4), "big_ears": ("crown", 16),
+        "ossicones": ("crown", 8), "mane": ("mane", 4), "tail": ("tail", 4),
+        "tail_tassel": ("tail", 8), "long_tail": ("tail", 12), "trunk": ("trunk", 12),
+        "muzzle": ("face", 3), "blunt_muzzle": ("face", 3), "pale_belly": ("face", 3),
     }
+    present, missing = 0, []
     for f in want:
-        if checks.get(f, False):
-            present.add(f)
-    missing = [f for f in want if f not in present]
-    return len(present) / len(want), (f"{len(present)}/{len(want)}"
-                                      + (f" - missing {', '.join(missing)}" if missing else ""))
+        if f in ("patches", "rosettes"):
+            ok = coat_blocks >= 3
+        else:
+            key, need = NEED.get(f, (f, 1))
+            ok = built.get(key, 0) >= need
+        if ok:
+            present += 1
+        else:
+            got = coat_blocks if f in ("patches", "rosettes") else built.get(NEED.get(f, (f, 1))[0], 0)
+            missing.append(f"{f}({got})")
+    return present / len(want), (f"{present}/{len(want)}"
+                                 + (f" - too small or absent: {', '.join(missing)}" if missing else ""))
 
 
 def _surface(solid):
@@ -285,16 +312,23 @@ def _palette(names):
         f"{k} blocks, hue spread {spread:.2f}, tiers {sorted(set(tiers))}"
 
 
-def _symmetry(solid):
-    """Bilateral match. Animals are symmetric across the sagittal plane; statues that are not look broken."""
-    best = 0.0
-    for axis, flip in ((2, lambda a: a[:, :, ::-1]), (1, lambda a: a[:, ::-1, :])):
-        m = solid
-        f = flip(m)
-        inter = int((m & f).sum())
-        union = int((m | f).sum())
-        best = max(best, inter / max(1, union))
-    return best, f"{best:.0%} match across the better axis"
+def _symmetry(solid, meta=None):
+    """Bilateral match across the SAGITTAL plane - the one the facing defines.
+
+    Taking the best of both axes was wrong: for an animal facing +z, mirroring in z compares its head
+    with its tail, and a shape that happened to score well there would have passed on a symmetry it
+    does not possess. The heading is recorded; use it."""
+    facing = ((meta or {}).get("facing")) or [0, 1]
+    across_x = abs(facing[1]) >= abs(facing[0])          # facing along z -> mirror in x
+    f = solid[:, :, ::-1] if across_x else solid[:, ::-1, :]
+    inter, union = int((solid & f).sum()), int((solid | f).sum())
+    v = inter / max(1, union)
+    # Asymmetry that was ASKED FOR is not a defect. A turned head and an advanced leg are what stop a
+    # statue looking planted, and penalising them would make the rubric argue for a worse animal.
+    asym = (meta or {}).get("asymmetry") or {}
+    allow = 0.02 * (abs(int(asym.get("leg_phase", 0))) + abs(int(asym.get("head_turn", 0))))
+    note = f" (+{allow:.0%} allowed for deliberate asymmetry)" if allow else ""
+    return min(1.0, v + allow), f"{v:.0%} across the sagittal plane, facing {facing}{note}"
 
 
 if __name__ == "__main__":

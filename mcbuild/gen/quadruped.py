@@ -95,9 +95,19 @@ QUADRUPED = {
     "section_n": 2.2,
     # -- features
     "mane": True,               # a ridge down the back of the neck
+    "mane_volume": 0.0,         # a lion's mane is a COLLAR OF VOLUME, not a ridge. Without it a lion
+                                # is a jaguar - the two built 0.032 apart on silhouette, which is to
+                                # say identical. This is the feature that separates them.
+    "hump": 0.0,                # shoulder hump as a fraction of body depth (bear, bison)
     "horns": "ossicone",        # ossicone | none
     "ears": True,
     "ear_size": 1.0,            # multiplier on ear reach and height
+    # Deliberate asymmetry. Four legs in identical phase and a head aimed straight down the spine is
+    # what makes a statue read as planted rather than alive - no animal stands like that. Both are
+    # opt-in and both are RECORDED, so the rubric relaxes its symmetry expectation by exactly as much
+    # as was asked for rather than penalising the thing that makes the animal look real.
+    "leg_phase": 0,             # blocks to advance one leg of each pair along the body axis
+    "head_turn": 0,             # blocks to swing the head off the spine
     "tail": "tassel",           # tassel | plain | long (a cat's) | none
     "tail_len": 0.75,           # `long` only: length as a fraction of body length
     "trunk": 0.0,               # length as a multiple of head length; 0 = none. An elephant's trunk
@@ -297,6 +307,9 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
     shoulder = _body(hide, fx, (rump, chest), fz, f, s, p, keys, pose)
     belly = min(rump, chest)
     neck_top, neck_r = _neck(hide, shoulder, f, s, p, keys, pose)
+    turn = int(p.get("head_turn", 0) or 0)
+    if turn:
+        neck_top = (neck_top[0] + s[0] * turn, neck_top[1], neck_top[2] + s[1] * turn)
     head_at = _head(hide, neck_top, neck_r, f, s, p, keys)
 
     # 2. relax, with the air between the legs barred from filling
@@ -315,14 +328,33 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
         for c in hide:
             if gy <= c[1] < gy + int(p["hoof"]) and abs(c[0] - lx) <= lrad and abs(c[2] - lz) <= lrad:
                 accent[c] = p["hoof_block"]
-    if p["mane"]:
-        _mane(hide, shoulder, f, s, p)
-    _crown(hide, accent, head_at, f, s, p)
-    _face(hide, accent, head_at, f, s, p)
+    # RECORD what each feature actually contributed. The rubric used to assert most features were
+    # present because it had no way to look - seven of its fourteen checks were hardcoded True, so
+    # a feature shaved off by relax still scored full marks. Counting cells at the moment of
+    # emission is the only honest way to know, and it also catches a feature that built as one block.
+    built: dict = {}
+
+    def _count(label, fn):
+        before, before_a = len(hide), len(accent)
+        fn()
+        # face features RECOLOUR rather than add, so count whichever the feature actually changed
+        built[label] = max(len(hide) - before, len(accent) - before_a)
+
+    # the top of the HEAD MASS, before any crown feature - this is the animal's anatomical height,
+    # as opposed to its bounding box. Measuring proportions against the box needed a `crown_bias`
+    # fudge per family; measuring against this needs nothing.
+    anat_top = max(y for (_x, y, _z) in hide)
+    if float(p.get("mane_volume", 0)) > 0:
+        _count("mane", lambda: _ruff(hide, shoulder, head_at, f, s, p))
+    elif p["mane"]:
+        _count("mane", lambda: _mane(hide, shoulder, f, s, p))
+    _count("crown", lambda: _crown(hide, accent, head_at, f, s, p))
+    _count("face", lambda: _face(hide, accent, head_at, f, s, p))
     if float(p.get("trunk", 0)) > 0:
-        _trunk(hide, accent, head_at, f, s, p)
+        _count("trunk", lambda: _trunk(hide, accent, head_at, f, s, p))
     if p["tail"] != "none":
-        _tail(hide, accent, fx, belly, fz, f, s, p)
+        _count("tail", lambda: _tail(hide, accent, fx, belly, fz, f, s, p))
+    built["eyes"] = sum(1 for c, b in accent.items() if b == p["dark"] and c[1] >= head_at[1] - 1)
 
     skin = _coat(hide, p)
     if p.get("belly_block"):
@@ -339,6 +371,9 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
                      "facing": list(f), "height": hi - fy, "top_y": hi,
                      # the joints, so an audit does not have to infer them from shape. On a cat the
                      # head, neck and barrel are one continuous mass and no shape heuristic can.
+                     "features_built": built, "anat_top_y": anat_top,
+                     "asymmetry": {"leg_phase": int(p.get("leg_phase", 0) or 0),
+                                   "head_turn": int(p.get("head_turn", 0) or 0)},
                      "belly_y": belly, "withers_y": shoulder[1], "rump_y": rump, "chest_y": chest,
                      # the TOP OF THE BARREL, which is not the same as where the neck leaves it -
                      # on a cat the neck leaves well below the back, and shape cannot find the back
@@ -458,7 +493,11 @@ def _legs(hide, ctx, fx, fy, fz, f, s, p, keys, pose=None) -> list:
     fold = float(pose.get("fold", 1.0))
     KEYS = [[t, lr * fold + d] for t, d in keys["leg"]]
     out = []
-    for along, side in ((bl // 2 - 3, 1), (bl // 2 - 3, -1), (-(bl // 2 - 3), 1), (-(bl // 2 - 3), -1)):
+    phase = int(p.get("leg_phase", 0) or 0)
+    for idx, (along, side) in enumerate(((bl // 2 - 3, 1), (bl // 2 - 3, -1),
+                                         (-(bl // 2 - 3), 1), (-(bl // 2 - 3), -1))):
+        # diagonal pairs move together, as a walking animal's do
+        along += phase if idx in (0, 3) else -phase
         # fore and hind shorten independently - that difference IS the pose. A sitting animal has
         # straight forelegs and folded haunches; shortening all four equally just makes it small.
         scale = float(pose.get("fore" if along > 0 else "hind", 1.0))
@@ -497,6 +536,10 @@ def _body(hide, fx, belly, fz, f, s, p, keys, pose=None) -> tuple:
     n = float(p["section_n"])
     half = bl // 2
     KEYS = [[t, br + dw, hips + (withers - hips) * hh] for t, dw, hh in keys["body"]]
+    # a shoulder hump lifts the back line over the withers only - a bear's and a bison's profile
+    hump = float(p.get("hump", 0.0)) * withers
+    if hump:
+        KEYS = [[t, dw, hh + (hump if 0.55 <= t <= 0.85 else 0.0)] for t, dw, hh in KEYS]
     pose = pose or {}
     # The floor line runs from where the HIND legs end to where the FORE legs end. It is derived,
     # not chosen: shortening a leg without lowering the body over it leaves the leg hanging, which is
@@ -557,6 +600,29 @@ def _head(hide, top, neck_r, f, s, p, keys) -> tuple:
 
 
 # ------------------------------------------------------------------ features (post-relax)
+
+def _ruff(hide, shoulder, head_at, f, s, p):
+    """A lion's mane: a mass CENTRED ON THE NECK, big enough to break the silhouette.
+
+    Two failed attempts before this. Swept up the neck it added 32 cells; swept back over the
+    shoulders with a downward offset it added 16, because the offset buried the whole thing inside
+    the barrel. A felid's neck is only about four blocks long, so there is no length to sweep along -
+    the mane has to be a BALL around the neck, sized against the body rather than the neck, or it
+    disappears into the animal it is supposed to be sitting on.
+    """
+    sx, sy, sz = shoulder
+    hx, hy, hz = head_at[0], head_at[1], head_at[2]
+    cx, cy, cz = (sx + hx) / 2.0, (sy + hy) / 2.0, (sz + hz) / 2.0
+    R = max(float(p["body_r"]) * 1.25, float(p["neck_r0"]) + float(p["mane_volume"]))
+    n = float(p["section_n"])
+    for k in range(-int(R) - 1, int(R) + 2):
+        t = abs(k) / max(1.0, R)
+        if t > 1.0:
+            continue
+        r = R * (1.0 - t * t) ** 0.5
+        # slightly deeper below the jaw than above the crown, as a real mane hangs
+        loft.disc(hide, cx, cy + k * 0.9, cz, f, s, r * 0.85, r, n)
+
 
 def _mane(hide, shoulder, f, s, p):
     """A ridge behind whatever the neck surface actually IS. Relax shrinks the neck, so a mane placed
