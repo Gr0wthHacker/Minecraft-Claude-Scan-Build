@@ -11,12 +11,20 @@
 #
 # Note how little each says. A lion and a leopard are the same animal in this system apart from a
 # mane and a coat, which is very nearly true of the real ones.
+#
+# NEVER put an ABSOLUTE BLOCK COUNT in `build`. All three felids carried a hand-tuned `body_r`
+# (3.6 / 3.0 / 3.8) left over from before proportions were derived, and because `build` overrides
+# whatever `taxonomy.derive` computes, it silently won. They built 23-33% too narrow, and the error
+# GREW with height - the jaguar's proportion score fell 0.75 -> 0.50 as it was scaled up, which is
+# the signature of an absolute among ratios. Removing them took the jaguar 0.73 -> 0.805 on its own.
+# `build` is for RATIOS (head_r_ratio) and switches (mane_volume, head_turn); anything measured in
+# blocks belongs in the family's proportion table, where height scales it.
 
 # ---------------------------------------------------------------- felids
 jaguar:
   family: felid
   height: 27
-  build: {body_r: 3.6, ring_radius: 0.60, ring_thickness: 0.34, ring_broken: 0.34}
+  build: {ring_radius: 0.60, ring_thickness: 0.34, ring_broken: 0.34}
   coat:
     coat_pattern: rosettes
     patch_scale: 4.6
@@ -32,8 +40,10 @@ jaguar:
 
 leopard:
   family: felid
-  height: 22                             # lighter and smaller than a jaguar; same animal otherwise
-  build: {body_r: 3.0, ring_radius: 0.52, ring_thickness: 0.30, ring_broken: 0.40}
+  height: 26                             # lighter and smaller than a jaguar (27); same animal
+                                         # otherwise. It was 22, which is UNDER the felid floor of
+                                         # 23 - the rosettes had no room and `surface` scored 0.27.
+  build: {ring_radius: 0.52, ring_thickness: 0.30, ring_broken: 0.40}
   coat:
     coat_pattern: rosettes
     patch_scale: 3.6                     # smaller, denser rosettes than a jaguar's
@@ -50,7 +60,7 @@ leopard:
 lion:
   family: felid
   height: 32
-  build: {body_r: 3.8, mane_volume: 2.6, head_r_ratio: 0.46}   # the mane is the whole difference
+  build: {mane_volume: 2.6, head_r_ratio: 0.46}   # the mane is the whole difference
   coat:
     coat_pattern: shaded
     coat_ramp: [spruce_planks, coarse_dirt, dirt, oak_log, stripped_oak_log]
@@ -81,7 +91,11 @@ bear:
 
 polar_bear:
   family: ursid
-  height: 26                             # the largest bear; otherwise identical in shape
+  height: 32                             # the largest bear, so TALLER than the brown bear at 30.
+                                         # It was 26 - which is the ursid floor exactly, every
+                                         # feature at its minimum and none with any structure. The
+                                         # silhouette test called it a CAVIOMORPH at that size,
+                                         # because a skull with no room to be broad is a rodent's.
   build: {head_turn: 1}
   coat:
     coat_pattern: shaded
