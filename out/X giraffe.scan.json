@@ -6,8 +6,8 @@
   },
   "size": {
     "x": 13,
-    "y": 57,
-    "z": 39
+    "y": 59,
+    "z": 38
   },
   "generated_by": "quadruped",
   "kind": "giraffe",
@@ -21,16 +21,20 @@
     0,
     1
   ],
-  "height": 56,
-  "top_y": 156,
+  "height": 58,
+  "top_y": 158,
   "features_built": {
     "mane": 3,
-    "crown": 6,
-    "face": 0,
+    "crown": 24,
+    "face": 4,
     "tail": 24,
-    "eyes": 2
+    "eyes": 6
   },
-  "anat_top_y": 154,
+  "anat_top_y": 155,
+  "asymmetry": {
+    "leg_phase": 0,
+    "head_turn": 1
+  },
   "belly_y": 120,
   "withers_y": 132.0,
   "rump_y": 120,
@@ -43,7 +47,7 @@
     29992.0
   ],
   "neck_top_at": [
-    -24218.0,
+    -24219.0,
     153.0,
     30002.0
   ],

@@ -27,7 +27,7 @@ Two traps that are not obvious and cost several rebuilds each:
 from __future__ import annotations
 
 from . import coat as coat_mod
-from . import loft, smooth, taxonomy
+from . import anatomy, loft, smooth, taxonomy
 from .canvas import Canvas
 from .vertical import Ctx, World
 
@@ -102,6 +102,10 @@ QUADRUPED = {
     "horns": "ossicone",        # ossicone | none
     "ears": True,
     "ear_size": 1.0,            # multiplier on ear reach and height
+    # PER-FAMILY GEOMETRY. A shared loft with different numbers builds one animal five times; these
+    # pick the structure that actually separates the families. See `anatomy.py`.
+    "legs_kind": "cursorial",   # digitigrade | plantigrade | columnar | stubby | cursorial
+    "head_kind": "tapered",     # rounded | broad | domed | blunt | tapered
     # Deliberate asymmetry. Four legs in identical phase and a head aimed straight down the spine is
     # what makes a statue read as planted rather than alive - no animal stands like that. Both are
     # opt-in and both are RECORDED, so the rubric relaxes its symmetry expectation by exactly as much
@@ -310,7 +314,7 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
     turn = int(p.get("head_turn", 0) or 0)
     if turn:
         neck_top = (neck_top[0] + s[0] * turn, neck_top[1], neck_top[2] + s[1] * turn)
-    head_at = _head(hide, neck_top, neck_r, f, s, p, keys)
+    head_at = anatomy.head(hide, neck_top, neck_r, f, s, p, p.get("head_kind", "tapered"))
 
     # 2. relax, with the air between the legs barred from filling
     if int(p["relax_rounds"]):
@@ -519,11 +523,9 @@ def _legs(hide, ctx, fx, fy, fz, f, s, p, keys, pose=None) -> list:
                 if ctx.name_at(lx, probe, lz) not in AIRY:
                     hoof = probe + 1
                     break
-        span = max(1, top - hoof)
-        for y in range(hoof, top + 4):
-            (r,) = loft.lerp(KEYS, max(0.0, 1.0 - (y - hoof) / span))
-            loft.disc(hide, lx, y, lz, f, s, r, r, n)
-        out.append((lx, lz, hoof, lr + 0.8))
+        builder = anatomy.LEGS.get(p.get("legs_kind", "cursorial"), anatomy.leg_cursorial)
+        builder(hide, lx, lz, hoof, top, f, s, lr, n, fold)
+        out.append((lx, lz, hoof, lr * fold + 0.8))
     return out
 
 

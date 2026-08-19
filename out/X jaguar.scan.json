@@ -6,8 +6,8 @@
   },
   "size": {
     "x": 13,
-    "y": 28,
-    "z": 62
+    "y": 29,
+    "z": 60
   },
   "generated_by": "quadruped",
   "kind": "jaguar",
@@ -21,15 +21,15 @@
     0,
     1
   ],
-  "height": 27,
-  "top_y": 127,
+  "height": 28,
+  "top_y": 128,
   "features_built": {
     "crown": 18,
-    "face": 27,
+    "face": 8,
     "tail": 33,
-    "eyes": 7
+    "eyes": 4
   },
-  "anat_top_y": 127,
+  "anat_top_y": 128,
   "asymmetry": {
     "leg_phase": 0,
     "head_turn": 0
@@ -60,7 +60,7 @@
       29
     ]
   },
-  "collisions": 12,
+  "collisions": 8,
   "file": "X jaguar.litematic",
   "name": "X jaguar"
 }

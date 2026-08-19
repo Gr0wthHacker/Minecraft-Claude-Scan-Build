@@ -49,7 +49,7 @@ leopard:
 
 lion:
   family: felid
-  height: 26
+  height: 32
   build: {body_r: 3.8, mane_volume: 2.6, head_r_ratio: 0.46}   # the mane is the whole difference
   coat:
     coat_pattern: shaded
@@ -66,7 +66,7 @@ lion:
 # ---------------------------------------------------------------- ursids
 bear:
   family: ursid
-  height: 24
+  height: 30
   build: {head_turn: 1}
   coat:
     coat_pattern: shaded
