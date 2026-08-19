@@ -104,7 +104,10 @@ QUADRUPED = {
                                 # is the same sweep as a cat's tail, hung off the face instead of the
                                 # rump - which is why it needed no new machinery, only a new anchor.
     # -- palette and pattern
-    "coat_pattern": "voronoi",  # voronoi (patches with grout) | blotches | rosettes | plain
+    "coat_pattern": "voronoi",  # voronoi | blotches | rosettes | shaded | plain
+    "coat_ramp": None,          # `shaded` only: blocks dark -> light. Shading by FORM is what makes
+                                # a big single-colour animal read as a sculpture instead of a blob.
+    "shade_strength": 1.0,
     "belly_block": None,        # pale underside; None leaves the coat alone
     "belly_frac": 0.30,         # share of the body's depth counted as underside
     "coat_block": "smooth_sandstone",
@@ -177,9 +180,14 @@ PROFILES = {
         # the ears are the most identifying thing about an elephant - bigger than its head
         "mane": False, "horns": "none", "ears": True, "ear_size": 2.6,
         "tail": "plain", "tail_len": 0.4,
-        "coat_pattern": "plain", "coat_block": "cobblestone",
-        "patch": "cobblestone", "patch_alt": "andesite",
-        "muzzle": "andesite", "dark": "black_wool", "hoof_block": "andesite",
+        # An elephant has no markings at all, so ALL of its quality has to come from form. Shaded
+        # by exposure: creases and the belly fall to deepslate, the back and the top of the head
+        # come up to smooth_stone. Flat cobblestone made a perfectly-proportioned grey blob.
+        "coat_pattern": "shaded",
+        "coat_ramp": ["deepslate", "tuff", "stone", "andesite", "smooth_stone"],
+        "shade_strength": 1.15,
+        "coat_block": "stone", "patch": "stone", "patch_alt": "andesite",
+        "muzzle": "tuff", "dark": "black_wool", "hoof_block": "andesite",
         "belly_block": None, "section_n": 2.3,
     },
     # Heavy forequarters, short thick neck, small round ears. Sits like a person.
@@ -189,9 +197,15 @@ PROFILES = {
         "neck": 4, "neck_r0": 2.8, "neck_r1": 2.5, "neck_lean": 0.7, "neck_from": 0.95,
         "head_len": 6, "head_r": 2.9,
         "mane": False, "horns": "none", "ears": True, "tail": "plain", "tail_len": 0.15,
-        "coat_pattern": "blotches", "patch_scale": 7.0,
-        "coat_block": "stripped_dark_oak_wood", "patch": "mangrove_wood",
-        "patch_alt": "mangrove_wood", "muzzle": "oak_log",
+        # A bear is one colour, so like the elephant all its quality is form. Five browns from
+        # dark_oak in the creases to coarse_dirt along the lit back - a range wide enough to model
+        # the shoulders without ever looking painted.
+        "coat_pattern": "shaded",
+        "coat_ramp": ["dark_oak_planks", "stripped_dark_oak_wood", "mangrove_wood",
+                      "spruce_planks", "coarse_dirt"],
+        "shade_strength": 1.1, "patch_scale": 7.0,
+        "coat_block": "mangrove_wood", "patch": "mangrove_wood",
+        "patch_alt": "stripped_dark_oak_wood", "muzzle": "oak_log",
         "dark": "black_wool", "hoof_block": "black_wool",
         "belly_block": None, "section_n": 2.2,
     },
@@ -203,8 +217,10 @@ PROFILES = {
         "neck": 1, "neck_r0": 2.4, "neck_r1": 2.2, "neck_lean": 0.6, "neck_from": 0.92,
         "head_len": 5, "head_r": 2.1,
         "mane": False, "horns": "none", "ears": True, "tail": "none",
-        "coat_pattern": "plain", "coat_block": "jungle_log",
-        "patch": "jungle_log", "patch_alt": "stripped_jungle_log",
+        "coat_pattern": "shaded",
+        "coat_ramp": ["spruce_planks", "coarse_dirt", "dirt", "jungle_log", "stripped_jungle_log"],
+        "shade_strength": 1.1,
+        "coat_block": "jungle_log", "patch": "jungle_log", "patch_alt": "stripped_jungle_log",
         "muzzle": "stripped_jungle_log", "dark": "black_wool", "hoof_block": "black_wool",
         "belly_block": None, "section_n": 2.1,
     },
@@ -360,6 +376,9 @@ def _coat(hide, p) -> dict:
     kind = p["coat_pattern"]
     if kind == "plain":
         return {}
+    if kind == "shaded":
+        return coat_mod.shade(hide, list(p["coat_ramp"] or []), seed=int(p["seed"]),
+                              strength=float(p["shade_strength"]))
     if kind == "rosettes":
         return coat_mod.rosettes(hide, p["patch"], p["coat_block"], centre=p.get("patch_alt"),
                                  scale=float(p["patch_scale"]), radius=float(p["ring_radius"]),

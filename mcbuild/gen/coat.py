@@ -98,6 +98,73 @@ def rosettes(cells, ring, ground, *, centre=None, scale: float = 5.0, thickness:
     return out
 
 
+def shade(cells, ramp, *, base=None, strength: float = 1.0, seed: int = 0, jitter: float = 0.05) -> dict:
+    """Shade a solid by FORM: light on what faces the sky, dark in creases and undersides.
+
+    This is the difference between a coloured shape and a statue. A single flat colour gives the eye
+    nothing to read the volume by, so a big smooth animal comes out as a grey blob however good its
+    proportions are - and every one of these did. Real sculpture is read by its shadows.
+
+    Two things drive it, and they are what a viewer's eye actually uses:
+      SKY      how much open air sits directly above a cell. A back is lit; a belly is not.
+      CREVICE  how enclosed it is among its 26 neighbours. Necks, armpits and the join between a leg
+               and a barrel are the places a form reads as folding into itself.
+
+    `ramp` is a list of blocks dark->light (build one with `mcbuild.blocks.ramp`). A little jitter
+    breaks up the banding you get when a smooth surface crosses a threshold all at once.
+    """
+    import numpy as np
+    from .. import morph
+    if not ramp:
+        return {}
+    cells = list(cells)
+    xs = [c[0] for c in cells]; ys = [c[1] for c in cells]; zs = [c[2] for c in cells]
+    ox, oy, oz = min(xs) - 2, min(ys) - 2, min(zs) - 2
+    a = np.zeros((max(ys) - oy + 3, max(zs) - oz + 3, max(xs) - ox + 3), dtype=bool)
+    for (x, y, z) in cells:
+        a[y - oy, z - oz, x - ox] = True
+    n26 = morph.neighbor_count(a, conn=26)
+    # sky: how far up is clear, capped - beyond a few blocks it stops mattering to the eye
+    CAP = 4
+    sky = np.zeros(a.shape, dtype=float)
+    for k in range(1, CAP + 1):
+        shifted = np.zeros_like(a)
+        shifted[:-k or None] = a[k:]
+        sky += (~shifted).astype(float)
+    # SKIN ONLY. An interior cell has nothing above it and neighbours on all sides, so it scores as
+    # the deepest crease there is - and since most of a solid animal is interior, shading everything
+    # made two thirds of the elephant deepslate. Nobody can see those blocks; they take the mid tone.
+    n6 = morph.neighbor_count(a, conn=6)
+    mid = ramp[len(ramp) // 2]
+    out = {}
+    top = len(ramp) - 1
+    # normalise across the SURFACE's own range, so the ramp is actually used end to end
+    vals = {}
+    for (x, y, z) in cells:
+        iy, iz, ix = y - oy, z - oz, x - ox
+        if n6[iy, iz, ix] >= 6:
+            continue                                     # buried
+        lit = sky[iy, iz, ix] / CAP
+        open_ = 1.0 - n26[iy, iz, ix] / 26.0
+        # SKY dominates. On a smooth body the 26-neighbour term varies block to block and reads as
+        # speckle, not as form; weighting it heavily gave the elephant a mottled coat that looked
+        # like noise. It is worth keeping only as a small hint for genuine creases.
+        vals[(x, y, z)] = 0.86 * lit + 0.14 * open_
+    if not vals:
+        return {c: mid for c in cells}
+    lo, hi = min(vals.values()), max(vals.values())
+    span = max(1e-6, hi - lo)
+    for c in cells:
+        if c not in vals:
+            out[c] = mid
+            continue
+        v = (vals[c] - lo) / span
+        v += jitter * (hash01(c[0], c[1], c[2], 131, seed) - 0.5)
+        v = 0.5 + (v - 0.5) * strength
+        out[c] = ramp[max(0, min(top, int(round(v * top))))]
+    return out
+
+
 def blotches(cells, patch, ground, *, scale: float = 5.0, rate: float = 0.5, seed: int = 0) -> dict:
     """Soft value-noise blobs. Right for a cow or a fox; wrong for a giraffe."""
     sc = max(1.0, scale)

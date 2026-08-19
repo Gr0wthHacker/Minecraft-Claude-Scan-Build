@@ -1,0 +1,55 @@
+{
+  "origin": {
+    "x": -24224,
+    "y": 100,
+    "z": 29971
+  },
+  "size": {
+    "x": 13,
+    "y": 24,
+    "z": 30
+  },
+  "generated_by": "quadruped",
+  "kind": "bear",
+  "pose": "standing",
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 23,
+  "top_y": 123,
+  "belly_y": 111,
+  "withers_y": 117.6,
+  "rump_y": 111,
+  "chest_y": 111,
+  "back_y": 119,
+  "neck_top_y": 120.6,
+  "shoulder_at": [
+    -24218.0,
+    117.6,
+    29990.0
+  ],
+  "neck_top_at": [
+    -24218.0,
+    120.6,
+    29994.9
+  ],
+  "along": {
+    "body": [
+      -10,
+      10
+    ],
+    "head": [
+      12,
+      18
+    ]
+  },
+  "collisions": 8,
+  "file": "T bear.litematic",
+  "name": "T bear"
+}

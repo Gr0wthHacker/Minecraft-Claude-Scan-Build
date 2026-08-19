@@ -1,0 +1,55 @@
+{
+  "origin": {
+    "x": -24228,
+    "y": 100,
+    "z": 29966
+  },
+  "size": {
+    "x": 21,
+    "y": 34,
+    "z": 47
+  },
+  "generated_by": "quadruped",
+  "kind": "elephant",
+  "pose": "standing",
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 33,
+  "top_y": 133,
+  "belly_y": 116,
+  "withers_y": 126.18,
+  "rump_y": 116,
+  "chest_y": 116,
+  "back_y": 129,
+  "neck_top_y": 128.18,
+  "shoulder_at": [
+    -24218.0,
+    126.2,
+    29994.0
+  ],
+  "neck_top_at": [
+    -24218.0,
+    128.2,
+    29998.2
+  ],
+  "along": {
+    "body": [
+      -14,
+      14
+    ],
+    "head": [
+      16,
+      24
+    ]
+  },
+  "collisions": 33,
+  "file": "T elephant.litematic",
+  "name": "T elephant"
+}
