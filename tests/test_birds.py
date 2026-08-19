@@ -135,3 +135,24 @@ def test_the_ruin_is_dressed_stone_against_the_rock_s_rough_stone():
     assert names & {"stone_bricks", "deepslate_bricks"}, "the wall lost its masonry"
     assert not ({"stone_bricks", "deepslate_bricks"} & set(bat.BAT["rock"])),         "the ruin and the rock now share blocks - the contrast is gone"
 
+def test_the_crenellations_are_actually_crenellated():
+    """The merlon pass alternates sectors round the top course. The main wall loop used to build a
+    full ring there FIRST, so the pass repainted cells that already existed - it alternated
+    perfectly and changed nothing, and the crown was a plain drum. The top course must be a
+    fraction of the parapet under it, or there are no crenellations however the code reads."""
+    c = GENERATORS["bat"].build(_RUIN, None)
+    s = _solid(c)
+    top, parapet = s[-1].sum(), s[-2].sum()
+    assert parapet > 0, "no parapet at all"
+    assert top < parapet * 0.75, f"top course {top} vs parapet {parapet}: that is a drum, not merlons"
+
+
+def test_the_tower_is_glazed_and_has_a_way_in():
+    """A door and lit slits are the strongest `this is a building` signal there is, and a sheared
+    stub with neither is what got called `a tossed grouping of vague blocks`."""
+    c = GENERATORS["bat"].build(_RUIN, None)
+    ids = c.to_model().ids
+    names = {c.palette[i].value["Name"].value.split(":")[-1] for i in set(ids.ravel().tolist()) if i}
+    assert "glass_pane" in names, "the windows lost their glazing"
+    assert "chiseled_stone_bricks" in names, "no lintel or sill: the openings are raw holes"
+

@@ -23,8 +23,8 @@ params:
   perch: true                # it brings its own ceiling
   perch_h: 8
   perch_r: 8.5
-  ruin: true                 # a broken stone-brick tower on the crown - see gen/bat.py
-  ruin_h: 10          # against 8 courses of rock: taller and the tower eats its own island
+  ruin: true                 # a stone-brick tower on the crown - see gen/bat.py
+  ruin_h: 15                 # a tower must be taller than it is wide, and it is 10 across
   ruin_r: 4.6
   hang: [-24172, 130, 30044] # the block the claws grip - the underside of its own rock
 finish:

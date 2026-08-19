@@ -308,7 +308,7 @@ use the bare form, it places all 54 designs including a shelf of scratch animals
 | `Lowland Heron` | 8,168 | grey heron, standing, Y41–124 |
 | `Lowland Flamingo` | 7,625 | pink, one leg tucked, kinked bill, body tilted, Y41–133 |
 | `Lowland Capybara Flee` | 6,725 | running, Y38–59 |
-| `Lowland Bat` | 1,857 | roosting on its OWN floating rock, a broken tower on its crown, Y112–148 |
+| `Lowland Bat` | 2,409 | roosting on its OWN floating rock, a stone tower on its crown, Y112–153 |
 
 The mammal predators were **retired**, not moved: the jaguar and the bear are the two shapes this
 system cannot build, they took the floor the birds needed, and keeping them would have been keeping
@@ -334,23 +334,39 @@ Three siting facts that cost time and are worth keeping:
 - **Wingspan is a function of how far away it hangs.** At 106 wide it was absurd; that was a
   consequence of hanging it 109 blocks up, where anything smaller could not read. Roosting close
   and furled (`spread: 0.5`) it is 46 wide and still shows its finger struts.
-- **The rock carries a RUIN, and its shape was decided by the viewing angle.** The perch reads as
-  a piece that broke off the plate, so it carries a piece of what was BUILT on the plate: a round
-  stone-brick wall, sheared, with a lantern inside. It sits in open sky 52 blocks below the rim, so
-  it is seen from steeply above as much as in profile, and it had to work in PLAN — which is what
-  ruled out an arch (negative space you cannot look through does nothing) and a bare snag (a few
-  scattered pixels from overhead). From above it reads as a dark broken ring with one bright point
-  in it. Three things it took to stop looking like a witch's hat:
-  - **The shear is a PLANE, not a cosine.** A cosine falls away smoothly in every direction from
-    the high point, which is a cone. Projecting onto the shear direction and clamping gives a flat
-    crown over a broad arc and then a hard diagonal drop, which is what a break looks like.
-  - **The gash goes through the TALL side**, splitting the crown into two horns. Behind the low
-    side it changed nothing: the silhouette stayed one unbroken wedge.
-  - **`cracked` and `chiseled` stone brick are within 4 RGB of plain**, so weathering the wall with
-    them is invisible — it had no tone and no horizontal at all. Two string courses of
-    `deepslate_bricks` (51 darker, and the island's own stone dressed) are what make it masonry.
-    And the weathering hash must be on the CELL: hashed on the course, every block in a course came
+- **The rock carries a TOWER, and its shape was decided by the viewing angle.** The perch reads as
+  a piece that broke off the plate, so it carries a piece of what was BUILT on the plate. It sits in
+  open sky 52 blocks below the rim, seen from steeply above as much as in profile, so it had to work
+  in PLAN — which ruled out an arch (negative space you cannot look through does nothing from
+  overhead) and a bare snag (a few scattered pixels). From above it is a ring of dark merlons round
+  a lit deck.
+
+  The first attempt was a sheared stub with a jagged top and it was rejected on sight as *"a tossed
+  grouping of vague blocks"* — correctly. **What makes voxels read as ARCHITECTURE is regularity and
+  openings, not damage.** It now stands full height and regular: a flared plinth, a door with a
+  lintel, three glazed slits with sills, a string course, a corbelled overhang, a parapet and
+  crenellations — and the ruin is ONE broken arc with its merlons on the moss below. A building that
+  has taken damage, rather than damage that vaguely suggests a building. Five things it cost:
+
+  - **The shear must be a PLANE, not a cosine** — a cosine falls away smoothly in every direction
+    from the high point, which is a cone, and it built a witch's hat. (Kept for the broken arc.)
+  - **`cracked` and `chiseled` stone brick are within 4 RGB of plain**, so weathering a wall with
+    them is invisible: it gave the tower no tone and no horizontal at all. Every band that reads is
+    `deepslate_bricks` — 51 darker, and the island's own stone dressed. Plinth, string course,
+    corbel and merlons all take it, which is also what makes them look like one building.
+  - **The weathering hash must be on the CELL.** Hashed on the course, every block in a course came
     out identical and the wall was horizontal stripes of one material.
+  - **The crenellation course must be left EMPTY by the wall loop.** Building a full ring there
+    first and then alternating merlons over it repaints cells that already exist — it alternated
+    perfectly and changed nothing, and the crown was a plain drum. `test_the_crenellations_are_
+    actually_crenellated` pins it, because nothing about the code looked wrong.
+  - **From directly above, a merlon in the parapet's own block is invisible** — a plan view sees
+    only the topmost cell, and a merlon and the course under it were the same colour. Dark merlons
+    are the only reason the crown reads from the angle that matters.
+
+  A `glass_pane` needs its connection state set ALONG the wall; with every side false it renders as
+  a lone post rather than as glazing. Plain panes are `ok` tier — every stained pane and plain
+  `glass` are `expensive` on this economy, which is odd given a pane is made from glass.
 
 - **A flamingo does not stand level.** Its body slopes down to the breast with the tail carried high
   and the neck leaving from a low point at the front. The body used to be one upright ellipsoid,

@@ -68,6 +68,10 @@ BAT = {
     "ruin_plinth": "chiseled_stone_bricks",
     "ruin_slab": "stone_brick_slab",
     "ruin_lamp": "lantern",
+    # plain glass_pane. Every stained pane is `expensive` on this economy and so is plain
+    # `glass`, which is odd given a pane is made FROM glass - but the tier table is what it
+    # is, and `ok` is what the perch's own deepslate already costs.
+    "ruin_glass": "glass_pane",
     "spread": 0.75,              # 0 = furled tight, 1 = wings fully out
     # dark, and deliberately NOT made of the ceiling it hangs from: the lowland's roof is stone,
     # cobble, deepslate and moss, so a bat in those would vanish the way the elephant did.
@@ -186,83 +190,151 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
                     break
                 c.put(rx, roof - k, rz, vine)
 
-    # ---- THE RUIN on the crown. A round wall SHEARED diagonally - tall on one side, falling to a
-    # stub on the other - with its collapsed course lying on the moss below the low side and a
-    # lantern burning inside. Nothing else out here carries a light.
+    # ---- THE TOWER on the crown. It was a sheared stub with a jagged top, and that reads as a
+    # tossed heap of grey rather than as anything built - "too ruined" was exactly right. What
+    # makes voxels read as ARCHITECTURE is regularity and openings, not damage: a flared plinth, a
+    # door with a lintel, glazed window slits, a string course, a corbelled overhang and
+    # crenellations. So it stands full height and regular, and the ruin is now ONE broken arc of
+    # parapet with its merlons lying on the moss below - a building that has taken damage, rather
+    # than damage that vaguely suggests a building.
     if ruin:
-        h1 = lambda *a: hash01(*a, seed + 7)
+        h1 = lambda *q: hash01(*q, seed + 7)
         R = float(p["ruin_r"]) * sc
         tk = float(p["ruin_t"]) * sc
         face = float(p["ruin_face"])
-        base = roof + ph                              # the moss course; the wall starts one above
+        base = roof + ph                              # the moss course; the tower starts one above
+        H = rh
         brick, mossy = st(p["ruin_block"]), st(p["ruin_moss"])
-        crack, plinth = st(p["ruin_crack"]), st(p["ruin_plinth"])
-        slab, lamp = st(p["ruin_slab"]), st(p["ruin_lamp"])
+        crack, trim = st(p["ruin_crack"]), st(p["ruin_plinth"])
+        band, slab, lamp = st(p["ruin_band"]), st(p["ruin_slab"]), st(p["ruin_lamp"])
+        flare = 0.85 * sc                             # how far the plinth and the corbel stand out
+        mid = max(3, int(H * 0.52))                   # the string course
+        corbel = H - 3                                # the overhang, and the parapet's floor
+        RF = R + flare
 
-        band = st(p["ruin_band"])
-        bands = {1, max(3, int(rh * 0.55))}           # a plinth course and one string course
-
-        def _course(k, fr, dx, dz):
-            """weather UPWARD: moss climbs off the rock, cracks gather where the weather gets in.
-            Hashed on the CELL. It used to hash on the course alone, so every block in a course
-            came out the same and the wall was horizontal stripes of one material."""
-            if k in bands:
-                return band
+        def _shaft(dx, dz, k):
+            """Weathering, hashed on the CELL. Hashed on the course, every block in a course came
+            out identical and the wall was horizontal stripes of one material."""
             r = h1(dx, k, dz, 23)
-            if r < 0.34 * (1.0 - fr) + 0.05:
-                return mossy
-            if r > 1.0 - (0.30 * fr + 0.05):
-                return crack
-            return brick
+            if r < 0.20:
+                return mossy if k < H * 0.45 else crack
+            return crack if r > 0.90 else brick
 
-        # the gash goes through the TALL side, splitting the crown into two horns. Behind the
-        # low side it did nothing: the silhouette stayed one unbroken wedge, which is a fin.
-        gash = face + 0.34
-        for dx in range(-int(R) - 2, int(R) + 3):
-            for dz in range(-int(R) - 2, int(R) + 3):
-                d = (dx * dx + dz * dz) ** 0.5
-                if d > R or d < R - tk:
-                    continue                          # a RING, not a disc
-                a = np.arctan2(dz, dx)
-                # THE SHEAR IS A PLANE, not a cosine. A cosine falls away smoothly from the high
-                # point in every direction, which is a cone - and it built a witch's hat rather
-                # than a ruin. A break is a FLAT crown over a broad arc, then a hard diagonal
-                # drop: project onto the shear direction and let the clamps do the flattening.
-                proj = (dx * np.cos(face) + dz * np.sin(face)) / max(1e-6, R)
-                hh = min(float(rh), max(rh * 0.16, rh * (0.60 + 0.78 * proj)))
-                hh -= 3.6 * h1(dx, 5, dz, 29)         # ragged top, so it reads as broken masonry
-                da = (a - gash + np.pi) % (2 * np.pi) - np.pi
-                if abs(da) < 0.24:                    # the crack: open from the top down to ~40%
-                    hh = min(hh, rh * 0.40)
-                for k in range(1, int(round(hh)) + 1):
-                    y = base + k
+        def _ring(k, r_out, thick, pick):
+            y = base + k
+            for dx in range(-int(r_out) - 2, int(r_out) + 3):
+                for dz in range(-int(r_out) - 2, int(r_out) + 3):
+                    d = (dx * dx + dz * dz) ** 0.5
+                    if d > r_out or d < r_out - thick:
+                        continue
                     if not c.get(int(round(cx + dx)), base, int(round(cz + dz))):
-                        break                         # never build off the rock's ragged edge
-                    c.put(int(round(cx + dx)), int(y), int(round(cz + dz)), _course(k, k / max(1, rh), dx, dz))
+                        continue                      # never build off the rock's ragged edge
+                    c.put(int(round(cx + dx)), y, int(round(cz + dz)), pick(dx, dz, k))
 
-        # a window slit high on the tall side, so the light inside has a second way out
-        wa = face + 0.55
-        wx, wz = int(round(cx + (R - 0.6) * np.cos(wa))), int(round(cz + (R - 0.6) * np.sin(wa)))
-        for k in (int(rh * 0.62), int(rh * 0.62) + 1):
-            for dd in range(-int(tk) - 1, int(tk) + 2):
-                c.put(int(round(wx + dd * np.cos(wa))), base + k, int(round(wz + dd * np.sin(wa))), 0)
+        def _arc(ang, a0, half):
+            return abs((ang - a0 + np.pi) % (2 * np.pi) - np.pi) < half
 
-        # the LANTERN, on a plinth in the middle. From straight above - which is the angle this is
-        # actually seen from - the read is a dark broken ring with one bright point in it.
-        c.put(int(cx), base + 1, int(cz), plinth)
+        for k in range(1, H + 1):
+            if k <= 2:                                # PLINTH: a flared base, so the tower sits
+                _ring(k, RF, tk + flare, lambda dx, dz, kk: band if kk == 2 else brick)
+            elif k == mid:                            # rather than balances. STRING COURSE.
+                _ring(k, R + flare * 0.45, tk + flare * 0.45, lambda dx, dz, kk: band)
+            elif k < corbel:
+                _ring(k, R, tk, _shaft)
+            elif k == corbel:                         # CORBEL: the overhang a parapet stands on
+                _ring(k, RF, tk + flare, lambda dx, dz, kk: band)
+            elif k < H:                               # parapet. NOT k == H: that course belongs
+                _ring(k, RF, tk * 0.85, _shaft)       # to the merlons, and building a full ring
+                                                      # there left the crenellation pass repainting
+                                                      # cells that already existed - it alternated
+                                                      # perfectly and changed nothing at all.
+
+        # the parapet's FLOOR, so from straight above the read is a ring of merlons round a lit
+        # deck rather than a hole. That is the angle this is actually seen from.
+        for dx in range(-int(R) - 1, int(R) + 2):
+            for dz in range(-int(R) - 1, int(R) + 2):
+                if (dx * dx + dz * dz) ** 0.5 <= R - tk + 0.4:
+                    c.put(int(round(cx + dx)), base + corbel, int(round(cz + dz)), brick)
+
+        # CRENELLATIONS. Alternating sectors, and the one detail that says "tower" on its own.
+        broke = face + 2.55                           # ...and the arc that came down
+        for dx in range(-int(RF) - 2, int(RF) + 3):
+            for dz in range(-int(RF) - 2, int(RF) + 3):
+                d = (dx * dx + dz * dz) ** 0.5
+                if d > RF or d < RF - tk * 0.85:
+                    continue
+                ang = np.arctan2(dz, dx)
+                if _arc(ang, broke, 0.62):            # this stretch is down: parapet AND merlons
+                    for k in (H - 1, H):
+                        c.put(int(round(cx + dx)), base + k, int(round(cz + dz)), 0)
+                    continue
+                if int(((ang - face) % (2 * np.pi)) / (2 * np.pi / 14)) % 2 == 0:
+                    # in the parapet's OWN block the merlons were invisible from directly above -
+                    # which is the angle that matters here - because a merlon and the parapet
+                    # course beneath it are the same colour and a plan view sees only the topmost
+                    # cell. Dark, so the crown reads as a dashed ring; and it gives the top the
+                    # same coping the plinth, the string course and the corbel already have.
+                    c.put(int(round(cx + dx)), base + H, int(round(cz + dz)), band)
+
+        # ---- OPENINGS. A door and three glazed slits: the strongest "this is a building" signal
+        # there is, and the thing the sheared stub had none of.
+        def _band(k, a0, half, blk):
+            for dx in range(-int(RF) - 2, int(RF) + 3):
+                for dz in range(-int(RF) - 2, int(RF) + 3):
+                    d = (dx * dx + dz * dz) ** 0.5
+                    if R - tk - 0.6 <= d <= RF and _arc(np.arctan2(dz, dx), a0, half):
+                        c.put(int(round(cx + dx)), base + k, int(round(cz + dz)), blk)
+
+        def _carve(a0, half, k0, k1, glaze):
+            cells = []
+            for k in range(k0, k1 + 1):
+                for dx in range(-int(RF) - 2, int(RF) + 3):
+                    for dz in range(-int(RF) - 2, int(RF) + 3):
+                        d = (dx * dx + dz * dz) ** 0.5
+                        if d > RF or d < R - tk - 0.6:
+                            continue
+                        if not _arc(np.arctan2(dz, dx), a0, half):
+                            continue
+                        c.put(int(round(cx + dx)), base + k, int(round(cz + dz)), 0)
+                        cells.append((dx, dz, k, d))
+            if glaze and cells:
+                # a pane in the OUTERMOST cell of each course, connected ALONG the wall - a pane
+                # with every side false renders as a lone post, not as glazing
+                tx, tz = -np.sin(a0), np.cos(a0)
+                ax = ({"east": "true", "west": "true"} if abs(tx) >= abs(tz)
+                      else {"north": "true", "south": "true"})
+                pane = st(p["ruin_glass"], **ax)
+                for k in range(k0, k1 + 1):
+                    row = [q for q in cells if q[2] == k]
+                    if not row:
+                        continue
+                    dmax = max(q[3] for q in row)
+                    for dx, dz, _, d in row:
+                        if d >= dmax - 0.5:
+                            c.put(int(round(cx + dx)), base + k, int(round(cz + dz)), pane)
+
+        _carve(face, 0.26, 1, 3, False)               # the DOOR, through the plinth
+        _band(4, face, 0.26, trim)                    # ...and its lintel
+        for wa, wk in ((face + 2.05, int(H * 0.34)), (face - 1.75, int(H * 0.58)),
+                       (face + 0.62, int(H * 0.74))):
+            _carve(wa, 0.15, wk, wk + 1, True)
+            _band(wk - 1, wa, 0.15, trim)             # a sill under each
+
+        # LIGHT. Nothing else out here carries any: one lamp on a plinth at ground level, seen
+        # through the door and the slits, and one on the parapet deck - which is what makes this
+        # something you can find in the dark from the island's rim.
+        c.put(int(cx), base + 1, int(cz), trim)
         c.put(int(cx), base + 2, int(cz), lamp)
+        c.put(int(cx), base + corbel + 1, int(cz), lamp)
 
-        # ...and the collapsed course, lying on the moss out beyond the LOW side where it fell.
-        low = face + np.pi
-        for j in range(int(round(30 * sc))):
-            a = low + (h1(j, 8, 1, 31) - 0.5) * 2.4
-            # OUTSIDE the wall's own footprint: at 0.55-1.40 R most draws landed on the ring
-            # itself, were correctly refused, and 16 tries left 2 stones on the ground
-            d = R * (1.06 + 0.52 * h1(j, 9, 2, 37))
-            rx, rz = int(round(cx + d * np.cos(a))), int(round(cz + d * np.sin(a)))
+        # ...and the merlons that came off the broken arc, lying on the moss below it.
+        for j in range(int(round(22 * sc))):
+            ang = broke + (h1(j, 8, 1, 31) - 0.5) * 1.7
+            d = RF * (1.08 + 0.46 * h1(j, 9, 2, 37))
+            rx, rz = int(round(cx + d * np.cos(ang))), int(round(cz + d * np.sin(ang)))
             if not c.get(rx, base, rz) or c.get(rx, base + 1, rz):
-                continue                              # only onto bare moss, never inside the wall
-            c.put(rx, base + 1, rz, slab if h1(j, 10, 3, 41) < 0.45 else _course(0, 0.1, rx, rz))
+                continue                              # only onto bare moss, never into the wall
+            c.put(rx, base + 1, rz, slab if h1(j, 10, 3, 41) < 0.45 else brick)
 
     # ---- FEET, gripping the roof. Two hooked claws, which is the detail that says "hanging"
     # rather than "falling" - without them the whole thing reads as a bat mid-air, upside down.
