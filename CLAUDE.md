@@ -110,6 +110,36 @@ Anything derived from the standing skeleton must follow the POSED one: leg lengt
 line, and the belly line sets the countershading. Getting that wrong leaves legs floating under a
 hovering barrel, or pale bands painted round a sitting cat's knees.
 
+## How big does it have to be
+
+```bash
+python tools/scale.py <species>                  # the analytic floor, and what binds it
+python tools/scale.py --all                      # every species side by side
+python tools/scale.py --measure <config>         # BUILD at a range of scales, report the real curve
+```
+
+Every feature needs a minimum number of blocks to read (a leg under 3 wide is a line; a head under 5
+cannot carry a muzzle and an eye) and every feature is a fixed FRACTION of the animal's height. So:
+
+    minimum height = min_blocks(feature) / reference_fraction(feature)
+
+and the largest such height over all features is the animal's critical size. **This is why some
+animals must be huge and others need not be**: a giraffe's leg is 5% of its height, so a 3-block leg
+forces 59 blocks of giraffe. A jaguar's leg is 13%, so the same leg only forces 23. It is the animal
+with the finest features *relative to its own size* that has to be big — not the biggest animal.
+
+The prediction holds up: the giraffe's floor is 59 and 57 is the smallest build that scores 88%;
+below it, 42 blocks scores 38% and 18 scores 12%. It also explains the deer scoring 1/8 — it was
+built 27 tall against a floor of 56, which was never a tuning problem.
+
+**Size sets a ceiling; tuning sets the plateau.** `--measure` distinguishes them: quality climbs with
+size and then flattens, and where it flattens is how well the profile is tuned. The jaguar plateaus
+at 75% at every size, so more blocks cannot help it — that is a proportion fix. You cannot tune past
+the size floor and you cannot size past a wrong ratio.
+
+`params.scale` on any quadruped multiplies every linear dimension together (scaling only some of them
+changes the proportions, which is a different operation the audit would rightly complain about).
+
 ## Auditing a shape
 
 Three tools, because "it looks lumpy / it feels off" is not actionable and the eye passes bad shapes:

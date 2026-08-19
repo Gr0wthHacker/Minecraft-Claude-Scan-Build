@@ -1,0 +1,55 @@
+{
+  "origin": {
+    "x": -24206,
+    "y": 100,
+    "z": 29988
+  },
+  "size": {
+    "x": 9,
+    "y": 11,
+    "z": 19
+  },
+  "generated_by": "quadruped",
+  "kind": "jaguar",
+  "pose": "sitting",
+  "feet": [
+    -24202,
+    101,
+    29998
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 9,
+  "top_y": 110,
+  "belly_y": 103,
+  "withers_y": 108.44000000000001,
+  "rump_y": 103,
+  "chest_y": 105,
+  "back_y": 106,
+  "neck_top_y": 108.44000000000001,
+  "shoulder_at": [
+    -24202.0,
+    108.4,
+    30000.0
+  ],
+  "neck_top_at": [
+    -24202.0,
+    108.4,
+    30003.6
+  ],
+  "along": {
+    "body": [
+      -4,
+      5
+    ],
+    "head": [
+      5,
+      7
+    ]
+  },
+  "collisions": 12,
+  "file": "S0.35.litematic",
+  "name": "S0.35"
+}

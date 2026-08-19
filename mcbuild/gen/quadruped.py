@@ -82,6 +82,8 @@ QUADRUPED = {
     "look_at": None,            # world (x, y, z) it faces; snapped to the nearest cardinal
     "profile": None,            # a key of PROFILES; params below override whatever it sets
     "pose": "standing",         # a key of POSES - see `python tools/stance.py` to choose one
+    "scale": 1.0,               # multiplies every block dimension. `python tools/scale.py <species>`
+                                # says how big this animal has to be before its features can exist
     # -- proportions (blocks). Check them with `python tools/proportions.py <design>`.
     "leg": 17, "hoof": 2, "leg_r": 1.9,
     "body_len": 22, "withers": 13, "hips": 8, "body_r": 4.9,
@@ -174,6 +176,15 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
     for k in ("feet", "look_at"):
         if p.get(k) is None:
             raise ValueError(f"quadruped needs params.{k}")
+    # SCALE every linear dimension together. Scaling only some of them changes the animal's
+    # proportions, which is a different operation and one the audit would rightly complain about.
+    sc = float(p.get("scale", 1.0))
+    if abs(sc - 1.0) > 1e-6:
+        for k in ("leg", "body_len", "withers", "hips", "neck", "head_len"):
+            p[k] = max(1, int(round(float(p[k]) * sc)))
+        for k in ("leg_r", "body_r", "neck_r0", "neck_r1", "head_r", "patch_scale"):
+            p[k] = float(p[k]) * sc
+        p["hoof"] = max(0, int(round(float(p["hoof"]) * sc)))
     keys = {**BASE_KEYS, **{k: [list(r) for r in v] for k, v in (p.get("keys") or {}).items()}}
     if p.get("pose") not in POSES:
         raise ValueError(f"unknown pose {p.get('pose')!r}; have {sorted(POSES)}")
