@@ -1,0 +1,24 @@
+# A GREY HERON standing on the lowland floor, near the capybara.
+#
+# This is the body plan the medium can actually build. Everything in `quadruped.py` that reads badly
+# reads badly for one reason - a cat's shoulder and a bear's haunch are COMPOUND VOLUMETRIC MUSCLE,
+# which voxels describe worst of anything - and a heron has none. Its beak is a linear taper, its
+# neck a column, its legs columns, its folded wing layered planes. Every one of those is a shape
+# this system already proved it can build: the trunk, the giraffe, the sky bird.
+#
+# The two builds players picked out on this island are the sky bird and the giraffe. This is both.
+name: Lowland Heron
+gen: heron
+params:
+  variant: heron
+  scale: 1.5                 # the feather courses and the toes are per-block work; they need room
+  seed: 0
+  feet: [-24230, 42, 30020]  # the ground rolls 4-5 blocks here, so stand clear of its HIGHEST point
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine, short_grass, fern, moss_carpet, poppy, dandelion, azalea, flowering_azalea]
+  verify_against: out/lowland_planned.litematic
+origin_lock: false           # LOUD: stands at Y40 on the lowland, ~160 below every other lock corner

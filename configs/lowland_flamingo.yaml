@@ -1,0 +1,26 @@
+# A FLAMINGO, on one leg, twelve blocks from the heron.
+#
+# Same skeleton as the heron - the medium can build it, so build two of it - and the difference is
+# carried by colour and three curves, exactly the way a lion differs from a leopard: the bill KINKS
+# DOWN halfway along and ends black, the neck is longer and far more sinuous, and one leg is folded
+# up against the body.
+#
+# The colour is the point. The lowland floor is moss, mossy cobble and deepslate, and the heron's
+# grey clears it by +40 luminance; pink clears it on HUE as well, which nothing else on this island
+# does. In a lantern-lit cave with no daylight, that is the difference between a statue you notice
+# and one you walk past.
+name: Lowland Flamingo
+gen: heron
+params:
+  variant: flamingo
+  scale: 1.5
+  seed: 3
+  feet: [-24165, 42, 29990]  # the ground rolls 4-5 blocks here, so stand clear of its HIGHEST point
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine, short_grass, fern, moss_carpet, poppy, dandelion, azalea, flowering_azalea]
+  verify_against: out/lowland_planned.litematic
+origin_lock: false

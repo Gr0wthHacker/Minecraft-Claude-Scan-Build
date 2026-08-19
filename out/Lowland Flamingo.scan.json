@@ -1,0 +1,30 @@
+{
+  "origin": {
+    "x": -24200,
+    "y": 41,
+    "z": 29957
+  },
+  "size": {
+    "x": 69,
+    "y": 96,
+    "z": 63
+  },
+  "generated_by": "heron",
+  "kind": "flamingo",
+  "scale": 1.5,
+  "facing": [
+    0,
+    1
+  ],
+  "features_built": {
+    "legs": 2,
+    "toes": 8,
+    "neck": 1,
+    "beak": 1,
+    "wing_courses": 18,
+    "crest": 2,
+    "eyes": 2
+  },
+  "file": "Lowland Flamingo.litematic",
+  "name": "Lowland Flamingo"
+}

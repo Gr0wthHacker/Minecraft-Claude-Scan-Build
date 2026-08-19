@@ -1,0 +1,23 @@
+# A BAT hanging from the void isle's underside, over the lowland.
+#
+# It uses a surface nothing else on this island touches. The lowland is ROOFED - 4,193 of its
+# columns sit under the plate and 1,504 under the void isle, and only 154 are open to the sky - so
+# there is a ceiling overhead wherever you stand down there and not one thing hanging from it.
+#
+# `hang` is the block its claws grip. Y150 is the ISLAND'S OWN UNDERSIDE - the lowest block of
+# the plate above - rather than the void isle's Y86, because the birds below stand 90 blocks
+# tall and a bat hung at 86 had a heron's neck passing straight through its wing. Hanging it
+# from the true roof puts it above everything and makes it something you find by looking UP.
+name: Lowland Bat
+gen: bat
+params:
+  scale: 1.9
+  seed: 0
+  spread: 0.85
+  hang: [-24174, 150, 30034]
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+origin_lock: false

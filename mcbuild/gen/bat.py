@@ -30,6 +30,9 @@ BAT = {
     # writes no sidecar, and without a sidecar there is no origin, no in-context
     # audit and no `/cscan place`. The gecko still has this gap.
     "at": None,
+    # ...or give `hang`, the world block its claws grip. A bat is placed by the ceiling it
+    # holds on to, not by the corner of its box.
+    "hang": None,
     "spread": 0.75,              # 0 = furled tight, 1 = wings fully out
     # dark, and deliberately NOT made of the ceiling it hangs from: the lowland's roof is stone,
     # cobble, deepslate and moss, so a bat in those would vanish the way the elephant did.
@@ -161,7 +164,10 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
             for x in range(SX):
                 if c.get(x, y, z) == S["skin"] and h(x, y, z, 11) < 0.14:
                     c.put(x, y, z, S["skin_edge"])
-    if p.get("at"):
+    if p.get("hang"):
+        hx_, hy_, hz_ = (float(v) for v in p["hang"])
+        c.world_origin = (int(round(hx_ - cx)), int(round(hy_ - roof)), int(round(hz_ - cz)))
+    elif p.get("at"):
         c.world_origin = tuple(int(v) for v in p["at"])
     # its head points at the FLOOR, so "facing" says nothing useful; the view that
     # matters is the one looking along z, straight at the spread wings

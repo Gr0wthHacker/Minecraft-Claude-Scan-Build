@@ -297,6 +297,34 @@ system is built around a mammal barrel and should not be used for them.
 **Do not build:** cats, bears, or anything whose species is carried by muscle mass. `quadruped.py`
 still holds eight of them and they score GOOD; the score is measuring the wrong thing.
 
+## The lowland scene, as shipped (2026-08-19)
+
+Four designs, all one piece, none sharing a cell with another. `/cscan place` each by name — do NOT
+use the bare form, it places all 54 designs including a shelf of scratch animals.
+
+| design | blocks | what it is |
+|---|---|---|
+| `Lowland` | 35,197 | the ground itself, Y24–47 |
+| `Lowland Heron` | 8,500 | grey heron, standing, Y41–124 |
+| `Lowland Flamingo` | 8,229 | pink, one leg tucked, kinked bill, Y41–133 |
+| `Lowland Capybara Flee` | 6,725 | running, Y38–59 |
+| `Lowland Bat` | 4,287 | hangs from the ISLAND'S underside at Y150, not the void isle |
+
+The mammal predators were **retired**, not moved: the jaguar and the bear are the two shapes this
+system cannot build, they took the floor the birds needed, and keeping them would have been keeping
+a spotted table because it was already made.
+
+Three siting facts that cost time and are worth keeping:
+
+- **Headroom is not 46 blocks, it is a median of 151.** The earlier figure was measured only under
+  the void isle's footprint, which is 1,504 of the lowland's 5,851 columns. A 90-block bird fits
+  almost anywhere; it just must not be under the isle.
+- **The birds stand at Y42, not Y40.** The ground rolls 4–5 blocks under a splayed foot, so standing
+  on the MEDIAN height buries the toes on the high side. Stand clear of the maximum.
+- **The bat hangs from Y150.** Hung from the void isle at Y86 a heron's neck passed straight through
+  its wing, because the birds are 90 tall and stand on ground at 41. The island's own underside puts
+  it above everything and makes it something you find by looking up.
+
 ## The panel review — the last step before shipping
 
 `python tools/panel.py "<design>"`. The rubric measures proportion, surface, palette, symmetry, and

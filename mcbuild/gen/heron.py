@@ -29,7 +29,40 @@ import numpy as np
 
 from .canvas import Canvas, hash01
 
+# A WADING BIRD, IN TWO SPECIES. The skeleton is identical - stilt legs, S-neck, dagger, planar
+# wing - because that is the body plan the medium can build. What separates them is the same thing
+# that separates a lion from a leopard: colour, and two or three curves.
+#
+#   bill        a heron's is a straight dagger; a flamingo's KINKS DOWN halfway along, and that
+#               kink is the single most recognisable thing about the bird
+#   neck        a heron folds its neck into a shallow S; a flamingo's is longer and far more
+#               sinuous, and it hangs the head lower than the shoulder
+#   stance      a flamingo tucks one leg up against the body, which a heron does too but which on
+#               a pink bird is the pose everybody pictures
+VARIANTS = {
+    "heron": {
+        "body": "light_gray_wool", "wing": "light_gray_concrete", "wing_edge": "gray_concrete",
+        "pale": "white_wool", "dark": "black_wool", "beak": "yellow_terracotta",
+        "eye": "orange_wool", "leg": "brown_terracotta",
+        "bill_kink": 0.0, "neck_s": 1.0, "neck_len": 20.0, "tuck": False, "speckle": 0.16,
+        "crest": True,
+    },
+    "flamingo": {
+        # bright, and it is the whole point: pink against dark moss is the strongest signal any
+        # animal on this island can send. Measured, the heron's grey sits +40 luminance clear of
+        # the lowland floor - a flamingo's pink clears it on HUE as well, which nothing else does.
+        "body": "pink_wool", "wing": "pink_terracotta", "wing_edge": "magenta_terracotta",
+        "pale": "pink_wool", "dark": "black_wool", "beak": "pink_terracotta",
+        "eye": "yellow_wool", "leg": "pink_terracotta",
+        "bill_kink": 1.0, "neck_s": 1.9, "neck_len": 26.0, "tuck": True, "speckle": 0.0,
+        # a flamingo has no nape plumes and no dark eye-stripe; wearing the heron's made it look
+        # like a heron someone had painted
+        "crest": False,
+    },
+}
+
 HERON = {
+    "variant": "heron",
     "size": [46, 64, 42],
     "seed": 0,
     "scale": 1.0,
@@ -38,6 +71,9 @@ HERON = {
     # writes no sidecar, and without a sidecar there is no origin, no in-context
     # audit and no `/cscan place`. The gecko still has this gap.
     "at": None,
+    # ...or give `feet` and let it work the corner out. Positioning a bird by the corner of
+    # its bounding box means doing the offset by hand every time and getting it wrong once.
+    "feet": None,
     # a grey heron: pale body, slate wing, near-white neck, black crest and shoulder stripe.
     # Chosen to sit about +40 luminance clear of the lowland's moss - the elephant failed at a
     # minimum dRGB of 0 by being built out of the ground it stood on.
@@ -85,6 +121,8 @@ def _stick(c: Canvas, x, y, z, blk) -> bool:
 
 def build_heron(cfg: dict, donors=None) -> Canvas:
     p = {**HERON, **cfg}
+    p = {**p, **VARIANTS.get(p.get("variant", "heron"), {}), **cfg}
+    V = p
     sc = float(p.get("scale", 1.0))
     SX, SY, SZ = (max(8, int(round(v * sc))) for v in p["size"])
     seed = int(p["seed"])
@@ -100,8 +138,22 @@ def build_heron(cfg: dict, donors=None) -> Canvas:
     # gecko's fanned toes, which are a large part of why it reads.
     for side in (-1, 1):
         lx = cx + side * 3.2 * u
+        if V.get("tuck") and side > 0:
+            # the STANDING leg carries the whole bird, so it moves under the centre of mass. This
+            # has to happen before the columns are drawn, not after - setting it later left the
+            # toes 3 blocks from the leg they belong to and put the design in two pieces.
+            lx = cx
+        if V.get("tuck") and side < 0:
+            # ONE LEG FOLDED UP against the body - the pose everyone pictures a flamingo in, and
+            # the reason the silhouette is unmistakable even in a thumbnail
+            c.line((lx, body_y - 3.0 * u, cz - 0.8 * u),
+                   (lx - 0.6 * u, body_y - 7.0 * u, cz + 3.0 * u), 1.15 * u, S["leg"])
+            c.line((lx - 0.6 * u, body_y - 7.0 * u, cz + 3.0 * u),
+                   (lx + 0.4 * u, body_y - 4.0 * u, cz + 6.0 * u), 0.95 * u, S["leg"])
+            continue
         c.line((lx, foot_y, cz + 1.2 * u), (lx, hock_y, cz + 2.6 * u), 1.05 * u, S["leg"])
         c.line((lx, hock_y, cz + 2.6 * u), (lx, body_y - 2.0 * u, cz - 0.8 * u), 1.3 * u, S["leg"])
+
         # toes get their OWN course at the very bottom and a knuckle at each tip, so they read as
         # toes from the side rather than vanishing into the ground line
         for a, dz in ((0.0, 4.6), (-1.0, 3.6), (1.0, 3.6), (0.0, -3.4)):
@@ -121,19 +173,32 @@ def build_heron(cfg: dict, donors=None) -> Canvas:
 
     # ---- THE S-NECK. A standing heron folds its neck into an S rather than holding it straight,
     # and that kink is most of the outline's signature. Four control points, not two.
-    neck_top = body_y + 20.0 * u
+    nl, ns = float(V["neck_len"]), float(V["neck_s"])
+    neck_top = body_y + nl * u
+    # the S is DEEPER on a flamingo and shallower on a heron; `ns` scales how far the middle of the
+    # neck swings back before the head comes forward again
     _taper(c, [(cx, body_y + 4.0 * u, cz + 1.5 * u),
-               (cx, body_y + 10.0 * u, cz - 3.4 * u),
-               (cx, body_y + 16.0 * u, cz + 1.2 * u),
-               (cx, neck_top, cz + 2.8 * u)], 3.0 * u, 1.7 * u, S["pale"])
+               (cx, body_y + nl * 0.50 * u, cz - 3.4 * ns * u),
+               (cx, body_y + nl * 0.80 * u, cz + 1.2 * u),
+               (cx, neck_top, cz + 2.8 * u)], 2.7 * u, 1.55 * u, S["pale"])
 
     # ---- HEAD and the DAGGER: a straight linear taper, the elephant-trunk primitive aimed forward
     c.ellipsoid(cx, neck_top + 1.2 * u, cz + 3.2 * u, 2.3 * u, 2.1 * u, 2.9 * u, S["pale"])
+    kink = float(V["bill_kink"])
+    # A FLAMINGO'S BILL KINKS DOWN halfway along, and that bend is the single most recognisable
+    # thing about the bird - straighten it and you have a pink heron. A heron's is a straight
+    # dagger, so `kink` of 0 gives the two control points back in a line.
     _taper(c, [(cx, neck_top + 1.0 * u, cz + 5.0 * u),
-               (cx, neck_top + 0.3 * u, cz + 13.5 * u)], 1.5 * u, 0.42 * u, S["beak"])
-    for k, dz in ((0.0, -3.2), (1.0, -5.0)):           # crest plumes off the nape
-        c.line((cx, neck_top + 2.5 * u, cz + 1.0 * u),
-               (cx, neck_top + 1.7 * u - k * u, cz + dz * u), 0.5 * u, S["dark"])
+               (cx, neck_top + (0.6 - 1.4 * kink) * u, cz + 9.5 * u),
+               (cx, neck_top + (0.3 - 5.0 * kink) * u, cz + (13.5 - 2.0 * kink) * u)],
+           1.5 * u, 0.42 * u, S["beak"])
+    if kink:                                       # a black tip, which a flamingo also has
+        c.sphere(cx, neck_top + (0.3 - 5.0 * kink) * u, cz + (13.5 - 2.0 * kink) * u,
+                 0.7 * u, S["dark"])
+    if V.get("crest", True):
+        for k, dz in ((0.0, -3.2), (1.0, -5.0)):       # crest plumes off the nape
+            c.line((cx, neck_top + 2.5 * u, cz + 1.0 * u),
+                   (cx, neck_top + 1.7 * u - k * u, cz + dz * u), 0.5 * u, S["dark"])
 
     # ---- WINGS, FOLDED: layered courses of coverts down the flank. This is the sky bird's trick,
     # and the only part of the animal that gets BETTER with scale - each course is one block deep,
@@ -164,8 +229,9 @@ def build_heron(cfg: dict, donors=None) -> Canvas:
                     c.put(ex, ey + dy, ez + dz, S["pale"])
         _stick(c, ex, ey, ez, S["eye"])
         _stick(c, ex, ey, ez - 1, S["dark"])
-    _taper(c, [(cx, neck_top + 0.8 * u, cz - 0.4 * u),
-               (cx, neck_top - 4.5 * u, cz - 1.8 * u)], 1.6 * u, 0.7 * u, S["dark"])
+    if V.get("crest", True):                           # the dark eye-to-nape stripe, heron only
+        _taper(c, [(cx, neck_top + 0.8 * u, cz - 0.4 * u),
+                   (cx, neck_top - 4.5 * u, cz - 1.8 * u)], 1.6 * u, 0.7 * u, S["dark"])
 
     # ---- speckling down the neck front, which is what a grey heron actually carries and what stops
     # the column reading as a length of pipe
@@ -174,12 +240,16 @@ def build_heron(cfg: dict, donors=None) -> Canvas:
         for x in range(SX):
             for z in range(SZ - 2, 0, -1):
                 if c.get(x, y, z) == S["pale"] and not c.get(x, y, z + 1):
-                    if h(x, y, z, 3) < 0.16:
+                    if h(x, y, z, 3) < float(V["speckle"]):
                         c.put(x, y, z, S["dark"])
                     break
-    if p.get("at"):
+    if p.get("feet"):
+        fx_, fy_, fz_ = (float(v) for v in p["feet"])
+        c.world_origin = (int(round(fx_ - cx)), int(round(fy_ - foot_y)),
+                          int(round(fz_ - (cz + 1.2 * u))))
+    elif p.get("at"):
         c.world_origin = tuple(int(v) for v in p["at"])
-    c.meta = {"kind": "heron", "scale": sc,
+    c.meta = {"kind": p.get("variant", "heron"), "scale": sc, "facing": [0, 1],
                      "features_built": {"legs": 2, "toes": 8, "neck": 1, "beak": 1,
                                         "wing_courses": courses * 2, "crest": 2, "eyes": 2}}
     return c
