@@ -1,0 +1,279 @@
+"""The working deck's floor: resolve the scatter, draw an edge, and shut the moss farm in a room.
+
+WHY THIS EXISTS, measured off the 2026-08-19 19:09 capture. The deck has 2,145 floor columns and
+they are a patchwork of six materials:
+
+    1,060  dressed brick        the intended floor
+      499  green                ONE real 269-cell zone (the moss farm) + 230 cells of scatter
+      266  rough stone/cobble   biggest blob 58, the rest scatter
+      236  vine                 127 blobs averaging under two cells
+
+So ~730 cells across 113 separate blobs are noise rather than design, and only 44% of the floor is
+walkable with three courses clear. That patchwork is also why the taproot entrance does not read:
+its apron is grey on a grey field, and an entrance cannot be the figure when the ground is the same
+tone and equally busy. Quieting the floor is what makes the entrance legible - it is not a separate
+job from building the entrance, it is the other half of it.
+
+THREE MOVES, and each one is derived rather than drawn:
+
+  1. RESOLVE THE SCATTER to the field material. Only vine, stray rough stone and stray green - the
+     moss farm is left alone, and anything that is not on the whitelist is left alone, because a
+     cell holding something unexpected belongs to a machine this design knows nothing about.
+
+  2. DRAW THE EDGE. The deck's rim is every floor column with a missing neighbour - 883 of them,
+     found by flood, never by a hand-written box. In `deepslate_bricks`, which is the only strong
+     value contrast this economy offers at cheap-or-ok tier: 51 RGB darker than stone brick, where
+     cracked, chiseled and smooth stone are all within 4 and draw nothing at all.
+
+  3. SHUT THE MOSS FARM IN. It is a WORKING farm - 29 ice, 12 water, glow lichen, carpet - so the
+     wall must not cut its water, and a rectangle will not do: the box one cell out from the farm
+     is 58% air, and two cells out 70%, because the farm sits on an irregular lobe. A rectangular
+     room would float over holes. So the wall follows the farm's OWN dilated edge and lays only
+     where there is floor under it and the cell is free - and it counts what it skipped, because a
+     wall with unreported gaps is worse than no wall.
+
+The palette is the atelier's greys plus the deepslate band, the same hand as the stair head and the
+court, so the whole deck reads as one build rather than as four.
+"""
+from __future__ import annotations
+
+import collections
+
+from .canvas import Canvas, hash01
+from .vertical import Ctx, World
+
+DECKFLOOR = {
+    "under": None,
+    "floor_y": 194,
+    "field": "stone_bricks",           # what the scatter resolves to
+    "field_alt": "cracked_stone_bricks",   # a little grain so it is not a sheet
+    "alt_rate": 0.14,
+    "border": "deepslate_bricks",      # the only real value contrast at cheap-or-ok tier
+    "band": "deepslate_bricks",
+    "room_wall": "stone_bricks",
+    "room_plinth": "deepslate_bricks",
+    "room_glass": "glass_pane",
+    "room_cap": "stone_brick_slab",
+    "lamp": "lantern",
+    "room_h": 3,                       # courses of wall above the floor
+    "room_glass_at": 2,                # which course is glazed, so you can see the farm working
+    "lamp_every": 7,
+    "border_ring": 1,                  # cells of rim taken by the edge course
+    "zones": [],                       # world [x1,z1,x2,z2] boxes to outline in the floor
+    "seed": 0,
+}
+
+# scatter: what this design is allowed to replace with field
+SCATTER = ("vine", "stone", "cobblestone", "mossy_cobblestone", "andesite", "gravel",
+           "moss_block", "azalea_leaves", "flowering_azalea_leaves", "grass_block",
+           "moss_carpet", "dirt", "coarse_dirt", "rooted_dirt", "podzol")
+# ...and what the field itself already is, so the rim course may overwrite it
+FIELD_OK = ("stone_bricks", "cracked_stone_bricks", "mossy_stone_bricks", "chiseled_stone_bricks",
+            "smooth_stone", "air") + SCATTER
+# never touched, at any height: the farm's machinery and anyone's fixtures
+KEEP = ("water", "ice", "lava", "glow_lichen", "chest", "barrel", "hopper", "furnace", "smoker",
+        "blast_furnace", "dispenser", "dropper", "piston", "sticky_piston", "observer",
+        "spawner", "beehive", "bee_nest", "rail", "powered_rail", "detector_rail", "lectern",
+        "note_block", "composter", "cauldron", "crafting_table", "anvil", "loom", "stonecutter",
+        "smithing_table", "cartography_table", "fletching_table", "grindstone", "brewing_stand",
+        "enchanting_table", "jukebox", "bed", "sign", "banner", "torch", "lantern", "campfire",
+        "bamboo", "sugar_cane", "wheat", "carrots", "potatoes", "sapling", "farmland")
+GREEN = ("moss_block", "azalea_leaves", "flowering_azalea_leaves", "grass_block", "moss_carpet")
+NB4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
+
+
+def _blobs(pts):
+    S, seen, out = set(pts), set(), []
+    for p in pts:
+        if p in seen:
+            continue
+        stack, cur = [p], []
+        while stack:
+            q = stack.pop()
+            if q in seen:
+                continue
+            seen.add(q)
+            cur.append(q)
+            for dx, dz in NB4:
+                r = (q[0] + dx, q[1] + dz)
+                if r in S and r not in seen:
+                    stack.append(r)
+        out.append(cur)
+    return sorted(out, key=len, reverse=True)
+
+
+def build_deckfloor(cfg: dict, donors=None) -> Canvas:
+    p = {**DECKFLOOR, **cfg}
+    if not p.get("under"):
+        raise ValueError("deckfloor needs params.under - it is a REMEDIAL design and must read "
+                         "the world it is repairing")
+    ctx = Ctx(p["under"])
+    fy, seed = int(p["floor_y"]), int(p["seed"])
+    w = World()
+
+    def name(x, y, z):
+        return ctx.name_at(x, y, z).split(":")[-1].split("[")[0]
+
+    def keep(x, y, z):
+        n = name(x, y, z)
+        return any(k in n for k in KEEP)
+
+    # ---- the deck floor, found by reading the course rather than by a hand-written box
+    floor = set()
+    box = p.get("box")
+    if box:
+        bx1, bz1, bx2, bz2 = (int(v) for v in box)
+    else:                                   # scan the whole capture's footprint for this course
+        bx1, bz1, bx2, bz2 = -100000, -100000, 100000, 100000
+    all_cells = _course_cells(ctx, fy, bx1, bz1, bx2, bz2)
+    # THE DECK IS THE BIGGEST CONNECTED BLOB of the course, not every cell on it. Taking the whole
+    # course swept in 97x93 of island underside - scraps of belly, rim shelves, the lot - and the
+    # edge course alone came to 819 cells with 59 free-floating clusters drawn round islands two
+    # cells wide. Deriving the blob keeps this a DECK design without a hand-written box.
+    blobs = _blobs(all_cells)
+    floor = set(blobs[0]) if blobs else set()
+    counts_pre = (len(all_cells), len(floor))
+
+    counts = collections.Counter()
+
+    # ---- 1. THE MOSS FARM. Found as the biggest green blob, not named by hand, so it survives the
+    # farm being extended. Everything else green is scatter.
+    green = [c for c in floor if name(c[0], fy, c[1]) in GREEN]
+    gb = _blobs(green)
+    farm = set(gb[0]) if gb else set()
+    counts["farm_cells"] = len(farm)
+
+    # ---- 2. RESOLVE THE SCATTER
+    for (x, z) in sorted(floor):
+        if (x, z) in farm:
+            continue
+        n = name(x, fy, z)
+        if n not in SCATTER:
+            continue
+        if keep(x, fy + 1, z):              # something stands on it - that cell is spoken for
+            counts["skipped_occupied"] += 1
+            continue
+        blk = p["field_alt"] if hash01(x, z, 5, seed) < float(p["alt_rate"]) else p["field"]
+        w.put(x, fy, z, blk)
+        counts["resolved"] += 1
+
+    # ---- 3. DRAW THE EDGE. Every floor column with a missing neighbour.
+    ring = int(p["border_ring"])
+    rim = {c for c in floor
+           if any((c[0] + dx, c[1] + dz) not in floor for dx, dz in NB4)}
+    for _ in range(ring - 1):
+        rim |= {(c[0] + dx, c[1] + dz) for c in rim for dx, dz in NB4
+                if (c[0] + dx, c[1] + dz) in floor}
+    for (x, z) in sorted(rim):
+        if (x, z) in farm or keep(x, fy + 1, z):
+            counts["skipped_occupied"] += 1
+            continue
+        if name(x, fy, z) not in FIELD_OK:
+            counts["skipped_foreign"] += 1
+            continue
+        w.put(x, fy, z, p["border"])
+        counts["border"] += 1
+
+    # ---- 4. THE MOSS ROOM. The wall follows the farm's own dilated edge - a rectangle one cell
+    # out is 58% air and two cells out 70%, because the farm sits on an irregular lobe of deck.
+    wall_line = sorted({(x + dx, z + dz) for (x, z) in farm for dx, dz in NB4
+                        if (x + dx, z + dz) not in farm and (x + dx, z + dz) in floor})
+    rh = int(p["room_h"])
+    glaze = int(p["room_glass_at"])
+    built_wall = []
+    for i, (x, z) in enumerate(wall_line):
+        if any(keep(x, fy + k, z) for k in range(0, rh + 1)):
+            counts["room_skipped"] += 1     # water, lichen, a torch - never cut the farm
+            continue
+        ok = False
+        for k in range(1, rh + 1):
+            if k == glaze:
+                # glazed, so the farm is on show rather than shut away. Connections along the
+                # wall: a pane with every side false renders as a lone post, not as glazing.
+                ax = _pane_axis(wall_line, x, z)
+                ok |= _put(w, ctx, x, fy + k, z, p["room_glass"], **ax)
+            else:
+                blk = p["room_plinth"] if k == 1 else p["room_wall"]
+                ok |= _put(w, ctx, x, fy + k, z, blk)
+        if ok:
+            built_wall.append((x, z))
+            counts["room_wall"] += 1
+    for k, (x, z) in enumerate(built_wall):
+        if k % max(1, int(p["lamp_every"])) == 0:
+            if _put(w, ctx, x, fy + rh + 1, z, p["lamp"], hanging="false", waterlogged="false"):
+                counts["room_lamps"] += 1
+        else:
+            _put(w, ctx, x, fy + rh + 1, z, p["room_cap"], type="bottom", waterlogged="false")
+
+    # ---- 5. ZONE BANDS. A drawn outline round each working area, so the floor separates the
+    # rooms instead of walls doing it and eating the headroom.
+    for zb in p.get("zones") or []:
+        zx1, zz1, zx2, zz2 = (int(v) for v in zb)
+        zx1, zx2 = min(zx1, zx2), max(zx1, zx2)
+        zz1, zz2 = min(zz1, zz2), max(zz1, zz2)
+        line = ([(x, zz1) for x in range(zx1, zx2 + 1)] + [(x, zz2) for x in range(zx1, zx2 + 1)]
+                + [(zx1, z) for z in range(zz1 + 1, zz2)] + [(zx2, z) for z in range(zz1 + 1, zz2)])
+        for (x, z) in line:
+            if (x, z) not in floor or (x, z) in farm or keep(x, fy + 1, z):
+                continue
+            if name(x, fy, z) not in FIELD_OK:
+                continue
+            w.put(x, fy, z, p["band"])
+            counts["band"] += 1
+
+    return w.canvas({"kind": "deckfloor", "floor_y": fy, "floor_cells": len(floor),
+                     "course_cells": counts_pre[0],
+                     "farm_box": _bounds(farm), "wall_line": len(wall_line), **counts})
+
+
+def _put(w: World, ctx, x, y, z, name, **props):
+    n = ctx.name_at(x, y, z).split(":")[-1].split("[")[0]
+    if any(k in n for k in KEEP):
+        return False
+    w.put(x, y, z, name, **props)
+    return True
+
+
+def _pane_axis(line, x, z):
+    """connect the pane along the wall it sits in"""
+    S = set(line)
+    ew = ((x - 1, z) in S) or ((x + 1, z) in S)
+    ns = ((x, z - 1) in S) or ((x, z + 1) in S)
+    if ew and not ns:
+        return {"east": "true", "west": "true", "north": "false", "south": "false",
+                "waterlogged": "false"}
+    if ns and not ew:
+        return {"north": "true", "south": "true", "east": "false", "west": "false",
+                "waterlogged": "false"}
+    return {"north": "true", "south": "true", "east": "true", "west": "true",
+            "waterlogged": "false"}
+
+
+def _bounds(cells):
+    if not cells:
+        return None
+    xs = [c[0] for c in cells]
+    zs = [c[1] for c in cells]
+    return [min(xs), min(zs), max(xs), max(zs)]
+
+
+def _course_cells(ctx, y, bx1, bz1, bx2, bz2):
+    """every non-air cell on one course of the capture"""
+    import numpy as np
+    m = ctx.m
+    ox, oy, oz = ctx.ox, ctx.oy, ctx.oz
+    j = y - oy
+    if not (0 <= j < m.ids.shape[0]):
+        return []
+    names = [n.split(":")[-1].split("[")[0] for n in m.names]
+    out = []
+    layer = m.ids[j]
+    for k in range(layer.shape[0]):
+        row = layer[k]
+        for i in np.nonzero(row)[0]:
+            if names[row[i]] == "air":
+                continue
+            x, z = ox + int(i), oz + k
+            if bx1 <= x <= bx2 and bz1 <= z <= bz2:
+                out.append((x, z))
+    return out

@@ -1,0 +1,35 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 150,
+    "z": 29949
+  },
+  "size": {
+    "x": 75,
+    "y": 49,
+    "z": 100
+  },
+  "generated_by": "deckfloor",
+  "kind": "deckfloor",
+  "floor_y": 194,
+  "floor_cells": 1725,
+  "course_cells": 2145,
+  "farm_box": [
+    -24233,
+    30000,
+    -24220,
+    30028
+  ],
+  "wall_line": 41,
+  "farm_cells": 269,
+  "resolved": 367,
+  "skipped_occupied": 105,
+  "border": 396,
+  "skipped_foreign": 38,
+  "room_skipped": 7,
+  "room_wall": 34,
+  "room_lamps": 5,
+  "band": 64,
+  "file": "Deck Floor.litematic",
+  "name": "Deck Floor"
+}

@@ -1,0 +1,36 @@
+# The working deck's floor: resolve the scatter, draw an edge, shut the moss farm in a room.
+#
+# WHY. The deck's 2,145 floor columns are a patchwork of six materials - 1,060 dressed brick,
+# 499 green (ONE real 269-cell moss farm plus 230 cells of scatter), 266 rough stone and cobble,
+# and 236 cells of vine in 127 separate blobs. About 730 cells across 113 blobs are noise rather
+# than design, and only 44% of the floor is walkable with three courses clear.
+#
+# That patchwork is also why the taproot entrance does not read: its apron is grey on a grey field.
+# An entrance cannot be the figure when the ground is the same tone and equally busy, so quieting
+# the floor is the other half of building the entrance, not a separate job.
+#
+# The moss farm is WORKING - 29 ice, 12 water, glow lichen - so its wall follows the farm's own
+# dilated edge and never cuts a mechanism. A rectangle will not do: the box one cell out from the
+# farm is 58% air and two cells out 70%, because the farm sits on an irregular lobe of deck.
+#
+# ZONES are the fixture clusters measured off the capture, outlined in the floor rather than walled,
+# so they separate the working areas without eating the headroom.
+name: Deck Floor
+gen: deckfloor
+params:
+  under: out/island_now.litematic
+  floor_y: 194
+  border_ring: 1
+  room_h: 3
+  room_glass_at: 2
+  lamp_every: 7
+  zones:
+    - [-24210, 30024, -24199, 30032]   # the sorter / machine block
+    - [-24211, 30039, -24191, 30043]   # the bee row
+    - [-24208, 29999, -24197, 30013]   # the taproot entrance hall
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/island_now.litematic

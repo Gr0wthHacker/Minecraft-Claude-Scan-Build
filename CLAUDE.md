@@ -665,6 +665,50 @@ they carry texture but no tone and cannot draw a line.
 stops the opening reading as a rectangle punched in a field of stone brick — but it is 52 blocks to
 break, so it is stated here rather than discovered.
 
+## The deck floor (2026-08-19)
+
+`configs/deck_floor.yaml`, `mcbuild/gen/deckfloor.py`. 701 blocks, 0 new problems in context.
+
+**The entrance audit is what produced this.** The taproot stair head walks correctly — deck 195.0 →
+four treads → undercroft 191.0 → 7 standing cells at the shaft lip — but it does not READ, and no
+amount of further detail on it would fix that. Its apron is grey on a grey field. **An entrance
+cannot be the figure when the ground is the same tone and equally busy**, so quieting the floor is
+the other half of building the entrance, not a separate job.
+
+**The deck, measured.** 2,145 columns on the Y194 course:
+
+| | cells | blobs | |
+|---|---|---|---|
+| dressed brick | 1,060 | — | the intended floor |
+| green | 499 | **63** | ONE real 269-cell moss farm + 230 cells of scatter |
+| rough stone/cobble | 266 | **63** | biggest blob 58; the rest scatter |
+| vine | 236 | **127** | 127 blobs averaging under two cells |
+
+~730 cells in 113 blobs are noise, not design; only **44%** of the floor is walkable with three
+courses clear; **120 chests** still stand on it; lighting is **37 torches to 10 lanterns**.
+
+Three things this cost, each of which produced a plausible wrong answer:
+
+- **The deck is the biggest connected BLOB of the course, not the course.** Taking every cell sweeps
+  in 97×93 of island underside — belly scraps, rim shelves — and the edge course alone came to 819
+  cells with **59 free-floating clusters** drawn round islands two cells wide. Deriving the blob
+  (2,145 → 1,725) keeps it a deck design with no hand-written box.
+- **A rectangle will not wall the moss farm.** It is a WORKING farm — 29 ice, 12 water, glow lichen —
+  and it sits on an irregular lobe: the box one cell out is **58% air**, two cells out **70%**. A
+  rectangular room floats over holes and cuts the water. The wall follows the farm's own dilated
+  edge and lays only where there is floor under it — which comes to **41 cells**, because most of
+  the farm's boundary is against open air at the deck's edge, and you cannot walk in from a drop.
+- **`plan_merge` fills empty cells only.** Comparing before and after through it showed a 30-cell
+  change, *all of them `air -> something`* — that is the tell. A design whose job is to REPLACE is
+  invisible to it. Composite with overwrite to see a repaving design; the real change is 492 cells.
+
+`deepslate_bricks` again for the edge and the zone bands, for the same reason as the void tower and
+the stair head: cracked, chiseled and smooth stone are all within 4 RGB of plain, so they carry
+texture but no tone. It is the only strong value contrast this economy offers at cheap-or-ok tier.
+
+**Still open on the deck:** the 120 chests (the Store Hall's 68 slots are built and waiting), the
+37 torches, and the 44% walkable figure — all of which want the chest move done first.
+
 ## Build & test
 
 ```bash
