@@ -38,6 +38,33 @@ FUNCTIONAL = ("furnace", "barrel", "observer", "dispenser", "dropper", "crafting
               "command", "spawner", "hopper", "piston", "bulb", "lantern", "campfire")
 
 
+def score(solid, names, meta, species, pose, model=None, spec=None):
+    """Every dimension plus the weighted total. Shared with tools/refine.py.
+
+    Exposed because optimising a single dimension is actively harmful: sweeping the smoothing on its
+    own made the bear 0.73 on surface and 0.50 on proportion, because smoothing rewards thickening -
+    it inflated the animal until it measured as an elephant. Anything that tunes must tune the total.
+    """
+    spec = spec or yaml.safe_load(RUBRIC.read_text(encoding="utf-8"))
+    class _M:                                            # `_form` only needs .model.ids
+        pass
+    holder = model
+    if holder is None:
+        holder = _M()
+        holder.model = _M()
+    dims = {
+        "proportion": _proportion(holder, solid, meta, species, pose),
+        "silhouette": _silhouette(holder, solid, meta, species, pose),
+        "form": _form(holder, solid, names),
+        "features": _features(spec, species, names, meta, solid),
+        "surface": _surface(solid),
+        "palette": _palette(names),
+        "symmetry": _symmetry(solid),
+    }
+    w = spec["weights"]
+    return sum(w[k] * v[0] for k, v in dims.items()), dims
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -65,17 +92,8 @@ def main() -> None:
         print("\nDISQUALIFIED - a gate is not a trade-off. Fix these before the score means anything.")
         return
 
-    dims = {
-        "proportion": _proportion(s, solid, meta, species, pose),
-        "silhouette": _silhouette(s, solid, meta, species, pose),
-        "form": _form(s, solid, names),
-        "features": _features(spec, species, names, meta, solid),
-        "surface": _surface(solid),
-        "palette": _palette(names),
-        "symmetry": _symmetry(solid),
-    }
+    total, dims = score(solid, names, meta, species, pose, model=s, spec=spec)
     w = spec["weights"]
-    total = sum(w[k] * v[0] for k, v in dims.items())
     print(f"\n{'dimension':12s} {'score':>6s} {'weight':>7s}   detail")
     for k, (v, detail) in dims.items():
         print(f"  {k:10s} {v:6.2f} {w[k]:7.2f}   {detail}")
@@ -213,13 +231,23 @@ def _palette(names):
     used = [n for n in names if n != "air"]
     k = len(used)
     count = 1.0 if 4 <= k <= 8 else max(0.0, 1.0 - abs(k - 6) / 6.0)
-    hues = []
+    # Real hue, on the colour circle, weighted by how saturated the block is. The first version
+    # used a crude proxy that returned 2.0 whenever green or blue was the max channel, so a set of
+    # pure greys scored a hue spread of 1.00 - it was measuring which channel won a tie.
+    import colorsys
+    hs, ws = [], []
     for n in used:
-        r, g, b = palette.color_of(n)
-        mx, mn = max(r, g, b), min(r, g, b)
-        hues.append(0.0 if mx == mn else ((r - mn) / (mx - mn) if mx == r else 2.0))
-    spread = float(np.std(hues)) if len(hues) > 1 else 0.0
-    coherent = max(0.0, 1.0 - spread / 1.1)
+        r, g, b = (c / 255.0 for c in palette.color_of(n))
+        h, _l, sat = colorsys.rgb_to_hls(r, g, b)
+        hs.append(h * 2 * np.pi)
+        ws.append(sat)                                   # grey has no hue worth counting
+    if sum(ws) < 1e-6:
+        coherent = 1.0                                   # a monochrome palette is perfectly coherent
+    else:
+        cx = float(np.average(np.cos(hs), weights=ws))
+        cy = float(np.average(np.sin(hs), weights=ws))
+        coherent = float(np.hypot(cx, cy))               # 1 = one hue, 0 = scattered round the wheel
+    spread = 1.0 - coherent
     tiers = [palette.tier(n) for n in used]
     cost = 1.0 if "expensive" not in tiers else 0.4
     return 0.4 * count + 0.35 * coherent + 0.25 * cost, \

@@ -30,10 +30,10 @@ from mcbuild.pipeline import Settings, run_config           # noqa: E402
 
 # what a sweep is allowed to vary, and over what
 GRID = {
-    "params.relax_rounds": [3, 4, 5],
-    "params.relax_fill": [10, 11, 12],
+    "params.relax_rounds": [3, 5],
+    "params.relax_fill": [10, 12],
     "params.relax_keep": [10, 11],
-    "params.section_n": [2.0, 2.2, 2.4],
+    "params.section_n": [2.0, 2.3],
 }
 
 

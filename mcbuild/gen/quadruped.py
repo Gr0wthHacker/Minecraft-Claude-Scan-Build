@@ -188,7 +188,10 @@ PROFILES = {
         "shade_strength": 1.15,
         "coat_block": "stone", "patch": "stone", "patch_alt": "andesite",
         "muzzle": "tuff", "dark": "black_wool", "hoof_block": "andesite",
-        "belly_block": None, "section_n": 2.3,
+        "belly_block": None,        "section_n": 2.0,
+        # smoothing chosen by `tools/refine.py`, which maximises the RUBRIC TOTAL. Sweeping
+        # smoothness alone made this animal fatter and better-surfaced and worse overall (elephant); the defaults were tuned on a giraffe
+        "relax_rounds": 4, "relax_fill": 11, "relax_keep": 11,
     },
     # Heavy forequarters, short thick neck, small round ears. Sits like a person.
     "bear": {
@@ -207,7 +210,10 @@ PROFILES = {
         "coat_block": "mangrove_wood", "patch": "mangrove_wood",
         "patch_alt": "stripped_dark_oak_wood", "muzzle": "oak_log",
         "dark": "black_wool", "hoof_block": "black_wool",
-        "belly_block": None, "section_n": 2.2,
+        "belly_block": None,        "section_n": 2.4,
+        # smoothing chosen by `tools/refine.py`, which maximises the RUBRIC TOTAL. Sweeping
+        # smoothness alone made this animal fatter and better-surfaced and worse overall (bear); the defaults were tuned on a giraffe
+        "relax_rounds": 5, "relax_fill": 12, "relax_keep": 11,
     },
     # Barely any neck at all, a blunt head and a barrel on short legs - the smallest thing here that
     # still reads as an animal, and the right scale for something you come across rather than see.
@@ -222,7 +228,9 @@ PROFILES = {
         "shade_strength": 1.1,
         "coat_block": "jungle_log", "patch": "jungle_log", "patch_alt": "stripped_jungle_log",
         "muzzle": "stripped_jungle_log", "dark": "black_wool", "hoof_block": "black_wool",
-        "belly_block": None, "section_n": 2.1,
+        "belly_block": None,        "section_n": 2.0,
+        # smoothing swept per animal (capybara); the defaults were tuned on a giraffe
+        "relax_rounds": 5, "relax_fill": 10, "relax_keep": 11,
     },
     # Light and short-bodied, neck carried high, no mane.
     "deer": {

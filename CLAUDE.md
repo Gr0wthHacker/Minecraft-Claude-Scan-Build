@@ -169,6 +169,19 @@ Four questions are printed rather than scored, because a number cannot settle th
 reads at viewing distance, whether the pose is one you would find the animal in, whether it sits in
 the scene, and whether you would know the species with the colour removed.
 
+### Refining against it
+
+```bash
+python tools/refine.py <config> [--species X]      # sweep, scored by the WHOLE rubric
+```
+Never tune one dimension. Sweeping `smoothness.py` alone took the bear's surface 0.60 -> 0.73 and its
+proportion 0.88 -> 0.50, because every smoothing pass rewards thickening — it inflated the animal
+until the silhouette test reported it as an **elephant**, and its total *fell*. `refine.py` sweeps the
+same parameters, scores each variant with the weighted rubric, drops any that fail a gate, and prints
+what each dimension gained or lost so a trade can be checked rather than trusted. It found the bear a
++0.13 that trades surface (−0.31) for proportion (+0.50) — correct, because proportion is weighted
+nearly twice surface.
+
 ## Auditing a shape
 
 Three tools, because "it looks lumpy / it feels off" is not actionable and the eye passes bad shapes:
