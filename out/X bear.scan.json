@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 15,
-    "y": 28,
+    "y": 29,
     "z": 45
   },
   "generated_by": "quadruped",
@@ -31,13 +31,13 @@
     0,
     1
   ],
-  "height": 27,
-  "top_y": 127,
+  "height": 28,
+  "top_y": 128,
   "features_built": {
-    "crown": 18,
-    "face": 12,
+    "crown": 6,
+    "face": 19,
     "tail": 10,
-    "eyes": 4
+    "eyes": 2
   },
   "anat_top_y": 127,
   "asymmetry": {

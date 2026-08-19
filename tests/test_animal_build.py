@@ -161,3 +161,78 @@ def test_the_broad_skull_has_a_step_and_the_tapered_one_does_not():
         return max(w[i] - w[i + 1] for i in range(len(w) - 1))
     assert biggest_drop("broad") > biggest_drop("tapered"), "the bear's step must be the sharper"
     assert biggest_drop("blunt") < biggest_drop("broad"), "a capybara's face barely tapers at all"
+
+
+# ---------------------------------------------------------------- face and pose regressions
+
+def test_drop_actually_lowers_the_neck():
+    """`rise = 1 - 2*drop` was computed in `_neck` and never used: the neck stepped up one course
+    per segment whatever the pose said, so every grazing, stalking and leaping animal ended with
+    its head at the top of a rising neck - the one thing those poses never do."""
+    from mcbuild.gen import quadruped
+    tops = {}
+    for pose in ("standing", "grazing"):
+        c = quadruped.build_quadruped({"profile": "bear", "pose": pose,
+                                       "feet": [0, 0, 0], "look_at": [0, 0, 40]})
+        tops[pose] = c.meta["neck_top_at"][1] - c.meta["feet"][1]
+    assert tops["grazing"] < tops["standing"], (
+        f"a grazing animal must carry its head lower: {tops}")
+
+
+def test_every_pose_a_family_offers_can_actually_be_built():
+    """A weight in `families.yaml` for a pose `POSES` does not have is a silent no-op."""
+    from mcbuild.gen import taxonomy
+    from mcbuild.gen.quadruped import POSES
+    for sp in taxonomy.species():
+        for pose in taxonomy.pose_weights(sp):
+            assert pose in POSES, f"{sp} offers {pose!r}, which the generator cannot build"
+
+
+def test_the_eye_is_one_bead_in_a_ring_that_contrasts():
+    """Two failures: the eye was the SAME BLOCK as the rosettes, so it read as one more spot; and
+    its ring defaulted to the muzzle, which on the capybara is all but the coat colour."""
+    from mcbuild.gen.quadruped import _eye_ring
+    from mcbuild import blocks
+    def lum(n):
+        c = blocks.color(n)
+        return sum(c) / 3.0 if c else 0.0
+    for coat, muzzle in (("jungle_log", "stripped_jungle_log"),      # capybara: muzzle too close
+                         ("stripped_oak_wood", "bone_block"),        # jaguar: muzzle is fine
+                         ("stone", "tuff")):                         # elephant: muzzle too close
+        ring = _eye_ring({"coat_block": coat, "muzzle": muzzle})
+        assert lum(ring) - lum(coat) >= 35, f"{ring} does not read against {coat}"
+
+
+def test_a_coat_pattern_is_kept_off_the_face():
+    """A jaguar's eyes and its rosettes are both `black_wool`; with spots on the face an eye is
+    just one more spot."""
+    from mcbuild.gen import quadruped
+    c = quadruped.build_quadruped({"profile": "jaguar", "feet": [0, 0, 0], "look_at": [0, 0, 40]})
+    assert c.meta["features_built"]["eyes"] == 2, "one bead per side"
+
+
+def test_small_ears_sit_above_the_eyes_and_big_ones_do_not():
+    """Flat slabs pushed out sideways at brow height made the bear read as a cow. A bear's ears are
+    small tufts on the cranium; an elephant's really are side-hung fans and must stay that way."""
+    from mcbuild.gen import quadruped
+    small = quadruped.build_quadruped({"profile": "bear", "feet": [0, 0, 0], "look_at": [0, 0, 40]})
+    big = quadruped.build_quadruped({"profile": "elephant", "feet": [0, 0, 0], "look_at": [0, 0, 40]})
+    assert small.meta["features_built"]["crown"] < big.meta["features_built"]["crown"] / 4, (
+        "a tuft and a fan should not be the same size")
+
+
+def test_the_withers_is_measured_on_the_BARREL():
+    """`_segment` scans whole courses, so on a cat - whose head sits at body height - it measured
+    the head, and once the ears moved onto the skull it measured those: the jaguar's barrel read
+    40% too deep for a change that never touched the barrel."""
+    import proportions as pr
+    from mcbuild import scan
+    import os
+    f = "out/X jaguar.litematic"
+    if not os.path.exists(f):
+        return
+    s = scan.load(f)
+    got = pr.measure(s.model.ids > 0, s.meta, (s.model.ids > 0).shape[0])
+    want = pr.designed(s.meta)
+    assert abs(got["body depth"] / want["body depth"] - 1) < 0.25, (
+        f"barrel depth {got['body depth']:.3f} against a design of {want['body depth']:.3f}")

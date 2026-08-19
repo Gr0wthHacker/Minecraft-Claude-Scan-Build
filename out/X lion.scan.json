@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": -24227,
+    "x": -24226,
     "y": 100,
     "z": 29945
   },
   "size": {
-    "x": 19,
-    "y": 36,
+    "x": 17,
+    "y": 37,
     "z": 71
   },
   "generated_by": "quadruped",
@@ -31,14 +31,14 @@
     0,
     1
   ],
-  "height": 35,
-  "top_y": 135,
+  "height": 36,
+  "top_y": 136,
   "features_built": {
     "mane": 1063,
-    "crown": 18,
+    "crown": 6,
     "face": 20,
     "tail": 38,
-    "eyes": 4
+    "eyes": 2
   },
   "anat_top_y": 135,
   "asymmetry": {

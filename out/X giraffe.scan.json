@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 13,
-    "y": 59,
+    "y": 58,
     "z": 37
   },
   "generated_by": "quadruped",
@@ -31,14 +31,14 @@
     0,
     1
   ],
-  "height": 58,
-  "top_y": 158,
+  "height": 57,
+  "top_y": 157,
   "features_built": {
     "mane": 3,
-    "crown": 24,
-    "face": 4,
+    "crown": 6,
+    "face": 9,
     "tail": 27,
-    "eyes": 6
+    "eyes": 2
   },
   "anat_top_y": 155,
   "asymmetry": {

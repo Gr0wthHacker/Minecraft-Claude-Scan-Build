@@ -1,7 +1,7 @@
 # THE DEN: the second encounter, and a deliberately different beat.
 #
-# A bear sitting beside a tree, 26 blocks clear of the stalk and 7 from the trunk. Where the stalk is
-# tension between four animals, this is one still figure - you come round to it separately.
+# A bear well north of the chase and apart from it. Where the chase is two animals in motion, this
+# is one still figure - you come round to it separately.
 #
 # WHY A BEAR HERE. It is the most literal fit of any species we build: bears den in caves. `sitting`
 # is the ursid family's highest natural weight (0.95) and it is the pose plantigrade legs exist for -
@@ -18,8 +18,8 @@ params:
   # stalk needs; there is exactly one on this lowland and it cannot be spent twice.
   pose: couchant
   under: out/lowland_planned.litematic
-  feet: [-24181, 39, 30016]
-  look_at: [-24240, 39, 30016]     # west, back toward the stalk; facing snaps to -x
+  feet: [-24181, 39, 29970]
+  look_at: [-24240, 39, 29970]     # west; facing snaps to -x
 origin_lock: false
 finish:
   cheapen: false

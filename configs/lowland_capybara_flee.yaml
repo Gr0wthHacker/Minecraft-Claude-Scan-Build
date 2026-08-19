@@ -1,0 +1,34 @@
+# THE QUARRY, RUNNING.
+#
+# Breaking away south while the jaguar comes down out of the west. It runs ACROSS the cat's line
+# rather than along it, which is what prey actually does - a straight sprint away from a predator
+# already in the air is a losing race - and it is also the only thing the ground allows: a capybara
+# is 50 blocks deep because its head projects 31 past its feet, the diving cat takes 45 of the
+# lowland's 99, and the two will not fit nose to tail on one axis.
+#
+# `running` throws the whole animal
+# forward - the barrel tips nose-down, the neck comes out low and long ahead of the shoulder - and
+# `leg_phase: 4` advances one leg of each diagonal pair, which is the gait a quadruped actually runs
+# in. Without the phase the legs stand in a row and the statue is of an animal standing still.
+#
+# It costs about 25 points of symmetry, which the rubric allows for because the asymmetry is
+# RECORDED in the sidecar. That is the whole reason `leg_phase` is a build parameter rather than
+# something done by hand afterwards.
+name: Lowland Capybara Flee
+gen: quadruped
+params:
+  profile: capybara
+  pose: running
+  scale: 1.0
+  leg_phase: 4
+  under: out/lowland_planned.litematic
+  feet: [-24185, 37, 30005]
+  look_at: [-24185, 37, 30060]     # BREAKING SOUTH, across the cat's line rather than along it
+origin_lock: false
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine, short_grass, fern, moss_carpet, poppy, dandelion, azalea, flowering_azalea]
+  verify_against: out/lowland_planned.litematic

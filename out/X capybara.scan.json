@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": -24226,
+    "x": -24224,
     "y": 100,
     "z": 29964
   },
   "size": {
-    "x": 15,
-    "y": 27,
+    "x": 13,
+    "y": 28,
     "z": 47
   },
   "generated_by": "quadruped",
@@ -31,12 +31,12 @@
     0,
     1
   ],
-  "height": 26,
-  "top_y": 126,
+  "height": 27,
+  "top_y": 127,
   "features_built": {
-    "crown": 18,
-    "face": 93,
-    "eyes": 4
+    "crown": 6,
+    "face": 98,
+    "eyes": 2
   },
   "anat_top_y": 126,
   "asymmetry": {

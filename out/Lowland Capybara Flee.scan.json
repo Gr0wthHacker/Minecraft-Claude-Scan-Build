@@ -1,0 +1,75 @@
+{
+  "origin": {
+    "x": -24191,
+    "y": 38,
+    "z": 29984
+  },
+  "size": {
+    "x": 13,
+    "y": 22,
+    "z": 55
+  },
+  "generated_by": "quadruped",
+  "kind": "capybara",
+  "pose": "running",
+  "designed": {
+    "withers height": 1.0,
+    "leg (ground->belly)": 0.4762,
+    "body depth": 0.5238,
+    "body length": 1.7143,
+    "body width": 0.5762,
+    "neck length": 0.3604,
+    "head length": 0.4762,
+    "leg width": 0.1613
+  },
+  "feet": [
+    -24185,
+    37,
+    30005
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 22,
+  "top_y": 59,
+  "features_built": {
+    "crown": 6,
+    "face": 66,
+    "eyes": 2
+  },
+  "anat_top_y": 58,
+  "asymmetry": {
+    "leg_phase": 4,
+    "head_turn": 1
+  },
+  "belly_y": 47,
+  "withers_y": 53.260000000000005,
+  "rump_y": 47,
+  "chest_y": 47,
+  "back_y": 58,
+  "neck_top_y": 53.46000000000001,
+  "shoulder_at": [
+    -24185.0,
+    53.3,
+    30021.0
+  ],
+  "neck_top_at": [
+    -24186.0,
+    53.5,
+    30028.5
+  ],
+  "along": {
+    "body": [
+      -18,
+      18
+    ],
+    "head": [
+      23,
+      33
+    ]
+  },
+  "collisions": 21,
+  "file": "Lowland Capybara Flee.litematic",
+  "name": "Lowland Capybara Flee"
+}

@@ -87,6 +87,21 @@ POSES = {
                  "lean": 1.35, "drop": 0.30},
     # head down to the ground; the rest stands normally
     "grazing": {"drop": 1.15, "lean": 1.30, "from": 0.80},
+    # FLEEING. Not a walk with the legs shortened - the whole animal is thrown forward: the barrel
+    # tips nose-down, the neck comes out low and long ahead of the shoulder, and the head reaches.
+    # Use it with `leg_phase`, which is what actually says "moving": it advances one leg of each
+    # diagonal pair, the gait a real quadruped runs in. That costs about 25 points of symmetry and
+    # is worth every one of them here - a statue of a running animal with its legs in a row is a
+    # statue of a standing animal.
+    "running": {"fore": 0.94, "hind": 0.88, "fold": 1.05, "pitch": -0.06,
+                "from": 0.72, "lean": 1.50, "drop": 0.40},
+    # DIVING. A running animal is level; this one is coming DOWN. The barrel pitches hard nose-first,
+    # the forelegs reach out ahead and the hind ones trail, which is what `leg_phase` is for - at a
+    # big phase the diagonal pairs pull right apart and the animal is unmistakably in the air rather
+    # than standing with its feet in a row. Nothing in this pose touches the ground, so `site` means
+    # nothing for it: a leaping figure is placed by eye and by what it is leaping AT.
+    "leaping": {"fore": 1.05, "hind": 0.55, "fold": 1.0, "pitch": -0.34,
+                "from": 0.70, "lean": 1.35, "drop": 0.95},
 }
 
 QUADRUPED = {
@@ -374,7 +389,7 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
         _count("tail", lambda: _tail(hide, accent, fx, belly, fz, f, s, p))
     built["eyes"] = sum(1 for c, b in accent.items() if b == p["dark"] and c[1] >= head_at[1] - 1)
 
-    skin = _coat(hide, p)
+    skin = _coat_masked(hide, p, _face_zone(hide, head_at, f))
     if p.get("belly_block"):
         _underside(hide, accent, (rump, chest), float(p["withers"]), p, fx, fz, f,
                    int(p["body_len"]) // 2)
@@ -482,7 +497,22 @@ def _underside(hide, accent, belly, withers, p, fx, fz, f, half):
             accent[c] = p["belly_block"]
 
 
-def _coat(hide, p) -> dict:
+def _face_zone(hide, head_at, f, back=1.0) -> set:
+    """The front of the skull, where a coat PATTERN must not go.
+
+    A jaguar's eyes were `black_wool` and so were its rosettes, so an eye landed among a dozen
+    identical black cells and read as one more spot - the face came out as noise with ears. A real
+    cat is spotted on the face too, but at this many blocks per head there is no room to say both
+    "spots" and "eyes", and eyes are what makes it a face. The pattern keeps the back of the skull.
+    """
+    hx, hy, hz, hl, _hr, _ax, _az = head_at
+    # the WHOLE skull, from where it leaves the neck forward. Masking only the front of the muzzle
+    # left the rosettes exactly where they did the damage - across the brow, among the eyes.
+    return {c for c in hide
+            if ((c[0] - hx) * f[0] + (c[2] - hz) * f[1]) >= -back and abs(c[1] - hy) <= hl}
+
+
+def _coat(hide, p, plain=()) -> dict:
     kind = p["coat_pattern"]
     if kind == "plain":
         return {}
@@ -500,6 +530,25 @@ def _coat(hide, p) -> dict:
     return coat_mod.voronoi(hide, p["patch"], p["coat_block"], scale=float(p["patch_scale"]),
                             grout_width=float(p["grout"]), seed=int(p["seed"]),
                             tones=[p["patch"], p["patch_alt"]])
+
+
+def _coat_masked(hide, p, plain) -> dict:
+    """The coat, with the FACE left flat so the eyes have something to read against.
+
+    Both kinds of coat wrecked the face in their own way. A PATTERN put rosettes the same colour as
+    the eyes all over it. SHADING was worse: sky exposure drops sharply under the brow ridge, so the
+    ramp laid a dark bar straight across the face at exactly eye height, and the capybara read as a
+    bandit mask with no eyes at all. A flat face loses a little form and gains a face; the muzzle,
+    nose, sockets and beads are the detail there, and they cannot compete with a stripe.
+    """
+    got = _coat(hide, p)
+    # PATTERNS ONLY. Flattening a SHADED face as well was tried and made things worse, not better:
+    # on a dark animal the shading is the only thing lifting the face clear of the coat, and a flat
+    # mangrove-brown bear lost the eyes it already had. Shading gives form; a pattern gives noise.
+    if plain and p["coat_pattern"] not in ("plain", "shaded"):
+        for c in plain:
+            got.pop(c, None)
+    return got
 
 
 def _leg_gap(hoofs, belly, leg_r, keys) -> set:
@@ -628,16 +677,24 @@ def _neck(hide, shoulder, f, s, p, keys, pose=None):
     # `drop` carries the head DOWN the neck's length instead of up - grazing, drinking, stalking.
     # Without it every pose still ends with the head at the top of a rising neck, which is the one
     # thing a resting or feeding animal never does.
+    # `rise` was computed here and then NEVER USED - the neck stepped up exactly one course per
+    # segment whatever the pose said, so `drop` did nothing at all. Every grazing, stalking and
+    # leaping animal ended with its head at the top of a rising neck, which is the one thing those
+    # poses never do, and the audit duly reported the prowling jaguar's neck 1.86x and the grazing
+    # bear's 2.14x adrift of what was asked for. 0 leaves the head up, 0.5 carries it level, 1.0
+    # brings it down below the shoulder.
     rise = 1.0 - 2.0 * float(pose.get("drop", 0.0))
     KEYS = [[t, r1 + (r0 - r1) * taper + flare] for t, taper, flare in keys["neck"]]
     x, z = float(sx), float(sz)
+    y = float(sy)
     top = (sx, sy, sz)
     for k in range(-3, ln):                              # starts inside the shoulder: no seam
         (r,) = loft.lerp(KEYS, max(0.0, k / max(1, ln - 1)))
         x += f[0] * lean
         z += f[1] * lean
-        loft.disc(hide, x, sy + k, z, f, s, r, r * 0.94, n)
-        top = (x, sy + k, z)
+        y = sy + k * rise
+        loft.disc(hide, x, y, z, f, s, r, r * 0.94, n)
+        top = (x, y, z)
     return top, loft.lerp(KEYS, 1.0)[0]
 
 
@@ -728,6 +785,32 @@ def _crown(hide, accent, head_at, f, s, p):
     """Ears and horns, GROWN OUT OF the smoothed skull rather than placed at a guessed radius."""
     hx, hy, hz, _hl, hr, _bx, _bz = head_at
     for side in (1, -1):
+        # A SMALL EAR SITS ON TOP OF THE SKULL; ONLY A BIG ONE HANGS AT THE SIDE.
+        #
+        # Every ear used to be a flat slab pushed out sideways at brow height - level with the eye,
+        # square, and as wide as it was tall. On a bear that is not a bear: it read as a cow, or a
+        # moose. Bear, cat and capybara ears are small rounded tufts ON the cranium, ABOVE the eye
+        # and set back from it. An elephant's really is an enormous side-hung fan, and it is the
+        # single most identifying thing about the animal, so the old placement is kept for those.
+        big = float(p.get("ear_size", 1.0)) >= 1.5
+        if p["ears"] and not big:
+            size = float(p.get("ear_size", 1.0))
+            reach = max(2, int(round(1.8 * size)))
+            tall = max(2, int(round(2.4 * size)))
+            # set BACK from the brow and found on the skull's own crest, so it grows out of the head
+            bx = int(round(hx + f[0] * 1 + s[0] * side * max(1, int(hr * 0.55))))
+            bz = int(round(hz + f[1] * 1 + s[1] * side * max(1, int(hr * 0.55))))
+            top = loft.crest(hide, bx, bz)
+            if top is None:
+                continue
+            for dyk in range(tall):
+                # taper to a tip: the top course is one cell, so it is an ear and not a post
+                w = reach if dyk < tall - 1 else max(1, reach - 1)
+                for b in range(w):
+                    c = (int(bx + s[0] * side * b), int(top + 1 + dyk), int(bz + s[1] * side * b))
+                    hide.add(c)
+                    accent[c] = p["coat_block"]
+            continue
         if p["ears"]:
             for a in (-1, 0, 1):
                 _c, b0 = loft.surface_out(hide, hx + f[0] * (a + 1), hy + 1, hz + f[1] * (a + 1),
@@ -763,6 +846,28 @@ def _crown(hide, accent, head_at, f, s, p):
             accent[(ox, top + 3, oz)] = p["dark"]
 
 
+def _eye_ring(p) -> str:
+    """A socket pale enough to read against THIS coat, chosen by measurement.
+
+    The ring defaulted to the muzzle block, and on the capybara that is `stripped_jungle_log`
+    (166,123,82) sitting on an `acacia_log` coat (168,90,50) - all but the same tone. The eye had
+    nothing to be seen against and the whole brow read as one dark band: "no eyes, just a mask".
+    So the muzzle is used only if it is genuinely lighter than the coat, and otherwise the palest
+    plain block the server has is picked out of the registry, the same way every other colour here
+    is chosen.
+    """
+    from .. import blocks
+    def lum(n):
+        c = blocks.color(n)
+        return sum(c) / 3.0 if c else 0.0
+    coat = p.get("coat_block") or "stone"
+    want = p.get("eye_ring") or p.get("muzzle")
+    if want and lum(want) - lum(coat) >= 35:
+        return want
+    pale = blocks.nearest((236, 233, 222), pool=blocks.candidates(full_only=True))
+    return pale or want or "bone_block"
+
+
 def _face(hide, accent, head_at, f, s, p):
     """Pale muzzle, nostrils and eyes - read off the SMOOTHED skin, never assumed."""
     hx, hy, hz, hl, hr, ax, az = head_at
@@ -777,18 +882,46 @@ def _face(hide, accent, head_at, f, s, p):
             c = (int(nose_x + s[0] * b), int(round(hy + dy - 1)), int(nose_z + s[1] * b))
             if c in hide and abs(b) + abs(dy) < 2:
                 accent[c] = p["dark"]
+    # ONE BEAD PER SIDE, IN A PALE SOCKET.
+    #
+    # Two failures before this. Assuming a width merged both eyes into a band right across the face -
+    # a bandit mask - because the brow is only about five cells wide. Painting two courses of bead
+    # instead made each eye a vertical BAR, which is what the capybara's "mask" actually was: two
+    # 1x2 slabs and a dark nose, close enough together on a small skull to read as one stripe.
+    #
+    # An eye reads when it is SMALL and RINGED. One dark cell, with the skin around it forced pale,
+    # is the least a voxel face can say and still be a face.
+    eye = p.get("eye_block") or p["dark"]
+    socket = _eye_ring(p)
     for side in (1, -1):
-        # a dark bead on the OUTER skin of the brow. Assuming a width merged both eyes into a band
-        # right across the face - a bandit mask - because the brow is only about five cells wide.
-        for k in (0, 1):
-            edge, _b = loft.surface_out(hide, ax, hy + k, az, s[0] * side, s[1] * side, int(hr) + 2)
-            if edge is None:
+        # TAKE WHICHEVER CANDIDATE SITS FURTHEST FORWARD.
+        #
+        # Straight out to the side lands on the flank of the skull, where the head's own front face
+        # hides the bead from anyone in front of the animal - that was the capybara's blank mask.
+        # But walking diagonally is not universally better: on the ursid's broad blunt skull it put
+        # the bead a course BEHIND the muzzle, and the bear lost the eyes it previously had. Which
+        # walk wins depends on the shape of the head, so both are tried and the one that ends up
+        # nearer the front of the face is kept.
+        best = None
+        for dx, dz in ((f[0] + s[0] * side, f[1] + s[1] * side), (s[0] * side, s[1] * side)):
+            cand, _b = loft.surface_out(hide, ax, hy + 1, az, dx, dz, int(hr) + 2)
+            if cand is None:
                 continue
-            accent[edge] = p["dark"]
-            for dy in (-1, 2):
-                ring = (edge[0], int(round(hy + dy)), edge[2])
-                if ring in hide and ring not in accent:
-                    accent[ring] = p["muzzle"]
+            fwd = (cand[0] - ax) * f[0] + (cand[2] - az) * f[1]
+            if best is None or fwd > best[0]:
+                best = (fwd, cand)
+        if best is None:
+            continue
+        edge = best[1]
+        # the socket FIRST, so the bead is never overwritten by its own ring. EVERY solid
+        # neighbour, not four guessed offsets: the bead sits on a curved surface, so which of its
+        # neighbours are skin and which are air changes with the shape of the skull - guessing four
+        # of them left a dark bear's eye with no ring at all and nothing to be seen against.
+        for dx, dy, dz in ((0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1)):
+            ring = (edge[0] + dx, edge[1] + dy, edge[2] + dz)
+            if ring in hide:
+                accent[ring] = socket
+        accent[edge] = eye
 
 
 def _trunk(hide, accent, head_at, f, s, p):

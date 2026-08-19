@@ -35,10 +35,10 @@
   "top_y": 138,
   "features_built": {
     "crown": 132,
-    "face": 17,
+    "face": 23,
     "trunk": 385,
     "tail": 16,
-    "eyes": 4
+    "eyes": 2
   },
   "anat_top_y": 138,
   "asymmetry": {

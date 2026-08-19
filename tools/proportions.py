@@ -299,6 +299,25 @@ def measure(solid, land, sy) -> dict:
     else:
         H = sy
     belly, withers, head, xext, zext, _parts, _area = _segment(solid, sy)
+    # THE WITHERS IS A POINT ON THE BARREL. `_segment` scans whole courses, so on a long low animal
+    # - a cat, whose head sits at body height - it happily measures the HEAD, and once the ears moved
+    # onto the top of the skull it measured those: the jaguar's barrel read 40% too deep overnight
+    # for a change that never touched the barrel. Restricted to the recorded body window, the back
+    # line is the back line.
+    _bw = (land.get("along") or {}).get("body")
+    if _bw and land.get("feet") and (land.get("origin") or {}).get("x") is not None:
+        _f = land.get("facing") or [0, 1]
+        _o = land["origin"]
+        _a0 = (land["feet"][0] - _o["x"]) if _f[0] else (land["feet"][2] - _o["z"])
+        _ax = 2 if _f[0] else 1                       # solid is [y, z, x]
+        _lo, _hi = sorted((_a0 + _bw[0], _a0 + _bw[1]))
+        _mask = np.zeros(solid.shape[_ax], bool)
+        _mask[max(0, int(_lo)):min(solid.shape[_ax], int(_hi) + 1)] = True
+        _shape = [1, 1, 1]
+        _shape[_ax] = solid.shape[_ax]
+        _barrel = solid & _mask.reshape(_shape)
+        if _barrel.any():
+            withers = min(withers, int(np.nonzero(_barrel.any(axis=(1, 2)))[0].max()))
     # The neck/head boundary is genuinely hard to find by shape - and it is hard precisely BECAUSE
     # the model is smoothly blended, which is what we wanted. Where the generator recorded the
     # landmark, use it: guessing at a joint the design already knows the answer to is silly.

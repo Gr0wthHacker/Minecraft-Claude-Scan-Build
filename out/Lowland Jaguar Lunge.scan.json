@@ -1,0 +1,81 @@
+{
+  "origin": {
+    "x": -24239,
+    "y": 40,
+    "z": 30005
+  },
+  "size": {
+    "x": 45,
+    "y": 32,
+    "z": 19
+  },
+  "generated_by": "quadruped",
+  "kind": "jaguar",
+  "pose": "leaping",
+  "designed": {
+    "withers height": 0.9355,
+    "leg (ground->belly)": 0.3871,
+    "body depth": 0.5484,
+    "body length": 1.6452,
+    "body width": 0.5227,
+    "neck length": 0.5204,
+    "head length": 0.4839,
+    "leg width": 0.191
+  },
+  "feet": [
+    -24246,
+    40,
+    30014
+  ],
+  "facing": [
+    1,
+    0
+  ],
+  "height": 31,
+  "top_y": 71,
+  "features_built": {
+    "crown": 6,
+    "face": 48,
+    "tail": 55,
+    "eyes": 2
+  },
+  "anat_top_y": 71,
+  "asymmetry": {
+    "leg_phase": 5,
+    "head_turn": 0
+  },
+  "belly_y": 52,
+  "withers_y": 66.41999999999999,
+  "rump_y": 52,
+  "chest_y": 63,
+  "back_y": 69,
+  "neck_top_y": 60.11999999999999,
+  "shoulder_at": [
+    -24223.0,
+    66.4,
+    30014.0
+  ],
+  "neck_top_at": [
+    -24208.2,
+    60.1,
+    30014.0
+  ],
+  "along": {
+    "body": [
+      -25,
+      26
+    ],
+    "head": [
+      37,
+      52
+    ]
+  },
+  "collisions": 0,
+  "file": "Lowland Jaguar Lunge.litematic",
+  "name": "Lowland Jaguar Lunge",
+  "emerged": {
+    "axis": "x",
+    "plane": -24240,
+    "taper": 4
+  }
+}
