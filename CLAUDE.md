@@ -335,6 +335,24 @@ Three siting facts that cost time and are worth keeping:
   which cannot lean however the rest of the bird is posed — it is swept along a tilted spine now,
   and `body_tilt` is 3.0 for a flamingo against 1.2 for a heron. Level, it read as a pink heron.
 
+### Cost: the whole scene is cheap tier
+
+It was not. The first palettes came to **6,893 expensive blocks** — the heron alone was 45% concrete
+and terracotta — for tones that wool and plain stone give away. `light_gray_concrete` → `stone` is 11
+in RGB; `gray_concrete` → `gray_wool` is 15; a flamingo is the one animal whose colour needs no clay
+at all, because sheep come in pink, red and magenta. **Now 0 expensive across all four**, and the
+bat's 210 `ok` are the deepslate in its perch.
+
+Two traps worth remembering, both hit while fixing this:
+
+- **`_eye_ring` was picking out of the whole registry.** It chose `quartz_block` (expensive here),
+  and once filtered to cheap it chose `stripped_pale_oak_log` — a **1.21 block**, because
+  `blocks.available()` is a no-op while the allowlist is provisional and cannot say no. A decorative
+  ring of four cells does not need the registry; it now picks from a short known-safe list.
+- **Three tones of the same colour beat two tones and a third hue.** `magenta_wool` banded between
+  red and pink read as a bruise. Red coverts over pink with BLACK primaries is both cheaper and
+  correct — black flight feathers are the flamingo detail.
+
 ## The panel review — the last step before shipping
 
 `python tools/panel.py "<design>"`. The rubric measures proportion, surface, palette, symmetry, and

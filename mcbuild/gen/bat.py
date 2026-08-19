@@ -45,10 +45,14 @@ BAT = {
     "spread": 0.75,              # 0 = furled tight, 1 = wings fully out
     # dark, and deliberately NOT made of the ceiling it hangs from: the lowland's roof is stone,
     # cobble, deepslate and moss, so a bat in those would vanish the way the elephant did.
+    # ALL CHEAP TIER. The membrane was `brown_terracotta` and its edge `black_terracotta`, which is
+    # 290 blocks of clay on a skyblock for a brown that `brown_wool` gives for a dye. A LIGHTER
+    # membrane against dark fur is also what a bat actually looks like: the wing is thin skin and
+    # the body is fur, and they should not be the same tone.
     "fur": "dark_oak_wood",
     "fur_dark": "black_wool",
-    "skin": "brown_terracotta",  # the membrane
-    "skin_edge": "black_terracotta",
+    "skin": "brown_wool",        # the membrane
+    "skin_edge": "black_wool",
     "strut": "dark_oak_planks",  # finger bones
     "eye": "orange_wool",
     "claw": "bone_block",

@@ -40,10 +40,13 @@ from .canvas import Canvas, hash01
 #   stance      a flamingo tucks one leg up against the body, which a heron does too but which on
 #               a pink bird is the pose everybody pictures
 VARIANTS = {
+    # EVERY BLOCK CHEAP TIER. The first palette was 45% concrete and terracotta - 3,701 blocks of
+    # dye, clay and smelting on a skyblock - for tones that wool and plain stone give away free.
+    # `light_gray_concrete` -> `stone` is 11 in RGB; `gray_concrete` -> `gray_wool` is 15.
     "heron": {
-        "body": "light_gray_wool", "wing": "light_gray_concrete", "wing_edge": "gray_concrete",
-        "pale": "white_wool", "dark": "black_wool", "beak": "yellow_terracotta",
-        "eye": "orange_wool", "leg": "brown_terracotta",
+        "body": "light_gray_wool", "wing": "stone", "wing_edge": "gray_wool",
+        "pale": "white_wool", "dark": "black_wool", "beak": "yellow_wool",
+        "eye": "orange_wool", "leg": "dark_oak_planks", "primary": "black_wool",
         "bill_kink": 0.0, "neck_s": 1.0, "neck_len": 20.0, "tuck": False, "speckle": 0.16,
         "body_tilt": 1.2,
         "crest": True,
@@ -52,9 +55,15 @@ VARIANTS = {
         # bright, and it is the whole point: pink against dark moss is the strongest signal any
         # animal on this island can send. Measured, the heron's grey sits +40 luminance clear of
         # the lowland floor - a flamingo's pink clears it on HUE as well, which nothing else does.
-        "body": "pink_wool", "wing": "pink_terracotta", "wing_edge": "magenta_terracotta",
-        "pale": "pink_wool", "dark": "black_wool", "beak": "pink_terracotta",
-        "eye": "yellow_wool", "leg": "pink_terracotta",
+        # wool the whole way down: a flamingo is the one animal here whose colour needs no clay,
+        # because sheep come in exactly these three. Deep red coverts banded over a pale pink body
+        # is what the bird actually looks like, and it costs a dye.
+        # BLACK PRIMARIES are the flamingo detail, and `magenta_wool` in the courses read as a
+        # bruise between the red and the pink - the bands want two tones of the same colour, not a
+        # third hue. Red coverts banded over pink, black flight feathers.
+        "body": "pink_wool", "wing": "red_wool", "wing_edge": "pink_wool",
+        "pale": "pink_wool", "dark": "black_wool", "beak": "pink_wool",
+        "eye": "yellow_wool", "leg": "pink_wool", "primary": "black_wool",
         "bill_kink": 1.0, "neck_s": 1.9, "neck_len": 26.0, "tuck": True, "speckle": 0.0,
         # a standing flamingo does NOT hold its body level - it slopes down to the breast,
         # with the tail carried high and the neck leaving from a low point at the front.
@@ -134,6 +143,7 @@ def build_heron(cfg: dict, donors=None) -> Canvas:
     c = Canvas(SX, SY, SZ, donors)
     st = c.state
     S = {k: st(p[k]) for k in ("body", "wing", "wing_edge", "pale", "dark", "beak", "eye", "leg")}
+    S["primary"] = st(p.get("primary") or p["wing_edge"])
     cx, cz = SX / 2.0, SZ / 2.0
     u = sc                                             # one unit of the design's own scale
     foot_y, hock_y, body_y = 1.4, 16.0 * u, 33.0 * u
@@ -235,7 +245,7 @@ def build_heron(cfg: dict, donors=None) -> Canvas:
         for side in (-1, 1):
             c.line((cx + side * (4.2 + 0.5 * k) * u, body_y - 4.2 * u, cz - 5.0 * u),
                    (cx + side * (3.2 + 0.5 * k) * u, body_y - 6.8 * u - k * 0.6 * u, cz - 14.5 * u),
-                   0.6 * u, S["wing_edge"])
+                   0.6 * u, S["primary"])
 
     # ---- EYE, and the dark stripe a grey heron carries from the eye back over the nape
     for side in (-1, 1):

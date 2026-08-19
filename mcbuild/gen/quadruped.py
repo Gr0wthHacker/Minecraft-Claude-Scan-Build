@@ -902,7 +902,14 @@ def _eye_ring(p) -> str:
     want = p.get("eye_ring") or p.get("muzzle")
     if want and lum(want) - lum(coat) >= 35:
         return want
-    pale = blocks.nearest((236, 233, 222), pool=blocks.candidates(full_only=True))
+    # A SHORT, KNOWN-SAFE LIST. Picking out of the whole registry chose `quartz_block` (expensive
+    # on this server) and then, filtered to cheap, `stripped_pale_oak_log` - a 1.21 block, because
+    # `blocks.available()` is a no-op while the allowlist is provisional and cannot say no. This is
+    # a decorative ring of four cells; it does not need the registry, it needs a pale cheap block
+    # that certainly exists in 1.19.
+    pale = blocks.nearest((236, 233, 222),
+                          pool=[n for n in ("bone_block", "white_wool", "light_gray_wool",
+                                            "birch_planks") if blocks.exists(n)])
     return pale or want or "bone_block"
 
 
