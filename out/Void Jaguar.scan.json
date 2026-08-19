@@ -11,6 +11,7 @@
   },
   "generated_by": "quadruped",
   "kind": "jaguar",
+  "pose": "sitting",
   "feet": [
     -24202,
     101,
@@ -24,6 +25,8 @@
   "top_y": 126,
   "belly_y": 104,
   "withers_y": 122.48,
+  "rump_y": 104,
+  "chest_y": 111,
   "back_y": 113,
   "neck_top_y": 123.48,
   "shoulder_at": [
@@ -46,7 +49,7 @@
       22
     ]
   },
-  "collisions": 22,
+  "collisions": 0,
   "file": "Void Jaguar.litematic",
   "name": "Void Jaguar"
 }

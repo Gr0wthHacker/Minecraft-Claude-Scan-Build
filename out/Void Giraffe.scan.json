@@ -11,6 +11,7 @@
   },
   "generated_by": "quadruped",
   "kind": "giraffe",
+  "pose": "standing",
   "feet": [
     -24218,
     100,
@@ -24,6 +25,8 @@
   "top_y": 156,
   "belly_y": 117,
   "withers_y": 126.0,
+  "rump_y": 117,
+  "chest_y": 117,
   "back_y": 127,
   "neck_top_y": 151.0,
   "shoulder_at": [

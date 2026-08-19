@@ -66,9 +66,9 @@ BASE_KEYS = {
 POSES = {
     "standing": {},
     # haunches folded under, forelegs straight, chest lifted - a cat or a dog at rest, alert
-    "sitting": {"fore": 1.00, "hind": 0.30, "fold": 1.55, "pitch": 0.42, "from": 0.92},
+    "sitting": {"fore": 1.00, "hind": 0.32, "fold": 1.25, "pitch": 0.42, "from": 0.92},
     # all four folded, belly close to the ground, head still up. A resting big cat.
-    "couchant": {"fore": 0.26, "hind": 0.22, "fold": 1.70, "pitch": 0.05, "from": 0.88},
+    "couchant": {"fore": 0.26, "hind": 0.22, "fold": 1.35, "pitch": 0.05, "from": 0.88},
     # everything lowered and lengthened, head carried low and forward - hunting
     "prowling": {"fore": 0.74, "hind": 0.70, "fold": 1.12, "pitch": -0.05, "from": 0.72,
                  "lean": 1.35, "drop": 0.30},
@@ -211,7 +211,8 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
         # one, and a limb that is thin BY DESIGN must not be judged by the same rule as a shoulder.
         hide = smooth.relax(hide, rounds=int(p["relax_rounds"]), fill=int(p["relax_fill"]),
                             keep=int(p["relax_keep"]), protect=legs_only,
-                            forbid=_leg_gap(hoofs, belly, float(p["leg_r"]), keys))
+                            forbid=_leg_gap(hoofs, belly,
+                                            float(p["leg_r"]) * float(pose.get("fold", 1.0)), keys))
 
     # 3. features, 4. face, 5. coat
     for (lx, lz, gy, lrad) in hoofs:
@@ -235,11 +236,12 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
 
     hi = max(y for (_x, y, _z) in hide)
     hits = 0 if ctx is None else sum(1 for c in hide if ctx.name_at(*c) not in AIRY)
-    return w.canvas({"kind": p.get("profile") or "quadruped", "feet": [fx, fy, fz],
+    return w.canvas({"kind": p.get("profile") or "quadruped", "pose": p.get("pose", "standing"),
+                     "feet": [fx, fy, fz],
                      "facing": list(f), "height": hi - fy, "top_y": hi,
                      # the joints, so an audit does not have to infer them from shape. On a cat the
                      # head, neck and barrel are one continuous mass and no shape heuristic can.
-                     "belly_y": belly, "withers_y": shoulder[1],
+                     "belly_y": belly, "withers_y": shoulder[1], "rump_y": rump, "chest_y": chest,
                      # the TOP OF THE BARREL, which is not the same as where the neck leaves it -
                      # on a cat the neck leaves well below the back, and shape cannot find the back
                      # either because the neck is nearly as wide as the body.
@@ -361,7 +363,12 @@ def _legs(hide, ctx, fx, fy, fz, f, s, p, keys, pose=None) -> list:
         # Under the barrel's edge, but never closer together than the legs are wide. `br - lr - 0.4`
         # collapses to 1 on a narrow-bodied animal, putting a jaguar's legs 2 apart when each is 3
         # wide - they merged into a slab whatever the smoothing did. Giraffe lands on 3 either way.
-        off = max(1, round(max(lr + 1.0, br * 0.62)))
+        # `fold` widens a leg, so the spacing must be computed from the FOLDED radius, and the
+        # clearance term grows with fold too - a bunched limb needs more room than its own width.
+        # Without it a sitting jaguar's legs sat 6 apart while each was 5 wide and the pairs welded
+        # laterally: two 13-block slabs where four legs should be. Scaling the term by `fold` leaves
+        # an unfolded animal exactly where it was, so the giraffe does not move.
+        off = max(1, round(max(lr * fold + 1.0 + (fold - 1.0) * 2.4, br * 0.62)))
         lx = int(fx + f[0] * along + s[0] * off * side)
         lz = int(fz + f[1] * along + s[1] * off * side)
         hoof = fy

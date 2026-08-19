@@ -14,6 +14,9 @@ often enough to be worth checking:
               sitting one is compact and tolerates a slope.
   LEGIBILITY  what survives the viewing distance. Silhouette height falls away with a low pose, and
               past about 30 blocks a couchant animal is a lump. Standing keeps its outline.
+  ANATOMY     whether the pose can actually be BUILT right, from `proportions.py` measured against
+              the POSE-ADJUSTED reference. A pose that looks ideal on paper and comes out with fused
+              legs is not the best pose, and without this the model could not see that.
 
 The score is a weighted sum, and the reasons are printed alongside so a call can be argued with.
 It recommends; the choice stays yours.
@@ -34,7 +37,7 @@ from mcbuild.gen.quadruped import POSES                     # noqa: E402
 from mcbuild.pipeline import Settings, run_config           # noqa: E402
 
 ANIMALS = pathlib.Path(__file__).resolve().parent.parent / "mcbuild/data/animals.yaml"
-WEIGHTS = {"behaviour": 0.45, "site": 0.30, "legibility": 0.25}
+WEIGHTS = {"behaviour": 0.36, "site": 0.24, "legibility": 0.20, "anatomy": 0.20}
 
 
 def main() -> None:
@@ -73,20 +76,58 @@ def main() -> None:
         b = _behaviour(natural, pose)
         s_site, relief = _site(ctx, feet, m)
         legible = _legibility(sy, dist)
-        score = WEIGHTS["behaviour"] * b + WEIGHTS["site"] * s_site + WEIGHTS["legibility"] * legible
-        rows.append((score, pose, b, s_site, legible, sx, sy, sz, relief, int(solid.sum())))
+        anat = _anatomy(m, species, pose, cfg.get("name") or pathlib.Path(a.config).stem)
+        score = (WEIGHTS["behaviour"] * b + WEIGHTS["site"] * s_site
+                 + WEIGHTS["legibility"] * legible + WEIGHTS["anatomy"] * anat)
+        rows.append((score, pose, b, s_site, legible, anat, sx, sy, sz, relief, int(solid.sum())))
 
-    print(f"{'pose':11s} {'score':>6s} {'behav':>6s} {'site':>5s} {'legib':>6s} "
-          f"{'footprint':>11s} {'tall':>5s} {'relief':>7s} {'blocks':>7s}")
+    print(f"{'pose':11s} {'score':>6s} {'behav':>6s} {'site':>5s} {'legib':>6s} {'anat':>5s} "
+          f"{'box':>10s} {'tall':>5s} {'relief':>7s} {'blocks':>7s}")
     for r in sorted(rows, reverse=True):
-        score, pose, b, ss, lg, sx, sy, sz, relief, n = r
-        print(f"{pose:11s} {score:6.2f} {b:6.2f} {ss:5.2f} {lg:6.2f} "
-              f"{sx:4d}x{sz:<6d} {sy:5d} {relief:7.1f} {n:7d}")
+        score, pose, b, ss, lg, an, sx, sy, sz, relief, n = r
+        print(f"{pose:11s} {score:6.2f} {b:6.2f} {ss:5.2f} {lg:6.2f} {an:5.2f} "
+              f"{sx:3d}x{sz:<6d} {sy:5d} {relief:7.1f} {n:7d}")
     if rows:
         best = max(rows)
         print(f"\nrecommend: {best[1]}")
         for line in _why(best, natural, dist):
             print(f"  - {line}")
+
+
+def _anatomy(model, species: str, pose: str, name: str) -> float:
+    """Share of proportions inside tolerance, measured against the POSE-ADJUSTED reference.
+
+    Without this the model could rank a pose highly and never notice that building it fuses the legs
+    or flattens the barrel - which is exactly what sitting did before the spacing was fixed."""
+    try:
+        import proportions as pr
+    except ImportError:
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+        import proportions as pr
+    try:
+        ref = pr.posed(pr.reference(species), pose)
+    except SystemExit:
+        return 0.6
+    solid = model.solid()
+    sy = solid.shape[0]
+    # load the sidecar the run just wrote: several measures need the joints the generator recorded,
+    # and passing empty landmarks silently zeroed them - every pose scored a quarter.
+    land = {}
+    try:
+        land = scan.load(str(pathlib.Path("out/_stance") / (name + ".litematic"))).meta or {}
+    except Exception:
+        pass
+    got = pr.measure(solid, land, sy)
+    if not got:
+        return 0.6
+    slack = pr.tilt_slack(pose)
+    ok = 0
+    for k, want in ref.items():
+        if k not in got or not want:
+            continue
+        tol = 0.20 + (slack if k in pr.TILT_SENSITIVE else 0.0)
+        ok += 1 if abs((got[k] - want) / want) <= tol else 0
+    return ok / max(1, len(ref))
 
 
 def _behaviour(natural: dict, pose: str) -> float:
@@ -161,7 +202,7 @@ def _legibility(height: int, dist: float | None) -> float:
 
 
 def _why(best, natural, dist) -> list:
-    score, pose, b, ss, lg, sx, sy, sz, relief, n = best
+    score, pose, b, ss, lg, an, sx, sy, sz, relief, n = best
     out = []
     if b >= 0.85:
         out.append(f"the species really does this - behaviour {b:.2f}")
@@ -171,7 +212,9 @@ def _why(best, natural, dist) -> list:
     if dist:
         out.append(f"{sy} blocks tall at {dist:.0f} away - legibility {lg:.2f}"
                    + ("; a lower pose would be lost at this range" if lg < 0.5 else ""))
-    weak = [k for k, v in (("behaviour", b), ("site", ss), ("legibility", lg)) if v < 0.45]
+    out.append(f"proportions {an:.0%} inside tolerance for this stance")
+    weak = [k for k, v in (("behaviour", b), ("site", ss), ("legibility", lg),
+                                          ("anatomy", an)) if v < 0.45]
     if weak:
         out.append("weakest on: " + ", ".join(weak))
     return out

@@ -43,7 +43,53 @@ def reference(species: str) -> dict:
         raise SystemExit(f"no reference for {species!r}; have {sorted(table)}")
     row = dict(table[species])
     h = float(row.pop("total_m"))
+    row.pop("poses", None)                              # behaviour weights live here too
     return {k: float(v) / h for k, v in row.items()}
+
+
+def posed(ref: dict, pose: str) -> dict:
+    """Reference proportions ADJUSTED for the stance, so a pose is not audited as a deformity.
+
+    A sitting animal's visible leg really is short and its haunch really is bunched - measuring that
+    against a standing reference reports correct work as broken, which is worse than not measuring.
+
+    The adjustment uses the SAME multipliers the generator poses with, so the two cannot drift:
+
+      leg        the belly line follows the LOWER of the two leg lengths
+      withers    chest height plus any pitch, plus the body's own depth
+      leg width  a folded limb bunches - `fold` widens it
+      the rest   a pose does not change how long a body or a head is
+
+    Everything is then renormalised by the POSED total height, because the fractions are of total
+    height and the pose changes that too.
+    """
+    from mcbuild.gen.quadruped import POSES
+    q = POSES.get(pose, {})
+    fore, hind = float(q.get("fore", 1.0)), float(q.get("hind", 1.0))
+    pitch, fold, drop = float(q.get("pitch", 0.0)), float(q.get("fold", 1.0)), float(q.get("drop", 0.0))
+    leg, depth = ref["leg (ground->belly)"], ref["body depth"]
+    out = dict(ref)
+    out["leg (ground->belly)"] = leg * min(fore, hind)
+    out["withers height"] = leg * fore + pitch * leg + depth
+    out["leg width"] = ref["leg width"] * fold
+    # the neck and head stack above the withers, shortened in height if the head is carried down
+    above = max(0.12, (1.0 - ref["withers height"]) * (1.0 - 1.4 * drop))
+    total = out["withers height"] + above
+    return {k: v / total for k, v in out.items()}
+
+
+# Measures whose VERTICAL extent a tilted barrel changes in ways this first-order model does not
+# capture: once the body is pitched, "belly to withers" is measured through a slope, not a section.
+# They get a looser tolerance under pitch rather than a wrong number stated confidently.
+TILT_SENSITIVE = ("withers height", "body depth", "body width")
+
+
+def tilt_slack(pose: str) -> float:
+    from mcbuild.gen.quadruped import POSES
+    q = POSES.get(pose, {})
+    tilt = abs(float(q.get("pitch", 0.0))) + abs(1.0 - float(q.get("fore", 1.0))
+                                                 - (1.0 - float(q.get("hind", 1.0))))
+    return min(0.55, 1.6 * tilt)
 
 
 def _segment(solid, sy):
@@ -106,6 +152,18 @@ def _neck_len(land, head, withers) -> float:
     return max(0, head - withers)
 
 
+def _leg_probe(land, oy, belly) -> int:
+    """Halfway up to the LOWEST body floor - the only band where nothing but legs exists.
+
+    Probing at half the tallest leg put the sample inside a sitting animal's rump, where body and
+    haunches are one mass, and reported an 11-block leg. Under the lowest floor there is nothing but
+    limbs, whatever the pose."""
+    if oy is not None and "rump_y" in land and "chest_y" in land:
+        lowest = min(float(land["rump_y"]), float(land["chest_y"])) - oy
+        return max(1, int(round(lowest / 2.0)))
+    return belly // 2
+
+
 def _along_extent(solid, land, part, H):
     """The real solid extent inside the window the generator recorded for a part.
 
@@ -131,41 +189,32 @@ def _along_extent(solid, land, part, H):
 
 
 def _leg_width(solid, y):
-    """The width of ONE leg, not the span across all four - which is what the first version measured."""
+    """The width of a STRAIGHT leg: the median of the separate limbs at this height, not the widest.
+
+    Two traps, one per version. Taking the span across all four legs measured the stance, not a leg.
+    Taking the widest component then measured a sitting animal's folded haunch - which is bunched by
+    design - and reported a 13-block leg. The median across the limbs present is what a leg is."""
     from mcbuild import morph
     m = solid[y]
     if not m.any():
         return 0
     lab, sizes = morph.components(m[None, :, :], conn=6)
-    best = 0
+    widths = []
     for i in range(1, len(sizes) + 1):
         zs, xs = np.where(lab[0] == i)
         if len(xs):
-            best = max(best, int(xs.max() - xs.min() + 1))
-    return best
+            widths.append(int(xs.max() - xs.min() + 1))
+    return int(np.median(widths)) if widths else 0
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("design")
-    ap.add_argument("--species", help="which row of animals.yaml to compare against; "
-                                      "defaults to the design's own `kind`")
-    ap.add_argument("--tol", type=float, default=0.20, help="fractional tolerance before flagging")
-    a = ap.parse_args()
-
-    s = scan.load(a.design)
-    species = a.species or (getattr(s, "meta", None) or {}).get("kind") or "giraffe"
-    REF = reference(species)
-    ids = s.model.ids
-    solid = ids > 0
-    sy, sz, sx = ids.shape
+def measure(solid, land, sy) -> dict:
+    """Every proportion, as a fraction of total height. Shared with tools/stance.py so the
+    pose comparison and the audit can never drift apart."""
     H = sy
-
     belly, withers, head, xext, zext, _parts, _area = _segment(solid, sy)
     # The neck/head boundary is genuinely hard to find by shape - and it is hard precisely BECAUSE
     # the model is smoothly blended, which is what we wanted. Where the generator recorded the
     # landmark, use it: guessing at a joint the design already knows the answer to is silly.
-    land = getattr(s, "meta", None) or {}
     oy = (land.get("origin") or {}).get("y")
     # Landmarks ONLY where shape cannot tell. Belly and withers are found reliably from the
     # course profile, and they measure what was BUILT; the recorded values are what was DESIGNED,
@@ -188,6 +237,8 @@ def main() -> None:
             withers = max(withers, int(round(float(land["back_y"]) - oy)))
         if "neck_top_y" in land:
             head = int(round(float(land["neck_top_y"]) - oy))
+    # clamp: a pitched pose can put the recorded back line above the model's own top course
+    withers = min(max(withers, belly + 1), sy - 1)
     body = range(belly, withers + 1)
     got = {
         "withers height": withers / H,
@@ -201,18 +252,45 @@ def main() -> None:
         "body width": float(np.median([xext[y] for y in body] or [0])) / H,
         "neck length": _neck_len(land, head, withers) / H,
         "head length": _along_extent(solid, land, "head", H)[0] / H,
-        "leg width": _leg_width(solid, max(1, belly // 2)) / H,
+        # measured halfway up the LONGEST leg - on a posed animal the short pair is folded and its
+        # bunched haunch is not a leg width
+        "leg width": _leg_width(solid, max(1, _leg_probe(land, oy, belly))) / H,
     }
+    return got
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("design")
+    ap.add_argument("--species", help="which row of animals.yaml to compare against; "
+                                      "defaults to the design's own `kind`")
+    ap.add_argument("--pose", help="stance to audit against; defaults to the design's own")
+    ap.add_argument("--tol", type=float, default=0.20, help="fractional tolerance before flagging")
+    a = ap.parse_args()
+
+    s = scan.load(a.design)
+    species = a.species or (getattr(s, "meta", None) or {}).get("kind") or "giraffe"
+    pose = a.pose or (getattr(s, "meta", None) or {}).get("pose") or "standing"
+    REF = posed(reference(species), pose)
+    ids = s.model.ids
+    solid = ids > 0
+    sy, sz, sx = ids.shape
+    H = sy
+
+    got = measure(solid, getattr(s, 'meta', None) or {}, sy)
 
     print(f"{a.design}: {int(solid.sum())} blocks, {H} courses tall, against a real {species}\n")
     print(f"{'measure':22s} {'built':>7s} {'real':>7s} {'blocks':>7s} {'want':>7s}   verdict")
     bad = []
+    slack = tilt_slack(pose)
     for k, ref in REF.items():
         mine = got[k]
         delta = (mine - ref) / ref if ref else 0
         want = ref * H
-        if abs(delta) <= a.tol:
-            verdict = "ok"
+        tol = a.tol + (slack if k in TILT_SENSITIVE else 0.0)
+        if abs(delta) <= tol:
+            # `~` means it only passes because a pitched barrel widened the tolerance
+            verdict = "ok~" if (abs(delta) > a.tol and k in TILT_SENSITIVE) else "ok"
         else:
             verdict = f"{'TOO BIG' if delta > 0 else 'TOO SMALL'}  {delta:+.0%}"
             bad.append((k, delta, want))

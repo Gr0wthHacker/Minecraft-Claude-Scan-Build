@@ -91,12 +91,20 @@ Nothing about a pose is a separate build path.
 ```bash
 python tools/stance.py configs/jaguar.yaml --from -24206 150 30010
 ```
-scores every pose on three measurable things and says why: **behaviour** (what the species actually
+scores every pose on four measurable things and says why: **behaviour** (what the species actually
 does, from `animals.yaml` — a sitting giraffe is a sick animal, not a style choice), **site** (each
 pose is BUILT and its real contact footprint tested against the relief under it), and **legibility**
-(silhouette height against viewing distance; past ~30 blocks a couchant animal is a lump). They
-disagree often, which is the point — for the jaguar, standing won on site, couchant on behaviour and
-sitting on legibility.
+(silhouette height against viewing distance; past ~30 blocks a couchant animal is a lump), and
+**anatomy** (`proportions.py` measured against the POSE-ADJUSTED reference — a pose that looks ideal
+and comes out with fused legs is not the best pose). They disagree often, which is the point: for the
+jaguar, standing won on site and anatomy, couchant on behaviour, sitting on legibility.
+
+**The proportions engine is pose-aware.** `posed()` adjusts the reference with the SAME multipliers
+the generator poses with, so the two cannot drift: the belly line follows the shorter leg pair, the
+withers follow the chest plus pitch, and `fold` widens the expected leg. Without it a sitting animal
+audits as a deformity — its leg read -69% when it was correct. Vertical measures under a tilted
+barrel are only corrected to first order, so those get a widened tolerance and are marked `ok~`
+rather than stated confidently.
 
 Anything derived from the standing skeleton must follow the POSED one: leg length sets the belly
 line, and the belly line sets the countershading. Getting that wrong leaves legs floating under a
