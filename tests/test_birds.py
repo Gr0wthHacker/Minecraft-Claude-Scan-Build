@@ -84,7 +84,54 @@ def test_world_origin_is_set_when_asked(name):
 
 def test_palettes_avoid_functional_blocks():
     bad = ("furnace", "chest", "barrel", "hopper", "spawner", "lantern", "campfire", "bee_nest")
+    # The rule bans a functional block used for its COLOUR - `bee_nest` is the closest golden tan
+    # in the game and it carries a face texture and bee states. A light source used AS A LIGHT is
+    # not that: the ruin on the bat's perch burns a lantern because nothing else out there does,
+    # and `lowland` stands 71 of them for the same reason. So light params are exempt BY NAME -
+    # never by relaxing `bad`, which is what stops the next tan-coloured bee nest.
+    lights = {"ruin_lamp"}
     for mod in (heron.HERON, bat.BAT):
         for k, v in mod.items():
-            if isinstance(v, str):
+            if isinstance(v, str) and k not in lights:
                 assert not any(b in v for b in bad), f"{k}={v} is a functional block"
+
+
+_RUIN = {"scale": 1.0, "seed": 0, "perch": True, "perch_h": 8, "perch_r": 8.5,
+         "ruin": True, "ruin_h": 10, "ruin_r": 4.6}
+
+
+def test_the_ruin_never_builds_off_the_rock():
+    """The wall walks a circle, and the rock under it is deliberately RAGGED. A column with no
+    rock beneath it is masonry hanging in the air - which is how the perch's own vines came away
+    as nine floating threads the first time."""
+    c = GENERATORS["bat"].build(_RUIN, None)
+    s = _solid(c)
+    floating = [(x, y, z) for y in range(1, s.shape[0])
+                for z in range(s.shape[1]) for x in range(s.shape[2])
+                if s[y, z, x] and not s[y - 1, z, x]
+                and not (s[y, z, max(0, x - 1)] or s[y, z, min(s.shape[2] - 1, x + 1)]
+                         or s[y, max(0, z - 1), x] or s[y, min(s.shape[1] - 1, z + 1), x])]
+    assert not floating, f"{len(floating)} unsupported cells, e.g. {floating[:3]}"
+
+
+def test_the_ruin_leaves_the_bat_gripping_the_roof():
+    """Sizing the canvas for the ruin moves the ceiling the claws hold. Grown by one course too
+    many, every bat in the repo quietly stopped touching its roof - including the ones with no
+    ruin at all, because the growth was unconditional."""
+    for cfg in ({"scale": 1.0, "seed": 0}, _RUIN):
+        c = GENERATORS["bat"].build(cfg, None)
+        s = _solid(c)
+        ph = int(cfg.get("perch_h", 0)) if cfg.get("perch") else 0
+        rh = int(cfg.get("ruin_h", 0)) if cfg.get("ruin") else 0
+        assert s[s.shape[0] - 1 - ph - rh].any(), f"nothing grips the roof for {cfg.get('ruin')}"
+
+
+def test_the_ruin_is_dressed_stone_against_the_rock_s_rough_stone():
+    """The contrast IS the design: it is what says `built` rather than `more rock`. If the wall
+    ever shares its palette with the perch the ruin stops reading as a ruin."""
+    c = GENERATORS["bat"].build(_RUIN, None)
+    names = {c.palette[i].value["Name"].value.split(":")[-1]
+             for i in np.unique(c.to_model().ids) if i}
+    assert names & {"stone_bricks", "deepslate_bricks"}, "the wall lost its masonry"
+    assert not ({"stone_bricks", "deepslate_bricks"} & set(bat.BAT["rock"])),         "the ruin and the rock now share blocks - the contrast is gone"
+

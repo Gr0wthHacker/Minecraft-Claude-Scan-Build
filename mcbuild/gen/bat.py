@@ -42,6 +42,32 @@ BAT = {
     "rock": ["stone", "cobblestone", "deepslate", "mossy_cobblestone"],
     "moss": "moss_block",
     "vine": "vine",
+    # A RUIN on the rock's crown. The perch reads as a piece that broke off the plate, so it should
+    # carry a piece of what was BUILT on the plate too - and there is a measured reason for its
+    # shape. The rock hangs in the gap at Y138 with the island's underside at Y150, so from the SE
+    # rim you look down on it at about 13 degrees off vertical: the PLAN view governs, not the
+    # profile. A ring of broken wall with a light inside it is unmistakable from straight above,
+    # where an arch or a bare snag is a few scattered pixels.
+    "ruin": False,
+    "ruin_h": 13,                # courses on the TALL side; the shear takes the far side to ~0.3 of it
+    "ruin_r": 4.6,               # outer radius of the wall
+    "ruin_t": 1.7,               # its thickness
+    "ruin_face": 0.9,            # which way the tall side looks, in radians
+    # DRESSED stone against the rock's rough stone. That contrast is the whole point - it is what
+    # says "built" rather than "more rock", which is the note both review panels keep returning.
+    # Moss climbs from the bottom and cracks gather at the top, so the wall weathers upward.
+    "ruin_block": "stone_bricks",
+    "ruin_moss": "mossy_stone_bricks",
+    "ruin_crack": "cracked_stone_bricks",
+    # STRING COURSES, and they are what makes it read as masonry rather than as a grey fin.
+    # cracked/chiseled/plain stone brick are all within 4 RGB of each other, so weathering them
+    # together is invisible at any distance - the wall had no tone and no horizontal at all.
+    # deepslate_bricks is 51 darker, and it is the island's OWN stone dressed, which is what a
+    # builder up here would have had to hand.
+    "ruin_band": "deepslate_bricks",
+    "ruin_plinth": "chiseled_stone_bricks",
+    "ruin_slab": "stone_brick_slab",
+    "ruin_lamp": "lantern",
     "spread": 0.75,              # 0 = furled tight, 1 = wings fully out
     # dark, and deliberately NOT made of the ceiling it hangs from: the lowland's roof is stone,
     # cobble, deepslate and moss, so a bat in those would vanish the way the elephant did.
@@ -110,14 +136,20 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
     sc = float(p.get("scale", 1.0))
     SX, SY, SZ = (max(8, int(round(v * sc))) for v in p["size"])
     seed, spread = int(p["seed"]), float(p["spread"])
+    perch = bool(p.get("perch"))
+    ph = int(round(float(p["perch_h"]) * sc)) if perch else 0
+    # The ruin needs headroom ABOVE the rock, whose top course was the canvas ceiling. Size the box
+    # for it here, before the canvas exists, so `hang` still means exactly what it says.
+    ruin = bool(p.get("ruin")) and perch
+    rh = int(round(float(p["ruin_h"]) * sc)) if ruin else 0
+    SY += rh                                          # exactly the ruin's courses: a spare one
+                                                      # here lifts the claws off the roof course
     c = Canvas(SX, SY, SZ, donors)
     st = c.state
     S = {k: st(p[k]) for k in ("fur", "fur_dark", "skin", "skin_edge", "strut", "eye", "claw")}
     cx, cz = SX / 2.0, SZ / 2.0
     u = sc
-    perch = bool(p.get("perch"))
-    ph = int(round(float(p["perch_h"]) * sc)) if perch else 0
-    roof = SY - 1 - ph                                # y counts DOWN from here: the bat hangs
+    roof = SY - 1 - ph - rh                           # y counts DOWN from here: the bat hangs
 
     # ---- THE PERCH. A ragged lump of the island's own rock, wider than it is deep and thickest in
     # the middle, with moss on top and a couple of vines off the rim - so it reads as a piece that
@@ -153,6 +185,84 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
                 if not c.get(rx, roof - k + 1, rz):
                     break
                 c.put(rx, roof - k, rz, vine)
+
+    # ---- THE RUIN on the crown. A round wall SHEARED diagonally - tall on one side, falling to a
+    # stub on the other - with its collapsed course lying on the moss below the low side and a
+    # lantern burning inside. Nothing else out here carries a light.
+    if ruin:
+        h1 = lambda *a: hash01(*a, seed + 7)
+        R = float(p["ruin_r"]) * sc
+        tk = float(p["ruin_t"]) * sc
+        face = float(p["ruin_face"])
+        base = roof + ph                              # the moss course; the wall starts one above
+        brick, mossy = st(p["ruin_block"]), st(p["ruin_moss"])
+        crack, plinth = st(p["ruin_crack"]), st(p["ruin_plinth"])
+        slab, lamp = st(p["ruin_slab"]), st(p["ruin_lamp"])
+
+        band = st(p["ruin_band"])
+        bands = {1, max(3, int(rh * 0.55))}           # a plinth course and one string course
+
+        def _course(k, fr, dx, dz):
+            """weather UPWARD: moss climbs off the rock, cracks gather where the weather gets in.
+            Hashed on the CELL. It used to hash on the course alone, so every block in a course
+            came out the same and the wall was horizontal stripes of one material."""
+            if k in bands:
+                return band
+            r = h1(dx, k, dz, 23)
+            if r < 0.34 * (1.0 - fr) + 0.05:
+                return mossy
+            if r > 1.0 - (0.30 * fr + 0.05):
+                return crack
+            return brick
+
+        # the gash goes through the TALL side, splitting the crown into two horns. Behind the
+        # low side it did nothing: the silhouette stayed one unbroken wedge, which is a fin.
+        gash = face + 0.34
+        for dx in range(-int(R) - 2, int(R) + 3):
+            for dz in range(-int(R) - 2, int(R) + 3):
+                d = (dx * dx + dz * dz) ** 0.5
+                if d > R or d < R - tk:
+                    continue                          # a RING, not a disc
+                a = np.arctan2(dz, dx)
+                # THE SHEAR IS A PLANE, not a cosine. A cosine falls away smoothly from the high
+                # point in every direction, which is a cone - and it built a witch's hat rather
+                # than a ruin. A break is a FLAT crown over a broad arc, then a hard diagonal
+                # drop: project onto the shear direction and let the clamps do the flattening.
+                proj = (dx * np.cos(face) + dz * np.sin(face)) / max(1e-6, R)
+                hh = min(float(rh), max(rh * 0.16, rh * (0.60 + 0.78 * proj)))
+                hh -= 3.6 * h1(dx, 5, dz, 29)         # ragged top, so it reads as broken masonry
+                da = (a - gash + np.pi) % (2 * np.pi) - np.pi
+                if abs(da) < 0.24:                    # the crack: open from the top down to ~40%
+                    hh = min(hh, rh * 0.40)
+                for k in range(1, int(round(hh)) + 1):
+                    y = base + k
+                    if not c.get(int(round(cx + dx)), base, int(round(cz + dz))):
+                        break                         # never build off the rock's ragged edge
+                    c.put(int(round(cx + dx)), int(y), int(round(cz + dz)), _course(k, k / max(1, rh), dx, dz))
+
+        # a window slit high on the tall side, so the light inside has a second way out
+        wa = face + 0.55
+        wx, wz = int(round(cx + (R - 0.6) * np.cos(wa))), int(round(cz + (R - 0.6) * np.sin(wa)))
+        for k in (int(rh * 0.62), int(rh * 0.62) + 1):
+            for dd in range(-int(tk) - 1, int(tk) + 2):
+                c.put(int(round(wx + dd * np.cos(wa))), base + k, int(round(wz + dd * np.sin(wa))), 0)
+
+        # the LANTERN, on a plinth in the middle. From straight above - which is the angle this is
+        # actually seen from - the read is a dark broken ring with one bright point in it.
+        c.put(int(cx), base + 1, int(cz), plinth)
+        c.put(int(cx), base + 2, int(cz), lamp)
+
+        # ...and the collapsed course, lying on the moss out beyond the LOW side where it fell.
+        low = face + np.pi
+        for j in range(int(round(30 * sc))):
+            a = low + (h1(j, 8, 1, 31) - 0.5) * 2.4
+            # OUTSIDE the wall's own footprint: at 0.55-1.40 R most draws landed on the ring
+            # itself, were correctly refused, and 16 tries left 2 stones on the ground
+            d = R * (1.06 + 0.52 * h1(j, 9, 2, 37))
+            rx, rz = int(round(cx + d * np.cos(a))), int(round(cz + d * np.sin(a)))
+            if not c.get(rx, base, rz) or c.get(rx, base + 1, rz):
+                continue                              # only onto bare moss, never inside the wall
+            c.put(rx, base + 1, rz, slab if h1(j, 10, 3, 41) < 0.45 else _course(0, 0.1, rx, rz))
 
     # ---- FEET, gripping the roof. Two hooked claws, which is the detail that says "hanging"
     # rather than "falling" - without them the whole thing reads as a bat mid-air, upside down.

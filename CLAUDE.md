@@ -308,7 +308,7 @@ use the bare form, it places all 54 designs including a shelf of scratch animals
 | `Lowland Heron` | 8,168 | grey heron, standing, Y41–124 |
 | `Lowland Flamingo` | 7,625 | pink, one leg tucked, kinked bill, body tilted, Y41–133 |
 | `Lowland Capybara Flee` | 6,725 | running, Y38–59 |
-| `Lowland Bat` | 1,546 | roosting on its OWN floating rock at Y112–138, off the SE corner |
+| `Lowland Bat` | 1,857 | roosting on its OWN floating rock, a broken tower on its crown, Y112–148 |
 
 The mammal predators were **retired**, not moved: the jaguar and the bear are the two shapes this
 system cannot build, they took the floor the birds needed, and keeping them would have been keeping
@@ -326,10 +326,32 @@ Three siting facts that cost time and are worth keeping:
   the design is self-contained and can hang in open air. That freed it from competing with the
   birds for airspace — it now roosts in the gap between the bee farm (X −24213..−24186 /
   Z 29995..30048) and the mushroom lobe (X −24158 / Z 30040), at Y112–138 with the grip at Y130.
-  Twenty blocks under the plate, in a column that is empty in both captures.
+  **Fifty-two** blocks under the plate, in a column that is genuinely open sky: 0 of the
+  ruin's 121 columns have island overhead, and only 16 of the rock's 195 do. The config
+  said "twenty blocks under the plate, the plate's lowest block is Y150" — Y150 was the
+  CAPTURE'S FLOOR, not the island's underside, which over this gap is Y200. Read a
+  clearance off the capture's content, never off its bounding box.
 - **Wingspan is a function of how far away it hangs.** At 106 wide it was absurd; that was a
   consequence of hanging it 109 blocks up, where anything smaller could not read. Roosting close
   and furled (`spread: 0.5`) it is 46 wide and still shows its finger struts.
+- **The rock carries a RUIN, and its shape was decided by the viewing angle.** The perch reads as
+  a piece that broke off the plate, so it carries a piece of what was BUILT on the plate: a round
+  stone-brick wall, sheared, with a lantern inside. It sits in open sky 52 blocks below the rim, so
+  it is seen from steeply above as much as in profile, and it had to work in PLAN — which is what
+  ruled out an arch (negative space you cannot look through does nothing) and a bare snag (a few
+  scattered pixels from overhead). From above it reads as a dark broken ring with one bright point
+  in it. Three things it took to stop looking like a witch's hat:
+  - **The shear is a PLANE, not a cosine.** A cosine falls away smoothly in every direction from
+    the high point, which is a cone. Projecting onto the shear direction and clamping gives a flat
+    crown over a broad arc and then a hard diagonal drop, which is what a break looks like.
+  - **The gash goes through the TALL side**, splitting the crown into two horns. Behind the low
+    side it changed nothing: the silhouette stayed one unbroken wedge.
+  - **`cracked` and `chiseled` stone brick are within 4 RGB of plain**, so weathering the wall with
+    them is invisible — it had no tone and no horizontal at all. Two string courses of
+    `deepslate_bricks` (51 darker, and the island's own stone dressed) are what make it masonry.
+    And the weathering hash must be on the CELL: hashed on the course, every block in a course came
+    out identical and the wall was horizontal stripes of one material.
+
 - **A flamingo does not stand level.** Its body slopes down to the breast with the tail carried high
   and the neck leaving from a low point at the front. The body used to be one upright ellipsoid,
   which cannot lean however the rest of the bird is posed — it is swept along a tilted spine now,
