@@ -53,37 +53,46 @@ BAT = {
     "fur_dark": "black_wool",
     "skin": "brown_wool",        # the membrane
     "skin_edge": "black_wool",
-    "strut": "dark_oak_planks",  # finger bones
+    # the bones must be DARKER than the membrane but not BLACK: dark_oak_planks was so
+    # close to brown_wool the fingers disappeared, and black_wool read as holes.
+    "strut": "dark_oak_wood",    # finger bones
     "eye": "orange_wool",
+    "snout": "brown_wool",   # a lighter muzzle, so the head reads as a head
     "claw": "bone_block",
 }
 
 
-def _membrane(c: Canvas, a, b, d, blk, steps=44, sag=0.15):
-    """Fill the sheet between two struts, with the trailing edge SCALLOPED rather than straight.
+def _triangle(c: Canvas, a, b, d, blk, sag=0.15):
+    """FILL the sheet between two finger struts, by area rather than by a fan of lines.
 
-    A sweep of spheres would give a rope; a membrane is one block thick and flat, so it is drawn as
-    a fan of thin lines from the wrist anchor out to each point along the trailing edge.
+    It used to draw a fan of thin lines from the wrist out to points along the trailing edge, and a
+    fan is exactly the wrong primitive: radial lines diverge, so at the wrist they overlap three
+    deep and out at the tips they are more than a block apart. That is where the big holes in the
+    wings came from - not a colour problem, a coverage one.
 
-    `sag` bows that edge back toward the anchor between the two finger tips. Straight edges made the
-    wing a rectangle with struts drawn on it - the scallop between the fingers is the single thing
-    that says "bat" rather than "kite", and it costs one lerp.
+    Filling the triangle in BARYCENTRIC coordinates at a step fine enough for the longest edge
+    guarantees there is no gap anywhere in it, whatever the size or the spread.
+
+    `sag` bows the trailing edge back toward the anchor between the two tips - the scallop that says
+    "bat" rather than "kite".
     """
     a, b, d = (np.array(q, float) for q in (a, b, d))
-    for i in range(steps):
-        t = i / max(1, steps - 1)
-        edge = a + (b - a) * t
-        edge = edge + (d - edge) * (sag * 4.0 * t * (1.0 - t))     # 0 at each tip, most mid-span
-        c.line(tuple(d), tuple(edge), 0.5, blk)
+    longest = max(np.linalg.norm(a - b), np.linalg.norm(a - d), np.linalg.norm(b - d))
+    n = max(8, int(longest * 2.2))                    # samples at most ~0.45 blocks apart
+    for i in range(n + 1):
+        s = i / n
+        edge = a + (b - a) * s
+        edge = edge + (d - edge) * (sag * 4.0 * s * (1.0 - s))
+        for j in range(n + 1):
+            q = d + (edge - d) * (j / n)
+            c.put(int(round(q[0])), int(round(q[1])), int(round(q[2])), blk)
 
 
 def _stick(c: Canvas, x, y, z, blk) -> bool:
     """Place a single cell ONLY where it has something to hold on to.
 
     Every detached-feature bug in this repo is the same mistake: a detail placed at a COMPUTED
-    position rather than against the surface that was actually built. The eyes and claw tips here
-    were floating one cell clear of a curved head, which put the design in four pieces and would
-    have failed the `single_component` gate outright.
+    position rather than against the surface that was actually built.
     """
     x, y, z = int(round(x)), int(round(y)), int(round(z))
     if c.get(x, y, z):
@@ -166,8 +175,36 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
                0.75 * u, S["fur"])
         c.line((ex + side * 0.3 * u, head_y - 0.4 * u, cz),
                (ex + side * 2.4 * u, head_y - 3.4 * u, cz - 0.3 * u), 0.5 * u, S["fur_dark"])
+    # ---- THE FACE. It was one orange cell on a dark lump: at any distance the head read as a knot
+    # in the body rather than as a head. A bat's face is a short pale snout with the eyes set wide
+    # and high on it, so the snout gets its own lighter block and each eye a dark socket to sit in -
+    # the same bead-in-a-ring that made the capybara legible.
+    #
+    # And it is painted on the SURFACE, found by walking outward. Placed at computed positions the
+    # cells landed INSIDE the skull, where they are perfectly correct and completely invisible -
+    # which is the same mistake as the floating mane, inverted.
+    def _skin(x, y, blk, reach=5.0):
+        """Paint the outermost solid cell of this column, looking along +z (the face)."""
+        xi, yi = int(round(x)), int(round(y))
+        for k in range(int(reach * sc), -1, -1):
+            zi = int(round(cz + k))
+            if c.get(xi, yi, zi):
+                c.put(xi, yi, zi, blk)
+                return True
+        return False
+
+    snout = st(p.get("snout") or p["skin"])
+    for dy in (0, 1):                                     # a short pale muzzle
+        for dx in (-1, 0, 1):
+            _skin(cx + dx * 0.9 * u, head_y - (1.8 + dy) * u, snout)
+    _skin(cx, head_y - 2.9 * u, S["fur_dark"])            # nose
     for side in (-1, 1):
-        _stick(c, cx + side * 1.2 * u, head_y - 1.4 * u, cz + 1.9 * u, S["eye"])
+        # 1.6 put the eye at the very rim of a 2.1-radius skull, where the column is
+        # empty at brow height and one of the two silently found nothing
+        ex = cx + side * 1.1 * u
+        for dy in (-1, 0, 1):                             # socket
+            _skin(ex, head_y + (0.2 + dy) * u, S["fur_dark"])
+        _skin(ex, head_y + 0.2 * u, S["eye"])             # the bead, over its own socket
 
     # ---- WINGS. Arm out to the wrist, then four finger struts fanning back, with the membrane
     # filled between consecutive fingers. `spread` swings the whole fan outward.
@@ -176,7 +213,7 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
     for side in (-1, 1):
         out = (6.0 + 14.0 * spread) * u
         wrist = (cx + side * out, body_y - 5.0 * u, cz - 0.6 * u)
-        c.line(shoulder, wrist, 1.15 * u, S["strut"])
+        bones = [(shoulder, wrist, 1.15 * u, S["strut"])]   # drawn LAST, see below
         tips = []
         for i in range(fingers + 1):
             t = i / fingers
@@ -188,9 +225,12 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
                    wrist[1] + (-1.0 + 13.5 * t) * u,
                    wrist[2] - (0.8 - 1.6 * t) * u)
             tips.append(tip)
-            c.line(wrist, tip, (0.62 - 0.12 * t) * u, S["strut"])
+            bones.append((wrist, tip, (0.62 - 0.12 * t) * u, S["strut"]))
+        # the PROPATAGIUM: the sheet between the ARM and the first finger. It was never drawn at
+        # all, which left the largest hole of the lot right where the wing meets the body.
+        _triangle(c, shoulder, tips[0], wrist, S["skin"], sag=0.05)
         for i in range(len(tips) - 1):                # the sheet between each pair of fingers
-            _membrane(c, tips[i], tips[i + 1], wrist, S["skin"])
+            _triangle(c, tips[i], tips[i + 1], wrist, S["skin"])
         for i in range(len(tips) - 1):                # the trailing edge, following the same scallop
             a_, b_ = np.array(tips[i], float), np.array(tips[i + 1], float)
             w_ = np.array(wrist, float)
@@ -200,20 +240,27 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
                 e = a_ + (b_ - a_) * tt
                 e = e + (w_ - e) * (0.15 * 4.0 * tt * (1.0 - tt))
                 if prev is not None:
-                    c.line(tuple(prev), tuple(e), 0.5 * u, S["skin_edge"])
+                    bones.append((tuple(prev), tuple(e), 0.5 * u, S["skin_edge"]))
                 prev = e
         # and the sheet from the last finger back to the ankle, which is what makes it a BAT wing
         # rather than a bird's - the membrane runs all the way to the leg
-        c.line(tips[-1], (cx + side * 1.6 * u, roof - 3.0 * u, cz + 0.4 * u), 0.5 * u, S["skin_edge"])
-        _membrane(c, tips[-1], (cx + side * 1.6 * u, roof - 3.0 * u, cz + 0.4 * u), wrist, S["skin"])
+        ankle = (cx + side * 1.6 * u, roof - 3.0 * u, cz + 0.4 * u)
+        _triangle(c, tips[-1], ankle, wrist, S["skin"])
+        # ...and the sheet on the BODY side of the arm. The wing is a quadrilateral - shoulder,
+        # wrist, last fingertip, ankle - and only two of its three triangles were being drawn, so a
+        # hole sat between each wing and the body exactly where the arm meets the flank.
+        _triangle(c, shoulder, ankle, wrist, S["skin"], sag=0.0)
+        # the FINGER BONES go on LAST. They were drawn before the sheets, so every membrane
+        # fill painted over them and they survived only as broken dashes scattered across the
+        # wing - which reads as damage, not as structure. A bat wing is legible precisely
+        # because you can see the fingers through it, so they have to be the top layer.
+        for a_, b_, r_, k_ in bones:
+            c.line(a_, b_, r_, k_)
 
-    # ---- a little tone in the membrane so it is not one flat sheet of terracotta
-    h = lambda *a: hash01(*a, seed)
-    for y in range(SY):
-        for z in range(SZ):
-            for x in range(SX):
-                if c.get(x, y, z) == S["skin"] and h(x, y, z, 11) < 0.14:
-                    c.put(x, y, z, S["skin_edge"])
+    # ---- NO random speckle. 14% of the membrane used to be repainted `skin_edge` for tone, and
+    # `skin_edge` is black_wool: against a brown sheet that is not tone, it is a scatter of holes,
+    # and that is what it looked like in the world. The wing gets its variation from the finger
+    # bones over it and the dark scalloped trailing edge around it, both of which mean something.
     if p.get("hang"):
         hx_, hy_, hz_ = (float(v) for v in p["hang"])
         c.world_origin = (int(round(hx_ - cx)), int(round(hy_ - roof)), int(round(hz_ - cz)))
