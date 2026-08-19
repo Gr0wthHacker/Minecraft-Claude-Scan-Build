@@ -160,3 +160,41 @@ def test_zoom_scales_the_render():
     small = views._render(ids, cols, 0, sy, sx, sz, "side", 2)
     big = views._render(ids, cols, 0, sy, sx, sz, "side", 6)
     assert big.width == small.width * 3 and big.height == small.height * 3
+
+
+# ---------------------------------------------------------------- the panel sheet
+
+def test_the_panel_picks_the_profile_axis_from_the_RECORDED_facing():
+    """Choosing it by hand was got wrong twice in one session, and auditing an animal's backside
+    tells you nothing about its face. An animal facing +z shows its profile to a viewer looking
+    along x (`side`); one facing +x shows it along z (`face`)."""
+    import panel
+    assert panel is not None
+    # the rule the tool applies, stated once so it cannot drift
+    for facing, want in (([0, 1], "side"), ([0, -1], "side"), ([1, 0], "face"), ([-1, 0], "face")):
+        got = "side" if facing[1] else "face"
+        assert got == want, f"facing {facing} should profile as {want}"
+
+
+def test_the_panel_asks_both_kinds_of_question():
+    """One panel is not a panel. The visual critic and the player catch different failures - the
+    critic found the flat back, the player found that it is a smudge at walking distance."""
+    import panel
+    assert len(panel.VISUAL) >= 4 and len(panel.PLAYER) >= 4
+    joined = " ".join(panel.VISUAL).lower()
+    assert "silhouette" in joined, "the silhouette question is the one that matters most"
+    joined2 = " ".join(panel.PLAYER).lower()
+    assert any(k in joined2 for k in ("distance", "1/4", "walk")), "the player must judge at range"
+
+
+def test_the_silhouette_panel_is_actually_flat():
+    """It is the 'would you know it with the colour removed' question SHOWN rather than asked, so
+    it must not leak any of the coat back in."""
+    from PIL import Image
+    import panel
+    im = Image.new("RGB", (4, 4), (250, 250, 250))
+    im.putpixel((1, 1), (200, 30, 30))
+    im.putpixel((2, 2), (30, 200, 30))
+    flat = panel._flatten(im, (28, 28, 32))
+    inked = {flat.getpixel((x, y)) for x in range(4) for y in range(4)}
+    assert inked == {(250, 250, 250), (28, 28, 32)}, f"silhouette kept colour: {inked}"

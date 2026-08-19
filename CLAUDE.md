@@ -211,6 +211,7 @@ python tools/rubric.py "<design>"                  # 4. score it; read the WEAKE
 python tools/refine.py configs/<x>.yaml            # 5. sweep, scored by the WHOLE rubric
 python tools/compare.py --family <family>          # 6. against its SIBLINGS, not just the table
 python tools/views.py "<design>" --zoom 10         # 7. LOOK at it. Always.
+python tools/panel.py "<design>"                   # 8. and have it REVIEWED - see below
 ```
 
 **Never tune one dimension.** Sweeping `smoothness.py` alone took the bear's surface 0.60 → 0.73 and
@@ -273,6 +274,64 @@ against a re-derivation of what the pose does, and that model was wrong. With th
 build's own recorded intent, the lowland jaguar went 0.68 → **0.79** and the bear 0.68 → **0.81**,
 both at 8/8 measures in tolerance. The poses `stance.py` picked on site grounds are now the ones
 the rubric likes too, which is what agreement between two honest tools should look like.
+
+## The panel review — the last step before shipping
+
+`python tools/panel.py "<design>"`. The rubric measures proportion, surface, palette, symmetry, and
+an animal can score GOOD on every one of them and still be a spotted table. That happened. Nothing in
+the pipeline asked the only question that finally matters: **would a stranger name this animal?**
+
+It cannot be measured, so it is asked — but asking it fairly needs the right evidence, from more than
+one direction. The sheet shows the profile (axis chosen from the RECORDED FACING, because picking it
+by hand was got wrong twice in one session), a flat **silhouette**, a greyscale **value** panel, the
+plan, **distance thumbnails** at 1/2, 1/4 and 1/8, and a 2-block **player bar** for scale. Then two
+panels, because they catch different things — the visual critic on silhouette, mass, line and value;
+the Minecraft player on distance legibility, whether it looks BUILT, scale against a person, and the
+three or four angles a path actually allows.
+
+**Write both verdicts down.** A panel that is not recorded is one the next good-looking score quietly
+overrules.
+
+### First verdicts (2026-08-19)
+
+**X elephant — PASSES both.** The silhouette alone names it: trunk curve, ear, domed head, columnar
+legs. The value panel shows real rounding. It still reads as an elephant at the 1/8 thumbnail. This
+is the control the panel is calibrated against.
+
+**X jaguar — FAILS both, badly.**
+
+*Visual critic.* You cannot name it from the silhouette — it reads as a low table, or a bull; the
+only cat cue is the tail. There is no weight anywhere: the outline is a constant-depth rectangle from
+shoulder to rump, so the animal has no centre of gravity. No line of action — the spine is a straight
+rule and the belly is a second straight rule parallel to it, which is the most inert shape available.
+The value panel is flat, and the pale belly is a hard-edged band that *reinforces* the slab rather
+than describing a form. Fix first: **the legs** — constant-width posts at the extreme corners are
+exactly what makes it a table.
+
+*Minecraft player.* At 1/4 and 1/8 it is a brown smudge with a line coming off it; the spots turn to
+noise rather than pattern. It does not look built — one wood tone with black wool speckles, no block
+variety doing any work, no stairs or slabs breaking the grid. Scale is fine, ~15 player-heights long.
+Of the three angles a path gives you, only the side is even attempted, and the plan view reads better
+than the profile, which is backwards for something standing on the ground. The comment it would get:
+*"why does your jaguar have four table legs and a flat back?"*
+
+### What the two panels agree on, in order
+
+1. **Legs must merge into the body as a haunch and a shoulder**, and taper to a slim cannon. Posts at
+   the corners are the single biggest failure.
+2. **The belly line must not be parallel to the back.** It is `floor = rump + (chest - rump) * t` —
+   a straight line by construction, so a deep chest and a tucked loin cannot be expressed at all.
+3. **The back line needs a shoulder rise and a rump fall** to break the horizontal.
+4. **The barrel is a spindle** — widest mid-body, tapering to both ends. A quadruped is widest at the
+   shoulder and haunch with a waist between. A bimodal width profile was tested and fixes the PLAN
+   view immediately; it does nothing for the profile, which is governed by (2).
+5. **The surface must look built** — a 3-tone coat and real use of the slab shell, not one tone plus
+   speckles.
+
+**The pattern across all eight animals:** this system succeeds where identity is HARDWARE — the
+elephant's trunk and ears, the giraffe's neck, the capybara genuinely being a blocky rodent — and
+fails where identity is MUSCLE AND PROPORTION, which is every cat and both bears. Scaling does not
+help: the jaguar at scale 1.7 with 8,349 blocks fails exactly as the 27-block one does.
 
 ## Faces, and the visual audit that found them (2026-08-19)
 
@@ -442,6 +501,7 @@ design without regenerating it.
 | `refine.py` | sweep parameters against the WHOLE rubric — use this, not `smoothness --sweep` |
 | `compare.py` | built models against EACH OTHER, per family: shape gap and coat gap, kept apart |
 | `emerge.py` | cut a design at a plane so a figure comes OUT of a surface, and trim to what is left |
+| `panel.py` | the review sheet: silhouette, value, distance thumbs, player bar + both panels' questions |
 | `views.py` | …and it draws slabs at half height, so half-block work is visible here |
 | `plan_merge.py` | composite designs onto a capture |
 
