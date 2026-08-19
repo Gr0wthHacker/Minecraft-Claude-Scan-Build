@@ -97,8 +97,12 @@ QUADRUPED = {
     "mane": True,               # a ridge down the back of the neck
     "horns": "ossicone",        # ossicone | none
     "ears": True,
+    "ear_size": 1.0,            # multiplier on ear reach and height
     "tail": "tassel",           # tassel | plain | long (a cat's) | none
     "tail_len": 0.75,           # `long` only: length as a fraction of body length
+    "trunk": 0.0,               # length as a multiple of head length; 0 = none. An elephant's trunk
+                                # is the same sweep as a cat's tail, hung off the face instead of the
+                                # rump - which is why it needed no new machinery, only a new anchor.
     # -- palette and pattern
     "coat_pattern": "voronoi",  # voronoi (patches with grout) | blotches | rosettes | plain
     "belly_block": None,        # pale underside; None leaves the coat alone
@@ -162,6 +166,47 @@ PROFILES = {
         "belly_block": "bone_block", "belly_frac": 0.20,
         "muzzle": "bone_block", "dark": "black_wool", "hoof_block": "dark_oak_wood",
         "section_n": 2.1,
+    },
+    # The ideal voxel animal: limbs so heavy relative to its height that nothing about it is too
+    # fine to build. Viable at 30 blocks where a giraffe needs 59.
+    "elephant": {
+        "leg": 16, "leg_r": 3.0, "hoof": 0,
+        "body_len": 28, "withers": 13, "hips": 12, "body_r": 6.6,
+        "neck": 3, "neck_r0": 5.2, "neck_r1": 4.6, "neck_lean": 0.7, "neck_from": 0.86,
+        "head_len": 8, "head_r": 4.2, "trunk": 1.6,
+        # the ears are the most identifying thing about an elephant - bigger than its head
+        "mane": False, "horns": "none", "ears": True, "ear_size": 2.6,
+        "tail": "plain", "tail_len": 0.4,
+        "coat_pattern": "plain", "coat_block": "cobblestone",
+        "patch": "cobblestone", "patch_alt": "andesite",
+        "muzzle": "andesite", "dark": "black_wool", "hoof_block": "andesite",
+        "belly_block": None, "section_n": 2.3,
+    },
+    # Heavy forequarters, short thick neck, small round ears. Sits like a person.
+    "bear": {
+        "leg": 11, "leg_r": 1.6, "hoof": 0,
+        "body_len": 20, "withers": 8, "hips": 8, "body_r": 3.2,
+        "neck": 4, "neck_r0": 2.8, "neck_r1": 2.5, "neck_lean": 0.7, "neck_from": 0.95,
+        "head_len": 6, "head_r": 2.9,
+        "mane": False, "horns": "none", "ears": True, "tail": "plain", "tail_len": 0.15,
+        "coat_pattern": "blotches", "patch_scale": 7.0,
+        "coat_block": "stripped_dark_oak_wood", "patch": "mangrove_wood",
+        "patch_alt": "mangrove_wood", "muzzle": "oak_log",
+        "dark": "black_wool", "hoof_block": "black_wool",
+        "belly_block": None, "section_n": 2.2,
+    },
+    # Barely any neck at all, a blunt head and a barrel on short legs - the smallest thing here that
+    # still reads as an animal, and the right scale for something you come across rather than see.
+    "capybara": {
+        "leg": 6, "leg_r": 1.0, "hoof": 0,
+        "body_len": 17, "withers": 5, "hips": 5, "body_r": 2.9,
+        "neck": 1, "neck_r0": 2.4, "neck_r1": 2.2, "neck_lean": 0.6, "neck_from": 0.92,
+        "head_len": 5, "head_r": 2.1,
+        "mane": False, "horns": "none", "ears": True, "tail": "none",
+        "coat_pattern": "plain", "coat_block": "jungle_log",
+        "patch": "jungle_log", "patch_alt": "stripped_jungle_log",
+        "muzzle": "stripped_jungle_log", "dark": "black_wool", "hoof_block": "black_wool",
+        "belly_block": None, "section_n": 2.1,
     },
     # Light and short-bodied, neck carried high, no mane.
     "deer": {
@@ -242,6 +287,8 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
         _mane(hide, shoulder, f, s, p)
     _crown(hide, accent, head_at, f, s, p)
     _face(hide, accent, head_at, f, s, p)
+    if float(p.get("trunk", 0)) > 0:
+        _trunk(hide, accent, head_at, f, s, p)
     if p["tail"] != "none":
         _tail(hide, accent, fx, belly, fz, f, s, p)
 
@@ -505,10 +552,15 @@ def _crown(hide, accent, head_at, f, s, p):
                     continue
                 # a CONTIGUOUS outward run at one height: sweeping it back and down as it went out
                 # made consecutive cells diagonal neighbours, which is not 6-connected - tips broke off
-                for dyk in (0, 1):
-                    if dyk and a == 1:
+                # `ear_size` scales both the reach and the height. An elephant's ears are bigger
+                # than its head and are the single most identifying thing about it; at the default
+                # size it read as a grey horse with a hosepipe.
+                reach = max(2, int(round(2 * float(p.get("ear_size", 1.0)))))
+                tall = max(2, int(round(2 * float(p.get("ear_size", 1.0)))))
+                for dyk in range(tall):
+                    if dyk >= tall - 1 and a == 1:
                         continue
-                    for b in range(1, 3 if a != 1 else 2):
+                    for b in range(1, (reach + 1) if a != 1 else reach):
                         c = (int(round(hx + f[0] * (a + 1) + s[0] * (b0 + b) * side)),
                              int(round(hy + 1 + dyk)),
                              int(round(hz + f[1] * (a + 1) + s[1] * (b0 + b) * side)))
@@ -553,6 +605,49 @@ def _face(hide, accent, head_at, f, s, p):
                 ring = (edge[0], int(round(hy + dy)), edge[2])
                 if ring in hide and ring not in accent:
                     accent[ring] = p["muzzle"]
+
+
+def _trunk(hide, accent, head_at, f, s, p):
+    """A trunk: a tapering column hung from the front of the face, curving down and back.
+
+    Structurally identical to the long tail - a swept, tapering appendage - so it reuses that idea
+    rather than inventing another. The differences are only that it hangs from the muzzle, tapers
+    much harder, and curls at the tip.
+
+    It is ANCHORED to the smoothed face for the same reason everything else is: at a computed offset
+    it would hang a block clear of a muzzle that relax had pulled back."""
+    hx, hy, hz, hl, hr, _ax, _az = head_at
+    length = max(4, int(round(float(p["trunk"]) * int(p["head_len"]))))
+    # find the real front of the face at muzzle height
+    x = int(round(hx + f[0] * (hl - 1)))
+    z = int(round(hz + f[1] * (hl - 1)))
+    for d in range(hl + 3, 0, -1):
+        probe = (int(round(hx + f[0] * d)), int(round(hy - 1)), int(round(hz + f[1] * d)))
+        if probe in hide:
+            x, z = probe[0], probe[2]
+            break
+    y = float(hy - 1)
+    prev = int(round(y))
+    px, pz = x, z
+    for k in range(length):
+        t = k / max(1, length - 1)
+        r = max(0.6, (hr - 0.9) * (1.0 - 0.62 * t))       # tapers hard toward the tip
+        y -= 0.55 + 1.5 * t                               # falls away, steeper as it goes
+        fwd = 1.0 - 0.75 * t * t                          # and curls back under at the end
+        cy = int(round(y))
+        cx = int(round(x + f[0] * k * fwd))
+        cz = int(round(z + f[1] * k * fwd))
+        # Fill the whole run since the last segment. Near the tip it descends more than a block per
+        # step, and stepping straight there left the trunk in five floating pieces - exactly the bug
+        # the long tail had, because it is exactly the same sweep.
+        for yy in range(min(cy, prev), max(cy, prev) + 1):
+            loft.disc(hide, cx, yy, cz, f, s, r, r, float(p["section_n"]))
+        for step in range(1, max(abs(cx - px), abs(cz - pz)) + 1):
+            loft.disc(hide, px + (1 if cx > px else -1 if cx < px else 0) * step,
+                      cy, pz + (1 if cz > pz else -1 if cz < pz else 0) * step,
+                      f, s, r, r, float(p["section_n"]))
+        prev, px, pz = cy, cx, cz
+    return
 
 
 def _tail_long(hide, accent, x, z, top, f, s, p):

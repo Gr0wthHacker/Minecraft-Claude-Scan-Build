@@ -62,3 +62,66 @@ jaguar:
   # A cat is the mirror image of a giraffe here: it spends most of its life NOT standing, so a
   # standing jaguar is the odd one out and the resting poses are the honest choices.
   poses: {standing: 0.55, couchant: 1.00, sitting: 0.85, prowling: 0.95, grazing: 0.10}
+
+# --- candidates, measured from adult averages, head-up totals as above ---
+
+elephant:
+  # The ideal voxel animal: massive limbs relative to height, so nothing is too fine to build.
+  total_m: 3.40
+  withers height: 3.10
+  leg (ground->belly): 1.70
+  body depth: 1.40
+  body length: 3.00
+  body width: 1.40
+  neck length: 0.35
+  head length: 0.90
+  leg width: 0.55
+  poses: {standing: 1.00, grazing: 0.55, couchant: 0.15, sitting: 0.02, prowling: 0.00}
+
+bear:
+  total_m: 1.60
+  withers height: 1.15
+  leg (ground->belly): 0.75
+  body depth: 0.55
+  body length: 1.40
+  body width: 0.55
+  neck length: 0.25
+  head length: 0.40
+  leg width: 0.22
+  poses: {standing: 0.90, sitting: 0.95, couchant: 0.70, grazing: 0.45, prowling: 0.35}
+
+bison:
+  total_m: 2.00
+  withers height: 1.85          # the hump, not the back
+  leg (ground->belly): 0.95
+  body depth: 0.90
+  body length: 2.20
+  body width: 0.75
+  neck length: 0.30
+  head length: 0.60
+  leg width: 0.20
+  poses: {standing: 1.00, grazing: 0.95, couchant: 0.45, sitting: 0.00, prowling: 0.00}
+
+boar:
+  total_m: 1.00
+  withers height: 0.90
+  leg (ground->belly): 0.45
+  body depth: 0.45
+  body length: 1.20
+  body width: 0.45
+  neck length: 0.12
+  head length: 0.40
+  leg width: 0.12
+  poses: {standing: 1.00, grazing: 0.90, couchant: 0.40, sitting: 0.00, prowling: 0.00}
+
+capybara:
+  total_m: 0.62
+  withers height: 0.55
+  leg (ground->belly): 0.28
+  body depth: 0.27
+  body length: 0.90
+  body width: 0.30
+  neck length: 0.08
+  head length: 0.25
+  leg width: 0.08
+  poses: {standing: 0.85, couchant: 1.00, sitting: 0.75, grazing: 0.70, prowling: 0.00}
