@@ -87,6 +87,9 @@ def relax(cells, *, rounds: int = 2, fill: int = 15, keep: int = 8, protect=(), 
     keepset, banned = set(protect), set(forbid)
     out = set(cells) - banned
     for _ in range(max(0, rounds)):
+        if not (out | keepset):
+            return set()          # relax can shave a thin part away entirely; that is an empty
+                                  # result, not a crash in `_grid` on an empty sequence
         a, origin = _grid(out | keepset)
         n26 = morph.neighbor_count(a, conn=26)
         grown = a | (~a & (n26 >= fill))

@@ -279,30 +279,40 @@ def _palette_mix(names):
 
 
 def _sibling_build(name):
-    """The newest build of a species, as (silhouette, block names), or None if it has never run.
+    """The newest build of a species, as (silhouette, block names), or None if it has never run."""
+    return _builds_by_species().get(name)
+
+
+@functools.lru_cache(maxsize=1)
+def _builds_by_species():
+    """{species: (silhouette, block names)} for the newest build of each, scanned ONCE.
 
     Looks wherever designs land - `out/` and the shipped schematics folder - and matches on the
     sidecar's own recorded `kind`, so a design's file name does not have to encode its species.
+
+    Cached for the process because it is called from inside `score`, and `tools/refine.py` calls
+    `score` once per grid variant. Without this, a 54-variant sweep re-parses every litematic in
+    `out/` a hundred-odd times - the NBT parse dominated the sweep and the whole test suite slowed
+    by an order of magnitude. Nothing regenerates a SIBLING mid-sweep, so a per-process snapshot is
+    the right granularity; `_builds_by_species.cache_clear()` if that ever stops being true.
     """
-    best, best_t = None, -1.0
+    out, when = {}, {}
     for d in _design_dirs():
         if not d.is_dir():
             continue
         for f in d.glob("*.litematic"):
             try:
                 mt = f.stat().st_mtime
-                if mt <= best_t:
-                    continue
                 s = scan.load(str(f))
-                if ((getattr(s, "meta", None) or {}).get("kind")) != name:
+                kind = (getattr(s, "meta", None) or {}).get("kind")
+                if not kind or mt <= when.get(kind, -1.0):
                     continue
-                solid = s.model.ids > 0
-                best = (_profile(solid),
-                        [n.split(":")[-1].split("[")[0] for n in s.model.names])
-                best_t = mt
+                out[kind] = (_profile(s.model.ids > 0),
+                             [n.split(":")[-1].split("[")[0] for n in s.model.names])
+                when[kind] = mt
             except Exception:
                 continue
-    return best
+    return out
 
 
 @functools.lru_cache(maxsize=1)

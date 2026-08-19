@@ -23,13 +23,15 @@ from __future__ import annotations
 
 def lerp(keys, t: float):
     """Piecewise-linear through (t, value...) keyframes. Values are tuples of floats."""
+    # always a TUPLE - the clamped branches used to return the keyframe's own list, so the return
+    # type depended on where t fell. Every caller unpacks, so it never broke; it would have.
     if t <= keys[0][0]:
-        return keys[0][1:]
+        return tuple(keys[0][1:])
     for (t0, *v0), (t1, *v1) in zip(keys, keys[1:]):
         if t <= t1:
             u = 0.0 if t1 == t0 else (t - t0) / (t1 - t0)
             return tuple(a + (b - a) * u for a, b in zip(v0, v1))
-    return keys[-1][1:]
+    return tuple(keys[-1][1:])
 
 
 def disc(hide: set, cx, cy, cz, f, s, r_along, r_across, n: float):

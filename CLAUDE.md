@@ -227,8 +227,12 @@ compared the models to EACH OTHER. Numbers did not catch it; one glance did.
   0.83 (the ossicones and mane are the parts that lose). It is the only animal built in the world,
   so raising it would orphan placed blocks. Listed in `UNDERSIZED` in `tests/test_taxonomy.py`;
   the fix is Jack's call, not a silent one.
-- **`coat`, `loft`, `quadruped` and five of the eight tools still have no tests.** `taxonomy`,
-  `rubric` and `proportions.measure` now do — `tests/test_taxonomy.py`, `tests/test_rubric.py`.
+- **`refine` and `smoothness` are the only animal tools with no test of their own**, and the two
+  build generators (`quadruped`, `coat` patterns) are covered only through the primitives and one
+  end-to-end build. Everything else now has one: `tests/test_taxonomy.py` (derivation and the
+  no-absolutes rule), `test_rubric.py` (both shared entry points), `test_animal_geometry.py`
+  (loft, relax, coat), `test_animal_build.py` (build, poses, anatomy), `test_animal_tools.py`
+  (scale, stance, compare, views).
 - **The bears are boxes.** Both ursids build as a rectangular slab on four posts: flat top, flat
   bottom, square corners. `form` scores the brown bear 0.81 because it measures TONE — range and
   whether luminance follows sky exposure — and nothing measures ROUNDNESS. The metric and the eye
@@ -246,7 +250,7 @@ compared the models to EACH OTHER. Numbers did not catch it; one glance did.
 ## Build & test
 
 ```bash
-python -m pytest -q                                   # 66 tests, keep green
+python -m pytest -q                                   # 125 tests, keep green
 cd chunkscan && ./gradlew build test -q                # writes build/libs/chunkscan-<ver>.jar
 python chunkscan/verify_synthetic.py                   # Java writer vs Python reader, block for block
 ```
