@@ -27,7 +27,7 @@ Two traps that are not obvious and cost several rebuilds each:
 from __future__ import annotations
 
 from . import coat as coat_mod
-from . import anatomy, loft, smooth, taxonomy
+from . import anatomy, loft, shell, smooth, taxonomy
 from .canvas import Canvas
 from .vertical import Ctx, World
 
@@ -228,11 +228,11 @@ PROFILES = {
         "head_len": 6, "head_r": 3.4,
         "mane": False, "horns": "none", "ears": True, "tail": "plain", "tail_len": 0.15,
         # A bear is one colour, so like the elephant all its quality is form. Five browns from
-        # dark_oak in the creases to coarse_dirt along the lit back - a range wide enough to model
+        # dark_oak in the creases to acacia_log along the lit back - a range wide enough to model
         # the shoulders without ever looking painted.
         "coat_pattern": "shaded",
         "coat_ramp": ["dark_oak_planks", "stripped_dark_oak_wood", "mangrove_wood",
-                      "spruce_planks", "coarse_dirt"],
+                      "spruce_planks", "acacia_log"],
         "shade_strength": 1.1, "patch_scale": 7.0,
         "coat_block": "mangrove_wood", "patch": "mangrove_wood",
         "patch_alt": "stripped_dark_oak_wood", "muzzle": "oak_log",
@@ -251,7 +251,8 @@ PROFILES = {
         "head_len": 5, "head_r": 2.1,
         "mane": False, "horns": "none", "ears": True, "tail": "none",
         "coat_pattern": "shaded",
-        "coat_ramp": ["spruce_planks", "coarse_dirt", "dirt", "jungle_log", "stripped_jungle_log"],
+        "coat_ramp": ["spruce_planks", "stripped_spruce_wood", "acacia_log", "jungle_log",
+                      "stripped_jungle_log"],
         "shade_strength": 1.1,
         "coat_block": "jungle_log", "patch": "jungle_log", "patch_alt": "stripped_jungle_log",
         "muzzle": "stripped_jungle_log", "dark": "black_wool", "hoof_block": "black_wool",
@@ -377,9 +378,23 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
     if p.get("belly_block"):
         _underside(hide, accent, (rump, chest), float(p["withers"]), p, fx, fz, f,
                    int(p["body_len"]) // 2)
+    paint = {c: (accent.get(c) or skin.get(c, p["coat_block"])) for c in hide}
+    # HALF-BLOCK SURFACING. Everything above is built from full cubes, so a curved back descends in
+    # whole blocks and reads as a staircase. `shell` halves the cells that sit proud of their
+    # neighbours - see mcbuild/gen/shell.py for why slabs and not stairs, and why the material list
+    # is short. Off for a species that sets `shell: false`.
+    over = {}
+    if p.get("shell", True):
+        over = shell.slab_shell(hide, paint, p["coat_block"],
+                                max_shift=float(p.get("shell_shift", shell.MAX_SHIFT)),
+                                under=bool(p.get("shell_under", False)))
     w = World()
     for cell in sorted(hide):
-        w.put(*cell, accent.get(cell) or skin.get(cell, p["coat_block"]))
+        if cell in over:
+            name, props = over[cell]
+            w.put(*cell, name, **props)
+        else:
+            w.put(*cell, paint[cell])
 
     hi = max(y for (_x, y, _z) in hide)
     hits = 0 if ctx is None else sum(1 for c in hide if ctx.name_at(*c) not in AIRY)

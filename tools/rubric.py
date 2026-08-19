@@ -59,7 +59,7 @@ def score(solid, names, meta, species, pose, model=None, spec=None):
         "form": _form(holder, solid, names),
         "features": _features(spec, species, names, meta, solid),
         "surface": _surface(solid),
-        "roundness": _roundness(solid, meta),
+        "roundness": _roundness(solid, meta, _occupancy(holder, solid, names)),
         "palette": _palette(names),
         "symmetry": _symmetry(solid, meta),
     }
@@ -378,7 +378,23 @@ def _form(s, solid, names):
 ROUND, BRICK = 0.35, 0.90
 
 
-def _roundness(solid, meta):
+def _occupancy(s, solid, names):
+    """Per-cell FILL FRACTION, so a half block counts as half.
+
+    Every other dimension works off `ids > 0`, where a slab is exactly as solid as a cube. Without
+    this, adding half-block surfacing would smooth the model visibly and score precisely zero.
+    """
+    from mcbuild.gen import shell
+    ids = getattr(getattr(s, "model", None), "ids", None)
+    if ids is None or not names:
+        return None
+    frac = np.array([shell.volume_fraction(n) for n in names], float)
+    if (frac >= 1.0).all():
+        return None                                   # no partial blocks: the boolean is the truth
+    return np.where(solid, frac[ids], 0.0)
+
+
+def _roundness(solid, meta, occ=None):
     """Is the BARREL a body or a brick?
 
     `form` cannot answer this. It measures tone - range, and whether luminance follows sky exposure -
@@ -398,12 +414,13 @@ def _roundness(solid, meta):
     lo, hi = meta["along"]["body"]
     belly = int(meta["belly_y"]) - o["y"]
     sy, sz, sx = solid.shape
+    vol = solid.astype(float) if occ is None else occ
     if f[1]:
         a0, a1 = meta["feet"][2] - o["z"] + lo, meta["feet"][2] - o["z"] + hi
-        side = solid[max(0, belly):, max(0, a0):min(sz, a1 + 1), :].any(axis=2)
+        side = vol[max(0, belly):, max(0, a0):min(sz, a1 + 1), :].max(axis=2)
     else:
         a0, a1 = meta["feet"][0] - o["x"] + lo, meta["feet"][0] - o["x"] + hi
-        side = solid[max(0, belly):, :, max(0, a0):min(sx, a1 + 1)].any(axis=1)
+        side = vol[max(0, belly):, :, max(0, a0):min(sx, a1 + 1)].max(axis=1)
     ys, zs = np.nonzero(side)
     if len(ys) < 8:
         return 0.5, "barrel too small to measure"
@@ -469,14 +486,22 @@ def _surface(solid):
 
 def _palette(names):
     used = [n for n in names if n != "air"]
-    k = len(used)
+    # COUNT COLOURS, NOT NAMES. A palette is a set of colours; how many SHAPES each colour comes in
+    # is a different question and not this one. Counting names meant that surfacing a back with
+    # `oak_slab` - the same colour as the `oak_log` beside it, in half the height - registered as
+    # palette bloat and cost more than the smoothing gained. Colours are binned rather than compared
+    # exactly, so two near-identical browns do not count twice either.
+    seen = {}
+    for n in used:
+        seen.setdefault(tuple(c // 16 for c in palette.color_of(n)), n)
+    k = len(seen)
     count = 1.0 if 4 <= k <= 8 else max(0.0, 1.0 - abs(k - 6) / 6.0)
     # Real hue, on the colour circle, weighted by how saturated the block is. The first version
     # used a crude proxy that returned 2.0 whenever green or blue was the max channel, so a set of
     # pure greys scored a hue spread of 1.00 - it was measuring which channel won a tie.
     import colorsys
     hs, ws = [], []
-    for n in used:
+    for n in seen.values():
         r, g, b = (c / 255.0 for c in palette.color_of(n))
         h, _l, sat = colorsys.rgb_to_hls(r, g, b)
         hs.append(h * 2 * np.pi)
@@ -491,7 +516,7 @@ def _palette(names):
     tiers = [palette.tier(n) for n in used]
     cost = 1.0 if "expensive" not in tiers else 0.4
     return 0.4 * count + 0.35 * coherent + 0.25 * cost, \
-        f"{k} blocks, hue spread {spread:.2f}, tiers {sorted(set(tiers))}"
+        f"{k} colours in {len(used)} blocks, hue spread {spread:.2f}, tiers {sorted(set(tiers))}"
 
 
 def _symmetry(solid, meta=None):

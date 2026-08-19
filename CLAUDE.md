@@ -233,10 +233,33 @@ compared the models to EACH OTHER. Numbers did not catch it; one glance did.
   no-absolutes rule), `test_rubric.py` (both shared entry points), `test_animal_geometry.py`
   (loft, relax, coat), `test_animal_build.py` (build, poses, anatomy), `test_animal_tools.py`
   (scale, stance, compare, views).
-- **The bears are boxes.** Both ursids build as a rectangular slab on four posts: flat top, flat
-  bottom, square corners. `form` scores the brown bear 0.81 because it measures TONE — range and
-  whether luminance follows sky exposure — and nothing measures ROUNDNESS. The metric and the eye
-  disagree, and the eye is right. A `form` that cannot see a box is the next thing to fix.
+- **Every barrel is still boxy, and now it is measured.** `roundness` (0.10 of the rubric) reads
+  the corner fill of the barrel's side silhouette, calibrated against known sections: ellipse 0.06,
+  exponent 3 0.31, exponent 4 0.56, exponent 8 0.88, rectangle 1.00. The eight animals sit at
+  0.57–0.75 — better than the 0.58–0.83 they started at, but still nearer a brick than a body. The
+  cause found so far was the back line being expressed only as a fraction of the hips→withers rise,
+  which is 0 blocks for a level-backed family; the body keyframes now carry a depth taper too. What
+  remains is the flat TOP and the cross-section, neither of which the taper touches.
+- **Half-block surfacing exists but barely applies, and the reason is the coats.** `gen/shell.py`
+  halves cells that sit proud of their neighbours, and it works — but it refuses any `rotated_pillar`
+  (log, wood, `bone_block`), because the colour DB samples the TOP face and a log's top is end grain
+  while its side is bark. Matching `acacia_log`'s orange top to `acacia_slab` drew a bright orange
+  line down the bear's back; that is the deferred top-face problem turning real. Most coats ARE
+  logs, so only the elephant (112 slabs, all stone) and the giraffe (11) get any at all — the other
+  six get none. **The unlock is to build coats out of uniform-textured blocks** (planks, stone)
+  instead of logs: `stripped_oak_log` → `oak_planks` costs 3 in RGB and `stripped_acacia_log` →
+  `acacia_planks` costs 3, but a naive nearest-match also proposes `glowstone` and `redstone_lamp`,
+  which the `plain_blocks_only` gate rejects — so it needs doing properly. It changes how every
+  animal looks, so it is Jack's call.
+- **The underside pass is off by default** (`shell_under`). Halving an under-surface is the same
+  operation but reads as a gap wherever the thing being cut is thin: the elephant's ears are
+  flanges and it cut slots through them. The thickness guard catches a sheet lying flat and not one
+  standing on edge. It was 17 cells against the top surface's 112, so little is lost.
+- **No stairs.** The geometry in `shell.py` is ready for them and they would cut convex corners far
+  better than a slab can. They are not used because a stair is DIRECTIONAL, `facing` is easy to get
+  backwards, and a mirrored stair would be invisible in our own renderer. The capture holds ten
+  stair blocks and none records its state, so there was nothing to settle the convention from.
+  `shell._STAIR_NOTE` says the one thing to check in game.
 - **A brown bear cannot have its shoulder hump.** It is the real field mark separating it from a
   polar bear, `hump` exists in the generator, and building one MEASURED WORSE: proportion 6/8 → 4/8
   in tolerance, total −0.06, and the gap to the polar bear SHRANK 0.134 → 0.104. The cause is the
@@ -250,7 +273,7 @@ compared the models to EACH OTHER. Numbers did not catch it; one glance did.
 ## Build & test
 
 ```bash
-python -m pytest -q                                   # 125 tests, keep green
+python -m pytest -q                                   # 149 tests, keep green
 cd chunkscan && ./gradlew build test -q                # writes build/libs/chunkscan-<ver>.jar
 python chunkscan/verify_synthetic.py                   # Java writer vs Python reader, block for block
 ```
@@ -295,11 +318,13 @@ design without regenerating it.
 - `gen/` — one module per generator, registered in `gen/__init__.py`; `belly.py` (island underside),
   `vertical.py` (taproot, shard + the `World`/`Ctx` helpers), `dressing.py` (hem, paths, lightposts,
   entrance, ridelights, apiary, birdlanterns, chimney, footing, altar), `interior.py` (the deck vault),
-  `courtyard.py` (the sky-well court), `redstone.py` (item sorter), plus the older statue generators.
+  `courtyard.py` (the sky-well court), `redstone.py` (item sorter), `lowland.py` (the ground layer at
+  Y40, outline traced off the island's own column shadow), plus the older statue generators.
 - **Animals** — see the ANIMALS section above; it is the largest subsystem. `quadruped.py` (build),
   `taxonomy.py` (family + height → params), `anatomy.py` (per-family leg and head geometry),
   `loft.py` (superellipse sweeps, surface probing), `coat.py` (voronoi / rosettes / blotches /
-  shade), `smooth.py` (relax + roughness). Data in `data/families.yaml`, `data/species.yaml`,
+  shade), `smooth.py` (relax + roughness), `shell.py` (half-block surfacing: which cells earn a
+  slab, and which blocks may supply one). Data in `data/families.yaml`, `data/species.yaml`,
   `data/rubric.yaml`; `data/animals.yaml` is the older per-species reference, still used for
   species that have no family.
 - `work.py` — `<design>.work.json`: the design flattened to world-coordinate cells so the mod can diff
@@ -322,6 +347,7 @@ design without regenerating it.
 | `rubric.py` | score against `data/rubric.yaml` |
 | `refine.py` | sweep parameters against the WHOLE rubric — use this, not `smoothness --sweep` |
 | `compare.py` | built models against EACH OTHER, per family: shape gap and coat gap, kept apart |
+| `views.py` | …and it draws slabs at half height, so half-block work is visible here |
 | `plan_merge.py` | composite designs onto a capture |
 
 `proportions.measure` and `rubric.score` are shared entry points — `stance`, `refine` and `scale` all
@@ -373,6 +399,12 @@ call them, so a change to how something is measured cannot drift between tools.
    registry. When a rule and the game disagree, the game is right: chains were being audited for
    support they do not need (`ChainBlock` never overrides `canSurvive`), while lanterns standing on
    slabs were being rejected even though `canSupportCenter` accepts them.
+   **And beware type names that read like a category.** `NOT_FULL` listed `"grass"` among the growing
+   things — but in 26.2 the grass PLANT is type `tall_grass`/`double_plant`, and `grass` belongs to
+   exactly one block: `grass_block`, a full cube. So the commonest ground block in the game counted as
+   not-solid project-wide; nothing could stand on a lawn or cling to one, and `lowland` was told its 27
+   lanterns were floating. The exclusion list is keyed on TYPE, so one wrong entry silently disables a
+   whole block — `tests/test_blocks.py` now pins this one.
 12. **Build for the SERVER's version, not the client's.** 26.2 client, 1.19 server. `pink_petals`
    sailed through every check in the pipeline and is a 1.20 block. `blocks.candidates()` filters to
    the server list by default. The allowlist is currently **provisional** — built from what the
@@ -393,6 +425,15 @@ call them, so a change to how something is measured cannot drift between tools.
    where animal work belongs, not here.
 15. **Overlap means the world holds something DIFFERENT.** A design cell the world already matches is
    built, not a collision — otherwise every design reports hundreds of overlaps the moment you build it.
+16. **"Placeable" is not "affordable" — DIRT IS CURRENCY here.** On skyblock.net dirt and every one of
+   its forms (`coarse_dirt`, `rooted_dirt`, `podzol`, `grass_block`, `mycelium`, `mud`, `farmland`,
+   `dirt_path`) is money. The blocks are real, legal, in 1.19 and placeable, so every check in the
+   pipeline passed them — and the lion shipped with a coat of 5,173 dirt, the capybara 4,690, and a
+   ground layer wanted 14,568. **Moss is used instead.** This is a THIRD axis beside `exists` (is it
+   real) and `available` (does the server's version have it): `blocks.spendable()` / `blocks.ECONOMY`,
+   filtered out of `candidates()` by default so no colour-picked palette can reach it, with
+   `allow_economy=True` as the escape hatch. `audit.report()` prints a loud `CURRENCY` line, because
+   the first three offenders were all designs that had already audited clean.
 
 ## Where things stand (2026-08-18)
 
