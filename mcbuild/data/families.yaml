@@ -28,7 +28,9 @@ felid:
     body length: 1.118
     body width: 0.353
     neck length: 0.212
-    head length: 0.329
+    # 0.329 was a MUZZLE's worth too long. A cat's skull is short - about a quarter of its
+    # shoulder height - and stretching it to a third is most of why the profile read as a deer's.
+    head length: 0.258
     leg width: 0.129
   build:
     legs_kind: digitigrade

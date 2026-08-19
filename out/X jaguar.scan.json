@@ -6,21 +6,21 @@
   },
   "size": {
     "x": 13,
-    "y": 31,
+    "y": 30,
     "z": 59
   },
   "generated_by": "quadruped",
   "kind": "jaguar",
   "pose": "standing",
   "designed": {
-    "withers height": 0.8214,
-    "leg (ground->belly)": 0.4643,
-    "body depth": 0.3571,
-    "body length": 1.0714,
-    "body width": 0.3404,
-    "neck length": 0.2942,
-    "head length": 0.3214,
-    "leg width": 0.1244
+    "withers height": 0.8519,
+    "leg (ground->belly)": 0.4815,
+    "body depth": 0.3704,
+    "body length": 1.1111,
+    "body width": 0.353,
+    "neck length": 0.3051,
+    "head length": 0.2593,
+    "leg width": 0.129
   },
   "feet": [
     -24218,
@@ -31,15 +31,15 @@
     0,
     1
   ],
-  "height": 30,
-  "top_y": 130,
+  "height": 29,
+  "top_y": 129,
   "features_built": {
     "crown": 6,
-    "face": 8,
+    "face": 23,
     "tail": 33,
     "eyes": 2
   },
-  "anat_top_y": 128,
+  "anat_top_y": 127,
   "asymmetry": {
     "leg_phase": 0,
     "head_turn": 0
@@ -67,7 +67,7 @@
     ],
     "head": [
       20,
-      29
+      27
     ]
   },
   "collisions": 8,

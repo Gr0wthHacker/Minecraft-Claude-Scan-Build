@@ -315,6 +315,35 @@ Of the three angles a path gives you, only the side is even attempted, and the p
 than the profile, which is backwards for something standing on the ground. The comment it would get:
 *"why does your jaguar have four table legs and a flat back?"*
 
+### Second pass — what fixing all five did (2026-08-19)
+
+All five were done. The jaguar is no longer a table and no longer a deer; the silhouette reads as a
+cat. The specific changes, and what each was actually worth:
+
+1. **The belly got its own line.** `_body` now takes a fifth keyframe column, `lift`, so the
+   underside is set independently of the floor. High through the loin, near zero under the chest.
+   This is the one that stopped the profile being two parallel horizontals.
+2. **Legs got a thigh, a cannon and a foot.** The visible part ran near-constant at +0.15, -0.30,
+   +0.05, +0.40 — a post. It now tapers 1.05 → -0.20 → 0.30.
+3. **The barrel went bimodal** — mass over haunch and shoulder, waist between. Fixes the plan view
+   outright.
+4. **The back got a shoulder rise**, via the depth-taper column.
+5. **The felid skull was wrong in two ways at once.** Its half-width tapered steadily to a point
+   while its centre drooped, which is a SNOUT — the panel read it as a deer and was right. And
+   `head length` was 0.329 of shoulder height where a cat's is about a quarter. Now blunt, wide
+   through the cheeks, and 0.258.
+
+**Size is still the ceiling.** At 27 blocks the barrel is ~10 deep, so a 0.15 tuck is one and a half
+blocks and most of this is sub-block. It reads as a cat, marginally. At 2.6x it reads clearly, the
+rosettes resolve into actual rings rather than speckle, and the tuck and the taper are all visible.
+**If a cat matters, build it big** — that is what the emerging half-figure is for.
+
+No animal regressed: bear .84, lion .86, capybara .83, leopard .82, elephant .81, giraffe .80,
+jaguar .80, polar_bear .78.
+
+**Still open:** the back is flat across the middle (a cat's rather is, so this may be fine); the
+legs still read as posts at 27 blocks; and the bear's eyes still do not read against `mangrove_wood`.
+
 ### What the two panels agree on, in order
 
 1. **Legs must merge into the body as a haunch and a shoulder**, and taper to a slim cannon. Posts at
@@ -426,7 +455,7 @@ straight-on view. The fix is a lighter face mask on the ursid coat, not more geo
 ## Build & test
 
 ```bash
-python -m pytest -q                                   # 165 tests, keep green
+python -m pytest -q                                   # 174 tests, keep green
 cd chunkscan && ./gradlew build test -q                # writes build/libs/chunkscan-<ver>.jar
 python chunkscan/verify_synthetic.py                   # Java writer vs Python reader, block for block
 ```

@@ -98,9 +98,16 @@ LEGS = {"digitigrade": leg_digitigrade, "plantigrade": leg_plantigrade, "columna
 # (t along the muzzle, half-width, vertical centre, half-height) as multiples of head_r
 
 HEAD_KEYS = {
-    # a cat: short round braincase, wide cheeks, a very short muzzle that barely projects
-    "rounded": [[0.00, -0.95, 0.35, -0.15], [0.22, 0.00, 0.40, 0.10], [0.46, -0.02, 0.05, -0.05],
-                [0.70, -0.42, -0.35, -0.35], [0.90, -0.72, -0.70, -0.60], [1.00, -0.80, -0.85, -0.68]],
+    # A CAT: short round braincase, wide cheeks, a muzzle that barely projects. The comment said
+    # that all along; the numbers said something else. Half-width ran -0.95 -> 0.00 -> -0.80, a
+    # steady taper to a point, while the vertical centre dropped 0.40 -> -0.85 - and a long
+    # drooping taper is a SNOUT. The panel read the result as a deer, and it was right to.
+    #
+    # A felid skull is nearly as wide at the muzzle as at the cheeks and it does not droop: the
+    # width holds through the face and stops blunt, and the nose sits only a little below the eye.
+    "rounded": [[0.00, -0.85, 0.30, -0.12], [0.20, 0.05, 0.34, 0.12], [0.45, -0.02, 0.12, 0.04],
+                [0.70, -0.16, -0.10, -0.10], [0.90, -0.26, -0.24, -0.20],
+                [1.00, -0.34, -0.32, -0.26]],
     # a bear: a WIDE FLAT skull, then a distinct STEP down to a narrow straight muzzle that runs
     # level rather than drooping. The step is the thing your eye reads as "bear".
     "broad": [[0.00, -0.55, 0.20, -0.30], [0.18, 0.05, 0.25, -0.20], [0.38, 0.00, 0.15, -0.25],

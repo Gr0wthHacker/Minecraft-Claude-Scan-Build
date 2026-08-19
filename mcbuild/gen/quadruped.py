@@ -37,7 +37,15 @@ CARDINALS = {(1, 0): (0, 1), (-1, 0): (0, -1), (0, 1): (-1, 0), (0, -1): (1, 0)}
 # Section keyframes shared by every species unless it overrides them. `t` runs 0->1 along the part.
 BASE_KEYS = {
     # leg: (t from haunch to hoof, half-width). Flares into the body, narrows at the cannon bone.
-    "leg": [[0.00, 1.60], [0.05, 0.90], [0.15, 0.15], [0.46, -0.30], [0.76, 0.05], [1.00, 0.40]],
+    # leg: (t from haunch to hoof, half-width delta). The first 15% is INSIDE the barrel, so the
+    # flare there is the haunch merging into the body and is never seen on its own.
+    #
+    # What IS seen used to run 0.15 -> 1.00 as +0.15, -0.30, +0.05, +0.40 - near enough constant,
+    # which is a POST. Four posts at the corners of a slab is a table, and that is exactly what the
+    # panel called it. A real limb is thick at the thigh, narrows hard through the cannon, and ends
+    # in a small foot; that taper is most of what says "leg" rather than "support".
+    "leg": [[0.00, 1.90], [0.06, 1.40], [0.16, 1.05], [0.30, 0.70],
+            [0.50, 0.20], [0.70, -0.20], [0.88, -0.15], [1.00, 0.30]],
     # body: (t from rump to chest, half-width delta, back height as a fraction of the hips->withers
     # rise, DEPTH taper as a fraction of body depth). The drop between hips and withers is what
     # separates a giraffe from a horse, so it is expressed relative to those two and not in blocks.
@@ -53,9 +61,24 @@ BASE_KEYS = {
     # So the ENDS taper as a fraction of the body's own DEPTH, which no family has zero of. It
     # shortens the section at both ends, and `rib` centres on floor + back/2 - so it lifts the belly
     # and drops the back together, which is what rounds an end rather than merely lowering it.
-    "body": [[0.00, -2.1, -0.26, -0.34], [0.08, -1.0, -0.04, -0.16], [0.22, -0.2, 0.18, -0.04],
-             [0.45, 0.0, 0.50, 0.0], [0.72, 0.0, 1.00, 0.0], [0.88, -0.4, 1.00, -0.10],
-             [1.00, -1.6, 0.74, -0.30]],
+    # (t rump->chest, half-width delta, back height as a fraction of the hips->withers rise,
+    #  depth taper as a fraction of body depth, BELLY LIFT as a fraction of body depth)
+    #
+    # WIDTH IS BIMODAL. It used to run -2.1 -> 0.0 -> 0.0 -> -1.6, widest in the MIDDLE and tapering
+    # to both ends, which is a spindle - a fish. A quadruped carries its mass over the haunch and
+    # the shoulder with a waist between them, and putting that back fixes the plan view outright.
+    #
+    # BELLY LIFT is what the profile was missing entirely. High through the loin (the tuck-up) and
+    # near zero under the chest, so the animal is deep at the front and cut away at the waist.
+    "body": [[0.00, -2.1, -0.26, -0.30, 0.10],
+             [0.10, -0.5, -0.02, -0.12, 0.04],
+             [0.22,  0.8,  0.18,  0.02, 0.02],
+             [0.34,  0.3,  0.34,  0.00, 0.10],
+             [0.50, -0.8,  0.58,  0.00, 0.15],
+             [0.66,  0.3,  0.90,  0.02, 0.08],
+             [0.78,  1.0,  1.00,  0.06, 0.00],
+             [0.90, -0.1,  1.00, -0.04, 0.00],
+             [1.00, -1.8,  0.74, -0.26, 0.10]],
     # neck: (t from shoulder to jaw, taper 1->0 between r0 and r1, extra flare in blocks).
     # Two numbers because a neck does both at once: it tapers along its length AND swells where it
     # meets the shoulder. Folding them into one delta cannot express that.
@@ -382,12 +405,17 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
     elif p["mane"]:
         _count("mane", lambda: _mane(hide, shoulder, f, s, p))
     _count("crown", lambda: _crown(hide, accent, head_at, f, s, p))
-    _count("face", lambda: _face(hide, accent, head_at, f, s, p))
+    beads = []
+    _count("face", lambda: _face(hide, accent, head_at, f, s, p, beads))
     if float(p.get("trunk", 0)) > 0:
         _count("trunk", lambda: _trunk(hide, accent, head_at, f, s, p))
     if p["tail"] != "none":
         _count("tail", lambda: _tail(hide, accent, fx, belly, fz, f, s, p))
-    built["eyes"] = sum(1 for c, b in accent.items() if b == p["dark"] and c[1] >= head_at[1] - 1)
+    # COUNT THE BEADS `_face` ACTUALLY PLACED. This used to infer them - every `dark` accent cell
+    # at or above head height - and the moment the felid skull was shortened and blunted the NOSE
+    # came into range and was counted as three more eyes. A feature count that can be fooled by a
+    # change somewhere else is not a check, and `features` in the rubric reads this number.
+    built["eyes"] = len(beads)
 
     skin = _coat_masked(hide, p, _face_zone(hide, head_at, f))
     if p.get("belly_block"):
@@ -641,9 +669,11 @@ def _body(hide, fx, belly, fz, f, s, p, keys, pose=None) -> tuple:
     withers, hips = float(p["withers"]), float(p["hips"])
     n = float(p["section_n"])
     half = bl // 2
-    # rows may be 3 or 4 wide - the depth taper was added later and an override written against the
-    # old shape must keep working
-    KEYS = [[r[0], br + r[1], hips + (withers - hips) * r[2] + withers * (r[3] if len(r) > 3 else 0.0)]
+    # rows may be 3, 4 or 5 wide - the depth taper and the belly line were added later and an
+    # override written against an older shape must keep working
+    KEYS = [[r[0], br + r[1],
+             hips + (withers - hips) * r[2] + withers * (r[3] if len(r) > 3 else 0.0),
+             withers * (r[4] if len(r) > 4 else 0.0)]
             for r in keys["body"]]
     # a shoulder hump lifts the back line over the withers only - a bear's and a bison's profile
     hump = float(p.get("hump", 0.0)) * withers
@@ -657,10 +687,18 @@ def _body(hide, fx, belly, fz, f, s, p, keys, pose=None) -> tuple:
     extra = float(pose.get("pitch", 0.0)) * int(p["leg"])
     for a in range(-half, bl - half):
         t = (a + half) / max(1, bl - 1)
-        rb, back = loft.lerp(KEYS, t)
+        rb, back, lift = loft.lerp(KEYS, t)
         floor = rump + (chest - rump) * t + extra * t
-        loft.rib(hide, fx + f[0] * a, floor + back / 2.0, fz + f[1] * a, f, s,
-                 rb, back / 2.0, n, squash_lo=1.12)
+        # THE BELLY LINE IS ITS OWN LINE. It used to BE the floor - a straight rule from rump to
+        # chest, running exactly parallel to the back - so the profile of every animal was two
+        # parallel horizontals, which is the most inert shape available and is why the panel called
+        # the jaguar a table. A quadruped is deep through the chest and TUCKED UP at the loin, and
+        # that difference is most of what a cat's outline says. `lift` raises the underside at each
+        # station independently of the back, so the two lines can finally disagree.
+        low = floor + lift
+        top = floor + back
+        loft.rib(hide, fx + f[0] * a, (low + top) / 2.0, fz + f[1] * a, f, s,
+                 rb, max(0.6, (top - low) / 2.0), n, squash_lo=1.12)
     frm = float(pose.get("from", p.get("neck_from", 1.0)))
     rise = chest + extra + max(1.0, withers * frm) - 1.0
     return (fx + f[0] * (half - 2), rise, fz + f[1] * (half - 2))
@@ -868,7 +906,7 @@ def _eye_ring(p) -> str:
     return pale or want or "bone_block"
 
 
-def _face(hide, accent, head_at, f, s, p):
+def _face(hide, accent, head_at, f, s, p, beads=None):
     """Pale muzzle, nostrils and eyes - read off the SMOOTHED skin, never assumed."""
     hx, hy, hz, hl, hr, ax, az = head_at
     nose_x = int(round(hx + f[0] * (hl - 1)))
@@ -922,6 +960,8 @@ def _face(hide, accent, head_at, f, s, p):
             if ring in hide:
                 accent[ring] = socket
         accent[edge] = eye
+        if beads is not None:
+            beads.append(edge)
 
 
 def _trunk(hide, accent, head_at, f, s, p):

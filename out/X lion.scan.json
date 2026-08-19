@@ -6,21 +6,21 @@
   },
   "size": {
     "x": 17,
-    "y": 37,
-    "z": 71
+    "y": 36,
+    "z": 69
   },
   "generated_by": "quadruped",
   "kind": "lion",
   "pose": "standing",
   "designed": {
-    "withers height": 0.7714,
-    "leg (ground->belly)": 0.4286,
-    "body depth": 0.3429,
-    "body length": 1.0286,
-    "body width": 0.3227,
-    "neck length": 0.272,
-    "head length": 0.3143,
-    "leg width": 0.1179
+    "withers height": 0.8182,
+    "leg (ground->belly)": 0.4545,
+    "body depth": 0.3636,
+    "body length": 1.0909,
+    "body width": 0.3423,
+    "neck length": 0.2885,
+    "head length": 0.2424,
+    "leg width": 0.1251
   },
   "feet": [
     -24218,
@@ -31,16 +31,16 @@
     0,
     1
   ],
-  "height": 36,
-  "top_y": 136,
+  "height": 35,
+  "top_y": 135,
   "features_built": {
-    "mane": 1063,
+    "mane": 1366,
     "crown": 6,
-    "face": 20,
+    "face": 41,
     "tail": 38,
     "eyes": 2
   },
-  "anat_top_y": 135,
+  "anat_top_y": 133,
   "asymmetry": {
     "leg_phase": 0,
     "head_turn": 0
@@ -68,7 +68,7 @@
     ],
     "head": [
       24,
-      35
+      32
     ]
   },
   "collisions": 17,

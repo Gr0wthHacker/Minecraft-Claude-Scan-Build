@@ -6,21 +6,21 @@
   },
   "size": {
     "x": 13,
-    "y": 30,
+    "y": 29,
     "z": 56
   },
   "generated_by": "quadruped",
   "kind": "leopard",
   "pose": "standing",
   "designed": {
-    "withers height": 0.8148,
-    "leg (ground->belly)": 0.4444,
-    "body depth": 0.3704,
-    "body length": 1.0741,
-    "body width": 0.3399,
-    "neck length": 0.3051,
-    "head length": 0.3333,
-    "leg width": 0.1242
+    "withers height": 0.8462,
+    "leg (ground->belly)": 0.4615,
+    "body depth": 0.3846,
+    "body length": 1.1154,
+    "body width": 0.353,
+    "neck length": 0.3168,
+    "head length": 0.2692,
+    "leg width": 0.129
   },
   "feet": [
     -24218,
@@ -31,15 +31,15 @@
     0,
     1
   ],
-  "height": 29,
-  "top_y": 129,
+  "height": 28,
+  "top_y": 128,
   "features_built": {
     "crown": 6,
-    "face": 8,
+    "face": 23,
     "tail": 31,
     "eyes": 2
   },
-  "anat_top_y": 127,
+  "anat_top_y": 126,
   "asymmetry": {
     "leg_phase": 0,
     "head_turn": 0
@@ -67,7 +67,7 @@
     ],
     "head": [
       19,
-      28
+      26
     ]
   },
   "collisions": 12,
