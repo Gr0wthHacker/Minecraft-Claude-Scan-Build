@@ -73,10 +73,14 @@ def main() -> None:
 
     s = scan.load(a.design)
     meta = getattr(s, "meta", None) or {}
-    facing = meta.get("facing") or [0, 1]
-    # THE PROFILE AXIS COMES FROM THE FACING, never from a guess. An animal facing +z shows its
+    # THE PROFILE AXIS COMES FROM THE BUILD, never from a guess. An animal facing +z shows its
     # profile to a viewer looking along x (`side`); one facing +x shows it along z (`face`).
-    profile = "side" if facing[1] else "face"
+    #
+    # A build may also name its own best view outright, which some have to: a bat hanging with its
+    # wings spread across x has no meaningful "facing" - its head points at the floor - and the
+    # facing rule rendered it edge-on as a sliver two blocks wide.
+    facing = meta.get("facing") or [0, 1]
+    profile = meta.get("profile_view") or ("side" if facing[1] else "face")
     name = os.path.splitext(os.path.basename(a.design))[0]
     out = a.out or f"out/panel_{name.replace(' ', '_')}.png"
     tmp = out + ".a.png"

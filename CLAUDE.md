@@ -275,6 +275,28 @@ build's own recorded intent, the lowland jaguar went 0.68 → **0.79** and the b
 both at 8/8 measures in tolerance. The poses `stance.py` picked on site grounds are now the ones
 the rubric likes too, which is what agreement between two honest tools should look like.
 
+## What this system can and cannot build (2026-08-19)
+
+Settled by PLAYER RECEPTION, not by the rubric and not by my renders. The builds players picked out
+are the **sky bird** (an 83-block wingspan of layered primaries) and the **giraffe** (a neck); the
+**gecko** — splayed limbs on a wall — is the next best thing in the repo. Every animal that reads
+badly is a mammal.
+
+**The line is PLANAR/COLUMNAR against VOLUMETRIC.** A spread wing, a neck, a stilt leg, a splayed
+limb: flat sheets and straight tapers, which is what voxels render natively. A cat's shoulder or a
+bear's haunch is compound volumetric muscle, which voxels render worst of anything — and no amount
+of scale rescues it. The jaguar at 2.6x and 60,000 blocks failed exactly as the 27-block one did.
+
+This is not the same as "hardware vs muscle", which was my earlier guess and was the wrong cut. An
+elephant's trunk is hardware AND a taper; a caiman's body is hardware and still a volume.
+
+**Build these:** birds, bats, wading birds, reptiles with splayed limbs, anything whose identity is
+an outline. `heron.py` and `bat.py` are the two worked examples, both bespoke — the quadruped family
+system is built around a mammal barrel and should not be used for them.
+
+**Do not build:** cats, bears, or anything whose species is carried by muscle mass. `quadruped.py`
+still holds eight of them and they score GOOD; the score is measuring the wrong thing.
+
 ## The panel review — the last step before shipping
 
 `python tools/panel.py "<design>"`. The rubric measures proportion, surface, palette, symmetry, and
@@ -455,7 +477,7 @@ straight-on view. The fix is a lighter face mask on the ursid coat, not more geo
 ## Build & test
 
 ```bash
-python -m pytest -q                                   # 174 tests, keep green
+python -m pytest -q                                   # 187 tests, keep green
 cd chunkscan && ./gradlew build test -q                # writes build/libs/chunkscan-<ver>.jar
 python chunkscan/verify_synthetic.py                   # Java writer vs Python reader, block for block
 ```
@@ -531,6 +553,7 @@ design without regenerating it.
 | `compare.py` | built models against EACH OTHER, per family: shape gap and coat gap, kept apart |
 | `emerge.py` | cut a design at a plane so a figure comes OUT of a surface, and trim to what is left |
 | `panel.py` | the review sheet: silhouette, value, distance thumbs, player bar + both panels' questions |
+| `heron.py`, `bat.py` | in `gen/` — the two builds that play to what the medium is good at |
 | `views.py` | …and it draws slabs at half height, so half-block work is visible here |
 | `plan_merge.py` | composite designs onto a capture |
 
