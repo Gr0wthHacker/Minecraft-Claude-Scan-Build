@@ -188,6 +188,29 @@ def _along_extent(solid, land, part, H):
     return (int(a.max() - a.min() + 1), int(sel.sum()))
 
 
+def _barrel_width(solid, land, body) -> float:
+    """The ribcage, sampled where no leg reaches it."""
+    win = (land.get("along") or {}).get("body")
+    facing = land.get("facing") or [0, 1]
+    widths = []
+    for y in body:
+        m = solid[y] if y < solid.shape[0] else None
+        if m is None or not m.any():
+            continue
+        zs, xs = np.where(m)
+        if win:
+            # keep only the middle third along the body axis - clear of both leg pairs
+            axis = zs if abs(facing[1]) else xs
+            lo, hi = axis.min(), axis.max()
+            mid_lo, mid_hi = lo + (hi - lo) * 0.36, lo + (hi - lo) * 0.64
+            sel = (axis >= mid_lo) & (axis <= mid_hi)
+            if sel.any():
+                xs = xs[sel]
+        if len(xs):
+            widths.append(int(xs.max() - xs.min() + 1))
+    return float(np.median(widths)) if widths else 0.0
+
+
 def _leg_width(solid, y):
     """The width of a STRAIGHT leg: the median of the separate limbs at this height, not the widest.
 
@@ -247,9 +270,10 @@ def measure(solid, land, sy) -> dict:
         # the body's LENGTH, and so reported the barrel as 46% too deep when it was not.
         "body depth": (withers - belly) / H,
         "body length": _along_extent(solid, land, "body", H)[0] / H,
-        # median across the barrel, not max: the max catches the belly course where the
-        # haunches are still spreading and reports the leg span as the body width
-        "body width": float(np.median([xext[y] for y in body] or [0])) / H,
+        # measured MID-BARREL, between the leg pairs. Every leg carries four courses up inside the
+        # body as a haunch, so anywhere near a leg the "body" is really body-plus-shoulder: the
+        # jaguar's ribcage is 8 wide and measured 15 everywhere the haunches reach.
+        "body width": _barrel_width(solid, land, body) / H,
         "neck length": _neck_len(land, head, withers) / H,
         "head length": _along_extent(solid, land, "head", H)[0] / H,
         # measured halfway up the LONGEST leg - on a posed animal the short pair is folded and its

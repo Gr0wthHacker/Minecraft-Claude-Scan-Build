@@ -110,6 +110,8 @@ QUADRUPED = {
     "dark": "black_wool",
     "muzzle": "bone_block",
     "patch_scale": 5.5, "grout": 0.85,
+    # rosettes only: ring radius / band width / how much of each ring is left open
+    "ring_radius": 0.60, "ring_thickness": 0.34, "ring_broken": 0.34,
     # -- smoothing (see smooth.py; tune with tools/smoothness.py --sweep)
     "relax_rounds": 4, "relax_fill": 11, "relax_keep": 11,
     "keys": None,               # optional per-part keyframe overrides
@@ -147,11 +149,17 @@ PROFILES = {
         "neck": 2, "neck_r0": 3.4, "neck_r1": 2.9, "neck_lean": 0.9, "neck_from": 0.78,
         "head_len": 7, "head_r": 2.8,
         "mane": False, "horns": "none", "ears": True, "tail": "long", "tail_len": 0.62,
-        "coat_pattern": "rosettes", "patch_scale": 4.0,
+        "coat_pattern": "rosettes", "patch_scale": 4.6,
+        # Plain, low-noise blocks only - a statue's coat wants flat colour, and every near-miss the
+        # colour search offers here is a trap: bee_nest carries a face texture and bee states,
+        # copper_bulb is a light source, bamboo postdates the server. The oak/jungle family is the
+        # cleanest golden tan the game has. The rings are BLACK because a jaguar's rosettes are
+        # near-black; in dark_oak they were a brown ring on a brown coat, which at any distance is
+        # just noise - the contrast is what makes them read as rings rather than as speckle.
         "coat_block": "stripped_oak_wood",       # golden tan
-        "patch": "dark_oak_wood",                # the rosette rings
-        "patch_alt": "stripped_oak_log",         # rosette centres: same hue, different grain
-        "belly_block": "bone_block", "belly_frac": 0.30,
+        "patch": "black_wool",                   # the rosette rings
+        "patch_alt": "stripped_jungle_log",      # rosette centres: warmer, a shade darker
+        "belly_block": "bone_block", "belly_frac": 0.20,
         "muzzle": "bone_block", "dark": "black_wool", "hoof_block": "dark_oak_wood",
         "section_n": 2.1,
     },
@@ -307,7 +315,9 @@ def _coat(hide, p) -> dict:
         return {}
     if kind == "rosettes":
         return coat_mod.rosettes(hide, p["patch"], p["coat_block"], centre=p.get("patch_alt"),
-                                 scale=float(p["patch_scale"]), seed=int(p["seed"]))
+                                 scale=float(p["patch_scale"]), radius=float(p["ring_radius"]),
+                                 thickness=float(p["ring_thickness"]), broken=float(p["ring_broken"]),
+                                 seed=int(p["seed"]))
     if kind == "blotches":
         return coat_mod.blotches(hide, p["patch"], p["coat_block"],
                                  scale=float(p["patch_scale"]), seed=int(p["seed"]))
