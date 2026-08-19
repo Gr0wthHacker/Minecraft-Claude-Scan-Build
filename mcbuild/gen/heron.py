@@ -45,6 +45,7 @@ VARIANTS = {
         "pale": "white_wool", "dark": "black_wool", "beak": "yellow_terracotta",
         "eye": "orange_wool", "leg": "brown_terracotta",
         "bill_kink": 0.0, "neck_s": 1.0, "neck_len": 20.0, "tuck": False, "speckle": 0.16,
+        "body_tilt": 1.2,
         "crest": True,
     },
     "flamingo": {
@@ -55,6 +56,10 @@ VARIANTS = {
         "pale": "pink_wool", "dark": "black_wool", "beak": "pink_terracotta",
         "eye": "yellow_wool", "leg": "pink_terracotta",
         "bill_kink": 1.0, "neck_s": 1.9, "neck_len": 26.0, "tuck": True, "speckle": 0.0,
+        # a standing flamingo does NOT hold its body level - it slopes down to the breast,
+        # with the tail carried high and the neck leaving from a low point at the front.
+        # Level, it read as a pink heron on one leg.
+        "body_tilt": 3.0,
         # a flamingo has no nape plumes and no dark eye-stripe; wearing the heron's made it look
         # like a heron someone had painted
         "crest": False,
@@ -166,10 +171,22 @@ def build_heron(cfg: dict, donors=None) -> Canvas:
             c.sphere(tipx, foot_y, tipz, 0.85 * u, S["dark"])
 
     # ---- BODY: a compact ovoid tilted nose-up, with tail coverts trailing back and down
-    c.ellipsoid(cx, body_y, cz - 0.5 * u, 5.4 * u, 6.6 * u, 8.2 * u, S["body"])
-    _taper(c, [(cx, body_y + 1.0 * u, cz - 7.0 * u),
-               (cx, body_y - 1.5 * u, cz - 13.0 * u),
-               (cx, body_y - 4.5 * u, cz - 18.0 * u)], 3.4 * u, 0.9 * u, S["wing"])
+    # THE BODY IS SWEPT ALONG A TILTED SPINE, not set as one upright ellipsoid. A single ellipsoid
+    # cannot lean, so the body sat dead level however the rest of the bird was posed - and a level
+    # body is the one thing that made the flamingo read as a heron wearing pink.
+    tilt = float(V["body_tilt"])
+    rear = np.array([cx, body_y + tilt * u, cz - 7.5 * u])
+    fore = np.array([cx, body_y - tilt * u, cz + 6.5 * u])
+    for i in range(26):
+        s_ = i / 25.0
+        q = rear + (fore - rear) * s_
+        w = 1.0 - (2.0 * s_ - 1.0) ** 2                    # 0 at each end, 1 amidships
+        c.ellipsoid(q[0], q[1], q[2],
+                    (2.0 + 3.6 * w) * u, (2.4 + 4.4 * w) * u, (1.6 + 1.4 * w) * u, S["body"])
+    # tail coverts trail back from the RAISED rear, so the tilt carries through the whole line
+    _taper(c, [(cx, rear[1] + 0.5 * u, cz - 7.0 * u),
+               (cx, rear[1] - 1.5 * u, cz - 13.0 * u),
+               (cx, rear[1] - 4.5 * u, cz - 18.0 * u)], 3.4 * u, 0.9 * u, S["wing"])
 
     # ---- THE S-NECK. A standing heron folds its neck into an S rather than holding it straight,
     # and that kink is most of the outline's signature. Four control points, not two.
@@ -177,7 +194,7 @@ def build_heron(cfg: dict, donors=None) -> Canvas:
     neck_top = body_y + nl * u
     # the S is DEEPER on a flamingo and shallower on a heron; `ns` scales how far the middle of the
     # neck swings back before the head comes forward again
-    _taper(c, [(cx, body_y + 4.0 * u, cz + 1.5 * u),
+    _taper(c, [(cx, body_y + (4.0 - tilt * 0.8) * u, cz + 1.5 * u),
                (cx, body_y + nl * 0.50 * u, cz - 3.4 * ns * u),
                (cx, body_y + nl * 0.80 * u, cz + 1.2 * u),
                (cx, neck_top, cz + 2.8 * u)], 2.7 * u, 1.55 * u, S["pale"])
@@ -208,9 +225,10 @@ def build_heron(cfg: dict, donors=None) -> Canvas:
         wx = cx + side * 5.2 * u
         for i in range(courses):
             t = i / max(1, courses - 1)
-            y = body_y + (3.2 - 8.0 * t) * u
+            # the courses lie ALONG the tilted flank: front (t=0) low, rear (t=1) high
+            y = body_y + (3.2 - 8.0 * t) * u - tilt * (1.0 - 2.0 * t) * 0.7 * u
             blk = S["wing_edge"] if i % 2 else S["wing"]
-            c.line((wx, y, cz + 4.2 * u),
+            c.line((wx, y - tilt * 0.5 * u, cz + 4.2 * u),
                    (wx + side * 0.8 * u, y - 1.3 * u, cz - (1.0 + 5.4 * t) * u),
                    (1.55 - 0.6 * t) * u, blk)
     for k in range(max(2, int(round(4 * sc)))):        # primaries, so the folded wing ENDS somewhere

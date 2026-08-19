@@ -305,10 +305,10 @@ use the bare form, it places all 54 designs including a shelf of scratch animals
 | design | blocks | what it is |
 |---|---|---|
 | `Lowland` | 35,197 | the ground itself, Y24–47 |
-| `Lowland Heron` | 8,500 | grey heron, standing, Y41–124 |
-| `Lowland Flamingo` | 8,229 | pink, one leg tucked, kinked bill, Y41–133 |
+| `Lowland Heron` | 8,168 | grey heron, standing, Y41–124 |
+| `Lowland Flamingo` | 7,625 | pink, one leg tucked, kinked bill, body tilted, Y41–133 |
 | `Lowland Capybara Flee` | 6,725 | running, Y38–59 |
-| `Lowland Bat` | 4,287 | hangs from the ISLAND'S underside at Y150, not the void isle |
+| `Lowland Bat` | 749 | 56-block span, hangs from the VOID ISLE at Y92 |
 
 The mammal predators were **retired**, not moved: the jaguar and the bear are the two shapes this
 system cannot build, they took the floor the birds needed, and keeping them would have been keeping
@@ -321,9 +321,15 @@ Three siting facts that cost time and are worth keeping:
   almost anywhere; it just must not be under the isle.
 - **The birds stand at Y42, not Y40.** The ground rolls 4–5 blocks under a splayed foot, so standing
   on the MEDIAN height buries the toes on the high side. Stand clear of the maximum.
-- **The bat hangs from Y150.** Hung from the void isle at Y86 a heron's neck passed straight through
-  its wing, because the birds are 90 tall and stand on ground at 41. The island's own underside puts
-  it above everything and makes it something you find by looking up.
+- **The bat hangs from the VOID ISLE at Y92, not the island's roof at Y150.** From 150 it is 109
+  blocks over the floor and has to be enormous to read at all — it came out 106 wide, wider than the
+  heron is tall and spanning most of the lowland. The isle's underside sits Y80–95 over
+  X −24224..−24189, which puts it 50 blocks over your head at a 56-block span: a bat rather than a
+  bomber. It sits in the gap BETWEEN the two birds rather than over either of them.
+- **A flamingo does not stand level.** Its body slopes down to the breast with the tail carried high
+  and the neck leaving from a low point at the front. The body used to be one upright ellipsoid,
+  which cannot lean however the rest of the bird is posed — it is swept along a tilted spine now,
+  and `body_tilt` is 3.0 for a flamingo against 1.2 for a heron. Level, it read as a pink heron.
 
 ## The panel review — the last step before shipping
 

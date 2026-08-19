@@ -11,10 +11,10 @@
 name: Lowland Bat
 gen: bat
 params:
-  scale: 1.9
+  scale: 1.0
   seed: 0
   spread: 0.85
-  hang: [-24174, 150, 30034]
+  hang: [-24208, 92, 29979]
 finish:
   cheapen: false
   hollow: false
