@@ -1,0 +1,36 @@
+# A seven-spot ladybird on a leaf, hanging in the void under the island.
+#
+# WHY THIS ANIMAL. Eight mammals failed here because identity carried by compound volumetric muscle
+# is what voxels render worst. A ladybird's identity is a PATTERN on a single convex dome - red,
+# seven spots, a seam, a black head - which is the same category as the elephant's trunk and the
+# giraffe's neck, the two that worked. And the canonical view of a ladybird is the plan view, which
+# is the one this medium gives away free.
+#
+# SIZE COMES FROM THE SPOTS, the way tools/scale.py derives every other floor: a spot needs ~3
+# blocks to read as a disc, a seven-spot elytra is about five spot-diameters across, so the shell
+# cannot be under ~15 wide. It is 17x15x8 here.
+#
+# THE SITE was measured, not chosen. Taking every real design's CELLS (not their bounding boxes -
+# `Island Belly Full` and `Lowland` each span the whole underside while occupying a skin of it)
+# plus the 2026-08-19 capture, the most isolated point in the void under the island is
+# -24204 114 30013: 15.7 blocks clear of the nearest anything, in a free pocket of 35x24x30.
+# The island's underside is 34 above it and there is nothing at all below.
+# The void isle sits 17 away, so you look UP at it from there; the shop islet looks down from 28.
+#
+# Do NOT site by first-fit: the first 29x22x21 box that fitted put the leaf 2 blocks under the
+# Shop Islet's raft and 5 from the void giraffe's neck.
+name: Void Ladybird
+gen: ladybug
+params:
+  scale: 1.0
+  seed: 0
+  # CENTRED IN THE POCKET, not dropped on its measured centre point: the design is 29x18x23
+  # and the first root put it 2 blocks outside the free box on the Z-low side and flush
+  # against its X edge. This leaves 3-4 blocks of slack on every face.
+  root: [-24207, 104, 30018]   # the clod's lowest course; the leaf rides ~9 above it
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+origin_lock: false             # LOUD: hangs in open void at Y104-124, its own pocket under the plate

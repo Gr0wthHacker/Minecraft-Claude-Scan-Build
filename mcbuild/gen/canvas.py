@@ -49,6 +49,18 @@ class Canvas:
         x, y, z = int(x), int(y), int(z)
         return int(self.ids[y, z, x]) if self.inb(x, y, z) else -1
 
+    def solid(self, x, y, z) -> bool:
+        """Is there a real block here? USE THIS, not `if c.get(...)`.
+
+        `get` returns -1 out of bounds so `get_name` can report OOB - and -1 is TRUTHY, so every
+        `if c.get(x, y, z):` in a generator silently treats everything outside the canvas as solid
+        rock. That is not a hypothetical: the ladybird's spots searched downward for the top of its
+        shell from two courses above the canvas ceiling, "found" a block there every time, and
+        painted all seven caps into thin air above the bug. The shell came out plain red and
+        nothing in the audit, the BOM or the component count said a word.
+        """
+        return self.get(x, y, z) > 0
+
     def get_name(self, x, y, z) -> str:
         i = self.get(x, y, z)
         return "OOB" if i < 0 else self.reg.palette[i].value["Name"].value

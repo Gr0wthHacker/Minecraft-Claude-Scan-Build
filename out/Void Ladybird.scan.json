@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": -24213,
+    "y": 101,
+    "z": 30004
+  },
+  "size": {
+    "x": 35,
+    "y": 22,
+    "z": 29
+  },
+  "generated_by": "ladybug",
+  "kind": "ladybug",
+  "scale": 1.0,
+  "profile_view": "top",
+  "features_built": {
+    "spots": 7,
+    "legs": 6,
+    "antennae": 2,
+    "leaf": 1,
+    "seam": 1
+  },
+  "file": "Void Ladybird.litematic",
+  "name": "Void Ladybird"
+}

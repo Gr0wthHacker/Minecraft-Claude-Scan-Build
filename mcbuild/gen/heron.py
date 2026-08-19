@@ -123,11 +123,11 @@ def _stick(c: Canvas, x, y, z, blk) -> bool:
     have failed the `single_component` gate outright.
     """
     x, y, z = int(round(x)), int(round(y)), int(round(z))
-    if c.get(x, y, z):
+    if c.solid(x, y, z):
         c.put(x, y, z, blk)
         return True
     for dx, dy, dz in ((0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1)):
-        if c.get(x + dx, y + dy, z + dz):
+        if c.solid(x + dx, y + dy, z + dz):
             c.put(x, y, z, blk)
             return True
     return False
@@ -253,7 +253,7 @@ def build_heron(cfg: dict, donors=None) -> Canvas:
                       int(round(cz + 4.2 * u)))
         for dy in (-1, 0, 1):
             for dz in (-1, 0, 1):
-                if c.get(ex, ey + dy, ez + dz):
+                if c.solid(ex, ey + dy, ez + dz):
                     c.put(ex, ey + dy, ez + dz, S["pale"])
         _stick(c, ex, ey, ez, S["eye"])
         _stick(c, ex, ey, ez - 1, S["dark"])
@@ -267,7 +267,7 @@ def build_heron(cfg: dict, donors=None) -> Canvas:
     for y in range(int(body_y + 4 * u), int(neck_top)):
         for x in range(SX):
             for z in range(SZ - 2, 0, -1):
-                if c.get(x, y, z) == S["pale"] and not c.get(x, y, z + 1):
+                if c.get(x, y, z) == S["pale"] and not c.solid(x, y, z + 1):
                     if h(x, y, z, 3) < float(V["speckle"]):
                         c.put(x, y, z, S["dark"])
                     break

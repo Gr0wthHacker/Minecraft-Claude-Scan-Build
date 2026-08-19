@@ -125,11 +125,11 @@ def _stick(c: Canvas, x, y, z, blk) -> bool:
     position rather than against the surface that was actually built.
     """
     x, y, z = int(round(x)), int(round(y)), int(round(z))
-    if c.get(x, y, z):
+    if c.solid(x, y, z):
         c.put(x, y, z, blk)
         return True
     for dx, dy, dz in ((0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1)):
-        if c.get(x + dx, y + dy, z + dz):
+        if c.solid(x + dx, y + dy, z + dz):
             c.put(x, y, z, blk)
             return True
     return False
@@ -183,10 +183,10 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
             a = h0(j, 1, 2, 13) * 6.283
             rx = int(round(cx + pr * 0.82 * np.cos(a)))
             rz = int(round(cz + pr * 0.82 * np.sin(a)))
-            if not c.get(rx, roof, rz):
+            if not c.solid(rx, roof, rz):
                 continue                              # nothing to hang from here
             for k in range(1, 2 + int(6 * h0(j, 3, 4, 17))):
-                if not c.get(rx, roof - k + 1, rz):
+                if not c.solid(rx, roof - k + 1, rz):
                     break
                 c.put(rx, roof - k, rz, vine)
 
@@ -227,7 +227,7 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
                     d = (dx * dx + dz * dz) ** 0.5
                     if d > r_out or d < r_out - thick:
                         continue
-                    if not c.get(int(round(cx + dx)), base, int(round(cz + dz))):
+                    if not c.solid(int(round(cx + dx)), base, int(round(cz + dz))):
                         continue                      # never build off the rock's ragged edge
                     c.put(int(round(cx + dx)), y, int(round(cz + dz)), pick(dx, dz, k))
 
@@ -332,7 +332,7 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
             ang = broke + (h1(j, 8, 1, 31) - 0.5) * 1.7
             d = RF * (1.08 + 0.46 * h1(j, 9, 2, 37))
             rx, rz = int(round(cx + d * np.cos(ang))), int(round(cz + d * np.sin(ang)))
-            if not c.get(rx, base, rz) or c.get(rx, base + 1, rz):
+            if not c.solid(rx, base, rz) or c.solid(rx, base + 1, rz):
                 continue                              # only onto bare moss, never into the wall
             c.put(rx, base + 1, rz, slab if h1(j, 10, 3, 41) < 0.45 else brick)
 
@@ -370,7 +370,7 @@ def build_bat(cfg: dict, donors=None) -> Canvas:
         xi, yi = int(round(x)), int(round(y))
         for k in range(int(reach * sc), -1, -1):
             zi = int(round(cz + k))
-            if c.get(xi, yi, zi):
+            if c.solid(xi, yi, zi):
                 c.put(xi, yi, zi, blk)
                 return True
         return False
