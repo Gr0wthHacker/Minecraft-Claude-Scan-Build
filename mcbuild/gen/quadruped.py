@@ -349,7 +349,7 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
     # fudge per family; measuring against this needs nothing.
     anat_top = max(y for (_x, y, _z) in hide)
     if float(p.get("mane_volume", 0)) > 0:
-        _count("mane", lambda: _ruff(hide, shoulder, head_at, f, s, p))
+        _count("mane", lambda: _ruff(hide, accent, shoulder, head_at, f, s, p))
     elif p["mane"]:
         _count("mane", lambda: _mane(hide, shoulder, f, s, p))
     _count("crown", lambda: _crown(hide, accent, head_at, f, s, p))
@@ -603,7 +603,7 @@ def _head(hide, top, neck_r, f, s, p, keys) -> tuple:
 
 # ------------------------------------------------------------------ features (post-relax)
 
-def _ruff(hide, shoulder, head_at, f, s, p):
+def _ruff(hide, accent, shoulder, head_at, f, s, p):
     """A lion's mane: a mass CENTRED ON THE NECK, big enough to break the silhouette.
 
     Two failed attempts before this. Swept up the neck it added 32 cells; swept back over the
@@ -611,19 +611,42 @@ def _ruff(hide, shoulder, head_at, f, s, p):
     the barrel. A felid's neck is only about four blocks long, so there is no length to sweep along -
     the mane has to be a BALL around the neck, sized against the body rather than the neck, or it
     disappears into the animal it is supposed to be sitting on.
+
+    THIRD failure, and the reason for the rest of this function: a ball of 306 cells that scored
+    `features` 1.00 and was INVISIBLE in a render. Two causes, and each alone was enough.
+
+      * It was never COLOURED. The mane only ever added cells to `hide`, so `_coat` painted them
+        the body colour. 306 cells of lion-coloured mane on a lion is nothing at all.
+      * It had no EDGE. R came out barely over `body_r`, centred halfway between shoulder and head,
+        so most of the ball was inside the barrel it was meant to sit on.
+
+    So the mane is now sized against the body it must CLEAR, seated toward the head where a real
+    mane frames the skull, and painted with `mane_block`. A mane is a silhouette break and a tonal
+    break at once; either on its own reads as a lump.
     """
     sx, sy, sz = shoulder
     hx, hy, hz = head_at[0], head_at[1], head_at[2]
-    cx, cy, cz = (sx + hx) / 2.0, (sy + hy) / 2.0, (sz + hz) / 2.0
-    R = max(float(p["body_r"]) * 1.25, float(p["neck_r0"]) + float(p["mane_volume"]))
+    # seated toward the HEAD - a mane frames the skull, it does not sit on the shoulders. At the
+    # midpoint half the ball was buried in the barrel and only the top of it ever showed.
+    w = 0.62
+    cx, cy, cz = sx + (hx - sx) * w, sy + (hy - sy) * w, sz + (hz - sz) * w
+    body_r = float(p["body_r"])
+    # it must CLEAR the barrel, not merely match it: `mane_volume` is now the number of blocks the
+    # mane stands PROUD of the body, which is the only measure that makes it visible at any size.
+    R = body_r + max(1.5, float(p["mane_volume"]))
     n = float(p["section_n"])
+    mane_block = p.get("mane_block")
     for k in range(-int(R) - 1, int(R) + 2):
-        t = abs(k) / max(1.0, R)
-        if t > 1.0:
+        u = abs(k) / max(1.0, R)
+        if u > 1.0:
             continue
-        r = R * (1.0 - t * t) ** 0.5
+        r = R * (1.0 - u * u) ** 0.5
         # slightly deeper below the jaw than above the crown, as a real mane hangs
+        before = set(hide) if mane_block else None
         loft.disc(hide, cx, cy + k * 0.9, cz, f, s, r * 0.85, r, n)
+        if mane_block:
+            for cell in hide - before:
+                accent[cell] = mane_block
 
 
 def _mane(hide, shoulder, f, s, p):

@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": -24223,
+    "x": -24224,
     "y": 100,
-    "z": 29955
+    "z": 29950
   },
   "size": {
-    "x": 11,
-    "y": 22,
-    "z": 50
+    "x": 13,
+    "y": 28,
+    "z": 58
   },
   "generated_by": "quadruped",
   "kind": "leopard",
@@ -21,35 +21,46 @@
     0,
     1
   ],
-  "height": 21,
-  "top_y": 121,
-  "belly_y": 110,
-  "withers_y": 115.24,
-  "rump_y": 110,
-  "chest_y": 110,
-  "back_y": 118,
-  "neck_top_y": 118.24,
+  "height": 27,
+  "top_y": 127,
+  "features_built": {
+    "crown": 18,
+    "face": 8,
+    "tail": 31,
+    "eyes": 4
+  },
+  "anat_top_y": 127,
+  "asymmetry": {
+    "leg_phase": 0,
+    "head_turn": 0
+  },
+  "belly_y": 112,
+  "withers_y": 118.8,
+  "rump_y": 112,
+  "chest_y": 112,
+  "back_y": 122,
+  "neck_top_y": 122.8,
   "shoulder_at": [
     -24218.0,
-    115.2,
-    29992.0
+    118.8,
+    29994.0
   ],
   "neck_top_at": [
     -24218.0,
-    118.2,
-    29998.3
+    122.8,
+    30001.2
   ],
   "along": {
     "body": [
-      -12,
-      13
+      -14,
+      15
     ],
     "head": [
-      16,
-      23
+      19,
+      28
     ]
   },
-  "collisions": 17,
+  "collisions": 12,
   "file": "X leopard.litematic",
   "name": "X leopard"
 }

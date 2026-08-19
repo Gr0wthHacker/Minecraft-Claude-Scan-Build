@@ -2,7 +2,7 @@
 # `families.yaml` x `height`, so nothing here needs tuning and nothing here can drift out of family.
 #
 #   family    the proportion table it inherits
-#   height    total height in blocks. `python tools/scale.py <family>` gives the floor below which
+#   height    total height in blocks. `python tools/scale.py <species>` gives the floor below which
 #             the family's finest feature cannot be built at all.
 #   build     the few generator settings that genuinely differ from the family
 #   coat      palette and pattern - within a family this is most of what separates one species
@@ -60,7 +60,9 @@ leopard:
 lion:
   family: felid
   height: 32
-  build: {mane_volume: 2.6, head_r_ratio: 0.46}   # the mane is the whole difference
+  # the mane is the whole difference, so it has to be BOTH a silhouette break and a tonal one.
+  # `mane_volume` is how many blocks it stands PROUD of the barrel - not its radius.
+  build: {mane_volume: 3.0, head_r_ratio: 0.46}
   coat:
     coat_pattern: shaded
     coat_ramp: [spruce_planks, coarse_dirt, dirt, oak_log, stripped_oak_log]
@@ -68,6 +70,9 @@ lion:
     coat_block: oak_log
     patch: oak_log
     patch_alt: stripped_oak_log
+    # measured, not guessed: oak_log is (151,122,73) and mangrove_wood is (84,67,41), a 45% drop
+    # in luminance. dark_oak_wood (60,47,26) was too dark - it read as a hole, not as hair.
+    mane_block: mangrove_wood
     muzzle: bone_block
     dark: black_wool
     hoof_block: dark_oak_wood
@@ -96,7 +101,16 @@ polar_bear:
                                          # feature at its minimum and none with any structure. The
                                          # silhouette test called it a CAVIOMORPH at that size,
                                          # because a skull with no room to be broad is a rodent's.
-  build: {head_turn: 1}
+  # A narrower, longer skull than the brown bear's - the ursid table's 0.55 is the broad, dished
+  # brown-bear face, and a polar bear's is the family's most tapered. This is the only SHAPE
+  # difference between the two, and it is worth 0.134 -> 0.155 on the built-model gap.
+  #
+  # `hump: 0.20` on the brown bear was the obvious other half of this and was MEASURED AND REJECTED:
+  # a shoulder hump is the real field mark, but building one lifts the back over the withers, and
+  # `withers height` is a measured proportion - the bear fell from 6/8 in tolerance to 4/8, lost
+  # 0.06 overall, and the gap to the polar bear SHRANK to 0.104. The reference tables state withers
+  # without a hump, so a hump cannot be built until they state it with one.
+  build: {head_turn: 1, head_r_ratio: 0.40}
   coat:
     coat_pattern: shaded
     # a NARROW ramp. Spanning tan to white made the shading paint the back snow and the

@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": -24224,
+    "x": -24227,
     "y": 100,
-    "z": 29950
+    "z": 29942
   },
   "size": {
-    "x": 13,
-    "y": 29,
-    "z": 59
+    "x": 19,
+    "y": 36,
+    "z": 74
   },
   "generated_by": "quadruped",
   "kind": "lion",
@@ -21,47 +21,47 @@
     0,
     1
   ],
-  "height": 28,
-  "top_y": 128,
+  "height": 35,
+  "top_y": 135,
   "features_built": {
-    "mane": 306,
+    "mane": 1015,
     "crown": 18,
-    "face": 14,
-    "tail": 31,
+    "face": 20,
+    "tail": 38,
     "eyes": 4
   },
-  "anat_top_y": 128,
+  "anat_top_y": 135,
   "asymmetry": {
     "leg_phase": 0,
     "head_turn": 0
   },
-  "belly_y": 112,
-  "withers_y": 118.8,
-  "rump_y": 112,
-  "chest_y": 112,
-  "back_y": 122,
-  "neck_top_y": 122.8,
+  "belly_y": 115,
+  "withers_y": 123.36,
+  "rump_y": 115,
+  "chest_y": 115,
+  "back_y": 127,
+  "neck_top_y": 128.36,
   "shoulder_at": [
     -24218.0,
-    118.8,
-    29994.0
+    123.4,
+    29998.0
   ],
   "neck_top_at": [
     -24218.0,
-    122.8,
-    30001.2
+    128.4,
+    30006.1
   ],
   "along": {
     "body": [
-      -14,
-      15
+      -18,
+      18
     ],
     "head": [
-      19,
-      28
+      24,
+      35
     ]
   },
-  "collisions": 12,
+  "collisions": 17,
   "file": "X lion.litematic",
   "name": "X lion"
 }

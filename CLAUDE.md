@@ -127,11 +127,14 @@ asymmetric and costs ~25 points of symmetry — rarely worth it; a head turn cos
 
 ## How big it has to be
 
-`tools/scale.py <family>` — every feature needs a minimum block count to read, and every feature is a
+`tools/scale.py <species>` — every feature needs a minimum block count to read, and every feature is a
 fixed fraction of height, so `min_blocks / fraction` gives the height below which it cannot exist.
 The largest such height is the animal's critical size.
 
-    felid 23 · ursid 24 · caviomorph 23 · proboscid 30 · giraffid 59
+    felid 23 · ursid 26 · caviomorph 23 · proboscid 30 · giraffid 59
+
+(ursid was 24 under the old, wrong ursid proportions; correcting them moved it to 26. The floors
+move when the tables do, so read them from the tool, not from here.)
 
 **It is not the biggest animal that must be built big, but the one with the finest features relative
 to its own size.** A giraffe's leg is 5% of its height so a 3-block leg forces 59 blocks of giraffe;
@@ -170,13 +173,14 @@ yourself before shipping.
 ## The process, in order
 
 ```bash
-python tools/scale.py <family>                     # 1. how big does it have to be
+python tools/scale.py <species>                    # 1. how big does it have to be
 # ... write ~6 lines in species.yaml ...
 python -m mcbuild gen configs/<x>.yaml --ship      # 2. build
 python tools/stance.py configs/<x>.yaml --from ... # 3. which pose
 python tools/rubric.py "<design>"                  # 4. score it; read the WEAKEST dimensions
 python tools/refine.py configs/<x>.yaml            # 5. sweep, scored by the WHOLE rubric
-python tools/views.py "<design>" --zoom 10         # 6. LOOK at it. Always.
+python tools/compare.py --family <family>          # 6. against its SIBLINGS, not just the table
+python tools/views.py "<design>" --zoom 10         # 7. LOOK at it. Always.
 ```
 
 **Never tune one dimension.** Sweeping `smoothness.py` alone took the bear's surface 0.60 → 0.73 and
@@ -219,16 +223,30 @@ compared the models to EACH OTHER. Numbers did not catch it; one glance did.
   including every leaf, extract as grey. Both deliberately deferred.
 - **Validation is circular**: `views.py` renders with the same colour DB the palette picker optimises
   against. Nothing built in this system has been placed in Minecraft and looked at.
-- **No tests on any of the seven tools**, nor on `taxonomy`, `coat`, `loft`, `quadruped`.
-- **Within-family distinction is unfinished.** lion vs jaguar 0.024, bear vs polar bear 0.016 — the
-  mane and the skull are meant to carry it and do not yet.
-- `jaguar` (0.73) and `polar_bear` (0.71) are tuned for the pre-anatomy geometry and need a
-  `refine.py` pass.
+- **`giraffe` stands at 57 against a floor of 59** — under-size, which is why `features` scores it
+  0.83 (the ossicones and mane are the parts that lose). It is the only animal built in the world,
+  so raising it would orphan placed blocks. Listed in `UNDERSIZED` in `tests/test_taxonomy.py`;
+  the fix is Jack's call, not a silent one.
+- **`coat`, `loft`, `quadruped` and five of the eight tools still have no tests.** `taxonomy`,
+  `rubric` and `proportions.measure` now do — `tests/test_taxonomy.py`, `tests/test_rubric.py`.
+- **The bears are boxes.** Both ursids build as a rectangular slab on four posts: flat top, flat
+  bottom, square corners. `form` scores the brown bear 0.81 because it measures TONE — range and
+  whether luminance follows sky exposure — and nothing measures ROUNDNESS. The metric and the eye
+  disagree, and the eye is right. A `form` that cannot see a box is the next thing to fix.
+- **A brown bear cannot have its shoulder hump.** It is the real field mark separating it from a
+  polar bear, `hump` exists in the generator, and building one MEASURED WORSE: proportion 6/8 → 4/8
+  in tolerance, total −0.06, and the gap to the polar bear SHRANK 0.134 → 0.104. The cause is the
+  bounding box again — a hump lifts the back over the withers, and `withers height` is stated in the
+  reference tables WITHOUT one. The tables have to state it before the feature can be built.
+- **Within-family distinction now measures the models, but only two things carry it.** The lion's
+  mane works (shape 0.30 from its nearest sibling, against 0.11 for jaguar-vs-leopard, which is
+  correct — they are the same animal). The bears do not: shape 0.16, coat 0.86, so a polar bear is
+  a brown bear painted white. `tools/compare.py` prints both halves for every pair.
 
 ## Build & test
 
 ```bash
-python -m pytest -q                                   # 17 tests, keep green
+python -m pytest -q                                   # 66 tests, keep green
 cd chunkscan && ./gradlew build test -q                # writes build/libs/chunkscan-<ver>.jar
 python chunkscan/verify_synthetic.py                   # Java writer vs Python reader, block for block
 ```
@@ -299,6 +317,7 @@ design without regenerating it.
 | `stance.py` | rank poses on behaviour, site, legibility and anatomy |
 | `rubric.py` | score against `data/rubric.yaml` |
 | `refine.py` | sweep parameters against the WHOLE rubric — use this, not `smoothness --sweep` |
+| `compare.py` | built models against EACH OTHER, per family: shape gap and coat gap, kept apart |
 | `plan_merge.py` | composite designs onto a capture |
 
 `proportions.measure` and `rubric.score` are shared entry points — `stance`, `refine` and `scale` all
@@ -383,12 +402,12 @@ and statue footings not started.
 |---|---|---|---|---|
 | elephant | proboscid | 34 | 0.87 | good |
 | capybara | caviomorph | 25 | 0.85 | good |
-| giraffe | giraffid | 57 | 0.84 | good — the one built in the world |
-| bear | ursid | 30 | 0.82 | good |
-| lion | felid | 26 | 0.80 | good |
-| jaguar | felid | 27 | 0.73 | needs a `refine.py` pass |
-| polar_bear | ursid | 32 | 0.71 | needs a `refine.py` pass |
-| leopard | felid | 22 | — | near the felid floor; rosettes have no room |
+| giraffe | giraffid | 57 | 0.84 | good — the one built in the world; under its floor of 59 |
+| bear | ursid | 30 | 0.83 | good |
+| jaguar | felid | 27 | 0.82 | good — was 0.73 with a hardcoded `body_r` |
+| lion | felid | 32 | 0.81 | good — the mane now reads |
+| leopard | felid | 26 | 0.80 | good — was 22, under the felid floor |
+| polar_bear | ursid | 32 | 0.79 | good — was 0.71 at height 26, the ursid floor exactly |
 
 **Placement is the open problem.** Measured contact footprints against both captures: the void isle
 is full (the giraffe and jaguar hold its two good pads) and the main plate's largest genuinely flat

@@ -19,6 +19,7 @@ its own reference and still be nearer a horse's numbers, and then it is a horse.
 from __future__ import annotations
 
 import argparse
+import functools
 import pathlib
 import sys
 
@@ -54,7 +55,7 @@ def score(solid, names, meta, species, pose, model=None, spec=None):
         holder.model = _M()
     dims = {
         "proportion": _proportion(holder, solid, meta, species, pose),
-        "silhouette": _silhouette(holder, solid, meta, species, pose),
+        "silhouette": _silhouette(holder, solid, names, meta, species, pose),
         "form": _form(holder, solid, names),
         "features": _features(spec, species, names, meta, solid),
         "surface": _surface(solid),
@@ -144,7 +145,7 @@ def _proportion(s, solid, meta, species, pose):
     return ok / max(1, len(ref)), f"{ok}/{len(ref)} measures in tolerance"
 
 
-def _silhouette(s, solid, meta, species, pose):
+def _silhouette(s, solid, names, meta, species, pose):
     """Two levels, because identity works at two levels.
 
     FAMILY: is the shape unmistakably a cat rather than a bear? This is a proportion question and the
@@ -175,31 +176,148 @@ def _silhouette(s, solid, meta, species, pose):
     margin = (d_other - d_self) / max(1e-6, d_other + d_self)
     fam_score = max(0.0, min(1.0, 0.5 + margin))
 
-    # within the family: how distinct is this species' dressing from its siblings'
+    # within the family: how distinct is this BUILD from its siblings' BUILDS
     sibs = [n for n, v in taxonomy.species().items()
             if v.get("family") == mine_fam and n != species]
-    me = taxonomy.species().get(species) or {}
-    if sibs:
-        def dressing(d):
-            # coat values include lists (a shading ramp), so flatten before making a set
-            out = set()
-            for v in (d.get("coat") or {}).values():
-                out |= set(v) if isinstance(v, list) else {str(v)}
-            return out | set(d.get("features") or [])
-        mine_coat = dressing(me)
-        best = 0.0
-        for n in sibs:
-            o = taxonomy.species()[n]
-            oc = dressing(o)
-            shared = len(mine_coat & oc) / max(1, len(mine_coat | oc))
-            best = max(best, shared)
-        sp_score = 1.0 - best
-        detail = (f"family {mine_fam} {d_self:.2f} vs nearest {who} {d_other:.2f}; "
-                  f"within family {sp_score:.0%} distinct from {len(sibs)} sibling(s)")
-    else:
-        sp_score, detail = 1.0, f"family {mine_fam} {d_self:.2f} vs nearest {who} {d_other:.2f}; only member"
+    sp_score, sp_detail = _within_family(solid, names, species, sibs)
+    detail = (f"family {mine_fam} {d_self:.2f} vs nearest {who} {d_other:.2f}; {sp_detail}")
     verdict = "" if d_self < d_other else f"  READS AS {who.upper()}"
     return 0.65 * fam_score + 0.35 * sp_score, detail + verdict
+
+
+def _profile(solid, bins=24, span=2):
+    """A build's side silhouette, normalised by HEIGHT so two sizes compare but two shapes do not.
+
+    Down the WIDTH axis, because that is the view a statue is seen from and the view the family
+    proportions are stated in.
+
+    Scaled by height ALONE and pasted into a fixed canvas `span` times as wide as it is tall, so a
+    22-block leopard and a 32-block lion are comparable without either being rescaled in the world -
+    and a long animal still occupies more of the canvas than a short one. Fitting the bounding box
+    to the grid instead, which is what this did first, divides the length out as well as the height:
+    every solid box becomes the same full rectangle, and a jaguar twice as long as it is tall
+    measures identical to one as long as it is tall. The test caught it; the animals hid it, because
+    no animal is a solid box.
+    """
+    side = solid.any(axis=2)                              # solid is [y, z, x] -> (y, z)
+    ys, zs = np.nonzero(side)
+    out = np.zeros((bins, bins * span))
+    if not len(ys):
+        return out
+    side = side[ys.min():ys.max() + 1, zs.min():zs.max() + 1]
+    h, d = side.shape
+    w = min(bins * span, max(1, int(round(d * bins / h))))     # height -> bins, length to match
+    yi = (np.arange(bins) * h // bins).clip(0, h - 1)
+    zi = (np.arange(w) * d // w).clip(0, d - 1)
+    out[:, :w] = side[np.ix_(yi, zi)].astype(float)            # anchored at the tail end
+    return out
+
+
+def _within_family(solid, names, species, sibs):
+    """How different is this STATUE from its siblings' statues?
+
+    This used to compare the two species' YAML entries - the set of block names and feature names
+    written in `species.yaml` - and never looked at the model at all. It was a fake check of exactly
+    the kind this rubric already got caught on once: bear and polar_bear scored "86% distinct"
+    because their coat blocks are spelled differently, while the built silhouettes were 0.016 apart.
+    Adding one key to a config raised the score without changing a single block.
+
+    So it compares BUILDS, and it will only compare builds it can actually find. A sibling that has
+    never been generated is reported as uncompared rather than silently scored as a win - the whole
+    failure being guarded against is a number that looks like proof and is not.
+    """
+    if not sibs:
+        return 1.0, "only member of its family"
+    mine_shape = _profile(solid)
+    mine_coat = _palette_mix(names)
+    worst, who, seen = None, None, 0
+    for n in sibs:
+        got = _sibling_build(n)
+        if got is None:
+            continue
+        seen += 1
+        # shape: 1 - IoU over the normalised side silhouette
+        other_shape, other_names = got
+        inter = np.minimum(mine_shape, other_shape).sum()
+        union = np.maximum(mine_shape, other_shape).sum()
+        shape_d = 1.0 - (inter / union if union else 1.0)
+        # coat: total-variation distance between the two block mixes
+        coat = _palette_mix(other_names)
+        keys = set(mine_coat) | set(coat)
+        coat_d = 0.5 * sum(abs(mine_coat.get(k, 0.0) - coat.get(k, 0.0)) for k in keys)
+        # A species is distinct if EITHER separates it - a lion and a jaguar are MEANT to be the
+        # same shape, so demanding shape would penalise the family table for working. But the two
+        # are reported separately, because an animal carried entirely by its paint is a fact worth
+        # seeing rather than one worth averaging away.
+        if worst is None or max(shape_d, coat_d) < max(worst):
+            worst, who = (shape_d, coat_d), n
+    if not seen:
+        return 0.5, (f"NO sibling build found for {', '.join(sibs)} - generate them to measure "
+                     f"within-family distinction; scored neutral, not passed")
+    shape_d, coat_d = worst
+    # 0.35 of separation from the nearest sibling is treated as fully distinct: two cats SHOULD
+    # share most of their outline, and demanding more would penalise the family table working.
+    sp = min(1.0, max(shape_d, coat_d) / 0.35)
+    missing = len(sibs) - seen
+    note = f", {missing} not built" if missing else ""
+    flag = "  SHAPE CARRIES NOTHING" if shape_d < 0.08 else ""
+    return sp, (f"vs built {who}: shape {shape_d:.2f}, coat {coat_d:.2f} "
+                f"({seen} sibling build(s){note}){flag}")
+
+
+def _palette_mix(names):
+    """Block name -> fraction of the skin, ignoring air."""
+    total = sum(1 for n in names if n != "air")
+    if not total:
+        return {}
+    out = {}
+    for n in names:
+        if n == "air":
+            continue
+        out[n] = out.get(n, 0.0) + 1.0 / total
+    return out
+
+
+def _sibling_build(name):
+    """The newest build of a species, as (silhouette, block names), or None if it has never run.
+
+    Looks wherever designs land - `out/` and the shipped schematics folder - and matches on the
+    sidecar's own recorded `kind`, so a design's file name does not have to encode its species.
+    """
+    best, best_t = None, -1.0
+    for d in _design_dirs():
+        if not d.is_dir():
+            continue
+        for f in d.glob("*.litematic"):
+            try:
+                mt = f.stat().st_mtime
+                if mt <= best_t:
+                    continue
+                s = scan.load(str(f))
+                if ((getattr(s, "meta", None) or {}).get("kind")) != name:
+                    continue
+                solid = s.model.ids > 0
+                best = (_profile(solid),
+                        [n.split(":")[-1].split("[")[0] for n in s.model.names])
+                best_t = mt
+            except Exception:
+                continue
+    return best
+
+
+@functools.lru_cache(maxsize=1)
+def _design_dirs():
+    dirs = [pathlib.Path("out")]
+    try:
+        from mcbuild import profile
+        p = profile.load()
+        for k in ("schematics", "schematics_dir"):
+            v = (p or {}).get(k) if isinstance(p, dict) else getattr(p, k, None)
+            if v:
+                dirs.append(pathlib.Path(v))
+    except Exception:
+        pass
+    return tuple(dirs)
 
 
 def _form(s, solid, names):
@@ -216,7 +334,13 @@ def _form(s, solid, names):
     ys, zs, xs = np.where(solid & (n6 < 6))
     if len(xs) < 20:
         return 0.0, "no surface"
-    vals = np.array([lum[int(s.model.ids[y, z, x])] for y, z, x in zip(ys, zs, xs)])
+    ids = getattr(getattr(s, "model", None), "ids", None)
+    if ids is None:
+        # form is a question about COLOUR on the skin, and without the block ids there is no
+        # colour to ask about. Say so rather than crashing or inventing a number - `score` used
+        # to advertise `model` as optional and then raise AttributeError right here.
+        return 0.0, "no block data - form cannot be measured without the model"
+    vals = np.array([lum[int(ids[y, z, x])] for y, z, x in zip(ys, zs, xs)])
     sky = np.zeros(len(xs))
     for k in range(1, 5):
         yy = np.clip(ys + k, 0, solid.shape[0] - 1)
