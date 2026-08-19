@@ -194,8 +194,8 @@ PROFILES = {
     "bear": {
         "leg": 11, "leg_r": 1.6, "hoof": 0,
         "body_len": 20, "withers": 8, "hips": 8, "body_r": 3.2,
-        "neck": 4, "neck_r0": 2.8, "neck_r1": 2.5, "neck_lean": 0.7, "neck_from": 0.95,
-        "head_len": 6, "head_r": 2.9,
+        "neck": 2, "neck_r0": 2.8, "neck_r1": 2.5, "neck_lean": 0.7, "neck_from": 1.0,
+        "head_len": 6, "head_r": 3.4,
         "mane": False, "horns": "none", "ears": True, "tail": "plain", "tail_len": 0.15,
         # A bear is one colour, so like the elephant all its quality is form. Five browns from
         # dark_oak in the creases to coarse_dirt along the lit back - a range wide enough to model

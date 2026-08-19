@@ -6,8 +6,8 @@
   },
   "size": {
     "x": 13,
-    "y": 24,
-    "z": 30
+    "y": 23,
+    "z": 29
   },
   "generated_by": "quadruped",
   "kind": "bear",
@@ -21,23 +21,23 @@
     0,
     1
   ],
-  "height": 23,
-  "top_y": 123,
+  "height": 22,
+  "top_y": 122,
   "belly_y": 111,
-  "withers_y": 117.6,
+  "withers_y": 118.0,
   "rump_y": 111,
   "chest_y": 111,
   "back_y": 119,
-  "neck_top_y": 120.6,
+  "neck_top_y": 119.0,
   "shoulder_at": [
     -24218.0,
-    117.6,
+    118.0,
     29990.0
   ],
   "neck_top_at": [
     -24218.0,
-    120.6,
-    29994.9
+    119.0,
+    29993.5
   ],
   "along": {
     "body": [
@@ -45,8 +45,8 @@
       10
     ],
     "head": [
-      12,
-      18
+      11,
+      17
     ]
   },
   "collisions": 8,

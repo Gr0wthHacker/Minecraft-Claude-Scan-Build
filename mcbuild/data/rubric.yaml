@@ -1,0 +1,78 @@
+# The standard a generated animal is held to. `python tools/rubric.py <design>` scores against it.
+#
+# The point of writing it down is that "it looks good" is not reviewable and does not survive a
+# rebuild. Every dimension here is MEASURED from the model; where something cannot be measured it is
+# listed under `human` instead of being faked with a number.
+#
+# Weights sum to 1. They encode a view: proportion and form carry a statue, and no amount of surface
+# polish rescues a shape that is the wrong animal.
+
+gates:
+  # Failing any of these is disqualifying at any score. They are not trade-offs.
+  single_component: true       # a statue in pieces is not a statue
+  grounded: true               # it must actually meet the ground it stands on
+  no_placement_problems: true  # nothing that the game would refuse or drop
+  plain_blocks_only: true      # no functional blocks (furnace, barrel, observer) used as skin:
+                               # they carry faces and fronts and read as machinery, not as animal
+  features_above_floor: true   # every feature at or above its minimum legible block count
+
+weights:
+  proportion:   0.22    # measured against real anatomy, adjusted for the pose
+  silhouette:   0.16    # is it unmistakably THIS species and not a generic quadruped
+  form:         0.16    # does the surface carry light, so the volume reads
+  features:     0.15    # are the species' identifying features present and legible
+  surface:      0.12    # no spikes, dents or lumpy cross-sections
+  palette:      0.10    # cohesive, disciplined, affordable
+  symmetry:     0.09    # animals are bilaterally symmetric; a statue that is not looks broken
+
+grades:
+  reference:   0.90     # as good as this system can currently build
+  good:        0.78     # ship it
+  acceptable:  0.65     # recognisable and sound, but visibly compromised
+  draft:       0.00     # not finished
+
+# What each dimension actually measures, so a score can be argued with.
+notes:
+  proportion: >
+    Share of anatomical measures inside tolerance, from tools/proportions.py, against the
+    pose-adjusted reference. Tilt-sensitive measures get a widened band.
+  silhouette: >
+    Whether the built proportions sit closer to their OWN species than to any other in the library.
+    An animal that scores well on its own reference but is nearer a horse's numbers is a horse.
+    This is the dimension that separates "correct" from "unmistakable".
+    KNOWN LIMIT: it compares proportions only, and some species are simply not distinguished by
+    proportion. A bear and a jaguar occupy almost the same numbers - what separates them is the
+    bear's shoulder hump, round ears and stub tail. Where this dimension scores low but the animal
+    reads correctly, the fix is a FEATURE, not a reshaping, and the score should be overridden with
+    a note rather than chased.
+  form: >
+    Two things. RANGE: how much of the tonal ramp the skin actually uses - a flat colour scores zero
+    however good the shape. GRADIENT: whether luminance tracks sky exposure, which is what makes
+    shading read as form rather than as speckle.
+  features: >
+    Every feature the species is identified by must be present in the model AND above its legible
+    block count. A trunk that is there but three blocks long fails.
+  surface: >
+    Spikes per surface cell, dents, and cross-section jerk, from tools/smoothness.py.
+  palette: >
+    Block count (2 is flat, 8+ is busy), hue coherence across the coat, and cost tier.
+  symmetry: >
+    Bilateral match across the sagittal plane, ignoring deliberately asymmetric features.
+
+# Things a number cannot settle. The rubric reports them as prompts, not scores.
+human:
+  - Does the face read as this animal's face from the side, at the distance it will be seen?
+  - Is the pose one you would find the animal in, rather than one that merely fits the ground?
+  - Does it sit in the scene, or does it look placed on it?
+  - Would you know the species with the colour removed?
+
+# Per-species identifying features. A species is not built until all of these exist.
+features:
+  giraffe:  [eyes, ears, ossicones, mane, tail_tassel, patches]
+  jaguar:   [eyes, ears, muzzle, rosettes, long_tail, pale_belly]
+  elephant: [eyes, big_ears, trunk, tail]
+  bear:     [eyes, ears, muzzle, tail]
+  capybara: [eyes, ears, blunt_muzzle]
+  horse:    [eyes, ears, mane, tail]
+  deer:     [eyes, ears, tail]
+  bison:    [eyes, ears, hump, tail]

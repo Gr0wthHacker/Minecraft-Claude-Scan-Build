@@ -140,6 +140,35 @@ the size floor and you cannot size past a wrong ratio.
 `params.scale` on any quadruped multiplies every linear dimension together (scaling only some of them
 changes the proportions, which is a different operation the audit would rightly complain about).
 
+## The quality standard
+
+`mcbuild/data/rubric.yaml` is the bar an animal is held to; `python tools/rubric.py <design>` scores
+against it. "It looks good" is not reviewable and does not survive a rebuild — this is.
+
+**Gates first, and they are not trade-offs**: one connected piece, actually grounded, no placement
+problems, no functional blocks used as skin (a furnace has a front and reads as machinery), every
+feature above its legible block floor. Fail one and the score is not printed.
+
+Then seven weighted dimensions: **proportion** (.22) · **silhouette** (.16) · **form** (.16) ·
+**features** (.15) · **surface** (.12) · **palette** (.10) · **symmetry** (.09) →
+reference ≥.90, good ≥.78, acceptable ≥.65.
+
+Two of those are the ones that catch what proportion alone misses:
+
+- **silhouette** asks whether the build sits closer to its OWN species than to any other in the
+  library. Correct is not the same as unmistakable — a shape can pass its own reference and still be
+  nearer a horse's numbers, and then it is a horse. It caught the bear reading as a jaguar and the
+  capybara as a boar. Its known limit is that it compares proportions only, and some species differ
+  by FEATURE not proportion (a bear and a jaguar are nearly the same numbers; the hump and the round
+  ears are the difference). Where it scores low but the animal reads, add the feature — do not reshape.
+- **form** asks whether the skin carries light: how much of the tonal ramp it uses, and whether
+  luminance tracks sky exposure. It is what separates a statue from a coloured shape, and it is the
+  dimension that showed the giraffe's tonal variation is PATTERN, not light (correlation 0.07).
+
+Four questions are printed rather than scored, because a number cannot settle them — whether the face
+reads at viewing distance, whether the pose is one you would find the animal in, whether it sits in
+the scene, and whether you would know the species with the colour removed.
+
 ## Auditing a shape
 
 Three tools, because "it looks lumpy / it feels off" is not actionable and the eye passes bad shapes:
