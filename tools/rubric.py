@@ -59,6 +59,7 @@ def score(solid, names, meta, species, pose, model=None, spec=None):
         "form": _form(holder, solid, names),
         "features": _features(spec, species, names, meta, solid),
         "surface": _surface(solid),
+        "roundness": _roundness(solid, meta),
         "palette": _palette(names),
         "symmetry": _symmetry(solid, meta),
     }
@@ -368,6 +369,53 @@ def _form(s, solid, names):
         grad = mono * min(1.0, span / 0.12)
     score = max(0.0, min(1.0, 0.45 * min(1.0, rng / 0.30) + 0.55 * grad))
     return score, f"tonal range {rng:.0%}, shading trend {grad:.2f} over {len(means)} exposure bins"
+
+
+# Corner fill of known sections, so the band below is calibrated rather than chosen: a filled
+# ellipse reads 0.06, exponent 3 reads 0.31, exponent 4 reads 0.56, exponent 8 reads 0.88, a solid
+# rectangle 1.00. A real torso in side view is fuller than an ellipse, so ROUND is set at 0.35 -
+# about a superellipse of exponent 3 - rather than at the ellipse itself.
+ROUND, BRICK = 0.35, 0.90
+
+
+def _roundness(solid, meta):
+    """Is the BARREL a body or a brick?
+
+    `form` cannot answer this. It measures tone - range, and whether luminance follows sky exposure -
+    and a rectangular prism with a good shading ramp scores well on all of it. Every animal in the
+    set passed `form` while its barrel was a flat-topped, square-ended box.
+
+    Measured on the barrel ALONE, between the recorded belly line and the recorded body window.
+    Measuring the whole model instead rewards an animal for the gaps between its legs and for having
+    a long tail, which is how the first version of this ranked a leggy cat 'round' and a squat
+    capybara 'square' when their barrels were equally brick-shaped.
+    """
+    need = ("origin", "feet", "along", "belly_y")
+    if not all(k in (meta or {}) for k in need):
+        return 0.5, "no landmarks recorded - roundness needs the barrel's own extent"
+    o = meta["origin"]
+    f = meta.get("facing") or [0, 1]
+    lo, hi = meta["along"]["body"]
+    belly = int(meta["belly_y"]) - o["y"]
+    sy, sz, sx = solid.shape
+    if f[1]:
+        a0, a1 = meta["feet"][2] - o["z"] + lo, meta["feet"][2] - o["z"] + hi
+        side = solid[max(0, belly):, max(0, a0):min(sz, a1 + 1), :].any(axis=2)
+    else:
+        a0, a1 = meta["feet"][0] - o["x"] + lo, meta["feet"][0] - o["x"] + hi
+        side = solid[max(0, belly):, :, max(0, a0):min(sx, a1 + 1)].any(axis=1)
+    ys, zs = np.nonzero(side)
+    if len(ys) < 8:
+        return 0.5, "barrel too small to measure"
+    sub = side[ys.min():ys.max() + 1, zs.min():zs.max() + 1]
+    h, d = sub.shape
+    k = max(1, min(h, d) // 3)
+    corner = float(np.mean([c.mean() for c in
+                            (sub[:k, :k], sub[:k, -k:], sub[-k:, :k], sub[-k:, -k:])]))
+    score = max(0.0, min(1.0, (BRICK - corner) / (BRICK - ROUND)))
+    like = ("an ellipse" if corner < 0.15 else "a superellipse n~3" if corner < 0.40 else
+            "a superellipse n~4" if corner < 0.65 else "a BRICK")
+    return score, f"barrel corner fill {corner:.2f} - {like}"
 
 
 def _features(spec, species, names, meta, solid):

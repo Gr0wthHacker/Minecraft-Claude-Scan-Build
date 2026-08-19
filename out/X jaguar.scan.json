@@ -2,12 +2,12 @@
   "origin": {
     "x": -24224,
     "y": 100,
-    "z": 29948
+    "z": 29950
   },
   "size": {
     "x": 13,
     "y": 29,
-    "z": 61
+    "z": 59
   },
   "generated_by": "quadruped",
   "kind": "jaguar",

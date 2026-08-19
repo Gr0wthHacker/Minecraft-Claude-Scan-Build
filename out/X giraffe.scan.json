@@ -2,12 +2,12 @@
   "origin": {
     "x": -24224,
     "y": 100,
-    "z": 29968
+    "z": 29969
   },
   "size": {
     "x": 13,
     "y": 59,
-    "z": 38
+    "z": 37
   },
   "generated_by": "quadruped",
   "kind": "giraffe",
@@ -27,7 +27,7 @@
     "mane": 3,
     "crown": 24,
     "face": 4,
-    "tail": 24,
+    "tail": 27,
     "eyes": 6
   },
   "anat_top_y": 155,

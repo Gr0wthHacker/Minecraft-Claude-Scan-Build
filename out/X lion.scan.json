@@ -2,12 +2,12 @@
   "origin": {
     "x": -24227,
     "y": 100,
-    "z": 29942
+    "z": 29945
   },
   "size": {
     "x": 19,
     "y": 36,
-    "z": 74
+    "z": 71
   },
   "generated_by": "quadruped",
   "kind": "lion",
@@ -24,7 +24,7 @@
   "height": 35,
   "top_y": 135,
   "features_built": {
-    "mane": 1015,
+    "mane": 1063,
     "crown": 18,
     "face": 20,
     "tail": 38,

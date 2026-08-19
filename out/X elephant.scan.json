@@ -2,12 +2,12 @@
   "origin": {
     "x": -24228,
     "y": 100,
-    "z": 29965
+    "z": 29966
   },
   "size": {
     "x": 21,
     "y": 39,
-    "z": 50
+    "z": 49
   },
   "generated_by": "quadruped",
   "kind": "elephant",

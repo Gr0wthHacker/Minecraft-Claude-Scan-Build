@@ -19,11 +19,27 @@ gates:
 weights:
   proportion:   0.22    # measured against real anatomy, adjusted for the pose
   silhouette:   0.16    # is it unmistakably THIS species and not a generic quadruped
-  form:         0.16    # does the surface carry light, so the volume reads
   features:     0.15    # are the species' identifying features present and legible
-  surface:      0.12    # no spikes, dents or lumpy cross-sections
-  palette:      0.10    # cohesive, disciplined, affordable
-  symmetry:     0.09    # animals are bilaterally symmetric; a statue that is not looks broken
+  form:         0.11    # does the surface carry light, so the volume reads
+  surface:      0.10    # no spikes, dents or lumpy cross-sections
+  roundness:    0.10    # is the BARREL a body or a brick - see below
+  palette:      0.08    # cohesive, disciplined, affordable
+  symmetry:     0.08    # animals are bilaterally symmetric; a statue that is not looks broken
+
+# ROUNDNESS was added after `form` passed a set of animals whose barrels were all rectangular
+# prisms. `form` measures TONE - range, and whether luminance follows sky exposure - and a brick
+# painted with a good shading ramp scores well on every one of those. The eye disagreed at a glance.
+#
+# It measures the fill of the four corners of the BARREL's side silhouette, taken between the
+# recorded belly line and the body window so legs and tail cannot flatter it. Calibrated against
+# known sections: a filled ellipse reads 0.06, a superellipse of exponent 3 reads 0.31, exponent 4
+# reads 0.56, exponent 8 reads 0.88, a rectangle 1.00. The eight animals measured 0.58-0.78 when
+# this was written - between exponent 4 and exponent 8, which is to say brick.
+#
+# The cause was found before the metric was: the back line was expressed ONLY as a fraction of the
+# hips->withers rise, and that rise is 0 blocks for a level-backed family and 1 for a cat, so the
+# whole profile quantised away. The body keyframes now carry a depth taper as a fraction of body
+# DEPTH, which no family has none of.
 
 grades:
   reference:   0.90     # as good as this system can currently build

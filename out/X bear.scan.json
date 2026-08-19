@@ -2,12 +2,12 @@
   "origin": {
     "x": -24225,
     "y": 100,
-    "z": 29962
+    "z": 29963
   },
   "size": {
     "x": 15,
     "y": 28,
-    "z": 46
+    "z": 45
   },
   "generated_by": "quadruped",
   "kind": "bear",

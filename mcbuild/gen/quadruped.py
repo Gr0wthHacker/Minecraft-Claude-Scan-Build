@@ -39,10 +39,23 @@ BASE_KEYS = {
     # leg: (t from haunch to hoof, half-width). Flares into the body, narrows at the cannon bone.
     "leg": [[0.00, 1.60], [0.05, 0.90], [0.15, 0.15], [0.46, -0.30], [0.76, 0.05], [1.00, 0.40]],
     # body: (t from rump to chest, half-width delta, back height as a fraction of the hips->withers
-    # rise; <0 dips below the hips, 1 is the withers). The drop between hips and withers is what
+    # rise, DEPTH taper as a fraction of body depth). The drop between hips and withers is what
     # separates a giraffe from a horse, so it is expressed relative to those two and not in blocks.
-    "body": [[0.00, -2.1, -0.26], [0.08, -1.0, -0.04], [0.22, -0.2, 0.18],
-             [0.45, 0.0, 0.50], [0.72, 0.0, 1.00], [0.88, -0.4, 1.00], [1.00, -1.6, 0.74]],
+    #
+    # THE FOURTH COLUMN IS LOAD-BEARING and was missing. Expressing the back line only as a fraction
+    # of the hips->withers rise means it VANISHES for any level-backed animal: `withers - hips` is
+    # 0 blocks for an ursid or a caviomorph (hip_drop 1.00) and 1 block for a felid, so keyframes
+    # spanning "-0.26 to 1.00 of that rise" quantised to nothing and every barrel came out a
+    # flat-topped, flat-bottomed, square-ended prism. Measured back-line range over ~35 courses:
+    # bear 3, capybara 3, jaguar 3, elephant 4 - against the giraffe's 15, the only family whose
+    # hip_drop (0.60) gave the term anything to work with.
+    #
+    # So the ENDS taper as a fraction of the body's own DEPTH, which no family has zero of. It
+    # shortens the section at both ends, and `rib` centres on floor + back/2 - so it lifts the belly
+    # and drops the back together, which is what rounds an end rather than merely lowering it.
+    "body": [[0.00, -2.1, -0.26, -0.34], [0.08, -1.0, -0.04, -0.16], [0.22, -0.2, 0.18, -0.04],
+             [0.45, 0.0, 0.50, 0.0], [0.72, 0.0, 1.00, 0.0], [0.88, -0.4, 1.00, -0.10],
+             [1.00, -1.6, 0.74, -0.30]],
     # neck: (t from shoulder to jaw, taper 1->0 between r0 and r1, extra flare in blocks).
     # Two numbers because a neck does both at once: it tapers along its length AND swells where it
     # meets the shoulder. Folding them into one delta cannot express that.
@@ -537,7 +550,10 @@ def _body(hide, fx, belly, fz, f, s, p, keys, pose=None) -> tuple:
     withers, hips = float(p["withers"]), float(p["hips"])
     n = float(p["section_n"])
     half = bl // 2
-    KEYS = [[t, br + dw, hips + (withers - hips) * hh] for t, dw, hh in keys["body"]]
+    # rows may be 3 or 4 wide - the depth taper was added later and an override written against the
+    # old shape must keep working
+    KEYS = [[r[0], br + r[1], hips + (withers - hips) * r[2] + withers * (r[3] if len(r) > 3 else 0.0)]
+            for r in keys["body"]]
     # a shoulder hump lifts the back line over the withers only - a bear's and a bison's profile
     hump = float(p.get("hump", 0.0)) * withers
     if hump:
@@ -823,13 +839,31 @@ def _tail(hide, accent, fx, belly, fz, f, s, p):
     # has this bug latent in it - the giraffe just happened to be the size the constant was tuned on.
     length = max(4, int(round(0.75 * int(p["leg"]))))
     switch = max(2, int(round(length * 0.25)))
+    # RE-PROBE THE SURFACE AT EVERY COURSE. Anchoring once at the top and then dropping straight
+    # down assumes a vertical rump. Once the barrel's ends taper, the rump slopes backward as it
+    # descends, so a plumb tail is INSIDE the body for most of its length - the bear's went from 10
+    # cells to 2, and `features` called it absent. The tail is a clinging feature like the mane and
+    # the eyes, and the rule is the same for all of them: measure the skin, never assume it.
+    prev = None
     for k in range(length):
-        cells = [(x, top - k, z)]
+        y = top - k
+        cx, cz = x, z
+        for d in range(half + 2, 0, -1):
+            probe = (int(fx - f[0] * d), y, int(fz - f[1] * d))
+            if probe in hide:
+                cx, cz = int(probe[0] - f[0]), int(probe[2] - f[1])
+                break
+        cells = [(cx, y, cz)]
+        # 6-CONNECTIVITY: if the surface stepped back a block since the course above, the two cells
+        # are only diagonal neighbours and the tail is not connected. Bridge the step.
+        if prev is not None and (prev[0] != cx or prev[2] != cz):
+            cells.append((prev[0], y, prev[2]))
         if k < max(2, length // 4):
-            cells.append((int(x - f[0]), top - k, int(z - f[1])))
+            cells.append((int(cx - f[0]), y, int(cz - f[1])))
         if tassel and length - switch <= k < length - 1:
-            cells += [(int(x + s[0] * b), top - k, int(z + s[1] * b)) for b in (-1, 1)]
+            cells += [(int(cx + s[0] * b), y, int(cz + s[1] * b)) for b in (-1, 1)]
         for c in cells:
             hide.add(c)
             if k >= length - switch:
                 accent[c] = p["dark"]
+        prev = (cx, y, cz)

@@ -2,12 +2,12 @@
   "origin": {
     "x": -24224,
     "y": 100,
-    "z": 29950
+    "z": 29952
   },
   "size": {
     "x": 13,
     "y": 28,
-    "z": 58
+    "z": 56
   },
   "generated_by": "quadruped",
   "kind": "leopard",
