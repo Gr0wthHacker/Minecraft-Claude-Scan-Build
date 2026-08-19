@@ -12,6 +12,16 @@
   "generated_by": "quadruped",
   "kind": "bear",
   "pose": "standing",
+  "designed": {
+    "withers height": 0.8519,
+    "leg (ground->belly)": 0.3704,
+    "body depth": 0.4815,
+    "body length": 1.3704,
+    "body width": 0.5133,
+    "neck length": 0.1398,
+    "head length": 0.2963,
+    "leg width": 0.1711
+  },
   "feet": [
     -24218,
     100,

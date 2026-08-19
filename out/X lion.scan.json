@@ -12,6 +12,16 @@
   "generated_by": "quadruped",
   "kind": "lion",
   "pose": "standing",
+  "designed": {
+    "withers height": 0.7714,
+    "leg (ground->belly)": 0.4286,
+    "body depth": 0.3429,
+    "body length": 1.0286,
+    "body width": 0.3227,
+    "neck length": 0.272,
+    "head length": 0.3143,
+    "leg width": 0.1179
+  },
   "feet": [
     -24218,
     100,

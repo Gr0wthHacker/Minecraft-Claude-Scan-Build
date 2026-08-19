@@ -12,6 +12,16 @@
   "generated_by": "quadruped",
   "kind": "bear",
   "pose": "couchant",
+  "designed": {
+    "withers height": 0.7895,
+    "leg (ground->belly)": 0.1053,
+    "body depth": 0.6842,
+    "body length": 1.9474,
+    "body width": 0.7295,
+    "neck length": 0.1987,
+    "head length": 0.4211,
+    "leg width": 0.3283
+  },
   "feet": [
     -24181,
     39,

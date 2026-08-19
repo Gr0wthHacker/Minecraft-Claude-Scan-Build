@@ -12,6 +12,16 @@
   "generated_by": "quadruped",
   "kind": "polar_bear",
   "pose": "standing",
+  "designed": {
+    "withers height": 0.8621,
+    "leg (ground->belly)": 0.3793,
+    "body depth": 0.4828,
+    "body length": 1.3448,
+    "body width": 0.5098,
+    "neck length": 0.1641,
+    "head length": 0.3103,
+    "leg width": 0.1699
+  },
   "feet": [
     -24218,
     100,

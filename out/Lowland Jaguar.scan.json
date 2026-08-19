@@ -12,6 +12,16 @@
   "generated_by": "quadruped",
   "kind": "jaguar",
   "pose": "couchant",
+  "designed": {
+    "withers height": 0.65,
+    "leg (ground->belly)": 0.15,
+    "body depth": 0.5,
+    "body length": 1.5,
+    "body width": 0.4765,
+    "neck length": 0.4118,
+    "head length": 0.45,
+    "leg width": 0.2351
+  },
   "feet": [
     -24223,
     40,

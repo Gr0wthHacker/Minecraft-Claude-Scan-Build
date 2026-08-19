@@ -12,6 +12,16 @@
   "generated_by": "quadruped",
   "kind": "elephant",
   "pose": "standing",
+  "designed": {
+    "withers height": 0.8158,
+    "leg (ground->belly)": 0.4474,
+    "body depth": 0.3684,
+    "body length": 0.7895,
+    "body width": 0.3686,
+    "neck length": 0.1252,
+    "head length": 0.2368,
+    "leg width": 0.1449
+  },
   "feet": [
     -24218,
     100,

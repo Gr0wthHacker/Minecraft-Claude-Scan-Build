@@ -12,6 +12,16 @@
   "generated_by": "quadruped",
   "kind": "giraffe",
   "pose": "standing",
+  "designed": {
+    "withers height": 0.6,
+    "leg (ground->belly)": 0.3636,
+    "body depth": 0.2364,
+    "body length": 0.4364,
+    "body width": 0.17,
+    "neck length": 0.4233,
+    "head length": 0.1273,
+    "leg width": 0.0529
+  },
   "feet": [
     -24218,
     100,

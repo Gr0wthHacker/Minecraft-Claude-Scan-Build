@@ -12,6 +12,16 @@
   "generated_by": "quadruped",
   "kind": "capybara",
   "pose": "standing",
+  "designed": {
+    "withers height": 0.8462,
+    "leg (ground->belly)": 0.4231,
+    "body depth": 0.4231,
+    "body length": 1.3846,
+    "body width": 0.4654,
+    "neck length": 0.1276,
+    "head length": 0.3846,
+    "leg width": 0.124
+  },
   "feet": [
     -24218,
     100,

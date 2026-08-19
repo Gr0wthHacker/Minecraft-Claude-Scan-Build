@@ -12,6 +12,16 @@
   "generated_by": "quadruped",
   "kind": "jaguar",
   "pose": "standing",
+  "designed": {
+    "withers height": 0.8214,
+    "leg (ground->belly)": 0.4643,
+    "body depth": 0.3571,
+    "body length": 1.0714,
+    "body width": 0.3404,
+    "neck length": 0.2942,
+    "head length": 0.3214,
+    "leg width": 0.1244
+  },
   "feet": [
     -24218,
     100,

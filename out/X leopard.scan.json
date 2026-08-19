@@ -12,6 +12,16 @@
   "generated_by": "quadruped",
   "kind": "leopard",
   "pose": "standing",
+  "designed": {
+    "withers height": 0.8148,
+    "leg (ground->belly)": 0.4444,
+    "body depth": 0.3704,
+    "body length": 1.0741,
+    "body width": 0.3399,
+    "neck length": 0.3051,
+    "head length": 0.3333,
+    "leg width": 0.1242
+  },
   "feet": [
     -24218,
     100,

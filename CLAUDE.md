@@ -159,6 +159,36 @@ Then seven weighted dimensions — **proportion** .22 · **silhouette** .16 · *
 **features** .15 · **surface** .12 · **palette** .10 · **symmetry** .09 → reference ≥.90, good ≥.78,
 acceptable ≥.65.
 
+**The reference is the BUILD'S OWN INTENT, not a standing table.** The generator records a
+`designed` block in every sidecar — its target proportions as fractions of its own posed height —
+and `proportions.designed()` reads it. Before this the audit re-derived what a pose does with a
+parallel first-order model, and the two diverged badly: measured-over-wanted hit **2.97** on a
+sitting bear's leg width and **1.86** on a prowling jaguar's neck, because `fold` widens a limb
+about three times as much as the model assumed and `drop`/`lean` re-aim the neck without it
+knowing. There was a per-FAMILY bias on top — a standing bear read +10..20% where a standing
+jaguar read −5% — so no single standing table could serve both. It is the same rule
+`proportions.measure` and `rubric.score` already follow: one source, so two tools cannot drift.
+`posed()` remains as the fallback for older builds and for the sizing tools, which must answer
+"how big must this be" with no build in hand.
+
+Three things had to follow from it:
+
+- **Verticals are measured from the FEET.** Legs seek their own ground, so on rolling terrain the
+  downhill limbs reach below the nominal feet and the model's origin sits under them. Measuring
+  from the origin compared two different zeroes and inflated every vertical on the lowland jaguar,
+  while the horizontals matched exactly — that asymmetry is the tell.
+- **`tilt_slack` has a FOLD term, not just a tilt term.** Couchant folds both legs almost equally,
+  so a slack built only on the fore/hind difference saw 0.09 and allowed 34% where the build was
+  46–60% off. Every couchant animal was marked deformed for lying down correctly.
+- **A measure the pose cannot yield is OMITTED, not zeroed.** A couchant animal's floor is two
+  courses up, so the window that should hold only legs holds the barrel too; `leg width` is absent
+  rather than wrong, and the dimension is scored out of what could be taken.
+
+And one that is not about pose at all: **a mane is not back.** A lion's mane is a 1000-cell ball
+centred over the withers, and taking the greater of shape and design measured the mane and called
+the barrel 50% too deep. Where a ruff is recorded, the withers falls back to the designed back
+line — the same reason `anat_top_y` already excludes crown features.
+
 - **form** asks whether the skin carries light — tonal range, and whether luminance follows sky
   exposure. Measured on BINNED means so a coat pattern does not destroy it. It is what separates a
   statue from a coloured shape.
@@ -238,10 +268,11 @@ which is the lowland's own rock palette — min ΔRGB **0** to the ground it wou
   8 blocks. Sitting cost the bear the same way. There is **one** flat patch big enough for a sitting
   bear and the stalk needs it.
 
-**Known compromise:** couchant scores better on site and WORSE on the rubric (jaguar 0.74 → 0.68,
-bear 0.77 → 0.68), because `proportion` — the heaviest dimension — fits a couchant build poorly.
-The two tools genuinely disagree here and the site was allowed to win. Revisit if the lowland ever
-gets a levelled pad.
+**The couchant penalty is gone.** It was never a property of the pose: `proportion` was scoring
+against a re-derivation of what the pose does, and that model was wrong. With the audit reading the
+build's own recorded intent, the lowland jaguar went 0.68 → **0.79** and the bear 0.68 → **0.81**,
+both at 8/8 measures in tolerance. The poses `stance.py` picked on site grounds are now the ones
+the rubric likes too, which is what agreement between two honest tools should look like.
 
 ## Known-wrong, for whoever picks this up
 
@@ -305,7 +336,7 @@ gets a levelled pad.
 ## Build & test
 
 ```bash
-python -m pytest -q                                   # 151 tests, keep green
+python -m pytest -q                                   # 159 tests, keep green
 cd chunkscan && ./gradlew build test -q                # writes build/libs/chunkscan-<ver>.jar
 python chunkscan/verify_synthetic.py                   # Java writer vs Python reader, block for block
 ```

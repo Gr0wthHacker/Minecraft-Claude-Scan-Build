@@ -151,15 +151,24 @@ def _gates(spec, s, solid, names, species, pose, meta):
 # ---------------------------------------------------------------- dimensions
 
 def _proportion(s, solid, meta, species, pose):
-    ref = pr.posed(pr.reference(species), pose)
+    # Prefer the intent the GENERATOR recorded over a re-derivation of it. The re-derivation is a
+    # first-order model of what a pose does and it was out by up to 3x on folded limbs, which made
+    # this dimension - the heaviest in the rubric - punish correct work in every pose but standing.
+    ref = pr.designed(meta) or pr.posed(pr.reference(species), pose)
     got = pr.measure(solid, meta, solid.shape[0])
     slack = pr.tilt_slack(pose)
     ok = 0
-    for k, want in ref.items():
+    # only measures the build could actually YIELD. A pose that leaves no clear band of leg to
+    # sample omits `leg width` entirely, and scoring an absent measure as 100% out of tolerance
+    # punished exactly the poses the measurement cannot see.
+    keys = [k for k, want in ref.items() if want and k in got]
+    for k in keys:
         tol = 0.20 + (slack if k in pr.TILT_SENSITIVE else 0.0)
-        if want and abs((got.get(k, 0) - want) / want) <= tol:
+        if abs((got[k] - ref[k]) / ref[k]) <= tol:
             ok += 1
-    return ok / max(1, len(ref)), f"{ok}/{len(ref)} measures in tolerance"
+    skipped = len(ref) - len(keys)
+    note = f" ({skipped} not measurable in this pose)" if skipped else ""
+    return ok / max(1, len(keys)), f"{ok}/{len(keys)} measures in tolerance{note}"
 
 
 def _silhouette(s, solid, names, meta, species, pose):

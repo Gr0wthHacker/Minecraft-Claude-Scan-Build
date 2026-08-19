@@ -56,8 +56,28 @@ def reference(species: str) -> dict:
     return {k: float(v) / h for k, v in row.items()}
 
 
+def designed(land: dict) -> dict:
+    """What the generator RECORDED asking for, as fractions of the posed height - or {}.
+
+    This is the reference to use whenever it exists. `posed()` below is a first-order model of what
+    a pose does, and it was measurably wrong: measured-over-wanted reached 2.97 on a sitting bear's
+    leg width and 1.86 on a prowling jaguar's neck, because `fold` widens a limb about three times
+    as much as the model assumed and `drop`/`lean` re-aim the neck without the model knowing. It was
+    also biased per FAMILY - a standing bear read +10..20% where a standing jaguar read -5% - so no
+    single standing table could serve both.
+
+    Asking the build what it intended removes the parallel formula, and with it the drift.
+    """
+    d = (land or {}).get("designed") or {}
+    return {k: float(v) for k, v in d.items() if isinstance(v, (int, float))}
+
+
 def posed(ref: dict, pose: str) -> dict:
     """Reference proportions ADJUSTED for the stance, so a pose is not audited as a deformity.
+
+    FALLBACK ONLY. Prefer `designed()`, which reads what the generator actually asked for. This
+    stays for designs built before the generator recorded its intent, and for the sizing tools,
+    which have to answer "how big must this be" with no build in hand.
 
     A sitting animal's visible leg really is short and its haunch really is bunched - measuring that
     against a standing reference reports correct work as broken, which is worse than not measuring.
@@ -94,11 +114,25 @@ TILT_SENSITIVE = ("withers height", "body depth", "body width")
 
 
 def tilt_slack(pose: str) -> float:
+    """How much looser a vertical measure has to be, given what the pose does to the body.
+
+    TWO terms, because there are two ways a pose defeats a vertical decomposition:
+
+      TILT   the barrel is pitched, so "belly to withers" is measured through a slope rather than
+             through a section. This is the difference between the fore and hind legs.
+      FOLD   the barrel is DOWN. A couchant animal rests its body on the ground with the limbs
+             gathered under it, and "leg + depth" stops describing the height at all - the barrel
+             is most of it. This is how far the legs are folded, and the first version missed it
+             entirely: couchant folds both legs almost equally, so the tilt term saw 0.09 and
+             allowed 34% where the build was 46-60% off, and every couchant animal was marked
+             deformed for lying down correctly.
+    """
     from mcbuild.gen.quadruped import POSES
     q = POSES.get(pose, {})
     tilt = abs(float(q.get("pitch", 0.0))) + abs(1.0 - float(q.get("fore", 1.0))
                                                  - (1.0 - float(q.get("hind", 1.0))))
-    return min(0.55, 1.6 * tilt)
+    fold = 1.0 - min(float(q.get("fore", 1.0)), float(q.get("hind", 1.0)))
+    return min(0.55, 1.6 * tilt + 0.6 * fold)
 
 
 def _segment(solid, sy):
@@ -161,16 +195,27 @@ def _neck_len(land, head, withers) -> float:
     return max(0, head - withers)
 
 
+# Below this many courses of clear leg there is no band to sample: the barrel's underside is inside
+# the probe window and the "limb" being measured is the animal.
+LEG_BAND_MIN = 4
+
+
 def _leg_probe(land, oy, belly) -> int:
     """Halfway up to the LOWEST body floor - the only band where nothing but legs exists.
 
     Probing at half the tallest leg put the sample inside a sitting animal's rump, where body and
     haunches are one mass, and reported an 11-block leg. Under the lowest floor there is nothing but
-    limbs, whatever the pose."""
+    limbs, whatever the pose.
+
+    Returns 0 when there IS no such band. A couchant animal's floor is two courses off the ground,
+    so the window that should hold only legs holds the barrel as well, and the median limb width
+    came back at 2.6-3.2x the leg the generator asked for. That is not a leg being mis-measured,
+    it is a leg that cannot be measured, and saying so beats stating a wrong number confidently.
+    """
     if oy is not None and "rump_y" in land and "chest_y" in land:
         lowest = min(float(land["rump_y"]), float(land["chest_y"])) - oy
-        return max(1, int(round(lowest / 2.0)))
-    return belly // 2
+        return max(1, int(round(lowest / 2.0))) if lowest >= LEG_BAND_MIN else 0
+    return belly // 2 if belly >= LEG_BAND_MIN else 0
 
 
 def _along_extent(solid, land, part, H):
@@ -275,16 +320,33 @@ def measure(solid, land, sy) -> dict:
             withers = max(withers, belly + 2)
         if "back_y" in land:
             # the greater of measured and designed: relax can deepen the barrel, and on a low animal
-            # the shape rule under-reads it badly
-            withers = max(withers, int(round(float(land["back_y"]) - oy)))
+            # the shape rule under-reads it badly.
+            #
+            # ...UNLESS A FEATURE SITS ON THE BACK. A lion's mane is a 1000-cell ball centred over
+            # the shoulders - exactly where the withers is - so the shape rule measured mane and
+            # reported the barrel 50% too deep. The withers is a point on the SKIN and a ruff is not
+            # skin. Where the build recorded one, take the designed back line, which is the barrel
+            # and nothing else. `anat_top_y` already excludes crown features for the same reason.
+            over_back = float((land.get("features_built") or {}).get("mane", 0) or 0) > 24
+            designed_back = int(round(float(land["back_y"]) - oy))
+            withers = designed_back if over_back else max(withers, designed_back)
         if "neck_top_y" in land:
             head = int(round(float(land["neck_top_y"]) - oy))
     # clamp: a pitched pose can put the recorded back line above the model's own top course
     withers = min(max(withers, belly + 1), sy - 1)
     body = range(belly, withers + 1)
+    # EVERY VERTICAL IS FEET-RELATIVE. `_segment` returns array indices counted from the model's
+    # lowest block, but the model's lowest block is NOT the feet: legs seek their own ground, so on
+    # rolling terrain the downhill limbs reach below the nominal feet line and the origin sits under
+    # it. The generator states its intent from the FEET, so measuring from the origin compared two
+    # different zeroes - it inflated every vertical on the lowland jaguar by the 2 blocks its origin
+    # sat below its feet, while the horizontal measures matched exactly. That asymmetry is the tell.
+    foot_off = 0
+    if oy is not None and land.get("feet"):
+        foot_off = max(0, int(round(float(land["feet"][1]) - oy)))
     got = {
-        "withers height": withers / H,
-        "leg (ground->belly)": belly / H,
+        "withers height": (withers - foot_off) / H,
+        "leg (ground->belly)": (belly - foot_off) / H,
         # belly-to-withers, a VERTICAL measure. The first version used the z-extent here, which is
         # the body's LENGTH, and so reported the barrel as 46% too deep when it was not.
         "body depth": (withers - belly) / H,
@@ -297,7 +359,10 @@ def measure(solid, land, sy) -> dict:
         "head length": _along_extent(solid, land, "head", H)[0] / H,
         # measured halfway up the LONGEST leg - on a posed animal the short pair is folded and its
         # bunched haunch is not a leg width
-        "leg width": _leg_width(solid, max(1, _leg_probe(land, oy, belly))) / H,
+        # OMITTED, not zeroed, when the pose leaves no clear band of leg to sample - a key that is
+        # absent is skipped by the audit, where a zero would read as a leg 100% out of tolerance.
+        **({} if not _leg_probe(land, oy, belly) else
+           {"leg width": _leg_width(solid, _leg_probe(land, oy, belly)) / H}),
     }
     return got
 

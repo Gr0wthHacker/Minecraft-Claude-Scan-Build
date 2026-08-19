@@ -398,7 +398,34 @@ def build_quadruped(cfg: dict, donors=None) -> Canvas:
 
     hi = max(y for (_x, y, _z) in hide)
     hits = 0 if ctx is None else sum(1 for c in hide if ctx.name_at(*c) not in AIRY)
+    # WHAT THIS BUILD WAS ASKED TO BE, as fractions of its own posed height.
+    #
+    # The audit used to re-derive this with a parallel first-order model in `proportions.posed`, and
+    # the two diverged badly: measured-over-wanted came out at 2.97 for a sitting bear's leg width
+    # and 1.86 for a prowling jaguar's neck, so the rubric scored correct work as broken and picked
+    # poses for the wrong reasons. `fold` was modelled as a 1.25x widening while the build widens
+    # by ~3x; `drop` and `lean` re-aim the neck and were not modelled at all. There was also a
+    # per-FAMILY bias - a standing bear read +10..20% where a standing jaguar read -5% - so no
+    # single standing table could be right for both.
+    #
+    # So the generator states its own intent here and the audit reads it, which is the same rule
+    # `proportions.measure` and `rubric.score` already follow: one source, so two tools cannot drift.
+    Hd = max(1.0, float(anat_top - fy))
+    designed = {
+        "withers height": (belly + int(p["withers"]) - fy) / Hd,
+        "leg (ground->belly)": (belly - fy) / Hd,
+        "body depth": int(p["withers"]) / Hd,
+        "body length": int(p["body_len"]) / Hd,
+        "body width": 2.0 * float(p["body_r"]) / Hd,
+        "neck length": (sum((float(a) - float(b)) ** 2
+                            for a, b in zip(shoulder, neck_top)) ** 0.5) / Hd,
+        "head length": int(p["head_len"]) / Hd,
+        # the leg the audit can actually see: `fold` widens a folded limb, and the keyframe flare
+        # widens it again where the probe samples it
+        "leg width": 2.0 * float(p["leg_r"]) * float(pose.get("fold", 1.0)) / Hd,
+    }
     return w.canvas({"kind": p.get("profile") or "quadruped", "pose": p.get("pose", "standing"),
+                     "designed": {k: round(v, 4) for k, v in designed.items()},
                      "feet": [fx, fy, fz],
                      "facing": list(f), "height": hi - fy, "top_y": hi,
                      # the joints, so an audit does not have to infer them from shape. On a cat the

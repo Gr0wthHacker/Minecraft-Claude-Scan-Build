@@ -226,3 +226,95 @@ def test_a_standing_animal_keeps_the_full_floor():
     same = pr.posed(std, "standing")
     r = same["leg (ground->belly)"] / std["leg (ground->belly)"]
     assert min(1.0, r) == pytest.approx(1.0, abs=0.02), "standing must not scale the floor down"
+
+
+# ---------------------------------------------------------------- pose-aware reference
+
+def _meta(**over):
+    m = {"origin": {"x": 0, "y": 0, "z": 0}, "feet": [5, 3, 5], "facing": [0, 1],
+         "anat_top_y": 23, "belly_y": 8, "back_y": 16, "rump_y": 8, "chest_y": 8,
+         "neck_top_y": 18, "shoulder_at": [5, 16, 8], "neck_top_at": [5, 18, 12],
+         "along": {"body": [-10, 10], "head": [10, 16]}, "features_built": {}}
+    m.update(over)
+    return m
+
+
+def test_designed_reads_the_generators_own_intent():
+    """The audit must not re-derive what a pose does. A parallel first-order model was out by 3x
+    on a folded limb and 1.9x on a dropped neck, and it was biased per FAMILY besides."""
+    assert pr.designed({}) == {}
+    assert pr.designed({"designed": {}}) == {}
+    got = pr.designed({"designed": {"body length": 1.25, "leg width": 0.1, "junk": "x"}})
+    assert got == {"body length": 1.25, "leg width": 0.1}, "non-numeric entries must be dropped"
+
+
+def test_a_freshly_built_animal_records_what_it_intended():
+    """Builds made BEFORE the generator recorded its intent fall back to `posed()`, which is why
+    that model is kept - so this checks a fresh build rather than everything in `out/`."""
+    from mcbuild.gen import quadruped
+    c = quadruped.build_quadruped({"profile": "bear", "pose": "couchant",
+                                   "feet": [0, 0, 0], "look_at": [0, 0, 40]})
+    d = (c.meta or {}).get("designed")
+    assert d, "the generator must state its own intent"
+    for k in ("body length", "leg width", "withers height", "body depth", "neck length"):
+        assert k in d and d[k] > 0, k
+
+
+def test_the_old_model_is_still_there_for_builds_that_predate_this():
+    """`designed()` returning nothing must fall through, not crash - `out/` holds older animals."""
+    assert pr.designed({"kind": "bear"}) == {}
+    assert pr.posed(pr.reference("bear"), "couchant"), "the fallback must still produce a reference"
+
+
+def test_verticals_are_measured_from_the_FEET_not_the_model_origin():
+    """Legs seek their own ground, so on rolling terrain the downhill limbs reach BELOW the nominal
+    feet and the model's origin sits under them. Measuring from the origin compared two different
+    zeroes and inflated every vertical - while the horizontals matched exactly, which is the tell."""
+    solid = _beast(20)
+    flat = pr.measure(solid, _meta(feet=[5, 0, 5], origin={"x": 0, "y": 0, "z": 0}), 20)
+    # same model, but its origin recorded 3 blocks BELOW the feet
+    sunk = pr.measure(solid, _meta(feet=[5, 3, 5], origin={"x": 0, "y": 0, "z": 0}), 20)
+    assert sunk["leg (ground->belly)"] < flat["leg (ground->belly)"], (
+        "a lower origin must not inflate the leg clearance")
+
+
+def test_tilt_slack_has_a_fold_term_as_well_as_a_tilt_term():
+    """Couchant folds BOTH legs almost equally, so a slack built only on the fore/hind difference
+    saw 0.09 and allowed 34% where the build was 46-60% off - every couchant animal was marked
+    deformed for lying down correctly."""
+    assert pr.tilt_slack("standing") == 0.0, "standing must get no slack at all"
+    assert pr.tilt_slack("couchant") > 0.4, "a folded pose needs real slack"
+    assert pr.tilt_slack("sitting") > 0.4
+    assert pr.tilt_slack("couchant") > pr.tilt_slack("prowling"), "more folded, more slack"
+    for p in ("standing", "sitting", "couchant", "prowling", "grazing"):
+        assert 0.0 <= pr.tilt_slack(p) <= 0.55, p
+
+
+def test_leg_width_is_omitted_when_the_pose_leaves_no_band_to_measure():
+    """A couchant animal's floor is two courses up, so the window that should hold only legs holds
+    the barrel too. Reporting a number there gave 2.6-3.2x the leg that was asked for."""
+    tall = pr.measure(_beast(30), _meta(rump_y=9, chest_y=9), 30)
+    assert "leg width" in tall, "a standing animal's leg IS measurable"
+    flat = pr.measure(_beast(30), _meta(rump_y=1, chest_y=1), 30)
+    assert "leg width" not in flat, "an unmeasurable leg must be absent, not zero"
+
+
+def test_proportion_skips_measures_the_pose_cannot_yield():
+    """An absent measure must not score as 100% out of tolerance."""
+    solid = _beast(30)
+    m = _meta(rump_y=1, chest_y=1, designed={"body length": 0.7, "leg width": 0.1})
+    _score, detail = rubric._proportion(None, solid, m, "bear", "couchant")
+    # the DENOMINATOR is the point: one of the two measures could not be taken, so the dimension is
+    # scored out of the one that could, not out of both with the other counted as a failure.
+    assert "/1 measures" in detail, detail
+    assert "1 not measurable in this pose" in detail, detail
+
+
+def test_a_mane_does_not_get_measured_as_back():
+    """A lion's mane is a 1000-cell ball centred over the withers. Taking the greater of shape and
+    design measured mane and called the barrel 50% too deep."""
+    solid = _beast(30)
+    plain = pr.measure(solid, _meta(), 30)
+    maned = pr.measure(solid, _meta(features_built={"mane": 900}), 30)
+    assert maned["withers height"] <= plain["withers height"] + 1e-9, (
+        "with a ruff recorded, the withers must fall back to the designed back line")
