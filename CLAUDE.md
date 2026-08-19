@@ -53,178 +53,177 @@ generators emitting `chain` (renamed `iron_chain` in 26.x), barrels carrying che
 (`type`/`waterlogged` instead of `facing`/`open`), and `lily_pad[rotation=0]` — lily pads have no
 properties at all in 26.2.
 
-## Building an animal
+# ANIMALS
 
-**Proportions belong to the FAMILY, not the species.** `mcbuild/data/families.yaml` states each
-family's proportions once, as fractions of total height; `mcbuild/data/species.yaml` gives a species
-a family, a target height, and the handful of things that genuinely differ — usually a coat. Block
-dimensions are then DERIVED (`gen/taxonomy.py`) as `family proportion x height`, so a species is
-correct by construction and `proportions.py` has nothing to complain about.
+Everything below concerns `gen/quadruped.py` and the taxonomy around it. It is the largest subsystem
+and the one with the most hard-won detail, so it is documented as a whole rather than in pieces.
 
-This exists because per-species tuning does not scale AND does not work: every animal tuned in
-isolation drifted toward whatever shape the smoothing and the block grid preferred, and the silhouette
-test kept catching it — a bear that measured as a jaguar. Nothing in a per-species dict says "a bear
-must sit where bears sit relative to cats". A shared family table says it once, for every member.
+## The shape of the system
 
-The empirical finding that justifies the split: **within a family, species differ by feature and
-colour, not by proportion.** A lion is a leopard with a mane and a different coat. So `silhouette` in
-the rubric is two-level — family separation by proportion, species separation by coat and features —
-and scoring a lion and a leopard as identical shapes is the metric being right, not wrong.
+```
+mcbuild/data/families.yaml   proportions + geometry choices, ONE table per family
+mcbuild/data/species.yaml    a species = family + height + a coat + a few deltas (~6 lines)
+mcbuild/gen/taxonomy.py      resolve(species) -> params, DERIVED as proportion x height
+mcbuild/gen/quadruped.py     the build: mass -> relax -> features -> face -> coat
+mcbuild/gen/anatomy.py       per-family LEG and HEAD geometry
+mcbuild/gen/loft.py          superellipse sections swept along a spine; surface probing
+mcbuild/gen/coat.py          voronoi / rosettes / blotches / shade
+mcbuild/gen/smooth.py        relax + roughness metrics
+mcbuild/data/rubric.yaml     the quality standard
+```
 
-`crown_bias` compensates families whose ears or horns stand above the skull: every proportion is
-measured against the bounding box, so a big-eared animal reads uniformly under target (the elephant
-was 8% low on everything until this was added).
-
+A config only says WHERE the animal stands:
 
 ```yaml
 gen: quadruped
-params: {profile: giraffe, feet: [...], look_at: [...], under: <capture>}
+params: {profile: jaguar, pose: sitting, feet: [...], look_at: [...], under: <capture>}
 ```
-Everything about the species lives in `PROFILES` in `gen/quadruped.py`; the config only says where it
-stands. The build ORDER is load-bearing and was learned the hard way:
+
+**Proportions belong to the FAMILY, not the species**, and block dimensions are DERIVED from them, so
+a species is correct by construction rather than by tuning. Per-species tuning does not scale and does
+not work: every animal tuned alone drifted toward whatever shape the smoothing and the block grid
+preferred, and the silhouette test kept catching it — a bear that measured as a jaguar. Nothing in a
+per-species dict says "a bear must sit where bears sit relative to cats". A family table says it once.
+
+**Within a family, species differ by feature and colour, not by proportion.** A lion is a leopard with
+a mane. So `silhouette` in the rubric is two-level — family separation by proportion, species
+separation by coat and features — and scoring a lion and a jaguar as identical SHAPES is the metric
+being right. Their distinction has to come from the mane, and it must be built big enough to break
+the outline or it does nothing.
+
+**But numbers alone build one animal five times.** Family proportions were not enough: a lion and a
+jaguar came out 0.032 apart on silhouette. Each family also picks its own LEG and HEAD geometry from
+`anatomy.py` — `plantigrade` legs put a bear on a long flat foot, `broad` gives it a wide skull with a
+step down to the muzzle. That structure is what the numbers cannot reach.
+
+## The build order (load-bearing)
 
 1. **mass** — legs, body, neck, head lofted; nothing thin, nothing coloured
 2. **relax** — cellular smoothing over that mass alone
-3. **features** — mane, ears, horns, tail; *after*, because the rule that shaves a one-block pimple
-   off a shoulder eats a horn whole
+3. **features** — mane, ears, horns, tail, trunk; *after*, because the rule that shaves a one-block
+   pimple off a shoulder eats a horn whole
 4. **face** — read off the SMOOTHED skin with `loft.surface_out`, never from a computed radius
 5. **coat** — the pattern, over the finished shape
 
-Traps, each of which cost a rebuild:
-- Smoothing **welds legs together** (two surfaces across a narrow gap look exactly like a dent).
-  `relax(forbid=...)` bars the air between them — but the reach must cover the leg's *widest*
-  section or it carves the haunch off instead, which severed a deer's leg outright.
-- Smoothing **eats thin limbs**: `keep` counts neighbours a slender leg does not have. Legs are
-  passed as `protect`.
-- **Feature sizes must scale with the animal.** A tail hardcoded at 13 blocks was longer than a
-  deer's legs and broke the model in two. Anything in absolute blocks has this bug latent in it.
-- **Palette by measurement**: `blocks.nearest()` over all 1193 real colours, excluding what the
-  server lacks. Sandstone does not exist on this skyblock — the giraffe's coat is bone_block +
-  acacia (the two acacias give tonal variety at one hue).
+Anything derived from the standing skeleton must follow the POSED one: leg length sets the belly line,
+and the belly line sets the countershading. Getting that wrong leaves legs floating under a hovering
+barrel, or pale bands round a sitting cat's knees.
 
 ## Stance
 
-Pose is most of what makes a statue read as an animal rather than a specimen. `POSES` in
-`gen/quadruped.py` holds standing / sitting / couchant / prowling / grazing as multipliers on the
-skeleton — fore and hind legs shorten independently, the belly line tilts, the neck is re-aimed.
-Nothing about a pose is a separate build path.
+`POSES` holds standing / sitting / couchant / prowling / grazing as multipliers — fore and hind legs
+shorten independently, the belly line tilts, the neck is re-aimed. No pose is a separate build path.
 
-```bash
-python tools/stance.py configs/jaguar.yaml --from -24206 150 30010
-```
-scores every pose on four measurable things and says why: **behaviour** (what the species actually
-does, from `animals.yaml` — a sitting giraffe is a sick animal, not a style choice), **site** (each
-pose is BUILT and its real contact footprint tested against the relief under it), and **legibility**
-(silhouette height against viewing distance; past ~30 blocks a couchant animal is a lump), and
-**anatomy** (`proportions.py` measured against the POSE-ADJUSTED reference — a pose that looks ideal
-and comes out with fused legs is not the best pose). They disagree often, which is the point: for the
-jaguar, standing won on site and anatomy, couchant on behaviour, sitting on legibility.
+`tools/stance.py <config> --from X Y Z` scores every pose on four measured things and says why:
+**behaviour** (what the species does, from the family table — a sitting giraffe is a sick animal, not
+a style choice), **site** (each pose is BUILT and its real contact footprint tested against the relief
+under it), **legibility** (silhouette height against viewing distance; past ~30 blocks a couchant
+animal is a lump), and **anatomy** (does it survive the build). They disagree often, which is the
+point.
 
-**The proportions engine is pose-aware.** `posed()` adjusts the reference with the SAME multipliers
-the generator poses with, so the two cannot drift: the belly line follows the shorter leg pair, the
-withers follow the chest plus pitch, and `fold` widens the expected leg. Without it a sitting animal
-audits as a deformity — its leg read -69% when it was correct. Vertical measures under a tilted
-barrel are only corrected to first order, so those get a widened tolerance and are marked `ok~`
-rather than stated confidently.
+`leg_phase` and `head_turn` add deliberate asymmetry and are RECORDED, so the rubric relaxes its
+symmetry expectation by exactly what was asked for. A diagonal leg phase is genuinely left-right
+asymmetric and costs ~25 points of symmetry — rarely worth it; a head turn costs ~3.
 
-Anything derived from the standing skeleton must follow the POSED one: leg length sets the belly
-line, and the belly line sets the countershading. Getting that wrong leaves legs floating under a
-hovering barrel, or pale bands painted round a sitting cat's knees.
+## How big it has to be
 
-## How big does it have to be
+`tools/scale.py <family>` — every feature needs a minimum block count to read, and every feature is a
+fixed fraction of height, so `min_blocks / fraction` gives the height below which it cannot exist.
+The largest such height is the animal's critical size.
 
-```bash
-python tools/scale.py <species>                  # the analytic floor, and what binds it
-python tools/scale.py --all                      # every species side by side
-python tools/scale.py --measure <config>         # BUILD at a range of scales, report the real curve
-```
+    felid 23 · ursid 24 · caviomorph 23 · proboscid 30 · giraffid 59
 
-Every feature needs a minimum number of blocks to read (a leg under 3 wide is a line; a head under 5
-cannot carry a muzzle and an eye) and every feature is a fixed FRACTION of the animal's height. So:
+**It is not the biggest animal that must be built big, but the one with the finest features relative
+to its own size.** A giraffe's leg is 5% of its height so a 3-block leg forces 59 blocks of giraffe;
+a jaguar's is 13%, so the same leg forces 23.
 
-    minimum height = min_blocks(feature) / reference_fraction(feature)
+`--measure <config>` builds at a range of scales and reports the real curve. **Size sets a ceiling;
+tuning sets the plateau.** You cannot tune past the size floor and you cannot size past a wrong ratio.
 
-and the largest such height over all features is the animal's critical size. **This is why some
-animals must be huge and others need not be**: a giraffe's leg is 5% of its height, so a 3-block leg
-forces 59 blocks of giraffe. A jaguar's leg is 13%, so the same leg only forces 23. It is the animal
-with the finest features *relative to its own size* that has to be big — not the biggest animal.
-
-The prediction holds up: the giraffe's floor is 59 and 57 is the smallest build that scores 88%;
-below it, 42 blocks scores 38% and 18 scores 12%. It also explains the deer scoring 1/8 — it was
-built 27 tall against a floor of 56, which was never a tuning problem.
-
-**Size sets a ceiling; tuning sets the plateau.** `--measure` distinguishes them: quality climbs with
-size and then flattens, and where it flattens is how well the profile is tuned. The jaguar plateaus
-at 75% at every size, so more blocks cannot help it — that is a proportion fix. You cannot tune past
-the size floor and you cannot size past a wrong ratio.
-
-`params.scale` on any quadruped multiplies every linear dimension together (scaling only some of them
-changes the proportions, which is a different operation the audit would rightly complain about).
+A second floor matters as much: a feature at its minimum EXISTS but carries no structure. A bear at
+24 has a 6-block head — one above the floor — with no room for a broad skull and a stepped muzzle. It
+took 30 before the family geometry could show.
 
 ## The quality standard
 
-`mcbuild/data/rubric.yaml` is the bar an animal is held to; `python tools/rubric.py <design>` scores
-against it. "It looks good" is not reviewable and does not survive a rebuild — this is.
+`mcbuild/data/rubric.yaml`; `python tools/rubric.py <design>` scores against it.
 
-**Gates first, and they are not trade-offs**: one connected piece, actually grounded, no placement
-problems, no functional blocks used as skin (a furnace has a front and reads as machinery), every
-feature above its legible block floor. Fail one and the score is not printed.
+**Gates first, and they are not trade-offs**: one connected piece, grounded, no placement problems, no
+functional blocks used as skin, every feature above its legible block floor. Fail one and no score is
+printed.
 
-Then seven weighted dimensions: **proportion** (.22) · **silhouette** (.16) · **form** (.16) ·
-**features** (.15) · **surface** (.12) · **palette** (.10) · **symmetry** (.09) →
-reference ≥.90, good ≥.78, acceptable ≥.65.
+Then seven weighted dimensions — **proportion** .22 · **silhouette** .16 · **form** .16 ·
+**features** .15 · **surface** .12 · **palette** .10 · **symmetry** .09 → reference ≥.90, good ≥.78,
+acceptable ≥.65.
 
-Two of those are the ones that catch what proportion alone misses:
+- **form** asks whether the skin carries light — tonal range, and whether luminance follows sky
+  exposure. Measured on BINNED means so a coat pattern does not destroy it. It is what separates a
+  statue from a coloured shape.
+- **features** reads `features_built` from the model's own sidecar — the generator counts cells as it
+  emits them. It caught the giraffe's 6-cell ossicones and 3-cell mane as too small to see.
+- **symmetry** mirrors across the sagittal plane the recorded FACING defines, and allows for
+  asymmetry that was deliberately asked for.
 
-- **silhouette** asks whether the build sits closer to its OWN species than to any other in the
-  library. Correct is not the same as unmistakable — a shape can pass its own reference and still be
-  nearer a horse's numbers, and then it is a horse. It caught the bear reading as a jaguar and the
-  capybara as a boar. Its known limit is that it compares proportions only, and some species differ
-  by FEATURE not proportion (a bear and a jaguar are nearly the same numbers; the hump and the round
-  ears are the difference). Where it scores low but the animal reads, add the feature — do not reshape.
-- **form** asks whether the skin carries light: how much of the tonal ramp it uses, and whether
-  luminance tracks sky exposure. It is what separates a statue from a coloured shape, and it is the
-  dimension that showed the giraffe's tonal variation is PATTERN, not light (correlation 0.07).
+Four questions are printed rather than scored, because a number cannot settle them. Answer them
+yourself before shipping.
 
-Four questions are printed rather than scored, because a number cannot settle them — whether the face
-reads at viewing distance, whether the pose is one you would find the animal in, whether it sits in
-the scene, and whether you would know the species with the colour removed.
-
-### Refining against it
+## The process, in order
 
 ```bash
-python tools/refine.py <config> [--species X]      # sweep, scored by the WHOLE rubric
-```
-Never tune one dimension. Sweeping `smoothness.py` alone took the bear's surface 0.60 -> 0.73 and its
-proportion 0.88 -> 0.50, because every smoothing pass rewards thickening — it inflated the animal
-until the silhouette test reported it as an **elephant**, and its total *fell*. `refine.py` sweeps the
-same parameters, scores each variant with the weighted rubric, drops any that fail a gate, and prints
-what each dimension gained or lost so a trade can be checked rather than trusted. It found the bear a
-+0.13 that trades surface (−0.31) for proportion (+0.50) — correct, because proportion is weighted
-nearly twice surface.
-
-## Auditing a shape
-
-Three tools, because "it looks lumpy / it feels off" is not actionable and the eye passes bad shapes:
-
-```bash
-python tools/views.py "<design>" --zoom 10 --views side,face,top   # shaded ortho views, any zoom
-python tools/proportions.py "<design>"      # measured against the real animal, as fractions of height
-python tools/smoothness.py <config> --sweep # rank parameter variants; connectivity is a hard gate
+python tools/scale.py <family>                     # 1. how big does it have to be
+# ... write ~6 lines in species.yaml ...
+python -m mcbuild gen configs/<x>.yaml --ship      # 2. build
+python tools/stance.py configs/<x>.yaml --from ... # 3. which pose
+python tools/rubric.py "<design>"                  # 4. score it; read the WEAKEST dimensions
+python tools/refine.py configs/<x>.yaml            # 5. sweep, scored by the WHOLE rubric
+python tools/views.py "<design>" --zoom 10         # 6. LOOK at it. Always.
 ```
 
-`views.py` distinguishes **face** (far-z end) from **rear** (z=0). Getting them the wrong way round
-means auditing an animal's backside, which happened.
+**Never tune one dimension.** Sweeping `smoothness.py` alone took the bear's surface 0.60 → 0.73 and
+its proportion 0.88 → 0.50: every smoothing pass rewards thickening, so it inflated the animal until
+the silhouette test called it an elephant, and the total *fell*. `refine.py` sweeps the same
+parameters against the weighted rubric and prints what each dimension gained or lost.
 
-**The two metrics pull against each other and you must referee.** Thickening any shape makes it
-smoother — fewer spikes per unit surface — so a smoothness sweep left alone will inflate an animal one
-run at a time. It gave the giraffe tree-trunk legs that merged into the body. `proportions.py` is the
-counterweight; when they disagree, anatomy wins.
+**And always look.** The rubric passed a bear, a lion and a polar bear at GOOD when all three were
+visibly the same animal — because `silhouette` compares each model to a reference TABLE and nothing
+compared the models to EACH OTHER. Numbers did not catch it; one glance did.
 
-Watch for metrics that are secretly measuring size: raw spike/jerk counts scale with the model, so
-ranking on them just picks the smallest variant. Normalise spikes by **surface** cells (not volume —
-surface-to-volume falls as a shape fattens, which reintroduces the same bias) and jerk by mean
-cross-section.
+## Traps, each of which cost a rebuild
+
+- Smoothing **welds legs together** — two surfaces across a narrow gap look exactly like a dent.
+  `relax(forbid=...)` bars the air between them, but the reach must cover the leg's *widest* section
+  or it carves the haunch off instead, and it must be clamped to half the leg spacing or it protects
+  nothing. `fold` widens a leg, so spacing must be computed from the FOLDED radius.
+- Smoothing **eats thin limbs**: `keep` counts neighbours a slender leg does not have. Legs go in as
+  `protect`.
+- **Feature sizes must scale.** A tail hardcoded at 13 blocks was longer than a deer's legs and broke
+  the model in two. Anything in absolute blocks has this latent.
+- **Anything clinging must be ANCHORED to the built surface**, never placed at a computed radius —
+  relax moves the surface. The mane came off as seven floating fragments, the ossicones detached, the
+  tail floated 45 cells clear. `loft.surface_out` and `loft.crest` exist for this.
+- **6-connectivity**: a swept feature whose cells are only diagonal neighbours is not connected. Ear
+  tips broke off this way.
+- **Palette by measurement** — `blocks.nearest()` over all 1193 real colours. Avoid functional blocks
+  (`bee_nest` is the closest golden tan in the game and carries a face texture and bee states).
+  Sandstone does not exist on this skyblock.
+
+## Known-wrong, for whoever picks this up
+
+- **The reference proportions are estimates, uncited.** One was simply wrong: the ursid table gave a
+  bear a cat's leg clearance (0.469) and a short body, and no amount of geometry work fixed the
+  result until the numbers were corrected to 0.346 / 1.230. Suspect the tables before the code.
+- **`MIN_BLOCKS`, `COMFORT`, the rubric weights and the grade thresholds are all invented.** Every
+  "viable height" and every grade rests on them.
+- **The colour DB samples the TOP face; statues are seen from the SIDE.** `oak_log` differs by 101,
+  `bone_block` (the giraffe's whole coat) by 68. And **biome tint is missing** — 20 tinted blocks,
+  including every leaf, extract as grey. Both deliberately deferred.
+- **Validation is circular**: `views.py` renders with the same colour DB the palette picker optimises
+  against. Nothing built in this system has been placed in Minecraft and looked at.
+- **No tests on any of the seven tools**, nor on `taxonomy`, `coat`, `loft`, `quadruped`.
+- **Within-family distinction is unfinished.** lion vs jaguar 0.024, bear vs polar bear 0.016 — the
+  mane and the skull are meant to carry it and do not yet.
+- `jaguar` (0.73) and `polar_bear` (0.71) are tuned for the pre-anatomy geometry and need a
+  `refine.py` pass.
 
 ## Build & test
 
@@ -275,17 +274,35 @@ design without regenerating it.
   `vertical.py` (taproot, shard + the `World`/`Ctx` helpers), `dressing.py` (hem, paths, lightposts,
   entrance, ridelights, apiary, birdlanterns, chimney, footing, altar), `interior.py` (the deck vault),
   `courtyard.py` (the sky-well court), `redstone.py` (item sorter), plus the older statue generators.
-- **Animals**: `quadruped.py` builds any four-legged animal from a PROFILE (proportions + four
-  keyframe tables + coat + which features it wears) — a new species is a dict, not a generator.
-  Supported by `loft.py` (superellipse sections swept along a spine; `surface_out`/`crest` for
-  finding the skin), `coat.py` (Voronoi patches with grout, or soft blotches) and `smooth.py`
-  (`relax` cellular smoothing, `roughness` metrics). `data/animals.yaml` holds real-animal
-  proportions for the audit.
+- **Animals** — see the ANIMALS section above; it is the largest subsystem. `quadruped.py` (build),
+  `taxonomy.py` (family + height → params), `anatomy.py` (per-family leg and head geometry),
+  `loft.py` (superellipse sweeps, surface probing), `coat.py` (voronoi / rosettes / blotches /
+  shade), `smooth.py` (relax + roughness). Data in `data/families.yaml`, `data/species.yaml`,
+  `data/rubric.yaml`; `data/animals.yaml` is the older per-species reference, still used for
+  species that have no family.
 - `work.py` — `<design>.work.json`: the design flattened to world-coordinate cells so the mod can diff
   it against the live world without an NBT reader. Written on every `gen`, shipped with the design.
 - `history.py` — `out/history.json`, one row per sync, so `progress` has a slope: blocks per sync and
   how many syncs are left.
 - `pipeline.py` — `run_config` → source → polish → finish → save; handles `verify_against` and `origin_lock`.
+
+**`tools/`** — analysis, none of it imported by the build
+
+| | |
+|---|---|
+| `extract_blocks.py` | build `data/blocks.json` from the game's own datagen + jar textures |
+| `server_blocks.py` | the server-version allowlist (currently `enforce: false`) |
+| `views.py` | shaded orthographic renders at any zoom — `side` / `face` / `rear` / `top` |
+| `proportions.py` | measure a build against its family's reference, pose-adjusted |
+| `smoothness.py` | spikes / notches / jerk, and a parameter sweep |
+| `scale.py` | minimum viable size, and `--measure` for the real quality-vs-size curve |
+| `stance.py` | rank poses on behaviour, site, legibility and anatomy |
+| `rubric.py` | score against `data/rubric.yaml` |
+| `refine.py` | sweep parameters against the WHOLE rubric — use this, not `smoothness --sweep` |
+| `plan_merge.py` | composite designs onto a capture |
+
+`proportions.measure` and `rubric.score` are shared entry points — `stance`, `refine` and `scale` all
+call them, so a change to how something is measured cannot drift between tools.
 
 **`chunkscan/`** (client only, `src/client/java/dev/jack/chunkscan/`)
 `ChunkScanClient` (commands) · `WorldCapture` (chunks → `Capture`) · `LitematicWriter` (NBT out) ·
@@ -347,17 +364,36 @@ design without regenerating it.
 13. **Gravity blocks cannot be used in anything with air under it.** `red_sand` is the best ochre in
    the game and cheap — and it would have poured the giraffe into the void. `blocks.falls` keeps sand,
    gravel, concrete powder and the rest out of `candidates()` unless you ask for them.
-14. **Proportion names an animal; detail does not, and it must be MEASURED.** Every giraffe rebuild
-   until the audit existed was tuned by eye, and every one was wrong somewhere: the legs had fused
-   into an 11-block slab (the smoothing pass welds two surfaces facing each other across a narrow
-   gap — `smooth.relax(forbid=...)` bars the air between the legs), the barrel was 37% too wide, and
-   the neck was 35% short. `tools/proportions.py` measures all of it as fractions of total height. The giraffe was rebuilt three times. What fixed
-   it was neck > body length, legs ≈ neck, and a back that drops hard from withers to hips — not more
-   blocks. And a giraffe's coat is a **Voronoi diagram with pale grout**, not noise: value noise makes
-   merging clouds that read as a cow, because the thing that identifies the animal is a *boundary
-   between regions* and value noise has no regions.
+14. **Proportion names an animal, and it must be MEASURED — but proportion alone is not enough.**
+   Every animal tuned by eye was wrong somewhere. Every animal tuned by NUMBER alone came out as
+   the same animal with different numbers. Both halves are in the ANIMALS section above; that is
+   where animal work belongs, not here.
 15. **Overlap means the world holds something DIFFERENT.** A design cell the world already matches is
    built, not a collision — otherwise every design reports hundreds of overlaps the moment you build it.
+
+## Where things stand (2026-08-18)
+
+**Island designs** — see `python -m mcbuild sync`. Belly ~46% built, rim hem ~50%, paths ~43%,
+light posts 24 standing, altar started; taproot, shard, chimneys, ride lights, apiary, bird lanterns
+and statue footings not started.
+
+**Animals** — eight species across five families, none placed. Scores from `tools/rubric.py`:
+
+| | family | height | score | |
+|---|---|---|---|---|
+| elephant | proboscid | 34 | 0.87 | good |
+| capybara | caviomorph | 25 | 0.85 | good |
+| giraffe | giraffid | 57 | 0.84 | good — the one built in the world |
+| bear | ursid | 30 | 0.82 | good |
+| lion | felid | 26 | 0.80 | good |
+| jaguar | felid | 27 | 0.73 | needs a `refine.py` pass |
+| polar_bear | ursid | 32 | 0.71 | needs a `refine.py` pass |
+| leopard | felid | 22 | — | near the felid floor; rosettes have no room |
+
+**Placement is the open problem.** Measured contact footprints against both captures: the void isle
+is full (the giraffe and jaguar hold its two good pads) and the main plate's largest genuinely flat
+area is 13x13. An elephant needs 15x29. Nothing new fits without levelling a pad, extending the void
+isle, or building below the plate.
 
 ## The island (as of 2026-08-18)
 

@@ -175,6 +175,80 @@ Dressing kits: `hem` (rim), `paths` (+ `lightposts`, terrain-following, MST over
 path fragments; sidecar has the dig list and torches to pull), `entrance`, `ridelights`, `apiary`,
 `birdlanterns`, `chimney`, `footing`.
 
+## Animals
+
+A four-legged animal is a **family** plus about six lines. Proportions live on the family and block
+dimensions are derived from them, so a species comes out correct by construction rather than by
+tuning:
+
+```yaml
+# mcbuild/data/species.yaml
+lion:
+  family: felid
+  height: 26
+  build: {mane_volume: 2.6}
+  coat:
+    coat_pattern: shaded
+    coat_ramp: [spruce_planks, coarse_dirt, dirt, oak_log, stripped_oak_log]
+    coat_block: oak_log
+```
+
+```bash
+python -m mcbuild gen configs/lion.yaml --ship
+```
+
+Five families so far — felid, ursid, proboscid, caviomorph, giraffid — each supplying its proportions,
+its leg geometry (`digitigrade`, `plantigrade`, `columnar`, `stubby`, `cursorial`), its head profile
+(`rounded`, `broad`, `domed`, `blunt`, `tapered`), and which poses it plausibly takes.
+
+Two findings shaped the design, and both were measured rather than assumed:
+
+**Within a family, species differ by feature and colour, not proportion.** A lion is a leopard with a
+mane. Putting proportions on the family stops a bear drifting into cat numbers when it is tuned alone.
+
+**But numbers alone build one animal five times.** With shared geometry, a lion and a jaguar came out
+0.032 apart on silhouette — identical. Each family needs its own leg and head structure too; a bear's
+long flat plantigrade foot is most of what makes it read as a bear.
+
+### The toolchain
+
+Nothing here is imported by the build; it all measures finished models.
+
+```bash
+python tools/scale.py felid              # how big must this family be before its features exist
+python tools/stance.py <config> --from X Y Z    # which pose: behaviour, site, legibility, anatomy
+python tools/rubric.py "<design>"        # score against data/rubric.yaml
+python tools/refine.py <config>          # sweep parameters against the WHOLE rubric
+python tools/views.py "<design>" --zoom 10 --views side,face,top
+```
+
+**Sizing is derived, not guessed.** Every feature needs a minimum block count to read and is a fixed
+fraction of height, so `min_blocks / fraction` gives the height below which it cannot be built. A
+giraffe's leg is 5% of its height, so a 3-block leg forces 59 blocks of giraffe; a jaguar's is 13%, so
+the same leg forces 23. It is not the biggest animal that must be built big — it is the one with the
+finest features relative to its own size.
+
+**The rubric gates before it scores.** One connected piece, grounded, no functional blocks used as
+skin, every feature above its legibility floor. Then seven weighted dimensions: proportion, silhouette,
+form, features, surface, palette, symmetry. Four further questions are *printed rather than scored*,
+because a number cannot settle them.
+
+**Tune the whole rubric, never one dimension.** Sweeping smoothness alone once took a bear's surface
+score from 0.60 to 0.73 and its proportion score from 0.88 to 0.50 — smoothing rewards thickening, so
+it inflated the animal until the silhouette test called it an elephant, and the total fell.
+
+### Honest limits
+
+- The reference proportions are estimates and are not cited. One was simply wrong, and no amount of
+  geometry work fixed the bear until the numbers were corrected.
+- The legibility minimums, the comfort margin and the rubric weights are all judgement calls.
+- Block colours are sampled from the **top** face; statues are seen from the side, and biome tint is
+  not applied. Both known, both deferred.
+- Validation is circular: the renderer uses the same colour database the palette picker optimises
+  against. Nothing here has been photographed in-game.
+- Within a family the shapes are deliberately near-identical, so the distinguishing feature has to
+  carry it. For the lion's mane and the polar bear's skull, it does not yet.
+
 ## Image references — honest scope
 
 A single image gives a **silhouette and colours**, not depth. `fromimage` builds a
@@ -212,6 +286,22 @@ configs/        one YAML per design
 tests/          regenerate every design, assert the audit passes, import every module
 out/            designs (.litematic/.scan.json/.work.json are committed; the rest ignored)
 ```
+
+## Tools
+
+`mcbuild/` is the library; `tools/` is analysis that runs *on* finished models and is never imported
+by the build.
+
+| | |
+|---|---|
+| `extract_blocks.py` | build the block database from Mojang's own datagen + the client jar's textures |
+| `views.py` | shaded orthographic renders at any zoom |
+| `proportions.py` | measure a build against its family reference, adjusted for its pose |
+| `smoothness.py` | spikes / notches / cross-section jerk |
+| `scale.py` | minimum viable size; `--measure` for the real quality-vs-size curve |
+| `stance.py` | rank poses on behaviour, site, legibility and anatomy |
+| `rubric.py` | score against the quality standard |
+| `refine.py` | sweep parameters against the whole rubric |
 
 ## Generator index
 
@@ -280,3 +370,17 @@ against `profile.yaml`'s `schem_dir` if it is not found as given.
   usable alcoves; a 7x7 room has 20 non-corner wall cells, not the 21 assumed. Both
   numbers were wrong in a plan until they were counted.
 
+**Animals**
+
+* proportions belong to the FAMILY, not the species — a species tuned alone drifts, and a bear ends
+  up measuring as a jaguar
+* but family numbers alone build one animal five times; each family needs its own leg and head
+  geometry as well
+* smoothing rewards thickening, so optimising a smoothness score inflates the animal until it is the
+  wrong species — always score the whole rubric
+* anything that clings must be anchored to the BUILT surface, never a computed radius: smoothing
+  moves the surface, and manes, horns and tails all came off as floating fragments before this
+* a feature at its minimum block count exists but carries no structure — a bear at 24 blocks has a
+  head with no room for a skull shape
+* and look at the result. The rubric passed three animals at GOOD that were visibly the same animal,
+  because nothing compared the models to each other
