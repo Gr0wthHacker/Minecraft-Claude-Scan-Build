@@ -1,0 +1,55 @@
+{
+  "origin": {
+    "x": -24223,
+    "y": 100,
+    "z": 29955
+  },
+  "size": {
+    "x": 11,
+    "y": 22,
+    "z": 50
+  },
+  "generated_by": "quadruped",
+  "kind": "leopard",
+  "pose": "standing",
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 21,
+  "top_y": 121,
+  "belly_y": 110,
+  "withers_y": 115.24,
+  "rump_y": 110,
+  "chest_y": 110,
+  "back_y": 118,
+  "neck_top_y": 118.24,
+  "shoulder_at": [
+    -24218.0,
+    115.2,
+    29992.0
+  ],
+  "neck_top_at": [
+    -24218.0,
+    118.2,
+    29998.3
+  ],
+  "along": {
+    "body": [
+      -12,
+      13
+    ],
+    "head": [
+      16,
+      23
+    ]
+  },
+  "collisions": 17,
+  "file": "X leopard.litematic",
+  "name": "X leopard"
+}

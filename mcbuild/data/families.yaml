@@ -1,0 +1,177 @@
+# Animal families. A species is a small delta on its family, not a fresh set of forty numbers.
+#
+# WHY THIS SHAPE. Hand-tuning every species does not scale and, worse, it kept producing animals that
+# were individually in tolerance and still read as the wrong thing - the bear measured as a jaguar
+# because nothing forced it to sit where bears sit relative to cats. The empirical finding across
+# every audit was the same: WITHIN a family, species differ by feature and colour, not by proportion.
+# A jaguar and a leopard are the same shape. A bear and a jaguar are not.
+#
+# So proportions belong to the FAMILY, and each family states them once as fractions of total height.
+# A species then supplies a target height and whatever genuinely differs - usually a coat, a couple
+# of features, and a size. `mcbuild/gen/taxonomy.py` multiplies the family's fractions by the height
+# to get block dimensions, which means a new species is correct by construction rather than by
+# tuning, and `tools/proportions.py` has nothing left to complain about.
+#
+#   proportions   fractions of total height. The family's signature; the thing that must not vary.
+#   build         generator settings shared by the family, and RATIOS for the few dimensions the
+#                 proportion table has no entry for (head width, neck girth, hip drop).
+#   poses         how much of its life the family spends in each stance
+#   features      what every member of the family must have
+
+felid:
+  # Long, low, level-backed; short neck carrying the head level with the spine; a tail as long as
+  # the body. What makes a cat a cat before any marking is applied.
+  proportions:
+    withers height: 0.847
+    leg (ground->belly): 0.471
+    body depth: 0.376
+    body length: 1.118
+    body width: 0.353
+    neck length: 0.212
+    head length: 0.329
+    leg width: 0.129
+  build:
+    neck_from: 0.78          # the head leaves the barrel low - this is the cat signature
+    neck_lean: 0.9
+    hip_drop: 0.90           # hips as a fraction of withers depth: cats are nearly level
+    head_r_ratio: 0.40       # head half-width as a fraction of head length
+    neck_r0_ratio: 0.95      # neck girth at the shoulder, as a fraction of head half-width
+    neck_r1_ratio: 0.82
+    tail: long
+    tail_len: 0.62
+    mane: false
+    horns: none
+    hoof: 0
+    section_n: 2.1
+    relax_rounds: 4
+    relax_fill: 11
+    relax_keep: 11
+  poses: {standing: 0.55, couchant: 1.00, sitting: 0.85, prowling: 0.95, grazing: 0.10}
+  features: [eyes, ears, muzzle, long_tail]
+
+ursid:
+  # Heavy forequarters, a big head on almost no neck, a stub tail, and the plantigrade stance that
+  # lets a bear sit like a person. Shorter and deeper than a cat at the same height.
+  proportions:
+    withers height: 0.719
+    leg (ground->belly): 0.469
+    body depth: 0.344
+    body length: 0.875
+    body width: 0.344
+    neck length: 0.156
+    head length: 0.250
+    leg width: 0.138
+  build:
+    neck_from: 1.00
+    neck_lean: 0.7
+    hip_drop: 1.00
+    head_r_ratio: 0.55       # a bear's skull is broad - this is most of what separates it from a cat
+    neck_r0_ratio: 0.85
+    neck_r1_ratio: 0.78
+    tail: plain
+    tail_len: 0.15
+    mane: false
+    horns: none
+    hoof: 0
+    section_n: 2.2
+    relax_rounds: 5
+    relax_fill: 12
+    relax_keep: 11
+  poses: {standing: 0.90, sitting: 0.95, couchant: 0.70, grazing: 0.45, prowling: 0.35}
+  features: [eyes, ears, muzzle, tail]
+
+proboscid:
+  # Columnar legs, enormous mass, and the two things nothing else has: a trunk and ears bigger than
+  # its own head. Proportionally the easiest family to build - nothing about it is fine.
+  proportions:
+    withers height: 0.912
+    leg (ground->belly): 0.500
+    body depth: 0.412
+    body length: 0.882
+    body width: 0.412
+    neck length: 0.103
+    head length: 0.265
+    leg width: 0.162
+  build:
+    neck_from: 0.86
+    neck_lean: 0.7
+    hip_drop: 0.92
+    head_r_ratio: 0.52
+    neck_r0_ratio: 1.15
+    neck_r1_ratio: 1.05
+    tail: plain
+    tail_len: 0.40
+    mane: false
+    horns: none
+    hoof: 0
+    ear_size: 2.6
+    trunk: 1.6
+    crown_bias: 1.09         # ears this big stand above the skull and inflate the bounding box
+    section_n: 2.0
+    relax_rounds: 4
+    relax_fill: 11
+    relax_keep: 11
+  poses: {standing: 1.00, grazing: 0.55, couchant: 0.15, sitting: 0.02, prowling: 0.00}
+  features: [eyes, big_ears, trunk, tail]
+
+caviomorph:
+  # Big blunt-headed rodents. Barely a neck, tiny ears, no tail worth building, and a barrel that is
+  # most of the animal.
+  proportions:
+    withers height: 0.887
+    leg (ground->belly): 0.452
+    body depth: 0.435
+    body length: 1.452
+    body width: 0.484
+    neck length: 0.129
+    head length: 0.403
+    leg width: 0.129
+  build:
+    neck_from: 0.92
+    neck_lean: 0.6
+    hip_drop: 1.00
+    head_r_ratio: 0.42
+    neck_r0_ratio: 1.10
+    neck_r1_ratio: 1.00
+    tail: none
+    mane: false
+    horns: none
+    hoof: 0
+    section_n: 2.0
+    relax_rounds: 5
+    relax_fill: 10
+    relax_keep: 11
+  poses: {standing: 0.85, couchant: 1.00, sitting: 0.75, grazing: 0.70, prowling: 0.00}
+  features: [eyes, ears, blunt_muzzle]
+
+giraffid:
+  # The opposite extreme: height lives in the neck, the back falls hard from withers to hips, and the
+  # legs are slender enough that the whole animal has to be built big before they can exist at all.
+  proportions:
+    withers height: 0.582
+    leg (ground->belly): 0.345
+    body depth: 0.236
+    body length: 0.418
+    body width: 0.164
+    neck length: 0.400
+    head length: 0.118
+    leg width: 0.051
+  build:
+    neck_from: 1.00
+    neck_lean: 0.40
+    hip_drop: 0.60           # the steep withers-to-hips drop IS the giraffe
+    head_r_ratio: 0.31
+    neck_r0_ratio: 1.39
+    neck_r1_ratio: 0.80
+    tail: tassel
+    tail_len: 0.75
+    mane: true
+    horns: ossicone
+    hoof: 2
+    crown_bias: 1.05         # ossicones add height the animal does not anatomically have
+    section_n: 2.2
+    relax_rounds: 4
+    relax_fill: 11
+    relax_keep: 11
+  poses: {standing: 1.00, grazing: 0.80, couchant: 0.12, sitting: 0.02, prowling: 0.00}
+  features: [eyes, ears, ossicones, mane, tail_tassel]

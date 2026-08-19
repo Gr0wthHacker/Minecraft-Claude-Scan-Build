@@ -1,0 +1,55 @@
+{
+  "origin": {
+    "x": -24224,
+    "y": 100,
+    "z": 29950
+  },
+  "size": {
+    "x": 13,
+    "y": 27,
+    "z": 60
+  },
+  "generated_by": "quadruped",
+  "kind": "lion",
+  "pose": "standing",
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 26,
+  "top_y": 126,
+  "belly_y": 112,
+  "withers_y": 118.8,
+  "rump_y": 112,
+  "chest_y": 112,
+  "back_y": 122,
+  "neck_top_y": 122.8,
+  "shoulder_at": [
+    -24218.0,
+    118.8,
+    29994.0
+  ],
+  "neck_top_at": [
+    -24218.0,
+    122.8,
+    30001.2
+  ],
+  "along": {
+    "body": [
+      -14,
+      15
+    ],
+    "head": [
+      19,
+      28
+    ]
+  },
+  "collisions": 15,
+  "file": "X lion.litematic",
+  "name": "X lion"
+}

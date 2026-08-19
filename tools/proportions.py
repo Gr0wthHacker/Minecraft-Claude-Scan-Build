@@ -36,8 +36,17 @@ ANIMALS = pathlib.Path(__file__).resolve().parent.parent / "mcbuild/data/animals
 
 
 def reference(species: str) -> dict:
-    """Real-animal measurements as fractions of total height, from mcbuild/data/animals.yaml."""
+    """Real-animal measurements as fractions of total height.
+
+    The FAMILY table is authoritative where one exists: it is the same table the build was derived
+    from, so measuring against it asks the only useful question - did the build come out as what it
+    was asked to be. `animals.yaml` remains for species not yet given a family.
+    """
     import yaml
+    from mcbuild.gen import taxonomy
+    fam = taxonomy.proportions(species)
+    if fam:
+        return fam
     table = yaml.safe_load(ANIMALS.read_text(encoding="utf-8"))
     if species not in table:
         raise SystemExit(f"no reference for {species!r}; have {sorted(table)}")

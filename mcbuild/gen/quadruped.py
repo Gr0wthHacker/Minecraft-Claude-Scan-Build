@@ -27,7 +27,7 @@ Two traps that are not obvious and cost several rebuilds each:
 from __future__ import annotations
 
 from . import coat as coat_mod
-from . import loft, smooth
+from . import loft, smooth, taxonomy
 from .canvas import Canvas
 from .vertical import Ctx, World
 
@@ -246,9 +246,17 @@ PROFILES = {
 def build_quadruped(cfg: dict, donors=None) -> Canvas:
     p = dict(QUADRUPED)
     if cfg.get("profile"):
-        if cfg["profile"] not in PROFILES:
-            raise ValueError(f"unknown profile {cfg['profile']!r}; have {sorted(PROFILES)}")
-        p.update(PROFILES[cfg["profile"]])
+        name = cfg["profile"]
+        # Prefer the TAXONOMY: proportions come from the family table x the species height, so the
+        # build is correct by construction. `PROFILES` is the older hand-tuned form, kept only for
+        # anything not yet moved across.
+        if name in taxonomy.species():
+            p.update(taxonomy.resolve(name))
+        elif name in PROFILES:
+            p.update(PROFILES[name])
+        else:
+            raise ValueError(f"unknown profile {name!r}; have "
+                             f"{sorted(set(taxonomy.species()) | set(PROFILES))}")
     p.update(cfg)                                        # explicit params always win
     for k in ("feet", "look_at"):
         if p.get(k) is None:

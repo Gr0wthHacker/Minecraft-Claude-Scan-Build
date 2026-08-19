@@ -1,0 +1,55 @@
+{
+  "origin": {
+    "x": -24224,
+    "y": 100,
+    "z": 29949
+  },
+  "size": {
+    "x": 13,
+    "y": 28,
+    "z": 62
+  },
+  "generated_by": "quadruped",
+  "kind": "jaguar",
+  "pose": "standing",
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 27,
+  "top_y": 127,
+  "belly_y": 113,
+  "withers_y": 119.8,
+  "rump_y": 113,
+  "chest_y": 113,
+  "back_y": 123,
+  "neck_top_y": 123.8,
+  "shoulder_at": [
+    -24218.0,
+    119.8,
+    29995.0
+  ],
+  "neck_top_at": [
+    -24218.0,
+    123.8,
+    30002.2
+  ],
+  "along": {
+    "body": [
+      -15,
+      15
+    ],
+    "head": [
+      20,
+      29
+    ]
+  },
+  "collisions": 12,
+  "file": "X jaguar.litematic",
+  "name": "X jaguar"
+}

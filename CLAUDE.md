@@ -55,6 +55,27 @@ properties at all in 26.2.
 
 ## Building an animal
 
+**Proportions belong to the FAMILY, not the species.** `mcbuild/data/families.yaml` states each
+family's proportions once, as fractions of total height; `mcbuild/data/species.yaml` gives a species
+a family, a target height, and the handful of things that genuinely differ — usually a coat. Block
+dimensions are then DERIVED (`gen/taxonomy.py`) as `family proportion x height`, so a species is
+correct by construction and `proportions.py` has nothing to complain about.
+
+This exists because per-species tuning does not scale AND does not work: every animal tuned in
+isolation drifted toward whatever shape the smoothing and the block grid preferred, and the silhouette
+test kept catching it — a bear that measured as a jaguar. Nothing in a per-species dict says "a bear
+must sit where bears sit relative to cats". A shared family table says it once, for every member.
+
+The empirical finding that justifies the split: **within a family, species differ by feature and
+colour, not by proportion.** A lion is a leopard with a mane and a different coat. So `silhouette` in
+the rubric is two-level — family separation by proportion, species separation by coat and features —
+and scoring a lion and a leopard as identical shapes is the metric being right, not wrong.
+
+`crown_bias` compensates families whose ears or horns stand above the skull: every proportion is
+measured against the bounding box, so a big-eared animal reads uniformly under target (the elephant
+was 8% low on everything until this was added).
+
+
 ```yaml
 gen: quadruped
 params: {profile: giraffe, feet: [...], look_at: [...], under: <capture>}

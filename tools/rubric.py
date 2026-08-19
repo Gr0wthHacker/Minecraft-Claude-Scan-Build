@@ -145,31 +145,61 @@ def _proportion(s, solid, meta, species, pose):
 
 
 def _silhouette(s, solid, meta, species, pose):
-    """Closer to its OWN species than to any other we can build? That is what unmistakable means."""
-    table = yaml.safe_load(pr.ANIMALS.read_text(encoding="utf-8"))
+    """Two levels, because identity works at two levels.
+
+    FAMILY: is the shape unmistakably a cat rather than a bear? This is a proportion question and the
+    family table answers it - every member of a family shares it, which is what stops a bear drifting
+    into cat numbers when it is tuned on its own.
+
+    SPECIES: within a family, proportion says NOTHING - a lion, a leopard and a jaguar are the same
+    animal in shape, and the first version of this test duly scored them 0.50 for being identical to
+    each other. That was the metric asking the wrong question. Inside a family, species are separated
+    by COAT and FEATURES, so that is what gets measured here.
+    """
+    from mcbuild.gen import taxonomy
     got = pr.measure(solid, meta, solid.shape[0])
-    dists = {}
-    for sp in table:
-        try:
-            ref = pr.posed(pr.reference(sp), pose)
-        except Exception:
-            continue
-        keys = [k for k in ref if k in got and ref[k]]
-        if not keys:
-            continue
-        dists[sp] = sum(abs(got[k] - ref[k]) / ref[k] for k in keys) / len(keys)
-    if species not in dists:
-        return 0.5, "no reference"
-    mine = dists[species]
-    others = sorted((d, sp) for sp, d in dists.items() if sp != species)
+    mine_fam = taxonomy.family_of(species)
+    fams = taxonomy.families()
+    if not mine_fam or mine_fam not in fams:
+        return 0.5, "no family"
+
+    def dist(table):
+        keys = [k for k in table if k in got and table[k]]
+        return sum(abs(got[k] - table[k]) / table[k] for k in keys) / max(1, len(keys))
+
+    d_self = dist(fams[mine_fam]["proportions"])
+    others = sorted((dist(f["proportions"]), n) for n, f in fams.items() if n != mine_fam)
     if not others:
-        return 1.0, "only species in the library"
-    best_other, who = others[0]
-    # 1.0 when it is far closer to itself; 0 when another species fits better
-    margin = (best_other - mine) / max(1e-6, best_other + mine)
-    score = max(0.0, min(1.0, 0.5 + margin))
-    verdict = "unmistakable" if mine < best_other else f"READS AS {who.upper()}"
-    return score, f"self {mine:.2f} vs nearest other {who} {best_other:.2f} - {verdict}"
+        return 1.0, "only family"
+    d_other, who = others[0]
+    margin = (d_other - d_self) / max(1e-6, d_other + d_self)
+    fam_score = max(0.0, min(1.0, 0.5 + margin))
+
+    # within the family: how distinct is this species' dressing from its siblings'
+    sibs = [n for n, v in taxonomy.species().items()
+            if v.get("family") == mine_fam and n != species]
+    me = taxonomy.species().get(species) or {}
+    if sibs:
+        def dressing(d):
+            # coat values include lists (a shading ramp), so flatten before making a set
+            out = set()
+            for v in (d.get("coat") or {}).values():
+                out |= set(v) if isinstance(v, list) else {str(v)}
+            return out | set(d.get("features") or [])
+        mine_coat = dressing(me)
+        best = 0.0
+        for n in sibs:
+            o = taxonomy.species()[n]
+            oc = dressing(o)
+            shared = len(mine_coat & oc) / max(1, len(mine_coat | oc))
+            best = max(best, shared)
+        sp_score = 1.0 - best
+        detail = (f"family {mine_fam} {d_self:.2f} vs nearest {who} {d_other:.2f}; "
+                  f"within family {sp_score:.0%} distinct from {len(sibs)} sibling(s)")
+    else:
+        sp_score, detail = 1.0, f"family {mine_fam} {d_self:.2f} vs nearest {who} {d_other:.2f}; only member"
+    verdict = "" if d_self < d_other else f"  READS AS {who.upper()}"
+    return 0.65 * fam_score + 0.35 * sp_score, detail + verdict
 
 
 def _form(s, solid, names):
@@ -192,7 +222,8 @@ def _form(s, solid, names):
 
 
 def _features(spec, species, names, meta, solid):
-    want = (spec.get("features") or {}).get(species) or []
+    from mcbuild.gen import taxonomy
+    want = taxonomy.required_features(species) or (spec.get("features") or {}).get(species) or []
     if not want:
         return 0.6, "no feature list for this species"
     present = set()

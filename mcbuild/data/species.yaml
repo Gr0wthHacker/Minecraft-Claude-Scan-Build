@@ -1,0 +1,144 @@
+# A species, in the six things that actually distinguish it. Everything about its SHAPE comes from
+# `families.yaml` x `height`, so nothing here needs tuning and nothing here can drift out of family.
+#
+#   family    the proportion table it inherits
+#   height    total height in blocks. `python tools/scale.py <family>` gives the floor below which
+#             the family's finest feature cannot be built at all.
+#   build     the few generator settings that genuinely differ from the family
+#   coat      palette and pattern - within a family this is most of what separates one species
+#             from another, which is the whole reason the split is drawn here
+#   features  anything beyond the family's own list
+#
+# Note how little each says. A lion and a leopard are the same animal in this system apart from a
+# mane and a coat, which is very nearly true of the real ones.
+
+# ---------------------------------------------------------------- felids
+jaguar:
+  family: felid
+  height: 27
+  build: {body_r: 3.6, ring_radius: 0.60, ring_thickness: 0.34, ring_broken: 0.34}
+  coat:
+    coat_pattern: rosettes
+    patch_scale: 4.6
+    coat_block: stripped_oak_wood        # golden tan
+    patch: black_wool                    # near-black rings; brown-on-brown reads as noise
+    patch_alt: stripped_jungle_log
+    belly_block: bone_block
+    belly_frac: 0.20
+    muzzle: bone_block
+    dark: black_wool
+    hoof_block: dark_oak_wood
+  features: [rosettes, pale_belly]
+
+leopard:
+  family: felid
+  height: 22                             # lighter and smaller than a jaguar; same animal otherwise
+  build: {body_r: 3.0, ring_radius: 0.52, ring_thickness: 0.30, ring_broken: 0.40}
+  coat:
+    coat_pattern: rosettes
+    patch_scale: 3.6                     # smaller, denser rosettes than a jaguar's
+    coat_block: stripped_oak_log
+    patch: black_wool
+    patch_alt: stripped_jungle_log
+    belly_block: bone_block
+    belly_frac: 0.22
+    muzzle: bone_block
+    dark: black_wool
+    hoof_block: dark_oak_wood
+  features: [rosettes, pale_belly]
+
+lion:
+  family: felid
+  height: 26
+  build: {body_r: 3.8, mane: true}       # the mane is the only structural difference in the family
+  coat:
+    coat_pattern: shaded
+    coat_ramp: [spruce_planks, coarse_dirt, dirt, oak_log, stripped_oak_log]
+    shade_strength: 1.1
+    coat_block: oak_log
+    patch: oak_log
+    patch_alt: stripped_oak_log
+    muzzle: bone_block
+    dark: black_wool
+    hoof_block: dark_oak_wood
+  features: [mane]
+
+# ---------------------------------------------------------------- ursids
+bear:
+  family: ursid
+  height: 24
+  build: {}
+  coat:
+    coat_pattern: shaded
+    coat_ramp: [dark_oak_planks, stripped_dark_oak_wood, mangrove_wood, spruce_planks, coarse_dirt]
+    shade_strength: 1.1
+    coat_block: mangrove_wood
+    patch: mangrove_wood
+    patch_alt: stripped_dark_oak_wood
+    muzzle: oak_log
+    dark: black_wool
+    hoof_block: black_wool
+
+polar_bear:
+  family: ursid
+  height: 26                             # the largest bear; otherwise identical in shape
+  build: {}
+  coat:
+    coat_pattern: shaded
+    coat_ramp: [stripped_oak_log, bone_block, birch_wood, white_wool, snow_block]
+    shade_strength: 1.2                  # a white animal lives or dies on its shading
+    coat_block: bone_block
+    patch: bone_block
+    patch_alt: birch_wood
+    muzzle: black_wool
+    dark: black_wool
+    hoof_block: black_wool
+
+# ---------------------------------------------------------------- others
+elephant:
+  family: proboscid
+  height: 34
+  build: {}
+  coat:
+    coat_pattern: shaded
+    coat_ramp: [deepslate, tuff, stone, andesite, smooth_stone]
+    shade_strength: 1.15
+    coat_block: stone
+    patch: stone
+    patch_alt: andesite
+    muzzle: tuff
+    dark: black_wool
+    hoof_block: andesite
+
+capybara:
+  family: caviomorph
+  height: 25                             # `tools/scale.py` puts the caviomorph floor at 23, bound by
+                                         # neck length; at 21 the neck fell below three blocks and the
+                                         # rubric's legibility gate refused it outright
+  build: {}
+  coat:
+    coat_pattern: shaded
+    coat_ramp: [spruce_planks, coarse_dirt, dirt, jungle_log, stripped_jungle_log]
+    shade_strength: 1.1
+    coat_block: jungle_log
+    patch: jungle_log
+    patch_alt: stripped_jungle_log
+    muzzle: stripped_jungle_log
+    dark: black_wool
+    hoof_block: black_wool
+
+giraffe:
+  family: giraffid
+  height: 57
+  build: {}
+  coat:
+    coat_pattern: voronoi
+    patch_scale: 5.5
+    grout: 0.85
+    coat_block: bone_block               # sandstone does not exist on this skyblock
+    patch: acacia_planks
+    patch_alt: stripped_acacia_log
+    muzzle: white_wool
+    dark: black_wool
+    hoof_block: dark_oak_wood
+  features: [patches]

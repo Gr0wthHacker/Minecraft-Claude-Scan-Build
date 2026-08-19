@@ -1,0 +1,55 @@
+{
+  "origin": {
+    "x": -24224,
+    "y": 100,
+    "z": 29969
+  },
+  "size": {
+    "x": 13,
+    "y": 26,
+    "z": 32
+  },
+  "generated_by": "quadruped",
+  "kind": "polar_bear",
+  "pose": "standing",
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 25,
+  "top_y": 125,
+  "belly_y": 112,
+  "withers_y": 120.0,
+  "rump_y": 112,
+  "chest_y": 112,
+  "back_y": 121,
+  "neck_top_y": 122.0,
+  "shoulder_at": [
+    -24218.0,
+    120.0,
+    29991.0
+  ],
+  "neck_top_at": [
+    -24218.0,
+    122.0,
+    29995.2
+  ],
+  "along": {
+    "body": [
+      -11,
+      12
+    ],
+    "head": [
+      13,
+      19
+    ]
+  },
+  "collisions": 11,
+  "file": "X polar_bear.litematic",
+  "name": "X polar_bear"
+}
