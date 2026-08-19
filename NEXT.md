@@ -1,43 +1,68 @@
 # Paste this into a new chat
 
 Continuing work on `C:\Users\Jack\mctest` — the Minecraft island toolkit. **Read `CLAUDE.md` first**;
-the ANIMALS section and its "Known-wrong" list are current and detailed. `README.md` is the public doc.
+the ANIMALS section and its "Known-wrong" list are current. `README.md` is the public doc.
 
-Last session built the animal system: five families (`data/families.yaml`), eight species
-(`data/species.yaml`), per-family leg/head geometry (`gen/anatomy.py`), a quality rubric
-(`data/rubric.yaml` + `tools/rubric.py`), and sizing/stance/refine tools. 28 tests green.
+Last session fixed the two animal regressions, made within-family distinction measure the models
+rather than the config text, and took the animal subsystem from 0 tests to 97. All eight species now
+score GOOD; 125 tests green.
+
+| | family | height | score |
+|---|---|---|---|
+| elephant | proboscid | 34 | 0.87 |
+| capybara | caviomorph | 25 | 0.85 |
+| giraffe | giraffid | 57 | 0.84 |
+| bear | ursid | 30 | 0.83 |
+| jaguar | felid | 27 | 0.82 |
+| lion | felid | 32 | 0.81 |
+| leopard | felid | 26 | 0.80 |
+| polar_bear | ursid | 32 | 0.79 |
 
 ## Priorities, roughly in order
 
-1. **Fix the two regressions.** `jaguar` (0.73) and `polar_bear` (0.71) are tuned for the geometry
-   that existed before `anatomy.py`. Run `python tools/refine.py /tmp/<sp>.yaml --species <sp>` and
-   apply. Should be quick.
+1. **The bears are boxes.** This is the biggest gap between what the numbers say and what the eye
+   sees. Both ursids build as a rectangular slab on four posts — flat top, flat bottom, square
+   corners — and `form` scores the brown bear 0.81 because it measures TONE (range, and whether
+   luminance follows sky exposure) and nothing measures ROUNDNESS. Render them and you will see it
+   at once. Either `form` grows a curvature term or the ursid loft does; probably both.
 
-2. **Make within-family distinction actually work.** This is the real open problem. Built silhouettes:
-   lion vs jaguar **0.024**, bear vs polar bear **0.016** — the shapes are identical by design, so the
-   mane and the skull are supposed to carry the difference and neither does. The lion's mane is 304
-   cells and still blends into the shoulder instead of having an edge.
+2. **Place something.** Still the open problem, and now measured rather than remembered:
+   - the plate has **no window of even 9x21 entirely at plate level** (Y199–205). Its largest pad
+     at relief ≤2 is **5x35**. Nothing fits, including the smallest animal.
+   - the void isle's largest pad at relief ≤2 is **11x23**, and the giraffe and jaguar already hold
+     the isle's usable ground.
+   - `out/island_lower.litematic` has 8 ground columns — it is void.
 
-3. **Test the tools.** Zero coverage on all seven (`rubric`, `scale`, `stance`, `refine`,
-   `proportions`, `smoothness`, `views`) and on `taxonomy`, `coat`, `loft`, `quadruped`.
-   `proportions.measure` and `rubric.score` are shared by three tools each and nothing asserts them.
+   Ground-contact pads each animal needs (lowest 4 courses, either orientation):
+   giraffe 9x21 · leopard 9x25 · jaguar 9x27 · capybara 11x33 · lion 13x35 · elephant 15x31 ·
+   bear 13x36 · polar_bear 15x39.
 
-4. **Place something.** Nothing built this session exists in the world, and the validation is circular
-   (the renderer uses the same colour DB the palette picker optimises against). The void isle is full;
-   the plate's largest flat pad is 13x13; an elephant's contact footprint is 15x29. Needs a decision
-   from Jack: level a pad, extend the void isle, or build below the plate.
+   **Jack was mid-way through a `lowland` generator** (`configs/lowland.yaml`, `mcbuild/gen/lowland.py`,
+   `out/island_lower.*`) when the last session ended — that looks like his answer to this. Ask before
+   doing anything else here.
 
-5. **Deferred by Jack, pick up when he says:** the colour DB samples the TOP face (statues are seen
+3. **`refine` and `smoothness` are the last two animal tools with no test**, and `quadruped` is
+   covered only through the primitives and one end-to-end build.
+
+4. **Deferred by Jack, pick up when he says:** the colour DB samples the TOP face (statues are seen
    from the side — `bone_block`, the giraffe's whole coat, is off by 68) and biome tint is missing
    (20 blocks, including every leaf, extract as grey).
 
 ## Things that will bite a fresh session
 
-- **Suspect the reference tables before the code.** The ursid proportions were simply wrong (a bear
-  with a cat's leg clearance) and no amount of geometry work fixed the bear until the numbers were.
-- **Never optimise one dimension** — use `tools/refine.py`, which scores the whole rubric. Sweeping
-  smoothness alone inflated a bear until the silhouette test called it an elephant.
-- **Always render and look.** The rubric passed three animals at GOOD that were visibly the same
-  animal. `python tools/views.py "<design>" --zoom 10 --views side,face,top`.
-- `mcbuild gen` writes to `out/`; `--ship` also copies to the schematics folder. Tools resolve a bare
-  name to whichever is newer, so a missing `--ship` used to serve stale files.
+- **Suspect the reference tables before the code.** Twice now. The ursid proportions were simply
+  wrong; and the brown bear's shoulder hump — its real field mark — cannot be built because the
+  tables state `withers height` WITHOUT one, so building it drops proportion from 6/8 to 4/8.
+- **Never put an absolute block count in a species `build`.** It overrides the derived value and
+  the error grows with height. All three felids carried one; `tests/test_taxonomy.py` now forbids it.
+- **Never optimise one dimension, or one species.** `refine.py` scores the whole rubric. And a
+  family setting must be checked against every member: `relax_fill: 12` gained polar_bear 0.006 and
+  cost bear 0.064.
+- **Always render and look.** `python tools/views.py "<design>" --zoom 10 --views side,face`. The
+  lion's mane was 306 cells, scored `features` 1.00, and was invisible.
+- **`tools/compare.py` is the model-against-model check** — shape gap and coat gap per family pair,
+  printed apart on purpose. A species carried entirely by paint shows up there and nowhere else.
+- **Jack works in the repo in parallel.** Commit only your own files; `git add -A` will sweep up his
+  in-flight work. Check `git status` before staging.
+- **Line endings:** most files are CRLF, a few (`species.yaml`, `refine.py`) are LF. Writing a file
+  with Python's text mode flips them and produces a whole-file diff. Match what is stored.
