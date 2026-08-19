@@ -126,9 +126,25 @@ def _gates(spec, s, solid, names, species, pose, meta):
     except ImportError:
         MIN_BLOCKS = {}
     got = pr.measure(solid, meta, H)
-    under = [k for k, need in MIN_BLOCKS.items() if k in got and got[k] * H < need - 0.5]
+    # THE FLOOR FOLLOWS THE POSE. A sitting animal's belly is ON THE GROUND - that is what sitting
+    # is - so measuring its leg clearance against a standing floor of 4 blocks failed the gate on
+    # every sitting or couchant build ever made, including the one pose the ursid family likes best.
+    # Every other measure here is pose-adjusted; this one was not. The floor is scaled by exactly
+    # the ratio `proportions.posed` applies to the same measure, so the two cannot drift, and it
+    # never scales below 1 - a feature still has to exist.
+    try:
+        std = pr.reference(species)
+        adj = pr.posed(std, pose)
+    except Exception:
+        std, adj = {}, {}
+    floors = {}
+    for k, need in MIN_BLOCKS.items():
+        r = (adj.get(k, 0) / std[k]) if std.get(k) else 1.0
+        floors[k] = max(1.0, need * min(1.0, r))
+    under = [k for k, need in floors.items() if k in got and got[k] * H < need - 0.5]
     out.append(("features_above_floor", not under,
-                ", ".join(f"{k} {got[k]*H:.0f}<{MIN_BLOCKS[k]}" for k in under) or "all above their floor"))
+                ", ".join(f"{k} {got[k]*H:.0f}<{floors[k]:.0f}" for k in under)
+                or f"all above their floor (posed {pose})"))
     return out
 
 

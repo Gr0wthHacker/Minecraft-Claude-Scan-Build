@@ -211,6 +211,38 @@ compared the models to EACH OTHER. Numbers did not catch it; one glance did.
   (`bee_nest` is the closest golden tan in the game and carries a face texture and bee states).
   Sandstone does not exist on this skyblock.
 
+## The lowland scene (2026-08-19)
+
+Three animals on the lowland floor, in `configs/lowland_{jaguar,capybara_alert,bear}.yaml`, verified
+against `out/lowland_planned.litematic` (the lowland composited onto `island_lower` with
+`tools/plan_merge.py`, because the ground they stand on is a DESIGN and not yet built).
+
+**Why these species.** The lowland is Minecraft's lush-caves palette — moss, azalea, fern, dripstone,
+71 lanterns, no daylight — which is a cave-mouth jungle floor. Jaguar and capybara is the real
+predator/prey pair of the Pantanal, jaguars den in caves, and bears den in caves by definition. The
+lion, polar bear and giraffe were rejected on habitat; the giraffe also does not physically fit
+(57 tall against 46 blocks of headroom under the void isle, whose lowest block over the main pad is
+Y86). The **elephant was rejected on measurement**: it is built from `deepslate`/`tuff`/`stone`,
+which is the lowland's own rock palette — min ΔRGB **0** to the ground it would stand on.
+
+**The site is smaller than it looks, and that governed everything.**
+- Of 5,851 ground columns, **154 are open to the sky** (2.6%) — the outline IS the island's shadow.
+  Nobody sees this from above; it is a walk-in underworld, so faces and poses matter and the
+  top-down silhouette does not.
+- The models are enormous next to it: a couchant jaguar is 15x60, a standing capybara is 14x50
+  because its head projects 31 blocks past its feet. **The lowland holds three animals of this
+  size**, measured by greedy fill — a fourth has nowhere to go. The three-capybara group and the
+  bear-beside-a-tree in the original sketch both had to go.
+- `stance.py` overrode two pose choices, and the whole gap was SITE: prowling scored 0.69 against
+  couchant's 0.83 because a prowling cat's contact footprint is 13x63 and the ground under it rolls
+  8 blocks. Sitting cost the bear the same way. There is **one** flat patch big enough for a sitting
+  bear and the stalk needs it.
+
+**Known compromise:** couchant scores better on site and WORSE on the rubric (jaguar 0.74 → 0.68,
+bear 0.77 → 0.68), because `proportion` — the heaviest dimension — fits a couchant build poorly.
+The two tools genuinely disagree here and the site was allowed to win. Revisit if the lowland ever
+gets a levelled pad.
+
 ## Known-wrong, for whoever picks this up
 
 - **The reference proportions are estimates, uncited.** One was simply wrong: the ursid table gave a
@@ -273,7 +305,7 @@ compared the models to EACH OTHER. Numbers did not catch it; one glance did.
 ## Build & test
 
 ```bash
-python -m pytest -q                                   # 149 tests, keep green
+python -m pytest -q                                   # 151 tests, keep green
 cd chunkscan && ./gradlew build test -q                # writes build/libs/chunkscan-<ver>.jar
 python chunkscan/verify_synthetic.py                   # Java writer vs Python reader, block for block
 ```

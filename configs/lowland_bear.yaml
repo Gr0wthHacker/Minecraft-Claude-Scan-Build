@@ -1,0 +1,30 @@
+# THE DEN: the second encounter, and a deliberately different beat.
+#
+# A bear sitting beside a tree, 26 blocks clear of the stalk and 7 from the trunk. Where the stalk is
+# tension between four animals, this is one still figure - you come round to it separately.
+#
+# WHY A BEAR HERE. It is the most literal fit of any species we build: bears den in caves. `sitting`
+# is the ursid family's highest natural weight (0.95) and it is the pose plantigrade legs exist for -
+# a bear can sit like a person and a cat cannot. It is also the darkest coat we have against this
+# ground (-37 luminance), so it reads as a mass in lantern light where the capybara nearly vanish.
+name: Lowland Bear
+gen: quadruped
+params:
+  profile: bear
+  # SITTING is the ursid family's favourite pose (0.95) and the one plantigrade legs exist for, and
+  # it is NOT what this ground can carry: `stance.py` scores sitting 0.70 here against couchant 0.77,
+  # and the gap is entirely site - 3.0 blocks of relief under the sitting footprint against 1.4
+  # under the couchant one. The flat patch that would take a sitting bear is the same patch the
+  # stalk needs; there is exactly one on this lowland and it cannot be spent twice.
+  pose: couchant
+  under: out/lowland_planned.litematic
+  feet: [-24181, 39, 30016]
+  look_at: [-24240, 39, 30016]     # west, back toward the stalk; facing snaps to -x
+origin_lock: false
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine, short_grass, fern, moss_carpet, poppy, dandelion, azalea, flowering_azalea]
+  verify_against: out/lowland_planned.litematic

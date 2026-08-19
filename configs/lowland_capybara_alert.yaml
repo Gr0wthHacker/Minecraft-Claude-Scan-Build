@@ -1,0 +1,27 @@
+# THE STALK, part two: the quarry, and it has seen the cat.
+#
+# Standing, squared up toward the jaguar's z, with the head swung a further 2 blocks WEST toward its
+# x. `look_at` snaps to a cardinal, so aiming a body diagonally is done in two moves: the facing gets
+# the animal within 90 degrees and `head_turn` covers the rest. That is the whole interaction
+# vocabulary this generator has - aim, posture, spacing - and it is enough.
+#
+# With a single capybara the story is tighter than the oblivious/alert pair first planned: the
+# prey is looking straight back down the line of the stalk. Nothing is going to happen, and both
+# animals know it.
+name: Lowland Capybara
+gen: quadruped
+params:
+  profile: capybara
+  pose: standing             # caviomorph natural weight 0.85 - up on its feet, not feeding
+  under: out/lowland_planned.litematic
+  feet: [-24203, 40, 29976]
+  look_at: [-24203, 40, 30014]     # toward the jaguar's z; facing snaps to +z
+  head_turn: 2               # ...and the head swings west, toward the jaguar's x
+origin_lock: false
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine, short_grass, fern, moss_carpet, poppy, dandelion, azalea, flowering_azalea]
+  verify_against: out/lowland_planned.litematic

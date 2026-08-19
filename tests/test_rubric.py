@@ -198,3 +198,31 @@ def test_reference_and_posed_agree_on_keys():
 def test_posed_standing_is_the_identity():
     ref = pr.reference("jaguar")
     assert pr.posed(ref, "standing") == ref
+
+
+# ---------------------------------------------------------------- the pose-aware feature floor
+
+def test_the_feature_floor_follows_the_pose():
+    """A sitting animal's belly is ON THE GROUND - that is what sitting is. Measuring its leg
+    clearance against a STANDING floor of 4 blocks failed the gate on every sitting or couchant
+    build, including the pose the ursid family likes best. Every other measure in the rubric is
+    pose-adjusted; this one was not."""
+    import scale
+    std = pr.reference("bear")
+    sit = pr.posed(std, "sitting")
+    assert sit["leg (ground->belly)"] < std["leg (ground->belly)"], "sitting must shorten the leg"
+    ratio = sit["leg (ground->belly)"] / std["leg (ground->belly)"]
+    assert ratio < 0.6, "if sitting barely shortens the leg this test proves nothing"
+    # the floor the gate applies must fall by the same ratio, and never below 1
+    floor = max(1.0, scale.MIN_BLOCKS["leg (ground->belly)"] * min(1.0, ratio))
+    assert floor < scale.MIN_BLOCKS["leg (ground->belly)"]
+    assert floor >= 1.0
+
+
+def test_a_standing_animal_keeps_the_full_floor():
+    """The relaxation must not quietly let a badly-built STANDING animal through."""
+    import scale
+    std = pr.reference("bear")
+    same = pr.posed(std, "standing")
+    r = same["leg (ground->belly)"] / std["leg (ground->belly)"]
+    assert min(1.0, r) == pytest.approx(1.0, abs=0.02), "standing must not scale the floor down"

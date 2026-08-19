@@ -1,0 +1,66 @@
+{
+  "origin": {
+    "x": -24206,
+    "y": 37,
+    "z": 30007
+  },
+  "size": {
+    "x": 45,
+    "y": 22,
+    "z": 19
+  },
+  "generated_by": "quadruped",
+  "kind": "bear",
+  "pose": "couchant",
+  "feet": [
+    -24181,
+    39,
+    30016
+  ],
+  "facing": [
+    -1,
+    0
+  ],
+  "height": 19,
+  "top_y": 58,
+  "features_built": {
+    "crown": 18,
+    "face": 9,
+    "tail": 10,
+    "eyes": 4
+  },
+  "anat_top_y": 58,
+  "asymmetry": {
+    "leg_phase": 0,
+    "head_turn": 1
+  },
+  "belly_y": 41,
+  "withers_y": 52.94,
+  "rump_y": 41,
+  "chest_y": 42,
+  "back_y": 54,
+  "neck_top_y": 53.94,
+  "shoulder_at": [
+    -24197.0,
+    52.9,
+    30016.0
+  ],
+  "neck_top_at": [
+    -24200.5,
+    53.9,
+    30015.0
+  ],
+  "along": {
+    "body": [
+      -18,
+      19
+    ],
+    "head": [
+      19,
+      27
+    ]
+  },
+  "collisions": 63,
+  "file": "Lowland Bear.litematic",
+  "name": "Lowland Bear"
+}
