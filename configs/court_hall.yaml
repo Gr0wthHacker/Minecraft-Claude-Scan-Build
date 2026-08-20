@@ -61,6 +61,11 @@ params:
   balustrade: true
   balustrade_block: deepslate_brick_wall
   pool_box: [-24232, 30025, -24224, 30027]   # 9x3, inset one cell inside the sunken bay's frame
+  floor_box: [-24233, 30007, -24223, 30022]   # the north bay: 176 cells of blank stone brick, the
+  floor_y: 195                                # one surface in this room with no order on it at all
+  floor_band: deepslate_bricks                # bands DERIVED from the piers that were really built,
+  floor_light: lantern                        # so the floor cannot drift out of register with the
+  floor_light_every: 2                        # walls; one light set flush in every other band
   kerb_box: [-24233, 30024, -24223, 30028]   # Jack's own addition after the hall went up: a slab
   kerb_block: smooth_stone_slab              # lip inside the bay frame, so the deepslate reads as an
                                              # edge you look over rather than a wall you walk into
@@ -89,6 +94,9 @@ finish:
     - stone
     - cobblestone
     - stone_bricks
+    - cracked_stone_bricks
+    - mossy_stone_bricks
+    - smooth_stone
     - azalea
     - flowering_azalea
   verify_against: out/island_now.litematic

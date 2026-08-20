@@ -1256,11 +1256,15 @@ z30022..30030, Y195-199. Measured first - **158 of 160 cells free**, 0 protected
 
 **72 blocks, 22 dig cells, one component, 0 problems, overlap 0, all cheap.**
 
-Jack picked the side and asked for it to be audited. **His instinct was right for a reason he did
-not give**: a surface walk from the island centre reaches 3,717 plate cells and the **owl lobe is
-not one of them** - the only crossing, the z30020-30022 land bridge, steps Y203 -> 207 -> 208 -> 212.
-A stair started over there is a stair you cannot walk to. The mainland's west edge is the only
-approach that connects to anything.
+Jack picked the side and asked for it to be audited. His instinct was right; the reason I first gave
+for it was **wrong, and the error is worth keeping**. I claimed a surface walk from the island centre
+could not reach the owl lobe at all. Re-measured with a proper walk - every standable surface in a
+column, not just the topmost; slabs and stairs as half-steps; climb 1.25 - the owl lobe IS reachable,
+altar included. The first model took ONE node per column over Y199-206 and stepped at most 1, so it
+could not see a route that changes level or uses a slab, and it reported a 4-5 block scramble as no
+route. **A reachability number means nothing without the movement model stated beside it** - the same
+site read 1,268 cells in 49 components on a fixed course, 36 steps allowing 4-block falls, and 248 on
+a true walk. What actually justifies the stair is the DISTANCE, which was measured properly.
 
 **Measured with a TRUE walk** - step down at most 1, climb at most 1.25, so no falling and every
 route reversible:

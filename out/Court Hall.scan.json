@@ -32,6 +32,8 @@
   "pool_wall": 1,
   "pool_guard": 5,
   "kerb": 0,
+  "floor_band": 52,
+  "floor_lights": 3,
   "file": "Court Hall.litematic",
   "name": "Court Hall"
 }

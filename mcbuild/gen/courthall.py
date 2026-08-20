@@ -79,6 +79,12 @@ COURTHALL = {
     "pool_box": None,               # [x1, z1, x2, z2] water footprint; None to skip the pool
     "pool_surface_y": 194,          # water course; its top face is the sunken bay's walking level
     "pool_floor_block": "deepslate_bricks",
+    # --- the floor ------------------------------------------------------------------------------
+    "floor_box": None,              # [x1,z1,x2,z2] the bay to figure; None to leave the floor alone
+    "floor_y": 195,
+    "floor_band": "deepslate_bricks",
+    "floor_light": None,            # set into the band on the room's centre line; None for none
+    "floor_light_every": 2,         # every Nth band carries one
     "kerb_box": None,               # [x1,z1,x2,z2] perimeter laid at plinth_y as a slab lip
     "kerb_block": "smooth_stone_slab",
     "guard_light": "lantern",       # light 15. soul_lantern is 10 and freezes one block out
@@ -118,6 +124,8 @@ def build_courthall(cfg: dict, donors=None) -> Canvas:
 
     counts = {"piers": 0, "panes": 0, "cornice": 0, "solid": 0, "balustrade": 0,
               "glazed_runs": 0, "solid_runs": 0, "internal_runs": 0}
+    piers = set()
+    counts["_piers_at"] = piers
     for cells, axis in runs:
         kind = _kind(ctx, cells, axis, p)
         counts[kind + "_runs"] += 1
@@ -128,7 +136,9 @@ def build_courthall(cfg: dict, donors=None) -> Canvas:
 
     pool = _pool(ctx, w, p, seed) if p.get("pool_box") else {}
     pool["kerb"] = _kerb(ctx, w, p)
+    pool["floor_band"], pool["floor_lights"] = _floor(ctx, w, p, piers)
 
+    counts.pop("_piers_at", None)
     meta = {"kind": "courthall", "box": [x1, z1, x2, z2], "plinth": len(plinth),
             "runs": len(runs), **counts, **pool}
     return w.canvas(meta)
@@ -220,12 +230,18 @@ def _order(ctx, w: World, cells, axis, py, p, seed, blocked, glazed: bool, count
     cells = sorted(cells, key=lambda c: c[1] if axis == "z" else c[0])
     exempt = bool(p.get("clear_exempt_plinth", True))
     for i, (x, z) in enumerate(cells):
+        is_pier = (i % bay == 0) or i == len(cells) - 1
+        # Record the RHYTHM before anything can skip this cell. A pier that is already standing has
+        # no headroom left, so it is never emitted - and recording the position only when it IS
+        # emitted loses the whole order the moment the walls get built, which is exactly when the
+        # floor wants to line up with them. The bay rhythm is geometry, not remaining work.
+        if is_pier:
+            counts.setdefault("_piers_at", set()).add((x, z))
         if (x, z) in blocked and not exempt:
             continue
         head = _headroom(ctx, w, x, py, z, hmax)
         if head < int(p["min_height"]):
             continue
-        is_pier = (i % bay == 0) or i == len(cells) - 1
         if is_pier:
             for k in range(head):
                 _put(ctx, w, x, py + 1 + k, z, _weathered(p["pier"], x, py + 1 + k, z, float(p["weather"]), seed))
@@ -319,6 +335,72 @@ def _balustrade(ctx, w: World, cells, py, p, blocked) -> int:
                 south="none", east="none", west="none", waterlogged="false"):
             n += 1
     return n
+
+
+def _floor(ctx, w: World, p, piers):
+    """Bands across the floor, in register with the piers that were actually built.
+
+    The hall had an order on its walls and nothing underfoot: 176 cells of blank stone brick, which
+    is the deck-floor lesson pointed one surface down - a figure cannot read when the ground is the
+    same tone and equally busy. The bands are DERIVED from the pier positions rather than laid on a
+    fresh modulus, so the floor cannot drift out of register with the walls; a band on its own grid
+    would agree with the bays at one end of the room and fight them at the other.
+
+    A band runs the full width. `gallery._MIN_RUN` and `border_ring: 0` are the same finding twice
+    already: a third of a line is a dashed scribble, so a band that cannot cross is not drawn."""
+    if not p.get("floor_box"):
+        return 0, 0
+    x1, z1, x2, z2 = (int(v) for v in p["floor_box"])
+    x1, x2 = min(x1, x2), max(x1, x2)
+    z1, z2 = min(z1, z2), max(z1, z2)
+    fy = int(p["floor_y"])
+    # The two side runs index their own pier rhythm from their own first cell, so their pier sets
+    # are out of phase with each other and the floor inherits the UNION - which came out as bands at
+    # z30009/12/15/18/19/21: a clean 3-rhythm with a doubled line in it. Two bands one cell apart
+    # read as a mistake, not a rhythm. Thin to one spacing, keeping the earliest of any cluster.
+    bay_n = max(int(p["bay"]), 1)
+    band_z = []
+    for z in sorted({z for (x, z) in piers if z1 <= z <= z2}):
+        if not band_z or z - band_z[-1] >= bay_n:
+            band_z.append(z)
+    laid = lit = 0
+    mid = (x1 + x2) // 2
+    for i, z in enumerate(band_z):
+        row = [(x, z) for x in range(x1, x2 + 1)]
+        free = [c for c in row if _floorable(ctx, w, c[0], fy, c[1])]
+        if len(free) < len(row) * 0.6:
+            continue                                   # cannot cross: do not draw a dashed line
+        for (x, zz) in free:
+            want = p["floor_band"]
+            if (p.get("floor_light") and x == mid
+                    and i % max(int(p["floor_light_every"]), 1) == 0):
+                want = p["floor_light"]
+                lit += 1
+                # A lantern set flush in the floor is not a full cube, and this floor is a one-block
+                # skin over void, so it needs its own footing - the same "standing on air" the pool
+                # guards had. In context the belly carries it; in isolation the design must.
+                # ...and it must carry that footing itself even when the world already has one.
+                # The belly skin under this floor is real, so the IN-CONTEXT audit is happy either
+                # way - but the design is audited in isolation too, and a design that only stands up
+                # inside its own capture is one that fails the moment anybody checks it alone.
+                if not w.has(x, fy - 1, zz) and not protect.is_protected(ctx.name_at(x, fy - 1, zz)):
+                    w.put(x, fy - 1, zz, p["floor_band"])
+            w.put(x, fy, zz, want)
+            laid += 1
+    return laid, lit
+
+
+def _floorable(ctx, w: World, x, y, z) -> bool:
+    """A floor cell may be REPAVED - unlike everything else here, which only fills air - but never
+    where something is standing on it and never a mechanism."""
+    if w.has(x, y, z):
+        return False
+    nme = ctx.name_at(x, y, z)
+    if nme in PASSABLE or protect.is_protected(nme):
+        return False                                   # air is not floor; a mechanism is not ours
+    if any(k in ctx.name_at(x, y + 1, z) for k in FIXTURES):
+        return False                                   # a chest stands here
+    return True
 
 
 def _kerb(ctx, w: World, p) -> int:

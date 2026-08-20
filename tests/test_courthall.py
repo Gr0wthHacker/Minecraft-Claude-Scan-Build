@@ -153,3 +153,35 @@ def test_every_guard_lantern_is_waterlogged_and_has_footing():
         assert p["waterlogged"] == "true", "guard lantern at %s is not waterlogged" % (g,)
         assert (g[0], g[1] - 1, g[2]) in cells, "guard lantern at %s stands on air" % (g,)
         assert cells.get((g[0], g[1] + 1, g[2])) == "water", "guard is not under the water"
+
+
+def test_the_floor_bands_are_one_rhythm_not_a_union_of_two():
+    """The two side runs index their pier rhythm from their own first cell, so their pier sets are
+    out of phase and the floor inherits the UNION - which shipped once as z30009/12/15/18/19/21, a
+    clean 3-rhythm with a doubled line in it. Two bands one cell apart read as a mistake."""
+    c = _build(floor_box=[X1 + 1, Z1 + 1, X2 - 1, Z2 - 1], floor_y=PY, floor_light=None)
+    cells = _cells(c)
+    zs = sorted({z for (x, y, z) in cells if y == PY})
+    assert zs, "no floor bands laid"
+    gaps = [b - a for a, b in zip(zs, zs[1:])]
+    assert all(g >= 3 for g in gaps), "bands closer than the bay: %s" % zs
+
+
+def test_the_bay_rhythm_survives_the_walls_being_built():
+    """A pier that is already standing has no headroom and is never emitted. Recording the rhythm
+    only where a pier IS emitted loses the whole order the moment the walls go up - which is exactly
+    when the floor needs to line up with them."""
+    class Built(FakeCourt):
+        def name_at(self, x, y, z):
+            if PY < y <= PY + 4 and (x in (X1, X2) or z in (Z1, Z2)):
+                return "deepslate_bricks"          # the order is already standing
+            return FakeCourt.name_at(self, x, y, z)
+    saved = courthall.Ctx
+    courthall.Ctx = lambda _u: Built()
+    try:
+        c = build_courthall({**BASE, "under": "x", "floor_box": [X1 + 1, Z1 + 1, X2 - 1, Z2 - 1],
+                             "floor_y": PY, "floor_light": None})
+    finally:
+        courthall.Ctx = saved
+    zs = {z for (x, y, z) in _cells(c) if y == PY}
+    assert len(zs) >= 3, "floor lost its rhythm once the walls were up: %s" % sorted(zs)

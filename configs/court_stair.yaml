@@ -15,10 +15,12 @@
 # back west along the deck. Allowing 4-block falls it drops to 36 - by jumping down the tree trunk
 # (204 -> 200 -> 196) and taking the damage. Neither is a way into a courtyard.
 #
-# WHY THIS EDGE, and not the owl side. A surface walk from the island centre reaches 3,717 plate
-# cells and the owl lobe is NOT one of them - the only crossing, the z30020-30022 land bridge,
-# steps Y203 -> 207 -> 208 -> 212. A stair started over there is a stair you cannot walk to. The
-# mainland's west edge is the only approach that connects to anything.
+# WHY THIS EDGE, and not the owl side. CORRECTED 2026-08-20: an earlier note here claimed the owl
+# lobe was unreachable on foot. It is not - re-measured with every standable surface in a column and
+# slabs counted as half-steps, the owl lobe and its altar are both reachable. The first measurement
+# took one node per column over Y199-206 with a 1-block step and called a scramble "no route".
+# The edge is still right, on DISTANCE: from the island centre the court was 248 steps away and
+# 108 to get back out, against 46 and 10 now.
 #
 # WHY z30013-30019. Of the rim's two lobes this is the one with a usable edge: six consecutive rows
 # at Y201 against the south lobe's three irregular ones (Y200/195/195) boxed in by void at z30029.
