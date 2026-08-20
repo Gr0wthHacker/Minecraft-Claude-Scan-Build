@@ -184,16 +184,25 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
                     else:
                         w.put(x, fy + sill, z, p["sill_cap"], type="top", waterlogged="false")
                         counts["sill"] += 1
-                if p.get("arch") and cuttable(x, fy + sill + oh + 1, z):
+                # The head is a LINTEL WITHIN the bank, never a block added on top of it. Placed
+                # wherever the course was free, it landed above three-high banks with air over it
+                # - a dark block perched on the moss edge, read from outside as another stray.
+                headed = False
+                if p.get("arch") and name(x, fy + sill + oh + 1, z) not in AIR                         and cuttable(x, fy + sill + oh + 1, z):
                     w.put(x, fy + sill + oh + 1, z, p["jamb"])
                     counts["arch"] += 1
+                    headed = True
+                elif p.get("arch"):
+                    counts["arch_skipped_no_bank"] += 1
                 # the vine hangs from the ARCH above it, not off the wall - the wall is what
                 # this bay just removed, so a side-attached vine has nothing left to cling to
                 # ...and the greenery comes BACK into the reveal, at a much higher rate where the
                 # bank was planted, so the opening is framed by what it was cut out of rather than
                 # replacing it. The first build took out 64 vine and 19 moss and gave back 16.
+                # the vine hangs from the HEAD, so there has to be one. Where the bank was too
+                # low to take a lintel there is nothing above the opening to hold it.
                 rate = float(p["vine_rate"]) * (2.0 if green else 1.0)
-                if p.get("arch") and hash01(x, z, 3, seed) < rate:
+                if headed and hash01(x, z, 3, seed) < rate:
                     if cuttable(x, fy + sill + oh, z):
                         w.put(x, fy + sill + oh, z, p["vine"], up="true", north="false",
                               south="false", east="false", west="false")
@@ -201,32 +210,22 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
             else:
                 piers.append((x, z, d))
 
-    # ---- 2. TIMBER. The piers become wood and a beam ties their heads together. This is the move
-    # that puts the deck's 7% wood anywhere near the outside's 23%.
+    # ---- 2. TIMBER: REMOVED, and the reason matters more than the blocks.
+    #
+    # The piers were dark oak driven through the MIDDLE courses of a bank, which leaves the bank's
+    # own material above and below them - so every one came out as a wood block sandwiched in
+    # stone or in moss, and one sat in mid-air outside the wall with three open sides. From
+    # outside the island they read as exactly what they were: random pieces of wood.
+    #
+    # A pier has to run the FULL height of what it stands in, or it is a filling rather than a
+    # post. And these banks are three to five cells long: there is no room for a colonnade, so a
+    # single pier between two openings is just a stray block. The timber was only ever here to
+    # move a palette number (wood 7% against the plate's 23%), which is the wrong reason to put a
+    # block anywhere. Wood belongs where there is structure to make of it.
+    #
+    # What is left is the honest part: cut the opening, moss the sill, rehang the vine.
     for n, (x, z, d) in enumerate(piers):
-        ok = False
-        pier_green = planted(x, z)
-        for k in range(sill + 1, sill + 1 + oh):
-            if cuttable(x, fy + k, z):
-                # a timber post driven through a mossy bank replaces the bank; keep the moss on
-                # the outer course and put the post behind it
-                w.put(x, fy + k, z, p["moss"] if (pier_green and k == sill + 1) else p["timber"],
-                      **({} if (pier_green and k == sill + 1) else {"axis": "y"}))
-                ok = True
-        if ok:
-            counts["pier"] += 1
-        if cuttable(x, fy + sill + oh + 1, z):
-            w.put(x, fy + sill + oh + 1, z, p["beam"], axis="x" if d[1] else "z")
-            counts["beam"] += 1
-        if ok and n % max(1, int(p["lamp_every"])) == 0:
-            # a lantern hangs from the block ABOVE it, and inboard of the pier there is only room
-            # - so the beam is carried one cell in to make a BRACKET, and the lamp hangs off that.
-            ix, iz = x - d[0], z - d[1]                 # inboard of the pier, over the floor
-            if _air(ctx, ix, fy + sill + oh, iz) and _air(ctx, ix, fy + sill + oh + 1, iz):
-                w.put(ix, fy + sill + oh + 1, iz, p["beam"], axis="x" if d[0] else "z")
-                w.put(ix, fy + sill + oh, iz, p["lamp"], hanging="true", waterlogged="false")
-                counts["lamp"] += 1
-                counts["bracket"] += 1
+        counts["pier_left_alone"] += 1
 
     # ---- 4. THE BASIN. Fully rimmed and floored: this deck hangs in the air and a leak drains
     # into the undercroft, which is the one mistake here that would be a nuisance to undo.

@@ -18,13 +18,11 @@
   "rejected_unwalled": 122,
   "opened": 36,
   "sill": 11,
-  "arch": 18,
-  "vine": 10,
+  "arch_skipped_no_bank": 8,
   "sill_green": 7,
-  "pier": 6,
-  "beam": 6,
-  "lamp": 1,
-  "bracket": 1,
+  "arch": 10,
+  "vine": 7,
+  "pier_left_alone": 6,
   "file": "Deck Gallery.litematic",
   "name": "Deck Gallery"
 }
