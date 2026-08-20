@@ -158,7 +158,12 @@ public final class ChunkScanClient implements ClientModInitializer {
 						return 1; })
 					.then(literal("on").executes(ctx -> {
 						Autopilot.set(true);
-						ok(ctx.getSource(), "autofly ON — needs /fly. Press any movement key to take over.");
+						// Report the ACTUAL state, not the switch. "ON" alone sent Jack looking for a
+						// bug in the flying when the real answer was that nothing had told it where.
+						String why = Autopilot.stalledBecause(net.minecraft.client.Minecraft.getInstance());
+						ok(ctx.getSource(), "autofly ON — needs /fly, and a destination from goto or "
+							+ "follow. Any movement key takes over."
+							+ (why == null ? "" : "  Waiting: " + why + "."));
 						return 1; }))
 					.then(literal("off").executes(ctx -> {
 						Autopilot.set(false);

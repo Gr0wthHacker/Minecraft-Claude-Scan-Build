@@ -53,8 +53,16 @@ final class Nav {
 	 * flying somewhere is worth nothing at all against finding it in a tenth of the nodes.
 	 */
 	static final double GREED = 1.4;
-	/** Beyond this the answer is "fly closer first". */
-	static final int MAX_RANGE = 160;
+	/**
+	 * Beyond this the search is refused OUTRIGHT — no nodes expanded, empty list returned.
+	 *
+	 * <p>Raised from 160 after measuring the routes this island actually asks for: deck to lowland
+	 * floor is 152 blocks, which cleared the old cap by eight. Anything past it fails INSTANTLY and
+	 * silently, and the caller falls through to flying straight at the terrain — indistinguishable
+	 * from the router being broken. The gate is free; the node budget is what costs, and that is
+	 * bounded separately.
+	 */
+	static final int MAX_RANGE = 256;
 
 	private Nav() {}
 

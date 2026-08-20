@@ -1894,6 +1894,51 @@ approaching any waypoint.
 highlight; `/cscan fetch` with no argument cancels just the fetch and skips that chest. An
 automation you cannot stop in one word is one you have to fight.
 
+### `autofly on` did nothing, and it was RIGHT to (2026-08-20)
+
+Jack turned it on and nothing happened. Nothing was broken. **`autofly` is a MODIFIER, not an
+action** — it reads its destination from `Hud.target()`, which only exists once `follow` or `goto`
+has set one. On its own it armed, printed `autofly ON`, and sat there.
+
+That is the same failure shape as everything else on this page: *a thing that does nothing, quietly*.
+`tick()` had **three** silent early returns — no target, a screen open, and not actually in flight
+mode (`/fly` permission is not the same as being airborne; you must still double-tap jump). Each one
+returned without a word, and the one warning that did exist was a once-per-session flag that stayed
+tripped after it had fired.
+
+- `Autopilot.stalledBecause()` names the reason, and it is printed **by the command when you type
+  it**, and shown live in the HUD as `[autofly idle: …]`.
+- `set()` resets every one-shot warning, or a session that has already said its piece is silent
+  forever after.
+
+**A switch that reports success and then does nothing is worse than one that fails.** Report the
+STATE, not the switch.
+
+### The node budget: what it costs, and why it is not the lever (2026-08-20)
+
+Asked whether `MAX_NODES` could just be 100,000. It could, and it would buy nothing.
+
+**Where the cost is.** Expanding one node tests 26 neighbours, each needing up to 4 `free.at()`
+calls (the cell plus three orthogonal corner-cut checks), each of those 1–3 world lookups. Call it
+~300 lookups per node at the ceiling. So 40,000 nodes is up to ~12M lookups; 100,000 is ~30M, on
+the client thread.
+
+**But that ceiling is only ever reached on FAILURE.** With the weighted heuristic (`GREED` 1.4) a
+route that exists is found in hundreds to low thousands of nodes — the budget is never touched.
+Raising it only buys *searching harder before admitting there is no route*, and `NO_ROUTE_BACKOFF`
+already bounds how often that happens (once per 3 s). 100,000 would turn each genuinely-impossible
+route into a visible hitch and change nothing else. **Left at 40,000.**
+
+**`MAX_RANGE` was the real one, and it was measured.** Beyond it `route()` refuses outright — no
+nodes expanded, empty list, caller falls through to flying straight at the terrain, indistinguishable
+from a broken router. It was **160**. The deck-to-lowland hop is **152**. Eight blocks of margin on
+a route the loop actually asks for, and any design placed lower fails instantly and silently. Now
+**256**; the gate is free, and the budget bounds the cost separately.
+
+**The general rule: when a search "does not work", check what refuses it before the thing that
+throttles it.** A cap that returns empty is invisible; a budget that runs out at least burns CPU
+first.
+
 ## Build & test
 
 ```bash

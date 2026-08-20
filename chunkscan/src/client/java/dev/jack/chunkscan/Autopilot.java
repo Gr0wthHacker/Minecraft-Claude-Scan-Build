@@ -35,6 +35,7 @@ final class Autopilot {
 	private static boolean on = false;
 	private static boolean warnedNoFly = false;
 	private static boolean warnedNoRoute = false;
+	private static boolean idleSaid = false;
 	private static boolean announcedArrival = false;
 	/** Ticks to wait before re-attempting a route that failed. See noRouteBackoff. */
 	static final int NO_ROUTE_BACKOFF = 60;
@@ -74,7 +75,23 @@ final class Autopilot {
 		if (mc != null && mc.player != null) mc.player.setDeltaMovement(Vec3.ZERO);
 	}
 
+	/** Why autofly is not moving right now, or null if it is (or is off). */
+	static String stalledBecause(Minecraft mc) {
+		if (!on) return null;
+		if (mc.player == null) return null;
+		if (Screens.anyOpen()) return "a screen is open";
+		if (Hud.target() == null) return "no destination — use goto or follow";
+		if (!mc.player.getAbilities().flying) return "you are not flying — /fly, then double-tap jump";
+		return null;
+	}
+
 	static void set(boolean v) {
+		// Every warning below is a once-per-arming shot. Without this reset, turning autofly off and
+		// on again after it has already complained gets you silence instead of the reason.
+		warnedNoFly = false;
+		warnedNoRoute = false;
+		idleSaid = false;
+		announcedArrival = false;
 		on = v;
 		warnedNoFly = false;
 		warnedNoRoute = false;
@@ -94,6 +111,15 @@ final class Autopilot {
 	 * <p>The one property that makes this safe to leave switched on: you never have to fight it, or
 	 * find the command to turn it off while it flies you into a wall. Touch a key and it is yours.
 	 */
+	/** Armed, but nothing has given us a destination. Explain, once. */
+	private static void idle(Minecraft mc) {
+		if (idleSaid || mc.player == null) return;
+		idleSaid = true;
+		mc.player.sendSystemMessage(Component.literal(
+			"[cscan] autofly is ON but has nowhere to go — it flies to whatever `follow` or `goto` "
+			+ "is pointing at. Try /cscan goto <x> <y> <z>, or /cscan follow <design>."));
+	}
+
 	private static boolean playerIsDriving(Minecraft mc) {
 		var o = mc.options;
 		return o.keyUp.isDown() || o.keyDown.isDown() || o.keyLeft.isDown() || o.keyRight.isDown()
@@ -107,7 +133,14 @@ final class Autopilot {
 		if (Screens.anyOpen()) return;               // a menu is open; do not fly under it
 
 		BlockPos target = Hud.target();
-		if (target == null) return;
+		if (target == null) {
+			// ARMED WITH NOWHERE TO GO. autofly is a MODIFIER, not an action: the destination comes
+			// from `follow` or `goto`. Turned on by itself it used to report ON and then sit there
+			// in silence, which is indistinguishable from broken. Say it once.
+			idle(mc);
+			return;
+		}
+		idleSaid = false;
 
 		if (playerIsDriving(mc)) {
 			stop(mc, "you took over — autofly off");

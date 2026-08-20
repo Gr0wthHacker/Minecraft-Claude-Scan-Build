@@ -76,8 +76,10 @@ final class Hud {
 					? "   (" + (spotsLeft - 1) + " more spot" + (spotsLeft == 2 ? "" : "s") + ")" : "");
 				// Say whether it is FOLLOWING A ROUTE or flying at a bearing: those behave very
 				// differently around a wall and you want to know which one you are watching.
+				String why = Autopilot.stalledBecause(mc);
 				String nav = Autopilot.on()
-					? (Autopilot.waypoints() > 0 ? "  [route " + Autopilot.waypoints() + "]" : "  [direct]")
+					? (why != null ? "  [autofly idle: " + why + "]"
+						: Autopilot.waypoints() > 0 ? "  [route " + Autopilot.waypoints() + "]" : "  [direct]")
 					: "";
 				extractor.text(mc.font, arrow + "  " + d + "m" + climb(me, target) + nav + "  " + tail,
 					4, y, colour);
