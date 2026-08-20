@@ -667,7 +667,7 @@ break, so it is stated here rather than discovered.
 
 ## The deck floor (2026-08-19)
 
-`configs/deck_floor.yaml`, `mcbuild/gen/deckfloor.py`. 701 blocks, 0 new problems in context.
+`configs/deck_floor.yaml`, `mcbuild/gen/deckfloor.py`. 427 blocks, 84 of which replace something; 0 new problems in context.
 
 **The entrance audit is what produced this.** The taproot stair head walks correctly — deck 195.0 →
 four treads → undercroft 191.0 → 7 standing cells at the shaft lip — but it does not READ, and no
@@ -689,22 +689,41 @@ courses clear; **120 chests** still stand on it; lighting is **37 torches to 10 
 
 Three things this cost, each of which produced a plausible wrong answer:
 
-- **The deck is the biggest connected BLOB of the course, not the course.** Taking every cell sweeps
-  in 97×93 of island underside — belly scraps, rim shelves — and the edge course alone came to 819
-  cells with **59 free-floating clusters** drawn round islands two cells wide. Deriving the blob
-  (2,145 → 1,725) keeps it a deck design with no hand-written box.
+- **The deck is the biggest connected BLOB of the course, not the course.** Taking every cell
+  sweeps in 97×93 of island underside — belly scraps, rim shelves — and the edge course alone came
+  to 819 cells with **59 free-floating clusters** drawn round islands two cells wide. Deriving the
+  blob (2,145 → 1,725) keeps it a deck design with no hand-written box.
 - **A rectangle will not wall the moss farm.** It is a WORKING farm — 29 ice, 12 water, glow lichen —
   and it sits on an irregular lobe: the box one cell out is **58% air**, two cells out **70%**. A
   rectangular room floats over holes and cuts the water. The wall follows the farm's own dilated
-  edge and lays only where there is floor under it — which comes to **41 cells**, because most of
-  the farm's boundary is against open air at the deck's edge, and you cannot walk in from a drop.
+  edge and lays only where there is floor under it — **41 cells**, because most of the farm's
+  boundary is against open air at the deck's edge, and you cannot walk in from a drop.
 - **`plan_merge` fills empty cells only.** Comparing before and after through it showed a 30-cell
   change, *all of them `air -> something`* — that is the tell. A design whose job is to REPLACE is
-  invisible to it. Composite with overwrite to see a repaving design; the real change is 492 cells.
+  invisible to it. Composite with overwrite to see a repaving design.
 
-`deepslate_bricks` again for the edge and the zone bands, for the same reason as the void tower and
-the stair head: cracked, chiseled and smooth stone are all within 4 RGB of plain, so they carry
-texture but no tone. It is the only strong value contrast this economy offers at cheap-or-ok tier.
+### The border was wrong twice, and there is now no border
+
+Jack placed the first build and said the floor was "all messed up". It was, for two reasons that
+only a real placement exposes:
+
+- **"Every floor cell with a missing neighbour" is NOT the deck's outline.** This deck has **25
+  interior holes**, so 269 of the 529 rim cells were HOLE edges and the border came out as dark
+  rings round **94 separate interior gaps** — scribbles across the whole floor. The outline is the
+  boundary against the flooded OUTSIDE, which is 260 cells, not 529.
+- **The deck's edge is planted, and the border was eating it.** 111 vine cells sit on the floor
+  course and 107 of them are on the rim; 92 of the 260 outer cells are vine and 64 more are moss.
+  The first build turned them into solid dark blocks — stripping the hem's planting and filling a
+  see-through edge with stone. **`vine` is in `KEEP` now**, never resolved and never bordered.
+
+With both fixed, a hard edge course lands on **82 of 260** outer cells — the rest are planted or
+carry fixtures. A third of a line is a dashed scribble, so `border_ring: 0` and the deck has no
+border at all. What survives is what was always doing the work: **252 scatter cells resolved, 64
+cells of zone band, and the moss room** — 427 blocks, and only **84 of them replace anything**,
+against 701 and 492 in the first build.
+
+**The lesson worth keeping: a remedial design's damage is measured in what it REPLACES, not in what
+it places.** 492 replacements read as vandalism; 84 read as a repair.
 
 **Still open on the deck:** the 120 chests (the Store Hall's 68 slots are built and waiting), the
 37 torches, and the 44% walkable figure — all of which want the chest move done first.

@@ -58,26 +58,32 @@ DECKFLOOR = {
     "room_h": 3,                       # courses of wall above the floor
     "room_glass_at": 2,                # which course is glazed, so you can see the farm working
     "lamp_every": 7,
-    "border_ring": 1,                  # cells of rim taken by the edge course
+    "border_ring": 0,                  # cells of rim taken by the edge course; 0 = no border
     "zones": [],                       # world [x1,z1,x2,z2] boxes to outline in the floor
     "seed": 0,
 }
 
 # scatter: what this design is allowed to replace with field
-SCATTER = ("vine", "stone", "cobblestone", "mossy_cobblestone", "andesite", "gravel",
+SCATTER = ("stone", "cobblestone", "mossy_cobblestone", "andesite", "gravel",
            "moss_block", "azalea_leaves", "flowering_azalea_leaves", "grass_block",
            "moss_carpet", "dirt", "coarse_dirt", "rooted_dirt", "podzol")
 # ...and what the field itself already is, so the rim course may overwrite it
 FIELD_OK = ("stone_bricks", "cracked_stone_bricks", "mossy_stone_bricks", "chiseled_stone_bricks",
             "smooth_stone", "air") + SCATTER
 # never touched, at any height: the farm's machinery and anyone's fixtures
-KEEP = ("water", "ice", "lava", "glow_lichen", "chest", "barrel", "hopper", "furnace", "smoker",
+# vine is KEPT, not resolved. 111 of them sit on the floor course and 107 are on the rim -
+# they are the deck edge's planting hanging DOWN, not mess on the floor, and turning them
+# into solid dark blocks both strips the greenery and fills a see-through edge.
+KEEP = ("vine", "water", "ice", "lava", "glow_lichen", "chest", "barrel", "hopper", "furnace", "smoker",
         "blast_furnace", "dispenser", "dropper", "piston", "sticky_piston", "observer",
         "spawner", "beehive", "bee_nest", "rail", "powered_rail", "detector_rail", "lectern",
         "note_block", "composter", "cauldron", "crafting_table", "anvil", "loom", "stonecutter",
         "smithing_table", "cartography_table", "fletching_table", "grindstone", "brewing_stand",
         "enchanting_table", "jukebox", "bed", "sign", "banner", "torch", "lantern", "campfire",
         "bamboo", "sugar_cane", "wheat", "carrots", "potatoes", "sapling", "farmland")
+# the border may only be laid where the edge is already hard masonry or bare rock
+EDGEABLE = ("stone_bricks", "cracked_stone_bricks", "mossy_stone_bricks", "chiseled_stone_bricks",
+            "smooth_stone", "stone", "cobblestone", "mossy_cobblestone", "andesite")
 GREEN = ("moss_block", "azalea_leaves", "flowering_azalea_leaves", "grass_block", "moss_carpet")
 NB4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 
@@ -158,18 +164,42 @@ def build_deckfloor(cfg: dict, donors=None) -> Canvas:
         counts["resolved"] += 1
 
     # ---- 3. DRAW THE EDGE. Every floor column with a missing neighbour.
+    # THE OUTER BOUNDARY ONLY, found by flooding the outside. Taking every floor cell with a
+    # missing neighbour is NOT the deck's outline: this deck has 25 interior holes, so 269 of the
+    # 529 rim cells were hole edges and the border came out as dark rings round 94 separate
+    # interior gaps - scribbles all over the floor. That is what "all messed up" was.
     ring = int(p["border_ring"])
-    rim = {c for c in floor
-           if any((c[0] + dx, c[1] + dz) not in floor for dx, dz in NB4)}
+    # ...and it is OFF by default on this deck, because the edge cannot take it. Of 260 outer
+    # cells, 92 are vine and 64 moss - the hem's planting - and another 139 carry fixtures, so a
+    # hard line lands on 82 of them. A third of a line is a dashed scribble, which reads worse
+    # than no line at all. `border_ring: 0` says so out loud rather than shipping the dashes.
+    xs = [c[0] for c in floor]
+    zs = [c[1] for c in floor]
+    X0, X1, Z0, Z1 = min(xs) - 1, max(xs) + 1, min(zs) - 1, max(zs) + 1
+    outside, st = set(), [(X0, Z0)]
+    while st:
+        q = st.pop()
+        if q in outside or q in floor or not (X0 <= q[0] <= X1 and Z0 <= q[1] <= Z1):
+            continue
+        outside.add(q)
+        for dx, dz in NB4:
+            st.append((q[0] + dx, q[1] + dz))
+    rim = ({c for c in floor if any((c[0] + dx, c[1] + dz) in outside for dx, dz in NB4)}
+           if ring > 0 else set())
     for _ in range(ring - 1):
         rim |= {(c[0] + dx, c[1] + dz) for c in rim for dx, dz in NB4
                 if (c[0] + dx, c[1] + dz) in floor}
+    counts["outer_rim"] = len(rim)
     for (x, z) in sorted(rim):
-        if (x, z) in farm or keep(x, fy + 1, z):
+        if (x, z) in farm or keep(x, fy + 1, z) or keep(x, fy, z):
             counts["skipped_occupied"] += 1
             continue
-        if name(x, fy, z) not in FIELD_OK:
-            counts["skipped_foreign"] += 1
+        n = name(x, fy, z)
+        # ...and only where the edge is already HARD. 92 of this deck's 260 outer cells are vine
+        # and 64 are moss: a dark line laid through those stripes out the planting that softens
+        # the deck's edge, which is a deliberate part of the hem, not scatter.
+        if n not in EDGEABLE:
+            counts["skipped_planted"] += 1
             continue
         w.put(x, fy, z, p["border"])
         counts["border"] += 1

@@ -5,7 +5,7 @@
     "z": 29949
   },
   "size": {
-    "x": 75,
+    "x": 74,
     "y": 49,
     "z": 100
   },
@@ -22,12 +22,11 @@
   ],
   "wall_line": 41,
   "farm_cells": 269,
-  "resolved": 367,
-  "skipped_occupied": 105,
-  "border": 396,
-  "skipped_foreign": 38,
-  "room_skipped": 7,
-  "room_wall": 34,
+  "resolved": 252,
+  "skipped_occupied": 14,
+  "outer_rim": 0,
+  "room_skipped": 12,
+  "room_wall": 29,
   "room_lamps": 5,
   "band": 64,
   "file": "Deck Floor.litematic",
