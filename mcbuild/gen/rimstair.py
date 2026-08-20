@@ -111,9 +111,14 @@ def build_rimstair(cfg: dict, donors=None) -> Canvas:
         if ctx is not None and not _passable(ctx, x, ty, z):
             dig.append((x, ty, z, ctx.name_at(x, ty, z)))
         dig.extend(_dig_column(ctx, x, z, ty + 1, int(p["headroom"])))
-        # --- the air lane: a stringer down to whatever is really there ---------------------------
-        x, z = xz(a, air_l)
-        _stringer(ctx, w, x, z, ty - 1, floor_y, p, seed)
+        # --- a stringer under BOTH lanes ---------------------------------------------------------
+        # The cut lane is only "cut" when there is rock to cut. Sited one column out - which is what
+        # Jack actually built, leaving the rim uncut - both lanes hang in air and both need carrying.
+        # `_stringer` stops at the first solid thing it meets, so on a genuine cut lane it finds the
+        # rock immediately and does nothing: one call covers both cases.
+        for lane in (cut_l, air_l):
+            x, z = xz(a, lane)
+            _stringer(ctx, w, x, z, ty - 1, floor_y, p, seed)
         # --- railing on the open side ------------------------------------------------------------
         if p.get("rail_side") and p.get("rail"):
             x, z = xz(a, air_l + out_dir)

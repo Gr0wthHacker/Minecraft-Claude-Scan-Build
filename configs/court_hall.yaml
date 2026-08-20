@@ -61,6 +61,9 @@ params:
   balustrade: true
   balustrade_block: deepslate_brick_wall
   pool_box: [-24232, 30025, -24224, 30027]   # 9x3, inset one cell inside the sunken bay's frame
+  kerb_box: [-24233, 30024, -24223, 30028]   # Jack's own addition after the hall went up: a slab
+  kerb_block: smooth_stone_slab              # lip inside the bay frame, so the deepslate reads as an
+                                             # edge you look over rather than a wall you walk into
   pool_surface_y: 194
   pool_floor_block: deepslate_bricks
   guard_light: lantern

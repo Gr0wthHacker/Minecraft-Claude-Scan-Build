@@ -79,6 +79,8 @@ COURTHALL = {
     "pool_box": None,               # [x1, z1, x2, z2] water footprint; None to skip the pool
     "pool_surface_y": 194,          # water course; its top face is the sunken bay's walking level
     "pool_floor_block": "deepslate_bricks",
+    "kerb_box": None,               # [x1,z1,x2,z2] perimeter laid at plinth_y as a slab lip
+    "kerb_block": "smooth_stone_slab",
     "guard_light": "lantern",       # light 15. soul_lantern is 10 and freezes one block out
     "guard_every": 4,
     "mood_light": "soul_lantern",
@@ -125,6 +127,7 @@ def build_courthall(cfg: dict, donors=None) -> Canvas:
             _order(ctx, w, cells, axis, py, p, seed, blocked, glazed=(kind == "glazed"), counts=counts)
 
     pool = _pool(ctx, w, p, seed) if p.get("pool_box") else {}
+    pool["kerb"] = _kerb(ctx, w, p)
 
     meta = {"kind": "courthall", "box": [x1, z1, x2, z2], "plinth": len(plinth),
             "runs": len(runs), **counts, **pool}
@@ -315,6 +318,29 @@ def _balustrade(ctx, w: World, cells, py, p, blocked) -> int:
         if _put(ctx, w, x, py + 1, z, p["balustrade_block"], up="true", north="none",
                 south="none", east="none", west="none", waterlogged="false"):
             n += 1
+    return n
+
+
+def _kerb(ctx, w: World, p) -> int:
+    """A slab lip on the plinth course, just inside the bay's frame.
+
+    Jack added this by hand after the hall went up and it is the right detail - a half-height ring
+    round the basin, so the deepslate frame reads as an edge you look over rather than a wall you
+    walk into. It lives in the config now so a regeneration records it rather than merely failing to
+    disturb it: designs here are remaining-work, and remaining-work forgets anything it never knew."""
+    if not p.get("kerb_box"):
+        return 0
+    x1, z1, x2, z2 = (int(v) for v in p["kerb_box"])
+    x1, x2 = min(x1, x2), max(x1, x2)
+    z1, z2 = min(z1, z2), max(z1, z2)
+    y = int(p["plinth_y"])
+    n = 0
+    for x in range(x1, x2 + 1):
+        for z in range(z1, z2 + 1):
+            if not (x in (x1, x2) or z in (z1, z2)):
+                continue
+            if _put(ctx, w, x, y, z, p["kerb_block"], type="top", waterlogged="false"):
+                n += 1
     return n
 
 

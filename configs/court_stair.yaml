@@ -36,8 +36,16 @@ gen: rimstair
 params:
   under: out/island_now.litematic
   axis: z
-  cut_lane: -24221          # the plate's last solid rock column: the lane that is dug
-  air_lane: -24222          # open air under the vines: the lane that is built
+  cut_lane: -24222          # REBASED 2026-08-20 onto what Jack actually built. The flight was
+  air_lane: -24223          # designed on x-24221/-24222 with the rim rock cut for the inner lane;
+                            # he moved it one column west instead and left x-24221 standing, so both
+                            # lanes hang in air and the dig list is empty. That is the better call -
+                            # no damage to the island's edge - and it accounts for all 33 cells that
+                            # read as deviations: my stringer at x-24222 against the hall's deepslate
+                            # there, my rail at x-24223 against his treads, and my treads at x-24221
+                            # against uncut moss. The geometry was already right: the treads he laid
+                            # are stone_brick_stairs facing=south half=bottom, z30019/Y202 down to
+                            # z30013/Y196, which is exactly what this config specifies.
   top: 30019                # head, beside the land bridge
   bottom: 30013             # foot, on the court floor
   y_top: 202                # tread Y at the head; one course a row. NOT 201: the rim ledge at

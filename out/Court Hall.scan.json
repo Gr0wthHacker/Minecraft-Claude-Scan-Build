@@ -5,9 +5,9 @@
     "z": 29949
   },
   "size": {
-    "x": 31,
+    "x": 30,
     "y": 52,
-    "z": 81
+    "z": 80
   },
   "generated_by": "courthall",
   "kind": "courthall",
@@ -19,18 +19,19 @@
   ],
   "plinth": 81,
   "runs": 6,
-  "piers": 18,
-  "panes": 61,
-  "cornice": 29,
+  "piers": 4,
+  "panes": 0,
+  "cornice": 4,
   "solid": 0,
-  "balustrade": 10,
+  "balustrade": 0,
   "glazed_runs": 2,
   "solid_runs": 3,
   "internal_runs": 1,
-  "pool_water": 27,
-  "pool_floor": 27,
-  "pool_wall": 22,
+  "pool_water": 0,
+  "pool_floor": 25,
+  "pool_wall": 1,
   "pool_guard": 5,
+  "kerb": 0,
   "file": "Court Hall.litematic",
   "name": "Court Hall"
 }

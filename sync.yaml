@@ -27,7 +27,15 @@ progress:                           # designs reported (% built, left, shop list
   - out/Apiary Flowers.litematic
   - out/Bird Lanterns.litematic
   - out/Deck Vault.litematic     # NOT in regen: `under` is pinned to the pre-vault capture (see configs/vault.yaml)
-  - out/Sky Well Court.litematic # same - pinned to out/court_before.litematic
+  # RETIRED 2026-08-20. Sky Well Court was the moss-and-pond scheme for this space; the deepslate
+  # Court Hall replaced it. Measured against the 12:33 capture it has 162 cells holding a DIFFERENT
+  # block - 168 of its conflicts fall inside the hall - because it wants moss carpet, glow lichen and
+  # water where the hall's floor, pilasters and basin now are. Its only surviving content is ~27
+  # lichen/dripstone cells outside the hall footprint. Retired, not deleted: the litematic stays so
+  # the derivation is on record, exactly as the jaguar and the bear were retired from the lowland.
+  # - out/Sky Well Court.litematic
+  - out/Court Hall.litematic
+  - out/Court Stair.litematic
   - out/Store Hall.litematic
   - out/Undercroft Store.litematic
   - out/Entry Hall.litematic
