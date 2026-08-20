@@ -763,50 +763,55 @@ event in the room, so you did not discover it, you simply arrived at it.
 **Still open:** the 112 chests (Store Hall's 68 slots are built and waiting), the 14 wall torches,
 and 62% walkable — all three of which are the chest move.
 
-## The root break — the deck's story object (2026-08-19)
+## The root break, and the machine room under the tree (2026-08-19)
 
-`configs/root_break.yaml`, `mcbuild/gen/rootbreak.py`. 485 blocks, all cheap tier, 0 problems.
+`configs/root_break.yaml`. **82 blocks.** It closes the one-course gap between the taproot's head
+at Y188 and the island's belly skin at Y190, and stops there.
 
-**The failure it fixes is narrative, and it was invisible to every metric so far.** The sequence is
-meant to run: a mystical, half-apocalyptic plate with giant animals -> an interior that holds the
-awe -> a descent down the taproot to the void. The deck is the hinge. And **the taproot topped out
-at Y188**, six courses below the deck floor, so the one room whose entire purpose is to hand you to
-the root never showed you the root. You crossed a grey workshop and found a hole.
+**It started much bigger and had to be cut back, which is the useful part.** The story is right —
+the plate hands you to an interior which hands you down the taproot, and the taproot *topped out at
+Y188, six courses below the deck floor*, so the room whose whole purpose is that handover never
+showed the root. The first build carried it all the way up through the undercroft, the deck floor,
+the room and the ceiling to the tree at Y203.
 
-It is not an invention — `configs/taproot.yaml` already says *"The centre tree's roots break through
-the deck skin and twist down into the void."* It just stopped short. Read through the root's own
-90-cell footprint:
+**The site could not take it. The tree's base is a MACHINE ROOM.** 66 redstone parts spanning
+X-24209..-24195 / Y191–203 / Z30005..30030 — 13 pistons, 7 repeaters, 6 observers, 2 dispensers,
+and a **sculk sensor at (-24199, 201, 30019) shielded by 68 wool cells within 3 blocks**. Wool is
+the only block that stops a vibration; that wool is the shield on a hidden-door trigger, not
+decoration. The tree trunk's own centroid (-24199, 30019) sits *inside* that spread, and **no
+4-radius column anywhere clears the mechanism by 5**. The first build put 256 cells within 8 of the
+sensor and came within 1 of it, and heaved 57 cells of the shielding on the way.
 
-| | |
-|---|---|
-| Y203+ | oak_wood, 31 cells — **the great tree, directly overhead** |
-| Y200 | the deck's ceiling |
-| Y195–199 | 2–20 of 90 solid — **the room. empty.** |
-| Y194 | 90/90 stone_bricks — the deck floor |
-| Y191–193 | empty — the undercroft |
-| Y188 | 70 cells of taproot — **the root's head, directly below** |
+Closing the gap at Y189–190 gets the thing that actually mattered — the root reads continuous into
+the island's underside — from the view where it counts, which is **from below, descending the root
+stair**. Nearest mechanism part is now **5 blocks**, cells near the sensor **0**.
 
-The tree is above, the root is below, and **the root was missing exactly where the room is.**
+### What this cost, and what it is worth keeping
 
-It breaks three surfaces on the way — ceiling, deck floor, belly skin — and each break is HEAVED,
-not cut: 128 cells simply gone, 168 of cracked masonry and cobble shoved aside. A clean hole reads
-as a designed opening; a broken one reads as something that came through. Light is bioluminescent
-(32 glow lichen on the bark, soul fire at the base), not lamps — the plate is lit by daylight and
-the lowland by lanterns, and this room should be lit by the thing growing through it.
+- **`gen/protect.py`.** `BREAKABLE` was a whitelist and it was still wrong, because `gray_wool` and
+  `black_wool` looked like ceiling decoration. The safe set is now stated ONCE and every generator
+  consults it *in addition to* its own whitelist — redstone, containers, machines, rails, doors,
+  signs, fluids, farm blocks, player-placed light. A block that looks like fabric may be a
+  silencer; a stray slab may be a timing floor; a generator cannot tell by looking.
+- **`protect.is_used` and rule 10.** 44 structural cells sat within one block of something you
+  stand at and use. Honoured *above the floor course only* — paving the floor beside a chest is
+  still floor. 44 → 20, all of which are paving.
+- **`finish.defer_to`.** The four deck designs shared 39 cells. Overlap between designs is a WORK
+  problem: you place a block, the next placement says it is wrong, you break it and place it again.
+  Precedence runs Root Break > Taproot Entrance > Deck Gallery > Deck Floor, which makes generation
+  ORDER significant — build the winner first.
 
-This is also the answer to the palette audit that had been going the wrong way. It supplies wood,
-moss, organic form and a focal point in one object — and gives all four a REASON, which is the
-difference between decoration and a place.
+### The flow audit, which found what no palette metric could
 
-Three traps, all the same shape — **anchor to what was PLACED, not to what was intended**:
-
-- `mangrove_roots` is not a full cube, so nothing hangs off its underside. Bark was being chosen
-  18% of the time and a hanging root under one audits as "from air".
-- A vine's attachment is a FACE; `up=true` is not support the audit accepts, and the second link
-  of a strand has only the first link above it, which is not a block.
-- **`verify_against` composites WITHOUT overwriting.** Where the root replaces an existing slab the
-  in-context audit still sees the SLAB overhead. That also explains why an earlier before/after
-  through `plan_merge` showed nothing: it fills empty cells only.
+- **The moss room had 23 wall columns, all full height, and no doorway.** The door must be chosen
+  from the columns that will actually be BUILT: 18 of the 41 wall cells are skipped for the farm's
+  own water and lichen, and the first fix removed one that never existed.
+- **The moss farm was ALREADY unreachable** before any of this — 0 of its 262 standable cells
+  connect to the entrance in the base world. Not caused here, but worth knowing.
+- **87% of the deck is reachable** from the entrance mouth; 105 cells sit in 27 isolated pockets.
+- **One 3-wide neck at Z30000 carries the whole south deck** — removing any of (-24199..-24201,
+  30000) splits ~128 cells from ~582. That gap is both the entrance approach and the only route to
+  a third of the floor.
 
 ## Build & test
 

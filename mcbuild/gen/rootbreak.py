@@ -45,7 +45,7 @@ ROOTBREAK = {
     "x": -24200,               # the taproot's own column
     "z": 30018,
     "y_from": 188,             # the taproot's head - where this picks the root up
-    "y_to": 203,               # the tree's own wood on the plate - where it hands it back
+    "y_to": 190,               # the belly skin. Y191+ is the tree door's machine room.
     "strands": 3,
     "trunk_r": 3.4,            # at the top, where it is still one mass
     "strand_r": 1.5,
@@ -60,7 +60,7 @@ ROOTBREAK = {
     "rubble": "cracked_stone_bricks",
     "rubble_alt": "cobblestone",
     "soul": "soul_lantern",
-    "breaks": [190, 194, 200],  # belly skin, deck floor, ceiling
+    "breaks": [190],           # the belly skin only - see y_to
     "break_r": 2.2,            # how far the heave reaches past the root
     "moss_rate": 0.55,
     "lichen_rate": 0.16,

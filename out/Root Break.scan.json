@@ -6,21 +6,21 @@
   },
   "size": {
     "x": 58,
-    "y": 54,
-    "z": 76
+    "y": 41,
+    "z": 75
   },
   "generated_by": "rootbreak",
   "kind": "rootbreak",
   "x": -24200,
   "z": 30018,
   "y_from": 188,
-  "y_to": 203,
+  "y_to": 190,
   "strands": 3,
-  "root": 334,
-  "heaved": 118,
-  "rubble": 154,
-  "moss": 29,
-  "lichen": 31,
+  "root": 62,
+  "rubble": 46,
+  "heaved": 33,
+  "moss": 26,
+  "lichen": 4,
   "file": "Root Break.litematic",
   "name": "Root Break"
 }
