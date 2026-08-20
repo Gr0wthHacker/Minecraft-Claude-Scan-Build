@@ -37,6 +37,7 @@ import collections
 import math
 
 from .canvas import Canvas, hash01
+from .protect import is_protected
 from .vertical import Ctx, World
 
 ROOTBREAK = {
@@ -71,7 +72,7 @@ AIR = ("air", "cave_air", "void_air")
 # what the root is allowed to shoulder aside. Anything else is a machine or someone's fixture.
 BREAKABLE = ("stone_bricks", "cracked_stone_bricks", "mossy_stone_bricks", "chiseled_stone_bricks",
              "smooth_stone", "stone", "cobblestone", "mossy_cobblestone", "moss_block",
-             "gray_wool", "black_wool", "dirt", "gravel", "andesite", "vine", "moss_carpet",
+             "dirt", "gravel", "andesite", "vine",
              "stone_brick_slab", "smooth_stone_slab", "deepslate_bricks") + AIR
 
 
@@ -92,7 +93,13 @@ def build_rootbreak(cfg: dict, donors=None) -> Canvas:
         return ctx.name_at(x, y, z).split(":")[-1].split("[")[0]
 
     def free(x, y, z):
-        return name(x, y, z) in BREAKABLE
+        # BREAKABLE is a whitelist and it was still wrong: `gray_wool` and `black_wool` were on it
+        # because they look like ceiling decoration, and they are the SOUND DAMPENING round the
+        # shulker/piston entrance into the tree. 57 cells of it were heaved. The shared guard is
+        # consulted as well as the whitelist, so a plain-looking machine part cannot slip through
+        # a second time.
+        n = name(x, y, z)
+        return n in BREAKABLE and not is_protected(n)
 
     def put(x, y, z, blk, **props):
         if free(x, y, z):

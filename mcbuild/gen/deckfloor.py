@@ -40,6 +40,7 @@ from __future__ import annotations
 import collections
 
 from .canvas import Canvas, hash01
+from .protect import is_protected
 from .vertical import Ctx, World
 
 DECKFLOOR = {
@@ -141,7 +142,7 @@ def build_deckfloor(cfg: dict, donors=None) -> Canvas:
 
     def keep(x, y, z):
         n = name(x, y, z)
-        return any(k in n for k in KEEP)
+        return any(k in n for k in KEEP) or is_protected(n)
 
     # ---- the deck floor, found by reading the course rather than by a hand-written box
     floor = set()

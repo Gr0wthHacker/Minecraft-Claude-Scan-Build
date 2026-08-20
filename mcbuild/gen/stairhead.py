@@ -43,6 +43,7 @@ from __future__ import annotations
 import math
 
 from .canvas import Canvas, hash01
+from .protect import is_protected
 from .vertical import Ctx, World
 
 STAIRHEAD = {
@@ -121,7 +122,8 @@ def build_stairhead(cfg: dict, donors=None) -> Canvas:
         """may this design write here? Only over the deck's own plain materials."""
         if ctx is None:
             return True
-        return ctx.name_at(x, y, z).split(":")[-1].split("[")[0] in PLAIN
+        n = ctx.name_at(x, y, z).split(":")[-1].split("[")[0]
+        return n in PLAIN and not is_protected(n)
 
     def put(x, y, z, name, **props):
         if free(x, y, z):

@@ -39,6 +39,7 @@ from __future__ import annotations
 import collections
 
 from .canvas import Canvas, hash01
+from .protect import is_protected
 from .vertical import Ctx, World
 
 GALLERY = {
@@ -90,7 +91,8 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
         return ctx.name_at(x, y, z).split(":")[-1].split("[")[0]
 
     def cuttable(x, y, z):
-        return name(x, y, z) in CUTTABLE
+        n = name(x, y, z)
+        return n in CUTTABLE and not is_protected(n)
 
     # ---- the deck, and the boundary that faces open air
     floor = _deck(ctx, fy)
