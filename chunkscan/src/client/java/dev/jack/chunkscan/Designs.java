@@ -39,6 +39,27 @@ final class Designs {
 	}
 
 	/**
+	 * The designs Jack actually tracks, or null when nothing has told us.
+	 *
+	 * <p>`sync.yaml`'s `progress:` list is the only place that knows, and the mod cannot read it -
+	 * gson and no YAML parser, and the file lives in the repo rather than beside the schematics. So
+	 * `python -m mcbuild sync` writes it out as `designs.json` and this reads it.
+	 *
+	 * <p>NULL, not an empty list, when the file is missing: "we do not know" and "you track nothing"
+	 * are different answers, and only one of them should make `/cscan place` fall back to placing
+	 * all 61.
+	 */
+	static List<String> tracked(Path schematicsDir) throws IOException {
+		Path f = schematicsDir.resolve("designs.json");
+		if (!Files.exists(f)) return null;
+		JsonObject root = JsonParser.parseString(Files.readString(f, StandardCharsets.UTF_8)).getAsJsonObject();
+		if (!root.has("tracked")) return null;
+		List<String> out = new ArrayList<>();
+		for (var e : root.getAsJsonArray("tracked")) out.add(e.getAsString());
+		return out;
+	}
+
+	/**
 	 * Every design in the folder that has a sidecar (skips the raw scans), EXCEPT the wand's
 	 * scratch fills. `/cscan place` with no argument places everything this returns, and a shelf
 	 * of one-off fills is exactly the pile that trap already caught once with the scratch animals.

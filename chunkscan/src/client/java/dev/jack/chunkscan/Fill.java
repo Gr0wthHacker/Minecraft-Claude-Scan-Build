@@ -52,7 +52,8 @@ final class Fill {
 	 * committing 20,000 blocks to it.
 	 */
 	enum Mode {
-		SOLID, HOLLOW, WALLS, OUTLINE;
+		SOLID, HOLLOW, WALLS, OUTLINE,
+		BALL, SPHERE, CYLINDER, TUBE, DOME, DISC, RING;
 
 		static Mode of(String s) {
 			if (s == null || s.isBlank()) return SOLID;
@@ -60,11 +61,29 @@ final class Fill {
 				case "hollow", "shell" -> HOLLOW;
 				case "walls", "wall" -> WALLS;
 				case "outline", "frame", "edges" -> OUTLINE;
+				case "ball", "solidsphere" -> BALL;
+				case "sphere", "orb" -> SPHERE;
+				case "cylinder", "column", "pillar" -> CYLINDER;
+				case "tube", "pipe", "hollowcylinder" -> TUBE;
+				case "dome", "mound" -> DOME;
+				case "disc", "disk", "circle" -> DISC;
+				case "ring", "hoop" -> RING;
 				default -> SOLID;
 			};
 		}
 
-		/** Is this cell part of the shape? Coordinates are offsets from the box corner. */
+		/** Does the shape ignore the box's height and lie in one course? */
+		boolean isFlat() {
+			return this == DISC || this == RING;
+		}
+
+		/**
+		 * Is this cell part of the shape? Coordinates are offsets from the box's minimum corner.
+		 *
+		 * <p><b>THE BOX IS THE BOUNDING BOX, not a radius.</b> A sphere in a 21x21x21 selection has
+		 * radius 10; in a 21x11x21 it is an ellipsoid, squashed, which is more often what a build
+		 * actually wants than a true sphere. Mark the box you want the shape to fill.
+		 */
 		boolean wants(int x, int y, int z, int sx, int sy, int sz) {
 			boolean ex = x == 0 || x == sx - 1;
 			boolean ey = y == 0 || y == sy - 1;
@@ -75,6 +94,84 @@ final class Fill {
 				case WALLS -> ex || ez;
 				// two of the three extremes: that is what an edge of a box IS
 				case OUTLINE -> (ex ? 1 : 0) + (ey ? 1 : 0) + (ez ? 1 : 0) >= 2;
+
+				case BALL -> inEllipsoid(x, y, z, sx, sy, sz);
+				case SPHERE -> shellOf(this, x, y, z, sx, sy, sz);
+				case DOME -> inDome(x, y, z, sx, sy, sz);
+				case CYLINDER -> inDisc(x, z, sx, sz);
+				case TUBE -> shellOf(this, x, y, z, sx, sy, sz);
+				// FLAT shapes ignore the box height and lie on its bottom course - a disc marked in
+				// a tall box is a disc, not a cylinder. Use `cylinder` when you want the height.
+				case DISC -> y == 0 && inDisc(x, z, sx, sz);
+				case RING -> y == 0 && shellOf(this, x, y, z, sx, sy, sz);
+			};
+		}
+
+		/**
+		 * Inside the ellipsoid inscribed in the box.
+		 *
+		 * <p>The half-axes are sx/2 rather than (sx-1)/2, which is the difference between a round
+		 * ball and one with its poles shaved flat: the extreme cell sits at (sx-1)/2 from centre, so
+		 * dividing by the larger radius keeps it inside. This is the voxel-sphere rounding everyone
+		 * gets wrong once.
+		 */
+		private static boolean inEllipsoid(int x, int y, int z, int sx, int sy, int sz) {
+			double dx = x - (sx - 1) / 2.0, dy = y - (sy - 1) / 2.0, dz = z - (sz - 1) / 2.0;
+			double rx = sx / 2.0, ry = sy / 2.0, rz = sz / 2.0;
+			return (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) + (dz * dz) / (rz * rz) <= 1.0;
+		}
+
+		/**
+		 * The upper half of an ellipsoid whose EQUATOR IS THE BOX FLOOR.
+		 *
+		 * <p>Not the top half of an ellipsoid inscribed in the box - that gives a dome standing on a
+		 * circle the size of its own waist, floating clear of the rim. The half-height is the FULL
+		 * box height, and y is measured from 0, so the base course is the whole circle and the
+		 * crown closes in. A dome that does not meet the ground it sits on is a dome you then have
+		 * to hand-fill a ring under.
+		 */
+		private static boolean inDome(int x, int y, int z, int sx, int sy, int sz) {
+			double dx = x - (sx - 1) / 2.0, dz = z - (sz - 1) / 2.0;
+			double rx = sx / 2.0, ry = sy, rz = sz / 2.0;
+			return (dx * dx) / (rx * rx) + (y * y) / (ry * ry) + (dz * dz) / (rz * rz) <= 1.0;
+		}
+
+		/** Inside the ellipse inscribed in the box's PLAN - the cylinder and disc cross-section. */
+		private static boolean inDisc(int x, int z, int sx, int sz) {
+			double dx = x - (sx - 1) / 2.0, dz = z - (sz - 1) / 2.0;
+			double rx = sx / 2.0, rz = sz / 2.0;
+			return (dx * dx) / (rx * rx) + (dz * dz) / (rz * rz) <= 1.0;
+		}
+
+		/**
+		 * The one-cell skin of a solid shape: inside it, with at least one neighbour outside.
+		 *
+		 * <p>Not a radius band. A band of constant thickness in the EQUATION gives a shell that is
+		 * fat at the poles and thin at the equator - or the reverse - because the gradient of an
+		 * ellipsoid is not constant. Asking which cells have an exposed face gives an even skin by
+		 * construction, and it is the same rule the box HOLLOW uses one line up.
+		 */
+		private static boolean shellOf(Mode m, int x, int y, int z, int sx, int sy, int sz) {
+			if (!solidPart(m, x, y, z, sx, sy, sz)) return false;
+			// TUBE and RING are open-ended on purpose: a tube with caps is a hollow cylinder, and
+			// what you reach for `tube` to build is a chimney or a well, which has neither.
+			int[][] around = (m == TUBE || m == RING)
+				? new int[][]{{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}}
+				: new int[][]{{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+			for (int[] d : around) {
+				if (!solidPart(m, x + d[0], y + d[1], z + d[2], sx, sy, sz)) return true;
+			}
+			return false;
+		}
+
+		/** The SOLID shape a hollow one is the skin of. */
+		private static boolean solidPart(Mode m, int x, int y, int z, int sx, int sy, int sz) {
+			if (x < 0 || y < 0 || z < 0 || x >= sx || y >= sy || z >= sz) return false;
+			return switch (m) {
+				case SPHERE -> inEllipsoid(x, y, z, sx, sy, sz);
+				case TUBE -> inDisc(x, z, sx, sz);
+				case RING -> inDisc(x, z, sx, sz);
+				default -> true;
 			};
 		}
 	}

@@ -1351,6 +1351,258 @@ that the REASON survives in `species.yaml`, including the evidence that scale do
 (the jaguar at 2.6x and 60,000 blocks failed exactly as the 27-block one did). A flag with no reason
 beside it gets removed by whoever finds it inconvenient.
 
+### Shapes, darkness, and a readout (2026-08-20)
+
+```
+/cscan around <r>                        set the selection to a cube of that radius
+/cscan fill ball|sphere|dome|cylinder|tube|disc|ring <name>
+/cscan dark [radius]                     standable cells the light does not reach
+/cscan bom <design>                      the whole design in stacks and shulkers
+/cscan hud <design> | off                a two-line readout while you build
+```
+
+#### The shapes are predicates, which is why they were nearly free
+
+Every mode is one function — `Mode.wants(x, y, z, sx, sy, sz)` — so a sphere runs through the same
+plan, capture, protection, economy, undo and printer path as a cuboid, and none of that had to learn
+what a sphere is. Eleven shapes for about eighty lines.
+
+**THE BOX IS THE BOUNDING BOX, not a radius.** A sphere in 21x21x21 has radius 10; in 21x11x21 it is
+a squashed ellipsoid, which is what a build usually wants and what a fixed radius cannot say. That
+is also why no shape takes a radius argument: `/cscan around 8` sets the selection and then every
+shape, `copy`, and `replace` all compose with it. Eleven radius parameters would have been eleven
+ways to say one thing.
+
+Three pieces of voxel geometry worth keeping:
+
+- **The half-axis is `sx/2`, not `(sx-1)/2`.** The extreme cell sits at `(sx-1)/2` from centre, so
+  dividing by the larger radius keeps it inside. Get it wrong and the ball comes out with its poles
+  shaved flat — the classic voxel-sphere bug, and `aBallReachesEveryFaceOfItsBox` is the test.
+- **A shell is "inside, with a neighbour outside" — never a band in the radius equation.** The
+  gradient of an ellipsoid is not constant, so a constant band is fat at the poles and thin at the
+  equator. The neighbour rule gives an even skin by construction, and it is the same rule the box
+  HOLLOW already used.
+- **A DOME's equator is the box FLOOR.** Taking the top half of an ellipsoid inscribed in the box
+  gives a dome standing on a circle the size of its own waist, floating clear of the rim — you then
+  hand-fill a ring underneath. The half-height is the full box height and y is measured from 0.
+
+`tube` and `ring` are open-ended on purpose: a tube with caps is a hollow cylinder, and what you
+reach for `tube` to build is a chimney or a well.
+
+**`shell` still means a hollow BOX.** It was tempting to give it to the sphere; it shipped meaning
+the box, and silently repurposing a live alias is a behaviour change for anyone who typed it
+yesterday. `orb` is the sphere alias.
+
+#### `/cscan dark` — the one question only the client can answer
+
+The desktop has always approximated lighting by DISTANCE: *"95% of the deck is within 7 of a
+light"*. That is a lower bound on darkness, because light does not pass through walls and this
+island is nothing but walls. Off the capture: **462 light sources over 14,457 standable cells, ~10%
+more than 7 blocks from any source before geometry is considered at all.** The real figure has never
+been measured, because only the client has the light engine.
+
+`/cscan dark` reads it directly, marks the cells red, and bins them into clusters so the report says
+"a dark room" rather than listing three hundred cells.
+
+**Sky light is reported but not judged.** A cell open to the sky is bright by day and dark at night;
+counting it as lit hides every outdoor spawn and counting it as dark flags the whole plate. Block
+light is what a torch changes, so that is what is scored, and the sky value rides along so an unlit
+room can be told from an unlit lawn.
+
+#### The HUD, and two more 26.x API changes
+
+`/cscan hud <design>` puts a two-line readout on screen: built/total, percent, how many are left,
+how many deviate, and how far the nearest one is — because "247 to place" does not tell you where to
+stand.
+
+**It recomputes on a TIMER, not per frame.** `Work.split` walks every cell of the design and diffs
+it against the world; `Island Belly Full` is 8,210 of them, and doing that sixty times a second to
+draw two lines of text costs more than the information is worth. Every 40 ticks is faster than you
+can place a block.
+
+Both API notes came from javap rather than from a guide, again:
+
+- **`HudRenderCallback` does not exist in 26.2.** The HUD is built by EXTRACTING RENDER STATE:
+  `HudElementRegistry.addLast(id, element)` and `element.extractRenderState(extractor, delta)`,
+  with `extractor.text(font, s, x, y, argb)`. Any older HUD guide is wrong here.
+- **`Options.hideGui` and `Minecraft.screen` are both gone**, and no guard is needed anyway — an
+  element in the HUD layer stack is hidden with the rest of the GUI by vanilla.
+
+### `/cscan plan` — where to stand, given what is in your pockets (2026-08-20)
+
+```
+/cscan plan <design>     the spots worth walking to, ranked by what you can actually place
+/cscan goto <n>          marks that spot green and puts an arrow on the HUD
+/cscan goto              stop guiding
+```
+
+`next` answers *what is nearest*. `need` answers *what should I fetch*. Neither answers the question
+a several-thousand-cell design actually poses — **where can I stand right now and place a hundred
+blocks without moving or running out** — and that is the difference between a build session and an
+afternoon of walking.
+
+Three things have to be true before a spot is worth walking to, and all three are measured:
+
+- **You are carrying the material.** Not "it is in a chest somewhere"; that is `need`'s question.
+- **You have ENOUGH of it.** Stock is allocated to clusters IN RANK ORDER, so the second spot is
+  told what the first one leaves it. Two piles of 20 and 25 bricks in your pack is 20 and then 5 —
+  a plan that promised 20 and 20 would have lied about the only number that mattered.
+- **It is within reach of one standing spot.** Clusters form around a centre at a WORKING RADIUS,
+  not by connectivity: a wall is one connected component and forty trips.
+
+Scaffold-blocked cells are subtracted too, so `doable()` is the number of blocks you can place
+standing there — not the number of cells that happen to be nearby.
+
+Clusters are seeded by binning at the working radius rather than by an all-pairs density scan. A
+few thousand cells all-against-all is not worth the wait for a number that coarse.
+
+#### `/cscan follow <design>` — the plan without the typing between
+
+```
+/cscan follow <design>   walk me through the whole thing
+/cscan follow            stop
+```
+
+The arrow moves to the next spot as each one finishes, so a session is `follow` once rather than
+`plan` and `goto` over and over.
+
+**With HYSTERESIS, which is the whole difficulty.** The plan is recomputed on every recount, and the
+best spot genuinely changes as you place blocks and burn stock — repointing at whatever is best THIS
+second would swing the arrow around while you stand still doing exactly what it asked. So the
+current target is kept while it still has anything doable, and only when it is exhausted is the next
+one picked. Chat announces a change of spot and nothing else: "spot 2" every two seconds for as long
+as you stand there is not guidance, it is noise.
+
+**Running out of blocks is not the same as finishing**, and saying the wrong one sends you to stare
+at a completed wall. An empty plan while cells remain reports "nothing left you are carrying the
+blocks for" and points at `bom`; only an empty `todo` reports the design complete.
+
+#### `/fly` changes two things, and one of them is not obvious
+
+Jack has `/fly` on this server. That settles the open question about ranking spots by WALKABLE
+distance rather than straight-line: with flight the straight line IS the route, and the pathfinder
+that would have been the next big job is not needed. `Plan` already ranks on 3D `distSqr`, so it was
+right by accident.
+
+**But it makes the vertical leg free to travel and therefore free to ignore — right up until you
+are hunting for a floor.** This island is 240 blocks tall: the lowland is Y24, the deck Y194, the
+sky bird Y268. A compass bearing cannot carry that, so a chest 150 blocks below reads as "18m NE" on
+any horizontal-only arrow. `Hud.climb` states it separately — `up 154`, `down 154` — and anything
+under 3 is left unsaid, because two blocks is a jump rather than a leg of a journey.
+
+#### FETCH FIRST, then build
+
+`follow` is two-phase now. If the best spot is short of stock and the index knows where the material
+is, **that trip comes first** — amber highlight on the container, arrow onto it, and the note turns
+into "take 56x stone_bricks" once you are standing there. Only when nothing is fetchable does it
+send you to do the part you can.
+
+A spot you cannot finish is a spot you walk to twice, which is the whole argument.
+
+`/cscan fetch <design>` is the same trip on demand, for topping up before you start rather than
+being interrupted halfway — and it costs the WHOLE remaining design rather than one spot, because
+that is the trip you make before a session.
+
+**The fetch target is the biggest shortfall THAT HAS AN ADDRESS.** A material with nowhere to fetch
+it from must never become the trip, or the arrow points at a chest that does not exist; it is
+reported in words and skipped for navigation.
+
+#### A shortfall now comes with an address
+
+`plan` used to say "64 short of stock" and stop, leaving you to run `need` and join the two in your
+head. The container index already knows where the bricks are, so it says so:
+
+    2) 120 cells at -24203 194 30012   18m NE  (56 short of stock)
+       120x stone_bricks (have 64)
+       fetch 56 more stone_bricks — 500 in #37 Store Hall 22m NE
+
+Silence when something is short would read as "you have enough", so a material with no indexed
+container says that in words rather than being left out.
+
+#### The arrow is in YOUR frame, not the compass's
+
+`Storage.direction` says "NE", which is something you translate while walking. `/cscan goto` puts
+`^ ahead` / `< left` / `v behind` on the HUD instead, computed from the angle between where you are
+LOOKING and where you are going, so it swings as you turn.
+
+**It updates every frame, not on the HUD's timer.** The design recount walks every cell and stays on
+its 2-second clock; the arrow is a subtraction and a bearing, and a direction that refreshes every
+two seconds is a direction that is wrong every time you turn around.
+
+Worth writing down because it is the sign error that would send you consistently the wrong way and
+that nothing but walking would reveal: **yaw 0 faces +Z (south), so east (+X) is on your LEFT.**
+`leftAndRightAreNotMirrored` asserts exactly that, having first been written the lazy way — asserting
+only that left and right differed, which every mirrored implementation also passes.
+
+### The command sheet, on a key (2026-08-20)
+
+**V** opens it (rebindable under Controls, "ChunkScan command sheet"). Thirty-nine subcommands is
+more than anyone remembers, and the ones you forget are the ones that would have saved the trip.
+
+Two decisions worth keeping:
+
+- **Clicking a row does NOT run it.** It drops the command into the chat box with the cursor after
+  it, because almost every one takes a design name or a radius, and a menu that fires
+  `/cscan fill` with no argument wastes a click. A row that takes an argument therefore ends in a
+  TRAILING SPACE - without it you get `/cscan planIsland Belly` and wonder what happened. Both
+  halves of that are asserted.
+- **The sheet leads with live state** - wand armed, current box, current material, what the HUD is
+  following - so it says where you ARE before it says what you could do.
+
+**A menu's failure mode is not crashing, it is going quietly stale.** A command gets renamed, the
+sheet still lists the old name, and clicking it types something inert; nobody notices until they
+need the command they had forgotten, which is the entire point of the sheet. So `MenuTest` checks
+the sheet against the SOURCE OF THE COMMAND TREE - every `/cscan x` it offers must appear as a
+`literal("x")` in `ChunkScanClient` - rather than against a second hand-written list, which would
+be one more thing to forget to update.
+
+#### Four more 26.x API changes, all found by javap rather than by a guide
+
+The GUI is where 26.x has moved furthest from every tutorial written before it:
+
+| written from memory | actually 26.2 |
+|---|---|
+| `KeyBindingHelper` in `fabric-key-binding-api-v1` | **`KeyMappingHelper`** in `fabric-key-mapping-api-v1` |
+| `new KeyMapping(name, key, "category string")` | `KeyMapping.Category.MISC` - a **record**, not a string |
+| `Minecraft.setScreen(screen)` | **`setScreenAndShow(screen)`** |
+| `mouseClicked(double, double, int)` | **`mouseClicked(MouseButtonEvent, boolean)`** |
+
+That last one is the dangerous one: written the old way it compiles as a private method nobody
+calls, `@Override` is the only thing that catches it, and without the annotation you would have a
+menu whose rows silently do nothing.
+
+Screens extract render state exactly as the HUD does - there is no `render(GuiGraphics, ...)`, only
+`extractRenderState(GuiGraphicsExtractor, mouseX, mouseY, delta)`.
+
+### The mod now knows which designs you actually track (2026-08-20)
+
+`sync.yaml`'s `progress:` list is the only place that records it — 23 designs against the **61**
+sitting in the schematics folder — and the mod could not see it: gson and no YAML parser, and
+`sync.yaml` lives in the repo rather than beside the schematics. So bare `/cscan place` placed all
+61, including the scratch shelf this file already warns about (`JAG big` is 57,994 cells of jaguar
+parked at the origin lock), and `plan` could only ever be asked about one design at a time.
+
+`python -m mcbuild sync` now writes `designs.json` beside the schematics and the mod reads it at
+runtime. Same one-source route as `chunkscan_rules.json`, with one difference that decides where it
+lives: **those rules are baked into the JAR because they change when the GAME does; this list
+changes whenever Jack edits a yaml file**, so it cannot be a build-time resource.
+
+Two payoffs:
+
+- **`/cscan place`** with no argument means the 23, and says so. Without the file it still places
+  everything, but complains and tells you which command records the list.
+- **`/cscan plan`** with no argument answers *where can I work, ANYWHERE* — the best spot in each
+  tracked design, ranked by what you can place with what you are carrying, with the count still
+  left and the bearing to it.
+
+**Reported per design rather than pooled into one cluster list**, because a cluster has to belong to
+a design for `follow` to have anything to follow. "Where can I work" and "which job am I doing" are
+different questions, and only the second has an answer that fits on a HUD.
+
+**A MISSING file is `null`, not an empty list.** "We do not know" and "you track nothing" are
+different answers and `place` branches on which — collapsing them would make a fresh checkout
+silently place all 61 rather than complain. Both cases are asserted, on both sides.
+
 ## Build & test
 
 ```bash

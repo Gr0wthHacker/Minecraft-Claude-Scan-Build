@@ -174,6 +174,15 @@ final class Wand {
 		clear();                          // arming always starts a fresh box
 	}
 
+	/** Set the box directly, as `/cscan around` does. Draws it, exactly as clicking would. */
+	static void setBox(BlockPos a, BlockPos b, String dim) {
+		p1 = a.immutable();
+		p2 = b.immutable();
+		dimension = dim;
+		nextIsFirst = true;
+		redraw();
+	}
+
 	static void clear() {
 		p1 = null;
 		p2 = null;

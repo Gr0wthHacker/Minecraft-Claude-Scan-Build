@@ -52,6 +52,8 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Highlight.register();
 		AutoScan.register();
 		Wand.register();
+		Hud.register();
+		Menu.register();
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
 			dispatcher.register(literal("cscan")
 				.then(literal("place")
@@ -103,14 +105,17 @@ public final class ChunkScanClient implements ClientModInitializer {
 						.executes(ctx -> mat(ctx, StringArgumentType.getString(ctx, "block")))))
 				.then(literal("fill")
 					.executes(ctx -> fill(ctx, null, Fill.Mode.SOLID, null))
-					.then(literal("solid").then(argument("name", StringArgumentType.greedyString())
-						.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), Fill.Mode.SOLID, null))))
-					.then(literal("hollow").then(argument("name", StringArgumentType.greedyString())
-						.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), Fill.Mode.HOLLOW, null))))
-					.then(literal("walls").then(argument("name", StringArgumentType.greedyString())
-						.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), Fill.Mode.WALLS, null))))
-					.then(literal("outline").then(argument("name", StringArgumentType.greedyString())
-						.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), Fill.Mode.OUTLINE, null))))
+					.then(shapeArg("solid", Fill.Mode.SOLID))
+					.then(shapeArg("hollow", Fill.Mode.HOLLOW))
+					.then(shapeArg("walls", Fill.Mode.WALLS))
+					.then(shapeArg("outline", Fill.Mode.OUTLINE))
+					.then(shapeArg("ball", Fill.Mode.BALL))
+					.then(shapeArg("sphere", Fill.Mode.SPHERE))
+					.then(shapeArg("dome", Fill.Mode.DOME))
+					.then(shapeArg("cylinder", Fill.Mode.CYLINDER))
+					.then(shapeArg("tube", Fill.Mode.TUBE))
+					.then(shapeArg("disc", Fill.Mode.DISC))
+					.then(shapeArg("ring", Fill.Mode.RING))
 					.then(argument("name", StringArgumentType.greedyString())
 						.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), Fill.Mode.SOLID, null))))
 				.then(literal("copy")
@@ -136,6 +141,45 @@ public final class ChunkScanClient implements ClientModInitializer {
 				.then(literal("scaffold")
 					.then(argument("design", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::scaffold)))
+				.then(literal("plan")
+					.executes(ChunkScanClient::planAll)
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::planWork)))
+				.then(literal("goto")
+					.executes(ctx -> { Hud.stopGuiding(); Highlight.clear("goto");
+						ok(ctx.getSource(), "guidance off"); return 1; })
+					.then(argument("n", IntegerArgumentType.integer(1, Plan.MAX_CLUSTERS))
+						.executes(ChunkScanClient::gotoCluster)))
+				.then(literal("fetch")
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::fetch)))
+				.then(literal("follow")
+					.executes(ctx -> { Hud.off(); Highlight.clear("goto");
+						ok(ctx.getSource(), "follow off"); return 1; })
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::follow)))
+				.then(literal("hud")
+					.executes(ctx -> { ok(ctx.getSource(), Hud.watching() == null ? "hud off"
+						: "hud watching " + Hud.watching()); return 1; })
+					.then(literal("off").executes(ctx -> { Hud.off(); ok(ctx.getSource(), "hud off"); return 1; }))
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ctx -> {
+							String d = StringArgumentType.getString(ctx, "design");
+							Hud.watch(d);
+							ok(ctx.getSource(), "hud watching " + d + " — updates every "
+								+ (Hud.EVERY_TICKS / 20) + "s");
+							return 1;
+						})))
+				.then(literal("dark")
+					.executes(ctx -> dark(ctx, 32))
+					.then(argument("radius", IntegerArgumentType.integer(4, 128))
+						.executes(ctx -> dark(ctx, IntegerArgumentType.getInteger(ctx, "radius")))))
+				.then(literal("bom")
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::bom)))
+				.then(literal("around")
+					.then(argument("radius", IntegerArgumentType.integer(1, 64))
+						.executes(ChunkScanClient::around)))
 				.then(literal("clips").executes(ChunkScanClient::clips))
 				.then(literal("prune").executes(ChunkScanClient::prune))
 				.then(literal("replace")
@@ -511,6 +555,340 @@ public final class ChunkScanClient implements ClientModInitializer {
 		}
 	}
 
+	/** The clusters computed by the last `/cscan plan`, so `goto` can name one by number. */
+	private static List<Plan.Cluster> lastPlan = new ArrayList<>();
+	private static String lastPlanDesign = null;
+
+	/**
+	 * Where can I stand right now and place a lot, given what is in my pockets.
+	 *
+	 * <p>`next` answers "what is nearest" and `need` answers "what should I fetch". On a design of
+	 * several thousand cells neither answers the one that decides whether an evening is a build
+	 * session or an afternoon of walking.
+	 */
+	private static int planWork(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Minecraft mc = src.getClient();
+			BlockPos me = mc.player.blockPosition();
+			Work.Split sp = Work.split(mc.level, dir(src), name, me, 0);
+			if (sp.todo().isEmpty()) { ok(src, sp.name() + " is complete in every loaded chunk"); return 1; }
+			Map<String, Integer> carrying = Work.carrying(mc.player);
+			Map<String, Storage.Container> index = Storage.load(dir(src));
+
+			java.util.Set<Long> blocked = new java.util.HashSet<>();
+			for (Work.Cell c : Work.floating(mc.level, sp.todo())) blocked.add(c.pos().asLong());
+
+			List<Plan.Cluster> cl = Plan.clusters(sp.todo(), carrying, blocked, me);
+			lastPlan = cl;
+			lastPlanDesign = sp.name();
+			if (cl.isEmpty()) {
+				// The useful failure: it is not that there is no work, it is that none of it is yours
+				// to do standing here with this inventory.
+				ok(src, sp.name() + ": " + sp.todo().size() + " left, but none of it is a block you are"
+					+ " carrying — /cscan bom " + sp.name() + " for the shopping list");
+				return 1;
+			}
+			int doable = cl.stream().mapToInt(Plan.Cluster::doable).sum();
+			ok(src, sp.name() + ": " + doable + " of " + sp.todo().size()
+				+ " placeable right now, in " + cl.size() + " spot(s)");
+			for (int i = 0; i < cl.size(); i++) {
+				Plan.Cluster c = cl.get(i);
+				int d = (int) Math.sqrt(c.centre().distSqr(me));
+				StringBuilder b = new StringBuilder();
+				b.append("  ").append(i + 1).append(") ").append(c.doable()).append(" cells at ")
+					.append(Wand.fmt(c.centre())).append("  ").append(d).append("m ")
+					.append(Storage.direction(me, c.centre())).append(Hud.climb(me, c.centre()));
+				if (c.shortBy() > 0) b.append("  (").append(c.shortBy()).append(" short of stock)");
+				if (c.blocked() > 0) b.append("  (").append(c.blocked()).append(" need scaffolding)");
+				ok(src, b.toString());
+				ok(src, "       " + Plan.materialLine(c, carrying));
+				// A shortfall with no address is half an answer, and the index already knows.
+				for (String r : Plan.restock(c, carrying, index, me)) {
+					ok(src, "       fetch " + r);
+				}
+			}
+			ok(src, "  /cscan goto 1 to be walked there, or /cscan follow " + sp.name()
+				+ " to be walked through all of it");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/**
+	 * Navigate to the chest holding what the next spot is short of.
+	 *
+	 * <p>`follow` does this by itself; this is the same trip on demand, for when you want to top up
+	 * before starting rather than be interrupted halfway.
+	 */
+	private static int fetch(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Minecraft mc = src.getClient();
+			BlockPos me = mc.player.blockPosition();
+			Work.Split sp = Work.split(mc.level, dir(src), name, me, 0);
+			if (sp.todo().isEmpty()) { ok(src, sp.name() + " is complete in every loaded chunk"); return 1; }
+			Map<String, Integer> carrying = Work.carrying(mc.player);
+			Map<String, Storage.Container> index = Storage.load(dir(src));
+			java.util.Set<Long> blocked = new java.util.HashSet<>();
+			for (Work.Cell c : Work.floating(mc.level, sp.todo())) blocked.add(c.pos().asLong());
+
+			// What is missing for the WHOLE remaining design, not just one spot: this is the trip you
+			// make before you start, so the answer wants to cover the session.
+			Map<String, Integer> want = Work.tally(sp.todo());
+			Plan.Cluster all = new Plan.Cluster(me, sp.todo(), want, 0, 0);
+			List<Plan.Restock> need = Plan.restockTargets(all, carrying, index, me);
+			if (need.isEmpty()) {
+				ok(src, "you are carrying everything " + sp.name() + " still needs");
+				return 1;
+			}
+			ok(src, sp.name() + ": short of " + need.size() + " material(s)");
+			for (Plan.Restock r : need) {
+				if (r.where() == null) {
+					ok(src, "  " + r.missing() + "x " + r.item() + " — not in any indexed chest");
+					continue;
+				}
+				BlockPos at = r.where().pos();
+				ok(src, "  " + r.missing() + "x " + r.item() + " — " + r.available() + " in "
+					+ r.where().describe() + " " + (int) Math.sqrt(at.distSqr(me)) + "m "
+					+ Storage.direction(me, at) + Hud.climb(me, at));
+			}
+			Plan.Restock first = need.stream().filter(r -> r.where() != null).findFirst().orElse(null);
+			if (first != null) {
+				BlockPos at = first.where().pos();
+				Highlight.show("goto", List.of(at), 0xFFC000, 900);
+				Hud.guide(at, first.missing() + "x " + first.item());
+				if (Hud.watching() == null) Hud.watch(sp.name());
+				ok(src, "  walking you to " + first.where().describe() + " — marked amber");
+			}
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/**
+	 * Be walked through the whole design: the best spot, then the next when that one is done.
+	 *
+	 * <p>This is `plan` and `goto` without the typing between them, which on a design of several
+	 * thousand cells is most of the typing.
+	 */
+	private static int follow(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Minecraft mc = src.getClient();
+			// Fail here rather than silently on the first tick: a missing work.json should be an error
+			// you read, not a HUD that never appears.
+			Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
+			Hud.follow(name);
+			ok(src, "following " + name + " — the arrow moves to the next spot as each one finishes."
+				+ " /cscan follow to stop.");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/**
+	 * Where can I work, ANYWHERE - the best spot in each tracked design, ranked.
+	 *
+	 * <p>Reports per design rather than pooling every cell into one cluster list, because a cluster
+	 * has to belong to a design for `follow` to have something to follow. "Where can I work" and
+	 * "which job am I doing" are different questions and only the second one has an answer that fits
+	 * on a HUD.
+	 */
+	private static int planAll(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		try {
+			Minecraft mc = src.getClient();
+			List<String> tracked = Designs.tracked(dir(src));
+			if (tracked == null) {
+				src.sendError(Component.literal("[cscan] no designs.json — run `python -m mcbuild sync`,"
+					+ " or name one design: /cscan plan <design>"));
+				return 0;
+			}
+			BlockPos me = mc.player.blockPosition();
+			Map<String, Integer> carrying = Work.carrying(mc.player);
+			record Best(String design, Plan.Cluster spot, int left) {}
+			List<Best> best = new ArrayList<>();
+			int complete = 0, unreadable = 0;
+			for (String name : tracked) {
+				try {
+					Work.Split sp = Work.split(mc.level, dir(src), name, me, 0);
+					if (sp.todo().isEmpty()) { complete++; continue; }
+					java.util.Set<Long> blocked = new java.util.HashSet<>();
+					for (Work.Cell c : Work.floating(mc.level, sp.todo())) blocked.add(c.pos().asLong());
+					List<Plan.Cluster> cl = Plan.clusters(sp.todo(), carrying, blocked, me);
+					if (!cl.isEmpty()) best.add(new Best(sp.name(), cl.get(0), sp.todo().size()));
+				} catch (Exception e) {
+					unreadable++;              // no work.json yet: not an error worth stopping for
+				}
+			}
+			if (best.isEmpty()) {
+				ok(src, "nothing you are carrying the blocks for, across " + tracked.size()
+					+ " tracked design(s)" + (complete > 0 ? " (" + complete + " complete)" : ""));
+				return 1;
+			}
+			best.sort((a, b) -> Integer.compare(b.spot().doable(), a.spot().doable()));
+			ok(src, "you can work on " + best.size() + " of " + tracked.size() + " tracked design(s)"
+				+ (complete > 0 ? ", " + complete + " complete" : "")
+				+ (unreadable > 0 ? ", " + unreadable + " with no work list" : ""));
+			int n = 0;
+			for (Best b : best) {
+				if (n++ >= 6) break;
+				int d = (int) Math.sqrt(b.spot().centre().distSqr(me));
+				ok(src, "  " + b.spot().doable() + " placeable now in " + b.design()
+					+ "  (" + b.left() + " left)  " + d + "m " + Storage.direction(me, b.spot().centre())
+					+ Hud.climb(me, b.spot().centre()));
+			}
+			ok(src, "  /cscan follow <design> to be walked through one");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/** Lock the HUD arrow and the highlight onto one of the planned clusters. */
+	private static int gotoCluster(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		int n = IntegerArgumentType.getInteger(ctx, "n");
+		if (lastPlan.isEmpty()) {
+			src.sendError(Component.literal("[cscan] no plan yet — /cscan plan <design>"));
+			return 0;
+		}
+		if (n > lastPlan.size()) {
+			src.sendError(Component.literal("[cscan] the plan has " + lastPlan.size() + " spot(s)"));
+			return 0;
+		}
+		Plan.Cluster c = lastPlan.get(n - 1);
+		Highlight.show("goto", Work.positions(c.cells(), 400), 0x40FF60, 900);
+		Hud.guide(c.centre(), c.doable() + " cells");
+		// The HUD counts down the whole design while you are there, so the arrow is not the only
+		// thing telling you when you are done.
+		if (Hud.watching() == null && lastPlanDesign != null) Hud.watch(lastPlanDesign);
+		ok(src, "walking you to spot " + n + ": " + c.doable() + " cells at " + Wand.fmt(c.centre())
+			+ " — marked green, arrow on the HUD. /cscan goto to stop.");
+		return 1;
+	}
+
+	/**
+	 * Standable cells the light does not reach. The one question only the client can answer: the
+	 * desktop has always approximated it by distance to a torch, and light does not go through walls.
+	 */
+	private static int dark(CommandContext<FabricClientCommandSource> ctx, int radius) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		if (mc.level == null || mc.player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		try {
+			BlockPos me = mc.player.blockPosition();
+			Light.Report r = Light.scan(mc.level, me, radius, 400);
+			if (r.checked() == 0) {
+				ok(src, "nothing standable within " + radius + " — move somewhere with a floor");
+				return 1;
+			}
+			if (r.dim() == 0) {
+				Highlight.clear("dark");
+				ok(src, "all " + r.checked() + " standable cells within " + radius + " are at light "
+					+ Light.DIM + " or better");
+				return 1;
+			}
+			Highlight.show("dark", r.spots().stream().map(Light.Spot::pos).toList(), 0xFF3030, 300);
+			ok(src, r.dim() + " of " + r.checked() + " standable cells are under light " + Light.DIM
+				+ " (" + Math.round(100f * r.dim() / r.checked()) + "%), of which "
+				+ r.spawnable() + " are SPAWNABLE — marked red");
+			List<BlockPos> cl = Light.clusters(r.spots(), 5);
+			for (BlockPos c : cl) {
+				ok(src, "  cluster near " + Wand.fmt(c) + " (" + (int) Math.sqrt(c.distSqr(me)) + "m "
+					+ Storage.direction(me, c) + ")");
+			}
+			// Sky light is reported, not judged: an unlit lawn is bright by day and this is not the
+			// same problem as an unlit room.
+			long outdoors = r.spots().stream().filter(sp -> sp.sky() > 8).count();
+			if (outdoors > 0) {
+				ok(src, "  " + outdoors + " of the marked cells are open to the sky — dark only at night");
+			}
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/** The whole design's materials in shulkers, for packing before a trip. */
+	private static int bom(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Minecraft mc = src.getClient();
+			// radius 0 = the WHOLE design, not what is in reach: `need` already answers the other one.
+			Work.Split sp = Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
+			if (sp.todo().isEmpty()) { ok(src, sp.name() + " is complete in every loaded chunk"); return 1; }
+			Map<String, Integer> want = Work.tally(sp.todo());
+			Map<String, Integer> have = Work.carrying(mc.player);
+			int stacks = 0;
+			ok(src, sp.name() + ": " + sp.todo().size() + " block(s) left of " + sp.total());
+			var rows = new ArrayList<>(want.entrySet());
+			rows.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+			for (var e : rows) {
+				int n = e.getValue();
+				int st = (n + 63) / 64;
+				stacks += st;
+				int onMe = have.getOrDefault(e.getKey(), 0);
+				ok(src, "  " + n + "x " + e.getKey() + "  (" + st + " stack" + (st == 1 ? "" : "s")
+					+ (onMe > 0 ? ", carrying " + onMe : "") + ")");
+			}
+			ok(src, "  total " + stacks + " stacks = " + String.format("%.1f", stacks / 27.0) + " shulkers");
+			if (!sp.wrong().isEmpty()) {
+				ok(src, "  " + sp.wrong().size() + " cells deviate — /cscan check " + sp.name());
+			}
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/** One fill shape, as a subcommand. Eleven of these by hand is eleven chances to paste wrong. */
+	private static com.mojang.brigadier.builder.LiteralArgumentBuilder<FabricClientCommandSource>
+		shapeArg(String word, Fill.Mode mode) {
+		return literal(word).then(argument("name", StringArgumentType.greedyString())
+			.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), mode, null)));
+	}
+
+	/**
+	 * Set the selection to a cube of `radius` centred on the block you are looking at.
+	 *
+	 * <p>This is why no shape needs its own radius argument. `/cscan around 8` then
+	 * `/cscan fill sphere dome` is a sphere of radius 8, and the same two commands compose with
+	 * every other mode, with `copy`, and with `replace`. Giving each shape a radius parameter would
+	 * have been eleven ways to say the same thing.
+	 */
+	private static int around(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		if (mc.level == null || mc.player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		int r = IntegerArgumentType.getInteger(ctx, "radius");
+		BlockPos c = targeted(mc);
+		long vol = (2L * r + 1) * (2L * r + 1) * (2L * r + 1);
+		if (vol > MAX_FILL_CELLS) {
+			src.sendError(Component.literal("[cscan] radius " + r + " is " + vol + " cells, cap is "
+				+ MAX_FILL_CELLS));
+			return 0;
+		}
+		Wand.setBox(c.offset(-r, -r, -r), c.offset(r, r, r), mc.level.dimension().identifier().toString());
+		ok(src, "selection set to " + (2 * r + 1) + "\u00b3 around " + Wand.fmt(c)
+			+ " — /cscan fill sphere|ball|dome|cylinder|tube|disc|ring <name>");
+		return 1;
+	}
+
 	private static int clips(CommandContext<FabricClientCommandSource> ctx) {
 		FabricClientCommandSource src = ctx.getSource();
 		try (var st = java.nio.file.Files.list(dir(src))) {
@@ -664,7 +1042,22 @@ public final class ChunkScanClient implements ClientModInitializer {
 			return 0;
 		}
 		try {
-			List<String> names = which != null ? List.of(which) : Designs.list(dir(src));
+			// BARE `place` MEANS THE DESIGNS YOU TRACK, not the 61 in the folder - that shelf holds
+			// scratch animals parked at the origin lock, claiming void they have no right to.
+			List<String> names;
+			if (which != null) {
+				names = List.of(which);
+			} else {
+				List<String> t = Designs.tracked(dir(src));
+				if (t != null) {
+					names = t;
+					ok(src, "placing the " + t.size() + " design(s) sync.yaml tracks");
+				} else {
+					names = Designs.list(dir(src));
+					src.sendError(Component.literal("[cscan] no designs.json — placing ALL "
+						+ names.size() + ". Run `python -m mcbuild sync` to record which you track."));
+				}
+			}
 			int n = 0;
 			for (String name : names) {
 				try {
