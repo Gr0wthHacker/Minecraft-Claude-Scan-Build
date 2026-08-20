@@ -66,7 +66,11 @@ DECKFLOOR = {
     # is moss, and the deck is lit by 20 torches against 8 lanterns.
     "soffit": True,
     "soffit_panel": "smooth_stone",    # the pale coffer panel
-    "soffit_grid": "deepslate_bricks",  # ...and the dark grid that draws it
+    # TIMBER JOISTS, not a stone grid. The gallery moved the palette almost nothing - 230 blocks
+    # against a 14,400-block deck - and the soffit is where the leverage is: 717 cells overhead,
+    # all stone. Making the grid wood is one parameter and it is what a workshop ceiling actually
+    # looks like, which is also how the outside gets to 23% wood against this room's 7%.
+    "soffit_grid": "dark_oak_wood",
     "soffit_grid_at": 4,               # grid every N cells, in WORLD coordinates so it stays
                                        # aligned even where the ceiling steps up or down
     "soffit_raw": ("cobblestone", "mossy_cobblestone", "moss_block", "stone", "gravel",

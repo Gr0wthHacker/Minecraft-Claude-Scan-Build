@@ -1,0 +1,40 @@
+# The workshop deck's gallery: windows, timber, planting and a basin.
+#
+# WHY, measured against the island's own plate rather than felt:
+#
+#                     plate (outside)   deck (inside)
+#   distinct blocks         143              91
+#   mean saturation        50.5            22.3
+#   colour spread          54.1            25.1
+#   grey fraction           36%             62%
+#   wood                    23%              7%
+#
+# The deck is half as colourful as the outside and nearly twice as grey, and the outside is a third
+# wood where the deck has almost none. Every pass so far added another grey.
+#
+# AND: 179 of the deck's 260 rim columns look out into open air, 132 of them WALLED two or three
+# blocks high, and there is not one window. It hangs under a floating island with a clear view of
+# the void, the lowland, the bat's rock and the ladybird, and it is a sealed box with its back to
+# all of it. This is mostly REMOVAL, which is why it is the cheapest transformative move available.
+#
+# A rim cell only earns a window where there are three clear blocks straight out - 81 of the 260
+# face another part of the island and stay walled.
+name: Deck Gallery
+gen: gallery
+params:
+  under: out/island_now.litematic
+  floor_y: 194
+  bay: 3                       # three open, three pier: a cloister rhythm, not a row of holes
+  pier: 3
+  sill: 1                      # chest-height sill kept under every opening
+  open_h: 2
+  vine_rate: 0.45
+  lamp_every: 3
+  # the basin sits in the deck's largest clear rectangle, measured at 27x4
+  basin: [-24203, 30018, -24197, 30020]
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/island_now.litematic

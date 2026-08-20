@@ -1,0 +1,28 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 150,
+    "z": 29949
+  },
+  "size": {
+    "x": 75,
+    "y": 49,
+    "z": 82
+  },
+  "generated_by": "gallery",
+  "kind": "gallery",
+  "floor_y": 194,
+  "deck_cells": 1725,
+  "rim_with_view": 163,
+  "opened": 76,
+  "arch": 35,
+  "vine": 16,
+  "sill": 33,
+  "pier": 27,
+  "beam": 25,
+  "lamp": 7,
+  "bracket": 7,
+  "basin": 26,
+  "file": "Deck Gallery.litematic",
+  "name": "Deck Gallery"
+}
