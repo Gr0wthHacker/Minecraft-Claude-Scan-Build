@@ -18,6 +18,11 @@ import net.minecraft.world.phys.Vec3;
  *
  * <p>It moves by setting delta movement, never by setting position. A position write is a teleport
  * and is both the thing anticheat catches and the thing that rubber-bands you into a wall.
+ *
+ * <p><b>It routes rather than aiming.</b> {@link Nav} finds a way through the world the client can
+ * already see, and this steers at the next waypoint — which is the entire difference between going
+ * through a doorway and pressing on the wall beside it. Flying at a bearing only ever worked in
+ * open air, and on this island most destinations are inside something.
  */
 final class Autopilot {
 	/** Blocks per tick. Vanilla creative flight is about 0.4 and sprint-flight roughly double. */
@@ -29,6 +34,7 @@ final class Autopilot {
 
 	private static boolean on = false;
 	private static boolean warnedNoFly = false;
+	private static boolean warnedNoRoute = false;
 	/**
 	 * Is a screen open? There is NO `Minecraft.screen` accessor in 26.2 - this repo's own notes say
 	 * so and I reached for it anyway - so it is tracked from the screen events, exactly as
@@ -36,6 +42,15 @@ final class Autopilot {
 	 * the chest you are looting.
 	 */
 	private static boolean screenOpen = false;
+
+	/** The current route, as waypoints. Empty means "fly straight and hope", which is the fallback. */
+	private static java.util.List<BlockPos> path = new java.util.ArrayList<>();
+	private static BlockPos pathTo = null;
+	private static int repathIn = 0;
+	/** Recompute about twice a second: chunks load, doors open, and you drift. */
+	static final int REPATH_TICKS = 10;
+	/** Waypoint reached. Loose, because overshooting a corridor corner is how you clip a wall. */
+	static final double WAYPOINT = 1.8;
 
 	private Autopilot() {}
 
@@ -55,6 +70,15 @@ final class Autopilot {
 	static void set(boolean v) {
 		on = v;
 		warnedNoFly = false;
+		warnedNoRoute = false;
+		path = new java.util.ArrayList<>();
+		pathTo = null;
+		repathIn = 0;
+	}
+
+	/** How many waypoints are left, for the HUD. */
+	static int waypoints() {
+		return path.size();
 	}
 
 	/**
@@ -100,8 +124,28 @@ final class Autopilot {
 			return;                                   // steering a walk is a different problem
 		}
 
+		// ---- ROUTE. Recomputed on a timer and whenever the destination moves, because the world
+		// loads in around you and the plan's target changes as you build.
+		if (pathTo == null || !pathTo.equals(target) || --repathIn <= 0) {
+			Nav.Passable free = Nav.of(mc.level);
+			BlockPos here = p.blockPosition();
+			java.util.List<BlockPos> raw = Nav.route(free, here, target);
+			path = raw.isEmpty() ? new java.util.ArrayList<>()
+				: new java.util.ArrayList<>(Nav.simplify(free, here, raw));
+			pathTo = target;
+			repathIn = REPATH_TICKS;
+		}
+
+		// Steer at the next waypoint rather than at the destination: that is the whole difference
+		// between going through the door and pressing on the wall beside it.
+		Vec3 aim = to;
+		while (!path.isEmpty() && me.distanceTo(Vec3.atCenterOf(path.get(0))) <= WAYPOINT) {
+			path.remove(0);
+		}
+		if (!path.isEmpty()) aim = Vec3.atCenterOf(path.get(0));
+
 		// ---- aim
-		Vec3 dir = to.subtract(me).normalize();
+		Vec3 dir = aim.subtract(me).normalize();
 		float wantYaw = (float) Math.toDegrees(Math.atan2(-dir.x, dir.z));
 		float wantPitch = (float) Math.toDegrees(-Math.asin(dir.y));
 		p.setYRot(approach(p.getYRot(), wantYaw));
@@ -111,9 +155,19 @@ final class Autopilot {
 		double speed = Math.min(SPEED, dist / 8.0 + 0.05);
 		Vec3 step = dir.scale(speed);
 
-		// ---- and lift over whatever is in the way. Flying straight at terrain just presses you
-		// into it and the server hauls you back; a metre of climb clears most of what an island has.
-		if (blockedAhead(mc, p, dir)) step = new Vec3(step.x, Math.max(step.y, SPEED * 0.8), step.z);
+		// No route: fly direct and lift over what you meet. Say so once, because "it is routing"
+		// and "it is guessing" behave very differently around a building and you should know which
+		// one is carrying you.
+		if (path.isEmpty()) {
+			if (!warnedNoRoute) {
+				warnedNoRoute = true;
+				p.sendSystemMessage(Component.literal("[cscan] no route found — flying direct."
+					+ " If it is sealed or far, get closer and it will re-route."));
+			}
+			if (blockedAhead(mc, p, dir)) step = new Vec3(step.x, Math.max(step.y, SPEED * 0.8), step.z);
+		} else {
+			warnedNoRoute = false;
+		}
 
 		p.setDeltaMovement(step);
 	}

@@ -1703,6 +1703,45 @@ And one more instance of the same lesson: **there is no `Minecraft.screen` in 26
 already said so, in the 26.x notes, and I reached for it anyway. The open-screen flag is tracked
 from `ScreenEvents` exactly as `ContainerWatcher` does it.
 
+### `Nav` — routing, because the client knows every block (2026-08-20)
+
+Jack: *"since we have actual updates via scan it should also have perfect navigation through
+doorways etc since it knows all placements"*. Right, and flying at a bearing only ever worked in
+open air — on this island most destinations are inside something, and "lift over what you hit"
+presses you into the outside of the wall the room is behind.
+
+Plain A* in three dimensions over the live world. Three things matter more than the algorithm:
+
+- **Clearance, not emptiness.** A player is two blocks tall, so a cell is passable only if the one
+  above it is too. Checking a single cell finds "doorways" a head high and walks you into the
+  lintel. And it is `blocksMotion()` rather than `isAir()`, so a slab or a fence is judged by what
+  it actually stops.
+- **NO CORNER CUTTING.** A diagonal step is legal only when the orthogonal cells it passes between
+  are clear as well. Without that the route squeezes the corner of a door frame — geometrically
+  shorter, and you snag on the jamb every time. This is the single thing that makes doorways work.
+- **Unloaded is passable.** A chunk that has not arrived is not a wall, and refusing to route
+  through it would fail every long flight. The route is recomputed twice a second, so it sharpens
+  as the world loads.
+
+`simplify` then drops every waypoint you can fly straight through: A* returns each cell it stepped
+on, which through open air is a bead chain of forty points and a visible zig-zag between them. What
+survives is the corners — which is to say, the doorways.
+
+#### Two wrong turns worth recording
+
+**I wrote a partial-route fallback and it was worse than nothing.** The idea was that when the node
+budget runs out, the best progress so far beats no answer. It does not, for a reason specific to
+this problem: **in open sky the search never exhausts** — there is always more air to expand into —
+so the budget ALWAYS runs out and the partial ALWAYS fired, including when the destination was
+sealed and there was no route at all. Worse, a partial reads to the caller as a real route, which
+switches off the straight-line fallback that might actually have got there. Empty now means "I could
+not find a way", the autopilot says so once and flies direct: a worse route honestly labelled rather
+than a wrong one confidently followed.
+
+**And two of my tests were wrong, not the code.** They built a finite WALL in open sky and asserted
+no route existed — the router simply flew over the top of it, correctly. A wall in the open is not
+sealed. They build a closed six-sided room now, with the door-and-no-door pair as controls.
+
 ## Build & test
 
 ```bash
