@@ -228,6 +228,46 @@ final class Work {
 	}
 
 	/**
+	 * A cell you cannot get AT: every one of its six neighbours is solid.
+	 *
+	 * <p>The scaffold check asks whether there is a face to click. This asks the opposite question
+	 * and it is just as fatal: a cell buried inside a solid mass has plenty to place against and no
+	 * way to reach it. You cannot put a block inside a sealed volume, and a plan that sends you to
+	 * stand in front of one is a plan that wastes the trip.
+	 *
+	 * <p>Together the two bracket what "buildable right now" means — at least one solid neighbour
+	 * to place against, at least one open one to reach through. A cell with six of either is not
+	 * work you can do this trip.
+	 *
+	 * <p>Cells of the same design placed EARLIER do not count as openings: they will be solid by
+	 * the time you get there, which is the same reason they DO count for scaffolding.
+	 */
+	static boolean enclosed(Solid solid, Cell c, Set<Long> earlier) {
+		BlockPos p = c.pos();
+		for (net.minecraft.core.Direction d : net.minecraft.core.Direction.values()) {
+			BlockPos n = p.relative(d);
+			if (earlier.contains(n.asLong())) continue;      // will be filled before you arrive
+			if (!solid.at(n)) return false;                  // an opening: you can reach in
+		}
+		return true;
+	}
+
+	/** Cells of `todo` that are sealed inside solid world, in build order. */
+	static List<Cell> unreachable(Level level, List<Cell> todo) {
+		return unreachable(solidIn(level), todo);
+	}
+
+	static List<Cell> unreachable(Solid solid, List<Cell> todo) {
+		Set<Long> earlier = new java.util.HashSet<>();
+		List<Cell> out = new ArrayList<>();
+		for (Cell c : todo) {
+			if (enclosed(solid, c, earlier)) out.add(c);
+			earlier.add(c.pos().asLong());
+		}
+		return out;
+	}
+
+	/**
 	 * Every cell of `todo` that has nothing to place against, in build order.
 	 *
 	 * <p>The Python side has `floating` and answers the same question against a capture. This

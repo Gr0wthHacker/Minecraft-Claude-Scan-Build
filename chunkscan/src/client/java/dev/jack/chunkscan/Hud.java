@@ -111,8 +111,12 @@ final class Hud {
 		}
 		java.util.Set<Long> blocked = new java.util.HashSet<>();
 		for (Work.Cell c : Work.floating(mc.level, sp.todo())) blocked.add(c.pos().asLong());
+		// ...and the opposite failure: cells sealed inside solid world, which have plenty to place
+		// against and no way to reach them. `follow` must not walk you to either.
+		java.util.Set<Long> sealed = new java.util.HashSet<>();
+		for (Work.Cell c : Work.unreachable(mc.level, sp.todo())) sealed.add(c.pos().asLong());
 		java.util.List<Plan.Cluster> cl =
-			Plan.clusters(sp.todo(), Work.carrying(mc.player), blocked, me);
+			Plan.clusters(sp.todo(), Work.carrying(mc.player), blocked, sealed, me);
 		spotsLeft = cl.size();
 		if (cl.isEmpty()) {
 			// Not "no work left" - no work you can do with what you are holding. Different problem,

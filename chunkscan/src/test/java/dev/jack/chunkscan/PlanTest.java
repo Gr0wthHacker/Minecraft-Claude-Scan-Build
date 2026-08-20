@@ -102,16 +102,112 @@ class PlanTest {
 	}
 
 	@Test
-	void everyClusterFitsWithinOneWorkingRadius() {
-		// The whole promise is "stand here and place these without moving".
+	void aClusterIsSizedToTheInventoryNotToArmsLength() {
+		// A TRIP IS BOUNDED BY WHAT YOU CARRY. The first version sized every spot at one standing
+		// radius, which on a 30,000-cell design is a plan made of five hundred trips - it was
+		// reasoning about WALKING, and Jack flies.
+		assertEquals(Plan.MIN_RADIUS, Plan.radiusFor(16), "nearly empty: stay at arm's length");
+		assertTrue(Plan.radiusFor(1728) > Plan.MIN_RADIUS, "a shulker should open the spot out");
+		assertTrue(Plan.radiusFor(13824) > Plan.radiusFor(1728), "six shulkers, wider still");
+		assertEquals(Plan.MAX_RADIUS, Plan.radiusFor(1000000), "capped: past this it is the island");
+		int last = 0;
+		for (int b : new int[]{1, 64, 512, 4096, 32768, 262144}) {
+			int r = Plan.radiusFor(b);
+			assertTrue(r >= last, "radius went backwards at budget " + b);
+			last = r;
+		}
+	}
+
+	@Test
+	void everyCellIsWithinTheRadiusThatTripWasSizedTo() {
+		// Whatever the radius turns out to be, the cluster must not exceed it - otherwise "one
+		// trip" is a claim rather than a property.
 		List<Work.Cell> todo = new ArrayList<>(blob(0, 100, 0, 25, "stone_bricks"));
 		todo.addAll(blob(50, 100, 50, 25, "stone_bricks"));
-		for (Plan.Cluster c : Plan.clusters(todo, carrying("stone_bricks", 640), Set.of(), BlockPos.ZERO)) {
+		Map<String, Integer> carry = carrying("stone_bricks", 640);
+		int r = Plan.radiusFor(Plan.budget(todo, carry));
+		for (Plan.Cluster c : Plan.clusters(todo, carry, Set.of(), BlockPos.ZERO)) {
 			for (Work.Cell x : c.cells()) {
-				assertTrue(x.pos().distSqr(c.centre()) <= (double) Plan.WORK_RADIUS * Plan.WORK_RADIUS,
-					x.pos() + " is outside reach of " + c.centre());
+				assertTrue(x.pos().distSqr(c.centre()) <= (double) r * r,
+					x.pos() + " is outside the " + r + "-block trip around " + c.centre());
 			}
 		}
+	}
+
+	@Test
+	void budgetIsCappedByWhatTheDesignActuallyNeeds() {
+		// 3,000 cobblestone does not help a design that wants forty of it, and letting it inflate
+		// the budget would open the radius to the whole island for no reason.
+		List<Work.Cell> todo = blob(0, 100, 0, 40, "stone_bricks");
+		assertEquals(40, Plan.budget(todo, carrying("stone_bricks", 3000)));
+		assertEquals(7, Plan.budget(todo, carrying("stone_bricks", 7)));
+		assertEquals(0, Plan.budget(todo, carrying("deepslate_bricks", 3000)));
+	}
+
+	// ---------------------------------------------------------------- sealed in
+
+	@Test
+	void aCellSealedInSolidWorldIsNotWork() {
+		// The opposite failure to scaffolding and just as fatal: plenty to place against, no way to
+		// reach it. You cannot put a block inside a sealed volume.
+		Work.Solid allSolid = p -> true;
+		assertTrue(Work.enclosed(allSolid, cell(0, 100, 0, "stone_bricks"), Set.of()));
+		Work.Solid oneGap = p -> !(p.getX() == 1 && p.getY() == 100 && p.getZ() == 0);
+		assertFalse(Work.enclosed(oneGap, cell(0, 100, 0, "stone_bricks"), Set.of()),
+			"one opening is enough to reach in");
+	}
+
+	@Test
+	void anEarlierCellOfTheSameDesignIsNotAnOpening() {
+		// It will be solid by the time you get there - the same reason it DOES count as something
+		// to place against.
+		Work.Solid oneGap = p -> !(p.getX() == 1 && p.getY() == 100 && p.getZ() == 0);
+		Set<Long> earlier = Set.of(new BlockPos(1, 100, 0).asLong());
+		assertTrue(Work.enclosed(oneGap, cell(0, 100, 0, "stone_bricks"), earlier));
+	}
+
+	@Test
+	void sealedCellsAreSubtractedFromDoable() {
+		List<Work.Cell> todo = blob(0, 100, 0, 20, "stone_bricks");
+		Set<Long> sealed = new HashSet<>();
+		for (int i = 0; i < 6; i++) sealed.add(todo.get(i).pos().asLong());
+		List<Plan.Cluster> cl = Plan.clusters(todo, carrying("stone_bricks", 640),
+			Set.of(), sealed, BlockPos.ZERO);
+		assertEquals(6, cl.get(0).sealed());
+		assertEquals(14, cl.get(0).doable());
+	}
+
+	@Test
+	void aCellIsNeverCountedAsBothBlockedAndSealed() {
+		// They are contradictory - six solid neighbours and six open ones - but a caller could pass
+		// overlapping sets, and double-subtracting would make doable() lie low.
+		List<Work.Cell> todo = blob(0, 100, 0, 10, "stone_bricks");
+		Set<Long> both = new HashSet<>();
+		for (int i = 0; i < 4; i++) both.add(todo.get(i).pos().asLong());
+		List<Plan.Cluster> cl = Plan.clusters(todo, carrying("stone_bricks", 640), both, both, BlockPos.ZERO);
+		assertEquals(4, cl.get(0).blocked() + cl.get(0).sealed());
+		assertEquals(6, cl.get(0).doable());
+	}
+
+	// ---------------------------------------------------------------- the index forgets
+
+	@Test
+	void anUnloadedChunkIsNotEvidenceTheChestIsGone() {
+		// Getting this backwards deletes the whole index the first time you prune from across the
+		// island. null = nothing to look at = leave it alone.
+		assertTrue(Storage.stillThere((String) null));
+	}
+
+	@Test
+	void aChestThatIsNowStoneIsGone() {
+		// 179 of 339 indexed containers no longer existed: 63 positions now air, the rest stone
+		// brick, walls, slabs and moss. The index has no way to learn that by itself, because you
+		// cannot open a chest that has been broken.
+		assertTrue(Storage.stillThere("chest"));
+		assertTrue(Storage.stillThere("barrel"));
+		assertFalse(Storage.stillThere("air"));
+		assertFalse(Storage.stillThere("stone_bricks"));
+		assertFalse(Storage.stillThere("moss_block"));
 	}
 
 	@Test

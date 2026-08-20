@@ -5,6 +5,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.Level;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -62,9 +64,25 @@ final class Storage {
 	 * Reopening the real container re-indexes it in one click.
 	 */
 	static int prune(Path schematicsDir) throws IOException {
+		return prune(schematicsDir, null);
+	}
+
+	/**
+	 * Drop entries that were never containers, and — when a world is given — entries the LOADED
+	 * world disproves. Returns how many went.
+	 *
+	 * <p>Two different wrongs with two different causes. The first is the watcher having filed your
+	 * own inventory against whatever block you last clicked; those were never real. The second is a
+	 * chest you broke, which was real and is not any more, and which nothing could ever have told
+	 * the index about because you cannot open a chest that is gone.
+	 *
+	 * <p>Removed rather than repaired in both cases: the POSITION is the thing that is wrong, and
+	 * there is nothing to repair it to. Reopening the real container re-indexes it in one click.
+	 */
+	static int prune(Path schematicsDir, Level level) throws IOException {
 		Map<String, Container> all = load(schematicsDir);
 		int before = all.size();
-		all.values().removeIf(c -> !stores(c.block));
+		all.values().removeIf(c -> !stores(c.block) || !stillThere(level, c));
 		if (all.size() != before) save(schematicsDir, all);
 		return before - all.size();
 	}
@@ -182,11 +200,58 @@ final class Storage {
 
 	record Hit(Container container, String item, int count, double distance) {}
 
+	/**
+	 * Is this record still true of the world?
+	 *
+	 * <p><b>THE INDEX HAS NO WAY TO FORGET.</b> It is written when you OPEN a container, and you
+	 * cannot open one that has been broken — so every other part of this project regenerates
+	 * against the newest capture and this is the one thing that only ever accumulates. Measured
+	 * against the 16:33 capture: 179 of 339 indexed containers no longer exist, 63 of those
+	 * positions are now air, and the index still claimed 36,088 items inside them.
+	 *
+	 * <p>That was harmless while `/cscan find` was only ever advice. It stopped being harmless when
+	 * `fetch` and `follow` started NAVIGATING to these coordinates.
+	 *
+	 * <p>UNLOADED IS NOT ABSENT. A chunk you cannot see is not evidence that the chest is gone, and
+	 * treating it as such would delete your whole index the first time you ran this from the far
+	 * side of the island. Same rule `Work.split` follows.
+	 */
+	static boolean stillThere(Level level, Container c) {
+		BlockPos p = c.pos();
+		if (level == null || !level.isLoaded(p)) return stillThere((String) null);
+		return stillThere(BuiltInRegistries.BLOCK.getKey(level.getBlockState(p).getBlock()).getPath());
+	}
+
+	/**
+	 * The decision itself, given what is at the position - or NULL when the chunk is not loaded and
+	 * there is nothing to look at.
+	 *
+	 * <p>Split out so it can be tested: a Level cannot be constructed off a client, and the rule
+	 * that unloaded means "leave it alone" is the one worth pinning, because getting it backwards
+	 * deletes the whole index the first time you prune from across the island.
+	 */
+	static boolean stillThere(String blockAtPosition) {
+		if (blockAtPosition == null) return true;
+		return stores(blockAtPosition);
+	}
+
 	/** Containers holding an item whose id or label matches `query` (substring, case-insensitive). */
 	static List<Hit> find(Map<String, Container> all, String query, BlockPos from) {
+		return find(all, query, from, null);
+	}
+
+	/**
+	 * As {@link #find}, skipping records the world has since disproved.
+	 *
+	 * <p>Skipped rather than deleted: this runs on the way to answering a question, and a lookup is
+	 * not the place to throw away someone's data. `/cscan prune` is where that decision is made
+	 * deliberately.
+	 */
+	static List<Hit> find(Map<String, Container> all, String query, BlockPos from, Level level) {
 		String q = query.toLowerCase();
 		List<Hit> hits = new ArrayList<>();
 		for (Container c : all.values()) {
+			if (level != null && !stillThere(level, c)) continue;
 			for (var e : c.items.entrySet()) {
 				if (e.getKey().toLowerCase().contains(q)) {
 					hits.add(new Hit(c, e.getKey(), e.getValue(), Math.sqrt(c.pos().distSqr(from))));
@@ -195,6 +260,13 @@ final class Storage {
 		}
 		hits.sort((a, b) -> Double.compare(a.distance(), b.distance()));
 		return hits;
+	}
+
+	/** How many records the loaded world disproves, without changing anything. */
+	static int stale(Map<String, Container> all, Level level) {
+		int n = 0;
+		for (Container c : all.values()) if (!stillThere(level, c)) n++;
+		return n;
 	}
 
 	/** Compass-ish direction from `from` to `to`, for "walk that way". */

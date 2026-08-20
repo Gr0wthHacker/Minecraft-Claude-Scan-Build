@@ -579,8 +579,10 @@ public final class ChunkScanClient implements ClientModInitializer {
 
 			java.util.Set<Long> blocked = new java.util.HashSet<>();
 			for (Work.Cell c : Work.floating(mc.level, sp.todo())) blocked.add(c.pos().asLong());
+			java.util.Set<Long> sealed = new java.util.HashSet<>();
+			for (Work.Cell c : Work.unreachable(mc.level, sp.todo())) sealed.add(c.pos().asLong());
 
-			List<Plan.Cluster> cl = Plan.clusters(sp.todo(), carrying, blocked, me);
+			List<Plan.Cluster> cl = Plan.clusters(sp.todo(), carrying, blocked, sealed, me);
 			lastPlan = cl;
 			lastPlanDesign = sp.name();
 			if (cl.isEmpty()) {
@@ -597,11 +599,13 @@ public final class ChunkScanClient implements ClientModInitializer {
 				Plan.Cluster c = cl.get(i);
 				int d = (int) Math.sqrt(c.centre().distSqr(me));
 				StringBuilder b = new StringBuilder();
-				b.append("  ").append(i + 1).append(") ").append(c.doable()).append(" cells at ")
+				b.append("  ").append(i + 1).append(") ").append(c.doable())
+					.append(" cells across ").append(Plan.extent(c)).append(" blocks, at ")
 					.append(Wand.fmt(c.centre())).append("  ").append(d).append("m ")
 					.append(Storage.direction(me, c.centre())).append(Hud.climb(me, c.centre()));
 				if (c.shortBy() > 0) b.append("  (").append(c.shortBy()).append(" short of stock)");
 				if (c.blocked() > 0) b.append("  (").append(c.blocked()).append(" need scaffolding)");
+				if (c.sealed() > 0) b.append("  (").append(c.sealed()).append(" walled in)");
 				ok(src, b.toString());
 				ok(src, "       " + Plan.materialLine(c, carrying));
 				// A shortfall with no address is half an answer, and the index already knows.
@@ -640,7 +644,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 			// What is missing for the WHOLE remaining design, not just one spot: this is the trip you
 			// make before you start, so the answer wants to cover the session.
 			Map<String, Integer> want = Work.tally(sp.todo());
-			Plan.Cluster all = new Plan.Cluster(me, sp.todo(), want, 0, 0);
+			// A synthetic cluster standing for the WHOLE remaining design:  costs the
+			// session, not one spot, so no gate applies and every count is zero.
+			Plan.Cluster all = new Plan.Cluster(me, sp.todo(), want, 0, 0, 0);
 			List<Plan.Restock> need = Plan.restockTargets(all, carrying, index, me);
 			if (need.isEmpty()) {
 				ok(src, "you are carrying everything " + sp.name() + " still needs");
@@ -725,7 +731,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 					if (sp.todo().isEmpty()) { complete++; continue; }
 					java.util.Set<Long> blocked = new java.util.HashSet<>();
 					for (Work.Cell c : Work.floating(mc.level, sp.todo())) blocked.add(c.pos().asLong());
-					List<Plan.Cluster> cl = Plan.clusters(sp.todo(), carrying, blocked, me);
+					java.util.Set<Long> sealed = new java.util.HashSet<>();
+					for (Work.Cell c : Work.unreachable(mc.level, sp.todo())) sealed.add(c.pos().asLong());
+					List<Plan.Cluster> cl = Plan.clusters(sp.todo(), carrying, blocked, sealed, me);
 					if (!cl.isEmpty()) best.add(new Best(sp.name(), cl.get(0), sp.todo().size()));
 				} catch (Exception e) {
 					unreadable++;              // no work.json yet: not an error worth stopping for
@@ -1021,9 +1029,13 @@ public final class ChunkScanClient implements ClientModInitializer {
 	private static int prune(CommandContext<FabricClientCommandSource> ctx) {
 		FabricClientCommandSource src = ctx.getSource();
 		try {
-			int gone = Storage.prune(dir(src));
-			ok(src, gone == 0 ? "storage index is clean"
-				: "dropped " + gone + " entries that were not containers — reopen those chests to re-index them");
+			Minecraft mc = src.getClient();
+			int gone = Storage.prune(dir(src), mc.level);
+			ok(src, gone == 0 ? "storage index is clean in every loaded chunk"
+				: "dropped " + gone + " entries — either never a container, or the chest is gone."
+					+ " Reopen a container to re-index it.");
+			ok(src, "  only LOADED chunks were checked: an unloaded one is not evidence the chest"
+				+ " went. Fly the island and run it again to catch the rest.");
 			return 1;
 		} catch (Exception e) {
 			src.sendError(Component.literal("[cscan] " + e.getMessage()));
@@ -1107,7 +1119,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 					continue;
 				}
 				int shortBy = want - onMe;
-				List<Storage.Hit> hits = Storage.find(all, e.getKey(), me);
+				List<Storage.Hit> hits = Storage.find(all, e.getKey(), me, mc.level);
 				String where = " - not in any indexed chest";
 				if (!hits.isEmpty()) {
 					Storage.Hit h = hits.get(0);

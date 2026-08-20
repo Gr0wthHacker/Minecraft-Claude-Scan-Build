@@ -1603,6 +1603,74 @@ different questions, and only the second has an answer that fits on a HUD.
 different answers and `place` branches on which — collapsing them would make a fresh checkout
 silently place all 61 rather than complain. Both cases are asserted, on both sides.
 
+### The storage index had no way to forget (2026-08-20)
+
+Jack: *"the updating of storage isnt accurate, its saying blocks are active that arent"*. Measured
+against the 16:33 capture, against 339 indexed containers:
+
+| | |
+|---|---|
+| still a container in world | 108 |
+| **no container there any more** | **179** |
+| …of which the position is now air | 63 |
+| …now stone brick, wall, slab, moss | the rest |
+| items claimed in containers that do not exist | **36,088** |
+
+**The index is written when you OPEN a container, and you cannot open one that has been broken.**
+Every other part of this project regenerates against the newest capture — designs are
+remaining-work, `progress` diffs against the world — and this is the one thing that only ever
+accumulates. Two causes with two different shapes: the watcher's old sign/inventory bug filed
+records that were never real, and the chest move broke chests that were.
+
+It was harmless while `/cscan find` was advice. It stopped being harmless the moment `fetch` and
+`follow` started NAVIGATING to those coordinates.
+
+- `Storage.stillThere` checks a record against the live world, and `find` skips what the world
+  disproves rather than deleting it — a lookup is not the place to throw away someone's data.
+- `/cscan prune` is where that decision is made deliberately, and now drops both kinds.
+- **UNLOADED IS NOT ABSENT.** A chunk you cannot see is not evidence the chest went, and treating
+  it as such would delete the whole index the first time you pruned from across the island. So
+  `prune` says how much it checked, and asks you to fly the island and run it again.
+
+### `follow` was sending you to places you cannot build (2026-08-20)
+
+Two more gates, and they are opposite failures:
+
+- **`scaffold`** — nothing to place against. Already there.
+- **`sealed`** — no way to REACH it: every one of the six neighbours is solid. A cell buried in a
+  mass has plenty to place against and no way in, and you cannot put a block inside a sealed volume.
+
+Together they bracket what "buildable right now" means: at least one solid neighbour to click, at
+least one open one to reach through. Six of either and it is not this trip's work. A cell of the
+same design placed EARLIER counts as neither an opening nor a hole — it will be solid when you get
+there, which is the same reason it already counted for scaffolding.
+
+### A TRIP IS BOUNDED BY WHAT YOU CARRY, NOT BY YOUR REACH (2026-08-20)
+
+Jack: *"a 30k block project shouldnt doing follow by 64 blocks"*. He is right and the first version
+was reasoning about WALKING — every spot sized at one standing radius, which on a thirty-thousand
+cell design is a plan made of five hundred trips.
+
+**With flight, moving forty blocks inside a region costs nothing and flying back to a chest costs
+the session.** So the unit is one INVENTORY LOAD: the radius grows until the spot holds about as
+many cells as you are carrying blocks for.
+
+| carrying | radius |
+|---|---|
+| 16 | 6 — arm's length, as before |
+| 64 | 12 |
+| 1,728 (a shulker) | 24 |
+| 13,824 (six) | 48 |
+| 30,000 | 96 — capped |
+
+Two details that keep it honest: the **budget is capped by what the design NEEDS**, so 3,000
+cobblestone does not open the radius for a design wanting forty of it; and the **bin size grows with
+the radius**, or the seeds are found at the wrong grain and the clusters come out as fragments of
+the region they should be.
+
+`MAX_RADIUS` is 96 because past that it is not a trip, it is the island — a "spot" you cannot see
+the far side of is a compass bearing to a region, not guidance.
+
 ## Build & test
 
 ```bash

@@ -31,24 +31,75 @@ import java.util.Set;
  * </ul>
  */
 final class Plan {
-	/** About what you can place from one spot without walking. */
-	static final int WORK_RADIUS = 6;
+	/**
+	 * The smallest a spot ever gets: about what you can place without moving your feet.
+	 *
+	 * <p>Only reached when you are nearly out of blocks. See {@link #radiusFor}.
+	 */
+	static final int MIN_RADIUS = 6;
+	/**
+	 * The largest. Past this it is not a trip, it is the island — and a "spot" you cannot see the
+	 * far side of is not guidance, it is a compass bearing to a region.
+	 */
+	static final int MAX_RADIUS = 96;
+	/** Kept for callers that just want the old reach figure. */
+	static final int WORK_RADIUS = MIN_RADIUS;
 	/** More than this and the report is a list to read rather than a plan to follow. */
 	static final int MAX_CLUSTERS = 6;
 
 	record Cluster(BlockPos centre, List<Work.Cell> cells, Map<String, Integer> materials,
-	               int blocked, int shortBy) {
+	               int blocked, int sealed, int shortBy) {
 		int size() {
 			return cells.size();
 		}
 
-		/** Cells you can actually place: not scaffold-blocked, and covered by stock. */
+		/**
+		 * Cells you can actually place standing there: covered by stock, with something to place
+		 * against, and reachable.
+		 *
+		 * <p>`blocked` and `sealed` are the two ways the surrounding blocks can say no, and they are
+		 * opposite failures — nothing to click, and no way in. Counting either as work sends you to
+		 * stand in front of something you cannot build.
+		 */
 		int doable() {
-			return Math.max(0, cells.size() - blocked - shortBy);
+			return Math.max(0, cells.size() - blocked - sealed - shortBy);
 		}
 	}
 
 	private Plan() {}
+
+	/**
+	 * How many cells your inventory can actually cover.
+	 *
+	 * <p>Summed per material and capped by what is NEEDED, because 3,000 cobblestone does not help
+	 * a design that wants forty of it.
+	 */
+	static int budget(List<Work.Cell> mine, Map<String, Integer> carrying) {
+		Map<String, Integer> want = new LinkedHashMap<>();
+		for (Work.Cell c : mine) want.merge(c.item(), 1, Integer::sum);
+		int n = 0;
+		for (var e : want.entrySet()) n += Math.min(carrying.getOrDefault(e.getKey(), 0), e.getValue());
+		return n;
+	}
+
+	/**
+	 * A TRIP IS BOUNDED BY WHAT YOU CARRY, NOT BY YOUR REACH.
+	 *
+	 * <p>The first version of this sized every spot at one standing radius, and on a thirty-thousand
+	 * cell design that is a plan made of five hundred trips. It was reasoning about WALKING. With
+	 * flight, moving forty blocks inside a region costs nothing and flying back to a chest costs the
+	 * session, so the unit that matters is one inventory load: the radius grows until the spot holds
+	 * about as many cells as you are carrying blocks for.
+	 *
+	 * <p>Carrying 64 bricks it stays at {@link #MIN_RADIUS} and behaves as before. Carrying six
+	 * shulkers it opens out until the trip is worth making.
+	 */
+	static int radiusFor(int budget) {
+		int r = MIN_RADIUS;
+		// cells scale with the cube of the radius, so double it rather than creeping
+		while (r < MAX_RADIUS && (long) r * r * r < (long) budget * 4) r *= 2;
+		return Math.min(r, MAX_RADIUS);
+	}
 
 	/**
 	 * Rank the places worth walking to.
@@ -58,6 +109,16 @@ final class Plan {
 	 */
 	static List<Cluster> clusters(List<Work.Cell> todo, Map<String, Integer> carrying,
 	                              java.util.Set<Long> blockedCells, BlockPos from) {
+		return clusters(todo, carrying, blockedCells, java.util.Set.of(), from);
+	}
+
+	/**
+	 * @param blockedCells cells with nothing to place against
+	 * @param sealedCells  cells with no way to reach them
+	 */
+	static List<Cluster> clusters(List<Work.Cell> todo, Map<String, Integer> carrying,
+	                              java.util.Set<Long> blockedCells, java.util.Set<Long> sealedCells,
+	                              BlockPos from) {
 		// Only cells whose material is on you. Everything else is `need`'s problem, not this one.
 		List<Work.Cell> mine = new ArrayList<>();
 		for (Work.Cell c : todo) {
@@ -67,11 +128,12 @@ final class Plan {
 
 		// Bin at the working radius to find dense spots cheaply - an all-pairs density scan over a
 		// few thousand cells is not worth the wait for a number this coarse.
+		int bin = Math.max(MIN_RADIUS, radiusFor(budget(mine, carrying)));
 		Map<Long, List<Work.Cell>> bins = new LinkedHashMap<>();
 		for (Work.Cell c : mine) {
-			long key = BlockPos.asLong(Math.floorDiv(c.pos().getX(), WORK_RADIUS),
-				Math.floorDiv(c.pos().getY(), WORK_RADIUS),
-				Math.floorDiv(c.pos().getZ(), WORK_RADIUS));
+			long key = BlockPos.asLong(Math.floorDiv(c.pos().getX(), bin),
+				Math.floorDiv(c.pos().getY(), bin),
+				Math.floorDiv(c.pos().getZ(), bin));
 			bins.computeIfAbsent(key, k -> new ArrayList<>()).add(c);
 		}
 		List<List<Work.Cell>> seeds = new ArrayList<>(bins.values());
@@ -82,7 +144,9 @@ final class Plan {
 		Map<String, Integer> stock = new LinkedHashMap<>(carrying);
 		java.util.Set<Long> taken = new java.util.HashSet<>();
 		List<Cluster> out = new ArrayList<>();
-		long r2 = (long) WORK_RADIUS * WORK_RADIUS;
+		// Sized to the inventory, not to arm's length. One trip, not one standing spot.
+		int radius = radiusFor(budget(mine, carrying));
+		long r2 = (long) radius * radius;
 
 		for (List<Work.Cell> seed : seeds) {
 			if (out.size() >= MAX_CLUSTERS) break;
@@ -107,9 +171,13 @@ final class Plan {
 				stock.put(e.getKey(), have - use);
 				shortBy += e.getValue() - use;
 			}
-			int blocked = 0;
-			for (Work.Cell c : group) if (blockedCells.contains(c.pos().asLong())) blocked++;
-			out.add(new Cluster(centre, group, want, blocked, shortBy));
+			int blocked = 0, sealed = 0;
+			for (Work.Cell c : group) {
+				long k = c.pos().asLong();
+				if (blockedCells.contains(k)) blocked++;
+				else if (sealedCells.contains(k)) sealed++;   // one reason each, never counted twice
+			}
+			out.add(new Cluster(centre, group, want, blocked, sealed, shortBy));
 		}
 		// Report by what you can actually DO there, not by how many cells happen to be nearby.
 		out.sort(Comparator.<Cluster>comparingInt(Cluster::doable).reversed()
@@ -187,6 +255,13 @@ final class Plan {
 			if (r.where() != null) return r;
 		}
 		return null;
+	}
+
+	/** How far the cluster reaches from its centre, so "1,850 cells" has a size attached. */
+	static int extent(Cluster c) {
+		double worst = 0;
+		for (Work.Cell x : c.cells()) worst = Math.max(worst, x.pos().distSqr(c.centre()));
+		return (int) Math.ceil(Math.sqrt(worst));
 	}
 
 	/** The two or three materials a cluster needs, commonest first, for one line of chat. */
