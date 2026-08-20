@@ -94,14 +94,45 @@ def test_the_flight_drops_one_course_per_tread_and_reaches_the_floor():
 
 def test_the_balustrade_leaves_a_way_in():
     """A rail all the way round is a pit cover. There has to be a mouth, and it has to be at the
-    neck, which is the only side the flight arrives from."""
+    neck, which is the only side the flight arrives from.
+
+    Counted off the design's own tally, NOT by counting stone_brick_wall: the handrail down the
+    flight is the same block, and once it existed the two were being added together."""
     c = _build()
-    walls = [pos for pos, (n, _) in _states(c).items() if n == "stone_brick_wall"]
-    assert walls, "no balustrade"
-    m = c.to_model()
-    # the ring is one cell outside the well; the mouth is the gap in it
-    ring_len = 2 * ((CFG["well"][2] - CFG["well"][0] + 3) + (CFG["well"][3] - CFG["well"][1] + 3)) - 4
-    assert len(walls) < ring_len - CFG["mouth_w"] + 1, "the rail closes the entrance off"
+    ring = 2 * ((CFG["well"][2] - CFG["well"][0] + 3) + (CFG["well"][3] - CFG["well"][1] + 3)) - 4
+    bal = c.meta["balustrade"]
+    assert bal > 0, "no balustrade"
+    assert bal <= ring - CFG["mouth_w"], f"balustrade {bal} of ring {ring} closes the entrance off"
+
+
+def test_the_room_uses_its_HEIGHT():
+    """The first build was a three-course railing in a six-course room: the ceiling is seven
+    courses above the deck floor and made of raw cobblestone, and none of that volume was used.
+    An entrance is a room, and a room is defined by what is overhead as much as underfoot."""
+    c = _build()
+    for part in ("column", "cornice", "arch", "ceiling", "chandelier"):
+        assert c.meta[part] > 0, f"the {part} was not built"
+    assert c.meta["ceiling"] > 100, "the soffit is not a plane"
+
+
+def test_the_handrail_is_carried_on_a_cheek():
+    """A rail post sits one course down and one step along from the last, so a bare row of them is
+    a diagonal ladder - and diagonals are not 6-connected, so all four came away as loose blocks.
+    A stone stair has a solid cheek under its rail."""
+    c = _build()
+    assert c.meta["handrail"] > 0 and c.meta["cheek"] >= c.meta["handrail"],         "the rail has nothing under it"
+
+
+def test_it_is_one_connected_piece():
+    """It hangs off the deck, but the design still has to hold together on its own where it can -
+    the loose lanterns, the diagonal rail and the lone coffer panels each showed up here first."""
+    import numpy as np
+    from mcbuild import morph
+    c = _build()
+    r = morph.components(c.to_model().ids > 0, conn=6)
+    lab = r[0] if isinstance(r, (list, tuple)) else r
+    sizes = np.bincount(lab.ravel())[1:]
+    assert (sizes > 0).sum() == 1, f"{(sizes > 0).sum()} pieces: {sorted(sizes[sizes > 0])[-4:]}"
 
 
 def test_it_never_writes_over_anything_it_does_not_own():

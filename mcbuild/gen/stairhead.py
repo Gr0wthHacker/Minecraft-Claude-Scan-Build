@@ -56,6 +56,17 @@ STAIRHEAD = {
     "apron": 2,                # cells of paving worked around the well's lip
     "mouth_w": 3,              # width of the gap left in the balustrade to walk in
 
+    # ---- the upgrade. The first build was a 3-course railing in a 6-course room: the ceiling is
+    # SEVEN courses above the deck floor and made of raw cobblestone, and none of that volume was
+    # used. An entrance is a ROOM, and a room is defined by what is overhead as much as underfoot.
+    "columns": True,           # corner piers carried the full height, with base and capital
+    "cornice": True,           # an oversailing course at the head of the wall
+    "arch": True,              # a portal over the mouth, so the way down is a DOOR
+    "ceiling": True,           # coffered panels replacing the raw cobble overhead
+    "chandelier": True,        # one hanging cluster over the well, not four lonely lanterns
+    "handrail": True,          # a rail down the flight, which is what makes it read as a stair
+    "cornice_off": 4,          # courses above the floor the cornice sits at
+
     # the atelier's four greys, so the whole complex reads as one hand
     "pale": "smooth_stone",
     "mid": "stone_bricks",
@@ -113,7 +124,8 @@ def build_stairhead(cfg: dict, donors=None) -> Canvas:
 
     well = {(x, z) for x in range(wx1, wx2 + 1) for z in range(wz1, wz2 + 1)}
     counts = {"apron": 0, "lip": 0, "balustrade": 0, "treads": 0, "landing": 0,
-              "piers": 0, "lamps": 0, "revet": 0}
+              "piers": 0, "lamps": 0, "revet": 0, "column": 0, "cornice": 0, "arch": 0,
+              "ceiling": 0, "chandelier": 0, "handrail": 0, "cheek": 0}
 
     # ---- 1. THE APRON. Paving worked round the lip so the opening sits in something, rather than
     # being a rectangle punched in a field of stone brick. Rings out from the edge, and the tone
@@ -179,10 +191,14 @@ def build_stairhead(cfg: dict, donors=None) -> Canvas:
     # ---- 5. THE BALUSTRADE. A wall on the lip capped with a slab - 1.5 blocks, which is the
     # height that reads as a railing rather than as a kerb - all the way round except the mouth.
     mouth = set()
+    mouth_wide = set()
     mw = int(p["mouth_w"])
     mid_x = (nx1 + nx2) // 2
     for dx in range(-(mw // 2), mw // 2 + 1):
         mouth.add((mid_x + dx, wz1 - 1))
+    for dx in range(-(mw // 2) - 1, mw // 2 + 2):
+        for dz in (wz1 - 1, wz1 - 2):
+            mouth_wide.add((mid_x + dx, dz))
     for x in range(wx1 - 1, wx2 + 2):
         for z in range(wz1 - 1, wz2 + 2):
             if (x, z) in well or (x, z) in mouth:
@@ -213,36 +229,147 @@ def build_stairhead(cfg: dict, donors=None) -> Canvas:
                 if put(cx, fy + 4, cz, p["lamp"], hanging="false", waterlogged="false"):
                     counts["lamps"] += 1
 
-    # ---- 7. HANGING LIGHT. Nothing reaches down here - the undercroft has no daylight at all and
-    # the well is the only thing that will ever light the landing. Lanterns on chains from the
-    # ceiling, hung over the WELL so the light falls down the shaft rather than onto the deck.
-    for fx in (0.28, 0.72):
-        for fz in (0.30, 0.70):
-            x = int(round(wx1 + (wx2 - wx1) * fx))
-            z = int(round(wz1 + (wz2 - wz1) * fz))
-            if (x, z) in shaft:
-                continue
-            # a chain hangs from the block ABOVE it. Find a real ceiling first, or the string
-            # comes away as four floating links - the same failure the bat's perch vines had, and
-            # the audit calls it out as a cluster with nothing to place against.
-            roof = None
-            for yy in range(cy, cy + 5):
-                if ctx is None or ctx.name_at(x, yy, z).split(":")[-1].split("[")[0] not in (
-                        "air", "cave_air", "void_air"):
-                    roof = yy
-                    break
-            if roof is None:
-                continue
-            drop = 3
-            hung = 0
-            for k in range(1, drop + 1):
-                if put(x, roof - k, z, p["chain"], axis="y", waterlogged="false"):
-                    hung += 1
-            if hung == drop and put(x, roof - drop - 1, z, p["lamp"],
-                                    hanging="true", waterlogged="false"):
-                counts["lamps"] += 1
+    # ---- 7. (was four single hanging lanterns.) REMOVED: the soffit's coffer recesses land on
+    # exactly the courses their chains occupied, so each string lost a link and the lantern under
+    # it hung from a top slab, whose underside is not solid. They were four lonely dots anyway -
+    # the chandelier below is what replaced them, and it throws light DOWN the shaft.
+
+    # ---- 7b. THE SOFFIT. It was raw cobblestone and nothing had ever been done to it - but the
+    # first pass coffered it PER COLUMN, following a ceiling that is 6 courses up in some places
+    # and 7 in others, so the panels came out as a patchwork that copied the mess instead of
+    # correcting it. A soffit is a FLAT PLANE. Take the lowest roof over the footprint, lay the
+    # whole ceiling at that one height, and the room finally has a lid.
+    soffit = None
+    if p.get("ceiling"):
+        hs = [r for x in range(wx1 - 2, wx2 + 3) for z in range(wz1 - 2, wz2 + 3)
+              for r in [_roof(ctx, x, z, fy + 3, cy + 8, cy)] if r is not None]
+        if hs:
+            soffit = max(fy + 5, min(hs))
+            for x in range(wx1 - 2, wx2 + 3):
+                for z in range(wz1 - 2, wz2 + 3):
+                    grid = (x - wx1) % 3 == 0 or (z - wz1) % 3 == 0
+                    if put(x, soffit, z, p["lip"] if grid else p["pale"]):
+                        counts["ceiling"] += 1
+                    # the coffer's recess: a lipped slab hung under each panel
+                    if not grid and put(x, soffit - 1, z, p["cap"], type="top",
+                                        waterlogged="false"):
+                        counts["ceiling"] += 1
+
+    # ---- 8. COLUMNS. (after the soffit, so they can reach it) The corner piers ran three courses and stopped in mid-air, which reads as
+    # four bollards. Carried to the ceiling with a base and a capital they become an ORDER, and the
+    # room acquires a height - the single biggest change between "a railed hole" and "a room".
+    if p.get("columns"):
+        for cx in (wx1 - 1, wx2 + 1):
+            for cz in (wz1 - 1, wz2 + 1):
+                roof = soffit if soffit is not None else _roof(ctx, cx, cz, fy + 2, cy + 8, cy)
+                if roof is None:
+                    continue
+                for k in range(fy + 1, roof):
+                    off = k - fy
+                    if off == 1:
+                        blk = p["lip"]                     # base
+                    elif off == int(p["cornice_off"]):
+                        blk = p["medallion"]               # a band where the cornice springs
+                    elif k == roof - 1:
+                        blk = p["lip"]                     # capital
+                    else:
+                        blk = p["mid"]
+                    if put(cx, k, cz, blk):
+                        counts["column"] += 1
+
+    # ---- 9. THE CORNICE. One oversailing course round the head of the wall. A wall that stops
+    # dead is a fence; a wall with a cornice is architecture, and it costs one course.
+    if p.get("cornice"):
+        cyy = fy + int(p["cornice_off"])
+        for x in range(wx1 - 2, wx2 + 3):
+            for z in range(wz1 - 2, wz2 + 3):
+                on = (x in (wx1 - 2, wx2 + 2) or z in (wz1 - 2, wz2 + 2))
+                if not on or (x, z) in mouth_wide:
+                    continue
+                nbr = sum(1 for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                          if (wx1 - 2 <= x + dx <= wx2 + 2 and wz1 - 2 <= z + dz <= wz2 + 2
+                              and (x + dx in (wx1 - 2, wx2 + 2) or z + dz in (wz1 - 2, wz2 + 2))
+                              and (x + dx, z + dz) not in mouth_wide))
+                if nbr == 0:
+                    continue
+                if put(x, cyy, z, p["cap"], type="top", waterlogged="false"):
+                    counts["cornice"] += 1
+
+    # ---- 10. THE ARCH over the mouth. This is what makes the descent a DOOR rather than a gap in
+    # a railing - you pass THROUGH something. Two jambs and a flat-headed arch with the corners
+    # stepped in, which is as close to a curve as a 3-wide opening allows.
+    if p.get("arch"):
+        az = wz1 - 1
+        span = sorted({x for (x, z) in mouth})
+        if span:
+            a0, a1 = span[0] - 1, span[-1] + 1
+            roof = _roof(ctx, (a0 + a1) // 2, az, fy + 2, cy + 6, cy) or (fy + 6)
+            head = min(roof - 1, fy + 5)
+            for x in (a0, a1):                              # the jambs
+                for k in range(fy + 1, head):
+                    if put(x, k, az, p["mid"] if (k - fy) % 3 else p["lip"]):
+                        counts["arch"] += 1
+            for x in range(a0, a1 + 1):                     # the head
+                if put(x, head, az, p["medallion"] if x in (a0, a1) else p["lip"]):
+                    counts["arch"] += 1
+            for x in (a0 + 1, a1 - 1):                      # stepped haunches
+                if put(x, head - 1, az, p["mid"]):
+                    counts["arch"] += 1
+            if put((a0 + a1) // 2, head + 1, az, p["medallion"]):
+                counts["arch"] += 1                         # keystone
+
+    # ---- 12. THE CHANDELIER. Four single lanterns at the corners lit nothing and read as four
+    # dots. One cluster over the middle of the well throws its light DOWN the shaft, which is the
+    # only thing that will ever light the landing.
+    if p.get("chandelier"):
+        mx, mz = (wx1 + wx2) // 2, (wz1 + wz2) // 2
+        roof = soffit if soffit is not None else _roof(ctx, mx, mz, fy + 3, cy + 8, cy)
+        if roof is not None:
+            for k in range(1, 4):
+                put(mx, roof - k, mz, p["chain"], axis="y", waterlogged="false")
+            hub = roof - 4
+            if put(mx, hub, mz, p["medallion"]):
+                counts["chandelier"] += 1
+            for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                # the arms are FULL blocks. A lantern hangs from the block above it and a slab
+                # will not carry one - the first pass hung all four off `type=top` slabs, whose
+                # underside is not solid, and the audit called every one of them "hanging from
+                # air". Four floating single cells, which is exactly what it looked like.
+                if put(mx + dx, hub, mz + dz, p["medallion"]):
+                    counts["chandelier"] += 1
+                if put(mx + dx, hub - 1, mz + dz, p["lamp"],
+                       hanging="true", waterlogged="false"):
+                    counts["lamps"] += 1
+
+    # ---- 13. THE HANDRAIL down the flight. A flight with no rail is a ramp with lines on it.
+    # A rail post sits one course DOWN and one step ALONG from the last, so a bare row of them is
+    # a diagonal ladder - and diagonal cells are not 6-connected, so all four came away as separate
+    # floating blocks. A stone stair has a solid CHEEK under its rail; build that and the rail has
+    # something to stand on, which is both correct and connected.
+    if p.get("handrail") and run:
+        for i, z in enumerate(run):
+            y = fy - i
+            for x in (nx1 - 1, nx2 + 1):
+                for yy in range(uy + 1, y + 1):
+                    if put(x, yy, z, p["mid"]):
+                        counts["cheek"] += 1
+                if put(x, y + 1, z, p["wall"]):
+                    counts["handrail"] += 1
 
     meta = {"kind": "stairhead", "well": [wx1, wz1, wx2, wz2], "neck": [nx1, nz1, nx2, nz2],
             "shaft": [sx1, sz1, sx2, sz2], "floor_y": fy, "under_y": uy, "ceiling_y": cy,
             "stair_facing": "north", "descends": "south", **counts}
     return w.canvas(meta)
+
+def _roof(ctx, x, z, y_from, y_to, fallback=None):
+    """The first solid course above `y_from` - what a chain or a coffer actually hangs on.
+
+    With no capture there is nothing to read, so it falls back to the DECLARED `ceiling_y`. That
+    is what the parameter is for, and without it a build with no `under` quietly lost its soffit,
+    columns, cornice, arch and chandelier - every part that needs to know where the roof is."""
+    if ctx is None:
+        return fallback
+    for y in range(y_from, y_to):
+        if ctx.name_at(x, y, z).split(":")[-1].split("[")[0] not in ("air", "cave_air", "void_air"):
+            return y
+    return None

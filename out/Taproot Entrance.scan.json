@@ -40,8 +40,15 @@
   "treads": 12,
   "landing": 15,
   "piers": 4,
-  "lamps": 7,
+  "lamps": 8,
   "revet": 78,
+  "column": 14,
+  "cornice": 36,
+  "arch": 14,
+  "ceiling": 193,
+  "chandelier": 5,
+  "handrail": 8,
+  "cheek": 20,
   "file": "Taproot Entrance.litematic",
   "name": "Taproot Entrance"
 }
