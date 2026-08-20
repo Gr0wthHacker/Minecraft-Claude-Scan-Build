@@ -32,6 +32,13 @@ final class Screens {
 		return container;
 	}
 
+	/**
+	 * Any screen at all, including chat and the pause menu.
+	 *
+	 * <p>No callers today, deliberately: {@link Autopilot} used this and stopping for chat is what
+	 * made "I opened chat and the loop parked" a bug. Kept because the distinction is the useful
+	 * part — if you reach for this, check that you do not mean {@link #container()}.
+	 */
 	static boolean anyOpen() {
 		return any;
 	}

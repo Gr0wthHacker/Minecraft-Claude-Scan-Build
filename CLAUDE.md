@@ -1942,7 +1942,7 @@ first.
 ## Build & test
 
 ```bash
-python -m pytest -q                                   # 187 tests, keep green
+python -m pytest -q                                   # 298 tests, keep green
 cd chunkscan && ./gradlew build test -q                # writes build/libs/chunkscan-<ver>.jar
 python chunkscan/verify_synthetic.py                   # Java writer vs Python reader, block for block
 ```
@@ -2119,6 +2119,114 @@ is also the only one there is enough of. The order is `deepslate_bricks` - Jack'
 The design comes within **2** of one and shares a column with none - the plinth line is exempt from
 `container_clear` because Jack laid that line himself, past those chests. Move them and the north
 screen has more room.
+
+### One load, one trip: the fetch policy, walking, and the goal that blocked motion (2026-08-20)
+
+Four things Jack asked for after the second real flight, and one bug found on the way that explains
+more of "it gets stuck" than any of them.
+
+#### The loop went shopping while it had work to do
+
+The fetch decision was made **per SPOT**: if the best cluster was short of anything, fetch. So with a
+full pack and hundreds of placeable cells it flew to a chest, took that one spot's shortfall — often
+sixty-four blocks — and flew back. On a design of any size that is a session of commuting.
+
+Two questions now, and the ORDER between them is the whole policy:
+
+1. is there anything at all I can place with what I am carrying? → **build**, and do not fetch
+2. otherwise: something to fetch, and room to put it? → **fetch until the pack is full**
+
+So a trip ends when the PACK is full or the DESIGN is covered, never when one spot's shortfall is
+met, and a fetch only starts when the loop is genuinely out of work — out of stock, or every
+remaining cell blocked or sealed. `Plan.anyDoable` and `Plan.nextFetch` are the two predicates and
+they are pure, so the policy is tested without a client.
+
+Three details the numbers forced:
+
+- **The shortfall is the DESIGN's, not the spot's.** `Plan.fetchTargets` totals every remaining cell;
+  `restockTargets` still answers the per-spot question for the report, which is a different question
+  and keeps its own answer.
+- **How much to take is `min(still wanted, room in the pack, what the chest holds)`.** `Work.room`
+  counts empty slots and the free part of matching stacks over the 36 real slots — armour and offhand
+  would read as 320 blocks of room that does not exist.
+- **No room for the biggest shortfall is not the end of the trip.** A pack full of stone bricks has
+  plenty of space for the deepslate, so `nextFetch` walks the whole list. Judging only the first
+  entry is a trip not taken.
+
+Dead ends are now told apart, because they want different answers: *nothing to place and nothing
+indexed to fetch* sends you to `bom`; *pack full of what you cannot place here* tells you to store
+something. Said once, not every two seconds — a message on a 2-second timer is a reason to turn the
+loop off.
+
+#### `/cscan find` is a substring search, and a fetch was using it
+
+`stone_bricks` matches `mossy_stone_bricks`, `cracked_` and `chiseled_`. The loop flew to whichever
+was nearest, asked for a block that was not in there, took zero, blacklisted a perfectly good chest
+and moved on — **and it looked exactly like the chest being empty**, which is why it survived a
+session of watching. `Storage.findExact` is what a TRIP uses; `find` stays fuzzy because
+`/cscan find wool` is a question about wool in general.
+
+#### THE GOAL BLOCKED MOTION, so the router could never reach it
+
+The one worth remembering. `Nav.route` never checked that the destination cell was passable, and
+**every fetch target is a chest's own cell** — a chest `blocksMotion()`. Every build spot is a
+cluster CENTROID, which lands inside rock about as often as not. The goal was therefore never
+expanded, the search ran to the end of its budget, returned empty, and the caller fell through to
+flying straight at the wall the chest is in. Raising the node budget makes this *slower*, not better.
+
+`GOAL_SLACK` (2) finishes at the nearest passable cell to a solid goal, with a slight bias toward
+staying level so a chest in a wall hands you the cell in front of it rather than the one above it. A
+genuinely buried goal still has no route, and that is asserted separately — the slack is for a chest
+in a wall, not for pretending sealed cells are reachable.
+
+#### The rest of the navigation work
+
+- **`MAX_RANGE` 256 → 512.** The gate is free; what costs is the search, and that is bounded
+  separately.
+- **`MAX_NODES` 40,000 → 120,000**, plus a **25ms wall-clock budget** checked every 256 expansions.
+  The honest limit on the client thread is "how long may I freeze the game", which is a number of
+  milliseconds, not of nodes. The raise is worth much less than it looks — see the next two.
+- **A clear line costs ZERO nodes.** `route` tries `clear()` first and returns the destination as the
+  only waypoint. Across this island's open sky that answers most calls, including most long ones.
+- **A long search that fails is re-tried toward a SUB-GOAL** 128 blocks along the line. A* is cubic in
+  the distance and staging is linear, the route is recomputed twice a second, so staging turns "no
+  route, flying direct" — the thing that flies you into terrain — into real progress and a fresh
+  search from closer in. It is NOT a partial route: it is a shorter search that SUCCEEDS, which is
+  the honest version of the instinct the partial-route rule rejected.
+- **A walking route is a different route.** `Nav.standable` requires footing as well as headroom, with
+  one course of slack under the floor for a step DOWN — without that every route breaks at a stair
+  lip or a doorway sill. `Nav.of` routes through open air thirty blocks above a floor, which is a
+  perfect flight plan and a walk into a hole.
+
+**Two of the Nav tests were pinning the implementation rather than the property**, and the
+line-of-sight shortcut failed them: their doorway was dead ahead, so the straight line went through
+it and there was nothing to search. Moved off-axis, they test the search again — and
+`itDoesNotCutTheCornerOfADoorFrame` had been passing VACUOUSLY over a one-element list.
+
+#### It walks when it cannot fly
+
+Indoors is where routing matters most and where flight is least likely to be on, and the autopilot's
+answer there was to warn once and do nothing — parked in exactly the case it was built for. It walks
+now: horizontal delta only (the vertical belongs to gravity), a jump on horizontal collision or when
+the next waypoint is above you, never mid-air, and the look angle stays level because a walking
+player does not stare at the floor.
+
+#### NO KEY INTERRUPTS IT
+
+`playerIsDriving` handed control back on any movement key. That reads as a safety property and
+behaves as a fault: **an unattended loop is unattended precisely because you are typing in chat or
+looking at another window**, and a key left down through a focus change disarmed an hour of work
+silently. It is gone, `stop()` went with it (no callers — which is the honest shape of the decision),
+and `/cscan stop` is the off switch.
+
+`Screens.anyOpen()` went the same way: it paused the flight for chat, the map and the pause menu.
+Only a **container** pauses it now, because flying off mid-withdrawal half-empties a chest and then
+blacklists it.
+
+Both are pinned by reading the SOURCE, because what is being asserted is the ABSENCE of something and
+there is no state to look at. The first version of those tests failed on the comments EXPLAINING why
+the rule was removed — a check that forbids naming a thing forbids explaining it — so it strips
+comments first, and there is a test that the stripper strips comments and not code.
 
 ## The daily loop
 

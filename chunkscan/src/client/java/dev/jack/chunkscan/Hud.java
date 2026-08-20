@@ -48,6 +48,8 @@ final class Hud {
 	static final long STALL_MS = 90_000;
 	/** Guiding to a container rather than to work. */
 	private static boolean fetching = false;
+	/** A dead end is worth saying once. Every two seconds it is a reason to turn the loop off. */
+	private static boolean said = false;
 	private static int spotsLeft = 0;
 
 	private Hud() {}
@@ -78,8 +80,7 @@ final class Hud {
 				// differently around a wall and you want to know which one you are watching.
 				String why = Autopilot.stalledBecause(mc);
 				String nav = Autopilot.on()
-					? (why != null ? "  [autofly idle: " + why + "]"
-						: Autopilot.waypoints() > 0 ? "  [route " + Autopilot.waypoints() + "]" : "  [direct]")
+					? (why != null ? "  [autofly idle: " + why + "]" : "  [" + Autopilot.mode(mc) + "]")
 					: "";
 				extractor.text(mc.font, arrow + "  " + d + "m" + climb(me, target) + nav + "  " + tail,
 					4, y, colour);
@@ -153,22 +154,61 @@ final class Hud {
 		// against and no way to reach them. `follow` must not walk you to either.
 		java.util.Set<Long> sealed = new java.util.HashSet<>();
 		for (Work.Cell c : Work.unreachable(mc.level, sp.todo())) sealed.add(c.pos().asLong());
-		java.util.List<Plan.Cluster> cl =
-			Plan.clusters(sp.todo(), Work.carrying(mc.player), blocked, sealed, me);
+		Map<String, Integer> carrying = Work.carrying(mc.player);
+		java.util.List<Plan.Cluster> cl = Plan.clusters(sp.todo(), carrying, blocked, sealed, me);
 		spotsLeft = cl.size();
-		if (cl.isEmpty()) {
-			// Not "no work left" - no work you can do with what you are holding. Different problem,
-			// different answer, and saying the wrong one sends you to look at a finished wall.
-			if (target != null) {
-				mc.player.sendSystemMessage(Component.literal("[cscan] nothing left you are carrying"
-					+ " the blocks for — /cscan bom " + sp.name()));
-			}
-			stopGuiding();
-			Highlight.clear("goto");
-			return;
+
+		Map<String, Storage.Container> index;
+		try {
+			index = Storage.load(ScanRunner.schematicsDir(mc));
+		} catch (Exception e) {
+			index = java.util.Map.of();
 		}
+
+		// ---- FILL THE PACK, THEN BUILD UNTIL IT IS DRY.
+		//
+		// This used to be decided per SPOT — if the best cluster was short of anything, go and fetch
+		// it — so the loop went shopping while carrying a full inventory and plenty it could place,
+		// took one spot's worth, and flew back. On a design of any size that is a session of
+		// commuting rather than of building.
+		//
+		// Now there are two questions and the order between them is the whole policy: anything I can
+		// place with what I am holding? Then build. Only when the answer is no does a trip start, and
+		// once started it runs until the pack is FULL or the design is covered — not until one
+		// spot's shortfall is met.
+		boolean canWork = Plan.anyDoable(cl);
+		boolean wasFetching = fetching;
+		if (fetching || !canWork) {
+			// Skip chests in their cooling-off period, or the loop is guided at one it will not open.
+			java.util.List<Plan.Restock> targets = Plan.fetchTargets(sp.todo(), carrying, index, me,
+				Withdraw.coolingOff(System.currentTimeMillis()));
+			Plan.Restock want = Plan.nextFetch(targets, it -> Work.room(mc.player, it));
+			fetching = want != null;
+			if (want != null) {
+				fetchTo(mc, me, want, Work.room(mc.player, want.item()), carrying);
+				return;
+			}
+			if (!canWork) {
+				// Nothing placeable and nothing to fetch are DIFFERENT dead ends and want different
+				// answers: one sends you to the store hall, the other says your pack is full of
+				// something this design has no room left for.
+				if (target != null || !said) {
+					said = true;
+					mc.player.sendSystemMessage(Component.literal(targets.isEmpty()
+						? "[cscan] nothing left you are carrying the blocks for, and nothing indexed"
+							+ " to fetch — /cscan bom " + sp.name()
+						: "[cscan] pack is full of what you cannot place here — store something, or"
+							+ " /cscan bom " + sp.name()));
+				}
+				stopGuiding();
+				Highlight.clear("goto");
+				return;
+			}
+		}
+		said = false;
+
 		// HYSTERESIS: keep the current spot while it still has anything doable.
-		if (!fetching && target != null) {
+		if (target != null) {
 			for (Plan.Cluster c : cl) {
 				if (c.centre().distSqr(target) <= (double) Plan.WORK_RADIUS * Plan.WORK_RADIUS
 					&& c.doable() > 0) {
@@ -178,57 +218,48 @@ final class Hud {
 			}
 		}
 		Plan.Cluster next = cl.get(0);
-		// A spot counts as finished when we leave one BUILD target for another. The earlier version
-		// never incremented at all, so the session report said 0 spots however long it ran.
-		if (target != null && !fetching && !target.equals(next.centre())) spotsDone++;
-
-		// ---- FETCH FIRST. A spot you cannot finish is a spot you will walk to twice, so if the
-		// best one is short of stock and the index knows where the material is, that trip comes
-		// first. Only when nothing is fetchable do we go and do the part we can.
-		Map<String, Integer> carrying = Work.carrying(mc.player);
-		Map<String, Storage.Container> index;
-		try {
-			index = Storage.load(ScanRunner.schematicsDir(mc));
-		} catch (Exception e) {
-			index = java.util.Map.of();
-		}
-		// Skip chests in their cooling-off period, or the loop is guided at one it will not open.
-		Plan.Restock want = Plan.firstFetchable(next, carrying, index, me,
-			Withdraw.coolingOff(System.currentTimeMillis()));
-		if (want != null) {
-			BlockPos at = want.where().pos();
-			// Arrived and still short: you are standing at the chest, so say what to take rather
-			// than repeating where it is.
-			// INSIDE reach, not at the edge of it. This was 25 (5.0 blocks) against Withdraw.REACH
-			// of 4.5, so between 4.5 and 5.0 the withdrawal began, could never fire the use-item,
-			// timed out, and blacklisted a perfectly good chest for a minute.
-			boolean here = at.distSqr(me) <= (Withdraw.REACH - 0.5) * (Withdraw.REACH - 0.5);
-			if (!fetching || target == null || !target.equals(at)) {
-				fetching = true;
-				fetches++;
-				Highlight.show("goto", java.util.List.of(at), 0xFFC000, 900);
-				mc.player.sendSystemMessage(Component.literal("[cscan] fetch first: "
-					+ want.missing() + "x " + want.item() + " from " + want.where().describe()
-					+ " (" + want.available() + " there)"));
-			}
-			guide(at, here ? "take " + want.missing() + "x " + want.item()
-				: want.missing() + "x " + want.item());
-			// ARRIVED AND STILL SHORT: take it. This is the step that closes the loop - without it
-			// `follow` flies you to the chest and waits for a human to shift-click. Only fires once
-			// per trip, because Withdraw.busy() gates it and the next recount sees the fuller pack.
-			if (here && !Withdraw.busy()
-				&& !Withdraw.recentlyFailed(at, System.currentTimeMillis())) {
-				Withdraw.begin(at, want.item(), want.missing() + carrying.getOrDefault(want.item(), 0));
-			}
-			return;
-		}
-
-		fetching = false;
+		// A spot counts as finished when we leave one BUILD target for another — a chest we have just
+		// finished at is not a spot. The earlier version never incremented at all, so the session
+		// report said 0 spots however long it ran.
+		if (target != null && !wasFetching && !target.equals(next.centre())) spotsDone++;
 		if (target != null && target.equals(next.centre())) return;   // already pointing there
 		Highlight.show("goto", Work.positions(next.cells(), 400), 0x40FF60, 900);
 		guide(next.centre(), next.doable() + " here");
 		mc.player.sendSystemMessage(Component.literal("[cscan] next spot: " + next.doable()
 			+ " cells at " + Wand.fmt(next.centre()) + ", " + (cl.size() - 1) + " more after it"));
+	}
+
+	/**
+	 * Go and get one material, and take as much of it as the pack will hold.
+	 *
+	 * <p>The amount is the point. Taking one spot's shortfall is what made a fetch a round trip per
+	 * wall; taking {@link Plan#takeHowMany} of it — the design's whole remaining need, capped by the
+	 * room in the pack and by what the chest is believed to hold — makes it one trip per pack.
+	 */
+	private static void fetchTo(Minecraft mc, BlockPos me, Plan.Restock want, int room,
+	                            Map<String, Integer> carrying) {
+		BlockPos at = want.where().pos();
+		int take = Plan.takeHowMany(want, room);
+		// INSIDE reach, not at the edge of it. This was 25 (5.0 blocks) against Withdraw.REACH of
+		// 4.5, so between 4.5 and 5.0 the withdrawal began, could never fire the use-item, timed
+		// out, and blacklisted a perfectly good chest for a minute.
+		boolean here = at.distSqr(me) <= (Withdraw.REACH - 0.5) * (Withdraw.REACH - 0.5);
+		if (target == null || !target.equals(at)) {
+			fetches++;
+			Highlight.show("goto", java.util.List.of(at), 0xFFC000, 900);
+			mc.player.sendSystemMessage(Component.literal("[cscan] fetch: " + take + "x "
+				+ want.item() + " from " + want.where().describe() + " (" + want.available()
+				+ " there, " + want.missing() + " still wanted, room for " + room + ")"));
+		}
+		// Arrived and still short: you are standing at the chest, so say what to take rather than
+		// repeating where it is.
+		guide(at, (here ? "take " : "") + take + "x " + want.item());
+		// ARRIVED: take it. This is the step that closes the loop — without it `follow` flies you to
+		// the chest and waits for a human to shift-click. It fires once per trip, because
+		// Withdraw.busy() gates it and the next recount sees the fuller pack.
+		if (here && !Withdraw.busy() && !Withdraw.recentlyFailed(at, System.currentTimeMillis())) {
+			Withdraw.begin(at, want.item(), take + carrying.getOrDefault(want.item(), 0));
+		}
 	}
 
 	/**
@@ -316,6 +347,7 @@ final class Hud {
 		spotsDone = 0;
 		fetches = 0;
 		stalls = 0;
+		said = false;
 	}
 
 	/** What the loop has done since `follow` started — the report for a session you were not watching. */

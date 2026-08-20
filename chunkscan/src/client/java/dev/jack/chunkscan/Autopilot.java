@@ -13,8 +13,19 @@ import net.minecraft.world.phys.Vec3;
  * <p><b>This is movement automation on a live server.</b> Most servers' rules treat it as a bot
  * whatever it is for, and smooth constant-velocity flight is the exact signature anticheat looks
  * for. That is a decision about Jack's account rather than about this code, so the code's job is to
- * be conservative and to be trivially interruptible — it is capped well under sprint-fly, it steers
- * rather than teleports, and ANY key you press hands control straight back.
+ * be conservative — capped well under sprint-fly, steering rather than teleporting, and stoppable
+ * in one word.
+ *
+ * <p><b>No key interrupts it.</b> The first version handed control back on any movement key, which
+ * reads as a safety property and behaved as a fault: an unattended loop is unattended precisely
+ * because you are typing in chat or looking at another window, and a key left down through a focus
+ * change disarmed an hour of work silently. `/cscan stop` and `/cscan autofly off` are the off
+ * switch. The one screen that pauses it is a CONTAINER, because flying away mid-withdrawal
+ * half-empties a chest and then blacklists it.
+ *
+ * <p><b>It walks when it cannot fly.</b> Indoors is where the routing matters most and where flight
+ * is least likely to be on, so falling back to "warn and do nothing" left the loop parked in exactly
+ * the case it was built for.
  *
  * <p>It moves by setting delta movement, never by setting position. A position write is a teleport
  * and is both the thing anticheat catches and the thing that rubber-bands you into a wall.
@@ -33,7 +44,6 @@ final class Autopilot {
 	static final float TURN_RATE = 0.18f;
 
 	private static boolean on = false;
-	private static boolean warnedNoFly = false;
 	private static boolean warnedNoRoute = false;
 	private static boolean idleSaid = false;
 	private static boolean announcedArrival = false;
@@ -44,6 +54,8 @@ final class Autopilot {
 	private static java.util.List<BlockPos> path = new java.util.ArrayList<>();
 	private static BlockPos pathTo = null;
 	private static int repathIn = 0;
+	/** Was the current route computed for a walk? A change of stance invalidates it. */
+	private static boolean walkRoute = false;
 	/** Recompute about twice a second: chunks load, doors open, and you drift. */
 	static final int REPATH_TICKS = 10;
 	/**
@@ -55,6 +67,13 @@ final class Autopilot {
 	static final double CORNER_SPEED = 0.10;
 	/** cos of the bend angle below which we treat it as a corner rather than a drift. */
 	static final double CORNER_COS = 0.75;
+	/**
+	 * On foot. Vanilla walking is about 0.13 blocks/tick and sprinting about 0.17, so this is a
+	 * brisk walk and nothing an observer would call impossible.
+	 */
+	static final double WALK_SPEED = 0.15;
+	/** Vanilla jump impulse. Enough for one course, which is every step this island has. */
+	static final double JUMP = 0.42;
 
 	private Autopilot() {}
 
@@ -71,6 +90,7 @@ final class Autopilot {
 		on = false;
 		path = new java.util.ArrayList<>();
 		pathTo = null;
+		walkRoute = false;
 		announcedArrival = false;
 		if (mc != null && mc.player != null) mc.player.setDeltaMovement(Vec3.ZERO);
 	}
@@ -79,22 +99,28 @@ final class Autopilot {
 	static String stalledBecause(Minecraft mc) {
 		if (!on) return null;
 		if (mc.player == null) return null;
-		if (Screens.anyOpen()) return "a screen is open";
+		// A CONTAINER screen, not any screen. Chat, the map and the pause menu do not stop it — see
+		// the note on tick(). Only a chest does, and only because flying away from one mid-withdrawal
+		// is the one case where carrying on is actively wrong.
+		if (Screens.container() != null) return "a container is open";
 		if (Hud.target() == null) return "no destination — use goto or follow";
-		if (!mc.player.getAbilities().flying) return "you are not flying — /fly, then double-tap jump";
 		return null;
+	}
+
+	/** What is carrying you right now, for the HUD: a route, a walk, or a guess. */
+	static String mode(Minecraft mc) {
+		boolean flying = mc.player != null && mc.player.getAbilities().flying;
+		String how = flying ? "route" : "walk";
+		return path.isEmpty() ? (flying ? "direct" : "walk direct") : how + " " + path.size();
 	}
 
 	static void set(boolean v) {
 		// Every warning below is a once-per-arming shot. Without this reset, turning autofly off and
 		// on again after it has already complained gets you silence instead of the reason.
-		warnedNoFly = false;
 		warnedNoRoute = false;
 		idleSaid = false;
 		announcedArrival = false;
 		on = v;
-		warnedNoFly = false;
-		warnedNoRoute = false;
 		path = new java.util.ArrayList<>();
 		pathTo = null;
 		repathIn = 0;
@@ -105,12 +131,6 @@ final class Autopilot {
 		return path.size();
 	}
 
-	/**
-	 * Any manual input cancels.
-	 *
-	 * <p>The one property that makes this safe to leave switched on: you never have to fight it, or
-	 * find the command to turn it off while it flies you into a wall. Touch a key and it is yours.
-	 */
 	/** Armed, but nothing has given us a destination. Explain, once. */
 	private static void idle(Minecraft mc) {
 		if (idleSaid || mc.player == null) return;
@@ -120,17 +140,15 @@ final class Autopilot {
 			+ "is pointing at. Try /cscan goto <x> <y> <z>, or /cscan follow <design>."));
 	}
 
-	private static boolean playerIsDriving(Minecraft mc) {
-		var o = mc.options;
-		return o.keyUp.isDown() || o.keyDown.isDown() || o.keyLeft.isDown() || o.keyRight.isDown()
-			|| o.keyJump.isDown() || o.keyShift.isDown();
-	}
-
 	private static void tick(Minecraft mc) {
 		if (!on) return;
 		LocalPlayer p = mc.player;
 		if (p == null || mc.level == null) return;
-		if (Screens.anyOpen()) return;               // a menu is open; do not fly under it
+		// A CONTAINER screen only. This used to be `Screens.anyOpen()`, which meant opening chat or
+		// alt-tabbing away stopped the loop dead — and the whole point of an unattended loop is that
+		// you are doing something else while it runs. A chest is the one screen worth pausing for,
+		// because flying off mid-withdrawal is how you half-empty a chest and blacklist it.
+		if (Screens.container() != null) return;
 
 		BlockPos target = Hud.target();
 		if (target == null) {
@@ -142,11 +160,11 @@ final class Autopilot {
 		}
 		idleSaid = false;
 
-		if (playerIsDriving(mc)) {
-			stop(mc, "you took over — autofly off");
-			return;
-		}
-
+		// ---- NO KEY STOPS THIS, and that is deliberate. The earlier rule was "any movement key
+		// hands control back", which read as a safety property and behaved as a fault: a key left
+		// down when the window loses focus, or a nudge while reading chat, silently disarmed an
+		// hour-long unattended loop and left it parked. `/cscan stop` and `/cscan autofly off` are
+		// the off switch, they are one word each, and they cannot be pressed by accident.
 		Vec3 me = p.position();
 		Vec3 to = Vec3.atCenterOf(target);
 		double dist = me.distanceTo(to);
@@ -159,25 +177,31 @@ final class Autopilot {
 			return;
 		}
 
-		if (!p.getAbilities().flying) {
-			if (!warnedNoFly) {
-				warnedNoFly = true;
-				p.sendSystemMessage(Component.literal(
-					"[cscan] autofly needs you flying — turn on /fly, then double-tap jump"));
-			}
-			return;                                   // steering a walk is a different problem
-		}
+		// ON FOOT IS NOT A STALL. It used to warn and return here, so any destination reached by
+		// walking — which on this island means anything indoors, where the loop routes you through a
+		// doorway and then has no flight to finish with — simply stopped. It walks instead; see
+		// walk() for the difference that makes to the ROUTE as well as to the steering.
+		boolean flying = p.getAbilities().flying;
 
 		// ---- ROUTE. Recomputed on a timer and whenever the destination moves, because the world
 		// loads in around you and the plan's target changes as you build.
 		if (pathTo != null && !pathTo.equals(target)) announcedArrival = false;
-		if (pathTo == null || !pathTo.equals(target) || --repathIn <= 0) {
-			Nav.Passable free = Nav.of(mc.level);
+		if (pathTo == null || !pathTo.equals(target) || --repathIn <= 0 || walkRoute != flying) {
+			// A WALKING ROUTE IS A DIFFERENT ROUTE. Clearance alone sends you along a line of air
+			// above a floor, which flies beautifully and walks into a hole.
+			Nav.Passable free = flying ? Nav.of(mc.level) : Nav.standable(mc.level);
 			BlockPos here = p.blockPosition();
 			java.util.List<BlockPos> raw = Nav.route(free, here, target);
+			if (raw.isEmpty() && !flying) {
+				// No footing all the way there. The flying route at least has the right doorways in
+				// it, and walking it gets as far as the ground allows rather than nowhere at all.
+				free = Nav.of(mc.level);
+				raw = Nav.route(free, here, target);
+			}
 			path = raw.isEmpty() ? new java.util.ArrayList<>()
 				: new java.util.ArrayList<>(Nav.simplify(free, here, raw));
 			pathTo = target;
+			walkRoute = !flying;
 			// A FAILED SEARCH IS THE EXPENSIVE ONE. When a route exists A* finds it in a few
 			// hundred nodes; when there is none it burns the whole 12,000-node budget, and at
 			// REPATH_TICKS that is millions of block lookups a second on the client thread for as
@@ -197,12 +221,15 @@ final class Autopilot {
 		// ---- aim
 		Vec3 dir = aim.subtract(me).normalize();
 		float wantYaw = (float) Math.toDegrees(Math.atan2(-dir.x, dir.z));
-		float wantPitch = (float) Math.toDegrees(-Math.asin(dir.y));
+		// Level on foot. A walking player does not stare at the floor to walk toward it, and the
+		// look angle is sent to the server.
+		float wantPitch = flying ? (float) Math.toDegrees(-Math.asin(dir.y)) : 0f;
 		p.setYRot(approach(p.getYRot(), wantYaw));
 		p.setXRot(approach(p.getXRot(), wantPitch));
 
 		// ---- go. Slow into the target so the last few blocks are not an overshoot and a wobble.
-		double speed = Math.min(SPEED, dist / 8.0 + 0.05);
+		double cruise = flying ? SPEED : WALK_SPEED;
+		double speed = Math.min(cruise, dist / 8.0 + 0.05);
 
 		// SLOW INTO A BEND. Movement is set directly along `dir`, so the eased turn is cosmetic and
 		// nothing was actually limiting the speed at which it entered a corner. A doorway taken at
@@ -216,23 +243,63 @@ final class Autopilot {
 		double toWaypoint = me.distanceTo(aim);
 		if (toWaypoint < 3.0) speed = Math.min(speed, Math.max(0.06, toWaypoint / 12.0));
 
-		Vec3 step = dir.scale(speed);
-
-		// No route: fly direct and lift over what you meet. Say so once, because "it is routing"
-		// and "it is guessing" behave very differently around a building and you should know which
-		// one is carrying you.
 		if (path.isEmpty()) {
+			// No route: go direct and get over what you meet. Say so once, because "it is routing"
+			// and "it is guessing" behave very differently around a building and you should know
+			// which one is carrying you.
 			if (!warnedNoRoute) {
 				warnedNoRoute = true;
-				p.sendSystemMessage(Component.literal("[cscan] no route found — flying direct."
+				p.sendSystemMessage(Component.literal("[cscan] no route found — going direct."
 					+ " If it is sealed or far, get closer and it will re-route."));
 			}
-			if (blockedAhead(mc, p, dir)) step = new Vec3(step.x, Math.max(step.y, SPEED * 0.8), step.z);
 		} else {
 			warnedNoRoute = false;
 		}
 
-		p.setDeltaMovement(step);
+		if (flying) {
+			Vec3 step = dir.scale(speed);
+			if (path.isEmpty() && blockedAhead(mc, p, dir)) {
+				step = new Vec3(step.x, Math.max(step.y, SPEED * 0.8), step.z);
+			}
+			p.setDeltaMovement(step);
+		} else {
+			walk(p, dir, aim, speed);
+		}
+	}
+
+	/**
+	 * Steer on foot.
+	 *
+	 * <p>Three differences from flying, and all three are the ground:
+	 *
+	 * <ul>
+	 *   <li><b>Only the horizontal is ours.</b> The vertical belongs to gravity, so the existing
+	 *       y velocity is carried through untouched — write a y here and you either hover or you
+	 *       drive yourself into the floor.</li>
+	 *   <li><b>A step up is a JUMP.</b> Collision handles a slab or a stair on its own (that is what
+	 *       the 0.6 step height is), but a full block needs the impulse. Fired on horizontal
+	 *       collision or when the next waypoint is genuinely above you — the first is the honest
+	 *       signal and the second is what gets you onto a stair before you have bumped it.</li>
+	 *   <li><b>Never mid-air.</b> Jumping while already falling does nothing except look wrong to a
+	 *       server, so it is gated on {@code onGround()}.</li>
+	 * </ul>
+	 */
+	private static void walk(LocalPlayer p, Vec3 dir, Vec3 aim, double speed) {
+		Vec3 flat = new Vec3(dir.x, 0, dir.z);
+		if (flat.lengthSqr() < 1.0e-6) {
+			// Straight up or straight down: no heading to walk in. Jump if the way out is upward,
+			// otherwise stand still and let the next repath find a floor route.
+			if (aim.y > p.getY() + 0.5 && p.onGround()) {
+				p.setDeltaMovement(new Vec3(0, JUMP, 0));
+			}
+			return;
+		}
+		flat = flat.normalize();
+		Vec3 v = p.getDeltaMovement();
+		double y = v.y;
+		boolean stepUp = aim.y > p.getY() + 0.6;
+		if (p.onGround() && (p.horizontalCollision || stepUp)) y = JUMP;
+		p.setDeltaMovement(flat.x * speed, y, flat.z * speed);
 	}
 
 	/** True if the two cells directly ahead at body height are not passable. */
@@ -266,11 +333,12 @@ final class Autopilot {
 		}
 	}
 
-	private static void stop(Minecraft mc, String why) {
-		on = false;
-		if (mc.player != null) {
-			mc.player.setDeltaMovement(Vec3.ZERO);
-			mc.player.sendSystemMessage(Component.literal("[cscan] " + why));
-		}
-	}
+	/**
+	 * The only way it turns itself off is being told to.
+	 *
+	 * <p>There was a {@code stop(why)} here that {@code playerIsDriving} called, and removing the
+	 * key rule left it with no callers — which is the honest shape of the decision: nothing the
+	 * player does WHILE playing disarms this any more. {@link #halt} is the off switch and
+	 * `/cscan stop` is the word.
+	 */
 }

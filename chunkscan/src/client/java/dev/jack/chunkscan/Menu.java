@@ -88,7 +88,7 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan check ", "<design>  cells where the world holds something else"));
 		r.add(new Row("/cscan scaffold ", "<design>  cells with nothing to place against"));
 		r.add(new Row("/cscan hud ", "<design>  a progress readout on screen"));
-		r.add(new Row("/cscan autofly on", "fly to the arrow. needs /fly; any key takes over"));
+		r.add(new Row("/cscan autofly on", "fly or walk to the arrow. no key stops it"));
 		r.add(new Row("/cscan stop", "PANIC: cancel withdrawal, flight, follow and highlights"));
 		r.add(new Row("/cscan fetch", "cancel just the fetch and clear the instruction"));
 

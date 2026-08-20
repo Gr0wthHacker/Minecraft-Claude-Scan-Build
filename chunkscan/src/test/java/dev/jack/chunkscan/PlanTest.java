@@ -12,6 +12,8 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -427,5 +429,147 @@ class PlanTest {
 		index.put(only.key(), only);
 		assertEquals(null, Plan.firstFetchable(cl.get(0), carry, index, BlockPos.ZERO,
 			Set.of(only.pos().asLong())));
+	}
+
+	// ---------------------------------------------------------------- the fetch policy
+	//
+	// FILL THE PACK, THEN BUILD UNTIL IT IS DRY. The decision used to be made per SPOT — if the best
+	// cluster was short of anything, go shopping — so the loop fetched with a full inventory and
+	// plenty it could place. These pin the two questions and the order between them.
+
+	@Test
+	void aFullPackWithWorkToDoDoesNotGoShopping() {
+		// The old rule: this cluster wants 40 and is 30 short, so fetch. The new one: you can place
+		// ten right now, so place them. A trip is what you do when you cannot work, not when you
+		// could work faster.
+		List<Work.Cell> todo = blob(0, 100, 0, 40, "stone_bricks");
+		var carry = carrying("stone_bricks", 10);
+		List<Plan.Cluster> cl = Plan.clusters(todo, carry, Set.of(), BlockPos.ZERO);
+		assertTrue(Plan.anyDoable(cl), "ten placeable bricks is work");
+	}
+
+	@Test
+	void carryingNothingIsNotWork() {
+		List<Work.Cell> todo = blob(0, 100, 0, 40, "stone_bricks");
+		assertFalse(Plan.anyDoable(Plan.clusters(todo, carrying(), Set.of(), BlockPos.ZERO)));
+	}
+
+	@Test
+	void cellsYouCannotBuildAreNotWorkEither() {
+		// Carrying the material is not enough: nothing to place against, and no way in, are the two
+		// ways the world says no. Either one and the spot is not a spot.
+		List<Work.Cell> todo = blob(0, 100, 0, 20, "stone_bricks");
+		Set<Long> all = new HashSet<>();
+		for (Work.Cell c : todo) all.add(c.pos().asLong());
+		assertFalse(Plan.anyDoable(
+			Plan.clusters(todo, carrying("stone_bricks", 640), all, Set.of(), BlockPos.ZERO)),
+			"every cell was floating and it still offered the spot");
+		assertFalse(Plan.anyDoable(
+			Plan.clusters(todo, carrying("stone_bricks", 640), Set.of(), all, BlockPos.ZERO)),
+			"every cell was sealed and it still offered the spot");
+	}
+
+	@Test
+	void aTripEndsWhenThePackIsFullOrTheDesignIsCovered() {
+		// The two ways to be done are different and both mean go and build.
+		Storage.Container c = chest(20, 100, 0, "stone_bricks", 500);
+		List<Plan.Restock> some = List.of(new Plan.Restock("stone_bricks", 300, c, 500));
+		assertNotNull(Plan.nextFetch(some, it -> 640), "room to carry more and more to carry");
+		assertNull(Plan.nextFetch(some, it -> 0), "kept shopping with a full pack");
+		assertNull(Plan.nextFetch(List.of(), it -> 640), "kept shopping with nothing to buy");
+	}
+
+	@Test
+	void noRoomForTheBiggestShortfallStillFetchesTheNextOne() {
+		// A pack full of bricks has no space for more bricks and plenty for the deepslate. Judging
+		// only the first entry is a trip not taken and a spot not finished.
+		Storage.Container a = chest(20, 100, 0, "stone_bricks", 500);
+		Storage.Container b = chest(21, 100, 0, "deepslate_bricks", 500);
+		List<Plan.Restock> some = List.of(new Plan.Restock("stone_bricks", 300, a, 500),
+			new Plan.Restock("deepslate_bricks", 40, b, 500));
+		Plan.Restock got = Plan.nextFetch(some, it -> it.equals("stone_bricks") ? 0 : 64);
+		assertNotNull(got);
+		assertEquals("deepslate_bricks", got.item());
+	}
+
+	@Test
+	void aFetchMatchesTheItemExactlyAndNotAsASubstring() {
+		// `find` is a substring search and should be — `/cscan find wool` is a question about wool.
+		// It is the wrong tool for a TRIP: `stone_bricks` matches `mossy_stone_bricks`, so the loop
+		// flew to the mossy chest, took nothing, and blacklisted it. That looked exactly like the
+		// chest being empty.
+		Map<String, Storage.Container> index = new LinkedHashMap<>();
+		Storage.Container mossy = chest(5, 100, 0, "mossy_stone_bricks", 500);
+		Storage.Container plain = chest(60, 100, 0, "stone_bricks", 500);
+		index.put(mossy.key(), mossy);
+		index.put(plain.key(), plain);
+		List<Work.Cell> todo = blob(0, 100, 0, 40, "stone_bricks");
+
+		List<Plan.Restock> t = Plan.fetchTargets(todo, carrying(), index, BlockPos.ZERO, Set.of());
+		assertEquals(1, t.size());
+		assertEquals(plain.pos(), t.get(0).where().pos(),
+			"routed to the nearest chest of a DIFFERENT block");
+	}
+
+	@Test
+	void theFetchIsSizedToTheWholeDesignNotToOneSpot() {
+		// The number that made a fetch a round trip per wall. The design wants 400; the spot in
+		// front of you wants 40. You are carrying nothing, so the trip is for 400.
+		List<Work.Cell> todo = blob(0, 100, 0, 40, "stone_bricks");
+		for (int i = 0; i < 360; i++) todo.add(cell(400 + i % 5, 100, 400 + i / 5, "stone_bricks"));
+		Map<String, Storage.Container> index = new LinkedHashMap<>();
+		Storage.Container c = chest(20, 100, 0, "stone_bricks", 500);
+		index.put(c.key(), c);
+
+		List<Plan.Restock> t = Plan.fetchTargets(todo, carrying(), index, BlockPos.ZERO, Set.of());
+		assertEquals(1, t.size());
+		assertEquals(400, t.get(0).missing(), "asked for one spot's worth rather than the design's");
+	}
+
+	@Test
+	void theAmountTakenIsCappedByTheRoomAndByTheChest() {
+		Storage.Container c = chest(20, 100, 0, "stone_bricks", 128);
+		Plan.Restock want = new Plan.Restock("stone_bricks", 400, c, 128);
+		assertEquals(128, Plan.takeHowMany(want, 640), "took more than the chest holds");
+		assertEquals(64, Plan.takeHowMany(want, 64), "took more than would fit");
+		assertEquals(0, Plan.takeHowMany(want, 0));
+		// A chest the index believes is empty is not a trip.
+		assertEquals(0, Plan.takeHowMany(new Plan.Restock("stone_bricks", 400, c, 0), 640));
+	}
+
+	@Test
+	void aCoolingOffChestIsNotTheFetchTarget() {
+		// The freeze: once a chest failed, the nearest-container rule pointed the loop back at it
+		// forever. A shortfall usually has more than one address.
+		Map<String, Storage.Container> index = new LinkedHashMap<>();
+		Storage.Container near = chest(5, 100, 0, "stone_bricks", 500);
+		Storage.Container far = chest(60, 100, 0, "stone_bricks", 500);
+		index.put(near.key(), near);
+		index.put(far.key(), far);
+		List<Work.Cell> todo = blob(0, 100, 0, 40, "stone_bricks");
+
+		List<Plan.Restock> t = Plan.fetchTargets(todo, carrying(), index, BlockPos.ZERO,
+			Set.of(near.pos().asLong()));
+		assertEquals(1, t.size());
+		assertEquals(far.pos(), t.get(0).where().pos(), "guided back at the chest it just failed on");
+	}
+
+	@Test
+	void aShortfallWithNoAddressIsNotSomethingToFlyTo() {
+		// It is reported in words by `restock`; this list is used for NAVIGATION, and an entry with
+		// no container is a place to fly to that does not exist.
+		List<Work.Cell> todo = blob(0, 100, 0, 40, "stone_bricks");
+		assertTrue(Plan.fetchTargets(todo, carrying(), new LinkedHashMap<>(), BlockPos.ZERO, Set.of())
+			.isEmpty());
+	}
+
+	// ---------------------------------------------------------------- room in the pack
+
+	@Test
+	void roomIsEmptySlotsPlusThePartOfAStackThatIsFree() {
+		assertEquals(64 * 36, Work.roomIn(36, new int[0], 64), "an empty pack");
+		assertEquals(0, Work.roomIn(0, new int[]{64, 64}, 64), "two full stacks is no room");
+		assertEquals(24, Work.roomIn(0, new int[]{40}, 64));
+		assertEquals(64 + 24, Work.roomIn(1, new int[]{40, 64}, 64));
 	}
 }

@@ -45,8 +45,24 @@ final class Nav {
 	 * the frontier grows as the cube of the distance — a hundred-block hop exhausted the budget
 	 * even with a clear line, the route came back empty, and the caller fell through to flying
 	 * straight at the terrain. "It tries to fly through walls" was this, not the steering.
+	 *
+	 * <p>40,000 then, 120,000 now, and the raise is worth much less than it looks: the two changes
+	 * that actually stopped the failures are the line-of-sight shortcut (a clear hop costs ZERO
+	 * nodes, and across open sky that is most of them) and {@link #GOAL_SLACK} (a goal that blocks
+	 * motion can never be reached, so every one of those searches spent the whole budget before
+	 * failing). The budget is what is left for the genuinely hard indoor case.
 	 */
-	static final int MAX_NODES = 40000;
+	static final int MAX_NODES = 120000;
+	/**
+	 * ...and a wall-clock budget, because the node count is not the thing that hurts the player.
+	 *
+	 * <p>This runs on the client thread, so the honest limit is "how long may I freeze the game
+	 * for", and that is a number of milliseconds rather than a number of nodes: an expansion in open
+	 * air costs a handful of map lookups, one against dense geometry costs 26 neighbours x 4 corner
+	 * checks x 3 world lookups. 25ms is under two frames, and a search that hits it has failed for
+	 * practical purposes anyway.
+	 */
+	static final long MAX_MILLIS = 25;
 	/**
 	 * Greediness. Multiplying the heuristic makes the search push at the goal instead of expanding
 	 * evenly in every direction; the route can come out a few blocks longer than optimal, which for
@@ -56,13 +72,38 @@ final class Nav {
 	/**
 	 * Beyond this the search is refused OUTRIGHT — no nodes expanded, empty list returned.
 	 *
-	 * <p>Raised from 160 after measuring the routes this island actually asks for: deck to lowland
-	 * floor is 152 blocks, which cleared the old cap by eight. Anything past it fails INSTANTLY and
-	 * silently, and the caller falls through to flying straight at the terrain — indistinguishable
-	 * from the router being broken. The gate is free; the node budget is what costs, and that is
-	 * bounded separately.
+	 * <p>Was 160, then 256, now 512. Anything past it fails INSTANTLY and silently and the caller
+	 * falls through to flying straight at the terrain, which is indistinguishable from the router
+	 * being broken — so the gate wants to be well clear of any route the island actually asks for
+	 * (deck to lowland floor is 152; deck to sky bird and back down the far side is more). The gate
+	 * itself is free. What costs is the search, and that is bounded by {@link #MAX_NODES} and
+	 * {@link #MAX_MILLIS} instead, which is where a cost belongs.
 	 */
-	static final int MAX_RANGE = 256;
+	static final int MAX_RANGE = 512;
+	/**
+	 * Past this a failed full search is retried toward a SUB-GOAL on the straight line rather than
+	 * being given up on.
+	 *
+	 * <p>A* expands a sphere, so the cost of a long route is cubic in its length while the cost of
+	 * the same route walked in stages is linear. The route is recomputed twice a second and re-staged
+	 * as you go, so staging costs nothing and turns "no route, flying direct" — the thing that flies
+	 * you into terrain — into real progress plus a fresh search from closer in.
+	 */
+	static final int STAGE = 128;
+	/**
+	 * How far off a solid destination we are willing to finish.
+	 *
+	 * <p><b>A CHEST BLOCKS MOTION.</b> Every fetch target is a container's own cell and every build
+	 * spot is a cluster centroid, which lands inside rock about as often as not — so the goal is
+	 * routinely a cell no route can ever enter. Nothing checked for it: the goal was simply never
+	 * expanded, the search ran to the end of its budget, came back empty, and the caller fell through
+	 * to flying straight at the wall the chest is in. That is most of "it still gets stuck".
+	 *
+	 * <p>So a solid goal is satisfied by any passable cell within this radius of it, nearest first.
+	 * 2 covers a chest against a wall, a centroid one course inside a floor, and the far side of a
+	 * double slab.
+	 */
+	static final int GOAL_SLACK = 2;
 
 	private Nav() {}
 
@@ -85,6 +126,28 @@ final class Nav {
 		};
 	}
 
+	/**
+	 * The same world, to something that cannot fly.
+	 *
+	 * <p>Clearance is not enough on foot: {@link #of} happily routes through open air thirty blocks
+	 * above a floor, which is a perfect flight plan and a walk into a hole. A walkable cell needs
+	 * FOOTING as well as headroom.
+	 *
+	 * <p>One course of slack under the floor, deliberately — that is a step DOWN, and without it
+	 * every route breaks at the lip of a stair, a doorway sill or a ledge. Anything deeper is a fall,
+	 * and a fall is not a step.
+	 */
+	static Passable standable(Level level) {
+		BlockPos.MutableBlockPos c = new BlockPos.MutableBlockPos();
+		return (x, y, z) -> {
+			if (!level.isLoaded(c.set(x, y, z))) return true;
+			if (level.getBlockState(c.set(x, y, z)).blocksMotion()) return false;
+			if (level.getBlockState(c.set(x, y + 1, z)).blocksMotion()) return false;
+			return level.getBlockState(c.set(x, y - 1, z)).blocksMotion()
+				|| level.getBlockState(c.set(x, y - 2, z)).blocksMotion();
+		};
+	}
+
 	private record Node(int x, int y, int z) {
 		long key() {
 			return BlockPos.asLong(x, y, z);
@@ -99,12 +162,89 @@ final class Nav {
 	/**
 	 * A route from `from` to `to`, or an empty list when there is not one within the bounds.
 	 *
-	 * <p>The returned path EXCLUDES the start and ends at `to`.
+	 * <p>The returned path EXCLUDES the start and ends at `to` — or, when `to` itself blocks motion,
+	 * at the nearest cell within {@link #GOAL_SLACK} of it that does not.
+	 *
+	 * <p>Three gates before any node is expanded, in cost order:
+	 * <ol>
+	 *   <li><b>Out of range</b> — refused outright.</li>
+	 *   <li><b>Line of sight</b> — if you can fly straight there, that IS the route. Costs nothing,
+	 *       and across this island's open sky it answers most calls.</li>
+	 *   <li><b>Staging</b> — a long search that fails is retried toward a sub-goal, because a route
+	 *       walked in stages is linear in its length where one search is cubic.</li>
+	 * </ol>
 	 */
 	static List<BlockPos> route(Passable free, BlockPos from, BlockPos to) {
+		if (from.distSqr(to) > (double) MAX_RANGE * MAX_RANGE) return List.of();
+
+		// ---- 2. LINE OF SIGHT. The cheapest route is the one you do not search for, and it is also
+		// the commonest: fetch trips across this island are mostly open air. `clear` already models
+		// the player's width, so if it says yes there is nothing an A* could improve on.
+		BlockPos aim = reachable(free, to);
+		if (aim != null && clear(free, from, aim)) return List.of(aim);
+
+		List<BlockPos> direct = search(free, from, to);
+		if (!direct.isEmpty()) return direct;
+
+		// ---- 3. STAGE. Long searches fail by exhausting a budget, not by proving anything, so
+		// getting closer and asking again is a better answer than giving up — and infinitely better
+		// than the caller's fallback, which is to fly straight at whatever is in the way.
+		double d = Math.sqrt(from.distSqr(to));
+		if (d > STAGE) {
+			BlockPos sub = along(from, to, STAGE);
+			List<BlockPos> staged = search(free, from, sub);
+			if (!staged.isEmpty()) return staged;
+		}
+		return List.of();
+	}
+
+	/** A point `dist` of the way from `a` toward `b`. */
+	static BlockPos along(BlockPos a, BlockPos b, double dist) {
+		double dx = b.getX() - a.getX(), dy = b.getY() - a.getY(), dz = b.getZ() - a.getZ();
+		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+		if (len <= dist || len == 0) return b;
+		double t = dist / len;
+		return new BlockPos((int) Math.round(a.getX() + dx * t), (int) Math.round(a.getY() + dy * t),
+			(int) Math.round(a.getZ() + dz * t));
+	}
+
+	/**
+	 * The cell a route may actually finish in, given a destination that may be solid.
+	 *
+	 * <p>Nearest passable cell within {@link #GOAL_SLACK}, or null when the destination is buried.
+	 * Ties break DOWNWARD-last: standing on top of a chest is a better place to be handed to than
+	 * hovering under it, and the sort is by true distance so the six faces come before the corners.
+	 */
+	static BlockPos reachable(Passable free, BlockPos goal) {
+		if (free.at(goal.getX(), goal.getY(), goal.getZ())) return goal;
+		BlockPos best = null;
+		double bestD = Double.MAX_VALUE;
+		for (int dx = -GOAL_SLACK; dx <= GOAL_SLACK; dx++) {
+			for (int dy = -GOAL_SLACK; dy <= GOAL_SLACK; dy++) {
+				for (int dz = -GOAL_SLACK; dz <= GOAL_SLACK; dz++) {
+					if (dx == 0 && dy == 0 && dz == 0) continue;
+					int x = goal.getX() + dx, y = goal.getY() + dy, z = goal.getZ() + dz;
+					if (!free.at(x, y, z)) continue;
+					// a hair of bias for staying level, so a chest in a wall hands you the cell in
+					// front of it rather than the one on the ceiling above it
+					double d = dx * dx + dy * dy * 1.6 + dz * dz;
+					if (d < bestD) {
+						bestD = d;
+						best = new BlockPos(x, y, z);
+					}
+				}
+			}
+		}
+		return best;
+	}
+
+	/** The A* itself. `to` may block motion; see {@link #reachable}. */
+	private static List<BlockPos> search(Passable free, BlockPos from, BlockPos to) {
+		BlockPos aim = reachable(free, to);
+		if (aim == null) return List.of();          // the destination is buried: no route exists
 		Node start = new Node(from.getX(), from.getY(), from.getZ());
-		Node goal = new Node(to.getX(), to.getY(), to.getZ());
-		if (start.dist(goal) > MAX_RANGE) return List.of();
+		Node goal = new Node(aim.getX(), aim.getY(), aim.getZ());
+		if (start.equals(goal)) return List.of();
 
 		Map<Long, Node> came = new HashMap<>();
 		Map<Long, Double> g = new HashMap<>();
@@ -114,11 +254,15 @@ final class Nav {
 		open.add(new Object[]{start.dist(goal) * GREED, start});
 
 		int expanded = 0;
+		long deadline = System.nanoTime() + MAX_MILLIS * 1_000_000L;
 
 		while (!open.isEmpty() && expanded < MAX_NODES) {
 			Node cur = (Node) open.poll()[1];
 			if (cur.equals(goal)) return rebuild(came, cur);
 			expanded++;
+			// Checked in blocks: nanoTime is not free either, and the frontier does not change
+			// character between one expansion and the next.
+			if ((expanded & 255) == 0 && System.nanoTime() > deadline) break;
 
 			for (int dx = -1; dx <= 1; dx++) {
 				for (int dy = -1; dy <= 1; dy++) {
@@ -156,6 +300,9 @@ final class Nav {
 		//
 		// Empty means "I could not find a way", and the caller says so and flies direct instead.
 		// That is a worse route honestly labelled, rather than a wrong one confidently followed.
+		//
+		// STAGING is the honest version of the same instinct, and it lives in route(): a shorter
+		// search that SUCCEEDS, rather than a long one that half-failed.
 		return List.of();
 	}
 

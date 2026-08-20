@@ -196,6 +196,46 @@ final class Work {
 	}
 
 	/**
+	 * How many more of one item would fit in the pack.
+	 *
+	 * <p>This is what makes "fill the inventory" a number rather than a hope. The fetch phase used to
+	 * take exactly the shortfall of the ONE spot it was standing in — sixty-four bricks, place them,
+	 * fly back — so a thousand-cell wall was a hundred round trips. Asking the pack how much room it
+	 * has turns the same trip into one load.
+	 *
+	 * <p>Main inventory only: the hotbar and the three storage rows, which is what
+	 * {@code getContainerSize()} minus armour and offhand comes to. Armour slots are empty on this
+	 * account and would otherwise read as 320 blocks of room that does not exist.
+	 */
+	static int room(net.minecraft.client.player.LocalPlayer player, String item) {
+		if (player == null) return 0;
+		var inv = player.getInventory();
+		int empty = 0;
+		int[] partial = new int[36];
+		int n = 0;
+		int max = 64;
+		int slots = Math.min(36, inv.getContainerSize());
+		for (int i = 0; i < slots; i++) {
+			net.minecraft.world.item.ItemStack st = inv.getItem(i);
+			if (st == null || st.isEmpty()) {
+				empty++;
+				continue;
+			}
+			if (!BuiltInRegistries.ITEM.getKey(st.getItem()).getPath().equals(item)) continue;
+			max = inv.getMaxStackSize(st);
+			partial[n++] = st.getCount();
+		}
+		return roomIn(empty, java.util.Arrays.copyOf(partial, n), max);
+	}
+
+	/** The arithmetic of {@link #room}, without a client to hold it. */
+	static int roomIn(int emptySlots, int[] partials, int max) {
+		int n = emptySlots * max;
+		for (int c : partials) if (c < max) n += max - c;
+		return n;
+	}
+
+	/**
 	 * A cell with nothing to place against. You cannot put a block in mid-air: it needs a face to
 	 * click, and on a survival server that means a neighbour that already exists.
 	 *

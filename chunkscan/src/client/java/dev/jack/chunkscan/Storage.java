@@ -262,6 +262,40 @@ final class Storage {
 		return hits;
 	}
 
+	/**
+	 * Containers holding EXACTLY this item.
+	 *
+	 * <p>{@link #find} is a substring search and should be: `/cscan find wool` is a question about
+	 * wool in general. It is the wrong tool for a fetch, because a trip is a navigation instruction
+	 * and `stone_bricks` matches `mossy_stone_bricks`, `cracked_stone_bricks` and
+	 * `chiseled_stone_bricks`. The loop would fly to the nearest of those, find nothing of what it
+	 * asked for, take zero, blacklist a perfectly good chest and try the next one — a whole trip
+	 * spent to learn nothing, and it looked exactly like the chest being empty.
+	 *
+	 * <p>The namespace is optional on both sides, because the index holds `minecraft:stone_bricks`
+	 * and every caller here holds a bare block name.
+	 */
+	static List<Hit> findExact(Map<String, Container> all, String item, BlockPos from) {
+		String want = bare(item);
+		List<Hit> hits = new ArrayList<>();
+		for (Container c : all.values()) {
+			for (var e : c.items.entrySet()) {
+				if (bare(e.getKey()).equals(want) && e.getValue() > 0) {
+					hits.add(new Hit(c, e.getKey(), e.getValue(), Math.sqrt(c.pos().distSqr(from))));
+				}
+			}
+		}
+		hits.sort((a, b) -> Double.compare(a.distance(), b.distance()));
+		return hits;
+	}
+
+	/** An item id without its namespace, lowercased. */
+	static String bare(String id) {
+		String s = id.toLowerCase();
+		int i = s.indexOf(':');
+		return i < 0 ? s : s.substring(i + 1);
+	}
+
 	/** How many records the loaded world disproves, without changing anything. */
 	static int stale(Map<String, Container> all, Level level) {
 		int n = 0;

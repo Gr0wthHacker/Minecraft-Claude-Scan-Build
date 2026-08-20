@@ -232,7 +232,7 @@ final class Plan {
 			int miss = e.getValue() - have;
 			left.put(e.getKey(), Math.max(0, have - e.getValue()));
 			if (miss <= 0) continue;
-			List<Storage.Hit> all = Storage.find(index, e.getKey(), from);
+			List<Storage.Hit> all = Storage.findExact(index, e.getKey(), from);
 			List<Storage.Hit> hits = new ArrayList<>();
 			for (Storage.Hit h : all) {
 				if (!skip.contains(h.container().pos().asLong())) hits.add(h);
@@ -279,6 +279,91 @@ final class Plan {
 			if (r.where() != null) return r;
 		}
 		return null;
+	}
+
+	// ---------------------------------------------------------------- the fetch policy
+	//
+	// FILL THE PACK, THEN BUILD UNTIL IT IS DRY. The loop used to decide this per SPOT: if the best
+	// cluster was short of anything, fetch. So it fetched with a full inventory and plenty to do,
+	// took one spot's worth, flew back, and on a design of any size that is a session of commuting.
+	//
+	// Two questions instead, and they are asked in this order:
+	//
+	//   1. is there anything at all I can place with what I am carrying?   -> build, and do not fetch
+	//   2. otherwise: is there something to fetch, and room to put it?     -> fetch until full
+	//
+	// Which means a fetch trip ends when the PACK is full or the DESIGN is covered, not when one
+	// spot's shortfall happens to be met.
+
+	/** Is any spot worth standing at right now? One placeable cell is enough to say yes. */
+	static boolean anyDoable(List<Cluster> clusters) {
+		for (Cluster c : clusters) if (c.doable() > 0) return true;
+		return false;
+	}
+
+	/** How much of one item the pack could still take. Supplied by {@link Work#room}. */
+	@FunctionalInterface
+	interface Room {
+		int of(String item);
+	}
+
+	/**
+	 * The next thing to go and get, or null when the trip is over.
+	 *
+	 * <p>Two ways to be done, and they are different: nothing left worth fetching, or nowhere left to
+	 * put it. Both mean go and build.
+	 *
+	 * <p>It walks the whole list rather than judging the first entry, because a pack with no space
+	 * for the biggest shortfall may have plenty for the next one — stopping at the first is a trip
+	 * not taken and a spot not finished.
+	 *
+	 * @param addressable shortfalls that have a container behind them — see {@link #fetchTargets}
+	 */
+	static Restock nextFetch(List<Restock> addressable, Room room) {
+		for (Restock r : addressable) {
+			if (room.of(r.item()) > 0) return r;
+		}
+		return null;
+	}
+
+	/**
+	 * What the WHOLE remaining design is short of, biggest shortfall first, with an address.
+	 *
+	 * <p>Not per-cluster: a cluster's shortfall is the wrong unit for a trip. {@link #restockTargets}
+	 * answers "what is this spot missing" and is still what the per-spot report wants; this answers
+	 * "what should I be carrying", which is the question a trip to the store hall is asking.
+	 *
+	 * <p>A shortfall with nowhere to fetch it from is DROPPED here rather than reported as a null
+	 * address, because this list is used for navigation: an entry with no container is a place to fly
+	 * to that does not exist. It comes back in words through {@link #restock}.
+	 */
+	static List<Restock> fetchTargets(List<Work.Cell> todo, Map<String, Integer> carrying,
+	                                  Map<String, Storage.Container> index, BlockPos from,
+	                                  Set<Long> skip) {
+		Map<String, Integer> want = new LinkedHashMap<>();
+		for (Work.Cell c : todo) want.merge(c.item(), 1, Integer::sum);
+		List<Restock> out = new ArrayList<>();
+		for (var e : want.entrySet()) {
+			int miss = e.getValue() - carrying.getOrDefault(e.getKey(), 0);
+			if (miss <= 0) continue;
+			for (Storage.Hit h : Storage.findExact(index, e.getKey(), from)) {
+				if (skip.contains(h.container().pos().asLong())) continue;
+				out.add(new Restock(e.getKey(), miss, h.container(), h.count()));
+				break;                                   // nearest one that is not cooling off
+			}
+		}
+		out.sort(Comparator.comparingInt(Restock::missing).reversed());
+		return out;
+	}
+
+	/**
+	 * How much to actually take: the shortfall, capped by what will fit.
+	 *
+	 * <p>Capped by the CHEST's count too — asking for more than is in there is what left the loop
+	 * standing at a chest waiting for a stack that was never coming.
+	 */
+	static int takeHowMany(Restock r, int room) {
+		return Math.max(0, Math.min(room, Math.min(r.missing(), Math.max(0, r.available()))));
 	}
 
 	/** How far the cluster reaches from its centre, so "1,850 cells" has a size attached. */

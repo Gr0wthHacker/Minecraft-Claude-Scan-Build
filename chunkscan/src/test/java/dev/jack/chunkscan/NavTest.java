@@ -65,16 +65,81 @@ class NavTest {
 
 	@Test
 	void itFindsTheDoorway() {
-		// A wall from z -8 to 8, one two-high gap at z=0. The only way through.
+		// A wall from z -8 to 8, one two-high gap at z=4. OFF the straight line on purpose: with the
+		// door dead ahead the straight line goes through it, the line-of-sight shortcut answers
+		// correctly in zero nodes, and the test proves nothing about the search. Offset, the only
+		// way through is to find it.
 		W w = new W();
 		w.wall(5, 98, 105, -8, 8);
-		w.open(5, 100, 0);
-		w.open(5, 101, 0);
+		w.open(5, 100, 4);
+		w.open(5, 101, 4);
 
 		List<BlockPos> p = Nav.route(w.free(), new BlockPos(0, 100, 0), new BlockPos(10, 100, 0));
 		assertFalse(p.isEmpty(), "no route found through the door");
-		assertTrue(p.contains(new BlockPos(5, 100, 0)), "the route did not use the doorway: " + p);
+		assertTrue(p.contains(new BlockPos(5, 100, 4)), "the route did not use the doorway: " + p);
 		assertEquals(new BlockPos(10, 100, 0), p.get(p.size() - 1));
+	}
+
+	@Test
+	void aClearHopCostsNoSearchAtAll() {
+		// THE CHEAPEST ROUTE IS THE ONE YOU DO NOT SEARCH FOR, and across this island's open sky it
+		// is most of them. One waypoint - the destination - and nothing in between.
+		W w = new W();
+		List<BlockPos> p = Nav.route(w.free(), new BlockPos(0, 100, 0), new BlockPos(200, 140, 60));
+		assertEquals(1, p.size(), "a clear line was searched rather than flown: " + p.size());
+		assertEquals(new BlockPos(200, 140, 60), p.get(0));
+	}
+
+	@Test
+	void aSolidDestinationIsReachedBesideRatherThanNotAtAll() {
+		// A CHEST BLOCKS MOTION, and every fetch target is a chest's own cell. Nothing checked for
+		// it: the goal was never expanded, the search spent its whole budget and returned empty, and
+		// the caller flew straight at the wall the chest was in.
+		W w = new W();
+		BlockPos chest = new BlockPos(10, 100, 0);
+		w.solid.add(chest.asLong());
+
+		List<BlockPos> p = Nav.route(w.free(), new BlockPos(0, 100, 0), chest);
+		assertFalse(p.isEmpty(), "gave up on a destination that blocks motion");
+		BlockPos end = p.get(p.size() - 1);
+		assertTrue(end.distSqr(chest) <= (double) Nav.GOAL_SLACK * Nav.GOAL_SLACK,
+			"finished " + Math.sqrt(end.distSqr(chest)) + " from the chest");
+		assertTrue(w.free().at(end.getX(), end.getY(), end.getZ()), "finished inside a block");
+	}
+
+	@Test
+	void aBuriedDestinationStillHasNoRoute() {
+		// The slack is for a chest in a wall, not for pretending a sealed cell is reachable.
+		W w = new W();
+		for (int x = 8; x <= 12; x++) {
+			for (int y = 98; y <= 102; y++) {
+				for (int z = -2; z <= 2; z++) w.solid.add(BlockPos.asLong(x, y, z));
+			}
+		}
+		assertTrue(Nav.route(w.free(), new BlockPos(0, 100, 0), new BlockPos(10, 100, 0)).isEmpty(),
+			"claimed a route into solid rock");
+	}
+
+	@Test
+	void aWalkingRouteNeedsFooting() {
+		// Clearance alone routes through open air above a floor: a perfect flight plan and a walk
+		// into a hole. `standable` is the same world seen by something with legs.
+		// The real predicate is built from a Level, so what is asserted here is the SHAPE the router
+		// relies on: over a floor there is a route, thirty blocks above the same floor there is not.
+		W w = new W();
+		for (int x = -2; x <= 22; x++) {
+			for (int z = -6; z <= 6; z++) w.solid.add(BlockPos.asLong(x, 99, z));
+		}
+		Nav.Passable stand = (x, y, z) -> {
+			if (w.solid.contains(BlockPos.asLong(x, y, z))) return false;
+			if (w.solid.contains(BlockPos.asLong(x, y + 1, z))) return false;
+			return w.solid.contains(BlockPos.asLong(x, y - 1, z))
+				|| w.solid.contains(BlockPos.asLong(x, y - 2, z));
+		};
+		assertFalse(Nav.route(stand, new BlockPos(0, 100, 0), new BlockPos(20, 100, 0)).isEmpty(),
+			"no walking route along a flat floor");
+		assertTrue(Nav.route(stand, new BlockPos(0, 130, 0), new BlockPos(20, 130, 0)).isEmpty(),
+			"walked through the sky");
 	}
 
 	@Test
@@ -101,10 +166,12 @@ class NavTest {
 
 	@Test
 	void everyStepOfTheRouteIsPassable() {
+		// Door offset from the straight line, so the SEARCH produces the path rather than the
+		// line-of-sight shortcut handing back a single waypoint there is nothing to check.
 		W w = new W();
 		w.wall(5, 98, 105, -8, 8);
-		w.open(5, 100, 0);
-		w.open(5, 101, 0);
+		w.open(5, 100, 4);
+		w.open(5, 101, 4);
 		Nav.Passable free = w.free();
 		for (BlockPos b : Nav.route(free, new BlockPos(0, 100, 0), new BlockPos(10, 100, 0))) {
 			assertTrue(free.at(b.getX(), b.getY(), b.getZ()), b + " is inside a wall");
@@ -117,8 +184,8 @@ class NavTest {
 		// clear too; without that the route squeezes the corner - shorter on paper, snagged in game.
 		W w = new W();
 		w.wall(5, 98, 105, -8, 8);
-		w.open(5, 100, 0);
-		w.open(5, 101, 0);
+		w.open(5, 100, 4);                       // off the straight line: see everyStepOfTheRoute...
+		w.open(5, 101, 4);
 		Nav.Passable free = w.free();
 		List<BlockPos> p = Nav.route(free, new BlockPos(0, 100, 0), new BlockPos(10, 100, 0));
 
@@ -162,13 +229,16 @@ class NavTest {
 	@Test
 	void simplifyKeepsTheCornersAndDropsTheBeadChain() {
 		// A* returns every cell it stepped on; through open air that is forty points and a flight
-		// path that visibly zig-zags between them.
+		// path that visibly zig-zags between them. Fed by hand rather than by route(), which now
+		// answers a clear line with one waypoint and so has nothing left to simplify — the thing
+		// under test is simplify, not the shortcut in front of it.
 		W w = new W();
 		Nav.Passable free = w.free();
 		BlockPos from = new BlockPos(0, 100, 0);
-		List<BlockPos> raw = Nav.route(free, from, new BlockPos(20, 100, 0));
+		List<BlockPos> raw = new java.util.ArrayList<>();
+		for (int x = 1; x <= 20; x++) raw.add(new BlockPos(x, 100, 0));
 		List<BlockPos> few = Nav.simplify(free, from, raw);
-		assertTrue(few.size() < raw.size(), "nothing was simplified");
+		assertEquals(1, few.size(), "a straight bead chain should collapse to its endpoint: " + few);
 		assertEquals(raw.get(raw.size() - 1), few.get(few.size() - 1), "the destination was dropped");
 	}
 
