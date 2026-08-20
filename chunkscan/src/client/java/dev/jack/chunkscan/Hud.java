@@ -171,6 +171,12 @@ final class Hud {
 			}
 			guide(at, here ? "take " + want.missing() + "x " + want.item()
 				: want.missing() + "x " + want.item());
+			// ARRIVED AND STILL SHORT: take it. This is the step that closes the loop - without it
+			// `follow` flies you to the chest and waits for a human to shift-click. Only fires once
+			// per trip, because Withdraw.busy() gates it and the next recount sees the fuller pack.
+			if (here && !Withdraw.busy() && Withdraw.phase() != Withdraw.Phase.FAILED) {
+				Withdraw.begin(at, want.item(), want.missing() + carrying.getOrDefault(want.item(), 0));
+			}
 			return;
 		}
 
@@ -252,6 +258,9 @@ final class Hud {
 	}
 
 	private static void tick(Minecraft mc) {
+		// Withdraw drives itself every tick, independent of whether a design is being followed:
+		// `/cscan take` is a chest command first and a build-loop step second.
+		Withdraw.tick(mc);
 		if (design == null || mc.level == null || mc.player == null) return;
 		if (tick++ % EVERY_TICKS != 0) return;
 		try {

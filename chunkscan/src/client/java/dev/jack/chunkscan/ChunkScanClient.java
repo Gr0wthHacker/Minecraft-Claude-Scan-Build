@@ -54,6 +54,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Wand.register();
 		Hud.register();
 		Menu.register();
+		Screens.register();
 		Autopilot.register();
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
 			dispatcher.register(literal("cscan")
@@ -194,6 +195,12 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(argument("radius", IntegerArgumentType.integer(1, 64))
 						.executes(ChunkScanClient::around)))
 				.then(literal("clips").executes(ChunkScanClient::clips))
+				.then(literal("take")
+					.executes(ctx -> take(ctx, null, 0))
+					.then(argument("item", StringArgumentType.word())
+						.then(argument("count", IntegerArgumentType.integer(1, 4096))
+							.executes(ctx -> take(ctx, StringArgumentType.getString(ctx, "item"),
+								IntegerArgumentType.getInteger(ctx, "count"))))))
 				.then(literal("tidy")
 					.executes(ctx -> tidy(ctx, 0))
 					.then(argument("n", IntegerArgumentType.integer(1, 40))
@@ -1040,6 +1047,32 @@ public final class ChunkScanClient implements ClientModInitializer {
 			src.sendError(Component.literal("[cscan] " + e.getMessage()));
 			return 0;
 		}
+	}
+
+	/**
+	 * Open the container you are looking at and shift-click stacks out of it.
+	 *
+	 * <p>With no argument it empties the whole thing — the chest move's source step. With an item and
+	 * a count it takes only that, which is what the build loop's fetch phase wants.
+	 */
+	private static int take(CommandContext<FabricClientCommandSource> ctx, String item, int count) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		if (mc.level == null || mc.player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		BlockPos at = targeted(mc);
+		String n = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(at).getBlock()).getPath();
+		if (!Storage.stores(n)) {
+			src.sendError(Component.literal("[cscan] look at a container — that is " + n));
+			return 0;
+		}
+		if (Math.sqrt(mc.player.blockPosition().distSqr(at)) > Withdraw.REACH) {
+			src.sendError(Component.literal("[cscan] too far — get within " + (int) Withdraw.REACH));
+			return 0;
+		}
+		Withdraw.begin(at, item, count);
+		ok(src, item == null ? "emptying " + n + " at " + Wand.fmt(at)
+			: "taking " + count + "x " + item + " from " + n);
+		return 1;
 	}
 
 	/**

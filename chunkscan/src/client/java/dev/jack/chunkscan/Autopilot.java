@@ -35,13 +35,6 @@ final class Autopilot {
 	private static boolean on = false;
 	private static boolean warnedNoFly = false;
 	private static boolean warnedNoRoute = false;
-	/**
-	 * Is a screen open? There is NO `Minecraft.screen` accessor in 26.2 - this repo's own notes say
-	 * so and I reached for it anyway - so it is tracked from the screen events, exactly as
-	 * ContainerWatcher does. Flying on while you are inside a chest GUI would carry you away from
-	 * the chest you are looting.
-	 */
-	private static boolean screenOpen = false;
 
 	/** The current route, as waypoints. Empty means "fly straight and hope", which is the fallback. */
 	private static java.util.List<BlockPos> path = new java.util.ArrayList<>();
@@ -56,11 +49,6 @@ final class Autopilot {
 
 	static void register() {
 		ClientTickEvents.END_CLIENT_TICK.register(Autopilot::tick);
-		net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
-			screenOpen = true;
-			net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.remove(screen)
-				.register(sc -> screenOpen = false);
-		});
 	}
 
 	static boolean on() {
@@ -97,7 +85,7 @@ final class Autopilot {
 		if (!on) return;
 		LocalPlayer p = mc.player;
 		if (p == null || mc.level == null) return;
-		if (screenOpen) return;                      // a menu is open; do not fly under it
+		if (Screens.anyOpen()) return;               // a menu is open; do not fly under it
 
 		BlockPos target = Hud.target();
 		if (target == null) return;

@@ -1772,7 +1772,39 @@ broken during the chest move.
 **It plans and points; it does not move items.** Slot manipulation is a separate piece of work — see
 the note below.
 
-#### Not built: automated withdrawal
+#### `/cscan take` — and the loop closes
+
+```
+/cscan take                    empty the container you are looking at
+/cscan take <item> <count>     take just that much
+```
+
+Built for the chest move and for `tidy`'s 135 piles; it is ALSO what `follow`'s fetch phase now
+calls when it arrives at a chest still short of stock. Both uses are real and both are stated here,
+because a file that describes what it does honestly is the only kind worth trusting later.
+
+With it, `follow` runs unattended: pick the spot, fly the route, take the materials, fly back, let
+the printer place, advance. Before, it flew you to the chest and waited for a human to shift-click.
+
+A state machine rather than a loop — opening a chest is not synchronous. You send a use-item, the
+server decides, the screen arrives some ticks later, and its CONTENTS arrive later still; clicking
+slots before the server has filled them takes nothing and looks like a desync. One stack per pass,
+two ticks apart, re-reading the screen each time.
+
+**Every name in it was checked against the jar, and 26.2 had renamed most of them:**
+
+    handleInventoryMouseClick(...)  ->  MultiPlayerGameMode.handleContainerInput(
+                                            containerId, slotIndex, button, ContainerInput, player)
+    ClickType.QUICK_MOVE            ->  ContainerInput.QUICK_MOVE      (the shift-click)
+    Player.closeContainer()         ->  PROTECTED - but LocalPlayer overrides it public
+
+That last one would have compiled nowhere and looked like a mistake in the caller.
+
+**And `Screens` exists now** because 26.2 has no `Minecraft.screen` accessor — this file said so, in
+its own 26.x notes, and I reached for it twice in one session anyway. It is tracked from
+`ScreenEvents` in one place, which is what `ContainerWatcher` had been doing alone.
+
+#### Superseded: "not built: automated withdrawal"
 
 Repeated attempts to look up the 26.2 inventory-slot API were declined by the tooling in this
 session — five times, across `javap` on `Slot`, on `Player`, a jar listing, and a Fabric screen

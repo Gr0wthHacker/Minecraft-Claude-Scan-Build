@@ -96,6 +96,7 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan chests", "the container index"));
 		r.add(new Row("/cscan move", "the chest move: what is left, and where it goes"));
 		r.add(new Row("/cscan tidy", "piles split across chests, and where to consolidate them"));
+		r.add(new Row("/cscan take", "empty the container you are looking at into your pack"));
 		r.add(new Row("/cscan mark ", "<label>  remember this coordinate"));
 		r.add(new Row("/cscan marks", "the marked coordinates"));
 
