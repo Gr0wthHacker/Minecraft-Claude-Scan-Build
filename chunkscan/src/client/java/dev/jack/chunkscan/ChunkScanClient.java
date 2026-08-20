@@ -168,8 +168,11 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(argument("design", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::fetch)))
 				.then(literal("follow")
-					.executes(ctx -> { Hud.off(); Highlight.clear("goto");
-						ok(ctx.getSource(), "follow off"); return 1; })
+					.executes(ctx -> {
+						// Stopping is also when you find out what it did while you were elsewhere.
+						String report = Hud.following() ? "  " + Hud.sessionReport() : "";
+						Hud.off(); Highlight.clear("goto");
+						ok(ctx.getSource(), "follow off." + report); return 1; })
 					.then(argument("design", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::follow)))
 				.then(literal("hud")

@@ -1819,6 +1819,34 @@ and `Slot.getItem()`, so those four are proven. The gaps are `Slot.index` (avoid
 `menu.slots` and use the loop index, which IS the slot id), `Player.closeContainer`, and a
 screen-level key hook.
 
+### Making the loop safe to LEAVE (2026-08-20)
+
+The loop worked when watched. Nothing in it was safe to walk away from, which is the only way Jack
+actually wants to use it — and the bug that proved it was one I had just shipped.
+
+**`Withdraw.phase()` stayed FAILED forever.** `Hud.advance()` gated auto-restock on
+`phase() != FAILED`, so ONE failed withdrawal disabled restocking for the whole session: the loop
+flew to a chest and sat there indefinitely with nothing in the log to say why. On an alt you are not
+watching, that is an hour of nothing.
+
+**Failure is a property of a CHEST, not of the withdrawer.** Each failure is now recorded against
+its position with a 60-second cooling-off, so a bad chest is skipped and every other chest still
+works. An EMPTY chest counts as a failure too — the index said it was there and it was not, and
+without that the loop returns to it every two seconds forever. The window has to expire: a chest can
+be refilled and a timeout can be lag, so permanent blacklisting turns a hiccup into a dead session.
+
+**A STALL WATCH, because the printer never reports back.** `todo` shrinking is the only honest
+evidence a block was placed — litematica-printer does the placing and tells us nothing — so the
+world is the report. Ninety seconds with nothing placed, while following and not fetching, and the
+loop says so and abandons that spot rather than pressing on it:
+
+    STALLED — nothing placed in 90s at -24203 194 30012. Printer off, out of
+    reach, or the spot cannot be built. 412 placed in 22 min (18/min), 3 spots
+    finished, 2 restocks, 1 stall
+
+**And a session report**, on completion and on `/cscan follow` off. A loop you leave alone has to be
+able to say what it did, or the whole exercise is an act of faith.
+
 ## Build & test
 
 ```bash

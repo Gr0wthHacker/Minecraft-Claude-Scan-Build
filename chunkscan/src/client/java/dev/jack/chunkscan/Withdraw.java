@@ -45,7 +45,19 @@ final class Withdraw {
 
 	enum Phase { IDLE, OPENING, TAKING, DONE, FAILED }
 
+	/**
+	 * How long a chest that failed is left alone before it is tried again.
+	 *
+	 * <p>The first version had a single global FAILED phase and the caller gated on it, so ONE bad
+	 * chest disabled restocking for the whole session — the loop flew there and sat forever. On an
+	 * unattended alt that is an hour of nothing, and nothing in the log to say why.
+	 *
+	 * <p>Failure is a property of a CHEST, not of the withdrawer.
+	 */
+	static final long RETRY_AFTER_MS = 60_000;
+
 	private static Phase phase = Phase.IDLE;
+	private static final java.util.Map<Long, Long> failedAt = new java.util.HashMap<>();
 	private static BlockPos chest;
 	private static String want;          // null = take everything
 	private static int target;
@@ -156,7 +168,12 @@ final class Withdraw {
 
 	private static void finish(Minecraft mc) {
 		phase = took > 0 ? Phase.DONE : Phase.FAILED;
-		if (took == 0) note = "there was none of it in there";
+		if (took == 0) {
+			note = "there was none of it in there";
+			// The index said it was here and it was not. Same cooling-off as a hard failure, or the
+			// loop returns to an empty chest every two seconds forever.
+			if (chest != null) failedAt.put(chest.asLong(), System.currentTimeMillis());
+		}
 		mc.player.sendSystemMessage(Component.literal("[cscan] took " + took
 			+ (want == null ? " item(s)" : "x " + want)
 			+ (want != null && took < target ? " (wanted " + target + ")" : "")));
@@ -166,8 +183,24 @@ final class Withdraw {
 		return Work.carrying(mc.player).getOrDefault(want, 0);
 	}
 
+	/** Is this particular chest in its cooling-off period? */
+	static boolean recentlyFailed(BlockPos at, long now) {
+		Long t = failedAt.get(at.asLong());
+		return t != null && now - t < RETRY_AFTER_MS;
+	}
+
+	static void clearFailures() {
+		failedAt.clear();
+	}
+
+	/** Record a failure without a live client, so the cooldown itself can be tested. */
+	static void noteFailureForTest(BlockPos at) {
+		failedAt.put(at.asLong(), System.currentTimeMillis());
+	}
+
 	private static void fail(Minecraft mc, String why) {
 		phase = Phase.FAILED;
+		if (chest != null) failedAt.put(chest.asLong(), System.currentTimeMillis());
 		note = why;
 		if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] " + why));
 	}

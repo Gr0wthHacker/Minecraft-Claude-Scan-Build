@@ -35,6 +35,17 @@ final class Hud {
 	private static BlockPos target = null;
 	private static String targetNote = "";
 	private static boolean following = false;
+	// ---- the unattended watch. A loop you leave alone must be able to say what it did, and must
+	// not sit silently against a wall it cannot build.
+	private static int lastTodo = -1;
+	private static long lastProgressMs;
+	private static long startedMs;
+	private static int placedTotal;
+	private static int spotsDone;
+	private static int fetches;
+	private static int stalls;
+	/** No cell placed for this long while following and not fetching: something is wrong. */
+	static final long STALL_MS = 90_000;
 	/** Guiding to a container rather than to work. */
 	private static boolean fetching = false;
 	private static int spotsLeft = 0;
@@ -107,13 +118,33 @@ final class Hud {
 		if (sp.todo().isEmpty()) {
 			if (target != null) {
 				mc.player.sendSystemMessage(Component.literal(
-					"[cscan] " + sp.name() + " is complete in every loaded chunk"));
+					"[cscan] " + sp.name() + " is complete in every loaded chunk. " + sessionReport()));
 			}
 			following = false;
 			stopGuiding();
 			Highlight.clear("goto");
 			return;
 		}
+		// ---- PROGRESS. `todo` shrinking is the only honest evidence a block was placed: the
+		// printer does the placing and never tells us, so the world is the report.
+		long now = System.currentTimeMillis();
+		if (lastTodo >= 0 && sp.todo().size() < lastTodo) {
+			placedTotal += lastTodo - sp.todo().size();
+			lastProgressMs = now;
+		}
+		lastTodo = sp.todo().size();
+		if (!fetching && now - lastProgressMs > STALL_MS) {
+			stalls++;
+			lastProgressMs = now;
+			mc.player.sendSystemMessage(Component.literal("[cscan] STALLED — nothing placed in "
+				+ (STALL_MS / 1000) + "s at " + (target == null ? "?" : Wand.fmt(target))
+				+ ". Printer off, out of reach, or the spot cannot be built. " + sessionReport()));
+			// Give up on this spot rather than sitting against it: the next recount picks another.
+			stopGuiding();
+			Highlight.clear("goto");
+			return;
+		}
+
 		java.util.Set<Long> blocked = new java.util.HashSet<>();
 		for (Work.Cell c : Work.floating(mc.level, sp.todo())) blocked.add(c.pos().asLong());
 		// ...and the opposite failure: cells sealed inside solid world, which have plenty to place
@@ -164,6 +195,7 @@ final class Hud {
 			boolean here = at.distSqr(me) <= 25;
 			if (!fetching || target == null || !target.equals(at)) {
 				fetching = true;
+				fetches++;
 				Highlight.show("goto", java.util.List.of(at), 0xFFC000, 900);
 				mc.player.sendSystemMessage(Component.literal("[cscan] fetch first: "
 					+ want.missing() + "x " + want.item() + " from " + want.where().describe()
@@ -174,7 +206,8 @@ final class Hud {
 			// ARRIVED AND STILL SHORT: take it. This is the step that closes the loop - without it
 			// `follow` flies you to the chest and waits for a human to shift-click. Only fires once
 			// per trip, because Withdraw.busy() gates it and the next recount sees the fuller pack.
-			if (here && !Withdraw.busy() && Withdraw.phase() != Withdraw.Phase.FAILED) {
+			if (here && !Withdraw.busy()
+				&& !Withdraw.recentlyFailed(at, System.currentTimeMillis())) {
 				Withdraw.begin(at, want.item(), want.missing() + carrying.getOrDefault(want.item(), 0));
 			}
 			return;
@@ -247,6 +280,21 @@ final class Hud {
 		watch(name);
 		following = true;
 		stopGuiding();
+		Withdraw.clearFailures();
+		lastTodo = -1;
+		lastProgressMs = System.currentTimeMillis();
+		startedMs = lastProgressMs;
+		placedTotal = 0;
+		spotsDone = 0;
+		fetches = 0;
+		stalls = 0;
+	}
+
+	/** What the loop has done since `follow` started — the report for a session you were not watching. */
+	static String sessionReport() {
+		long mins = Math.max(1, (System.currentTimeMillis() - startedMs) / 60_000);
+		return placedTotal + " placed in " + mins + " min (" + (placedTotal / mins) + "/min), "
+			+ spotsDone + " spot(s) finished, " + fetches + " restock(s), " + stalls + " stall(s)";
 	}
 
 	static boolean following() {
