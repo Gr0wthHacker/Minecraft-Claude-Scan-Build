@@ -87,6 +87,7 @@ def build_rootbreak(cfg: dict, donors=None) -> Canvas:
     seed = int(p["seed"])
     n_str = int(p["strands"])
     counts = collections.Counter()
+    dig = []          # heaved cells: a litematic cannot express removal, the sidecar can
     h = lambda *q: hash01(*q, seed)
 
     def name(x, y, z):
@@ -170,7 +171,8 @@ def build_rootbreak(cfg: dict, donors=None) -> Canvas:
                         continue
                     q = h(x, by, z, 13)
                     if q < 0.30:                  # simply gone - the fracture
-                        w.put(x, by, z, "air")
+                        if name(x, by, z) not in AIR:
+                            dig.append((x, by, z))
                         counts["heaved"] += 1
                     elif q < 0.75:                # cracked, and shoved half a course proud
                         w.put(x, by, z, p["rubble"] if q < 0.55 else p["rubble_alt"])
@@ -215,4 +217,4 @@ def build_rootbreak(cfg: dict, donors=None) -> Canvas:
             lit += 1
 
     return w.canvas({"kind": "rootbreak", "x": cx, "z": cz, "y_from": y0, "y_to": y1,
-                     "strands": n_str, **counts})
+                     "strands": n_str, "dig": [list(d) for d in dig], **counts})

@@ -148,6 +148,7 @@ def build_stairhead(cfg: dict, donors=None) -> Canvas:
         return False
 
     well = {(x, z) for x in range(wx1, wx2 + 1) for z in range(wz1, wz2 + 1)}
+    dig = []          # carved cells; a litematic stores no air, the sidecar's dig list does
     counts = {"apron": 0, "lip": 0, "balustrade": 0, "treads": 0, "landing": 0,
               "piers": 0, "lamps": 0, "revet": 0, "column": 0, "cornice": 0, "arch": 0,
               "ceiling": 0, "chandelier": 0, "handrail": 0, "cheek": 0,
@@ -418,7 +419,7 @@ def build_stairhead(cfg: dict, donors=None) -> Canvas:
                         if put(x, hi + 1, z, p["lamp"], hanging="false", waterlogged="false"):
                             counts["lamps"] += 1
 
-    meta = {"kind": "stairhead", "well": [wx1, wz1, wx2, wz2], "neck": [nx1, nz1, nx2, nz2],
+    meta = {"dig": [list(d) for d in dig], "kind": "stairhead", "well": [wx1, wz1, wx2, wz2], "neck": [nx1, nz1, nx2, nz2],
             "shaft": [sx1, sz1, sx2, sz2], "floor_y": fy, "under_y": uy, "ceiling_y": cy,
             "stair_facing": "north", "descends": "south", **counts}
     return w.canvas(meta)

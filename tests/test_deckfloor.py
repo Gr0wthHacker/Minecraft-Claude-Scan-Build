@@ -84,7 +84,10 @@ def test_it_finds_the_deck_rather_than_the_whole_course():
     connected blob of the course."""
     c, _ = _built()
     assert c.meta["floor_cells"] < c.meta["course_cells"], "the deck was not isolated"
-    assert c.meta["floor_cells"] > 1000, "the deck blob collapsed"
+    # 776, not 1000+: a floor cell must be an exposed SURFACE (air above it) or repaving it
+    # inserts a lone block into the middle of a moss bank. Two thirds of the Y194 course is
+    # buried inside solid bodies and is not floor at all.
+    assert c.meta["floor_cells"] > 600, "the deck blob collapsed"
 
 
 def test_the_palette_is_affordable():

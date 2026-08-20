@@ -163,15 +163,25 @@ def build_deckfloor(cfg: dict, donors=None) -> Canvas:
     # course swept in 97x93 of island underside - scraps of belly, rim shelves, the lot - and the
     # edge course alone came to 819 cells with 59 free-floating clusters drawn round islands two
     # cells wide. Deriving the blob keeps this a DECK design without a hand-written box.
-    blobs = _blobs(all_cells)
+    # A FLOOR IS ONLY A FLOOR IF YOU CAN STAND ON IT. `_course_cells` returns every non-air cell
+    # on the course, and a great many of them are buried INSIDE a moss bank or a cobble mass -
+    # not a surface at all. Repaving those inserted a lone stone block into the middle of a solid
+    # body, 120 times, which is what reads in world as random blocks. Require air above.
+    surface = [c for c in all_cells
+               if name(c[0], fy + 1, c[1]) in ("air", "cave_air", "void_air")]
+    blobs = _blobs(surface)
     floor = set(blobs[0]) if blobs else set()
     counts_pre = (len(all_cells), len(floor))
 
     counts = collections.Counter()
+    dig = []          # cells to BREAK; a litematic stores no air
 
     # ---- 1. THE MOSS FARM. Found as the biggest green blob, not named by hand, so it survives the
     # farm being extended. Everything else green is scatter.
-    green = [c for c in floor if name(c[0], fy, c[1]) in GREEN]
+    # the FARM is found on the whole course, not the walkable surface: its own floor has moss
+    # growing ON it, so none of it is an exposed surface and the surface-only rule lost the farm
+    # entirely - along with the room and its doorway.
+    green = [c for c in all_cells if name(c[0], fy, c[1]) in GREEN]
     gb = _blobs(green)
     farm = set(gb[0]) if gb else set()
     counts["farm_cells"] = len(farm)
@@ -322,7 +332,7 @@ def build_deckfloor(cfg: dict, donors=None) -> Canvas:
                 counts["link"] += 1
                 for k in range(0, 3):              # and the headroom to use it
                     if not keep(px, walk + k, pz) and name(px, walk + k, pz) in SCATTER:
-                        w.put(px, walk + k, pz, "air")
+                        dig.append((px, walk + k, pz))
                         counts["link_clear"] += 1
 
     # ---- 6. THE SOFFIT. The biggest untouched surface on the deck. It is NOT flattened: across
@@ -343,6 +353,23 @@ def build_deckfloor(cfg: dict, donors=None) -> Canvas:
             if roof is None or name(x, roof, z) not in raw:
                 continue
             if keep(x, roof, z):
+                continue
+            # A SOFFIT IS ONLY A SOFFIT WHERE THERE IS A ROOM UNDER IT. "The first solid block
+            # above the floor" is not a ceiling in most columns - it is the side of a moss bank or
+            # a cobble mass - and replacing one cell in the middle of a solid body inserts a lone
+            # wood or stone block into it. 259 of those, which read in world as random logs.
+            # Require two clear courses beneath: then it is an exposed underside you stand below.
+            if any(name(x, roof - k, z) not in ("air", "cave_air", "void_air") for k in (1, 2)):
+                counts["soffit_no_room"] += 1
+                continue
+            # ...and it must be part of a PLANE, not a lone cell: at least two of its four
+            # neighbours must be ceiling at the same height.
+            nb = sum(1 for dx, dz in NB4
+                     if name(x + dx, roof, z + dz) not in ("air", "cave_air", "void_air")
+                     and all(name(x + dx, roof - k, z + dz) in ("air", "cave_air", "void_air")
+                             for k in (1, 2)))
+            if nb < 2:
+                counts["soffit_lone"] += 1
                 continue
             grid = (x % g == 0) or (z % g == 0)
             w.put(x, roof, z, p["soffit_grid"] if grid else p["soffit_panel"])
@@ -370,7 +397,8 @@ def build_deckfloor(cfg: dict, donors=None) -> Canvas:
                     else:
                         counts["torch_left"] += 1
 
-    return w.canvas({"kind": "deckfloor", "floor_y": fy, "floor_cells": len(floor),
+    return w.canvas({"dig": [list(d) for d in dig],
+                     "kind": "deckfloor", "floor_y": fy, "floor_cells": len(floor),
                      "course_cells": counts_pre[0],
                      "farm_box": _bounds(farm), "wall_line": len(wall_line), **counts})
 

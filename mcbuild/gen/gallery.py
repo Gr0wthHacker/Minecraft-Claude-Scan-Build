@@ -98,6 +98,7 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
     fy, seed = int(p["floor_y"]), int(p["seed"])
     w = World()
     counts = collections.Counter()
+    dig = []          # cells the player must BREAK - see the note at the return
 
     def name(x, y, z):
         return ctx.name_at(x, y, z).split(":")[-1].split("[")[0]
@@ -169,13 +170,16 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
                 cut = 0
                 for k in range(sill + 1, sill + 1 + oh):
                     if cuttable(x, fy + k, z):
-                        w.put(x, fy + k, z, "air")
+                        if name(x, fy + k, z) not in AIR:
+                            dig.append((x, fy + k, z))
                         cut += 1
                 if not cut:
                     continue
                 counts["opened"] += cut
                 green = planted(x, z)
-                if cuttable(x, fy + sill, z):
+                # the sill is the bottom of an OPENING, so there has to be one above it. Where the
+                # cut was refused the sill is just a slab buried in a bank.
+                if cut and cuttable(x, fy + sill, z):
                     # a window cut through a MOSSY bank gets a mossy sill. Capping it in stone is
                     # what made the first build read as masonry punched through the planting.
                     if green:
@@ -188,7 +192,10 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
                 # wherever the course was free, it landed above three-high banks with air over it
                 # - a dark block perched on the moss edge, read from outside as another stray.
                 headed = False
-                if p.get("arch") and name(x, fy + sill + oh + 1, z) not in AIR                         and cuttable(x, fy + sill + oh + 1, z):
+                # ...and it must be the bank's TOP course. Buried inside a solid moss mass it is
+                # not a lintel, it is a dark block inserted in the middle of a bank - the same
+                # fault as the piers, one course higher.
+                if p.get("arch") and name(x, fy + sill + oh + 1, z) not in AIR                         and name(x, fy + sill + oh + 2, z) in AIR                         and cuttable(x, fy + sill + oh + 1, z):
                     w.put(x, fy + sill + oh + 1, z, p["jamb"])
                     counts["arch"] += 1
                     headed = True
@@ -250,7 +257,12 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
         else:
             counts["basin_blocked"] = 1
 
-    return w.canvas({"kind": "gallery", "floor_y": fy, "deck_cells": len(floor), **counts})
+    # A LITEMATIC CANNOT EXPRESS REMOVAL. `w.put(..., "air")` stores nothing, so every opening
+    # this design cut simply evaporated - it shipped as "insert a slab into a solid wall", which
+    # is exactly what it looked like in world. Cells to BREAK go in the sidecar's `dig` list,
+    # which is what `/cscan dig` reads. All four deck designs had dig: 0 before this.
+    return w.canvas({"kind": "gallery", "floor_y": fy, "deck_cells": len(floor),
+                     "dig": [list(d) for d in dig], **counts})
 
 
 def _air(ctx, x, y, z):
