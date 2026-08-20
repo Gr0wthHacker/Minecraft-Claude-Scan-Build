@@ -139,7 +139,7 @@ final class Withdraw {
 			return;
 		}
 		if (want != null && carrying(mc) >= target) {
-			close(mc);
+			close(mc);                               // got what we came for
 			return;
 		}
 		if (cool-- > 0) return;
@@ -166,17 +166,28 @@ final class Withdraw {
 		finish(mc);
 	}
 
+	/**
+	 * TAKE WHAT IS THERE AND MOVE ON.
+	 *
+	 * <p>The index is a memory of the last time the chest was opened, so it routinely promises more
+	 * than the chest holds — it said 150 and there were 64. Demanding the exact number would leave
+	 * the loop asking a chest for something it does not have; instead the shortfall stays in the
+	 * plan and the NEXT recount looks for it somewhere else.
+	 *
+	 * <p>Either way the chest goes into the cooling-off set. Emptied or merely short, there is no
+	 * reason to come back to it this trip, and coming back is what produced the freeze.
+	 */
 	private static void finish(Minecraft mc) {
+		boolean short_ = want != null && took < target;
 		phase = took > 0 ? Phase.DONE : Phase.FAILED;
-		if (took == 0) {
-			note = "there was none of it in there";
-			// The index said it was here and it was not. Same cooling-off as a hard failure, or the
-			// loop returns to an empty chest every two seconds forever.
-			if (chest != null) failedAt.put(chest.asLong(), System.currentTimeMillis());
+		if (took == 0) note = "there was none of it in there";
+		else if (short_) note = "took " + took + " of " + target + "; the rest is elsewhere";
+		if (chest != null && (took == 0 || short_)) {
+			failedAt.put(chest.asLong(), System.currentTimeMillis());
 		}
 		mc.player.sendSystemMessage(Component.literal("[cscan] took " + took
 			+ (want == null ? " item(s)" : "x " + want)
-			+ (want != null && took < target ? " (wanted " + target + ")" : "")));
+			+ (short_ ? " of " + target + " — looking elsewhere for the rest" : "")));
 	}
 
 	private static int carrying(Minecraft mc) {
@@ -187,6 +198,15 @@ final class Withdraw {
 	static boolean recentlyFailed(BlockPos at, long now) {
 		Long t = failedAt.get(at.asLong());
 		return t != null && now - t < RETRY_AFTER_MS;
+	}
+
+	/** Positions still cooling off, so the planner can route round them rather than at them. */
+	static java.util.Set<Long> coolingOff(long now) {
+		java.util.Set<Long> out = new java.util.HashSet<>();
+		for (var e : failedAt.entrySet()) {
+			if (now - e.getValue() < RETRY_AFTER_MS) out.add(e.getKey());
+		}
+		return out;
 	}
 
 	static void clearFailures() {

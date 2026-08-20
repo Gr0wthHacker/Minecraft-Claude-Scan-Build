@@ -165,6 +165,10 @@ public final class ChunkScanClient implements ClientModInitializer {
 						ok(ctx.getSource(), "autofly off");
 						return 1; })))
 				.then(literal("fetch")
+					.executes(ctx -> {
+						Hud.stopFetching(ctx.getSource().getClient());
+						ok(ctx.getSource(), "fetch cancelled — that chest is skipped for now");
+						return 1; })
 					.then(argument("design", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::fetch)))
 				.then(literal("follow")
@@ -198,6 +202,8 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(argument("radius", IntegerArgumentType.integer(1, 64))
 						.executes(ChunkScanClient::around)))
 				.then(literal("clips").executes(ChunkScanClient::clips))
+				.then(literal("stop")
+					.executes(ChunkScanClient::stopAll))
 				.then(literal("take")
 					.executes(ctx -> take(ctx, null, 0))
 					.then(argument("item", StringArgumentType.word())
@@ -1050,6 +1056,25 @@ public final class ChunkScanClient implements ClientModInitializer {
 			src.sendError(Component.literal("[cscan] " + e.getMessage()));
 			return 0;
 		}
+	}
+
+	/**
+	 * The panic button: stop everything in flight.
+	 *
+	 * <p>An automation you cannot stop in one word is one you have to fight.
+	 */
+	private static int stopAll(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		String report = Hud.following() ? "  " + Hud.sessionReport() : "";
+		Withdraw.cancel();
+		Autopilot.halt(mc);
+		Hud.off();
+		Highlight.clear("goto");
+		Highlight.clear("next");
+		Highlight.clear("scaffold");
+		ok(src, "stopped: withdrawal, autofly, follow and highlights all off." + report);
+		return 1;
 	}
 
 	/**

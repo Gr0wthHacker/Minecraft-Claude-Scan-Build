@@ -1847,6 +1847,53 @@ loop says so and abandons that spot rather than pressing on it:
 **And a session report**, on completion and on `/cscan follow` off. A loop you leave alone has to be
 able to say what it did, or the whole exercise is an act of faith.
 
+### What the first real flight found (2026-08-20)
+
+Jack ran it. Everything below came from that, and every one is a bug reading the code had missed or
+that reading the code had introduced. Recorded because the pattern is the lesson: an unattended loop
+fails by SITTING STILL, and nothing in a test suite notices a thing that does nothing.
+
+**"if it fails to fetch it doesnt move on to a new chest, it just freezes."** `restockTargets` took
+`hits.get(0)` — always the nearest container. Once a chest went into its cooling-off period the loop
+was pointed at it, refused to open it, and sat there forever. A shortfall usually has several
+containers holding it; the failed ones are skipped now and the next is taken.
+
+**"it expects exact quantity... if only 64 are left it should just take all 64 and complete
+elsewhere."** The index is a MEMORY of the last time a chest was opened, so it routinely promises
+more than the chest holds. Withdraw takes what is there, puts that chest in the cooling-off set —
+emptied or merely short, there is no reason to return this trip — and leaves the remainder in the
+plan for the next recount to find somewhere else.
+
+**"its trying to fly through walls."** Two causes, and neither was the steering:
+
+- **The node budget was too small.** A* over open 3D air expands a SPHERE, so the frontier grows
+  with the cube of the distance; 12,000 nodes could not reach across the island even with a clear
+  line. The route came back empty and the caller fell through to flying STRAIGHT AT the terrain.
+  Now 40,000 nodes and a **weighted heuristic** (×1.4) — greed finds a route in a fraction of the
+  nodes and a few blocks of extra path costs nothing when you are flying.
+- **`clear()` only sampled the centre line.** A line running diagonally between two blocks touched
+  neither of their centres, so `simplify` straightened the route through the gap. It samples every
+  quarter block now and checks the four cells a 0.6-wide body actually covers.
+
+**And the flight was too fast to steer.** Movement is set directly along the aim vector, so the
+eased turn is COSMETIC and nothing was limiting entry speed into a corner: at cruise the flight
+covers 1.75 blocks in five ticks, against a waypoint radius of 1.8 — it passed the corner before it
+could react. Waypoint radius is 1.0, it crawls when the next leg bends more than ~40°, and it slows
+approaching any waypoint.
+
+**Three more found by reading, all of the same kind:**
+
+- **`Autopilot.stop()` was called on ARRIVAL**, and it sets `on = false`. Autofly switched itself
+  off at the first chest and the unattended loop never flew again. Arriving is not disarming: it
+  holds still, stays armed, and resumes when the target moves. Only the player takes it off.
+- **`here` was 5.0 blocks against `Withdraw.REACH` of 4.5**, so between the two the withdrawal
+  began, could never fire the use-item, timed out, and blacklisted a perfectly good chest.
+- **`spotsDone` was never incremented**, so the session report said 0 spots however long it ran.
+
+**And a stop.** `/cscan stop` cancels the withdrawal, the flight, the follow loop and every
+highlight; `/cscan fetch` with no argument cancels just the fetch and skips that chest. An
+automation you cannot stop in one word is one you have to fight.
+
 ## Build & test
 
 ```bash

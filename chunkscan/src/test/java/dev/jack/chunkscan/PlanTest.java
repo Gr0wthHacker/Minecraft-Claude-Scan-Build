@@ -392,4 +392,40 @@ class PlanTest {
 		assertEquals("", Hud.climb(new BlockPos(0, 100, 0), new BlockPos(0, 102, 0)));
 		assertEquals("", Hud.climb(new BlockPos(0, 100, 0), new BlockPos(0, 100, 0)));
 	}
+
+	// ---------------------------------------------------------------- the freeze
+
+	@Test
+	void aFailedChestIsSkippedForTheNextOneHoldingIt() {
+		// THE FREEZE, exactly. The nearest container was chosen every time, so once a chest went
+		// into its cooling-off period the loop was pointed at it, refused to open it, and sat
+		// there. A shortfall usually has several containers holding it.
+		List<Work.Cell> todo = blob(0, 100, 0, 40, "stone_bricks");
+		var carry = carrying("stone_bricks", 2);
+		List<Plan.Cluster> cl = Plan.clusters(todo, carry, Set.of(), BlockPos.ZERO);
+
+		Map<String, Storage.Container> index = new LinkedHashMap<>();
+		Storage.Container near = chest(10, 100, 0, "stone_bricks", 500);
+		Storage.Container far = chest(60, 100, 0, "stone_bricks", 500);
+		index.put(near.key(), near);
+		index.put(far.key(), far);
+
+		assertEquals(near.pos(), Plan.firstFetchable(cl.get(0), carry, index, BlockPos.ZERO).where().pos(),
+			"should start with the nearest");
+		Plan.Restock second = Plan.firstFetchable(cl.get(0), carry, index, BlockPos.ZERO,
+			Set.of(near.pos().asLong()));
+		assertEquals(far.pos(), second.where().pos(), "did not fall through to the other chest");
+	}
+
+	@Test
+	void everyChestFailedMeansNoFetchRatherThanAWrongOne() {
+		List<Work.Cell> todo = blob(0, 100, 0, 40, "stone_bricks");
+		var carry = carrying("stone_bricks", 2);
+		List<Plan.Cluster> cl = Plan.clusters(todo, carry, Set.of(), BlockPos.ZERO);
+		Map<String, Storage.Container> index = new LinkedHashMap<>();
+		Storage.Container only = chest(10, 100, 0, "stone_bricks", 500);
+		index.put(only.key(), only);
+		assertEquals(null, Plan.firstFetchable(cl.get(0), carry, index, BlockPos.ZERO,
+			Set.of(only.pos().asLong())));
+	}
 }

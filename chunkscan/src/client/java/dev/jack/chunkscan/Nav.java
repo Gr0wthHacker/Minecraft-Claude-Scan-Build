@@ -36,8 +36,23 @@ import java.util.PriorityQueue;
  * says so rather than freezing the game to be clever.
  */
 final class Nav {
-	/** Enough for a route through a building; small enough not to stutter. */
-	static final int MAX_NODES = 12000;
+	/**
+	 * Node budget. Generous because the FAILURE is what hurts, not the success: when a route exists
+	 * a weighted search finds it in hundreds of nodes, and when none exists the caller backs off
+	 * for three seconds rather than retrying twice a second.
+	 *
+	 * <p>It was 12,000 and that was too small in practice. A* over open 3D air expands a SPHERE, so
+	 * the frontier grows as the cube of the distance — a hundred-block hop exhausted the budget
+	 * even with a clear line, the route came back empty, and the caller fell through to flying
+	 * straight at the terrain. "It tries to fly through walls" was this, not the steering.
+	 */
+	static final int MAX_NODES = 40000;
+	/**
+	 * Greediness. Multiplying the heuristic makes the search push at the goal instead of expanding
+	 * evenly in every direction; the route can come out a few blocks longer than optimal, which for
+	 * flying somewhere is worth nothing at all against finding it in a tenth of the nodes.
+	 */
+	static final double GREED = 1.4;
 	/** Beyond this the answer is "fly closer first". */
 	static final int MAX_RANGE = 160;
 
@@ -88,7 +103,7 @@ final class Nav {
 		PriorityQueue<Object[]> open = new PriorityQueue<>((a, b) ->
 			Double.compare((Double) a[0], (Double) b[0]));
 		g.put(start.key(), 0.0);
-		open.add(new Object[]{start.dist(goal), start});
+		open.add(new Object[]{start.dist(goal) * GREED, start});
 
 		int expanded = 0;
 
@@ -117,7 +132,7 @@ final class Nav {
 						if (old != null && ng >= old) continue;
 						g.put(nb.key(), ng);
 						came.put(nb.key(), cur);
-						open.add(new Object[]{ng + nb.dist(goal), nb});
+						open.add(new Object[]{ng + nb.dist(goal) * GREED, nb});
 					}
 				}
 			}
@@ -169,18 +184,30 @@ final class Nav {
 		return out;
 	}
 
-	/** Is the straight line between two cells flyable? Sampled at half-block steps. */
+	/**
+	 * Is the straight line between two cells flyable, for a body 0.6 wide?
+	 *
+	 * <p>Sampled every quarter block, and each sample checks the four cells the player's WIDTH
+	 * actually covers rather than the single cell its centre line passes through. The centre-only
+	 * version was too permissive: a line running diagonally between two blocks touched neither of
+	 * their centres, `simplify` straightened the route through the gap, and the flight caught on
+	 * the corner. That is the other half of "it tries to fly through walls".
+	 */
 	static boolean clear(Passable free, BlockPos a, BlockPos b) {
 		double dx = b.getX() - a.getX(), dy = b.getY() - a.getY(), dz = b.getZ() - a.getZ();
 		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
 		if (len == 0) return true;
-		int steps = (int) Math.ceil(len * 2);
+		int steps = (int) Math.ceil(len * 4);
 		for (int i = 1; i <= steps; i++) {
 			double t = (double) i / steps;
-			int x = (int) Math.floor(a.getX() + dx * t + 0.5);
-			int y = (int) Math.floor(a.getY() + dy * t + 0.5);
-			int z = (int) Math.floor(a.getZ() + dz * t + 0.5);
-			if (!free.at(x, y, z)) return false;
+			double px = a.getX() + dx * t, py = a.getY() + dy * t, pz = a.getZ() + dz * t;
+			int y = (int) Math.floor(py + 0.5);
+			for (double ox : new double[]{-0.35, 0.35}) {
+				for (double oz : new double[]{-0.35, 0.35}) {
+					if (!free.at((int) Math.floor(px + ox + 0.5), y,
+						(int) Math.floor(pz + oz + 0.5))) return false;
+				}
+			}
 		}
 		return true;
 	}

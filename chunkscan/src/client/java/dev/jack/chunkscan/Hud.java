@@ -176,6 +176,9 @@ final class Hud {
 			}
 		}
 		Plan.Cluster next = cl.get(0);
+		// A spot counts as finished when we leave one BUILD target for another. The earlier version
+		// never incremented at all, so the session report said 0 spots however long it ran.
+		if (target != null && !fetching && !target.equals(next.centre())) spotsDone++;
 
 		// ---- FETCH FIRST. A spot you cannot finish is a spot you will walk to twice, so if the
 		// best one is short of stock and the index knows where the material is, that trip comes
@@ -187,12 +190,17 @@ final class Hud {
 		} catch (Exception e) {
 			index = java.util.Map.of();
 		}
-		Plan.Restock want = Plan.firstFetchable(next, carrying, index, me);
+		// Skip chests in their cooling-off period, or the loop is guided at one it will not open.
+		Plan.Restock want = Plan.firstFetchable(next, carrying, index, me,
+			Withdraw.coolingOff(System.currentTimeMillis()));
 		if (want != null) {
 			BlockPos at = want.where().pos();
 			// Arrived and still short: you are standing at the chest, so say what to take rather
 			// than repeating where it is.
-			boolean here = at.distSqr(me) <= 25;
+			// INSIDE reach, not at the edge of it. This was 25 (5.0 blocks) against Withdraw.REACH
+			// of 4.5, so between 4.5 and 5.0 the withdrawal began, could never fire the use-item,
+			// timed out, and blacklisted a perfectly good chest for a minute.
+			boolean here = at.distSqr(me) <= (Withdraw.REACH - 0.5) * (Withdraw.REACH - 0.5);
 			if (!fetching || target == null || !target.equals(at)) {
 				fetching = true;
 				fetches++;
@@ -257,6 +265,24 @@ final class Hud {
 		design = name;
 		lines = new ArrayList<>();
 		tick = 0;
+	}
+
+	/**
+	 * Abandon the fetch in progress and clear the instruction.
+	 *
+	 * <p>The chest stays in the cooling-off set so the loop moves to a DIFFERENT one rather than
+	 * turning straight back to the one you just cancelled.
+	 */
+	static void stopFetching(Minecraft mc) {
+		Withdraw.cancel();
+		if (fetching && target != null) Withdraw.noteFailureForTest(target);
+		fetching = false;
+		stopGuiding();
+		Highlight.clear("goto");
+	}
+
+	static boolean fetching() {
+		return fetching;
 	}
 
 	static void off() {

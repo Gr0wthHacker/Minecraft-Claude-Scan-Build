@@ -211,6 +211,20 @@ final class Plan {
 	 */
 	static List<Restock> restockTargets(Cluster c, Map<String, Integer> carrying,
 	                                    Map<String, Storage.Container> index, BlockPos from) {
+		return restockTargets(c, carrying, index, from, java.util.Set.of());
+	}
+
+	/**
+	 * @param skip container positions to pass over — chests that have just failed.
+	 *
+	 * <p><b>This parameter is the fix for a freeze.</b> Without it the nearest container was chosen
+	 * every time, so once a chest failed and went into its cooling-off period the loop was pointed
+	 * at it, refused to withdraw from it, and sat there: guided forever at a chest it would not
+	 * open. A shortfall usually has several containers holding it — take the next one.
+	 */
+	static List<Restock> restockTargets(Cluster c, Map<String, Integer> carrying,
+	                                    Map<String, Storage.Container> index, BlockPos from,
+	                                    java.util.Set<Long> skip) {
 		List<Restock> out = new ArrayList<>();
 		Map<String, Integer> left = new LinkedHashMap<>(carrying);
 		for (var e : c.materials().entrySet()) {
@@ -218,7 +232,11 @@ final class Plan {
 			int miss = e.getValue() - have;
 			left.put(e.getKey(), Math.max(0, have - e.getValue()));
 			if (miss <= 0) continue;
-			List<Storage.Hit> hits = Storage.find(index, e.getKey(), from);
+			List<Storage.Hit> all = Storage.find(index, e.getKey(), from);
+			List<Storage.Hit> hits = new ArrayList<>();
+			for (Storage.Hit h : all) {
+				if (!skip.contains(h.container().pos().asLong())) hits.add(h);
+			}
 			if (hits.isEmpty()) {
 				out.add(new Restock(e.getKey(), miss, null, 0));
 			} else {
@@ -251,7 +269,13 @@ final class Plan {
 	/** The first shortfall that has somewhere to be fetched from, or null. */
 	static Restock firstFetchable(Cluster c, Map<String, Integer> carrying,
 	                              Map<String, Storage.Container> index, BlockPos from) {
-		for (Restock r : restockTargets(c, carrying, index, from)) {
+		return firstFetchable(c, carrying, index, from, java.util.Set.of());
+	}
+
+	static Restock firstFetchable(Cluster c, Map<String, Integer> carrying,
+	                              Map<String, Storage.Container> index, BlockPos from,
+	                              java.util.Set<Long> skip) {
+		for (Restock r : restockTargets(c, carrying, index, from, skip)) {
 			if (r.where() != null) return r;
 		}
 		return null;
