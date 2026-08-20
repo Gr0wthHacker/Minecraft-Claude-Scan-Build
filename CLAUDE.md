@@ -728,6 +728,41 @@ it places.** 492 replacements read as vandalism; 84 read as a repair.
 **Still open on the deck:** the 120 chests (the Store Hall's 68 slots are built and waiting), the
 37 torches, and the 44% walkable figure — all of which want the chest move done first.
 
+### The workshop pass (2026-08-19)
+
+A full audit of the deck with both designs applied produced three moves, ranked by effect per
+block. All three are built.
+
+**What the audit found.** 989 floor columns. The floor was already fixed (80% stone brick + 9%
+deepslate = 89% in two materials, walkable 44% -> 62%), which left the two surfaces that actually
+say *unfinished*: **29% of what is overhead was raw cobblestone** and another 8% moss, and the deck
+was lit by **20 torches against 8 lanterns** — with 95% of the floor already within 7 of a light,
+so the torches were costing nothing but the impression. And standing at the entrance mouth looking
+north there were **seven blocks of nothing at head height**: the entrance was the only vertical
+event in the room, so you did not discover it, you simply arrived at it.
+
+| | before | after |
+|---|---|---|
+| raw cobble overhead | 29% | **0%** |
+| designed soffit overhead | — | **32%** (20% panels, 12% grid) |
+| lanterns : torches | 8 : 20 | **18 : 14** |
+
+- **The soffit is NOT flattened deck-wide.** Across 1,725 columns the ceiling genuinely steps, and
+  forcing one plane would either bury the structures under it or leave a shelf. What is fixed is
+  the MATERIAL, and the coffer grid is set in WORLD coordinates so it stays aligned across a step.
+  Finished ceilings are left alone; only the quarry ones are replaced. (Inside the entrance, which
+  is one room, the soffit *is* one flat plane — that is the difference between a room and a deck.)
+- **A wall torch cannot become a lantern.** A lantern does not mount on a wall, so it is only
+  swapped where there is a block overhead to hang from — **14 are left standing** rather than
+  deleting someone's light, and the count is reported.
+- **`KEEP` protects torches from the FLOOR pass and the relight replaces them anyway.** That is a
+  real exemption, so it is narrow and asserted: a cell written over a torch must be a lantern and
+  nothing else. Widening `KEEP` would be the wrong fix — it is what stops the next pass eating a
+  hopper.
+
+**Still open:** the 112 chests (Store Hall's 68 slots are built and waiting), the 14 wall torches,
+and 62% walkable — all three of which are the chest move.
+
 ## Build & test
 
 ```bash

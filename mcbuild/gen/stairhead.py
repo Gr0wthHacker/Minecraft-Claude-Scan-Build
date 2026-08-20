@@ -66,6 +66,13 @@ STAIRHEAD = {
     "chandelier": True,        # one hanging cluster over the well, not four lonely lanterns
     "handrail": True,          # a rail down the flight, which is what makes it read as a stair
     "cornice_off": 4,          # courses above the floor the cornice sits at
+    # THE APPROACH. Standing at the mouth looking north there were seven blocks of nothing at head
+    # height: the entrance was the only vertical event in a 989-column room, and you did not
+    # discover it, you simply arrived at it. A paved runway between paired piers makes it a
+    # destination - which is most of what "grand" means for a door.
+    "approach": 7,             # cells of runway north of the mouth; 0 = none
+    "approach_w": 5,
+    "pier_every": 3,
 
     # the atelier's four greys, so the whole complex reads as one hand
     "pale": "smooth_stone",
@@ -125,7 +132,8 @@ def build_stairhead(cfg: dict, donors=None) -> Canvas:
     well = {(x, z) for x in range(wx1, wx2 + 1) for z in range(wz1, wz2 + 1)}
     counts = {"apron": 0, "lip": 0, "balustrade": 0, "treads": 0, "landing": 0,
               "piers": 0, "lamps": 0, "revet": 0, "column": 0, "cornice": 0, "arch": 0,
-              "ceiling": 0, "chandelier": 0, "handrail": 0, "cheek": 0}
+              "ceiling": 0, "chandelier": 0, "handrail": 0, "cheek": 0,
+              "approach": 0, "pier": 0}
 
     # ---- 1. THE APRON. Paving worked round the lip so the opening sits in something, rather than
     # being a rectangle punched in a field of stone brick. Rings out from the edge, and the tone
@@ -355,6 +363,33 @@ def build_stairhead(cfg: dict, donors=None) -> Canvas:
                         counts["cheek"] += 1
                 if put(x, y + 1, z, p["wall"]):
                     counts["handrail"] += 1
+
+    # ---- 14. THE APPROACH: a runway north of the mouth, flanked by piers carrying lanterns.
+    ap_len = int(p.get("approach") or 0)
+    if ap_len:
+        aw = int(p["approach_w"]) // 2
+        for i in range(1, ap_len + 1):
+            z = wz1 - 1 - i
+            for dx in range(-aw, aw + 1):
+                x = mid_x + dx
+                edge = abs(dx) == aw
+                blk = p["lip"] if edge else (p["pale"] if (i + dx) % 4 else p["figure"])
+                if put(x, fy, z, blk):
+                    counts["approach"] += 1
+            if i % max(1, int(p["pier_every"])) == 0:
+                for dx in (-aw, aw):
+                    x = mid_x + dx
+                    roof = _roof(ctx, x, z, fy + 2, cy + 8, cy)
+                    hi = min(roof - 1, fy + 4) if roof else fy + 4
+                    ok = False
+                    for k in range(fy + 1, hi):
+                        ok |= put(x, k, z, p["lip"] if k == fy + 1 else p["mid"])
+                    if ok:
+                        counts["pier"] += 1
+                        if put(x, hi, z, p["medallion"]):
+                            counts["pier"] += 1
+                        if put(x, hi + 1, z, p["lamp"], hanging="false", waterlogged="false"):
+                            counts["lamps"] += 1
 
     meta = {"kind": "stairhead", "well": [wx1, wz1, wx2, wz2], "neck": [nx1, nz1, nx2, nz2],
             "shaft": [sx1, sz1, sx2, sz2], "floor_y": fy, "under_y": uy, "ceiling_y": cy,

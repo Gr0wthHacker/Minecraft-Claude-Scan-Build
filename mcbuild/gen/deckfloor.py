@@ -60,6 +60,21 @@ DECKFLOOR = {
     "lamp_every": 7,
     "border_ring": 0,                  # cells of rim taken by the edge course; 0 = no border
     "zones": [],                       # world [x1,z1,x2,z2] boxes to outline in the floor
+
+    # ---- the ceiling and the light. The floor pass fixed the ground and left the two surfaces
+    # that actually say "unfinished": 29% of what is overhead is raw cobblestone and another 8%
+    # is moss, and the deck is lit by 20 torches against 8 lanterns.
+    "soffit": True,
+    "soffit_panel": "smooth_stone",    # the pale coffer panel
+    "soffit_grid": "deepslate_bricks",  # ...and the dark grid that draws it
+    "soffit_grid_at": 4,               # grid every N cells, in WORLD coordinates so it stays
+                                       # aligned even where the ceiling steps up or down
+    "soffit_raw": ("cobblestone", "mossy_cobblestone", "moss_block", "stone", "gravel",
+                   "dirt", "andesite", "diorite", "granite", "cobbled_deepslate"),
+    "soffit_max": 10,                  # courses above the floor worth calling a ceiling
+    "relight": True,                   # torches become lanterns; 95% of the floor is already
+                                       # within 7 of a light, so this is purely how it READS
+    "lamp_block": "lantern",
     "seed": 0,
 }
 
@@ -250,6 +265,51 @@ def build_deckfloor(cfg: dict, donors=None) -> Canvas:
                 continue
             w.put(x, fy, z, p["band"])
             counts["band"] += 1
+
+    # ---- 6. THE SOFFIT. The biggest untouched surface on the deck. It is NOT flattened: across
+    # 1,725 columns the ceiling genuinely steps, and forcing one plane would either bury the
+    # structures under it or leave a shelf. What is fixed is the MATERIAL - raw cobble and moss
+    # become panels with a dark grid, and the grid is set in WORLD coordinates so it stays aligned
+    # across a step. Finished ceilings are left alone; only the quarry ones are replaced.
+    if p.get("soffit"):
+        raw = tuple(p["soffit_raw"])
+        g = max(2, int(p["soffit_grid_at"]))
+        for (x, z) in sorted(floor):
+            roof = None
+            for y in range(fy + 3, fy + int(p["soffit_max"]) + 1):
+                n = name(x, y, z)
+                if n not in ("air", "cave_air", "void_air"):
+                    roof = y
+                    break
+            if roof is None or name(x, roof, z) not in raw:
+                continue
+            if keep(x, roof, z):
+                continue
+            grid = (x % g == 0) or (z % g == 0)
+            w.put(x, roof, z, p["soffit_grid"] if grid else p["soffit_panel"])
+            counts["soffit"] += 1
+
+    # ---- 7. RELIGHT. Twenty torches against eight lanterns is the single clearest "unfinished
+    # base" tell there is, and with 95% of the floor already within 7 of a light this changes
+    # nothing functional - it is entirely how the room reads.
+    #
+    # A standing torch becomes a standing lantern. A WALL torch does not: a lantern cannot mount
+    # on a wall, so it is only swapped where there is a block overhead to hang it from, and left
+    # alone otherwise rather than deleting someone's light.
+    if p.get("relight"):
+        for (x, z) in sorted(floor):
+            for y in range(fy + 1, fy + int(p["soffit_max"]) + 1):
+                n = name(x, y, z)
+                if n == "torch":
+                    if name(x, y - 1, z) not in ("air", "cave_air", "void_air"):
+                        w.put(x, y, z, p["lamp_block"], hanging="false", waterlogged="false")
+                        counts["relit"] += 1
+                elif n == "wall_torch":
+                    if name(x, y + 1, z) not in ("air", "cave_air", "void_air"):
+                        w.put(x, y, z, p["lamp_block"], hanging="true", waterlogged="false")
+                        counts["relit"] += 1
+                    else:
+                        counts["torch_left"] += 1
 
     return w.canvas({"kind": "deckfloor", "floor_y": fy, "floor_cells": len(floor),
                      "course_cells": counts_pre[0],

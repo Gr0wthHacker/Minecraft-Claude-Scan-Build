@@ -42,16 +42,25 @@ def test_it_never_touches_a_mechanism():
     ox, oy, oz = s.origin
     wn = [n.split(":")[-1].split("[")[0] for n in m.names]
     cox, coy, coz = c.world_origin if getattr(c, "world_origin", None) else (0, 0, 0)
-    bad = []
-    for (x, y, z) in built:
+    bad, swaps = [], 0
+    for (x, y, z), placed in built.items():
         wx, wy, wz = x + cox, y + coy, z + coz
         i, j, k = wx - ox, wy - oy, wz - oz
         if not (0 <= i < m.ids.shape[2] and 0 <= j < m.ids.shape[0] and 0 <= k < m.ids.shape[1]):
             continue
         n = wn[m.ids[j, k, i]]
+        if "torch" in n:
+            # THE ONE EXEMPTION, and it is narrow on purpose: the relight pass exists to turn
+            # torches into lanterns. A torch is in KEEP so the FLOOR pass cannot pave over it;
+            # the relight may replace it, but only with a lantern and only in place. Widening
+            # KEEP would be the wrong fix - it is what stops the next pass eating a hopper.
+            assert placed == "lantern", f"a torch at {(wx, wy, wz)} became {placed}, not a lantern"
+            swaps += 1
+            continue
         if any(q in n for q in deckfloor.KEEP):
             bad.append((wx, wy, wz, n))
     assert not bad, f"{len(bad)} cells written over machinery, e.g. {bad[:4]}"
+    assert swaps > 0, "the relight pass swapped nothing"
 
 
 def test_the_moss_farm_floor_is_left_alone():

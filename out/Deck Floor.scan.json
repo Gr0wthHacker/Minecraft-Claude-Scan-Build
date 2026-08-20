@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 74,
-    "y": 49,
+    "y": 55,
     "z": 100
   },
   "generated_by": "deckfloor",
@@ -29,6 +29,9 @@
   "room_wall": 29,
   "room_lamps": 5,
   "band": 64,
+  "soffit": 717,
+  "relit": 23,
+  "torch_left": 17,
   "file": "Deck Floor.litematic",
   "name": "Deck Floor"
 }
