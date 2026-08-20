@@ -23,6 +23,16 @@ params:
   sign: oak_wall_sign
   labels: [ore and stone, wood and saplings, moss and plants, food and crops]
   lantern_every: 4
+  shell: true               # the wall behind the banks. Without it the hall is a freestanding ring
+                            # of chests on open deck - 76 containers standing in the middle of the
+                            # workshop with nothing at their backs. The doorway is DERIVED from where
+                            # the banks are really open (one cell, west at z30026), not from `door`
+                            # below: those two disagree here, because two of the three cells the
+                            # config wanted for a door now hold chests.
+  shell_block: stone_bricks
+  shell_trim: deepslate_bricks
+  shell_weather: 0.18
+  door_high: 2
   clear: 3                  # the working-room rule, derived from the capture
   seed: 0
 finish:

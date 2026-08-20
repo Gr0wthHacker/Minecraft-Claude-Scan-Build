@@ -38,12 +38,20 @@ final class Designs {
 		return new Design(display, lit, side, origin, dig);
 	}
 
-	/** Every design in the folder that has a sidecar (skips the raw scans). */
+	/**
+	 * Every design in the folder that has a sidecar (skips the raw scans), EXCEPT the wand's
+	 * scratch fills. `/cscan place` with no argument places everything this returns, and a shelf
+	 * of one-off fills is exactly the pile that trap already caught once with the scratch animals.
+	 * Name one explicitly - `/cscan place _fill porch` - and it still places.
+	 */
 	static List<String> list(Path schematicsDir) throws IOException {
 		List<String> out = new ArrayList<>();
 		try (var s = Files.list(schematicsDir)) {
 			s.filter(p -> p.getFileName().toString().endsWith(".scan.json")).forEach(p -> {
 				String n = p.getFileName().toString();
+				if (n.startsWith(ChunkScanClient.FILL_PREFIX)
+					|| n.startsWith(ChunkScanClient.CLIP_PREFIX)
+					|| n.startsWith(ChunkScanClient.UNDO_PREFIX)) return;
 				out.add(n.substring(0, n.length() - ".scan.json".length()));
 			});
 		}

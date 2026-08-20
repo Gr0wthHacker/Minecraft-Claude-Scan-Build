@@ -27,7 +27,11 @@ Paths live in **`profile.yaml`** (`mcbuild/profile.py` holds the defaults). Neve
 **MC 26.x is unobfuscated** — mods use Mojang names directly, no yarn. Things that differ from older
 guides: `ChunkPos` is a record (`x()`/`z()`), `Level.isClientSide()` is a method, chains are
 `iron_chain`, Fabric client commands come from `ClientCommands.literal/argument`, there is no
-`Minecraft.screen` accessor (use `ScreenEvents.AFTER_INIT`), chat via `player.sendSystemMessage`.
+`Minecraft.screen` accessor (use `ScreenEvents.AFTER_INIT`), chat via `player.sendSystemMessage`,
+`ResourceLocation` is **`Identifier`**, and **`Blocks.GRAY_WOOL` does not exist** — the sixteen
+dyed families are `ColorCollection`s now, so it is `Blocks.WOOL.pick(DyeColor.GRAY)`.
+`InteractionResult` is a **sealed interface**, not an enum (`SUCCESS`/`FAIL`/`PASS` are constants
+on it), and both `UseBlockCallback` and `AttackBlockCallback` return one.
 **Always `javap` the real jar before assuming an API** — it is faster than a failed build:
 ```bash
 javap -cp ~/.gradle/caches/fabric-loom/26.2/minecraft-client.jar net.minecraft.world.level.Level | grep -i something
@@ -763,6 +767,100 @@ event in the room, so you did not discover it, you simply arrived at it.
 **Still open:** the 112 chests (Store Hall's 68 slots are built and waiting), the 14 wall torches,
 and 62% walkable — all three of which are the chest move.
 
+### The soffit was the worst thing on the deck, and every check passed it (2026-08-20)
+
+Jack placed the workshop pass, looked at it and said the wood lines wrapping the workshop were
+awful. They were. The soffit's coffer grid was `dark_oak_wood`, and measured off the 03:55 capture:
+
+| | |
+|---|---|
+| grid runs drawn | 215 |
+| …of one or two cells | **184** |
+| …lone blocks with no grid neighbour at all | 168 |
+| dark oak standing in world | 70, **all** on a grid line (43.75% would be chance) |
+| …with no wood neighbour | 27 |
+
+**It is not a grid, it is confetti** — and in the loudest block available, because dark oak against
+`smooth_stone` is the largest hue contrast on this deck.
+
+**Nothing in the pipeline could see it, and that is the transferable part.** Every check the design
+had is PER-BLOCK — is the state legal, is it in 1.19, is it spendable, is it affordable, does it
+have support — and it passed all of them, 376 cells, zero problems, zero expensive. The failure is
+PER-RUN. A block is only as good as the line it is part of, and nothing measured lines.
+
+**A SOFFIT BELONGS TO A ROOM, NOT TO A DECK.** That is the actual error; the block was a symptom.
+The pass drew over whatever happened to be overhead, and off the capture that is not a ceiling: of
+1,224 columns with a real underside, 421 are raw enough to treat, and those 421 are **25 lacy
+patches at SIX heights** (Y197–202). The largest is 92 cells and fills **40% of its own bounding
+box**. The taproot entrance already had this right — *"inside the entrance, which is one room, the
+soffit IS one flat plane — that is the difference between a room and a deck"* — and the deck-wide
+pass ignored it.
+
+It is also the same finding as `border_ring: 0` one surface up: **a third of a line is a dashed
+scribble, so do not draw the line.** The design had already learned it on the floor and then made
+the identical mistake on the ceiling.
+
+**And it is the same mistake `gallery.py` made and REMOVED, one file over, for the same stated
+reason** — to move a palette number (wood 7% against the plate's 23%). The gallery's own comment
+says it: *"the timber was only ever here to move a palette number, which is the wrong reason to put
+a block anywhere."* The number then reappeared in the soffit's docstring as the justification.
+**The wood-percentage target is deleted as a goal.** The deck's ceiling is the island's own rock, so
+it is dressed in the island's own rock: `smooth_stone` panel, `deepslate_bricks` line — 51 darker,
+the one real value contrast this economy has at cheap-or-ok tier, and the block the stair head, the
+zone bands and the void tower already draw with, which is what makes them one hand.
+
+#### What is now in the code
+
+- **`soffit: False` deck-wide**, with the measurement above in the docstring. The machinery stays
+  and is correct — point it at a ROOM and turn it on.
+- **A run gate** (`soffit_min_run`, default 4). A grid cell whose run along its own axis is too
+  short demotes to PANEL, never to a lone dark block. This is `gallery._MIN_RUN`, one surface up.
+- **A patch gate** (`soffit_min_patch`, default 8). Re-materialising a 3-cell island of cobble into
+  smooth stone is scatter, which is what this same design's floor pass exists to remove.
+- **A reclaim pass** (§6b), because the fix had to undo the damage and could not.
+
+#### Four traps inside the fix, each of which produced a clean audit and a wrong build
+
+- **A litematic cannot express removal, and the pass could not SEE its own mistake.** `dark_oak_wood`
+  is not in `soffit_raw`, so the 70 blocks were invisible to every gate; and 50 of them have since
+  had moss placed under them, so they fail the two-clear-courses room test as well. Left alone they
+  would have stood for good. They are healed directly into their commonest **solid** same-course
+  neighbour — 57 `smooth_stone` and 10 `stone_bricks` against the wood's own 28 — so each turns back
+  into the plane it interrupted rather than becoming a hole in a ceiling.
+- **The run gate's AXIS was inverted, and the inversion shipped.** A line at constant X runs along
+  **Z**; scoring it along X measures each cell ACROSS its own line, so every run came out as 1 —
+  and isolated cells then sailed through the threshold. It also made the *diagnosis* too
+  pessimistic: the first sweep said no grid works at any spacing, and with the axis right a grid on
+  the one big patch is 29 cells with runs up to 16. **A measurement and the code that acts on it
+  sharing a bug agree with each other perfectly.**
+- **Reclaim scope is not build scope.** `floor` is where you can stand (892 cells); the deck is
+  every column of the course (1,779). Anything about what is OVERHEAD must use the deck — scoping
+  the reclaim to `floor` reached 17 of 70. Eleven more sit above rim columns carrying no floor
+  block at all (the pass placed them when the floor below them still existed), five of those out on
+  the east arm past any sane dilation, so it sweeps the deck's bounding **box**. That is safe only
+  because **the gate is the SIGNATURE, not the footprint**: a cell on the grid line.
+- **A fix must not be coupled to the setting it is fixing.** The reclaim read `soffit_grid_at`, so
+  retuning the grid to 5 silently dropped it from 70 blocks to 26 — the wood is on a 4-grid and
+  nothing else knew that. `reclaim_grid_at` is history and does not move.
+
+`tests/test_deckfloor_soffit.py` pins all of it: no wood anywhere, no drawn grid cell without a
+grid neighbour, both gates firing, all 70 reclaimed, and the reclaim finding nothing when the
+signature is moved off every real coordinate.
+
+**Shipped: 79 blocks, all remedial** — 70 wood healed to stone, 6 zone band, 3 relit. 0 new problems
+in context, 0 wood placed, 0 expensive.
+
+**Still open — Jack's call.** The soffit works on exactly ONE patch: 92 cells at **Y201**, over
+X−24205..−24194 / Z29994..30012, which is the entrance hall — the room. At `soffit_min_patch: 30`,
+`soffit_grid_at: 5`, `soffit_min_run: 4` it draws 63 `smooth_stone` panels and **29
+`deepslate_bricks`** grid cells, runs up to 16, only 7 demoted, and takes the design to 171 blocks.
+That is a real coffered ceiling over the one place that has a ceiling. Everywhere else stays rock.
+
+**Pre-existing, found while running the suite:** `configs/store_hall.yaml` crashes the pipeline with
+`ValueError: nothing built` — it is 100% built, so it emits nothing and `World.canvas` raises. It
+fails identically against the pre-session capture, so it is not from this work. A finished design
+should report complete, not raise.
+
 ## The root break, and the machine room under the tree (2026-08-19)
 
 `configs/root_break.yaml`. **82 blocks.** It closes the one-course gap between the taproot's head
@@ -813,6 +911,306 @@ stair**. Nearest mechanism part is now **5 blocks**, cells near the sensor **0**
   30000) splits ~128 cells from ~582. That gap is both the entrance approach and the only route to
   a third of the floor.
 
+## The steak wand (2026-08-20)
+
+Mark two corners with a piece of cooked beef, name a material, and the box is written as a design and
+handed to Litematica for the **printer** to build. `Wand.java` (state + the click), `Fill.java` (box
+→ `Capture`), `Rules.java` (what it must not cover), commands in `ChunkScanClient`.
+
+```
+/cscan wand on              arm the steak; off gives you your dinner back
+/cscan mat stone_bricks     ...or just `/cscan mat` while holding the block
+/cscan fill porch           writes `_fill porch` and places it at the box corner
+```
+
+**Nothing here places a block.** A client mod cannot, and should not: the schematic goes to
+Litematica and the printer builds it, which is what makes the whole thing undoable and what lets the
+existing `LitematicWriter` / `SidecarWriter` / `Litematica.place` carry it unchanged. `Capture` is a
+plain record, so a one-material box is a `Capture` with a two-entry palette and nothing new to write.
+
+**Right-click sets both corners** (first, second, then back to first) rather than the WorldEdit
+left/right split. This is a client mod on a real server: a left-click is an attack and suppressing it
+means suppressing a swing the server is about to hear about, where a right-click we consume never
+leaves the client. It also means one gesture and one thing to cancel — and the thing being cancelled
+is the wand's own use, which matters because **the wand is food**. Armed, a right-click with steak on
+a block takes no bite and opens no chest. Unarmed, steak is steak.
+
+### The three questions it has to ask, and where the answers come from
+
+A fill is drawn in a world people are using, so it asks exactly what every Python generator asks —
+is this a mechanism, is this material currency, does the 1.19 server have it. **Those answers are
+not retyped in Java.** `tools/export_rules.py` emits `chunkscan_rules.json` from `protect.MECHANISM`,
+`blocks.ECONOMY` and `data/server_blocks.json`, and `tests/test_wand_rules.py` fails if the shipped
+file drifts. Same discipline as `proportions.measure` and `rubric.score` sharing one entry point:
+one source, so two tools cannot disagree.
+
+- **Protected cells are skipped, never covered**, and reported by kind. A fill that swallows a hopper
+  is a loss, not a fill — and the substring match is what makes `gray_wool` protected, which is the
+  whole reason `protect.py` exists.
+- **Cells already holding the material are not work.** Designs here are REMAINING WORK, so a
+  half-built box costs half, and the count you are told is the count you have to place.
+- **A skipped cell comes out as AIR in the schematic.** A litematic cannot express removal, so air is
+  how "nothing to do here" is spelt; write the material there instead and the printer covers the
+  hopper after all. `FillTest` pins it by reading the hopper's own index back out of `ids`.
+- **Currency and the 1.19 allowlist WARN, they do not refuse** — the allowlist is provisional (191
+  blocks, would reject `allium`), which is the same posture `audit.report` takes. Dirt draws a loud
+  line because every other check in the pipeline passes it silently.
+
+### Two traps, both already set once elsewhere in this repo
+
+- **A 32,768-cell cap.** Two corners 200 apart is 8M cells and the walk alone would freeze the
+  client. There is no lazy path here — `plan` and `capture` both walk every cell.
+- **Scratch fills are prefixed `_fill ` and skipped by `Designs.list`.** Bare `/cscan place` places
+  everything with a sidecar, and a shelf of one-off fills is exactly the pile that already caught
+  this project once with the scratch animals. Naming one explicitly still places it.
+
+### The pre-upload audit (2026-08-20)
+
+Four things fixed, three added, before the jar went up. Two of the four were bugs in the wand as
+first written, which is the argument for auditing before uploading rather than after.
+
+- **Path traversal on the fill name.** `/cscan fill ../../x` resolved straight out of the schematics
+  folder. A fill name becomes a filename and is now validated.
+- **Wand state survived a disconnect.** Corners are coordinates and coordinates mean nothing without
+  a world: mark a box, reconnect somewhere else, and `/cscan fill` writes that box at those numbers
+  in the new world. Cleared on `DISCONNECT` now, and two corners in two dimensions restarts the
+  selection instead of building nonsense.
+- **The selection was invisible.** `Highlight` was already there. Corners show as you pick them, the
+  full edge outline when the box closes, and a box too big to outline falls back to eight corner
+  markers — a PARTIAL outline would read as a wrong selection, which is worse than none.
+- **`/cscan fill hollow | walls | outline`**, and **`/cscan replace <from> <to>`** — the deck floor's
+  wood reclaim, by hand, inside the box. `replace` matches `from` by NAME, not by state, because you
+  want every facing of a stair gone rather than one of them; and naming a block explicitly buys no
+  exemption from the safe set.
+
+#### `/cscan check` was blind to orientation, and the stair convention fell through the hole
+
+`work.json` stored bare block names. Measured: **3,441 stateful cells** across the designs — 923
+slabs, 241 walls, 97 stairs, 221 lanterns, 25 chains, 1,694 vines — whose orientation the in-game
+check could not see at all.
+
+Not hypothetical, and the designs prove it themselves:
+
+| | |
+|---|---|
+| `Taproot Entrance` | places `smooth_stone_slab` as **both** `type=top` and `type=bottom` |
+| `Island Belly Full` | places `mossy_stone_brick_slab` as `type=double` — a FULL BLOCK — beside `type=top` |
+
+Build either of those the wrong way round and check reported 100% built. And it lands squarely on
+the stair rule this repo went to trouble to settle: a flight built backwards cannot be walked up,
+*our renderer draws both identically*, and it turns out the in-game check could not see facing
+either. Litematica's overlay was the only thing that could catch it.
+
+**The properties were in the palette the whole time** — `work.py` dropped them at
+`names = [n.split(":")[-1] for n in m.names]`.
+
+**But recording ALL of them would have been worse than recording none.** Most of a block state is
+not a decision, it is the game reacting to the neighbourhood: a stair's `shape` comes from what is
+beside it, a wall's connections from what it touches, `waterlogged` from someone pouring water in.
+Comparing those reports a deviation for a block that is exactly right, and a check that cries wolf
+is a check nobody runs. So `work.INTENTIONAL` names the properties a design DECIDES — facing, half,
+type, axis, rotation, hanging, face, hinge, part, attachment — and nothing else is written:
+
+    stone_brick_stairs[facing=east,half=bottom]      not shape, not waterlogged
+    smooth_stone_slab[type=top]                      not waterlogged
+    stone_brick_wall                                 bare: every connection is derived
+    vine[east=true,north=false,...]                  ALL faces: see below
+
+**A vine is the exception that proves the rule.** For `vine`, `glow_lichen`, `sculk_vein` the
+direction flags are not connections the game made — they are which face the thing clings to, which
+decides whether it hangs at all. `work.MULTIFACE` holds those, and for them the faces are recorded.
+
+**The mod holds no policy.** It compares exactly the properties it is given and ignores the rest, so
+a bare name still compares by name — which is what every `work.json` written before this looks like,
+so an un-regenerated design keeps reading correctly instead of failing wholesale. A property named
+on a block that does not have it reads as WRONG, deliberately: that is a design bug and should
+surface rather than pass quietly.
+
+**And a tally counts ITEMS, not states.** `/cscan need` briefly wanted
+"12x stone_brick_stairs[facing=east,half=bottom]", which is not a shopping list — four facings of one
+stair are one stack of one item.
+
+53 work lists regenerated; 3,219 cells now carry their orientation. The payoff shows in the counts
+that were previously one number: `stone_brick_slab` is 201 bottom and 178 top.
+
+`tests/test_work_state.py` (10) pins the Python encoding, `WorkStateTest` (8) the Java comparison,
+`FillTest` (17) the modes and replace, `WandTest` (6) the outline.
+
+#### Two more bugs, both found because the world moved under the tests
+
+Jack placed the deck floor fix mid-session and rescanned, so 54 of the 70 dark oak blocks were gone
+and three soffit tests went red. Two were my tests pinning a SNAPSHOT — `assert reclaimed >= 70` is
+wrong by construction for a design whose whole nature is REMAINING WORK: it fails the moment the fix
+starts working. They derive the expected count from the capture now. The third was real, and so was
+a fourth the regenerate then exposed:
+
+- **An intersection belongs to BOTH grid lines, and only one was tested.** A cell with `x%g==0` and
+  `z%g==0` was scored along Z only; if its Z-run was short but its X-run long, it demoted — punching
+  a hole through the X line and orphaning the cell beside it. Two orphans, on a gate whose entire
+  purpose is that there are none. It survives if EITHER line runs.
+- **The reclaim manufactured `gray_wool`.** The heal material is the commonest solid neighbour, and
+  by the tree that neighbour is the sculk sensor's shielding. The filter checked `KEEP` but not
+  `protect.is_protected` — so a pass written to remove wood was placing wool. It now runs the same
+  safe set every generator consults, and falls back to the panel material. It was also healing dark
+  oak into `oak_wood` (the root break's, legitimately through that ceiling); the whole wood family
+  is barred.
+
+**And a test lesson worth keeping: assert in WORLD coordinates.** The canvas is sized to its own
+content, so it shifts between two builds with different settings and anything comparing them lines
+up against nothing. `Canvas.world_origin` exists for this. The same test was also reading
+`room_plinth` cells — deepslate, on the floor course, isolated by design — and calling them grid
+confetti.
+
+#### Still open
+
+- **Bare `/cscan place` now places 61 designs.** The mod cannot see `sync.yaml`, so it has no idea
+  which ~14 are actually tracked. The `_fill ` prefix keeps scratch fills out; the rest of the pile
+  is untouched.
+- **The scans archive is unbounded** — 24 files, 1.6 MB today, and `/cscan auto` adds one per tick
+  forever.
+- **Untested outside the game:** whether consuming `UseBlockCallback` really suppresses the eat
+  animation on a live server. The packet should never leave the client, but that is reasoning, not
+  evidence.
+
+### Clipboard, undo, and a storage index that was half wrong (2026-08-20)
+
+```
+/cscan copy <name>            the wand's box, captured as it stands
+/cscan paste <name> [90|180|270|cw|ccw]     placed where you are LOOKING
+/cscan clips                  what is on the clipboard
+/cscan prune                  drop storage entries that are not containers
+```
+
+**Copy/paste is the speed-building multiplier and it cost almost nothing**, because every piece
+already existed: `WorldCapture.captureBox` is what `/cscan sel` uses on a Litematica selection, and
+`Litematica.place` already registers placements. Build a window bay once, then repeat it round the
+rim rotated 90° each time. Nothing is placed by the mod — the schematic goes to Litematica and the
+printer builds it, so a paste in the wrong spot costs one placement deletion.
+
+**Rotation goes through a synthesised no-op.** `SchematicPlacement.setRotation` takes an
+`IMessageConsumer` for feedback and there is no public no-op to hand it. Passing `null` is the
+obvious move and risks an NPE inside a soft dependency, which would surface as *"paste silently did
+nothing"*; a one-line `java.lang.reflect.Proxy` is honest instead. The rotation NAME is handed to
+`Enum.valueOf` by reflection, so a typo is a crash in game and nothing sooner — `UndoAndStorageTest`
+asserts every word maps to a real `Rotation` constant.
+
+#### Undo: a litematic cannot express removal, so an undo is two halves
+
+Every fill now writes `_undo <name>` beside it, and it is **not** an inverse:
+
+- where the fill COVERS a block, that block is recorded, and re-placing it restores the cell
+- where the fill puts something into AIR there is nothing to record, so the cell goes into the
+  sidecar's **`dig`** list, which `/cscan dig` already reads
+
+Both halves are needed or the undo half-works, which is worse than no undo because you would
+believe it. `assertEquals(p.place(), undo.nonAirCount() + dig.size())` is the test that says so.
+The undo follows the SHAPE, not the box — a hollow fill's undo is the shell — and it ignores cells
+the fill skipped, or undoing a protected cell would re-place a hopper that was never covered.
+
+#### `/cscan need` counts what is in your pockets first
+
+It used to send you across the island for something already in your hotbar. Loose stacks only — the
+contents of a shulker in your pack are not counted, because they are not placeable until you set the
+box down. That under-reports rather than over-reports, which is the safe direction.
+
+#### The storage index was 52% junk, and the cause is worth remembering
+
+**141 of 269 entries were filed against blocks that are not containers** — 15 warped wall signs, 15
+stone bricks, 11 slabs, walls, moss — holding 1,028 items between them at coordinates that point at
+a sign. `/cscan find` is the "which chest has X" feature and half its answers were wrong.
+
+`ContainerWatcher` recorded `lastUsed` on EVERY right-click and attributed the next container screen
+within four seconds to it. So: right-click a sign, press E, and **your own inventory is filed as a
+chest at the sign's position.** Two guards, both narrow:
+
+- the clicked block must be one that actually opens a container
+- the player's own inventory and the creative menu are `AbstractContainerScreen`s and are never
+  containers, whatever was clicked
+
+`Storage.isContainer` (opens a screen) and `Storage.stores` (actually holds items) are separate on
+purpose: a crafting table passes the first and must fail the second, or `/cscan find` starts
+offering a workbench as a source of stone. `/cscan prune` drops the bad entries — they are removed
+rather than repaired, because the POSITION is the thing that was wrong and there is nothing to
+repair it to. Reopening the real chest re-indexes it in one click.
+
+**Clips and undos are scratch, like fills** — `_clip `/`_undo ` are skipped by `Designs.list`, so a
+bare `/cscan place` still never sweeps them up.
+
+43 Java tests. **Two things found by javap rather than by memory, again:** `Inventory` is not
+`Iterable` but `Container` is, and it is `Container` that `Inventory` implements.
+
+#### Unrelated, but found while checking the Litematica API
+
+**There are two Litematica jars in `custom_mods/nextgen-26.2/`** —
+`litematica-fabric-1.21.11-0.26.12.jar` and `litematica-fabric-26.2-0.28.4.jar`. Same mod id, two
+versions, and the 1.21.11 one is obfuscated (`class_2470`) so it is not built for this client at all.
+That is the same duplicate-mod-id situation the chunkscan jar is warned about. Probably wants
+deleting; not deleted here, because it is Jack's mods folder.
+
+### The chest move (2026-08-20)
+
+```
+/cscan move          what is left, what stays, whether the hall can take it
+/cscan move next     nearest source marked AMBER, its destination marked GREEN
+/cscan move done     mark the one you are standing at as emptied
+/cscan move reset
+```
+
+The top open item on the island for three sessions running. **Nothing here moves an item** — a
+client mod cannot, and should not. It answers the two questions that make the job tedious: which
+chest next, and which slot does this belong in. `Highlight` draws both, so a trip is a walk between
+two boxes you can see.
+
+**Measured against the live index and capture:**
+
+| | |
+|---|---|
+| general storage to move | **37** |
+| stay with their machines | **18** (16 hoppers, 2 stonecutters) |
+| hall slots standing | 76, of which **39** are free or never opened |
+
+**A chest within three blocks of a hopper is that hopper's output**, and it looks exactly like
+general storage from its contents. Moving one breaks a farm. That is rule 10 from the other side —
+the same clearance that stops a design building next to a chest decides here which chests are not
+yours to move.
+
+**The machine list is deliberately NOT `protect.MECHANISM`**, which contains `chest` — every source
+would have disqualified its own neighbours and nothing would ever move.
+
+Three things the design had to get right, and each has a test:
+
+- **Slots come from the WORLD, not from the design.** The hall is built, so it emits nothing:
+  `chests: 0`. A tool reading the design to find the "food and crops" wall would learn nothing at
+  exactly the point it matters. `storehall.py` now records `banks` — wall, label and cells — as
+  INTENT, whether or not anything was placed this run.
+- **A slot the index has never seen counts as free.** The index only knows containers you have
+  opened, so "empty" and "never opened" are the same evidence. Free is the useful error: you walk
+  there, find it full, and press on.
+- **A source inside the hall is not a source**, or the plan moves a chest into itself.
+
+#### The hall's labels do not match what Jack actually stores
+
+The taxonomy lives in `tools/export_rules.py` and ships through `chunkscan_rules.json`, the same
+one-source route as the protection and economy rules — `tests/test_storehall_banks.py` fails if a
+bank label has no category feeding it, because that failure is otherwise SILENT: every container
+would quietly overflow to "whatever slot is free" and the hall would stop being sorted at all.
+
+Running it against the real index says the labels are the wrong four:
+
+| category | containers | matching slots free | |
+|---|---|---|---|
+| ore and stone | 16 | 10 | overflow |
+| food and crops | 8 | 11 | |
+| **dyes and wool** | **7** | **0** | no wall at all |
+| wood and saplings | 4 | 11 | over-provisioned |
+| tools and redstone | 1 | 0 | no wall |
+| moss and plants | 1 | 4 | |
+
+`dyes and wool` is ~42,000 items — 11,840 ink sacs and ~30,000 wool in eight colours — and there is
+no bank for it, while `wood and saplings` holds eleven free slots for four containers. **Relabelling
+one bank would fix most of it**, and that is Jack's call, not a silent edit. Until then the overflow
+is placed and REPORTED rather than jammed into the nearest wall.
+
 ## Build & test
 
 ```bash
@@ -822,6 +1220,173 @@ python chunkscan/verify_synthetic.py                   # Java writer vs Python r
 ```
 Jack uploads the jar through the launcher himself — **do not copy it into `custom_mods/`**, that
 creates a duplicate mod id and Fabric refuses to start.
+
+## The store hall got a room, and the court got a way in (2026-08-20)
+
+Two jobs off the 09:16 capture. Both are small; the measuring is the part worth keeping.
+
+### The store hall was furniture, not a room
+
+`configs/store_hall.yaml`, `gen/storehall.py`. The banks were built and Jack had moved **76
+containers** into them - and there were no walls. From outside you were looking at the backs of a
+freestanding ring of chests standing on open deck.
+
+The shell is the wall course-for-course behind the banks: the 9x9 perimeter at x-24195..-24187 /
+z30022..30030, Y195-199. Measured first - **158 of 160 cells free**, 0 protected, floor already
+`deepslate_bricks`. **176 blocks, 0 problems, overlap 0, all cheap-or-ok.**
+
+- **It carries NO ceiling, deliberately.** The Deck Vault already owns Y200 over this footprint (49
+  designed cells, 32 already placed). Two designs drawing one surface is exactly what
+  `finish.defer_to` exists to stop, and the raw cobblestone at Y201 is *above* the vault, so it is
+  not a soffit problem - it is hidden.
+- **The doorway is DERIVED, and the config was wrong about it.** `door: west, door_width: 3` asks
+  for three cells; the world has **one** (z30026), because Jack filled the other two with chests
+  when he moved in. Walling to the config would have bricked up the only way in and put a doorway
+  into the back of a chest. It is now the INTERSECTION of "where a door was asked for" and "where
+  the banks are really open" - and that intersection matters both ways, because
+  "wherever the banks are open" alone turns **every cell a fixture happened to block into a second
+  hole in the wall**. A gap in the banks is not a door. `tests/test_storehall_shell.py` pins it.
+- Bank CORNERS carry no chest (a corner chest faces two ways and can face only one), so they are
+  gaps by construction. Filled solid - four holes become four piers.
+- Plinth and cornice are `deepslate_bricks`, field is `stone_bricks` weathered per CELL. Hashed on
+  the course instead, a course comes out all one material and the wall is horizontal stripes - the
+  deck soffit shipped that once.
+
+### The sky-well court had no way in: `gen/rimstair.py`, `configs/court_stair.yaml`
+
+**72 blocks, 22 dig cells, one component, 0 problems, overlap 0, all cheap.**
+
+Jack picked the side and asked for it to be audited. **His instinct was right for a reason he did
+not give**: a surface walk from the island centre reaches 3,717 plate cells and the **owl lobe is
+not one of them** - the only crossing, the z30020-30022 land bridge, steps Y203 -> 207 -> 208 -> 212.
+A stair started over there is a stair you cannot walk to. The mainland's west edge is the only
+approach that connects to anything.
+
+**Measured with a TRUE walk** - step down at most 1, climb at most 1.25, so no falling and every
+route reversible:
+
+| | before | after |
+|---|---|---|
+| island centre -> court foot | 248 | **46** |
+| -> court, mid | 247 | **51** |
+| -> court, far NW | 258 | **56** |
+| -> court, south | 43 | 43 (already reachable along the deck) |
+| court -> plate ledge (getting OUT) | 108 | **10** |
+
+**Do not trust a reachability number without stating the movement model.** The same site measured
+1,268 standable cells in 49 components on a FIXED course (no vertical movement at all), 36 steps
+when 4-block FALLS are allowed - that route jumps down the tree trunk, 204 -> 200 -> 196, taking the
+damage - and 248 on a true walk. Three different answers to "can you get there", all correct for
+what they asked. The fixed-course version is what first said the court was orphaned, and it was
+overstating the case.
+
+Five things the build cost, each of which produced a clean audit and a wrong result:
+
+- **The rim is not where the surface scan says it is.** A column scan reads the edge at Y201 at
+  x-24222 - but that Y201 cell is a **vine**, hanging in open air. The rock stops at x-24221. Worse,
+  `Ctx.name_at` returns the vine BY NAME, so the standard "is this cell empty" test written as
+  `name not in AIRY` reads the curtain as footing: every stringer stopped at the top of the cliff
+  and the flight came out as twelve floating treads, with the audit reporting 0 problems. There is a
+  `PASSABLE` set now. Same shape as the `Canvas.get` returns -1 bug.
+- **The flight was ONE-WAY and nothing but a walk test could see it.** The rim ledge stands at
+  **202.0** and the land bridge behind it at 203.0, so a top tread at Y201 tops out at 201.5 - a
+  1.5 step. A player climbs **1.25**. You could get down and not back up. `y_top: 202` fixes it;
+  both approaches are now a half step. **Audit clean, geometry legal, build unusable.**
+- **A two-wide flight in open air is impossible here** and the reason is the pool: the court's water
+  reaches x-24223 at z30017-30018 and x-24225 at z30015-30017, and **x-24222 is the only column free
+  of it across the whole run**. Hence one lane cut into the rim rock at x-24221 instead. The
+  stringer fills DOWN until it meets something real - ice and water included, which are protected -
+  so it never drives a pier through the pond.
+- **The tread cell is itself a dig.** Listing only the courses above a tread says the flight is
+  clear while the stair is still inside the cliff.
+- **Facing comes from the geometry.** The flight ascends toward +Z, so every tread is `facing=south,
+  half=bottom` - the rule pinned in `test_stairhead.py`. Our renderer draws both directions
+  identically, so this is asserted, never eyeballed.
+
+Site choice: z30013-30019 has **six consecutive rows of Y201 rim** against the south lobe's three
+irregular ones (Y200/195/195) boxed in by void at z30029. It sits immediately south of the land
+bridge - the crossing you take walking from the farm toward the owl - so the head is on the route
+and you descend facing the owl lobe. The south lobe is where the farm-to-owl line literally crosses,
+which is what Jack described, and it is the worse edge; he took the north lobe on the numbers.
+
+## The court hall: apocalyptic beauty, and where the glass may go (2026-08-20)
+
+`configs/court_hall.yaml`, `gen/courthall.py`. **265 blocks, 0 problems, overlap 2, 0 expensive.**
+Jack laid a deepslate frame on the Y195 course and asked for apocalyptic beauty with glass panes,
+plus a water feature in the bay that sits one course down. The audit decided almost all of it.
+
+### The site is a one-block shelf hanging in the void
+
+The single most useful measurement: the column at x-24229 has **exactly one solid course between
+Y150 and the plate**, and it is Y194. The court is not a room dug into the island - it is a shelf.
+Rock closes it east and west, both ENDS have fallen away into open sky, and the island's own
+underside is the ceiling at Y201/202. The room is already a ruin; the design only has to admit it.
+
+That produced the rule the whole file turns on. **Glass in front of rock is a window onto stone**:
+
+| run | outside open at Y196-200 | treatment |
+|---|---|---|
+| west  x-24234 | **0%** | pilasters |
+| east  x-24222 | **8%** | pilasters |
+| north end z30006 | **95%** | GLAZED |
+| south end z30029 | **96%** | GLAZED |
+| divider z30023 | court both sides | balustrade over the water |
+
+So only the two ends get panes - and they are the two places with nothing behind them for hundreds
+of blocks. `_kind` probes it rather than being told, the same discipline as the store hall deriving
+its doorway.
+
+### Classifying a run took two goes and both failures shipped a clean audit
+
+- **Scoring both perpendicular directions and taking the more open one made EVERY run glazed.** The
+  room's own interior is open by definition, so the rock flanks scored as open and came out glazed -
+  windows onto stone. Inward has to be resolved first: it is the side carrying the court FLOOR.
+- **Then rock and court floor both read as "solid below"** - the island's flank and the room's own
+  paving are equally floor - so the flanks came out as internal DIVIDERS and got a balustrade. The
+  three cases only separate one course UP: rock is closed above, court is open above and floored
+  below, void is open above with nothing under it at all.
+
+### What "apocalyptic" means here, in code
+
+The void tower already paid for this: *what makes voxels read as ARCHITECTURE is regularity and
+openings, not damage* - its first jagged attempt was rejected on sight as "a tossed grouping of
+vague blocks". So **the ruin takes GLASS, never the order.** Every bay keeps its pier and its
+cornice at any `ruin` setting; `test_ruin_takes_glass_and_never_the_order` pins that the pier set is
+identical at ruin 0.0 and ruin 1.0. The south screen is intact, the north is broken - one whole bay
+open, top course gone in others.
+
+And a rock flank gets **pilasters, not infill**. Filling those bays is 120 blocks of tidy deepslate
+laid over the most apocalyptic surface in the room. The surviving order is the piers; the rock
+between them is the point.
+
+### The pool is a tank, and it would have frozen
+
+`freeze_guard` in `court.yaml` exists because **this court froze on its first build - 29 ice
+blocks.** Snowy biome, and 16 of the sunken bay's 55 columns are open sky. Water needs block light
+>= 10. Verified by propagating light through the built model: **every water cell lands at 12-14.**
+
+- Guard lights are plain `lantern` (15). **`soul_lantern` is exactly 10** and is one block of
+  falloff from failing, so it is mood only. That distinction is the whole guard.
+- A guard lantern is **waterlogged and has its own footing**. Not waterlogged, the water above flows
+  down into it; skipping the water there instead punches a hole through the pool's surface at every
+  guard - which is what the first build did, nine holes in a 27-cell sheet. And a lantern is not a
+  full cube over a floor that is a skin over open VOID, so without a block under it the audit says
+  "standing on air".
+- The bay's floor is one block over nothing and the Y194 course runs on east past the plinth, so the
+  basin is built as a tank: floor at Y193, wall ring, water at Y194. Its top face is exactly the
+  sunken bay's own walking level - the "one block down" Jack described. **0 leak faces.**
+
+### Palette: there is only one glass you can afford
+
+`glass_pane` is **ok**; plain `glass`, `tinted_glass` and **every** stained pane are **expensive**.
+Store holds **1,060 glass (~2,800 panes)** against 26-49 of each stained pane, so the cheap material
+is also the only one there is enough of. The order is `deepslate_bricks` - Jack's own edging block,
+`ok` tier, 51 darker than stone brick, and 512 in store against 172 needed.
+
+**Still open:** four supply chests (stone 768, deepslate bricks 256, wool) stand in the north bay.
+The design comes within **2** of one and shares a column with none - the plinth line is exempt from
+`container_clear` because Jack laid that line himself, past those chests. Move them and the north
+screen has more room.
 
 ## The daily loop
 
@@ -903,6 +1468,7 @@ call them, so a change to how something is measured cannot drift between tools.
 `ChunkScanClient` (commands) · `WorldCapture` (chunks → `Capture`) · `LitematicWriter` (NBT out) ·
 `SidecarWriter` · `ScanRunner` (glue + archive) · `Litematica` (reflection bridge, soft dependency) ·
 `Markers` · `Storage` + `ContainerWatcher` (container index) · `Highlight` (particles) · `AutoScan` ·
+`Wand` + `Fill` + `Rules` (the steak wand — see below) ·
 `Designs` · `Work` (reads `.work.json`, diffs against the live world).
 
 ## Rules that were learned the hard way

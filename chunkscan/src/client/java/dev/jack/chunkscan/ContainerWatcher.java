@@ -22,6 +22,13 @@ import java.util.Map;
  * The position comes from the last block you right-clicked (client side), so every entry is anchored to a
  * real coordinate and keeps a stable number in storage.json. The screen title becomes the default label,
  * which is how named shulkers and barrels identify themselves.
+ *
+ * <p><b>The last block you clicked is not necessarily a container.</b> That assumption put 141 of 269
+ * entries in storage.json on signs, stone bricks, slabs and moss, holding 1,028 items between them —
+ * because right-clicking a sign and then pressing E within four seconds files YOUR OWN INVENTORY as a
+ * chest at the sign's coordinates. `/cscan find` then sends you to a sign. Two guards, both narrow:
+ * the block must be one that actually opens a container, and the player's own inventory screen is
+ * never a container screen no matter what was clicked.
  */
 final class ContainerWatcher {
 	private static BlockPos lastUsed;
@@ -31,18 +38,38 @@ final class ContainerWatcher {
 
 	private ContainerWatcher() {}
 
+	/**
+	 * Blocks that open a container when you click them. A BlockEntity test would be neater and is
+	 * wrong here: a sign, a bed and a beehive all have one. Matching the names keeps this the same
+	 * question `Storage.isContainer` asks when it cleans the index.
+	 */
+	static boolean opensAContainer(String block) {
+		return Storage.isContainer(block);
+	}
+
 	static void register() {
 		UseBlockCallback.EVENT.register((player, level, hand, hit) -> {
 			if (level.isClientSide()) {
-				lastUsed = hit.getBlockPos();
-				BlockState st = level.getBlockState(lastUsed);
-				lastBlock = BuiltInRegistries.BLOCK.getKey(st.getBlock()).getPath();
-				lastUsedAt = System.currentTimeMillis();
+				BlockPos p = hit.getBlockPos();
+				BlockState st = level.getBlockState(p);
+				String name = BuiltInRegistries.BLOCK.getKey(st.getBlock()).getPath();
+				// Only remember a click that could actually have opened something. Remembering
+				// every click is what let a sign become a chest.
+				if (opensAContainer(name)) {
+					lastUsed = p;
+					lastBlock = name;
+					lastUsedAt = System.currentTimeMillis();
+				}
 			}
 			return InteractionResult.PASS;
 		});
 		ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
 			if (!enabled || !(screen instanceof AbstractContainerScreen<?> cs)) return;
+			// Your own inventory is an AbstractContainerScreen and it is not a container. Neither is
+			// the creative menu. Without this, opening your pack near a barrel re-files your pockets
+			// as that barrel's contents.
+			if (screen instanceof net.minecraft.client.gui.screens.inventory.InventoryScreen
+				|| screen instanceof net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen) return;
 			if (lastUsed == null || System.currentTimeMillis() - lastUsedAt > 4000) return;   // not opened from a block
 			// The server sends the contents AFTER the screen is built, so reading the slots here always
 			// yields an empty container. Snapshot every tick instead and write the last one out on close.

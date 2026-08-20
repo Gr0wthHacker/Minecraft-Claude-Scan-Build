@@ -1,0 +1,77 @@
+# The way down into the sky-well court, off the main island's west edge.
+#
+# The court (configs/court.yaml, Y194-202 under the owl lobe) had no way in worth the name.
+# Measured off the 09:16 capture with a TRUE walk - step down at most 1, climb at most 1.25, so no
+# falling and every route reversible:
+#
+#                         before    after
+#   court, at the foot      248       46   steps from the island centre
+#   court, mid              247       51
+#   court, far NW           258       56
+#   court, south             43       43   (already reachable along the deck - unchanged)
+#   court -> plate ledge    108       10   getting back OUT
+#
+# The 248 is not a walk, it is a circumnavigation: east across the whole island, down at z30040 and
+# back west along the deck. Allowing 4-block falls it drops to 36 - by jumping down the tree trunk
+# (204 -> 200 -> 196) and taking the damage. Neither is a way into a courtyard.
+#
+# WHY THIS EDGE, and not the owl side. A surface walk from the island centre reaches 3,717 plate
+# cells and the owl lobe is NOT one of them - the only crossing, the z30020-30022 land bridge,
+# steps Y203 -> 207 -> 208 -> 212. A stair started over there is a stair you cannot walk to. The
+# mainland's west edge is the only approach that connects to anything.
+#
+# WHY z30013-30019. Of the rim's two lobes this is the one with a usable edge: six consecutive rows
+# at Y201 against the south lobe's three irregular ones (Y200/195/195) boxed in by void at z30029.
+# It also sits immediately south of the land bridge, which is the crossing you take walking from the
+# farm toward the owl - so the head is on the route, and you descend facing the owl lobe.
+#
+# WHY TWO LANES AND NOT ONE BUILT OUT. The court's pool reaches x-24223 at z30017-30018 and x-24225
+# at z30015-30017; x-24222 is the ONLY column free of it across the whole run. A flight built two
+# wide in open air puts stone piers in the pond. So the second lane is cut into the rim rock at
+# x-24221 instead - 21 cells to break, listed in the sidecar's dig list, on an edge that is already
+# rough. x-24222 itself is NOT rock: it is the vine curtain hanging in open air, which is why the
+# column scan reads Y201 there.
+name: Court Stair
+gen: rimstair
+params:
+  under: out/island_now.litematic
+  axis: z
+  cut_lane: -24221          # the plate's last solid rock column: the lane that is dug
+  air_lane: -24222          # open air under the vines: the lane that is built
+  top: 30019                # head, beside the land bridge
+  bottom: 30013             # foot, on the court floor
+  y_top: 202                # tread Y at the head; one course a row. NOT 201: the rim ledge at
+                            # x-24221 stands at 202.0 and the land bridge behind it at 203.0, so a
+                            # top tread at Y201 tops out at 201.5 - a 1.5 step. A player climbs
+                            # 1.25, so the flight measured as ONE-WAY: you could get down and not
+                            # back up. At Y202 the tread tops out at 202.5 and both approaches are
+                            # a half step.
+  floor_y: 194              # the court's own skin - the stringer stops at whatever it meets first
+  tread: stone_brick_stairs
+  stringer: stone_bricks
+  trim: deepslate_bricks    # 51 darker, the one real value contrast at cheap-or-ok tier; cracked
+                            # and chiseled stone brick are within 4 RGB of plain and draw no line
+  rail: stone_brick_wall
+  weather: 0.16
+  lantern_every: 3
+  landing: 2
+  landing_wide: 2
+  threshold: 2
+  headroom: 2
+  seed: 0
+finish:
+  cheapen: false            # the palette is the atelier's greys on purpose: the court below, the
+                            # stair head above and this between them should read as one hand
+  hollow: false
+  ground: false
+  drop_floaters: false      # the stringer is what stops floaters; a drop pass would eat the treads
+  context_clear: [vine, glow_lichen]   # the rim's curtain; the flight is built straight through it
+  verify_replaceable:       # the cut lane replaces rock, and every one of these is in the dig list,
+                            # so it is remaining WORK, not a collision with something that must stay
+    - moss_block
+    - smooth_stone
+    - cobblestone
+    - mossy_cobblestone
+    - stone
+    - dark_oak_wood
+  verify_against: out/island_now.litematic

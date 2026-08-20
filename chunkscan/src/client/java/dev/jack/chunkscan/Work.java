@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +27,21 @@ import java.util.Map;
  * answer never goes stale between captures.
  */
 final class Work {
-	record Cell(BlockPos pos, String block) {}
+	/**
+	 * One cell of a design. {@code block} is what mcbuild wrote: either a bare name, or
+	 * {@code name[facing=east,half=bottom]} carrying the properties the design MEANT.
+	 */
+	record Cell(BlockPos pos, String block) {
+		/** The block name without its state — what you put in a shulker, and what a tally counts. */
+		String item() {
+			int b = block.indexOf('[');
+			return b < 0 ? block : block.substring(0, b);
+		}
+
+		boolean hasState() {
+			return block.indexOf('[') >= 0;
+		}
+	}
 
 	/** A design's cells, split by what the world holds today. */
 	record Split(String name, List<Cell> todo, List<Cell> wrong, int built) {
@@ -67,9 +82,9 @@ final class Work {
 		for (Cell c : load(schematicsDir, name)) {
 			if (radius > 0 && c.pos().distSqr(near) > r2) continue;
 			if (!level.isLoaded(c.pos())) continue;
-			String have = BuiltInRegistries.BLOCK.getKey(level.getBlockState(c.pos()).getBlock()).getPath();
-			if (have.equals(c.block())) built++;
-			else if (isReplaceable(level.getBlockState(c.pos()))) todo.add(c);
+			BlockState st = level.getBlockState(c.pos());
+			if (matches(st, c.block())) built++;
+			else if (isReplaceable(st)) todo.add(c);
 			else wrong.add(c);
 		}
 		todo.sort((a, b) -> {
@@ -84,10 +99,98 @@ final class Work {
 		return st.isAir() || st.canBeReplaced();
 	}
 
-	/** How many of each block the given cells need. */
+	/**
+	 * Does the world hold what the design asked for? The design names only the properties it
+	 * DECIDED — a stair's facing and half, a slab's type — so anything it did not name is not
+	 * compared. Everything else about a block state is the game reacting to the neighbourhood
+	 * (a stair's shape, a wall's connections, waterlogged), and flagging those reports a deviation
+	 * for a block that is exactly right.
+	 *
+	 * <p>A spec with no properties compares by name alone, which is also what every work.json
+	 * written before this looked like — so an un-regenerated design still reads correctly.
+	 */
+	static boolean matches(BlockState st, String spec) {
+		int b = spec.indexOf('[');
+		String want = b < 0 ? spec : spec.substring(0, b);
+		if (!BuiltInRegistries.BLOCK.getKey(st.getBlock()).getPath().equals(want)) return false;
+		if (b < 0) return true;
+		int end = spec.lastIndexOf(']');
+		if (end <= b) return true;
+		for (String pair : spec.substring(b + 1, end).split(",")) {
+			int eq = pair.indexOf('=');
+			if (eq < 0) continue;
+			if (!propEquals(st, pair.substring(0, eq).trim(), pair.substring(eq + 1).trim())) return false;
+		}
+		return true;
+	}
+
+	private static boolean propEquals(BlockState st, String key, String value) {
+		for (Property<?> p : st.getProperties()) {
+			if (!p.getName().equals(key)) continue;
+			return valueName(st, p).equals(value);
+		}
+		// The design named a property this block does not have. That is a design bug, not a
+		// deviation in the world - say the cell is wrong so it surfaces rather than hiding.
+		return false;
+	}
+
+	private static <T extends Comparable<T>> String valueName(BlockState st, Property<T> p) {
+		return p.getName(st.getValue(p));
+	}
+
+	/**
+	 * How many of each BLOCK the given cells need. Keyed on the item, not the state: a shopping
+	 * list that says "12x stone_brick_stairs[facing=east,half=bottom]" is not a shopping list, and
+	 * four facings of one stair are one stack of one item.
+	 */
 	static Map<String, Integer> tally(List<Cell> cells) {
 		Map<String, Integer> out = new LinkedHashMap<>();
-		for (Cell c : cells) out.merge(c.block(), 1, Integer::sum);
+		for (Cell c : cells) out.merge(c.item(), 1, Integer::sum);
+		return out;
+	}
+
+	/**
+	 * Merge a `dig` list into a design's sidecar. A litematic stores no air, so "break this" can
+	 * only ever live in the sidecar — which is why every generator carries `dig` too.
+	 */
+	static void writeDig(Path schematicsDir, String name, List<int[]> dig) throws IOException {
+		Path side = schematicsDir.resolve(name + ".scan.json");
+		if (!Files.exists(side)) return;
+		JsonObject root = JsonParser.parseString(Files.readString(side, StandardCharsets.UTF_8)).getAsJsonObject();
+		JsonArray arr = new JsonArray();
+		for (int[] d : dig) {
+			JsonArray c = new JsonArray();
+			c.add(d[0]);
+			c.add(d[1]);
+			c.add(d[2]);
+			arr.add(c);
+		}
+		root.add("dig", arr);
+		Files.writeString(side, new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(root),
+			StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * What the player is carrying, by block name.
+	 *
+	 * <p>Loose stacks only — the contents of a shulker box in your pack are NOT counted, because
+	 * reading them means reading the box's item component and they are not placeable until you set
+	 * the box down anyway. So this under-reports rather than over-reports, which is the safe
+	 * direction: it sends you to a chest you did not strictly need rather than telling you that you
+	 * have something you cannot reach.
+	 *
+	 * <p>`/cscan need` used to send you to a chest for something already in your hotbar. The names
+	 * are ITEM names and the tally holds BLOCK names; for everything this project builds with they
+	 * are the same string, and where they are not (redstone, doors) the lookup simply misses and
+	 * you get the old behaviour rather than a wrong number.
+	 */
+	static Map<String, Integer> carrying(net.minecraft.client.player.LocalPlayer player) {
+		Map<String, Integer> out = new LinkedHashMap<>();
+		if (player == null) return out;
+		for (net.minecraft.world.item.ItemStack st : player.getInventory()) {
+			if (st == null || st.isEmpty()) continue;
+			out.merge(BuiltInRegistries.ITEM.getKey(st.getItem()).getPath(), st.getCount(), Integer::sum);
+		}
 		return out;
 	}
 

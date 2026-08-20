@@ -7,8 +7,12 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -31,12 +35,23 @@ public final class ChunkScanClient implements ClientModInitializer {
 	public static final Logger LOG = LoggerFactory.getLogger("chunkscan");
 	private static final int DEFAULT_RADIUS = 8;
 	private static final int MAX_RADIUS = 32;
+	/** Two corners 200 blocks apart is 8M cells; the walk alone would freeze the client. */
+	static final long MAX_FILL_CELLS = 32768;
+	/** Scratch fills are prefixed so `/cscan place` with no argument never sweeps them up. */
+	static final String FILL_PREFIX = "_fill ";
+	/** Clips are scratch too: same reason they stay out of a bare `/cscan place`. */
+	static final String CLIP_PREFIX = "_clip ";
+	/** What a fill would overwrite, kept so the wand is safe to experiment with. */
+	static final String UNDO_PREFIX = "_undo ";
+	/** A fill name becomes a filename, so it may not contain a path separator or `..`. */
+	private static final java.util.regex.Pattern FILL_NAME = java.util.regex.Pattern.compile("[A-Za-z0-9 _.-]{1,48}");
 
 	@Override
 	public void onInitializeClient() {
 		ContainerWatcher.register();
 		Highlight.register();
 		AutoScan.register();
+		Wand.register();
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
 			dispatcher.register(literal("cscan")
 				.then(literal("place")
@@ -77,6 +92,46 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(argument("name", StringArgumentType.word())
 						.then(argument("minutes", IntegerArgumentType.integer(1, 120))
 							.executes(ChunkScanClient::auto))))
+				.then(literal("wand")
+					.executes(ChunkScanClient::wandStatus)
+					.then(literal("on").executes(ctx -> wandArm(ctx, true)))
+					.then(literal("off").executes(ctx -> wandArm(ctx, false)))
+					.then(literal("clear").executes(ctx -> { Wand.clear(); ok(ctx.getSource(), "selection cleared"); return 1; })))
+				.then(literal("mat")
+					.executes(ctx -> mat(ctx, null))
+					.then(argument("block", StringArgumentType.greedyString())
+						.executes(ctx -> mat(ctx, StringArgumentType.getString(ctx, "block")))))
+				.then(literal("fill")
+					.executes(ctx -> fill(ctx, null, Fill.Mode.SOLID, null))
+					.then(literal("solid").then(argument("name", StringArgumentType.greedyString())
+						.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), Fill.Mode.SOLID, null))))
+					.then(literal("hollow").then(argument("name", StringArgumentType.greedyString())
+						.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), Fill.Mode.HOLLOW, null))))
+					.then(literal("walls").then(argument("name", StringArgumentType.greedyString())
+						.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), Fill.Mode.WALLS, null))))
+					.then(literal("outline").then(argument("name", StringArgumentType.greedyString())
+						.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), Fill.Mode.OUTLINE, null))))
+					.then(argument("name", StringArgumentType.greedyString())
+						.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), Fill.Mode.SOLID, null))))
+				.then(literal("copy")
+					.then(argument("name", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::copy)))
+				.then(literal("paste")
+					.then(argument("name", StringArgumentType.word())
+						.executes(ctx -> paste(ctx, "NONE"))
+						.then(argument("rot", StringArgumentType.word())
+							.executes(ctx -> paste(ctx, Litematica.rotationOf(StringArgumentType.getString(ctx, "rot")))))))
+				.then(literal("move")
+					.executes(ChunkScanClient::moveStatus)
+					.then(literal("next").executes(ChunkScanClient::moveNext))
+					.then(literal("done").executes(ChunkScanClient::moveDone))
+					.then(literal("reset").executes(ChunkScanClient::moveReset)))
+				.then(literal("clips").executes(ChunkScanClient::clips))
+				.then(literal("prune").executes(ChunkScanClient::prune))
+				.then(literal("replace")
+					.then(argument("from", StringArgumentType.word())
+						.then(argument("to", StringArgumentType.greedyString())
+							.executes(ChunkScanClient::replace))))
 				.then(literal("sel")
 					.then(argument("name", StringArgumentType.word())
 						.executes(ChunkScanClient::selection)))
@@ -110,6 +165,399 @@ public final class ChunkScanClient implements ClientModInitializer {
 	}
 
 	// ---------------------------------------------------------------- commands
+
+	private static int wandStatus(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		ok(src, "wand " + (Wand.armed() ? "ARMED" : "off") + " (cooked beef)"
+			+ "  corner1 " + (Wand.pos1() == null ? "-" : Wand.fmt(Wand.pos1()))
+			+ "  corner2 " + (Wand.pos2() == null ? "-" : Wand.fmt(Wand.pos2()))
+			+ "  box " + Wand.describe()
+			+ "  material " + (Wand.material() == null ? "-" : blockName(Wand.material())));
+		return 1;
+	}
+
+	private static int wandArm(CommandContext<FabricClientCommandSource> ctx, boolean on) {
+		Wand.arm(on);
+		ok(ctx.getSource(), on
+			? "wand ARMED — right-click a block for corner 1, again for corner 2. Steak will not be eaten while armed."
+			: "wand off — steak is food again");
+		return 1;
+	}
+
+	/** Material from a typed name, or from whatever block is in your hand. */
+	private static int mat(CommandContext<FabricClientCommandSource> ctx, String typed) {
+		FabricClientCommandSource src = ctx.getSource();
+		try {
+			BlockState state;
+			if (typed != null && !typed.isBlank()) {
+				state = BlockStateParser.parseForBlock(BuiltInRegistries.BLOCK, typed.trim(), false).blockState();
+			} else {
+				LocalPlayer p = src.getClient().player;
+				if (p == null) { src.sendError(Component.literal("[cscan] no player")); return 0; }
+				state = Wand.blockOf(p.getMainHandItem());
+				if (state == null) {
+					src.sendError(Component.literal("[cscan] hold a block, or name one: /cscan mat stone_bricks"));
+					return 0;
+				}
+			}
+			Wand.material(state);
+			String name = blockName(state);
+			ok(src, "material " + name);
+			// WARN, never refuse. The 1.19 allowlist is provisional and DIRT IS CURRENCY here - both
+			// are things every other check in the pipeline passes silently.
+			for (String o : Rules.objections(name)) src.sendError(Component.literal("[cscan] WARNING: " + name + " is " + o));
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] not a block: " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/**
+	 * Write the box as a design and hand it to Litematica for the printer. Named with the FILL_PREFIX
+	 * so the bare `/cscan place` never sweeps a scratch fill in with the real designs - the same trap
+	 * the 54-design shelf already set once.
+	 */
+	private static int fill(CommandContext<FabricClientCommandSource> ctx, String name,
+	                        Fill.Mode mode, String replaceOnly) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		ClientLevel level = mc.level;
+		LocalPlayer player = mc.player;
+		if (level == null || player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		if (!Wand.complete()) {
+			src.sendError(Component.literal("[cscan] no box — /cscan wand on, then right-click two opposite corners"));
+			return 0;
+		}
+		String here = level.dimension().identifier().toString();
+		if (!Wand.dimension().isEmpty() && !Wand.dimension().equals(here)) {
+			src.sendError(Component.literal("[cscan] the box was marked in " + Wand.dimension()
+				+ " and you are in " + here + " — re-mark it here"));
+			return 0;
+		}
+		if (Wand.material() == null) {
+			src.sendError(Component.literal("[cscan] no material — /cscan mat <block>, or hold one and /cscan mat"));
+			return 0;
+		}
+		long vol = Wand.volume();
+		if (vol > MAX_FILL_CELLS) {
+			src.sendError(Component.literal("[cscan] box is " + vol + " cells, cap is " + MAX_FILL_CELLS
+				+ " — that would hang the client. Pick a smaller box."));
+			return 0;
+		}
+		try {
+			Fill.Probe probe = Fill.of(level);
+			Fill.Plan plan = Fill.plan(probe, Wand.pos1(), Wand.pos2(), Wand.material(), mode, replaceOnly);
+			if (plan.place() == 0) {
+				ok(src, "nothing to do — of " + vol + " cells, " + plan.already() + " are already the material, "
+					+ plan.skipProtected() + " protected, " + plan.outsideShape()
+					+ (replaceOnly != null ? " not " + Rules.shortName(replaceOnly) : " outside the shape"));
+				return 1;
+			}
+			String want = (name == null || name.isBlank()) ? "fill" : name.trim();
+			// The fill name becomes a FILENAME. `resolve` on "../../x" walks straight out of the
+			// schematics folder, and a stray slash would write somewhere baffling and fail later.
+			if (!FILL_NAME.matcher(want).matches()) {
+				src.sendError(Component.literal("[cscan] name: letters, digits, space, _ - . only (got \"" + want + "\")"));
+				return 0;
+			}
+			String design = FILL_PREFIX + want;
+			Path d = dir(src);
+			Path lit = d.resolve(design + ".litematic");
+			Path side = d.resolve(design + ".scan.json");
+			Capture cap = Fill.capture(probe, plan);
+			LitematicWriter.write(lit, cap, design, player.getName().getString(),
+				"wand " + (replaceOnly != null ? "replace " + Rules.shortName(replaceOnly) + " -> " : "fill ")
+					+ plan.materialName() + " " + plan.mode().name().toLowerCase(java.util.Locale.ROOT)
+					+ " " + plan.sizeX() + "x" + plan.sizeY() + "x" + plan.sizeZ());
+			SidecarWriter.write(side, cap, design, lit.getFileName().toString(), mc, level, player, 0, false);
+
+			// The undo goes out BEFORE the report, so a fill is never announced without one.
+			try {
+				List<int[]> dig = new ArrayList<>();
+				Capture before = Fill.undoCapture(probe, plan, dig);
+				String undo = UNDO_PREFIX + want;
+				Path ulit = d.resolve(undo + ".litematic");
+				LitematicWriter.write(ulit, before, undo, player.getName().getString(),
+					"undo for " + design + " — place these back, then /cscan dig \"" + undo + "\"");
+				SidecarWriter.write(d.resolve(undo + ".scan.json"), before, undo,
+					ulit.getFileName().toString(), mc, level, player, 0, false);
+				Work.writeDig(d, undo, dig);
+				ok(src, "undo saved: " + before.nonAirCount() + " to restore, " + dig.size()
+					+ " to break — /cscan paste is not it, use Litematica on \"" + undo + "\"");
+			} catch (Exception e) {
+				LOG.warn("undo snapshot failed", e);
+				src.sendError(Component.literal("[cscan] WARNING: no undo was saved (" + e.getMessage() + ")"));
+			}
+
+			ok(src, design + " [" + plan.mode().name().toLowerCase(java.util.Locale.ROOT) + "]: "
+				+ plan.place() + " to place, " + plan.already() + " already "
+				+ Rules.shortName(plan.materialName()) + ", " + plan.skipProtected() + " protected and skipped"
+				+ (plan.skipProtected() > 0 ? " (" + Fill.skipSummary(plan) + ")" : ""));
+			for (String o : Rules.objections(plan.materialName()))
+				src.sendError(Component.literal("[cscan] WARNING: " + plan.materialName() + " is " + o));
+
+			if (Litematica.present()) {
+				Litematica.place(lit, plan.min(), design);
+				ok(src, "placed at " + Wand.fmt(plan.min()) + " — the printer can build it now");
+			} else {
+				ok(src, "wrote " + lit.getFileName() + " (Litematica not loaded, so nothing was placed)");
+			}
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] fill failed: " + e.getMessage()));
+			LOG.warn("fill failed", e);
+			return 0;
+		}
+	}
+
+	/**
+	 * Swap one block for another inside the box and leave everything else alone. This is the deck
+	 * floor's wood reclaim done by hand: 70 blocks of dark oak healed back into the plane they
+	 * interrupted, without touching the 1,700 cells around them.
+	 */
+	private static int replace(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String from = StringArgumentType.getString(ctx, "from").trim();
+		String to = StringArgumentType.getString(ctx, "to").trim();
+		try {
+			BlockState toState = BlockStateParser.parseForBlock(BuiltInRegistries.BLOCK, to, false).blockState();
+			// `from` is matched by NAME, not by state: you want every facing of a stair gone, not one.
+			BlockStateParser.parseForBlock(BuiltInRegistries.BLOCK, from, false);
+			BlockState keep = Wand.material();
+			Wand.material(toState);
+			try {
+				return fill(ctx, "replace " + Rules.shortName(from) + " to " + Rules.shortName(to),
+					Fill.Mode.SOLID, from);
+			} finally {
+				Wand.material(keep);          // /cscan replace must not quietly change your fill material
+			}
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] not a block: " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/**
+	 * Capture the wand's box exactly as it stands, so it can be pasted elsewhere. This is a SCAN of
+	 * a box, which the mod has always been able to do - `/cscan sel` reads Litematica's own selection
+	 * the same way. The wand just makes marking the box a two-click job.
+	 */
+	private static int copy(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		if (mc.level == null || mc.player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		if (!Wand.complete()) {
+			src.sendError(Component.literal("[cscan] no box — /cscan wand on, then right-click two opposite corners"));
+			return 0;
+		}
+		long vol = Wand.volume();
+		if (vol > MAX_FILL_CELLS) {
+			src.sendError(Component.literal("[cscan] box is " + vol + " cells, cap is " + MAX_FILL_CELLS));
+			return 0;
+		}
+		String want = StringArgumentType.getString(ctx, "name").trim();
+		if (!FILL_NAME.matcher(want).matches()) {
+			src.sendError(Component.literal("[cscan] name: letters, digits, space, _ - . only"));
+			return 0;
+		}
+		try {
+			BlockPos a = Wand.pos1(), b = Wand.pos2();
+			int[] box = {Math.min(a.getX(), b.getX()), Math.min(a.getY(), b.getY()), Math.min(a.getZ(), b.getZ()),
+			             Math.max(a.getX(), b.getX()), Math.max(a.getY(), b.getY()), Math.max(a.getZ(), b.getZ())};
+			Capture cap = WorldCapture.captureBox(mc.level, box);
+			String design = CLIP_PREFIX + want;
+			Path d = dir(src);
+			Path lit = d.resolve(design + ".litematic");
+			LitematicWriter.write(lit, cap, design, mc.player.getName().getString(),
+				"chunkscan clipboard " + cap.sizeX() + "x" + cap.sizeY() + "x" + cap.sizeZ());
+			SidecarWriter.write(d.resolve(design + ".scan.json"), cap, design, lit.getFileName().toString(),
+				mc, mc.level, mc.player, 0, false);
+			ok(src, "copied " + want + ": " + cap.sizeX() + "x" + cap.sizeY() + "x" + cap.sizeZ()
+				+ ", " + cap.nonAirCount() + " blocks — /cscan paste " + want + " [90|180|270]");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] copy failed: " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/**
+	 * Place a clip so its corner lands on the block you are LOOKING at, which is how you aim it.
+	 * Nothing is built: this registers a Litematica placement and the printer does the work, so a
+	 * paste in the wrong spot costs one placement deletion rather than a rebuild.
+	 */
+	private static int paste(CommandContext<FabricClientCommandSource> ctx, String rotation) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		if (mc.level == null || mc.player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		if (!Litematica.present()) { src.sendError(Component.literal("[cscan] Litematica is not loaded")); return 0; }
+		String name = StringArgumentType.getString(ctx, "name").trim();
+		try {
+			String design = CLIP_PREFIX + name;
+			Path lit = dir(src).resolve(design + ".litematic");
+			if (!java.nio.file.Files.exists(lit)) {
+				src.sendError(Component.literal("[cscan] no clip called " + name + " — /cscan clips"));
+				return 0;
+			}
+			BlockPos at = targeted(mc);
+			Litematica.place(lit, at, design + " @" + Wand.fmt(at), rotation);
+			ok(src, "pasted " + name + " at " + Wand.fmt(at)
+				+ (rotation.equals("NONE") ? "" : " rotated " + rotation.toLowerCase(java.util.Locale.ROOT))
+				+ " — the printer can build it now");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] paste failed: " + e.getMessage()));
+			LOG.warn("paste failed", e);
+			return 0;
+		}
+	}
+
+	private static int clips(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		try (var st = java.nio.file.Files.list(dir(src))) {
+			List<String> names = new ArrayList<>();
+			st.map(p -> p.getFileName().toString())
+				.filter(n -> n.startsWith(CLIP_PREFIX) && n.endsWith(".litematic"))
+				.forEach(n -> names.add(n.substring(CLIP_PREFIX.length(), n.length() - ".litematic".length())));
+			names.sort(String::compareToIgnoreCase);
+			if (names.isEmpty()) ok(src, "no clips yet — mark a box and /cscan copy <name>");
+			else ok(src, names.size() + " clip(s): " + String.join(", ", names));
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/**
+	 * The chest move, in three lines: how much is left, what stays put, and whether the hall can
+	 * still take it. Nothing is moved by the mod - this plans and points.
+	 */
+	private static int moveStatus(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		if (mc.level == null || mc.player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		try {
+			Move.Plan plan = Move.plan(Move.of(mc.level), dir(src), mc.player.blockPosition());
+			if (plan.legs().isEmpty()) {
+				ok(src, plan.slotsFree() == 0
+					? "the hall is full — nothing can be moved until a slot frees up"
+					: "nothing left to move (" + plan.stayed() + " stay with their machines)");
+				return 1;
+			}
+			ok(src, plan.legs().size() + " container(s) to move, " + plan.slotsFree() + " slot(s) free, "
+				+ plan.stayed() + " staying with their machines");
+			int n = 0;
+			for (Move.Leg leg : plan.legs()) {
+				if (n++ >= 5) break;
+				ok(src, "  " + Wand.fmt(leg.from().pos()) + " (" + Move.contents(leg.from().container()) + ")"
+					+ " -> " + leg.to().label() + (leg.overflow() ? " [OVERFLOW]" : ""));
+			}
+			if (plan.legs().size() > 5) ok(src, "  ... " + (plan.legs().size() - 5) + " more — /cscan move next");
+			for (String c : plan.unmatchedCategories()) {
+				// A category with no wall is a real gap in the hall's labels, not a rounding error.
+				src.sendError(Component.literal("[cscan] no bank is labelled \"" + c
+					+ "\" — those are going to whatever slot is free"));
+			}
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/** Mark the nearest chest amber and its destination green, and say what to carry. */
+	private static int moveNext(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		if (mc.level == null || mc.player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		try {
+			BlockPos me = mc.player.blockPosition();
+			Move.Plan plan = Move.plan(Move.of(mc.level), dir(src), me);
+			if (plan.legs().isEmpty()) {
+				Move.clearDraw();
+				ok(src, "nothing left to move");
+				return 1;
+			}
+			Move.Leg leg = plan.legs().get(0);
+			Move.draw(leg);
+			ok(src, "FROM " + Wand.fmt(leg.from().pos()) + " ("
+				+ (int) Math.sqrt(leg.from().pos().distSqr(me)) + "m "
+				+ Storage.direction(me, leg.from().pos()) + ", marked amber) — "
+				+ Move.contents(leg.from().container()));
+			ok(src, "TO   " + Wand.fmt(leg.to().pos()) + " on the "
+				+ (leg.to().bank().isEmpty() ? "hall" : leg.to().bank()) + " bank"
+				+ (leg.to().label().isEmpty() ? "" : " (" + leg.to().label() + ")")
+				+ ", marked green" + (leg.overflow() ? " — OVERFLOW, no bank matches this" : ""));
+			ok(src, "  when it is empty: /cscan move done");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/**
+	 * Mark the nearest planned source as emptied. Reopening it would do the same thing by itself -
+	 * the index would record it empty and it would drop out - but that means a second trip, and this
+	 * job is entirely trips.
+	 */
+	private static int moveDone(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		if (mc.level == null || mc.player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		try {
+			BlockPos me = mc.player.blockPosition();
+			Move.Plan plan = Move.plan(Move.of(mc.level), dir(src), me);
+			if (plan.legs().isEmpty()) { ok(src, "nothing left to move"); return 1; }
+			Move.Leg leg = plan.legs().get(0);
+			double d = Math.sqrt(leg.from().pos().distSqr(me));
+			if (d > 12) {
+				src.sendError(Component.literal("[cscan] nearest planned chest is " + (int) d
+					+ "m away — walk to it first, or /cscan move next to see which"));
+				return 0;
+			}
+			Move.markDone(dir(src), leg.from().container().key());
+			Move.clearDraw();
+			ok(src, "marked " + Wand.fmt(leg.from().pos()) + " moved — " + (plan.legs().size() - 1) + " to go");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	private static int moveReset(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		try {
+			Move.reset(dir(src));
+			Move.clearDraw();
+			ok(src, "move progress cleared");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/** Drop storage entries filed against something that is not a container. See Storage.prune. */
+	private static int prune(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		try {
+			int gone = Storage.prune(dir(src));
+			ok(src, gone == 0 ? "storage index is clean"
+				: "dropped " + gone + " entries that were not containers — reopen those chests to re-index them");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	static String blockName(BlockState state) {
+		return BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+	}
 
 	private static int place(CommandContext<FabricClientCommandSource> ctx, String which) {
 		FabricClientCommandSource src = ctx.getSource();
@@ -154,8 +602,20 @@ public final class ChunkScanClient implements ClientModInitializer {
 				return 1;
 			}
 			Map<String, Storage.Container> all = Storage.load(dir(src));
+			Map<String, Integer> have = Work.carrying(mc.player);
 			ok(src, sp.name() + ": " + sp.todo().size() + " block(s) left within " + radius);
+			int covered = 0;
 			for (var e : Work.tally(sp.todo()).entrySet()) {
+				int want = e.getValue();
+				int onMe = have.getOrDefault(e.getKey(), 0);
+				if (onMe >= want) {
+					// Nothing to fetch. Saying so is the whole point: this used to send you to a
+					// chest across the island for something already in your hotbar.
+					ok(src, "  " + want + "x " + e.getKey() + " - CARRYING " + onMe);
+					covered++;
+					continue;
+				}
+				int shortBy = want - onMe;
 				List<Storage.Hit> hits = Storage.find(all, e.getKey(), me);
 				String where = " - not in any indexed chest";
 				if (!hits.isEmpty()) {
@@ -163,8 +623,10 @@ public final class ChunkScanClient implements ClientModInitializer {
 					where = " - " + h.count() + " in " + h.container().describe() + " "
 						+ (int) h.distance() + "m " + Storage.direction(me, h.container().pos());
 				}
-				ok(src, "  " + e.getValue() + "x " + e.getKey() + where);
+				ok(src, "  " + want + "x " + e.getKey()
+					+ (onMe > 0 ? " (carrying " + onMe + ", short " + shortBy + ")" : "") + where);
 			}
+			if (covered > 0) ok(src, "  " + covered + " of those you already have on you");
 			return 1;
 		} catch (Exception e) {
 			src.sendError(Component.literal("[cscan] " + e.getMessage()));
@@ -209,7 +671,11 @@ public final class ChunkScanClient implements ClientModInitializer {
 			if (sp.wrong().isEmpty()) return 1;
 			Highlight.show("check", Work.positions(sp.wrong(), 200), 0xFFC000, 180);
 			for (Work.Cell c : sp.wrong().subList(0, Math.min(8, sp.wrong().size()))) {
-				String have = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(c.pos()).getBlock()).getPath();
+				var st = mc.level.getBlockState(c.pos());
+				String have = BuiltInRegistries.BLOCK.getKey(st.getBlock()).getPath();
+				// Same block, wrong way round, is the case the old name-only check could not see -
+				// so say so in those words rather than printing the name twice.
+				if (have.equals(c.item())) have += " but oriented differently";
 				ok(src, "  " + c.pos().getX() + " " + c.pos().getY() + " " + c.pos().getZ()
 					+ ": want " + c.block() + ", have " + have);
 			}

@@ -1,0 +1,156 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 150,
+    "z": 29949
+  },
+  "size": {
+    "x": 31,
+    "y": 54,
+    "z": 71
+  },
+  "generated_by": "rimstair",
+  "kind": "rimstair",
+  "treads": 14,
+  "rails": 7,
+  "lanterns": 3,
+  "threshold": 0,
+  "landing": 0,
+  "facing": "south",
+  "dig": [
+    [
+      -24221,
+      201,
+      30018,
+      "cobblestone"
+    ],
+    [
+      -24221,
+      200,
+      30017,
+      "moss_block"
+    ],
+    [
+      -24221,
+      201,
+      30017,
+      "cobblestone"
+    ],
+    [
+      -24221,
+      199,
+      30016,
+      "moss_block"
+    ],
+    [
+      -24221,
+      200,
+      30016,
+      "moss_block"
+    ],
+    [
+      -24221,
+      201,
+      30016,
+      "cobblestone"
+    ],
+    [
+      -24221,
+      198,
+      30015,
+      "moss_block"
+    ],
+    [
+      -24221,
+      199,
+      30015,
+      "moss_block"
+    ],
+    [
+      -24221,
+      200,
+      30015,
+      "moss_block"
+    ],
+    [
+      -24221,
+      201,
+      30015,
+      "cobblestone"
+    ],
+    [
+      -24221,
+      202,
+      30015,
+      "torch"
+    ],
+    [
+      -24221,
+      197,
+      30014,
+      "smooth_stone"
+    ],
+    [
+      -24221,
+      198,
+      30014,
+      "moss_block"
+    ],
+    [
+      -24221,
+      199,
+      30014,
+      "moss_block"
+    ],
+    [
+      -24221,
+      200,
+      30014,
+      "moss_block"
+    ],
+    [
+      -24221,
+      201,
+      30014,
+      "cobblestone"
+    ],
+    [
+      -24221,
+      196,
+      30013,
+      "moss_block"
+    ],
+    [
+      -24221,
+      197,
+      30013,
+      "smooth_stone"
+    ],
+    [
+      -24221,
+      198,
+      30013,
+      "moss_block"
+    ],
+    [
+      -24221,
+      199,
+      30013,
+      "moss_block"
+    ],
+    [
+      -24221,
+      200,
+      30013,
+      "moss_block"
+    ],
+    [
+      -24221,
+      201,
+      30013,
+      "cobblestone"
+    ]
+  ],
+  "file": "Court Stair.litematic",
+  "name": "Court Stair"
+}

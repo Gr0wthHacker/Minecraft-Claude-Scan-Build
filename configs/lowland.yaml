@@ -1,0 +1,45 @@
+# The ground far below the island - a third tier under the plate (Y201) and the void isle (Y86-110).
+#
+# Y40 is empty void in the 2026-08-18 capture: the lowest non-vine block anywhere in the world is
+# Y86, so this lands in clear air with ~46 blocks under the void isle. The only things it meets are
+# eight vine strands that dangle from the plate to bedrock - hence context_clear/verify_replaceable.
+#
+# The OUTLINE is not invented: it is the island's own column shadow, read out of the capture, holes
+# filled and reduced to one connected piece: 5,773 columns spanning 99x99, fully inside the scan
+# (nothing touches the border, so no side is clipped). Surface Y36-41, body down to Y24.
+name: Lowland
+gen: lowland
+params:
+  under: island.litematic
+  top_y: 40
+  relief: 3                 # subtle - the surface rolls a block or two, it is not a table
+  noise_scale: 11           # broad rolls, so large level areas survive for statues
+  rim_band: 10
+  rim_drop: 3               # the ground falls away at the edge rather than ending in a wall
+  depth: 16                 # layers under the surface in the middle
+  rim_depth: 3              # ... thinning to this at the rim
+  sub_depth: 2              # dirt between the soil and the rock
+  ragged: 0.10              # bites out of the edge, so it reads as land not as a stencil
+  carpet: 0.10
+  grass: 0.16
+  fern: 0.05
+  azalea: 0.03
+  flower: 0.02
+  trees: 6
+  vine_rate: 0.16
+  vine_len: [3, 9]
+  lantern_step: 9           # no daylight reaches Y40
+  seed: 0
+origin_lock: false          # LOUD: sits at Y24-47, ~105 blocks below every other lock corner
+finish:
+  cheapen: true
+  hollow: {shell: 3}
+  ground: false
+  drop_floaters: false
+  context_clear: [vine]     # the eight old strands pass straight through this space
+  verify_replaceable: [vine]
+  # Y0-70 cut of the newest scan. No existing band reached this low - island_void stops at Y60 -
+  # and the design has to be audited in context like everything else (rule 2). Re-cut with:
+  #   python -m mcbuild scan island --cut -24251 0 29949 -24149 70 30051 \
+  #     --out out/island_lower.litematic --name-out island_lower
+  verify_against: out/island_lower.litematic

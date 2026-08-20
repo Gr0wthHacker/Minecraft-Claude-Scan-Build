@@ -24,6 +24,51 @@ import java.util.Map;
  * number, zone, coordinates, distance and direction — instead of opening a hundred chests.
  */
 final class Storage {
+	/**
+	 * Block names that actually hold items. Kept here rather than in the watcher so the guard that
+	 * stops a bad entry being written and the sweep that removes one already written cannot drift.
+	 */
+	private static final String[] CONTAINERS = {
+		"chest", "trapped_chest", "barrel", "shulker_box", "hopper", "dispenser", "dropper",
+		"furnace", "blast_furnace", "smoker", "brewing_stand", "chiseled_bookshelf", "decorated_pot",
+		"crafter", "campfire", "lectern", "beacon", "cartography_table", "loom", "smithing_table",
+		"grindstone", "stonecutter", "enchanting_table", "anvil", "crafting_table",
+	};
+	/** ...of which only these actually STORE things. The rest open a screen and hold nothing. */
+	private static final String[] STORES = {
+		"chest", "trapped_chest", "barrel", "shulker_box", "hopper", "dispenser", "dropper",
+		"furnace", "blast_furnace", "smoker", "brewing_stand", "chiseled_bookshelf", "decorated_pot",
+		"crafter",
+	};
+
+	static boolean isContainer(String block) {
+		String n = block == null ? "" : block.substring(block.indexOf(':') + 1);
+		for (String k : CONTAINERS) if (n.contains(k)) return true;
+		return false;
+	}
+
+	static boolean stores(String block) {
+		String n = block == null ? "" : block.substring(block.indexOf(':') + 1);
+		for (String k : STORES) if (n.contains(k)) return true;
+		return false;
+	}
+
+	/**
+	 * Drop entries that were filed against something that is not a container. Returns how many went.
+	 *
+	 * <p>141 of 269 entries were like this — signs, stone bricks, slabs, moss — because the watcher
+	 * remembered every right-click and then attributed the next screen to it. They are removed rather
+	 * than repaired: the position is the one thing that was wrong, so there is nothing to repair to.
+	 * Reopening the real container re-indexes it in one click.
+	 */
+	static int prune(Path schematicsDir) throws IOException {
+		Map<String, Container> all = load(schematicsDir);
+		int before = all.size();
+		all.values().removeIf(c -> !stores(c.block));
+		if (all.size() != before) save(schematicsDir, all);
+		return before - all.size();
+	}
+
 	static final class Container {
 		int id;
 		int x, y, z;

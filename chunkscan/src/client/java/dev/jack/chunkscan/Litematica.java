@@ -19,6 +19,33 @@ final class Litematica {
 
 	/** Load `file` and add an enabled placement whose origin corner sits at `origin`. */
 	static void place(Path file, BlockPos origin, String name) throws Exception {
+		place(file, origin, name, "NONE");
+	}
+
+	/**
+	 * As {@link #place}, rotated. `rotation` is a {@code net.minecraft.world.level.block.Rotation}
+	 * constant name — NONE, CLOCKWISE_90, CLOCKWISE_180, COUNTERCLOCKWISE_90.
+	 *
+	 * <p>Litematica's setters take an {@code IMessageConsumer} for feedback and there is no public
+	 * no-op to hand them, so one is synthesised with a {@link java.lang.reflect.Proxy}. Passing null
+	 * is the obvious alternative and risks an NPE deep inside a soft dependency, which would surface
+	 * as "paste silently did nothing".
+	 */
+	static void place(Path file, BlockPos origin, String name, String rotation) throws Exception {
+		Object placement = placementFor(file, origin, name);
+		if (rotation != null && !rotation.equals("NONE")) {
+			Class<?> rotC = Class.forName("net.minecraft.world.level.block.Rotation");
+			Object rot = Enum.valueOf((Class<Enum>) rotC.asSubclass(Enum.class), rotation);
+			Class<?> consumerC = Class.forName("fi.dy.masa.malilib.gui.interfaces.IMessageConsumer");
+			Object noop = java.lang.reflect.Proxy.newProxyInstance(
+				Litematica.class.getClassLoader(), new Class<?>[]{consumerC},
+				(p, m, a) -> m.getReturnType() == boolean.class ? Boolean.FALSE : null);
+			placement.getClass().getMethod("setRotation", rotC, consumerC).invoke(placement, rot, noop);
+		}
+		register(placement);
+	}
+
+	private static Object placementFor(Path file, BlockPos origin, String name) throws Exception {
 		Class<?> holderC = Class.forName("fi.dy.masa.litematica.data.SchematicHolder");
 		Object holder = holderC.getMethod("getInstance").invoke(null);
 		Object schematic = holderC.getMethod("getOrLoad", Path.class).invoke(holder, file);
@@ -29,10 +56,26 @@ final class Litematica {
 		Method createFor = placementC.getMethod("createFor", schemC, BlockPos.class, String.class, boolean.class, boolean.class);
 		Object placement = createFor.invoke(null, schematic, origin, name, true, true);
 
+		return placement;
+	}
+
+	private static void register(Object placement) throws Exception {
+		Class<?> placementC = Class.forName("fi.dy.masa.litematica.schematic.placement.SchematicPlacement");
 		Class<?> dataC = Class.forName("fi.dy.masa.litematica.data.DataManager");
 		Object manager = dataC.getMethod("getSchematicPlacementManager").invoke(null);
-		Class<?> managerC = manager.getClass();
-		managerC.getMethod("addSchematicPlacement", placementC, boolean.class).invoke(manager, placement, false);
+		manager.getClass().getMethod("addSchematicPlacement", placementC, boolean.class)
+			.invoke(manager, placement, false);
+	}
+
+	/** The rotation names `/cscan paste` accepts, in the order they are offered. */
+	static String rotationOf(String word) {
+		if (word == null) return "NONE";
+		return switch (word.trim().toLowerCase(java.util.Locale.ROOT)) {
+			case "90", "cw", "rot90", "clockwise_90" -> "CLOCKWISE_90";
+			case "180", "rot180", "clockwise_180" -> "CLOCKWISE_180";
+			case "270", "ccw", "rot270", "counterclockwise_90" -> "COUNTERCLOCKWISE_90";
+			default -> "NONE";
+		};
 	}
 
 	/** Current area selection as {minX, minY, minZ, maxX, maxY, maxZ}, or null if there is none. */

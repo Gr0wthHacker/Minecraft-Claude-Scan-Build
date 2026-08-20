@@ -1,5 +1,5 @@
 """Generator registry. Each module exposes DEFAULTS and build(cfg, donors)->Canvas."""
-from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak
+from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall
 from .canvas import Canvas, hash01
 
 class _Wrap:
@@ -44,6 +44,8 @@ GENERATORS = {
     "islet": _Wrap(islet.build_islet, islet.ISLET),
     "spiral": _Wrap(spiral.build_spiral, spiral.SPIRAL),
     "stairwell": _Wrap(stairwell.build_stairwell, stairwell.STAIRWELL),
+    "rimstair": _Wrap(rimstair.build_rimstair, rimstair.RIMSTAIR),
+    "courthall": _Wrap(courthall.build_courthall, courthall.COURTHALL),
     "storehall": _Wrap(storehall.build_storehall, storehall.STOREHALL),
     "atelier": _Wrap(atelier.build_atelier, atelier.ATELIER),
     "lake": _Wrap(lake.build_lake, lake.LAKE),
