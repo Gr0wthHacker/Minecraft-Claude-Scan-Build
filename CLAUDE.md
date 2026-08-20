@@ -763,6 +763,51 @@ event in the room, so you did not discover it, you simply arrived at it.
 **Still open:** the 112 chests (Store Hall's 68 slots are built and waiting), the 14 wall torches,
 and 62% walkable — all three of which are the chest move.
 
+## The root break — the deck's story object (2026-08-19)
+
+`configs/root_break.yaml`, `mcbuild/gen/rootbreak.py`. 485 blocks, all cheap tier, 0 problems.
+
+**The failure it fixes is narrative, and it was invisible to every metric so far.** The sequence is
+meant to run: a mystical, half-apocalyptic plate with giant animals -> an interior that holds the
+awe -> a descent down the taproot to the void. The deck is the hinge. And **the taproot topped out
+at Y188**, six courses below the deck floor, so the one room whose entire purpose is to hand you to
+the root never showed you the root. You crossed a grey workshop and found a hole.
+
+It is not an invention — `configs/taproot.yaml` already says *"The centre tree's roots break through
+the deck skin and twist down into the void."* It just stopped short. Read through the root's own
+90-cell footprint:
+
+| | |
+|---|---|
+| Y203+ | oak_wood, 31 cells — **the great tree, directly overhead** |
+| Y200 | the deck's ceiling |
+| Y195–199 | 2–20 of 90 solid — **the room. empty.** |
+| Y194 | 90/90 stone_bricks — the deck floor |
+| Y191–193 | empty — the undercroft |
+| Y188 | 70 cells of taproot — **the root's head, directly below** |
+
+The tree is above, the root is below, and **the root was missing exactly where the room is.**
+
+It breaks three surfaces on the way — ceiling, deck floor, belly skin — and each break is HEAVED,
+not cut: 128 cells simply gone, 168 of cracked masonry and cobble shoved aside. A clean hole reads
+as a designed opening; a broken one reads as something that came through. Light is bioluminescent
+(32 glow lichen on the bark, soul fire at the base), not lamps — the plate is lit by daylight and
+the lowland by lanterns, and this room should be lit by the thing growing through it.
+
+This is also the answer to the palette audit that had been going the wrong way. It supplies wood,
+moss, organic form and a focal point in one object — and gives all four a REASON, which is the
+difference between decoration and a place.
+
+Three traps, all the same shape — **anchor to what was PLACED, not to what was intended**:
+
+- `mangrove_roots` is not a full cube, so nothing hangs off its underside. Bark was being chosen
+  18% of the time and a hanging root under one audits as "from air".
+- A vine's attachment is a FACE; `up=true` is not support the audit accepts, and the second link
+  of a strand has only the first link above it, which is not a block.
+- **`verify_against` composites WITHOUT overwriting.** Where the root replaces an existing slab the
+  in-context audit still sees the SLAB overhead. That also explains why an earlier before/after
+  through `plan_merge` showed nothing: it fills empty cells only.
+
 ## Build & test
 
 ```bash

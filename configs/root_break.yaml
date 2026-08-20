@@ -1,0 +1,43 @@
+# The taproot's passage through the deck - the root the room was always supposed to be about.
+#
+# THE STORY FAILURE THIS FIXES. The sequence is meant to run: a mystical, half-apocalyptic plate
+# with giant animals -> an interior that holds the awe -> a descent down the taproot to the void.
+# The deck is the hinge. And the taproot TOPS OUT AT Y188, six courses below the deck floor, so the
+# one room whose whole purpose is to hand you to the root never shows you the root. You cross a
+# grey workshop and find a hole.
+#
+# It is not an invention. configs/taproot.yaml already says "The centre tree's roots break through
+# the deck skin and twist down into the void" - it just stops short. Reading the capture through
+# the root's own 90-cell footprint:
+#
+#   Y203+     oak_wood, 31 cells      the great tree, directly overhead
+#   Y200      the deck's ceiling
+#   Y195-199  2-20 of 90 solid        THE ROOM. empty.
+#   Y194      90/90 stone_bricks      the deck floor
+#   Y191-193  empty                   the undercroft
+#   Y188      70 cells of taproot     the root's head, directly below
+#
+# The tree is above, the root is below, and the root is missing exactly where the room is.
+#
+# It breaks three surfaces on the way - ceiling, deck floor, belly skin - and each break is HEAVED,
+# not cut: cracked masonry shoved aside, some cells simply gone. A clean hole reads as a designed
+# opening; a broken one reads as something that came through.
+name: Root Break
+gen: rootbreak
+params:
+  under: out/island_now.litematic
+  x: -24200
+  z: 30018
+  y_from: 188        # the taproot's head
+  y_to: 203          # the tree's own wood on the plate
+  strands: 3
+  trunk_r: 3.4
+  strand_r: 1.5
+  spread: 4.0
+  twist: 2.0
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/island_now.litematic

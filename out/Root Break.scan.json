@@ -1,0 +1,26 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 150,
+    "z": 29949
+  },
+  "size": {
+    "x": 58,
+    "y": 54,
+    "z": 76
+  },
+  "generated_by": "rootbreak",
+  "kind": "rootbreak",
+  "x": -24200,
+  "z": 30018,
+  "y_from": 188,
+  "y_to": 203,
+  "strands": 3,
+  "root": 388,
+  "heaved": 128,
+  "rubble": 168,
+  "moss": 27,
+  "lichen": 32,
+  "file": "Root Break.litematic",
+  "name": "Root Break"
+}
