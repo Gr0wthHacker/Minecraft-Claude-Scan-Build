@@ -1671,6 +1671,38 @@ the region they should be.
 `MAX_RADIUS` is 96 because past that it is not a trip, it is the island — a "spot" you cannot see
 the far side of is a compass bearing to a region, not guidance.
 
+### `/cscan autofly` — it flies you there (2026-08-20)
+
+```
+/cscan autofly on | off
+```
+
+It steers toward whatever the HUD arrow is pointing at, so `follow` becomes hands-off: the plan
+picks the spot, the arrow points, and this closes the distance.
+
+**THIS IS MOVEMENT AUTOMATION ON A LIVE SERVER.** Most servers' rules treat it as a bot whatever it
+is for, and smooth constant-velocity flight is the exact signature anticheat is built to catch. That
+is a decision about Jack's account rather than about this code — recorded here so the next person to
+read it knows it was made deliberately and not stumbled into. What the code can do is be
+conservative and be trivially interruptible:
+
+- **Any movement key hands control straight back.** The one property that makes it safe to leave
+  switched on: you never have to fight it, or go hunting for the off switch while it flies you into
+  a wall.
+- **It sets DELTA MOVEMENT, never position.** A position write is a teleport, which is both what
+  anticheat catches and what rubber-bands you into terrain.
+- **Capped at 0.35 blocks/tick**, under vanilla creative flight, and it eases into the target rather
+  than overshooting and wobbling.
+- **The turn is eased, not snapped** — a camera that jumps to a bearing is not a player. Shortest
+  way round, so 350° to 10° is twenty degrees clockwise rather than three hundred and forty back.
+- **It lifts over obstacles.** Flying straight at terrain just presses you into it and the server
+  hauls you back.
+- **It stops while a screen is open**, or it would carry you away from the chest you are looting.
+
+And one more instance of the same lesson: **there is no `Minecraft.screen` in 26.2** — this file
+already said so, in the 26.x notes, and I reached for it anyway. The open-screen flag is tracked
+from `ScreenEvents` exactly as `ContainerWatcher` does it.
+
 ## Build & test
 
 ```bash

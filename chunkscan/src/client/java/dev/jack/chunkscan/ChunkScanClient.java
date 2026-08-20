@@ -54,6 +54,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Wand.register();
 		Hud.register();
 		Menu.register();
+		Autopilot.register();
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
 			dispatcher.register(literal("cscan")
 				.then(literal("place")
@@ -150,6 +151,18 @@ public final class ChunkScanClient implements ClientModInitializer {
 						ok(ctx.getSource(), "guidance off"); return 1; })
 					.then(argument("n", IntegerArgumentType.integer(1, Plan.MAX_CLUSTERS))
 						.executes(ChunkScanClient::gotoCluster)))
+				.then(literal("autofly")
+					.executes(ctx -> { ok(ctx.getSource(), "autofly " + (Autopilot.on() ? "ON" : "off")
+						+ " — it flies to whatever the HUD arrow is pointing at. Any key you press stops it.");
+						return 1; })
+					.then(literal("on").executes(ctx -> {
+						Autopilot.set(true);
+						ok(ctx.getSource(), "autofly ON — needs /fly. Press any movement key to take over.");
+						return 1; }))
+					.then(literal("off").executes(ctx -> {
+						Autopilot.set(false);
+						ok(ctx.getSource(), "autofly off");
+						return 1; })))
 				.then(literal("fetch")
 					.then(argument("design", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::fetch)))
