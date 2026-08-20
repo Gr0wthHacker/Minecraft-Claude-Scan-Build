@@ -1742,6 +1742,51 @@ than a wrong one confidently followed.
 no route existed — the router simply flew over the top of it, correctly. A wall in the open is not
 sealed. They build a closed six-sided room now, with the door-and-no-door pair as controls.
 
+### `/cscan tidy` — one item, one home (2026-08-20)
+
+Measured off the real index rather than guessed: **96 containers holding 244 distinct items, and 206
+of those 244 live in more than one container.** White wool is 12,729 spread over 27 chests and would
+fit in eight. Cobblestone is 11,830 over 26. Thirty-seven items have eight or fewer in total and are
+STILL split across two or more.
+
+    135 piles worth consolidating, 328 slots to reclaim
+
+The tedious part of that job was never the shift-clicking, it is knowing WHICH twenty-seven chests
+and in what order. `tidy` computes it; `/cscan tidy <n>` hands the job to the same guidance
+`follow` uses, so `autofly` walks you round the sources.
+
+Three decisions the numbers forced:
+
+- **The home is wherever most of it already is.** Moving 200 into a chest holding 12,000 beats
+  moving 12,000 into one holding 200, and picking the NEAREST container — the obvious first
+  instinct — would routinely choose the second.
+- **Ranked by SLOTS FREED, not by item count.** Twelve thousand wool in two chests and twelve
+  thousand in twenty-seven are the same pile; only the second is a mess. Ranking by count puts wool
+  top and buries the four-way split of redstone that actually costs you space.
+- **A tiny pile is not a trip.** Two chests holding four sticks between them is not a problem to
+  solve, so `MIN_TOTAL` is 32.
+
+It also runs the index through `Storage.stillThere` first, or it would send you to chests that were
+broken during the chest move.
+
+**It plans and points; it does not move items.** Slot manipulation is a separate piece of work — see
+the note below.
+
+#### Not built: automated withdrawal
+
+Repeated attempts to look up the 26.2 inventory-slot API were declined by the tooling in this
+session — five times, across `javap` on `Slot`, on `Player`, a jar listing, and a Fabric screen
+event. What WAS established before that, and is worth keeping so the next attempt starts further on:
+
+    handleInventoryMouseClick(...)  ->  MultiPlayerGameMode.handleContainerInput(
+                                            containerId, slotIndex, button, ContainerInput, player)
+    ClickType.QUICK_MOVE            ->  ContainerInput.QUICK_MOVE      (this is the shift-click)
+
+and `ContainerWatcher` already compiles against `menu.slots`, `menu.containerId`, `Slot.container`
+and `Slot.getItem()`, so those four are proven. The gaps are `Slot.index` (avoidable — iterate
+`menu.slots` and use the loop index, which IS the slot id), `Player.closeContainer`, and a
+screen-level key hook.
+
 ## Build & test
 
 ```bash

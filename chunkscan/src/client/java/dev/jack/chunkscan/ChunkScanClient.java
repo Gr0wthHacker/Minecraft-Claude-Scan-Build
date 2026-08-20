@@ -194,6 +194,10 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(argument("radius", IntegerArgumentType.integer(1, 64))
 						.executes(ChunkScanClient::around)))
 				.then(literal("clips").executes(ChunkScanClient::clips))
+				.then(literal("tidy")
+					.executes(ctx -> tidy(ctx, 0))
+					.then(argument("n", IntegerArgumentType.integer(1, 40))
+						.executes(ctx -> tidy(ctx, IntegerArgumentType.getInteger(ctx, "n")))))
 				.then(literal("prune").executes(ChunkScanClient::prune))
 				.then(literal("replace")
 					.then(argument("from", StringArgumentType.word())
@@ -1031,6 +1035,58 @@ public final class ChunkScanClient implements ClientModInitializer {
 			Move.reset(dir(src));
 			Move.clearDraw();
 			ok(src, "move progress cleared");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/**
+	 * What is worth consolidating, and where each pile should end up.
+	 *
+	 * <p>With no argument it reports the plan. With a number it locks the guidance onto that job's
+	 * FIRST source chest, so `autofly` walks you round them.
+	 */
+	private static int tidy(CommandContext<FabricClientCommandSource> ctx, int pick) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		if (mc.level == null || mc.player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		try {
+			BlockPos me = mc.player.blockPosition();
+			Map<String, Storage.Container> index = Storage.load(dir(src));
+			// Records the world has disproved would send you to a chest that is not there.
+			index.values().removeIf(c -> !Storage.stillThere(mc.level, c));
+			List<Tidy.Job> jobs = Tidy.plan(index, me);
+			if (jobs.isEmpty()) {
+				ok(src, "nothing worth consolidating — every pile of " + Tidy.MIN_TOTAL
+					+ "+ already lives in one container");
+				return 1;
+			}
+			if (pick > 0) {
+				if (pick > jobs.size()) {
+					src.sendError(Component.literal("[cscan] there are " + jobs.size() + " job(s)"));
+					return 0;
+				}
+				Tidy.Job j = jobs.get(pick - 1);
+				Storage.Container first = j.sources().get(0);
+				Highlight.show("goto", List.of(first.pos(), j.home().pos()), 0xFFC000, 900);
+				Hud.guide(first.pos(), "take " + j.item());
+				ok(src, "job " + pick + ": " + Tidy.describe(j, me));
+				ok(src, "  nearest source " + first.describe() + " marked — home marked too."
+					+ " /cscan autofly on to be flown there.");
+				return 1;
+			}
+			int slots = jobs.stream().mapToInt(Tidy.Job::slotsFreed).sum();
+			ok(src, jobs.size() + " pile(s) worth consolidating, " + slots + " slot(s) to reclaim, "
+				+ Tidy.containersFreed(jobs, index) + " container(s) would empty completely");
+			int n = 0;
+			for (Tidy.Job j : jobs) {
+				if (n++ >= 8) break;
+				ok(src, "  " + n + ") " + Tidy.describe(j, me));
+			}
+			if (jobs.size() > 8) ok(src, "  ... " + (jobs.size() - 8) + " more");
+			ok(src, "  /cscan tidy <n> to be walked to one");
 			return 1;
 		} catch (Exception e) {
 			src.sendError(Component.literal("[cscan] " + e.getMessage()));
