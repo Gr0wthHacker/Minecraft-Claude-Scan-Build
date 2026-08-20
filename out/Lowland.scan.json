@@ -1,18 +1,23 @@
 {
   "origin": {
     "x": -24250,
-    "y": 24,
+    "y": 20,
     "z": 29951
   },
   "size": {
     "x": 101,
-    "y": 24,
+    "y": 37,
     "z": 100
   },
   "generated_by": "lowland",
   "kind": "lowland",
   "top_y": 40,
-  "columns": 5773,
+  "water": [
+    -24198,
+    30004
+  ],
+  "water_guards": 103,
+  "columns": 6760,
   "bounds": [
     -24249,
     29951,
@@ -20,64 +25,64 @@
     30049
   ],
   "surface_y": [
-    36,
-    41
+    32,
+    55
   ],
-  "planted": 1493,
+  "planted": 1626,
   "trees": 6,
-  "vines": 464,
-  "lanterns": 71,
+  "vines": 327,
+  "lanterns": 74,
   "flat_pads": [
     {
       "y": 40,
       "size": [
         22,
-        33
+        11
       ],
       "at": [
-        -24211,
-        29986
+        -24200,
+        29975
       ]
     },
     {
       "y": 39,
       "size": [
-        11,
-        21
+        15,
+        13
       ],
       "at": [
-        -24189,
-        29988
+        -24178,
+        29973
       ]
     },
     {
       "y": 41,
       "size": [
-        10,
-        10
+        7,
+        8
       ],
       "at": [
-        -24221,
-        29987
+        -24201,
+        29966
       ]
     },
     {
       "y": 38,
       "size": [
         3,
-        30
+        15
       ],
       "at": [
-        -24155,
-        30019
+        -24247,
+        30014
       ]
     }
   ],
   "features_built": {
-    "columns": 5773,
+    "columns": 6760,
     "trees": 6,
-    "vines": 464,
-    "lanterns": 71
+    "vines": 327,
+    "lanterns": 74
   },
   "file": "Lowland.litematic",
   "name": "Lowland"

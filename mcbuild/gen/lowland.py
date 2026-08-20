@@ -41,6 +41,18 @@ LOWLAND = {
     "rim_depth": 2,            # ... and at the rim, so it does not read as a cut slab
     "dome": 1.4,               # how much of the depth is a swell toward the middle vs a rim taper
     "under_wobble": 3,         # irregularity in the underside - without it the bottom is a plane
+    # --- relief that is not uniform -------------------------------------------------------------
+    # The first lowland was deliberately flat everywhere, because it had to hold statues. That gave
+    # 6,800 columns of one height and no landscape at all. These two put a LANDFORM on it: ground
+    # that climbs toward one quarter, falls away across the middle, and drowns at the bottom - with
+    # the flat still surviving in the band between, which is where the statues go.
+    #
+    # WHERE they can go is measured, not chosen. Ceiling over the lowland runs 94-112 in the
+    # centre-west (the void isle hangs at Y86-102 and the ladybird at Y104-121) against 138-999 in
+    # the east and south-east. A massif has to rise where there is room to rise; the basin is a
+    # depression and does not care, so it takes the low-ceilinged ground under the void isle.
+    "massif": None,            # {"dir": [dx, dz], "rise": N, "start": 0..1, "rough": N}
+    "basin": None,             # {"at": [x, z], "r": N, "depth": N, "water_y": Y, "guard": N}
     "erode": 0,                # shrink the traced outline by N columns
     "ragged": 0.10,            # chance an edge column is bitten out, so it is land not a stencil
     # NO DIRT, in any form. On skyblock.net dirt, coarse dirt, rooted dirt, podzol and grass_block
@@ -77,16 +89,18 @@ def build_lowland(cfg: dict, donors=None) -> Canvas:
     surf = _surface(foot, dist, ty, p, seed)
     w = World()
     bottom = _body(w, surf, dist, p, seed)
+    flooded, guards, wet_cols = _water(w, surf, p)
     planted = _planting(w, surf, p, seed)
     trees = _trees(w, surf, dist, p, seed)
     vines = _vines(w, surf, foot, bottom, p, seed)
-    lit = _lanterns(w, surf, p)
+    lit = _lanterns(w, surf, p, skip=wet_cols)
     ctx = Ctx(p["under"])
     prune_plants(w, ctx)
 
-    pads = _flat_pads(surf)
+    pads = _flat_pads({c: h for c, h in surf.items() if h >= _water_y(p)})
     ys = [h for h in surf.values()]
     return w.canvas({"kind": "lowland", "top_y": ty,
+                     "water": flooded, "water_guards": guards,
                      "columns": len(surf), "bounds": bounds,
                      "surface_y": [min(ys), max(ys)],
                      "planted": planted, "trees": trees, "vines": vines, "lanterns": lit,
@@ -232,17 +246,146 @@ def _noise(x, z, seed, scale):
     return tot / 9.0
 
 
+def _water_y(p) -> int:
+    b = p.get("basin")
+    return int(b["water_y"]) if b else -9999
+
+
+def _water(w: World, surf: dict, p):
+    """Flood the basin, and light it.
+
+    Two things this project has already paid for, both of which apply again here:
+
+    * **Water needs block light >= 10 or it turns to ice.** The sky-well court froze on its first
+      build - 29 ice blocks - and the court hall's basin needed submerged lanterns. This water sits
+      at Y37 under an island whose surface is snowy, and 605 of the lowland's columns are open to
+      the sky, so the guard is not optional. `lantern` is 15; `soul_lantern` is exactly 10 and one
+      block of falloff from failing.
+    * **A pool must be CONTAINED.** Water placed to a level in an open depression runs out wherever
+      the rim dips below that level. The fill only takes columns whose ground is under the water
+      line, so the rim is by construction the first course at or above it - but the caller still has
+      to check, which `tests/test_lowland_basin.py` does.
+    """
+    b = p.get("basin")
+    if not b:
+        return 0, 0, set()
+    wy = int(b["water_y"])
+    guard_every = int(b.get("guard", 7))
+    maxd = int(b.get("max_depth", 3))
+    # Flood from the basin OUTWARD, not "every column under the water line". The lowland's rim
+    # drops 3 and its relief rolls another 3, so a global fill ponds every dip in the outer band as
+    # well - little pools perched on the edge of the island with nothing holding them in. The basin
+    # is one connected low place; the flood has to be the same.
+    bx, bz = b["at"]
+    low = {c for c, h in surf.items() if h < wy}
+    wet = []
+    if (bx, bz) in low:
+        seen = {(bx, bz)}
+        q = deque([(bx, bz)])
+        while q:
+            c = q.popleft()
+            wet.append(c)
+            for dx, dz in DIRS4:
+                n = (c[0] + dx, c[1] + dz)
+                if n in low and n not in seen:
+                    seen.add(n)
+                    q.append(n)
+    wet.sort()
+    n = 0
+    floors = {}
+    for (x, z) in wet:
+        # The basin gets a REAL FLOOR at a bounded depth, and both halves of that matter.
+        #
+        # `finish.hollow` carves any cell that is fully enclosed, and a deep tank of water is
+        # exactly that: the first build dug 8 deep, hollow ate everything but the top three
+        # courses, and the pond shipped as a 3-block skin of water floating over nothing with the
+        # guard lanterns hanging under it. Bounding the depth to the shell keeps every water cell
+        # within reach of the surface, so none of it reads as interior.
+        #
+        # It is also just better ground: a pond two or three deep over a visible bed reads as a
+        # pond, where a pit of water reads as a hole someone filled.
+        fy = max(surf[(x, z)], wy - maxd)
+        floors[(x, z)] = fy
+        w.put(x, fy, z, _pick(p["soil"], x, fy, z, int(p["seed"])))
+        for y in range(fy + 1, wy + 1):
+            w.put(x, y, z, "water", level="0")
+            n += 1
+    # The guard is SUBMERGED - it stands on the basin floor rather than replacing it. Putting it in
+    # the floor is what the court hall does, but that floor is a tank the design builds itself; here
+    # `finish.hollow` carves the body out from under the pond and leaves the bed as a ONE-BLOCK
+    # skin, so a guard set into it is the only thing in the column and audits as standing on air.
+    # Waterlogged, one course up, it is still under the surface and it is still light 15.
+    # ...and the bank has to be SOLID at the water courses. `finish.hollow` keeps three courses off
+    # the exterior and carves the rest, so the ground beside a sunken pond looks solid at the
+    # surface and is hollow behind - the pond drains sideways into the island's own cavity. Every
+    # dry neighbour gets filled across the water band, which also puts it inside the shell.
+    banked = 0
+    wetset = set(wet)
+    for (x, z) in wet:
+        for dx, dz in DIRS4:
+            n = (x + dx, z + dz)
+            if n in wetset:
+                continue
+            for y in range(wy - maxd, wy + 1):
+                if not w.has(n[0], y, n[1]):
+                    w.put(n[0], y, n[1], _pick(p["sub"], n[0], y, n[1], int(p["seed"])))
+                    banked += 1
+    lit = 0
+    for i, (x, z) in enumerate(wet):
+        if i % max(guard_every, 1):
+            continue
+        fy = floors[(x, z)]
+        if fy + 1 > wy:
+            continue                                   # no water over it: nothing to guard
+        w.put(x, fy + 1, z, "lantern", hanging="false", waterlogged="true")
+        lit += 1
+    return n, lit, set(wet)
+
+
+def _smoothstep(t: float) -> float:
+    t = max(0.0, min(1.0, t))
+    return t * t * (3.0 - 2.0 * t)
+
+
 def _surface(foot, dist, ty, p, seed) -> dict:
     relief, band, drop = int(p["relief"]), int(p["rim_band"]), int(p["rim_drop"])
     scale = int(p["noise_scale"])
+    massif, basin = p.get("massif"), p.get("basin")
+    proj = _massif_axis(foot, massif) if massif else None
     out = {}
     for (x, z) in foot:
         h = ty + int(round(relief * (_noise(x, z, seed, scale) - 0.5) * 2))
+        if proj is not None:
+            lo, hi, dx, dz = proj
+            t = ((x * dx + z * dz) - lo) / max(hi - lo, 1e-9)
+            ramp = _smoothstep((t - float(massif.get("start", 0.45))) /
+                               max(1.0 - float(massif.get("start", 0.45)), 1e-9))
+            h += int(round(float(massif["rise"]) * ramp))
+            # roughness that GROWS with the ramp, so the flat stays flat and only the high ground
+            # breaks up. Roughening everywhere is what destroys the pads the statues need.
+            rough = float(massif.get("rough", 0)) * ramp
+            if rough:
+                h += int(round(rough * (_noise(x + 313, z - 887, seed + 11, max(scale // 2, 2)) - 0.5) * 2))
+        if basin:
+            bx, bz = basin["at"]
+            r = float(basin["r"])
+            dd = ((x - bx) ** 2 + (z - bz) ** 2) ** 0.5
+            if dd < r:
+                h -= int(round(float(basin["depth"]) * _smoothstep(1.0 - dd / r)))
         d = dist.get((x, z), band)
         if d < band:                                   # the ground falls away toward the rim
             h -= int(round(drop * (1.0 - d / band)))
         out[(x, z)] = h
     return out
+
+
+def _massif_axis(foot, massif):
+    """Normalise the massif direction over the footprint's own extent along that axis."""
+    dx, dz = massif.get("dir", [1, 0])
+    n = (dx * dx + dz * dz) ** 0.5 or 1.0
+    dx, dz = dx / n, dz / n
+    vals = [x * dx + z * dz for (x, z) in foot]
+    return min(vals), max(vals), dx, dz
 
 
 def _body(w: World, surf: dict, dist: dict, p, seed) -> dict:
@@ -369,15 +512,21 @@ def _vines(w: World, surf: dict, foot: set, bottom: dict, p, seed) -> int:
     return n
 
 
-def _lanterns(w: World, surf: dict, p) -> int:
+def _lanterns(w: World, surf: dict, p, skip=()) -> int:
     """A jittered grid. Nothing at Y40 sees the sun, and greedy set cover over five thousand columns
     is minutes of work for a result a grid gives instantly."""
     step = int(p["lantern_step"])
     if step <= 0:
         return 0
     lit = 0
+    skip = set(skip)
     for (x, z), h in surf.items():
         if x % step or z % step:
+            continue
+        # The grid places at surf+1, which inside the basin is the POND BED - it pops the floor and
+        # leaves its own lantern standing on nothing. The basin carries its own submerged guards, so
+        # the grid has no business there.
+        if (x, z) in skip:
             continue
         w.cells.pop((x, h + 1, z), None)
         w.put(x, h + 1, z, "lantern", hanging="false", waterlogged="false")

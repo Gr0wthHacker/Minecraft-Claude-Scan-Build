@@ -4,6 +4,11 @@
 # Y86, so this lands in clear air with ~46 blocks under the void isle. The only things it meets are
 # eight vine strands that dangle from the plate to bedrock - hence context_clear/verify_replaceable.
 #
+# THE SCENE IS SEPARATE. lowland_heron / lowland_flamingo / lowland_capybara_flee / lowland_bat are
+# NOT regenerated with this file and are deliberately left where they were. The landform below moved
+# the ground under all of them - the heron by -2, the capybara by +2 - so they are out of register
+# until they are re-sited, which is its own job. Do not treat their current `feet` as correct.
+#
 # The OUTLINE is not invented: it is the island's own column shadow, read out of the capture, holes
 # filled and reduced to one connected piece: 5,773 columns spanning 99x99, fully inside the scan
 # (nothing touches the border, so no side is clipped). Surface Y36-41, body down to Y24.
@@ -12,8 +17,30 @@ gen: lowland
 params:
   under: island.litematic
   top_y: 40
-  relief: 3                 # subtle - the surface rolls a block or two, it is not a table
+  relief: 3                 # the gentle roll UNDER the landform; the massif does the big moves
   noise_scale: 11           # broad rolls, so large level areas survive for statues
+  # A LANDFORM, not a table. Ground climbs toward the south-east, falls across the middle and
+  # drowns under the void isle. Where each can go is measured: ceiling over the lowland runs 94-112
+  # in the centre-west (void isle Y86-102, ladybird Y104-121) against 138-999 in the east and
+  # south-east, so the massif rises where there is room and the basin - which is a hole, and does
+  # not care - takes the low-ceilinged ground.
+  massif:
+    dir: [1, 1]             # rising toward +x/+z: the south-east quarter
+    rise: 15
+    start: 0.42             # nothing happens below this along the axis: that band stays FLAT
+    rough: 4                # roughness that grows with the ramp, so only the high ground breaks up
+  basin:
+    at: [-24212, 30004]     # under the void isle, the lowest ceiling on the whole plate
+    r: 26
+    depth: 8
+    water_y: 37             # three under the nominal surface
+    max_depth: 2            # a pond over a visible bed, not a pit someone filled. And it is BOUNDED
+                            # by finish.hollow's shell: hollow keeps 3 courses measured from the
+                            # model's exterior and the water counts as mass, so a bed 4 down from
+                            # the surface is interior and gets carved - the pond then ships as a
+                            # skin of water floating over nothing, with the guards under it. Two
+                            # deep puts the bed third from the top, inside the shell.
+    guard: 7                # submerged lanterns: this water WILL freeze without them
   rim_band: 10
   rim_drop: 3               # the ground falls away at the edge rather than ending in a wall
   depth: 16                 # layers under the surface in the middle
