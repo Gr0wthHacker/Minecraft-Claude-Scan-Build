@@ -30,6 +30,32 @@ def test_full_cube_matches_reality():
         assert not B.is_full_cube(n), n
 
 
+def test_dirt_is_currency_on_this_server_and_never_gets_picked():
+    """A third axis of availability. Dirt exists, it is legal, it is placeable in 1.19 - and on
+    skyblock.net it is MONEY, so no palette may spend it. `candidates()` is the one funnel every
+    colour-picked palette goes through, which is why the rule lives there and not in each generator:
+    the lion picked 5,173 dirt for its coat and audited perfectly clean."""
+    for n in ("dirt", "coarse_dirt", "rooted_dirt", "podzol", "grass_block", "mycelium", "mud"):
+        assert not B.spendable(n), n
+        assert B.exists(n), f"{n} is real - this is an economy rule, not a registry one"
+    pool = B.candidates()
+    assert not [n for n in pool if not B.spendable(n)]
+    assert "moss_block" in pool, "moss is what gets used instead"
+    assert B.spendable("moss_block") and B.spendable("stone")
+    assert "dirt" in B.candidates(allow_economy=True), "the escape hatch still works"
+
+
+def test_grass_block_is_ground_and_the_grass_PLANT_is_not():
+    """`grass` is a type name shared by nothing: in 26.2 it belongs to grass_block alone, while the
+    plant is `tall_grass` (short_grass) or `double_plant` (tall_grass). Listing "grass" among the
+    growing things made the commonest ground block in the game unable to hold a vine or support a
+    lantern, and the audit rejected 27 legal lanterns standing on lawn."""
+    assert B.kind("grass_block") == "grass"
+    assert B.is_full_cube("grass_block") and B.supports_top("grass_block")
+    for plant in ("short_grass", "tall_grass", "fern", "large_fern"):
+        assert not B.is_full_cube(plant), plant
+
+
 def test_slabs_and_stairs_hold_things_up_even_though_they_are_not_full():
     for n in ("oak_slab", "spruce_stairs", "farmland"):
         assert B.supports_top(n) and not B.is_full_cube(n), n

@@ -65,7 +65,7 @@ lion:
   build: {mane_volume: 3.0, head_r_ratio: 0.46}
   coat:
     coat_pattern: shaded
-    coat_ramp: [spruce_planks, coarse_dirt, dirt, oak_log, stripped_oak_log]
+    coat_ramp: [spruce_planks, stripped_spruce_wood, acacia_log, oak_log, stripped_oak_log]
     shade_strength: 1.1
     coat_block: oak_log
     patch: oak_log
@@ -85,7 +85,7 @@ bear:
   build: {head_turn: 1}
   coat:
     coat_pattern: shaded
-    coat_ramp: [dark_oak_planks, stripped_dark_oak_wood, mangrove_wood, spruce_planks, coarse_dirt]
+    coat_ramp: [dark_oak_planks, stripped_dark_oak_wood, mangrove_wood, spruce_planks, acacia_log]
     shade_strength: 1.1
     coat_block: mangrove_wood
     patch: mangrove_wood
@@ -148,7 +148,7 @@ capybara:
   build: {head_turn: 1}
   coat:
     coat_pattern: shaded
-    coat_ramp: [spruce_planks, coarse_dirt, dirt, jungle_log, stripped_jungle_log]
+    coat_ramp: [spruce_planks, stripped_spruce_wood, acacia_log, jungle_log, stripped_jungle_log]
     shade_strength: 1.1
     coat_block: jungle_log
     patch: jungle_log

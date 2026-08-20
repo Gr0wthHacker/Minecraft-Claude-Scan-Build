@@ -46,7 +46,6 @@ def build(cfg: dict, donors=None) -> Canvas:
     S = {
         "moss": c.state("moss_block"), "stone": c.state("stone"), "cobble": c.state("cobblestone"),
         "mosscobble": c.state("mossy_cobblestone"), "andesite": c.state("andesite"), "tuff": c.raw_state("tuff"),
-        "rooted": c.raw_state("rooted_dirt"),
         "roots": c.raw_state("hanging_roots", waterlogged="false"),
         "chain": c.state("iron_chain", axis="y", waterlogged="false"),
         "lant_h": c.state("lantern", hanging="true", waterlogged="false"),
@@ -103,7 +102,10 @@ def build(cfg: dict, donors=None) -> Canvas:
                 # side casing: full height of the box, plus tapering below
                 for y in range(top_face, OY - 1, -1):
                     if y == top_face and hash01(x, z, 11, seed) < 0.55:
-                        c.put(x, y, z, S["moss"] if hash01(x, z, 12, seed) < 0.6 else S["rooted"])
+                        # was moss/rooted_dirt. Dirt is CURRENCY on this server (rule 16), and the
+                        # island's real ground is moss over mossy stone anyway, so the two-tone
+                        # speckle now stays inside the palette the rest of the casing already uses.
+                        c.put(x, y, z, S["moss"] if hash01(x, z, 12, seed) < 0.6 else S["mosscobble"])
                     else:
                         c.put(x, y, z, rock(x, y, z))
                 d = max(0, belly_depth(x, z))

@@ -146,6 +146,10 @@ class Result:
         exp = [(k, v) for k, v in self.bom.most_common() if palette.tier(k) == "expensive"]
         if exp:
             lines.append("EXPENSIVE: " + ", ".join(f"{k.split(':')[-1]}:{v}" for k, v in exp))
+        econ = report_economy_blocks(self.bom)
+        if econ:
+            lines.append(f"CURRENCY ({sum(v for _, v in econ)} cells you cannot spend): "
+                         + ", ".join(f"{k}:{v}" for k, v in econ))
         lines.append(f"problems: {len(self.problems)}")
         for p in self.problems[:25]:
             lines.append("  " + str(p))
@@ -335,6 +339,19 @@ def report_server_blocks(m: Model) -> list[str]:
     return sorted({n.split(":")[-1].split("[")[0] for n in m.names
                    if n.split(":")[-1].split("[")[0] != "air"
                    and not blocks.available(n)})
+
+
+def report_economy_blocks(bom) -> list[tuple[str, int]]:
+    """[(block, cells)] for anything the server's ECONOMY puts out of reach.
+
+    Different in kind from `report_server_blocks`: these blocks are real, legal and placeable - you
+    simply will not spend them, because on this server they are money. Reported rather than failed,
+    but reported from `report()` itself, because a design can be generated, audited, costed and
+    shipped before anyone notices its coat is made of currency. That is exactly what happened to the
+    lion (5,173 dirt), the capybara (4,690) and a 14,568-block ground layer.
+    """
+    return [(k.split(":")[-1].split("[")[0], v) for k, v in bom.most_common()
+            if not blocks.spendable(k.split(":")[-1].split("[")[0])]
 
 
 def _state_problem_legacy(name: str, props: dict) -> str | None:

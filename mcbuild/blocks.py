@@ -56,7 +56,11 @@ NOT_FULL = {
     "player_head", "player_wall_head", "wall_skull", "wither_skull", "wither_wall_skull",
     "piglinwallskull", "cocoa", "hanging_moss", "hanging_roots",
     # growing things
-    "flower", "tall_flower", "double_plant", "tall_grass", "grass", "bush", "sapling", "crop",
+    # NOTE: NOT "grass". In 26.2 the grass PLANT is type `tall_grass` (short_grass) or
+    # `double_plant` (tall_grass); the type `grass` belongs to exactly one block - grass_block -
+    # which is a full cube. Listing it here made the commonest ground block in the game unable to
+    # support a lantern or hold a vine, and the audit rejected 27 legal lanterns standing on lawn.
+    "flower", "tall_flower", "double_plant", "tall_grass", "bush", "sapling", "crop",
     "carrot", "potato", "beetroot", "stem", "attached_stem", "nether_wart", "sweet_berry_bush",
     "cactus", "cactus_flower", "sugar_cane", "bamboo_stalk", "bamboo_sapling", "azalea",
     "mangrove_propagule", "nether_fungus", "nether_roots", "nether_sprouts", "dry_vegetation",
@@ -77,6 +81,17 @@ STANDABLE_PARTIAL = {"farmland", "dirt_path", "snow_layer", "slab", "stair"}
 # the best orange in the game and cheap, and it would have poured the giraffe into the void.
 FALLING = {"sand", "colored_falling", "concrete_powder", "brushable", "anvil", "dragon_egg"}
 AIRY = {"air", "cave_air", "void_air"}
+# A THIRD axis of availability, and the one nothing in this project knew about. `exists` asks whether
+# the block is real; `available` asks whether the server's VERSION has it. This asks whether you can
+# actually spend it. On skyblock.net dirt and every one of its forms is CURRENCY - the blocks are
+# real, legal, placeable, and buying 14,568 of them for a ground layer is a bill, not a build cost.
+# Moss is what gets used instead. Named by BLOCK, not by type, because the dirt family shares no type.
+# `packed_mud` and `mud_bricks` are here because they are CRAFTED from mud, which is crafted from
+# dirt - a laundered currency is still currency, and the colour picker reached for packed_mud as the
+# closest match to rooted_dirt the moment rooted_dirt was banned.
+ECONOMY = {"dirt", "coarse_dirt", "rooted_dirt", "podzol", "grass_block", "mycelium",
+           "mud", "muddy_mangrove_roots", "farmland", "dirt_path",
+           "packed_mud", "mud_bricks", "mud_brick_slab", "mud_brick_stairs", "mud_brick_wall"}
 
 
 @functools.lru_cache(maxsize=1)
@@ -199,18 +214,27 @@ def _dist(a, b) -> float:
     return math.sqrt((2 + rm / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rm) / 256) * db * db)
 
 
+def spendable(name: str) -> bool:
+    """False for blocks the server's ECONOMY puts out of reach, whatever the registry says."""
+    return _short(name) not in ECONOMY
+
+
 def candidates(full_only: bool = True, tier: set[str] | None = None, exclude: tuple = (),
-               allow_falling: bool = False, server_only: bool = True) -> list[str]:
+               allow_falling: bool = False, server_only: bool = True,
+               allow_economy: bool = False) -> list[str]:
     """Every block worth considering for a surface.
 
     `server_only` is ON by default: picking a colour out of the 26.2 registry when the server is 1.19
-    would quietly choose blocks that cannot be placed. Excludes gravity blocks unless you ask."""
+    would quietly choose blocks that cannot be placed. Excludes gravity blocks, and blocks that are
+    currency on this server, unless you ask."""
     from . import palette
     out = []
     for n, rec in _db().items():
         if "rgb" not in rec or n in AIRY:
             continue
         if server_only and not available(n):
+            continue
+        if not allow_economy and not spendable(n):
             continue
         if full_only and not is_full_cube(n):
             continue

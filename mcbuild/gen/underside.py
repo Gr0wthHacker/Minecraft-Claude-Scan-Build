@@ -63,7 +63,7 @@ def build(cfg: dict, donors: list | None = None) -> Canvas:
         # (see `existing_mask` returned on the canvas)
         pass
     S = {
-        "moss": c.state("moss_block"), "rooted": c.raw_state("rooted_dirt"), "stone": c.state("stone"),
+        "moss": c.state("moss_block"), "stone": c.state("stone"),
         "cobble": c.state("cobblestone"), "mosscobble": c.state("mossy_cobblestone"),
         "andesite": c.state("andesite"), "tuff": c.raw_state("tuff"),
         "roots": c.raw_state("hanging_roots", waterlogged="false"),

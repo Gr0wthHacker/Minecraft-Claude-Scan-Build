@@ -44,7 +44,8 @@ def build(cfg: dict, donors=None) -> Canvas:
     st = lambda n, **k: c.state(n, **k)
     raw = lambda n, **k: c.raw_state(n, **k)
     WATER = st("water", level="0")
-    MUD = raw("mud"); GRAVEL = st("gravel"); SAND = raw("sand")
+    BED = raw("clay")   # was mud: dirt-derived, and dirt is CURRENCY here (rule 16)
+    GRAVEL = st("gravel"); SAND = raw("sand")
     STONE = st("stone"); COB = st("cobblestone"); MCOB = st("mossy_cobblestone")
     MOSS = st("moss_block"); CARPET = st("moss_carpet")
     COB_SLAB = st("cobblestone_slab", type="bottom", waterlogged="false")
@@ -78,7 +79,7 @@ def build(cfg: dict, donors=None) -> Canvas:
         if r > 0.80:
             c.put(x, 0, z, GRAVEL if h < 0.6 else SAND)
         else:
-            c.put(x, 0, z, MUD if h < 0.5 else MCOB if h < 0.82 else STONE)
+            c.put(x, 0, z, BED if h < 0.5 else MCOB if h < 0.82 else STONE)
     for (x, z), r in shore.items():
         c.put(x, 0, z, STONE if hash01(x, z, 6, seed) < 0.7 else MCOB)
 
