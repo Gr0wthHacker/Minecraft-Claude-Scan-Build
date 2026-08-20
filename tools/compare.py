@@ -44,11 +44,14 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--family")
+    ap.add_argument("--retired", action="store_true",
+                    help="include RETIRED species (the cats and bears). They still build; they are "
+                         "simply not live work - see the note at the foot of species.yaml.")
     ap.add_argument("--all-pairs", action="store_true",
                     help="also compare ACROSS families, which should always be far apart")
     a = ap.parse_args()
 
-    sp = taxonomy.species()
+    sp = taxonomy.species() if a.retired else taxonomy.live()
     fams = {}
     for name, v in sp.items():
         fams.setdefault(v.get("family"), []).append(name)

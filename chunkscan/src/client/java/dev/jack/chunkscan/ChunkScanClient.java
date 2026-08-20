@@ -126,6 +126,16 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(literal("next").executes(ChunkScanClient::moveNext))
 					.then(literal("done").executes(ChunkScanClient::moveDone))
 					.then(literal("reset").executes(ChunkScanClient::moveReset)))
+				.then(literal("stack")
+					.then(argument("name", StringArgumentType.word())
+						.then(argument("count", IntegerArgumentType.integer(1, 64))
+							.then(argument("dir", StringArgumentType.word())
+								.executes(ctx -> stack(ctx, 0))
+								.then(argument("step", IntegerArgumentType.integer(1, 512))
+									.executes(ctx -> stack(ctx, IntegerArgumentType.getInteger(ctx, "step"))))))))
+				.then(literal("scaffold")
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::scaffold)))
 				.then(literal("clips").executes(ChunkScanClient::clips))
 				.then(literal("prune").executes(ChunkScanClient::prune))
 				.then(literal("replace")
@@ -413,6 +423,94 @@ public final class ChunkScanClient implements ClientModInitializer {
 		}
 	}
 
+	/**
+	 * Paste a clip N times along an axis. A colonnade, a rim rhythm, a row of piers: build the module
+	 * once and repeat it, which is the whole reason copy/paste earns its place.
+	 *
+	 * <p>`step` defaults to the clip's own size along that axis, so the copies sit flush. Give it
+	 * explicitly to leave gaps - a 3-wide bay on a step of 6 is the cloister rhythm the gallery wanted.
+	 */
+	private static int stack(CommandContext<FabricClientCommandSource> ctx, int step) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		if (mc.level == null || mc.player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		if (!Litematica.present()) { src.sendError(Component.literal("[cscan] Litematica is not loaded")); return 0; }
+		String name = StringArgumentType.getString(ctx, "name").trim();
+		int count = IntegerArgumentType.getInteger(ctx, "count");
+		String dirName = StringArgumentType.getString(ctx, "dir").trim().toLowerCase(java.util.Locale.ROOT);
+		net.minecraft.core.Direction dir = switch (dirName) {
+			case "north" -> net.minecraft.core.Direction.NORTH;
+			case "south" -> net.minecraft.core.Direction.SOUTH;
+			case "east" -> net.minecraft.core.Direction.EAST;
+			case "west" -> net.minecraft.core.Direction.WEST;
+			case "up" -> net.minecraft.core.Direction.UP;
+			case "down" -> net.minecraft.core.Direction.DOWN;
+			default -> null;
+		};
+		if (dir == null) {
+			src.sendError(Component.literal("[cscan] direction: north south east west up down"));
+			return 0;
+		}
+		try {
+			String design = CLIP_PREFIX + name;
+			Path lit = dir(src).resolve(design + ".litematic");
+			if (!java.nio.file.Files.exists(lit)) {
+				src.sendError(Component.literal("[cscan] no clip called " + name + " — /cscan clips"));
+				return 0;
+			}
+			if (step == 0) {
+				// flush by default: the clip's own extent along the axis it is being repeated on
+				Path side = dir(src).resolve(design + ".scan.json");
+				com.google.gson.JsonObject o = com.google.gson.JsonParser
+					.parseString(java.nio.file.Files.readString(side, java.nio.charset.StandardCharsets.UTF_8))
+					.getAsJsonObject().getAsJsonObject("size");
+				step = switch (dir.getAxis()) {
+					case X -> o.get("x").getAsInt();
+					case Y -> o.get("y").getAsInt();
+					case Z -> o.get("z").getAsInt();
+				};
+			}
+			BlockPos at = targeted(mc);
+			for (int i = 0; i < count; i++) {
+				BlockPos p = at.relative(dir, step * i);
+				Litematica.place(lit, p, design + " #" + (i + 1) + " @" + Wand.fmt(p), "NONE");
+			}
+			ok(src, "stacked " + name + " x" + count + " " + dirName + " every " + step
+				+ " from " + Wand.fmt(at) + " — " + count + " placements added");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] stack failed: " + e.getMessage()));
+			LOG.warn("stack failed", e);
+			return 0;
+		}
+	}
+
+	/** Design cells with nothing to place against — you cannot put a block in mid-air. */
+	private static int scaffold(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Minecraft mc = src.getClient();
+			Work.Split sp = Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
+			List<Work.Cell> air = Work.floating(mc.level, sp.todo());
+			if (air.isEmpty()) {
+				Highlight.clear("scaffold");
+				ok(src, sp.name() + ": every unbuilt cell has something to place against");
+				return 1;
+			}
+			Highlight.show("scaffold", Work.positions(air, 200), 0xFF4060, 300);
+			ok(src, sp.name() + ": " + air.size() + " of " + sp.todo().size()
+				+ " cells have nothing to place against — marked red");
+			Work.Cell f = air.get(0);
+			ok(src, "  lowest at " + f.pos().getX() + " " + f.pos().getY() + " " + f.pos().getZ()
+				+ " (" + f.block() + ") — that one needs scaffolding first");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
 	private static int clips(CommandContext<FabricClientCommandSource> ctx) {
 		FabricClientCommandSource src = ctx.getSource();
 		try (var st = java.nio.file.Files.list(dir(src))) {
@@ -651,6 +749,13 @@ public final class ChunkScanClient implements ClientModInitializer {
 				+ " (" + first.block() + ", " + (int) Math.sqrt(first.pos().distSqr(me)) + "m "
 				+ Storage.direction(me, first.pos()) + ")");
 			for (var e : Work.tally(take).entrySet()) ok(src, "  " + e.getValue() + "x " + e.getKey());
+			// The one thing you cannot discover by looking at the marks: a cell with no face to
+			// click. Cheap to check over the few cells just handed out.
+			List<Work.Cell> air = Work.floating(mc.level, take);
+			if (!air.isEmpty()) {
+				ok(src, "  " + air.size() + " of these have nothing to place against"
+					+ " — /cscan scaffold " + sp.name());
+			}
 			return 1;
 		} catch (Exception e) {
 			src.sendError(Component.literal("[cscan] " + e.getMessage()));

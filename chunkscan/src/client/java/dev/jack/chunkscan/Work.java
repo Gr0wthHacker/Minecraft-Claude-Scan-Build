@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Reads &lt;name&gt;.work.json — a design flattened to world-coordinate cells by mcbuild — and diffs it
@@ -190,6 +191,59 @@ final class Work {
 		for (net.minecraft.world.item.ItemStack st : player.getInventory()) {
 			if (st == null || st.isEmpty()) continue;
 			out.merge(BuiltInRegistries.ITEM.getKey(st.getItem()).getPath(), st.getCount(), Integer::sum);
+		}
+		return out;
+	}
+
+	/**
+	 * A cell with nothing to place against. You cannot put a block in mid-air: it needs a face to
+	 * click, and on a survival server that means a neighbour that already exists.
+	 *
+	 * <p>A cell counts as reachable if ANY of its six neighbours is solid in the world OR is another
+	 * cell of the same design that comes earlier in the build order - the worklist is sorted
+	 * bottom-up, so a tower builds against itself course by course and only its FIRST block needs
+	 * something under it. Ignoring that would flag most of a wall.
+	 */
+	/** Is there a solid block here? The world answers in game; a fixture answers in the tests. */
+	@FunctionalInterface
+	interface Solid {
+		boolean at(BlockPos p);
+	}
+
+	static Solid solidIn(Level level) {
+		// An UNLOADED neighbour is treated as solid: claiming a cell needs scaffolding because the
+		// chunk behind it is not loaded would send you to build a tower against terrain that is
+		// already there.
+		return p -> !level.isLoaded(p) || !level.getBlockState(p).isAir();
+	}
+
+	static boolean needsScaffold(Solid solid, Cell c, Set<Long> earlier) {
+		BlockPos p = c.pos();
+		for (net.minecraft.core.Direction d : net.minecraft.core.Direction.values()) {
+			BlockPos n = p.relative(d);
+			if (earlier.contains(n.asLong())) return false;
+			if (solid.at(n)) return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Every cell of `todo` that has nothing to place against, in build order.
+	 *
+	 * <p>The Python side has `floating` and answers the same question against a capture. This
+	 * answers it against the world as it is right now, standing in front of the problem, which is
+	 * when it actually matters - the alternative is discovering it with a shulker in your hand.
+	 */
+	static List<Cell> floating(Level level, List<Cell> todo) {
+		return floating(solidIn(level), todo);
+	}
+
+	static List<Cell> floating(Solid solid, List<Cell> todo) {
+		Set<Long> earlier = new java.util.HashSet<>();
+		List<Cell> out = new ArrayList<>();
+		for (Cell c : todo) {
+			if (needsScaffold(solid, c, earlier)) out.add(c);
+			earlier.add(c.pos().asLong());
 		}
 		return out;
 	}

@@ -43,6 +43,22 @@ def species() -> dict:
     return yaml.safe_load(SPECIES_DATA.read_text(encoding="utf-8")) or {}
 
 
+def is_retired(name: str) -> bool:
+    """A species kept as a record rather than as live work.
+
+    Retirement is a JUDGEMENT the rubric cannot make: the cats and bears score 0.79-0.86 and were
+    retired anyway, because a panel could not name them from their silhouettes. The flag exists so
+    that verdict survives the next good-looking score - it is not a quality threshold and nothing
+    computes it.
+    """
+    return bool((species().get(name) or {}).get("retired"))
+
+
+def live() -> dict:
+    """Species that are still live work."""
+    return {k: v for k, v in species().items() if isinstance(v, dict) and not v.get("retired")}
+
+
 def resolve(name: str) -> dict:
     """Full generator params for a species, derived from its family's proportions."""
     sp = species().get(name)

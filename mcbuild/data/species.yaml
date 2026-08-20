@@ -22,6 +22,7 @@
 
 # ---------------------------------------------------------------- felids
 jaguar:
+  retired: true          # see the RETIRED note at the foot of this file
   family: felid
   height: 27
   build: {ring_radius: 0.60, ring_thickness: 0.34, ring_broken: 0.34}
@@ -39,6 +40,7 @@ jaguar:
   features: [rosettes, pale_belly]
 
 leopard:
+  retired: true          # see the RETIRED note at the foot of this file
   family: felid
   height: 26                             # lighter and smaller than a jaguar (27); same animal
                                          # otherwise. It was 22, which is UNDER the felid floor of
@@ -58,6 +60,7 @@ leopard:
   features: [rosettes, pale_belly]
 
 lion:
+  retired: true          # see the RETIRED note at the foot of this file
   family: felid
   height: 32
   # the mane is the whole difference, so it has to be BOTH a silhouette break and a tonal one.
@@ -80,6 +83,7 @@ lion:
 
 # ---------------------------------------------------------------- ursids
 bear:
+  retired: true          # see the RETIRED note at the foot of this file
   family: ursid
   height: 30
   build: {head_turn: 1}
@@ -95,6 +99,7 @@ bear:
     hoof_block: black_wool
 
 polar_bear:
+  retired: true          # see the RETIRED note at the foot of this file
   family: ursid
   height: 32                             # the largest bear, so TALLER than the brown bear at 30.
                                          # It was 26 - which is the ursid floor exactly, every
@@ -172,3 +177,24 @@ giraffe:
     dark: black_wool
     hoof_block: dark_oak_wood
   features: [patches]
+
+# ---------------------------------------------------------------- RETIRED
+#
+# The three cats and both bears are RETIRED, and the reason is not that they score badly - they
+# score GOOD, 0.79 to 0.86, on every dimension the rubric has. The panel review is what retired
+# them, twice, and the scores are what failed to notice:
+#
+#   "You cannot name it from the silhouette - it reads as a low table, or a bull."
+#   "why does your jaguar have four table legs and a flat back?"
+#
+# The line this system actually has is PLANAR/COLUMNAR against VOLUMETRIC. A spread wing, a neck, a
+# stilt leg, a splayed limb: flat sheets and straight tapers, which is what voxels render natively.
+# A cat's shoulder or a bear's haunch is compound volumetric muscle, which voxels render worst of
+# anything - and SCALE DOES NOT RESCUE IT. The jaguar at 2.6x and 60,000 blocks failed exactly as
+# the 27-block one did.
+#
+# They stay in the table as a record and they still BUILD - nothing is deleted, and `retired` is a
+# flag rather than a removal, so `X jaguar` in `out/` keeps resolving. What they no longer do is
+# appear as live work in `compare`, or invite the next session to tune them. The elephant, giraffe
+# and capybara are NOT retired: their identity is hardware - a trunk, a neck, a genuinely blocky
+# rodent - which is the half of the line that works.

@@ -572,9 +572,9 @@ straight-on view. The fix is a lighter face mask on the ursid coat, not more geo
   result until the numbers were corrected to 0.346 / 1.230. Suspect the tables before the code.
 - **`MIN_BLOCKS`, `COMFORT`, the rubric weights and the grade thresholds are all invented.** Every
   "viable height" and every grade rests on them.
-- **The colour DB samples the TOP face; statues are seen from the SIDE.** `oak_log` differs by 101,
-  `bone_block` (the giraffe's whole coat) by 68. And **biome tint is missing** — 20 tinted blocks,
-  including every leaf, extract as grey. Both deliberately deferred.
+- **~~The colour DB samples the TOP face and has no biome tint.~~ FIXED 2026-08-20** — see
+  "The colour foundation" below. `blocks.color(name, face)` now answers per face and the tint is
+  applied; `tools/recolour.py` owns it and `tools/extract_blocks.py` delegates to it.
 - **Validation is circular**: `views.py` renders with the same colour DB the palette picker optimises
   against. Nothing built in this system has been placed in Minecraft and looked at.
 - **`giraffe` stands at 57 against a floor of 59** — under-size, which is why `features` scores it
@@ -1210,6 +1210,146 @@ Running it against the real index says the labels are the wrong four:
 no bank for it, while `wood and saplings` holds eleven free slots for four containers. **Relabelling
 one bank would fix most of it**, and that is Jack's call, not a silent edit. Until then the overflow
 is placed and REPORTED rather than jammed into the nearest wall.
+
+### The colour foundation was wrong twice over (2026-08-20)
+
+Every palette in this project is chosen by `blocks.nearest()` over one RGB per block, and every
+render draws with the same numbers. That one number was wrong in two independent ways.
+
+**Biome tint was never applied.** The colormaps are sitting in the client jar — `grass.png`,
+`foliage.png`, `dry_foliage.png` — unused, so every block the game tints extracted as the grey its
+texture actually is:
+
+| | recorded | really |
+|---|---|---|
+| `vine` (13,611 on the island) | `[116,116,116]` | `[54,78,21]` |
+| `oak_leaves` (3,066) | `[144,144,144]` | `[67,97,27]` |
+| `grass_block` | `[147,147,147]` | `[84,109,51]` |
+| `water` | `[177,177,177]` | `[44,82,158]` |
+
+**18,006 of the island's 56,739 blocks — 31.7% — were a tint-affected block recorded as grey.**
+
+**And one face cannot serve two kinds of build.** A floor is read from above, a statue from the
+side; 155 blocks differ between them, `cherry_log` by 131 and `pale_oak_log` by 112. Switching
+everything to the side would simply have broken the floors instead, so both are recorded and the
+caller says which it means: `blocks.color(name, face)`, `nearest(..., face="side")`. `top` stays the
+default, so no existing caller moved.
+
+#### What it was actually costing
+
+`green_concrete` — **expensive tier** — was the nearest block to leaf green, because no leaf had a
+green to be near. Same shape of error elsewhere:
+
+    leaf green (60,100,30)      green_concrete          ->  oak_leaves
+    bone pale  (230,226,205)    chiseled_quartz_block   ->  bone_block     [side]
+    bark brown (110,85,50)      oak_wood                ->  oak_log        [side]
+
+Two of those three were expensive-tier picks made because the cheap natural block was mis-measured.
+
+**And it means some of the analysis in this file was computed on bad numbers.** The grey-fraction
+comparison that justified the gallery timber and then the soffit wood — *"the deck is 62% grey and
+7% wood against the plate's 36% and 23%"* — counted every leaf and vine as stone. Both designs were
+reverted for other reasons; the number that motivated them was never trustworthy either.
+
+#### What was changed, and what deliberately was not
+
+- **`tools/recolour.py`** owns colour now, and needs only the client jar — no datagen run.
+  `tools/extract_blocks.py` keeps the REGISTRY half and delegates, so a full re-extract and a
+  colour-only refresh cannot disagree.
+- **30 blocks' `rgb` moved**, and exactly one of those is not explained by tint (`honey_block`, by
+  5, rounding). The change is surgical by construction.
+- **155 blocks gained a distinct `rgb_side`.**
+- **No design was regenerated and no score moved** — the jaguar is still 0.80. The animal coats name
+  blocks directly rather than picking by colour, so the drift is in renders and in what future
+  picks will choose. `tools/colour_drift.py` reports it: `island_now` renders 30.5% differently,
+  `Island Belly` 60.4%, `island_lower` 100%.
+
+**THE BIOME IS AN ASSUMPTION.** Nothing offline can say what biome skyblock.net's island sits in, so
+the colormap is sampled at PLAINS (temperature 0.8, downfall 0.4) — grass `(145,189,89)`, foliage
+`(119,171,47)`. If the island is somewhere else that is the one number to change, in
+`recolour.PLAINS_TEMPERATURE`.
+
+Two traps worth keeping:
+
+- **`spruce_leaves` and `birch_leaves` ignore the biome entirely** and use fixed colours
+  (`0x619961`, `0x80A755`). Tinting them through the colormap makes a birch wood read like an oak
+  one. `lily_pad` is fixed too — `BlockColors.LILY_PAD_IN_WORLD`.
+- **A block with no top face must fall back to its SIDE, not to an arbitrary slot.** A grindstone's
+  texture slots are `leg/pivot/round/side`; ordering `top` first and then sorting the rest picked
+  `leg`, the dark wooden strut, and called a grey stone block `[60,47,26]`.
+
+`tests/test_colour.py` pins the shape rather than the values — foliage is green, water is blue,
+nothing tinted is neutral, a log's two faces differ, a uniform block's do not, the picker can reach
+a leaf, and no block lost its colour.
+
+### Finishing the colour work, and retiring the mammals (2026-08-20)
+
+#### The renderer was still drawing the wrong face
+
+Adding `rgb_side` to the database did nothing on its own: `views.py` and `render.py` both built one
+palette per design and used it for every view, so every ELEVATION drew top-face colours. Measured:
+
+| design | cells drawn with the wrong face |
+|---|---|
+| Void Giraffe | **46.1%** (`bone_block`) |
+| X jaguar | 19.3% |
+| island_now | 1.1% |
+| Lowland Heron · X elephant | **0%** |
+
+Both now pick per view — `top` for the plan, `side` for everything else.
+
+**And the hand-tuned `palette.COLORS` table was shadowing the whole thing.** It is checked first and
+has no concept of faces, so `color_of(n, "side")` on a log returned the top value and the split did
+nothing at all. It now speaks only for blocks whose two faces AGREE — where there is no face
+question, its deliberate render choices (water, a little brighter than its average) still stand.
+
+Worth noting what this says about scope: the biggest beneficiaries are the log- and bone-coated
+mammals, and the birds, the lowland and the elephant were already at 0%. The giraffe is the reason
+it was worth doing — 46% wrong, and it is the only animal standing in the world.
+
+#### `/cscan stack` and `/cscan scaffold`
+
+```
+/cscan stack <clip> <count> <dir> [step]     repeat a module along an axis
+/cscan scaffold <design>                     cells with nothing to place against
+```
+
+`step` defaults to the clip's own size along that axis so copies sit flush; give it explicitly to
+leave gaps — a 3-wide bay on a step of 6 is the cloister rhythm the gallery wanted.
+
+**The scaffold check is only useful because of one rule: any EARLIER neighbour counts.** The
+worklist is sorted bottom-up, so a wall builds against itself course by course and only its first
+block needs something under it. Without that, most of every design reads as floating.
+
+A neighbour in an unloaded chunk counts as SOLID, deliberately: claiming a cell needs scaffolding
+because the chunk behind it has not loaded would send you to build a tower against terrain that is
+already there.
+
+**And a test of mine was wrong where the code was right** — you can place a block *under* an
+existing one by clicking its underside, so a top-down column is self-supporting too and only its
+first cell is ever the question. Which is exactly why the bottom-up sort matters: the same grounded
+column reports 0 floating built upward and 1 built downward, because at the moment you place that
+top block, it is in mid-air.
+
+#### The cats and bears are retired IN CODE now, not only in prose
+
+They score 0.79–0.86 on every dimension the rubric has. The panel is what retired them —
+*"you cannot name it from the silhouette — it reads as a low table, or a bull"* — and the scores are
+what failed to notice. Until now `species.yaml` still carried all eight as live work, `compare.py`
+still ranked them, and every session was invited to tune the ones that cannot work. This one was.
+
+    retired   jaguar · leopard · lion · bear · polar_bear      identity is MUSCLE
+    live      elephant · giraffe · capybara                    identity is HARDWARE
+
+`retired: true` is a **record, not a threshold** — nothing computes it, and nothing should. They
+still resolve and still build (`X jaguar` is in `out/` and must keep loading); what they no longer
+do is appear as live work. `taxonomy.live()` is the filter, `compare.py --retired` overrides it,
+`configs/jaguar.yaml` uses the first-line RETIRED marker the test suite already understood.
+
+`tests/test_retired.py` pins the split, that a retired species still resolves, and — deliberately —
+that the REASON survives in `species.yaml`, including the evidence that scale does not rescue it
+(the jaguar at 2.6x and 60,000 blocks failed exactly as the 27-block one did). A flag with no reason
+beside it gets removed by whoever finds it inconvenient.
 
 ## Build & test
 

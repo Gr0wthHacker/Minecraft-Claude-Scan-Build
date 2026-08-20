@@ -40,7 +40,10 @@ def main() -> None:
     s = scan.load(a.design)
     ids = s.model.ids
     names = [n.split(":")[-1].split("[")[0] for n in s.model.names]
-    cols = {i: palette.color_of(n) for i, n in enumerate(names)}
+    # TWO palettes, because a plan view and an elevation are looking at different faces of the same
+    # block. `top` was used for both, so every side view drew end grain down a statue's flank.
+    cols = {"top": {i: palette.color_of(n, "top") for i, n in enumerate(names)},
+            "side": {i: palette.color_of(n, "side") for i, n in enumerate(names)}}
     sy, sz, sx = ids.shape
     y0 = max(0, sy - a.crop_top) if a.crop_top else 0
 
@@ -50,7 +53,9 @@ def main() -> None:
         if frac < 1.0:
             half = "top" if "type=top" in n else "bottom"
             part[i] = (frac, half)
-    panels = [_render(ids, cols, y0, sy, sx, sz, axis, a.zoom, part) for axis in a.views.split(",")]
+    # `top` is the only plan view; side/face/rear/front are all elevations.
+    panels = [_render(ids, cols["top" if axis == "top" else "side"], y0, sy, sx, sz, axis, a.zoom, part)
+              for axis in a.views.split(",")]
     gap = 18
     W = sum(p.width for p in panels) + gap * (len(panels) - 1)
     H = max(p.height for p in panels)
