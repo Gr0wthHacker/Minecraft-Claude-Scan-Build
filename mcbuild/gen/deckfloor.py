@@ -59,6 +59,7 @@ DECKFLOOR = {
     "room_h": 3,                       # courses of wall above the floor
     "room_glass_at": 2,                # which course is glazed, so you can see the farm working
     "lamp_every": 7,
+    "door_toward": [-24202, 30001],   # the doorway goes on the wall column nearest this point
     "border_ring": 0,                  # cells of rim taken by the edge course; 0 = no border
     "zones": [],                       # world [x1,z1,x2,z2] boxes to outline in the floor
 
@@ -230,8 +231,28 @@ def build_deckfloor(cfg: dict, donors=None) -> Canvas:
                         if (x + dx, z + dz) not in farm and (x + dx, z + dz) in floor})
     rh = int(p["room_h"])
     glaze = int(p["room_glass_at"])
+    # A DOORWAY, chosen from the columns that will ACTUALLY BE BUILT. The first attempt picked
+    # the wall cell nearest the deck and 18 of the 41 wall cells are skipped anyway (water, moss,
+    # lichen the farm needs) - so it removed one that was never going to exist and the room stayed
+    # sealed. The flow audit is what caught it: the moss farm read simply UNREACHABLE.
+    buildable = [c for c in wall_line
+                 if not any(keep(c[0], fy + k, c[1]) for k in range(0, rh + 1))]
+    door = set()
+    if buildable:
+        ex, ez = (int(v) for v in p.get("door_toward", [-24202, 30001]))
+        dcx, dcz = min(buildable, key=lambda c: abs(c[0] - ex) + abs(c[1] - ez))
+        door = {(dcx, dcz)}
+        for cand in buildable:                     # widen to two where the wall allows
+            if cand != (dcx, dcz) and abs(cand[0] - dcx) + abs(cand[1] - dcz) == 1:
+                door.add(cand)
+                break
+    counts["door"] = len(door)
     built_wall = []
     for i, (x, z) in enumerate(wall_line):
+        if (x, z) in door:
+            put_lintel = p["room_plinth"]          # a head over the opening, and nothing below it
+            _put(w, ctx, x, fy + rh + 1, z, put_lintel)
+            continue
         if any(keep(x, fy + k, z) for k in range(0, rh + 1)):
             counts["room_skipped"] += 1     # water, lichen, a torch - never cut the farm
             continue

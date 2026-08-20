@@ -43,7 +43,7 @@ from __future__ import annotations
 import math
 
 from .canvas import Canvas, hash01
-from .protect import is_protected
+from .protect import is_protected, is_used
 from .vertical import Ctx, World
 
 STAIRHEAD = {
@@ -123,7 +123,19 @@ def build_stairhead(cfg: dict, donors=None) -> Canvas:
         if ctx is None:
             return True
         n = ctx.name_at(x, y, z).split(":")[-1].split("[")[0]
-        return n in PLAIN and not is_protected(n)
+        if n not in PLAIN or is_protected(n):
+            return False
+        # ...and no STRUCTURE crowding something you stand at and use. Paving the floor beside a
+        # chest is fine - it is still floor - but a balustrade or a cornice there is not.
+        if y > fy:
+            for dx in (-2, -1, 0, 1, 2):
+                for dy in (-1, 0, 1):
+                    for dz in (-2, -1, 0, 1, 2):
+                        if max(abs(dx), abs(dz)) > 1:
+                            continue
+                        if is_used(ctx.name_at(x + dx, y + dy, z + dz)):
+                            return False
+        return True
 
     def put(x, y, z, name, **props):
         if free(x, y, z):

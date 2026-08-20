@@ -49,3 +49,19 @@ def is_protected(name: str) -> bool:
     """`name` may carry a namespace and a state; both are stripped before matching."""
     n = name.split(":")[-1].split("[")[0]
     return any(k in n for k in MECHANISM)
+
+
+# Things a player stands at and uses. Rule 10: leave working room round them - you need to stand,
+# open the thing and walk past. Paving the FLOOR beside a chest is fine; putting a balustrade,
+# a cornice or a pier there is not, and the entrance did that to 24 cells before this existed.
+USED = ("chest", "trapped_chest", "barrel", "shulker_box", "furnace", "blast_furnace", "smoker",
+        "hopper", "dispenser", "dropper", "crafting_table", "anvil", "grindstone", "loom",
+        "stonecutter", "smithing_table", "cartography_table", "fletching_table", "brewing_stand",
+        "enchanting_table", "composter", "cauldron", "lectern", "beacon", "lever", "button",
+        "bed", "jukebox", "note_block")
+
+
+def is_used(name: str) -> bool:
+    n = name.split(":")[-1].split("[")[0]
+    return any(k in n for k in USED)
+
