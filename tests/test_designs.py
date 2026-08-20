@@ -3,8 +3,14 @@ import glob, os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mcbuild.pipeline import run_config, Settings
 
+def _retired(path):
+    """A config whose first line says RETIRED is kept as a record, not regenerated."""
+    with open(path, encoding="utf-8") as fh:
+        return "RETIRED" in fh.readline()
+
+
 CONFIGS = [c for c in glob.glob(os.path.join(os.path.dirname(__file__), "..", "configs", "*.yaml"))
-           if not os.path.basename(c).startswith("from_image")]
+           if not os.path.basename(c).startswith("from_image") and not _retired(c)]
 
 
 def _run(cfg):

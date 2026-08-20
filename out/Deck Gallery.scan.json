@@ -5,23 +5,26 @@
     "z": 29949
   },
   "size": {
-    "x": 75,
+    "x": 62,
     "y": 49,
-    "z": 82
+    "z": 100
   },
   "generated_by": "gallery",
   "kind": "gallery",
   "floor_y": 194,
   "deck_cells": 1725,
   "rim_with_view": 163,
-  "opened": 76,
-  "arch": 35,
-  "vine": 16,
-  "sill": 33,
-  "pier": 27,
-  "beam": 25,
-  "lamp": 7,
-  "bracket": 7,
+  "rim_walled": 41,
+  "rejected_unwalled": 122,
+  "opened": 36,
+  "sill": 11,
+  "arch": 18,
+  "vine": 10,
+  "sill_green": 7,
+  "pier": 6,
+  "beam": 6,
+  "lamp": 1,
+  "bracket": 1,
   "file": "Deck Gallery.litematic",
   "name": "Deck Gallery"
 }

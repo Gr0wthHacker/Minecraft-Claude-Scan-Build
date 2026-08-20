@@ -46,7 +46,8 @@ GALLERY = {
     "under": None,
     "floor_y": 194,
     "bay": 3,                  # cells of opening...
-    "pier": 3,                 # ...between piers. 3 and 3 gives an opening every six.
+    "pier": 2,                 # ...between piers. The banks are short runs, so a 3/2
+                               # rhythm gets openings out of them where 3/3 does not.
     "sill": 1,                 # courses of wall left under the opening
     "open_h": 2,               # courses of opening
     "arch": True,              # a head over each bay
@@ -56,6 +57,8 @@ GALLERY = {
     "jamb": "deepslate_bricks",
     "vine": "vine",
     "vine_rate": 0.45,
+    "sill_green": "moss_block",
+    "moss": "moss_block",
     "lamp": "lantern",
     "lamp_every": 3,           # every Nth pier carries one
     "basin": None,             # world [x1,z1,x2,z2] for the water feature; None = none
@@ -67,15 +70,24 @@ GALLERY = {
 
 AIR = ("air", "cave_air", "void_air")
 # what a bay may be cut through: the deck's own plain fabric and nothing else
-CUTTABLE = ("stone_bricks", "cracked_stone_bricks", "mossy_stone_bricks", "chiseled_stone_bricks",
-            "smooth_stone", "stone", "cobblestone", "mossy_cobblestone", "andesite",
-            "moss_block", "vine", "dirt", "gravel") + AIR
+# MASONRY. A bay is a hole cut in a WALL, so there has to be a wall - and this deck's rim is very
+# largely planting. Cutting a "window" through a curtain of hanging vine gives you a frame around
+# nothing, which is exactly what three of the first bays were: their columns read vine/vine/vine.
+WALL_MATS = ("stone_bricks", "cracked_stone_bricks", "mossy_stone_bricks", "chiseled_stone_bricks",
+             "smooth_stone", "stone", "cobblestone", "mossy_cobblestone", "andesite",
+             "deepslate_bricks", "polished_andesite", "stone_brick_slab", "smooth_stone_slab")
+# ...and PLANTING is never cut. 64 vine cells and 19 of moss went to masonry and timber in the
+# first build - the same mistake as paving the floor's scatter, which was the deck's only colour.
+PLANTING = ("vine", "moss_block", "moss_carpet", "azalea_leaves", "flowering_azalea_leaves",
+            "azalea", "flowering_azalea", "grass_block", "short_grass", "fern", "glow_lichen",
+            "hanging_roots", "lily_pad", "sugar_cane", "leaves")
+CUTTABLE = WALL_MATS + AIR
 NB4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 # The deck's outline is JAGGED, not walled: of its rim runs, 52 are a single cell long, 16 are two,
 # and only five reach six or more. So a full bay-and-pier rhythm is only possible on a handful of
 # stretches. 4 is the honest threshold - it keeps 11 runs and 70 rim cells, against 44 at 6 - and
 # the steps shorter than that stay walled, because a head course over them has nothing to reach.
-_MIN_RUN = 4
+_MIN_RUN = 3
 
 
 def build_gallery(cfg: dict, donors=None) -> Canvas:
@@ -92,7 +104,22 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
 
     def cuttable(x, y, z):
         n = name(x, y, z)
-        return n in CUTTABLE and not is_protected(n)
+        return (n in CUTTABLE or any(k in n for k in PLANTING)) and not is_protected(n)
+
+    def planted(x, z):
+        return any(any(k in name(x, fy + q, z) for k in PLANTING)
+                   for q in range(sill, sill + 1 + oh))
+
+    def is_wall(x, z):
+        """A bay needs a BANK to cut - masonry or planted, but something. Only 17 of this deck's
+        163 view-facing rim cells are masonry: the rim is a vegetated bank, not a parapet, so
+        requiring stone gave three windows in the whole gallery. What must not happen is cutting
+        a frame through a curtain of hanging vine with no bank behind it at all."""
+        courses = [name(x, fy + k, z) for k in range(sill, sill + 1 + oh)]
+        solid = sum(1 for c in courses
+                    if c in WALL_MATS or c in ("moss_block", "dirt", "grass_block",
+                                               "mossy_cobblestone", "coarse_dirt"))
+        return solid >= 2
 
     # ---- the deck, and the boundary that faces open air
     floor = _deck(ctx, fy)
@@ -111,6 +138,7 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
     # a rim cell only earns a window if there is actually something to LOOK AT: three clear
     # blocks straight out. 81 of the 260 rim columns face another part of the island.
     rim = {}
+    rejected = collections.Counter()
     for c in floor:
         d = next((d for d in NB4 if (c[0] + d[0], c[1] + d[1]) in outside), None)
         if d is None:
@@ -119,11 +147,19 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
             continue
         rim[c] = d
     counts["rim_with_view"] = len(rim)
+    # ...and only the stretches that are actually WALLED. 25 of the first build's 33 bays cut
+    # through planting, three of them through nothing but hanging vine.
+    sill, oh = int(p["sill"]), int(p["open_h"])
+    for c in list(rim):
+        if not is_wall(*c):
+            del rim[c]
+            rejected["not a wall"] += 1
+    counts["rim_walled"] = len(rim)
+    counts["rejected_unwalled"] = rejected["not a wall"]
 
     # ---- walk each straight run of rim so the rhythm follows the WALL, not the compass. Spacing
     # bays by a global grid puts a pier in one corner and half a bay in the next.
     period = int(p["bay"]) + int(p["pier"])
-    sill, oh = int(p["sill"]), int(p["open_h"])
     piers = []
     for run in _runs(rim):
         for i, (c, d) in enumerate(run):
@@ -138,15 +174,26 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
                 if not cut:
                     continue
                 counts["opened"] += cut
+                green = planted(x, z)
                 if cuttable(x, fy + sill, z):
-                    w.put(x, fy + sill, z, p["sill_cap"], type="top", waterlogged="false")
-                    counts["sill"] += 1
+                    # a window cut through a MOSSY bank gets a mossy sill. Capping it in stone is
+                    # what made the first build read as masonry punched through the planting.
+                    if green:
+                        w.put(x, fy + sill, z, p["sill_green"])
+                        counts["sill_green"] += 1
+                    else:
+                        w.put(x, fy + sill, z, p["sill_cap"], type="top", waterlogged="false")
+                        counts["sill"] += 1
                 if p.get("arch") and cuttable(x, fy + sill + oh + 1, z):
                     w.put(x, fy + sill + oh + 1, z, p["jamb"])
                     counts["arch"] += 1
                 # the vine hangs from the ARCH above it, not off the wall - the wall is what
                 # this bay just removed, so a side-attached vine has nothing left to cling to
-                if p.get("arch") and hash01(x, z, 3, seed) < float(p["vine_rate"]):
+                # ...and the greenery comes BACK into the reveal, at a much higher rate where the
+                # bank was planted, so the opening is framed by what it was cut out of rather than
+                # replacing it. The first build took out 64 vine and 19 moss and gave back 16.
+                rate = float(p["vine_rate"]) * (2.0 if green else 1.0)
+                if p.get("arch") and hash01(x, z, 3, seed) < rate:
                     if cuttable(x, fy + sill + oh, z):
                         w.put(x, fy + sill + oh, z, p["vine"], up="true", north="false",
                               south="false", east="false", west="false")
@@ -158,9 +205,13 @@ def build_gallery(cfg: dict, donors=None) -> Canvas:
     # that puts the deck's 7% wood anywhere near the outside's 23%.
     for n, (x, z, d) in enumerate(piers):
         ok = False
+        pier_green = planted(x, z)
         for k in range(sill + 1, sill + 1 + oh):
             if cuttable(x, fy + k, z):
-                w.put(x, fy + k, z, p["timber"], axis="y")
+                # a timber post driven through a mossy bank replaces the bank; keep the moss on
+                # the outer course and put the post behind it
+                w.put(x, fy + k, z, p["moss"] if (pier_green and k == sill + 1) else p["timber"],
+                      **({} if (pier_green and k == sill + 1) else {"axis": "y"}))
                 ok = True
         if ok:
             counts["pier"] += 1
