@@ -60,6 +60,12 @@ DECKFLOOR = {
     "room_glass_at": 2,                # which course is glazed, so you can see the farm working
     "lamp_every": 7,
     "door_toward": [-24202, 30001],   # the doorway goes on the wall column nearest this point
+    # LINKS. The deck is not one room, it is 61 separate walkable pieces - the moss farm's 247
+    # cells are their own island, four blocks and two courses from the main deck. A link is a
+    # stepped path between two points; slabs carry the half-courses so it walks.
+    "links": [],               # world [[x1,y1,z1, x2,y2,z2], ...]
+    "link_deck": "stone_bricks",
+    "link_step": "stone_brick_slab",
     "border_ring": 0,                  # cells of rim taken by the edge course; 0 = no border
     "zones": [],                       # world [x1,z1,x2,z2] boxes to outline in the floor
 
@@ -291,6 +297,33 @@ def build_deckfloor(cfg: dict, donors=None) -> Canvas:
                 continue
             w.put(x, fy, z, p["band"])
             counts["band"] += 1
+
+    # ---- 5b. LINKS between walkable islands.
+    #
+    # The path is an L, not a diagonal. A diagonal run of single cells is not 4-connected, so it
+    # is a staircase you cannot walk up - the first version placed ten blocks and joined nothing.
+    for lk in p.get("links") or []:
+        ax, ay, az, bx, by, bz = (int(v) for v in lk)
+        leg1 = [(x, az) for x in range(ax, bx + (1 if bx >= ax else -1), 1 if bx >= ax else -1)]
+        leg2 = [(bx, z) for z in range(az, bz + (1 if bz >= az else -1), 1 if bz >= az else -1)]
+        route = leg1 + leg2[1:]
+        n = max(1, len(route) - 1)
+        for i, (x, z) in enumerate(route):
+            # INTEGER steps. A half-course wants a bottom slab at floor(walk) - place it at
+            # walk-1 like a full block and it sits a whole course low, which is how the first two
+            # attempts placed 24 blocks and joined nothing. Whole steps walk perfectly well.
+            walk = int(round(ay + (by - ay) * i / n))
+            wide = 1 if abs(bx - ax) >= abs(bz - az) else 0
+            for w2 in (-1, 0, 1):
+                px, pz = (x, z + w2) if wide else (x + w2, z)
+                if keep(px, walk - 1, pz):
+                    continue
+                w.put(px, walk - 1, pz, p["link_deck"])
+                counts["link"] += 1
+                for k in range(0, 3):              # and the headroom to use it
+                    if not keep(px, walk + k, pz) and name(px, walk + k, pz) in SCATTER:
+                        w.put(px, walk + k, pz, "air")
+                        counts["link_clear"] += 1
 
     # ---- 6. THE SOFFIT. The biggest untouched surface on the deck. It is NOT flattened: across
     # 1,725 columns the ceiling genuinely steps, and forcing one plane would either bury the

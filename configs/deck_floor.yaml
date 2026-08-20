@@ -28,6 +28,13 @@ params:
   room_h: 3
   room_glass_at: 2
   lamp_every: 7
+  # NO LINK, and this is a decision rather than an omission. The moss farm's 247 walkable cells
+  # are their own island - but so is everything around it: the deck's whole WEST WING is separate
+  # from the main deck, and the farm was already unreachable before any of this work (0 of 262
+  # cells connect in the base world). Every automated shortest route between the two crosses the
+  # farm's WATER CHANNEL at Y193 and the room's own wall. `links:` exists and works; where the
+  # bridge should land is Jack's call, not a nearest-point guess through a working farm.
+  links: []
   zones:
     - [-24210, 30024, -24199, 30032]   # the sorter / machine block
     - [-24211, 30039, -24191, 30043]   # the bee row

@@ -30,8 +30,9 @@ params:
   open_h: 2
   vine_rate: 0.45
   lamp_every: 3
-  # the basin sits in the deck's largest clear rectangle, measured at 27x4
-  basin: [-24203, 30018, -24197, 30020]
+  # NO BASIN. It sat 24 blocks out in open floor, in a circulation route - decoration
+  # standing in a corridor, on a deck that is already fragmented into 61 walkable pieces.
+  basin: null
 finish:
   # YIELD to the designs that own these cells. Overlap is not a rendering problem, it is a
   # WORK problem: you place a block, the next placement says it is wrong, you break it and

@@ -55,7 +55,11 @@ STAIRHEAD = {
     "under_y": 190,            # the undercroft floor you land on
     "ceiling_y": 200,          # what the lanterns hang from
     "apron": 2,                # cells of paving worked around the well's lip
-    "mouth_w": 3,              # width of the gap left in the balustrade to walk in
+    # THREE mouths, not one. A rail with a single gap does not just guard the well, it SEVERS
+    # the deck: the flow audit found the only two places the deck's halves come within 2 of each
+    # other are both blocked by this balustrade, and closing the one neck strands 629 cells.
+    "mouth_w": 3,              # width of each gap left in the balustrade
+    "mouth_sides": ["north", "east", "west"],
 
     # ---- the upgrade. The first build was a 3-course railing in a 6-course room: the ceiling is
     # SEVEN courses above the deck floor and made of raw cobblestone, and none of that volume was
@@ -216,8 +220,17 @@ def build_stairhead(cfg: dict, donors=None) -> Canvas:
     mouth_wide = set()
     mw = int(p["mouth_w"])
     mid_x = (nx1 + nx2) // 2
-    for dx in range(-(mw // 2), mw // 2 + 1):
-        mouth.add((mid_x + dx, wz1 - 1))
+    mid_z = (wz1 + wz2) // 2
+    for side in p.get("mouth_sides") or ["north"]:
+        for d in range(-(mw // 2), mw // 2 + 1):
+            if side == "north":
+                mouth.add((mid_x + d, wz1 - 1))
+            elif side == "south":
+                mouth.add((mid_x + d, wz2 + 1))
+            elif side == "west":
+                mouth.add((wx1 - 1, mid_z + d))
+            elif side == "east":
+                mouth.add((wx2 + 1, mid_z + d))
     for dx in range(-(mw // 2) - 1, mw // 2 + 2):
         for dz in (wz1 - 1, wz1 - 2):
             mouth_wide.add((mid_x + dx, dz))
