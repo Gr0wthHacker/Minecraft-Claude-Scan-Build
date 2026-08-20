@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
+import numpy as np
 import yaml
 
 from . import audit as audit_mod, render, schem
@@ -122,6 +123,14 @@ def _finish(m, cfg, world_origin, gen_meta, verbose):
                           keep_top_layers=h.get("keep_top_layers", 0))
         if verbose:
             print("hollow:", stats)
+    # DEFER_TO: drop any cell another design already claims, so two designs never ask the player
+    # to place - or break - the same block twice. Precedence is stated by the config that yields,
+    # which means the order you generate in matters: build the winner first.
+    if fin.get("defer_to"):
+        n = _defer_to(m, world_origin, fin["defer_to"])
+        if verbose and n:
+            print(f"deferred {n} cells to " + ", ".join(
+                os.path.basename(q) for q in fin["defer_to"]))
     if fin.get("drop_floaters", True):
         n = _drop_floaters(m, max_size=int(fin.get("floater_max", 3)))
         if verbose and n:
@@ -272,6 +281,34 @@ def _floating(m, origin, s):
                    for dx, dy, dz in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))):
             n_cl += 1; n_cells += int(sz_)
     return n_cl, n_cells
+
+
+def _defer_to(m: schem.Model, world_origin, paths) -> int:
+    """Zero every cell that one of `paths` also fills.
+
+    Overlapping designs are not a rendering problem, they are a WORK problem: the player places a
+    block, the next placement tells them it is wrong, and they break it and place it again. The
+    four deck designs shared 39 such cells before this existed.
+    """
+    if world_origin is None:
+        return 0
+    from . import scan as scan_mod
+    ox, oy, oz = world_origin
+    hit = 0
+    for q in (paths if isinstance(paths, (list, tuple)) else [paths]):
+        try:
+            other = scan_mod.load(q)
+        except Exception:
+            continue
+        om = other.model
+        bx, by, bz = other.origin
+        for y, z, x in zip(*np.nonzero(om.ids != 0)):
+            lx, ly, lz = bx + x - ox, by + y - oy, bz + z - oz
+            if (0 <= lx < m.ids.shape[2] and 0 <= ly < m.ids.shape[0]
+                    and 0 <= lz < m.ids.shape[1] and m.ids[ly, lz, lx]):
+                m.ids[ly, lz, lx] = 0
+                hit += 1
+    return hit
 
 
 def _drop_floaters(m: schem.Model, max_size: int = 3) -> int:

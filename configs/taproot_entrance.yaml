@@ -31,6 +31,12 @@ params:
   apron: 2
   mouth_w: 3
 finish:
+  # YIELD to the designs that own these cells. Overlap is not a rendering problem, it is a
+  # WORK problem: you place a block, the next placement says it is wrong, you break it and
+  # place it again. Precedence runs Root Break > Taproot Entrance > Deck Gallery > Deck
+  # Floor - the root breaks through everything, so it wins everywhere it touches.
+  defer_to:
+    - out/Root Break.litematic
   cheapen: false
   hollow: false
   ground: false
