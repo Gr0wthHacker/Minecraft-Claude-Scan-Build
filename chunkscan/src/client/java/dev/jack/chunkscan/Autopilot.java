@@ -1081,13 +1081,21 @@ final class Autopilot {
 			: bend ? "corner" : path.size() <= 1 ? "arriving" : "?";
 
 		if (path.isEmpty()) {
-			// Neither a route nor a way round: shut in, or the goal is sealed. Say so once, because
-			// "it is routing" and "it is guessing" behave very differently around a building and you
-			// should know which one is carrying you.
+			// ---- NO ROUTE AND NO WAY ROUND. Said ONCE PER PLACE, and counted: the second time a
+			// place beats the router it is written off rather than reported again. Repeating the
+			// message is the same fault as returning to the spot — see Ignored.
 			if (!warnedNoRoute) {
 				warnedNoRoute = true;
-				p.sendSystemMessage(Component.literal("[cscan] no route and no way round — going"
-					+ " direct. If it is sealed or far, get closer and it will re-route."));
+				if (Ignored.strike(target)) {
+					p.sendSystemMessage(Component.literal("[cscan] no route to " + Wand.fmt(target)
+						+ " again — marking it IGNORED (red) and taking another spot."));
+					Highlight.show("ignore", Ignored.marks(), 0xFF3030, 600);
+					Hud.abandonSpot();
+					forget();
+					return;
+				}
+				p.sendSystemMessage(Component.literal("[cscan] no route and no way round to "
+					+ Wand.fmt(target) + " — going direct. Twice and it is ignored."));
 			}
 		} else {
 			warnedNoRoute = false;

@@ -464,19 +464,36 @@ final class Hud {
 			// PASS OVER THE SPOT THAT JUST WENT NOWHERE. Without this the next recount picks the
 			// same region — it is still the best one — flies at the same wall, and sticks again.
 			next = null;
-			if (avoidSpot != null && now < avoidUntil) {
+			for (Plan.Cluster c : cl) {
+				if (Ignored.has(c.centre())) continue;         // written off: never again this session
+				if (avoidSpot != null && now < avoidUntil
+					&& c.centre().distSqr(avoidSpot) <= (double) Plan.MAX_RADIUS * Plan.MAX_RADIUS) {
+					continue;                                   // still cooling off
+				}
+				next = c;
+				break;
+			}
+			// ...but a hard spot is better than no spot: if everything left is merely COOLING OFF,
+			// take it anyway rather than idling until the minute expires. An IGNORED spot is
+			// different — it has failed twice and is not on the table at all.
+			if (next == null) {
+				avoidSpot = null;
 				for (Plan.Cluster c : cl) {
-					if (c.centre().distSqr(avoidSpot) > (double) Plan.MAX_RADIUS * Plan.MAX_RADIUS) {
+					if (!Ignored.has(c.centre())) {
 						next = c;
 						break;
 					}
 				}
 			}
-			// ...but a hard spot is better than no spot: if everything left is near the one we gave
-			// up on, take it anyway rather than idling until the avoid expires.
 			if (next == null) {
-				avoidSpot = null;
-				next = cl.get(0);
+				if (!said) {
+					said = true;
+					mc.player.sendSystemMessage(Component.literal("[cscan] every spot left is one"
+						+ " that has failed twice (" + Ignored.count() + " ignored, marked red)."
+						+ " /cscan ignore clear to try them again."));
+				}
+				stopGuiding();
+				return;
 			}
 			if (spotCentre != null && !wasFetching) spotsDone++;
 			spotCentre = next.centre();
@@ -652,6 +669,12 @@ final class Hud {
 	private static int placedWhenAbandoned = 0;
 
 	static void abandonSpot() {
+		// A strike against the PLACE, not just a minute of avoiding it. Two and the loop stops
+		// coming back at all — a timer forgets, and a place that has beaten it twice will not be
+		// different in a minute.
+		if (spotCentre != null && Ignored.strike(spotCentre)) {
+			Highlight.show("ignore", Ignored.marks(), 0xFF3030, 600);
+		}
 		// Count the giving-up, and remember what had been placed at the time: several abandonments
 		// with NOTHING built between them is thrashing, which no single watchdog can see.
 		if (placedTotal == placedWhenAbandoned) {
@@ -792,6 +815,9 @@ final class Hud {
 		out.add(fetching ? "  phase: FETCHING" : "  phase: building");
 		if (spotCentre != null) out.add("  spot around " + Wand.fmt(spotCentre));
 		if (target != null) out.add("  arrow at " + Wand.fmt(target) + " — " + targetNote);
+		if (Ignored.count() > 0) {
+			out.add("  " + Ignored.count() + " place(s) IGNORED after failing twice — /cscan ignore");
+		}
 		if (following) out.add("  " + sessionReport());
 		out.addAll(Autopilot.why(mc));
 		return out;

@@ -3304,6 +3304,37 @@ Four abandonments with nothing built and the design is not buildable from here r
 the next design under `follow all`, or stops and says which commands would explain why. **A loop that
 runs all night achieving nothing is worse than one that stops at 2am and says so.**
 
+### Two strikes and a place is ignored (2026-08-21)
+
+Jack: *"it shouldnt spam no route and no way around, if it does it twice, just find a new location,
+it should notice if an area gets flagged twice it gets flagged as an ignore (red)."*
+
+**The spam and the infinite loop are one fault seen from two angles.** Every watchdog in this loop is
+a TIMER — the spot avoid expires after a minute, the station retries clear when every bin has been
+tried, a chest's cooling-off lapses — and a timer forgets, which is right for a world that changes and
+wrong for a place that has beaten the router twice. Returning there for ever is what produced both
+the repeated message and the cycle.
+
+- **One failure is a bad moment**: a chunk that had not arrived, a block the printer had just placed,
+  a route computed from the wrong side of a wall. Writing a place off for that shrinks the island for
+  no reason.
+- **Two is a property of the place.** It goes on the list, is drawn RED, and is never chosen again
+  this session — not avoided for a minute, not retried when the list is cleared, not on the table.
+- **Announced exactly once**, because `strike` returns true only on the strike that writes it off.
+
+**Held by AREA, not by coordinate.** The loop aims at a centroid that drifts as cells are placed, so a
+per-cell list would never see the same failure twice — it would collect near-misses for ever and
+ignore nothing. Eight blocks is about the size of a spot the flight can fail to reach for one reason.
+
+**Session-scoped, and deliberately not written to disk.** Breaking one block can change the answer,
+and a file would quietly shrink the buildable island over weeks with nothing to say why.
+`/cscan ignore` lists and re-draws them, `/cscan ignore clear` puts them back on the table, and
+`/cscan why` says how many there are — because a loop that silently stops trying somewhere is a loop
+you cannot argue with.
+
+Both the flight and the loop feed the same list: a route that cannot be found and a spot that has been
+given up on are the same evidence about the same place.
+
 ## The daily loop
 
 ```bash

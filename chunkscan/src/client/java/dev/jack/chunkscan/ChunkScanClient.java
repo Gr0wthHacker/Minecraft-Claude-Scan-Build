@@ -241,6 +241,24 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(argument("radius", IntegerArgumentType.integer(1, 64))
 						.executes(ChunkScanClient::around)))
 				.then(literal("clips").executes(ChunkScanClient::clips))
+				.then(literal("ignore")
+					.executes(ctx -> {
+						// Seeing the red is half of it; being able to take it back is the other.
+						FabricClientCommandSource src = ctx.getSource();
+						if (Ignored.count() == 0) {
+							ok(src, "nothing is ignored — a place is written off after it beats the"
+								+ " router twice");
+							return 1;
+						}
+						Highlight.show("ignore", Ignored.marks(), 0xFF3030, 600);
+						ok(src, Ignored.count() + " place(s) ignored, marked red for 10 minutes."
+							+ " /cscan ignore clear to try them again");
+						return 1; })
+					.then(literal("clear").executes(ctx -> {
+						Ignored.clear();
+						Highlight.clear("ignore");
+						ok(ctx.getSource(), "ignore list cleared — every spot is back on the table");
+						return 1; })))
 				.then(literal("why")
 					.executes(ctx -> {
 						// The answer to "it got stuck", without a round trip through a description.
