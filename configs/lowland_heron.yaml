@@ -1,3 +1,10 @@
+# RETIRED (2026-08-21). Jack's call: one of heron/capybara, not both - and the flamingo already
+# owns the wading-bird slot with the stronger colour, so a second bird on the same skeleton in
+# grey was the one to go. Retiring it also frees the pond's west bank, which is the main vantage
+# toward the portal ring, and widens the axolotl's bank. Never built in the world (zero wool
+# below Y70 in the 13:10 capture), so nothing is orphaned. The design files in out/ stay, as
+# the jaguar's and the bear's did - the derivation is on record.
+#
 # A GREY HERON standing on the lowland floor, near the capybara.
 #
 # This is the body plan the medium can actually build. Everything in `quadruped.py` that reads badly

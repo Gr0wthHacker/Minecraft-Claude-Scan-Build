@@ -44,4 +44,11 @@ progress:                           # designs reported (% built, left, shop list
   - out/Void Isle.litematic      # Y86-108, its own origin (origin_lock: false)
   - out/Shop Islet.litematic     # below-island: its own locked origin -24251 130 29949
   - out/Root Stair.litematic     # same origin as the islet
+  # the lowland scene (2026-08-21): the ruined ring-gate in the SE skylight and the axolotl on
+  # the pond's north bank. The ground and the other animals are placed by name, not tracked -
+  # but these two are NEW work the loop should know about. The heron is RETIRED (see
+  # configs/lowland_heron.yaml): one of heron/capybara had to go, and the flamingo already
+  # holds the wading-bird slot.
+  - out/Lowland Portal.litematic
+  - out/Lowland Axolotl.litematic
 learn: true
