@@ -2011,12 +2011,18 @@ the ring. Never built (zero wool below Y70 in the capture), so nothing is orphan
   built UP on the low side, because downward filler on the high side lands inside that column's
   own terrain and is silently skipped.
 
-**Panel verdicts, recorded (2026-08-21).** Visual critic: pass - the silhouette names the order
-(splayed salamander, genuinely curved spine), the colour names the species, which for an axolotl
-is its real identity; weakest part is the far-side gill fronds reading sparse in plan. Minecraft
-player: pass - still a pink salamander at the 1/4 thumb, a pink smudge-by-the-pond at 1/8 where
-hue keeps doing the work; the unkind comment is "why does your axolotl have a white mohawk" (the
-dorsal fin, intentional). Both criticisms stand as future polish, neither blocks.
+**Panel verdicts, recorded (2026-08-21).** First pass: both panels passed with two criticisms -
+far-side gills sparse in plan, and the white dorsal fin reading as a mohawk. Jack said the
+axolotl needed work, and both criticisms were the work. **v2, same day:** the fin is MAGENTA -
+the Minecraft mob's own tail-membrane colour, and the general rule is that a fin is darker than
+the body, never a highlight; the gills went from 38 accent cells to ~140 (length 6.5, vertical
+frill, three stitched FILAMENT barbs per frond - barbs are what turn three red sticks into a
+frill); the head got a real neck pinch (skull as wide as the body, 0.46W, pinched to 0.36W
+behind the gills - without it the animal read as a worm with a face); and the muzzle carries a
+7-cell magenta SMILE seam below the eyes, which is half of what names an axolotl and no gill
+work substitutes for. The rework pulled the nose a cell back from the waterline - the overhang
+test caught it (2 cells over water against a floor of 3) and the site nudged one block pondward.
+v2 silhouette breaks at the gill crown, which the first one never did.
 
 Cross-design overlap 0 across all six lowland pieces; nearest approach is the capybara sprinting
 4.2 blocks past the gate's pavement, which is the story anyway. `tests/test_ruinring.py` (10) and

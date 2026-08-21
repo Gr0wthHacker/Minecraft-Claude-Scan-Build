@@ -37,18 +37,21 @@ AXOLOTL = {
     "body_w": 9.0,             # widest, across the barrel
     "body_h": 6.5,             # belly to back, before the fin
     "curve": 30.0,             # degrees of plan-curve over the whole body; straight is inert
-    "gill_len": 5.0,
+    "gill_len": 6.5,
     "seed": 0,
 
-    # leucistic: pale pink body, white belly and fin, red gills - the one colour scheme every
-    # player recognises. All cheap wool; the flamingo owns saturated pink+red+black, this stays
-    # PALE so the two read as different animals from across the pond.
+    # the MINECRAFT leucistic axolotl's own colour language, which is what makes the naming
+    # instant on a server: pale pink body, white belly, MAGENTA tail membrane, red gill frills.
+    # The first build's fin was white and read as a mohawk - a fin is a MEMBRANE, darker than
+    # the body, not a highlight. All cheap wool; the flamingo owns saturated pink+red+black,
+    # this stays pale so the two read as different animals from across the pond.
     "body": "pink_wool",
     "belly": "white_wool",
-    "fin": "white_wool",
+    "fin": "magenta_wool",
     "gills": "red_wool",
     "gill_tip": "magenta_wool",
     "eye": "black_wool",
+    "smile": "magenta_wool",   # the mouth seam - half of what makes an axolotl an axolotl
 }
 
 _PASSABLE = {"air", "cave_air", "void_air", "vine", "short_grass", "tall_grass", "fern",
@@ -97,13 +100,18 @@ def _spine(p):
 
 
 def _half_width(t, W):
-    """Wide flat head, barrel, then a tail drawn out to a point."""
-    if t < 0.24:                                       # the head: blunt, not a snout
-        return W * (0.36 + 0.10 * math.sin(math.pi * t / 0.24))
-    if t < 0.60:
-        return W * (0.42 + 0.08 * math.sin(math.pi * (t - 0.24) / 0.36))
-    u = (t - 0.60) / 0.40
-    return max(0.6, W * 0.40 * (1.0 - u) ** 1.15)
+    """Wide flat head, a real NECK PINCH, barrel, then a tail drawn out to a point. Without the
+    pinch the head blended straight into the body and the animal read as a worm with a face."""
+    if t < 0.05:                                       # a blunt rounded nose
+        return W * (0.26 + 0.20 * (t / 0.05))
+    if t < 0.20:                                       # the skull: as wide as the body itself
+        return W * 0.46
+    if t < 0.30:                                       # the pinch behind the gills
+        return W * (0.46 - 0.10 * (1 - math.cos(math.pi * (t - 0.20) / 0.10)) / 2)
+    if t < 0.62:
+        return W * (0.36 + 0.12 * math.sin(math.pi * (t - 0.30) / 0.32))
+    u = (t - 0.62) / 0.38
+    return max(0.6, W * 0.36 * (1.0 - u) ** 1.15)
 
 
 def _height(t, H):
@@ -202,7 +210,7 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
         base = top_at.get(col)
         if base is None:
             continue
-        rise = 2 if t > 0.72 else 1
+        rise = 3 if t > 0.85 else (2 if t > 0.60 else 1)
         for k in range(rise):
             prev = put_run(col[0], base + 1 + k, col[1], p["fin"], prev)
             fin_n += 1
@@ -256,8 +264,9 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
     fronds = 0
     head_hw = _half_width(0.19, W2 * 2.0)
     head_top = belly[gi] + _height(0.19, H)
+    filaments = 0
     for side in (-1, 1):
-        for elev, sweep in ((30.0, 30.0), (12.0, 52.0), (-14.0, 70.0)):
+        for elev, sweep in ((42.0, 26.0), (18.0, 48.0), (-6.0, 68.0)):
             e, s = math.radians(elev), math.radians(sweep)
             vx = (nx * side * math.cos(s) + dxu * math.sin(s)) * math.cos(e)
             vz = (nz * side * math.cos(s) + dzu * math.sin(s)) * math.cos(e)
@@ -272,13 +281,19 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
             for st in range(n + 1):
                 f = st / n
                 r = f * glen
-                mat = p["gill_tip"] if f > 0.62 else p["gills"]
+                mat = p["gill_tip"] if f > 0.66 else p["gills"]
                 gx, gy, gz = rootx + vx * r, rooty + vy * r, rootz + vz * r
                 prev = put_run(gx, gy, gz, mat, prev)
-                if f < 0.7:                            # thickened VERTICALLY near the base:
+                if f < 0.75:                           # thickened VERTICALLY near the base:
                     put_body(gx, gy + 1, gz, mat)      # a frill both sides can afford - the
                                                        # in-plan offset fed one side into the
                                                        # skull and the gills came out lopsided
+                # FILAMENTS: short barbs trailing off the stalk, which is what turns three red
+                # sticks into a frill. Stitched off the stalk cell so they cannot detach.
+                if st in (n // 3, (2 * n) // 3, n - 1):
+                    fp = (int(round(gx)), int(round(gy)), int(round(gz)))
+                    put_run(gx + dxu * 1.5, gy + 0.7, gz + dzu * 1.5, mat, fp)
+                    filaments += 1
             fronds += 1
 
     # ---- eyes: ONE dark bead each side, every solid neighbour forced pale - the bar-eye and
@@ -311,10 +326,34 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
             if nb in body_cells:
                 w.put(*nb, p["belly"])
 
+    # ---- the SMILE: one course of darker seam across the front of the muzzle, below the eyes
+    # and above the white chin. Half of what makes an axolotl an axolotl is that it looks
+    # pleased about something, and no amount of gill work substitutes for it.
+    im = min(range(len(stations)), key=lambda j: abs(stations[j][2] - 0.05))
+    nosex, nosez, _ = stations[im]
+    fx_, fz_ = stations[0][0] - stations[1][0], stations[0][1] - stations[1][1]
+    fn = math.hypot(fx_, fz_) or 1.0
+    fx_, fz_ = fx_ / fn, fz_ / fn                      # out of the face, in plan
+    mouth_y = int(round(belly[im] + 1.6))
+    cand = []
+    for (x, y, z) in body_cells:
+        if y != mouth_y or math.hypot(x - nosex, z - nosez) > 3.8:
+            continue
+        outward = (int(round(x + fx_ * 1.2)), y, int(round(z + fz_ * 1.2)))
+        if outward not in body_cells:                  # a front-facing surface cell
+            perp = abs((x - nosex) * -fz_ + (z - nosez) * fx_)
+            cand.append((perp, x, y, z))
+    smile = 0
+    if len(cand) >= 3:
+        for _, x, y, z in sorted(cand)[:7]:
+            w.put(x, y, z, p["smile"])
+            smile += 1
+
     pruned = _prune_severed(w)
     return w.canvas({"kind": "axolotl", "profile_view": "top", "facing": [round(math.sin(phi0)), round(math.cos(phi0))],
-                     "features_built": {"gill_fronds": fronds, "legs": legs, "fin": fin_n,
-                                        "eyes": eyes, "pruned": pruned}})
+                     "features_built": {"gill_fronds": fronds, "filaments": filaments,
+                                        "legs": legs, "fin": fin_n, "eyes": eyes,
+                                        "smile": smile, "pruned": pruned}})
 
 
 def _prune_severed(w: World) -> int:

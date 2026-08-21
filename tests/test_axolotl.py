@@ -78,10 +78,11 @@ def test_the_whole_animal_is_one_piece(built):
 
 @needs_world
 def test_the_gills_exist_on_both_sides(built):
-    """The frill fed one side into the skull once and the animal came out lopsided."""
+    """The frill fed one side into the skull once and the animal came out lopsided. Red is
+    gills-only (magenta also serves the fin and the smile), so red is what is counted."""
     _, cells = built
-    gills = [(x, y, z) for (x, y, z), n in cells.items() if n in ("red_wool", "magenta_wool")]
-    assert len(gills) >= 24, f"only {len(gills)} gill cells - the fronds are inside the head again"
+    gills = [(x, y, z) for (x, y, z), n in cells.items() if n == "red_wool"]
+    assert len(gills) >= 40, f"only {len(gills)} gill cells - the fronds are inside the head again"
     ax, az = (float(v) for v in CFG["params"]["at"])
     lx, lz = (float(v) for v in CFG["params"]["look_at"])
     hx, hz = lx - ax, lz - az
@@ -92,7 +93,7 @@ def test_the_gills_exist_on_both_sides(built):
         s = (x - ax) * px + (z - az) * pz
         if abs(s) > 0.5:
             sides[1 if s > 0 else -1] += 1
-    assert min(sides.values()) >= 8, f"gills are lopsided: {sides}"
+    assert min(sides.values()) >= 12, f"gills are lopsided: {sides}"
 
 
 @needs_world
@@ -133,15 +134,25 @@ def test_the_eyes_are_beads_with_pale_rings(built):
 
 @needs_world
 def test_the_fin_rides_the_tail(built):
-    """White crest cells sitting directly on the body's own top - based on the BUILT top, so a
-    drifted float cannot strand it in the air again."""
+    """A MAGENTA membrane crest sitting directly on the body's own top - based on the BUILT top,
+    so a drifted float cannot strand it in the air again. (The first fin was white and read as a
+    mohawk; a fin is darker than the body, not a highlight.)"""
     _, cells = built
     fin = 0
     for (x, y, z), n in cells.items():
-        if n == "white_wool" and cells.get((x, y - 1, z)) in ("pink_wool", "white_wool") \
+        if n == "magenta_wool" and cells.get((x, y - 1, z)) in ("pink_wool", "magenta_wool") \
                 and (x, y + 1, z) not in cells:
             fin += 1
-    assert fin >= 10
+    assert fin >= 15, f"only {fin} crest cells ride the body"
+
+
+@needs_world
+def test_the_animal_smiles(built):
+    """Half of what names an axolotl. Skipped silently once the muzzle geometry cannot host it,
+    so the count is pinned."""
+    c, _ = built
+    assert c.meta["features_built"]["smile"] >= 3
+    assert c.meta["features_built"]["filaments"] >= 12
 
 
 @needs_world

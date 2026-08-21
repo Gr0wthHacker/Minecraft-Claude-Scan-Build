@@ -14,7 +14,7 @@ name: Lowland Axolotl
 gen: axolotl
 params:
   under: out/lowland_planned.litematic
-  at: [-24201, 29988]
+  at: [-24202, 29989]
   look_at: [-24214, 29998]   # toward the pond's open middle; the snout stops just past the
                              # waterline. Sited east of the oak canopy (X-24210..-24206 /
                              # Z29981..29985, measured) that severed flank cells at two
