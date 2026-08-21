@@ -419,8 +419,15 @@ final class Autopilot {
 			warnedNoRoute = false;
 		}
 
+		// ---- DO NOT FLY INTO WHAT YOU CANNOT SEE. See BLIND_SPEED.
+		boolean blind = flying && !loadedAhead(view(mc), p.position(), dir, SIGHT);
+		if (blind) speed = Math.min(speed, BLIND_SPEED);
+
 		if (flying) {
 			Vec3 step = dir.scale(speed);
+			// ...and never descend into it: an absent chunk answers "air" to every question, so the
+			// floor of the lowland is indistinguishable from open void until you are standing on it.
+			if (blind && step.y < 0) step = new Vec3(step.x, 0, step.z);
 			// Only ever applied to the DIRECT guess. A real route is already clear, and second-
 			// guessing it here is how you fight your own pathfinder at a doorway.
 			if (path.isEmpty()) step = unstick(mc, p, step);
@@ -555,6 +562,25 @@ final class Autopilot {
 	static final double GROUND_CLEAR = 1.5;
 	/** How briskly to climb off a floor it has got too close to. */
 	static final double RISE = 0.18;
+	/**
+	 * Speed when flying into world the client has not got yet.
+	 *
+	 * <p><b>"Unloaded is passable" is correct for ROUTING and dangerous for FLYING.</b> {@link Nav}
+	 * counts an unloaded chunk as open on purpose — refusing to route through one would fail every
+	 * long flight, and the route is recomputed twice a second so it sharpens as the world arrives.
+	 * The autopilot then flew that route at cruise, into blocks nobody had seen yet.
+	 *
+	 * <p>It cost a flight at the lowlands, which is the worst case on this island by construction:
+	 * 150 blocks below the deck, so the whole descent is into chunks that load somewhere on the way
+	 * down. The clearance check read air under it the entire time, because an absent chunk answers
+	 * air to every question you ask it.
+	 *
+	 * <p>So: when what is ahead or below is unloaded, crawl and do not descend. Slow is recoverable;
+	 * a landing is not.
+	 */
+	static final double BLIND_SPEED = 0.12;
+	/** How far ahead the world has to be loaded before flying at cruise. */
+	static final int SIGHT = 8;
 
 	/**
 	 * Never touch down.
@@ -572,21 +598,72 @@ final class Autopilot {
 		boolean headroom = !mc.level.getBlockState(
 			BlockPos.containing(p.getX(), p.getY() + 2.6, p.getZ())).blocksMotion();
 		if (p.onGround()) return headroom ? new Vec3(step.x, RISE, step.z) : step;
-		double air = clearanceBelow(mc, p, (int) Math.ceil(GROUND_CLEAR) + 1);
+		double air = clearanceBelow(view(mc), p.getX(), p.getY(), p.getZ(),
+			(int) Math.ceil(GROUND_CLEAR) + 1);
 		if (air > GROUND_CLEAR) return step;
 		double lift = headroom && air < GROUND_CLEAR * 0.6 ? RISE : 0.0;
 		return new Vec3(step.x, Math.max(step.y, lift), step.z);
 	}
 
-	/** Distance to the first thing under the player, or `depth` if there is nothing that close. */
-	private static double clearanceBelow(Minecraft mc, LocalPlayer p, int depth) {
+	/**
+	 * The world as the flight needs to see it: what is solid, and what is merely UNSEEN.
+	 *
+	 * <p>Split out from the level so the two functions below can be tested. They are entirely about
+	 * the difference between "there is nothing there" and "I cannot see", which is the distinction
+	 * that cost a flight at the lowlands, and it cannot be exercised against a live client.
+	 */
+	interface View {
+		boolean loaded(int x, int y, int z);
+
+		boolean solid(int x, int y, int z);
+	}
+
+	static View view(Minecraft mc) {
+		return new View() {
+			public boolean loaded(int x, int y, int z) {
+				return mc.level.isLoaded(new BlockPos(x, y, z));
+			}
+
+			public boolean solid(int x, int y, int z) {
+				return mc.level.getBlockState(new BlockPos(x, y, z)).blocksMotion();
+			}
+		};
+	}
+
+	/**
+	 * Distance to the first thing under a point, or `depth` if there is nothing that close.
+	 *
+	 * <p><b>An unloaded cell counts as GROUND</b> — the opposite of what {@link Nav} does with one,
+	 * and right for the opposite reason. A router that stops at unseen chunks never leaves the
+	 * island; a flight that DESCENDS into them lands on whatever arrives. An absent chunk answers
+	 * "air" to every question you ask it, so the floor of the lowland is indistinguishable from open
+	 * void until you are standing on it.
+	 */
+	static double clearanceBelow(View w, double px, double py, double pz, int depth) {
 		for (int d = 0; d <= depth; d++) {
-			BlockPos b = BlockPos.containing(p.getX(), p.getY() - 0.1 - d, p.getZ());
-			if (mc.level.getBlockState(b).blocksMotion()) {
-				return Math.max(0, p.getY() - (b.getY() + 1.0));
+			int by = (int) Math.floor(py - 0.1 - d);
+			int bx = (int) Math.floor(px), bz = (int) Math.floor(pz);
+			if (!w.loaded(bx, by, bz) || w.solid(bx, by, bz)) {
+				return Math.max(0, py - (by + 1.0));
 			}
 		}
 		return depth;
+	}
+
+	/** Is the world along the next `blocks` of travel actually here to be seen? */
+	static boolean loadedAhead(View w, Vec3 from, Vec3 dir, int blocks) {
+		for (int d = 1; d <= blocks; d += 2) {
+			Vec3 at = from.add(dir.scale(d));
+			if (!w.loaded((int) Math.floor(at.x), (int) Math.floor(at.y), (int) Math.floor(at.z))) {
+				return false;
+			}
+			// ...and under it, because the descent is the leg that ends in a floor
+			if (!w.loaded((int) Math.floor(at.x), (int) Math.floor(at.y) - 2,
+				(int) Math.floor(at.z))) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/** Is there anything to land on within `depth` blocks? */

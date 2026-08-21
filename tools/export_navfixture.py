@@ -97,9 +97,13 @@ def pack(solid: np.ndarray, origin: tuple[int, int, int]) -> bytes:
 
 
 def newest_capture(out: Path) -> Path:
-    named = out / "island_now.litematic"
-    if named.exists():
-        return named
+    # `islandlow` first: it is the capture taken from INSIDE the lowland and it spans Y-64..270 —
+    # the whole vertical, lowland through deck through sky bird. `island_now` starts at Y150, so a
+    # fixture built from it cannot exercise the descent that actually crashed a flight.
+    for name in ("islandlow.litematic", "island_now.litematic"):
+        named = out / name
+        if named.exists():
+            return named
     scans = sorted(out.glob("*.litematic"), key=lambda p: p.stat().st_mtime, reverse=True)
     if not scans:
         raise SystemExit("no capture in out/")

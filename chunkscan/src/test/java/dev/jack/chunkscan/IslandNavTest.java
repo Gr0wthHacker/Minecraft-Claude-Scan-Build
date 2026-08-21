@@ -106,6 +106,101 @@ class IslandNavTest {
 		return out;
 	}
 
+	/**
+	 * Open cells that are actually NEAR something.
+	 *
+	 * <p>Uniform sampling over this capture is mostly a test of empty sky: it spans Y-64..270 and is
+	 * 2% solid, so two random open cells usually have nothing at all between them and every router
+	 * passes. The hard cases are all within a few blocks of a surface — under the deck, inside the
+	 * lowland, against the plate — so sample there.
+	 */
+	private static List<BlockPos> nearTerrain(long seed, int want) {
+		Random r = new Random(seed);
+		List<BlockPos> out = new ArrayList<>();
+		for (int guard = 0; guard < 400_000 && out.size() < want; guard++) {
+			int lx = r.nextInt(sx), ly = r.nextInt(sy), lz = r.nextInt(sz);
+			BlockPos p = world(lx, ly, lz);
+			if (!FREE.at(p.getX(), p.getY(), p.getZ())) continue;
+			if (openNear(p, 3) == null) continue;                // control: something is around
+			boolean close = false;
+			for (int d = 1; d <= 3 && !close; d++) {
+				for (int[] o : new int[][]{{d, 0, 0}, {-d, 0, 0}, {0, d, 0}, {0, -d, 0}, {0, 0, d},
+					{0, 0, -d}}) {
+					if (solid(p.getX() + o[0], p.getY() + o[1], p.getZ() + o[2])) close = true;
+				}
+			}
+			if (close) out.add(p);
+		}
+		return out;
+	}
+
+	@Test
+	void routesThroughTheBUILTPartsOfTheIslandAreLegal() {
+		// The same property as below, sampled where the island actually is. Uniform sampling over a
+		// capture that is 98% air mostly proves that open sky is open.
+		List<BlockPos> spots = nearTerrain(4242L, 90);
+		assertTrue(spots.size() > 40, "found only " + spots.size() + " cells near terrain");
+		int routed = 0;
+		for (int i = 0; i + 1 < spots.size(); i += 2) {
+			BlockPos a = spots.get(i), b = spots.get(i + 1);
+			if (a.distSqr(b) > (double) Nav.MAX_RANGE * Nav.MAX_RANGE) continue;
+			List<BlockPos> raw = Nav.route(FREE, a, b);
+			if (raw.isEmpty()) continue;
+			routed++;
+			BlockPos prev = a;
+			for (BlockPos c : Nav.loosen(FREE, a, Nav.simplify(FREE, a, raw))) {
+				assertTrue(Nav.clear(FREE, prev, c),
+					"the leg " + prev + " -> " + c + " passes through the island");
+				prev = c;
+			}
+		}
+		assertTrue(routed > 10, "only " + routed + " routes near terrain were found at all");
+	}
+
+	@Test
+	void theDeckCanBeRoutedDownToTheLowland() {
+		// The flight that crashed. 150-odd blocks straight down through the island's own body, which
+		// is the longest route the loop actually asks for and the one MAX_RANGE was raised for.
+		BlockPos deck = lowestOpenAbove(194);
+		BlockPos low = lowestOpenAbove(42);
+		if (deck == null || low == null) return;              // capture does not cover both
+		assertTrue(Math.sqrt(deck.distSqr(low)) < Nav.MAX_RANGE,
+			"deck to lowland is outside the range cap: " + Math.sqrt(deck.distSqr(low)));
+		List<BlockPos> path = Nav.route(FREE, deck, low);
+		assertFalse(path.isEmpty(), "no route from the deck down to the lowland");
+		BlockPos prev = deck;
+		for (BlockPos c : path) {
+			assertTrue(FREE.at(c.getX(), c.getY(), c.getZ()), c + " is inside the island");
+			prev = c;
+		}
+		assertTrue(within(prev, low, Nav.GOAL_SLACK), "ended somewhere other than the lowland");
+	}
+
+	/** An open cell at about this height, near the middle of the capture. */
+	private static BlockPos lowestOpenAbove(int y) {
+		int ly = y - oy;
+		if (ly < 0 || ly >= sy) return null;
+		for (int spread = 0; spread < Math.max(sx, sz); spread++) {
+			for (int lx = Math.max(0, sx / 2 - spread); lx < Math.min(sx, sx / 2 + spread + 1); lx++) {
+				for (int lz = Math.max(0, sz / 2 - spread);
+					lz < Math.min(sz, sz / 2 + spread + 1); lz++) {
+					BlockPos p = world(lx, ly, lz);
+					if (FREE.at(p.getX(), p.getY(), p.getZ()) && openNear(p, 6) != null
+						&& solidWithin(p, 8)) return p;
+				}
+			}
+		}
+		return null;
+	}
+
+	/** Is there anything solid within `d`? Keeps the endpoints on the island rather than in sky. */
+	private static boolean solidWithin(BlockPos p, int d) {
+		for (int i = 1; i <= d; i++) {
+			if (solid(p.getX(), p.getY() - i, p.getZ())) return true;
+		}
+		return false;
+	}
+
 	@Test
 	void everyRouteItReturnsOverTheIslandIsLegal() {
 		// The property that matters most and cannot be eyeballed: whatever it hands back, the

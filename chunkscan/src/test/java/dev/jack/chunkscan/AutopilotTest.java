@@ -1,6 +1,7 @@
 package dev.jack.chunkscan;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -212,5 +213,79 @@ class AutopilotTest {
 		assertTrue(src.contains("groundBelow"), "walking no longer checks there is a floor");
 		assertTrue(src.contains("wasFlying && !flying"),
 			"losing flight in mid-air is no longer treated as an emergency");
+	}
+
+	// ---------------------------------------------------------------- what it cannot see
+	//
+	// THE LOWLAND CRASH. `Nav` counts an unloaded chunk as PASSABLE on purpose — refusing to route
+	// through one would fail every long flight on a 240-block island. The autopilot then flew that
+	// route at cruise into blocks nobody had loaded yet. The lowland is the worst case by
+	// construction: 150 blocks below the deck, so the whole descent is into chunks arriving on the
+	// way down, and an absent chunk answers "air" to every question you ask it.
+
+	/** A world with a floor at y=40 and nothing loaded below y=100. */
+	private static Autopilot.View sky() {
+		return new Autopilot.View() {
+			public boolean loaded(int x, int y, int z) {
+				return y >= 100;
+			}
+
+			public boolean solid(int x, int y, int z) {
+				return y <= 40;
+			}
+		};
+	}
+
+	@Test
+	void anUnloadedCellUnderYouCountsAsGround() {
+		// Not as air. This is the opposite of what Nav does with an unloaded cell, and right for the
+		// opposite reason: a router that stops at unseen chunks never leaves the island, and a
+		// flight that descends into them lands on whatever arrives.
+		// The number is the distance to the first thing that stops you, and an unloaded cell IS one.
+		// What matters is that it lands inside the clearance, so keepAirborne refuses to descend.
+		double air = Autopilot.clearanceBelow(sky(), 0.5, 101.0, 0.5, 4);
+		assertTrue(air < Autopilot.GROUND_CLEAR,
+			"read " + air + " of clear air below and would have descended into unseen chunks");
+		// ...and deep inside the unloaded region it is zero: there is nothing under you but unknown.
+		assertEquals(0.0, Autopilot.clearanceBelow(sky(), 0.5, 100.0, 0.5, 4), 0.001);
+	}
+
+	@Test
+	void aLoadedDropStillReadsAsOpen() {
+		// ...and the guard must not fire in mid-air over loaded void, or it can never descend at all
+		// and the loop cannot reach anything below it.
+		Autopilot.View allLoaded = new Autopilot.View() {
+			public boolean loaded(int x, int y, int z) {
+				return true;
+			}
+
+			public boolean solid(int x, int y, int z) {
+				return y <= 40;
+			}
+		};
+		assertEquals(4.0, Autopilot.clearanceBelow(allLoaded, 0.5, 200.0, 0.5, 4), 0.001,
+			"refused to descend through open, loaded air");
+		// and it finds a real floor
+		assertEquals(1.9, Autopilot.clearanceBelow(allLoaded, 0.5, 42.9, 0.5, 4), 0.2,
+			"did not measure the floor under it");
+	}
+
+	@Test
+	void itWillNotFlyAtCruiseIntoChunksItHasNotGot() {
+		Vec3 down = new Vec3(0, -1, 0);
+		assertFalse(Autopilot.loadedAhead(sky(), new Vec3(0.5, 104, 0.5), down, Autopilot.SIGHT),
+			"flew full speed into the unloaded lowland");
+		assertTrue(Autopilot.loadedAhead(sky(), new Vec3(0.5, 200, 0.5), new Vec3(1, 0, 0),
+			Autopilot.SIGHT), "crawled across open loaded sky for no reason");
+	}
+
+	@Test
+	void theBlindSpeedIsSlowEnoughToStop() {
+		// It has to be recoverable within the clearance: at BLIND_SPEED you cover less than
+		// GROUND_CLEAR in the time it takes to notice a chunk has arrived.
+		assertTrue(Autopilot.BLIND_SPEED < Autopilot.GROUND_CLEAR / 4,
+			"too fast to stop inside the clearance once the world appears");
+		assertTrue(Autopilot.BLIND_SPEED < Autopilot.SPEED, "not actually a slowdown");
+		assertTrue(Autopilot.SIGHT >= 4, "looks too short a way ahead to react");
 	}
 }

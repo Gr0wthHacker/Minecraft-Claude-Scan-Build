@@ -2641,6 +2641,42 @@ the first two. There are THREE questions and the loop was answering the wrong on
 rule, because taking the design's own earlier cells out of THAT would report every wall in the
 project as needing scaffolding.
 
+### It crashed into a block at the lowlands (2026-08-20)
+
+Flight lost again, and a different cause from landing on the deck: it flew into terrain **that was
+not loaded yet**.
+
+**`Nav` counts an unloaded chunk as PASSABLE, on purpose** — refusing to route through one would fail
+every long flight on a 240-block island, and the route is recomputed twice a second so it sharpens as
+the world arrives. That is right for ROUTING and dangerous for FLYING, and nothing had ever separated
+the two: the autopilot took that route at cruise into blocks nobody had seen.
+
+**The lowland is the worst case by construction.** It is 150 blocks below the deck, so the whole
+descent is into chunks arriving on the way down — and `keepAirborne`'s clearance check read open air
+the entire time, because **an absent chunk answers "air" to every question you ask it**. The floor of
+the lowland is indistinguishable from open void until you are standing on it.
+
+- **`BLIND_SPEED` (0.12) when the next 8 blocks are not loaded**, ahead or two below.
+- **No descending at all while blind.** Slow is recoverable; a landing is not.
+- **An unloaded cell under you counts as GROUND** — the exact opposite of what `Nav` does with one,
+  and right for the opposite reason.
+
+`clearanceBelow` and `loadedAhead` were pulled behind an `Autopilot.View` so they can be tested:
+they are entirely about the difference between *there is nothing there* and *I cannot see*, and that
+cannot be exercised against a live client.
+
+### The fixture now spans the whole island (2026-08-20)
+
+Jack captured `islandlow` from inside the lowland: **103x335x103 at Y-64..270**, the full vertical
+rather than the plate. 71,815 solid cells, 26 KB packed. The old fixture started at Y150, so the
+descent that crashed was not in the test ground at all.
+
+And the sampling was wrong even where it had coverage. **Uniform sampling over a capture that is 2%
+solid is mostly a test that empty sky is empty**: two random open cells usually have nothing between
+them and every router passes. `nearTerrain` samples cells within three blocks of a surface — under
+the deck, inside the lowland, against the plate — which is where routing is actually hard, and the
+legality property runs over those as well as over the uniform sample.
+
 ## The daily loop
 
 ```bash
