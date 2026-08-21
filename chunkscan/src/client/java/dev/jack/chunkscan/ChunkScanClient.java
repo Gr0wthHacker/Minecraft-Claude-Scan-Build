@@ -250,6 +250,10 @@ public final class ChunkScanClient implements ClientModInitializer {
 						return 1; }))
 				.then(literal("stop")
 					.executes(ChunkScanClient::stopAll))
+				// The word that gets typed. `stop` was the only spelling and `/cscan off` failed
+				// silently as an unknown command, which looks exactly like a stop that did not work.
+				.then(literal("off")
+					.executes(ChunkScanClient::stopAll))
 				.then(literal("take")
 					.executes(ctx -> take(ctx, null, 0))
 					.then(argument("item", StringArgumentType.word())
@@ -1147,11 +1151,14 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Minecraft mc = src.getClient();
 		String report = Hud.following() ? "  " + Hud.sessionReport() : "";
 		Withdraw.cancel();
-		Autopilot.halt(mc);
+		Autopilot.halt(mc);                              // also lets go of any key it was holding
 		Hud.off();
-		Highlight.clear("goto");
-		Highlight.clear("next");
-		Highlight.clear("scaffold");
+		// EVERY layer, not the three the loop happens to use. `find`, `check`, `dig`, `dark`, `mark`
+		// and `marks` are all still drawing after a stop, and a panic button that leaves the screen
+		// covered in particles reads as one that did not work.
+		Highlight.clear();
+		boolean wasScanning = AutoScan.running();
+		AutoScan.stop();
 		// STOP MEANS STOP, INCLUDING AFTER A RELOG. Leaving the resume note behind would have the
 		// loop start itself again the next time you joined, which is the one behaviour a panic
 		// button must not have.
@@ -1159,7 +1166,8 @@ public final class ChunkScanClient implements ClientModInitializer {
 			Session.clear(dir(src));
 		} catch (Exception ignored) {
 		}
-		ok(src, "stopped: withdrawal, autofly, follow and highlights all off." + report);
+		ok(src, "stopped: withdrawal, autofly, follow, highlights"
+			+ (wasScanning ? " and auto-scan" : "") + " all off." + report);
 		return 1;
 	}
 

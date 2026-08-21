@@ -2957,6 +2957,30 @@ with it, so for several commits a bump did not slow the flight at all. That is t
 no-op edit today; the patch scripts now hard-fail on a missing anchor instead of quietly changing
 nothing.
 
+### `/cscan off` was not a command, and `stop` was not a stop (2026-08-20)
+
+Two faults behind one report.
+
+**`off` did not exist.** The only spelling was `stop`, so `/cscan off` failed as an unknown command —
+which looks exactly like a stop that did not work, and `off` is the word that gets typed. Both run
+`stopAll` now, and `MenuTest` asserts they run the SAME thing: two commands that stop different
+amounts is worse than one command.
+
+**And `stop` left four things running:**
+
+- **Six highlight layers kept drawing.** It cleared `goto`, `next` and `scaffold` — the three the
+  build loop uses — and left `find`, `check`, `dig`, `dark`, `mark` and `marks`. A panic button that
+  leaves the screen covered in particles reads as one that did nothing. `Highlight.clear()` with no
+  argument was there the whole time.
+- **`Hud.off()` kept `followAll`**, so a later `/cscan follow <one design>` silently became "follow
+  all of them".
+- **...and the spot, the abandoned stations and the avoid list**, inherited by a run that has nothing
+  to do with them.
+- **Auto-scan carried on**, writing a capture per tick into an archive this file already notes is
+  unbounded.
+
+Half a stop is the kind that is discovered an hour later.
+
 ## The daily loop
 
 ```bash

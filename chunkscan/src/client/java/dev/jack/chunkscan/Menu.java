@@ -92,6 +92,7 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan autofly speed ", "<n>  blocks per tick; 1.0 is a sprint-fly"));
 		r.add(new Row("/cscan follow all", "work every tracked design, one after another"));
 		r.add(new Row("/cscan why", "what the loop is doing, and why it is not moving"));
+		r.add(new Row("/cscan stop", "everything off: fetch, fly, follow, highlights, auto-scan"));
 		r.add(new Row("/cscan stop", "PANIC: cancel withdrawal, flight, follow and highlights"));
 		r.add(new Row("/cscan fetch", "cancel just the fetch and clear the instruction"));
 

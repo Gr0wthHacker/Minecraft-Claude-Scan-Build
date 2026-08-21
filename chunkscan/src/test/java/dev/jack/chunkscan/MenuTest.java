@@ -145,4 +145,28 @@ class MenuTest {
 		Files.writeString(d.resolve("designs.json"), "{\"note\":\"hi\"}", StandardCharsets.UTF_8);
 		org.junit.jupiter.api.Assertions.assertNull(Designs.tracked(d));
 	}
+
+	@Test
+	void thePanicButtonHasBothItsNames() throws IOException {
+		// `/cscan off` was not a command, so it failed as unknown - which looks exactly like a stop
+		// that did not work, and is what got typed.
+		String src = read(CLIENT);
+		assertTrue(src.contains("literal(\"stop\")"), "the stop command is gone");
+		assertTrue(src.contains("literal(\"off\")"), "/cscan off is not a command");
+		// both spellings must run the SAME thing: two commands that stop different
+		// amounts is worse than one command.
+		int runs = src.split("ChunkScanClient::stopAll", -1).length - 1;
+		assertTrue(runs >= 2, "off and stop do not both run stopAll");
+	}
+
+	@Test
+	void stoppingClearsEVERYHighlightLayer() throws IOException {
+		// Six layers draw particles - find, check, dig, dark, mark, marks - and a panic button that
+		// leaves the screen covered in them reads as one that did not work.
+		String src = read(CLIENT);
+		int at = src.indexOf("private static int stopAll(");
+		assertTrue(at > 0);
+		String body = src.substring(at, at + 1400);
+		assertTrue(body.contains("Highlight.clear();"), "still clearing layers one at a time");
+	}
 }

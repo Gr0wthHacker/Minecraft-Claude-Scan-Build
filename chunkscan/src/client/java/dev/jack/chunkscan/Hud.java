@@ -726,11 +726,33 @@ final class Hud {
 		return fetching;
 	}
 
+	/**
+	 * Everything off, and everything FORGOTTEN.
+	 *
+	 * <p>It used to clear only the four obvious fields, which left `followAll` set — so a later
+	 * `/cscan follow <one design>` silently became "follow all of them" — and left the spot, the
+	 * abandoned stations and the avoid list to be inherited by a run that has nothing to do with
+	 * them. Half a stop is the kind that is discovered an hour later.
+	 */
 	static void off() {
 		design = null;
 		lines = new ArrayList<>();
 		following = false;
+		followAll = false;
 		fetching = false;
+		said = false;
+		placementWarned = false;
+		deviationsSaid = false;
+		saidBoxed.clear();
+		spotCentre = null;
+		stationBin = Long.MIN_VALUE;
+		stationTodo = -1;
+		stationRetry = 0;
+		stationsTried.clear();
+		avoidSpot = null;
+		scaffoldFor = -1;
+		hiccups = 0;
+		grace = 0;
 		stopGuiding();
 	}
 
