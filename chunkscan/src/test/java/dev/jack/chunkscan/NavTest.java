@@ -9,6 +9,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -326,5 +327,53 @@ class NavTest {
 		BlockPos best = first.isEmpty() ? new BlockPos(0, 100, 0) : first.get(first.size() - 1);
 		assertTrue(Nav.escape(w.free(), best, goal, Nav.ESCAPE_RADIUS).isEmpty(),
 			"kept finding new progress from the best cell in a closed room");
+	}
+
+	// ---------------------------------------------------------------- somewhere to work from
+
+	@Test
+	void aStandoffIsOpenEnoughToWorkFrom() {
+		// `reachable` answers "may a route END here" and takes the first free cell it finds, which
+		// beside a wall is the crevice between two blocks. A place to FLOAT and print from wants
+		// more than that - this island is a deck under a plate, full of hoppers, chests and roots,
+		// and a spot wedged between two of them is one the printer never finishes.
+		W w = new W();
+		// a solid mass with a one-cell slot in it: free, and useless
+		for (int x = 0; x <= 6; x++) {
+			for (int y = 98; y <= 104; y++) {
+				for (int z = 0; z <= 6; z++) w.solid.add(BlockPos.asLong(x, y, z));
+			}
+		}
+		// The crevice is TWO cells, or it is not passable at all and the control below is vacuous —
+		// a player is two blocks tall and `free` knows it.
+		w.open(3, 101, 3);
+		w.open(3, 102, 3);
+
+		BlockPos at = new BlockPos(3, 101, 3);
+		assertEquals(at, Nav.reachable(w.free(), at), "control: the crevice IS reachable");
+		BlockPos stand = Nav.standoff(w.free(), at, null, 6);
+		assertNotNull(stand, "found nowhere at all to work from");
+		assertFalse(stand.equals(at), "settled for the crevice");
+		int open = 0;
+		for (BlockPos n : new BlockPos[]{stand.above(), stand.below(), stand.north(), stand.south(),
+			stand.east(), stand.west()}) {
+			if (w.free().at(n.getX(), n.getY(), n.getZ())) open++;
+		}
+		assertTrue(open >= 3, "wedged in with " + open + " ways out");
+	}
+
+	@Test
+	void aStandoffPrefersYourSideOfTheWork() {
+		// The different angles: pass where you are coming from and it stands on that side rather
+		// than burrowing round to the far face of the wall you are building.
+		W w = new W();
+		BlockPos work = new BlockPos(0, 100, 0);
+		w.solid.add(work.asLong());
+		BlockPos east = Nav.standoff(w.free(), work, new BlockPos(40, 100, 0), 4);
+		BlockPos west = Nav.standoff(w.free(), work, new BlockPos(-40, 100, 0), 4);
+		assertNotNull(east);
+		assertNotNull(west);
+		assertTrue(east.getX() > west.getX(),
+			"ignored the side it was asked for: " + east + " vs " + west);
 	}
 }

@@ -2,6 +2,7 @@ package dev.jack.chunkscan;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -169,7 +170,22 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(literal("off").executes(ctx -> {
 						Autopilot.set(false);
 						ok(ctx.getSource(), "autofly off");
-						return 1; })))
+						return 1; }))
+					.then(literal("speed")
+						.executes(ctx -> { ok(ctx.getSource(), "autofly speed "
+							+ String.format("%.2f", Autopilot.speed()) + " blocks/tick ("
+							+ String.format("%.1f", Autopilot.speed() * 20) + " blocks/s). Set it"
+							+ " with /cscan autofly speed <" + Autopilot.MIN_SPEED + "-"
+							+ Autopilot.MAX_SPEED + ">; vanilla sprint-flight is about 1.0.");
+							return 1; })
+						.then(argument("blocks per tick", DoubleArgumentType.doubleArg())
+							.executes(ctx -> {
+								double got = Autopilot.setSpeed(
+									DoubleArgumentType.getDouble(ctx, "blocks per tick"));
+								ok(ctx.getSource(), "autofly speed " + String.format("%.2f", got)
+									+ " blocks/tick (" + String.format("%.1f", got * 20)
+									+ " blocks/s)");
+								return 1; }))))
 				.then(literal("fetch")
 					.executes(ctx -> {
 						Hud.stopFetching(ctx.getSource().getClient());

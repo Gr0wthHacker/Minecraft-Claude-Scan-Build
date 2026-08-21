@@ -46,8 +46,36 @@ final class Autopilot {
 	 * missing every turn.
 	 */
 	static final double SPEED = 0.75;
-	/** Close enough to be standing at it. */
-	static final double ARRIVED = 3.0;
+	/** Slowest worth having: below this you are watching a progress bar. */
+	static final double MIN_SPEED = 0.10;
+	/**
+	 * Fastest allowed. Vanilla sprint-flight is about 1.0 and the cap is deliberately AT it rather
+	 * than above: this is movement automation on a live server, and "no faster than a player can
+	 * actually go" is the one bound that is defensible without knowing the server's rules.
+	 */
+	static final double MAX_SPEED = 1.0;
+
+	private static double speed = SPEED;
+
+	/** Cruise speed in blocks per tick. */
+	static double speed() {
+		return speed;
+	}
+
+	/** @return the speed actually set, after clamping. */
+	static double setSpeed(double v) {
+		speed = Math.max(MIN_SPEED, Math.min(MAX_SPEED, v));
+		return speed;
+	}
+	/**
+	 * Close enough to be standing at it.
+	 *
+	 * <p>Was 3.0, which is fine for a chest (reach 4.5) and too loose for a build station: the
+	 * printer's slack over a bin's far corner is about a block, and stopping three blocks short of
+	 * where you were sent spends it before you start. The approach taper is what stops this
+	 * jittering, not the radius.
+	 */
+	static final double ARRIVED = 1.5;
 	/** Ease the turn instead of snapping: a camera that jumps to a bearing is not a player. */
 	static final float TURN_RATE = 0.18f;
 
@@ -150,10 +178,13 @@ final class Autopilot {
 
 	/** What is carrying you right now, for the HUD: a route, a walk, or a guess. */
 	static String mode(Minecraft mc) {
+		// speed is part of the mode: it is a dial you can move, so it must be visible where you are
+		// watching the thing it moves.
 		boolean flying = mc.player != null && mc.player.getAbilities().flying;
 		String how = flying ? "route" : "walk";
-		if (path.isEmpty()) return flying ? "direct" : "walk direct";
-		return (escaping ? "round " : how + " ") + path.size();
+		String tail = String.format(" @%.2f", speed);
+		if (path.isEmpty()) return (flying ? "direct" : "walk direct") + tail;
+		return (escaping ? "round " : how + " ") + path.size() + tail;
 	}
 
 	static void set(boolean v) {
@@ -210,7 +241,11 @@ final class Autopilot {
 		Vec3 me = p.position();
 		Vec3 to = Vec3.atCenterOf(target);
 		double dist = me.distanceTo(to);
-		if (dist <= ARRIVED) {
+		// A SOLID DESTINATION IS ARRIVED AT FROM OUTSIDE IT. A chest is a block, so the tight radius
+		// can never be satisfied and the flight would hover against its face trying — inside reach
+		// the whole time, which is all the fetch needs, but visibly nosing at it.
+		if (dist <= ARRIVED
+			|| (dist <= ARRIVED + 2.5 && mc.level.getBlockState(target).blocksMotion())) {
 			// ARRIVING IS NOT DISARMING. The first version called stop(), which sets on=false — so
 			// autofly switched itself off at the first chest and the unattended loop never flew
 			// again. Hold still and stay armed; the next `guide()` moves the target and this
@@ -269,7 +304,7 @@ final class Autopilot {
 		// Steer at the next waypoint rather than at the destination: that is the whole difference
 		// between going through the door and pressing on the wall beside it.
 		Vec3 aim = to;
-		double near = waypointRadius(flying ? SPEED : WALK_SPEED);
+		double near = waypointRadius(flying ? speed : WALK_SPEED);
 		while (!path.isEmpty() && me.distanceTo(Vec3.atCenterOf(path.get(0))) <= near) {
 			path.remove(0);
 		}
@@ -285,7 +320,10 @@ final class Autopilot {
 		p.setXRot(approach(p.getXRot(), wantPitch));
 
 		// ---- go. Slow into the target so the last few blocks are not an overshoot and a wobble.
-		double cruise = flying ? SPEED : WALK_SPEED;
+		// The walk scales with the same dial, because a speed setting that only changes flight is a
+		// setting that stops working the moment you go indoors — which is where you would most want
+		// to slow it down. Capped at a sprint either way: legs are legs.
+		double cruise = flying ? speed : Math.min(WALK_SPEED, WALK_SPEED * speed / SPEED);
 		double speed = Math.min(cruise, dist / 8.0 + 0.05);
 
 		// SLOW INTO A BEND. Movement is set directly along `dir`, so the eased turn is cosmetic and
@@ -345,7 +383,7 @@ final class Autopilot {
 			|| solid(mc, at.x, at.y + 1.6, at.z + Math.signum(z) * 0.9))) z = 0;
 		// Everything blocked: rise. Better than vibrating against a corner, and the next repath sees
 		// a different vantage.
-		if (x == 0 && y == 0 && z == 0) y = SPEED * 0.5;
+		if (x == 0 && y == 0 && z == 0) y = speed * 0.5;
 		return new Vec3(x, y, z);
 	}
 

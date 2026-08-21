@@ -50,6 +50,31 @@ final class Hud {
 	private static boolean fetching = false;
 	/** A dead end is worth saying once. Every two seconds it is a reason to turn the loop off. */
 	private static boolean said = false;
+	// ---- WHERE TO STAND INSIDE A SPOT. A spot is sized to an inventory load and can be 96 blocks
+	// across; the printer reaches four and a half. Standing at the centroid places what happens to
+	// be near the middle and then nothing at all, for ninety seconds, until the stall watch fires.
+	/** The region being worked. Kept by proximity — a centroid drifts as its cells get placed. */
+	private static BlockPos spotCentre = null;
+	private static long stationBin = Long.MIN_VALUE;
+	private static long stationSince;
+	private static int stationTodo = -1;
+	private static final java.util.Set<Long> stationsTried = new java.util.HashSet<>();
+	/**
+	 * Nothing placed at ONE station for this long and it moves to the next.
+	 *
+	 * <p>Much shorter than {@link #STALL_MS}, and they answer different questions: this one asks
+	 * "is there anything left here that the printer will take", the other asks "is this loop doing
+	 * anything at all". A station that will not build must not cost a minute and a half.
+	 */
+	static final long STATION_MS = 20_000;
+	/**
+	 * How far out of the work a standing spot may be.
+	 *
+	 * <p>Tight on purpose. A bin is a cube of {@link Plan#PRINTER_REACH}, so its far corner is about
+	 * 3.5 from the middle and the printer reaches 4.5 — the slack between those two is the whole
+	 * budget, and every block of standoff spends it. Wide enough to get out of the wall, no wider.
+	 */
+	static final int STANDOFF = 3;
 	private static int spotsLeft = 0;
 
 	private Hud() {}
@@ -142,7 +167,12 @@ final class Hud {
 			mc.player.sendSystemMessage(Component.literal("[cscan] STALLED — nothing placed in "
 				+ (STALL_MS / 1000) + "s at " + (target == null ? "?" : Wand.fmt(target))
 				+ ". Printer off, out of reach, or the spot cannot be built. " + sessionReport()));
-			// Give up on this spot rather than sitting against it: the next recount picks another.
+			// Give up on this SPOT rather than sitting against it: the next recount picks another.
+			// Dropping only the arrow left `spotCentre` set, so the hysteresis above chose the same
+			// region straight back again and the stall repeated for as long as you left it.
+			spotCentre = null;
+			stationBin = Long.MIN_VALUE;
+			stationsTried.clear();
 			stopGuiding();
 			Highlight.clear("goto");
 			return;
@@ -207,26 +237,100 @@ final class Hud {
 		}
 		said = false;
 
-		// HYSTERESIS: keep the current spot while it still has anything doable.
-		if (target != null) {
+		// ---- SPOT HYSTERESIS. Two levels of it now, and they are different questions: this one is
+		// "am I still working the same region", and `stand` below is "where in it do I float".
+		//
+		// Matched by PROXIMITY, not by equality: a cluster's centre is a centroid of the cells still
+		// to do, so it drifts a block or two every time you place some. Comparing it exactly would
+		// call every recount a new spot, reset the stations and re-announce, twice a second.
+		Plan.Cluster next = null;
+		if (spotCentre != null) {
+			double bestD = Double.MAX_VALUE;
 			for (Plan.Cluster c : cl) {
-				if (c.centre().distSqr(target) <= (double) Plan.WORK_RADIUS * Plan.WORK_RADIUS
-					&& c.doable() > 0) {
-					targetNote = c.doable() + " here";
-					return;
+				double d = c.centre().distSqr(spotCentre);
+				if (c.doable() > 0 && d < bestD && d <= (double) Plan.MAX_RADIUS * Plan.MAX_RADIUS) {
+					bestD = d;
+					next = c;
 				}
 			}
 		}
-		Plan.Cluster next = cl.get(0);
-		// A spot counts as finished when we leave one BUILD target for another — a chest we have just
-		// finished at is not a spot. The earlier version never incremented at all, so the session
-		// report said 0 spots however long it ran.
-		if (target != null && !wasFetching && !target.equals(next.centre())) spotsDone++;
-		if (target != null && target.equals(next.centre())) return;   // already pointing there
-		Highlight.show("goto", Work.positions(next.cells(), 400), 0x40FF60, 900);
-		guide(next.centre(), next.doable() + " here");
-		mc.player.sendSystemMessage(Component.literal("[cscan] next spot: " + next.doable()
-			+ " cells at " + Wand.fmt(next.centre()) + ", " + (cl.size() - 1) + " more after it"));
+		if (next == null) {
+			next = cl.get(0);
+			if (spotCentre != null && !wasFetching) spotsDone++;
+			spotCentre = next.centre();
+			stationBin = Long.MIN_VALUE;
+			stationTodo = -1;
+			stationsTried.clear();
+			mc.player.sendSystemMessage(Component.literal("[cscan] next spot: " + next.doable()
+				+ " cells around " + Wand.fmt(next.centre()) + ", " + (cl.size() - 1)
+				+ " more after it"));
+		}
+		stand(mc, next, me, cl.size());
+	}
+
+	/**
+	 * Go and stand where the printer can actually reach something.
+	 *
+	 * <p>The station is the fullest reach-sized bin of the spot's cells, and it is re-chosen every
+	 * recount: as those cells get placed the bin empties and the next call moves you on, with no
+	 * state to go stale. What IS kept is the stall — twenty seconds at one station with nothing
+	 * placed and that bin is abandoned, because a bin the printer will not take (out of the
+	 * placement's chunk, blocked by an entity, obstructed by something the design does not know
+	 * about) is otherwise a bin you sit at.
+	 */
+	private static void stand(Minecraft mc, Plan.Cluster spot, BlockPos me, int spotsInPlan) {
+		long now = System.currentTimeMillis();
+		Plan.Station st = Plan.station(spot.cells(), Plan.PRINTER_REACH, me, stationsTried);
+		if (st == null) {
+			// Every bin here has been tried. Start again rather than stranding the spot: the world
+			// has moved since, and the alternative is a spot that can never be worked.
+			stationsTried.clear();
+			st = Plan.station(spot.cells(), Plan.PRINTER_REACH, me, stationsTried);
+			if (st == null) return;
+		}
+
+		// ---- the per-station stall, measured on this station's OWN cell count
+		java.util.List<Work.Cell> here = Plan.atStation(spot.cells(), st, Plan.PRINTER_REACH);
+		if (st.bin() == stationBin) {
+			if (stationTodo >= 0 && here.size() < stationTodo) {
+				stationSince = now;
+				stationTodo = here.size();
+				// ---- MOVE AROUND THE WORK AS IT GETS BUILT. The bin is a 4-cube, so its far corner
+				// is 3.5 from the centre and a standoff a few blocks out puts part of it beyond the
+				// printer's reach. Re-aiming at the centroid of what is LEFT walks you round the
+				// group from a new angle every time some of it goes in — which is the difference
+				// between finishing a station and placing the near face of it and stopping.
+				BlockPos re = Nav.standoff(Nav.of(mc.level), Plan.centroid(here),
+					mc.player.blockPosition(), STANDOFF);
+				if (re != null && !re.equals(target)) {
+					Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
+					guide(re, here.size() + " here");
+				}
+				return;
+			}
+			stationTodo = here.size();
+			if (now - stationSince > STATION_MS) {
+				stationsTried.add(st.bin());
+				stationBin = Long.MIN_VALUE;
+				mc.player.sendSystemMessage(Component.literal("[cscan] nothing placed here in "
+					+ (STATION_MS / 1000) + "s — moving to the next angle on this spot"));
+				return;                                     // next recount picks another bin
+			}
+			return;                                          // still working: leave the arrow alone
+		}
+
+		// ---- a new station. Stand OFF it: the bin centroid is usually inside the wall you are
+		// building, and a spot wedged between two blocks is one the printer never finishes.
+		stationBin = st.bin();
+		stationSince = now;
+		stationTodo = here.size();
+		BlockPos at = Nav.standoff(Nav.of(mc.level), st.where(), me, STANDOFF);
+		if (at == null) at = st.where();
+		Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
+		guide(at, st.cells() + " here, " + spot.doable() + " in this spot");
+		mc.player.sendSystemMessage(Component.literal("[cscan] " + st.cells() + " cells at "
+			+ Wand.fmt(st.where()) + " — " + spot.doable() + " left in this spot, "
+			+ (spotsInPlan - 1) + " more spots after it"));
 	}
 
 	/**
@@ -348,6 +452,10 @@ final class Hud {
 		fetches = 0;
 		stalls = 0;
 		said = false;
+		stationBin = Long.MIN_VALUE;
+		stationTodo = -1;
+		stationsTried.clear();
+		spotCentre = null;
 	}
 
 	/** What the loop has done since `follow` started — the report for a session you were not watching. */

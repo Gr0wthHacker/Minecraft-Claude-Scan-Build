@@ -307,6 +307,56 @@ final class Nav {
 		return best;
 	}
 
+	/**
+	 * Somewhere to float and work from, near a place that is probably solid.
+	 *
+	 * <p>{@link #reachable} answers "may a route end here" and takes the first free cell it finds,
+	 * which next to a wall is the crevice between two blocks. A STANDING spot wants more than that:
+	 * the cell you place from must be open enough that you can hold still in it, see the work, and
+	 * leave again — this island is a deck under a plate, full of hoppers, chests, rails and roots,
+	 * and a spot wedged between two of them is a spot the printer never finishes.
+	 *
+	 * <p>So: search outward in shells, and score on OPENNESS — how many of the six neighbours are
+	 * clear — before distance. `want` biases the direction it prefers to stand off in, which is what
+	 * gives the different angles: pass the direction you came from and it stands on your side of the
+	 * work rather than burrowing to the far face.
+	 */
+	static BlockPos standoff(Passable free, BlockPos at, BlockPos want, int maxOut) {
+		BlockPos best = null;
+		double bestScore = -1;
+		for (int r = 1; r <= maxOut; r++) {
+			for (int dx = -r; dx <= r; dx++) {
+				for (int dy = -r; dy <= r; dy++) {
+					for (int dz = -r; dz <= r; dz++) {
+						// shell only: the inner ones were done on the previous pass
+						if (Math.max(Math.abs(dx), Math.max(Math.abs(dy), Math.abs(dz))) != r) continue;
+						int x = at.getX() + dx, y = at.getY() + dy, z = at.getZ() + dz;
+						if (!free.at(x, y, z)) continue;
+						int open = 0;
+						if (free.at(x + 1, y, z)) open++;
+						if (free.at(x - 1, y, z)) open++;
+						if (free.at(x, y + 1, z)) open++;
+						if (free.at(x, y - 1, z)) open++;
+						if (free.at(x, y, z + 1)) open++;
+						if (free.at(x, y, z - 1)) open++;
+						if (open < 3) continue;               // a crevice, not a place to work from
+						BlockPos c = new BlockPos(x, y, z);
+						// openness first, then the side you asked for, then distance from the work
+						double score = open * 100.0
+							- (want == null ? 0 : Math.sqrt(c.distSqr(want)))
+							- Math.sqrt(c.distSqr(at)) * 0.5;
+						if (score > bestScore) {
+							bestScore = score;
+							best = c;
+						}
+					}
+				}
+			}
+			if (best != null) return best;                    // nearest shell that offered anything
+		}
+		return null;
+	}
+
 	/** The A* itself. `to` may block motion; see {@link #reachable}. */
 	private static List<BlockPos> search(Passable free, BlockPos from, BlockPos to, long deadline) {
 		BlockPos aim = reachable(free, to);

@@ -2296,6 +2296,64 @@ useful. And taking nothing no longer reports as `took 0`: it says the index was 
 the chest, because "took 0" reads as a failure of the taking rather than of the record that sent you
 there.
 
+### A SPOT IS A TRIP, NOT A PLACE TO STAND (2026-08-20)
+
+Jack: *"when its flying to place make sure it moves around the placement area in a radius flying
+different angles… printer wont work if it just stays in a small place the entire time it wont ever
+move on."* Exactly right, and it is the biggest gap in the loop so far.
+
+**`radiusFor` sizes a spot to one INVENTORY LOAD** — 24 blocks carrying a shulker, 96 carrying six —
+which is correct for deciding where to make a trip to. The loop then guided you to that spot's
+CENTROID and stopped, because arriving is not disarming. **The printer reaches about four and a
+half blocks.** So it placed whatever happened to lie near the middle of a region up to 96 across, ran
+out, and sat there until the ninety-second stall watch abandoned a spot that was almost entirely
+unbuilt — and then the next recount picked the same region again.
+
+Two levels of hysteresis now, and they answer different questions:
+
+- **the SPOT** — am I still working this region? Matched by PROXIMITY, not equality: a cluster's
+  centre is the centroid of the cells still to do, so it drifts a block or two every time you place
+  some, and comparing it exactly would call every recount a new spot and re-announce twice a second.
+- **the STATION** — where in it do I float? The cells binned at the printer's reach; you are sent to
+  the fullest bin, nearest on a tie. There is no state to keep: as those cells get placed the bin
+  empties and the next call moves you on.
+
+Four things that had to be right, each of which produces a loop that looks like it is working:
+
+- **A station RE-CENTRES as its cells get built.** A bin is a 4-cube, so its far corner is 3.46 from
+  the middle and the printer's slack over that is about a block. Standing where you first arrived
+  builds the near face and stops; re-aiming at the centroid of what is LEFT walks you round the group
+  from a new angle each time some of it goes in. That is the "different angles", and it falls out of
+  re-centring rather than needing an orbit.
+- **`Nav.standoff`, not `Nav.reachable`.** `reachable` answers "may a route END here" and takes the
+  first free cell it finds, which beside a wall is the crevice between two blocks. A place to work
+  FROM is scored on OPENNESS — at least three of six neighbours clear — before distance, and biased
+  toward the side you came from. This island is a deck under a plate full of hoppers, chests, rails
+  and roots; a spot wedged between two of them is one the printer never finishes.
+- **A per-station stall of 20s**, against the spot's 90. They ask different questions: *is there
+  anything left here the printer will take* versus *is this loop doing anything at all*. A bin the
+  printer will not take — wrong chunk, blocked by an entity, obstructed by something the design does
+  not know about — must not cost a minute and a half. Abandoned bins are remembered, and when every
+  bin has been tried the set is cleared rather than stranding the spot for good.
+- **The spot-level stall has to drop the SPOT.** It cleared the arrow and left `spotCentre` set, so
+  the proximity hysteresis chose the same region straight back and the stall repeated for as long as
+  you left it running.
+
+`ARRIVED` 3.0 → **1.5**, because stopping three blocks short of where you were sent spends the whole
+reach budget before you start — and a SOLID destination is arrived at from outside it, or the flight
+noses at the face of a chest trying to satisfy a radius no route can reach. `tests/PlanTest` pins the
+arithmetic (`half-diagonal of a bin + standoff + arrival < printer reach`), because that relationship
+breaks silently the moment anyone tunes one of its three numbers.
+
+#### `/cscan autofly speed <n>`
+
+0.10 to 1.00 blocks per tick, default 0.75, reported in the HUD beside the mode (`[route 3 @0.75]`).
+The cap is AT vanilla sprint-flight rather than above it: "no faster than a player can actually go"
+is the one bound that is defensible without knowing the server's rules.
+
+**The walk scales with the same dial.** A speed setting that only changes flight stops working the
+moment you go indoors, which is where you would most want to slow it down.
+
 ## The daily loop
 
 ```bash

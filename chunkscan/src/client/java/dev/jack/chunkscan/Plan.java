@@ -366,6 +366,69 @@ final class Plan {
 		return Math.max(0, Math.min(room, Math.min(r.missing(), Math.max(0, r.available()))));
 	}
 
+	// ---------------------------------------------------------------- inside a spot: STATIONS
+	//
+	// A SPOT IS A TRIP, NOT A PLACE TO STAND. `radiusFor` sizes a spot to one inventory load, which
+	// with a shulker or two is a region 48 or 96 blocks across — and the loop then guided you to its
+	// CENTROID and stopped, because arriving is not disarming. The printer reaches about four and a
+	// half blocks. So it placed whatever happened to be near the middle of the region, ran out, and
+	// sat there until the ninety-second stall watch gave up on a spot that was almost entirely
+	// unbuilt. "It stays in a small place the entire time and never moves on" is exactly this.
+	//
+	// A station is where you actually stand: the cells binned at the printer's reach, and you are
+	// sent to the fullest bin. There is no state to keep — as the cells get placed that bin empties
+	// and the next call picks the next one, which is the same hysteresis the spot itself uses, one
+	// level down.
+
+	/** About what litematica-printer will place from where you float. */
+	static final int PRINTER_REACH = 4;
+
+	/**
+	 * Where to stand INSIDE a spot, and how many cells that covers.
+	 *
+	 * @param skip bin keys already tried and abandoned — see {@link #binKey}
+	 */
+	record Station(BlockPos where, int cells, long bin) {}
+
+	/** Which reach-sized bin a cell belongs to. Stations are named by this, so they can be skipped. */
+	static long binKey(BlockPos p, int reach) {
+		return BlockPos.asLong(Math.floorDiv(p.getX(), reach), Math.floorDiv(p.getY(), reach),
+			Math.floorDiv(p.getZ(), reach));
+	}
+
+	/**
+	 * The fullest bin of cells you are not already carrying past, nearest on a tie.
+	 *
+	 * <p>Fullest rather than nearest, because the walk between two bins inside one spot is nothing
+	 * and the number of blocks you place when you get there is everything. Nearest only breaks ties,
+	 * which is what stops it crossing the region for a bin one cell bigger.
+	 */
+	static Station station(List<Work.Cell> cells, int reach, BlockPos from, Set<Long> skip) {
+		Map<Long, List<Work.Cell>> bins = new LinkedHashMap<>();
+		for (Work.Cell c : cells) {
+			long k = binKey(c.pos(), reach);
+			if (skip.contains(k)) continue;
+			bins.computeIfAbsent(k, x -> new ArrayList<>()).add(c);
+		}
+		Station best = null;
+		for (var e : bins.entrySet()) {
+			BlockPos centre = centroid(e.getValue());
+			if (best == null || e.getValue().size() > best.cells()
+				|| (e.getValue().size() == best.cells()
+					&& centre.distSqr(from) < best.where().distSqr(from))) {
+				best = new Station(centre, e.getValue().size(), e.getKey());
+			}
+		}
+		return best;
+	}
+
+	/** The cells one station covers, for the highlight and for knowing when it is finished. */
+	static List<Work.Cell> atStation(List<Work.Cell> cells, Station st, int reach) {
+		List<Work.Cell> out = new ArrayList<>();
+		for (Work.Cell c : cells) if (binKey(c.pos(), reach) == st.bin()) out.add(c);
+		return out;
+	}
+
 	/** How far the cluster reaches from its centre, so "1,850 cells" has a size attached. */
 	static int extent(Cluster c) {
 		double worst = 0;

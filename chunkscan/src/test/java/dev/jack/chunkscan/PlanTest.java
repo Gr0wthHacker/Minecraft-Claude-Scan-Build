@@ -13,6 +13,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -571,5 +572,96 @@ class PlanTest {
 		assertEquals(0, Work.roomIn(0, new int[]{64, 64}, 64), "two full stacks is no room");
 		assertEquals(24, Work.roomIn(0, new int[]{40}, 64));
 		assertEquals(64 + 24, Work.roomIn(1, new int[]{40, 64}, 64));
+	}
+
+	// ---------------------------------------------------------------- stations inside a spot
+	//
+	// A SPOT IS A TRIP, NOT A PLACE TO STAND. `radiusFor` sizes a spot to one inventory load, so with
+	// a shulker aboard it is a region 48 blocks across - and the loop guided you to its CENTROID and
+	// stopped there, because arriving is not disarming. The printer reaches about four and a half.
+	// It placed whatever was near the middle, ran out, and sat until the stall watch abandoned a spot
+	// that was almost entirely unbuilt.
+
+	@Test
+	void aStationIsWithinPrinterReachOfTheCellsItCovers() {
+		List<Work.Cell> far = new ArrayList<>();
+		for (int i = 0; i < 30; i++) far.add(cell(100 + i % 3, 100, 100 + i / 3, "stone_bricks"));
+		Plan.Station st = Plan.station(far, Plan.PRINTER_REACH, BlockPos.ZERO, Set.of());
+		assertNotNull(st);
+		for (Work.Cell c : Plan.atStation(far, st, Plan.PRINTER_REACH)) {
+			assertTrue(Math.sqrt(c.pos().distSqr(st.where())) <= Plan.PRINTER_REACH * 2,
+				c.pos() + " is out of reach of the station at " + st.where());
+		}
+	}
+
+	@Test
+	void theCentroidOfAWholeSpotIsNotAStation() {
+		// The bug, stated as a test. Two dense knots 40 blocks apart: their joint centroid is 20
+		// blocks from either, which is nothing the printer can touch. A station must be AT one knot.
+		List<Work.Cell> two = new ArrayList<>(blob(0, 100, 0, 20, "stone_bricks"));
+		two.addAll(blob(40, 100, 0, 20, "stone_bricks"));
+		BlockPos centroid = Plan.centroid(two);
+		Plan.Station st = Plan.station(two, Plan.PRINTER_REACH, BlockPos.ZERO, Set.of());
+		assertNotNull(st);
+		assertTrue(Math.sqrt(st.where().distSqr(centroid)) > Plan.PRINTER_REACH,
+			"the station is the useless middle: " + st.where());
+	}
+
+	@Test
+	void itGoesToTheFullestBinAndTheNearestOnATie() {
+		List<Work.Cell> mixed = new ArrayList<>(blob(0, 100, 0, 6, "stone_bricks"));
+		mixed.addAll(blob(60, 100, 0, 25, "stone_bricks"));
+		Plan.Station st = Plan.station(mixed, Plan.PRINTER_REACH, BlockPos.ZERO, Set.of());
+		assertTrue(st.where().getX() > 30, "took the near handful over the far pile: " + st.where());
+		// ...and a genuine tie goes to your feet, or it crosses the region for nothing
+		List<Work.Cell> tied = new ArrayList<>(blob(0, 100, 0, 9, "stone_bricks"));
+		tied.addAll(blob(60, 100, 0, 9, "stone_bricks"));
+		assertTrue(Plan.station(tied, Plan.PRINTER_REACH, BlockPos.ZERO, Set.of())
+			.where().getX() < 30, "walked past an identical pile");
+	}
+
+	@Test
+	void anAbandonedStationIsNotOfferedAgain() {
+		// Twenty seconds at one station with nothing placed and the bin is skipped: a bin the
+		// printer will not take is otherwise a bin you sit at until the spot times out.
+		List<Work.Cell> mixed = new ArrayList<>(blob(0, 100, 0, 25, "stone_bricks"));
+		mixed.addAll(blob(60, 100, 0, 6, "stone_bricks"));
+		Plan.Station first = Plan.station(mixed, Plan.PRINTER_REACH, BlockPos.ZERO, Set.of());
+		Plan.Station second = Plan.station(mixed, Plan.PRINTER_REACH, BlockPos.ZERO,
+			Set.of(first.bin()));
+		assertNotNull(second, "gave up when the fullest bin was skipped");
+		assertNotEquals(first.bin(), second.bin());
+	}
+
+	@Test
+	void everyCellOfASpotBelongsToSomeStation() {
+		// The property that makes the sweep finish: no cell can be left with nowhere to stand for it,
+		// or the spot never empties and the stall watch is what ends it.
+		List<Work.Cell> spread = new ArrayList<>();
+		for (int x = 0; x < 30; x += 2) {
+			for (int z = 0; z < 30; z += 3) spread.add(cell(x, 100, z, "stone_bricks"));
+		}
+		Set<Long> tried = new HashSet<>();
+		int covered = 0;
+		for (int guard = 0; guard < 500; guard++) {
+			Plan.Station st = Plan.station(spread, Plan.PRINTER_REACH, BlockPos.ZERO, tried);
+			if (st == null) break;
+			covered += Plan.atStation(spread, st, Plan.PRINTER_REACH).size();
+			tried.add(st.bin());
+		}
+		assertEquals(spread.size(), covered, "some cells had no station to place them from");
+	}
+
+	@Test
+	void aStationCanReachItsOwnFarCorner() {
+		// The arithmetic the whole sweep rests on, and it breaks silently if anyone tunes the reach:
+		// a bin is a cube of PRINTER_REACH, so its half-diagonal must stay under what the printer
+		// can actually touch, plus whatever the standoff and the arrival radius spend getting there.
+		double halfDiagonal = Math.sqrt(3) * Plan.PRINTER_REACH / 2.0;
+		double budget = 4.5;                                  // litematica-printer's reach
+		assertTrue(halfDiagonal < budget,
+			"a station cannot build the far corner of its own bin: " + halfDiagonal);
+		assertTrue(Hud.STANDOFF + Autopilot.ARRIVED <= 5.0,
+			"standing off plus stopping short puts the bin out of reach");
 	}
 }
