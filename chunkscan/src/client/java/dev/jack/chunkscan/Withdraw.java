@@ -182,19 +182,41 @@ final class Withdraw {
 		phase = took > 0 ? Phase.DONE : Phase.FAILED;
 		if (took == 0) note = "there was none of it in there";
 		else if (short_) note = "took " + took + " of " + target + "; the rest is elsewhere";
-		if (chest != null && (took == 0 || short_)) {
-			failedAt.put(chest.asLong(), System.currentTimeMillis());
+		// LEAVE THIS CHEST ALONE FOR A WHILE, whatever happened — emptied, short, or exactly what we
+		// came for. There is no version of "come straight back to the chest I have just been through"
+		// that is useful, and it produced a real bug: the loop finished a withdrawal, the phase left
+		// `busy()`, the next recount two seconds later saw itself still standing at the chest and
+		// began a SECOND withdrawal, which found nothing of what it asked for and reported
+		//
+		//     [cscan] took 0x stone_bricks
+		//
+		// straight after a successful one. The items were in the pack; the message was about the
+		// pointless second trip. Worse, that second pass then blacklisted a chest that had just
+		// worked.
+		if (chest != null) failedAt.put(chest.asLong(), System.currentTimeMillis());
+		if (took > 0 || want == null) {
+			mc.player.sendSystemMessage(Component.literal("[cscan] took " + took
+				+ (want == null ? " item(s)" : "x " + want)
+				+ (short_ ? " of " + target + " — looking elsewhere for the rest" : "")));
+		} else {
+			// Nothing taken is worth saying, but not as "took 0": say WHY, or it reads as a failure
+			// of the taking rather than of the index that sent you here.
+			mc.player.sendSystemMessage(Component.literal("[cscan] no " + want + " in "
+				+ Wand.fmt(chest) + " — the index was out of date. Trying elsewhere."));
 		}
-		mc.player.sendSystemMessage(Component.literal("[cscan] took " + took
-			+ (want == null ? " item(s)" : "x " + want)
-			+ (short_ ? " of " + target + " — looking elsewhere for the rest" : "")));
 	}
 
 	private static int carrying(Minecraft mc) {
 		return Work.carrying(mc.player).getOrDefault(want, 0);
 	}
 
-	/** Is this particular chest in its cooling-off period? */
+	/**
+	 * Is this particular chest in its cooling-off period?
+	 *
+	 * <p>"Cooling off" now means "been there this trip", not only "failed there": see {@link #finish}.
+	 * The window has to expire either way — a chest can be refilled and a timeout can be lag, so a
+	 * permanent mark turns a hiccup into a dead session.
+	 */
 	static boolean recentlyFailed(BlockPos at, long now) {
 		Long t = failedAt.get(at.asLong());
 		return t != null && now - t < RETRY_AFTER_MS;

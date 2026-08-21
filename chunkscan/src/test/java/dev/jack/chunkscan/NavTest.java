@@ -265,4 +265,66 @@ class NavTest {
 		assertFalse(Nav.clear(w.free(), new BlockPos(0, 100, 0), new BlockPos(10, 100, 0)));
 		assertTrue(Nav.clear(w.free(), new BlockPos(0, 100, 0), new BlockPos(4, 100, 0)));
 	}
+
+	// ---------------------------------------------------------------- getting round it
+	//
+	// The fallback when no route exists used to be "fly at the goal and add a little upward nudge",
+	// which does not lift you over anything - it grinds you along the wall at an angle. Getting round
+	// an obstacle is a SEARCH, not a nudge.
+
+	@Test
+	void escapeGoesAroundRatherThanInto() {
+		// A wall with no door, and a way round the end of it. There is no route to the goal, so the
+		// question is only whether it makes progress - and progress means ending up closer.
+		W w = new W();
+		w.wall(5, 90, 130, -20, 20);        // tall and wide, but finite: you can go round the top
+		BlockPos from = new BlockPos(0, 100, 0);
+		BlockPos to = new BlockPos(10, 100, 0);
+
+		assertTrue(Nav.route(w.free(), from, to).isEmpty(), "control: there is no route through");
+		List<BlockPos> out = Nav.escape(w.free(), from, to, Nav.ESCAPE_RADIUS);
+		assertFalse(out.isEmpty(), "gave up instead of going round");
+		BlockPos end = out.get(out.size() - 1);
+		assertTrue(end.distSqr(to) < from.distSqr(to), "went somewhere no closer than where it was");
+		for (BlockPos b : out) {
+			assertTrue(w.free().at(b.getX(), b.getY(), b.getZ()), b + " is inside a wall");
+		}
+	}
+
+	@Test
+	void escapeUsesEveryDirectionNotJustUp() {
+		// "up, down, left, right" - a ceiling is escaped sideways, not by rising into it.
+		W w = new W();
+		for (int x = -20; x <= 20; x++) {
+			for (int z = -20; z <= 20; z++) {
+				if (z > 3) continue;                     // open to the north only
+				for (int y = 101; y <= 120; y++) w.solid.add(BlockPos.asLong(x, y, z));
+			}
+		}
+		BlockPos from = new BlockPos(0, 99, 0);
+		BlockPos to = new BlockPos(0, 130, 0);           // straight up, through the lid
+		List<BlockPos> out = Nav.escape(w.free(), from, to, Nav.ESCAPE_RADIUS);
+		assertFalse(out.isEmpty(), "sat under the ceiling");
+		assertTrue(out.get(out.size() - 1).getZ() > 3, "did not look sideways for the way out");
+	}
+
+	@Test
+	void escapeFromASealedBoxStaysInTheBoxAndThenStops() {
+		// Written first as "a sealed box has no escape", which was wrong: crossing the room really
+		// does get you closer to something outside it, and "the best cell you can reach" is the
+		// honest answer even when it is two blocks away. What matters is that it never leaves, and
+		// that it CONVERGES - one move to the near wall, and then nothing, rather than an autopilot
+		// bouncing off the inside of a room for ever.
+		W w = new W();
+		w.room(-3, 97, -3, 3, 103, 3);
+		BlockPos goal = new BlockPos(60, 100, 0);
+		List<BlockPos> first = Nav.escape(w.free(), new BlockPos(0, 100, 0), goal, Nav.ESCAPE_RADIUS);
+		for (BlockPos b : first) {
+			assertTrue(b.getX() > -3 && b.getX() < 3, "escaped a sealed box at " + b);
+			assertTrue(w.free().at(b.getX(), b.getY(), b.getZ()), b + " is inside a wall");
+		}
+		BlockPos best = first.isEmpty() ? new BlockPos(0, 100, 0) : first.get(first.size() - 1);
+		assertTrue(Nav.escape(w.free(), best, goal, Nav.ESCAPE_RADIUS).isEmpty(),
+			"kept finding new progress from the best cell in a closed room");
+	}
 }

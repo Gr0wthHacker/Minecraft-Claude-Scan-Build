@@ -1,5 +1,6 @@
 package dev.jack.chunkscan;
 
+import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -47,10 +48,58 @@ class AutopilotTest {
 
 	@Test
 	void theSpeedIsUnderSprintFlight() {
-		// Conservative on purpose: this is movement automation on a live server, and the faster it
-		// is the more it looks like the thing anticheat is built to catch.
-		assertTrue(Autopilot.SPEED <= 0.45, "faster than vanilla creative flight");
+		// Still bounded, just not timid. Vanilla sprint-flight is about 1.0 blocks a tick, and the
+		// ceiling that matters is "no faster than a player can go", not "as slow as possible" — an
+		// island 240 blocks tall at 0.35 was a long time watching yourself travel.
+		assertTrue(Autopilot.SPEED <= 1.0, "faster than a player sprint-flying");
 		assertTrue(Autopilot.ARRIVED >= 1.0, "it must stop before it is inside the target");
+	}
+
+	@Test
+	void theWaypointRadiusGrowsWithTheSpeed() {
+		// A fixed radius and a raised speed is how a router that works becomes one that clips every
+		// corner: you must not cross the radius in fewer ticks than it takes to notice it.
+		double near = Autopilot.waypointRadius(Autopilot.SPEED);
+		assertTrue(near >= Autopilot.SPEED * 2,
+			"a leg at cruise passes the waypoint before the next one is picked");
+		assertEquals(Autopilot.WAYPOINT, Autopilot.waypointRadius(0.05), 0.0001,
+			"crawling should keep the tight old radius");
+	}
+
+	// ---------------------------------------------------------------- the stale check
+	//
+	// THE ONE-FRAME-A-SECOND BUG. The route was invalidated by `walkRoute != flying` where
+	// `walkRoute = !flying`, which is true whenever flying is true - so an A* ran EVERY TICK instead
+	// of twice a second. Nothing about the routing or the steering was wrong and no state showed it:
+	// the only symptom was the frame rate. Hence a pure predicate with tests on it.
+
+	@Test
+	void aFreshRouteIsNotImmediatelyStale() {
+		BlockPos t = new BlockPos(10, 100, 0);
+		assertFalse(Autopilot.needsRepath(t, t, Autopilot.REPATH_TICKS, true, true, 0),
+			"re-routed on the tick after routing — this is the 1 FPS bug");
+		assertFalse(Autopilot.needsRepath(t, t, Autopilot.REPATH_TICKS, false, false, 0),
+			"...and the same while walking");
+	}
+
+	@Test
+	void everyReasonToRepathIsHeldOffByTheFloor() {
+		// The floor beats every other reason, so no future invalidation rule can bring back a
+		// per-tick search. The destination moving is included: it moves when you finish a spot,
+		// which is nowhere near five ticks.
+		BlockPos a = new BlockPos(10, 100, 0), b = new BlockPos(90, 100, 0);
+		int young = Autopilot.MIN_REPATH_TICKS - 1;
+		assertFalse(Autopilot.needsRepath(a, b, -5, true, false, young), "ignored the floor");
+	}
+
+	@Test
+	void itRepathsWhenTheDestinationMovesOrYouLand() {
+		BlockPos a = new BlockPos(10, 100, 0), b = new BlockPos(90, 100, 0);
+		int old = Autopilot.MIN_REPATH_TICKS + 1;
+		assertTrue(Autopilot.needsRepath(a, b, 99, true, true, old), "the target moved");
+		assertTrue(Autopilot.needsRepath(a, a, 99, true, false, old), "you landed");
+		assertTrue(Autopilot.needsRepath(a, a, 0, true, true, old), "the timer expired");
+		assertTrue(Autopilot.needsRepath(null, a, 99, true, true, old), "there was no route at all");
 	}
 
 	@Test

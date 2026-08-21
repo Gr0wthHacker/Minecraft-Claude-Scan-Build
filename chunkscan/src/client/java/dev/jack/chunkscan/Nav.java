@@ -104,6 +104,15 @@ final class Nav {
 	 * double slab.
 	 */
 	static final int GOAL_SLACK = 2;
+	/**
+	 * How many cells {@link #escape} will look at before settling for the best it has found.
+	 *
+	 * <p>A flood is cheap per cell — no queue ordering, one visit each — and it only runs when a real
+	 * search has already failed, which is rare and already behind a backoff.
+	 */
+	static final int ESCAPE_CELLS = 6000;
+	/** How far from the player {@link #escape} may wander. Round a building, not across the island. */
+	static final int ESCAPE_RADIUS = 24;
 
 	private Nav() {}
 
@@ -183,19 +192,79 @@ final class Nav {
 		BlockPos aim = reachable(free, to);
 		if (aim != null && clear(free, from, aim)) return List.of(aim);
 
-		List<BlockPos> direct = search(free, from, to);
+		// ONE budget for the whole call, shared by every attempt below. Otherwise each staged retry
+		// gets its own 25ms and four of them is a visible hitch twice a second.
+		long deadline = System.nanoTime() + MAX_MILLIS * 1_000_000L;
+
+		List<BlockPos> direct = search(free, from, to, deadline);
 		if (!direct.isEmpty()) return direct;
 
 		// ---- 3. STAGE. Long searches fail by exhausting a budget, not by proving anything, so
-		// getting closer and asking again is a better answer than giving up — and infinitely better
-		// than the caller's fallback, which is to fly straight at whatever is in the way.
+		// getting closer and asking again is a better answer than giving up. Shortening on each try,
+		// because a sub-goal can land inside the island as easily as in front of it.
 		double d = Math.sqrt(from.distSqr(to));
-		if (d > STAGE) {
-			BlockPos sub = along(from, to, STAGE);
-			List<BlockPos> staged = search(free, from, sub);
+		for (int stage = STAGE; stage >= 16 && stage < d; stage /= 2) {
+			if (System.nanoTime() > deadline) break;
+			List<BlockPos> staged = search(free, from, along(from, to, stage), deadline);
 			if (!staged.isEmpty()) return staged;
 		}
 		return List.of();
+	}
+
+	/**
+	 * When there is no route: the best you CAN reach, which is how you get round a wall.
+	 *
+	 * <p>Flying direct at an unreachable goal presses you into whatever is between, which is the
+	 * thing this whole file exists to stop — and the previous fallback did exactly that, with a
+	 * little upward nudge that mostly ground you along the wall. Getting round an obstacle is not a
+	 * heuristic, it is a search: flood outward from where you stand and take the reachable cell that
+	 * gets you CLOSEST to the goal. Up, down, left, right, behind — whichever actually helps.
+	 *
+	 * <p>Breadth-first, so it is bounded by cells rather than by geometry, and cheap: no priority
+	 * queue, no heuristic, one visit per cell. Re-run as you go it is a wall-follower that always
+	 * makes progress, and when it cannot improve at all it returns empty — which is the honest
+	 * answer that you are shut in.
+	 */
+	static List<BlockPos> escape(Passable free, BlockPos from, BlockPos to, int radius) {
+		Map<Long, Node> came = new HashMap<>();
+		java.util.ArrayDeque<Node> queue = new java.util.ArrayDeque<>();
+		java.util.Set<Long> seen = new java.util.HashSet<>();
+		Node start = new Node(from.getX(), from.getY(), from.getZ());
+		queue.add(start);
+		seen.add(start.key());
+
+		Node best = null;
+		double bestD = Math.sqrt(from.distSqr(to));
+		long r2 = (long) radius * radius;
+		int visited = 0;
+
+		while (!queue.isEmpty() && visited < ESCAPE_CELLS) {
+			Node cur = queue.poll();
+			visited++;
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dy = -1; dy <= 1; dy++) {
+					for (int dz = -1; dz <= 1; dz++) {
+						if (dx == 0 && dy == 0 && dz == 0) continue;
+						int nx = cur.x + dx, ny = cur.y + dy, nz = cur.z + dz;
+						Node nb = new Node(nx, ny, nz);
+						if (!seen.add(nb.key())) continue;
+						if (from.distSqr(new BlockPos(nx, ny, nz)) > r2) continue;
+						if (!free.at(nx, ny, nz)) continue;
+						if (dx != 0 && !free.at(cur.x + dx, cur.y, cur.z)) continue;
+						if (dy != 0 && !free.at(cur.x, cur.y + dy, cur.z)) continue;
+						if (dz != 0 && !free.at(cur.x, cur.y, cur.z + dz)) continue;
+						came.put(nb.key(), cur);
+						queue.add(nb);
+						double d = Math.sqrt(new BlockPos(nx, ny, nz).distSqr(to));
+						if (d < bestD - 0.5) {          // must actually IMPROVE, not tie
+							bestD = d;
+							best = nb;
+						}
+					}
+				}
+			}
+		}
+		return best == null ? List.of() : rebuild(came, best);
 	}
 
 	/** A point `dist` of the way from `a` toward `b`. */
@@ -239,7 +308,7 @@ final class Nav {
 	}
 
 	/** The A* itself. `to` may block motion; see {@link #reachable}. */
-	private static List<BlockPos> search(Passable free, BlockPos from, BlockPos to) {
+	private static List<BlockPos> search(Passable free, BlockPos from, BlockPos to, long deadline) {
 		BlockPos aim = reachable(free, to);
 		if (aim == null) return List.of();          // the destination is buried: no route exists
 		Node start = new Node(from.getX(), from.getY(), from.getZ());
@@ -254,7 +323,6 @@ final class Nav {
 		open.add(new Object[]{start.dist(goal) * GREED, start});
 
 		int expanded = 0;
-		long deadline = System.nanoTime() + MAX_MILLIS * 1_000_000L;
 
 		while (!open.isEmpty() && expanded < MAX_NODES) {
 			Node cur = (Node) open.poll()[1];

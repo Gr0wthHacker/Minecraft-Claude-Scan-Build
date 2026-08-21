@@ -2228,6 +2228,74 @@ there is no state to look at. The first version of those tests failed on the com
 the rule was removed — a check that forbids naming a thing forbids explaining it — so it strips
 comments first, and there is a test that the stripper strips comments and not code.
 
+### What the second flight found: one frame a second, and pressing on the wall (2026-08-20)
+
+Four reports off a live run, and every one is a bug the tests could not have caught as written.
+
+#### `autofly on` dropped the client to 1 FPS, and nothing about it was slow
+
+The route was invalidated by `walkRoute != flying`, where `walkRoute` had just been set to
+`!flying`. **That expression is true whenever `flying` is true**, so an A* ran EVERY TICK instead of
+twice a second — twenty searches a second, each allowed 25ms, plus the allocation churn of a
+120,000-node budget.
+
+The lesson is the shape of it. **A stale-check that is accidentally always-true is invisible**: the
+routing is correct, the steering is correct, every test passes, and the only symptom is the frame
+rate. It is now stored as the stance itself (`routedFlying = flying`) rather than as its negation,
+pulled out into a pure `needsRepath` with tests on it, and floored by `MIN_REPATH_TICKS` so that no
+invalidation rule — this one or a future one — can produce a per-tick search again.
+
+Raising `MAX_NODES` is what made this catastrophic rather than merely wasteful. A budget is only ever
+spent by a search that FAILS, so it is safe right up until something makes searches run constantly.
+
+#### "Still trying to go directly through blocks"
+
+The no-route fallback was to fly at the goal and add a little upward velocity. That does not lift you
+over anything — it grinds you along the wall at an angle, because the forward component never stops
+pushing. Two replacements:
+
+- **`Nav.escape`** — when there is no route, flood outward from where you stand and take the
+  reachable cell that gets CLOSEST to the goal. Up, down, left, right, behind: whichever actually
+  helps. Breadth-first, bounded by cells rather than by geometry, and only ever run after a real
+  search has already failed. Re-run at each repath it is a wall-follower that keeps making progress.
+  **Getting round an obstacle is a search, not a nudge.**
+- **`unstick`** — for the genuinely-shut-in case, zero the components of a direct guess that press
+  into a block, tested at the feet AND the head. A ceiling then slides you sideways and a wall slides
+  you up. All three blocked and it rises, which beats vibrating against a corner.
+
+A test of mine was wrong here too, and instructively: *"a sealed box has no escape"* is false —
+crossing the room really does get you closer to something outside it. What matters is that it never
+leaves the box and that it CONVERGES, so that is what is asserted.
+
+#### `MAX_RANGE` 512, and staging that shortens
+
+One 25ms budget is now shared across the whole `route()` call, so the staged retries cannot multiply
+the cost, and staging halves its distance on each try — a sub-goal 128 blocks along the line lands
+inside the island as easily as in front of it.
+
+#### "It needs to move faster"
+
+`SPEED` 0.35 → **0.75**. Vanilla sprint-flight is about 1.0, so it is still under what a player does
+by holding a key, and 0.35 on a 240-block island was a long time watching yourself travel.
+
+**Everything that makes speed safe is a function of it, not a constant beside it.** At 0.75 you cross
+the old 1.0-block waypoint radius in under two ticks — past the turn before the next waypoint is even
+selected — so `waypointRadius` is 2.5 ticks of travel and the approach taper scales with it. A fixed
+radius and a raised speed is how a router that works becomes a router that clips every corner.
+
+#### "Fetch says it took 0x even when it actually took"
+
+It did take them. The message was about a **second, pointless withdrawal**: the first finished, the
+phase left `busy()`, the next recount two seconds later saw itself still standing at the chest and
+began again — finding nothing of what it asked for, reporting `took 0x`, and then **blacklisting a
+chest that had just worked**.
+
+A chest is now left alone for the cooling-off period after ANY completed withdrawal, not only a
+failed one. There is no version of "go straight back to the chest I have just been through" that is
+useful. And taking nothing no longer reports as `took 0`: it says the index was out of date and names
+the chest, because "took 0" reads as a failure of the taking rather than of the record that sent you
+there.
+
 ## The daily loop
 
 ```bash
