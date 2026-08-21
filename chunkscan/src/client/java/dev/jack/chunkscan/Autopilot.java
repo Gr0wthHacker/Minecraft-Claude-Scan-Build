@@ -640,7 +640,11 @@ final class Autopilot {
 		// watching the thing it moves.
 		boolean flying = mc.player != null && mc.player.getAbilities().flying;
 		String how = flying ? "route" : "walk";
-		String tail = String.format(" @%.2f", speed);
+		// The APPLIED speed, and the dial behind it. Showing only the dial is showing the one number
+		// that is guaranteed not to be the problem.
+		String tail = appliedSpeed > 0 && appliedSpeed < speed - 1.0e-6
+			? String.format(" @%.2f/%.2f %s", appliedSpeed, speed, slowBecause)
+			: String.format(" @%.2f", speed);
 		if (path.isEmpty()) return (flying ? "direct" : "walk direct") + tail;
 		// `tight` is worth seeing: it is the difference between a route that keeps a block of air
 		// off everything and one that has to thread something.
@@ -965,7 +969,9 @@ final class Autopilot {
 				bend = thisLeg.normalize().dot(nextLeg.normalize()) < CORNER_COS;
 			}
 		}
-		double speed = cruiseSpeed(cruise, dist, me.distanceTo(wp), near, bend);
+		double speed = cruiseSpeed(cruise, dist, me.distanceTo(wp), near, bend, path.size() <= 1);
+		slowBecause = speed >= cruise - 1.0e-6 ? ""
+			: bend ? "corner" : path.size() <= 1 ? "arriving" : "?";
 
 		if (path.isEmpty()) {
 			// Neither a route nor a way round: shut in, or the goal is sealed. Say so once, because
@@ -982,7 +988,11 @@ final class Autopilot {
 
 		// ---- DO NOT FLY INTO WHAT YOU CANNOT SEE. See BLIND_SPEED.
 		boolean blind = flying && !loadedAhead(view(mc), p.position(), dir, SIGHT);
-		if (blind) speed = Math.min(speed, BLIND_SPEED);
+		if (blind) {
+			if (speed > BLIND_SPEED) slowBecause = "chunks not loaded";
+			speed = Math.min(speed, BLIND_SPEED);
+		}
+		appliedSpeed = speed;
 
 		if (flying) {
 			Vec3 step = dir.scale(speed);
@@ -995,6 +1005,7 @@ final class Autopilot {
 			// ---- LINE UP FOR A TIGHT GAP BEFORE ENTERING IT. See align().
 			boolean[] lock = boxedAxes(mc, aim);
 			if (lock[0] || lock[1] || lock[2]) {
+				if (speed > TIGHT_SPEED) slowBecause = "threading";
 				speed = Math.min(speed, TIGHT_SPEED);
 				step = align(me, aim, lock, dir.scale(speed), ALIGN_TOL, speed);
 			}
@@ -1364,9 +1375,28 @@ final class Autopilot {
 	 */
 	static double cruiseSpeed(double cruise, double toTarget, double toWaypoint, double near,
 	                          boolean bend) {
+		return cruiseSpeed(cruise, toTarget, toWaypoint, near, bend, true);
+	}
+
+	/**
+	 * @param lastLeg is the next waypoint the DESTINATION, or just a corner on the way?
+	 *
+	 * <p>This is the second half of the same bug. The taper exists so the flight does not overshoot
+	 * where it is GOING — and it was applied to every waypoint, including the dozens of corners a
+	 * route through cluttered terrain is made of. On the deck, waypoints land about four blocks
+	 * apart, so `toWaypoint` was never more than four, the taper fired on every tick, and the whole
+	 * flight ran at `4/12` = 0.33 against a cruise of 0.75. Exactly half speed, which is what it
+	 * looked like.
+	 *
+	 * <p>A corner does not need slowing down FOR ITSELF — {@code bend} already covers turning — and
+	 * flying past an intermediate waypoint at speed is not overshooting anything. Only the last one
+	 * is a place to stop.
+	 */
+	static double cruiseSpeed(double cruise, double toTarget, double toWaypoint, double near,
+	                          boolean bend, boolean lastLeg) {
 		double v = Math.min(cruise, toTarget / 8.0 + 0.05);
 		if (bend) v = Math.min(v, CORNER_SPEED);
-		if (toWaypoint < near * 3) v = Math.min(v, Math.max(0.06, toWaypoint / 12.0));
+		if (lastLeg && toWaypoint < near * 3) v = Math.min(v, Math.max(0.06, toWaypoint / 12.0));
 		return v;
 	}
 
@@ -1374,6 +1404,15 @@ final class Autopilot {
 	static final double LOOKAHEAD = 1.5;
 	/** Where the leg being flown started, so the flight can stay ON it rather than near it. */
 	private static Vec3 legFrom = null;
+	/**
+	 * The speed actually applied last tick, and why it is not the dial.
+	 *
+	 * <p>The HUD showed the DIAL, which is the one number guaranteed not to be the problem. Two
+	 * separate taper bugs held the flight at a third of it for hours of testing, and either would
+	 * have been a glance to spot if the readout had said what was really being flown.
+	 */
+	private static double appliedSpeed = 0;
+	private static String slowBecause = "";
 
 	/**
 	 * The point to steer at: the nearest point on the segment, a little way along it.

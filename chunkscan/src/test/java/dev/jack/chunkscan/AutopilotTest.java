@@ -749,4 +749,28 @@ class AutopilotTest {
 		assertTrue(body.contains("rescue(mc, p)"), "the guard no longer runs the rescue");
 		assertFalse(body.contains("setDeltaMovement"), "the guard is steering");
 	}
+
+	@Test
+	void itDoesNotSlowDownForEVERYCornerOnTheWay() {
+		// THE OTHER HALF OF THE HALF-SPEED BUG. The taper exists so the flight does not overshoot
+		// where it is GOING, and it was applied to every waypoint - including the dozens a route
+		// through cluttered terrain is made of. On the deck they land about four blocks apart, so
+		// `toWaypoint` was never more than four, the taper fired on every tick, and the whole flight
+		// ran at 4/12 = 0.33 against a cruise of 0.75.
+		double near = Autopilot.waypointRadius(Autopilot.SPEED);
+		double mid = Autopilot.cruiseSpeed(Autopilot.SPEED, 200, 4, near, false, false);
+		assertEquals(Autopilot.SPEED, mid, 1e-9, "slowed for a waypoint it was only passing");
+
+		double last = Autopilot.cruiseSpeed(Autopilot.SPEED, 4, 4, near, false, true);
+		assertTrue(last < Autopilot.SPEED, "did not slow for the destination itself");
+	}
+
+	@Test
+	void aCornerIsStillTakenSlowly() {
+		// Turning is handled by the bend, which is about the ANGLE rather than the distance - so
+		// dropping the per-waypoint taper does not put it back to cutting corners at cruise.
+		double near = Autopilot.waypointRadius(Autopilot.SPEED);
+		assertEquals(Autopilot.CORNER_SPEED,
+			Autopilot.cruiseSpeed(Autopilot.SPEED, 200, 4, near, true, false), 1e-9);
+	}
 }

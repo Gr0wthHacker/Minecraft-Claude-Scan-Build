@@ -3088,9 +3088,22 @@ questions that had been one variable, and merging them was invisible the moment 
 the waypoint.
 
 `cruiseSpeed` is pure now, and takes both distances separately — the destination's for the final
-slow-down, the waypoint's for the corner. It was inline and wrong for an hour, which is the argument
-for pulling it out: every one of these that has been extracted this session was extracted after it
-had already shipped a bug.
+slow-down, the waypoint's for the corner.
+
+**And there was a second half to it, which is why the first fix did not settle it.** The taper was
+applied to EVERY waypoint, not just the last. A route through cluttered terrain is made of dozens of
+them — on the deck they land about four blocks apart — so `toWaypoint` was never more than four, the
+taper fired on every tick, and the flight ran at `4/12` = **0.33 against a cruise of 0.75**. Exactly
+half speed, which is what it looked like.
+
+A corner does not need slowing down for its own sake: `bend` already handles TURNING, which is about
+the angle rather than the distance. Flying past an intermediate waypoint quickly is not overshooting
+anything. **Only the last waypoint is a place to stop.**
+
+**And the HUD was showing the DIAL.** Two separate taper bugs held the flight at a third of its speed
+across hours of testing, and either would have been a glance to spot if the readout had said what was
+actually being flown. It shows `@0.33/0.75 arriving` now — applied, dial, and which clamp is doing
+it: `corner`, `arriving`, `threading`, `chunks not loaded`.
 
 ### Three blocks is a ceiling, not a target (2026-08-21)
 
