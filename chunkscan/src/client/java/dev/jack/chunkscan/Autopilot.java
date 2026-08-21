@@ -287,7 +287,7 @@ final class Autopilot {
 				escaping = !raw.isEmpty();
 			}
 			path = raw.isEmpty() ? new java.util.ArrayList<>()
-				: new java.util.ArrayList<>(Nav.simplify(free, here, raw));
+				: new java.util.ArrayList<>(Nav.loosen(free, here, Nav.simplify(free, here, raw)));
 			pathTo = target;
 			routedFlying = flying;
 			sinceRepath = 0;

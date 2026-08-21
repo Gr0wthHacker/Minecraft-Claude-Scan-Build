@@ -57,6 +57,13 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Menu.register();
 		Screens.register();
 		Autopilot.register();
+		// RESUME. The loop's whole point is running while you are not watching, and a dropped
+		// connection at three in the morning otherwise ends it silently. Hud.resume holds off for a
+		// few seconds first: on the tick you join most of the world is unloaded, and Nav counts
+		// unloaded as passable - correct for a route in progress, and quite wrong as the first thing
+		// you do after arriving.
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register(
+			(handler, sender, client) -> Hud.resume(client));
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
 			dispatcher.register(literal("cscan")
 				.then(literal("place")
@@ -160,6 +167,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 						return 1; })
 					.then(literal("on").executes(ctx -> {
 						Autopilot.set(true);
+						Hud.remember(ctx.getSource().getClient());
 						// Report the ACTUAL state, not the switch. "ON" alone sent Jack looking for a
 						// bug in the flying when the real answer was that nothing had told it where.
 						String why = Autopilot.stalledBecause(net.minecraft.client.Minecraft.getInstance());
@@ -169,6 +177,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 						return 1; }))
 					.then(literal("off").executes(ctx -> {
 						Autopilot.set(false);
+						Hud.remember(ctx.getSource().getClient());
 						ok(ctx.getSource(), "autofly off");
 						return 1; }))
 					.then(literal("speed")
@@ -182,6 +191,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 							.executes(ctx -> {
 								double got = Autopilot.setSpeed(
 									DoubleArgumentType.getDouble(ctx, "blocks per tick"));
+								Hud.remember(ctx.getSource().getClient());
 								ok(ctx.getSource(), "autofly speed " + String.format("%.2f", got)
 									+ " blocks/tick (" + String.format("%.1f", got * 20)
 									+ " blocks/s)");
@@ -198,7 +208,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 						// Stopping is also when you find out what it did while you were elsewhere.
 						String report = Hud.following() ? "  " + Hud.sessionReport() : "";
 						Hud.off(); Highlight.clear("goto");
+						Hud.remember(ctx.getSource().getClient());
 						ok(ctx.getSource(), "follow off." + report); return 1; })
+					.then(literal("all").executes(ChunkScanClient::followAll))
 					.then(argument("design", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::follow)))
 				.then(literal("hud")
@@ -739,6 +751,28 @@ public final class ChunkScanClient implements ClientModInitializer {
 	 * <p>This is `plan` and `goto` without the typing between them, which on a design of several
 	 * thousand cells is most of the typing.
 	 */
+	/**
+	 * Work every tracked design, in order, until they are all done.
+	 *
+	 * <p>Starts on the first one with anything left rather than on the first one listed, or a
+	 * finished design at the top of `sync.yaml` would end the run before it began.
+	 */
+	private static int followAll(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		String first = Hud.nextDesign(mc, null);
+		if (first == null) {
+			ok(src, "nothing tracked has any work left in the chunks I can see —"
+				+ " `python -m mcbuild sync` records which designs are tracked");
+			return 1;
+		}
+		Hud.follow(first);
+		Hud.followAll(mc, true);
+		ok(src, "following every tracked design, starting with " + first
+			+ ". It moves to the next as each one finishes. /cscan follow to stop.");
+		return 1;
+	}
+
 	private static int follow(CommandContext<FabricClientCommandSource> ctx) {
 		FabricClientCommandSource src = ctx.getSource();
 		String name = StringArgumentType.getString(ctx, "design");
@@ -748,6 +782,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 			// you read, not a HUD that never appears.
 			Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
 			Hud.follow(name);
+			Hud.remember(src.getClient());
 			ok(src, "following " + name + " — the arrow moves to the next spot as each one finishes."
 				+ " /cscan follow to stop.");
 			return 1;
@@ -1095,6 +1130,13 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Highlight.clear("goto");
 		Highlight.clear("next");
 		Highlight.clear("scaffold");
+		// STOP MEANS STOP, INCLUDING AFTER A RELOG. Leaving the resume note behind would have the
+		// loop start itself again the next time you joined, which is the one behaviour a panic
+		// button must not have.
+		try {
+			Session.clear(dir(src));
+		} catch (Exception ignored) {
+		}
 		ok(src, "stopped: withdrawal, autofly, follow and highlights all off." + report);
 		return 1;
 	}

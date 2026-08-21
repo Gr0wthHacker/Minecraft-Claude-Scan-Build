@@ -458,6 +458,55 @@ final class Nav {
 	}
 
 	/**
+	 * Push the surviving waypoints off the walls they were shaved against.
+	 *
+	 * <p>The search's only cost is distance, so the cheapest route is the one that grazes every
+	 * corner — legal, and it flies like something nervous. The obvious fix is a clearance term in
+	 * the search, and it is the wrong one: scoring openness per node means six more world lookups on
+	 * every one of up to 120,000, which is the cost that has already bitten this file twice.
+	 *
+	 * <p>{@link #simplify} has already thrown away all but the CORNERS — a handful of points — so
+	 * doing it afterwards is free by comparison. A nudge is only kept when both legs through the
+	 * moved point stay {@link #clear}, which is what stops it widening a doorway waypoint out of the
+	 * doorway.
+	 */
+	static List<BlockPos> loosen(Passable free, BlockPos from, List<BlockPos> path) {
+		List<BlockPos> out = new ArrayList<>(path);
+		for (int i = 0; i < out.size() - 1; i++) {          // never the destination: that is the goal
+			BlockPos before = i == 0 ? from : out.get(i - 1);
+			BlockPos here = out.get(i);
+			BlockPos after = out.get(i + 1);
+			int bestOpen = openness(free, here);
+			if (bestOpen == 6) continue;                    // already in clear air
+			BlockPos best = here;
+			for (int[] d : NUDGE) {
+				BlockPos c = here.offset(d[0], d[1], d[2]);
+				if (!free.at(c.getX(), c.getY(), c.getZ())) continue;
+				int open = openness(free, c);
+				if (open <= bestOpen) continue;
+				if (!clear(free, before, c) || !clear(free, c, after)) continue;
+				bestOpen = open;
+				best = c;
+			}
+			out.set(i, best);
+		}
+		return out;
+	}
+
+	private static final int[][] NUDGE = {
+		{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1},
+	};
+
+	/** How many of the six neighbours a body could move into. */
+	static int openness(Passable free, BlockPos p) {
+		int n = 0;
+		for (int[] d : NUDGE) {
+			if (free.at(p.getX() + d[0], p.getY() + d[1], p.getZ() + d[2])) n++;
+		}
+		return n;
+	}
+
+	/**
 	 * Is the straight line between two cells flyable, for a body 0.6 wide?
 	 *
 	 * <p>Sampled every quarter block, and each sample checks the four cells the player's WIDTH

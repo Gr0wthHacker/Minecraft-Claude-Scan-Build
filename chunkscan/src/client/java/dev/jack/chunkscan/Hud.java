@@ -53,6 +53,11 @@ final class Hud {
 	// ---- WHERE TO STAND INSIDE A SPOT. A spot is sized to an inventory load and can be 96 blocks
 	// across; the printer reaches four and a half. Standing at the centroid places what happens to
 	// be near the middle and then nothing at all, for ninety seconds, until the stall watch fires.
+	/** The last todo count the scaffold/seal probe was run for. See advance(). */
+	private static int scaffoldFor = -1;
+	private static java.util.Set<Long> blocked = new java.util.HashSet<>();
+	private static java.util.Set<Long> sealed = new java.util.HashSet<>();
+
 	/** The region being worked. Kept by proximity — a centroid drifts as its cells get placed. */
 	private static BlockPos spotCentre = null;
 	private static long stationBin = Long.MIN_VALUE;
@@ -148,9 +153,25 @@ final class Hud {
 				mc.player.sendSystemMessage(Component.literal(
 					"[cscan] " + sp.name() + " is complete in every loaded chunk. " + sessionReport()));
 			}
+			// ON TO THE NEXT ONE. A loop that finishes the deck floor at 2am and then idles until
+			// morning is half a loop, and `plan` with no argument already ranks work across all the
+			// tracked designs — only `follow` insisted on being told which.
+			if (followAll) {
+				String next = nextDesign(mc, sp.name());
+				if (next != null) {
+					mc.player.sendSystemMessage(Component.literal("[cscan] moving on to " + next));
+					follow(next);
+					followAll = true;
+					remember(mc);
+					return;
+				}
+				mc.player.sendSystemMessage(Component.literal(
+					"[cscan] every tracked design is complete in the chunks I can see."));
+			}
 			following = false;
 			stopGuiding();
 			Highlight.clear("goto");
+			remember(mc);
 			return;
 		}
 		// ---- PROGRESS. `todo` shrinking is the only honest evidence a block was placed: the
@@ -178,19 +199,32 @@ final class Hud {
 			return;
 		}
 
-		java.util.Set<Long> blocked = new java.util.HashSet<>();
-		for (Work.Cell c : Work.floating(mc.level, sp.todo())) blocked.add(c.pos().asLong());
-		// ...and the opposite failure: cells sealed inside solid world, which have plenty to place
-		// against and no way to reach them. `follow` must not walk you to either.
-		java.util.Set<Long> sealed = new java.util.HashSet<>();
-		for (Work.Cell c : Work.unreachable(mc.level, sp.todo())) sealed.add(c.pos().asLong());
+		// ---- the two ways the world says no: nothing to place against, and no way in. Both are a
+		// six-neighbour probe of every remaining cell, which on a design of a few thousand is tens
+		// of thousands of world lookups — every two seconds, for the whole session.
+		//
+		// Memoised on the todo COUNT, which is the only honest evidence anything moved: the printer
+		// never reports, so a design whose count has not changed has had nothing placed and the
+		// answer cannot have changed either. That makes the idle case — flying to a chest, waiting
+		// at a station — free, and it is most of the session.
+		if (sp.todo().size() != scaffoldFor) {
+			scaffoldFor = sp.todo().size();
+			blocked = new java.util.HashSet<>();
+			for (Work.Cell c : Work.floating(mc.level, sp.todo())) blocked.add(c.pos().asLong());
+			sealed = new java.util.HashSet<>();
+			for (Work.Cell c : Work.unreachable(mc.level, sp.todo())) sealed.add(c.pos().asLong());
+		}
 		Map<String, Integer> carrying = Work.carrying(mc.player);
 		java.util.List<Plan.Cluster> cl = Plan.clusters(sp.todo(), carrying, blocked, sealed, me);
 		spotsLeft = cl.size();
 
 		Map<String, Storage.Container> index;
 		try {
-			index = Storage.load(ScanRunner.schematicsDir(mc));
+			// CACHED, because this runs every two seconds for as long as the loop does and `load` is
+			// a file read and a JSON parse; and LIVE, because the index only ever grows — it is
+			// written when you OPEN a container and cannot be told about one you broke. 179 of 339
+			// records were dead when it was last measured, and `fetch` navigates to these.
+			index = Storage.live(Storage.loadCached(ScanRunner.schematicsDir(mc)), mc.level);
 		} catch (Exception e) {
 			index = java.util.Map.of();
 		}
@@ -367,6 +401,34 @@ final class Hud {
 	}
 
 	/**
+	 * The next tracked design with anything left to place, or null.
+	 *
+	 * <p>Tracked, not every design in the folder: the folder holds 61 including a shelf of scratch
+	 * animals parked at the origin lock, and `sync.yaml` is the only record of which are real work.
+	 * A design whose work list will not load is SKIPPED rather than fatal — one un-regenerated
+	 * sidecar must not end an overnight run.
+	 */
+	static String nextDesign(Minecraft mc, String after) {
+		try {
+			java.nio.file.Path dir = ScanRunner.schematicsDir(mc);
+			java.util.List<String> all = Designs.tracked(dir);
+			if (all == null) return null;
+			for (String name : all) {
+				if (name.equals(after)) continue;
+				try {
+					Work.Split sp = Work.split(mc.level, dir, name, mc.player.blockPosition(), 0);
+					if (!sp.todo().isEmpty()) return name;
+				} catch (Exception skip) {
+					// no work.json yet, or it will not parse: not this run's problem
+				}
+			}
+		} catch (Exception e) {
+			return null;
+		}
+		return null;
+	}
+
+	/**
 	 * The vertical leg, stated separately because a compass bearing cannot carry it.
 	 *
 	 * <p>This island is 240 blocks tall — the lowland floor is Y24, the deck Y194, the sky bird
@@ -439,6 +501,69 @@ final class Hud {
 	 * the arrow around while you stand still. So the current target is kept while it still has
 	 * anything doable, and only when it is exhausted does the next one get picked.
 	 */
+	/** Carry on to the next tracked design when this one is done. */
+	private static boolean followAll = false;
+	/** Ticks left before the loop is allowed to act after joining a world. */
+	private static int grace = 0;
+
+	static boolean followingAll() {
+		return followAll;
+	}
+
+	static void followAll(Minecraft mc, boolean v) {
+		followAll = v;
+		remember(mc);
+	}
+
+	/**
+	 * Write down what the loop is doing, so a disconnect does not end it.
+	 *
+	 * <p>Called wherever the INTENT changes, never on the tick: this is four fields, and the loop is
+	 * meant to run for hours.
+	 */
+	static void remember(Minecraft mc) {
+		try {
+			Session.save(ScanRunner.schematicsDir(mc),
+				new Session.State(following ? design : null, Autopilot.on(), followAll,
+					Autopilot.speed()));
+		} catch (Exception ignored) {
+		}
+	}
+
+	/**
+	 * Pick up where it left off.
+	 *
+	 * <p>Held off for {@link Session#GRACE_TICKS}: on the tick you join, most of the world is
+	 * unloaded, and `Nav` treats unloaded as passable — which is right for a route you are already
+	 * flying and quite wrong as the first thing you do. Routing then flies you straight into terrain
+	 * that was simply not there yet.
+	 */
+	static void resume(Minecraft mc) {
+		try {
+			restore(mc);
+		} catch (Exception e) {
+			// This runs on the JOIN event. Throwing here takes the mod down at the one moment you
+			// cannot see why, for the sake of a convenience.
+		}
+	}
+
+	private static void restore(Minecraft mc) {
+		Session.State st = Session.load(ScanRunner.schematicsDir(mc));
+		if (st == null) return;
+		Autopilot.setSpeed(st.speed());
+		followAll = st.all();
+		if (st.design() == null) return;
+		follow(st.design());
+		followAll = st.all();
+		grace = Session.GRACE_TICKS;
+		if (st.autofly()) Autopilot.set(true);
+		if (mc.player != null) {
+			mc.player.sendSystemMessage(Component.literal("[cscan] resuming " + st.design()
+				+ (st.autofly() ? " with autofly" : "") + " in " + (Session.GRACE_TICKS / 20)
+				+ "s — /cscan stop to not."));
+		}
+	}
+
 	static void follow(String name) {
 		watch(name);
 		following = true;
@@ -456,6 +581,7 @@ final class Hud {
 		stationTodo = -1;
 		stationsTried.clear();
 		spotCentre = null;
+		scaffoldFor = -1;
 	}
 
 	/** What the loop has done since `follow` started — the report for a session you were not watching. */
@@ -478,6 +604,7 @@ final class Hud {
 		// `/cscan take` is a chest command first and a build-loop step second.
 		Withdraw.tick(mc);
 		if (design == null || mc.level == null || mc.player == null) return;
+		if (grace > 0 && --grace > 0) return;             // let the world arrive before routing it
 		if (tick++ % EVERY_TICKS != 0) return;
 		try {
 			Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), design,

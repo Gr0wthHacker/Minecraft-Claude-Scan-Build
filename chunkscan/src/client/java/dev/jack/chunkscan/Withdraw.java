@@ -55,9 +55,24 @@ final class Withdraw {
 	 * <p>Failure is a property of a CHEST, not of the withdrawer.
 	 */
 	static final long RETRY_AFTER_MS = 60_000;
+	/**
+	 * ...and a much shorter one for a chest that WORKED.
+	 *
+	 * <p>These are different facts and collapsing them into one number was a regression. The long
+	 * window exists because a chest that had nothing has nothing now either. A chest that handed over
+	 * exactly what was asked for has, on this island, thousands more in it — the store hall is piles
+	 * of one item — so blacklisting it for a minute sends the next pack-load to a worse chest or
+	 * reports nothing fetchable at all.
+	 *
+	 * <p>It cannot be zero: the only reason a successful chest is marked at all is to stop the
+	 * recount two seconds later opening it again, finding what it wanted already in the pack, and
+	 * reporting `took 0x`. Anything over one recount does that, and five seconds is two.
+	 */
+	static final long RETRY_AFTER_OK_MS = 5_000;
 
 	private static Phase phase = Phase.IDLE;
-	private static final java.util.Map<Long, Long> failedAt = new java.util.HashMap<>();
+	/** Position -> the time it becomes worth trying again. An EXPIRY, because the wait now varies. */
+	private static final java.util.Map<Long, Long> coolUntil = new java.util.HashMap<>();
 	private static BlockPos chest;
 	private static String want;          // null = take everything
 	private static int target;
@@ -193,7 +208,11 @@ final class Withdraw {
 		// straight after a successful one. The items were in the pack; the message was about the
 		// pointless second trip. Worse, that second pass then blacklisted a chest that had just
 		// worked.
-		if (chest != null) failedAt.put(chest.asLong(), System.currentTimeMillis());
+		if (chest != null) {
+			// Emptied or short: it has no more, leave it alone properly. Gave us what we asked for:
+			// just long enough not to open it again on the next recount.
+			cool(chest, took == 0 || short_ ? RETRY_AFTER_MS : RETRY_AFTER_OK_MS);
+		}
 		if (took > 0 || want == null) {
 			mc.player.sendSystemMessage(Component.literal("[cscan] took " + took
 				+ (want == null ? " item(s)" : "x " + want)
@@ -218,31 +237,35 @@ final class Withdraw {
 	 * permanent mark turns a hiccup into a dead session.
 	 */
 	static boolean recentlyFailed(BlockPos at, long now) {
-		Long t = failedAt.get(at.asLong());
-		return t != null && now - t < RETRY_AFTER_MS;
+		Long until = coolUntil.get(at.asLong());
+		return until != null && now < until;
+	}
+
+	private static void cool(BlockPos at, long ms) {
+		coolUntil.put(at.asLong(), System.currentTimeMillis() + ms);
 	}
 
 	/** Positions still cooling off, so the planner can route round them rather than at them. */
 	static java.util.Set<Long> coolingOff(long now) {
 		java.util.Set<Long> out = new java.util.HashSet<>();
-		for (var e : failedAt.entrySet()) {
-			if (now - e.getValue() < RETRY_AFTER_MS) out.add(e.getKey());
+		for (var e : coolUntil.entrySet()) {
+			if (now < e.getValue()) out.add(e.getKey());
 		}
 		return out;
 	}
 
 	static void clearFailures() {
-		failedAt.clear();
+		coolUntil.clear();
 	}
 
 	/** Record a failure without a live client, so the cooldown itself can be tested. */
 	static void noteFailureForTest(BlockPos at) {
-		failedAt.put(at.asLong(), System.currentTimeMillis());
+		cool(at, RETRY_AFTER_MS);
 	}
 
 	private static void fail(Minecraft mc, String why) {
 		phase = Phase.FAILED;
-		if (chest != null) failedAt.put(chest.asLong(), System.currentTimeMillis());
+		if (chest != null) cool(chest, RETRY_AFTER_MS);
 		note = why;
 		if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] " + why));
 	}

@@ -2354,6 +2354,84 @@ is the one bound that is defensible without knowing the server's rules.
 **The walk scales with the same dial.** A speed setting that only changes flight stops working the
 moment you go indoors, which is where you would most want to slow it down.
 
+### Making it survive the night (2026-08-20)
+
+Six things, two of which were the loop doing something actively wrong.
+
+#### A chest that WORKED was blacklisted like one that failed
+
+My own regression, from the fix two commits earlier. To stop a second withdrawal opening the same
+chest two seconds later and reporting `took 0x`, EVERY completed withdrawal was marked for the full
+minute. The store hall is piles of thousands of one item, so after building out a pack the loop came
+back, skipped the best chest, and either flew somewhere worse or reported nothing fetchable.
+
+Two windows now, because they are two different facts: **60s** for a chest that was empty or came up
+short — it has no more, leave it alone — and **5s** for one that handed over what was asked for. It
+cannot be zero: the only reason to mark a successful chest at all is to outlast one recount.
+
+#### The fetch could still navigate to chests that are gone
+
+`Storage.findExact` had no world filter. The index only ever grows — it is written when you OPEN a
+container and cannot be told about one you broke — and it measured **179 dead records out of 339**.
+Harmless while `find` was advice; not harmless once `fetch` and `follow` NAVIGATE to those
+coordinates. `Storage.live` filters the index against the loaded world on the way past, and
+**unloaded is still not absent** — a chunk you cannot see is not evidence the chest went.
+
+#### The loop re-derived everything every two seconds
+
+`Storage.load` is a file read and a JSON parse; the scaffold and seal probes are a six-neighbour
+lookup on every remaining cell, which on a few thousand cells is tens of thousands of world lookups.
+Both ran every two seconds for the whole session, whether or not anything had changed.
+
+- **The index is cached on the file's MTIME**, not on a timer. A timed cache would walk you to a
+  chest the loop still believes is empty — you open a chest precisely so it can be told. And the
+  cached map is **unmodifiable**, because two other callers of `load` do `removeIf` on their copy;
+  a shared mutable map here is a cache that silently loses containers.
+- **The scaffold/seal probe is memoised on the todo COUNT**, which is the only honest evidence
+  anything moved: the printer never reports, so a count that has not changed means nothing was
+  placed and the answer cannot have changed either. That makes flying to a chest and waiting at a
+  station free, and that is most of a session.
+
+#### It resumes after a disconnect
+
+Everything the loop knows lived in static fields, so a drop at three in the morning ended it
+silently. `session.json` holds four things — design, autofly, follow-all, speed — and the JOIN event
+picks them up.
+
+- **The intent is restored, not the state.** The abandoned-station set, the cooling-off chests and
+  the session counters are all judgements about a world that has moved on while you were away.
+- **A grace period of five seconds before anything moves.** On the tick you join, most of the world
+  is unloaded, and `Nav` counts unloaded as passable — which is right for a route in progress and
+  quite wrong as the first thing you do after arriving.
+- **`/cscan stop` deletes the note.** Leaving it would have the loop start itself again the next
+  time you joined, which is the one behaviour a panic button must not have.
+- It does resume MOVEMENT AUTOMATION by itself. Announced loudly, held off, and one word to stop —
+  the alternative, restoring the design but not the flying, restores the half that does nothing.
+
+#### `/cscan follow all`
+
+Works every tracked design in turn. A loop that finishes the deck floor at 2am and then idles until
+morning is half a loop, and `plan` with no argument already ranked work across all 23 — only
+`follow` insisted on being told which. A design whose work list will not load is SKIPPED rather than
+fatal: one un-regenerated sidecar must not end an overnight run.
+
+#### The routes stopped hugging walls
+
+The search's only cost is distance, so the cheapest route grazes every corner. It is legal and it
+flies like something nervous.
+
+**The obvious fix is a clearance term in the search and it is the wrong one** — scoring openness per
+node is six more world lookups on every one of up to 120,000, which is the cost that has bitten this
+file twice now. `simplify` has already thrown away everything but the CORNERS, so `Nav.loosen` nudges
+those few points toward open air afterwards, for nothing. A nudge is kept only when both legs through
+the moved point are still `clear`, which is what stops it widening a doorway waypoint out of its
+doorway.
+
+**And a test of mine stopped being a control rather than starting to fail.** `escapeGoesAround...`
+built a tall finite wall and asserted no route existed; with staging and the raised budget the router
+now finds its way round the end of it. That is the router getting better. The control is a sealed
+room now — *a wall in the open is not sealed*, which is the third time these tests have learned it.
+
 ## The daily loop
 
 ```bash

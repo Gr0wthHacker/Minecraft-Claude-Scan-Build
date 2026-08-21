@@ -275,12 +275,17 @@ class NavTest {
 
 	@Test
 	void escapeGoesAroundRatherThanInto() {
-		// A wall with no door, and a way round the end of it. There is no route to the goal, so the
-		// question is only whether it makes progress - and progress means ending up closer.
+		// The goal is SEALED, so there is genuinely no route and the only question is whether it
+		// makes progress - which means ending up closer than it started.
+		//
+		// Written first with a tall finite wall between the two, and that stopped being a control:
+		// with staging and the raised budget the router now finds its way round the end of it, which
+		// is the router getting better rather than the test getting stale. A wall in the open is not
+		// sealed - the same lesson two of these tests learned once already.
 		W w = new W();
-		w.wall(5, 90, 130, -20, 20);        // tall and wide, but finite: you can go round the top
+		w.room(8, 97, -3, 14, 103, 3);
 		BlockPos from = new BlockPos(0, 100, 0);
-		BlockPos to = new BlockPos(10, 100, 0);
+		BlockPos to = new BlockPos(11, 100, 0);
 
 		assertTrue(Nav.route(w.free(), from, to).isEmpty(), "control: there is no route through");
 		List<BlockPos> out = Nav.escape(w.free(), from, to, Nav.ESCAPE_RADIUS);
@@ -375,5 +380,56 @@ class NavTest {
 		assertNotNull(west);
 		assertTrue(east.getX() > west.getX(),
 			"ignored the side it was asked for: " + east + " vs " + west);
+	}
+
+	// ---------------------------------------------------------------- clearance
+
+	@Test
+	void loosenPushesAWaypointOffTheWallItWasShavedAgainst() {
+		// The search's only cost is distance, so the cheapest route grazes every corner. Legal, and
+		// it flies like something nervous. Doing it to the CORNERS after simplify is nearly free;
+		// doing it inside the search would be six more lookups on every one of 120,000 nodes.
+		W w = new W();
+		for (int y = 90; y <= 110; y++) {
+			for (int z = -10; z <= 10; z++) w.solid.add(BlockPos.asLong(0, y, z));
+		}
+		Nav.Passable free = w.free();
+		BlockPos hugging = new BlockPos(1, 100, 0);          // free, but flat against the wall
+		assertTrue(free.at(1, 100, 0));
+
+		List<BlockPos> loose = Nav.loosen(free, new BlockPos(4, 100, -6),
+			List.of(hugging, new BlockPos(4, 100, 6)));
+		assertTrue(Nav.openness(free, loose.get(0)) > Nav.openness(free, hugging),
+			"stayed flat against the wall");
+	}
+
+	@Test
+	void loosenNeverWidensADoorwayOutOfItsDoor() {
+		// The one place a waypoint MUST hug: a nudge is only kept when both legs through the moved
+		// point are still flyable.
+		W w = new W();
+		w.wall(5, 98, 105, -8, 8);
+		w.open(5, 100, 4);
+		w.open(5, 101, 4);
+		Nav.Passable free = w.free();
+		BlockPos from = new BlockPos(0, 100, 0);
+		List<BlockPos> raw = Nav.route(free, from, new BlockPos(10, 100, 0));
+		List<BlockPos> few = Nav.simplify(free, from, raw);
+		List<BlockPos> loose = Nav.loosen(free, from, few);
+
+		BlockPos prev = from;
+		for (BlockPos b : loose) {
+			assertTrue(Nav.clear(free, prev, b), "loosened the route through the wall at " + b);
+			prev = b;
+		}
+	}
+
+	@Test
+	void loosenLeavesTheDestinationAlone() {
+		// It is the goal, not a waypoint: moving it means arriving somewhere else.
+		W w = new W();
+		BlockPos goal = new BlockPos(9, 100, 0);
+		List<BlockPos> loose = Nav.loosen(w.free(), BlockPos.ZERO, List.of(new BlockPos(4, 100, 0), goal));
+		assertEquals(goal, loose.get(loose.size() - 1));
 	}
 }

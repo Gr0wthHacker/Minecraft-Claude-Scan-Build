@@ -90,6 +90,7 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan hud ", "<design>  a progress readout on screen"));
 		r.add(new Row("/cscan autofly on", "fly or walk to the arrow. no key stops it"));
 		r.add(new Row("/cscan autofly speed ", "<n>  blocks per tick; 1.0 is a sprint-fly"));
+		r.add(new Row("/cscan follow all", "work every tracked design, one after another"));
 		r.add(new Row("/cscan stop", "PANIC: cancel withdrawal, flight, follow and highlights"));
 		r.add(new Row("/cscan fetch", "cancel just the fetch and clear the instruction"));
 

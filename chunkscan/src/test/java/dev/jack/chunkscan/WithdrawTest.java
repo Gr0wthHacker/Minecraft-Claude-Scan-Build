@@ -66,4 +66,18 @@ class WithdrawTest {
 		assertTrue(Withdraw.CLICK_EVERY >= 1);
 		assertTrue(Withdraw.REACH <= 5.0, "beyond vanilla reach the server rejects the interaction");
 	}
+
+	@Test
+	void aChestThatWORKEDIsNotBlacklistedForAMinute() {
+		// A REGRESSION, fixed. To stop a second withdrawal opening the same chest two seconds later
+		// and reporting `took 0x`, every completed withdrawal was marked for the full minute -
+		// including a successful one. The store hall is piles of thousands of one item, so after
+		// building out a pack the loop came back, skipped the best chest, and either flew somewhere
+		// worse or reported nothing fetchable.
+		assertTrue(Withdraw.RETRY_AFTER_OK_MS < Withdraw.RETRY_AFTER_MS,
+			"a chest that worked is treated like one that failed");
+		// ...but not zero, or the double-open comes straight back: it must outlast a recount.
+		assertTrue(Withdraw.RETRY_AFTER_OK_MS > Hud.EVERY_TICKS * 50L,
+			"shorter than the recount that produced the `took 0x` report");
+	}
 }

@@ -7,6 +7,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -153,5 +154,71 @@ class UndoAndStorageTest {
 			assertTrue(java.util.Arrays.stream(net.minecraft.world.level.block.Rotation.values())
 				.anyMatch(v -> v.name().equals(r)), r + " is not a Rotation constant");
 		}
+	}
+
+	// ---------------------------------------------------------------- the index goes stale
+
+	@Test
+	void theCacheReloadsWhenTheFileChanges() throws Exception {
+		// `load` is a file read and a JSON parse, and the build loop asks every two seconds for as
+		// long as it runs. Keyed on the mtime rather than on a timer, because you open a chest
+		// PRECISELY so the loop is told about it - a timed cache would walk you to a chest the loop
+		// still believes is empty.
+		java.nio.file.Path d = java.nio.file.Files.createTempDirectory("cscan-cache");
+		Storage.forget();
+		Storage.Container c = new Storage.Container();
+		c.x = 1; c.y = 2; c.z = 3; c.block = "chest"; c.id = 1;
+		c.items.put("minecraft:stone_bricks", 64);
+		java.util.Map<String, Storage.Container> m = new java.util.LinkedHashMap<>();
+		m.put(c.key(), c);
+		Storage.save(d, m);
+
+		assertEquals(1, Storage.loadCached(d).size());
+		assertSame(Storage.loadCached(d), Storage.loadCached(d), "re-read an unchanged file");
+
+		Storage.Container two = new Storage.Container();
+		two.x = 9; two.y = 2; two.z = 3; two.block = "barrel"; two.id = 2;
+		m.put(two.key(), two);
+		// the mtime has a resolution, and a test can easily write twice inside it
+		Thread.sleep(1100);
+		Storage.save(d, m);
+		assertEquals(2, Storage.loadCached(d).size(), "did not notice the file had changed");
+	}
+
+	@Test
+	void anExactFetchDoesNotMatchARelatedBlock() {
+		// `stone_bricks` is a substring of `mossy_stone_bricks`, and a trip is a navigation
+		// instruction rather than a search box.
+		java.util.Map<String, Storage.Container> m = new java.util.LinkedHashMap<>();
+		Storage.Container mossy = new Storage.Container();
+		mossy.x = 1; mossy.block = "chest"; mossy.id = 1;
+		mossy.items.put("minecraft:mossy_stone_bricks", 500);
+		m.put(mossy.key(), mossy);
+		assertTrue(Storage.findExact(m, "stone_bricks", BlockPos.ZERO).isEmpty(),
+			"a fetch for stone bricks matched the mossy chest");
+		assertFalse(Storage.find(m, "stone_bricks", BlockPos.ZERO).isEmpty(),
+			"...and the fuzzy search that /cscan find wants still matches it");
+	}
+
+	@Test
+	void aRecordWithNoItemsLeftIsNotAnAddress() {
+		java.util.Map<String, Storage.Container> m = new java.util.LinkedHashMap<>();
+		Storage.Container empty = new Storage.Container();
+		empty.x = 1; empty.block = "chest"; empty.id = 1;
+		empty.items.put("minecraft:stone_bricks", 0);
+		m.put(empty.key(), empty);
+		assertTrue(Storage.findExact(m, "stone_bricks", BlockPos.ZERO).isEmpty(),
+			"offered a chest the index says is empty");
+	}
+
+	@Test
+	void liveWithNoWorldChangesNothing() {
+		// UNLOADED IS NOT ABSENT, and neither is "no world to ask". Getting this backwards empties
+		// the index the first time it is consulted from the wrong place.
+		java.util.Map<String, Storage.Container> m = new java.util.LinkedHashMap<>();
+		Storage.Container c = new Storage.Container();
+		c.x = 1; c.block = "chest"; c.id = 1;
+		m.put(c.key(), c);
+		assertSame(m, Storage.live(m, null));
 	}
 }

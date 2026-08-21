@@ -289,6 +289,63 @@ final class Storage {
 		return hits;
 	}
 
+	// ---- the read cache. `load` is a file read and a JSON parse, and the build loop asks for the
+	// index every two seconds for as long as it runs. The file only changes when you OPEN a
+	// container, and the filesystem already records when that was.
+	private static Map<String, Container> cached;
+	private static long cachedAt = Long.MIN_VALUE;
+	private static Path cachedFrom;
+
+	/**
+	 * {@link #load}, but only actually loading when the file has changed.
+	 *
+	 * <p>Keyed on the modification time rather than on a timer, because a stale index here is not a
+	 * cosmetic problem: you open a chest precisely so that the loop can be told about it, and a
+	 * thirty-second cache would mean walking to a chest the loop still thinks is empty. An mtime
+	 * check is one syscall against a read and a parse.
+	 */
+	static Map<String, Container> loadCached(Path schematicsDir) throws IOException {
+		Path f = file(schematicsDir);
+		long stamp = Files.exists(f) ? Files.getLastModifiedTime(f).toMillis() : -1;
+		if (cached != null && stamp == cachedAt && schematicsDir.equals(cachedFrom)) return cached;
+		// UNMODIFIABLE, and the wrapper is what is cached. Every other caller of `load` owns its
+		// copy and two of them edit it — `prune` and the storage report both `removeIf` — so a
+		// shared mutable map here is a cache that silently loses containers. Made impossible rather
+		// than written down.
+		cached = java.util.Collections.unmodifiableMap(load(schematicsDir));
+		cachedAt = stamp;
+		cachedFrom = schematicsDir;
+		return cached;
+	}
+
+	/** Drop the cache, for a test or after a write. */
+	static void forget() {
+		cached = null;
+		cachedAt = Long.MIN_VALUE;
+		cachedFrom = null;
+	}
+
+	/**
+	 * The index with the records this world DISPROVES taken out.
+	 *
+	 * <p>The index only ever grew: it is written when you OPEN a container, and you cannot open one
+	 * that has been broken. Measured against a capture it was **179 dead records out of 339**, and
+	 * that was harmless while `/cscan find` was advice and stopped being harmless the moment `fetch`
+	 * and `follow` started NAVIGATING to those coordinates.
+	 *
+	 * <p><b>Unloaded is not absent.</b> A chunk you cannot see is not evidence the chest went, so it
+	 * stays. This is a filter on the way to answering a question, not a deletion — `/cscan prune` is
+	 * where throwing the record away is decided deliberately.
+	 */
+	static Map<String, Container> live(Map<String, Container> all, Level level) {
+		if (level == null) return all;
+		Map<String, Container> out = new LinkedHashMap<>();
+		for (var e : all.entrySet()) {
+			if (stillThere(level, e.getValue())) out.put(e.getKey(), e.getValue());
+		}
+		return out;
+	}
+
 	/** An item id without its namespace, lowercased. */
 	static String bare(String id) {
 		String s = id.toLowerCase();
