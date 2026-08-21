@@ -11,6 +11,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -514,5 +515,65 @@ class AutopilotTest {
 		int sink = src.indexOf("private static void sink(");
 		assertTrue(sink > 0 && !src.substring(sink, sink + 400).contains("keyJump"),
 			"sink can press jump, which is the key that turned off flight in mid-air");
+	}
+
+	// ---------------------------------------------------------------- threading a one-wide gap
+
+	private static final boolean[] SHAFT = {true, false, true};    // x and z walled, y open
+
+	@Test
+	void offToOneSideOfAShaftItStraightensBeforeGoingDown() {
+		// The route through a one-wide shaft is found - Nav models a 0.8-wide body and the island is
+		// full of them. What failed is the FLYING: steering at the waypoint centre from off to one
+		// side arrives at the mouth still carrying that drift, catches the lip, and bumps.
+		Vec3 me = new Vec3(10.0, 100.0, 10.0);            // 0.5 off in x and z
+		Vec3 centre = new Vec3(10.5, 95.5, 10.5);
+		Vec3 wanted = new Vec3(0, -0.35, 0);              // "go down the shaft"
+		Vec3 out = Autopilot.align(me, centre, SHAFT, wanted, Autopilot.ALIGN_TOL, 0.1);
+		assertEquals(0.0, out.y, 1e-9, "went down the hole while still beside it");
+		assertTrue(out.x > 0 && out.z > 0, "did not move toward the middle of the shaft");
+	}
+
+	@Test
+	void linedUpItCarriesOn() {
+		Vec3 me = new Vec3(10.45, 100.0, 10.52);          // within tolerance
+		Vec3 centre = new Vec3(10.5, 95.5, 10.5);
+		Vec3 wanted = new Vec3(0, -0.35, 0);
+		assertSame(wanted, Autopilot.align(me, centre, SHAFT, wanted, Autopilot.ALIGN_TOL, 0.1),
+			"kept fiddling with the alignment instead of flying");
+	}
+
+	@Test
+	void anOpenAxisIsNeverCorrectedFor() {
+		// Only the walled lanes matter. Correcting the open one would drag the flight to the middle
+		// of every corridor it passes down, which is not alignment, it is a detour.
+		Vec3 me = new Vec3(10.0, 130.0, 10.0);
+		Vec3 centre = new Vec3(10.5, 95.5, 10.5);
+		Vec3 out = Autopilot.align(me, centre, SHAFT, new Vec3(0, -0.35, 0), Autopilot.ALIGN_TOL, 0.1);
+		assertEquals(0.0, out.y, 1e-9, "corrected along the axis it was free to travel");
+	}
+
+	@Test
+	void nothingWalledMeansNothingToLineUpWith() {
+		Vec3 wanted = new Vec3(0.3, 0, 0.1);
+		assertSame(wanted, Autopilot.align(new Vec3(0, 0, 0), new Vec3(9, 9, 9),
+			new boolean[] {false, false, false}, wanted, Autopilot.ALIGN_TOL, 0.1));
+	}
+
+	@Test
+	void theCorrectionIsNeverBiggerThanTheErrorOrTheSpeed() {
+		// Overshooting the centre of a one-wide shaft puts you against the other wall, which is the
+		// same bump from the other side.
+		Vec3 out = Autopilot.align(new Vec3(10.48, 100, 10.0), new Vec3(10.5, 100, 10.5), SHAFT,
+			new Vec3(0, -0.35, 0), 0.05, 0.9);
+		assertTrue(out.length() <= 0.51, "corrected further than it was out: " + out.length());
+	}
+
+	@Test
+	void aTightGapIsFlownSlowly() {
+		assertTrue(Autopilot.TIGHT_SPEED < Autopilot.SPEED,
+			"threads a one-wide gap at cruise, which is how you catch the lip");
+		assertTrue(Autopilot.ALIGN_TOL < 0.5,
+			"tolerance is half a block: it would call any position in the cell lined up");
 	}
 }

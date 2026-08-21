@@ -835,6 +835,12 @@ final class Autopilot {
 			// Only ever applied to the DIRECT guess. A real route is already clear, and second-
 			// guessing it here is how you fight your own pathfinder at a doorway.
 			if (path.isEmpty()) step = unstick(mc, p, step);
+			// ---- LINE UP FOR A TIGHT GAP BEFORE ENTERING IT. See align().
+			boolean[] lock = boxedAxes(mc, aim);
+			if (lock[0] || lock[1] || lock[2]) {
+				speed = Math.min(speed, TIGHT_SPEED);
+				step = align(me, aim, lock, dir.scale(speed), ALIGN_TOL, speed);
+			}
 			if (bumped) {
 				if (path.isEmpty()) {
 					// Nothing to route along and something in the way: slide, and pick the direction
@@ -1152,8 +1158,65 @@ final class Autopilot {
 		return best == null ? new Vec3(0, 1, 0) : best;    // boxed in: up is the least-bad guess
 	}
 
+	// ---- THREADING A ONE-WIDE GAP.
+	//
+	// Jack: "we also need to do better at being able to locate areas we can fly through e.g. 1x open
+	// spaces we can fly up through if we align correctly, it gets stuck quite a lot still."
+	//
+	// The ROUTE through those is already found — `Nav` models a body 0.8 wide and a one-wide shaft
+	// passes it, and the island is full of them: the taproot, the workshop necks, the well. What
+	// fails is the FLYING. Steering at a waypoint centre from off to one side arrives at the mouth
+	// still carrying that lateral drift, catches the lip, and bumps — and then the bump handler goes
+	// round something it was already lined up with.
+	//
+	// So: when the way ahead is walled on both sides of an axis, CENTRE THAT AXIS FIRST and make no
+	// progress along the passage until it is lined up. It is what a player does without thinking.
+
+	/** Off-centre by more than this and it is worth straightening before going on. */
+	static final double ALIGN_TOL = 0.18;
+	/** Speed through a gap you have to be lined up for. */
+	static final double TIGHT_SPEED = 0.10;
+
+	/**
+	 * Centre yourself in whichever lanes are walled, before moving along the one that is not.
+	 *
+	 * @param lock which axes are boxed in — {x, y, z}
+	 * @return the step to take: a pure correction while off-centre, otherwise the step asked for
+	 */
+	static Vec3 align(Vec3 me, Vec3 centre, boolean[] lock, Vec3 step, double tol, double speed) {
+		double dx = lock[0] ? centre.x - me.x : 0;
+		double dy = lock[1] ? centre.y - me.y : 0;
+		double dz = lock[2] ? centre.z - me.z : 0;
+		double off = Math.sqrt(dx * dx + dy * dy + dz * dz);
+		if (off <= tol) return step;
+		// Nothing along the passage until the lanes line up. Creeping forward while still off to one
+		// side is exactly how you catch the lip you were trying to thread.
+		Vec3 fix = new Vec3(dx, dy, dz).normalize().scale(Math.min(speed, off));
+		return fix;
+	}
+
 	/** How much to prefer sliding along a face over leaving it. See sidestep. */
 	static final double SIDE_BIAS = 0.15;
+
+	/**
+	 * Which axes are walled on BOTH sides at this point: the lanes you have to be centred in.
+	 *
+	 * <p>Measured at the target rather than at the player, because the point is to be lined up
+	 * BEFORE arriving. A one-wide vertical shaft locks x and z and leaves y open, which is exactly
+	 * the instruction: get over the hole, then go down it.
+	 */
+	private static boolean[] boxedAxes(Minecraft mc, Vec3 at) {
+		BlockPos c = BlockPos.containing(at.x, at.y, at.z);
+		return new boolean[] {
+			solidAt(mc, c.east()) && solidAt(mc, c.west()),
+			solidAt(mc, c.above(2)) && solidAt(mc, c.below()),
+			solidAt(mc, c.south()) && solidAt(mc, c.north()),
+		};
+	}
+
+	private static boolean solidAt(Minecraft mc, BlockPos b) {
+		return mc.level.isLoaded(b) && mc.level.getBlockState(b).blocksMotion();
+	}
 
 	/** Is a body able to be at this offset from the player? */
 	private static boolean openAt(Minecraft mc, LocalPlayer p, double dx, double dy, double dz) {

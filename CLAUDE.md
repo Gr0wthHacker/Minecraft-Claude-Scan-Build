@@ -3004,6 +3004,31 @@ Three guards, each of which is the difference between a fix and a nuisance:
   player watching their character hop twice a second is watching a bug.
 - **A minute between attempts**, for the same reason.
 
+### Threading a one-wide gap (2026-08-20)
+
+Jack: *"we also need to do better at being able to locate areas we can fly through e.g. 1x open
+spaces we can fly up through if we align correctly, it gets stuck quite a lot still."*
+
+**The routes through those are already found.** `Nav` models a body 0.8 wide and a one-wide shaft
+passes it; `NavTest` has had `aVerticalShaftIsFlyable` and the highway cases since the tunnel work.
+The island is full of them — the taproot, the workshop necks, the well — and what fails is not the
+finding, it is the FLYING: steering at a waypoint centre from off to one side arrives at the mouth
+still carrying that lateral drift, catches the lip, and bumps. Then the bump handler goes round
+something it was already lined up with.
+
+**So it lines up first.** When the way ahead is walled on both sides of an axis, that lane is
+CENTRED before any progress is made along the passage — and no progress at all until it is, because
+creeping forward while still off to one side is exactly how you catch the lip you were threading. It
+is what a player does without thinking.
+
+- Measured at the TARGET, not at the player: the point is to be lined up before arriving.
+- Only the WALLED lanes are corrected. Centring the open one would drag the flight to the middle of
+  every corridor it passes down, which is not alignment, it is a detour.
+- The correction is capped by the error and by the speed, or overshooting the middle of a one-wide
+  shaft puts you against the far wall — the same bump from the other side.
+- And a gap you have to be lined up for is flown at `TIGHT_SPEED`, because the alternative is
+  arriving correctly aligned and too fast to stay that way.
+
 ## The daily loop
 
 ```bash
