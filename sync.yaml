@@ -50,5 +50,7 @@ progress:                           # designs reported (% built, left, shop list
   # configs/lowland_heron.yaml): one of heron/capybara had to go, and the flamingo already
   # holds the wading-bird slot.
   - out/Lowland Portal.litematic
-  - out/Lowland Axolotl.litematic
+  - out/Lowland Axolotl.litematic   # AS BUILT: re-derived from the world after Jack placed it
+                                    # on the WEST bank rotated 180 - see configs/lowland_axolotl.yaml
+  - out/Lowland Ruinway.litematic   # the blackstone way and its fragments (2026-08-21)
 learn: true

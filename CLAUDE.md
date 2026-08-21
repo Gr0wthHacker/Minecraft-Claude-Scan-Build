@@ -2050,6 +2050,51 @@ Cross-design overlap 0 across all six lowland pieces; nearest approach is the ca
 gills, dry feet, the wet nose, and the pale eye ring. Tracked: `sync.yaml` progress carries both;
 `designs.json` now lists 25.
 
+## The ruins quarter, and the world as master copy (2026-08-21, 19:28 scan)
+
+The scan review found the ring 89% standing, the ground ~95%, the pond broken to real water -
+and **the axolotl standing on the pond's WEST bank, rotated 180**, where the design said
+north-east. Jack placed it where he wanted it, which is a design decision made in-world, and the
+response that works is the one taken for the deck floor's as-found state: **the world is the
+master copy.** The placement transform was recovered off the two eye beads (rotation 2x90,
+translation solved by matching), and `Lowland Axolotl` was re-derived from the capture itself -
+975 cells, as built, 100% clean by construction. The config keeps the design record under an
+AS-BUILT header; regenerating it would fight the placed copy cell by cell, forever.
+
+**The same scan moved the ground under the ring, and the seat drifted.** The ring's vertical
+seat derives from min-ground; Jack's moss-building raised that by one, and a regen emitted every
+remaining cell one course off the standing masonry. `base_y` now pins the seat - and the pin was
+taken WRONG once before it was taken right: 44 from the drifted derivation, then 43 read off the
+standing crown (proud keystone at Y68 = seat + D/2 + 13). **A pin must come from the world, not
+from the code that drifted.** The ruinring tests hit the snapshot trap too - pinning the full
+circle against a design whose nature is remaining-work - and now judge what STANDS (design plus
+capture masonry) for geometry, the design alone for the seam rule.
+
+**`Lowland Ruinway`** (gen/ruinway.py, 224 blocks, 0 problems, 0 overlap, 0 expensive): the rest
+of the ruin complex, one hand with the ring. Ruined pavement from the pond's SE bank THROUGH the
+gate to a broken overlook at the rim's true edge (ground ends at X-24151, measured after this
+file's own -1-is-truthy bug bit the rim scan a second time). Fragments, each a PART of a
+building: a gatehouse whose door outlived its walls, a four-pier colonnade on the overlook
+approach, a bridge stub whose last two rows hang over open water, an apse half-ring with one
+amethyst bloom in the NORTH skylight - the second beam of daylight gets its own ruin so the two
+shafts answer each other. Soul lanterns on wall posts light the way cold.
+
+Three measured facts the quarter is built on:
+
+- **The way crosses UNDER the sprinting capybara.** Its only low cells are the two diagonal leg
+  pairs (z30014-18 and z30022-26); the corridor between them at z30019-21 is clear below Y47 the
+  whole way across, and `test_the_walk_under_the_capybara_stays_clear` keeps it that way.
+- **The pavement decays with distance from the ring** (gap hash grows per block), stairs are
+  never gapped (a missing tread breaks the walk; a missing flag is moss showing through), and
+  every riser faces its ascent per the stair convention.
+- **The pond's SE finger was misread once**: "water reaches east to X" is water's EASTMOST
+  column, not its extent - the first bridge siting put the whole deck on dry land and the test
+  caught it. The deck is level (a bridge does not conform to ground - that is the reason to
+  build one), and its broken end is staggered, not sheared.
+
+Generation order matters and is stated: portal first, ruinway defers to it (21 shared threshold
+cells). `designs.json` tracks 26.
+
 ## Build & test
 
 ```bash
