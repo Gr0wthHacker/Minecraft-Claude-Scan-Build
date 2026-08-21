@@ -433,6 +433,32 @@ final class Hud {
 		// Matched by PROXIMITY, not by equality: a cluster's centre is a centroid of the cells still
 		// to do, so it drifts a block or two every time you place some. Comparing it exactly would
 		// call every recount a new spot, reset the stations and re-announce, twice a second.
+		// ---- THRASHING. Abandon spot A, take B, abandon B, take A again when its minute expires,
+		// for ever: every decision correct, the sequence a machine going nowhere. The evidence is
+		// the pair — several spots given up on, and nothing placed while it happened.
+		if (Loop.thrashing(spotsAbandoned, placedTotal - placedWhenAbandoned, THRASH_LIMIT)) {
+			spotsAbandoned = 0;
+			mc.player.sendSystemMessage(Component.literal("[cscan] " + THRASH_LIMIT + " spots given"
+				+ " up on with nothing placed — this design is not buildable from here right now."));
+			if (followAll) {
+				String other = nextDesign(mc, sp.name());
+				if (other != null) {
+					mc.player.sendSystemMessage(Component.literal("[cscan] moving on to " + other));
+					follow(other);
+					followAll = true;
+					remember(mc);
+					return;
+				}
+			}
+			mc.player.sendSystemMessage(Component.literal("[cscan] stopping. /cscan why for what it"
+				+ " was trying, /cscan check " + sp.name() + " for cells the world disagrees about."));
+			following = false;
+			stopGuiding();
+			Highlight.clear("goto");
+			remember(mc);
+			return;
+		}
+
 		Plan.Cluster next = Loop.sameSpot(spotCentre, cl, Plan.MAX_RADIUS);
 		if (next == null) {
 			// PASS OVER THE SPOT THAT JUST WENT NOWHERE. Without this the next recount picks the
@@ -619,7 +645,21 @@ final class Hud {
 	 * without that the next recount picks the same region — it is still the best one — and flies at
 	 * the same gap again.
 	 */
+	/** How many spots may be given up on with nothing placed before the design is the problem. */
+	static final int THRASH_LIMIT = 4;
+
+	private static int spotsAbandoned = 0;
+	private static int placedWhenAbandoned = 0;
+
 	static void abandonSpot() {
+		// Count the giving-up, and remember what had been placed at the time: several abandonments
+		// with NOTHING built between them is thrashing, which no single watchdog can see.
+		if (placedTotal == placedWhenAbandoned) {
+			spotsAbandoned++;
+		} else {
+			spotsAbandoned = 1;
+			placedWhenAbandoned = placedTotal;
+		}
 		avoidSpot = spotCentre;
 		avoidUntil = System.currentTimeMillis() + AVOID_MS;
 		spotCentre = null;
@@ -937,6 +977,8 @@ final class Hud {
 		stationTodo = -1;
 		stationsTried.clear();
 		spotCentre = null;
+		spotsAbandoned = 0;
+		placedWhenAbandoned = 0;
 		scaffoldFor = -1;
 	}
 

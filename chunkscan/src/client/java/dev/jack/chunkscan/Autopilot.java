@@ -250,6 +250,16 @@ final class Autopilot {
 	static final int WEDGED_GIVE_UP = 160;
 
 	private static int wedged = 0;
+
+	// ---- THE RECOVERY LADDER. See Recovery: when every specific handler has had its turn and the
+	// flight is still going nowhere, the reason stops mattering and only the escalation does.
+	private static int trouble = 0;
+	private static Recovery.Stage stage = Recovery.Stage.NONE;
+	/** Somewhere we were definitely fine, to back off to. */
+	private static BlockPos breadcrumb = null;
+	private static int breadcrumbAge = 0;
+	/** How high the climb-out is aiming, once it starts. */
+	private static BlockPos climbTo = null;
 	/**
 	 * A hard floor on how often a search may run, whatever else asks for one.
 	 *
@@ -918,6 +928,44 @@ final class Autopilot {
 			return;
 		}
 
+		// ---- THE LADDER. Everything above this point is a specific answer to a specific problem;
+		// this is what happens when all of them have had their turn. It only knows one thing: how
+		// long the flight has been getting nowhere.
+		boolean moving = legFrom == null || p.position().distanceTo(lastSeenAt) > MOVED_ENOUGH;
+		lastSeenAt = p.position();
+		if (Recovery.inTrouble(moving, true, false)) {
+			trouble++;
+		} else {
+			trouble = 0;
+			if (stage != Recovery.Stage.NONE) {
+				stage = Recovery.Stage.NONE;
+				climbTo = null;
+			}
+			// ...and while things are fine, drop a crumb every so often. The way out of a wedge is
+			// almost always the way in, and that is the only place we KNOW was open.
+			if (++breadcrumbAge > CRUMB_EVERY && !p.horizontalCollision) {
+				breadcrumbAge = 0;
+				breadcrumb = p.blockPosition();
+			}
+		}
+		if (trouble >= Recovery.BACK_OFF_AT) {
+			boolean sealed = Nav.pocket(Nav.of(mc.level), p.blockPosition(),
+				Recovery.SEALED_CELLS) < Recovery.SEALED_CELLS;
+			Recovery.Stage want = Recovery.stageFor(trouble, sealed);
+			if (want != stage) {
+				stage = want;
+				climbTo = null;
+				p.sendSystemMessage(Component.literal("[cscan] not getting anywhere ("
+					+ (trouble / 20) + "s) — " + switch (want) {
+						case BACK_OFF -> "backing off to open air";
+						case CLIMB_OUT -> "climbing out of it";
+						case GO_HOME -> sealed ? "shut in — going home" : "giving up, going home";
+						default -> "carrying on";
+					}));
+			}
+			if (recover(mc, p, target)) return;
+		}
+
 		// ---- ROUTE. Recomputed on a timer and whenever the destination moves, because the world
 		// loads in around you and the plan's target changes as you build.
 		if (pathTo != null && !pathTo.equals(target)) {
@@ -1549,6 +1597,66 @@ final class Autopilot {
 		if (!mc.level.isLoaded(b)) return false;           // unseen is not a way out
 		return !mc.level.getBlockState(b).blocksMotion()
 			&& !mc.level.getBlockState(b.above()).blocksMotion();
+	}
+
+	/** Movement below this in a tick is not travel, it is drift. */
+	static final double MOVED_ENOUGH = 0.05;
+	/** Ticks between breadcrumbs. */
+	static final int CRUMB_EVERY = 40;
+	/** How far up the climb-out goes before trying again. */
+	static final int CLIMB_HEIGHT = 25;
+
+	private static Vec3 lastSeenAt = Vec3.ZERO;
+
+	/**
+	 * Work the ladder.
+	 *
+	 * @return true when the recovery is driving and nothing else should
+	 */
+	private static boolean recover(Minecraft mc, LocalPlayer p, BlockPos target) {
+		switch (stage) {
+			case BACK_OFF -> {
+				// The way out is the way in. Fly the crumb, not the destination.
+				if (breadcrumb == null) return false;
+				Vec3 back = Vec3.atCenterOf(breadcrumb);
+				if (p.position().distanceTo(back) < 2.0) {
+					breadcrumb = null;                  // used it; if that was not enough, climb
+					return false;
+				}
+				p.setDeltaMovement(keepAirborne(mc, p,
+					back.subtract(p.position()).normalize().scale(BLIND_SPEED * 2)));
+				return true;
+			}
+			case CLIMB_OUT -> {
+				// Straight up until there is nothing overhead. Above this island there is nothing to
+				// be stuck on, and from open sky every route is findable again.
+				if (climbTo == null) climbTo = p.blockPosition().above(CLIMB_HEIGHT);
+				if (p.getY() >= climbTo.getY() || !p.getAbilities().flying) {
+					climbTo = null;
+					stage = Recovery.Stage.NONE;
+					trouble = Recovery.BACK_OFF_AT;     // give the normal flight another go
+					return false;
+				}
+				p.setDeltaMovement(new Vec3(0, Math.min(SPEED, 0.4), 0));
+				return true;
+			}
+			case GO_HOME -> {
+				if (p.connection != null && rescueCool == 0) {
+					rescueCool = RESCUE_COOLDOWN;
+					p.connection.sendCommand("is");
+					p.sendSystemMessage(Component.literal("[cscan] sent /is — the loop picks up again"
+						+ " from wherever that puts us."));
+				}
+				trouble = 0;
+				stage = Recovery.Stage.NONE;
+				forget();
+				Hud.abandonSpot();                      // whatever it was, it is not worth this
+				return true;
+			}
+			default -> {
+				return false;
+			}
+		}
 	}
 
 	/** Shortest-way-round easing between two angles. */

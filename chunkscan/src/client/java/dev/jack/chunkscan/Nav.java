@@ -283,6 +283,42 @@ final class Nav {
 	}
 
 	/**
+	 * How much world can be reached from here at all, up to a cap.
+	 *
+	 * <p>The difference between SEALED and merely difficult, and nothing else measures it. A flight
+	 * that cannot find a route might be looking at a wall with a door round the corner; a flight in
+	 * a pocket of forty cells has been built into something, and every clever thing this file can do
+	 * — go round, climb, thread, back off — is a waste of the next ten minutes.
+	 *
+	 * <p>Stops at `cap` rather than flooding the sky, so the answer is "at least this much", which is
+	 * all the caller needs.
+	 */
+	static int pocket(Passable free, BlockPos from, int cap) {
+		java.util.Set<Long> seen = new java.util.HashSet<>();
+		java.util.ArrayDeque<BlockPos> q = new java.util.ArrayDeque<>();
+		q.add(from);
+		seen.add(from.asLong());
+		int n = 0;
+		while (!q.isEmpty() && n < cap) {
+			BlockPos c = q.poll();
+			n++;
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dy = -1; dy <= 1; dy++) {
+					for (int dz = -1; dz <= 1; dz++) {
+						if (dx == 0 && dy == 0 && dz == 0) continue;
+						BlockPos b = c.offset(dx, dy, dz);
+						if (!seen.add(b.asLong())) continue;
+						if (!free.at(b.getX(), b.getY(), b.getZ())) continue;
+						if (!stepFits(free, c.getX(), c.getY(), c.getZ(), dx, dy, dz)) continue;
+						q.add(b);
+					}
+				}
+			}
+		}
+		return n;
+	}
+
+	/**
 	 * When there is no route: the best you CAN reach, which is how you get round a wall.
 	 *
 	 * <p>Flying direct at an unreachable goal presses you into whatever is between, which is the

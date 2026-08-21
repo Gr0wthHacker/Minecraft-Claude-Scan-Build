@@ -3260,6 +3260,50 @@ an audit is for.
 The pattern in three of the four: a constant's value silently deciding whether another mechanism runs
 at all. None of them would have failed a code review; all of them are arithmetic.
 
+### The recovery ladder: what to do when it is genuinely impossible (2026-08-21)
+
+Jack: *"theres going to be times where its literally impossible to reach and it causes an infinite
+loop, e.g. if its in the center of many layers because we built the wrong way in."*
+
+Every stuck loop before this was fixed by understanding ONE situation — the shaft, the ceiling, the
+unloaded chunk, the wall the route thought was clear. **That approach has a floor under it.** There
+will always be a situation nobody thought of, and no amount of cleverness about flying reaches a cell
+in the middle of a solid mass. So the last resort is not another special case; it is a ladder, and
+the only thing it knows is how long things have been going badly.
+
+    5s    BACK_OFF     fly to a breadcrumb — somewhere we were definitely open
+    10s   CLIMB_OUT    abandon the destination, rise into open sky
+    20s   GO_HOME      /is
+
+`Recovery.stageFor` is pure and `RecoveryTest` argues with the order rather than the behaviour. Three
+things about it are load-bearing:
+
+- **Trouble is defined by MOVEMENT, not by cause.** The specific handlers upstream have already had
+  their turn; if the flight is still not covering ground after all of them, the reason has stopped
+  mattering. A flight that is moving is fine whatever else is true of it.
+- **Each rung gets long enough to work** before the next interrupts it. Backing off and climbing out
+  are several seconds of flying each.
+- **SEALED is a shortcut, not a rung.** `Nav.pocket` counts reachable cells up to a cap: fewer than
+  60 and you are in a hole rather than a room. Backing off, climbing and going round are all about
+  getting somewhere else IN THIS WORLD, and when you have been built into something there is nowhere
+  else to get to — so it goes straight to `/is`.
+
+**The boundary matters as much as the detection.** The loop works indoors — the store hall is nine by
+nine — and a recovery that teleported you home every time you flew into a building would be worse
+than no recovery. `aROOMIsNotAPocket` pins it, and the first version of the sealed test WAS a room,
+which is how the threshold got chosen honestly.
+
+#### And the slow version of the same loop
+
+No watchdog catches this one, because every individual decision in it is correct: abandon spot A,
+take B, abandon B, take A again once its minute expires, for ever. `Loop.thrashing` looks at the PAIR
+— several spots given up on, and NOTHING placed while it happened. Either alone is normal; a design
+has awkward corners and a slow printer is still a printer.
+
+Four abandonments with nothing built and the design is not buildable from here right now: it moves to
+the next design under `follow all`, or stops and says which commands would explain why. **A loop that
+runs all night achieving nothing is worse than one that stops at 2am and says so.**
+
 ## The daily loop
 
 ```bash

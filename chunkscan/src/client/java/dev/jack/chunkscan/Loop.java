@@ -160,6 +160,22 @@ final class Loop {
 		return now - movedAtMs > ms && now - placedAtMs > ms;
 	}
 
+	// ---------------------------------------------------------------- thrashing
+
+	/**
+	 * Giving up on spot after spot and building nothing.
+	 *
+	 * <p>The SLOW version of the infinite loop, and the one no single watchdog catches: abandon spot
+	 * A, take B, abandon B, take A again once its minute is up, for ever. Each individual decision is
+	 * correct and the sequence is a machine going nowhere.
+	 *
+	 * <p>The evidence is the pair: several spots given up on, and NOTHING placed while that happened.
+	 * Either alone is normal — a design has awkward corners, and a slow printer is still a printer.
+	 */
+	static boolean thrashing(int spotsAbandoned, int placedSince, int limit) {
+		return spotsAbandoned >= limit && placedSince == 0;
+	}
+
 	// ---------------------------------------------------------------- the session stall
 
 	/**
