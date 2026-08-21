@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -111,5 +112,32 @@ class WorkStateTest {
 		org.junit.jupiter.api.Assertions.assertEquals(2, t.get("stone_brick_stairs"));
 		org.junit.jupiter.api.Assertions.assertEquals(1, t.get("stone_bricks"));
 		org.junit.jupiter.api.Assertions.assertEquals(2, t.size());
+	}
+
+	// ---------------------------------------------------------------- out of view is not finished
+
+	@Test
+	void aSplitCountsWhatItCouldNotSee() {
+		// `split` can only diff chunks the client has, so everything else is absent from all three
+		// lists — and an empty todo therefore means "nothing left HERE". On a 240-block island that
+		// is routinely most of a design: start `follow all` at the far end and every design reads
+		// complete in turn, in about a second, and the loop congratulates itself and stops.
+		Work.Split seen = new Work.Split("x", java.util.List.of(), java.util.List.of(), 10, 0, null);
+		assertTrue(seen.complete(), "nothing left and nothing hidden is finished");
+
+		Work.Split hidden = new Work.Split("x", java.util.List.of(), java.util.List.of(), 10, 40,
+			new net.minecraft.core.BlockPos(1, 2, 3));
+		assertFalse(hidden.complete(), "called a design finished with 40 cells out of view");
+		assertEquals(50, hidden.total(), "the unseen cells are part of the design");
+	}
+
+	@Test
+	void whatCannotBeSeenIsNotCountedAsBuilt() {
+		// The tempting shortcut - treat unloaded as built - reports a design finished and quietly
+		// leaves it half-standing. It is remaining WORK either way; we just cannot see it yet.
+		Work.Split hidden = new Work.Split("x", java.util.List.of(), java.util.List.of(), 0, 7,
+			new net.minecraft.core.BlockPos(0, 0, 0));
+		assertEquals(0, hidden.built());
+		assertEquals(7, hidden.total());
 	}
 }

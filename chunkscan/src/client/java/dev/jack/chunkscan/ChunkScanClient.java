@@ -768,6 +768,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 		}
 		Hud.follow(first);
 		Hud.followAll(mc, true);
+		if (!Autopilot.on()) {
+			ok(src, "autofly is OFF — /cscan autofly on to be flown between them");
+		}
 		ok(src, "following every tracked design, starting with " + first
 			+ ". It moves to the next as each one finishes. /cscan follow to stop.");
 		return 1;
@@ -783,6 +786,13 @@ public final class ChunkScanClient implements ClientModInitializer {
 			Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
 			Hud.follow(name);
 			Hud.remember(src.getClient());
+			// `follow` points; `autofly` moves. Saying so here is the difference between the loop
+			// working and the loop appearing to do nothing, and it is the commonest way to start it
+			// half-armed.
+			if (!Autopilot.on()) {
+				ok(src, "autofly is OFF — /cscan autofly on to be flown there, or follow the arrow"
+					+ " yourself");
+			}
 			ok(src, "following " + name + " — the arrow moves to the next spot as each one finishes."
 				+ " /cscan follow to stop.");
 			return 1;

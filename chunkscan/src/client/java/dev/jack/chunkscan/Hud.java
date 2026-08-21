@@ -64,6 +64,12 @@ final class Hud {
 	private static long stationSince;
 	private static int stationTodo = -1;
 	private static final java.util.Set<Long> stationsTried = new java.util.HashSet<>();
+	/** How many times this station has been re-aimed after placing nothing. See stand(). */
+	private static int stationRetry = 0;
+	/** Consecutive failures inside advance(). Reported a few times, then given up on. See tick(). */
+	private static int hiccups = 0;
+	/** Said once per design: there is nothing placed for the printer to print. */
+	private static boolean placementWarned = false;
 	/**
 	 * Nothing placed at ONE station for this long and it moves to the next.
 	 *
@@ -148,7 +154,28 @@ final class Hud {
 	 */
 	private static void advance(Minecraft mc, Work.Split sp) {
 		BlockPos me = mc.player.blockPosition();
-		if (sp.todo().isEmpty()) {
+
+		// ---- OUT OF VIEW IS NOT FINISHED. `split` can only diff chunks the client has, so an empty
+		// todo list means "nothing left within sight". On a 240-block island that is routinely most
+		// of a design: start at the far end and every tracked design reads complete in turn, and
+		// `follow all` walks the whole list announcing victory in about a second.
+		//
+		// Go and look instead. Flying there loads the chunks, and the next recount has real work.
+		if (sp.todo().isEmpty() && sp.unseen() > 0 && sp.nearestUnseen() != null) {
+			if (target == null || !target.equals(sp.nearestUnseen())) {
+				fetching = false;
+				// Flying to the far side of the island is not a stall. Without this the 90s watch
+				// counts through the trip and reports a stall for doing exactly the right thing.
+				lastProgressMs = System.currentTimeMillis();
+				Highlight.clear("goto");
+				guide(sp.nearestUnseen(), sp.unseen() + " cells out of view");
+				mc.player.sendSystemMessage(Component.literal("[cscan] nothing left in sight, but "
+					+ sp.unseen() + " cells are in chunks I do not have — going to look at "
+					+ Wand.fmt(sp.nearestUnseen())));
+			}
+			return;
+		}
+		if (sp.complete()) {
 			if (target != null) {
 				mc.player.sendSystemMessage(Component.literal(
 					"[cscan] " + sp.name() + " is complete in every loaded chunk. " + sessionReport()));
@@ -174,6 +201,19 @@ final class Hud {
 			remember(mc);
 			return;
 		}
+		// ---- IS THERE ANYTHING FOR THE PRINTER TO PRINT? It places from a Litematica placement, so
+		// a design with no placement - or one toggled off - is a session of flying to the right
+		// spots and putting nothing down. One line, said once, at the start rather than after the
+		// first ninety-second stall.
+		if (!placementWarned) {
+			placementWarned = true;
+			if (Boolean.FALSE.equals(Litematica.enabled(sp.name()))) {
+				mc.player.sendSystemMessage(Component.literal("[cscan] heads up: no ENABLED"
+					+ " Litematica placement called \"" + sp.name() + "\", so the printer has"
+					+ " nothing to print. /cscan place " + sp.name()));
+			}
+		}
+
 		// ---- PROGRESS. `todo` shrinking is the only honest evidence a block was placed: the
 		// printer does the placing and never tells us, so the world is the report.
 		long now = System.currentTimeMillis();
@@ -188,6 +228,18 @@ final class Hud {
 			mc.player.sendSystemMessage(Component.literal("[cscan] STALLED — nothing placed in "
 				+ (STALL_MS / 1000) + "s at " + (target == null ? "?" : Wand.fmt(target))
 				+ ". Printer off, out of reach, or the spot cannot be built. " + sessionReport()));
+			// NEVER placed anything, twice over: that is not a bad spot, that is nothing printing.
+			// Worth saying plainly and once - it is the difference between a wasted ten minutes and
+			// a wasted night, and it is the one thing this loop cannot check for itself.
+			if (placedTotal == 0 && stalls == 2) {
+				Boolean live = Litematica.enabled(sp.name());
+				mc.player.sendSystemMessage(Component.literal("[cscan] nothing has been placed at"
+					+ " all this session. " + (Boolean.FALSE.equals(live)
+						? "There is no ENABLED Litematica placement called \"" + sp.name()
+							+ "\" — /cscan place " + sp.name()
+						: "The placement is loaded, so check that litematica-printer is switched"
+							+ " on and that you are in survival with the blocks in hand.")));
+			}
 			// Give up on this SPOT rather than sitting against it: the next recount picks another.
 			// Dropping only the arrow left `spotCentre` set, so the hysteresis above chose the same
 			// region straight back again and the stall repeated for as long as you left it.
@@ -321,6 +373,11 @@ final class Hud {
 			stationsTried.clear();
 			st = Plan.station(spot.cells(), Plan.PRINTER_REACH, me, stationsTried);
 			if (st == null) return;
+			// ...and give the re-offered bin a FRESH clock. Without this it kept the timestamp from
+			// the round that abandoned it, so it stalled again on the very next recount and the spot
+			// span through its bins as fast as the loop could count them.
+			if (st.bin() == stationBin) stationSince = now;
+			stationRetry = 0;
 		}
 
 		// ---- the per-station stall, measured on this station's OWN cell count
@@ -329,6 +386,7 @@ final class Hud {
 			if (stationTodo >= 0 && here.size() < stationTodo) {
 				stationSince = now;
 				stationTodo = here.size();
+				stationRetry = 0;                            // it is placing: the aim is fine
 				// ---- MOVE AROUND THE WORK AS IT GETS BUILT. The bin is a 4-cube, so its far corner
 				// is 3.5 from the centre and a standoff a few blocks out puts part of it beyond the
 				// printer's reach. Re-aiming at the centroid of what is LEFT walks you round the
@@ -344,8 +402,28 @@ final class Hud {
 			}
 			stationTodo = here.size();
 			if (now - stationSince > STATION_MS) {
+				// CLOSER BEFORE ELSEWHERE. Nothing placed can mean the printer cannot REACH this
+				// bin from where the standoff put us: a bin is a 4-cube, so its far corner is 3.46
+				// from the middle, and a standoff a few blocks out spends the rest of the 4.5 the
+				// printer has. Re-aim as tight as the geometry allows and give it another go before
+				// writing the bin off — abandoning a bin you could have reached leaves those cells
+				// for a later pass that will make exactly the same mistake.
+				if (stationRetry == 0) {
+					stationRetry = 1;
+					stationSince = now;
+					BlockPos close = Nav.standoff(Nav.of(mc.level), Plan.centroid(here),
+						mc.player.blockPosition(), 1);
+					if (close != null && !close.equals(target)) {
+						guide(close, here.size() + " here, closer");
+						mc.player.sendSystemMessage(Component.literal(
+							"[cscan] nothing placed here in " + (STATION_MS / 1000)
+								+ "s — moving in closer"));
+						return;
+					}
+				}
 				stationsTried.add(st.bin());
 				stationBin = Long.MIN_VALUE;
+				stationRetry = 0;
 				mc.player.sendSystemMessage(Component.literal("[cscan] nothing placed here in "
 					+ (STATION_MS / 1000) + "s — moving to the next angle on this spot"));
 				return;                                     // next recount picks another bin
@@ -358,6 +436,7 @@ final class Hud {
 		stationBin = st.bin();
 		stationSince = now;
 		stationTodo = here.size();
+		stationRetry = 0;
 		BlockPos at = Nav.standoff(Nav.of(mc.level), st.where(), me, STANDOFF);
 		if (at == null) at = st.where();
 		Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
@@ -417,7 +496,9 @@ final class Hud {
 				if (name.equals(after)) continue;
 				try {
 					Work.Split sp = Work.split(mc.level, dir, name, mc.player.blockPosition(), 0);
-					if (!sp.todo().isEmpty()) return name;
+					// ...including what it cannot see. Otherwise standing at one end of the island
+					// makes every design look finished and the run ends before it starts.
+					if (!sp.complete()) return name;
 				} catch (Exception skip) {
 					// no work.json yet, or it will not parse: not this run's problem
 				}
@@ -567,6 +648,7 @@ final class Hud {
 	static void follow(String name) {
 		watch(name);
 		following = true;
+		placementWarned = false;
 		stopGuiding();
 		Withdraw.clearFailures();
 		lastTodo = -1;
@@ -574,6 +656,7 @@ final class Hud {
 		startedMs = lastProgressMs;
 		placedTotal = 0;
 		spotsDone = 0;
+		hiccups = 0;
 		fetches = 0;
 		stalls = 0;
 		said = false;
@@ -609,7 +692,27 @@ final class Hud {
 		try {
 			Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), design,
 				mc.player.blockPosition(), 0);
-			if (following) advance(mc, sp);
+			// A THROW INSIDE THE DECISION IS NOT A REASON TO END THE SESSION. Reading the work list
+			// can fail permanently - no work.json, bad JSON - and the catch below is right to stop
+			// for that. Everything after it is a judgement about a world that is being changed
+			// underneath us by another mod, and a transient failure there should cost one tick.
+			if (following) {
+				try {
+					advance(mc, sp);
+					hiccups = 0;
+				} catch (Exception e) {
+					if (++hiccups <= 3) {
+						mc.player.sendSystemMessage(Component.literal("[cscan] recovered from "
+							+ e + " — carrying on"));
+					}
+					if (hiccups >= 20) {
+						mc.player.sendSystemMessage(Component.literal(
+							"[cscan] giving up after 20 failures in a row: " + e));
+						following = false;
+						stopGuiding();
+					}
+				}
+			}
 			int pct = sp.total() == 0 ? 0 : Math.round(100f * sp.built() / sp.total());
 			List<String> out = new ArrayList<>();
 			out.add(sp.name() + "  " + sp.built() + "/" + sp.total() + "  " + pct + "%");

@@ -45,8 +45,24 @@ final class Work {
 	}
 
 	/** A design's cells, split by what the world holds today. */
-	record Split(String name, List<Cell> todo, List<Cell> wrong, int built) {
-		int total() { return todo.size() + wrong.size() + built; }
+	/**
+	 * A design, diffed against the world.
+	 *
+	 * <p><b>`unseen` is the load-bearing one for an unattended loop.</b> {@link #split} can only diff
+	 * cells in chunks the client has, so everything else is silently absent from all three lists —
+	 * and an empty `todo` therefore means "nothing left HERE", not "the design is done". Start
+	 * `follow all` at the far end of the island and every design reads complete, one after another,
+	 * and the loop congratulates itself and stops. The count of what it could not see is the
+	 * difference between finished and out of view.
+	 *
+	 * @param nearestUnseen a cell in an unloaded chunk to go and look at, or null
+	 */
+	record Split(String name, List<Cell> todo, List<Cell> wrong, int built, int unseen,
+	             BlockPos nearestUnseen) {
+		int total() { return todo.size() + wrong.size() + built + unseen; }
+
+		/** Nothing left to place, and nothing hiding in a chunk we do not have. */
+		boolean complete() { return todo.isEmpty() && unseen == 0; }
 	}
 
 	private Work() {}
@@ -80,9 +96,22 @@ final class Work {
 		List<Cell> todo = new ArrayList<>(), wrong = new ArrayList<>();
 		int built = 0;
 		long r2 = (long) radius * radius;
+		int unseen = 0;
+		BlockPos nearestUnseen = null;
+		double unseenD = Double.MAX_VALUE;
 		for (Cell c : load(schematicsDir, name)) {
 			if (radius > 0 && c.pos().distSqr(near) > r2) continue;
-			if (!level.isLoaded(c.pos())) continue;
+			if (!level.isLoaded(c.pos())) {
+				// COUNTED, not skipped. See the note on Split: absent and finished look identical
+				// from here, and only one of them should end a session.
+				unseen++;
+				double d = c.pos().distSqr(near);
+				if (d < unseenD) {
+					unseenD = d;
+					nearestUnseen = c.pos();
+				}
+				continue;
+			}
 			BlockState st = level.getBlockState(c.pos());
 			if (matches(st, c.block())) built++;
 			else if (isReplaceable(st)) todo.add(c);
@@ -93,7 +122,7 @@ final class Work {
 			if (dy != 0) return dy;
 			return Double.compare(a.pos().distSqr(near), b.pos().distSqr(near));
 		});
-		return new Split(name, todo, wrong, built);
+		return new Split(name, todo, wrong, built, unseen, nearestUnseen);
 	}
 
 	private static boolean isReplaceable(BlockState st) {

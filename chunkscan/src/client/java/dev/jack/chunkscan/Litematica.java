@@ -45,6 +45,33 @@ final class Litematica {
 		register(placement);
 	}
 
+	/**
+	 * Is a placement of this name loaded, and is it switched on?
+	 *
+	 * <p>Three answers, not two: {@code null} means we could not ask (Litematica missing, or the API
+	 * moved under us), and that must not be reported as "your placement is missing" - a soft
+	 * dependency that has changed shape is a different problem from a placement you forgot to make.
+	 *
+	 * <p>Checked by NAME, which is what {@code /cscan place} sets it to and what the design is called
+	 * everywhere else in this mod.
+	 */
+	static Boolean enabled(String name) {
+		if (!present()) return null;
+		try {
+			Class<?> dataC = Class.forName("fi.dy.masa.litematica.data.DataManager");
+			Object manager = dataC.getMethod("getSchematicPlacementManager").invoke(null);
+			Object all = manager.getClass().getMethod("getAllSchematicsPlacements").invoke(manager);
+			for (Object p : (java.util.List<?>) all) {
+				String n = (String) p.getClass().getMethod("getName").invoke(p);
+				if (!name.equals(n)) continue;
+				return (Boolean) p.getClass().getMethod("isEnabled").invoke(p);
+			}
+			return Boolean.FALSE;                       // no placement of that name at all
+		} catch (Throwable t) {
+			return null;                                // could not ask; say nothing
+		}
+	}
+
 	private static Object placementFor(Path file, BlockPos origin, String name) throws Exception {
 		Class<?> holderC = Class.forName("fi.dy.masa.litematica.data.SchematicHolder");
 		Object holder = holderC.getMethod("getInstance").invoke(null);

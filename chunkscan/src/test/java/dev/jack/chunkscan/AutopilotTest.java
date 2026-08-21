@@ -158,4 +158,19 @@ class AutopilotTest {
 		assertFalse(src.contains("Screens.anyOpen()"), "back to stopping for chat");
 		assertTrue(src.contains("Screens.container() != null"), "it no longer pauses for a chest");
 	}
+
+	@Test
+	void itStopsShortOfAChestBeforeTheLoopDecidesItHasArrived() {
+		// TWO FILES, ONE DISTANCE. The autopilot stops flying at ARRIVED_SOLID; the loop starts the
+		// withdrawal at Withdraw.REACH - 0.5. They measure slightly different things — an entity's
+		// position against a block's — so equal thresholds are a race, and the losing outcome is a
+		// loop that hovers at a chest for ever without opening it. That exact bug has been shipped
+		// here once already, at 5.0 against 4.5.
+		double loopFires = Withdraw.REACH - 0.5;
+		assertTrue(Autopilot.ARRIVED_SOLID < loopFires - 0.5,
+			"autofly stops at " + Autopilot.ARRIVED_SOLID + " and the loop only acts inside "
+				+ loopFires + " — too close to call");
+		assertTrue(Autopilot.ARRIVED_SOLID > Autopilot.ARRIVED,
+			"a block cannot be flown into: it needs a looser radius than an open-air waypoint");
+	}
 }

@@ -76,6 +76,17 @@ final class Autopilot {
 	 * jittering, not the radius.
 	 */
 	static final double ARRIVED = 1.5;
+	/**
+	 * ...and how close is close enough when the destination is a BLOCK.
+	 *
+	 * <p>A chest cannot be flown into, so the tight radius above can never be satisfied and the
+	 * flight would nose at its face for ever. This must stay comfortably INSIDE the distance at
+	 * which {@link Hud} decides you have arrived and starts the withdrawal — they measure slightly
+	 * different things (an entity's position against a block's), so equal thresholds are a race
+	 * whose losing outcome is a loop that hovers at a chest and never opens it. Hud fires at
+	 * {@code Withdraw.REACH - 0.5} = 4.0; this stops at 3.0.
+	 */
+	static final double ARRIVED_SOLID = 3.0;
 	/** Ease the turn instead of snapping: a camera that jumps to a bearing is not a player. */
 	static final float TURN_RATE = 0.18f;
 
@@ -146,8 +157,24 @@ final class Autopilot {
 	private Autopilot() {}
 
 	static void register() {
-		ClientTickEvents.END_CLIENT_TICK.register(Autopilot::tick);
+		// Guarded, because a throw out of a tick event is a client CRASH, and this one runs every
+		// tick for hours against a world other mods are changing. Losing a tick of steering is
+		// nothing; losing the session is the thing being avoided.
+		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+			try {
+				tick(mc);
+			} catch (Exception e) {
+				if (mc.player != null && !crashed) {
+					crashed = true;
+					mc.player.sendSystemMessage(Component.literal("[cscan] autofly hit " + e
+						+ " — it will keep trying"));
+				}
+			}
+		});
 	}
+
+	/** Said once per session, so a repeating fault does not become the chat. */
+	private static boolean crashed = false;
 
 	static boolean on() {
 		return on;
@@ -245,7 +272,7 @@ final class Autopilot {
 		// can never be satisfied and the flight would hover against its face trying — inside reach
 		// the whole time, which is all the fetch needs, but visibly nosing at it.
 		if (dist <= ARRIVED
-			|| (dist <= ARRIVED + 2.5 && mc.level.getBlockState(target).blocksMotion())) {
+			|| (dist <= ARRIVED_SOLID && mc.level.getBlockState(target).blocksMotion())) {
 			// ARRIVING IS NOT DISARMING. The first version called stop(), which sets on=false — so
 			// autofly switched itself off at the first chest and the unattended loop never flew
 			// again. Hold still and stay armed; the next `guide()` moves the target and this
@@ -457,7 +484,10 @@ final class Autopilot {
 		pathTo = null;
 		if (!announcedArrival) {
 			announcedArrival = true;
-			if (mc.player != null) {
+			// Not while following. The loop re-aims at the work every time a few blocks go in, so
+			// this fired every couple of seconds for a whole session - and the HUD says it anyway.
+			// It is worth saying exactly once: when a person sent you somewhere with `goto`.
+			if (mc.player != null && !Hud.following()) {
 				mc.player.sendSystemMessage(Component.literal("[cscan] arrived — autofly still on"));
 			}
 		}

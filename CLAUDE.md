@@ -2490,6 +2490,62 @@ the answer there was always on an axis.
 - **No single search hitches the client**, measured where the frontier meets real geometry rather
   than an empty box.
 
+### The pre-upload audit of the whole cycle (2026-08-20)
+
+Fetch -> fly -> take -> fly -> stand -> print -> move on, read end to end before the jar went up.
+Eight findings; the last two are the ones that would have cost a night.
+
+- **The arrival was a RACE between two files.** Autofly stopped at 4.0 from a solid goal and the loop
+  started the withdrawal at 4.0 — measured slightly differently, an entity's position against a
+  block's. The losing outcome is a loop that hovers at a chest for ever without opening it, which is
+  the same bug this project already shipped once at 5.0 against 4.5. `ARRIVED_SOLID` is 3.0 now, a
+  clear block inside where the loop acts, and `AutopilotTest` asserts the margin across both files.
+- **A station that placed nothing moved on too readily.** A bin is a 4-cube, so its far corner is
+  3.46 from the middle and the printer has 4.5 — a standoff a few blocks out spends the rest. Now it
+  moves in CLOSER first (`standoff` at radius 1) and only abandons the bin on the second stall.
+  Abandoning a bin you could have reached leaves those cells for a later pass that makes the same
+  mistake.
+- **A re-offered bin kept its old clock**, so it stalled again on the very next recount and the spot
+  span through its bins as fast as the loop could count them.
+- **Arriving was announced every couple of seconds.** The station re-centres as cells go in, so the
+  target moves constantly — and every move said "arrived". Silent while following; the HUD says it.
+- **An exception inside the decision ended the session.** One catch covered both the work-list read
+  (permanently fatal — no work.json) and every judgement after it (transient, about a world other
+  mods are changing). Now separated: a hiccup costs a tick and is reported three times, twenty in a
+  row gives up. The two tick handlers that drive movement and looting are guarded too, because a
+  throw out of a tick event is a client CRASH — the worst possible outcome for a loop whose whole
+  point is running unwatched.
+- **Nothing checked that there was anything to print.** The printer prints a Litematica PLACEMENT, so
+  a design never placed, or toggled off, is a session of flying to the right spots and putting
+  nothing down. `Litematica.enabled(name)` answers three ways — yes, no, and *could not ask* — and
+  the third is not reported as the second: a soft dependency that changed shape is a different
+  problem from a placement you forgot to make. Said once at the start, and again when the loop has
+  placed nothing at all after two stalls.
+
+#### OUT OF VIEW IS NOT FINISHED
+
+`Work.split` can only diff cells in chunks the client HAS, and it silently skipped the rest — so an
+empty `todo` means "nothing left within sight", not "the design is done". On a 240-block island that
+is routinely most of a design.
+
+The consequence was worse than a wrong percentage. **Start `follow all` at the far end of the island
+and every tracked design reads complete in turn** — `nextDesign` asked the same question — so the
+loop announces that all 23 are finished, in about a second, and stops. An overnight run that ends
+before it starts.
+
+`Split.unseen` counts them and `Split.complete()` is the question the loop now asks. When there is
+nothing left in sight but cells out of view, it FLIES TO THE NEAREST ONE: going to look loads the
+chunks, and the next recount has real work. That trip also resets the stall clock, because crossing
+the island is not a stall.
+
+`unseen` is deliberately not counted as built — the tempting shortcut reports a design finished and
+quietly leaves it half-standing.
+
+#### Smaller things
+
+`/cscan follow` now says when autofly is OFF. `follow` points and `autofly` moves; starting
+half-armed looks exactly like the loop being broken.
+
 ## The daily loop
 
 ```bash

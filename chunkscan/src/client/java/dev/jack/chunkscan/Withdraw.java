@@ -122,6 +122,18 @@ final class Withdraw {
 	}
 
 	static void tick(Minecraft mc) {
+		try {
+			step(mc);
+		} catch (Exception e) {
+			// Clicking slots in a screen the server is still filling is the one place here that can
+			// throw, and it must cost the chest rather than the session.
+			if (chest != null) cool(chest, RETRY_AFTER_MS);
+			phase = Phase.FAILED;
+			note = String.valueOf(e);
+		}
+	}
+
+	private static void step(Minecraft mc) {
 		if (!busy() || mc.player == null || mc.level == null) return;
 		if (--timer <= 0) {
 			fail(mc, "gave up at " + Wand.fmt(chest));
