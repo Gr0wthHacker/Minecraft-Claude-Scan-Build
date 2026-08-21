@@ -137,6 +137,10 @@ final class Autopilot {
 	private static int bumps = 0;
 	/** Ticks of solid contact before the route itself is declared wrong rather than stale. */
 	static final int STUCK_TICKS = 40;
+	/** How far to flood for a way round when pressed against something. */
+	static final int BUMP_LOOK = 10;
+	/** ...and how often. A flood on every tick of contact is a cost this file has paid twice. */
+	static final int BUMP_LOOK_EVERY = 10;
 	/**
 	 * A hard floor on how often a search may run, whatever else asks for one.
 	 *
@@ -572,8 +576,31 @@ final class Autopilot {
 			bumps++;
 			repathIn = 0;
 			if (bumps == 1) {
-				p.sendSystemMessage(Component.literal("[cscan] bumped into something — climbing"
-					+ " over it and re-routing"));
+				p.sendSystemMessage(Component.literal("[cscan] bumped into something — finding a"
+					+ " way round"));
+			}
+			// ---- ASK THE GEOMETRY, DO NOT GUESS. The first version answered every obstacle by
+			// climbing, which is one instinct applied to five different situations — and when the
+			// thing in the way is a CEILING, or when climbing is what wedged you in the first place,
+			// it is the worst available answer.
+			//
+			// `Nav.escape` already knows how to do this properly: flood outward from where you are
+			// and take the reachable cell that gets closest to the goal, whichever direction that
+			// turns out to be. It is used here at a short radius, on a timer, because a flood on
+			// every tick of contact is the cost that has bitten this file twice.
+			if (bumps % BUMP_LOOK_EVERY == 1) {
+				Nav.Passable free = Nav.of(mc.level);
+				BlockPos here = p.blockPosition();
+				java.util.List<BlockPos> round = Nav.escape(free, here, target, BUMP_LOOK);
+				if (!round.isEmpty()) {
+					path = new java.util.ArrayList<>(Nav.simplify(free, here, round));
+					pathTo = target;
+					routedFlying = true;
+					sinceRepath = 0;
+					repathIn = REPATH_TICKS;
+					escaping = true;
+					bumps = 1;                          // it has a plan: let it fly the plan
+				}
 			}
 			if (bumps > STUCK_TICKS) {
 				// Two seconds pressed against the same thing: the route is not merely stale, it is
@@ -689,6 +716,20 @@ final class Autopilot {
 			// Only ever applied to the DIRECT guess. A real route is already clear, and second-
 			// guessing it here is how you fight your own pathfinder at a doorway.
 			if (path.isEmpty()) step = unstick(mc, p, step);
+			if (bumped) {
+				if (path.isEmpty()) {
+					// Nothing to route along and something in the way: slide, and pick the direction
+					// by what is actually OPEN. See sidestep — "up" is one of five answers, and the
+					// version that always climbed made a ceiling worse and a wedge permanent.
+					Vec3 out = sidestep(dir,
+						openAt(mc, p, 0, 3, 0), openAt(mc, p, 0, -2, 0),
+						openAt(mc, p, -dir.z, 0, dir.x), openAt(mc, p, dir.z, 0, -dir.x),
+						openAt(mc, p, -dir.x, 0, -dir.z));
+					step = out.scale(Math.max(speed * 0.5, RISE));
+				} else {
+					step = new Vec3(step.x * 0.4, step.y, step.z * 0.4);   // easing round a corner
+				}
+			}
 			step = keepAirborne(mc, p, step);
 			// Scaled, not pressed. See the note on VERTICAL_GAIN and, more importantly, the one
 			// above it about what the jump key actually does.
@@ -946,6 +987,40 @@ final class Autopilot {
 				.blocksMotion()) return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Which way to slide when the way ahead is blocked and there is no route to follow.
+	 *
+	 * <p>Pure, so the priorities can be argued with in a test rather than in the air. The caller
+	 * probes the world and passes what is open.
+	 *
+	 * <p>The ORDER is the point. Sideways first, because sliding along a face is how you get round
+	 * the end of it, and it keeps whatever progress the bump did not eat. Then UP — the old
+	 * unconditional answer, right perhaps a third of the time. Then DOWN, which nothing used to
+	 * consider at all and is the correct answer to a ceiling, an overhang, or a climb that is what
+	 * wedged you in the first place. Back last: it undoes progress, but it beats vibrating.
+	 */
+	static Vec3 sidestep(Vec3 dir, boolean up, boolean down, boolean left, boolean right,
+	                     boolean back) {
+		Vec3 flat = new Vec3(dir.x, 0, dir.z);
+		if (flat.lengthSqr() > 1.0e-6) flat = flat.normalize();
+		else flat = new Vec3(1, 0, 0);
+		Vec3 side = new Vec3(-flat.z, 0, flat.x);
+		if (left) return side;
+		if (right) return side.scale(-1);
+		if (up) return new Vec3(0, 1, 0);
+		if (down) return new Vec3(0, -1, 0);
+		if (back) return flat.scale(-1);
+		return new Vec3(0, 1, 0);                          // boxed in: up is the least-bad guess
+	}
+
+	/** Is a body able to be at this offset from the player? */
+	private static boolean openAt(Minecraft mc, LocalPlayer p, double dx, double dy, double dz) {
+		BlockPos b = BlockPos.containing(p.getX() + dx, p.getY() + dy, p.getZ() + dz);
+		if (!mc.level.isLoaded(b)) return false;           // unseen is not a way out
+		return !mc.level.getBlockState(b).blocksMotion()
+			&& !mc.level.getBlockState(b.above()).blocksMotion();
 	}
 
 	/** Shortest-way-round easing between two angles. */

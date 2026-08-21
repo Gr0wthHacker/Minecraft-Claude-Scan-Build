@@ -399,4 +399,57 @@ class AutopilotTest {
 		assertTrue(Autopilot.PANIC_BELOW_Y < 190,
 			"the line is above the deck, so working there would teleport you home");
 	}
+
+	// ---------------------------------------------------------------- getting round it
+
+	private static final Vec3 EAST = new Vec3(1, 0, 0);
+
+	@Test
+	void aBlockedWayOutSlidesSIDEWAYSFirst() {
+		// Sliding along a face is how you get round the end of it, and it keeps whatever progress
+		// the bump did not eat. Climbing was the old answer to everything.
+		Vec3 out = Autopilot.sidestep(EAST, true, true, true, true, true);
+		assertEquals(0.0, out.y, 1e-9, "climbed when it could have gone round");
+		assertTrue(Math.abs(out.z) > 0.9, "did not step to the side of an eastward heading");
+	}
+
+	@Test
+	void withTheSidesBlockedItClimbs() {
+		Vec3 out = Autopilot.sidestep(EAST, true, true, false, false, true);
+		assertEquals(1.0, out.y, 1e-9);
+	}
+
+	@Test
+	void aCEILINGSendsItDown() {
+		// The case the old handler could not express at all: it climbed into the thing that was
+		// already on its head, and kept climbing. Down is the correct answer to an overhang, and to
+		// a climb that is what wedged you in the first place.
+		Vec3 out = Autopilot.sidestep(EAST, false, true, false, false, true);
+		assertEquals(-1.0, out.y, 1e-9, "still trying to climb through a ceiling");
+	}
+
+	@Test
+	void backwardsIsTheLastResortAndBoxedInIsNotACrash() {
+		Vec3 back = Autopilot.sidestep(EAST, false, false, false, false, true);
+		assertTrue(back.x < -0.9, "did not back out when that was the only way");
+		Vec3 nothing = Autopilot.sidestep(EAST, false, false, false, false, false);
+		assertEquals(1.0, nothing.y, 1e-9, "boxed in: up is the least-bad guess, not an exception");
+	}
+
+	@Test
+	void aStraightUpHeadingStillHasASideToStepTo() {
+		// dir can be almost vertical when the target is directly above; the sideways vector must not
+		// come out as a zero-length nothing.
+		Vec3 out = Autopilot.sidestep(new Vec3(0, 1, 0), true, true, true, true, true);
+		assertTrue(out.length() > 0.9, "produced no direction at all");
+	}
+
+	@Test
+	void aBumpLooksForARouteRoundBeforeReachingForAnInstinct() throws IOException {
+		String src = source();
+		assertTrue(src.contains("Nav.escape(free, here, target, BUMP_LOOK)"),
+			"a bump no longer asks the geometry for a way round");
+		assertTrue(Autopilot.BUMP_LOOK_EVERY > 1,
+			"a flood on every tick of contact is the cost this file has already paid twice");
+	}
 }

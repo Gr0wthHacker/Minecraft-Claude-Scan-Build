@@ -2927,6 +2927,36 @@ loose ones. **Bulk storage on this island IS boxes in chests.**
 `inBoxes` is absent from every record written before today, which reads correctly as "no boxes known
 here" — the entry is rewritten from the screen the next time you open that container.
 
+### "Climbing over it" is one instinct applied to five situations (2026-08-20)
+
+Jack: *"need better solution than only climbing over it when often climbing up is the problem in the
+first place."* Right, and the ceiling rule one section up is the proof — the bump handler climbed
+into the thing that was already on its head, and kept climbing.
+
+**A bump now asks the geometry instead of guessing.** `Nav.escape` already knows how to answer this:
+flood outward from where you stand and take the reachable cell that gets CLOSEST to the goal,
+whichever direction that turns out to be. It runs at a short radius (10) and on a timer
+(`BUMP_LOOK_EVERY`), because a flood on every tick of contact is the cost this file has paid twice
+already. When it finds something, the loop flies that instead, easing round the corner at 40% speed.
+
+**And when there is no way round at all, `sidestep` chooses by what is OPEN.** The order is the
+whole content of it:
+
+1. **sideways** — sliding along a face is how you get round the end of it, and it keeps whatever
+   progress the bump did not eat;
+2. **up** — the old unconditional answer, right about a third of the time;
+3. **down** — which nothing used to consider AT ALL, and which is the correct answer to a ceiling, an
+   overhang, or a climb that is what wedged you in the first place;
+4. **back** — it undoes progress, but it beats vibrating against a corner.
+
+It is pure, so the priorities can be argued with in a test rather than in the air.
+
+**Found while doing it: the bumped-step handling had been silently deleted.** An earlier edit in this
+session replaced the whole flying-step block to add the vertical gain and took the collision slowdown
+with it, so for several commits a bump did not slow the flight at all. That is the second silent
+no-op edit today; the patch scripts now hard-fail on a missing anchor instead of quietly changing
+nothing.
+
 ## The daily loop
 
 ```bash
