@@ -65,8 +65,16 @@ LOWLAND = {
     # already stone/cobblestone/tuff/deepslate - five greys, which is why the rock read as one flat
     # tone in the side view. Dripstone is warm (134,108,93) against all of them, it is natural cave
     # rock rather than something quarried, and it is cheap tier where andesite was ok.
-    "rock": [("stone", 0.40), ("dripstone_block", 0.20), ("cobblestone", 0.16),
-             ("tuff", 0.12), ("deepslate", 0.12)],
+    #
+    # And TUFF IS GONE for the same reason andesite went, plus a harder one: the store holds ZERO of
+    # it and it cannot be crafted, so all 2,459 cells the lowland wanted were a shop purchase - the
+    # only block in the whole 41,875-cell design with no stock at all. Its weight went to dripstone
+    # and cobblestone, which are the two the store has most surplus of (3,904 and 5,527). Nothing was
+    # lost to the eye: tuff (108,109,103) sits between stone (126) and deepslate (80) and was a
+    # redundant mid-dark grey. What is left is a real value range - light stone, mid cobble, warm
+    # dripstone, dark deepslate - rather than four samples of the same grey and one accent.
+    "rock": [("stone", 0.40), ("dripstone_block", 0.28), ("cobblestone", 0.20),
+             ("deepslate", 0.12)],
     "sub_depth": 2,            # dirt layers between the soil and the rock
     "carpet": 0.10, "grass": 0.16, "fern": 0.05, "azalea": 0.03, "flower": 0.02,
     "trees": 6,
