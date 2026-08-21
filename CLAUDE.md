@@ -2981,6 +2981,26 @@ amounts is worse than one command.
 
 Half a stop is the kind that is discovered an hour later.
 
+### Getting flight back, when it is merely absent (2026-08-20)
+
+Jack: *"it needs to also activate fly again if its purely not moving because its not in fly anymore
+because it bumped into something etc."*
+
+The walk gate — building requires flight, walking is only ever a fetch — stops the loop doing
+anything DANGEROUS without flight, and stopping there is only the right answer if nothing can be done
+about it. Usually something can: **the same double tap that rescues a fall turns flight back on while
+standing on a floor.** From the ground the first tap is a jump and the second lands while airborne,
+which is exactly the gesture a player makes.
+
+Tried whenever the loop has somewhere to be, is not flying, and the server still says it MAY fly.
+Three guards, each of which is the difference between a fix and a nuisance:
+
+- **`mayfly` false and it does not try at all** — tapping will not change the server's mind — and it
+  says so once rather than every two seconds.
+- **Four attempts, then it stops.** A tap that has not worked will not work the fortieth time, and a
+  player watching their character hop twice a second is watching a bug.
+- **A minute between attempts**, for the same reason.
+
 ## The daily loop
 
 ```bash

@@ -314,6 +314,102 @@ final class Autopilot {
 	 */
 	static final int PANIC_BELOW_Y = 100;
 
+	// ---- GETTING FLIGHT BACK, when it is merely absent rather than an emergency.
+	//
+	// Jack: "it needs to also activate fly again if its purely not moving because its not in fly
+	// anymore because it bumped into something etc". Losing flight is not the end of the job — the
+	// walk gate stops the loop from doing anything DANGEROUS without it, and stopping there is only
+	// right if nothing can be done about it. Usually something can: the same double tap that rescues
+	// a fall turns flight back on while standing on a floor.
+	//
+	// Tried whenever the loop has somewhere to be, is not flying, and the server still says it MAY.
+	// Rate-limited, because a tap that does not work will not work the second time either, and a
+	// player watching their character hop twice a second is watching a bug.
+
+	/** Ticks between attempts to get flight back. */
+	static final int REGAIN_EVERY = 60;
+	/** After this many failed attempts, stop trying and say so once. */
+	static final int REGAIN_GIVE_UP = 4;
+
+	private static int regainCool = 0;
+	private static int regainTries = 0;
+	private static boolean regainSaid = false;
+
+	/** Should we be flying and are not, with the server's permission to fix that? */
+	static boolean canRegainFlight(boolean flying, boolean mayfly, boolean hasTarget) {
+		return hasTarget && !flying && mayfly;
+	}
+
+	/**
+	 * Turn flight back on.
+	 *
+	 * @return true while an attempt is in progress and nothing else should touch the controls
+	 */
+	private static boolean regain(Minecraft mc, LocalPlayer p) {
+		if (regainCool > 0) regainCool--;
+		if (p.getAbilities().flying) {
+			regainTries = 0;
+			regainSaid = false;
+			if (rescueStage != 0 && !isFalling(p.getDeltaMovement().y, false, p.onGround(), true)) {
+				rescueStage = 0;
+				release(mc);
+			}
+			return false;
+		}
+		if (!canRegainFlight(false, p.getAbilities().mayfly, Hud.target() != null)) {
+			if (!p.getAbilities().mayfly && !regainSaid) {
+				regainSaid = true;
+				p.sendSystemMessage(Component.literal("[cscan] flight is off and the server will"
+					+ " not give it back on its own — /fly, then double-tap jump."));
+			}
+			return false;
+		}
+		if (regainTries >= REGAIN_GIVE_UP) {
+			if (!regainSaid) {
+				regainSaid = true;
+				p.sendSystemMessage(Component.literal("[cscan] tried " + REGAIN_GIVE_UP
+					+ " times to get flight back and it is not taking. /fly, then double-tap jump."));
+			}
+			return false;
+		}
+		if (regainCool > 0) return rescueStage != 0;       // mid-sequence, or waiting to try again
+
+		// The same two taps as the fall rescue. From the ground the first is a jump and the second
+		// lands while airborne, which is exactly the gesture a player makes.
+		rescueTimer++;
+		switch (rescueStage) {
+			case 0 -> {
+				rescueStage = 1;
+				rescueTimer = 0;
+				regainTries++;
+				hold(mc, true, false);
+			}
+			case 1 -> {
+				if (rescueTimer >= TAP_GAP) {
+					rescueStage = 2;
+					rescueTimer = 0;
+					hold(mc, false, false);
+				}
+			}
+			case 2 -> {
+				if (rescueTimer >= TAP_GAP) {
+					rescueStage = 3;
+					rescueTimer = 0;
+					hold(mc, true, false);
+				}
+			}
+			default -> {
+				if (rescueTimer >= TAP_GAP) {
+					rescueStage = 0;
+					rescueTimer = 0;
+					regainCool = REGAIN_EVERY;
+					hold(mc, false, false);
+				}
+			}
+		}
+		return true;
+	}
+
 	/** Straight home, no taps: see {@link #PANIC_BELOW_Y}. */
 	static boolean goHomeAtOnce(double y) {
 		return y < PANIC_BELOW_Y;
@@ -446,6 +542,9 @@ final class Autopilot {
 		bumps = 0;
 		rescueStage = 0;
 		rescueCool = 0;
+		regainCool = 0;
+		regainTries = 0;
+		regainSaid = false;
 		on = v;
 		path = new java.util.ArrayList<>();
 		pathTo = null;
@@ -498,6 +597,10 @@ final class Autopilot {
 		// ---- FALLING BEATS EVERY OTHER CONSIDERATION, including having no destination: the whole
 		// point is that it fires when the loop is not in control of what is happening.
 		if (rescue(mc, p)) return;
+
+		// ...and the quieter version of the same thing: on the ground, not flying, with somewhere to
+		// be. See regain — the loop should get flight back rather than stand there being safe.
+		if (regain(mc, p)) return;
 
 		BlockPos target = Hud.target();
 		if (target == null) {
@@ -801,8 +904,8 @@ final class Autopilot {
 		if (!Hud.fetching()) {
 			if (!warnedFalling) {
 				warnedFalling = true;
-				p.sendSystemMessage(Component.literal("[cscan] flight is off, and building needs it"
-					+ " — autofly is holding. /fly, then double-tap jump."));
+				p.sendSystemMessage(Component.literal("[cscan] flight is off and building needs it"
+					+ " — trying to get it back; /fly if that does not take."));
 			}
 			return;
 		}

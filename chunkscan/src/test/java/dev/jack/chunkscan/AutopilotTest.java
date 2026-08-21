@@ -452,4 +452,28 @@ class AutopilotTest {
 		assertTrue(Autopilot.BUMP_LOOK_EVERY > 1,
 			"a flood on every tick of contact is the cost this file has already paid twice");
 	}
+
+	// ---------------------------------------------------------------- getting flight back
+
+	@Test
+	void itTriesToGetFlightBackRatherThanStandingThereBeingSafe() {
+		// Losing flight is not the end of the job. The walk gate stops the loop doing anything
+		// DANGEROUS without it, and stopping there is only right if nothing can be done — and
+		// usually something can: the same double tap that rescues a fall turns it back on.
+		assertTrue(Autopilot.canRegainFlight(false, true, true), "did not try");
+		assertFalse(Autopilot.canRegainFlight(true, true, true), "already flying");
+		assertFalse(Autopilot.canRegainFlight(false, false, true),
+			"the server says no; tapping will not change its mind");
+		assertFalse(Autopilot.canRegainFlight(false, true, false),
+			"nowhere to be — hopping on the spot is not a feature");
+	}
+
+	@Test
+	void itGivesUpTryingAfterAFewGoes() {
+		// A tap that does not work will not work the fortieth time either, and a player watching
+		// their character hop twice a second is watching a bug.
+		assertTrue(Autopilot.REGAIN_GIVE_UP >= 2 && Autopilot.REGAIN_GIVE_UP <= 10,
+			"either gives up before it has tried or never gives up");
+		assertTrue(Autopilot.REGAIN_EVERY >= 20, "would hop on the spot");
+	}
 }
