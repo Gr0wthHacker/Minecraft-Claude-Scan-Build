@@ -370,6 +370,30 @@ final class Plan {
 	}
 
 	/**
+	 * Drop the shortfalls you are already carrying, in a box.
+	 *
+	 * <p>A trip is a navigation instruction, and flying across the island for something on your own
+	 * hip is the most annoying kind of wrong. NOT merged into `carrying` — see {@link Work#boxed}
+	 * for why a boxed block is not a carried one — so it is subtracted here instead, at the point
+	 * where the question is "is this trip worth making".
+	 *
+	 * @param say called once per material, so the loop explains rather than silently doing nothing
+	 */
+	static List<Restock> notInAPack(List<Restock> targets, Map<String, Integer> boxed,
+	                                java.util.function.Consumer<String> say) {
+		if (boxed.isEmpty()) return targets;
+		List<Restock> out = new ArrayList<>();
+		for (Restock r : targets) {
+			if (boxed.getOrDefault(r.item(), 0) >= r.missing()) {
+				say.accept(r.item());
+				continue;
+			}
+			out.add(r);
+		}
+		return out;
+	}
+
+	/**
 	 * How much to actually take: the shortfall, capped by what will fit.
 	 *
 	 * <p>Capped by the CHEST's count too — asking for more than is in there is what left the loop

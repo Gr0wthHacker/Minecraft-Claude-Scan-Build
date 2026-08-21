@@ -2723,6 +2723,48 @@ The two new ones are the ones this audit added:
   It re-routes on the tick and pushes back out of the face first, so the next search starts from
   open air rather than from inside the wall.
 
+### The loop's judgements, taken out of the loop (2026-08-20)
+
+`gen/Loop.java`, and `LoopTest` is 24 cases over it. **Every bug in the unattended loop has lived in
+four decisions**, and none of them could be tested, because they were written inline in a method
+that also opens chests, draws particles and flies a player. The list, in the order they shipped:
+
+- fetching whenever a spot was short of anything, so it went shopping with a full pack and hundreds
+  of placeable cells;
+- a spot stall that cleared the arrow but not the SPOT, so the hysteresis chose the same region
+  straight back and stalled again for as long as you left it;
+- a station re-offered after every bin had been tried, keeping the clock that had just abandoned it;
+- an empty todo list reported as complete when most of the design was in chunks the client did not
+  have, which ended a `follow all` run in about a second.
+
+None of those is a hard problem. All of them are invisible inside a method with a world attached. So
+`Loop.phase`, `Loop.sameSpot`, `Loop.station` and `Loop.stalled` are pure functions over plain
+values, `Hud` does what they say, and the awkward questions get asked directly:
+
+    itDoesNotGoShoppingWhileItHasWorkInFrontOfIt
+    aTripKeepsGoingUntilThePackIsFull
+    aDriftingCentroidIsStillTheSameSpot
+    aStationThatPlacesNothingMovesInCloserBeforeGivingUp
+    outOfViewIsNotFinished
+    aWholeSessionOfPhasesTerminates          # all 64 combinations, no silent do-nothing state
+
+The last one is the property that matters for leaving it running: from any starting point the loop
+either does something or says why. It cannot sit in a phase with nothing to do and no message.
+
+### What is in a shulker box is not what you are carrying (2026-08-20)
+
+`Work.boxed` reads the `CONTAINER` component of every stack in the pack. It is deliberately **NOT**
+added to `carrying`, and the distinction is the whole feature:
+
+- **a boxed block is not placeable** — you would have to set the box down, open it, take the stack
+  and break the box again, none of which this mod does. Counted as carried, the loop flies to a spot,
+  finds it can place nothing, and stalls there;
+- **but it is absolutely a reason not to fly across the island for more.** `Plan.notInAPack` drops
+  any shortfall the boxes already cover, and says so once per material rather than silently doing
+  nothing.
+
+Half a box is not a solution and is still a trip: you would set it down, take 64, and still be short.
+
 ## The daily loop
 
 ```bash

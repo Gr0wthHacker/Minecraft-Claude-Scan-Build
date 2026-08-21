@@ -225,6 +225,34 @@ final class Work {
 	}
 
 	/**
+	 * What is inside the shulker boxes in your pack.
+	 *
+	 * <p><b>Deliberately NOT added to {@link #carrying}.</b> A block in a box is not placeable — you
+	 * would have to set the box down, open it, take the stack and break the box again, none of which
+	 * this mod does — so counting it as carried would have the loop fly to a spot, find it can place
+	 * nothing, and stall there. `carrying` means "can go into the world right now" and must keep
+	 * meaning that.
+	 *
+	 * <p>It is the FETCH that needs to know. Flying across the island for stone bricks when you have
+	 * 1,728 of them in a box on your hip is a wasted trip, and the loop had no way to tell.
+	 *
+	 * <p>One level deep: a box inside a box is not something to plan around.
+	 */
+	static Map<String, Integer> boxed(net.minecraft.client.player.LocalPlayer player) {
+		Map<String, Integer> out = new LinkedHashMap<>();
+		if (player == null) return out;
+		for (net.minecraft.world.item.ItemStack st : player.getInventory()) {
+			if (st == null || st.isEmpty()) continue;
+			var contents = st.getOrDefault(net.minecraft.core.component.DataComponents.CONTAINER,
+				net.minecraft.world.item.component.ItemContainerContents.EMPTY);
+			contents.nonEmptyItemCopyStream().forEach(inner ->
+				out.merge(BuiltInRegistries.ITEM.getKey(inner.getItem()).getPath(), inner.getCount(),
+					Integer::sum));
+		}
+		return out;
+	}
+
+	/**
 	 * How many more of one item would fit in the pack.
 	 *
 	 * <p>This is what makes "fill the inventory" a number rather than a hope. The fetch phase used to

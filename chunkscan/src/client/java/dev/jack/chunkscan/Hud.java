@@ -72,6 +72,8 @@ final class Hud {
 	private static boolean placementWarned = false;
 	/** Said once per design: most of what is left is a block the printer cannot replace. */
 	private static boolean deviationsSaid = false;
+	/** Materials we have already pointed out are sitting in a shulker box. */
+	private static final java.util.Set<String> saidBoxed = new java.util.HashSet<>();
 	/**
 	 * Nothing placed at ONE station for this long and it moves to the next.
 	 *
@@ -235,7 +237,7 @@ final class Hud {
 			lastProgressMs = now;
 		}
 		lastTodo = sp.todo().size();
-		if (!fetching && now - lastProgressMs > STALL_MS) {
+		if (Loop.stalled(now, lastProgressMs, fetching, STALL_MS)) {
 			stalls++;
 			lastProgressMs = now;
 			mc.player.sendSystemMessage(Component.literal("[cscan] STALLED — nothing placed in "
@@ -307,23 +309,44 @@ final class Hud {
 		// spot's shortfall is met.
 		boolean canWork = Plan.anyDoable(cl);
 		boolean wasFetching = fetching;
+
+		// Only worked out when the answer can matter — a fetch costs a container index walk and an
+		// inventory scan, and while there is work in front of you the question is not asked.
+		java.util.List<Plan.Restock> targets = java.util.List.of();
+		Plan.Restock want = null;
 		if (fetching || !canWork) {
 			// Skip chests in their cooling-off period, or the loop is guided at one it will not open.
-			java.util.List<Plan.Restock> targets = Plan.fetchTargets(sp.todo(), carrying, index, me,
+			targets = Plan.fetchTargets(sp.todo(), carrying, index, me,
 				Withdraw.coolingOff(System.currentTimeMillis()));
-			Plan.Restock want = Plan.nextFetch(targets, it -> Work.room(mc.player, it));
-			fetching = want != null;
-			if (want != null) {
+			// ---- WHAT YOU ALREADY HAVE IN A BOX IS NOT WORTH A TRIP. It is not placeable either —
+			// see Work.boxed — so it cannot simply be added to `carrying`; the loop would fly to a
+			// spot and find it can place nothing. Told, not fetched.
+			Map<String, Integer> boxes = Work.boxed(mc.player);
+			targets = Plan.notInAPack(targets, boxes, item -> {
+				if (saidBoxed.add(item)) {
+					mc.player.sendSystemMessage(Component.literal("[cscan] you are carrying "
+						+ boxes.get(item) + "x " + item + " in a shulker box — set it down and take"
+						+ " them rather than flying across the island for more."));
+				}
+			});
+			want = Plan.nextFetch(targets, it -> Work.room(mc.player, it));
+		}
+
+		Loop.Phase phase = Loop.phase(sp.todo().size(), sp.unseen(), canWork, fetching,
+			want != null, !targets.isEmpty());
+		fetching = phase == Loop.Phase.FETCH;
+		switch (phase) {
+			case FETCH -> {
 				fetchTo(mc, me, want, Work.room(mc.player, want.item()), carrying);
 				return;
 			}
-			if (!canWork) {
+			case DEAD_END, PACK_FULL -> {
 				// Nothing placeable and nothing to fetch are DIFFERENT dead ends and want different
 				// answers: one sends you to the store hall, the other says your pack is full of
 				// something this design has no room left for.
 				if (target != null || !said) {
 					said = true;
-					mc.player.sendSystemMessage(Component.literal(targets.isEmpty()
+					mc.player.sendSystemMessage(Component.literal(phase == Loop.Phase.DEAD_END
 						? "[cscan] nothing left you are carrying the blocks for, and nothing indexed"
 							+ " to fetch — /cscan bom " + sp.name()
 						: "[cscan] pack is full of what you cannot place here — store something, or"
@@ -333,6 +356,7 @@ final class Hud {
 				Highlight.clear("goto");
 				return;
 			}
+			default -> { }
 		}
 		said = false;
 
@@ -342,17 +366,7 @@ final class Hud {
 		// Matched by PROXIMITY, not by equality: a cluster's centre is a centroid of the cells still
 		// to do, so it drifts a block or two every time you place some. Comparing it exactly would
 		// call every recount a new spot, reset the stations and re-announce, twice a second.
-		Plan.Cluster next = null;
-		if (spotCentre != null) {
-			double bestD = Double.MAX_VALUE;
-			for (Plan.Cluster c : cl) {
-				double d = c.centre().distSqr(spotCentre);
-				if (c.doable() > 0 && d < bestD && d <= (double) Plan.MAX_RADIUS * Plan.MAX_RADIUS) {
-					bestD = d;
-					next = c;
-				}
-			}
-		}
+		Plan.Cluster next = Loop.sameSpot(spotCentre, cl, Plan.MAX_RADIUS);
 		if (next == null) {
 			next = cl.get(0);
 			if (spotCentre != null && !wasFetching) spotsDone++;
@@ -409,8 +423,10 @@ final class Hud {
 
 		// ---- the per-station stall, measured on this station's OWN cell count
 		java.util.List<Work.Cell> here = Plan.atStation(live, st, Plan.PRINTER_REACH);
-		if (st.bin() == stationBin) {
-			if (stationTodo >= 0 && here.size() < stationTodo) {
+		Loop.Station what = Loop.station(st.bin() == stationBin, here.size(), stationTodo,
+			now - stationSince, STATION_MS, stationRetry);
+		if (what != Loop.Station.NEW) {
+			if (what == Loop.Station.RECENTRE) {
 				stationSince = now;
 				stationTodo = here.size();
 				stationRetry = 0;                            // it is placing: the aim is fine
@@ -428,14 +444,14 @@ final class Hud {
 				return;
 			}
 			stationTodo = here.size();
-			if (now - stationSince > STATION_MS) {
+			if (what == Loop.Station.CLOSER || what == Loop.Station.ABANDON) {
 				// CLOSER BEFORE ELSEWHERE. Nothing placed can mean the printer cannot REACH this
 				// bin from where the standoff put us: a bin is a 4-cube, so its far corner is 3.46
 				// from the middle, and a standoff a few blocks out spends the rest of the 4.5 the
 				// printer has. Re-aim as tight as the geometry allows and give it another go before
 				// writing the bin off — abandoning a bin you could have reached leaves those cells
 				// for a later pass that will make exactly the same mistake.
-				if (stationRetry == 0) {
+				if (what == Loop.Station.CLOSER) {
 					stationRetry = 1;
 					stationSince = now;
 					BlockPos close = Nav.standoff(Nav.of(mc.level), Plan.centroid(here),
@@ -677,6 +693,7 @@ final class Hud {
 		following = true;
 		placementWarned = false;
 		deviationsSaid = false;
+		saidBoxed.clear();
 		stopGuiding();
 		Withdraw.clearFailures();
 		lastTodo = -1;
