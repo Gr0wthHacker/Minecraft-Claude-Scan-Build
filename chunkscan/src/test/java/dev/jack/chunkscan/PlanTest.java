@@ -719,4 +719,61 @@ class PlanTest {
 		assertEquals(Math.max(0, c.ready().size() - c.shortBy()), c.doable());
 		assertTrue(c.doable() <= c.ready().size(), "promised more than it has cells for");
 	}
+
+	// ---------------------------------------------------------------- where to float
+
+	/** Open air, except where you say otherwise. */
+	private static Nav.Passable air(Set<Long> solid) {
+		return (x, y, z) -> !solid.contains(BlockPos.asLong(x, y, z))
+			&& !solid.contains(BlockPos.asLong(x, y + 1, z));
+	}
+
+	@Test
+	void theStandingSpotIsChosenByWhatItCanREACH() {
+		// It used to be chosen by proximity to a centroid, and then the flight parked short of it -
+		// so the number deciding everything was a distance to a point nobody cared about. What
+		// matters is how many of the cells left here can actually be touched from where the body
+		// ends up.
+		List<Work.Cell> wall = new ArrayList<>();
+		for (int y = 100; y <= 106; y++) wall.add(cell(0, y, 0, "stone_bricks"));
+
+		BlockPos stand = Plan.bestStand(air(Set.of()), wall, 5, new BlockPos(9, 103, 0), 4, 1.2);
+		assertNotNull(stand);
+		int covered = 0;
+		for (Work.Cell c : wall) {
+			if (Math.sqrt(c.pos().distSqr(stand)) <= 5) covered++;
+		}
+		assertTrue(covered >= 6, "stood where it can only reach " + covered + " of 7 cells");
+	}
+
+	@Test
+	void aSpotWithNoAirUnderItIsNotASpot() {
+		// Clearance is a FILTER rather than part of the score: a spot that touches something is not
+		// a worse spot, it is not a spot - on this server it ends the flight.
+		Set<Long> solid = new HashSet<>();
+		for (int x = -6; x <= 6; x++) {
+			for (int z = -6; z <= 6; z++) solid.add(BlockPos.asLong(x, 99, z));   // a floor
+		}
+		List<Work.Cell> low = List.of(cell(0, 100, 0, "stone_bricks"));
+		BlockPos stand = Plan.bestStand(air(solid), low, 5, new BlockPos(6, 104, 0), 4, 1.2);
+		assertNotNull(stand);
+		assertTrue(Nav.airBelow(air(solid), stand, Nav.AIR_BELOW),
+			"chose a spot resting on the floor: " + stand);
+	}
+
+	@Test
+	void aTieGoesToTheNearestSpot() {
+		// Two spots that build the same wall are the same spot, so there is no reason to cross the
+		// room for one of them.
+		List<Work.Cell> one = List.of(cell(0, 100, 0, "stone_bricks"));
+		BlockPos near = new BlockPos(3, 100, 0);
+		BlockPos stand = Plan.bestStand(air(Set.of()), one, 5, near, 4, 1.2);
+		assertNotNull(stand);
+		assertTrue(stand.distSqr(near) <= 9, "walked past an identical spot: " + stand);
+	}
+
+	@Test
+	void nothingToStandForIsNull() {
+		assertNull(Plan.bestStand(air(Set.of()), List.of(), 5, BlockPos.ZERO, 4, 1.2));
+	}
 }

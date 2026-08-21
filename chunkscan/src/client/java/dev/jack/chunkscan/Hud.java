@@ -97,11 +97,17 @@ final class Hud {
 	/**
 	 * How far out of the work a standing spot may be.
 	 *
-	 * <p>Tight on purpose. A bin is a cube of {@link Plan#PRINTER_REACH}, so its far corner is about
-	 * 3.5 from the middle and the printer reaches 4.5 — the slack between those two is the whole
-	 * budget, and every block of standoff spends it. Wide enough to get out of the wall, no wider.
+	 * <p>Tight on purpose, and tighter now. A bin's far corner is already about 3.5 from its middle
+	 * and the printer reaches around 4.5, so the slack between them is the entire budget. It was 3 —
+	 * which is 3 in CHEBYSHEV, so up to 5.2 as the crow flies — and between that and stopping short
+	 * on arrival, the far half of a bin was simply unreachable. That is the "not getting close
+	 * enough" half of the report.
+	 *
+	 * <p>What keeps it safe at 2 is no longer the distance. It is {@link Nav#AIR_BELOW},
+	 * {@link Nav#AIR_ABOVE} and {@link Autopilot#SAFE_GAP} — clearance rules, rather than standing
+	 * further back and hoping.
 	 */
-	static final int STANDOFF = 3;
+	static final int STANDOFF = 2;
 	/**
 	 * Told to go somewhere and not going. Jack: <i>"if it says it needs to reroute and doesnt move
 	 * or doesnt perform action within 3 seconds, move to next cluster"</i>.
@@ -493,13 +499,23 @@ final class Hud {
 				stationSince = now;
 				stationTodo = here.size();
 				stationRetry = 0;                            // it is placing: the aim is fine
+
+				// ---- DO NOT ADJUST WHAT IS ALREADY WORKING.
+				//
+				// Re-aiming after every few blocks meant a fresh approach every couple of seconds,
+				// and every approach is a chance to nudge a wall and lose flight — the "getting too
+				// close when adjusting and then stopping flight" half of the report. The question is
+				// not whether the aim is still IDEAL, it is whether the printer can still REACH what
+				// is left. While it can, holding still beats improving.
+				if (allWithinReach(me, here, Plan.reach())) return;
+
 				// ---- MOVE AROUND THE WORK AS IT GETS BUILT. The bin is a 4-cube, so its far corner
 				// is 3.5 from the centre and a standoff a few blocks out puts part of it beyond the
 				// printer's reach. Re-aiming at the centroid of what is LEFT walks you round the
 				// group from a new angle every time some of it goes in — which is the difference
 				// between finishing a station and placing the near face of it and stopping.
-				BlockPos re = Nav.standoff(Nav.of(mc.level), Plan.centroid(here),
-					mc.player.blockPosition(), STANDOFF);
+				BlockPos re = Plan.bestStand(Nav.of(mc.level), here, Plan.reach(),
+					mc.player.blockPosition(), STANDOFF + 2, Autopilot.ARRIVE_MIN);
 				if (re != null && !re.equals(target)) {
 					Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
 					guide(re, here.size() + " here");
@@ -543,13 +559,26 @@ final class Hud {
 		stationSince = now;
 		stationTodo = here.size();
 		stationRetry = 0;
-		BlockPos at = Nav.standoff(Nav.of(mc.level), st.where(), me, STANDOFF);
+		// COVERAGE, not proximity. See Plan.bestStand: the spot is chosen by how many of these cells
+		// the printer can touch from it, discounted by how far short the flight parks.
+		BlockPos at = Plan.bestStand(Nav.of(mc.level), here, Plan.reach(), me, STANDOFF + 2,
+			Autopilot.ARRIVE_MIN);
+		if (at == null) at = Nav.standoff(Nav.of(mc.level), st.where(), me, STANDOFF);
 		if (at == null) at = st.where();
 		Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
 		guide(at, st.cells() + " here, " + spot.doable() + " in this spot");
 		mc.player.sendSystemMessage(Component.literal("[cscan] " + st.cells() + " cells at "
 			+ Wand.fmt(st.where()) + " — " + spot.doable() + " left in this spot, "
 			+ (spotsInPlan - 1) + " more spots after it"));
+	}
+
+	/** Can the printer still touch every one of these from where the player is standing? */
+	private static boolean allWithinReach(BlockPos me, java.util.List<Work.Cell> cells, int reach) {
+		double r2 = (double) reach * reach;
+		for (Work.Cell c : cells) {
+			if (c.pos().distSqr(me) > r2) return false;
+		}
+		return true;
 	}
 
 	/**

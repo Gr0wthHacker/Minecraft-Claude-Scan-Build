@@ -3149,6 +3149,33 @@ Thirty seconds covers the arc of any fall this island can produce, and is short 
 quietly on for ever — which would make it a mode rather than a safety. `/cscan why` and the
 mid-air-revocation message both say how long is left.
 
+### Neither close enough nor safely far: fixing both at the source (2026-08-21)
+
+*"still its either not getting close enough, or getting too close when adjusting and then stopping
+flight."* Two halves, two different causes, both in how the standing spot was chosen and held.
+
+#### Too close: it kept adjusting
+
+The station re-aimed every time a few blocks went in — which sounded like a feature ("walks you round
+the work") and is a fresh APPROACH every couple of seconds, each one a chance to nudge a wall and
+lose flight. The question was being asked wrongly: not *is the aim still ideal* but **can the printer
+still reach what is left**. While it can, holding still beats improving, and now it holds.
+
+#### Not close enough: the standing spot was chosen for the wrong quantity
+
+It was picked by proximity to the bin's centroid — and then the flight parked short of it, so the
+number deciding everything was a distance to a point nobody cared about. Worse, `STANDOFF` was 3 in
+CHEBYSHEV, which is 5.2 as the crow flies, and a bin's far corner is already 3.5 from its middle.
+
+`Plan.bestStand` scores every open cell near the work by **how many of the remaining cells the
+printer could touch from it**, discounted by how far short the flight is expected to park. Ties go to
+the nearest, because two spots that build the same wall are the same spot.
+
+**Clearance is a filter, not a term in the score.** A spot that touches something is not a worse
+spot, it is not a spot at all — on this server it ends the flight. `AIR_BELOW`, `AIR_ABOVE` and
+`SAFE_GAP` are what keep the approach safe now, rather than standing further back and hoping, which
+is what let `STANDOFF` come down from 3 to 2.
+
 ## The daily loop
 
 ```bash

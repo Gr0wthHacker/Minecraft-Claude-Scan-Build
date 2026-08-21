@@ -483,6 +483,57 @@ final class Plan {
 		return best;
 	}
 
+	/**
+	 * Where to float so the printer can reach the MOST of these cells.
+	 *
+	 * <p>The standing spot used to be chosen by proximity to a centroid, and then the flight stopped
+	 * somewhere short of it — so the number that decided everything was a distance to a point nobody
+	 * cared about. What matters is COVERAGE: how many of the cells left here can actually be touched
+	 * from where the body ends up.
+	 *
+	 * <p>So every open cell near the work is scored by the count it covers, at a radius discounted
+	 * for the fact that the flight parks a little short of the spot it was sent to. Ties go to the
+	 * one nearest the player, because two spots that build the same wall are the same spot.
+	 *
+	 * <p>Clearance is a FILTER rather than part of the score: a spot that touches something is not a
+	 * worse spot, it is not a spot — on this server it ends the flight. Only if nothing at all
+	 * clears does it fall back to the roomiest thing available.
+	 *
+	 * @param slack how far short of the chosen spot the flight is expected to stop
+	 */
+	static BlockPos bestStand(Nav.Passable free, List<Work.Cell> cells, int reach, BlockPos from,
+	                          int maxOut, double slack) {
+		if (cells.isEmpty()) return null;
+		BlockPos mid = centroid(cells);
+		double r = Math.max(1, reach - slack);
+		double r2 = r * r;
+		BlockPos best = null;
+		int bestCovered = -1;
+		double bestNear = Double.MAX_VALUE;
+		for (int dx = -maxOut; dx <= maxOut; dx++) {
+			for (int dy = -maxOut; dy <= maxOut; dy++) {
+				for (int dz = -maxOut; dz <= maxOut; dz++) {
+					BlockPos c = mid.offset(dx, dy, dz);
+					if (!free.at(c.getX(), c.getY(), c.getZ())) continue;
+					if (!Nav.airBelow(free, c, Nav.AIR_BELOW)) continue;
+					if (!Nav.headroom(free, c, Nav.AIR_ABOVE)) continue;
+					int covered = 0;
+					for (Work.Cell w : cells) {
+						if (w.pos().distSqr(c) <= r2) covered++;
+					}
+					if (covered == 0) continue;
+					double near = c.distSqr(from);
+					if (covered > bestCovered || (covered == bestCovered && near < bestNear)) {
+						bestCovered = covered;
+						bestNear = near;
+						best = c;
+					}
+				}
+			}
+		}
+		return best;
+	}
+
 	/** The cells one station covers, for the highlight and for knowing when it is finished. */
 	static List<Work.Cell> atStation(List<Work.Cell> cells, Station st, int reach) {
 		List<Work.Cell> out = new ArrayList<>();
