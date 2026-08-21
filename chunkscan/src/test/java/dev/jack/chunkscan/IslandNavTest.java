@@ -473,4 +473,70 @@ class IslandNavTest {
 		}
 		return null;
 	}
+
+	// ---------------------------------------------------------------- routes that keep their distance
+
+	/** {@link Nav#roomy} over the fixture. */
+	private static final Nav.Passable ROOMY = (x, y, z) -> FREE.at(x, y, z)
+		&& FREE.at(x + 1, y, z) && FREE.at(x - 1, y, z)
+		&& FREE.at(x, y, z + 1) && FREE.at(x, y, z - 1)
+		&& FREE.at(x, y + 1, z) && FREE.at(x, y - 1, z);
+
+	@Test
+	void mostOfTheIslandCanBeFlownWithoutTouchingAnything() {
+		// The question that decides whether roomy-first is a feature or a wasted search: does THIS
+		// island actually have routes with elbow room, or does everything fall back to the tight
+		// world? If it is mostly fallback, the flight is threading surfaces all day and the contact
+		// rules are doing all the work.
+		List<BlockPos> spots = nearTerrain(2026_08_21L, 80);
+		int tried = 0, roomy = 0;
+		for (int i = 0; i + 1 < spots.size(); i += 2) {
+			BlockPos a = spots.get(i), b = spots.get(i + 1);
+			if (a.distSqr(b) > (double) Nav.MAX_RANGE * Nav.MAX_RANGE) continue;
+			if (Nav.route(FREE, a, b).isEmpty()) continue;      // no route at all: not the question
+			tried++;
+			if (!Nav.route(roomyBetween(a, b), a, b).isEmpty()) roomy++;
+		}
+		assertTrue(tried > 8, "only " + tried + " routable pairs to ask about");
+		// Strictly roomy managed 14 of 32 here, and the 18 it missed were not threading tunnels —
+		// they were LEAVING one surface and arriving at another, because every endpoint this loop
+		// uses is a standing spot beside work or a chest in a wall. Relaxed at the ends, nearly all
+		// of them keep their distance for the part of the journey that has any speed in it.
+		assertTrue(roomy * 4 >= tried * 3, "only " + roomy + " of " + tried
+			+ " routes near terrain could keep a block of air off everything in the middle");
+	}
+
+	/** {@link Nav#roomyBetween} over the fixture: roomy in the middle, tight within ENDS of either end. */
+	private static Nav.Passable roomyBetween(BlockPos from, BlockPos to) {
+		long e2 = (long) Nav.ENDS * Nav.ENDS;
+		return (x, y, z) -> {
+			BlockPos c = new BlockPos(x, y, z);
+			if (c.distSqr(from) <= e2 || c.distSqr(to) <= e2) return FREE.at(x, y, z);
+			return ROOMY.at(x, y, z);
+		};
+	}
+
+	@Test
+	void aRoomyRouteReallyDoesKeepItsDistance() {
+		// ...and when one is found, every cell of it has air on all six sides. This is the property
+		// the whole idea rests on: a flight that never touches a block never has its flight ended by
+		// touching a block.
+		List<BlockPos> spots = nearTerrain(77L, 60);
+		int checked = 0;
+		for (int i = 0; i + 1 < spots.size(); i += 2) {
+			BlockPos a = spots.get(i), b = spots.get(i + 1);
+			if (a.distSqr(b) > (double) Nav.MAX_RANGE * Nav.MAX_RANGE) continue;
+			List<BlockPos> path = Nav.route(roomyBetween(a, b), a, b);
+			if (path.isEmpty()) continue;
+			checked++;
+			for (BlockPos c : path) {
+				// the ends are allowed to touch: that is the whole point of ENDS
+				if (c.distSqr(a) <= (double) Nav.ENDS * Nav.ENDS
+					|| c.distSqr(b) <= (double) Nav.ENDS * Nav.ENDS) continue;
+				assertTrue(ROOMY.at(c.getX(), c.getY(), c.getZ()),
+					"the middle of a roomy route passed through " + c + ", against something");
+			}
+		}
+		assertTrue(checked > 3, "only " + checked + " roomy routes were found to check");
+	}
 }

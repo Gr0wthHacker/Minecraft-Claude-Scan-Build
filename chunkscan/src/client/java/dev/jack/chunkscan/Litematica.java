@@ -72,6 +72,24 @@ final class Litematica {
 		}
 	}
 
+	/**
+	 * How far litematica-printer will actually place, or 0 when we cannot ask.
+	 *
+	 * <p>`Plan.PRINTER_REACH` was a guess — 4 — and everything about where the loop stands was
+	 * budgeted against it. The number is sitting in the printer's own config
+	 * ({@code Configs.PRINTING_RANGE}), which is the same "ask the game, not your memory" rule this
+	 * project applies to blocks and then forgot to apply to the mod it is driving.
+	 */
+	static double printerRange() {
+		try {
+			Class<?> c = Class.forName("me.aleksilassila.litematica.printer.config.Configs");
+			Object cfg = c.getField("PRINTING_RANGE").get(null);
+			return (Double) cfg.getClass().getMethod("getDoubleValue").invoke(cfg);
+		} catch (Throwable t) {
+			return 0;                                       // printer absent, or the config moved
+		}
+	}
+
 	private static Object placementFor(Path file, BlockPos origin, String name) throws Exception {
 		Class<?> holderC = Class.forName("fi.dy.masa.litematica.data.SchematicHolder");
 		Object holder = holderC.getMethod("getInstance").invoke(null);

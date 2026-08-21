@@ -760,4 +760,45 @@ class NavTest {
 		assertTrue(Nav.headroom(w.free(), stand, Nav.AIR_ABOVE),
 			"picked a spot with the ceiling on its head: " + stand);
 	}
+
+	// ---------------------------------------------------------------- routes that keep their distance
+
+	@Test
+	void aRoomyRouteDoesNotSkimTheFloor() {
+		// A* minimises DISTANCE, so the cheapest route runs along the surface it is passing. That is
+		// fine for a pathfinder and wrong for a server where flight ends on contact.
+		W w = new W();
+		w.fill(-20, 90, -20, 20, 99, 20);                // a floor at y=99
+		Nav.Passable roomy = roomy(w);
+		assertFalse(roomy.at(0, 100, 0), "a cell resting on the floor counts as roomy");
+		assertTrue(roomy.at(0, 102, 0), "nothing counts as roomy at all");
+
+		List<BlockPos> p = Nav.route(roomy, new BlockPos(-10, 102, 0), new BlockPos(10, 102, 0));
+		assertFalse(p.isEmpty(), "no roomy route across open air over a floor");
+		for (BlockPos b : p) {
+			assertTrue(b.getY() > 100, "the roomy route still skimmed the floor at " + b);
+		}
+	}
+
+	@Test
+	void aOneWideShaftHasNoRoomyRouteAtAll() {
+		// Which is exactly why it cannot be the only rule: the island is full of them, and the
+		// caller falls back to the tight world when the roomy one has no answer.
+		W w = new W();
+		w.fill(-4, 90, -4, 4, 120, 4);
+		w.carve(0, 92, 0, 0, 118, 0);
+		assertTrue(Nav.route(roomy(w), new BlockPos(0, 117, 0), new BlockPos(0, 93, 0)).isEmpty(),
+			"claimed elbow room inside a one-wide shaft");
+		assertFalse(Nav.route(w.free(), new BlockPos(0, 117, 0), new BlockPos(0, 93, 0)).isEmpty(),
+			"...and the tight world must still get down it");
+	}
+
+	/** {@link Nav#roomy} built over the fixture rather than over a Level. */
+	private static Nav.Passable roomy(W w) {
+		Nav.Passable tight = w.free();
+		return (x, y, z) -> tight.at(x, y, z)
+			&& tight.at(x + 1, y, z) && tight.at(x - 1, y, z)
+			&& tight.at(x, y, z + 1) && tight.at(x, y, z - 1)
+			&& tight.at(x, y + 1, z) && tight.at(x, y - 1, z);
+	}
 }

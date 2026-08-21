@@ -148,6 +148,59 @@ final class Nav {
 	}
 
 	/**
+	 * The world to something that would rather not touch it.
+	 *
+	 * <p><b>A* minimises DISTANCE, so the cheapest route skims every floor and shaves every
+	 * corner.</b> That is fine for a pathfinder and wrong for this server: flight here is a plugin
+	 * grant and TOUCHING A BLOCK ENDS IT, so a route that runs a block off the deck is a route that
+	 * ends the session. Reacting to the contact afterwards — climb over it, slide round it, get
+	 * flight back — is a pile of heuristics standing in for a route that should not have gone there.
+	 *
+	 * <p>This is {@link #of} with elbow room: a cell counts as passable only if its lateral
+	 * neighbours and the cell above are clear too. Routes found through it run down the middle of
+	 * open space.
+	 *
+	 * <p>It cannot be the only rule — a one-wide shaft has no elbow room and the island is full of
+	 * them — so it is the FIRST of two attempts. See {@link #route}.
+	 */
+	/**
+	 * Roomy in the middle, tight at the ends.
+	 *
+	 * <p><b>The ends are always against something.</b> Every trip this loop makes goes to a standing
+	 * spot beside the work or to a chest in a wall, and both are surfaces by definition — so a
+	 * strictly roomy search fails before it expands a node, however open the journey between them
+	 * is. Measured on the island: 14 of 32 routes near terrain had a fully roomy answer, and the
+	 * other 18 were not threading a tunnel, they were LEAVING one surface and arriving at another.
+	 *
+	 * <p>So the clearance rule is relaxed within {@link #ENDS} of either end. The long middle — which
+	 * is where a flight spends its time and its speed — still keeps a block of air off everything.
+	 */
+	static Passable roomyBetween(Level level, BlockPos from, BlockPos to) {
+		Passable tight = of(level);
+		Passable open = roomy(level);
+		long e2 = (long) ENDS * ENDS;
+		return (x, y, z) -> {
+			BlockPos c = new BlockPos(x, y, z);
+			if (c.distSqr(from) <= e2 || c.distSqr(to) <= e2) return tight.at(x, y, z);
+			return open.at(x, y, z);
+		};
+	}
+
+	/** How close to either end the clearance rule is dropped. */
+	static final int ENDS = 6;
+
+	static Passable roomy(Level level) {
+		Passable tight = of(level);
+		return (x, y, z) -> tight.at(x, y, z)
+			&& tight.at(x + 1, y, z) && tight.at(x - 1, y, z)
+			&& tight.at(x, y, z + 1) && tight.at(x, y, z - 1)
+			&& tight.at(x, y + 1, z)
+			// ...and BELOW, which the first version left out — so it still ran along floors, and
+			// the floor is the surface a flight actually touches.
+			&& tight.at(x, y - 1, z);
+	}
+
+	/**
 	 * The same world, to something that cannot fly.
 	 *
 	 * <p>Clearance is not enough on foot: {@link #of} happily routes through open air thirty blocks

@@ -292,8 +292,7 @@ final class Hud {
 		// ---- TOLD TO GO SOMEWHERE, AND NOT GOING. See Loop.goingNowhere: the fast clock, and the
 		// only one that fires while there is still somewhere to be.
 		boolean travelling = target != null
-			&& me.distSqr(target) > (double) (Plan.PRINTER_REACH + STANDOFF)
-				* (Plan.PRINTER_REACH + STANDOFF);
+			&& me.distSqr(target) > (double) (Plan.reach() + STANDOFF) * (Plan.reach() + STANDOFF);
 		if (Loop.goingNowhere(now, movedAt, lastProgressMs, travelling, fetching, NOWHERE_MS)) {
 			mc.player.sendSystemMessage(Component.literal("[cscan] not moving and not placing at "
 				+ Wand.fmt(target) + " — giving up on this spot and taking the next one"));
@@ -467,12 +466,12 @@ final class Hud {
 		java.util.List<Work.Cell> live = Work.placeableNow(mc.level, spot.ready());
 		if (live.isEmpty()) live = spot.ready();     // nothing placeable yet; fall back rather than
 		                                             // strand the spot
-		Plan.Station st = Plan.station(live, Plan.PRINTER_REACH, me, stationsTried);
+		Plan.Station st = Plan.station(live, Plan.reach(), me, stationsTried);
 		if (st == null) {
 			// Every bin here has been tried. Start again rather than stranding the spot: the world
 			// has moved since, and the alternative is a spot that can never be worked.
 			stationsTried.clear();
-			st = Plan.station(live, Plan.PRINTER_REACH, me, stationsTried);
+			st = Plan.station(live, Plan.reach(), me, stationsTried);
 			if (st == null) return;
 			// ...and give the re-offered bin a FRESH clock. Without this it kept the timestamp from
 			// the round that abandoned it, so it stalled again on the very next recount and the spot
@@ -482,11 +481,10 @@ final class Hud {
 		}
 
 		// ---- the per-station stall, measured on this station's OWN cell count
-		java.util.List<Work.Cell> here = Plan.atStation(live, st, Plan.PRINTER_REACH);
+		java.util.List<Work.Cell> here = Plan.atStation(live, st, Plan.reach());
 		// Within reach of the work, rather than still on the way to it.
 		boolean arrived = target == null
-			|| me.distSqr(target) <= (double) (Plan.PRINTER_REACH + STANDOFF)
-				* (Plan.PRINTER_REACH + STANDOFF);
+			|| me.distSqr(target) <= (double) (Plan.reach() + STANDOFF) * (Plan.reach() + STANDOFF);
 		if (!arrived) stationSince = now;               // the clock has not started yet
 		Loop.Station what = Loop.station(st.bin() == stationBin, arrived, here.size(), stationTodo,
 			now - stationSince, STATION_MS, stationRetry);

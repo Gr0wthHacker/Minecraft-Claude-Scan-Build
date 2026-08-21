@@ -80,12 +80,18 @@ final class Autopilot {
 	/**
 	 * Close enough to be standing at it.
 	 *
-	 * <p>Was 3.0, which is fine for a chest (reach 4.5) and too loose for a build station: the
-	 * printer's slack over a bin's far corner is about a block, and stopping three blocks short of
-	 * where you were sent spends it before you start. The approach taper is what stops this
-	 * jittering, not the radius.
+	 * <p>It went 3.0 -> 1.5 to protect the printer's reach budget, and back to 3.0 on Jack's
+	 * instruction: <i>"the focus should be getting within a 3 block radius of the point since we
+	 * know we reach+place further"</i>. He is right, and the tight radius was buying precision with
+	 * the currency that actually costs — CONTACT. The last two blocks of an approach are threaded
+	 * between whatever the standing spot is beside, at low speed, with the alignment fighting the
+	 * drift, and every one of those is a chance to touch a block and lose flight. The printer does
+	 * not care whether you are at the spot or three blocks off it.
+	 *
+	 * <p>What pays for it is {@link Plan#reach}, which now asks the printer how far it really places
+	 * instead of assuming four blocks.
 	 */
-	static final double ARRIVED = 1.5;
+	static final double ARRIVED = 3.0;
 	/**
 	 * ...and how close is close enough when the destination is a BLOCK.
 	 *
@@ -124,6 +130,8 @@ final class Autopilot {
 	private static boolean routedFlying = false;
 	/** Is the current path a way AROUND something rather than a way to the goal? For the HUD. */
 	private static boolean escaping = false;
+	/** Was the current route found in the world that keeps its distance? For the HUD and `why`. */
+	private static boolean roomyRoute = false;
 	/**
 	 * Were we flying last tick?
 	 *
@@ -544,7 +552,9 @@ final class Autopilot {
 		String how = flying ? "route" : "walk";
 		String tail = String.format(" @%.2f", speed);
 		if (path.isEmpty()) return (flying ? "direct" : "walk direct") + tail;
-		return (escaping ? "round " : how + " ") + path.size() + tail;
+		// `tight` is worth seeing: it is the difference between a route that keeps a block of air
+		// off everything and one that has to thread something.
+		return (escaping ? "round " : how + " ") + path.size() + (roomyRoute ? "" : " tight") + tail;
 	}
 
 	static void set(boolean v) {
@@ -577,6 +587,7 @@ final class Autopilot {
 	static void forget() {
 		path = new java.util.ArrayList<>();
 		pathTo = null;
+		legFrom = null;
 		bumps = 0;
 	}
 
@@ -742,7 +753,16 @@ final class Autopilot {
 			// above a floor, which flies beautifully and walks into a hole.
 			Nav.Passable free = flying ? Nav.of(mc.level) : Nav.standable(mc.level);
 			BlockPos here = p.blockPosition();
-			java.util.List<BlockPos> raw = Nav.route(free, here, target);
+			java.util.List<BlockPos> raw = java.util.List.of();
+			if (flying) {
+				// ---- ROOMY FIRST. A route that keeps a block of air off every surface is a route
+				// that never tests whether this server ends flight on contact. Only when there is no
+				// such route — a one-wide shaft, a doorway, the taproot — do we accept one that has
+				// to touch, and then the alignment and the tight speed take over.
+				raw = Nav.route(Nav.roomyBetween(mc.level, here, target), here, target);
+				roomyRoute = !raw.isEmpty();
+			}
+			if (raw.isEmpty()) raw = Nav.route(free, here, target);
 			if (raw.isEmpty() && !flying) {
 				// No footing all the way there. The flying route at least has the right doorways in
 				// it, and walking it gets as far as the ground allows rather than nowhere at all.
@@ -760,6 +780,7 @@ final class Autopilot {
 			}
 			path = raw.isEmpty() ? new java.util.ArrayList<>()
 				: new java.util.ArrayList<>(Nav.loosen(free, here, Nav.simplify(free, here, raw)));
+			legFrom = p.position();                        // the first leg starts where we are
 			pathTo = target;
 			routedFlying = flying;
 			sinceRepath = 0;
@@ -778,9 +799,23 @@ final class Autopilot {
 		Vec3 aim = to;
 		double near = waypointRadius(flying ? speed : WALK_SPEED);
 		while (!path.isEmpty() && me.distanceTo(Vec3.atCenterOf(path.get(0))) <= near) {
+			legFrom = Vec3.atCenterOf(path.get(0));       // the leg we are on starts where we passed
 			path.remove(0);
 		}
-		if (!path.isEmpty()) aim = Vec3.atCenterOf(path.get(0));
+		if (!path.isEmpty()) {
+			// ---- FLY THE SEGMENT, NOT THE POINT.
+			//
+			// `clear` validated waypoint-to-WAYPOINT. What actually gets flown is
+			// wherever-I-am to waypoint, and the moment drift, a bump or a corner puts the body off
+			// that line, the leg being flown is NOT the leg that was checked — it is a chord across
+			// whatever the route was going round. That is the structural reason for "still lots of
+			// bumping", underneath every heuristic bolted on after the contact.
+			//
+			// So: steer at the nearest point on the validated segment, a little way ahead. Off the
+			// line it pulls back onto it; on the line it is the same as before.
+			aim = pursue(me, legFrom == null ? me : legFrom, Vec3.atCenterOf(path.get(0)),
+				LOOKAHEAD);
+		}
 
 		// ---- aim
 		Vec3 dir = aim.subtract(me).normalize();
@@ -1193,6 +1228,29 @@ final class Autopilot {
 		// side is exactly how you catch the lip you were trying to thread.
 		Vec3 fix = new Vec3(dx, dy, dz).normalize().scale(Math.min(speed, off));
 		return fix;
+	}
+
+	/** How far along the validated segment to look. Short: this is a correction, not a shortcut. */
+	static final double LOOKAHEAD = 1.5;
+	/** Where the leg being flown started, so the flight can stay ON it rather than near it. */
+	private static Vec3 legFrom = null;
+
+	/**
+	 * The point to steer at: the nearest point on the segment, a little way along it.
+	 *
+	 * <p>Pure pursuit, and the reason for it is that a route is a set of CORRIDORS rather than a set
+	 * of points. Steering straight at the next point from wherever you have drifted to cuts the
+	 * corner off the corridor that was checked; steering at the segment holds you inside it.
+	 */
+	static Vec3 pursue(Vec3 me, Vec3 from, Vec3 to, double lookahead) {
+		Vec3 leg = to.subtract(from);
+		double len2 = leg.lengthSqr();
+		if (len2 < 1.0e-6) return to;
+		double t = me.subtract(from).dot(leg) / len2;      // how far along we are
+		t = Math.max(0, Math.min(1, t));
+		Vec3 onLine = from.add(leg.scale(t));
+		double step = Math.min(lookahead, Math.sqrt(len2) * (1 - t));
+		return onLine.add(leg.normalize().scale(step));
 	}
 
 	/** How much to prefer sliding along a face over leaving it. See sidestep. */

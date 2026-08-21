@@ -421,8 +421,28 @@ final class Plan {
 	// and the next call picks the next one, which is the same hysteresis the spot itself uses, one
 	// level down.
 
-	/** About what litematica-printer will place from where you float. */
+	/**
+	 * About what litematica-printer will place from where you float — the FALLBACK, when it cannot
+	 * be asked.
+	 *
+	 * <p>Everything about where the loop stands is budgeted against this number and it was a guess.
+	 * {@link #reach} asks the printer's own config instead; this is what is used when the printer is
+	 * not installed, which is also when none of it matters.
+	 */
 	static final int PRINTER_REACH = 4;
+
+	/**
+	 * The printer's real reach, rounded down to a bin size.
+	 *
+	 * <p>One less than the range it claims: the range is measured from the player's EYES to the
+	 * block, and a bin of that size has corners further away than its own width. Rounding down is
+	 * the same conservatism the rest of this file uses about reach.
+	 */
+	static int reach() {
+		double real = Litematica.printerRange();
+		if (real <= 0) return PRINTER_REACH;
+		return Math.max(2, (int) Math.floor(real) - 1);
+	}
 
 	/**
 	 * Where to stand INSIDE a spot, and how many cells that covers.

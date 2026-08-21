@@ -181,8 +181,14 @@ class AutopilotTest {
 		assertTrue(Autopilot.ARRIVED_SOLID < loopFires - 0.5,
 			"autofly stops at " + Autopilot.ARRIVED_SOLID + " and the loop only acts inside "
 				+ loopFires + " — too close to call");
-		assertTrue(Autopilot.ARRIVED_SOLID > Autopilot.ARRIVED,
-			"a block cannot be flown into: it needs a looser radius than an open-air waypoint");
+		// It used to need a LOOSER radius than an open-air waypoint, because that one was tight at
+		// 1.5. With the open-air radius raised to 3 on the "get within 3 blocks" rule they are the
+		// same number, and what still has to hold is that neither of them is outside the distance
+		// the loop acts at.
+		assertTrue(Autopilot.ARRIVED_SOLID >= Autopilot.ARRIVED,
+			"a block cannot be flown into: its radius may never be the tighter of the two");
+		assertTrue(Autopilot.ARRIVED < loopFires,
+			"the flight stops further out than the loop is willing to act from");
 	}
 
 	// ---------------------------------------------------------------- the void
@@ -575,5 +581,58 @@ class AutopilotTest {
 			"threads a one-wide gap at cruise, which is how you catch the lip");
 		assertTrue(Autopilot.ALIGN_TOL < 0.5,
 			"tolerance is half a block: it would call any position in the cell lined up");
+	}
+
+	// ---------------------------------------------------------------- flying the segment
+
+	@Test
+	void offTheLineItSteersBackOntoIt() {
+		// `clear` validated waypoint-to-WAYPOINT. What gets flown is wherever-I-am to waypoint, so
+		// the moment drift or a bump puts the body off that line, the leg being flown is a chord
+		// across whatever the route was going round. This is the structural cause of the bumping,
+		// underneath every heuristic bolted on after the contact.
+		Vec3 from = new Vec3(0, 100, 0), to = new Vec3(20, 100, 0);
+		Vec3 drifted = new Vec3(10, 100, 3);              // three blocks off the corridor
+		Vec3 aim = Autopilot.pursue(drifted, from, to, Autopilot.LOOKAHEAD);
+		assertTrue(Math.abs(aim.z) < 1e-6, "aimed off the validated line");
+		assertTrue(aim.x > 10 && aim.x <= 20, "did not look ahead along the leg: " + aim);
+	}
+
+	@Test
+	void onTheLineItJustCarriesOn() {
+		Vec3 from = new Vec3(0, 100, 0), to = new Vec3(20, 100, 0);
+		Vec3 aim = Autopilot.pursue(new Vec3(5, 100, 0), from, to, Autopilot.LOOKAHEAD);
+		assertEquals(5 + Autopilot.LOOKAHEAD, aim.x, 1e-6);
+	}
+
+	@Test
+	void theLookaheadNeverOvershootsTheWaypoint() {
+		// Looking past the end of a leg is looking through whatever the corner was avoiding.
+		Vec3 from = new Vec3(0, 100, 0), to = new Vec3(4, 100, 0);
+		Vec3 aim = Autopilot.pursue(new Vec3(3.8, 100, 0), from, to, 5.0);
+		assertEquals(4.0, aim.x, 1e-6, "looked past the corner");
+	}
+
+	@Test
+	void behindTheStartItComesBackToTheLegRatherThanCuttingAcross() {
+		Vec3 from = new Vec3(0, 100, 0), to = new Vec3(20, 100, 0);
+		Vec3 aim = Autopilot.pursue(new Vec3(-5, 100, 4), from, to, Autopilot.LOOKAHEAD);
+		assertTrue(aim.x >= 0 && Math.abs(aim.z) < 1e-6, "cut the corner from behind the leg");
+	}
+
+	@Test
+	void aZeroLengthLegIsNotADivisionByZero() {
+		Vec3 at = new Vec3(3, 100, 3);
+		assertEquals(at, Autopilot.pursue(new Vec3(0, 0, 0), at, at, 1.5));
+	}
+
+	@Test
+	void theRoutePrefersTheWorldThatKeepsItsDistance() throws IOException {
+		String src = source();
+		assertTrue(src.contains("Nav.roomyBetween(mc.level, here, target)"),
+			"no longer tries for a route that keeps off the surfaces");
+		int roomy = src.indexOf("Nav.roomyBetween(mc.level");
+		int tight = src.indexOf("if (raw.isEmpty()) raw = Nav.route(free, here, target);");
+		assertTrue(tight > roomy, "the tight route is no longer the FALLBACK");
 	}
 }

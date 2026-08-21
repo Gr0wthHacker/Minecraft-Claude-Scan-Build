@@ -3029,6 +3029,49 @@ is what a player does without thinking.
 - And a gap you have to be lined up for is flown at `TIGHT_SPEED`, because the alternative is
   arriving correctly aligned and too fast to stay that way.
 
+### The bumping was structural, and the heuristics were standing in for it (2026-08-21)
+
+*"still lots of bumping, and turning off fly by touching blocks, we really need to fix this."*
+Everything added over the previous rounds — climb over it, slide round it, get flight back, tap it on
+again — is a response to CONTACT. None of it asks why the flight is touching blocks at all. Two
+reasons, both structural.
+
+#### 1. It flew a leg nobody had checked
+
+`clear` validates waypoint-to-WAYPOINT. What actually gets flown is *wherever-I-am* to waypoint, and
+the moment drift, a bump or a corner puts the body off that line, the leg being flown is a CHORD
+across whatever the route was going round. The route was fine; the flight was not on it.
+
+`pursue` is plain pure pursuit: steer at the nearest point on the validated segment, a block and a
+half ahead. On the line it changes nothing; off it, it pulls back on. **A route is a set of
+corridors, not a set of points.**
+
+#### 2. A* minimises distance, so every route skims
+
+The cheapest path runs along the surface it is passing. Fine for a pathfinder, wrong for a server
+where flight is a plugin grant and **touching a block ends it**. `Nav.roomy` requires a clear cell on
+all six sides, and the route is searched in that world FIRST.
+
+**Measured on the island, it failed more than half the time — and the reason was the ends, not the
+middle.** 14 of 32 routes near terrain had a fully roomy answer; the other 18 were not threading
+tunnels, they were LEAVING one surface and arriving at another, because every endpoint this loop uses
+is a standing spot beside the work or a chest in a wall. So `roomyBetween` drops the clearance rule
+within `ENDS` (6) of either end and keeps it for the long middle, which is where a flight spends its
+speed. The island test asserts three quarters of them now keep their distance where it matters.
+
+#### And the arrival precision was being bought with contact
+
+Jack: *"the focus should be getting within a 3 block radius of the point since we know we reach+place
+further."* Right, and it is the same lesson a third time. `ARRIVED` had been tightened 3.0 → 1.5 to
+protect the printer's reach budget — so the last two blocks of every approach were threaded, slowly,
+between whatever the standing spot was beside, with the alignment fighting the drift. **Every one of
+those is a chance to touch a block and lose flight, spent buying a precision the printer does not
+need.**
+
+What pays for it: `Plan.reach()` asks litematica-printer for `Configs.PRINTING_RANGE` instead of
+assuming four blocks. That is the same "ask the game, not your memory" rule this project applies to
+every block property — and then never applied to the mod it is driving.
+
 ## The daily loop
 
 ```bash

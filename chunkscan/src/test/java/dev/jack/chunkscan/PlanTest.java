@@ -661,8 +661,11 @@ class PlanTest {
 		double budget = 4.5;                                  // litematica-printer's reach
 		assertTrue(halfDiagonal < budget,
 			"a station cannot build the far corner of its own bin: " + halfDiagonal);
-		assertTrue(Hud.STANDOFF + Autopilot.ARRIVED <= 5.0,
-			"standing off plus stopping short puts the bin out of reach");
+		// Jack: "the focus should be getting within a 3 block radius of the point since we know we
+		// reach+place further". So the flight's precision is no longer bought with contact, and what
+		// pays for it is asking the printer its real range rather than assuming four blocks.
+		assertTrue(Autopilot.ARRIVED <= 3.0, "stops further off than the instruction");
+		assertTrue(Plan.reach() >= 2, "a reach that small is not a printer");
 	}
 
 	// ---------------------------------------------------------------- only what can be built NOW
