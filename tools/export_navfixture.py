@@ -42,15 +42,16 @@ MAGIC = b"CSNAV1\0\0"
 #: Registry TYPES whose blocks do not stop a player. See the module docstring.
 PASSABLE_TYPES = {
     "air", "cave_air", "void_air", "structure_void", "light",
-    # fluids: you swim, you do not stop
-    "liquid", "flowing_fluid", "bubble_column",
+    # NOT fluids. `Nav.open` refuses anything with a fluid state: lava is death and `blocksMotion`
+    # is false for it, and water is somewhere a flight arrives slower and lower than it meant to.
+    # The fixture has to model the world the ROUTER sees or the island tests are about a different
+    # island.
     # growing things
     "flower", "tall_flower", "flower_bed", "tall_grass", "dry_vegetation", "bush",
-    "sapling", "mushroom", "crop", "stem", "attached_stem", "sugar_cane", "kelp",
-    "kelp_plant", "seagrass", "tall_seagrass", "sea_pickle", "nether_wart", "cocoa",
+    "sapling", "mushroom", "crop", "stem", "attached_stem", "sugar_cane", "nether_wart", "cocoa",
     "hanging_roots", "roots", "sculk_vein", "glow_lichen", "multiface", "vine",
     "weeping_vines", "twisting_vines", "cave_vines", "cave_vines_plant", "pitcher_crop",
-    "waterlily", "lily_pad", "frogspawn", "spore_blossom", "dead_bush",
+    "frogspawn", "spore_blossom", "dead_bush",
     # attachments and wiring
     "torch", "wall_torch", "redstone_torch", "redstone_wall_torch", "redstone_wire",
     "repeater", "comparator", "rail", "powered_rail", "detector_rail", "activator_rail",
@@ -63,7 +64,7 @@ PASSABLE_TYPES = {
 }
 
 #: ...and a few by name, where the type is shared with something solid.
-PASSABLE_NAMES = {"air", "cave_air", "void_air", "water", "lava", "structure_void", "light"}
+PASSABLE_NAMES = {"air", "cave_air", "void_air", "structure_void", "light"}
 
 
 def blocks_motion(name: str) -> bool:

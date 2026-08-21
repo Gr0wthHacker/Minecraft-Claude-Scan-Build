@@ -133,6 +133,8 @@ final class Autopilot {
 	private static boolean wasFlying = false;
 	/** Said once: we are hands-off because you are falling. */
 	private static boolean warnedFalling = false;
+	/** Consecutive ticks spent pressed against something. Reported sparingly. */
+	private static int bumps = 0;
 	/**
 	 * A hard floor on how often a search may run, whatever else asks for one.
 	 *
@@ -244,6 +246,7 @@ final class Autopilot {
 		announcedArrival = false;
 		warnedFalling = false;
 		wasFlying = false;
+		bumps = 0;
 		on = v;
 		path = new java.util.ArrayList<>();
 		pathTo = null;
@@ -327,6 +330,24 @@ final class Autopilot {
 		// ON FOOT IS NOT A STALL — for a FETCH. It used to warn and do nothing here, so any
 		// destination reached by walking simply stopped; it walks instead. But only to a container:
 		// see walk(), where the rule and the reason for it are written down.
+
+		// ---- YOU HIT SOMETHING. The route said this leg was clear and the world disagreed: a chunk
+		// arrived, the printer placed a block, or the straight-line test was optimistic about a
+		// corner. Grinding along it is how a flight ends up sliding down a wall onto a ledge, and
+		// landing is how flight is lost. Re-route THIS TICK and back off a little first.
+		if (flying && p.horizontalCollision) {
+			bumps++;
+			repathIn = 0;
+			pathTo = null;
+			if (bumps == 1 || bumps % 40 == 0) {
+				p.sendSystemMessage(Component.literal("[cscan] bumped into something — re-routing"));
+			}
+			// A short push back the way we came, so the next route is computed from open air rather
+			// than from inside the face we are pressed against.
+			p.setDeltaMovement(dirBack(p).scale(BLIND_SPEED));
+			return;
+		}
+		if (!p.horizontalCollision) bumps = 0;
 
 		// ---- ROUTE. Recomputed on a timer and whenever the destination moves, because the world
 		// loads in around you and the plan's target changes as you build.
@@ -673,6 +694,12 @@ final class Autopilot {
 				.blocksMotion()) return true;
 		}
 		return false;
+	}
+
+	/** Away from where the player is looking: the way back out of what they just hit. */
+	private static Vec3 dirBack(LocalPlayer p) {
+		double yaw = Math.toRadians(p.getYRot());
+		return new Vec3(Math.sin(yaw), 0.1, -Math.cos(yaw));
 	}
 
 	/** Shortest-way-round easing between two angles. */

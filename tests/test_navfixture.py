@@ -23,10 +23,9 @@ import export_navfixture as nf  # noqa: E402
 FIXTURE = ROOT / "chunkscan" / "src" / "test" / "resources" / "island_nav.bin.gz"
 
 
-def test_air_and_water_do_not_stop_you():
+def test_air_and_the_islands_planting_do_not_stop_you():
     assert not nf.blocks_motion("air")
     assert not nf.blocks_motion("minecraft:cave_air")
-    assert not nf.blocks_motion("water")
     # ...and the things this island is draped in. `vine` reading as solid is the same class of bug
     # as the rim stair's `PASSABLE` set: a curtain hanging in open air is not footing, and it is not
     # a wall either.
@@ -40,6 +39,16 @@ def test_the_things_you_walk_into_do():
     for name in ("stone", "stone_bricks", "oak_slab", "stone_brick_stairs", "stone_brick_wall",
                  "oak_fence", "glass_pane", "chest", "hopper", "oak_leaves", "ice"):
         assert nf.blocks_motion(name), name
+
+
+def test_fluids_are_not_open_air():
+    # `Nav.open` refuses anything with a fluid state, and the fixture must model the world the
+    # ROUTER sees or the island tests are about a different island. Lava is death and blocksMotion
+    # is false for it; water is somewhere a flight arrives slower and lower than it meant to.
+    assert nf.blocks_motion("water")
+    assert nf.blocks_motion("lava")
+    assert nf.blocks_motion("kelp"), "kelp stands in water"
+    assert nf.blocks_motion("seagrass")
 
 
 def test_a_block_state_is_read_by_its_name():

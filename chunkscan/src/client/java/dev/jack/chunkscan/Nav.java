@@ -130,9 +130,21 @@ final class Nav {
 		BlockPos.MutableBlockPos c = new BlockPos.MutableBlockPos();
 		return (x, y, z) -> {
 			if (!level.isLoaded(c.set(x, y, z))) return true;       // not a wall: just unseen
-			if (level.getBlockState(c.set(x, y, z)).blocksMotion()) return false;
-			return !level.getBlockState(c.set(x, y + 1, z)).blocksMotion();
+			if (!open(level.getBlockState(c.set(x, y, z)))) return false;
+			return open(level.getBlockState(c.set(x, y + 1, z)));
 		};
+	}
+
+	/**
+	 * Is this a cell a flight can pass through?
+	 *
+	 * <p>`blocksMotion` is false for LAVA, and lava is not open air. Water is not either: you sink,
+	 * you slow, and a flight that plans through the court's pool or the lowland's water arrives
+	 * somewhere it did not intend. Both are cheap to route around on this island — the water here is
+	 * ponds and a tank — so both are simply not passable.
+	 */
+	static boolean open(net.minecraft.world.level.block.state.BlockState st) {
+		return !st.blocksMotion() && st.getFluidState().isEmpty();
 	}
 
 	/**
@@ -150,8 +162,8 @@ final class Nav {
 		BlockPos.MutableBlockPos c = new BlockPos.MutableBlockPos();
 		return (x, y, z) -> {
 			if (!level.isLoaded(c.set(x, y, z))) return true;
-			if (level.getBlockState(c.set(x, y, z)).blocksMotion()) return false;
-			if (level.getBlockState(c.set(x, y + 1, z)).blocksMotion()) return false;
+			if (!open(level.getBlockState(c.set(x, y, z)))) return false;
+			if (!open(level.getBlockState(c.set(x, y + 1, z)))) return false;
 			return level.getBlockState(c.set(x, y - 1, z)).blocksMotion()
 				|| level.getBlockState(c.set(x, y - 2, z)).blocksMotion();
 		};

@@ -163,7 +163,10 @@ class IslandNavTest {
 		// is the longest route the loop actually asks for and the one MAX_RANGE was raised for.
 		BlockPos deck = lowestOpenAbove(194);
 		BlockPos low = lowestOpenAbove(42);
-		if (deck == null || low == null) return;              // capture does not cover both
+		// ASSERTED, not skipped. A test that returns early when it cannot find its own endpoints
+		// proves nothing and reports success, which is how a suite stops meaning anything.
+		assertNotNull(deck, "no open cell found at deck height in the capture");
+		assertNotNull(low, "no open cell found at lowland height — is the capture the plate-only one?");
 		assertTrue(Math.sqrt(deck.distSqr(low)) < Nav.MAX_RANGE,
 			"deck to lowland is outside the range cap: " + Math.sqrt(deck.distSqr(low)));
 		List<BlockPos> path = Nav.route(FREE, deck, low);

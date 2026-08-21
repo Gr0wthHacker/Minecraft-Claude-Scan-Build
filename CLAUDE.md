@@ -2677,6 +2677,52 @@ them and every router passes. `nearTerrain` samples cells within three blocks of
 the deck, inside the lowland, against the plate — which is where routing is actually hard, and the
 legality property runs over those as well as over the uniform sample.
 
+### The fly audit, and the whole island in the fixture (2026-08-20)
+
+**The lowland is in the test ground and it routes.** Measured off `islandlow`, solid cells by band:
+
+| | |
+|---|---|
+| Y24–48 (lowland) | **17,971** — the biggest band in the capture |
+| Y190–215 (deck + plate) | 27,088 |
+| Y48–190 (belly, taproot, rim) | 18,759 |
+| Y215–271 (sky bird) | 7,806 |
+
+`theDeckCanBeRoutedDownToTheLowland` now ASSERTS its endpoints instead of returning when it cannot
+find them — a test that skips quietly when its own fixture is wrong reports success and proves
+nothing, which is how a suite stops meaning anything.
+
+**And the sampling was measuring the wrong island.** Uniform sampling over a capture that is 2%
+solid is mostly a test that empty sky is empty. `nearTerrain` samples within three blocks of a
+surface, which is where routing is hard.
+
+#### Every way a flight can end, and what now handles it
+
+| how it goes wrong | what stops it |
+|---|---|
+| lands on a block, plugin flight ends | `keepAirborne` — never descend inside 1.5 of a floor, climb off one |
+| descends into chunks not loaded yet | an unloaded cell below counts as GROUND |
+| flies at cruise into unseen terrain | `BLIND_SPEED` 0.12 when the next 8 blocks are unloaded |
+| **flies into a wall the route thought was clear** | **`horizontalCollision` forces a repath THIS tick and backs off** |
+| **routes through lava or water** | **`Nav.open` refuses anything with a fluid state** |
+| corner clipped at speed | waypoint radius and approach taper scale with the speed |
+| route stale as the printer builds | repathed twice a second, floored at 5 ticks |
+| no route at all | `escape`, then direct with `unstick`, never a partial |
+| flight lost while airborne | emergency halt, hands back, disarm |
+| on foot over the void | building requires flight; walking is only ever a fetch, with ground |
+
+The two new ones are the ones this audit added:
+
+- **`blocksMotion` is FALSE FOR LAVA.** The router would have flown straight through it, and on this
+  island the lowland has water and the court has a tank. Both are cheap to go round, so both are
+  simply not passable. The nav fixture had to change with it, or the island tests would be about a
+  different island — 811 more solid cells, and `kelp`/`seagrass`/`lily_pad` went with the water they
+  stand in.
+- **Bumping into something is evidence the route is wrong**, not something to push through. Grinding
+  along a face is how a flight slides down a wall onto a ledge, and landing is how flight is lost.
+  It re-routes on the tick and pushes back out of the face first, so the next search starts from
+  open air rather than from inside the wall.
+
 ## The daily loop
 
 ```bash
