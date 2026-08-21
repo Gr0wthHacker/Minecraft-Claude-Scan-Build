@@ -283,6 +283,25 @@ final class Autopilot {
 	static final int TAP_WAIT = 20;
 	/** Never send the command more often than this, whatever happens. */
 	static final int RESCUE_COOLDOWN = 200;
+	/**
+	 * Below this, a fall goes straight to `/is` without trying the taps first.
+	 *
+	 * <p>Jack's rule, and the geometry backs it: the plate is Y201 and the deck Y190-199, so ABOVE
+	 * this you are falling somewhere with island under you and a double-tap has both time to work
+	 * and something to land on. Below it you are under the belly, and what is beneath you is the
+	 * void — the taps cost about a third of a second and buy nothing there, because if flight were
+	 * available you would not be falling in the first place.
+	 *
+	 * <p>The lowland floor is Y24-47, which is under this line too. Landing on it is survivable and
+	 * being teleported home from above it is merely inconvenient; the fall that is not survivable is
+	 * the one that misses it.
+	 */
+	static final int PANIC_BELOW_Y = 100;
+
+	/** Straight home, no taps: see {@link #PANIC_BELOW_Y}. */
+	static boolean goHomeAtOnce(double y) {
+		return y < PANIC_BELOW_Y;
+	}
 
 	private static int rescueStage = 0;
 	private static int rescueTimer = 0;
@@ -312,8 +331,18 @@ final class Autopilot {
 		rescueTimer++;
 		switch (rescueStage) {
 			case 0 -> {
-				rescueStage = 1;
 				rescueTimer = 0;
+				if (goHomeAtOnce(p.getY())) {
+					// No time and nothing to land on. Skip the taps entirely.
+					if (rescueCool == 0 && p.connection != null) {
+						rescueCool = RESCUE_COOLDOWN;
+						p.sendSystemMessage(Component.literal("[cscan] FALLING below Y"
+							+ PANIC_BELOW_Y + " — /is, now"));
+						p.connection.sendCommand("is");
+					}
+					return true;
+				}
+				rescueStage = 1;
 				p.sendSystemMessage(Component.literal("[cscan] FALLING — trying to get flight back"));
 				if (p.getAbilities().mayfly) hold(mc, true, false);        // tap one, down
 			}

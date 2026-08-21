@@ -2809,6 +2809,13 @@ home.
 2. **`/is`.** Always works, and moves you across the island, so it is the fallback rather than the
    first move, and it is rate-limited to once every ten seconds because it is a teleport.
 
+**Below Y100 it skips straight to `/is`.** The plate is Y201 and the deck Y190–199, so above that
+line a fall has island under it and the taps have both time to work and something to land on. Below
+it you are under the belly and what is beneath you is the void: the taps cost a third of a second
+and buy nothing there, because if flight were available you would not be falling. The lowland floor
+at Y24–47 is under the line too — landing on it is survivable and being teleported home from above
+it is merely inconvenient, while the fall that MISSES it is the one that is not.
+
 It is checked before everything else in the tick, including having a destination: the whole point is
 that it fires when the loop is not in control of what is happening.
 

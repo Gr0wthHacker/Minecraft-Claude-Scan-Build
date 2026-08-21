@@ -351,4 +351,17 @@ class AutopilotTest {
 		assertTrue(Autopilot.STUCK_TICKS >= 20,
 			"declares the route wrong before the climb has had time to clear the obstacle");
 	}
+
+	@Test
+	void aFallBelowTheDeckGoesStraightHome() {
+		// Jack's rule, and the geometry backs it: the plate is Y201 and the deck Y190-199, so above
+		// the line you are falling with island under you and a double-tap has time to work and
+		// something to land on. Below it, what is beneath you is the void — the taps cost a third of
+		// a second and buy nothing, because if flight were available you would not be falling.
+		assertTrue(Autopilot.goHomeAtOnce(60), "took the slow route with the void underneath");
+		assertTrue(Autopilot.goHomeAtOnce(-20), "below the world and still trying to tap");
+		assertFalse(Autopilot.goHomeAtOnce(195), "teleported home from a trip on the deck");
+		assertTrue(Autopilot.PANIC_BELOW_Y < 190,
+			"the line is above the deck, so working there would teleport you home");
+	}
 }
