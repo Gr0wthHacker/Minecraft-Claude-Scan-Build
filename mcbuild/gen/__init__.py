@@ -1,5 +1,5 @@
 """Generator registry. Each module exposes DEFAULTS and build(cfg, donors)->Canvas."""
-from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl
+from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway
 from .canvas import Canvas, hash01
 
 class _Wrap:
@@ -62,6 +62,7 @@ GENERATORS = {
     "rootbreak": _Wrap(rootbreak.build_rootbreak, rootbreak.ROOTBREAK),
     "ruinring": _Wrap(ruinring.build_ruinring, ruinring.RUINRING),
     "axolotl": _Wrap(axolotl.build_axolotl, axolotl.AXOLOTL),
+    "ruinway": _Wrap(ruinway.build_ruinway, ruinway.RUINWAY),
 }
 
 __all__ = ["GENERATORS", "Canvas", "hash01"]

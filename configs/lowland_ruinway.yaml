@@ -1,0 +1,47 @@
+# THE RUINS QUARTER - the blackstone way and its fragments, measured off the 19:28 capture.
+#
+# One walk, five fragments, one hand with the ring: ruined pavement from the pond's south-east
+# bank THROUGH the portal to a broken overlook at the rim's true edge (ground ends at X-24151).
+# The way crosses UNDER the sprinting capybara - its only low cells are the two diagonal leg
+# pairs, and the corridor between them at z30019-21 is clear below Y47 all the way across.
+# The pavement decays with distance from the ring: whole at the gate, moss-bitten at both ends.
+#
+# The fragments are PARTS of buildings, never buildings: a gatehouse whose door outlived its
+# walls (from the west bank, the ring sits inside its opening), a four-pier colonnade on the
+# overlook approach, a bridge stub ending over open water, and an apse half-ring in the NORTH
+# skylight - the second beam of daylight gets its own ruin, so the two shafts answer each other.
+name: Lowland Ruinway
+gen: ruinway
+params:
+  under: out/lowland_planned.litematic
+  path: [[-24198, 30019], [-24193, 30020], [-24186, 30021], [-24179, 30023], [-24176, 30024],
+         [-24171, 30025], [-24165, 30026], [-24159, 30027], [-24154, 30027]]
+  decay_from: [-24171, 30025]      # whole at the ring, ruined at the edges
+  gatehouse: {at: [-24197, 30020]}
+  colonnade:                        # flanking the overlook approach, four heights - decay is
+    - {at: [-24162, 30024], h: 5}   # uneven or it reads as design, not time
+    - {at: [-24162, 30029], h: 2}
+    - {at: [-24158, 30024], h: 3}
+    - {at: [-24158, 30030], h: 4}
+  overlook: {at: [-24153, 30027], r: 3}
+  bridge: {from: [-24204, 30019], dir: [0, -1], len: 6, width: 3}
+                                    # the pond's SE finger: water holds x<=-24205 at z30016 and
+                                    # x<=-24203 at z30014, so the last two rows hang over open
+                                    # water - the first siting misread the bank line and the
+                                    # whole deck stayed dry
+  apse: {at: [-24188, 29969], r: 4, h: 5}
+  lanterns: [[-24192, 30017], [-24176, 30021], [-24160, 30030]]
+  seed: 0
+origin_lock: false                  # LOUD: lies on the lowland at Y37-52
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  # shared cells are the other designs' to place - the way passes through the portal's own
+  # threshold, and the order you generate in matters: the portal was built first
+  defer_to: [out/Lowland Portal.litematic, out/Lowland Capybara Flee.litematic,
+             out/Lowland Flamingo.litematic, out/Lowland Axolotl.litematic]
+  context_clear: [vine, short_grass, tall_grass, fern, large_fern, moss_carpet, azalea,
+                  flowering_azalea, poppy, dandelion]
+  verify_against: out/lowland_planned.litematic
