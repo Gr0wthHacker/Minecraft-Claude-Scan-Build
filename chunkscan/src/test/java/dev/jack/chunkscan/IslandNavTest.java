@@ -316,8 +316,10 @@ class IslandNavTest {
 			assertTrue(FREE.at(stand.getX(), stand.getY(), stand.getZ()), "stood inside the island");
 			assertTrue(Nav.sees(FREE, stand, work),
 				"cannot see the block it is meant to place: " + stand + " -> " + work);
-			assertTrue(Math.sqrt(stand.distSqr(work)) <= Hud.STANDOFF + 0.001,
-				"stood further off than it was allowed");
+			// CHEBYSHEV: `standoff` searches in shells, so `maxOut` is a box radius. Asserting a
+			// euclidean distance is the same box-for-a-sphere slip GOAL_SLACK had, and it passed
+			// here only until the air-below rule started picking corner cells.
+			assertTrue(within(stand, work, Hud.STANDOFF), "stood further off than it was allowed");
 			if (Nav.openness(FREE, stand) >= 3) roomy++;
 		}
 		assertTrue(tried > 20, "only " + tried + " standoffs were tested");

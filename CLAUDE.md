@@ -2780,20 +2780,44 @@ Now a bump keeps steering: ease off the forward push to a quarter, climb, and as
 through the normal gate that respects the floor. Only after two seconds of solid contact is the
 route declared wrong rather than stale, and only then is it dropped — once.
 
-### SPACE and SHIFT do the vertical (2026-08-20)
+### THE JUMP KEY IS A FLIGHT TOGGLE, NOT A CLIMB CONTROL (2026-08-20)
 
-Setting a y velocity works and works badly: `travelFlying` damps it every tick, so a commanded climb
-arrives as a drift and the flight sinks toward the thing it was trying to clear. **Holding JUMP is
-how a player goes up and SHIFT is how they come down**, and vanilla applies those as flight impulses
-on top of whatever horizontal velocity we set — stronger, and what the server expects to see.
+Written the other way round for about twenty minutes, and in that time **the mod revoked its own
+flight in mid-air** and then reported the fall as though something had been done to it. Jack: *"its
+also self revoking flight on accident and saying im in control when im not even touching."*
 
-`KeyMapping.setDown` is the mechanism. Driving `LocalPlayer.input.keyPresses` instead does NOT work:
-`ClientInput.tick()` runs inside the player's own tick and overwrites it before movement, so anything
-set from a Fabric tick event is gone before it is read.
+The reasoning that got there was sound and the conclusion was dangerous. A set y velocity IS damped
+by `travelFlying` every tick, so a commanded climb does arrive as a drift; holding JUMP is how a
+player climbs. But **vanilla toggles flying on a DOUBLE TAP of jump** — `LocalPlayer.aiStep` opens a
+seven-tick window on the first press and flips `abilities.flying` on the second — and driving the key
+to climb presses and releases it as the desired vertical crosses a deadzone. Inside seven ticks, that
+is a double tap.
 
-The keys are touched only when the state CHANGES — slamming them every tick fights the keyboard
-handler — and every path that stops steering calls `release`: arriving, a container screen, walking,
-`halt`, and autofly being off. **A stuck key is worse than a stuck loop.**
+The vertical is a velocity again, scaled by `VERTICAL_GAIN` to survive the friction rather than
+pressed. `hold` survives for exactly one job: the rescue taps, where toggling flight is the POINT.
+
+Worth keeping anyway, since it cost a javap and is not written down elsewhere: driving
+`LocalPlayer.input.keyPresses` does not work at all — `ClientInput.tick()` runs inside the player's
+own tick and overwrites it before movement, so anything set from a Fabric tick event is gone before
+it is read. `KeyMapping.setDown` is the only mechanism that survives.
+
+**And the message was wrong as well as the behaviour.** "You have control" reads as "you took over",
+which is both confusing when the player is not touching anything and, on the occasion it was this
+mod's own doing, false. It says *not by you* now.
+
+### A block of air underneath is not enough (2026-08-20)
+
+Jack, watching it work: *"it cant be within 1 block beneath when flying to place because it will auto
+stop flying."* Whatever the server's plugin measures, it looks further down than the block you are
+touching.
+
+- `Nav.standoff` now REFUSES a standing spot with less than two clear cells under it, keeping such a
+  cell only as a last resort and never preferring one.
+- `GROUND_CLEAR` 1.5 → **2.5**, so the flight cannot descend below the altitude the standoff was
+  chosen for.
+
+It is bought out of the printer's reach budget, which is exactly why the station moves in CLOSER on
+its first stall instead of giving up: altitude first, reach second.
 
 ### Falling is an emergency with two rescues (2026-08-20)
 

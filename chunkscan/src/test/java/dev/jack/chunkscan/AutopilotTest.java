@@ -325,15 +325,40 @@ class AutopilotTest {
 	}
 
 	@Test
-	void theVerticalIsDrivenByTheKEYS() throws IOException {
-		// Setting a y velocity works and works badly: travelFlying damps it every tick, so a
-		// commanded climb arrives as a drift and the flight sinks toward whatever it was trying to
-		// clear. Holding JUMP is how a player goes up and SHIFT is how they come down.
+	void theJumpKeyIsNeverUsedToCLIMB() throws IOException {
+		// THE MOD REVOKED ITS OWN FLIGHT. Vanilla toggles flying on a DOUBLE TAP of jump - a
+		// seven-tick window opened by the first press - and driving the key to climb presses and
+		// releases it as the desired vertical crosses a deadzone. Inside seven ticks that is a
+		// double tap, so it turned off its own flight, fell, and reported the fall as though
+		// something had been done to it.
 		String src = source();
-		assertTrue(src.contains("keyJump.setDown"), "no longer presses space to climb");
-		assertTrue(src.contains("keyShift.setDown"), "no longer presses shift to descend");
-		// ...and lets go on every path that stops steering. A stuck key is worse than a stuck loop.
+		assertFalse(src.contains("vertical(mc"), "the climb is driving the flight toggle again");
+		// the key work that remains is the rescue, where toggling flight is the POINT
+		int rescue = src.indexOf("private static boolean rescue(");
+		assertTrue(rescue > 0);
+		assertTrue(src.indexOf("keyJump.setDown") < rescue || src.contains("hold(mc, true, false)"),
+			"jump is pressed somewhere other than the rescue");
 		assertTrue(src.contains("release(mc)"), "nothing releases the keys");
+	}
+
+	@Test
+	void theVerticalSurvivesFlightFriction() {
+		// travelFlying damps a set y velocity every tick, so the naive version arrives as a drift
+		// and the flight sinks toward the thing it is trying to clear. Scaled, not pressed.
+		assertTrue(Autopilot.VERTICAL_GAIN > 1.0, "a commanded climb will be damped away");
+		Vec3 lifted = Autopilot.liftFor(new Vec3(0.1, 0.2, 0.1), 1.0);
+		assertTrue(lifted.y > 0.2, "the vertical was not scaled at all");
+		assertEquals(0.1, lifted.x, 1e-9, "the horizontal must not be touched");
+		assertEquals(0.5, Autopilot.liftFor(new Vec3(0, 9.0, 0), 0.5).y, 1e-9, "not clamped");
+	}
+
+	@Test
+	void aPlaceToWorkFromHasAirUnderIt() {
+		// Jack: "it cant be within 1 block beneath when flying to place because it will auto stop
+		// flying". Whatever the plugin measures, it looks further down than the block you touch.
+		assertTrue(Nav.AIR_BELOW >= 2, "a standing spot one block off the floor ends the flight");
+		assertTrue(Autopilot.GROUND_CLEAR > Nav.AIR_BELOW - 1,
+			"the flight would descend below the altitude the standoff was chosen for");
 	}
 
 	@Test

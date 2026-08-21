@@ -332,7 +332,8 @@ final class Nav {
 	 * work rather than burrowing to the far face.
 	 */
 	static BlockPos standoff(Passable free, BlockPos at, BlockPos want, int maxOut) {
-		BlockPos roomy = null, any = null;
+		BlockPos roomy = null, any = null, low = null;
+		double lowScore = -Double.MAX_VALUE;
 		// -MAX_VALUE, not -1. The score is a NEGATIVE distance — a penalty — so seeding the best at
 		// -1 quietly rejected every candidate more than about two blocks away and the whole search
 		// returned null. It read as "there is nowhere to stand" everywhere except right on top of
@@ -357,6 +358,17 @@ final class Nav {
 						// the side you asked for, then distance from the work
 						double score = -(want == null ? 0 : Math.sqrt(c.distSqr(want)))
 							- Math.sqrt(c.distSqr(at)) * 0.5;
+						// AIR UNDERNEATH. A standing spot one block off the floor ends the flight:
+						// whatever the server's plugin measures, it looks further down than the
+						// block you are touching. Anything with less than AIR_BELOW clear beneath is
+						// kept only as a last resort, and never preferred.
+						if (!airBelow(free, c, AIR_BELOW)) {
+							if (score > lowScore) {
+								lowScore = score;
+								low = c;
+							}
+							continue;
+						}
 						if (score > anyScore) {
 							anyScore = score;
 							any = c;
@@ -375,7 +387,18 @@ final class Nav {
 		// out for three would find nowhere at all and hand the caller back a null, which it resolves
 		// by standing at the bin centroid: inside the wall it is building. A tight spot you can
 		// place from beats a roomy one that does not exist.
-		return any;
+		return any != null ? any : low;
+	}
+
+	/** How many clear cells a standing spot must have under it. See the note in standoff. */
+	static final int AIR_BELOW = 2;
+
+	/** Is there `n` cells of nothing under this one? */
+	static boolean airBelow(Passable free, BlockPos c, int n) {
+		for (int d = 1; d <= n; d++) {
+			if (!free.at(c.getX(), c.getY() - d, c.getZ())) return false;
+		}
+		return true;
 	}
 
 	/**

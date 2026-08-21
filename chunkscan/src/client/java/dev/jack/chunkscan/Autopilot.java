@@ -231,24 +231,36 @@ final class Autopilot {
 		return null;
 	}
 
-	// ---- THE VERTICAL BELONGS TO THE KEYS.
+	// ---- THE JUMP KEY IS NOT A CLIMB CONTROL, IT IS A FLIGHT TOGGLE.
 	//
-	// Setting a y velocity works and works badly: `travelFlying` damps it every tick, so a commanded
-	// climb arrives as a drift and the flight sinks toward whatever it was trying to clear. Holding
-	// JUMP is how a player goes up and SHIFT is how they come down, and vanilla applies those as
-	// flight impulses on top of whatever horizontal velocity we set — which is both stronger and
-	// exactly what the server expects to see.
+	// This was written the other way round for about twenty minutes and it revoked Jack's flight in
+	// mid-air. **Vanilla toggles flying on a DOUBLE TAP of jump** — `LocalPlayer.aiStep` starts a
+	// seven-tick window on the first press and flips `abilities.flying` on the second. Driving the
+	// key to climb presses and releases it as the desired vertical crosses a deadzone, which inside
+	// seven ticks is a double tap. So the mod turned off its own flight, fell, and then reported the
+	// fall as though something else had happened to it.
 	//
-	// The keys are only touched when the state CHANGES. Slamming them every tick fights the
-	// keyboard handler, and a key left down when this stops ticking is a player who cannot land.
+	// The vertical is a VELOCITY again. `travelFlying` damps it every tick, which is why the naive
+	// version was weak, so it is scaled up rather than pressed: see VERTICAL_GAIN.
+	//
+	// The keys are still here, and `hold` still exists, for exactly one job — the rescue taps, where
+	// toggling flight is the POINT rather than the accident.
 
 	private static boolean holdUp = false;
 	private static boolean holdDown = false;
-	/** Vertical difference worth pressing a key for. Below this, drift is fine. */
-	static final double CLIMB_DEADZONE = 0.05;
+	/**
+	 * How much to over-command the vertical.
+	 *
+	 * <p>`travelFlying` applies friction every tick, so a y velocity set to the speed you want
+	 * arrives as roughly half of it and the flight sinks toward the thing it is trying to clear.
+	 * Doubling it and clamping is a great deal safer than touching the key that toggles flight.
+	 */
+	static final double VERTICAL_GAIN = 2.0;
 
-	private static void vertical(Minecraft mc, double wantY) {
-		hold(mc, wantY > CLIMB_DEADZONE, wantY < -CLIMB_DEADZONE);
+	/** The step, with the vertical scaled to survive flight friction. */
+	static Vec3 liftFor(Vec3 step, double cap) {
+		double y = step.y * VERTICAL_GAIN;
+		return new Vec3(step.x, Math.max(-cap, Math.min(cap, y)), step.z);
 	}
 
 	private static void hold(Minecraft mc, boolean up, boolean down) {
@@ -526,8 +538,11 @@ final class Autopilot {
 		// into whatever revoked it is how you lose the inventory the second time as well.
 		if (wasFlying && !flying && !p.onGround()) {
 			wasFlying = false;
-			p.sendSystemMessage(Component.literal("[cscan] FLIGHT WAS REVOKED IN THE AIR — autofly"
-				+ " OFF, you have control. Get to ground before anything else."));
+			// Worded carefully: this is not "you took over". The player is often not touching
+			// anything, and being told they are in control when they are falling and did nothing is
+			// both confusing and, on the one occasion it was this mod's own doing, wrong.
+			p.sendSystemMessage(Component.literal("[cscan] flight ended in mid-air — not by you."
+				+ " autofly is OFF and the controls are yours. Get to ground first."));
 			halt(mc);
 			return;
 		}
@@ -675,11 +690,9 @@ final class Autopilot {
 			// guessing it here is how you fight your own pathfinder at a doorway.
 			if (path.isEmpty()) step = unstick(mc, p, step);
 			step = keepAirborne(mc, p, step);
-			// SPACE and SHIFT do the vertical; the delta carries the horizontal. Vanilla applies the
-			// key impulses on top of what we set, which is stronger than a y velocity that
-			// travelFlying damps away, and is what the server expects a flying player to look like.
-			vertical(mc, step.y);
-			p.setDeltaMovement(step);
+			// Scaled, not pressed. See the note on VERTICAL_GAIN and, more importantly, the one
+			// above it about what the jump key actually does.
+			p.setDeltaMovement(liftFor(step, Math.max(speed, RISE) * 1.5));
 		} else {
 			release(mc);                               // on foot the vertical is the ground's job
 			walk(mc, p, dir, aim, speed);
@@ -805,10 +818,16 @@ final class Autopilot {
 	 * said it had to stay off the floor. It landed, flight went, and the loop was on foot in a place
 	 * only a flying player has any business being.
 	 *
-	 * <p>A block and a half is enough that a slab, a stair or a lip cannot catch a foot, and small
-	 * enough that a station a course above the floor is still well inside the printer's reach.
+	 * <p>Was a block and a half, which is enough that a slab or a lip cannot catch a foot and NOT
+	 * enough for the server: Jack, watching it work, <i>"it cant be within 1 block beneath when
+	 * flying to place because it will auto stop flying"</i>. Whatever the plugin measures, it is
+	 * looking further down than the block you are touching. Two and a half, and the standoff refuses
+	 * to pick a cell with less air under it than that.
+	 *
+	 * <p>It is bought out of the printer's reach budget, which is why the station moves in CLOSER on
+	 * its first stall rather than giving up: altitude first, reach second.
 	 */
-	static final double GROUND_CLEAR = 1.5;
+	static final double GROUND_CLEAR = 2.5;
 	/** How briskly to climb off a floor it has got too close to. */
 	static final double RISE = 0.18;
 	/**
