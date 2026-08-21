@@ -343,6 +343,33 @@ final class Work {
 	 * answers it against the world as it is right now, standing in front of the problem, which is
 	 * when it actually matters - the alternative is discovering it with a shulker in your hand.
 	 */
+	/**
+	 * Cells the printer could place THIS SECOND.
+	 *
+	 * <p>{@link #floating} answers a different question and answers it correctly: it counts an
+	 * EARLIER cell of the same design as support, because the work list is sorted bottom-up and a
+	 * wall builds against itself course by course. That is the right rule for "does this design need
+	 * scaffolding".
+	 *
+	 * <p>It is the wrong rule for "where should I go and stand". A cell whose only support is
+	 * another cell that has not been built yet is not floating and is not placeable either, and if
+	 * that support is in a different bin — or a different spot — nothing you do here will place it.
+	 * Reported as: <i>"its still choosing clusters that cant be placed"</i>.
+	 *
+	 * <p>So this asks the world alone: is there a real face to click, right now.
+	 */
+	static List<Cell> placeableNow(Level level, List<Cell> cells) {
+		return placeableNow(solidIn(level), cells);
+	}
+
+	static List<Cell> placeableNow(Solid solid, List<Cell> cells) {
+		List<Cell> out = new ArrayList<>();
+		for (Cell c : cells) {
+			if (!needsScaffold(solid, c, Set.of())) out.add(c);
+		}
+		return out;
+	}
+
 	static List<Cell> floating(Level level, List<Cell> todo) {
 		return floating(solidIn(level), todo);
 	}

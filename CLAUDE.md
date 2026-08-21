@@ -2601,6 +2601,46 @@ and their supports have to go in first.
 number by a different route, which is exactly how the count you are told and the cells you are sent
 to drift apart.
 
+### "It detected tuff as the same as deepslate" (2026-08-20)
+
+**There is no block-equivalence table anywhere in the mod** — `Work.matches` compares names exactly
+and the Java side has no family list at all. What actually happened is a generator decision:
+`courthall._put` refuses to place where anything is already standing (*"never cover what is already
+standing"*), so wherever the island's own rock occupies a cell of the order, that cell is dropped
+from the design and the loop never hears about it.
+
+Measured on `Court Hall` against the 12:38 capture — 90 design cells whose world block differs:
+
+| design wants | world holds | cells |
+|---|---|---|
+| `deepslate_bricks` | `stone_bricks` | 28 |
+| `deepslate_bricks` | air (real work) | 23 |
+| `deepslate_bricks` | `cracked_stone_bricks` | 7 |
+| `deepslate_bricks` | `moss_block` / `mossy_stone_bricks` / `mossy_cobblestone` | 17 |
+| `lantern` | `deepslate_bricks` | 4 |
+
+**A litematica printer places into AIR; it never replaces.** So those cells can never be completed by
+the loop however long it runs, and the loop's only signal was getting quieter. It says so once now,
+and points at `/cscan check`, which marks them amber.
+
+**Whether the order should REPLACE Jack's stone brick is his call, not a silent one** — it is
+`_put(..., force=True)` plus dig cells, and it means breaking 58 placed blocks.
+
+### And a third meaning of "cannot be placed" (2026-08-20)
+
+Same session: *"its still choosing clusters that cant be placed"*, after `ready` had already fixed
+the first two. There are THREE questions and the loop was answering the wrong one each time:
+
+    cells   everything left in this region, floating and sealed included
+    ready   minus those two - but `floating` counts an EARLIER cell of the same design as support,
+            which is right for "does this design need scaffolding" and wrong for "can I place it
+            now": that support may not be built, and may not even be in this bin
+    now     has a real face to click, in the WORLD, this second
+
+`Work.placeableNow` asks the third, and the station is picked over that. `floating` keeps its own
+rule, because taking the design's own earlier cells out of THAT would report every wall in the
+project as needing scaffolding.
+
 ## The daily loop
 
 ```bash

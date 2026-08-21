@@ -70,6 +70,8 @@ final class Hud {
 	private static int hiccups = 0;
 	/** Said once per design: there is nothing placed for the printer to print. */
 	private static boolean placementWarned = false;
+	/** Said once per design: most of what is left is a block the printer cannot replace. */
+	private static boolean deviationsSaid = false;
 	/**
 	 * Nothing placed at ONE station for this long and it moves to the next.
 	 *
@@ -201,6 +203,17 @@ final class Hud {
 			remember(mc);
 			return;
 		}
+		// ---- CELLS THE WORLD HAS SOMETHING ELSE IN. The printer places into air; it does not
+		// replace. So a design whose remaining work is mostly deviations will never finish however
+		// long the loop runs, and the loop cannot tell you that by getting quieter. Said once.
+		if (!deviationsSaid && !sp.wrong().isEmpty() && sp.todo().size() < sp.wrong().size()) {
+			deviationsSaid = true;
+			mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.wrong().size()
+				+ " cells hold a DIFFERENT block from the design — the printer places into air and"
+				+ " cannot replace them. /cscan check " + sp.name() + " marks them amber;"
+				+ " they need breaking by hand."));
+		}
+
 		// ---- IS THERE ANYTHING FOR THE PRINTER TO PRINT? It places from a Litematica placement, so
 		// a design with no placement - or one toggled off - is a session of flying to the right
 		// spots and putting nothing down. One line, said once, at the start rather than after the
@@ -366,16 +379,26 @@ final class Hud {
 	 */
 	private static void stand(Minecraft mc, Plan.Cluster spot, BlockPos me, int spotsInPlan) {
 		long now = System.currentTimeMillis();
-		// READY, NOT CELLS. A station picked over everything left here can be made entirely of cells
-		// with nothing to place against — you get flown to a bin of mid-air, the printer places none
-		// of it, and twenty seconds later the loop moves to the next bin of mid-air. Those cells are
-		// real work and they are not THIS pass's work: their supports have to go in first.
-		Plan.Station st = Plan.station(spot.ready(), Plan.PRINTER_REACH, me, stationsTried);
+		// READY, NOT CELLS — and then NOW, not ready. Three different questions, and the loop has
+		// been wrong about each of them in turn:
+		//
+		//   cells   everything left in this region, including what has nothing to place against
+		//   ready   minus the floating and the sealed-in — but `floating` counts an earlier DESIGN
+		//           cell as support, which is right for "does this need scaffolding" and wrong for
+		//           "can I place it now": that support may not be built, and may not even be in
+		//           this bin
+		//   now     has a real face to click, in the world, this second
+		//
+		// Standing anywhere else is standing in front of something the printer will not touch.
+		java.util.List<Work.Cell> live = Work.placeableNow(mc.level, spot.ready());
+		if (live.isEmpty()) live = spot.ready();     // nothing placeable yet; fall back rather than
+		                                             // strand the spot
+		Plan.Station st = Plan.station(live, Plan.PRINTER_REACH, me, stationsTried);
 		if (st == null) {
 			// Every bin here has been tried. Start again rather than stranding the spot: the world
 			// has moved since, and the alternative is a spot that can never be worked.
 			stationsTried.clear();
-			st = Plan.station(spot.ready(), Plan.PRINTER_REACH, me, stationsTried);
+			st = Plan.station(live, Plan.PRINTER_REACH, me, stationsTried);
 			if (st == null) return;
 			// ...and give the re-offered bin a FRESH clock. Without this it kept the timestamp from
 			// the round that abandoned it, so it stalled again on the very next recount and the spot
@@ -385,7 +408,7 @@ final class Hud {
 		}
 
 		// ---- the per-station stall, measured on this station's OWN cell count
-		java.util.List<Work.Cell> here = Plan.atStation(spot.ready(), st, Plan.PRINTER_REACH);
+		java.util.List<Work.Cell> here = Plan.atStation(live, st, Plan.PRINTER_REACH);
 		if (st.bin() == stationBin) {
 			if (stationTodo >= 0 && here.size() < stationTodo) {
 				stationSince = now;
@@ -653,6 +676,7 @@ final class Hud {
 		watch(name);
 		following = true;
 		placementWarned = false;
+		deviationsSaid = false;
 		stopGuiding();
 		Withdraw.clearFailures();
 		lastTodo = -1;

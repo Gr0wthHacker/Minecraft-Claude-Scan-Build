@@ -107,4 +107,45 @@ class ScaffoldTest {
 		Work.Solid allUnloaded = p -> true;
 		assertFalse(Work.needsScaffold(allUnloaded, cell(0, 100, 0), Set.of()));
 	}
+
+	// ---------------------------------------------------------------- placeable NOW
+
+	@Test
+	void aCellHeldUpOnlyByUNBUILTDesignCellsIsNotPlaceableYet() {
+		// The difference between "does this design need scaffolding" and "where should I go and
+		// stand". `floating` counts an EARLIER cell of the same design as support, which is right
+		// for the first question - the list is sorted bottom-up and a wall builds against itself -
+		// and wrong for the second: that support may not be built yet, and may not even be in the
+		// bin you are standing at. Reported from a real session as "its still choosing clusters
+		// that cant be placed".
+		Work.Solid ground = p -> p.getY() <= 99;
+		List<Work.Cell> column = new ArrayList<>();
+		for (int y = 101; y <= 105; y++) {
+			column.add(new Work.Cell(new BlockPos(0, y, 0), "stone_bricks"));
+		}
+		// nothing under y=101 but air: the whole column is unsupported in the WORLD
+		assertTrue(Work.placeableNow(ground, column).isEmpty(),
+			"offered a column standing on nothing");
+
+		// ...and the same column one course lower, sitting on the ground, is placeable at its base
+		List<Work.Cell> onGround = new ArrayList<>();
+		for (int y = 100; y <= 104; y++) {
+			onGround.add(new Work.Cell(new BlockPos(0, y, 0), "stone_bricks"));
+		}
+		List<Work.Cell> now = Work.placeableNow(ground, onGround);
+		assertEquals(1, now.size(), "only the course touching the ground can go in first");
+		assertEquals(100, now.get(0).pos().getY());
+	}
+
+	@Test
+	void floatingStillCountsTheDesignsOwnEarlierCells() {
+		// The other question, unchanged - or every wall in the project reports as needing scaffold.
+		Work.Solid ground = p -> p.getY() <= 99;
+		List<Work.Cell> onGround = new ArrayList<>();
+		for (int y = 100; y <= 104; y++) {
+			onGround.add(new Work.Cell(new BlockPos(0, y, 0), "stone_bricks"));
+		}
+		assertTrue(Work.floating(ground, onGround).isEmpty(),
+			"a column on the ground needs no scaffolding");
+	}
 }
