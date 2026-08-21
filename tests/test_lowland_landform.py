@@ -7,7 +7,7 @@ particular the three ways the pond shipped broken before it shipped right.
 import pytest
 
 from mcbuild.gen import lowland
-from mcbuild.gen.lowland import LOWLAND, _surface, _water, _smoothstep
+from mcbuild.gen.lowland import LOWLAND, _surface, _trees, _water, _smoothstep
 from mcbuild.gen.vertical import World
 
 # a square of ground, so the geometry is the only thing under test
@@ -114,3 +114,55 @@ def test_the_guard_is_submerged_and_stands_on_the_bed():
     for (x, y, z) in guards:
         below = w.name(x, y - 1, z)
         assert below not in (None, "water"), "guard at x%d z%d stands on %s" % (x, z, below)
+
+
+def test_the_pond_ships_as_ice_because_a_printer_cannot_place_water():
+    """A litematica printer places blocks out of your inventory and water is not a block, so a
+    thousand-cell pond is a thousand bucket trips. Ice IS a block, and breaking one without silk
+    touch leaves a water SOURCE - so the whole sheet converts by mining it."""
+    w, surf, n, lit, wet, _ = _pond(max_depth=2, fill="ice")
+    names = {nm for nm, _ in w.cells.values()}
+    assert n > 0 and wet
+    assert "ice" in names, "the pond did not ship as ice"
+    assert "water" not in names, "still placing water: that is one bucket trip per cell"
+
+
+def test_ice_carries_no_water_level_property():
+    """`level` is a WATER property. Carried onto ice it names a state the block does not have, and
+    `Work.matches` reports that as wrong - deliberately, because it is a design bug."""
+    w, _, _, _, _, _ = _pond(max_depth=2, fill="ice")
+    for (x, y, z), (nm, props) in w.cells.items():
+        assert nm != "ice" or props == {}, "ice at %d %d %d carried %r" % (x, y, z, props)
+
+
+def test_the_pond_still_ships_as_water_when_nothing_asks_for_ice():
+    """`fill` defaults to water, so no other lowland moved."""
+    w, _, _, _, _, _ = _pond(max_depth=2)
+    names = {nm for nm, _ in w.cells.values()}
+    assert "water" in names and "ice" not in names
+
+
+def test_the_sidecar_records_a_count_and_not_a_coordinate():
+    """`_water` returns the number of fill cells. The bank loop used to reuse `n` for a neighbour
+    coordinate, so the sidecar shipped `"water": [-24198, 30004]` where it meant 1,111. A count
+    that is silently a coordinate reads as data rather than as a bug, which is why it survived."""
+    w, _, n, lit, wet, _ = _pond(max_depth=2, fill="ice")
+    assert isinstance(n, int), "water count came back as %r" % (n,)
+    assert n == sum(1 for nm, _ in w.cells.values() if nm == "ice")
+    assert isinstance(lit, int) and lit > 0
+
+
+def test_trees_do_not_grow_out_of_the_pond():
+    """A tree is sited on the SURFACE height, and inside the basin that height is under the water
+    line - so two oaks were rooted on the pond bed with their trunks standing up through the fill.
+    `_lanterns` already took the flooded columns for this reason; `_trees` did not."""
+    p = _p(basin={"at": [-24200, 30020], "r": 20, "depth": 8, "water_y": 37,
+                  "max_depth": 2, "fill": "ice"}, trees=6)
+    surf = _surface(FOOT, DIST, TY, p, 0)
+    w = World()
+    n, _, wet = _water(w, surf, p)
+    before = {c: nm for c, (nm, _) in w.cells.items()}
+    _trees(w, surf, DIST, p, 0, skip=wet)
+    eaten = [c for c, (nm, _) in w.cells.items() if before.get(c) == "ice" and nm != "ice"]
+    assert not eaten, "a tree stands in the pond at %s" % (eaten[:3],)
+    assert n == sum(1 for nm, _ in w.cells.values() if nm == "ice")

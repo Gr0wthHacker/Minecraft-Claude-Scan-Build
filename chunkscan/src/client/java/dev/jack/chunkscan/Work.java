@@ -130,6 +130,16 @@ final class Work {
 	}
 
 	/**
+	 * A block a design ships ONLY so that breaking it leaves the thing actually wanted. The
+	 * lowland's pond is ice because a printer places blocks out of your inventory and water is not
+	 * a block; mine the sheet and every cell is a water source, which IS the finished pond.
+	 *
+	 * <p>DIRECTIONAL on purpose. Ice found where water was wanted is a pond that FROZE, and stays a
+	 * deviation. Mirrors {@code coop.BECOMES} on the Python side.
+	 */
+	static final Map<String, Set<String>> BECOMES = Map.of("ice", Set.of("water"));
+
+	/**
 	 * Does the world hold what the design asked for? The design names only the properties it
 	 * DECIDED — a stair's facing and half, a slab's type — so anything it did not name is not
 	 * compared. Everything else about a block state is the game reacting to the neighbourhood
@@ -142,7 +152,8 @@ final class Work {
 	static boolean matches(BlockState st, String spec) {
 		int b = spec.indexOf('[');
 		String want = b < 0 ? spec : spec.substring(0, b);
-		if (!BuiltInRegistries.BLOCK.getKey(st.getBlock()).getPath().equals(want)) return false;
+		String have = BuiltInRegistries.BLOCK.getKey(st.getBlock()).getPath();
+		if (!have.equals(want)) return BECOMES.getOrDefault(want, Set.of()).contains(have);
 		if (b < 0) return true;
 		int end = spec.lastIndexOf(']');
 		if (end <= b) return true;

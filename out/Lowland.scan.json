@@ -12,10 +12,7 @@
   "generated_by": "lowland",
   "kind": "lowland",
   "top_y": 40,
-  "water": [
-    -24198,
-    30004
-  ],
+  "water": 1114,
   "water_guards": 103,
   "columns": 6760,
   "bounds": [

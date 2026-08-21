@@ -33,6 +33,15 @@ ROCK_FAMILY = {"cobblestone", "stone", "mossy_cobblestone", "stone_bricks", "mos
 SLAB_FAMILY = {"stone_brick_slab", "mossy_stone_brick_slab", "cobblestone_slab", "mossy_cobblestone_slab", "smooth_stone_slab"}
 # families whose members are interchangeable: the texture mix is cosmetic, so any member counts as built
 LOOSE_FAMILIES = (ROCK_FAMILY, SLAB_FAMILY)
+# A block a design ships ONLY so that breaking it leaves the thing actually wanted. The lowland's
+# pond is ice because a printer places blocks out of your inventory and water is not a block; mine
+# the sheet and every cell is a water source, which IS the finished pond. Without this the pond
+# reads as 1,111 deviations the moment it is right, and the build loop keeps flying to it.
+#
+# DIRECTIONAL on purpose, which is why it cannot be a LOOSE_FAMILY: ice found where water was
+# wanted is a pond that FROZE - the failure the sky-well court shipped once and the guard lanterns
+# exist to prevent - and must stay a deviation.
+BECOMES = {"ice": {"water"}}
 
 
 def _names(m: schem.Model) -> np.ndarray:
@@ -96,6 +105,8 @@ class Progress:
 
 def _same(want: str, have: str, loose_rock: bool) -> bool:
     if want == have:
+        return True
+    if have in BECOMES.get(want, ()):
         return True
     return loose_rock and any(want in fam and have in fam for fam in LOOSE_FAMILIES)
 

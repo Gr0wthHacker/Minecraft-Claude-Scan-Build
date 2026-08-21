@@ -140,4 +140,41 @@ class WorkStateTest {
 		assertEquals(0, hidden.built());
 		assertEquals(7, hidden.total());
 	}
+
+	// ------------------------------------------------------------------ ice becomes water
+
+	/**
+	 * A litematica printer places blocks out of your inventory and water is not a block, so the
+	 * lowland's 1,111-cell pond ships as ICE. Break the sheet and every cell is a water source,
+	 * which IS the finished pond — so `check` must not then report 1,111 deviations and the build
+	 * loop must not keep flying to a pond that is done.
+	 */
+	@Test
+	void brokenIceIsAFinishedPond() {
+		assertTrue(Work.matches(Blocks.WATER.defaultBlockState(), "ice"));
+	}
+
+	/**
+	 * DIRECTIONAL, which is why it cannot be a loose family. Ice standing where the design asked
+	 * for water is a pond that FROZE — the failure the sky-well court shipped once, and the reason
+	 * the basin carries guard lanterns at all.
+	 */
+	@Test
+	void aFrozenPondIsStillADeviation() {
+		assertFalse(Work.matches(Blocks.ICE.defaultBlockState(), "water"));
+	}
+
+	@Test
+	void theRuleDoesNotLeakToAnythingElse() {
+		assertFalse(Work.matches(Blocks.WATER.defaultBlockState(), "packed_ice"));
+		assertFalse(Work.matches(Blocks.STONE.defaultBlockState(), "ice"));
+		assertFalse(Work.matches(Blocks.ICE.defaultBlockState(), "stone_bricks"));
+	}
+
+	/** Ice has no properties, so a spec that names one is a design bug and must surface. */
+	@Test
+	void iceCarryingAWaterPropertyIsWrong() {
+		assertFalse(Work.matches(Blocks.ICE.defaultBlockState(), "ice[level=0]"));
+		assertTrue(Work.matches(Blocks.ICE.defaultBlockState(), "ice"));
+	}
 }

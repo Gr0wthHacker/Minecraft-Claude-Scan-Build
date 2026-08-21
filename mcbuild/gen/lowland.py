@@ -99,7 +99,7 @@ def build_lowland(cfg: dict, donors=None) -> Canvas:
     bottom = _body(w, surf, dist, p, seed)
     flooded, guards, wet_cols = _water(w, surf, p)
     planted = _planting(w, surf, p, seed)
-    trees = _trees(w, surf, dist, p, seed)
+    trees = _trees(w, surf, dist, p, seed, skip=wet_cols)
     vines = _vines(w, surf, foot, bottom, p, seed)
     lit = _lanterns(w, surf, p, skip=wet_cols)
     ctx = Ctx(p["under"])
@@ -280,6 +280,12 @@ def _water(w: World, surf: dict, p):
     wy = int(b["water_y"])
     guard_every = int(b.get("guard", 7))
     maxd = int(b.get("max_depth", 3))
+    # ICE, NOT WATER - see `fill` in configs/lowland.yaml. A litematica printer places blocks from
+    # your inventory and water is not a block: a thousand-cell pond is a thousand bucket trips.
+    # Ice IS a block, it stacks to 64, and breaking one without silk touch leaves a water SOURCE.
+    # So the pond ships as ice, you break the sheet, and it is water - no buckets at all.
+    fill = str(b.get("fill", "water"))
+    fill_props = {"level": "0"} if fill == "water" else {}
     # Flood from the basin OUTWARD, not "every column under the water line". The lowland's rim
     # drops 3 and its relief rolls another 3, so a global fill ponds every dip in the outer band as
     # well - little pools perched on the edge of the island with nothing holding them in. The basin
@@ -316,7 +322,7 @@ def _water(w: World, surf: dict, p):
         floors[(x, z)] = fy
         w.put(x, fy, z, _pick(p["soil"], x, fy, z, int(p["seed"])))
         for y in range(fy + 1, wy + 1):
-            w.put(x, y, z, "water", level="0")
+            w.put(x, y, z, fill, **fill_props)
             n += 1
     # The guard is SUBMERGED - it stands on the basin floor rather than replacing it. Putting it in
     # the floor is what the court hall does, but that floor is a tank the design builds itself; here
@@ -327,16 +333,20 @@ def _water(w: World, surf: dict, p):
     # the exterior and carves the rest, so the ground beside a sunken pond looks solid at the
     # surface and is hollow behind - the pond drains sideways into the island's own cavity. Every
     # dry neighbour gets filled across the water band, which also puts it inside the shell.
+    # `nb`, not `n`: `n` is the fill-cell count this function RETURNS, and reusing the name here
+    # left it holding the last neighbour coordinate. The sidecar has been recording
+    # `"water": [-24198, 30004]` where it meant 1,111 ever since - a count that is silently a
+    # coordinate reads as data, not as a bug, which is why it survived.
     banked = 0
     wetset = set(wet)
     for (x, z) in wet:
         for dx, dz in DIRS4:
-            n = (x + dx, z + dz)
-            if n in wetset:
+            nb = (x + dx, z + dz)
+            if nb in wetset:
                 continue
             for y in range(wy - maxd, wy + 1):
-                if not w.has(n[0], y, n[1]):
-                    w.put(n[0], y, n[1], _pick(p["sub"], n[0], y, n[1], int(p["seed"])))
+                if not w.has(nb[0], y, nb[1]):
+                    w.put(nb[0], y, nb[1], _pick(p["sub"], nb[0], y, nb[1], int(p["seed"])))
                     banked += 1
     lit = 0
     for i, (x, z) in enumerate(wet):
@@ -347,6 +357,8 @@ def _water(w: World, surf: dict, p):
             continue                                   # no water over it: nothing to guard
         w.put(x, fy + 1, z, "lantern", hanging="false", waterlogged="true")
         lit += 1
+        n -= 1          # the guard REPLACES a fill cell; the sidecar should say what is in the
+                        # design, not how many puts were made on the way to it
     return n, lit, set(wet)
 
 
@@ -458,13 +470,20 @@ def _planting(w: World, surf: dict, p, seed) -> int:
     return n
 
 
-def _trees(w: World, surf: dict, dist: dict, p, seed) -> int:
+def _trees(w: World, surf: dict, dist: dict, p, seed, skip=()) -> int:
     """Small oak clumps, kept well inside the rim and well apart - they mark scale without filling
-    the flat ground the statues need."""
+    the flat ground the statues need.
+
+    `skip` is the flooded columns, for the same reason `_lanterns` takes them: a tree is sited on
+    the SURFACE height, and inside the basin that height is under the water line - so two oaks were
+    rooted on the pond bed and grew up out of the water, their trunks overwriting the fill. Trees
+    do not grow in ponds, and the three lost cells were how it was found.
+    """
     want = int(p["trees"])
     if want <= 0:
         return 0
-    inner = sorted(c for c in surf if dist.get(c, 0) >= int(p["rim_band"]))
+    wet = set(skip)
+    inner = sorted(c for c in surf if dist.get(c, 0) >= int(p["rim_band"]) and c not in wet)
     placed, spots = 0, []
     for c in inner:
         if placed >= want:

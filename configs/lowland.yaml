@@ -34,6 +34,18 @@ params:
     r: 26
     depth: 8
     water_y: 37             # three under the nominal surface
+    # ICE, NOT WATER. A litematica printer places blocks out of your inventory and water is not a
+    # block - 1,111 cells of pond is 1,111 bucket trips. Ice is a block, stacks to 64, and breaking
+    # one without silk touch leaves a water SOURCE, so the whole sheet converts by mining it. Both
+    # courses are ice, not just the top: with only the top layer placed you would be back to
+    # bucketing the 430 cells underneath, and water falling from a source sheet is FLOWING water,
+    # not sources.
+    #
+    # The guard lanterns below stay, and now do a second job: a lantern is light 15, ice melts above
+    # block light 11, so the ice within about three blocks of a guard turns itself into water with
+    # no mining at all. After the sheet is water, the guards are back to their original job of
+    # keeping it that way.
+    fill: ice
     max_depth: 2            # a pond over a visible bed, not a pit someone filled. And it is BOUNDED
                             # by finish.hollow's shell: hollow keeps 3 courses measured from the
                             # model's exterior and the water counts as mass, so a bed 4 down from
