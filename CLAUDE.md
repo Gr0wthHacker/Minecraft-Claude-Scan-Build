@@ -2765,6 +2765,64 @@ added to `carrying`, and the distinction is the whole feature:
 
 Half a box is not a solution and is still a trip: you would set it down, take 64, and still be short.
 
+### "It moves like 5 degrees and gets stuck" (2026-08-20)
+
+The collision handler added one round earlier, doing three things wrong at once:
+
+- **`pathTo = null` bypasses the repath floor.** `needsRepath` checks it FIRST, before
+  `MIN_REPATH_TICKS`, so it ran a full A* every tick for as long as you were touching the wall —
+  the same shape as the one-frame-a-second bug, from a different direction.
+- **It RETURNED before the aim.** The yaw never updated while colliding, so it turned one eased
+  step — about five degrees — and then froze. That is the whole reported symptom.
+- **It backed off along that frozen yaw**, into whatever was behind, and collided again.
+
+Now a bump keeps steering: ease off the forward push to a quarter, climb, and ask for a route
+through the normal gate that respects the floor. Only after two seconds of solid contact is the
+route declared wrong rather than stale, and only then is it dropped — once.
+
+### SPACE and SHIFT do the vertical (2026-08-20)
+
+Setting a y velocity works and works badly: `travelFlying` damps it every tick, so a commanded climb
+arrives as a drift and the flight sinks toward the thing it was trying to clear. **Holding JUMP is
+how a player goes up and SHIFT is how they come down**, and vanilla applies those as flight impulses
+on top of whatever horizontal velocity we set — stronger, and what the server expects to see.
+
+`KeyMapping.setDown` is the mechanism. Driving `LocalPlayer.input.keyPresses` instead does NOT work:
+`ClientInput.tick()` runs inside the player's own tick and overwrites it before movement, so anything
+set from a Fabric tick event is gone before it is read.
+
+The keys are touched only when the state CHANGES — slamming them every tick fights the keyboard
+handler — and every path that stops steering calls `release`: arriving, a container screen, walking,
+`halt`, and autofly being off. **A stuck key is worse than a stuck loop.**
+
+### Falling is an emergency with two rescues (2026-08-20)
+
+Jack: *"if it detects falling suddenly it needs to automatically start flying (tap space twice) or
+just instant type in chat /is"*.
+
+A fall is four things at once: not flying, not on the ground, dropping faster than 0.6 a tick, and
+nothing under you. All four, or every trip down to the lowland ends with the loop teleporting you
+home.
+
+1. **Double-tap jump.** Costs nothing and re-enters flight — but only when the server still says you
+   MAY fly.
+2. **`/is`.** Always works, and moves you across the island, so it is the fallback rather than the
+   first move, and it is rate-limited to once every ten seconds because it is a teleport.
+
+It is checked before everything else in the tick, including having a destination: the whole point is
+that it fires when the loop is not in control of what is happening.
+
+### `/cscan why`
+
+The answer to "it got stuck", without a round trip through a description. Design, counts, how many
+cells have something to build against RIGHT NOW, the materials and what you carry of each, whether
+the Litematica placement is loaded and enabled, the phase, the spot, the arrow, the session report,
+and then everything the autopilot knows: flying or not, on the ground or not, speed, bumping, the
+route length or that there is none, and the distance to the target.
+
+The loop computes all of this every two seconds and says almost none of it, because a loop that
+narrates itself continuously is one nobody reads. Asked, it answers completely.
+
 ## The daily loop
 
 ```bash

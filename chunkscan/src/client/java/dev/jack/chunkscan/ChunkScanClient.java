@@ -241,6 +241,13 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(argument("radius", IntegerArgumentType.integer(1, 64))
 						.executes(ChunkScanClient::around)))
 				.then(literal("clips").executes(ChunkScanClient::clips))
+				.then(literal("why")
+					.executes(ctx -> {
+						// The answer to "it got stuck", without a round trip through a description.
+						for (String line : Hud.why(ctx.getSource().getClient())) {
+							ok(ctx.getSource(), line);
+						}
+						return 1; }))
 				.then(literal("stop")
 					.executes(ChunkScanClient::stopAll))
 				.then(literal("take")

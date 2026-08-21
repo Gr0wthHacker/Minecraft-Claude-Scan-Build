@@ -143,11 +143,20 @@ class AutopilotTest {
 
 	@Test
 	void noKeyDisarmsIt() throws IOException {
+		// READING a key and DRIVING one are opposite things and the first version of this test
+		// forbade both by name — which broke the moment the vertical moved onto space and shift.
+		// What must never come back is the rule that a key press hands control away: an unattended
+		// loop is unattended precisely because you are typing in chat or looking at another window.
 		String src = source();
-		for (String key : new String[]{"keyUp", "keyDown", "keyLeft", "keyRight", "keyJump",
-			"keyShift", "playerIsDriving"}) {
-			assertFalse(src.contains(key), "a key rule is back in Autopilot: " + key);
+		assertFalse(src.contains("playerIsDriving"), "the key-disarm rule is back");
+		assertFalse(src.contains("isDown()"),
+			"Autopilot is reading the keyboard again, which is how it learns to give up");
+		for (String key : new String[]{"keyUp", "keyLeft", "keyRight"}) {
+			assertFalse(src.contains(key), "a movement-key rule is back in Autopilot: " + key);
 		}
+		// ...and it does press the two it is supposed to press.
+		assertTrue(src.contains("keyJump.setDown") && src.contains("keyShift.setDown"),
+			"the vertical is no longer driven by the keys");
 	}
 
 	@Test
@@ -287,5 +296,59 @@ class AutopilotTest {
 			"too fast to stop inside the clearance once the world appears");
 		assertTrue(Autopilot.BLIND_SPEED < Autopilot.SPEED, "not actually a slowdown");
 		assertTrue(Autopilot.SIGHT >= 4, "looks too short a way ahead to react");
+	}
+
+	// ---------------------------------------------------------------- falling
+
+	@Test
+	void aFallIsToldApartFromADescent() {
+		// Flying down on purpose must never trip the rescue, or every trip to the lowland ends with
+		// the loop sending you home. What makes it a FALL is that you are not flying, not on the
+		// ground, dropping fast, and there is nothing under you.
+		assertTrue(Autopilot.isFalling(-1.2, false, false, false), "did not notice a fall");
+		assertFalse(Autopilot.isFalling(-1.2, true, false, false), "a flight down is not a fall");
+		assertFalse(Autopilot.isFalling(-1.2, false, true, false), "standing still is not a fall");
+		assertFalse(Autopilot.isFalling(-1.2, false, false, true),
+			"dropping onto a floor two blocks down is not a fall");
+		assertFalse(Autopilot.isFalling(-0.1, false, false, false), "a drift is not a fall");
+	}
+
+	@Test
+	void theRescueTriesTheFreeThingFirst() {
+		// A double-tap of jump costs nothing and re-enters flight — when the server still says you
+		// MAY fly. `/is` always works and moves you across the island, so it is the fallback rather
+		// than the first move, and it is rate-limited because it is a teleport.
+		assertTrue(Autopilot.TAP_GAP >= 2, "taps too close together to read as two presses");
+		assertTrue(Autopilot.TAP_WAIT > Autopilot.TAP_GAP * 4,
+			"gives up on the taps before they have had a chance to work");
+		assertTrue(Autopilot.RESCUE_COOLDOWN >= 100, "would spam a teleport command");
+	}
+
+	@Test
+	void theVerticalIsDrivenByTheKEYS() throws IOException {
+		// Setting a y velocity works and works badly: travelFlying damps it every tick, so a
+		// commanded climb arrives as a drift and the flight sinks toward whatever it was trying to
+		// clear. Holding JUMP is how a player goes up and SHIFT is how they come down.
+		String src = source();
+		assertTrue(src.contains("keyJump.setDown"), "no longer presses space to climb");
+		assertTrue(src.contains("keyShift.setDown"), "no longer presses shift to descend");
+		// ...and lets go on every path that stops steering. A stuck key is worse than a stuck loop.
+		assertTrue(src.contains("release(mc)"), "nothing releases the keys");
+	}
+
+	@Test
+	void aBumpDoesNotStopTheSteering() throws IOException {
+		// "it moves like 5 degrees and gets stuck": the collision handler returned before the aim,
+		// so the yaw froze after one eased step; it nulled the route, which is checked BEFORE the
+		// repath floor, so it ran a full A* every tick; and it backed off along the frozen yaw into
+		// whatever was behind.
+		String src = source();
+		int bump = src.indexOf("boolean bumped = flying && p.horizontalCollision");
+		assertTrue(bump > 0, "the collision branch is gone");
+		int aim = src.indexOf("p.setYRot(approach");
+		assertTrue(aim > bump, "the aim no longer happens after a bump is noticed");
+		assertFalse(src.contains("dirBack"), "still backing off along a stale heading");
+		assertTrue(Autopilot.STUCK_TICKS >= 20,
+			"declares the route wrong before the climb has had time to clear the obstacle");
 	}
 }

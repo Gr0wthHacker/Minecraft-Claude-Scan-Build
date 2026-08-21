@@ -553,6 +553,56 @@ final class Hud {
 	}
 
 	/**
+	 * Everything the loop is thinking, in one place, on demand.
+	 *
+	 * <p>Written after the fourth "it got stuck" that had to be diagnosed from a sentence. The loop
+	 * computes all of this every two seconds and then says almost none of it, because a loop that
+	 * narrates itself continuously is a loop nobody reads. Asked, it should answer completely.
+	 */
+	static java.util.List<String> why(Minecraft mc) {
+		java.util.List<String> out = new java.util.ArrayList<>();
+		if (design == null) {
+			out.add("not watching a design — /cscan follow <design>, or /cscan follow all");
+			out.addAll(Autopilot.why(mc));
+			return out;
+		}
+		out.add(design + (following ? (followAll ? "  (following all)" : "  (following)")
+			: "  (watching only — /cscan follow " + design + " to work it)"));
+		try {
+			Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), design,
+				mc.player.blockPosition(), 0);
+			out.add("  " + sp.built() + " built, " + sp.todo().size() + " to place, "
+				+ sp.wrong().size() + " deviating, " + sp.unseen() + " in chunks I do not have");
+			if (!sp.todo().isEmpty()) {
+				Map<String, Integer> carrying = Work.carrying(mc.player);
+				java.util.List<Work.Cell> live = Work.placeableNow(mc.level, sp.todo());
+				out.add("  " + live.size() + " of those have something to build against right now");
+				Map<String, Integer> want = new java.util.LinkedHashMap<>();
+				for (Work.Cell c : sp.todo()) want.merge(c.item(), 1, Integer::sum);
+				StringBuilder sb = new StringBuilder("  materials:");
+				int shown = 0;
+				for (var e : want.entrySet()) {
+					if (shown++ >= 4) break;
+					sb.append(' ').append(e.getValue()).append('x').append(' ').append(e.getKey())
+						.append(" (have ").append(carrying.getOrDefault(e.getKey(), 0)).append(')');
+				}
+				out.add(sb.toString());
+			}
+			Boolean live = Litematica.enabled(sp.name());
+			out.add("  litematica placement: " + (live == null ? "cannot tell"
+				: live ? "loaded and enabled" : "MISSING or disabled — /cscan place " + sp.name()));
+		} catch (Exception e) {
+			out.add("  work list: " + e);
+		}
+		out.add(fetching ? "  phase: FETCHING" : "  phase: building");
+		if (spotCentre != null) out.add("  spot around " + Wand.fmt(spotCentre));
+		if (target != null) out.add("  arrow at " + Wand.fmt(target) + " — " + targetNote);
+		if (following) out.add("  " + sessionReport());
+		out.addAll(Autopilot.why(mc));
+		return out;
+	}
+
+	/**
 	 * The vertical leg, stated separately because a compass bearing cannot carry it.
 	 *
 	 * <p>This island is 240 blocks tall — the lowland floor is Y24, the deck Y194, the sky bird

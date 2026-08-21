@@ -133,8 +133,10 @@ final class Autopilot {
 	private static boolean wasFlying = false;
 	/** Said once: we are hands-off because you are falling. */
 	private static boolean warnedFalling = false;
-	/** Consecutive ticks spent pressed against something. Reported sparingly. */
+	/** Consecutive ticks spent pressed against something. See tick(). */
 	private static int bumps = 0;
+	/** Ticks of solid contact before the route itself is declared wrong rather than stale. */
+	static final int STUCK_TICKS = 40;
 	/**
 	 * A hard floor on how often a search may run, whatever else asks for one.
 	 *
@@ -201,9 +203,11 @@ final class Autopilot {
 		return on;
 	}
 
-	/** Hard stop: drop the target, the route, and the motion. */
+	/** Hard stop: drop the target, the route, the motion and any key we were holding. */
 	static void halt(Minecraft mc) {
 		on = false;
+		release(mc);
+		rescueStage = 0;
 		path = new java.util.ArrayList<>();
 		pathTo = null;
 		routedFlying = false;
@@ -227,6 +231,154 @@ final class Autopilot {
 		return null;
 	}
 
+	// ---- THE VERTICAL BELONGS TO THE KEYS.
+	//
+	// Setting a y velocity works and works badly: `travelFlying` damps it every tick, so a commanded
+	// climb arrives as a drift and the flight sinks toward whatever it was trying to clear. Holding
+	// JUMP is how a player goes up and SHIFT is how they come down, and vanilla applies those as
+	// flight impulses on top of whatever horizontal velocity we set — which is both stronger and
+	// exactly what the server expects to see.
+	//
+	// The keys are only touched when the state CHANGES. Slamming them every tick fights the
+	// keyboard handler, and a key left down when this stops ticking is a player who cannot land.
+
+	private static boolean holdUp = false;
+	private static boolean holdDown = false;
+	/** Vertical difference worth pressing a key for. Below this, drift is fine. */
+	static final double CLIMB_DEADZONE = 0.05;
+
+	private static void vertical(Minecraft mc, double wantY) {
+		hold(mc, wantY > CLIMB_DEADZONE, wantY < -CLIMB_DEADZONE);
+	}
+
+	private static void hold(Minecraft mc, boolean up, boolean down) {
+		if (mc.options == null) return;
+		if (up != holdUp) {
+			holdUp = up;
+			mc.options.keyJump.setDown(up);
+		}
+		if (down != holdDown) {
+			holdDown = down;
+			mc.options.keyShift.setDown(down);
+		}
+	}
+
+	/** Let go of both, for every path that stops steering. A stuck key is worse than a stuck loop. */
+	static void release(Minecraft mc) {
+		hold(mc, false, false);
+	}
+
+	// ---- FALLING. Jack: "if it detects falling suddenly it needs to automatically start flying
+	// (tap space twice) or just instant type in chat /is".
+	//
+	// Two rescues, tried in that order, because they cost different things. A double-tap of jump
+	// re-enters flight and costs nothing — but only works if the server still says you MAY fly.
+	// `/is` teleports you home, which always works and moves you across the island. So: tap first,
+	// and only fall back to the command when the tap has plainly not worked.
+
+	/** Downward speed that means falling rather than descending. */
+	static final double FALLING = 0.6;
+	/** Ticks between the two taps, and how long to wait before deciding the tap failed. */
+	static final int TAP_GAP = 3;
+	static final int TAP_WAIT = 20;
+	/** Never send the command more often than this, whatever happens. */
+	static final int RESCUE_COOLDOWN = 200;
+
+	private static int rescueStage = 0;
+	private static int rescueTimer = 0;
+	private static int rescueCool = 0;
+
+	/** Is this a fall rather than a flight? */
+	static boolean isFalling(double dy, boolean flying, boolean onGround, boolean groundBelow) {
+		return !flying && !onGround && dy < -FALLING && !groundBelow;
+	}
+
+	/**
+	 * Get out of a fall.
+	 *
+	 * @return true while a rescue is in progress and nothing else should touch the controls
+	 */
+	private static boolean rescue(Minecraft mc, LocalPlayer p) {
+		if (rescueCool > 0) rescueCool--;
+		boolean falling = isFalling(p.getDeltaMovement().y, p.getAbilities().flying, p.onGround(),
+			groundBelow(mc, p, VOID_LOOK));
+		if (!falling) {
+			if (rescueStage != 0) {
+				rescueStage = 0;
+				release(mc);
+			}
+			return false;
+		}
+		rescueTimer++;
+		switch (rescueStage) {
+			case 0 -> {
+				rescueStage = 1;
+				rescueTimer = 0;
+				p.sendSystemMessage(Component.literal("[cscan] FALLING — trying to get flight back"));
+				if (p.getAbilities().mayfly) hold(mc, true, false);        // tap one, down
+			}
+			case 1 -> {
+				if (rescueTimer >= TAP_GAP) {
+					rescueStage = 2;
+					rescueTimer = 0;
+					hold(mc, false, false);                                 // tap one, up
+				}
+			}
+			case 2 -> {
+				if (rescueTimer >= TAP_GAP) {
+					rescueStage = 3;
+					rescueTimer = 0;
+					if (p.getAbilities().mayfly) hold(mc, true, false);      // tap two, down
+				}
+			}
+			case 3 -> {
+				if (rescueTimer >= TAP_GAP) {
+					rescueStage = 4;
+					rescueTimer = 0;
+					hold(mc, false, false);                                 // tap two, up
+				}
+			}
+			default -> {
+				// Still falling a second after both taps: either flight was revoked outright, or
+				// something is holding it off. Go home — it always works, and the island is the one
+				// place on this server with a floor.
+				if (rescueTimer >= TAP_WAIT && rescueCool == 0 && p.connection != null) {
+					rescueCool = RESCUE_COOLDOWN;
+					rescueStage = 0;
+					p.sendSystemMessage(Component.literal(
+						"[cscan] still falling — sending /is to get you home"));
+					p.connection.sendCommand("is");
+				}
+			}
+		}
+		return true;
+	}
+
+	/** Everything this thing knows about why it is or is not moving. For `/cscan why`. */
+	static java.util.List<String> why(Minecraft mc) {
+		java.util.List<String> out = new java.util.ArrayList<>();
+		if (!on) {
+			out.add("autofly: OFF  (/cscan autofly on)");
+			return out;
+		}
+		String stalled = stalledBecause(mc);
+		out.add("autofly: ON  " + (stalled == null ? "moving" : "IDLE — " + stalled));
+		if (mc.player != null) {
+			out.add("  flying " + mc.player.getAbilities().flying
+				+ "   on ground " + mc.player.onGround()
+				+ "   speed " + String.format("%.2f", speed)
+				+ (bumps > 0 ? "   BUMPING (" + bumps + " ticks)" : ""));
+		}
+		out.add("  route: " + (path.isEmpty() ? "none — flying direct"
+			: (escaping ? "a way ROUND, " : "") + path.size() + " waypoint(s), next "
+				+ Wand.fmt(path.get(0))));
+		if (Hud.target() != null && mc.player != null) {
+			out.add("  target " + Wand.fmt(Hud.target()) + "  "
+				+ (int) Math.sqrt(mc.player.blockPosition().distSqr(Hud.target())) + "m");
+		}
+		return out;
+	}
+
 	/** What is carrying you right now, for the HUD: a route, a walk, or a guess. */
 	static String mode(Minecraft mc) {
 		// speed is part of the mode: it is a dial you can move, so it must be visible where you are
@@ -247,6 +399,8 @@ final class Autopilot {
 		warnedFalling = false;
 		wasFlying = false;
 		bumps = 0;
+		rescueStage = 0;
+		rescueCool = 0;
 		on = v;
 		path = new java.util.ArrayList<>();
 		pathTo = null;
@@ -268,14 +422,24 @@ final class Autopilot {
 	}
 
 	private static void tick(Minecraft mc) {
-		if (!on) return;
+		if (!on) {
+			release(mc);
+			return;
+		}
 		LocalPlayer p = mc.player;
 		if (p == null || mc.level == null) return;
 		// A CONTAINER screen only. This used to be `Screens.anyOpen()`, which meant opening chat or
 		// alt-tabbing away stopped the loop dead — and the whole point of an unattended loop is that
 		// you are doing something else while it runs. A chest is the one screen worth pausing for,
 		// because flying off mid-withdrawal is how you half-empty a chest and blacklist it.
-		if (Screens.container() != null) return;
+		if (Screens.container() != null) {
+			release(mc);
+			return;
+		}
+
+		// ---- FALLING BEATS EVERY OTHER CONSIDERATION, including having no destination: the whole
+		// point is that it fires when the loop is not in control of what is happening.
+		if (rescue(mc, p)) return;
 
 		BlockPos target = Hud.target();
 		if (target == null) {
@@ -333,21 +497,37 @@ final class Autopilot {
 
 		// ---- YOU HIT SOMETHING. The route said this leg was clear and the world disagreed: a chunk
 		// arrived, the printer placed a block, or the straight-line test was optimistic about a
-		// corner. Grinding along it is how a flight ends up sliding down a wall onto a ledge, and
-		// landing is how flight is lost. Re-route THIS TICK and back off a little first.
-		if (flying && p.horizontalCollision) {
+		// corner. Worth a fresh route and worth slowing down — but the first version of this handler
+		// did three things wrong at once and produced a flight that turned a few degrees and then
+		// sat there:
+		//
+		//   - it set `pathTo = null`, which is checked BEFORE the MIN_REPATH_TICKS floor, so it ran
+		//     a full A* every tick for as long as you were touching the wall;
+		//   - it RETURNED before the aim, so the yaw never updated while colliding: it turned once
+		//     and then froze, which is exactly what "moves like 5 degrees and gets stuck" looks like;
+		//   - and it backed off along that frozen yaw, into whatever was behind, and collided again.
+		//
+		// Keep steering. Ask for a route through the normal gate, which respects the floor. Climb,
+		// because on this island going up clears almost everything. Only after two seconds of solid
+		// contact is the route itself declared wrong.
+		boolean bumped = flying && p.horizontalCollision;
+		if (bumped) {
 			bumps++;
 			repathIn = 0;
-			pathTo = null;
-			if (bumps == 1 || bumps % 40 == 0) {
-				p.sendSystemMessage(Component.literal("[cscan] bumped into something — re-routing"));
+			if (bumps == 1) {
+				p.sendSystemMessage(Component.literal("[cscan] bumped into something — climbing"
+					+ " over it and re-routing"));
 			}
-			// A short push back the way we came, so the next route is computed from open air rather
-			// than from inside the face we are pressed against.
-			p.setDeltaMovement(dirBack(p).scale(BLIND_SPEED));
-			return;
+			if (bumps > STUCK_TICKS) {
+				// Two seconds pressed against the same thing: the route is not merely stale, it is
+				// wrong. Drop it so the next search starts from scratch — once, not every tick.
+				bumps = 0;
+				pathTo = null;
+				path = new java.util.ArrayList<>();
+			}
+		} else {
+			bumps = 0;
 		}
-		if (!p.horizontalCollision) bumps = 0;
 
 		// ---- ROUTE. Recomputed on a timer and whenever the destination moves, because the world
 		// loads in around you and the plan's target changes as you build.
@@ -452,8 +632,14 @@ final class Autopilot {
 			// Only ever applied to the DIRECT guess. A real route is already clear, and second-
 			// guessing it here is how you fight your own pathfinder at a doorway.
 			if (path.isEmpty()) step = unstick(mc, p, step);
-			p.setDeltaMovement(keepAirborne(mc, p, step));
+			step = keepAirborne(mc, p, step);
+			// SPACE and SHIFT do the vertical; the delta carries the horizontal. Vanilla applies the
+			// key impulses on top of what we set, which is stronger than a y velocity that
+			// travelFlying damps away, and is what the server expects a flying player to look like.
+			vertical(mc, step.y);
+			p.setDeltaMovement(step);
 		} else {
+			release(mc);                               // on foot the vertical is the ground's job
 			walk(mc, p, dir, aim, speed);
 		}
 	}
@@ -696,12 +882,6 @@ final class Autopilot {
 		return false;
 	}
 
-	/** Away from where the player is looking: the way back out of what they just hit. */
-	private static Vec3 dirBack(LocalPlayer p) {
-		double yaw = Math.toRadians(p.getYRot());
-		return new Vec3(Math.sin(yaw), 0.1, -Math.cos(yaw));
-	}
-
 	/** Shortest-way-round easing between two angles. */
 	static float approach(float from, float to) {
 		float d = to - from;
@@ -712,6 +892,7 @@ final class Autopilot {
 
 	/** At the target: kill the drift but stay armed for the next leg. */
 	private static void arrive(Minecraft mc) {
+		release(mc);                                   // holding jump at the destination is a climb
 		if (mc.player != null) mc.player.setDeltaMovement(Vec3.ZERO);
 		path = new java.util.ArrayList<>();
 		pathTo = null;
