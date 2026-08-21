@@ -776,4 +776,41 @@ class PlanTest {
 	void nothingToStandForIsNull() {
 		assertNull(Plan.bestStand(air(Set.of()), List.of(), 5, BlockPos.ZERO, 4, 1.2));
 	}
+
+	@Test
+	void theStationYouAreAtCanBeAskedForByName() {
+		// A dwell needs this: staying put must not mean re-deciding every two seconds that staying
+		// put is still best, or the moment another bin looks fuller the loop leaves mid-wall.
+		List<Work.Cell> spread = new ArrayList<>(blob(0, 100, 0, 6, "stone_bricks"));
+		spread.addAll(blob(60, 100, 0, 25, "stone_bricks"));
+		Plan.Station fullest = Plan.station(spread, Plan.PRINTER_REACH, BlockPos.ZERO, Set.of());
+		assertTrue(fullest.where().getX() > 30, "control: the far pile is the fullest");
+
+		// ...taken from a cell that really is in the near pile. `blob` starts at the corner of its
+		// offset range rather than at the point it is given, so naming the bin by that point asks
+		// for one that has nothing in it.
+		long near = Plan.binKey(spread.get(0).pos(), Plan.PRINTER_REACH);
+		Plan.Station staying = Plan.stationOf(spread, near, Plan.PRINTER_REACH);
+		assertNotNull(staying, "could not ask for the bin it is standing in");
+		assertEquals(near, staying.bin());
+		assertTrue(staying.where().getX() < 30);
+	}
+
+	@Test
+	void aBinWithNothingLeftInItIsNotAStation() {
+		// Which is what ends the dwell honestly: you stay while there is something to build, not
+		// for a fixed number of seconds regardless.
+		List<Work.Cell> spread = blob(0, 100, 0, 6, "stone_bricks");
+		assertNull(Plan.stationOf(spread, 999_999L, Plan.PRINTER_REACH));
+	}
+
+	@Test
+	void theDwellIsShorterThanTheStall() {
+		// The dwell holds the spot; if nothing has been placed by the time the stall fires, that is
+		// what moves it on. A dwell longer than the stall is a loop that cannot leave somewhere it
+		// cannot build.
+		assertTrue(Hud.DWELL_MS < Hud.STATION_MS,
+			"the dwell outlasts the stall, so a blocked station is held anyway");
+		assertTrue(Hud.DWELL_MS >= 2_000, "not long enough for the printer to take anything");
+	}
 }

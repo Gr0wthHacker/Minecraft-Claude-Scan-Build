@@ -3176,6 +3176,35 @@ spot, it is not a spot at all — on this server it ends the flight. `AIR_BELOW`
 `SAFE_GAP` are what keep the approach safe now, rather than standing further back and hoping, which
 is what let `STANDOFF` come down from 3 to 2.
 
+### Arrive, and then stay a moment (2026-08-21)
+
+Jack: *"when we reach an area we dont instantly run away if we are placing blocks, we should reach an
+area, stay for a few seconds, then move on unless something e.g. blocked."*
+
+The bin is re-chosen on every recount, and the fullest one changes as cells elsewhere become
+placeable — so a station could be abandoned two seconds after arriving, before the printer had taken
+a single block, in favour of somewhere that merely looked better. **All of the flying, none of the
+building.**
+
+`DWELL_MS` (4s) holds the spot from the moment it is actually REACHED, not from the moment it is
+chosen — the flight there can take longer than the dwell. `Plan.stationOf` is what makes that
+expressible: it answers *"what about the bin I am standing in"*, where `Plan.station` only ever
+answered *"where is the best work"*. Staying put must not mean re-deciding every two seconds that
+staying put is still best.
+
+**Just under `STATION_MS` on purpose.** The dwell holds the spot; if nothing has been placed by the
+time the stall fires, the stall is what moves it on. A dwell longer than the stall would be a loop
+that cannot leave somewhere it cannot build — which is the failure this whole layer exists to avoid.
+And an empty bin is not a station, so the dwell ends honestly when there is nothing left to build
+rather than running out a clock.
+
+There are now four clocks and they compose in one order, each shorter than the one it can interrupt:
+
+    3s   going nowhere      told to travel and not travelling
+    4s   dwell              having arrived, stay and let the printer work
+    5s   station stall      arrived, dwelt, and nothing was placed
+    90s  session stall      the whole loop has done nothing
+
 ## The daily loop
 
 ```bash

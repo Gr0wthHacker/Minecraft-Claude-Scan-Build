@@ -73,6 +73,8 @@ final class Hud {
 	private static final java.util.Set<Long> stationsTried = new java.util.HashSet<>();
 	/** How many times this station has been re-aimed after placing nothing. See stand(). */
 	private static int stationRetry = 0;
+	/** When we actually got to the current station, or 0 if we have not yet. For the dwell. */
+	private static long stationArrivedAt = 0;
 	/** Consecutive failures inside advance(). Reported a few times, then given up on. See tick(). */
 	private static int hiccups = 0;
 	/** Said once per design: there is nothing placed for the printer to print. */
@@ -94,6 +96,22 @@ final class Hud {
 	 * placing nothing, which looks exactly like the failure it is meant to catch.
 	 */
 	static final long STATION_MS = 5_000;
+	/**
+	 * Once you get somewhere, STAY there for a moment.
+	 *
+	 * <p>Jack: <i>"when we reach an area we dont instantly run away if we are placing blocks, we
+	 * should reach an area, stay for a few seconds, then move on unless something e.g. blocked."</i>
+	 *
+	 * <p>The bin is re-chosen on every recount, and the fullest one changes as cells elsewhere become
+	 * placeable — so a station could be abandoned two seconds after arriving, before the printer had
+	 * taken a single block, in favour of somewhere that merely looked better. All of the flying, none
+	 * of the building.
+	 *
+	 * <p>Just under {@link #STATION_MS} on purpose: the dwell holds the spot, and if nothing has been
+	 * placed by the time the stall fires, that is the thing that moves it on. A dwell longer than the
+	 * stall would be a loop that cannot leave somewhere it cannot build.
+	 */
+	static final long DWELL_MS = 4_000;
 	/**
 	 * How far out of the work a standing spot may be.
 	 *
@@ -491,7 +509,23 @@ final class Hud {
 		// Within reach of the work, rather than still on the way to it.
 		boolean arrived = target == null
 			|| me.distSqr(target) <= (double) (Plan.reach() + STANDOFF) * (Plan.reach() + STANDOFF);
-		if (!arrived) stationSince = now;               // the clock has not started yet
+		if (!arrived) {
+			stationSince = now;                          // the clock has not started yet
+		} else if (stationArrivedAt == 0) {
+			stationArrivedAt = now;                      // ...and the dwell starts here
+		}
+
+		// ---- STAY A MOMENT. See DWELL_MS: the fullest bin changes as cells elsewhere become
+		// placeable, and without this the loop leaves a spot it has only just reached because
+		// somewhere else now looks better — all of the flying, none of the building.
+		if (stationBin != Long.MIN_VALUE && stationArrivedAt > 0
+			&& now - stationArrivedAt < DWELL_MS) {
+			Plan.Station staying = Plan.stationOf(live, stationBin, Plan.reach());
+			if (staying != null) {
+				st = staying;
+				here = Plan.atStation(live, st, Plan.reach());
+			}
+		}
 		Loop.Station what = Loop.station(st.bin() == stationBin, arrived, here.size(), stationTodo,
 			now - stationSince, STATION_MS, stationRetry);
 		if (what != Loop.Station.NEW) {
@@ -546,6 +580,7 @@ final class Hud {
 				stationsTried.add(st.bin());
 				stationBin = Long.MIN_VALUE;
 				stationRetry = 0;
+				stationArrivedAt = 0;
 				mc.player.sendSystemMessage(Component.literal("[cscan] nothing placed here in "
 					+ (STATION_MS / 1000) + "s — moving to the next angle on this spot"));
 				return;                                     // next recount picks another bin
@@ -559,6 +594,7 @@ final class Hud {
 		stationSince = now;
 		stationTodo = here.size();
 		stationRetry = 0;
+		stationArrivedAt = 0;                            // not there yet; the dwell starts on arrival
 		// COVERAGE, not proximity. See Plan.bestStand: the spot is chosen by how many of these cells
 		// the printer can touch from it, discounted by how far short the flight parks.
 		BlockPos at = Plan.bestStand(Nav.of(mc.level), here, Plan.reach(), me, STANDOFF + 2,
@@ -775,6 +811,7 @@ final class Hud {
 		stationBin = Long.MIN_VALUE;
 		stationTodo = -1;
 		stationRetry = 0;
+		stationArrivedAt = 0;
 		stationsTried.clear();
 		avoidSpot = null;
 		scaffoldFor = -1;

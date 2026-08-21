@@ -534,6 +534,22 @@ final class Plan {
 		return best;
 	}
 
+	/**
+	 * The station for one particular bin, or null if nothing is left in it.
+	 *
+	 * <p>{@link #station} answers "where is the best work"; this answers "what about the bin I am
+	 * already standing at", which is what a dwell needs — otherwise staying put means re-deciding
+	 * every two seconds that staying put is still best, and the moment another bin looks fuller the
+	 * loop leaves mid-wall.
+	 */
+	static Station stationOf(List<Work.Cell> cells, long bin, int reach) {
+		List<Work.Cell> mine = new ArrayList<>();
+		for (Work.Cell c : cells) {
+			if (binKey(c.pos(), reach) == bin) mine.add(c);
+		}
+		return mine.isEmpty() ? null : new Station(centroid(mine), mine.size(), bin);
+	}
+
 	/** The cells one station covers, for the highlight and for knowing when it is finished. */
 	static List<Work.Cell> atStation(List<Work.Cell> cells, Station st, int reach) {
 		List<Work.Cell> out = new ArrayList<>();
