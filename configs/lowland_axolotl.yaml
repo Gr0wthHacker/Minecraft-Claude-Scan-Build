@@ -14,15 +14,20 @@ name: Lowland Axolotl
 gen: axolotl
 params:
   under: out/lowland_planned.litematic
-  at: [-24202, 29989]
-  look_at: [-24214, 29998]   # toward the pond's open middle; the snout stops just past the
-                             # waterline. Sited east of the oak canopy (X-24210..-24206 /
-                             # Z29981..29985, measured) that severed flank cells at two
-                             # earlier sites - the body must clear it, not thread it
+  at: [-24202, 29992]
+  look_at: [-24218, 29992]   # DUE WEST, at the pond - a cardinal gaze on purpose: the head is
+                             # straight and the face lies on the block grid, so head-on it is a
+                             # true flat plane instead of a diagonal staircase of corners. All
+                             # the body's curve lives in the tail. Sited east of the oak canopy
+                             # (X-24210..-24206 / Z29981..29985, measured) that severed flank
+                             # cells at two earlier sites - the body must clear it, not thread it
   length: 26
   body_w: 9
   body_h: 6.5
-  curve: 30                  # a salamander mid-turn; a straight spine is the jaguar's table
+  curve: 40                  # a salamander mid-turn; a straight spine is the jaguar's table.
+                             # All of it is in the tail now (the head must stay grid-straight),
+                             # so it is stronger to keep the same visible bend - and it swings
+                             # the tail tip north, clear of the capybara's hindquarters
   seed: 0
 origin_lock: false           # LOUD: lies on the lowland bank at Y40-49
 finish:

@@ -2024,6 +2024,26 @@ work substitutes for. The rework pulled the nose a cell back from the waterline 
 test caught it (2 cells over water against a floor of 3) and the site nudged one block pondward.
 v2 silhouette breaks at the gill crown, which the first one never did.
 
+**The face took three more passes, and the lesson is about the GRID, not the face.** Jack: "head
+on it looks like a blob." The head was flat-topped and correctly shaped - and aimed 40 degrees
+off the block grid, so its "flat" face was a diagonal staircase of corners in game: eyes at
+different depths, the smile stepping cell by cell. **An orthographic render along the body axis
+cannot show this failure** - projecting along the diagonal de-jags it by construction, which is
+why every sheet looked right while the game looked wrong. The fix is the classic builder rule,
+now in the generator: **the gaze is CARDINAL and the head is straight; all of the body's curve
+lives in the tail** (`_spine` ramps curvature from zero through t=0.28). Three more findings from
+the passes:
+
+- **The skull section is exponent 6, not 8** - flat across the middle, ONE step down at the
+  cheeks. 8 was a slab; "a little more rounded" was the correct review.
+- **The face is the full-width plane and the mouth sits ON the chin line.** A two-step nose
+  chamfer left a narrow protruding muzzle that the smile filled edge to edge - a magenta blob
+  where a face should be - and a mouth at mid-height reads as a nose.
+- **The eye bead is the FRONTMOST body cell of its cheek band**, so by construction nothing can
+  stand in front of it. Chosen by proximity instead, the tail's curve shifts the centroid, the
+  head line drifts half a block south, and one bead landed a cell deep - painted over by its own
+  pale ring from exactly the head-on view. Both eyes now read head-on AND from the plan.
+
 Cross-design overlap 0 across all six lowland pieces; nearest approach is the capybara sprinting
 4.2 blocks past the gate's pavement, which is the story anyway. `tests/test_ruinring.py` (10) and
 `tests/test_axolotl.py` (9) pin the geometry, the break, the seam rule, the anchors, both-sided

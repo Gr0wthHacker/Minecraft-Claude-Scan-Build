@@ -86,7 +86,13 @@ def _spine(p):
     pts, x, z = [], 0.0, 0.0
     for i in range(n + 1):
         t = i / n
-        phi = phi0 + curve * (t - 0.35)                # the local body heading, nose-ward
+        # THE HEAD IS STRAIGHT AND THE TAIL CARRIES ALL THE CURVE. The face must lie on the
+        # block grid: gaze down a cardinal axis and the front is a true flat plane. Curved
+        # through the skull (or aimed diagonally), the face is a staircase of corners in game -
+        # eyes at different depths, the smile stepping - which is exactly the "blob head-on"
+        # review. An orthographic render along the body axis CANNOT show this failure; only
+        # the grid can.
+        phi = phi0 + curve * max(0.0, t - 0.28) / 0.72
         pts.append((x, z, t))
         # t=0 is the NOSE, so the walk goes TAIL-ward: opposite the heading. Stepped along it
         # instead, the body extended INTO the gaze and the animal faced away from its own pond.
@@ -102,8 +108,10 @@ def _spine(p):
 def _half_width(t, W):
     """Wide flat head, a real NECK PINCH, barrel, then a tail drawn out to a point. Without the
     pinch the head blended straight into the body and the animal read as a worm with a face."""
-    if t < 0.05:                                       # a blunt rounded nose
-        return W * (0.26 + 0.20 * (t / 0.05))
+    if t < 0.04:                                       # the FACE is the full-width plane; only
+        return W * (0.40 + 0.06 * (t / 0.04))          # the outermost step is chamfered, or the
+                                                       # nose protrudes and the mouth fills it
+                                                       # edge to edge - a magenta blob, again
     if t < 0.20:                                       # the skull: as wide as the body itself
         return W * 0.46
     if t < 0.30:                                       # the pinch behind the gills
@@ -184,13 +192,13 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
         dx, dz = stations[j][0] - sx, stations[j][1] - sz
         nrm = math.hypot(dx, dz) or 1.0
         nx, nz = -dz / nrm, dx / nrm                   # plan normal to the spine
-        # the SKULL is a wide flat U, nearly rectangular in section - a rounded superellipse
-        # there reads as a blob head-on, which is exactly what the face review said. Exponent 8
-        # holds the top flat almost to the cheeks; the barrel eases back to a rounded 2.6.
+        # the SKULL is a wide flat U - but not a slab. Exponent 6 keeps the top flat across the
+        # middle and rounds ONE step down at the cheeks, which is the "little more rounded"
+        # the in-game review asked for; the barrel eases back to a rounded 2.6.
         if t < 0.20:
-            n_sec = 8.0
+            n_sec = 6.0
         elif t < 0.32:
-            n_sec = 2.6 + 5.4 * (0.32 - t) / 0.12
+            n_sec = 2.6 + 3.4 * (0.32 - t) / 0.12
         else:
             n_sec = 2.6
         u = -hw
@@ -316,21 +324,25 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
     ffx, ffz = ffx / ffn, ffz / ffn                    # out of the face, in plan
     eyes = 0
     hw = _half_width(0.07, W2 * 2.0)
+    ty = int(round(belly[ei] + _height(0.07, H) - 1.0))
     for side in (-1, 1):
-        tx = ex + nx * side * (hw - 0.4)
-        tz = ez + nz * side * (hw - 0.4)
-        ty = int(round(belly[ei] + _height(0.07, H) - 1.0))
-        cands = [c for c in body_cells
-                 if abs(c[1] - ty) <= 1 and math.hypot(c[0] - tx, c[2] - tz) <= 2.2]
-
-        def exposed(c):
-            front = (int(round(c[0] + ffx)), c[1], int(round(c[2] + ffz)))
-            return front not in body_cells or (c[0], c[1] + 1, c[2]) not in body_cells
-
-        cands = [c for c in cands if exposed(c)]
-        if not cands:
+        # THE BEAD IS THE FRONTMOST BODY CELL OF ITS CHEEK BAND, so by construction nothing can
+        # stand in front of it. Chosen by proximity instead, the tail's curve shifts the
+        # centroid, the head line drifts half a block, and one bead lands a cell deep - painted
+        # over by its own ring from exactly the head-on view. That shipped once.
+        want_lat = side * (hw - 0.4)
+        band = []
+        for c in body_cells:
+            if c[1] not in (ty, ty - 1):
+                continue
+            lat = (c[0] - ex) * nx + (c[2] - ez) * nz
+            depth = (c[0] - ex) * ffx + (c[2] - ez) * ffz
+            if abs(lat - want_lat) <= 1.3 and depth >= 0:
+                band.append((depth, c[1], c))
+        if not band:
             continue
-        spot = max(cands, key=lambda c: (c[0] - ex) * ffx + (c[2] - ez) * ffz + 0.25 * c[1])
+        band.sort(key=lambda b: (-b[0], -b[1]))
+        spot = band[0][2]
         w.put(*spot, p["eye"])
         eyes += 1
         for ddx, ddy, ddz in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, 1, 0)):
@@ -346,7 +358,8 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
     fx_, fz_ = stations[0][0] - stations[1][0], stations[0][1] - stations[1][1]
     fn = math.hypot(fx_, fz_) or 1.0
     fx_, fz_ = fx_ / fn, fz_ / fn                      # out of the face, in plan
-    mouth_y = int(round(belly[im] + 1.6))
+    mouth_y = int(round(belly[im] + 1.2))              # LOW on the face, right on the chin line
+                                                       # - a mouth at mid-height reads as a nose
     cand = []
     for (x, y, z) in body_cells:
         if y != mouth_y or math.hypot(x - nosex, z - nosez) > 4.5:
