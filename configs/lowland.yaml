@@ -47,11 +47,18 @@ params:
   rim_depth: 3              # ... thinning to this at the rim
   sub_depth: 2              # dirt between the soil and the rock
   ragged: 0.10              # bites out of the edge, so it reads as land not as a stencil
-  carpet: 0.10
-  grass: 0.16
-  fern: 0.05
-  azalea: 0.03
-  flower: 0.02
+  # NO PLANTING PASS. Bonemeal does this job in the world faster than the printer can place it: the
+  # ground is `moss_block` and bonemeal on moss spreads it and grows moss carpet, short grass, ferns
+  # and azalea bushes for free. Placing 1,569 one-block plants by hand is 1,569 printer cells and a
+  # trip's worth of stock for something a stack of bonemeal does in a minute.
+  #
+  # The soil itself is untouched - moss_block, mossy_cobblestone, mossy_stone_bricks are the GROUND
+  # and are what bonemeal needs to have something to spread from.
+  carpet: 0
+  grass: 0
+  fern: 0
+  azalea: 0
+  flower: 0
   trees: 6
   vine_rate: 0.16
   vine_len: [3, 9]
