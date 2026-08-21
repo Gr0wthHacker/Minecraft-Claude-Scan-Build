@@ -9,6 +9,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,7 +50,41 @@ class NavTest {
 			}
 		}
 
-		/** Two clear cells, as the real one does — a player is two blocks tall. */
+		/** Fill a box solid. The island is mostly rock with holes in it, not walls in the sky. */
+		void fill(int x0, int y0, int z0, int x1, int y1, int z1) {
+			for (int x = x0; x <= x1; x++) {
+				for (int y = y0; y <= y1; y++) {
+					for (int z = z0; z <= z1; z++) solid.add(BlockPos.asLong(x, y, z));
+				}
+			}
+		}
+
+		/** Hollow a box out of the rock. */
+		void carve(int x0, int y0, int z0, int x1, int y1, int z1) {
+			for (int x = x0; x <= x1; x++) {
+				for (int y = y0; y <= y1; y++) {
+					for (int z = z0; z <= z1; z++) solid.remove(BlockPos.asLong(x, y, z));
+				}
+			}
+		}
+
+		/**
+		 * A tunnel through solid rock: `h` cells of headroom, one wide, running along X.
+		 *
+		 * <p>This is the shape the island is full of - the taproot, the undercroft, the workshop
+		 * necks - and it is the one a router gets wrong, because every cell of it is against a wall.
+		 * Every rule that is "usually fine" meets its worst case here at once.
+		 */
+		void highway(int x0, int x1, int y, int z, int h) {
+			// EIGHT blocks of rock around it, not three. With three, open sky was inside the first
+			// few shells of a standoff search, so the corridor case never actually got tested — the
+			// spot it picked was outside the tunnel altogether. A fixture that is thinner than the
+			// thing under test measures the thing beside it.
+			fill(x0 - 8, y - 8, z - 8, x1 + 8, y + h + 8, z + 8);
+			carve(x0, y, z, x1, y + h - 1, z);
+		}
+
+		/** Two clear cells, as the real one does - a player is two blocks tall. */
 		Nav.Passable free() {
 			return (x, y, z) -> !solid.contains(BlockPos.asLong(x, y, z))
 				&& !solid.contains(BlockPos.asLong(x, y + 1, z));
@@ -103,7 +138,10 @@ class NavTest {
 		List<BlockPos> p = Nav.route(w.free(), new BlockPos(0, 100, 0), chest);
 		assertFalse(p.isEmpty(), "gave up on a destination that blocks motion");
 		BlockPos end = p.get(p.size() - 1);
-		assertTrue(end.distSqr(chest) <= (double) Nav.GOAL_SLACK * Nav.GOAL_SLACK,
+		// Chebyshev: GOAL_SLACK is a box radius, so (2,2,2) is legal at 3.46 as the crow flies.
+		assertTrue(Math.abs(end.getX() - chest.getX()) <= Nav.GOAL_SLACK
+				&& Math.abs(end.getY() - chest.getY()) <= Nav.GOAL_SLACK
+				&& Math.abs(end.getZ() - chest.getZ()) <= Nav.GOAL_SLACK,
 			"finished " + Math.sqrt(end.distSqr(chest)) + " from the chest");
 		assertTrue(w.free().at(end.getX(), end.getY(), end.getZ()), "finished inside a block");
 	}
@@ -340,31 +378,27 @@ class NavTest {
 	void aStandoffIsOpenEnoughToWorkFrom() {
 		// `reachable` answers "may a route END here" and takes the first free cell it finds, which
 		// beside a wall is the crevice between two blocks. A place to FLOAT and print from wants
-		// more than that - this island is a deck under a plate, full of hoppers, chests and roots,
-		// and a spot wedged between two of them is one the printer never finishes.
+		// more: this island is a deck under a plate, full of hoppers, chests and roots, and a spot
+		// wedged between two of them is one the printer never finishes.
+		//
+		// Written first as a pocket sealed inside a solid mass, which stopped being a fair question
+		// once a standoff had to SEE the work: nothing outside a sealed mass can, and null is then
+		// the right answer. A wall with a hole beside the work is the real shape of it.
 		W w = new W();
-		// a solid mass with a one-cell slot in it: free, and useless
-		for (int x = 0; x <= 6; x++) {
-			for (int y = 98; y <= 104; y++) {
-				for (int z = 0; z <= 6; z++) w.solid.add(BlockPos.asLong(x, y, z));
-			}
-		}
-		// The crevice is TWO cells, or it is not passable at all and the control below is vacuous —
-		// a player is two blocks tall and `free` knows it.
-		w.open(3, 101, 3);
-		w.open(3, 102, 3);
+		w.fill(-6, 90, -6, -1, 110, 6);                  // a wall to the west
+		BlockPos work = new BlockPos(-1, 100, 0);        // the block being placed, in its face
+		w.carve(-1, 100, 1, -1, 101, 1);                 // a two-cell pocket beside it
 
-		BlockPos at = new BlockPos(3, 101, 3);
-		assertEquals(at, Nav.reachable(w.free(), at), "control: the crevice IS reachable");
-		BlockPos stand = Nav.standoff(w.free(), at, null, 6);
+		BlockPos pocket = new BlockPos(-1, 100, 1);
+		assertTrue(w.free().at(pocket.getX(), pocket.getY(), pocket.getZ()),
+			"control: the pocket is a free cell");
+		assertTrue(Nav.openness(w.free(), pocket) < 3, "control: and a wedged one");
+
+		BlockPos stand = Nav.standoff(w.free(), work, null, 4);
 		assertNotNull(stand, "found nowhere at all to work from");
-		assertFalse(stand.equals(at), "settled for the crevice");
-		int open = 0;
-		for (BlockPos n : new BlockPos[]{stand.above(), stand.below(), stand.north(), stand.south(),
-			stand.east(), stand.west()}) {
-			if (w.free().at(n.getX(), n.getY(), n.getZ())) open++;
-		}
-		assertTrue(open >= 3, "wedged in with " + open + " ways out");
+		assertNotEquals(pocket, stand, "climbed into the pocket");
+		assertTrue(Nav.openness(w.free(), stand) >= 3, "wedged in beside the work");
+		assertTrue(Nav.sees(w.free(), stand, work), "cannot see the block it is meant to place");
 	}
 
 	@Test
@@ -431,5 +465,267 @@ class NavTest {
 		BlockPos goal = new BlockPos(9, 100, 0);
 		List<BlockPos> loose = Nav.loosen(w.free(), BlockPos.ZERO, List.of(new BlockPos(4, 100, 0), goal));
 		assertEquals(goal, loose.get(loose.size() - 1));
+	}
+
+	// ================================================================ the shapes this island has
+	//
+	// Everything above tests a wall with a hole in it, which is the textbook case and not what this
+	// island is made of. What it is made of is TUNNELS: the taproot, the undercroft, the workshop
+	// necks, the store hall door. Every cell of a one-wide tunnel is against a wall, so every rule
+	// that is "usually fine" meets its worst case there, all at once.
+
+	@Test
+	void aOneWideHighwayIsFlyable() {
+		W w = new W();
+		w.highway(0, 30, 100, 0, 2);
+		List<BlockPos> p = Nav.route(w.free(), new BlockPos(0, 100, 0), new BlockPos(30, 100, 0));
+		assertFalse(p.isEmpty(), "would not fly a straight one-wide tunnel");
+		assertEquals(new BlockPos(30, 100, 0), p.get(p.size() - 1));
+	}
+
+	@Test
+	void aOneWideHighwaySurvivesTheWholePipeline() {
+		// route -> simplify -> loosen is what the autopilot actually flies, and each stage can undo
+		// the last one's care. A tunnel is where that shows: `loosen` exists to push waypoints away
+		// from walls, and in here there is nowhere to push them to.
+		W w = new W();
+		w.highway(0, 30, 100, 0, 2);
+		Nav.Passable free = w.free();
+		BlockPos from = new BlockPos(0, 100, 0);
+		List<BlockPos> flown = Nav.loosen(free, from,
+			Nav.simplify(free, from, Nav.route(free, from, new BlockPos(30, 100, 0))));
+
+		BlockPos prev = from;
+		for (BlockPos b : flown) {
+			assertTrue(free.at(b.getX(), b.getY(), b.getZ()), b + " is inside the rock");
+			assertTrue(Nav.clear(free, prev, b), "the leg " + prev + " -> " + b + " goes through rock");
+			prev = b;
+		}
+		assertEquals(new BlockPos(30, 100, 0), flown.get(flown.size() - 1));
+	}
+
+	@Test
+	void aDoglegHighwayIsFlyable() {
+		// An L. The corner is where the no-corner-cutting rule earns its keep: the diagonal step has
+		// a blocked orthogonal, so it must go straight and then turn.
+		W w = new W();
+		w.fill(-4, 96, -4, 24, 106, 24);
+		w.carve(0, 100, 0, 20, 101, 0);
+		w.carve(20, 100, 0, 20, 101, 20);
+		Nav.Passable free = w.free();
+		BlockPos from = new BlockPos(0, 100, 0), to = new BlockPos(20, 100, 20);
+		List<BlockPos> p = Nav.route(free, from, to);
+		assertFalse(p.isEmpty(), "would not turn a corner in a tunnel");
+		for (BlockPos b : p) assertTrue(free.at(b.getX(), b.getY(), b.getZ()), b + " is in the rock");
+		assertEquals(to, p.get(p.size() - 1));
+	}
+
+	@Test
+	void aVerticalShaftIsFlyable() {
+		// The taproot: a one-wide well straight down through the deck.
+		W w = new W();
+		w.fill(-4, 160, -4, 4, 202, 4);
+		w.carve(0, 162, 0, 0, 200, 0);
+		List<BlockPos> p = Nav.route(w.free(), new BlockPos(0, 198, 0), new BlockPos(0, 163, 0));
+		assertFalse(p.isEmpty(), "would not fly down a shaft");
+		for (BlockPos b : p) {
+			assertEquals(0, b.getX(), "left the shaft at " + b);
+			assertEquals(0, b.getZ(), "left the shaft at " + b);
+		}
+	}
+
+	@Test
+	void aCrawlSpaceIsNotAHighway() {
+		// One cell of headroom is a hole you brain yourself on. A player is two blocks tall, and
+		// `of()` checking the cell above is the whole reason this is refused.
+		W w = new W();
+		w.highway(0, 30, 100, 0, 1);
+		assertTrue(Nav.route(w.free(), new BlockPos(0, 100, 0), new BlockPos(30, 100, 0)).isEmpty(),
+			"routed down a one-high crawl space");
+	}
+
+	@Test
+	void aSlabCeilingIsSolidAndTheCellsUnderItAreNot() {
+		// A slab is a whole cell to a router: `blocksMotion` is true for it, so the cell it sits in
+		// is rock and the two beneath it are the tunnel. Modelling it as half a block instead is how
+		// you fly into every slab ceiling on the deck.
+		W w = new W();
+		w.highway(0, 20, 100, 0, 2);
+		assertFalse(w.free().at(0, 102, 0), "treated a slab ceiling as air");
+		assertTrue(w.free().at(0, 100, 0), "lost the tunnel under it");
+		assertFalse(Nav.route(w.free(), new BlockPos(0, 100, 0), new BlockPos(20, 100, 0)).isEmpty());
+	}
+
+	@Test
+	void aStandingSpotExistsInsideAHighway() {
+		// `standoff` wants somewhere OPEN to work from - three ways out - and a one-wide tunnel has
+		// exactly two, along its length. Insisting finds nowhere at all, and the caller then falls
+		// back to the bin centroid, which is inside the wall being built.
+		W w = new W();
+		w.highway(0, 20, 100, 0, 2);
+		BlockPos stand = Nav.standoff(w.free(), new BlockPos(10, 100, 0), null, 4);
+		assertNotNull(stand, "found nowhere to stand in a corridor");
+		assertTrue(w.free().at(stand.getX(), stand.getY(), stand.getZ()), "stood inside the rock");
+	}
+
+	@Test
+	void aStandingSpotStillPrefersOpenAirWhenThereIsSome() {
+		// ...and the fallback must not become the rule: offered both a dead-end pocket in the wall
+		// and the open air in front of it, it takes the open air.
+		W w = new W();
+		w.fill(-6, 90, -6, -1, 110, 6);                  // a wall to the west
+		w.carve(-1, 100, 0, -1, 101, 0);                 // with a two-cell pocket in its face
+		BlockPos work = new BlockPos(0, 100, 0);
+		w.solid.add(work.asLong());                      // the block being placed
+
+		BlockPos stand = Nav.standoff(w.free(), work, null, 4);
+		assertNotNull(stand);
+		assertNotEquals(new BlockPos(-1, 100, 0), stand, "climbed into the pocket");
+		assertTrue(Nav.openness(w.free(), stand) >= 3, "settled for a crevice with open air beside it");
+	}
+
+	@Test
+	void aStandingSpotCanSeeTheWork() {
+		// "Near" measured through rock is not near. A wall with the work on one side and open air on
+		// the other: the far side is closer in blocks and useless in every other way.
+		W w = new W();
+		w.fill(-1, 90, -20, 1, 110, 20);                 // a thick wall at x = -1..1
+		BlockPos work = new BlockPos(1, 100, 0);         // its east face
+		BlockPos stand = Nav.standoff(w.free(), work, null, 4);
+		assertNotNull(stand);
+		assertTrue(stand.getX() > 1, "stood on the far side of the wall from the work: " + stand);
+		assertTrue(Nav.sees(w.free(), stand, work), "cannot see the block it is meant to place");
+	}
+
+	@Test
+	void seesIgnoresTheTargetBlockItself() {
+		// The block you are placing is solid by definition; if it counted against the line of sight
+		// nothing could ever be placed.
+		W w = new W();
+		BlockPos work = new BlockPos(5, 100, 0);
+		w.solid.add(work.asLong());
+		assertTrue(Nav.sees(w.free(), new BlockPos(0, 100, 0), work));
+		w.solid.add(BlockPos.asLong(3, 100, 0));         // ...but something in between does
+		assertFalse(Nav.sees(w.free(), new BlockPos(0, 100, 0), work));
+	}
+
+	@Test
+	void loosenCannotPushAWaypointOutOfAHighway() {
+		// There is nowhere to push to, and a nudge is only kept if both legs stay flyable.
+		W w = new W();
+		w.highway(0, 20, 100, 0, 2);
+		Nav.Passable free = w.free();
+		List<BlockPos> loose = Nav.loosen(free, new BlockPos(0, 100, 0),
+			List.of(new BlockPos(10, 100, 0), new BlockPos(20, 100, 0)));
+		for (BlockPos b : loose) {
+			assertTrue(free.at(b.getX(), b.getY(), b.getZ()), "loosened " + b + " into the rock");
+		}
+	}
+
+	@Test
+	void escapeInsideAHighwayRunsAlongIt() {
+		// Shut in a tunnel with the goal beyond its far end: the only progress available is forward,
+		// and it must find that rather than deciding it is stuck.
+		W w = new W();
+		w.highway(0, 20, 100, 0, 2);
+		List<BlockPos> out = Nav.escape(w.free(), new BlockPos(2, 100, 0),
+			new BlockPos(60, 100, 0), Nav.ESCAPE_RADIUS);
+		assertFalse(out.isEmpty(), "sat still in a tunnel with an open end");
+		assertTrue(out.get(out.size() - 1).getX() > 2, "went the wrong way down the tunnel");
+	}
+
+	@Test
+	void aChestInTheWallOfAHighwayIsStillReachable() {
+		// Every fetch target is a container's own cell, and in a tunnel that cell IS the wall. The
+		// route has to finish in the tunnel, beside it.
+		W w = new W();
+		w.highway(0, 20, 100, 0, 2);
+		BlockPos chest = new BlockPos(10, 100, 1);
+		assertFalse(w.free().at(10, 100, 1), "control: the chest cell is solid");
+
+		List<BlockPos> p = Nav.route(w.free(), new BlockPos(0, 100, 0), chest);
+		assertFalse(p.isEmpty(), "gave up on a chest in a wall");
+		BlockPos end = p.get(p.size() - 1);
+		assertTrue(Math.abs(end.getX() - chest.getX()) <= Nav.GOAL_SLACK
+				&& Math.abs(end.getY() - chest.getY()) <= Nav.GOAL_SLACK
+				&& Math.abs(end.getZ() - chest.getZ()) <= Nav.GOAL_SLACK,
+			"finished " + Math.sqrt(end.distSqr(chest)) + " away");
+		assertTrue(w.free().at(end.getX(), end.getY(), end.getZ()), "finished inside the wall");
+	}
+
+	@Test
+	void aDoorwayOffTheAxisIsFoundInsideAHighway() {
+		// A side passage: the branch you have to notice rather than fly past. This is the store hall
+		// door and the undercroft neck.
+		W w = new W();
+		w.highway(0, 20, 100, 0, 2);
+		w.carve(10, 100, 1, 10, 101, 8);
+		Nav.Passable free = w.free();
+		List<BlockPos> p = Nav.route(free, new BlockPos(0, 100, 0), new BlockPos(10, 100, 8));
+		assertFalse(p.isEmpty(), "missed the side passage");
+		for (BlockPos b : p) assertTrue(free.at(b.getX(), b.getY(), b.getZ()), b + " is in the rock");
+	}
+
+	// ---------------------------------------------------------------- on foot
+
+	@Test
+	void aStaircaseIsWalkable() {
+		// One course per step, which is what `gen/stairhead.py` builds and what the deck is full of.
+		W w = new W();
+		w.fill(-2, 90, -3, 22, 99, 3);
+		for (int i = 0; i <= 10; i++) w.fill(i, 100, -3, i, 99 + i, 3);
+		Nav.Passable stand = standable(w);
+		assertFalse(Nav.route(stand, new BlockPos(-1, 100, 0), new BlockPos(10, 110, 0)).isEmpty(),
+			"would not walk up a staircase");
+	}
+
+	@Test
+	void aWalkStepsDownOneCourseButNotOffACliff() {
+		// One course of slack under the floor is a STEP; anything deeper is a fall, and a fall is
+		// not reversible - you walk somewhere you cannot walk back from.
+		W w = new W();
+		w.fill(-2, 90, -3, 10, 99, 3);
+		w.fill(11, 70, -3, 20, 79, 3);
+		Nav.Passable stand = standable(w);
+		assertTrue(Nav.route(stand, new BlockPos(0, 100, 0), new BlockPos(15, 80, 0)).isEmpty(),
+			"walked off a twenty-block drop");
+	}
+
+	@Test
+	void aWalkingRouteNeverFloats() {
+		// Every cell of a walking route needs something under it, or it is a flight plan.
+		W w = new W();
+		w.fill(-2, 90, -2, 30, 99, 8);
+		Nav.Passable stand = standable(w);
+		List<BlockPos> p = Nav.route(stand, new BlockPos(0, 100, 0), new BlockPos(25, 100, 5));
+		assertFalse(p.isEmpty(), "would not walk across a flat floor");
+		for (BlockPos b : p) {
+			assertTrue(w.solid.contains(BlockPos.asLong(b.getX(), b.getY() - 1, b.getZ()))
+					|| w.solid.contains(BlockPos.asLong(b.getX(), b.getY() - 2, b.getZ())),
+				b + " has no floor under it");
+		}
+	}
+
+	@Test
+	void aWalkerUsesTheDoorRatherThanTheWall() {
+		// Indoors is where walking happens and where the routing matters most.
+		W w = new W();
+		w.fill(-2, 90, -12, 22, 99, 12);
+		w.fill(10, 100, -12, 10, 104, 12);
+		w.carve(10, 100, 4, 10, 101, 4);
+		Nav.Passable stand = standable(w);
+		List<BlockPos> p = Nav.route(stand, new BlockPos(0, 100, 0), new BlockPos(20, 100, 0));
+		assertFalse(p.isEmpty(), "would not walk through a doorway");
+		assertTrue(p.contains(new BlockPos(10, 100, 4)), "walked through the wall: " + p);
+	}
+
+	/** The walking predicate, built as {@link Nav#standable} builds it from a Level. */
+	private static Nav.Passable standable(W w) {
+		return (x, y, z) -> {
+			if (w.solid.contains(BlockPos.asLong(x, y, z))) return false;
+			if (w.solid.contains(BlockPos.asLong(x, y + 1, z))) return false;
+			return w.solid.contains(BlockPos.asLong(x, y - 1, z))
+				|| w.solid.contains(BlockPos.asLong(x, y - 2, z));
+		};
 	}
 }

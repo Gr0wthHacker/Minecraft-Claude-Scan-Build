@@ -250,9 +250,7 @@ final class Nav {
 						if (!seen.add(nb.key())) continue;
 						if (from.distSqr(new BlockPos(nx, ny, nz)) > r2) continue;
 						if (!free.at(nx, ny, nz)) continue;
-						if (dx != 0 && !free.at(cur.x + dx, cur.y, cur.z)) continue;
-						if (dy != 0 && !free.at(cur.x, cur.y + dy, cur.z)) continue;
-						if (dz != 0 && !free.at(cur.x, cur.y, cur.z + dz)) continue;
+						if (!stepFits(free, cur.x, cur.y, cur.z, dx, dy, dz)) continue;
 						came.put(nb.key(), cur);
 						queue.add(nb);
 						double d = Math.sqrt(new BlockPos(nx, ny, nz).distSqr(to));
@@ -322,8 +320,13 @@ final class Nav {
 	 * work rather than burrowing to the far face.
 	 */
 	static BlockPos standoff(Passable free, BlockPos at, BlockPos want, int maxOut) {
-		BlockPos best = null;
-		double bestScore = -1;
+		BlockPos roomy = null, any = null;
+		// -MAX_VALUE, not -1. The score is a NEGATIVE distance — a penalty — so seeding the best at
+		// -1 quietly rejected every candidate more than about two blocks away and the whole search
+		// returned null. It read as "there is nowhere to stand" everywhere except right on top of
+		// the work. The earlier version's score led with `open * 100` and was usually positive,
+		// which is what hid it when the term was split out.
+		double roomyScore = -Double.MAX_VALUE, anyScore = -Double.MAX_VALUE;
 		for (int r = 1; r <= maxOut; r++) {
 			for (int dx = -r; dx <= r; dx++) {
 				for (int dy = -r; dy <= r; dy++) {
@@ -332,29 +335,58 @@ final class Nav {
 						if (Math.max(Math.abs(dx), Math.max(Math.abs(dy), Math.abs(dz))) != r) continue;
 						int x = at.getX() + dx, y = at.getY() + dy, z = at.getZ() + dz;
 						if (!free.at(x, y, z)) continue;
-						int open = 0;
-						if (free.at(x + 1, y, z)) open++;
-						if (free.at(x - 1, y, z)) open++;
-						if (free.at(x, y + 1, z)) open++;
-						if (free.at(x, y - 1, z)) open++;
-						if (free.at(x, y, z + 1)) open++;
-						if (free.at(x, y, z - 1)) open++;
-						if (open < 3) continue;               // a crevice, not a place to work from
 						BlockPos c = new BlockPos(x, y, z);
-						// openness first, then the side you asked for, then distance from the work
-						double score = open * 100.0
-							- (want == null ? 0 : Math.sqrt(c.distSqr(want)))
+						// LINE OF SIGHT TO THE WORK. Without it "near" is measured through rock: in
+						// a tunnel it picked a cell in open sky four blocks away, on the far side of
+						// the wall — a place you can neither reach quickly nor place from. You must
+						// be able to see the block to click it.
+						if (!sees(free, c, at)) continue;
+						int open = openness(free, c);
+						// the side you asked for, then distance from the work
+						double score = -(want == null ? 0 : Math.sqrt(c.distSqr(want)))
 							- Math.sqrt(c.distSqr(at)) * 0.5;
-						if (score > bestScore) {
-							bestScore = score;
-							best = c;
+						if (score > anyScore) {
+							anyScore = score;
+							any = c;
+						}
+						if (open >= 3 && score > roomyScore) {
+							roomyScore = score;
+							roomy = c;
 						}
 					}
 				}
 			}
-			if (best != null) return best;                    // nearest shell that offered anything
+			if (roomy != null) return roomy;               // nearest shell with somewhere roomy
 		}
-		return null;
+		// NOTHING ROOMY ANYWHERE. A one-wide tunnel has exactly two ways out of any of its cells,
+		// and the island is full of them — the taproot, the undercroft, the workshop necks. Holding
+		// out for three would find nowhere at all and hand the caller back a null, which it resolves
+		// by standing at the bin centroid: inside the wall it is building. A tight spot you can
+		// place from beats a roomy one that does not exist.
+		return any;
+	}
+
+	/**
+	 * Can you see `to` from `from`, given that `to` itself is probably solid?
+	 *
+	 * <p>{@link #clear} asks whether the whole line is flyable, which a line ending in a block never
+	 * is. This asks the question a PLACEMENT asks: is there anything between us. The last block of
+	 * the line is the thing you are looking at, so it does not count against you.
+	 */
+	static boolean sees(Passable free, BlockPos from, BlockPos to) {
+		double dx = to.getX() - from.getX(), dy = to.getY() - from.getY(), dz = to.getZ() - from.getZ();
+		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+		if (len <= 1.5) return true;                       // adjacent: nothing can be between
+		int steps = (int) Math.ceil(len * 4);
+		for (int i = 1; i <= steps; i++) {
+			double t = (double) i / steps;
+			double px = from.getX() + dx * t, py = from.getY() + dy * t, pz = from.getZ() + dz * t;
+			int cx = (int) Math.floor(px + 0.5), cy = (int) Math.floor(py + 0.5),
+				cz = (int) Math.floor(pz + 0.5);
+			if (cx == to.getX() && cy == to.getY() && cz == to.getZ()) continue;   // the target
+			if (!free.at(cx, cy, cz)) return false;
+		}
+		return true;
 	}
 
 	/** The A* itself. `to` may block motion; see {@link #reachable}. */
@@ -388,12 +420,7 @@ final class Nav {
 						if (dx == 0 && dy == 0 && dz == 0) continue;
 						int nx = cur.x + dx, ny = cur.y + dy, nz = cur.z + dz;
 						if (!free.at(nx, ny, nz)) continue;
-						// NO CORNER CUTTING: every orthogonal component of a diagonal must be clear
-						// too, or the route squeezes through the corner of a door frame and you
-						// catch on the jamb.
-						if (dx != 0 && !free.at(cur.x + dx, cur.y, cur.z)) continue;
-						if (dy != 0 && !free.at(cur.x, cur.y + dy, cur.z)) continue;
-						if (dz != 0 && !free.at(cur.x, cur.y, cur.z + dz)) continue;
+						if (!stepFits(free, cur.x, cur.y, cur.z, dx, dy, dz)) continue;
 
 						Node nb = new Node(nx, ny, nz);
 						double step = cur.dist(nb);
@@ -422,6 +449,35 @@ final class Nav {
 		// STAGING is the honest version of the same instinct, and it lives in route(): a shorter
 		// search that SUCCEEDS, rather than a long one that half-failed.
 		return List.of();
+	}
+
+	/**
+	 * Can a body actually make this step?
+	 *
+	 * <p>THE WHOLE BOX THE STEP SPANS, not the three orthogonal components of it. The three-check
+	 * version is the standard no-corner-cutting rule and it is not enough in three dimensions: a
+	 * step of (+1,-1,+1) checks the cells beside, below and in front, and never the one DIAGONALLY
+	 * across, which is exactly where a body sweeping between the two corners passes.
+	 *
+	 * <p>Found on the real island and not by any fixture written by hand — a route came back whose
+	 * every waypoint was in open air and one of whose LEGS went through the rock, because the search
+	 * and {@link #clear} disagreed about what a single diagonal step costs. The search said yes and
+	 * the flight clipped it. Requiring the box makes the two agree by construction: every cell
+	 * `clear` would sample on a one-cell step lies inside it.
+	 *
+	 * <p>Six of the twenty-six neighbours are orthogonal and cost one check; the twelve edge
+	 * diagonals cost four and the eight corner diagonals eight, which is about twice the old rule
+	 * and bounded by the same millisecond budget as everything else here.
+	 */
+	static boolean stepFits(Passable free, int x, int y, int z, int dx, int dy, int dz) {
+		for (int ix = 0; ix <= Math.abs(dx); ix++) {
+			for (int iy = 0; iy <= Math.abs(dy); iy++) {
+				for (int iz = 0; iz <= Math.abs(dz); iz++) {
+					if (!free.at(x + ix * dx, y + iy * dy, z + iz * dz)) return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	private static List<BlockPos> rebuild(Map<Long, Node> came, Node end) {

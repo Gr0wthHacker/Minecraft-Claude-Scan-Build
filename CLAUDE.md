@@ -1942,7 +1942,7 @@ first.
 ## Build & test
 
 ```bash
-python -m pytest -q                                   # 298 tests, keep green
+python -m pytest -q                                   # 304 tests, keep green
 cd chunkscan && ./gradlew build test -q                # writes build/libs/chunkscan-<ver>.jar
 python chunkscan/verify_synthetic.py                   # Java writer vs Python reader, block for block
 ```
@@ -2432,6 +2432,64 @@ built a tall finite wall and asserted no route existed; with staging and the rai
 now finds its way round the end of it. That is the router getting better. The control is a sealed
 room now — *a wall in the open is not sealed*, which is the third time these tests have learned it.
 
+### The island is the test ground (2026-08-20)
+
+Jack: *"realistically this testing should be using my island design as the testing ground, it has all
+of the variances and variables, randomness, etc."* Right, and it found two bugs in the first run.
+
+`NavTest`'s fixtures are a wall with a hole in it, a tunnel, an L-bend — worlds I invented, testing
+the cases I thought of. `tools/export_navfixture.py` exports the capture's own geometry instead:
+**103x121x103 at the origin lock, 41,455 solid cells, 15 KB gzipped**, checked in at
+`chunkscan/src/test/resources/island_nav.bin.gz` and read by twenty lines of bit-shifting in
+`IslandNavTest`. Regenerate it after a rescan — every assertion is derived from the fixture, so a new
+capture moves the numbers and not the expectations.
+
+    python tools/export_navfixture.py
+
+**The solidity model is STATED, not assumed.** We have no client here, so `blocks_motion` reads the
+registry TYPE: air, fluids, plants, vines, wiring, signs and carpets do not stop you; everything
+else does. It is close, not exact — a snow layer's height and a repeater's two pixels are not in the
+registry — and it is applied to BOTH sides of every test, so the connectivity a test asserts is
+connectivity under the rule the route is found under. Where it differs it errs toward SOLID, which
+makes a router refuse a route it could have flown rather than fly one it could not.
+
+#### The bug the real island found in the first run
+
+**A route came back whose every waypoint was in open air and one of whose LEGS went through the
+rock.** A single diagonal step, (+1,−1,+1), at −24207 219 30009.
+
+The no-corner-cutting rule tested the three ORTHOGONAL components of a diagonal — beside, below, in
+front — which is the standard formulation and is not enough in three dimensions. It never tests the
+cell diagonally ACROSS, and that is exactly where a body sweeping between the two corners passes. So
+the search and `clear` disagreed about what one step costs: the search said yes, the flight clipped
+it, and `simplify` faithfully preserved the illegal leg because `clear` refused to merge it away.
+
+`stepFits` requires the whole BOX a step spans. That makes the two agree by construction — every
+cell `clear` samples on a one-cell step lies inside the box — at about twice the neighbour cost,
+bounded by the same millisecond budget as everything else. **No hand-written fixture produced this**;
+it needs a diagonal gap between two blocks, which real terrain is full of and a test author is not.
+
+The second was mine: `GOAL_SLACK` is a BOX radius, and two assertions measured it as a sphere. Slack
+2 permits (2,2,2), which is 3.46 away as the crow flies. It passed on the synthetic fixtures because
+the answer there was always on an axis.
+
+#### What the island tests actually assert
+
+- **Every route it returns is legal** — every waypoint passable, every LEG clear, over 60 sampled
+  pairs. Then the same again through `simplify` and `loosen`, because what the autopilot flies is
+  the composition and each stage can undo the last one's care.
+- **Places that are connected always get a route.** The hard direction, and the one that flies you
+  into terrain when it fails. A flood finds what is GENUINELY connected under the router's own
+  predicate — including its corner rule, or the flood claims a connectivity the route cannot deliver
+  and the test blames the wrong thing — and then a route is demanded between pairs of it.
+- **A chest-sized target in the geometry is still reachable**, sampled from real solid cells rather
+  than from a chest I placed for the purpose.
+- **A standoff can see its work**, on real surfaces, within the reach budget; most are roomy and the
+  tight ones are the tunnels, which are real.
+- **Walking routes never float**, and **escape always makes progress or admits it cannot**.
+- **No single search hitches the client**, measured where the frontier meets real geometry rather
+  than an empty box.
+
 ## The daily loop
 
 ```bash
@@ -2504,6 +2562,7 @@ design without regenerating it.
 | `heron.py`, `bat.py` | in `gen/` — the two builds that play to what the medium is good at |
 | `views.py` | …and it draws slabs at half height, so half-block work is visible here |
 | `plan_merge.py` | composite designs onto a capture |
+| `export_navfixture.py` | the island's geometry as a bitmap, for the Java routing tests |
 
 `proportions.measure` and `rubric.score` are shared entry points — `stance`, `refine` and `scale` all
 call them, so a change to how something is measured cannot drift between tools.
