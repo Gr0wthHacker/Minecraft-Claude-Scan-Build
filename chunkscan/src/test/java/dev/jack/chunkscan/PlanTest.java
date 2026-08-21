@@ -664,4 +664,56 @@ class PlanTest {
 		assertTrue(Hud.STANDOFF + Autopilot.ARRIVED <= 5.0,
 			"standing off plus stopping short puts the bin out of reach");
 	}
+
+	// ---------------------------------------------------------------- only what can be built NOW
+
+	@Test
+	void aClusterKeepsTheCellsItCannotBuildOutOfWhatItPointsAt() {
+		// Reported from a real session: "it's highlighting chunks to build on that aren't possible
+		// to be built on yet". A station picked over EVERY cell left in a spot can be made entirely
+		// of cells with nothing to place against — you get flown to a bin of mid-air, the printer
+		// places none of it, and twenty seconds later the loop moves to the next bin of mid-air.
+		List<Work.Cell> todo = blob(0, 100, 0, 20, "stone_bricks");
+		Set<Long> floating = new HashSet<>();
+		for (int i = 0; i < 12; i++) floating.add(todo.get(i).pos().asLong());
+
+		List<Plan.Cluster> cl = Plan.clusters(todo, carrying("stone_bricks", 640), floating,
+			Set.of(), BlockPos.ZERO);
+		assertFalse(cl.isEmpty());
+		Plan.Cluster c = cl.get(0);
+		assertEquals(20, c.cells().size(), "the unbuildable cells are still work left here");
+		assertEquals(8, c.ready().size(), "ready must be what you can place NOW");
+		for (Work.Cell x : c.ready()) {
+			assertFalse(floating.contains(x.pos().asLong()), "offered a cell with nothing to build on");
+		}
+	}
+
+	@Test
+	void aSpotOfNothingButFloatingCellsIsNotWork() {
+		List<Work.Cell> todo = blob(0, 100, 0, 20, "stone_bricks");
+		Set<Long> all = new HashSet<>();
+		for (Work.Cell c : todo) all.add(c.pos().asLong());
+		List<Plan.Cluster> cl = Plan.clusters(todo, carrying("stone_bricks", 640), all, Set.of(),
+			BlockPos.ZERO);
+		assertFalse(Plan.anyDoable(cl), "offered a spot where nothing can be placed");
+		for (Plan.Cluster c : cl) {
+			assertTrue(c.ready().isEmpty());
+			assertNull(Plan.station(c.ready(), Plan.PRINTER_REACH, BlockPos.ZERO, Set.of()),
+				"found somewhere to stand for cells that cannot be built");
+		}
+	}
+
+	@Test
+	void doableCountsTheReadyCellsAndNotTheRest() {
+		// It was cells - blocked - sealed - short, which is the same number by a different route and
+		// stopped being so the moment `ready` had to be a LIST. One source, so the count the player
+		// is told and the cells they are sent to cannot disagree.
+		List<Work.Cell> todo = blob(0, 100, 0, 20, "stone_bricks");
+		Set<Long> floating = new HashSet<>();
+		for (int i = 0; i < 5; i++) floating.add(todo.get(i).pos().asLong());
+		Plan.Cluster c = Plan.clusters(todo, carrying("stone_bricks", 8), floating, Set.of(),
+			BlockPos.ZERO).get(0);
+		assertEquals(Math.max(0, c.ready().size() - c.shortBy()), c.doable());
+		assertTrue(c.doable() <= c.ready().size(), "promised more than it has cells for");
+	}
 }

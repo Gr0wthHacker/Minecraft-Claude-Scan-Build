@@ -47,8 +47,19 @@ final class Plan {
 	/** More than this and the report is a list to read rather than a plan to follow. */
 	static final int MAX_CLUSTERS = 6;
 
-	record Cluster(BlockPos centre, List<Work.Cell> cells, Map<String, Integer> materials,
-	               int blocked, int sealed, int shortBy) {
+	/**
+	 * A place worth going to.
+	 *
+	 * @param cells every cell of the design in reach of one standing spot — including the ones that
+	 *              cannot be built yet, because they are still part of what is left here
+	 * @param ready the subset you could actually place: not floating, not sealed in. <b>This is what
+	 *              anything pointing a player at the work must use.</b> The two were the same list
+	 *              once and the loop marked out whole bins of cells with nothing to place against,
+	 *              sent you to stand at them, and waited twenty seconds for a printer that was never
+	 *              going to place a block in mid-air.
+	 */
+	record Cluster(BlockPos centre, List<Work.Cell> cells, List<Work.Cell> ready,
+	               Map<String, Integer> materials, int blocked, int sealed, int shortBy) {
 		int size() {
 			return cells.size();
 		}
@@ -62,7 +73,7 @@ final class Plan {
 		 * stand in front of something you cannot build.
 		 */
 		int doable() {
-			return Math.max(0, cells.size() - blocked - sealed - shortBy);
+			return Math.max(0, ready.size() - shortBy);
 		}
 	}
 
@@ -172,12 +183,14 @@ final class Plan {
 				shortBy += e.getValue() - use;
 			}
 			int blocked = 0, sealed = 0;
+			List<Work.Cell> ready = new ArrayList<>();
 			for (Work.Cell c : group) {
 				long k = c.pos().asLong();
 				if (blockedCells.contains(k)) blocked++;
 				else if (sealedCells.contains(k)) sealed++;   // one reason each, never counted twice
+				else ready.add(c);
 			}
-			out.add(new Cluster(centre, group, want, blocked, sealed, shortBy));
+			out.add(new Cluster(centre, group, ready, want, blocked, sealed, shortBy));
 		}
 		// Report by what you can actually DO there, not by how many cells happen to be nearby.
 		out.sort(Comparator.<Cluster>comparingInt(Cluster::doable).reversed()

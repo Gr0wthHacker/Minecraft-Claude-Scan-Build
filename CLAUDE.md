@@ -2546,6 +2546,57 @@ quietly leaves it half-standing.
 `/cscan follow` now says when autofly is OFF. `follow` points and `autofly` moves; starting
 half-armed looks exactly like the loop being broken.
 
+### The first flight of the new loop: flight revoked over the void (2026-08-20)
+
+Jack ran it and it *"turned off fly and almost fell into the void and lost everything"*. That is the
+worst thing this mod has done and it was caused by a change made in this session for a reason that
+looked sound.
+
+**`SPEED` 0.35 -> 0.75 was wrong, and the reasoning behind it was the problem.** The argument was
+"vanilla sprint-flight is about 1.0, so no faster than a player can go is a defensible ceiling".
+Defensible against what a PLAYER can do is not the same as defensible against what THIS SERVER
+checks — and the first flight at 0.75 had the server revoke flight in mid-air. 0.35 had run for
+sessions without tripping it. **Back to 0.35, `MAX_SPEED` 0.60, and the dial warns past 0.45.**
+The constant now records why it is what it is, because the next person to think it is timid needs to
+know it was measured rather than guessed.
+
+**And the walking code turned a revocation into a near-disaster.** Written to keep the loop working
+indoors, it had no notion that the ground might not be there: flight went away, `flying` read false,
+and it carried on driving horizontally — falling with a heading.
+
+#### Jack's rule, which is better than the one I wrote
+
+*"It should never lose fly when its building, only if its fetching from a safe container."*
+
+Where the loop BUILDS is by definition out over the work: the belly of the island, the underside of
+the plate, a lowland eighty blocks down. On foot, all of those are the air over the void. Where it
+FETCHES is a container somebody walked to and placed, which is a floor. So:
+
+- **On foot the only destination it will steer to is a FETCH**, and only with ground under it.
+  Anything else and it takes its hands off and says why. A stalled loop costs an hour; the
+  alternative cost an inventory.
+- **Losing flight while off the ground is an EMERGENCY, not a mode change.** Hands off, say so where
+  it cannot be missed, and disarm — resuming automatically into whatever revoked it is how you lose
+  the inventory the second time as well.
+- **Falling with nothing below means autofly does nothing at all.** Steering a fall is never an
+  improvement on letting the player take it.
+
+### It highlighted cells that cannot be built yet (2026-08-20)
+
+Same session, same root: `Plan.station` was picked over EVERY cell left in a spot, and a spot's cells
+include the ones with nothing to place against. So a station could be made entirely of mid-air: you
+are flown to it, the printer places none of it, and twenty seconds later the loop moves to the next
+bin of mid-air. That is also most of "it got stuck immediately".
+
+`Cluster` carries `ready` now — the cells that are not floating and not sealed in — and everything
+that POINTS A PLAYER AT THE WORK uses it: the station, the highlight, the count. `cells` stays as
+what is left in the region, because those cells are real work; they are just not this pass's work,
+and their supports have to go in first.
+
+`doable()` is derived from `ready` rather than computed as `cells - blocked - sealed - short`. Same
+number by a different route, which is exactly how the count you are told and the cells you are sent
+to drift apart.
+
 ## The daily loop
 
 ```bash

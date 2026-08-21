@@ -173,4 +173,29 @@ class AutopilotTest {
 		assertTrue(Autopilot.ARRIVED_SOLID > Autopilot.ARRIVED,
 			"a block cannot be flown into: it needs a looser radius than an open-air waypoint");
 	}
+
+	// ---------------------------------------------------------------- the void
+
+	@Test
+	void theSpeedIsBackUnderWhatTheServerRevokedFlightFor() {
+		// NOT a preference. At 0.75 the server took flight away in mid-air, over the void, with a
+		// full inventory. 0.35 had run for sessions without tripping whatever the check measures.
+		assertTrue(Autopilot.SPEED <= 0.35, "faster than the speed that has never tripped the server");
+		assertTrue(Autopilot.MAX_SPEED <= 0.6, "the dial can still be turned up past what cost an inventory");
+		assertTrue(Autopilot.RISKY_SPEED < Autopilot.MAX_SPEED, "the warning can never fire");
+	}
+
+	@Test
+	void buildingRequiresFlightAndOnlyAFetchMayWalk() throws IOException {
+		// Jack's rule, and a better one than "walk whenever you cannot fly": where the loop BUILDS
+		// is out over the work — the belly, the underside of the plate, a lowland eighty blocks
+		// down — and on foot that is the air over the void. Where it FETCHES is a container somebody
+		// walked to, which is a floor.
+		String src = source();
+		assertTrue(src.contains("if (!Hud.fetching())"),
+			"walking is no longer gated on the trip being a fetch");
+		assertTrue(src.contains("groundBelow"), "walking no longer checks there is a floor");
+		assertTrue(src.contains("wasFlying && !flying"),
+			"losing flight in mid-air is no longer treated as an emergency");
+	}
 }

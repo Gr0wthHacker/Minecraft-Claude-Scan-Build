@@ -195,6 +195,11 @@ public final class ChunkScanClient implements ClientModInitializer {
 								ok(ctx.getSource(), "autofly speed " + String.format("%.2f", got)
 									+ " blocks/tick (" + String.format("%.1f", got * 20)
 									+ " blocks/s)");
+								if (got > Autopilot.RISKY_SPEED) {
+									ok(ctx.getSource(), "careful: at 0.75 this server revoked"
+										+ " flight in mid-air over the void. 0.35 has never"
+										+ " tripped it.");
+								}
 								return 1; }))))
 				.then(literal("fetch")
 					.executes(ctx -> {
@@ -713,7 +718,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 			Map<String, Integer> want = Work.tally(sp.todo());
 			// A synthetic cluster standing for the WHOLE remaining design:  costs the
 			// session, not one spot, so no gate applies and every count is zero.
-			Plan.Cluster all = new Plan.Cluster(me, sp.todo(), want, 0, 0, 0);
+			Plan.Cluster all = new Plan.Cluster(me, sp.todo(), sp.todo(), want, 0, 0, 0);
 			List<Plan.Restock> need = Plan.restockTargets(all, carrying, index, me);
 			if (need.isEmpty()) {
 				ok(src, "you are carrying everything " + sp.name() + " still needs");

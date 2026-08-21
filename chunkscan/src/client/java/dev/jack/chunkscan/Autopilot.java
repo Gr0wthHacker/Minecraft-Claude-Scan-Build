@@ -37,23 +37,32 @@ import net.minecraft.world.phys.Vec3;
  */
 final class Autopilot {
 	/**
-	 * Blocks per tick. Vanilla creative flight is about 0.4 and sprint-flight roughly 1.0.
+	 * Blocks per tick.
 	 *
-	 * <p>Was 0.35 — under a plain creative fly, which on a 240-block island is a long time watching
-	 * yourself travel. 0.75 is a brisk sprint-fly and still under what a player holding sprint does.
-	 * Everything that makes speed safe is a function of it rather than a constant beside it: the
+	 * <p><b>Back to 0.35, and this is a safety limit rather than a preference.</b> It was raised to
+	 * 0.75 on the reasoning that vanilla sprint-flight is about 1.0 and "no faster than a player can
+	 * go" is a defensible bound. On skyblock.net it is not: the first flight at 0.75 had the
+	 * SERVER REVOKE FLIGHT in the air, over the void, with a full inventory. Whatever the server's
+	 * check actually measures, 0.35 had run for sessions without tripping it and 0.75 tripped it
+	 * immediately.
+	 *
+	 * <p>The dial is still there — {@code /cscan autofly speed} — and it warns past
+	 * {@link #RISKY_SPEED}, because the cost of being wrong about this is not a slow trip.
+	 *
+	 * <p>Everything that makes speed safe is a function of it rather than a constant beside it: the
 	 * waypoint radius, the approach taper and the corner crawl all scale, or going faster just means
 	 * missing every turn.
 	 */
-	static final double SPEED = 0.75;
+	static final double SPEED = 0.35;
 	/** Slowest worth having: below this you are watching a progress bar. */
 	static final double MIN_SPEED = 0.10;
 	/**
-	 * Fastest allowed. Vanilla sprint-flight is about 1.0 and the cap is deliberately AT it rather
-	 * than above: this is movement automation on a live server, and "no faster than a player can
-	 * actually go" is the one bound that is defensible without knowing the server's rules.
+	 * Fastest that can be asked for. 0.60 rather than 1.0: the theory that a player's own sprint
+	 * speed is a safe ceiling was tested on the live server and lost.
 	 */
-	static final double MAX_SPEED = 1.0;
+	static final double MAX_SPEED = 0.60;
+	/** Past this the dial says what happened last time. */
+	static final double RISKY_SPEED = 0.45;
 
 	private static double speed = SPEED;
 
@@ -114,6 +123,15 @@ final class Autopilot {
 	private static boolean routedFlying = false;
 	/** Is the current path a way AROUND something rather than a way to the goal? For the HUD. */
 	private static boolean escaping = false;
+	/**
+	 * Were we flying last tick?
+	 *
+	 * <p>A true -> false while off the ground is the server taking flight away mid-air, which on
+	 * this island is mid-VOID. It is an emergency rather than a mode change — see tick().
+	 */
+	private static boolean wasFlying = false;
+	/** Said once: we are hands-off because you are falling. */
+	private static boolean warnedFalling = false;
 	/**
 	 * A hard floor on how often a search may run, whatever else asks for one.
 	 *
@@ -195,6 +213,9 @@ final class Autopilot {
 	static String stalledBecause(Minecraft mc) {
 		if (!on) return null;
 		if (mc.player == null) return null;
+		if (!mc.player.getAbilities().flying && !Hud.fetching()) {
+			return "flight is off and building needs it";
+		}
 		// A CONTAINER screen, not any screen. Chat, the map and the pause menu do not stop it — see
 		// the note on tick(). Only a chest does, and only because flying away from one mid-withdrawal
 		// is the one case where carrying on is actively wrong.
@@ -220,6 +241,8 @@ final class Autopilot {
 		warnedNoRoute = false;
 		idleSaid = false;
 		announcedArrival = false;
+		warnedFalling = false;
+		wasFlying = false;
 		on = v;
 		path = new java.util.ArrayList<>();
 		pathTo = null;
@@ -281,11 +304,28 @@ final class Autopilot {
 			return;
 		}
 
-		// ON FOOT IS NOT A STALL. It used to warn and return here, so any destination reached by
-		// walking — which on this island means anything indoors, where the loop routes you through a
-		// doorway and then has no flight to finish with — simply stopped. It walks instead; see
-		// walk() for the difference that makes to the ROUTE as well as to the steering.
 		boolean flying = p.getAbilities().flying;
+
+		// ---- FLIGHT REVOKED. The server can take flight away mid-air — anticheat, a permission
+		// change, a plugin — and on this island mid-air is over the VOID. The first flight at the
+		// raised speed had exactly this happen, and the walking code below then kept driving the
+		// player sideways while falling, which is the worst thing this mod could possibly do.
+		//
+		// So: losing flight while off the ground is not a mode change, it is an emergency. Hands
+		// off completely, say so where it cannot be missed, and disarm — resuming automatically
+		// into whatever revoked it is how you lose the inventory the second time as well.
+		if (wasFlying && !flying && !p.onGround()) {
+			wasFlying = false;
+			p.sendSystemMessage(Component.literal("[cscan] FLIGHT WAS REVOKED IN THE AIR — autofly"
+				+ " OFF, you have control. Get to ground before anything else."));
+			halt(mc);
+			return;
+		}
+		wasFlying = flying;
+
+		// ON FOOT IS NOT A STALL — for a FETCH. It used to warn and do nothing here, so any
+		// destination reached by walking simply stopped; it walks instead. But only to a container:
+		// see walk(), where the rule and the reason for it are written down.
 
 		// ---- ROUTE. Recomputed on a timer and whenever the destination moves, because the world
 		// loads in around you and the plan's target changes as you build.
@@ -385,7 +425,7 @@ final class Autopilot {
 			if (path.isEmpty()) step = unstick(mc, p, step);
 			p.setDeltaMovement(step);
 		} else {
-			walk(p, dir, aim, speed);
+			walk(mc, p, dir, aim, speed);
 		}
 	}
 
@@ -435,7 +475,35 @@ final class Autopilot {
 	 *       server, so it is gated on {@code onGround()}.</li>
 	 * </ul>
 	 */
-	private static void walk(LocalPlayer p, Vec3 dir, Vec3 aim, double speed) {
+	private static void walk(Minecraft mc, LocalPlayer p, Vec3 dir, Vec3 aim, double speed) {
+		// ---- BUILDING REQUIRES FLIGHT; WALKING IS ONLY EVER A FETCH.
+		//
+		// Jack's rule, and it is a better one than "walk whenever you cannot fly". Where the loop
+		// BUILDS is by definition out over the work — the belly of the island, the underside of the
+		// plate, a lowland eighty blocks down — and every one of those is a place where being on
+		// foot means being in the air over the void. Where it FETCHES is a container somebody
+		// walked to and placed, which is a floor.
+		//
+		// So on foot the only destination it will steer to is a fetch, and only with ground under
+		// it. Anything else and it takes its hands off and says why: a stalled loop costs an hour,
+		// and the alternative cost an inventory.
+		if (!Hud.fetching()) {
+			if (!warnedFalling) {
+				warnedFalling = true;
+				p.sendSystemMessage(Component.literal("[cscan] flight is off, and building needs it"
+					+ " — autofly is holding. /fly, then double-tap jump."));
+			}
+			return;
+		}
+		if (!p.onGround() && !groundBelow(mc, p, VOID_LOOK)) {
+			if (!warnedFalling) {
+				warnedFalling = true;
+				p.sendSystemMessage(Component.literal("[cscan] you are falling with nothing below —"
+					+ " autofly is keeping its hands off. /fly, or find a floor."));
+			}
+			return;
+		}
+		warnedFalling = false;
 		Vec3 flat = new Vec3(dir.x, 0, dir.z);
 		if (flat.lengthSqr() < 1.0e-6) {
 			// Straight up or straight down: no heading to walk in. Jump if the way out is upward,
@@ -467,6 +535,18 @@ final class Autopilot {
 		if (!pathTo.equals(target)) return true;               // it moved
 		if (routedFlying != flying) return true;               // you took off, or landed
 		return repathIn <= 0;                                  // the timer
+	}
+
+	/** How far down we look for a floor before calling it a fall. */
+	static final int VOID_LOOK = 6;
+
+	/** Is there anything to land on within `depth` blocks? */
+	private static boolean groundBelow(Minecraft mc, LocalPlayer p, int depth) {
+		for (int d = 1; d <= depth; d++) {
+			if (mc.level.getBlockState(BlockPos.containing(p.getX(), p.getY() - d, p.getZ()))
+				.blocksMotion()) return true;
+		}
+		return false;
 	}
 
 	/** Shortest-way-round easing between two angles. */

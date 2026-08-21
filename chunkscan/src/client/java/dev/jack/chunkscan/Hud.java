@@ -366,12 +366,16 @@ final class Hud {
 	 */
 	private static void stand(Minecraft mc, Plan.Cluster spot, BlockPos me, int spotsInPlan) {
 		long now = System.currentTimeMillis();
-		Plan.Station st = Plan.station(spot.cells(), Plan.PRINTER_REACH, me, stationsTried);
+		// READY, NOT CELLS. A station picked over everything left here can be made entirely of cells
+		// with nothing to place against — you get flown to a bin of mid-air, the printer places none
+		// of it, and twenty seconds later the loop moves to the next bin of mid-air. Those cells are
+		// real work and they are not THIS pass's work: their supports have to go in first.
+		Plan.Station st = Plan.station(spot.ready(), Plan.PRINTER_REACH, me, stationsTried);
 		if (st == null) {
 			// Every bin here has been tried. Start again rather than stranding the spot: the world
 			// has moved since, and the alternative is a spot that can never be worked.
 			stationsTried.clear();
-			st = Plan.station(spot.cells(), Plan.PRINTER_REACH, me, stationsTried);
+			st = Plan.station(spot.ready(), Plan.PRINTER_REACH, me, stationsTried);
 			if (st == null) return;
 			// ...and give the re-offered bin a FRESH clock. Without this it kept the timestamp from
 			// the round that abandoned it, so it stalled again on the very next recount and the spot
@@ -381,7 +385,7 @@ final class Hud {
 		}
 
 		// ---- the per-station stall, measured on this station's OWN cell count
-		java.util.List<Work.Cell> here = Plan.atStation(spot.cells(), st, Plan.PRINTER_REACH);
+		java.util.List<Work.Cell> here = Plan.atStation(spot.ready(), st, Plan.PRINTER_REACH);
 		if (st.bin() == stationBin) {
 			if (stationTodo >= 0 && here.size() < stationTodo) {
 				stationSince = now;
