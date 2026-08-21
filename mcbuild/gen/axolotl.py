@@ -184,9 +184,18 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
         dx, dz = stations[j][0] - sx, stations[j][1] - sz
         nrm = math.hypot(dx, dz) or 1.0
         nx, nz = -dz / nrm, dx / nrm                   # plan normal to the spine
+        # the SKULL is a wide flat U, nearly rectangular in section - a rounded superellipse
+        # there reads as a blob head-on, which is exactly what the face review said. Exponent 8
+        # holds the top flat almost to the cheeks; the barrel eases back to a rounded 2.6.
+        if t < 0.20:
+            n_sec = 8.0
+        elif t < 0.32:
+            n_sec = 2.6 + 5.4 * (0.32 - t) / 0.12
+        else:
+            n_sec = 2.6
         u = -hw
         while u <= hw:
-            span = (1.0 - abs(u / hw) ** 2.6) ** (1 / 2.6) if hw > 0 else 0
+            span = (1.0 - abs(u / hw) ** n_sec) ** (1 / n_sec) if hw > 0 else 0
             top = hh * span
             v = 0.0
             while v <= top:
@@ -253,7 +262,7 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
 
     # ---- gills: three planar fronds a side, ROOTED inside the skull and grown outward.
     # Anything clinging is anchored to the built surface - the detached-ossicone rule.
-    gi = min(range(len(stations)), key=lambda j: abs(stations[j][2] - 0.19))
+    gi = min(range(len(stations)), key=lambda j: abs(stations[j][2] - 0.21))
     sx, sz, _ = stations[gi]
     j = min(gi + 1, len(stations) - 1)
     dx, dz = stations[j][0] - sx, stations[j][1] - sz
@@ -297,28 +306,31 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
             fronds += 1
 
     # ---- eyes: ONE dark bead each side, every solid neighbour forced pale - the bar-eye and
-    # the eye-lost-in-the-coat failures both live in the animals file
-    ei = min(range(len(stations)), key=lambda j: abs(stations[j][2] - 0.10))
+    # the eye-lost-in-the-coat failures both live in the animals file. The bead goes on the
+    # FRONT-TOP CORNER of the face and must have an exposed front or top face: a cell one step
+    # back is anatomically fine and invisible from exactly the view a face is for.
+    ei = min(range(len(stations)), key=lambda j: abs(stations[j][2] - 0.07))
     ex, ez, _ = stations[ei]
+    ffx, ffz = stations[0][0] - stations[1][0], stations[0][1] - stations[1][1]
+    ffn = math.hypot(ffx, ffz) or 1.0
+    ffx, ffz = ffx / ffn, ffz / ffn                    # out of the face, in plan
     eyes = 0
-    hw = _half_width(0.10, W2 * 2.0)
+    hw = _half_width(0.07, W2 * 2.0)
     for side in (-1, 1):
-        tx = int(round(ex + nx * side * (hw - 0.4)))
-        tz = int(round(ez + nz * side * (hw - 0.4)))
-        ty = int(round(belly[ei] + _height(0.10, H) - 1.0))
-        spot = None
-        for ddy in (0, -1, 1):
-            for ddx in range(-1, 2):
-                for ddz in range(-1, 2):
-                    if (tx + ddx, ty + ddy, tz + ddz) in body_cells:
-                        spot = (tx + ddx, ty + ddy, tz + ddz)
-                        break
-                if spot:
-                    break
-            if spot:
-                break
-        if not spot:
+        tx = ex + nx * side * (hw - 0.4)
+        tz = ez + nz * side * (hw - 0.4)
+        ty = int(round(belly[ei] + _height(0.07, H) - 1.0))
+        cands = [c for c in body_cells
+                 if abs(c[1] - ty) <= 1 and math.hypot(c[0] - tx, c[2] - tz) <= 2.2]
+
+        def exposed(c):
+            front = (int(round(c[0] + ffx)), c[1], int(round(c[2] + ffz)))
+            return front not in body_cells or (c[0], c[1] + 1, c[2]) not in body_cells
+
+        cands = [c for c in cands if exposed(c)]
+        if not cands:
             continue
+        spot = max(cands, key=lambda c: (c[0] - ex) * ffx + (c[2] - ez) * ffz + 0.25 * c[1])
         w.put(*spot, p["eye"])
         eyes += 1
         for ddx, ddy, ddz in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, 1, 0)):
@@ -337,7 +349,7 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
     mouth_y = int(round(belly[im] + 1.6))
     cand = []
     for (x, y, z) in body_cells:
-        if y != mouth_y or math.hypot(x - nosex, z - nosez) > 3.8:
+        if y != mouth_y or math.hypot(x - nosex, z - nosez) > 4.5:
             continue
         outward = (int(round(x + fx_ * 1.2)), y, int(round(z + fz_ * 1.2)))
         if outward not in body_cells:                  # a front-facing surface cell
