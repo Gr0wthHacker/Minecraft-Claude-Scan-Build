@@ -37,32 +37,33 @@ import net.minecraft.world.phys.Vec3;
  */
 final class Autopilot {
 	/**
-	 * Blocks per tick.
+	 * Blocks per tick. Vanilla creative flight is about 0.4 and sprint-flight roughly 1.0.
 	 *
-	 * <p><b>Back to 0.35, and this is a safety limit rather than a preference.</b> It was raised to
-	 * 0.75 on the reasoning that vanilla sprint-flight is about 1.0 and "no faster than a player can
-	 * go" is a defensible bound. On skyblock.net it is not: the first flight at 0.75 had the
-	 * SERVER REVOKE FLIGHT in the air, over the void, with a full inventory. Whatever the server's
-	 * check actually measures, 0.35 had run for sessions without tripping it and 0.75 tripped it
-	 * immediately.
+	 * <p><b>This was dropped to 0.35 for a reason that turned out to be wrong.</b> Flight was lost
+	 * in mid-air on the first real run and speed was the obvious suspect — it had just been raised.
+	 * It was not: Jack watched it happen and it LANDED. On a server where flight is granted by a
+	 * plugin, touching the ground ends it, and everything after that followed from being on foot
+	 * somewhere only a flying player should be.
 	 *
-	 * <p>The dial is still there — {@code /cscan autofly speed} — and it warns past
-	 * {@link #RISKY_SPEED}, because the cost of being wrong about this is not a slow trip.
+	 * <p>So the speed is back, and the fix is {@link #keepAirborne}: never touch down at all. The
+	 * lesson is the diagnosis, not the number — the first plausible cause was a change I had just
+	 * made, which is exactly the kind of suspect that gets convicted without evidence.
 	 *
 	 * <p>Everything that makes speed safe is a function of it rather than a constant beside it: the
 	 * waypoint radius, the approach taper and the corner crawl all scale, or going faster just means
 	 * missing every turn.
 	 */
-	static final double SPEED = 0.35;
+	static final double SPEED = 0.75;
 	/** Slowest worth having: below this you are watching a progress bar. */
 	static final double MIN_SPEED = 0.10;
 	/**
-	 * Fastest that can be asked for. 0.60 rather than 1.0: the theory that a player's own sprint
-	 * speed is a safe ceiling was tested on the live server and lost.
+	 * Fastest that can be asked for. Vanilla sprint-flight is about 1.0, and this is movement
+	 * automation on a live server: "no faster than a player can actually go" is the one bound that
+	 * is defensible without knowing the server's rules.
 	 */
-	static final double MAX_SPEED = 0.60;
-	/** Past this the dial says what happened last time. */
-	static final double RISKY_SPEED = 0.45;
+	static final double MAX_SPEED = 1.0;
+	/** Past this the dial says that this is a server nobody has measured. */
+	static final double RISKY_SPEED = 0.80;
 
 	private static double speed = SPEED;
 
@@ -423,7 +424,7 @@ final class Autopilot {
 			// Only ever applied to the DIRECT guess. A real route is already clear, and second-
 			// guessing it here is how you fight your own pathfinder at a doorway.
 			if (path.isEmpty()) step = unstick(mc, p, step);
-			p.setDeltaMovement(step);
+			p.setDeltaMovement(keepAirborne(mc, p, step));
 		} else {
 			walk(mc, p, dir, aim, speed);
 		}
@@ -539,6 +540,54 @@ final class Autopilot {
 
 	/** How far down we look for a floor before calling it a fall. */
 	static final int VOID_LOOK = 6;
+	/**
+	 * How much air to keep under you while flying.
+	 *
+	 * <p><b>THE WHOLE REASON FLIGHT WAS LOST.</b> On a server where flight is a plugin grant rather
+	 * than creative mode, TOUCHING THE GROUND ENDS IT — and the autopilot happily flew down onto a
+	 * block, because the destination it was given was a standing spot beside the work and nothing
+	 * said it had to stay off the floor. It landed, flight went, and the loop was on foot in a place
+	 * only a flying player has any business being.
+	 *
+	 * <p>A block and a half is enough that a slab, a stair or a lip cannot catch a foot, and small
+	 * enough that a station a course above the floor is still well inside the printer's reach.
+	 */
+	static final double GROUND_CLEAR = 1.5;
+	/** How briskly to climb off a floor it has got too close to. */
+	static final double RISE = 0.18;
+
+	/**
+	 * Never touch down.
+	 *
+	 * <p>Applied to the flying step only, and it does two things: it refuses to DESCEND inside the
+	 * clearance, and it climbs when already at or under it. Both are needed — the first stops you
+	 * arriving at a floor, the second gets you off one you have already met, including the case
+	 * where the ground came up to you because the terrain rose.
+	 */
+	private static Vec3 keepAirborne(Minecraft mc, LocalPlayer p, Vec3 step) {
+		// ...unless there is a ceiling. Indoors — the store hall, the entrance, the undercroft — a
+		// room can be two courses high, and forcing a climb there just grinds you along the ceiling.
+		// Landing on a floor inside a building is not the failure this guards against: that failure
+		// is landing on the deck with the void one step away.
+		boolean headroom = !mc.level.getBlockState(
+			BlockPos.containing(p.getX(), p.getY() + 2.6, p.getZ())).blocksMotion();
+		if (p.onGround()) return headroom ? new Vec3(step.x, RISE, step.z) : step;
+		double air = clearanceBelow(mc, p, (int) Math.ceil(GROUND_CLEAR) + 1);
+		if (air > GROUND_CLEAR) return step;
+		double lift = headroom && air < GROUND_CLEAR * 0.6 ? RISE : 0.0;
+		return new Vec3(step.x, Math.max(step.y, lift), step.z);
+	}
+
+	/** Distance to the first thing under the player, or `depth` if there is nothing that close. */
+	private static double clearanceBelow(Minecraft mc, LocalPlayer p, int depth) {
+		for (int d = 0; d <= depth; d++) {
+			BlockPos b = BlockPos.containing(p.getX(), p.getY() - 0.1 - d, p.getZ());
+			if (mc.level.getBlockState(b).blocksMotion()) {
+				return Math.max(0, p.getY() - (b.getY() + 1.0));
+			}
+		}
+		return depth;
+	}
 
 	/** Is there anything to land on within `depth` blocks? */
 	private static boolean groundBelow(Minecraft mc, LocalPlayer p, int depth) {

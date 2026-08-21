@@ -196,9 +196,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 									+ " blocks/tick (" + String.format("%.1f", got * 20)
 									+ " blocks/s)");
 								if (got > Autopilot.RISKY_SPEED) {
-									ok(ctx.getSource(), "careful: at 0.75 this server revoked"
-										+ " flight in mid-air over the void. 0.35 has never"
-										+ " tripped it.");
+									ok(ctx.getSource(), "careful: past a player's own sprint-fly,"
+										+ " which is the only speed anyone here has evidence"
+										+ " about.");
 								}
 								return 1; }))))
 				.then(literal("fetch")

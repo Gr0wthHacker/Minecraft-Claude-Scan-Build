@@ -177,11 +177,26 @@ class AutopilotTest {
 	// ---------------------------------------------------------------- the void
 
 	@Test
-	void theSpeedIsBackUnderWhatTheServerRevokedFlightFor() {
-		// NOT a preference. At 0.75 the server took flight away in mid-air, over the void, with a
-		// full inventory. 0.35 had run for sessions without tripping whatever the check measures.
-		assertTrue(Autopilot.SPEED <= 0.35, "faster than the speed that has never tripped the server");
-		assertTrue(Autopilot.MAX_SPEED <= 0.6, "the dial can still be turned up past what cost an inventory");
+	void itNeverFliesItselfIntoTheGround() throws IOException {
+		// THE REAL CAUSE of the flight that was lost mid-session. Speed was the obvious suspect
+		// because it had just been raised, and it was innocent: it LANDED. Where flight is a plugin
+		// grant rather than creative mode, touching the ground ends it — so the fix is never to
+		// touch it, and the clearance is not optional decoration.
+		assertTrue(Autopilot.GROUND_CLEAR >= 1.0, "less than a block of air is a landing waiting");
+		assertTrue(Autopilot.RISE > 0, "it can sink onto a floor and never climb off");
+		String src = source();
+		assertTrue(src.contains("keepAirborne(mc, p, step)"),
+			"the flying step no longer goes through the no-landing clamp");
+		// The BEHAVIOUR cannot be tested without a client, so what is pinned is that the clamp is
+		// still in the flying path and still reacts to the ground. Pinning the exact line was worse
+		// than useless: it failed the moment the ceiling check was added, which was a fix.
+		assertTrue(src.contains("p.onGround()") && src.contains("RISE"),
+			"the clamp no longer does anything about touching down");
+	}
+
+	@Test
+	void theSpeedDialIsBoundedByWhatAPlayerCanDo() {
+		assertTrue(Autopilot.MAX_SPEED <= 1.0, "faster than a player sprint-flying");
 		assertTrue(Autopilot.RISKY_SPEED < Autopilot.MAX_SPEED, "the warning can never fire");
 	}
 

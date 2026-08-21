@@ -2546,40 +2546,44 @@ quietly leaves it half-standing.
 `/cscan follow` now says when autofly is OFF. `follow` points and `autofly` moves; starting
 half-armed looks exactly like the loop being broken.
 
-### The first flight of the new loop: flight revoked over the void (2026-08-20)
+### Flight was lost because it LANDED (2026-08-20)
 
-Jack ran it and it *"turned off fly and almost fell into the void and lost everything"*. That is the
-worst thing this mod has done and it was caused by a change made in this session for a reason that
-looked sound.
+Jack ran it and it *"turned off fly and almost fell into the void and lost everything"*. The worst
+thing this mod has done, and the diagnosis is worth more than the fix.
 
-**`SPEED` 0.35 -> 0.75 was wrong, and the reasoning behind it was the problem.** The argument was
-"vanilla sprint-flight is about 1.0, so no faster than a player can go is a defensible ceiling".
-Defensible against what a PLAYER can do is not the same as defensible against what THIS SERVER
-checks — and the first flight at 0.75 had the server revoke flight in mid-air. 0.35 had run for
-sessions without tripping it. **Back to 0.35, `MAX_SPEED` 0.60, and the dial warns past 0.45.**
-The constant now records why it is what it is, because the next person to think it is timid needs to
-know it was measured rather than guessed.
+**I blamed the speed, and the speed was innocent.** `SPEED` had just been raised 0.35 -> 0.75 in this
+session, so it was the obvious suspect, and I convicted it: dropped the constant, capped the dial,
+and wrote a note into this file stating as fact that *"the first flight at 0.75 had the server revoke
+flight in mid-air"*. Jack had watched it happen. **It landed on a block.** On a server where flight
+is a plugin grant rather than creative mode, touching the ground ends it — no anticheat, no speed, no
+mystery.
 
-**And the walking code turned a revocation into a near-disaster.** Written to keep the loop working
-indoors, it had no notion that the ground might not be there: flight went away, `flying` read false,
-and it carried on driving horizontally — falling with a heading.
+**A change you have just made is exactly the suspect that gets convicted without evidence**, and a
+wrong cause written down confidently is worse than no note at all: everything downstream of it is
+tuned against a fiction. The speed is back at 0.75 and the cap at 1.0.
 
-#### Jack's rule, which is better than the one I wrote
+The real fix is `keepAirborne`: the flying step never DESCENDS inside a block and a half of the
+floor, and climbs off one it has already met. Nothing had ever said the autopilot must stay off the
+ground — it was flown to a standing spot beside the work, and a standing spot is on a floor.
 
-*"It should never lose fly when its building, only if its fetching from a safe container."*
+- **Unless there is a ceiling.** Indoors a room is two courses high, and forcing a climb there grinds
+  you along the ceiling for ever. Landing on a floor inside a building is not the failure being
+  guarded against; landing on the deck with the void one step away is.
+- **The clearance is not decoration.** A block and a half clears a slab, a stair or a lip, and still
+  leaves a station a course above the floor well inside the printer's reach.
 
-Where the loop BUILDS is by definition out over the work: the belly of the island, the underside of
-the plate, a lowland eighty blocks down. On foot, all of those are the air over the void. Where it
-FETCHES is a container somebody walked to and placed, which is a floor. So:
+#### What stays, because it is right for any cause of losing flight
 
-- **On foot the only destination it will steer to is a FETCH**, and only with ground under it.
-  Anything else and it takes its hands off and says why. A stalled loop costs an hour; the
-  alternative cost an inventory.
-- **Losing flight while off the ground is an EMERGENCY, not a mode change.** Hands off, say so where
-  it cannot be missed, and disarm — resuming automatically into whatever revoked it is how you lose
-  the inventory the second time as well.
-- **Falling with nothing below means autofly does nothing at all.** Steering a fall is never an
-  improvement on letting the player take it.
+The walking rules from the first, wrong diagnosis are kept — they are what turned a lost flight into
+a near-disaster, whatever caused it. **Building requires flight; walking is only ever a fetch**, and
+only with ground under it. That is Jack's rule and it is better than "walk whenever you cannot fly":
+where the loop BUILDS is out over the work — the belly, the underside of the plate, a lowland eighty
+blocks down — and on foot every one of those is the air over the void. Where it FETCHES is a
+container somebody walked to, which is a floor.
+
+- Losing flight while off the ground is an EMERGENCY, not a mode change: hands off, say so, disarm.
+  Resuming automatically into whatever took it away is how you lose the inventory a second time.
+- Falling with nothing below and autofly does nothing at all. Steering a fall never improves it.
 
 ### It highlighted cells that cannot be built yet (2026-08-20)
 
