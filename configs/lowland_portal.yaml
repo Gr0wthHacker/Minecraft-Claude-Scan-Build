@@ -1,0 +1,37 @@
+# THE RUINED RING-GATE - the nether portal as a circle of blackstone masonry, standing in the
+# south-east skylight where players descend into the lowland.
+#
+# The site was measured, not chosen (2026-08-21, 13:10 scan): of 628 sky-open lowland columns,
+# 493 are one blob at X-24186..-24158 / Z30015..30041. At (-24171, 30025) the ring's footprint is
+# 96% open sky, covers zero lanterns, and the sightline from the pond's west bank is clear. The
+# aperture faces east-west: frontal from the pond, and the walk-through axis is the direction of
+# travel for anyone landing in the shaft. Behind it the massif crests and drops into the void, so
+# the upper aperture reads against open sky - a gate that appears to open somewhere else.
+#
+# Blackstone on purpose: the vanilla ruined-portal family, all cheap tier here, 40+ RGB off the
+# moss and 25 darker than the island's own deepslate - a FOREIGN masonry, which is what a gate
+# from elsewhere should be. Obsidian, crying obsidian and gold are expensive and stay out; the
+# portal-energy accent is cheap amethyst clusters, and the light is soul lanterns - the one cold
+# glow in a lowland of 122 warm ones.
+name: Lowland Portal
+gen: ruinring
+params:
+  under: out/lowland_planned.litematic
+  at: [-24171, 30025]
+  outer_d: 25
+  thickness: 3
+  depth: 3
+  sink: 1
+  break_arc: [20, 58]        # upper-north shoulder: upper-LEFT from the pond view, balancing
+                             # the bat rock hanging upper-right. The crown keystone survives.
+  seed: 0
+origin_lock: false           # LOUD: stands on the lowland at Y44-70, far below every lock corner
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  # the same set the generator treats as buildable-through - the player clears these first
+  context_clear: [vine, short_grass, tall_grass, fern, large_fern, moss_carpet, azalea,
+                  flowering_azalea, poppy, dandelion]
+  verify_against: out/lowland_planned.litematic
