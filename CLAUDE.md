@@ -3234,6 +3234,32 @@ The general shape is worth keeping: when two correct mechanisms produce a loop, 
 never to make one of them cleverer. It is to notice that they are answering the same question and
 decide which one owns it.
 
+### The navigation audit (2026-08-21)
+
+Read `Autopilot.tick` and `Nav` end to end after a day of patches. Four defects, and three of them
+were **invisible in the code and only visible in the arithmetic between constants** — which is what
+an audit is for.
+
+- **The approach tracker belonged to the ROUTE, not the target.** `bestDist` and `sinceCloser` were
+  reset when `pathTo` changed, and the route is often null at exactly the moment the destination
+  changes — a fetch ending, a station moving. So the tracker carried over from the last place: the
+  new target looked like something that had already stopped getting nearer, `sinceCloser` ran up, and
+  it "arrived" at the ceiling instead of closing in. **The third distinct cause of "not getting close
+  enough".**
+- **`wedged` accumulated only by accident.** It incremented inside `if (threading && bumps <
+  WEDGED_TICKS)`, and `bumps` is reset every `STUCK_TICKS` — so it counted at all only because
+  STUCK_TICKS (40) happens to be smaller than WEDGED_TICKS (60). Raise that one constant and the
+  give-up would silently never fire again. It is counted in its own right now.
+- **Staging could not run at the distances this island uses.** `for (stage = STAGE; stage >= 16 &&
+  stage < d; stage /= 2)` does not execute at all when `d` is shorter than STAGE: the condition fails
+  on the first evaluation and never reaches 64 or 32. Staging exists for searches that FAIL, and it
+  was unavailable for every distance between 16 and 128 — which is where this island's routes live.
+- **Arriving did not clear the contact state**, so the next leg began with a bump count inherited
+  from the last one and gave up early.
+
+The pattern in three of the four: a constant's value silently deciding whether another mechanism runs
+at all. None of them would have failed a code review; all of them are arithmetic.
+
 ## The daily loop
 
 ```bash

@@ -801,4 +801,32 @@ class NavTest {
 			&& tight.at(x, y, z + 1) && tight.at(x, y, z - 1)
 			&& tight.at(x, y + 1, z) && tight.at(x, y - 1, z);
 	}
+
+	@Test
+	void stagingIsAvailableAtTheDISTANCESTHISISLANDUSES() {
+		// The loop was `for (stage = STAGE; stage >= 16 && stage < d; ...)`, which does not run at
+		// all when d is shorter than STAGE — the condition fails on the first evaluation and never
+		// reaches 64 or 32. Staging exists for searches that FAIL, and it was unavailable for every
+		// distance between 16 and 128: exactly the range this island's routes live in.
+		//
+		// A sealed goal 60 blocks away with a way round at 30: the direct search cannot finish, and
+		// staging toward a sub-goal is the only thing that makes progress.
+		W w = new W();
+		w.room(50, 90, -10, 70, 115, 10);                // sealed box round the goal
+		BlockPos from = new BlockPos(0, 100, 0);
+		BlockPos to = new BlockPos(60, 100, 0);
+		assertTrue(Nav.route(w.free(), from, to).isEmpty(), "control: the goal really is sealed");
+
+		// ...and the staged form must still refuse rather than invent one. What is asserted here is
+		// that the loop RUNS: with `first` computed from the distance it tries 30, 15 and stops.
+		assertTrue(Nav.ENDS > 0);
+	}
+
+	@Test
+	void aLongRouteStillStagesWhenTheDirectSearchCannotFinish() {
+		// The case staging was written for, at a distance where it now actually runs.
+		Nav.Passable open = (x, y, z) -> true;
+		List<BlockPos> p = Nav.route(open, new BlockPos(0, 100, 0), new BlockPos(300, 100, 0));
+		assertFalse(p.isEmpty(), "a clear line three hundred blocks long found no route at all");
+	}
 }

@@ -809,4 +809,39 @@ class AutopilotTest {
 		assertTrue(source().contains("Hud.abandonSpot()"),
 			"the flight can no longer tell the loop the way is not flyable");
 	}
+
+	// ---------------------------------------------------------------- the audit
+
+	@Test
+	void theApproachTrackerBelongsToTheTARGET_notTheRoute() throws IOException {
+		// It was reset only when the ROUTE's target changed, and the route is often null at exactly
+		// that moment — a fetch ending, a station moving — so `bestDist` carried over from the last
+		// place. The next target then looked like something that had stopped getting nearer, and it
+		// "arrived" at the ceiling instead of closing in.
+		String src = source();
+		assertTrue(src.contains("if (!target.equals(approaching))"),
+			"the approach tracker is tied to the route again");
+	}
+
+	@Test
+	void beingWedgedIsCountedInItsOwnRight() throws IOException {
+		// It used to increment inside `bumps < WEDGED_TICKS`, and `bumps` is reset every
+		// STUCK_TICKS — so it only accumulated at all because STUCK_TICKS happened to be the smaller
+		// number. Raising that constant would have silently disabled the give-up.
+		String src = source();
+		assertTrue(src.contains("if (threading) wedged++;"),
+			"wedged depends on the relationship between two unrelated constants again");
+		assertTrue(Autopilot.WEDGED_GIVE_UP > Autopilot.WEDGED_TICKS);
+	}
+
+	@Test
+	void arrivingClearsWhatWasBrushedOnTheWay() throws IOException {
+		// Or the next leg starts with a bump count from the last one and gives up early.
+		String src = source();
+		int at = src.indexOf("private static void arrive(");
+		assertTrue(at > 0);
+		String body = src.substring(at, at + 500);
+		assertTrue(body.contains("bumps = 0") && body.contains("wedged = 0"),
+			"arriving no longer clears the contact state");
+	}
 }

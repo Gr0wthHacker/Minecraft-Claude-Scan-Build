@@ -267,8 +267,14 @@ final class Nav {
 		// ---- 3. STAGE. Long searches fail by exhausting a budget, not by proving anything, so
 		// getting closer and asking again is a better answer than giving up. Shortening on each try,
 		// because a sub-goal can land inside the island as easily as in front of it.
+		// STAGE OR HALF THE WAY, WHICHEVER IS SHORTER. Written `for (stage = STAGE; stage >= 16 &&
+		// stage < d; ...)`, the loop simply did not run for anything shorter than STAGE — the
+		// condition failed on the first evaluation and never got to 64 or 32. So staging, which
+		// exists for searches that fail, was unavailable for every distance between 16 and 128:
+		// exactly the range this island's routes live in.
 		double d = Math.sqrt(from.distSqr(to));
-		for (int stage = STAGE; stage >= 16 && stage < d; stage /= 2) {
+		int first = (int) Math.min(STAGE, d / 2);
+		for (int stage = first; stage >= 16; stage /= 2) {
 			if (System.nanoTime() > deadline) break;
 			List<BlockPos> staged = search(free, from, along(from, to, stage), deadline);
 			if (!staged.isEmpty()) return staged;

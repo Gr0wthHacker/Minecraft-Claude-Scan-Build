@@ -125,6 +125,8 @@ final class Autopilot {
 	/** The closest this target has been, and how long since that improved. Reset when it moves. */
 	private static double bestDist = Double.MAX_VALUE;
 	private static int sinceCloser = 0;
+	/** Which target `bestDist` is about. See tick(): it is not always the route's target. */
+	private static BlockPos approaching = null;
 
 	/**
 	 * Are we there?
@@ -768,6 +770,17 @@ final class Autopilot {
 		// the whole time, which is all the fetch needs, but visibly nosing at it.
 		// ---- HOW CLOSE DID WE ACTUALLY GET? Tracked per target, so "it stopped getting nearer" is
 		// a measurement rather than a guess about what is around it.
+		// A NEW DESTINATION HAS NEVER BEEN APPROACHED. This was only reset when the ROUTE's target
+		// changed, and the route is often null at exactly that moment — a fetch that ends, a station
+		// that moves — so `bestDist` carried over from the last place. The next target then looked
+		// like something that had stopped getting nearer, `sinceCloser` ran up, and it "arrived" at
+		// the ceiling instead of closing in. That is the "not getting close enough" half, again,
+		// from a third direction.
+		if (!target.equals(approaching)) {
+			approaching = target;
+			bestDist = Double.MAX_VALUE;
+			sinceCloser = 0;
+		}
 		if (dist < bestDist - 0.05) {
 			bestDist = dist;
 			sinceCloser = 0;
@@ -861,8 +874,14 @@ final class Autopilot {
 			//
 			// While threading, a bump means line up better and creep. Only when that has plainly not
 			// worked, after WEDGED_TICKS of it, is the passage itself the problem.
+			// Counted whenever we are threading and touching, independently of `bumps` — which is
+			// reset every STUCK_TICKS. The first version incremented this inside the
+			// `bumps < WEDGED_TICKS` branch, so it only ever accumulated because STUCK_TICKS
+			// happened to be the smaller number. Raise that constant and the give-up below would
+			// silently never fire again.
+			if (threading) wedged++;
 			if (threading && bumps < WEDGED_TICKS) {
-				wedged++;
+				// line up and creep: see the note above
 			} else if (bumps % BUMP_LOOK_EVERY == 1) {
 				Nav.Passable free = Nav.of(mc.level);
 				BlockPos here = p.blockPosition();
@@ -1543,6 +1562,8 @@ final class Autopilot {
 	/** At the target: kill the drift but stay armed for the next leg. */
 	private static void arrive(Minecraft mc) {
 		release(mc);                                   // holding jump at the destination is a climb
+		bumps = 0;                                     // whatever we brushed on the way is history
+		wedged = 0;
 		if (mc.player != null) mc.player.setDeltaMovement(Vec3.ZERO);
 		path = new java.util.ArrayList<>();
 		pathTo = null;
