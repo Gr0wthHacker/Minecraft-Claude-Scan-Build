@@ -3117,6 +3117,25 @@ So neither number is decided in advance:
 In open air it floats right up to the work. Against a wall it stops where the wall says. The
 difference between those is measured rather than guessed, which is the whole of it.
 
+### The fall safety outlives the autopilot (2026-08-21)
+
+Jack, after it happened twice: *"if we turn off auto fly because of w/e, we still need to for the
+next 30 seconds have active /is auto usage or auto fly to save falling in case its a momentum
+mistake."*
+
+**Switching off is the most dangerous moment, not the safest.** Whatever the reason — the emergency
+disarm, a `/cscan stop`, flight revoked in mid-air — the body keeps whatever velocity it had, and the
+one thing that was watching for a fall has just stopped.
+
+The rescue is the part with no business being tied to whether the loop is driving. It does not steer,
+it does not build; it notices a fall and does something about it. So it now runs for
+{@code GUARD_MS} = 30s after autofly goes off, and the tests pin BOTH halves: that it still runs, and
+that it steers nothing while it does.
+
+Thirty seconds covers the arc of any fall this island can produce, and is short enough that it is not
+quietly on for ever — which would make it a mode rather than a safety. `/cscan why` and the
+mid-air-revocation message both say how long is left.
+
 ## The daily loop
 
 ```bash

@@ -165,6 +165,35 @@ final class Autopilot {
 	static final float TURN_RATE = 0.18f;
 
 	private static boolean on = false;
+	/**
+	 * The fall safety outlives the autopilot.
+	 *
+	 * <p>Jack, twice now: <i>"if we turn off auto fly because of w/e, we still need to for the next
+	 * 30 seconds have active /is auto usage or auto fly to save falling in case its a momentum
+	 * mistake."</i>
+	 *
+	 * <p>Switching off is the MOST dangerous moment, not the safest. Whatever the reason — the
+	 * emergency disarm, a stop, flight revoked in mid-air — the body keeps whatever velocity it had
+	 * and there is now nothing watching it. The rescue is the one part that has no business being
+	 * tied to whether the loop is driving: it does not steer, it does not build, it only notices a
+	 * fall and does something about it.
+	 *
+	 * <p>Thirty seconds is long enough to cover the arc of any fall this island can produce and
+	 * short enough that it is not quietly on for ever.
+	 */
+	static final long GUARD_MS = 30_000;
+
+	private static long guardUntil = 0;
+
+	/** Is the fall safety still watching, though the autopilot is off? */
+	static boolean guarding(long now, long until) {
+		return now < until;
+	}
+
+	/** For `/cscan why`: seconds of fall cover left, or 0. */
+	static long guardLeft() {
+		return Math.max(0, (guardUntil - System.currentTimeMillis()) / 1000);
+	}
 	private static boolean warnedNoRoute = false;
 	private static boolean idleSaid = false;
 	private static boolean announcedArrival = false;
@@ -275,6 +304,7 @@ final class Autopilot {
 
 	/** Hard stop: drop the target, the route, the motion and any key we were holding. */
 	static void halt(Minecraft mc) {
+		if (on) guardUntil = System.currentTimeMillis() + GUARD_MS;
 		on = false;
 		release(mc);
 		rescueStage = 0;
@@ -581,7 +611,9 @@ final class Autopilot {
 	static java.util.List<String> why(Minecraft mc) {
 		java.util.List<String> out = new java.util.ArrayList<>();
 		if (!on) {
-			out.add("autofly: OFF  (/cscan autofly on)");
+			long left = guardLeft();
+			out.add("autofly: OFF  (/cscan autofly on)"
+				+ (left > 0 ? "   fall safety still watching for " + left + "s" : ""));
 			return out;
 		}
 		String stalled = stalledBecause(mc);
@@ -629,6 +661,8 @@ final class Autopilot {
 		regainCool = 0;
 		regainTries = 0;
 		regainSaid = false;
+		// Turning it OFF starts the watch; turning it on does not need one, because it is watching.
+		if (on && !v) guardUntil = System.currentTimeMillis() + GUARD_MS;
 		on = v;
 		path = new java.util.ArrayList<>();
 		pathTo = null;
@@ -666,11 +700,17 @@ final class Autopilot {
 	}
 
 	private static void tick(Minecraft mc) {
+		LocalPlayer p = mc.player;
 		if (!on) {
+			// ---- THE SAFETY OUTLIVES THE AUTOPILOT. See GUARD_MS. Switching off is the most
+			// dangerous moment rather than the safest: the body keeps its velocity and nothing is
+			// watching it any more. This steers nothing — it only notices a fall.
+			if (p != null && mc.level != null && guarding(System.currentTimeMillis(), guardUntil)) {
+				if (rescue(mc, p)) return;
+			}
 			release(mc);
 			return;
 		}
-		LocalPlayer p = mc.player;
 		if (p == null || mc.level == null) return;
 		// A CONTAINER screen only. This used to be `Screens.anyOpen()`, which meant opening chat or
 		// alt-tabbing away stopped the loop dead — and the whole point of an unattended loop is that
@@ -747,7 +787,8 @@ final class Autopilot {
 			// anything, and being told they are in control when they are falling and did nothing is
 			// both confusing and, on the one occasion it was this mod's own doing, wrong.
 			p.sendSystemMessage(Component.literal("[cscan] flight ended in mid-air — not by you."
-				+ " autofly is OFF and the controls are yours. Get to ground first."));
+				+ " autofly is OFF and the controls are yours; the fall safety is still watching"
+				+ " for " + (GUARD_MS / 1000) + "s."));
 			halt(mc);
 			return;
 		}

@@ -723,4 +723,30 @@ class AutopilotTest {
 		assertTrue(Autopilot.ARRIVE_MIN > 0.5, "would try to occupy the same cell as the work");
 		assertTrue(Autopilot.SAFE_GAP >= 1.0, "leaves less than a block of air before a surface");
 	}
+
+	// ---------------------------------------------------------------- the safety outlives the loop
+
+	@Test
+	void theFallSafetyKeepsWatchingAfterItIsSwitchedOff() {
+		// Twice now: momentum carries the body after the disarm, and the moment autofly turns off is
+		// the moment nothing is watching. Switching off is the MOST dangerous moment, not the safest.
+		long now = 1_000_000;
+		assertTrue(Autopilot.guarding(now, now + 1), "stopped watching the instant it was told to");
+		assertFalse(Autopilot.guarding(now, now), "watched for ever");
+		assertTrue(Autopilot.GUARD_MS >= 20_000,
+			"too short to cover the arc of a fall from the plate");
+		assertTrue(Autopilot.GUARD_MS <= 120_000, "quietly on for ever is not a safety, it is a mode");
+	}
+
+	@Test
+	void theGuardSteersNothing() throws IOException {
+		// It is the one part with no business being tied to whether the loop is driving - and
+		// equally, no business driving. It notices a fall; it does not fly anywhere.
+		String src = source();
+		int at = src.indexOf("if (p != null && mc.level != null && guarding(");
+		assertTrue(at > 0, "the guard is gone from the off path");
+		String body = src.substring(at, src.indexOf("release(mc);", at));
+		assertTrue(body.contains("rescue(mc, p)"), "the guard no longer runs the rescue");
+		assertFalse(body.contains("setDeltaMovement"), "the guard is steering");
+	}
 }
