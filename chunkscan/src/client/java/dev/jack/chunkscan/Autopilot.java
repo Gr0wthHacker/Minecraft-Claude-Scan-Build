@@ -436,6 +436,19 @@ final class Autopilot {
 		repathIn = 0;
 	}
 
+	/**
+	 * Throw away the current route.
+	 *
+	 * <p>Called when the LOOP gives up on where it was sending you. The route is computed from a
+	 * destination, so keeping it after the destination has been abandoned is keeping a plan to fly
+	 * at the thing that just stuck.
+	 */
+	static void forget() {
+		path = new java.util.ArrayList<>();
+		pathTo = null;
+		bumps = 0;
+	}
+
 	/** How many waypoints are left, for the HUD. */
 	static int waypoints() {
 		return path.size();

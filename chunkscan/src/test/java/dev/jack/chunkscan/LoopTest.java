@@ -135,7 +135,7 @@ class LoopTest {
 
 	@Test
 	void aStationThatIsPlacingIsLeftAlone() {
-		assertEquals(Loop.Station.WORKING, Loop.station(true, 10, 10, 5_000, 20_000, 0));
+		assertEquals(Loop.Station.WORKING, Loop.station(true, true, 10, 10, 2_000, 5_000, 0));
 	}
 
 	@Test
@@ -143,33 +143,33 @@ class LoopTest {
 		// A bin is a 4-cube: its far corner is 3.46 from the middle and the printer has 4.5, so
 		// standing where you first arrived builds the near face and stops. Re-aiming at the centroid
 		// of what remains is the "different angles" - it falls out of this rather than being an orbit.
-		assertEquals(Loop.Station.RECENTRE, Loop.station(true, 6, 10, 1_000, 20_000, 0));
+		assertEquals(Loop.Station.RECENTRE, Loop.station(true, true, 6, 10, 1_000, 5_000, 0));
 	}
 
 	@Test
 	void aStationThatPlacesNothingMovesInCloserBeforeGivingUp() {
 		// Abandoning a bin you could have reached leaves those cells for a later pass that will make
 		// exactly the same mistake.
-		assertEquals(Loop.Station.CLOSER, Loop.station(true, 10, 10, 21_000, 20_000, 0));
-		assertEquals(Loop.Station.ABANDON, Loop.station(true, 10, 10, 21_000, 20_000, 1));
+		assertEquals(Loop.Station.CLOSER, Loop.station(true, true, 10, 10, 6_000, 5_000, 0));
+		assertEquals(Loop.Station.ABANDON, Loop.station(true, true, 10, 10, 6_000, 5_000, 1));
 	}
 
 	@Test
 	void progressResetsThePatience() {
 		// The clock is about "is anything happening here", so a placement anywhere in the bin has to
 		// clear it - otherwise a slow but working station is abandoned mid-wall.
-		assertEquals(Loop.Station.RECENTRE, Loop.station(true, 9, 10, 999_999, 20_000, 1));
+		assertEquals(Loop.Station.RECENTRE, Loop.station(true, true, 9, 10, 999_999, 5_000, 1));
 	}
 
 	@Test
 	void aNewBinIsNewWhateverTheClockSays() {
-		assertEquals(Loop.Station.NEW, Loop.station(false, 10, 10, 999_999, 20_000, 1));
+		assertEquals(Loop.Station.NEW, Loop.station(false, true, 10, 10, 999_999, 5_000, 1));
 	}
 
 	@Test
 	void aFirstVisitHasNoPreviousCount() {
 		// -1 means "not known yet", and it must not read as "the count went down".
-		assertEquals(Loop.Station.WORKING, Loop.station(true, 10, -1, 0, 20_000, 0));
+		assertEquals(Loop.Station.WORKING, Loop.station(true, true, 10, -1, 0, 5_000, 0));
 	}
 
 	// ---------------------------------------------------------------- the session stall
@@ -268,5 +268,59 @@ class LoopTest {
 				}
 			}
 		}
+	}
+
+	@Test
+	void theStationClockStartsWhenYouGetThere() {
+		// A five-second window is only safe if it is about the PRINTER and not the journey. Timed
+		// from the moment the station is chosen, anything more than a few seconds' flight away is
+		// abandoned before the printer has ever had a chance at it — a loop touring bins and placing
+		// nothing, which looks exactly like the failure the clock exists to catch.
+		assertEquals(Loop.Station.WORKING, Loop.station(true, false, 10, 10, 999_999, 5_000, 0),
+			"gave up on a station it had not reached yet");
+		assertEquals(Loop.Station.CLOSER, Loop.station(true, true, 10, 10, 999_999, 5_000, 0),
+			"...and once there, five seconds of nothing is enough");
+	}
+
+	@Test
+	void fiveSecondsIsTheWindow() {
+		assertEquals(5_000L, Hud.STATION_MS, "the per-station patience moved");
+		assertTrue(Hud.STATION_MS < Hud.STALL_MS,
+			"a station must give up long before the whole loop does");
+	}
+
+	// ---------------------------------------------------------------- going nowhere
+
+	@Test
+	void threeSecondsOfNotMovingIsEnough() {
+		// The fast clock. A flight that has not moved in three seconds is not about to start: it is
+		// pressed into a corner, routing at a wall, or wedged under something.
+		assertTrue(Loop.goingNowhere(10_000, 6_000, 6_000, true, false, 3_000));
+		assertFalse(Loop.goingNowhere(10_000, 8_500, 6_000, true, false, 3_000),
+			"it moved a second and a half ago");
+	}
+
+	@Test
+	void placingCountsAsGettingSomewhere() {
+		// "doesn't move OR doesn't perform action" — hovering at the work while the printer takes
+		// blocks off you is the loop doing exactly its job, and the arrow is on the work, so the
+		// travelling test alone would not save it.
+		assertFalse(Loop.goingNowhere(10_000, 1_000, 9_000, true, false, 3_000),
+			"gave up on a spot that is actively placing");
+	}
+
+	@Test
+	void standingStillIsOnlyWrongWhileTravelling() {
+		// At the work you hover; at a chest you stand while the withdrawal runs. Neither is stuck.
+		assertFalse(Loop.goingNowhere(10_000, 0, 0, false, false, 3_000), "not going anywhere");
+		assertFalse(Loop.goingNowhere(10_000, 0, 0, true, true, 3_000), "mid-withdrawal");
+	}
+
+	@Test
+	void theThreeClocksAreOrderedByWhatTheyAskAbout() {
+		// going nowhere < a station that will not print < the whole loop doing nothing. Getting this
+		// order wrong means the slow one fires first and the fast one never does.
+		assertTrue(Hud.NOWHERE_MS < Hud.STATION_MS, "a travel stall must beat a station stall");
+		assertTrue(Hud.STATION_MS < Hud.STALL_MS, "a station stall must beat the session stall");
 	}
 }

@@ -2830,6 +2830,42 @@ route length or that there is none, and the distance to the target.
 The loop computes all of this every two seconds and says almost none of it, because a loop that
 narrates itself continuously is one nobody reads. Asked, it answers completely.
 
+### Three clocks, and why one number cannot serve them (2026-08-20)
+
+Jack, in two instructions: *"if nothing is placed in 5 seconds, move on immediately"* and *"if it
+says it needs to reroute and doesnt move or doesnt perform action within 3 seconds, move to next
+cluster"*. They are different questions and they now have different clocks:
+
+| clock | asks | fires after |
+|---|---|---|
+| `NOWHERE_MS` | am I actually travelling? | **3s** of no movement AND no placement, while en route |
+| `STATION_MS` | is the printer taking anything from where I stand? | **5s**, and only once ARRIVED |
+| `STALL_MS` | is this loop doing anything at all? | 90s |
+
+They must stay in that order or the slow one fires first and the fast one never does;
+`theThreeClocksAreOrderedByWhatTheyAskAbout` asserts it.
+
+**Five seconds is only safe because the station clock starts on ARRIVAL.** Timed from when the
+station is chosen — which is what it did — anything more than a few seconds' flight away would be
+abandoned before the printer ever had a chance at it, and the loop would tour bins placing nothing:
+exactly the failure the clock exists to catch, caused by the clock.
+
+**And the travel watchdog is sampled every TICK, not every recount.** The recount is every two
+seconds, and a three-second watchdog read at two-second intervals cannot tell three seconds from
+five.
+
+Standing still is only wrong while TRAVELLING: at the work you hover while the printer takes blocks
+off you, and at a chest you stand while the withdrawal runs. Both are the loop doing its job, which
+is why the test is movement AND placement AND having somewhere else to be.
+
+**Giving up on a spot has to make the next choice different.** The first version cleared the arrow
+and let the next recount choose — which picked the same region, because it was still the best one,
+flew at the same wall and stuck again. The spot is now passed over for a minute, and the route is
+dropped with it (`Autopilot.forget`), because a route is computed from a destination and keeping it
+after the destination is abandoned is keeping a plan to fly at the thing that just stuck. If
+everything left is near the spot that failed, it takes it anyway: a hard spot beats idling until the
+avoid expires.
+
 ## The daily loop
 
 ```bash

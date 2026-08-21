@@ -115,17 +115,49 @@ final class Loop {
 
 	/**
 	 * @param sameBin     is this the bin we were already standing at
+	 * @param arrived     are we actually within reach of it, or still flying there
 	 * @param todoHere    cells left in it now
 	 * @param todoBefore  cells left in it at the last recount, or -1 if unknown
 	 * @param sinceMs     how long since anything was placed here
 	 * @param retries     how many times we have already moved in closer
 	 */
-	static Station station(boolean sameBin, int todoHere, int todoBefore, long sinceMs,
-	                       long stallMs, int retries) {
+	static Station station(boolean sameBin, boolean arrived, int todoHere, int todoBefore,
+	                       long sinceMs, long stallMs, int retries) {
 		if (!sameBin) return Station.NEW;
 		if (todoBefore >= 0 && todoHere < todoBefore) return Station.RECENTRE;
+		// THE CLOCK IS ABOUT THE PRINTER, NOT THE JOURNEY. It starts when you get there, or a
+		// station across the region is abandoned before you arrive — and with a five-second window
+		// that is most of them, which reads as a loop cycling bins and placing nothing.
+		if (!arrived) return Station.WORKING;
 		if (sinceMs <= stallMs) return Station.WORKING;
 		return retries == 0 ? Station.CLOSER : Station.ABANDON;
+	}
+
+	// ---------------------------------------------------------------- going nowhere
+
+	/**
+	 * Told to go somewhere, and not going.
+	 *
+	 * <p>A THIRD clock, and the three are about different things — which is why one number cannot
+	 * serve all of them:
+	 *
+	 * <ul>
+	 *   <li>the STATION clock asks "is the printer taking anything from where I am standing", and
+	 *       only runs once you have arrived;</li>
+	 *   <li>the SESSION stall asks "is this loop doing anything at all", over minutes;</li>
+	 *   <li>this one asks "am I actually travelling", and it is the fast one, because a flight that
+	 *       is not moving is not going to start. Bumped into a corner, routing into a wall, wedged
+	 *       under a slab: whatever the cause, three seconds of no movement and no placement while
+	 *       there is somewhere to be is enough to say this spot is not working out.</li>
+	 * </ul>
+	 *
+	 * <p>Standing still is only wrong while TRAVELLING. At the work you hover, and at a chest you
+	 * stand while the withdrawal runs — both of those are the loop doing its job.
+	 */
+	static boolean goingNowhere(long now, long movedAtMs, long placedAtMs, boolean travelling,
+	                            boolean fetching, long ms) {
+		if (!travelling || fetching) return false;
+		return now - movedAtMs > ms && now - placedAtMs > ms;
 	}
 
 	// ---------------------------------------------------------------- the session stall

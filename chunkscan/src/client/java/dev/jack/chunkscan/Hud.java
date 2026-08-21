@@ -53,6 +53,13 @@ final class Hud {
 	// ---- WHERE TO STAND INSIDE A SPOT. A spot is sized to an inventory load and can be 96 blocks
 	// across; the printer reaches four and a half. Standing at the centroid places what happens to
 	// be near the middle and then nothing at all, for ninety seconds, until the stall watch fires.
+	/** Where the player was, and when they were last somewhere else. Sampled every TICK. */
+	private static BlockPos lastAt = null;
+	private static long movedAt;
+	/** A spot that went nowhere, and until when to pass over it. */
+	private static BlockPos avoidSpot = null;
+	private static long avoidUntil;
+
 	/** The last todo count the scaffold/seal probe was run for. See advance(). */
 	private static int scaffoldFor = -1;
 	private static java.util.Set<Long> blocked = new java.util.HashSet<>();
@@ -80,8 +87,13 @@ final class Hud {
 	 * <p>Much shorter than {@link #STALL_MS}, and they answer different questions: this one asks
 	 * "is there anything left here that the printer will take", the other asks "is this loop doing
 	 * anything at all". A station that will not build must not cost a minute and a half.
+	 *
+	 * <p>Five seconds, on Jack's instruction, and it is only safe because the clock starts when you
+	 * ARRIVE. Timed from the moment the station is chosen it would abandon anything more than a few
+	 * seconds' flight away before the printer ever had a chance at it — a loop touring bins and
+	 * placing nothing, which looks exactly like the failure it is meant to catch.
 	 */
-	static final long STATION_MS = 20_000;
+	static final long STATION_MS = 5_000;
 	/**
 	 * How far out of the work a standing spot may be.
 	 *
@@ -90,6 +102,17 @@ final class Hud {
 	 * budget, and every block of standoff spends it. Wide enough to get out of the wall, no wider.
 	 */
 	static final int STANDOFF = 3;
+	/**
+	 * Told to go somewhere and not going. Jack: <i>"if it says it needs to reroute and doesnt move
+	 * or doesnt perform action within 3 seconds, move to next cluster"</i>.
+	 *
+	 * <p>The fast clock of the three. A flight that has not moved in three seconds is not about to
+	 * start: it is pressed into a corner, routing at a wall, or wedged under something. Whatever the
+	 * cause, the spot is not working out and there is usually another.
+	 */
+	static final long NOWHERE_MS = 3_000;
+	/** How long a spot that went nowhere is passed over for. */
+	static final long AVOID_MS = 60_000;
 	private static int spotsLeft = 0;
 
 	private Hud() {}
@@ -266,6 +289,27 @@ final class Hud {
 			return;
 		}
 
+		// ---- TOLD TO GO SOMEWHERE, AND NOT GOING. See Loop.goingNowhere: the fast clock, and the
+		// only one that fires while there is still somewhere to be.
+		boolean travelling = target != null
+			&& me.distSqr(target) > (double) (Plan.PRINTER_REACH + STANDOFF)
+				* (Plan.PRINTER_REACH + STANDOFF);
+		if (Loop.goingNowhere(now, movedAt, lastProgressMs, travelling, fetching, NOWHERE_MS)) {
+			mc.player.sendSystemMessage(Component.literal("[cscan] not moving and not placing at "
+				+ Wand.fmt(target) + " — giving up on this spot and taking the next one"));
+			avoidSpot = spotCentre;
+			avoidUntil = now + AVOID_MS;
+			spotCentre = null;
+			stationBin = Long.MIN_VALUE;
+			stationRetry = 0;
+			stationsTried.clear();
+			movedAt = now;                                 // one report per stick, not one per tick
+			stopGuiding();
+			Highlight.clear("goto");
+			Autopilot.forget();
+			return;
+		}
+
 		// ---- the two ways the world says no: nothing to place against, and no way in. Both are a
 		// six-neighbour probe of every remaining cell, which on a design of a few thousand is tens
 		// of thousands of world lookups — every two seconds, for the whole session.
@@ -368,7 +412,23 @@ final class Hud {
 		// call every recount a new spot, reset the stations and re-announce, twice a second.
 		Plan.Cluster next = Loop.sameSpot(spotCentre, cl, Plan.MAX_RADIUS);
 		if (next == null) {
-			next = cl.get(0);
+			// PASS OVER THE SPOT THAT JUST WENT NOWHERE. Without this the next recount picks the
+			// same region — it is still the best one — flies at the same wall, and sticks again.
+			next = null;
+			if (avoidSpot != null && now < avoidUntil) {
+				for (Plan.Cluster c : cl) {
+					if (c.centre().distSqr(avoidSpot) > (double) Plan.MAX_RADIUS * Plan.MAX_RADIUS) {
+						next = c;
+						break;
+					}
+				}
+			}
+			// ...but a hard spot is better than no spot: if everything left is near the one we gave
+			// up on, take it anyway rather than idling until the avoid expires.
+			if (next == null) {
+				avoidSpot = null;
+				next = cl.get(0);
+			}
 			if (spotCentre != null && !wasFetching) spotsDone++;
 			spotCentre = next.centre();
 			stationBin = Long.MIN_VALUE;
@@ -423,7 +483,12 @@ final class Hud {
 
 		// ---- the per-station stall, measured on this station's OWN cell count
 		java.util.List<Work.Cell> here = Plan.atStation(live, st, Plan.PRINTER_REACH);
-		Loop.Station what = Loop.station(st.bin() == stationBin, here.size(), stationTodo,
+		// Within reach of the work, rather than still on the way to it.
+		boolean arrived = target == null
+			|| me.distSqr(target) <= (double) (Plan.PRINTER_REACH + STANDOFF)
+				* (Plan.PRINTER_REACH + STANDOFF);
+		if (!arrived) stationSince = now;               // the clock has not started yet
+		Loop.Station what = Loop.station(st.bin() == stationBin, arrived, here.size(), stationTodo,
 			now - stationSince, STATION_MS, stationRetry);
 		if (what != Loop.Station.NEW) {
 			if (what == Loop.Station.RECENTRE) {
@@ -783,6 +848,13 @@ final class Hud {
 		Withdraw.tick(mc);
 		if (design == null || mc.level == null || mc.player == null) return;
 		if (grace > 0 && --grace > 0) return;             // let the world arrive before routing it
+		// EVERY TICK, not every recount: a three-second watchdog sampled at two-second intervals
+		// cannot tell three seconds from five.
+		BlockPos at = mc.player.blockPosition();
+		if (lastAt == null || at.distSqr(lastAt) > 1) {
+			lastAt = at;
+			movedAt = System.currentTimeMillis();
+		}
 		if (tick++ % EVERY_TICKS != 0) return;
 		try {
 			Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), design,
