@@ -680,4 +680,47 @@ class AutopilotTest {
 		assertTrue(Autopilot.cruiseSpeed(Autopilot.SPEED, Autopilot.ARRIVED, 40, near, false) > 0.3,
 			"already crawling at the distance it is allowed to stop at");
 	}
+
+	// ---------------------------------------------------------------- how close to get
+
+	@Test
+	void inOpenAirItFloatsRightUpToTheWork() {
+		// Three blocks is a CEILING, not a target: three blocks of standoff is three blocks off the
+		// far corner of the bin, and the printer's reach has to cover both. Jack: "if we always are
+		// 3 blocks its hard to reach all blocks since we lose 3 blocks to air".
+		assertFalse(Autopilot.hasArrived(2.6, 0, Autopilot.ARRIVE_MIN, Autopilot.ARRIVED,
+			Autopilot.CLOSING_PATIENCE, false), "settled for three blocks with room to close");
+		assertTrue(Autopilot.hasArrived(1.1, 0, Autopilot.ARRIVE_MIN, Autopilot.ARRIVED,
+			Autopilot.CLOSING_PATIENCE, false), "kept closing past the point of any use");
+	}
+
+	@Test
+	void aWallInFrontMeansThisIsAsCloseAsItGets() {
+		// The balance Jack asked for: reach is worth having and it is not worth CONTACT. On this
+		// server touching a block ends flight, and a flight is worth more than the block it was
+		// reaching for.
+		assertTrue(Autopilot.hasArrived(2.6, 0, Autopilot.ARRIVE_MIN, Autopilot.ARRIVED,
+			Autopilot.CLOSING_PATIENCE, true), "pressed on into a surface to gain a block of reach");
+		// ...but only when already close enough to be useful. A wall five blocks out is an obstacle,
+		// not an arrival.
+		assertFalse(Autopilot.hasArrived(9.0, 99, Autopilot.ARRIVE_MIN, Autopilot.ARRIVED,
+			Autopilot.CLOSING_PATIENCE, true), "gave up nine blocks out and called it arrived");
+	}
+
+	@Test
+	void stoppingGettingNearerCountsAsArriving() {
+		// "The actual space after stopping fly." A flight wedged against a shelf 2.4 blocks from the
+		// work has arrived; waiting for 1.2 there is waiting for ever.
+		assertFalse(Autopilot.hasArrived(2.4, 2, Autopilot.ARRIVE_MIN, Autopilot.ARRIVED,
+			Autopilot.CLOSING_PATIENCE, false), "gave up after two ticks of no progress");
+		assertTrue(Autopilot.hasArrived(2.4, Autopilot.CLOSING_PATIENCE, Autopilot.ARRIVE_MIN,
+			Autopilot.ARRIVED, Autopilot.CLOSING_PATIENCE, false), "waited for ever");
+	}
+
+	@Test
+	void theCeilingAndTheFloorAreTheRightWayRound() {
+		assertTrue(Autopilot.ARRIVE_MIN < Autopilot.ARRIVED, "the floor is above the ceiling");
+		assertTrue(Autopilot.ARRIVE_MIN > 0.5, "would try to occupy the same cell as the work");
+		assertTrue(Autopilot.SAFE_GAP >= 1.0, "leaves less than a block of air before a surface");
+	}
 }

@@ -93,6 +93,64 @@ final class Autopilot {
 	 */
 	static final double ARRIVED = 3.0;
 	/**
+	 * As close as it ever needs to get.
+	 *
+	 * <p>{@link #ARRIVED} is a CEILING, not a target. Jack: <i>"if we always are 3 blocks its hard to
+	 * reach all blocks since we lose 3 blocks to air, we need to decrease it based on whats around us
+	 * and actual space after stopping fly."</i> Three blocks of standoff is three blocks off the far
+	 * corner of the bin, and the printer's reach has to cover both.
+	 *
+	 * <p>So it keeps closing until it physically cannot — the clearance rules, the alignment, a wall
+	 * — and accepts wherever that turned out to be, provided it is inside the ceiling. In open air it
+	 * ends up here; against a surface it ends up wherever the surface allows; and neither number is
+	 * guessed in advance, which is the point.
+	 */
+	static final double ARRIVE_MIN = 1.2;
+	/** Ticks of getting no nearer before "this is as close as it gets" is the honest reading. */
+	static final int CLOSING_PATIENCE = 12;
+	/**
+	 * Air to keep between the body and whatever it is approaching.
+	 *
+	 * <p>The other half of Jack's rule: <i>"this needs to balance against safe landing and stopping
+	 * fly... we need to be smart about this when its possible, and when we should just be floating a
+	 * bit closer."</i> Closing in is worth reach and it is not worth CONTACT — on this server contact
+	 * ends flight, and a flight that ends is worth far more than the block it was reaching for.
+	 *
+	 * <p>So the approach stops a block short of a surface rather than pressing up to it. In open air
+	 * nothing is in the way and it closes to {@link #ARRIVE_MIN}; against a wall it stops here; and
+	 * the difference between those two is measured, not assumed.
+	 */
+	static final double SAFE_GAP = 1.0;
+
+	/** The closest this target has been, and how long since that improved. Reset when it moves. */
+	private static double bestDist = Double.MAX_VALUE;
+	private static int sinceCloser = 0;
+
+	/**
+	 * Are we there?
+	 *
+	 * <p>Two ways to be, and the second is the one that matters on a real island: either close
+	 * enough that nothing is gained by more, or NO LONGER GETTING CLOSER while already inside the
+	 * ceiling — which is what "the space after stopping" actually means. A flight wedged against a
+	 * shelf 2.4 blocks from the work has arrived; waiting for 1.2 there is waiting for ever.
+	 */
+	static boolean hasArrived(double dist, int ticksSinceCloser, double min, double max,
+	                          int patience) {
+		return hasArrived(dist, ticksSinceCloser, min, max, patience, false);
+	}
+
+	/**
+	 * @param wallAhead there is a surface within {@link #SAFE_GAP} of the body, in the direction of
+	 *                  travel. Getting nearer would mean touching it, and touching it ends the
+	 *                  flight — so if we are inside the ceiling, this is as close as it gets.
+	 */
+	static boolean hasArrived(double dist, int ticksSinceCloser, double min, double max,
+	                          int patience, boolean wallAhead) {
+		if (dist <= min) return true;
+		if (dist > max) return false;                      // too far to call it arrived, whatever
+		return wallAhead || ticksSinceCloser >= patience;
+	}
+	/**
 	 * ...and how close is close enough when the destination is a BLOCK.
 	 *
 	 * <p>A chest cannot be flown into, so the tight radius above can never be satisfied and the
@@ -589,6 +647,8 @@ final class Autopilot {
 		pathTo = null;
 		legFrom = null;
 		bumps = 0;
+		bestDist = Double.MAX_VALUE;
+		sinceCloser = 0;
 	}
 
 	/** How many waypoints are left, for the HUD. */
@@ -650,8 +710,19 @@ final class Autopilot {
 		// A SOLID DESTINATION IS ARRIVED AT FROM OUTSIDE IT. A chest is a block, so the tight radius
 		// can never be satisfied and the flight would hover against its face trying — inside reach
 		// the whole time, which is all the fetch needs, but visibly nosing at it.
-		if (dist <= ARRIVED
-			|| (dist <= ARRIVED_SOLID && mc.level.getBlockState(target).blocksMotion())) {
+		// ---- HOW CLOSE DID WE ACTUALLY GET? Tracked per target, so "it stopped getting nearer" is
+		// a measurement rather than a guess about what is around it.
+		if (dist < bestDist - 0.05) {
+			bestDist = dist;
+			sinceCloser = 0;
+		} else {
+			sinceCloser++;
+		}
+		double ceiling = mc.level.getBlockState(target).blocksMotion() ? ARRIVED_SOLID : ARRIVED;
+		// ...and whether closing any further would mean touching something. See SAFE_GAP: reach is
+		// worth having and it is not worth the flight.
+		boolean wall = surfaceAhead(mc, p, to.subtract(me), SAFE_GAP);
+		if (hasArrived(dist, sinceCloser, ARRIVE_MIN, ceiling, CLOSING_PATIENCE, wall)) {
 			// ARRIVING IS NOT DISARMING. The first version called stop(), which sets on=false — so
 			// autofly switched itself off at the first chest and the unattended loop never flew
 			// again. Hold still and stay armed; the next `guide()` moves the target and this
@@ -745,7 +816,11 @@ final class Autopilot {
 
 		// ---- ROUTE. Recomputed on a timer and whenever the destination moves, because the world
 		// loads in around you and the plan's target changes as you build.
-		if (pathTo != null && !pathTo.equals(target)) announcedArrival = false;
+		if (pathTo != null && !pathTo.equals(target)) {
+			announcedArrival = false;
+			bestDist = Double.MAX_VALUE;                   // a new destination has never been near
+			sinceCloser = 0;
+		}
 		sinceRepath++;
 		repathIn--;
 		if (needsRepath(pathTo, target, repathIn, routedFlying, flying, sinceRepath)) {
@@ -1298,6 +1373,23 @@ final class Autopilot {
 
 	private static boolean solidAt(Minecraft mc, BlockPos b) {
 		return mc.level.isLoaded(b) && mc.level.getBlockState(b).blocksMotion();
+	}
+
+	/**
+	 * Is there a surface within `gap` of the body, the way it is going?
+	 *
+	 * <p>Both the feet and the head, because an approach that clears one and not the other is the
+	 * head-bumping by another name.
+	 */
+	private static boolean surfaceAhead(Minecraft mc, LocalPlayer p, Vec3 towards, double gap) {
+		if (towards.lengthSqr() < 1.0e-6) return false;
+		Vec3 step = towards.normalize().scale(gap);
+		Vec3 at = p.position().add(step);
+		for (double dy : new double[] {0.2, 1.7}) {
+			BlockPos b = BlockPos.containing(at.x, at.y + dy, at.z);
+			if (mc.level.isLoaded(b) && mc.level.getBlockState(b).blocksMotion()) return true;
+		}
+		return false;
 	}
 
 	/** Is a body able to be at this offset from the player? */

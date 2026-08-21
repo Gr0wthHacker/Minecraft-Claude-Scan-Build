@@ -3092,6 +3092,31 @@ slow-down, the waypoint's for the corner. It was inline and wrong for an hour, w
 for pulling it out: every one of these that has been extracted this session was extracted after it
 had already shipped a bug.
 
+### Three blocks is a ceiling, not a target (2026-08-21)
+
+Jack, immediately after asking for the three-block rule: *"if we always are 3 blocks its hard to
+reach all blocks since we lose 3 blocks to air"* — and then the other half of it — *"this needs to
+balance against safe landing and stopping fly, we need to be smart about this when its possible, and
+when we should just be floating a bit closer."*
+
+Both are right and they pull opposite ways. Three blocks of standoff is three blocks off the FAR
+CORNER of the bin as well, and the printer's reach has to cover both; but closing the gap by pressing
+up to a surface buys that reach with contact, and on this server contact ends the flight. **A flight
+is worth more than the block it was reaching for.**
+
+So neither number is decided in advance:
+
+- it keeps closing until it **physically cannot** — `bestDist` and `sinceCloser` measure whether the
+  approach is still making progress, which is what *"the actual space after stopping"* means. A
+  flight wedged against a shelf 2.4 blocks from the work has arrived; waiting for 1.2 there is
+  waiting for ever;
+- it stops a block short of anything it is approaching (`SAFE_GAP`), at the feet AND the head,
+  because an approach that clears one and not the other is the head-bumping by another name;
+- and `ARRIVE_MIN` (1.2) is where it ends up in open air, because past that nothing is gained.
+
+In open air it floats right up to the work. Against a wall it stops where the wall says. The
+difference between those is measured rather than guessed, which is the whole of it.
+
 ## The daily loop
 
 ```bash
