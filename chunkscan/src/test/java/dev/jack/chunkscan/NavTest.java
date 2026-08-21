@@ -728,4 +728,36 @@ class NavTest {
 				|| w.solid.contains(BlockPos.asLong(x, y - 2, z));
 		};
 	}
+
+	@Test
+	void aPlaceToWorkFromHasAirOverItsHeadToo() {
+		// `Passable` guarantees the two cells a player OCCUPIES, which is enough to be somewhere and
+		// not enough to work there: the flight holds altitude by climbing, so a spot with the
+		// ceiling on its head grinds upward into it for as long as it stands there.
+		W w = new W();
+		w.fill(-6, 90, -6, 6, 110, 6);
+		// a two-cell slot with the ceiling right on top of it, and a roomier one beside it
+		w.carve(0, 100, 0, 0, 101, 0);
+		w.carve(2, 100, 0, 2, 103, 0);
+		BlockPos tight = new BlockPos(0, 100, 0);
+		assertTrue(w.free().at(tight.getX(), tight.getY(), tight.getZ()),
+			"control: a body fits in the tight one");
+		assertFalse(Nav.headroom(w.free(), tight, Nav.AIR_ABOVE), "control: and has nothing over it");
+		assertTrue(Nav.headroom(w.free(), new BlockPos(2, 100, 0), Nav.AIR_ABOVE));
+	}
+
+	@Test
+	void aStandoffTakesTheSpotWithHeadroom() {
+		W w = new W();
+		w.fill(-8, 90, -8, 8, 112, 8);
+		w.carve(-1, 100, 0, -1, 101, 0);                 // tight pocket beside the work
+		w.carve(1, 96, -1, 1, 104, 1);                   // roomy shaft, open above AND below
+		BlockPos work = new BlockPos(0, 100, 0);
+		w.solid.add(work.asLong());
+
+		BlockPos stand = Nav.standoff(w.free(), work, null, 3);
+		assertNotNull(stand);
+		assertTrue(Nav.headroom(w.free(), stand, Nav.AIR_ABOVE),
+			"picked a spot with the ceiling on its head: " + stand);
+	}
 }

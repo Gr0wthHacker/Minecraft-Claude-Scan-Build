@@ -353,6 +353,16 @@ class AutopilotTest {
 	}
 
 	@Test
+	void itNeverClimbsIntoACeiling() throws IOException {
+		// Every upward push in that file - the ground clearance, the bump handler, the unstick -
+		// pushes y up, and with something directly overhead that is a body grinding along the
+		// underside of a floor for as long as it is there.
+		String src = source();
+		assertTrue(src.contains("if (!headroom) step = new Vec3(step.x, Math.min(step.y, 0), step.z);"),
+			"the climb is no longer clamped by what is overhead");
+	}
+
+	@Test
 	void aPlaceToWorkFromHasAirUnderIt() {
 		// Jack: "it cant be within 1 block beneath when flying to place because it will auto stop
 		// flying". Whatever the plugin measures, it looks further down than the block you touch.

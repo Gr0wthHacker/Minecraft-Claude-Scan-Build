@@ -865,6 +865,11 @@ final class Autopilot {
 		// is landing on the deck with the void one step away.
 		boolean headroom = !mc.level.getBlockState(
 			BlockPos.containing(p.getX(), p.getY() + 2.6, p.getZ())).blocksMotion();
+		// NO CLIMBING INTO A CEILING. Every upward push in this file — the ground clearance, the bump
+		// handler, the direct-flight unstick — raises y, and with something directly overhead that is
+		// a body grinding along the underside of a floor for as long as it is there. Jack, watching
+		// it work: "we bump our head a lot".
+		if (!headroom) step = new Vec3(step.x, Math.min(step.y, 0), step.z);
 		if (p.onGround()) return headroom ? new Vec3(step.x, RISE, step.z) : step;
 		double air = clearanceBelow(view(mc), p.getX(), p.getY(), p.getZ(),
 			(int) Math.ceil(GROUND_CLEAR) + 1);

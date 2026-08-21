@@ -362,7 +362,7 @@ final class Nav {
 						// whatever the server's plugin measures, it looks further down than the
 						// block you are touching. Anything with less than AIR_BELOW clear beneath is
 						// kept only as a last resort, and never preferred.
-						if (!airBelow(free, c, AIR_BELOW)) {
+						if (!headroom(free, c, AIR_ABOVE) || !airBelow(free, c, AIR_BELOW)) {
 							if (score > lowScore) {
 								lowScore = score;
 								low = c;
@@ -392,6 +392,26 @@ final class Nav {
 
 	/** How many clear cells a standing spot must have under it. See the note in standoff. */
 	static final int AIR_BELOW = 2;
+	/**
+	 * ...and how much over its head.
+	 *
+	 * <p>Jack: <i>"we bump our head a lot"</i>. `Passable` already guarantees the two cells a player
+	 * occupies, which is enough to BE somewhere and not enough to work there: the flight holds
+	 * altitude by climbing, and a spot with the ceiling directly on its head is a spot that grinds
+	 * upward into it for as long as it stands there. One clear cell over the head — the cell above
+	 * the one `free.at` already checked.
+	 */
+	static final int AIR_ABOVE = 1;
+
+	/** Is there `n` cells of nothing over the player's HEAD when standing here? */
+	static boolean headroom(Passable free, BlockPos c, int n) {
+		for (int d = 1; d <= n; d++) {
+			// `free.at(y + d)` is "a body fits at y+d", which is the cell at y+d and the one above
+			// it — so one step up is already a clear cell over the head.
+			if (!free.at(c.getX(), c.getY() + d, c.getZ())) return false;
+		}
+		return true;
+	}
 
 	/** Is there `n` cells of nothing under this one? */
 	static boolean airBelow(Passable free, BlockPos c, int n) {

@@ -2805,7 +2805,7 @@ it is read. `KeyMapping.setDown` is the only mechanism that survives.
 which is both confusing when the player is not touching anything and, on the occasion it was this
 mod's own doing, false. It says *not by you* now.
 
-### A block of air underneath is not enough (2026-08-20)
+### Air underneath, and air overhead (2026-08-20)
 
 Jack, watching it work: *"it cant be within 1 block beneath when flying to place because it will auto
 stop flying."* Whatever the server's plugin measures, it looks further down than the block you are
@@ -2818,6 +2818,14 @@ touching.
 
 It is bought out of the printer's reach budget, which is exactly why the station moves in CLOSER on
 its first stall instead of giving up: altitude first, reach second.
+
+**And the same over the head.** *"we bump our head a lot."* `Passable` guarantees the two cells a
+player OCCUPIES, which is enough to be somewhere and not enough to work there — because the flight
+holds altitude by CLIMBING, so a spot with the ceiling on its head grinds upward into it for as long
+as it stands there. `Nav.AIR_ABOVE` requires one clear cell over the head, and `keepAirborne` clamps
+every upward push to zero when there is something directly overhead. There are three places that
+raise y — the ground clearance, the bump handler and the direct-flight unstick — and one clamp for
+all of them, because that is the kind of rule that gets added to two of three.
 
 ### Falling is an emergency with two rescues (2026-08-20)
 
