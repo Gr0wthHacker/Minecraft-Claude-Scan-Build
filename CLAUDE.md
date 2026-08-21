@@ -2890,6 +2890,35 @@ after the destination is abandoned is keeping a plan to fly at the thing that ju
 everything left is near the spot that failed, it takes it anyway: a hard spot beats idling until the
 avoid expires.
 
+### Shulkers, on both sides of the wall (2026-08-20)
+
+*"make sure it detects shulkers also."* Audited every list on both sides that decides whether
+something is a container, and the ones that exist were already right — `Storage.CONTAINERS` and
+`STORES` match `shulker_box` by substring so `white_shulker_box` counts, `protect.MECHANISM` and
+`protect.USED` cover it, and the shipped `chunkscan_rules.json` carries it. A placed shulker box has
+never been at risk of being built over.
+
+**The gap was the one that is not in any of those lists: a shulker box inside a chest.** The index
+records what the container screen holds, so a chest of six boxes was filed as *"6x
+white_shulker_box"* — true, and useless. The ten thousand blocks inside were invisible to `find`, to
+the bill of materials and to the build loop, which would fly past them to a chest with sixty-four
+loose ones. **Bulk storage on this island IS boxes in chests.**
+
+- `ContainerWatcher` now reads the `CONTAINER` component of every stack it indexes, into a separate
+  `inBoxes` map on the record.
+- **Kept apart from `items`, deliberately.** Getting at a boxed block is a DIFFERENT job — take the
+  box, set it down, open it — and a plan that says "500 bricks, 22m NE" when it means "a box you must
+  unpack" has lied about the only number that mattered. `findExact` takes a flag; the plan passes it,
+  a bare lookup does not.
+- `Withdraw` will take a BOX that holds what it came for, and `carrying` counts boxed ones toward
+  the target — without that it keeps taking boxes for ever. `Work.boxed` then tells you to set it
+  down, because a client mod cannot unpack one for you.
+- `/cscan find` falls back to searching inside boxes when nothing loose matches, and always says how
+  many of a hit are boxed.
+
+`inBoxes` is absent from every record written before today, which reads correctly as "no boxes known
+here" — the entry is rewritten from the screen the next time you open that container.
+
 ## The daily loop
 
 ```bash

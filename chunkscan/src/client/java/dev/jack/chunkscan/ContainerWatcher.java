@@ -76,21 +76,25 @@ final class ContainerWatcher {
 			final BlockPos pos = lastUsed;
 			final String block = lastBlock;
 			final Map<String, Integer> latest = new LinkedHashMap<>();
+			final Map<String, Integer> latestBoxed = new LinkedHashMap<>();
 			final int[] slots = {0, 0};                      // {container size, slots in use}
 			ScreenEvents.afterTick(screen).register(s -> {
 				Map<String, Integer> items = new LinkedHashMap<>();
-				int[] n = read(mc, cs, items);
+				Map<String, Integer> inBoxes = new LinkedHashMap<>();
+				int[] n = read(mc, cs, items, inBoxes);
 				if (n[0] > 0) {
 					slots[0] = n[0];
 					slots[1] = n[1];
 					latest.clear();
 					latest.putAll(items);
+					latestBoxed.clear();
+					latestBoxed.putAll(inBoxes);
 				}
 			});
 			ScreenEvents.remove(screen).register(s -> {
 				if (slots[0] == 0) return;                       // crafting table / anvil / other non-storage menu
 				try {
-					write(mc, cs, pos, block, latest, slots[0], slots[1]);
+					write(mc, cs, pos, block, latest, latestBoxed, slots[0], slots[1]);
 				} catch (Exception e) {
 					ChunkScanClient.LOG.warn("container capture failed", e);
 				}
@@ -99,7 +103,8 @@ final class ContainerWatcher {
 	}
 
 	/** Container slots only (never the player's own inventory); returns {size, slots in use}. */
-	private static int[] read(Minecraft mc, AbstractContainerScreen<?> cs, Map<String, Integer> items) {
+	private static int[] read(Minecraft mc, AbstractContainerScreen<?> cs, Map<String, Integer> items,
+	                          Map<String, Integer> inBoxes) {
 		if (mc.player == null) return new int[] {0, 0};
 		Inventory inv = mc.player.getInventory();
 		int slots = 0, used = 0;
@@ -110,12 +115,21 @@ final class ContainerWatcher {
 			if (st.isEmpty()) continue;
 			used++;
 			items.merge(BuiltInRegistries.ITEM.getKey(st.getItem()).toString(), st.getCount(), Integer::sum);
+			// ...and what is INSIDE it, if it is a box. See Storage.Container.inBoxes: a chest of
+			// six shulkers indexed as "6x white_shulker_box" hides ten thousand blocks from every
+			// question this mod can answer.
+			st.getOrDefault(net.minecraft.core.component.DataComponents.CONTAINER,
+				net.minecraft.world.item.component.ItemContainerContents.EMPTY)
+				.nonEmptyItemCopyStream().forEach(inner -> inBoxes.merge(
+					BuiltInRegistries.ITEM.getKey(inner.getItem()).toString(), inner.getCount(),
+					Integer::sum));
 		}
 		return new int[] {slots, used};
 	}
 
 	private static void write(Minecraft mc, AbstractContainerScreen<?> cs, BlockPos lastUsed, String lastBlock,
-							  Map<String, Integer> items, int slots, int used) throws Exception {
+							  Map<String, Integer> items, Map<String, Integer> inBoxes, int slots,
+							  int used) throws Exception {
 		if (mc.player == null || mc.level == null) return;
 		Path dir = ScanRunner.schematicsDir(mc);
 		Map<String, Storage.Container> all = Storage.load(dir);
@@ -135,6 +149,7 @@ final class ContainerWatcher {
 		c.slots = slots;
 		c.used = used;
 		c.items.putAll(items);
+		c.inBoxes.putAll(inBoxes);
 		Storage.upsert(all, c);
 		Storage.save(dir, all);
 		ChunkScanClient.LOG.info("indexed container #{} at {} ({} stacks)", c.id, c.key(), items.size());

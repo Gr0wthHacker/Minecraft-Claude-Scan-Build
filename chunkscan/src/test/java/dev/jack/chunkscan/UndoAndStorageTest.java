@@ -221,4 +221,77 @@ class UndoAndStorageTest {
 		m.put(c.key(), c);
 		assertSame(m, Storage.live(m, null));
 	}
+
+	// ---------------------------------------------------------------- boxes inside chests
+
+	private static Storage.Container boxChest(int x, String boxedItem, int n) {
+		Storage.Container c = new Storage.Container();
+		c.x = x;
+		c.y = 195;
+		c.z = 0;
+		c.block = "chest";
+		c.id = 9;
+		c.items.put("minecraft:white_shulker_box", 6);
+		c.inBoxes.put("minecraft:" + boxedItem, n);
+		return c;
+	}
+
+	@Test
+	void aChestOfSHULKERSIsNotAChestOfShulkers() {
+		// The index recorded "6x white_shulker_box", which is true and useless: the ten thousand
+		// bricks inside were invisible to find, to the bill of materials and to the build loop,
+		// which would fly past them to a chest holding sixty-four loose ones. Bulk storage on this
+		// island IS boxes in chests.
+		java.util.Map<String, Storage.Container> m = new java.util.LinkedHashMap<>();
+		Storage.Container c = boxChest(1, "stone_bricks", 10368);
+		m.put(c.key(), c);
+
+		assertTrue(Storage.findExact(m, "stone_bricks", BlockPos.ZERO).isEmpty(),
+			"a plan must not promise boxed blocks as if they were loose");
+		assertFalse(Storage.findExact(m, "stone_bricks", BlockPos.ZERO, true).isEmpty(),
+			"could not see ten thousand bricks in the boxes");
+		assertEquals(10368, Storage.findExact(m, "stone_bricks", BlockPos.ZERO, true).get(0).count());
+		assertEquals(10368, Storage.boxedCount(c, "stone_bricks"));
+	}
+
+	@Test
+	void looseAndBoxedAreAddedUpForTheSameChest() {
+		java.util.Map<String, Storage.Container> m = new java.util.LinkedHashMap<>();
+		Storage.Container c = boxChest(1, "stone_bricks", 1728);
+		c.items.put("minecraft:stone_bricks", 64);
+		m.put(c.key(), c);
+		assertEquals(64, Storage.findExact(m, "stone_bricks", BlockPos.ZERO).get(0).count());
+		assertEquals(1792, Storage.findExact(m, "stone_bricks", BlockPos.ZERO, true).get(0).count());
+	}
+
+	@Test
+	void aBoxOfSomethingElseIsNotAHit() {
+		java.util.Map<String, Storage.Container> m = new java.util.LinkedHashMap<>();
+		Storage.Container c = boxChest(1, "cobblestone", 1728);
+		m.put(c.key(), c);
+		assertTrue(Storage.findExact(m, "stone_bricks", BlockPos.ZERO, true).isEmpty());
+	}
+
+	@Test
+	void anIndexWrittenBeforeThisStillReads() throws Exception {
+		// `inBoxes` is absent from every record written before today, which must read as "no boxes
+		// known here" rather than failing the load - the index is re-written from the screen the
+		// next time the container is opened.
+		java.nio.file.Path d = java.nio.file.Files.createTempDirectory("cscan-boxes");
+        java.nio.file.Files.writeString(d.resolve("storage.json"),
+			"{\"containers\":[{\"id\":1,\"x\":1,\"y\":2,\"z\":3,\"block\":\"chest\","
+				+ "\"items\":{\"minecraft:stone\":5}}]}");
+		Storage.forget();
+		var all = Storage.load(d);
+		assertEquals(1, all.size());
+		assertTrue(all.values().iterator().next().inBoxes.isEmpty());
+	}
+
+	@Test
+	void whatCountsAsABox() {
+		assertTrue(Storage.isBox("white_shulker_box"));
+		assertTrue(Storage.isBox("shulker_box"));
+		assertFalse(Storage.isBox("chest"));
+		assertFalse(Storage.isBox("barrel"));
+	}
 }

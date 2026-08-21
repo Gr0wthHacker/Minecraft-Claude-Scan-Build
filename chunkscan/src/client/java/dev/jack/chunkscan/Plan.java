@@ -359,7 +359,11 @@ final class Plan {
 		for (var e : want.entrySet()) {
 			int miss = e.getValue() - carrying.getOrDefault(e.getKey(), 0);
 			if (miss <= 0) continue;
-			for (Storage.Hit h : Storage.findExact(index, e.getKey(), from)) {
+			// `true`: count what is inside shulker boxes as well. This island's bulk storage IS
+			// boxes in chests, and a fetch that walks past six shulkers of stone brick to reach
+			// sixty-four loose ones is not a fetch. `Withdraw` takes the box; `Work.boxed` then
+			// tells you to set it down, because a client mod cannot unpack it for you.
+			for (Storage.Hit h : Storage.findExact(index, e.getKey(), from, true)) {
 				if (skip.contains(h.container().pos().asLong())) continue;
 				out.add(new Restock(e.getKey(), miss, h.container(), h.count()));
 				break;                                   // nearest one that is not cooling off

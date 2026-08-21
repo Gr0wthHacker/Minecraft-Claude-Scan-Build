@@ -1500,14 +1500,23 @@ public final class ChunkScanClient implements ClientModInitializer {
 			Map<String, Storage.Container> all = Storage.load(dir(src));
 			BlockPos me = mc.player.blockPosition();
 			List<Storage.Hit> hits = Storage.find(all, query, me);
+			if (hits.isEmpty()) {
+				// Before giving up, look INSIDE the boxes: a chest of six shulkers indexes as
+				// "6x white_shulker_box" and hides everything in them from a search by name.
+				hits = Storage.findExact(all, query, me, true);
+			}
 			if (hits.isEmpty()) { ok(src, "no indexed container holds '" + query + "' (" + all.size() + " containers indexed)"); return 1; }
 			List<BlockPos> pts = new ArrayList<>();
 			int shown = 0;
 			for (Storage.Hit h : hits) {
 				if (shown++ >= 8) break;
 				Storage.Container c = h.container();
-				ok(src, String.format("%s  %dx %s  at %d %d %d  (%.0fm %s)", c.describe(), h.count(),
-					h.item().replace("minecraft:", ""), c.x, c.y, c.z, h.distance(), Storage.direction(me, c.pos())));
+				// ...and what is in the BOXES in there, which is where this island's bulk lives.
+				int boxed = Storage.boxedCount(c, h.item());
+				ok(src, String.format("%s  %dx %s  at %d %d %d  (%.0fm %s)%s", c.describe(), h.count(),
+					h.item().replace("minecraft:", ""), c.x, c.y, c.z, h.distance(),
+					Storage.direction(me, c.pos()),
+					boxed > 0 ? "  + " + boxed + " inside shulker boxes" : ""));
 				pts.add(c.pos());
 			}
 			if (hits.size() > shown) ok(src, "... " + (hits.size() - shown) + " more");

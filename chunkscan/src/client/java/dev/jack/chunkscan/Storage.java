@@ -87,12 +87,33 @@ final class Storage {
 		return before - all.size();
 	}
 
+	/**
+	 * Does this item hold other items? A shulker box does, and it is how this island stores in bulk.
+	 */
+	static boolean isBox(String item) {
+		return item != null && item.contains("shulker_box");
+	}
+
 	static final class Container {
 		int id;
 		int x, y, z;
 		String dimension = "";
 		String block = "";
 		String label = "";          // set with /cscan label
+		/**
+		 * What is inside the SHULKER BOXES in this container.
+		 *
+		 * <p>Kept apart from `items` on purpose. The index used to record a chest of six shulker
+		 * boxes as "6x white_shulker_box", which is true and useless: the ten thousand stone bricks
+		 * inside were invisible to `find`, to the bill of materials and to the build loop, which
+		 * would fly past them to a chest with sixty-four loose ones. Bulk storage on this island IS
+		 * boxes in chests.
+		 *
+		 * <p>Not merged, because getting them is a DIFFERENT job — you take the box, set it down and
+		 * open it — and a plan that says "64 bricks, 22m NE" when it means "a box you must unpack"
+		 * is a plan that lies about the only number that mattered.
+		 */
+		final java.util.Map<String, Integer> inBoxes = new java.util.LinkedHashMap<>();
 		String zone = "";           // nearest marker at capture time
 		String updated = "";
 		int slots;                  // container size, so "how full is it" is answerable
@@ -149,6 +170,12 @@ final class Storage {
 			if (items != null) {
 				for (String k : items.keySet()) c.items.put(k, items.get(k).getAsInt());
 			}
+			// Absent in every record written before this, which reads correctly as "no boxes known
+			// here" — the index is re-written from the screen the next time you open the container.
+			JsonObject boxed = o.getAsJsonObject("inBoxes");
+			if (boxed != null) {
+				for (String k : boxed.keySet()) c.inBoxes.put(k, boxed.get(k).getAsInt());
+			}
 			out.put(c.key(), c);
 		}
 		return out;
@@ -176,6 +203,13 @@ final class Storage {
 				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
 				.forEach(e -> items.addProperty(e.getKey(), e.getValue()));
 			o.add("items", items);
+			if (!c.inBoxes.isEmpty()) {
+				JsonObject boxed = new JsonObject();
+				c.inBoxes.entrySet().stream()
+					.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+					.forEach(e -> boxed.addProperty(e.getKey(), e.getValue()));
+				o.add("inBoxes", boxed);
+			}
 			arr.add(o);
 		}
 		JsonObject root = new JsonObject();
@@ -276,17 +310,53 @@ final class Storage {
 	 * and every caller here holds a bare block name.
 	 */
 	static List<Hit> findExact(Map<String, Container> all, String item, BlockPos from) {
+		return findExact(all, item, from, false);
+	}
+
+	/**
+	 * @param inBoxes also count what is inside shulker boxes in the container
+	 *
+	 * <p>Off by default, and that is the honest setting for a plan: getting at a boxed block is a
+	 * different job — take the box, set it down, open it — so a route that promises "500 bricks,
+	 * 22m NE" when it means "a box you must unpack" has lied about the thing that mattered. Turned
+	 * ON it is how the loop finds this island's actual bulk storage, which is boxes in chests.
+	 */
+	static List<Hit> findExact(Map<String, Container> all, String item, BlockPos from,
+	                           boolean inBoxes) {
 		String want = bare(item);
 		List<Hit> hits = new ArrayList<>();
 		for (Container c : all.values()) {
+			int loose = 0, boxed = 0;
+			String id = null;
 			for (var e : c.items.entrySet()) {
 				if (bare(e.getKey()).equals(want) && e.getValue() > 0) {
-					hits.add(new Hit(c, e.getKey(), e.getValue(), Math.sqrt(c.pos().distSqr(from))));
+					loose += e.getValue();
+					id = e.getKey();
 				}
 			}
+			if (inBoxes) {
+				for (var e : c.inBoxes.entrySet()) {
+					if (bare(e.getKey()).equals(want) && e.getValue() > 0) {
+						boxed += e.getValue();
+						if (id == null) id = e.getKey();
+					}
+				}
+			}
+			int total = loose + boxed;
+			if (total > 0) hits.add(new Hit(c, id, total, Math.sqrt(c.pos().distSqr(from))));
 		}
 		hits.sort((a, b) -> Double.compare(a.distance(), b.distance()));
 		return hits;
+	}
+
+	/** How many of this item are inside boxes in this container. */
+	static int boxedCount(Container c, String item) {
+		String want = bare(item);
+		int n = 0;
+		for (var e : c.inBoxes.entrySet()) {
+			if (bare(e.getKey()).equals(want)) n += e.getValue();
+		}
+		return n;
 	}
 
 	// ---- the read cache. `load` is a file read and a JSON parse, and the build loop asks for the

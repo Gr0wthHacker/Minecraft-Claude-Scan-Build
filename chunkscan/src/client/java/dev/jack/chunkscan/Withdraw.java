@@ -178,7 +178,11 @@ final class Withdraw {
 			ItemStack st = s.getItem();
 			if (st.isEmpty()) continue;
 			String item = BuiltInRegistries.ITEM.getKey(st.getItem()).getPath();
-			if (want != null && !item.equals(want)) continue;
+			// A SHULKER BOX THAT HOLDS WHAT WE CAME FOR IS WHAT WE CAME FOR. Bulk storage on this
+			// island is boxes in chests, and a fetch that walks past six shulkers of stone brick to
+			// find sixty-four loose ones is not a fetch. Taking the box is the first half; `Work.
+			// boxed` then tells you to set it down, because a client mod cannot unpack it for you.
+			if (want != null && !item.equals(want) && !holdsWanted(st)) continue;
 			// QUICK_MOVE is the shift-click: the whole stack, straight into the pack.
 			mc.gameMode.handleContainerInput(cs.getMenu().containerId, s.index, 0,
 				ContainerInput.QUICK_MOVE, mc.player);
@@ -237,8 +241,22 @@ final class Withdraw {
 		}
 	}
 
+	/** Is this a container item with the wanted block inside it? */
+	private static boolean holdsWanted(ItemStack st) {
+		if (want == null || !Storage.isBox(BuiltInRegistries.ITEM.getKey(st.getItem()).getPath())) {
+			return false;
+		}
+		return st.getOrDefault(net.minecraft.core.component.DataComponents.CONTAINER,
+				net.minecraft.world.item.component.ItemContainerContents.EMPTY)
+			.nonEmptyItemCopyStream()
+			.anyMatch(in -> BuiltInRegistries.ITEM.getKey(in.getItem()).getPath().equals(want));
+	}
+
 	private static int carrying(Minecraft mc) {
-		return Work.carrying(mc.player).getOrDefault(want, 0);
+		// Boxed ones count toward the target: we have fetched them, even though setting the box
+		// down is still on the player. Without this the withdrawal keeps taking boxes for ever.
+		return Work.carrying(mc.player).getOrDefault(want, 0)
+			+ Work.boxed(mc.player).getOrDefault(want, 0);
 	}
 
 	/**

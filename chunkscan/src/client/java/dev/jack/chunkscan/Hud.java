@@ -572,9 +572,12 @@ final class Hud {
 		if (target == null || !target.equals(at)) {
 			fetches++;
 			Highlight.show("goto", java.util.List.of(at), 0xFFC000, 900);
+			int inBoxes = Storage.boxedCount(want.where(), want.item());
 			mc.player.sendSystemMessage(Component.literal("[cscan] fetch: " + take + "x "
 				+ want.item() + " from " + want.where().describe() + " (" + want.available()
-				+ " there, " + want.missing() + " still wanted, room for " + room + ")"));
+				+ " there, " + want.missing() + " still wanted, room for " + room + ")"
+				+ (inBoxes > 0 ? "  — " + inBoxes + " of them are inside shulker boxes; it will"
+					+ " take the box and you set it down" : "")));
 		}
 		// Arrived and still short: you are standing at the chest, so say what to take rather than
 		// repeating where it is.
