@@ -131,6 +131,16 @@ def _finish(m, cfg, world_origin, gen_meta, verbose):
         if verbose and n:
             print(f"deferred {n} cells to " + ", ".join(
                 os.path.basename(q) for q in fin["defer_to"]))
+    # TRIM_BURIED: drop design cells the terrain already owns. A cell inside a ground rise can
+    # never be placed (a litematica printer places into air only), would be invisible if it were,
+    # and stands as permanent amber in /cscan check - the Court Hall's unbuildable-cells problem,
+    # solved at the seam instead of reported forever. Opt-in, because for a REPAVING design
+    # "the world holds something different" is the work, not an obstruction.
+    if fin.get("trim_buried") and fin.get("verify_against") and world_origin is not None:
+        n = _trim_buried(m, world_origin, fin["verify_against"],
+                         set(gen_meta.get("clear", [])) | set(fin.get("context_clear", [])))
+        if verbose and n:
+            print(f"trim_buried: {n} cells yielded to existing terrain")
     if fin.get("drop_floaters", True):
         n = _drop_floaters(m, max_size=int(fin.get("floater_max", 3)))
         if verbose and n:
@@ -199,6 +209,37 @@ def _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, 
             print("shipped ->", os.path.join(st.schem_dir, f"{name}.litematic"))
     if verbose:
         print("wrote", out_path)
+
+
+def _trim_buried(m, origin, capture, context_clear: set) -> int:
+    """Zero design cells where the capture holds a DIFFERENT block that is not air and not in
+    the clear list. Same-state cells stay: they are the design's own built progress."""
+    import numpy as np
+    from . import nbt, scan as scan_mod
+    files = capture if isinstance(capture, (list, tuple)) else [capture]
+    s = scan_mod.load(files[0])
+    ox, oy, oz = s.origin
+    wnames = [n.split(":")[-1] for n in s.model.names]
+    passable = np.array([n in ("air", "cave_air", "void_air") or n in context_clear
+                         for n in wnames])
+    wkeys = [nbt.state_key(e) for e in s.model.palette]
+    dkeys = [nbt.state_key(e) for e in m.palette]
+    mx, my, mz = origin
+    trimmed = 0
+    ys, zs, xs = np.where(m.ids > 0)
+    for y, z, x in zip(ys, zs, xs):
+        wy, wz, wx = y + my - oy, z + mz - oz, x + mx - ox
+        if not (0 <= wy < s.model.ids.shape[0] and 0 <= wz < s.model.ids.shape[1]
+                and 0 <= wx < s.model.ids.shape[2]):
+            continue
+        wi = int(s.model.ids[wy, wz, wx])
+        if passable[wi]:
+            continue
+        if wkeys[wi] == dkeys[int(m.ids[y, z, x])]:
+            continue                                   # already built correctly - keep
+        m.ids[y, z, x] = 0
+        trimmed += 1
+    return trimmed
 
 
 def _verify_in_context(m, res, capture, origin, verbose: bool, ignore: set | None = None, ignore_boxes=(),

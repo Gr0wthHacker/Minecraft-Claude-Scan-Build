@@ -22,7 +22,11 @@ params:
   scale: 1.0
   leg_phase: 4
   under: out/lowland_planned.litematic
-  feet: [-24185, 37, 30005]
+  feet: [-24185, 41, 30005]  # ground here is Y39 on the 2026-08-21 scan (was 36 when first
+                             # sited) and ROLLS to 43 under the 54-block body - at 40 the low
+                             # cells sat level with the risen massif's top course, 9 overlaps.
+                             # 41 clears every rise, and a mid-gallop animal with a foot or two
+                             # airborne is the pose being asked for, not a floating statue.
   look_at: [-24185, 37, 30060]     # BREAKING SOUTH, across the cat's line rather than along it
 origin_lock: false
 finish:
@@ -30,5 +34,6 @@ finish:
   hollow: false
   ground: false
   drop_floaters: false
+  trim_buried: true    # the massif rolls under this animal; cells inside a ground rise yield to it
   context_clear: [vine, short_grass, fern, moss_carpet, poppy, dandelion, azalea, flowering_azalea]
   verify_against: out/lowland_planned.litematic
