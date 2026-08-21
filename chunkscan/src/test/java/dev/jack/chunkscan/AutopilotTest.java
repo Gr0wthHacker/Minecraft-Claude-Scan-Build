@@ -635,4 +635,49 @@ class AutopilotTest {
 		int tight = src.indexOf("if (raw.isEmpty()) raw = Nav.route(free, here, target);");
 		assertTrue(tight > roomy, "the tight route is no longer the FALLBACK");
 	}
+
+	// ---------------------------------------------------------------- how fast, and why not faster
+
+	@Test
+	void aLongOpenFlightRunsAtCRUISE() {
+		// THE HALF-SPEED BUG. The approach taper was fed the pure-pursuit point, which sits
+		// LOOKAHEAD blocks ahead by construction — so a two-hundred-block flight was told it had 1.5
+		// blocks to go on every tick and ran the whole way at 0.125 against a cruise of 0.75.
+		double near = Autopilot.waypointRadius(Autopilot.SPEED);
+		double v = Autopilot.cruiseSpeed(Autopilot.SPEED, 200, 40, near, false);
+		assertEquals(Autopilot.SPEED, v, 1e-9, "crawled across open air");
+	}
+
+	@Test
+	void aPursuitPointAheadOfYouIsNotAnArrival() {
+		// The same thing said the other way round: the number that must NOT be passed in is the
+		// distance to the aim.
+		double near = Autopilot.waypointRadius(Autopilot.SPEED);
+		double wrong = Autopilot.cruiseSpeed(Autopilot.SPEED, 200, Autopilot.LOOKAHEAD, near, false);
+		assertTrue(wrong < Autopilot.SPEED / 2, "control: feeding it the aim really does crawl");
+		assertTrue(Autopilot.cruiseSpeed(Autopilot.SPEED, 200, 40, near, false) > wrong * 3,
+			"the waypoint distance is not what is being measured");
+	}
+
+	@Test
+	void itStillSlowsForTheDestinationAndForABend() {
+		double near = Autopilot.waypointRadius(Autopilot.SPEED);
+		assertTrue(Autopilot.cruiseSpeed(Autopilot.SPEED, 2, 40, near, false) < Autopilot.SPEED,
+			"arrived at the destination at full speed");
+		assertEquals(Autopilot.CORNER_SPEED,
+			Autopilot.cruiseSpeed(Autopilot.SPEED, 200, 40, near, true), 1e-9,
+			"took a corner at cruise");
+	}
+
+	@Test
+	void itNeverStopsShortOfWhereItIsGoing() {
+		// A taper that reaches zero is a flight hovering a block short for ever. It bottoms out at
+		// 0.05 rather than the 0.06 corner floor — the destination taper is the tighter of the two
+		// at nil distance — and that is only reachable in a test: ARRIVED fires three blocks out.
+		double near = Autopilot.waypointRadius(Autopilot.SPEED);
+		assertTrue(Autopilot.cruiseSpeed(Autopilot.SPEED, 0, 0, near, true) > 0,
+			"the flight can come to a dead stop before arriving");
+		assertTrue(Autopilot.cruiseSpeed(Autopilot.SPEED, Autopilot.ARRIVED, 40, near, false) > 0.3,
+			"already crawling at the distance it is allowed to stop at");
+	}
 }

@@ -3072,6 +3072,26 @@ What pays for it: `Plan.reach()` asks litematica-printer for `Configs.PRINTING_R
 assuming four blocks. That is the same "ask the game, not your memory" rule this project applies to
 every block property — and then never applied to the mod it is driving.
 
+### Half speed everywhere, and the aim is not the waypoint (2026-08-21)
+
+*"why does it fly very slowly when going towards a location, its like its going half speed."* An hour
+old, and caused by the pure-pursuit fix in the section above.
+
+`pursue` returns a point **`LOOKAHEAD` blocks ahead by construction** — that is the entire idea. The
+approach taper was still measuring against `aim`, so on every tick of a two-hundred-block flight it
+was told there were 1.5 blocks to go, and held the whole journey at `max(0.06, 1.5/12)` = **0.125
+against a cruise of 0.75**. The bend check read off the same point and saw a permanent corner on top
+of that.
+
+**The waypoint is the thing being approached; the aim is only where to point.** Two different
+questions that had been one variable, and merging them was invisible the moment the aim stopped being
+the waypoint.
+
+`cruiseSpeed` is pure now, and takes both distances separately — the destination's for the final
+slow-down, the waypoint's for the corner. It was inline and wrong for an hour, which is the argument
+for pulling it out: every one of these that has been extracted this session was extracted after it
+had already shipped a bug.
+
 ## The daily loop
 
 ```bash

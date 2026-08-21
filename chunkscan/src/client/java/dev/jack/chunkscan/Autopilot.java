@@ -831,19 +831,25 @@ final class Autopilot {
 		// setting that stops working the moment you go indoors — which is where you would most want
 		// to slow it down. Capped at a sprint either way: legs are legs.
 		double cruise = flying ? speed : Math.min(WALK_SPEED, WALK_SPEED * speed / SPEED);
-		double speed = Math.min(cruise, dist / 8.0 + 0.05);
 
-		// SLOW INTO A BEND. Movement is set directly along `dir`, so the eased turn is cosmetic and
-		// nothing was actually limiting the speed at which it entered a corner. A doorway taken at
-		// cruise is a doorway missed: check the angle between this leg and the next, and crawl
-		// through anything that is not roughly straight ahead.
+		// ---- MEASURE AGAINST THE WAYPOINT, NOT THE AIM.
+		//
+		// `aim` is the pure-pursuit point and it sits LOOKAHEAD blocks ahead BY CONSTRUCTION, so
+		// measuring the approach against it says "1.5 blocks to go" on every tick of a two-hundred
+		// block flight — and the taper below then held the whole journey at 0.125 against a cruise
+		// of 0.75. The bend check read off the same point and saw a permanent corner on top of it.
+		//
+		// The waypoint is the thing being approached. The aim is only where to point.
+		Vec3 wp = path.isEmpty() ? to : Vec3.atCenterOf(path.get(0));
+		boolean bend = false;
 		if (path.size() >= 2) {
-			Vec3 nextLeg = Vec3.atCenterOf(path.get(1)).subtract(aim).normalize();
-			if (dir.dot(nextLeg) < CORNER_COS) speed = Math.min(speed, CORNER_SPEED);
+			Vec3 thisLeg = wp.subtract(me);
+			Vec3 nextLeg = Vec3.atCenterOf(path.get(1)).subtract(wp);
+			if (thisLeg.lengthSqr() > 1.0e-6 && nextLeg.lengthSqr() > 1.0e-6) {
+				bend = thisLeg.normalize().dot(nextLeg.normalize()) < CORNER_COS;
+			}
 		}
-		// ...and never arrive at a waypoint faster than we can notice it.
-		double toWaypoint = me.distanceTo(aim);
-		if (toWaypoint < near * 3) speed = Math.min(speed, Math.max(0.06, toWaypoint / 12.0));
+		double speed = cruiseSpeed(cruise, dist, me.distanceTo(wp), near, bend);
 
 		if (path.isEmpty()) {
 			// Neither a route nor a way round: shut in, or the goal is sealed. Say so once, because
@@ -1228,6 +1234,24 @@ final class Autopilot {
 		// side is exactly how you catch the lip you were trying to thread.
 		Vec3 fix = new Vec3(dx, dy, dz).normalize().scale(Math.min(speed, off));
 		return fix;
+	}
+
+	/**
+	 * How fast to travel: cruise, tapered near the destination and near a bend.
+	 *
+	 * <p>Pure, because it was inline and wrong for an hour — fed the pursuit point instead of the
+	 * waypoint, which is always {@link #LOOKAHEAD} away, so a two-hundred-block flight ran the whole
+	 * way at the speed meant for the last block of it.
+	 *
+	 * @param toTarget   distance to the DESTINATION, which is what the final slow-down is about
+	 * @param toWaypoint distance to the next waypoint, which is what the corner slow-down is about
+	 */
+	static double cruiseSpeed(double cruise, double toTarget, double toWaypoint, double near,
+	                          boolean bend) {
+		double v = Math.min(cruise, toTarget / 8.0 + 0.05);
+		if (bend) v = Math.min(v, CORNER_SPEED);
+		if (toWaypoint < near * 3) v = Math.min(v, Math.max(0.06, toWaypoint / 12.0));
+		return v;
 	}
 
 	/** How far along the validated segment to look. Short: this is a correction, not a shortcut. */
