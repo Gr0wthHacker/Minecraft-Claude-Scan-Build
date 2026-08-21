@@ -22,6 +22,12 @@ params:
   thickness: 3
   depth: 3
   sink: 1
+  base_y: 43                 # PINNED to the as-built seat, READ OFF THE STANDING RING: the
+                             # crown's proud keystone tops at Y68 = base + D/2 + 13, so the
+                             # seat is 43. (First pinned 44 from a later regen's derivation -
+                             # a pin must come from the WORLD, not from the code that drifted.)
+                             # The ground rose under the ring after placement; a re-derived
+                             # seat emits every remaining cell one course off. Do not move.
   break_arc: [20, 58]        # upper-north shoulder: upper-LEFT from the pond view, balancing
                              # the bat rock hanging upper-right. The crown keystone survives.
   seed: 0

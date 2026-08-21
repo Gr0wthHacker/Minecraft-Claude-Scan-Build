@@ -46,6 +46,27 @@ def built():
     return c, cells
 
 
+@pytest.fixture(scope="module")
+def standing(built):
+    """Design cells PLUS the masonry already standing in the capture. The design is
+    remaining-work: the moment Jack builds the ring, a generator run emits only what is
+    missing, and a test pinning the full circle against the design alone starts reading the
+    built arc as holes - the deckfloor soffit's snapshot trap, almost verbatim."""
+    c, cells = built
+    cx, cy, cz = c.meta["centre"]
+    out = dict(cells)
+    world = schem.load(PLANNED)
+    o = json.load(open(PLANNED[:-len(".litematic")] + ".scan.json"))["origin"]
+    names = [n.split(":")[-1] for n in world.names]
+    mas_idx = [i for i, n in enumerate(names) if n in MASONRY]
+    ys, zs, xs = np.where(np.isin(world.ids, mas_idx))
+    for x, y, z in zip(xs, ys, zs):
+        wx, wy, wz = x + o["x"], y + o["y"], z + o["z"]
+        if abs(wx - cx) <= 8 and abs(wz - cz) <= 16 and 40 <= wy <= 75:
+            out.setdefault((wx, wy, wz), (names[world.ids[y, z, x]], {}))
+    return c, out
+
+
 def _ring_frame(c):
     cx, cy, cz = c.meta["centre"]
     return cx, cy, cz
@@ -57,8 +78,8 @@ def _theta(dy, dz):
 
 
 @needs_world
-def test_the_masonry_covers_the_circle_except_the_break(built):
-    c, cells = built
+def test_the_masonry_covers_the_circle_except_the_break(standing):
+    c, cells = standing
     cx, cy, cz = _ring_frame(c)
     a0, a1 = CFG["params"]["break_arc"]
     covered = set()
@@ -74,8 +95,8 @@ def test_the_masonry_covers_the_circle_except_the_break(built):
 
 
 @needs_world
-def test_the_break_is_real_and_the_stubs_step_down(built):
-    c, cells = built
+def test_the_break_is_real_and_the_stubs_step_down(standing):
+    c, cells = standing
     cx, cy, cz = _ring_frame(c)
     a0, a1 = CFG["params"]["break_arc"]
     R_out = CFG["params"]["outer_d"] / 2.0 - 0.01
@@ -92,8 +113,8 @@ def test_the_break_is_real_and_the_stubs_step_down(built):
 
 
 @needs_world
-def test_the_crown_keystone_survives_the_ruin(built):
-    c, cells = built
+def test_the_crown_keystone_survives_the_ruin(standing):
+    c, cells = standing
     cx, cy, cz = _ring_frame(c)
     crown = [n for (x, y, z), (n, _) in cells.items()
              if abs(z - cz) <= 1 and y > cy + 10 and n == "chiseled_polished_blackstone"]
@@ -101,8 +122,8 @@ def test_the_crown_keystone_survives_the_ruin(built):
 
 
 @needs_world
-def test_the_ring_reaches_its_extremes(built):
-    c, cells = built
+def test_the_ring_reaches_its_extremes(standing):
+    c, cells = standing
     cx, cy, cz = _ring_frame(c)
     D = CFG["params"]["outer_d"]
     mas = [(x, y, z) for (x, y, z), (n, _) in cells.items() if n in MASONRY]
@@ -186,10 +207,10 @@ def test_the_accents_are_anchored(built):
 
 
 @needs_world
-def test_the_fallen_chunk_is_one_piece(built):
+def test_the_fallen_chunk_is_one_piece(standing):
     """One coherent fragment in the moss - scatter is the 'tossed grouping of vague blocks' the
     void tower was rejected for."""
-    c, cells = built
+    c, cells = standing
     cx, cy, cz = _ring_frame(c)
     R_out = CFG["params"]["outer_d"] / 2.0
     low = {k for k, (n, _) in cells.items()

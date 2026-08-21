@@ -40,6 +40,11 @@ RUINRING = {
     "thickness": 3.0,          # radial. 3 survives the break stubs without reading flimsy
     "depth": 3,                # along the aperture axis (X). 2 vanishes edge-on; 3 casts a reveal
     "sink": 1,                 # courses below the LOWEST ground on the ring line - the burial
+    "base_y": None,            # PIN the seat once built. The seat derives from the ground, the
+                               # ground is itself a design being built, and the day Jack placed
+                               # the ring the moss under it rose one course - a re-derived seat
+                               # then emits every remaining cell one course off the standing
+                               # ring. Same disease origin_lock exists for, same cure.
     # the missing arc, in degrees from the crown, positive toward north (-Z). 20..58 keeps the
     # crown keystone and puts the gap upper-left from the pond view, balancing the bat rock
     # hanging upper-right. Ends are stepped, not sheared - a coherent fracture.
@@ -265,14 +270,17 @@ def build_ruinring(cfg: dict, donors=None) -> Canvas:
     R_out = D / 2.0 - 0.01
     R_in = R_out - float(p["thickness"])
 
-    grounds = []                                       # seat on the ground the ring line crosses
-    for dz in range(-(D // 2), D // 2 + 1):
-        g, _ = _surface(ctx, cx, cz + dz)
-        if g is not None:
-            grounds.append(g)
-    if not grounds:
-        raise ValueError("ruinring: no ground under the ring line - wrong site or wrong capture")
-    y_bot = min(grounds) - int(p["sink"])
+    if p.get("base_y") is not None:
+        y_bot = int(p["base_y"])
+    else:
+        grounds = []                                   # seat on the ground the ring line crosses
+        for dz in range(-(D // 2), D // 2 + 1):
+            g, _ = _surface(ctx, cx, cz + dz)
+            if g is not None:
+                grounds.append(g)
+        if not grounds:
+            raise ValueError("ruinring: no ground under the ring line - wrong site or wrong capture")
+        y_bot = min(grounds) - int(p["sink"])
     cy = y_bot + D // 2
 
     w = World()
