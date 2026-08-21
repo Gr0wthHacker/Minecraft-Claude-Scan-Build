@@ -208,6 +208,9 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
             v = 0.0
             while v <= top:
                 mat = p["belly"] if v < 0.8 else p["body"]
+                if t >= 0.93:
+                    mat = p["fin"]                     # the tail ENDS in membrane, not in a
+                                                       # pink point - the tip is all fin
                 cx_, cy_, cz_ = put_body(sx + nx * u, belly[i] + v, sz + nz * u, mat)
                 if (cx_, cz_) not in top_at or top_at[(cx_, cz_)] < cy_:
                     top_at[(cx_, cz_)] = cy_
@@ -306,8 +309,9 @@ def build_axolotl(cfg: dict, donors=None) -> Canvas:
                                                        # in-plan offset fed one side into the
                                                        # skull and the gills came out lopsided
                 # FILAMENTS: short barbs trailing off the stalk, which is what turns three red
-                # sticks into a frill. Stitched off the stalk cell so they cannot detach.
-                if st in (n // 3, (2 * n) // 3, n - 1):
+                # sticks into a frill. Stitched off the stalk cell so they cannot detach. None
+                # at the very tip - a barb past the frond's end is a stray pixel, not a frill.
+                if st in (n // 3, (2 * n) // 3):
                     fp = (int(round(gx)), int(round(gy)), int(round(gz)))
                     put_run(gx + dxu * 1.5, gy + 0.7, gz + dzu * 1.5, mat, fp)
                     filaments += 1
