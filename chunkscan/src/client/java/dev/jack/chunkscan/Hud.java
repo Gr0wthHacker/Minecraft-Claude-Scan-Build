@@ -608,6 +608,30 @@ final class Hud {
 			+ (spotsInPlan - 1) + " more spots after it"));
 	}
 
+	/**
+	 * Give up on the region being worked and take the next one.
+	 *
+	 * <p>Called by the autopilot when it cannot physically get there — wedged in a gap it has spent
+	 * long enough trying to thread. The loop owns the decision about WHERE to work, so the flight
+	 * asks rather than deciding; but the flight is the only thing that knows the way is not flyable.
+	 *
+	 * <p>Same treatment as the three-second watchdog: the spot is passed over for a minute, because
+	 * without that the next recount picks the same region — it is still the best one — and flies at
+	 * the same gap again.
+	 */
+	static void abandonSpot() {
+		avoidSpot = spotCentre;
+		avoidUntil = System.currentTimeMillis() + AVOID_MS;
+		spotCentre = null;
+		stationBin = Long.MIN_VALUE;
+		stationRetry = 0;
+		stationArrivedAt = 0;
+		stationsTried.clear();
+		movedAt = System.currentTimeMillis();
+		stopGuiding();
+		Highlight.clear("goto");
+	}
+
 	/** Can the printer still touch every one of these from where the player is standing? */
 	private static boolean allWithinReach(BlockPos me, java.util.List<Work.Cell> cells, int reach) {
 		double r2 = (double) reach * reach;

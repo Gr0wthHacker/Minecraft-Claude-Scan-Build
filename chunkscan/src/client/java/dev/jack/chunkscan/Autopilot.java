@@ -237,6 +237,18 @@ final class Autopilot {
 	/** ...and how often. A flood on every tick of contact is a cost this file has paid twice. */
 	static final int BUMP_LOOK_EVERY = 10;
 	/**
+	 * Ticks of bumping inside a tight passage before the passage is the problem.
+	 *
+	 * <p>Generous, because the answer while threading is to line up and creep, and that takes longer
+	 * than barging would. Past it, the gap is genuinely not being flown and the way round is worth
+	 * looking for after all.
+	 */
+	static final int WEDGED_TICKS = 60;
+	/** Ticks of being wedged before the SPOT is abandoned rather than the route. */
+	static final int WEDGED_GIVE_UP = 160;
+
+	private static int wedged = 0;
+	/**
 	 * A hard floor on how often a search may run, whatever else asks for one.
 	 *
 	 * <p>Belt and braces after the above: no invalidation condition, present or future, can produce
@@ -817,6 +829,12 @@ final class Autopilot {
 		// Keep steering. Ask for a route through the normal gate, which respects the floor. Climb,
 		// because on this island going up clears almost everything. Only after two seconds of solid
 		// contact is the route itself declared wrong.
+		// ---- ARE WE THREADING SOMETHING? Asked BEFORE the bump is interpreted, because the answer
+		// changes what a bump means entirely. Looked up at the next WAYPOINT as well as at the aim,
+		// so the alignment starts before the mouth rather than after the first contact with it.
+		boolean threading = flying && (isTight(mc, Hud.target() == null ? null : aimCell())
+			|| (!path.isEmpty() && isTight(mc, path.get(0))));
+
 		boolean bumped = flying && p.horizontalCollision;
 		if (bumped) {
 			bumps++;
@@ -834,7 +852,18 @@ final class Autopilot {
 			// and take the reachable cell that gets closest to the goal, whichever direction that
 			// turns out to be. It is used here at a short radius, on a timer, because a flood on
 			// every tick of contact is the cost that has bitten this file twice.
-			if (bumps % BUMP_LOOK_EVERY == 1) {
+			// ---- A BUMP IN A ONE-WIDE GAP IS NOT AN OBSTACLE, IT IS A NUDGE.
+			//
+			// The loop Jack watched: enter the shaft, clip the lip, "find a way round" — which finds
+			// the way back OUT, because going round a shaft means not using it — then re-route,
+			// which correctly picks the shaft again, and repeat for ever. Two mechanisms fighting,
+			// each doing its own job correctly.
+			//
+			// While threading, a bump means line up better and creep. Only when that has plainly not
+			// worked, after WEDGED_TICKS of it, is the passage itself the problem.
+			if (threading && bumps < WEDGED_TICKS) {
+				wedged++;
+			} else if (bumps % BUMP_LOOK_EVERY == 1) {
 				Nav.Passable free = Nav.of(mc.level);
 				BlockPos here = p.blockPosition();
 				java.util.List<BlockPos> round = Nav.escape(free, here, target, BUMP_LOOK);
@@ -857,6 +886,17 @@ final class Autopilot {
 			}
 		} else {
 			bumps = 0;
+			wedged = 0;
+		}
+		if (wedged > WEDGED_GIVE_UP) {
+			// Threaded, aligned, crept, and still going nowhere. The shaft is not the problem to
+			// solve any more — the SPOT on the other side of it is not worth this.
+			wedged = 0;
+			p.sendSystemMessage(Component.literal("[cscan] cannot thread the gap to " + Wand.fmt(
+				Hud.target()) + " — giving up on this spot"));
+			Hud.abandonSpot();
+			forget();
+			return;
 		}
 
 		// ---- ROUTE. Recomputed on a timer and whenever the destination moves, because the world
@@ -1470,6 +1510,18 @@ final class Autopilot {
 			if (mc.level.isLoaded(b) && mc.level.getBlockState(b).blocksMotion()) return true;
 		}
 		return false;
+	}
+
+	/** The cell the current aim points at, for the tightness test. */
+	private static BlockPos aimCell() {
+		return path.isEmpty() ? Hud.target() : path.get(0);
+	}
+
+	/** Is this cell in a passage narrow enough that it has to be threaded? */
+	private static boolean isTight(Minecraft mc, BlockPos at) {
+		if (at == null) return false;
+		boolean[] lock = boxedAxes(mc, Vec3.atCenterOf(at));
+		return lock[0] || lock[1] || lock[2];
 	}
 
 	/** Is a body able to be at this offset from the player? */

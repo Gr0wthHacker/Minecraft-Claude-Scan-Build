@@ -3205,6 +3205,35 @@ There are now four clocks and they compose in one order, each shorter than the o
     5s   station stall      arrived, dwelt, and nothing was placed
     90s  session stall      the whole loop has done nothing
 
+### Two mechanisms fighting: the shaft loop (2026-08-21)
+
+Jack: *"stuck in a loop of going up a 1x hole hitting a bump and needing to find a way around and
+repeating."*
+
+Both halves were working correctly, which is what made it a loop:
+
+1. the route picks the one-wide shaft, because it is the way through;
+2. the flight clips the lip on the way in and bumps;
+3. the bump handler looks for a way ROUND — and a way round a shaft is the way back OUT of it;
+4. it flies out, re-routes, correctly picks the shaft again, and repeats.
+
+**A bump inside a gap you are threading is not an obstacle, it is a nudge.** While threading, contact
+now means line up better and creep — the escape search is not consulted at all. Only after
+`WEDGED_TICKS` of that has plainly failed is the passage itself treated as the problem.
+
+Two supporting changes:
+
+- **The tightness is read from the next WAYPOINT as well as the aim.** Aligning only once the aim is
+  inside the gap is aligning after the first contact with it, which is too late by definition.
+- **`Hud.abandonSpot`.** Threaded, aligned, crept and still nowhere: the shaft stops being the
+  problem to solve and the spot beyond it is not worth this. The FLIGHT is the only thing that knows
+  a way is not flyable, and the LOOP owns where to work — so the flight asks rather than decides, and
+  the spot is passed over for a minute exactly as the three-second watchdog does it.
+
+The general shape is worth keeping: when two correct mechanisms produce a loop, the fix is almost
+never to make one of them cleverer. It is to notice that they are answering the same question and
+decide which one owns it.
+
 ## The daily loop
 
 ```bash

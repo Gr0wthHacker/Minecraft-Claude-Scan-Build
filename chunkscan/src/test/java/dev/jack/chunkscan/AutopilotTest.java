@@ -773,4 +773,40 @@ class AutopilotTest {
 		assertEquals(Autopilot.CORNER_SPEED,
 			Autopilot.cruiseSpeed(Autopilot.SPEED, 200, 4, near, true, false), 1e-9);
 	}
+
+	// ---------------------------------------------------------------- the shaft loop
+
+	@Test
+	void aBumpWhileTHREADINGDoesNotGoLookingForAWayRound() throws IOException {
+		// The loop Jack watched: enter the one-wide shaft, clip the lip, "find a way round" - which
+		// finds the way back OUT, because going round a shaft means not using it - then re-route,
+		// which correctly picks the shaft again, and repeat for ever. Two mechanisms each doing
+		// their own job correctly and fighting.
+		String src = source();
+		assertTrue(src.contains("if (threading && bumps < WEDGED_TICKS)"),
+			"a bump in a tight gap goes straight back to looking for a detour");
+		int guard = src.indexOf("if (threading && bumps < WEDGED_TICKS)");
+		int escape = src.indexOf("Nav.escape(free, here, target, BUMP_LOOK)");
+		assertTrue(guard < escape, "the escape is still reached first while threading");
+	}
+
+	@Test
+	void theThreadingCheckLooksAheadToTheNextWaypoint() throws IOException {
+		// Aligning only once the AIM is inside the gap is aligning after the first contact with it.
+		String src = source();
+		assertTrue(src.contains("isTight(mc, path.get(0))"),
+			"tightness is no longer read from the waypoint being approached");
+	}
+
+	@Test
+	void beingWedgedEventuallyGivesUpOnTheSPOTRatherThanTheRoute() throws IOException {
+		// Threaded, aligned, crept, and still going nowhere: the shaft has stopped being the problem
+		// to solve, and the spot on the other side of it is not worth this.
+		assertTrue(Autopilot.WEDGED_TICKS < Autopilot.WEDGED_GIVE_UP,
+			"gives up on the spot before it has tried to thread the gap");
+		assertTrue(Autopilot.WEDGED_GIVE_UP >= 100,
+			"abandons a spot after a couple of seconds of contact");
+		assertTrue(source().contains("Hud.abandonSpot()"),
+			"the flight can no longer tell the loop the way is not flyable");
+	}
 }
