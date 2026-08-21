@@ -476,4 +476,43 @@ class AutopilotTest {
 			"either gives up before it has tried or never gives up");
 		assertTrue(Autopilot.REGAIN_EVERY >= 20, "would hop on the spot");
 	}
+
+	@Test
+	void aTargetBELOWYouEscapesDOWNWARDS() {
+		// The whole point of scoring instead of laddering. `down` used to sit under `up`, so it was
+		// only ever taken when climbing was blocked - and on this island most of the work is BELOW
+		// you: the lowland, the belly, half the deck. Every bump on the way there went the wrong way
+		// over the obstacle.
+		Vec3 downhill = new Vec3(0.3, -0.95, 0).normalize();
+		Vec3 out = Autopilot.sidestep(downhill, true, true, true, true, true);
+		assertEquals(-1.0, out.y, 1e-9, "climbed over an obstacle while heading down: " + out);
+	}
+
+	@Test
+	void aTargetABOVEYouEscapesUPWARDS() {
+		Vec3 uphill = new Vec3(0.3, 0.95, 0).normalize();
+		assertEquals(1.0, Autopilot.sidestep(uphill, true, true, true, true, true).y, 1e-9);
+	}
+
+	@Test
+	void aLevelHeadingStillPrefersToSlide() {
+		// A perpendicular scores zero against a level aim whichever way it points, so without the
+		// thumb on the scale a level heading would pick whichever direction happened to be first.
+		Vec3 out = Autopilot.sidestep(new Vec3(1, 0, 0), true, true, true, true, true);
+		assertEquals(0.0, out.y, 1e-9);
+		assertTrue(Autopilot.SIDE_BIAS > 0 && Autopilot.SIDE_BIAS < 0.5,
+			"either no preference for sliding, or so much that it never leaves the wall");
+	}
+
+	@Test
+	void theDescentMayUseSHIFTBecauseSneakTogglesNothing() throws IOException {
+		// Only JUMP toggles flight. Sneak is safe, stronger than a damped y velocity, and is what a
+		// player does - so the movement path is handed `sink`, which cannot press jump at all.
+		String src = source();
+		assertTrue(src.contains("sink(mc, step.y < -CLIMB_DEADZONE)"),
+			"the descent no longer uses the key it safely can");
+		int sink = src.indexOf("private static void sink(");
+		assertTrue(sink > 0 && !src.substring(sink, sink + 400).contains("keyJump"),
+			"sink can press jump, which is the key that turned off flight in mid-air");
+	}
 }

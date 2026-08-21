@@ -2939,17 +2939,20 @@ whichever direction that turns out to be. It runs at a short radius (10) and on 
 (`BUMP_LOOK_EVERY`), because a flood on every tick of contact is the cost this file has paid twice
 already. When it finds something, the loop flies that instead, easing round the corner at 40% speed.
 
-**And when there is no way round at all, `sidestep` chooses by what is OPEN.** The order is the
-whole content of it:
+**And when there is no way round at all, `sidestep` SCORES every direction by whether it actually
+helps** — the dot of each open way against the heading, with a thumb on the scale for sliding.
 
-1. **sideways** — sliding along a face is how you get round the end of it, and it keeps whatever
-   progress the bump did not eat;
-2. **up** — the old unconditional answer, right about a third of the time;
-3. **down** — which nothing used to consider AT ALL, and which is the correct answer to a ceiling, an
-   overhang, or a climb that is what wedged you in the first place;
-4. **back** — it undoes progress, but it beats vibrating against a corner.
+It was a fixed ladder first (sideways, up, down, back) and that was the same mistake one level down:
+`down` sat at the bottom, so it was only ever taken when climbing was BLOCKED. On this island most of
+the work is below you — the lowland, the belly, half the deck — so every bump on the way there went
+the wrong way over the obstacle. Scored, a downhill heading escapes downwards, an uphill one climbs,
+and a level one slides, which is what the bias is for: a perpendicular scores zero against a level
+aim whichever way it points.
 
-It is pure, so the priorities can be argued with in a test rather than in the air.
+**And the descent may use SHIFT.** Only JUMP toggles flight — that is what revoked Jack's flight in
+mid-air — so sneak is safe, stronger than a y velocity `travelFlying` is busy damping, and is what a
+player does. The movement path is handed a `sink` that can only touch shift, so it CANNOT press the
+other one.
 
 **Found while doing it: the bumped-step handling had been silently deleted.** An earlier edit in this
 session replaced the whole flying-step block to add the vertical gain and took the collision slowdown

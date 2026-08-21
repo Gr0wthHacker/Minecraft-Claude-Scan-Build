@@ -260,6 +260,8 @@ final class Autopilot {
 	 * Doubling it and clamping is a great deal safer than touching the key that toggles flight.
 	 */
 	static final double VERTICAL_GAIN = 2.0;
+	/** Downward speed worth holding shift for. Below it, the velocity alone is the whole descent. */
+	static final double CLIMB_DEADZONE = 0.05;
 
 	/** The step, with the vertical scaled to survive flight friction. */
 	static Vec3 liftFor(Vec3 step, double cap) {
@@ -277,6 +279,20 @@ final class Autopilot {
 			holdDown = down;
 			mc.options.keyShift.setDown(down);
 		}
+	}
+
+	/**
+	 * Sneak, and only sneak.
+	 *
+	 * <p>Safe in a way that {@link #hold} is not: **only JUMP toggles flight**, so holding shift
+	 * while flying simply descends, which is what a player does and is stronger than a y velocity
+	 * `travelFlying` is busy damping. The movement path is given this rather than `hold` so that it
+	 * CANNOT press the key that turned off Jack's flight in mid-air.
+	 */
+	private static void sink(Minecraft mc, boolean down) {
+		if (mc.options == null || down == holdDown) return;
+		holdDown = down;
+		mc.options.keyShift.setDown(down);
 	}
 
 	/** Let go of both, for every path that stops steering. A stuck key is worse than a stuck loop. */
@@ -834,9 +850,12 @@ final class Autopilot {
 				}
 			}
 			step = keepAirborne(mc, p, step);
-			// Scaled, not pressed. See the note on VERTICAL_GAIN and, more importantly, the one
-			// above it about what the jump key actually does.
-			p.setDeltaMovement(liftFor(step, Math.max(speed, RISE) * 1.5));
+			// Scaled, not pressed — for the CLIMB. See the note on VERTICAL_GAIN and, more
+			// importantly, the one above it about what the jump key actually does.
+			step = liftFor(step, Math.max(speed, RISE) * 1.5);
+			// Going down is the half that can safely use a key: sneak toggles nothing.
+			sink(mc, step.y < -CLIMB_DEADZONE);
+			p.setDeltaMovement(step);
 		} else {
 			release(mc);                               // on foot the vertical is the ground's job
 			walk(mc, p, dir, aim, speed);
@@ -1107,16 +1126,34 @@ final class Autopilot {
 	static Vec3 sidestep(Vec3 dir, boolean up, boolean down, boolean left, boolean right,
 	                     boolean back) {
 		Vec3 flat = new Vec3(dir.x, 0, dir.z);
-		if (flat.lengthSqr() > 1.0e-6) flat = flat.normalize();
-		else flat = new Vec3(1, 0, 0);
+		flat = flat.lengthSqr() > 1.0e-6 ? flat.normalize() : new Vec3(1, 0, 0);
 		Vec3 side = new Vec3(-flat.z, 0, flat.x);
-		if (left) return side;
-		if (right) return side.scale(-1);
-		if (up) return new Vec3(0, 1, 0);
-		if (down) return new Vec3(0, -1, 0);
-		if (back) return flat.scale(-1);
-		return new Vec3(0, 1, 0);                          // boxed in: up is the least-bad guess
+		Vec3 aim = dir.lengthSqr() > 1.0e-6 ? dir.normalize() : flat;
+
+		// EVERY direction, scored by whether it actually helps, rather than a fixed ladder with
+		// `down` at the bottom of it. The ladder version only ever descended when climbing was
+		// blocked — so flying to anything BELOW you, which on this island is the lowland, the belly
+		// and half the deck, met an obstacle and went the wrong way over it.
+		Vec3[] ways = {side, side.scale(-1), new Vec3(0, 1, 0), new Vec3(0, -1, 0), flat.scale(-1)};
+		boolean[] open = {left, right, up, down, back};
+		Vec3 best = null;
+		double bestScore = -Double.MAX_VALUE;
+		for (int k = 0; k < ways.length; k++) {
+			if (!open[k]) continue;
+			// ...with a thumb on the scale for sideways. A purely horizontal target scores every
+			// perpendicular the same, and sliding along the face is the one that gets round the end
+			// of it; up and down from a level heading are detours.
+			double score = aim.dot(ways[k]) + (k < 2 ? SIDE_BIAS : 0);
+			if (score > bestScore) {
+				bestScore = score;
+				best = ways[k];
+			}
+		}
+		return best == null ? new Vec3(0, 1, 0) : best;    // boxed in: up is the least-bad guess
 	}
+
+	/** How much to prefer sliding along a face over leaving it. See sidestep. */
+	static final double SIDE_BIAS = 0.15;
 
 	/** Is a body able to be at this offset from the player? */
 	private static boolean openAt(Minecraft mc, LocalPlayer p, double dx, double dy, double dz) {
