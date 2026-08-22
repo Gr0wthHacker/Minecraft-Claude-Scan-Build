@@ -5,6 +5,11 @@
 # what make a broken span believable. Two stubs reach toward each other; the missing middle is
 # the ruin, a jumpable gap, and what makes both halves printable (each anchors to its own end).
 # ONE bridge only, by rule: a second span starts turning the void into a rope-park.
+#
+# ISLAND MASONRY, NOT QUARTER MASONRY (Jack's catch, 2026-08-22): blackstone is the gate
+# cult's foreign hand and it stays in the lowland. The tower this bridge serves is stone
+# brick with deepslate accents - the island's own two-tone - so the bridge is too, and its
+# light is warm. The palette boundary is pinned in test_voidbridge.py.
 name: Castle Bridge
 gen: voidbridge
 params:

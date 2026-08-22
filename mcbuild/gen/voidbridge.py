@@ -35,14 +35,20 @@ RUINBRIDGE = {
     "width": 2,
     "seed": 0,
 
-    "field": "polished_blackstone_bricks",
-    "cracked": "cracked_polished_blackstone_bricks",
-    "rough": "blackstone",
-    "gilded": "gilded_blackstone",
-    "chiseled": "chiseled_polished_blackstone",
-    "slab": "polished_blackstone_brick_slab",
-    "wall": "polished_blackstone_brick_wall",
-    "gild_rate": 0.02,
+    # THE ISLAND'S OWN HAND, not the quarter's. Blackstone is the gate cult's foreign masonry
+    # and it stays in the lowland - the bat tower this bridge serves is stone brick with
+    # deepslate accents, one hand with the stair head and the zone bands, and a bridge TO it
+    # is island architecture that broke. Warm light too: cold soul-fire is the quarter's
+    # signature, and this is not the quarter.
+    "field": "stone_bricks",
+    "cracked": "cracked_stone_bricks",
+    "rough": "mossy_stone_bricks",
+    "gilded": "mossy_stone_bricks",
+    "chiseled": "deepslate_bricks",  # the one real value contrast the island hand has
+    "slab": "stone_brick_slab",
+    "wall": "stone_brick_wall",
+    "lamp": "lantern",
+    "gild_rate": 0.0,
 }
 
 
@@ -152,7 +158,7 @@ def build_voidbridge(cfg: dict, donors=None) -> Canvas:
                 if not _airy(ctx, lx, deck_y - 1, lz) and _airy(ctx, lx, deck_y, lz) \
                         and _airy(ctx, lx, deck_y + 1, lz) and not w.has(lx, deck_y, lz):
                     w.put(lx, deck_y, lz, p["wall"])
-                    w.put(lx, deck_y + 1, lz, "soul_lantern", hanging="false")
+                    w.put(lx, deck_y + 1, lz, p["lamp"], hanging="false")
                     feats["lantern"] = 1
                     break
             if feats.get("lantern"):

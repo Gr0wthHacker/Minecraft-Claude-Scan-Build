@@ -108,12 +108,22 @@ def test_the_deck_is_level(built):
 
 @needs_world
 def test_the_lantern_marks_the_island_end(built):
+    """WARM light: this is the island's bridge, not the quarter's - cold soul-fire stays in
+    the lowland with the blackstone."""
     _, cells = built
-    lanterns = [(x, y, z) for (x, y, z), n in cells.items() if n == "soul_lantern"]
+    lanterns = [(x, y, z) for (x, y, z), n in cells.items() if n == "lantern"]
     assert len(lanterns) == 1
     x, y, z = lanterns[0]
     assert cells.get((x, y - 1, z), "").endswith("_wall"), "the lantern has no post"
     assert math.hypot(x - A[0], z - A[2]) <= 4, "the light belongs at the island end"
+
+
+@needs_world
+def test_no_blackstone_above_the_lowland(built):
+    """The palette boundary: blackstone is the gate cult's foreign masonry and it never climbs
+    past the lowland. Everything at island level is the island's grey."""
+    _, cells = built
+    assert not any("blackstone" in n for n in cells.values())
 
 
 @needs_world
