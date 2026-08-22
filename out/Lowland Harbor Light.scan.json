@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": -24206,
-    "y": 38,
-    "z": 30016
+    "x": -24232,
+    "y": 39,
+    "z": 30014
   },
   "size": {
     "x": 5,
-    "y": 16,
+    "y": 15,
     "z": 5
   },
   "generated_by": "harborlight",
@@ -18,7 +18,7 @@
   ],
   "base_y": 39,
   "features_built": {
-    "plinth": 40,
+    "plinth": 15,
     "shaft": 81,
     "gallery": 27,
     "lightroom": 18,

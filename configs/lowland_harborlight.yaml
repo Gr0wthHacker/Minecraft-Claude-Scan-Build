@@ -1,18 +1,18 @@
 # THE HARBOR LIGHT - a beacon at the root of the quay (2026-08-22).
 #
-# The pond is the harbor and a harbor gets a light. The quay's lip is a diagonal ribbon one to
-# three cells wide (measured), so the tower stands at the mole ROOT - dry moss plus the quay's
-# own corner masonry, four clear of the landing steps, six of the watergate - and rises over
-# the whole quay in the west-bank money view with the ring behind. Not one water cell is
-# replaced: where the plinth would reach the pond it stops, and the torn lakeward edge is the
-# ruin. The lamp is a soul lantern in an open lightroom - the harbor's light is cold, like its
-# mooring post, which is the quarter's colour system.
+# The pond is the harbor and a harbor gets a light. RE-SITED to the WEST BANK (2026-08-22):
+# the spiral stair now lands at the mole root on the taproot's own axis - Jack's alignment
+# call - and the beacon stood four blocks inside its annulus. It answers the quay from across
+# the water instead: dry moss field at the west shore (measured, ground Y37-38), three clear
+# of the axolotl's south edge, the waterline four east. Not one water cell is replaced: where
+# the plinth would reach the pond it stops, and the torn lakeward edge is the ruin. The lamp
+# is a soul lantern in an open lightroom - the harbor's light is cold, like its mooring post.
 name: Lowland Harbor Light
 gen: harborlight
 params:
   under: out/island_full.litematic
-  at: [-24204, 30018]
-  base_y: 39                   # PINNED (shore ground 37-38 under the footprint)
+  at: [-24230, 30016]
+  base_y: 39                   # PINNED (west-bank ground 38 under the footprint)
   shaft_h: 9
   seed: 0
 origin_lock: false             # LOUD: stands on the lowland shore at Y37-55
@@ -21,7 +21,8 @@ finish:
   hollow: false
   ground: false
   drop_floaters: false
-  defer_to: [out/Lowland Portal.litematic, out/Lowland Ruinway.litematic,
+  defer_to: [out/Lowland.litematic,
+             out/Lowland Portal.litematic, out/Lowland Ruinway.litematic,
              out/Lowland Sanctum.litematic, out/Lowland Axolotl.litematic]
   context_clear: [vine, short_grass, tall_grass, fern, large_fern, moss_carpet, azalea,
                   flowering_azalea, poppy, dandelion]

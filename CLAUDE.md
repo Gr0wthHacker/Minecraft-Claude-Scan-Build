@@ -2260,6 +2260,34 @@ Traps, each of which shipped a clean-looking build first:
 reserved: the new pocket at root (-24238, 63, 29968) keeps 8 clear on every face, belly
 overhead, the NW lowland floor twenty below.
 
+**THE ALIGNMENT (same day, Jack's second review): "it doesnt align with the actual stairs -
+it should be a straight down, we can break blocks on the floor etc."** He is right and the
+offset siting is gone: the stair now screws straight down the taproot's own axis at
+(-24200, 30018) - the Root Stair's centre, same spin, one screw deck to floor - through a
+WELL dug in the shop islet's lens (121 dig cells, Y144-150, in the sidecar's dig list;
+`/cscan dig` shows them). What made that safe to build:
+
+- **`spiral.dig_above` + `dig_only`**: at or above dig_above a tread may claim a world cell
+  (the cell and its headroom go on the dig list - the rimstair's "the tread cell is itself a
+  dig"); below it nothing is ever dug, so the lowland's watergate, quay and ground thread the
+  stair as before. `dig_only` names NATURAL ROCK - the first well rule was "anything
+  unprotected", and the old stair's own slabs sit directly over the mouth courses: it would
+  have dug the stair it exists to continue. And a dig may never take a protected block OR THE
+  CELL ONE STANDS ON - the shop's barrels are one course over the well's north arc.
+- **The harbor light moved to the WEST BANK** (-24230, 30016), measured dry moss, three clear
+  of the axolotl - it stood four blocks inside the new annulus. It answers the quay across
+  the water now, which is better harbor grammar anyway.
+- **The Shop Islet design is CARVED to the well** - 287 lens-fill cells removed over the
+  stair's tread+headroom envelope (noted in its config; regenerating the islet re-fills the
+  well and must be followed by re-carving - `test_the_carved_islet_keeps_out_of_the_well`
+  is the tripwire). trim_buried is OFF on the stair on purpose: it strips capture-owned
+  cells and would eat the well's own treads; the generator self-trims below dig_above.
+- **The composite walk sweep found the top the same way as before** (63 phases): at 6.1 the
+  walk runs lowland moss to the islet shelf at 151.0 through the dug well, 572 landing
+  cells. The old stair's landing is a short walk across the islet top from the well mouth.
+  `tests/test_lowland_stair.py` (12) pins the axis equality with root_stair.yaml, the dig
+  contract, replaces-nothing-outside-its-dig, and never-dig-the-old-stair.
+
 **The gradient, and the root's honest length (same day, Jack's review).** The stair now
 changes stone as it changes world - dithered thirds, measured luminance 122 -> 71 -> 48:
 island stone brick at the shelf, deepslate through the twilight, the quarter's blackstone to

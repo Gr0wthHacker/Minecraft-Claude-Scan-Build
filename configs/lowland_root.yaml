@@ -1,12 +1,11 @@
 # THE REACHING ROOT - off the shop islet's south rim, down to the lowland earth (2026-08-22).
 #
-# Jack: the spiral staircase continues all the way down to the lowlands. The stair needs a
-# core, and the descent needs an axis that clears the harbor: the taproot's keel at
-# (-24200, 30018) would land the helix on the watergate, the quay lip and the harbor light -
-# all measured - so the root leaves the islet's SOUTH rim instead, where the shelf is solid at
-# (-24208..-24207, 30025) and the axis at (-24207, 30029) clears the light gallery by 9.5, the quay
-# tip by 11 and the watergate by 13+. ~106 courses of measured open void, then moss at Y37-38.
-# The root itself stops at Y95 - see y_tip below; the stair carries on alone past the tip.
+# Jack: the spiral staircase continues all the way down to the lowlands - and it has to ALIGN
+# with the actual stair, straight down the same axis, breaking the islet's floor where it must
+# (his call, 2026-08-22, overriding the offset siting that dodged the harbor). So the root now
+# hangs from the TAPROOT'S OWN KEEL at (-24200, 30018) - the real mass, dead on axis, no bend -
+# and the harbor light moved to the west bank to clear the landing (see its config). The root
+# stops at Y95 - see y_tip below; the stair carries on alone past the tip.
 #
 # The Void Ladybird's parked site was in this shaft (726 cells at Y104-120) - re-sited, see
 # configs/ladybug.yaml.
@@ -14,9 +13,9 @@ name: Lowland Root
 gen: rootreach
 params:
   under: out/island_full.litematic
-  at: [-24207, 30029]
-  grip: [-24207, 30025]        # solid shelf cell (measured, one course thick) it hangs from
-  y_top: 149
+  at: [-24200, 30018]
+  grip: [-24200, 30018]        # the keel itself: solid cobble at Y142, air below
+  y_top: 141                   # first air course under the keel
   y_tip: 95                    # the root gives out mid-air, inside the stair's deepslate band
                                # (Y78-114): the island's reach ends where the underworld's
                                # blackstone begins. Jack's call - the full-height root read wrong.

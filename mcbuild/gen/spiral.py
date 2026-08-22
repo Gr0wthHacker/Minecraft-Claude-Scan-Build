@@ -19,6 +19,7 @@ import math
 
 from .canvas import Canvas, hash01
 from .interior import _settle_walls
+from .protect import is_protected
 from .vertical import Ctx, World, load_capture
 
 SPIRAL = {
@@ -50,8 +51,39 @@ SPIRAL = {
     # stair descending. None keeps the single-palette behaviour bit-for-bit (the Root Stair).
     "bands": None,
     "band_blend": 6,
+    # THE WELL, optional: at or above dig_above, a tread may claim a cell the world holds -
+    # the cell (and its headroom) goes on the DIG list and the slab is placed where the rock
+    # was, which is the rimstair's "the tread cell is itself a dig". Below dig_above nothing
+    # is ever dug: a solid cell simply keeps its tread away, so the stair threads the world
+    # instead of eating it. Never dug, at any height: water and ice, any protected block,
+    # and THE CELL A PROTECTED BLOCK STANDS ON - the shop's barrels sit one course over the
+    # well's north arc, and digging their floor is how a stair robs a shop.
+    "dig_above": None,
+    "headroom": 3,
+    # what a dig may take: NATURAL ROCK ONLY, named. The old stair's own slabs and lanterns
+    # sit directly over the well's mouth courses, and "anything unprotected" would have dug
+    # the stair this one exists to continue. Anything not on the list keeps its cell and
+    # keeps the tread away.
+    "dig_only": None,
     "seed": 0,
 }
+
+_AIR = ("air", "cave_air", "void_air")
+
+
+def _clearable(ctx, x, y, z, dig_above, headroom, dig_only):
+    """(ok, dig_cells) for one tread cell: may a tread stand here, and what must go first."""
+    digs = []
+    for k in range(headroom + 1):
+        n = ctx.name_at(x, y + k, z)
+        if n in _AIR:
+            continue
+        if y + k < dig_above or n in ("water", "ice") or is_protected(n) \
+                or is_protected(ctx.name_at(x, y + k + 1, z)) \
+                or (dig_only is not None and n not in dig_only):
+            return False, []
+        digs.append((x, y + k, z))
+    return True, digs
 
 
 def _band(p, y, x, z, seed):
@@ -85,8 +117,11 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
     spin = 1 if int(p["direction"]) >= 0 else -1
     theta = float(p["start_angle"])
     width, seed = int(p["width"]), int(p["seed"])
+    dig_above = p.get("dig_above")
+    headroom = int(p.get("headroom", 3))
+    dig_only = set(p["dig_only"]) if p.get("dig_only") else None
     steps = (y1 - y0 + 1) * 2                          # two half-steps to a course
-    treads, laps = [], 0.0
+    treads, laps, dig = [], 0.0, set()
     for k in range(steps):
         y = y0 + k // 2
         low = (k % 2) == 0                             # bottom slab, then top slab, then up a course
@@ -94,6 +129,11 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
         d = spin / max(1.0, r_in)                      # one cell of arc at the inner edge
         cells = _spoke(cx, cz, theta, theta + d, r_in, r_in + width)
         for (x, z) in cells:
+            if ctx is not None and dig_above is not None:
+                ok, digs = _clearable(ctx, x, y, z, int(dig_above), headroom, dig_only)
+                if not ok:
+                    continue
+                dig.update(digs)
             b = _band(p, y, x, z, seed)
             slab, alt = (b["slab"], b["alt"]) if b else (p["slab"], p["slab_alt"])
             name = alt if hash01(x, z, 19, seed) < p["alt_rate"] else slab
@@ -106,7 +146,7 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
     rails = _rails(w, ctx, cx, cz, prof, y0, y1, width, p, seed)
     return w.canvas({"kind": "spiral", "center": [cx, cz], "y0": y0, "y1": y1,
                      "treads": len(treads), "turns": round(laps, 2), "rails": rails,
-                     "width": width})
+                     "width": width, "dig": sorted(dig)})
 
 
 def _spoke(cx: int, cz: int, t0: float, t1: float, r_in: float, r_out: float) -> list:

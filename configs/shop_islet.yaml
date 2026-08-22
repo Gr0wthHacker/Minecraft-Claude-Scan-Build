@@ -4,6 +4,12 @@
 # into nothing. This is what it arrives at. Build the two together or neither makes sense.
 #
 # Site checked against the capture: the 25x17x25 box at Y138-154 was 0/10625 occupied.
+# CARVED FOR THE WELL (2026-08-22): the Lowland Stair now screws straight down the taproot's
+# axis through this islet's floor - Jack's alignment call - and 287 cells of this design's
+# lens fill were removed where the stair's treads and headroom pass (the carve is re-derived
+# from the stair's work.json envelope; regenerating this design re-fills the well and must be
+# followed by re-carving). The shop's barrels, signs and their floor are untouched - the
+# stair's dig rules cannot take them.
 name: Shop Islet
 gen: islet
 params:
