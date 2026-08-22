@@ -90,11 +90,36 @@ def test_the_facade_survives_whole(built):
 
 
 @needs_world
-def test_the_apse_holds_a_full_crest(built):
+def test_the_torn_apse_stands_tallest_at_the_tear(built):
     _, cells = built
     H = CFG["params"]["wall_h"] + 1
     crest = [(x, z) for (x, y, z) in cells if y == FY + H and z < Z_CHORD]
-    assert len(crest) >= 4, f"the crest is {len(crest)} columns - a peak, not a line"
+    assert len(crest) >= 2, f"no torn edge reaches full height ({len(crest)} columns)"
+
+
+@needs_world
+def test_nothing_perches_on_the_breach(built, world):
+    """The void hole north of the building is real, and 'stuff hanging off in the void' is
+    what Jack called the first apse. No sanctum column may stand 4-adjacent to a no-ground
+    column - where the arc meets the breach, the wall is GONE."""
+    _, cells = built
+    m, o, names = world
+    PASS = set(_PASSABLE) | {"water", "ice"}
+    ycap = 58 - o["y"]
+
+    def has_ground(wx, wz):
+        x, z = wx - o["x"], wz - o["z"]
+        if not (0 <= x < m.ids.shape[2] and 0 <= z < m.ids.shape[1]):
+            return False
+        col = m.ids[:ycap, z, x]
+        return any(names[i] not in PASS for i in np.unique(col))
+
+    for (x, y, z) in cells:
+        if z >= Z_CHORD:
+            continue                                   # the breach is north; south is inland
+        for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            assert has_ground(x + dx, z + dz), \
+                f"sanctum cell at {(x, y, z)} perches on the breach lip"
 
 
 @needs_world

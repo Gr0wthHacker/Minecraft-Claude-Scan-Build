@@ -54,4 +54,5 @@ progress:                           # designs reported (% built, left, shop list
                                     # on the WEST bank rotated 180 - see configs/lowland_axolotl.yaml
   - out/Lowland Ruinway.litematic   # the blackstone way and its fragments (2026-08-21)
   - out/Lowland Sanctum.litematic   # the quarter's one complete building, in the north skylight
+  - out/Castle Bridge.litematic     # broken span, island SE rim -> bat tower parapet, Y150-153
 learn: true

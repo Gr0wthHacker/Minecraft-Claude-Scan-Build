@@ -1,0 +1,26 @@
+# THE CASTLE BRIDGE - a broken walkway from the island's SE rim to the bat tower's parapet.
+#
+# Measured (2026-08-21 19:28 scan): the tower's upper works and the rim sit at the SAME height,
+# Y151 both sides, 21 blocks apart - matching height and real architecture at both ends are
+# what make a broken span believable. Two stubs reach toward each other; the missing middle is
+# the ruin, a jumpable gap, and what makes both halves printable (each anchors to its own end).
+# ONE bridge only, by rule: a second span starts turning the void into a rope-park.
+name: Castle Bridge
+gen: voidbridge
+params:
+  under: out/bridge_zone.litematic   # Y140-168 cut of the full capture; re-cut after
+                                     # a rescan with: python -m mcbuild scan island --cut
+                                     #   -24205 140 30015 -24150 168 30056 --out out/bridge_zone.litematic --name-out bridge_zone
+  a: [-24192, 151, 30027]    # the island rim anchor (measured solid)
+  b: [-24176, 151, 30041]    # the castle parapet anchor (measured solid)
+  gap: 5
+  width: 2
+  seed: 0
+origin_lock: false           # LOUD: hangs at Y150-152 off the SE rim
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine]
+  verify_against: out/bridge_zone.litematic

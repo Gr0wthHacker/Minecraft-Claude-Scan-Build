@@ -62,13 +62,21 @@ def _put(w, ctx, x, y, z, name, **props):
     return 0
 
 
-def _emit_floor(w, ctx, p, x0, x1, z0, z1, FY, ax, seed) -> int:
+def _emit_floor(w, ctx, p, x0, x1, z0, z1, FY, ax, seed, az_chord, apse_r) -> int:
     """The stylobate: every column levelled up to one floor plane, the edge course chiseled -
     a building sits ON something, and the platform is half of 'once impressive'. Moss-gapped
-    inside (a ruin floor), whole along the chiseled centre aisle."""
+    inside (a ruin floor), whole along the chiseled centre aisle. North of the chord only the
+    INSIDE of the apse curve is floored - the first version paved the exterior corners, which
+    put levelling piers out on the void breach's lip, and Jack met them from below as 'stuff
+    hanging off in the void'."""
     n = 0
     for x in range(x0, x1 + 1):
         for z in range(z0, z1 + 1):
+            if z < az_chord and math.hypot(x - ax, z - az_chord) > apse_r - 0.8:
+                continue                               # outside the curve is outside the building
+            if z < az_chord and any(_surface(ctx, x + dx2, z + dz2)[0] is None
+                                    for dx2, dz2 in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                continue                               # the breach eats the floor with the wall
             g, name = _surface(ctx, x, z)
             if g is None or name in ("water", "ice") or g >= FY:
                 continue
@@ -83,12 +91,10 @@ def _emit_floor(w, ctx, p, x0, x1, z0, z1, FY, ax, seed) -> int:
     return n
 
 
-def _emit_apse(w, ctx, p, ax, az_chord, FY, seed) -> int:
-    """The surviving back: a half-ring to FULL crest across its back third (a line, not a
-    peak - the quarter audit's lesson), buttress ribs outside, a chiseled band course."""
+def _apse_arc(p, ax, az_chord):
+    """(x, z, ang, in_rib) for every arc column, walls and ribs."""
     r = float(p["apse_r"])
-    H = int(p["wall_h"]) + 1
-    n = 0
+    out = []
     for dx in range(-int(r) - 2, int(r) + 3):
         for dz in range(-int(r) - 2, int(r) + 3):
             if dz > 0:
@@ -97,18 +103,44 @@ def _emit_apse(w, ctx, p, ax, az_chord, FY, seed) -> int:
             ang = math.degrees(math.atan2(-dz, dx)) - 90.0   # 0 = due north = the back
             in_wall = r - 0.5 <= d <= r + 0.5
             in_rib = abs(abs(ang) - 42) < 7 and r + 0.5 < d <= r + 1.5
-            if not (in_wall or in_rib):
-                continue
-            x, z = ax + dx, az_chord + dz
-            f = 1.0 - min(1.0, abs(ang) / 90.0)
-            h = H if (in_wall and f > 0.55) else max(2, int(round(H * (0.30 + 0.85 * f))))
-            if in_rib:
-                h = max(2, h - 2)
-            for k in range(h):
-                y = FY + 1 + k
-                band = in_wall and k == 3
-                n += _put(w, ctx, x, y, z, p["chiseled"] if band
-                          else _weathered(p, hash01(x, y, z, seed)))
+            if in_wall or in_rib:
+                out.append((ax + dx, az_chord + dz, ang, in_rib))
+    return out
+
+
+def _emit_apse(w, ctx, p, ax, az_chord, FY, seed) -> int:
+    """The back of the sanctum, TORN OPEN BY THE BREACH. The void hole north of the building
+    is real (measured: no ground past z29964), and the first apse perched its back wall on the
+    hole's thin lip - seen from the breach it was blackstone hanging over nothing, and Jack
+    said exactly that. So NO COLUMN MAY STAND ON A VOID-ADJACENT LIP: where the arc meets the
+    breach, the wall is GONE - the void ate the north end - and the TORN EDGES STAND TALLEST,
+    the way real ruin tears do. You stand at the altar and the abyss opens behind it."""
+    H = int(p["wall_h"]) + 1
+    arc = []
+    for x, z, ang, in_rib in _apse_arc(p, ax, az_chord):
+        edge = False
+        for dx2, dz2 in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            g2, _n2 = _surface(ctx, x + dx2, z + dz2)
+            if g2 is None:
+                edge = True
+                break
+        arc.append((x, z, ang, in_rib, edge))
+    gone = [a[2] for a in arc if a[4]]
+    n = 0
+    for x, z, ang, in_rib, edge in arc:
+        if edge:
+            continue                                   # fell into the breach
+        d_tear = min([abs(ang - g2) for g2 in gone] + [abs(abs(ang) - 90) + 45])
+        # a RUN of full height at each torn edge, then decay - one tall column is a spike,
+        # and the tear is the new crest
+        h = H if d_tear < 22 else max(3, H - int((d_tear - 22) / 12))
+        if in_rib:
+            h = max(2, h - 3)
+        for k in range(h):
+            y = FY + 1 + k
+            band = not in_rib and k == 3
+            n += _put(w, ctx, x, y, z, p["chiseled"] if band
+                      else _weathered(p, hash01(x, y, z, seed)))
     return n
 
 
@@ -306,7 +338,8 @@ def build_sanctum(cfg: dict, donors=None) -> Canvas:
             if g2 is not None and g2 < FY:
                 thresh += _put(w, ctx, ax + dx, FY, zf - dz, p["rough"])
     feats = {"threshold": thresh}
-    feats["floor"] = _emit_floor(w, ctx, p, x0, x1, az_chord - int(p["apse_r"]) - 1, zf, FY, ax, seed)
+    feats["floor"] = _emit_floor(w, ctx, p, x0, x1, az_chord - int(p["apse_r"]) - 1, zf, FY, ax,
+                                 seed, az_chord, float(p["apse_r"]))
     feats["apse"] = _emit_apse(w, ctx, p, ax, az_chord, FY, seed)
     feats["walls"] = _emit_side_walls(w, ctx, p, x0, x1, az_chord + 1, zf - 1, FY, seed)
     feats["facade"] = _emit_facade(w, ctx, p, x0, x1, zf, FY, ax, seed)
