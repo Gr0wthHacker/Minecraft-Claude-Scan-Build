@@ -2140,6 +2140,19 @@ config records it).
 Build order for the printer is now: portal remainder, ruinway, sanctum (each defers to the
 ones before it). `designs.json` tracks 27.
 
+**The pond end was wrong and Jack named it exactly (2026-08-21): "the gate and fishing path...
+needs to be done differently."** The first ensemble was a door to nowhere and a jetty from
+nowhere - the bridge stub genuinely read as a fishing jetty. The fix was to commit to what the
+pond IS in this story: **the harbor**. The bridge is gone (`bridge: null` records why); the
+pond's SE shore turned out to be a clean diagonal of dry edge columns at exact water level
+(measured, not drawn), and the QUAY's dressed lip follows that line - the bank is the water's
+own line, never a hand-drawn box. Mooring posts stand on the lip, one carrying the cold light;
+two lip cells are landing steps whose flight ascends LANDWARD, because you climb them out of a
+boat - the stair convention applied to a shoreline. The gatehouse relocated to mid-arc as the
+WATERGATE, its opening facing the landing, and the way now BEGINS at the water: boat - steps -
+gate - under the capybara - ring - colonnade - overlook. A path is real when both of its ends
+are places.
+
 ## Build & test
 
 ```bash

@@ -50,6 +50,7 @@ RUINWAY = {
     "colonnade": [],           # [{"at": [x, z], "h": n}, ...] free-standing piers
     "overlook": None,          # {"at": [x, z], "r": 3} at the measured rim edge
     "bridge": None,            # {"from": [x, z], "dir": [dx, dz], "len": 5, "width": 3}
+    "quay": None,              # {"from": [x, z], "to": [x, z]} dressed lip on the bank edge
     "apse": None,              # {"at": [x, z], "r": 4, "h": 5, "open_deg": 200}
     "lanterns": [],            # [x, z] wall-post + soul lantern, skipped where occupied
 
@@ -262,6 +263,55 @@ def _emit_bridge(w: World, ctx: Ctx, p, seed) -> int:
     return n
 
 
+def _emit_quay(w: World, ctx: Ctx, p, seed) -> dict:
+    """The harbor the pond always was: a dressed lip along the REAL bank edge (every dry
+    column touching water, found at build time - the bank is the water's own line, never a
+    hand-drawn box), mooring posts, and landing steps whose flight ascends LANDWARD, because
+    you climb them out of a boat. Nothing enters the water; the lip rides one course above."""
+    q = p["quay"]
+    fx, fz = (int(v) for v in q["from"])
+    tx, tz = (int(v) for v in q["to"])
+    x0, x1 = min(fx, tx) - 1, max(fx, tx) + 1
+    z0, z1 = min(fz, tz) - 1, max(fz, tz) + 1
+    feats = {"lip": 0, "posts": 0, "steps": 0}
+    lip_cells = []
+    for x in range(x0, x1 + 1):
+        for z in range(z0, z1 + 1):
+            g, name = _surface(ctx, x, z)
+            if g is None or name in ("water", "ice"):
+                continue
+            wdir = None
+            for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                _g2, n2 = _surface(ctx, x + dx, z + dz)
+                if n2 in ("water", "ice"):
+                    wdir = (dx, dz)
+                    break
+            if wdir is None:
+                continue
+            if _free(ctx, x, g + 1, z) and not w.has(x, g + 1, z):
+                dressed = hash01(x, 51, z, seed) < 0.55
+                w.put(x, g + 1, z, p["chiseled"] if dressed else _weathered(p, hash01(x, g, z, seed)))
+                feats["lip"] += 1
+                lip_cells.append((x, g + 1, z, wdir))
+    lip_cells.sort(key=lambda c: (c[0], c[2]))
+    mid = len(lip_cells) // 2
+    for i, (x, y, z, wdir) in enumerate(lip_cells):
+        if i in (mid - 1, mid):                        # the landing: steps up out of the water
+            away = {(1, 0): "west", (-1, 0): "east", (0, 1): "north", (0, -1): "south"}[wdir]
+            w.put(x, y, z, p["stair"], facing=away, half="bottom")
+            feats["steps"] += 1
+        elif i % 5 == 2:                               # mooring posts on the lip
+            if _free(ctx, x, y + 1, z) and not w.has(x, y + 1, z):
+                w.put(x, y + 1, z, "polished_blackstone_brick_wall")
+                top = "soul_lantern" if feats["posts"] == 1 else None
+                if top and _free(ctx, x, y + 2, z):
+                    w.put(x, y + 2, z, top, hanging="false")
+                elif _free(ctx, x, y + 2, z):
+                    w.put(x, y + 2, z, p["slab"], type="bottom")
+                feats["posts"] += 1
+    return feats
+
+
 def _emit_apse(w: World, ctx: Ctx, p, seed) -> int:
     """A half-ring of wall in the north skylight: tallest at its back, collapsing to nothing
     at both ends, open toward the scene. One amethyst bloom inside - the same cold spark as
@@ -346,6 +396,8 @@ def build_ruinway(cfg: dict, donors=None) -> Canvas:
         feats["overlook"] = _emit_overlook(w, ctx, p, seed)
     if p.get("bridge"):
         feats["bridge"] = _emit_bridge(w, ctx, p, seed)
+    if p.get("quay"):
+        feats.update(_emit_quay(w, ctx, p, seed))
     if p.get("apse"):
         feats["apse"] = _emit_apse(w, ctx, p, seed)
     posts = 0

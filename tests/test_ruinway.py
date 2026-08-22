@@ -73,23 +73,54 @@ def test_pavement_rests_on_ground_and_stairs_face_the_ascent(built, world):
     its climb cannot be walked up (test_stairhead)."""
     _, cells = built
     FACE = {"east": (1, 0), "west": (-1, 0), "south": (0, 1), "north": (0, -1)}
-    b = CFG["params"]["bridge"]
     stairs = 0
     for (x, y, z), (n, props) in cells.items():
+        # a LANDING stair is one standing at the water's edge - judged by the water itself,
+        # not by a bounding box: the way's own first steps share the quay's box
+        landing = any(_wname(world, x + dx, y - 1, z + dz) in ("water", "ice")
+                      for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)))
         if n.endswith("_slab") or n.endswith("_stairs"):
-            if abs(x - b["from"][0]) <= 2 and b["from"][1] - 6 <= z <= b["from"][1]:
-                continue                               # the bridge hangs over water BY DESIGN
             below = _wname(world, x, y - 1, z)
-            assert below not in ("air", "cave_air", "void_air", "vine", "water"), \
+            assert (x, y - 1, z) in cells or below not in \
+                ("air", "cave_air", "void_air", "vine", "water"), \
                 f"{n} floats at {(x, y, z)} over {below}"
         if n.endswith("_stairs"):
             stairs += 1
             assert props.get("half") == "bottom"
             dx, dz = FACE[props["facing"]]
             ahead = _wname(world, x + dx, y, z + dz)
-            assert ahead not in ("air", "cave_air", "void_air"), \
-                f"stair at {(x, y, z)} ascends toward open air - it faces away from its climb"
+            if landing:                                # a landing step ascends out of the WATER:
+                behind = _wname(world, x - dx, y - 1, z - dz)
+                assert behind in ("water", "ice"), \
+                    f"landing stair at {(x, y, z)} does not rise from the water"
+            else:
+                assert ahead not in ("air", "cave_air", "void_air"), \
+                    f"stair at {(x, y, z)} ascends toward open air - it faces away from its climb"
     assert stairs >= 15, "the climb to the rim lost its steps"
+
+
+@needs_world
+def test_the_quay_holds_the_waterline(built, world):
+    """Every lip cell touches real water; the posts stand ON the lip; nothing enters the pond."""
+    _, cells = built
+    q = CFG["params"].get("quay")
+    if not q:
+        pytest.skip("no quay configured")
+    lip = 0
+    posts = 0
+    for (x, y, z), (n, _) in cells.items():
+        if _wname(world, x, y, z) in ("water", "ice"):
+            raise AssertionError(f"quay cell inside the pond at {(x, y, z)}")
+        if n == "polished_blackstone_brick_wall" and (x, y - 1, z) in cells:
+            posts += 1
+        if n in ("chiseled_polished_blackstone", "polished_blackstone_bricks", "blackstone",
+                 "cracked_polished_blackstone_bricks"):
+            near_water = any(_wname(world, x + dx, y - 1, z + dz) in ("water", "ice")
+                             for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+            if near_water and min(q["from"][0], q["to"][0]) - 1 <= x <= max(q["from"][0], q["to"][0]) + 1:
+                lip += 1
+    assert lip >= 8, f"only {lip} lip cells hold the waterline"
+    assert posts >= 2, f"only {posts} mooring posts"
 
 
 @needs_world
@@ -104,6 +135,8 @@ def test_the_pavement_is_ruined_but_walkable(built):
 def test_the_bridge_ends_over_open_water_broken(built, world):
     _, cells = built
     b = CFG["params"]["bridge"]
+    if not b:
+        pytest.skip("the bridge yielded to the quay - it read as a fishing jetty (2026-08-21)")
     deck = [(x, y, z) for (x, y, z), (n, _) in cells.items()
             if n.endswith("_slab") and abs(x - b["from"][0]) <= 2 and b["from"][1] - 6 <= z <= b["from"][1]]
     over_water = [c for c in deck if _wname(world, c[0], c[1] - 1, c[2]) in ("water", "ice")]

@@ -14,21 +14,27 @@ name: Lowland Ruinway
 gen: ruinway
 params:
   under: out/lowland_planned.litematic
-  path: [[-24198, 30019], [-24193, 30020], [-24186, 30021], [-24179, 30023], [-24176, 30024],
-         [-24171, 30025], [-24165, 30026], [-24159, 30027], [-24154, 30027]]
+  # THE WAY NOW BEGINS AT THE WATER (2026-08-21, second pass on the pond end): Jack read the
+  # first version right - a door to nowhere and a jetty from nowhere. The pond is the HARBOR:
+  # the way starts at the quay landing, passes the watergate, and runs east under the capybara.
+  path: [[-24200, 30011], [-24195, 30013], [-24191, 30017], [-24187, 30020], [-24182, 30022],
+         [-24179, 30023], [-24176, 30024], [-24171, 30025], [-24165, 30026], [-24159, 30027],
+         [-24154, 30027]]
   decay_from: [-24171, 30025]      # whole at the ring, ruined at the edges
-  gatehouse: {at: [-24197, 30020]}
+  gatehouse: {at: [-24198, 30011]} # the WATERGATE: mid-arc on the quay, opening facing the
+                                   # landing - you step out of the boat, up the steps, and
+                                   # through the door onto the way
   colonnade:                        # flanking the overlook approach, four heights - decay is
     - {at: [-24162, 30024], h: 6}   # uneven or it reads as design, not time. The visual audit
     - {at: [-24162, 30029], h: 3}   # set the floor: under ten-tall trees a pier below ~5 reads
     - {at: [-24158, 30024], h: 4}   # as a fence post, so the tall ones carry the line and only
     - {at: [-24158, 30030], h: 5}   # one is allowed to be a stump
   overlook: {at: [-24153, 30027], r: 3}
-  bridge: {from: [-24204, 30019], dir: [0, -1], len: 6, width: 3}
-                                    # the pond's SE finger: water holds x<=-24205 at z30016 and
-                                    # x<=-24203 at z30014, so the last two rows hang over open
-                                    # water - the first siting misread the bank line and the
-                                    # whole deck stayed dry
+  # the bridge stub is GONE - it read as a fishing jetty, which is exactly what Jack called
+  # it. The quay is the waterfront now: the pond's SE shore is a clean diagonal of dry edge
+  # columns at exact water level (measured), and the lip follows the water's own line.
+  bridge: null
+  quay: {from: [-24197, 30004], to: [-24204, 30016]}
   # the apse fragment YIELDED ITS GROUND to the Lowland Sanctum (2026-08-21): the north
   # skylight is the only zone that can hold a complete structure, and the fragment became the
   # surviving back wall of the building it was always a fragment of. See lowland_sanctum.yaml.
