@@ -98,20 +98,49 @@ def test_the_apse_holds_a_full_crest(built):
 
 
 @needs_world
-def test_the_side_walls_fell_in_the_middle(built):
+def test_the_walls_fell_asymmetrically(built):
+    """A mirrored collapse is an algorithm's signature. West: mostly standing with one breach.
+    East: mostly down, one full-height survivor - so the open scene looks into the nave."""
     _, cells = built
     x0, x1 = AX - CFG["params"]["width"] // 2, AX + CFG["params"]["width"] // 2
-    for wall_x in (x0, x1):
+    H = CFG["params"]["wall_h"]
+
+    def profile(wall_x):
         heights = {}
         for (x, y, z), n in cells.items():
             if x == wall_x and Z_CHORD < z < ZF and y > FY:
                 heights[z] = max(heights.get(z, 0), y - FY)
         assert heights, f"no wall at x={wall_x}"
-        zs = sorted(heights)
-        mid = [heights[z] for z in zs[len(zs) // 3:2 * len(zs) // 3]]
-        ends = [heights[zs[0]], heights[zs[-1]]]
-        assert min(mid) <= 2, "the middle never fell - it is a fortress, not a ruin"
-        assert max(ends) >= 5, "the ends fell too - nothing says the walls were ever tall"
+        vals = sorted(heights.values())
+        return vals, vals[len(vals) // 2]
+
+    west, west_med = profile(x0)
+    east, east_med = profile(x1)
+    assert west_med >= 4, f"the west wall fell too (median {west_med}) - nothing stands"
+    assert min(west) <= 2, "the west wall has no breach - a fortress, not a ruin"
+    assert east_med <= 3, f"the east wall stands (median {east_med}) - the collapse is mirrored"
+    assert max(east) >= H, "the east wall lost its lone survivor"
+
+
+@needs_world
+def test_the_west_wall_has_windows(built):
+    _, cells = built
+    x0 = AX - CFG["params"]["width"] // 2
+    sills = 0
+    for (x, y, z), n in cells.items():
+        if x == x0 and n == "chiseled_polished_blackstone" and Z_CHORD < z < ZF:
+            if (x, y + 1, z) not in cells and (x, y + 3, z) in cells:
+                sills += 1                             # sill, opening above, wall resumes over
+    assert sills >= 2, f"only {sills} window openings - a windowless box is a bunker"
+
+
+@needs_world
+def test_the_building_was_used(built):
+    c, _ = built
+    f = c.meta["features_built"]
+    assert f["bench"] >= 2, "no bench - a monument, not a place"
+    assert f["drum"] >= 2, "no fallen drum"
+    assert f["threshold"] >= 3, "no worn threshold"
 
 
 @needs_world

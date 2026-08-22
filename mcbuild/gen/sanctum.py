@@ -112,34 +112,53 @@ def _emit_apse(w, ctx, p, ax, az_chord, FY, seed) -> int:
     return n
 
 
+def _wall_height(side, t, H, seed):
+    """The two walls fell DIFFERENTLY - a mirrored collapse is an algorithm's signature, not a
+    ruin's. West: mostly standing, one clean breach. East: mostly down to a course or two,
+    one full-height pilaster tower surviving alone."""
+    if side == "west":
+        if 0.30 < t < 0.52:
+            return 1 + int(2 * hash01(int(t * 100), 3, 7, seed))    # the breach
+        return max(4, H - int(2 * hash01(int(t * 100), 1, 1, seed)))
+    if abs(t - 0.42) < 0.08:
+        return H                                       # the lone survivor
+    return 1 + int(hash01(int(t * 100), 9, 2, seed) * 2)
+
+
 def _emit_side_walls(w, ctx, p, x0, x1, z0, z1, FY, seed) -> int:
-    """High at the apse end, high again at the facade, collapsed to a course or two in the
-    middle - and the tumble lies in ONE heap per side where it fell, never scatter."""
+    """Asymmetric collapse, window openings with chiseled sills in the surviving runs, corbels
+    at the roof-beam course, and the tumble in one heap at each fall. The east wall is mostly
+    gone ON PURPOSE: the open scene looks straight into the nave and the altar's bloom."""
     H = int(p["wall_h"])
     n = 0
     span = max(1, z1 - z0)
-    for x in (x0, x1):
+    for x, side in ((x0, "west"), (x1, "east")):
         out = -1 if x == x0 else 1
         for z in range(z0, z1 + 1):
             t = (z - z0) / span
-            # a catenary of ruin: ends survive, middle went
-            f = 0.55 * (1 - math.cos(2 * math.pi * t)) / 2
-            h = max(1, int(round(H * (1.0 - 1.6 * f))))
-            pilaster = (z - z0) % 4 == 0 and h >= 3
+            h = min(H, _wall_height(side, t, H, seed))
+            window = h >= 5 and (z - z0) % 4 == 2      # 1x2 openings in the surviving runs
             for k in range(h):
                 y = FY + 1 + k
-                n += _put(w, ctx, x, y, z, _weathered(p, hash01(x, y, z, seed)))
-            if pilaster:
+                if window and k in (2, 3):
+                    continue                           # the opening
+                sill = window and k == 1
+                corbel = k == H - 2 and h >= H - 1 and (z - z0) % 3 == 1
+                mat = p["chiseled"] if sill else _weathered(p, hash01(x, y, z, seed))
+                n += _put(w, ctx, x, y, z, mat)
+                if corbel:                             # where the roof beams sat
+                    n += _put(w, ctx, x - out, y, z, p["chiseled"])
+            if (z - z0) % 4 == 0 and h >= 3:           # pilaster feet on the outside
                 n += _put(w, ctx, x + out, FY + 1, z, p["chiseled"])
-                for k in range(1, min(h, 3)):
-                    n += _put(w, ctx, x + out, FY + 1 + k, z, _weathered(p, hash01(x + out, k, z, seed)))
-        mid = (z0 + z1) // 2                           # the heap, half-buried at the wall foot
-        for dz in (-1, 0, 1):
-            for do in (1, 2):
+        # the tumble: heavier where more wall is down - one heap per wall, half-buried
+        mid = z0 + int(span * (0.40 if side == "west" else 0.55))
+        reach = 2 if side == "west" else 3
+        for dz in range(-2, 3):
+            for do in range(1, reach + 1):
                 x2, z2 = x + out * do, mid + dz
                 g2, nm = _surface(ctx, x2, z2)
                 if g2 is not None and nm not in ("water", "ice"):
-                    if hash01(x2, 31, z2, seed) < 0.75:
+                    if hash01(x2, 31, z2, seed) < (0.8 - 0.2 * do):
                         n += _put(w, ctx, x2, g2 + 1, z2, _weathered(p, hash01(x2, 5, z2, seed)))
     return n
 
@@ -165,6 +184,19 @@ def _emit_facade(w, ctx, p, x0, x1, zf, FY, ax, seed) -> int:
             mat = p["chiseled"] if (jamb or ring or k == peak - 1) \
                 else _weathered(p, hash01(x, y, zf, seed))
             n += _put(w, ctx, x, y, zf, mat)
+    # THE DOOR HAS DEPTH: a second course of jambs one cell inside, so you pass THROUGH a
+    # wall, not through a pane - monumental masonry is thick where it matters most
+    for dx in (-2, 2):
+        for k in range(5):
+            n += _put(w, ctx, ax + dx, FY + 1 + k, zf - 1, p["chiseled"])
+    # THE BELL-COTE: an empty one-cell arch on the pediment peak. Nothing says "someone once
+    # rang this" like the arch a bell is missing from.
+    top = FY + H + 3
+    for dx in (-1, 1):
+        for k in (1, 2):
+            n += _put(w, ctx, ax + dx, top + k, zf, p["chiseled"])
+    for dx in (-1, 0, 1):
+        n += _put(w, ctx, ax + dx, top + 3, zf, p["chiseled"])
     return n
 
 
@@ -193,6 +225,18 @@ def _emit_interior(w, ctx, p, ax, az_chord, zf, FY, seed) -> dict:
         if w.has(ax + dx, FY, altar_z):
             feats["lanterns"] += _put(w, ctx, ax + dx, FY + 1, altar_z, "soul_lantern",
                                       hanging="false")
+    # TRACES OF USE - the difference between a monument and a place: a slab bench along the
+    # west wall's surviving run, and a fallen column drum lying in the nave where the east
+    # wall's collapse would have thrown it
+    bench = 0
+    for dz in range(3):
+        bench += _put(w, ctx, ax - 4, FY + 1, az_chord + 5 + dz, p["slab"], type="bottom")
+    feats["bench"] = bench
+    drum = 0
+    for dx in (0, 1):
+        drum += _put(w, ctx, ax + 2 + dx, FY + 1, az_chord + 8, p["chiseled"])
+    drum += _put(w, ctx, ax + 2, FY + 1, az_chord + 9, p["rough"])
+    feats["drum"] = drum
     return feats
 
 
@@ -253,7 +297,16 @@ def build_sanctum(cfg: dict, donors=None) -> Canvas:
         FY = gs[len(gs) // 2] + 1                      # then PIN it in the config, like the ring
 
     w = World()
-    feats = {"floor": _emit_floor(w, ctx, p, x0, x1, az_chord - int(p["apse_r"]) - 1, zf, FY, ax, seed)}
+    # the WORN THRESHOLD goes down first so the floor pass cannot claim those cells: rough
+    # blackstone where ten thousand feet crossed, against the chiseled aisle beyond
+    thresh = 0
+    for dx in (-1, 0, 1):
+        for dz in (0, 1):
+            g2, _nm = _surface(ctx, ax + dx, zf - dz)
+            if g2 is not None and g2 < FY:
+                thresh += _put(w, ctx, ax + dx, FY, zf - dz, p["rough"])
+    feats = {"threshold": thresh}
+    feats["floor"] = _emit_floor(w, ctx, p, x0, x1, az_chord - int(p["apse_r"]) - 1, zf, FY, ax, seed)
     feats["apse"] = _emit_apse(w, ctx, p, ax, az_chord, FY, seed)
     feats["walls"] = _emit_side_walls(w, ctx, p, x0, x1, az_chord + 1, zf - 1, FY, seed)
     feats["facade"] = _emit_facade(w, ctx, p, x0, x1, zf, FY, ax, seed)
