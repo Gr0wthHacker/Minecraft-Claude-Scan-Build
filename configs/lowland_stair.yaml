@@ -20,17 +20,31 @@ params:
   y0: 41                     # first tread a half-step off the landing moss (ground 39-41 there)
   y1: 150                    # top slab surface Y151 = the islet shelf's walking level
   clearance: 2
-  min_radius: 3.0
+  min_radius: 4.5            # PINNED to max_inner: the root ends at Y95 and below its tip the
+                             # profile is empty, so an unpinned floor would snap the ribbon from
+                             # 4.5 to 3.0 in one course
   max_inner: 4.5             # see gen/spiral.py: the grip bend must not widen the helix
-  start_angle: 1.1           # swept over 63 angles scoring the COMPOSITE walk (stair + shop
-                             # islet design + capture): this phase runs the top courses up the
-                             # open south air and reaches the shelf at 151.0 exactly
+  start_angle: 4.0           # RE-SWEPT for the tapered root (a slimmer profile changes the
+                             # pitch, so the phase moves with the core): 63 angles scored on
+                             # the COMPOSITE walk - this one reaches the shelf at 151.0 with
+                             # the widest landing (638 walkable lowland cells)
   direction: 1               # the Root Stair's spin, continued
   width: 4
   slab: stone_brick_slab
   slab_alt: mossy_stone_brick_slab
   alt_rate: 0.35
   rail: stone_brick_wall
+  # THE STONE CHANGES AS THE WORLD DOES, dithered thirds, 122 -> 71 -> 48 in measured
+  # luminance: island stone brick at the shelf, deepslate through the twilight, the quarter's
+  # blackstone to the ground - and the light goes cold with it, warm lanterns above, soul
+  # lanterns below, which is the quarter's own colour system met halfway down.
+  bands:
+    - {from_y: 115, slab: stone_brick_slab, alt: mossy_stone_brick_slab,
+       rail: stone_brick_wall, lantern: lantern}
+    - {from_y: 78,  slab: deepslate_brick_slab, alt: cobbled_deepslate_slab,
+       rail: deepslate_brick_wall, lantern: lantern}
+    - {from_y: -999, slab: polished_blackstone_brick_slab, alt: blackstone_slab,
+       rail: polished_blackstone_brick_wall, lantern: soul_lantern}
   lantern_every: 12
   seed: 0
 origin_lock: false           # LOUD: spans Y39-151 from the lowland moss to the islet rim

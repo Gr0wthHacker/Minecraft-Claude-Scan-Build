@@ -42,8 +42,28 @@ SPIRAL = {
     "alt_rate": 0.35,          # share of treads in the second slab, so it is not one flat tone
     "rail": "stone_brick_wall",
     "lantern_every": 12,       # a lantern on the rail every N treads; 0 for none
+    "lantern_block": "lantern",
+    # MATERIAL BANDS, optional: the stair changes stone as it changes world. A list ordered
+    # top band first, each {from_y, slab, alt, rail, lantern}; a course belongs to the first
+    # band whose from_y it is at or above, and the seams are DITHERED per cell over
+    # band_blend courses - a hard line across a helix reads as two stairs stacked, not one
+    # stair descending. None keeps the single-palette behaviour bit-for-bit (the Root Stair).
+    "bands": None,
+    "band_blend": 6,
     "seed": 0,
 }
+
+
+def _band(p, y, x, z, seed):
+    """The band a cell belongs to, with its edge dithered by a per-cell hash."""
+    bands = p.get("bands")
+    if not bands:
+        return None
+    yy = y + (hash01(x, 87, z, seed) - 0.5) * 2.0 * float(p.get("band_blend", 6))
+    for b in bands:
+        if yy >= float(b["from_y"]):
+            return b
+    return bands[-1]
 
 DIRS4 = (("east", 1, 0), ("west", -1, 0), ("south", 0, 1), ("north", 0, -1))
 
@@ -74,7 +94,9 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
         d = spin / max(1.0, r_in)                      # one cell of arc at the inner edge
         cells = _spoke(cx, cz, theta, theta + d, r_in, r_in + width)
         for (x, z) in cells:
-            name = p["slab_alt"] if hash01(x, z, 19, seed) < p["alt_rate"] else p["slab"]
+            b = _band(p, y, x, z, seed)
+            slab, alt = (b["slab"], b["alt"]) if b else (p["slab"], p["slab_alt"])
+            name = alt if hash01(x, z, 19, seed) < p["alt_rate"] else slab
             w.put(x, y, z, name, type="bottom" if low else "top", waterlogged="false")
         if cells:
             treads.append([cells[0][0], y, cells[0][1]])
@@ -140,15 +162,19 @@ def _rails(w: World, ctx, cx: int, cz: int, prof: dict, y0: int, y1: int, width:
             continue
         if ctx is not None and ctx.name_at(x, y + 1, z) not in ("air", "cave_air", "void_air", "vine"):
             continue
-        w.put(x, y + 1, z, p["rail"], up="true", north="none", south="none",
-              east="none", west="none", waterlogged="false")
+        b = _band(p, y, x, z, seed)
+        w.put(x, y + 1, z, b["rail"] if b else p["rail"], up="true", north="none",
+              south="none", east="none", west="none", waterlogged="false")
         n += 1
     if p["lantern_every"]:
-        posts = [c for c in sorted(w.cells) if w.name(*c) == p["rail"]]
+        posts = [c for c in sorted(w.cells) if (w.name(*c) or "").endswith("_wall")]
         for i, (x, y, z) in enumerate(posts):
             if i % int(p["lantern_every"]) == 0 and not w.has(x, y + 1, z):
-                w.put(x, y + 1, z, "lantern", hanging="false", waterlogged="false")
-    _settle_walls(w, ctx or _NoCtx(), p["rail"])
+                b = _band(p, y, x, z, seed)
+                w.put(x, y + 1, z, b["lantern"] if b else p["lantern_block"],
+                      hanging="false", waterlogged="false")
+    for rail_name in sorted({b["rail"] for b in (p.get("bands") or [])} | {p["rail"]}):
+        _settle_walls(w, ctx or _NoCtx(), rail_name)
     return n
 
 

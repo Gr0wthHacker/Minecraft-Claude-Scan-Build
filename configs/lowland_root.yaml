@@ -6,6 +6,7 @@
 # all measured - so the root leaves the islet's SOUTH rim instead, where the shelf is solid at
 # (-24208..-24207, 30025) and the axis at (-24207, 30029) clears the light gallery by 9.5, the quay
 # tip by 11 and the watergate by 13+. ~106 courses of measured open void, then moss at Y37-38.
+# The root itself stops at Y95 - see y_tip below; the stair carries on alone past the tip.
 #
 # The Void Ladybird's parked site was in this shaft (726 cells at Y104-120) - re-sited, see
 # configs/ladybug.yaml.
@@ -16,7 +17,10 @@ params:
   at: [-24207, 30029]
   grip: [-24207, 30025]        # solid shelf cell (measured, one course thick) it hangs from
   y_top: 149
-  y_ground: 41                 # PINNED: toes at the measured moss (ground 40 at the axis)
+  y_tip: 95                    # the root gives out mid-air, inside the stair's deepslate band
+                               # (Y78-114): the island's reach ends where the underworld's
+                               # blackstone begins. Jack's call - the full-height root read wrong.
+  taper: 14
   strands: 3
   seed: 0
 origin_lock: false             # LOUD: spans Y38-149 in the open void under the islet

@@ -139,7 +139,8 @@ def test_the_treads_are_slabs_and_nothing_else(walk):
     stair, _root, _seen = walk
     for (x, y, z), (n, pr) in stair.items():
         base = n.split("[")[0]
-        assert base.endswith(("_slab", "_wall")) or base == "lantern", (x, y, z, n)
+        assert base.endswith(("_slab", "_wall")) or base in ("lantern", "soul_lantern"), \
+            (x, y, z, n)
 
 
 @needs_world
@@ -180,7 +181,46 @@ def test_the_root_is_one_braid(walk):
 @needs_world
 def test_the_rail_carries_its_lanterns(walk):
     stair, _root, _seen = walk
-    lanterns = [c for c, (n, _p) in stair.items() if n.split("[")[0] == "lantern"]
+    lanterns = [c for c, (n, _p) in stair.items()
+                if n.split("[")[0] in ("lantern", "soul_lantern")]
     assert len(lanterns) >= 20
     for (x, y, z) in lanterns:
         assert (x, y - 1, z) in stair, ("lantern off its rail", x, y, z)
+
+
+@needs_world
+def test_the_stone_darkens_and_the_light_goes_cold_on_the_way_down(walk):
+    """The gradient is the design: island stone brick at the shelf, deepslate through the
+    middle, the quarter's blackstone at the ground - and warm light above, soul light below.
+    Measured on the treads' mean height per family, which survives any retuning of the
+    band edges but fails if the gradient is removed or inverted."""
+    stair, _root, _seen = walk
+
+    def mean_y(prefix):
+        ys = [y for (x, y, z), (n, _p) in stair.items() if n.startswith(prefix)]
+        return sum(ys) / len(ys) if ys else None
+
+    stone = mean_y("stone_brick_slab")
+    deep = mean_y("deepslate_brick_slab")
+    black = mean_y("polished_blackstone_brick_slab")
+    assert stone is not None and deep is not None and black is not None
+    assert stone > deep > black, (stone, deep, black)
+    warm = [y for (x, y, z), (n, _p) in stair.items() if n.split("[")[0] == "lantern"]
+    cold = [y for (x, y, z), (n, _p) in stair.items() if n.split("[")[0] == "soul_lantern"]
+    assert warm and cold
+    assert min(warm) > max(cold) - 14, "warm and cold light are not layered"
+    assert sum(warm) / len(warm) > sum(cold) / len(cold)
+
+
+@needs_world
+def test_the_root_ends_at_the_transition_not_the_ground(walk):
+    """Jack's call: the root's length has to make sense - it thins out inside the deepslate
+    band and is gone before the blackstone begins. If someone re-grounds it, this fails."""
+    _stair, rroot, _seen = walk
+    tip = min(y for (x, y, z) in rroot)
+    assert 78 <= tip <= 114, tip                     # inside the deepslate band
+    # and the braid genuinely tapers: the tip courses hold fewer cells than the body
+    per = collections.Counter(y for (x, y, z) in rroot)
+    body = sum(per[y] for y in range(130, 140)) / 10.0
+    tail = sum(per[y] for y in range(tip, tip + 5)) / 5.0
+    assert tail < body, (tail, body)

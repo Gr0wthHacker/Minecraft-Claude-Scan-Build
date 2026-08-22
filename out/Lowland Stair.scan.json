@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": -24215,
+    "x": -24216,
     "y": 41,
-    "z": 30021
+    "z": 30020
   },
   "size": {
-    "x": 18,
+    "x": 19,
     "y": 111,
-    "z": 18
+    "z": 19
   },
   "generated_by": "spiral",
   "kind": "spiral",
@@ -18,7 +18,7 @@
   "y0": 41,
   "y1": 150,
   "treads": 220,
-  "turns": 8.27,
+  "turns": 7.78,
   "rails": 530,
   "width": 4,
   "file": "Lowland Stair.litematic",

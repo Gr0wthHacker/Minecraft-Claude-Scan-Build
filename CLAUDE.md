@@ -2260,6 +2260,23 @@ Traps, each of which shipped a clean-looking build first:
 reserved: the new pocket at root (-24238, 63, 29968) keeps 8 clear on every face, belly
 overhead, the NW lowland floor twenty below.
 
+**The gradient, and the root's honest length (same day, Jack's review).** The stair now
+changes stone as it changes world - dithered thirds, measured luminance 122 -> 71 -> 48:
+island stone brick at the shelf, deepslate through the twilight, the quarter's blackstone to
+the ground - and the light goes cold with it, 28 warm lanterns above, 16 soul lanterns
+below. `spiral.bands` is the mechanism (per-cell hash dither over band_blend courses - a
+hard line across a helix reads as two stairs stacked); bands=None keeps the Root Stair
+bit-identical. And the root no longer runs to the ground: Jack called the full-height root
+wrong, and it now thins out inside the deepslate band (tip Y95, 225 blocks against 494) -
+the island's reach ends where the underworld's masonry begins, and the helix hangs alone
+below the tip. Two things that follow: `min_radius` is PINNED to `max_inner` (below the tip
+the profile is empty, and an unpinned floor snaps the ribbon 4.5 -> 3.0 in one course), and
+the start_angle had to be RE-SWEPT - a slimmer core changes the pitch, so the phase moves
+with the profile; 4.0 reaches the shelf at 151.0 with the widest landing. The design-alone
+component count splits at the top weave where trim_buried yields cells to the islet's BUILT
+rim rock - connected in the world, cosmetic in isolation; the composite walk is the truth
+and is the test.
+
 ## Build & test
 
 ```bash
