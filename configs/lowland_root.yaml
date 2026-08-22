@@ -28,7 +28,9 @@ finish:
   hollow: false
   ground: false
   drop_floaters: false
-  defer_to: [out/Shop Islet.litematic,
-             out/Lowland Ruinway.litematic, out/Lowland Turtle.litematic]
+  # Shop Islet is NOT deferred to: its underside fill claims the very cell the root hangs
+  # from (-24200,141,30018), and deferring it left the whole braid with nothing to place
+  # against. The root wins its anchor; the islet design is carved around it (see its config).
+  defer_to: [out/Lowland Ruinway.litematic, out/Lowland Turtle.litematic]
   context_clear: [vine]
   verify_against: out/island_full.litematic

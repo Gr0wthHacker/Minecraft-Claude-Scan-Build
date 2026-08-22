@@ -26,10 +26,15 @@ params:
   headroom: 3
   dig_only: [cobblestone, mossy_cobblestone, stone, stone_bricks, mossy_stone_bricks,
              cracked_stone_bricks, moss_block, smooth_stone, andesite, diorite, granite]
+  # the audit found the first well taking 21 cells of the Atelier Court's FLOOR - stone
+  # brick and smooth stone by name, somebody's workshop by position. A dig must know what
+  # the rock belongs to, not only what it is.
+  dig_forbid: [out/Atelier Court.litematic, out/Root Stair.litematic, out/Taproot.litematic,
+               out/Lowland Root.litematic]
   max_inner: 4.5             # see gen/spiral.py: the grip bend must not widen the helix
-  start_angle: 6.1           # RE-SWEPT for the true axis (63 angles, composite walk with the
-                             # well dug and the islet carved): reaches the shelf at 151.0,
-                             # 572 walkable lowland cells at the landing, 121 dig cells
+  start_angle: 5.4           # RE-SWEPT with dig_forbid live (63 angles, composite walk with
+                             # the well dug and the islet carved): reaches the shelf, ZERO
+                             # atelier contact, 570 landing cells, 106 dig cells
   direction: 1               # the Root Stair's spin, continued
   width: 4
   slab: stone_brick_slab
@@ -64,7 +69,7 @@ finish:
   drop_floaters: false
   # Shop Islet is NOT deferred to any more: the well claims its cells and the islet design
   # is carved to match (see its config note) - the stair wins these, stated, built first
-  defer_to: [out/Lowland.litematic,
+  defer_to: [out/Lowland.litematic, out/Atelier Court.litematic,
              out/Lowland Root.litematic, out/Root Stair.litematic,
              out/Lowland Ruinway.litematic,
              out/Lowland Portal.litematic, out/Lowland Hamlet.litematic,

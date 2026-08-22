@@ -172,23 +172,35 @@ def _house(w, ctx, p, forbid, h, seed) -> dict:
                     gables += _put(w, ctx, forbid, x, FY + 1 + k, zg,
                                    _fabric(p, hash01(x, k, zg, seed + ax)))
         feats["gables"] = gables
+        # the roof BODY first, the overhangs after - an overhang cell may only exist where
+        # its inner neighbour stands, or the weather hash strands one in mid-air: the
+        # careful audit found exactly one, floating off a gable corner
         roof = 0
-        for z in range(z0 - 1, z1 + 2):                # overhangs one at each gable end
+        placed = set()
+
+        def _shingle(x, z):
+            d = abs(x - ax)
+            y = FY + 1 + H + (rise - d)
+            if hash01(x, 51, z, seed + ax) < 0.05:
+                return 0                               # weather took this one
+            if d == 0:
+                n = _put(w, ctx, forbid, x, y, z, p["slab"], type="bottom")
+            else:
+                facing = "east" if x < ax else "west"  # treads ascend toward the ridge
+                n = _put(w, ctx, forbid, x, y, z, p["stair"], facing=facing, half="bottom")
+            if n:
+                placed.add((x, z))
+            return n
+
+        for z in range(z0, z1 + 1):
             for x in range(x0 - 1, x1 + 2):
-                d = abs(x - ax)
-                if d > rise + 1:
-                    continue
-                if d == rise + 1 and not (x0 - 1 <= x <= x1 + 1):
-                    continue
-                y = FY + 1 + H + (rise - d)
-                if hash01(x, 51, z, seed + ax) < 0.05:
-                    continue                           # weather took a few
-                if d == 0:
-                    roof += _put(w, ctx, forbid, x, y, z, p["slab"], type="bottom")
-                else:
-                    facing = "east" if x < ax else "west"   # treads ascend toward the ridge
-                    roof += _put(w, ctx, forbid, x, y, z, p["stair"],
-                                 facing=facing, half="bottom")
+                if abs(x - ax) <= rise + 1:
+                    roof += _shingle(x, z)
+        for z in (z0 - 1, z1 + 1):                     # gable-end overhangs, support-checked
+            zin = z0 if z < z0 else z1
+            for x in range(x0 - 1, x1 + 2):
+                if abs(x - ax) <= rise + 1 and (x, zin) in placed:
+                    roof += _shingle(x, z)
         feats["roof"] = roof
         # the chimney, on the south gable's east shoulder, and the cold hearth inside it
         cx = x1 - 1

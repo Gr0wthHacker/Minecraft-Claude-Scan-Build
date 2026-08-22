@@ -9,7 +9,10 @@
 # lens fill were removed where the stair's treads and headroom pass (the carve is re-derived
 # from the stair's work.json envelope; regenerating this design re-fills the well and must be
 # followed by re-carving). The shop's barrels, signs and their floor are untouched - the
-# stair's dig rules cannot take them.
+# stair's dig rules cannot take them. One more cell went the same way (2026-08-22, the
+# careful audit): the underside fill claimed (-24200,141,30018), the exact cell the
+# Reaching Root hangs from, and deferring it left the root's 180 cells with nothing to
+# place against. The root wins its anchor.
 name: Shop Islet
 gen: islet
 params:

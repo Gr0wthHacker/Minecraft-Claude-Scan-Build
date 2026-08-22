@@ -65,13 +65,29 @@ SPIRAL = {
     # the stair this one exists to continue. Anything not on the list keeps its cell and
     # keeps the tread away.
     "dig_only": None,
+    # designs whose cells may NEVER be dug, by path. dig_only names materials, and that is
+    # not enough: the Atelier Court's floor is stone brick and smooth stone - "natural rock"
+    # by name, somebody's workshop by position - and the first well took 21 cells of it.
+    # A dig list must know what the rock BELONGS to, not only what it is.
+    "dig_forbid": None,
     "seed": 0,
 }
+
+
+def _forbid_cells(paths):
+    import numpy as np
+    out = set()
+    for path in paths or []:
+        m, (ox, oy, oz) = load_capture(path)
+        ys, zs, xs = np.where(m.ids > 0)
+        for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist()):
+            out.add((x + ox, y + oy, z + oz))
+    return out
 
 _AIR = ("air", "cave_air", "void_air")
 
 
-def _clearable(ctx, x, y, z, dig_above, headroom, dig_only):
+def _clearable(ctx, x, y, z, dig_above, headroom, dig_only, forbid):
     """(ok, dig_cells) for one tread cell: may a tread stand here, and what must go first."""
     digs = []
     for k in range(headroom + 1):
@@ -80,7 +96,8 @@ def _clearable(ctx, x, y, z, dig_above, headroom, dig_only):
             continue
         if y + k < dig_above or n in ("water", "ice") or is_protected(n) \
                 or is_protected(ctx.name_at(x, y + k + 1, z)) \
-                or (dig_only is not None and n not in dig_only):
+                or (dig_only is not None and n not in dig_only) \
+                or (forbid and (x, y + k, z) in forbid):
             return False, []
         digs.append((x, y + k, z))
     return True, digs
@@ -120,8 +137,9 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
     dig_above = p.get("dig_above")
     headroom = int(p.get("headroom", 3))
     dig_only = set(p["dig_only"]) if p.get("dig_only") else None
+    forbid = _forbid_cells(p.get("dig_forbid")) if p.get("dig_forbid") else None
     steps = (y1 - y0 + 1) * 2                          # two half-steps to a course
-    treads, laps, dig = [], 0.0, set()
+    treads, laps, dig_of = [], 0.0, {}
     for k in range(steps):
         y = y0 + k // 2
         low = (k % 2) == 0                             # bottom slab, then top slab, then up a course
@@ -130,10 +148,11 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
         cells = _spoke(cx, cz, theta, theta + d, r_in, r_in + width)
         for (x, z) in cells:
             if ctx is not None and dig_above is not None:
-                ok, digs = _clearable(ctx, x, y, z, int(dig_above), headroom, dig_only)
+                ok, digs = _clearable(ctx, x, y, z, int(dig_above), headroom, dig_only,
+                                      forbid)
                 if not ok:
                     continue
-                dig.update(digs)
+                dig_of[(x, y, z)] = digs
             b = _band(p, y, x, z, seed)
             slab, alt = (b["slab"], b["alt"]) if b else (p["slab"], p["slab_alt"])
             name = alt if hash01(x, z, 19, seed) < p["alt_rate"] else slab
@@ -142,6 +161,36 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
             treads.append([cells[0][0], y, cells[0][1]])
         theta += d
         laps += abs(d) / (2 * math.pi)
+
+    # a tread whose only contact is rock ITS OWN DIG removes is unbuildable by construction:
+    # the dig happens first, and the printer then has nothing to place it against. Pruned to
+    # a fixpoint, and the pruned tread takes its now-pointless dig entries with it.
+    if ctx is not None and dig_above is not None:
+        all_digs = set().union(*dig_of.values()) if dig_of else set()
+        changed = True
+        while changed:
+            changed = False
+            for (x, y, z) in list(w.cells):
+                anchored = False
+                for dx, dy, dz in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0),
+                                   (0, 0, 1), (0, 0, -1)):
+                    nb = (x + dx, y + dy, z + dz)
+                    if nb in w.cells:
+                        anchored = True
+                        break
+                    nn = ctx.name_at(*nb)
+                    if nn not in _AIR and nn not in ("vine", "glow_lichen", "moss_carpet",
+                                                    "short_grass", "tall_grass", "fern",
+                                                    "large_fern", "hanging_roots") \
+                            and nb not in all_digs:
+                        anchored = True
+                        break
+                if not anchored:
+                    del w.cells[(x, y, z)]
+                    dig_of.pop((x, y, z), None)
+                    changed = True
+        all_digs = set().union(*dig_of.values()) if dig_of else set()
+    dig = set().union(*dig_of.values()) if dig_of else set()
 
     rails = _rails(w, ctx, cx, cz, prof, y0, y1, width, p, seed)
     return w.canvas({"kind": "spiral", "center": [cx, cz], "y0": y0, "y1": y1,

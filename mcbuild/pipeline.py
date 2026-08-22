@@ -131,6 +131,14 @@ def _finish(m, cfg, world_origin, gen_meta, verbose):
         if verbose and n:
             print(f"deferred {n} cells to " + ", ".join(
                 os.path.basename(q) for q in fin["defer_to"]))
+        # deferral orphans: a cell whose every design neighbour went to another design and
+        # which the world does not touch either can never be placed and never looks right.
+        # Swept to a FIXPOINT, because orphans cascade - a rail wall kept for its lateral
+        # neighbour is orphaned the moment that neighbour's own post defers.
+        if n and fin.get("verify_against") and world_origin is not None:
+            dropped = _drop_defer_orphans(m, world_origin, fin["verify_against"])
+            if verbose and dropped:
+                print(f"dropped {dropped} deferral orphan(s) - no neighbour left to place against")
     # TRIM_BURIED: drop design cells the terrain already owns. A cell inside a ground rise can
     # never be placed (a litematica printer places into air only), would be invisible if it were,
     # and stands as permanent amber in /cscan check - the Court Hall's unbuildable-cells problem,
@@ -349,7 +357,69 @@ def _defer_to(m: schem.Model, world_origin, paths) -> int:
                     and 0 <= lz < m.ids.shape[1] and m.ids[ly, lz, lx]):
                 m.ids[ly, lz, lx] = 0
                 hit += 1
+                # a deferred cell takes its dependants with it: a lantern, torch or rail
+                # wall standing on a cell that just went to another design is this design's
+                # cell standing on air - the Lowland Stair shipped both kinds once
+                if ly + 1 < m.ids.shape[0] and m.ids[ly + 1, lz, lx]:
+                    above = m.names[m.ids[ly + 1, lz, lx]].split(":")[-1].split("[")[0]
+                    if above in ("lantern", "soul_lantern", "torch") \
+                            or above.endswith("_wall"):
+                        nbrs = 0
+                        for ddx, ddy, ddz in ((1, 0, 0), (-1, 0, 0), (0, 1, 0),
+                                              (0, 0, 1), (0, 0, -1)):
+                            ax2, ay2, az2 = lx + ddx, ly + 1 + ddy, lz + ddz
+                            if (0 <= ax2 < m.ids.shape[2] and 0 <= ay2 < m.ids.shape[0]
+                                    and 0 <= az2 < m.ids.shape[1]
+                                    and m.ids[ay2, az2, ax2]):
+                                nbrs += 1
+                        if nbrs == 0:
+                            m.ids[ly + 1, lz, lx] = 0
+                            hit += 1
     return hit
+
+
+_ORPHAN_PASSABLE = {"air", "cave_air", "void_air", "vine", "glow_lichen", "moss_carpet",
+                    "short_grass", "tall_grass", "fern", "large_fern", "azalea",
+                    "flowering_azalea", "hanging_roots", "water"}
+
+
+def _drop_defer_orphans(m: schem.Model, origin, capture) -> int:
+    """After defer_to: remove cells with no design neighbour AND no world contact."""
+    from . import scan as scan_mod
+    files = capture if isinstance(capture, (list, tuple)) else [capture]
+    s = scan_mod.load(files[0])
+    snames = [n.split(":")[-1].split("[")[0] for n in s.model.names]
+    sox, soy, soz = s.origin
+    ox, oy, oz = origin
+
+    def world_solid(wx, wy, wz):
+        ly, lz, lx = wy - soy, wz - soz, wx - sox
+        if not (0 <= ly < s.model.ids.shape[0] and 0 <= lz < s.model.ids.shape[1]
+                and 0 <= lx < s.model.ids.shape[2]):
+            return False
+        return snames[s.model.ids[ly, lz, lx]] not in _ORPHAN_PASSABLE
+
+    dropped = 0
+    changed = True
+    while changed:
+        changed = False
+        for y, z, x in zip(*np.nonzero(m.ids != 0)):
+            alone = True
+            for dx, dy, dz in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0),
+                               (0, 0, 1), (0, 0, -1)):
+                ny, nz, nx = y + dy, z + dz, x + dx
+                if (0 <= ny < m.ids.shape[0] and 0 <= nz < m.ids.shape[1]
+                        and 0 <= nx < m.ids.shape[2] and m.ids[ny, nz, nx]):
+                    alone = False
+                    break
+                if world_solid(ox + nx, oy + ny, oz + nz):
+                    alone = False
+                    break
+            if alone:
+                m.ids[y, z, x] = 0
+                dropped += 1
+                changed = True
+    return dropped
 
 
 def _drop_floaters(m: schem.Model, max_size: int = 3) -> int:
