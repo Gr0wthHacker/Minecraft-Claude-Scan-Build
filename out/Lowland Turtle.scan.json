@@ -1,0 +1,30 @@
+{
+  "origin": {
+    "x": -24202,
+    "y": 39,
+    "z": 29989
+  },
+  "size": {
+    "x": 12,
+    "y": 5,
+    "z": 9
+  },
+  "generated_by": "turtle",
+  "kind": "turtle",
+  "profile_view": "side",
+  "facing": [
+    -1,
+    0
+  ],
+  "base_y": 40,
+  "features_built": {
+    "shell": 111,
+    "skirt": 6,
+    "skin": 14,
+    "eyes": 2,
+    "flippers": 8,
+    "tail": 0
+  },
+  "file": "Lowland Turtle.litematic",
+  "name": "Lowland Turtle"
+}

@@ -1,12 +1,12 @@
 {
   "origin": {
     "x": -24192,
-    "y": 38,
+    "y": 40,
     "z": 29984
   },
   "size": {
     "x": 15,
-    "y": 22,
+    "y": 24,
     "z": 55
   },
   "generated_by": "quadruped",
@@ -24,7 +24,7 @@
   },
   "feet": [
     -24185,
-    37,
+    41,
     30005
   ],
   "facing": [
@@ -32,31 +32,31 @@
     1
   ],
   "height": 22,
-  "top_y": 59,
+  "top_y": 63,
   "features_built": {
     "crown": 6,
     "face": 66,
     "eyes": 2
   },
-  "anat_top_y": 58,
+  "anat_top_y": 62,
   "asymmetry": {
     "leg_phase": 4,
     "head_turn": 1
   },
-  "belly_y": 47,
-  "withers_y": 53.260000000000005,
-  "rump_y": 47,
-  "chest_y": 47,
-  "back_y": 58,
-  "neck_top_y": 53.46000000000001,
+  "belly_y": 51,
+  "withers_y": 57.260000000000005,
+  "rump_y": 51,
+  "chest_y": 51,
+  "back_y": 62,
+  "neck_top_y": 57.46000000000001,
   "shoulder_at": [
     -24185.0,
-    53.3,
+    57.3,
     30021.0
   ],
   "neck_top_at": [
     -24186.0,
-    53.5,
+    57.5,
     30028.5
   ],
   "along": {
@@ -69,7 +69,7 @@
       33
     ]
   },
-  "collisions": 21,
+  "collisions": 9,
   "file": "Lowland Capybara Flee.litematic",
   "name": "Lowland Capybara Flee"
 }

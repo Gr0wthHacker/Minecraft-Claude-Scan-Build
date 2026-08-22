@@ -1,5 +1,5 @@
 """Generator registry. Each module exposes DEFAULTS and build(cfg, donors)->Canvas."""
-from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge
+from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge, hamlet, campanile, harborlight, turtle
 from .canvas import Canvas, hash01
 
 class _Wrap:
@@ -65,6 +65,10 @@ GENERATORS = {
     "ruinway": _Wrap(ruinway.build_ruinway, ruinway.RUINWAY),
     "sanctum": _Wrap(sanctum.build_sanctum, sanctum.SANCTUM),
     "voidbridge": _Wrap(voidbridge.build_voidbridge, voidbridge.RUINBRIDGE),
+    "hamlet": _Wrap(hamlet.build_hamlet, hamlet.HAMLET),
+    "campanile": _Wrap(campanile.build_campanile, campanile.CAMPANILE),
+    "harborlight": _Wrap(harborlight.build_harborlight, harborlight.HARBORLIGHT),
+    "turtle": _Wrap(turtle.build_turtle, turtle.TURTLE),
 }
 
 __all__ = ["GENERATORS", "Canvas", "hash01"]

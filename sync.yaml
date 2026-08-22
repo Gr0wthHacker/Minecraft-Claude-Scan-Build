@@ -55,4 +55,11 @@ progress:                           # designs reported (% built, left, shop list
   - out/Lowland Ruinway.litematic   # the blackstone way and its fragments (2026-08-21)
   - out/Lowland Sanctum.litematic   # the quarter's one complete building, in the north skylight
   - out/Castle Bridge.litematic     # broken span, island SE rim -> bat tower parapet, Y150-153
+  # the lowland town (2026-08-22): architecture as the figure, animals as accents. The flamingo
+  # and capybara are RETIRED (see their configs) - both at 0% built, and retiring them freed
+  # the pads these stand on. Build order: hamlet/campanile/harborlight defer to the quarter.
+  - out/Lowland Hamlet.litematic        # three houses on the lantern 9-grid, SW of the ring
+  - out/Lowland Campanile.litematic     # the sanctum's bell tower, owl on the parapet
+  - out/Lowland Harbor Light.litematic  # beacon at the quay root, cold lamp
+  - out/Lowland Turtle.litematic        # basking on the harbor's north shore
 learn: true

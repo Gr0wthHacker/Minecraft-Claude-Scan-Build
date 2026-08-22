@@ -1,0 +1,26 @@
+{
+  "origin": {
+    "x": -24200,
+    "y": 37,
+    "z": 29990
+  },
+  "size": {
+    "x": 46,
+    "y": 64,
+    "z": 42
+  },
+  "generated_by": "heron",
+  "kind": "heron",
+  "scale": 1.0,
+  "features_built": {
+    "legs": 2,
+    "toes": 8,
+    "neck": 1,
+    "beak": 1,
+    "wing_courses": 12,
+    "crest": 2,
+    "eyes": 2
+  },
+  "file": "HERON test.litematic",
+  "name": "HERON test"
+}

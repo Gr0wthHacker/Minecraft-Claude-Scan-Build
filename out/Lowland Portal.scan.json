@@ -1,0 +1,35 @@
+{
+  "origin": {
+    "x": -24176,
+    "y": 43,
+    "z": 30014
+  },
+  "size": {
+    "x": 11,
+    "y": 25,
+    "z": 21
+  },
+  "generated_by": "ruinring",
+  "kind": "ruinring",
+  "profile_view": "face",
+  "facing": [
+    1,
+    0
+  ],
+  "centre": [
+    -24171,
+    55,
+    30025
+  ],
+  "aperture_d": 18,
+  "features_built": {
+    "ring": 44,
+    "fallen": 36,
+    "threshold": 33,
+    "clusters": 0,
+    "lanterns": 1,
+    "lichen": 0
+  },
+  "file": "Lowland Portal.litematic",
+  "name": "Lowland Portal"
+}

@@ -1,0 +1,76 @@
+{
+  "origin": {
+    "x": -24232,
+    "y": 100,
+    "z": 29903
+  },
+  "size": {
+    "x": 29,
+    "y": 77,
+    "z": 148
+  },
+  "generated_by": "quadruped",
+  "kind": "jaguar",
+  "pose": "standing",
+  "designed": {
+    "withers height": 0.7895,
+    "leg (ground->belly)": 0.4474,
+    "body depth": 0.3421,
+    "body length": 1.0263,
+    "body width": 0.3261,
+    "neck length": 0.2466,
+    "head length": 0.2368,
+    "leg width": 0.1192
+  },
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 76,
+  "top_y": 176,
+  "features_built": {
+    "crown": 6,
+    "face": 145,
+    "tail": 83,
+    "eyes": 2
+  },
+  "anat_top_y": 176,
+  "asymmetry": {
+    "leg_phase": 0,
+    "head_turn": 0
+  },
+  "belly_y": 134,
+  "withers_y": 153.28,
+  "rump_y": 134,
+  "chest_y": 134,
+  "back_y": 160,
+  "neck_top_y": 165.28,
+  "shoulder_at": [
+    -24218.0,
+    153.3,
+    30019.0
+  ],
+  "neck_top_at": [
+    -24218.0,
+    165.3,
+    30033.4
+  ],
+  "along": {
+    "body": [
+      -39,
+      39
+    ],
+    "head": [
+      51,
+      69
+    ]
+  },
+  "collisions": 114,
+  "file": "JAG big.litematic",
+  "name": "JAG big"
+}

@@ -1,0 +1,29 @@
+{
+  "origin": {
+    "x": -24206,
+    "y": 38,
+    "z": 30016
+  },
+  "size": {
+    "x": 5,
+    "y": 16,
+    "z": 5
+  },
+  "generated_by": "harborlight",
+  "kind": "harborlight",
+  "profile_view": "face",
+  "facing": [
+    -1,
+    0
+  ],
+  "base_y": 39,
+  "features_built": {
+    "plinth": 40,
+    "shaft": 81,
+    "gallery": 27,
+    "lightroom": 18,
+    "lamp": 1
+  },
+  "file": "Lowland Harbor Light.litematic",
+  "name": "Lowland Harbor Light"
+}

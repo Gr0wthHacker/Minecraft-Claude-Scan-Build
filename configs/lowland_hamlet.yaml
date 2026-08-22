@@ -1,0 +1,39 @@
+# THE HAMLET - dwellings outside the gate, on the freed capybara ground (2026-08-22).
+#
+# Jack's direction: architecture as the figure, animals incorporated around it. The quarter had
+# monuments and no dwellings. The pad is the skylight-south blob measured off the 15:01 scan -
+# the best lit ground in the lowland, and the ground design's lantern 9-grid becomes the street
+# plan: houses take the 8-wide gaps between lantern columns, so the ground's own lights stand at
+# the corners as street lamps. The six grid columns are a FORBID set, asserted at build time.
+#
+# Three states of ruin, one per house - decay must differ or it reads as an algorithm:
+# whole (roof, chimney, cold hearth), roofless (sky for a ceiling), fallen (a complete door
+# frame standing alone - the gatehouse's rule inverted). The lane joins the way at the ring's
+# approach, so the walk becomes: quay - watergate - way - hamlet - ring.
+name: Lowland Hamlet
+gen: hamlet
+params:
+  under: out/island_full.litematic
+  # houses sit BETWEEN the lantern rows (z30034-30040) and columns; the lane runs in front
+  # of the doors at z30032, one south of the z30033 lamp row, so the lamps light the street
+  houses:
+    - {at: [-24188, 30037], w: 7, l: 7, door: north, state: whole,    floor_y: 46}
+    - {at: [-24179, 30037], w: 7, l: 7, door: north, state: roofless, floor_y: 48}
+    - {at: [-24188, 30028], w: 7, l: 6, door: north, state: fallen,   floor_y: 45}
+  lane: [[-24193, 30032], [-24175, 30032], [-24183, 30032], [-24183, 30025]]
+  # the ground design's lantern columns inside and around the pad - FORBIDDEN, never covered
+  lantern_grid: [[-24192, 30024], [-24183, 30024], [-24174, 30024],
+                 [-24192, 30033], [-24183, 30033], [-24174, 30033],
+                 [-24192, 30042], [-24183, 30042], [-24174, 30042]]
+  seed: 0
+origin_lock: false             # LOUD: stands on the lowland at Y42-56
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  defer_to: [out/Lowland Portal.litematic, out/Lowland Ruinway.litematic,
+             out/Lowland Sanctum.litematic, out/Lowland Axolotl.litematic]
+  context_clear: [vine, short_grass, tall_grass, fern, large_fern, moss_carpet, azalea,
+                  flowering_azalea, poppy, dandelion]
+  verify_against: out/island_full.litematic

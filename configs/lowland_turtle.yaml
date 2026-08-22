@@ -1,0 +1,29 @@
+# THE TURTLE - basking on the harbor's north shore (2026-08-22).
+#
+# The quarter's second animal accent, in the ladybird's category: identity is a pattern on a
+# single convex dome, canonical view is the plan, and the quay gives it scale the way the leaf
+# gave the ladybird scale. Faces WEST - cardinal, the axolotl's grid lesson - head toward the
+# water, nose stopping short of the line; every column seats on its own dry ground. Shell
+# brown_wool with black seams (a full hue flip off the moss, measured), skin oak_planks.
+name: Lowland Turtle
+gen: turtle
+params:
+  under: out/island_full.litematic
+  at: [-24194, 29993]          # waterline measured per-row: dry to X-24203 at z29993, so the
+                               # nose at X-24202 stops one short of the water on both its rows
+  base_y: 40                   # PINNED (shore ground 37-39 under the shell)
+  shell_l: 9
+  shell_w: 8
+  dome_h: 4
+  seed: 0
+origin_lock: false             # LOUD: lies on the lowland shore at Y37-43
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  defer_to: [out/Lowland Portal.litematic, out/Lowland Ruinway.litematic,
+             out/Lowland Sanctum.litematic, out/Lowland Axolotl.litematic]
+  context_clear: [vine, short_grass, tall_grass, fern, large_fern, moss_carpet, azalea,
+                  flowering_azalea, poppy, dandelion]
+  verify_against: out/island_full.litematic

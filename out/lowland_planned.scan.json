@@ -2,7 +2,7 @@
   "name": "lowland_planned",
   "file": "lowland_planned.litematic",
   "format": "litematic",
-  "created": "2026-08-19T03:04:15.798633500Z",
+  "created": "2026-08-21T23:28:20.580092Z",
   "player": "Enroniti",
   "server": {
     "name": "Unknown Server",
@@ -21,16 +21,16 @@
     "z": 103
   },
   "player_pos": {
-    "x": -24198,
-    "y": 206,
-    "z": 29986
+    "x": -24200,
+    "y": 122,
+    "z": 30010
   },
   "air_margin": 2,
   "total_volume": 3554015,
-  "non_air_blocks": 568,
-  "palette_size": 4,
-  "tile_entities": 0,
-  "entities": 9,
+  "non_air_blocks": 49029,
+  "palette_size": 61,
+  "tile_entities": 4,
+  "entities": 10,
   "cut_from": "island.litematic",
   "planned_from": [
     "island_lower.litematic",

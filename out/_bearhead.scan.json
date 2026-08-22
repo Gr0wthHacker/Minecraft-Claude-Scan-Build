@@ -1,0 +1,76 @@
+{
+  "origin": {
+    "x": -24225,
+    "y": 117,
+    "z": 29998
+  },
+  "size": {
+    "x": 15,
+    "y": 12,
+    "z": 10
+  },
+  "generated_by": "quadruped",
+  "kind": "bear",
+  "pose": "standing",
+  "designed": {
+    "withers height": 0.8519,
+    "leg (ground->belly)": 0.3704,
+    "body depth": 0.4815,
+    "body length": 1.3704,
+    "body width": 0.5133,
+    "neck length": 0.1398,
+    "head length": 0.2963,
+    "leg width": 0.1711
+  },
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 28,
+  "top_y": 128,
+  "features_built": {
+    "crown": 6,
+    "face": 19,
+    "tail": 10,
+    "eyes": 2
+  },
+  "anat_top_y": 127,
+  "asymmetry": {
+    "leg_phase": 0,
+    "head_turn": 1
+  },
+  "belly_y": 110,
+  "withers_y": 122.0,
+  "rump_y": 110,
+  "chest_y": 110,
+  "back_y": 123,
+  "neck_top_y": 123.0,
+  "shoulder_at": [
+    -24218.0,
+    122.0,
+    29998.0
+  ],
+  "neck_top_at": [
+    -24219.0,
+    123.0,
+    30001.5
+  ],
+  "along": {
+    "body": [
+      -18,
+      19
+    ],
+    "head": [
+      19,
+      27
+    ]
+  },
+  "collisions": 22,
+  "file": "_bearhead.litematic",
+  "name": "_bearhead"
+}
