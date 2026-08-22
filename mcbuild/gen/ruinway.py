@@ -139,35 +139,59 @@ def _emit_pier(w: World, ctx: Ctx, p, x, z, h, seed, cap=True) -> int:
 
 
 def _emit_gatehouse(w: World, ctx: Ctx, p, seed) -> int:
-    """Two 2x2 piers astride the way and HALF a lintel - the north half holds, the south fell,
-    and the fallen half lies in the moss below. A doorway standing alone is the part of a
-    building that says building loudest."""
+    """A COMPLETE doorframe standing alone in the moss - and the ruin is everything around it.
+
+    The first version broke the lintel and kept it small, and the visual audit read it as a
+    dark blob beside the path: five-tall piers are furniture next to ten-tall trees, and a
+    broken doorway is damage, not architecture. The void tower's rule, applied properly: the
+    ORDER survives whole - two 2x2 piers, chiseled imposts, a full lintel - and the decay is
+    carried by the wall stubs trailing off both sides, broken to nothing."""
     gx, gz = (int(v) for v in p["gatehouse"]["at"])
-    n = 0
-    tops = []
-    for sz, zz in (("N", gz - 3), ("S", gz + 2)):
-        for dx in (0, 1):
-            for dz in (0, 1):
-                placed = _emit_pier(w, ctx, p, gx + dx, zz + dz, 5, seed, cap=False)
-                n += placed
-                tops.append((gx + dx, zz + dz, placed))
     g, _ = _surface(ctx, gx, gz)
     if g is None:
-        return n
-    lin_y = g + 6
-    for dz in range(-1, 2):                            # the surviving NORTH half of the lintel
+        return 0
+    n = 0
+    H = 7                                              # to the impost; the lintel rides at +8
+    for zz in (gz - 3, gz + 2):                        # the piers, 2x2 and full height
         for dx in (0, 1):
-            x, z = gx + dx, gz - 1 + dz
-            if dz > 0:
-                continue                               # the south half is the one that fell
-            if _free(ctx, x, lin_y, z) and (w.has(x, lin_y - 1, z) or dz > -1):
-                w.put(x, lin_y, z, p["chiseled"] if dz == -1 else _weathered(p, hash01(x, lin_y, z, seed)))
+            for dz in (0, 1):
+                x, z = gx + dx, zz + dz
+                g2, name2 = _surface(ctx, x, z)
+                if g2 is None or name2 in ("water", "ice"):
+                    continue
+                for k in range(H):
+                    y = g2 + 1 + k
+                    if not _free(ctx, x, y, z) or w.has(x, y, z):
+                        break
+                    impost = k == H - 1
+                    w.put(x, y, z, p["chiseled"] if impost else _weathered(p, hash01(x, y, z, seed)))
+                    n += 1
+    lin_y = g + 1 + H
+    for z in range(gz - 3, gz + 4):                    # the lintel, COMPLETE, pier to pier
+        for dx in (0, 1):
+            x = gx + dx
+            if _free(ctx, x, lin_y, z) and not w.has(x, lin_y, z):
+                w.put(x, lin_y, z, p["chiseled"])
                 n += 1
-    for i, (dx, dz) in enumerate(((0, 1), (1, 1), (1, 2))):   # the fallen half, half-buried
+    for zz, step in ((gz - 4, -1), (gz + 4, 1)):       # the broken wall, falling to nothing
+        h_wall = 3
+        z = zz
+        while h_wall > 0:
+            g2, name2 = _surface(ctx, gx, z)
+            if g2 is None or name2 in ("water", "ice"):
+                break
+            for k in range(h_wall):
+                y = g2 + 1 + k
+                if _free(ctx, gx, y, z) and not w.has(gx, y, z):
+                    w.put(gx, y, z, _weathered(p, hash01(gx, y, z, seed)))
+                    n += 1
+            z += step
+            h_wall -= 1
+    for dx, dz in ((2, 1), (3, 0), (2, -2)):           # fallen blocks off the collapsed wall
         x, z = gx + dx, gz + dz
         g2, name2 = _surface(ctx, x, z)
         if g2 is not None and name2 not in ("water", "ice") and _free(ctx, x, g2 + 1, z) and not w.has(x, g2 + 1, z):
-            w.put(x, g2 + 1, z, p["chiseled"] if i == 0 else _weathered(p, hash01(x, 3, z, seed)))
+            w.put(x, g2 + 1, z, _weathered(p, hash01(x, 3, z, seed)))
             n += 1
     return n
 
@@ -249,28 +273,43 @@ def _emit_apse(w: World, ctx: Ctx, p, seed) -> int:
     open_deg = float(a.get("open_deg", 200))           # the western opening, degrees of arc
     n = 0
     back = []
-    for dx in range(-int(r) - 1, int(r) + 2):
-        for dz in range(-int(r) - 1, int(r) + 2):
+    half = (360 - open_deg) / 2
+    for dx in range(-int(r) - 2, int(r) + 3):
+        for dz in range(-int(r) - 2, int(r) + 3):
             d = math.hypot(dx, dz)
-            if not (r - 0.5 <= d <= r + 0.5):
-                continue
             ang = math.degrees(math.atan2(dz, dx))     # 0 = east = the apse's back
-            if abs(ang) > (360 - open_deg) / 2:
+            rib = abs(abs(ang) - 40) < 8 or abs(ang) < 8
+            in_wall = r - 0.5 <= d <= r + 0.5
+            in_plinth = r + 0.5 < d <= r + 1.4
+            in_rib = rib and r + 0.5 < d <= r + 1.5
+            if not (in_wall or in_plinth or in_rib):
+                continue
+            if abs(ang) > half:
                 continue                               # the opening faces west, at the scene
             x, z = ax + dx, az + dz
             g, name = _surface(ctx, x, z)
             if g is None or name in ("water", "ice"):
                 continue
-            f = 1.0 - abs(ang) / ((360 - open_deg) / 2)
-            h = max(1, int(round(hmax * (0.35 + 0.65 * f))))
+            f = 1.0 - abs(ang) / half
+            # the audit's scale rule: on this moss, under these trees, architecture below ~6
+            # dissolves into ground noise. Full height at the back, TWO courses even at the
+            # broken ends, and buttress ribs give the elevation a rhythm - regularity, again.
+            if in_wall:
+                # FULL height across the whole back third, then decay: a linear peak put the
+                # crest on a single column and the audit read a stick, not a wall
+                h = hmax if f > 0.60 else max(2, int(round(hmax * (0.30 + 1.15 * f))))
+            elif in_rib:
+                h = max(2, int(round(hmax * (0.25 + 0.60 * f))))
+            else:
+                h = 1                                  # the plinth course, stepped out
             for k in range(h):
                 y = g + 1 + k
                 if not _free(ctx, x, y, z) or w.has(x, y, z):
                     break
-                band = k == 2 and h >= 4
+                band = in_wall and k == 3 and h >= 5
                 w.put(x, y, z, p["chiseled"] if band else _weathered(p, hash01(x, y, z, seed)))
                 n += 1
-                if k == 1 and abs(ang) < 35:
+                if in_wall and k == 1 and abs(ang) < 35:
                     back.append((x, y, z))
     # the bloom goes in AFTER the wall stands: picked inside the loop, its cell kept being
     # claimed by a later wall course and the apse shipped bloomless

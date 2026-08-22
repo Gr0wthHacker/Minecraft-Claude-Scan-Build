@@ -2095,6 +2095,25 @@ Three measured facts the quarter is built on:
 Generation order matters and is stated: portal first, ruinway defers to it (21 shared threshold
 cells). `designs.json` tracks 26.
 
+**The visual audit of the quarter (2026-08-21), and the scale rule it produced.** Rendered from
+every angle a player gets - west-bank money view, landing approach, close-ups of all five
+fragments, whole-scene elevations. What passed unchanged: the plan composition, the path craft,
+the overlook (a parapet is SUPPOSED to be low - its drama is the void), the bridge stub. What
+failed: the gatehouse read as a dark blob beside the path, and the apse was shin-height in
+elevation - a mound with a purple dot. Three findings worth keeping:
+
+- **On this moss, under ten-tall trees, architecture below ~6 courses dissolves into ground
+  noise.** The fern-and-azalea surface roll eats anything shorter; the bat tower (15), the ring
+  (25) and the trees set the register. Fragments were raised to clear it: gate frame to 8, apse
+  crest to 6, tall colonnade piers to 6.
+- **The ruin is the WALL, never the DOORWAY.** The first gatehouse broke its lintel - damage,
+  not architecture. Inverted: a COMPLETE post-and-lintel frame stands alone in the moss, and
+  the decay is carried by wall stubs falling to nothing off both sides. The doorway whole, the
+  building gone - that is the void tower's rule said forward.
+- **A linear height profile peaks on a single column.** The apse's crest read as a stick because
+  full height existed only at angle zero; the profile now holds full height across the whole
+  back third before decaying. A wall crest is a LINE, not a point.
+
 ## Build & test
 
 ```bash
