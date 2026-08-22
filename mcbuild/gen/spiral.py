@@ -28,6 +28,12 @@ SPIRAL = {
     "y0": None, "y1": None,    # first and last course
     "clearance": 2,            # inner edge sits this far outside the wrapped design
     "min_radius": 3.0,
+    "max_inner": None,         # clamp on the smoothed inner radius. _smooth is a running MAX,
+                               # so one wide feature anywhere in the wrapped design - a grip
+                               # bend, a splayed toe - widens every course above it; the
+                               # Lowland Stair's top flared right past its own step-off. The
+                               # clamp keeps the helix tight and lets defer_to settle the few
+                               # cells where the core then crosses the band.
     "width": 4,                # tread depth, measured outward from the inner edge
     "start_angle": 0.0,
     "direction": 1,            # +1 anticlockwise, -1 clockwise
@@ -51,6 +57,9 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
     if y1 <= y0:
         raise ValueError(f"spiral needs y1 > y0 (got {y0}..{y1})")
     prof = _smooth(prof, float(p["clearance"]), float(p["min_radius"]))
+    if p.get("max_inner") is not None:
+        cap = float(p["max_inner"])
+        prof = {y: min(r, cap) for y, r in prof.items()}
 
     w = World()
     spin = 1 if int(p["direction"]) >= 0 else -1

@@ -2220,6 +2220,46 @@ bridge 3) - one `follow` session; the ground's last 10% is west-side scatter plu
 water-occupied cells; the ground's two unbuilt trees near the campanile (X-24200/29967,
 X-24208/29983) clear its footprint by 2-3 and were left in.
 
+## The descent: the spiral continues to the lowland (2026-08-22)
+
+Jack: the spiral staircase continues going down all the way to the lowlands. Two designs:
+**`Lowland Root`** (494 - a slim oak braid off the shop islet's SOUTH rim, gripping the
+measured one-thick shelf at (-24208..-24207, 30025), toes in the moss at Y41) and
+**`Lowland Stair`** (2,192 - the same slab-helix idiom as the Root Stair, wound about it,
+Y41-151, ~9 turns, 44 rail lanterns, ONE component, 0 overlap, all cheap). The full walk is
+now: deck - workshop stair - root stair - islet shelf - LOWLAND STAIR - harbor moss, then
+quay/watergate/way or east to the hamlet.
+
+**The axis is the siting decision, and it was moved twice by measurement.** Concentric with
+the taproot's keel at (-24200, 30018), the landing wraps the watergate, the quay lip and the
+harbor light; under the south rim at (-24207, 30029) it clears the light's gallery by 9.5,
+the quay tip by 13 and the watergate by 17, and the landing arc falls on open moss
+(ground histogram Y37-43, 2 wet columns). NOT ONE of the harbor ensemble moved.
+
+Traps, each of which shipped a clean-looking build first:
+
+- **`_smooth` is a running MAX, so one wide feature anywhere in the wrapped design widens
+  every course above it.** The root's two-cell toes carried r5.25 up the whole helix and
+  parked the outer band on the harbor light's gallery; the grip bend did the same to the top
+  and flared the stair past its own step-off. Toes are one cell now, and `spiral.max_inner`
+  exists - a clamp on the smoothed profile, with defer_to settling the few cells where the
+  core then crosses the band.
+- **A twisted strand disconnects at every sideways step** - the join is diagonal-only, the
+  ear-tip lesson again. The first braid was 26 components; each step now places a bulge cell
+  in the previous course's column, which is also what a real root looks like.
+- **The top courses terminate against the shop islet's DESIGNED rock** (its rim skirt,
+  ~340 unbuilt cells in the band - burial against a design, not just terrain). So the
+  isolated climb gate cannot pass BY CONSTRUCTION and is off in the config; what replaces it
+  is the COMPOSITE walk - stair + islet design + capture, the audit's own step rules - pinned
+  in `tests/test_lowland_stair.py` (6). `start_angle` was swept over 63 phases SCORING THAT
+  WALK: at 1.1 the top courses ride the open south air and reach the shelf at exactly 151.0.
+  Build order follows: the stair's top ~29 cells wait for the islet's rim.
+
+**The Void Ladybird was re-sited** - its parked pocket held 726 cells inside the new shaft
+(never built, so nothing orphaned). The distance search re-ran with the stair, root and town
+reserved: the new pocket at root (-24238, 63, 29968) keeps 8 clear on every face, belly
+overhead, the NW lowland floor twenty below.
+
 ## Build & test
 
 ```bash

@@ -1,0 +1,31 @@
+# THE REACHING ROOT - off the shop islet's south rim, down to the lowland earth (2026-08-22).
+#
+# Jack: the spiral staircase continues all the way down to the lowlands. The stair needs a
+# core, and the descent needs an axis that clears the harbor: the taproot's keel at
+# (-24200, 30018) would land the helix on the watergate, the quay lip and the harbor light -
+# all measured - so the root leaves the islet's SOUTH rim instead, where the shelf is solid at
+# (-24208..-24207, 30025) and the axis at (-24207, 30029) clears the light gallery by 9.5, the quay
+# tip by 11 and the watergate by 13+. ~106 courses of measured open void, then moss at Y37-38.
+#
+# The Void Ladybird's parked site was in this shaft (726 cells at Y104-120) - re-sited, see
+# configs/ladybug.yaml.
+name: Lowland Root
+gen: rootreach
+params:
+  under: out/island_full.litematic
+  at: [-24207, 30029]
+  grip: [-24207, 30025]        # solid shelf cell (measured, one course thick) it hangs from
+  y_top: 149
+  y_ground: 41                 # PINNED: toes at the measured moss (ground 40 at the axis)
+  strands: 3
+  seed: 0
+origin_lock: false             # LOUD: spans Y38-149 in the open void under the islet
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  defer_to: [out/Shop Islet.litematic, out/Lowland Harbor Light.litematic,
+             out/Lowland Ruinway.litematic, out/Lowland Turtle.litematic]
+  context_clear: [vine]
+  verify_against: out/island_full.litematic

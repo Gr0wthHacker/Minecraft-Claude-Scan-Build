@@ -1,8 +1,8 @@
 {
-  "name": "island_deep",
+  "name": "island",
   "file": "island_deep.litematic",
   "format": "litematic",
-  "created": "2026-08-19T23:09:37.319144700Z",
+  "created": "2026-08-22T19:01:06.207973400Z",
   "player": "Enroniti",
   "server": {
     "name": "Unknown Server",
@@ -21,15 +21,15 @@
     "z": 103
   },
   "player_pos": {
-    "x": -24202,
-    "y": 191,
-    "z": 30004
+    "x": -24196,
+    "y": 96,
+    "z": 30011
   },
   "air_margin": 2,
   "total_volume": 3554015,
-  "non_air_blocks": 54171,
-  "palette_size": 517,
-  "tile_entities": 370,
-  "entities": 19,
+  "non_air_blocks": 52947,
+  "palette_size": 534,
+  "tile_entities": 343,
+  "entities": 8,
   "cut_from": "island.litematic"
 }

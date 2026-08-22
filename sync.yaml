@@ -62,4 +62,9 @@ progress:                           # designs reported (% built, left, shop list
   - out/Lowland Campanile.litematic     # the sanctum's bell tower, owl on the parapet
   - out/Lowland Harbor Light.litematic  # beacon at the quay root, cold lamp
   - out/Lowland Turtle.litematic        # basking on the harbor's north shore
+  # the descent (2026-08-22): the spiral continues past the islet to the lowland floor.
+  # Build the root first; the stair's top courses terminate against the shop islet's rim,
+  # so those cells wait for the islet - the composite walk is pinned in test_lowland_stair.
+  - out/Lowland Root.litematic          # feeder root off the islet's south rim, Y41-149
+  - out/Lowland Stair.litematic         # the helix, lowland moss to islet shelf, Y41-151
 learn: true

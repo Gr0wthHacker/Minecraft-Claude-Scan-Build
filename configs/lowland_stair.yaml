@@ -1,0 +1,52 @@
+# THE LOWLAND STAIR - the spiral continues past the islet, all the way down (2026-08-22).
+#
+# Jack's ask, verbatim intent: the spiral staircase keeps going down to the lowlands. Same
+# idiom as the Root Stair it continues - slab-only treads (bottom then top, 0.5 a rise), a
+# radial spoke wedge per half-step, wall-and-lantern rail - wound about the Reaching Root
+# (see configs/lowland_root.yaml, which is where the SITING lives: the axis was chosen to
+# clear the watergate, quay and harbor light, all measured).
+#
+# The top treads weave into the islet shelf's ragged south rim at Y150: a top slab's walking
+# surface is Y151, flush with the shelf, so you step off the moss straight onto the stair.
+# The bottom lands on open moss south of the quay; the whole descent walks: quay - watergate
+# - way - or east to the hamlet lane. Same spin as the stair above, so the two helices read
+# as one interrupted screw.
+name: Lowland Stair
+gen: spiral
+params:
+  under: out/island_full.litematic
+  around: out/Lowland Root.litematic
+  center: [-24207, 30029]
+  y0: 41                     # first tread a half-step off the landing moss (ground 39-41 there)
+  y1: 150                    # top slab surface Y151 = the islet shelf's walking level
+  clearance: 2
+  min_radius: 3.0
+  max_inner: 4.5             # see gen/spiral.py: the grip bend must not widen the helix
+  start_angle: 1.1           # swept over 63 angles scoring the COMPOSITE walk (stair + shop
+                             # islet design + capture): this phase runs the top courses up the
+                             # open south air and reaches the shelf at 151.0 exactly
+  direction: 1               # the Root Stair's spin, continued
+  width: 4
+  slab: stone_brick_slab
+  slab_alt: mossy_stone_brick_slab
+  alt_rate: 0.35
+  rail: stone_brick_wall
+  lantern_every: 12
+  seed: 0
+origin_lock: false           # LOUD: spans Y39-151 from the lowland moss to the islet rim
+finish:
+  trim_buried: true          # treads that stab the islet rim or a moss hummock yield the cell
+  climb: false               # the isolated gate cannot pass here BY CONSTRUCTION: the top
+                             # courses terminate against the shop islet's designed rock, so in
+                             # isolation the ribbon has holes. The walk that matters is the
+                             # COMPOSITE one, pinned in tests/test_lowland_stair.py
+  cheapen: true
+  hollow: false
+  ground: false
+  drop_floaters: false
+  defer_to: [out/Lowland Root.litematic, out/Shop Islet.litematic, out/Root Stair.litematic,
+             out/Lowland Harbor Light.litematic, out/Lowland Ruinway.litematic,
+             out/Lowland Portal.litematic, out/Lowland Hamlet.litematic,
+             out/Lowland Turtle.litematic, out/Castle Bridge.litematic]
+  context_clear: [vine]
+  verify_against: out/island_full.litematic

@@ -1,0 +1,28 @@
+{
+  "origin": {
+    "x": -24209,
+    "y": 40,
+    "z": 30025
+  },
+  "size": {
+    "x": 5,
+    "y": 110,
+    "z": 7
+  },
+  "generated_by": "rootreach",
+  "kind": "rootreach",
+  "profile_view": "side",
+  "facing": [
+    0,
+    1
+  ],
+  "y_ground": 41,
+  "features_built": {
+    "spine": 105,
+    "strands": 386,
+    "toes": 3,
+    "vines": 0
+  },
+  "file": "Lowland Root.litematic",
+  "name": "Lowland Root"
+}
