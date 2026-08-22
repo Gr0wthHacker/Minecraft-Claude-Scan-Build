@@ -29,7 +29,10 @@ params:
                                     # x<=-24203 at z30014, so the last two rows hang over open
                                     # water - the first siting misread the bank line and the
                                     # whole deck stayed dry
-  apse: {at: [-24188, 29969], r: 4, h: 6}
+  # the apse fragment YIELDED ITS GROUND to the Lowland Sanctum (2026-08-21): the north
+  # skylight is the only zone that can hold a complete structure, and the fragment became the
+  # surviving back wall of the building it was always a fragment of. See lowland_sanctum.yaml.
+  apse: null
   lanterns: [[-24192, 30017], [-24176, 30021], [-24160, 30030]]
   seed: 0
 origin_lock: false                  # LOUD: lies on the lowland at Y37-52

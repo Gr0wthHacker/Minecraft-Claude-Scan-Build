@@ -120,6 +120,8 @@ def test_the_bridge_ends_over_open_water_broken(built, world):
 def test_the_apse_stands_in_its_skylight_open_to_the_scene(built):
     _, cells = built
     a = CFG["params"]["apse"]
+    if not a:
+        pytest.skip("the apse yielded its ground to the Lowland Sanctum (2026-08-21)")
     ax, az = a["at"]
     r = a["r"]
     wallish = [(x, y, z) for (x, y, z), (n, _) in cells.items()

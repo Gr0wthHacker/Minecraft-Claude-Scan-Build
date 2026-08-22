@@ -2114,6 +2114,32 @@ elevation - a mound with a purple dot. Three findings worth keeping:
   full height existed only at angle zero; the profile now holds full height across the whole
   back third before decaying. A wall crest is a LINE, not a point.
 
+**And then Jack rejected the quarter's shape itself: "very sparse and vague... too fragmented,
+we need at least one more complete actual structure - something that feels real and like it was
+once impressive."** He was right - fragments without a mass read as set-dressing. The answer is
+**`Lowland Sanctum`** (gen/sanctum.py, 788 blocks, 0 problems, 0 overlap): a basilica-form
+ruin in the north skylight - the ONLY zone that can hold a real footprint (a 14x22 pad search
+over the whole lowland returned ZERO with everything reserved), and only after the ruinway's
+apse fragment yielded its ground, which is the coherent trade: the fragment became the
+surviving back wall of the building it was always a fragment of (`apse: null` in the ruinway
+config records it).
+
+- **The footprint threads the blocker map**: walls at X-24191/-24181, BETWEEN the ground
+  design's lantern columns (X-24192, X-24184) - the ground's own lights are dodged, never
+  covered, and the two inside the nave stay standing in the ruin floor. The apse backs onto
+  the void breach north of z29964; the roofless nave sits inside the daylight beam.
+- **Once-impressive is a CONTRACT, and it is pinned** (`test_sanctum.py`): the facade survives
+  whole - open doorway, chiseled jambs, an oculus ringed in chiseled over the lintel, stepped
+  pediment to FY+11 - the apse holds a full crest LINE, the SIDE WALLS are the part that fell
+  (high at both ends, a course or two mid-run, their tumble in one heap per side), the
+  stylobate is one level plane, and a pavement spur joins the way at the gatehouse. Through
+  the open door you see the amethyst bloom on the altar - unplanned, and kept.
+- **`floor_y` is pinned in the config** for the ring's reason: a seat re-derived from a ground
+  that is itself being built drifts a course between placement and regen.
+
+Build order for the printer is now: portal remainder, ruinway, sanctum (each defers to the
+ones before it). `designs.json` tracks 27.
+
 ## Build & test
 
 ```bash

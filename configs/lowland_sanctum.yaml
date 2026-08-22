@@ -1,0 +1,42 @@
+# THE SANCTUM - the one complete structure of the ruins quarter, in the north skylight.
+#
+# Jack's review of the quarter: too sparse, too fragmented - "we need at least one more complete
+# actual structure, something that feels real and like it was once impressive." Measured, only
+# the north skylight can hold a real footprint, and only after the ruinway's apse fragment
+# yields its ground - which is the coherent trade: the fragment becomes the surviving back wall
+# of the building it was always a fragment of.
+#
+# The footprint threads the blocker map exactly: walls at X-24191 and X-24181, BETWEEN the
+# ground design's lantern columns (X-24192, X-24184), so the ground's own lights are dodged,
+# never covered - the two inside the nave stay standing in the ruin floor, which is what a lit
+# ruin looks like. The roofless nave sits inside the daylight beam; the building's roof is the
+# sky shaft. The apse holds a full crest, the facade survives whole (doorway, oculus, stepped
+# pediment), the side walls are the ruin, and a spur of pavement joins the way at the gatehouse.
+name: Lowland Sanctum
+gen: sanctum
+params:
+  under: out/lowland_planned.litematic
+  at: [-24186, 29974]        # nave centre; apse chord at z29966 (ground ends at z29964), facade
+                             # line z29982, portico steps landing at z29983
+  width: 11
+  length: 16
+  floor_y: 41                # PINNED (median ground 39-41 on the 19:28 scan). The ring taught
+                             # this: a seat re-derived from a ground that is itself being built
+                             # drifts, and the remainder comes out a course off what stands.
+  apse_r: 4.5
+  wall_h: 7
+  facade_h: 8
+  spur_to: [-24196, 30016]   # joins the way beside the gatehouse
+  seed: 0
+origin_lock: false           # LOUD: stands on the lowland at Y38-52
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  defer_to: [out/Lowland Portal.litematic, out/Lowland Ruinway.litematic,
+             out/Lowland Capybara Flee.litematic, out/Lowland Flamingo.litematic,
+             out/Lowland Axolotl.litematic]
+  context_clear: [vine, short_grass, tall_grass, fern, large_fern, moss_carpet, azalea,
+                  flowering_azalea, poppy, dandelion]
+  verify_against: out/lowland_planned.litematic
