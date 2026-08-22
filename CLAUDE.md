@@ -2274,9 +2274,10 @@ WELL dug in the shop islet's lens (121 dig cells, Y144-150, in the sidecar's dig
   unprotected", and the old stair's own slabs sit directly over the mouth courses: it would
   have dug the stair it exists to continue. And a dig may never take a protected block OR THE
   CELL ONE STANDS ON - the shop's barrels are one course over the well's north arc.
-- **The harbor light moved to the WEST BANK** (-24230, 30016), measured dry moss, three clear
-  of the axolotl - it stood four blocks inside the new annulus. It answers the quay across
-  the water now, which is better harbor grammar anyway.
+- **The harbor light is RETIRED** (Jack: "we arent gonna build the harbor light"). It stood
+  four blocks inside the new annulus; the west-bank re-site happened and then the whole
+  design was retired unbuilt - the stair took its site and most of its job, and the quay
+  keeps its cold mooring-post light. Config kept as a record.
 - **The Shop Islet design is CARVED to the well** - 287 lens-fill cells removed over the
   stair's tread+headroom envelope (noted in its config; regenerating the islet re-fills the
   well and must be followed by re-carving - `test_the_carved_islet_keeps_out_of_the_well`

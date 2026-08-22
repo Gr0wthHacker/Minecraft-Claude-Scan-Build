@@ -1,9 +1,8 @@
-"""The lowland town: hamlet, campanile, harbor light, turtle (2026-08-22).
+"""The lowland town: hamlet, campanile, turtle (2026-08-22; the harbor light is retired).
 
 The properties pinned here are the ones that shipped wrong once, in this ensemble or in the
 builds it inherits from: a lane paved through its own street lamp, a lintel floating over a
-doorway, a crenellation course repainted into a plain drum, a lamp hanging from a slab the
-audit calls air, flippers that came off as their own components, and water columns claimed
+doorway, a crenellation course repainted into a plain drum, flippers that came off as their own components, and water columns claimed
 by a design whose whole rule is that the pond keeps every cell it owns.
 """
 import os
@@ -57,11 +56,6 @@ def hamlet():
 @pytest.fixture(scope="module")
 def campanile():
     return _cells("campanile", _cfg("lowland_campanile.yaml")["params"])
-
-
-@pytest.fixture(scope="module")
-def harborlight():
-    return _cells("harborlight", _cfg("lowland_harborlight.yaml")["params"])
 
 
 @pytest.fixture(scope="module")
@@ -205,33 +199,6 @@ def test_the_owl_sits_on_built_masonry_and_its_eyes_lead(campanile):
     assert len(eyes) == 2
     for (x, y, z) in eyes:
         assert (x, y, z + 1) not in cells, "something stands in front of an eye"
-
-
-# ---------------------------------------------------------- the harbor light
-
-@needs_world
-def test_the_pond_keeps_every_cell_it_owns(harborlight, ctx):
-    _c, cells = harborlight
-    for (x, y, z) in cells:
-        assert ctx.name_at(x, y, z) not in ("water", "ice"), (x, y, z)
-
-
-@needs_world
-def test_the_lamp_hangs_from_a_full_block(harborlight):
-    _c, cells = harborlight
-    lamps = [(x, y, z) for (x, y, z), n in cells.items()
-             if n.split("[")[0] == "soul_lantern"]
-    assert len(lamps) == 1
-    x, y, z = lamps[0]
-    assert cells.get((x, y + 1, z), "").startswith("chiseled"), "slab caps read as air"
-
-
-@needs_world
-def test_the_light_shows_on_all_four_sides(harborlight):
-    _c, cells = harborlight
-    x, y, z = next((c for c, n in cells.items() if n.split("[")[0] == "soul_lantern"))
-    for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-        assert (x + dx, y, z + dz) not in cells, "the lightroom is walled"
 
 
 # ----------------------------------------------------------------- the turtle

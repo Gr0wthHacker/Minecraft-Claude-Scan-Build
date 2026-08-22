@@ -57,14 +57,14 @@ progress:                           # designs reported (% built, left, shop list
   - out/Castle Bridge.litematic     # broken span, island SE rim -> bat tower parapet, Y150-153
   # the lowland town (2026-08-22): architecture as the figure, animals as accents. The flamingo
   # and capybara are RETIRED (see their configs) - both at 0% built, and retiring them freed
-  # the pads these stand on. Build order: hamlet/campanile/harborlight defer to the quarter.
+  # the pads these stand on, and the harbor light is RETIRED too (never built, Jack's call).
+  # Build order: hamlet/campanile defer to the quarter.
   - out/Lowland Hamlet.litematic        # three houses on the lantern 9-grid, SW of the ring
   - out/Lowland Campanile.litematic     # the sanctum's bell tower, owl on the parapet
-  - out/Lowland Harbor Light.litematic  # beacon at the quay root, cold lamp
   - out/Lowland Turtle.litematic        # basking on the harbor's north shore
-  # the descent (2026-08-22): the spiral continues past the islet to the lowland floor.
-  # Build the root first; the stair's top courses terminate against the shop islet's rim,
-  # so those cells wait for the islet - the composite walk is pinned in test_lowland_stair.
-  - out/Lowland Root.litematic          # feeder root off the islet's south rim, Y41-149
-  - out/Lowland Stair.litematic         # the helix, lowland moss to islet shelf, Y41-151
+  # the descent (2026-08-22): the spiral continues STRAIGHT DOWN the taproot's axis through
+  # a well dug in the islet's floor (121 dig cells in the stair's sidecar - dig first, then
+  # root, then stair). The composite walk is pinned in test_lowland_stair.
+  - out/Lowland Root.litematic          # the keel's root, on axis, tapering out at Y95
+  - out/Lowland Stair.litematic         # the helix, lowland moss to islet shelf, on axis
 learn: true

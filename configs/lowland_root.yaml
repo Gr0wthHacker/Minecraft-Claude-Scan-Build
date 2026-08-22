@@ -28,7 +28,7 @@ finish:
   hollow: false
   ground: false
   drop_floaters: false
-  defer_to: [out/Shop Islet.litematic, out/Lowland Harbor Light.litematic,
+  defer_to: [out/Shop Islet.litematic,
              out/Lowland Ruinway.litematic, out/Lowland Turtle.litematic]
   context_clear: [vine]
   verify_against: out/island_full.litematic

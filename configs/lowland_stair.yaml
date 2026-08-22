@@ -66,7 +66,7 @@ finish:
   # is carved to match (see its config note) - the stair wins these, stated, built first
   defer_to: [out/Lowland.litematic,
              out/Lowland Root.litematic, out/Root Stair.litematic,
-             out/Lowland Harbor Light.litematic, out/Lowland Ruinway.litematic,
+             out/Lowland Ruinway.litematic,
              out/Lowland Portal.litematic, out/Lowland Hamlet.litematic,
              out/Lowland Turtle.litematic, out/Castle Bridge.litematic]
   context_clear: [vine]
