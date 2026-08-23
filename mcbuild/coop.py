@@ -402,13 +402,23 @@ def sync(cfg_path: str = "sync.yaml", verbose: bool = True) -> str:
                            capture_output=True, text=True, encoding="utf-8", errors="replace")
         tail = [l for l in r.stdout.splitlines() if l.startswith(("in context", "paste origin", "shipped", "buildability"))]
         lines.append(f"regen {c}: " + " | ".join(tail) if r.returncode == 0 else f"regen {c}: FAILED\n{r.stdout[-800:]}{r.stderr[-800:]}")
+    # PROGRESS IS MEASURED AGAINST THE FULL DEPTH, NOT THE PLATE CUT. `world_out` is the
+    # Y150+ box the plate designs verify against; reporting a below-island design against it
+    # counts every cell under Y150 as "outside the scan box (unknown)" and calls it unbuilt.
+    # It read every lowland design as 0% for the whole life of that scene - a stair 74% built
+    # reported 6/2139 - and the velocity slope was out by about four times. `full_out` names
+    # a capture that holds the whole island; without one this falls back to the old behaviour.
+    full_out = cfg.get("full_out")
+    prog_world = full_out if full_out and os.path.exists(full_out) else world_out
+    if prog_world != world_out:
+        lines.append(f"progress measured against {prog_world} (full depth)")
     rows = {}
     for d in cfg.get("progress", []):
-        pr = progress(d, world_out)
+        pr = progress(d, prog_world)
         rows[os.path.basename(d)] = (pr.built, pr.total)
         lines.append(pr.report(top=8))
     if cfg.get("progress"):
-        lines.append(shop(cfg["progress"], world_out))
+        lines.append(shop(cfg["progress"], prog_world))
         from . import history as history_mod
         history_mod.record(rows)                       # one row per sync: gives progress a slope
         lines.append(history_mod.report())

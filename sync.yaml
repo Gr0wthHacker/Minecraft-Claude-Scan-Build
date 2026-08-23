@@ -6,6 +6,11 @@ deep_out: out/island_deep.litematic   # Y130-200: below-island designs verify ag
 deep_cut: [-24251, 130, 29949, -24149, 215, 30051]   # top must clear the plate: cutting at 200
                                                      # truncates vines whose anchor is above it
 
+# PROGRESS is measured against THIS, not against the Y150 plate cut. Reporting a below-island
+# design against `world_out` counts everything under Y150 as "outside the scan box" and calls
+# it unbuilt - which is how every lowland design read 0% for that whole scene's life.
+full_out: out/island_full.litematic
+
 # ACCEPTED 2026-08-23: every tracked design was accepted as complete AS IT STANDS in the
 # 15:54 scan - Jack's call, all at once. The world is the master copy; whatever a design
 # still listed as remaining work is no longer wanted. The full inventory and final standing
@@ -22,5 +27,12 @@ deep_cut: [-24251, 130, 29949, -24149, 215, 30051]   # top must clear the plate:
 # NEW projects get added to progress: (and regen: if they are remaining-work) as they are
 # created, and tracking resumes for them alone.
 regen: []
-progress: []
+
+# NEW WORK since the acceptance. Both were designed against the 15:54 scan and both are
+# tracked again, so `/cscan place`, `plan` and `follow` mean these two and nothing else.
+# Build ORDER matters: the Falls' notch is the plug (dig it last), and the night pass was
+# solved against a world with the Falls already cut.
+progress:
+  - out/Falls.litematic         # 30 blocks + 41 dig: the channel that lets the isle spill
+  - out/Island Night.litematic  # 105 fixtures + 30 dig: zero spawnable surface cells
 learn: true
