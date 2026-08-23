@@ -15,6 +15,8 @@ CONFIGS = [c for c in glob.glob(os.path.join(os.path.dirname(__file__), "..", "c
 
 def _run(cfg):
     m, r = run_config(cfg, settings=Settings(out_dir="out/_test"), render_sheet=False, verbose=False)
+    if getattr(r, "complete", False):
+        return                     # 100% built: nothing to emit is success, not failure
     # Overlap against a design you have started building is a DEVIATION (you placed something else
     # there), which is `mcbuild progress`'s business, not a defect in the design. Gate on everything
     # else, so rule 2 still catches a brand-new design that collides with the island.

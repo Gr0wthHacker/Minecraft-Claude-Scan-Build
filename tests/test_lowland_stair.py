@@ -192,10 +192,15 @@ def test_the_stair_replaces_nothing_outside_its_dig(world):
     cap = world["cap"]
     cox, coy, coz = -24251, -64, 29949
     cpal = [n.split(":")[-1].split("[")[0] for n in cap.names]
-    for (x, y, z) in world["stair"]:
+    own = {"stone_brick_slab", "mossy_stone_brick_slab", "deepslate_brick_slab",
+           "cobbled_deepslate_slab", "polished_blackstone_brick_slab", "blackstone_slab",
+           "stone_brick_wall", "deepslate_brick_wall", "polished_blackstone_brick_wall",
+           "lantern", "soul_lantern"}
+    for (x, y, z), (dn, _pr) in world["stair"].items():
         n = cpal[cap.ids[y - coy, z - coz, x - cox]]
-        if n in PASS:
-            continue
+        if n in PASS or n == dn.split("[")[0] or n in own:
+            continue   # empty, built as designed, or built in a neighbouring band's stone -
+                       # Jack substituted on 22 cells and mismatches are accepted
         assert (x, y, z) in world["dig"], ("tread replaces standing world", x, y, z, n)
 
 

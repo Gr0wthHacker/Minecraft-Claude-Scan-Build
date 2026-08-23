@@ -29,11 +29,16 @@ def _cfg(name):
     return yaml.safe_load(open(os.path.join(ROOT, "configs", name)))
 
 
-def _cells(gen, params):
-    from mcbuild import nbt
-    c = GENERATORS[gen].build(params, None)
-    m = c.to_model()
-    ox, oy, oz = c.world_origin
+def _cells(name):
+    """The SHIPPED design record, not a fresh regen: the town is mostly BUILT now, and a
+    regenerated remaining-work design loses its built cells - the snapshot trap at scene
+    scale. The shipped litematic is the full intent and is what the printer places."""
+    from mcbuild import nbt, schem
+    import json as _json
+    path = os.path.join(ROOT, "out", f"{name}.litematic")
+    m = schem.load(path)
+    sc = _json.load(open(path.replace(".litematic", ".scan.json"), encoding="utf-8"))
+    o = sc.get("world_origin") or sc.get("origin")
     cells = {}
     for i, entry in enumerate(m.palette):
         short = nbt.state_name(entry).split(":")[-1]
@@ -44,23 +49,23 @@ def _cells(gen, params):
             short += "[" + ",".join(f"{k}={v}" for k, v in sorted(props.items())) + "]"
         ys, zs, xs = np.where(m.ids == i)
         for y, z, x in zip(ys, zs, xs):
-            cells[(int(x) + ox, int(y) + oy, int(z) + oz)] = short
-    return c, cells
+            cells[(int(x) + o["x"], int(y) + o["y"], int(z) + o["z"])] = short
+    return m, cells
 
 
 @pytest.fixture(scope="module")
 def hamlet():
-    return _cells("hamlet", _cfg("lowland_hamlet.yaml")["params"])
+    return _cells("Lowland Hamlet")
 
 
 @pytest.fixture(scope="module")
 def campanile():
-    return _cells("campanile", _cfg("lowland_campanile.yaml")["params"])
+    return _cells("Lowland Campanile")
 
 
 @pytest.fixture(scope="module")
 def turtle():
-    return _cells("turtle", _cfg("lowland_turtle.yaml")["params"])
+    return _cells("Lowland Turtle")
 
 
 @pytest.fixture(scope="module")

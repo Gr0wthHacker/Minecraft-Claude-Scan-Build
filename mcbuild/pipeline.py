@@ -50,7 +50,19 @@ def run_config(path: str, *, settings: Settings | None = None, overrides: dict |
     name = cfg.get("name") or os.path.splitext(os.path.basename(path))[0]
     donors = _load_donors(cfg.get("donors", []), st.schem_dir)
 
-    m, world_origin, gen_meta = _source_model(cfg, st, donors)
+    try:
+        m, world_origin, gen_meta = _source_model(cfg, st, donors)
+    except ValueError as e:
+        if "nothing built" in str(e):
+            # A FINISHED design reports complete, it does not raise - the store hall hit
+            # this first (100% built, emitted nothing, crashed the pipeline), then the
+            # Reaching Root the day Jack finished placing it.
+            if verbose:
+                print(f"{name}: complete - the world already holds every cell of this design")
+            res = audit_mod.Result()
+            res.complete = True
+            return None, res
+        raise
     _polish(m, cfg)
     res = _finish(m, cfg, world_origin, gen_meta, verbose)
     _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, verbose)

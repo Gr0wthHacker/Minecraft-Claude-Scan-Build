@@ -856,10 +856,10 @@ X−24205..−24194 / Z29994..30012, which is the entrance hall — the room. At
 `deepslate_bricks`** grid cells, runs up to 16, only 7 demoted, and takes the design to 171 blocks.
 That is a real coffered ceiling over the one place that has a ceiling. Everywhere else stays rock.
 
-**Pre-existing, found while running the suite:** `configs/store_hall.yaml` crashes the pipeline with
-`ValueError: nothing built` — it is 100% built, so it emits nothing and `World.canvas` raises. It
-fails identically against the pre-session capture, so it is not from this work. A finished design
-should report complete, not raise.
+**~~Pre-existing, found while running the suite:~~ FIXED 2026-08-23** — `configs/store_hall.yaml`
+crashed the pipeline with `ValueError: nothing built` (100% built, emitted nothing, `World.canvas`
+raised). The day Jack finished placing the Reaching Root it hit the same wall, and the pipeline now
+reports such a design COMPLETE (`Result.complete`) instead of raising.
 
 ## The root break, and the machine room under the tree (2026-08-19)
 
@@ -3781,6 +3781,27 @@ Traps, all of which produced a wrong number or a broken build before the right o
 - **`waterlogged` is not in work.INTENTIONAL**, so a test that greps work.json for it
   tests the wrong artifact (the pane lesson, again). The water at the position is the
   assertion.
+
+### The world moved mid-session, and what it broke (2026-08-23, 14:32 scan)
+
+Jack rescanned while the glow was being solved: the town is BUILT (hamlet 97%, campanile
+93%, turtle 96%, root 100%, stair 74%), and three things broke at once, each instructive:
+
+- **The belly's vines hung from TRIPWIRE.** Jack strung string lines under the plate; the
+  vine walk skipped those cells (tripwire is rightly not solid) and kept emitting BELOW
+  them - orphan strands in context. `_already_built` now returns an OCCUPIED mask too, and
+  a strand stops at any world-occupied cell it cannot claim. Same family as vine-as-footing
+  and -1-is-truthy: "not solid enough to cling to" does not mean "not there".
+- **The town tests hit the snapshot trap at scene scale**: they regenerated designs against
+  the fresh capture, and remaining-work regen strips every built cell - the door-frame test
+  failed because the door frame is BUILT. Fixtures read the SHIPPED litematics now (the
+  full intent, what the printer places), the ruinring tests' lesson generalised.
+- **Jack substituted a neighbouring band's slab on 22 stair cells** - accepted mismatch on
+  his own stair, which the replaces-nothing contract must not read as a collision. The
+  stair's own material family is exempt.
+
+`out/island_full.litematic` and `island_deep` are re-cut from the newest scan; the glow
+re-validated against it (every fixture still stands, the propagation zero still holds).
 
 ## The daily loop
 
