@@ -25,18 +25,21 @@ def _cfg():
 
 
 def test_the_tracked_list_is_the_progress_list(tmp_path):
+    """ACCEPTED 2026-08-23: every design was accepted as complete and `progress:` emptied
+    deliberately, so an empty list is now a legal state - the invariant is equality with the
+    cfg, not non-emptiness. When new projects are added back, this holds unchanged."""
     names = write_tracked(_cfg(), str(tmp_path))
-    assert names, "sync.yaml tracks nothing?"
     assert len(names) == len(_cfg()["progress"])
 
 
 def test_extensions_are_stripped_because_the_mod_wants_design_NAMES(tmp_path):
-    """`progress:` holds `out/Rim Hem.litematic`; the mod addresses designs by bare name."""
-    names = write_tracked(_cfg(), str(tmp_path))
+    """The mod addresses designs by bare name. Tested on a synthetic cfg so the property
+    stays exercised while the live `progress:` list is empty (all designs accepted)."""
+    names = write_tracked({"progress": ["out/Rim Hem.litematic", "out/Lowland Glow.litematic"]}, str(tmp_path))
     for n in names:
         assert not n.endswith((".litematic", ".scan.json", ".work.json")), n
         assert "/" not in n and "\\" not in n, n
-    assert "Rim Hem" in names
+    assert names == ["Rim Hem", "Lowland Glow"]
 
 
 def test_it_is_far_smaller_than_the_folder(tmp_path):

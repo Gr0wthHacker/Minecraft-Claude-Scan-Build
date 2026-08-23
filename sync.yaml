@@ -5,70 +5,22 @@ world_out: out/island_now.litematic
 deep_out: out/island_deep.litematic   # Y130-200: below-island designs verify against this
 deep_cut: [-24251, 130, 29949, -24149, 215, 30051]   # top must clear the plate: cutting at 200
                                                      # truncates vines whose anchor is above it
-regen:                              # regenerated against the new scan (they key off ground state, so they self-heal)
-  - configs/belly.yaml
-  - configs/hem.yaml
-  - configs/footings.yaml
-  - configs/paths.yaml
-  - configs/lightposts.yaml
-  - configs/apiary.yaml
-  - configs/entrance.yaml
-progress:                           # designs reported (% built, left, shop list)
-  - out/Island Belly Full.litematic
-  - out/Taproot.litematic
-  - out/Shed Shard.litematic
-  - out/Chimneys.litematic
-  - out/Statue Footings.litematic
-  - out/Rim Hem.litematic
-  - out/Path Network.litematic
-  - out/Light Posts.litematic
-  - out/Deck Entrance.litematic
-  - out/Ride Lights.litematic
-  - out/Apiary Flowers.litematic
-  - out/Bird Lanterns.litematic
-  - out/Deck Vault.litematic     # NOT in regen: `under` is pinned to the pre-vault capture (see configs/vault.yaml)
-  # RETIRED 2026-08-20. Sky Well Court was the moss-and-pond scheme for this space; the deepslate
-  # Court Hall replaced it. Measured against the 12:33 capture it has 162 cells holding a DIFFERENT
-  # block - 168 of its conflicts fall inside the hall - because it wants moss carpet, glow lichen and
-  # water where the hall's floor, pilasters and basin now are. Its only surviving content is ~27
-  # lichen/dripstone cells outside the hall footprint. Retired, not deleted: the litematic stays so
-  # the derivation is on record, exactly as the jaguar and the bear were retired from the lowland.
-  # - out/Sky Well Court.litematic
-  - out/Court Hall.litematic
-  - out/Court Stair.litematic
-  - out/Store Hall.litematic
-  - out/Undercroft Store.litematic
-  - out/Entry Hall.litematic
-  - out/Atelier Court.litematic  # below-island origin -24251 130 29949
-  - out/Void Giraffe.litematic   # Y99-150, its own origin
-  - out/Void Isle.litematic      # Y86-108, its own origin (origin_lock: false)
-  - out/Shop Islet.litematic     # below-island: its own locked origin -24251 130 29949
-  - out/Root Stair.litematic     # same origin as the islet
-  # the lowland scene (2026-08-21): the ruined ring-gate in the SE skylight and the axolotl on
-  # the pond's north bank. The ground and the other animals are placed by name, not tracked -
-  # but these two are NEW work the loop should know about. The heron is RETIRED (see
-  # configs/lowland_heron.yaml): one of heron/capybara had to go, and the flamingo already
-  # holds the wading-bird slot.
-  - out/Lowland Portal.litematic
-  - out/Lowland Axolotl.litematic   # AS BUILT: re-derived from the world after Jack placed it
-                                    # on the WEST bank rotated 180 - see configs/lowland_axolotl.yaml
-  - out/Lowland Ruinway.litematic   # the blackstone way and its fragments (2026-08-21)
-  - out/Lowland Sanctum.litematic   # the quarter's one complete building, in the north skylight
-  - out/Castle Bridge.litematic     # broken span, island SE rim -> bat tower parapet, Y150-153
-  # the lowland town (2026-08-22): architecture as the figure, animals as accents. The flamingo
-  # and capybara are RETIRED (see their configs) - both at 0% built, and retiring them freed
-  # the pads these stand on, and the harbor light is RETIRED too (never built, Jack's call).
-  # Build order: hamlet/campanile defer to the quarter.
-  - out/Lowland Hamlet.litematic        # three houses on the lantern 9-grid, SW of the ring
-  - out/Lowland Campanile.litematic     # the sanctum's bell tower, owl on the parapet
-  - out/Lowland Turtle.litematic        # basking on the harbor's north shore
-  # the descent (2026-08-22): the spiral continues STRAIGHT DOWN the taproot's axis through
-  # a well dug in the islet's floor (121 dig cells in the stair's sidecar - dig first, then
-  # root, then stair). The composite walk is pinned in test_lowland_stair.
-  - out/Lowland Root.litematic          # the keel's root, on axis, tapering out at Y95
-  - out/Lowland Stair.litematic         # the helix, lowland moss to islet shelf, on axis
-  # the glow (2026-08-22): the lighting pass, solved by propagation - 29 fixtures, zero
-  # spawnable surface cells, pinned in test_lowland_glow. Some fixtures stand on cells the
-  # stair/campanile/hamlet have not built yet - they wait for them, stated in its config.
-  - out/Lowland Glow.litematic
+
+# ACCEPTED 2026-08-23: every tracked design was accepted as complete AS IT STANDS in the
+# 15:54 scan - Jack's call, all at once. The world is the master copy; whatever a design
+# still listed as remaining work is no longer wanted. The full inventory and final standing
+# state of all 34 designs is recorded in CLAUDE.md ("All designs accepted as complete").
+# The litematics, sidecars and configs stay untouched as records of what was designed.
+#
+# Both lists below are therefore EMPTY, deliberately:
+#   regen: []     so the ground designs stop re-emitting remainders (and stop re-planting
+#                 the vines Jack is purging by hand)
+#   progress: []  so designs.json says "you track nothing" - the mod places/plans/follows
+#                 nothing, which is correct for a finished island. An empty list is not a
+#                 missing file: bare /cscan place still refuses the 61-design folder sweep.
+#
+# NEW projects get added to progress: (and regen: if they are remaining-work) as they are
+# created, and tracking resumes for them alone.
+regen: []
+progress: []
 learn: true
