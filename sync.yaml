@@ -67,4 +67,8 @@ progress:                           # designs reported (% built, left, shop list
   # root, then stair). The composite walk is pinned in test_lowland_stair.
   - out/Lowland Root.litematic          # the keel's root, on axis, tapering out at Y95
   - out/Lowland Stair.litematic         # the helix, lowland moss to islet shelf, on axis
+  # the glow (2026-08-22): the lighting pass, solved by propagation - 29 fixtures, zero
+  # spawnable surface cells, pinned in test_lowland_glow. Some fixtures stand on cells the
+  # stair/campanile/hamlet have not built yet - they wait for them, stated in its config.
+  - out/Lowland Glow.litematic
 learn: true
