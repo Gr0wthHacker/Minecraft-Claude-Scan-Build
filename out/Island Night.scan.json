@@ -17,9 +17,9 @@
     1
   ],
   "features_built": {
-    "froglights": 30,
+    "froglights": 31,
     "lichen": 26,
-    "souls": 26,
+    "souls": 27,
     "lanterns": 23,
     "hanging": 0,
     "pickles": 0
@@ -59,6 +59,11 @@
       -24214,
       190,
       30006
+    ],
+    [
+      -24206,
+      35,
+      30010
     ],
     [
       -24205,

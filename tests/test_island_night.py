@@ -28,6 +28,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FULL = os.path.join(ROOT, "out", "island_full.litematic")
 NIGHT = os.path.join(ROOT, "out", "Island Night.work.json")
 FALLS = os.path.join(ROOT, "out", "Falls.work.json")
+THICKET = os.path.join(ROOT, "out", "Lowland Thicket.work.json")
 FALLS_SIDE = os.path.join(ROOT, "out", "Falls.scan.json")
 
 needs_world = pytest.mark.skipif(
@@ -75,7 +76,11 @@ def world():
             for x, y, z in (json.load(open(side, encoding="utf-8")).get("dig") or []):
                 if Y_LO <= y <= Y_HI and 0 <= z - oz < NZ and 0 <= x - ox < NX:
                     name[y - Y_LO, z - oz, x - ox] = "air"
+    # the Thicket is planted BEFORE the light: pointed dripstone is the one plant that
+    # is not passable, so it can move the surface classifier down a course and open a spawn
+    # spot under itself. The night pass was re-solved against a world containing it.
     place(FALLS)
+    place(THICKET)
     place(NIGHT)
     return name, (ox, oy, oz)
 

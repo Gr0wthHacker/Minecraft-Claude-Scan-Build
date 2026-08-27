@@ -16,7 +16,7 @@
 #
 # THE RULE THAT SHAPED THE SOLVE: light reaches 14 blocks, so a sculpture can almost always be
 # lit from ORDINARY GROUND standing near it. Cost encodes that - ground is cheap, a coat is
-# dear - so the greedy cover lands on an animal only where nothing else can reach. 105 fixtures
+# dear - so the greedy cover lands on an animal only where nothing else can reach. 107 fixtures
 # take the whole island to ZERO spawnable surface cells, verified by re-propagation and pinned
 # in tests/test_island_night.py.
 #
@@ -39,6 +39,8 @@ name: Island Night
 gen: lowglow
 params:
   under: out/island_full.litematic
+  # solved against a world that already has the Falls cut and the Thicket planted:
+  # pointed dripstone is not passable, so a stalagmite can move the surface classifier
   froglights:
     - [-24247, 202, 30027]
     - [-24246, 202, 30013]
@@ -47,6 +49,7 @@ params:
     - [-24221, 97, 29978]
     - [-24219, 38, 30023]
     - [-24214, 190, 30006]
+    - [-24206, 35, 30010]
     - [-24205, 98, 30005]
     - [-24203, 202, 29994]
     - [-24202, 41, 30034]
@@ -77,8 +80,8 @@ params:
     - [-24211, 92, 29991]
     - [-24208, 92, 29987]
     - [-24207, 89, 29991]
-    - [-24206, 24, 30010]
     - [-24205, 94, 29992]
+    - [-24204, 24, 30005]
     - [-24204, 93, 29987]
     - [-24203, 30, 29988]
     - [-24203, 93, 29990]
@@ -91,6 +94,7 @@ params:
     - [-24186, 39, 30034]
     - [-24186, 50, 29961]
     - [-24180, 40, 30032]
+    - [-24178, 34, 30013]
     - [-24173, 37, 30024]
     - [-24172, 66, 30031]
     - [-24171, 68, 30028]

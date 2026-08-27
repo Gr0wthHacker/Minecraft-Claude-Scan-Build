@@ -259,9 +259,5 @@
       1878
     ]
   ],
-  "chunks_missing_in_bounds": [],
-  "planned_from": [
-    "island_full.litematic",
-    "Falls.litematic"
-  ]
+  "chunks_missing_in_bounds": []
 }
