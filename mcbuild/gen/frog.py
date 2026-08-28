@@ -150,6 +150,24 @@ def build_frog(cfg: dict, donors=None) -> Canvas:
                         continue
                     put(u, v, y, name, part)
 
+    def mass(u0, u1, v0, v1, y0, y1, name, part, front=0, rear=1, out=1, per=2):
+        """A box that STEPS IN as it rises - the voxel way to round a mass.
+
+        A plain box with a chamfered corner is still a crate, and the 3-D pass caught exactly
+        that: in profile the haunch was a flat-sided rectangle with a hard vertical rear face,
+        and the value panel showed it as one untouched mid-grey - the jaguar's own failure, in
+        a build that passes head-on. `front`/`rear`/`out` are how many cells the course steps
+        in per `per` courses at the nose end, the tail end and the outboard side.
+        """
+        sgn = 1 if v1 >= v0 else -1
+        for y in range(y0, y1 + 1):
+            k = (y - y0 + per - 1) // per
+            a0, a1 = u0 + front * k, u1 - rear * k
+            b0, b1 = v0, v1 - sgn * out * k
+            if a0 > a1 or (sgn > 0 and b1 < b0) or (sgn < 0 and b1 > b0):
+                break
+            box(a0, a1, b0, b1, y, y, name, part)
+
     # ---------- the layout, every number of it derived from L, W and H ----------
     hu = _f(0.42, L) - 1                       # last station of the head
     # THE PLAN NEEDS A WAIST. At head 11, body 9 and haunches 13 the envelope was a constant
@@ -160,9 +178,13 @@ def build_frog(cfg: dict, donors=None) -> Canvas:
     bw = _f(0.24, W)                           # body half-width
     qw = _f(0.50, W)                           # haunch outer offset - the animal's widest
     chin = _f(0.25, H)                         # the head's underside: air below it
-    body_top = _f(0.62, H)
-    haunch_top = _f(0.80, H)
-    hip_u, rump_u = _f(0.58, L), L - 2
+    # THE HAUNCH IS AS TALL AS THE HEAD, and the body between them is a WAIST. Built at 0.80
+    # of the skull height the rear was lower than the front all the way back, so the profile
+    # was a head on a loaf; a sitting frog is two masses of about one height with a dip
+    # between them, and that dip is the whole line.
+    body_top = _f(0.55, H)
+    haunch_top = H
+    hip_u, rump_u = _f(0.48, L), L - 2
 
     # 1. THE HEAD - a flat-topped box, nearly half the animal, held clear of the ground. Its
     #    front face is FLAT and square on the grid: that face is what a frog is known by.
@@ -175,20 +197,21 @@ def build_frog(cfg: dict, donors=None) -> Canvas:
     # it costs nothing: the animal cannot grow forward, the nose is 3 blocks off a church wall
     box(0, 0, -hw, hw, H, H, p["back"], "head")
 
-    # 2. THE BODY - lower and narrower, behind the head, sitting on the ground
-    box(hu + 1, L - 1, -bw, bw, 0, body_top, p["back"], "body", chamfer=("uv", "vy"))
-    for u in range(L - 3, L):                  # ...and the rump falls away behind
-        for v in range(-bw, bw + 1):
-            for y in range(body_top - (u - (L - 3)) + 1, body_top + 1):
-                x, z = fr.xz(u, v)
-                w.cells.pop((x, y + BY, z), None)
-                cells.discard((u, v, y))
+    # 2. THE BODY - lower and narrower than the head, sitting on the ground, and STEPPED: it
+    #    rounds toward the back and falls away at the rump instead of ending in a wall
+    for sgn in (1, -1):
+        mass(hu + 1, L - 1, 0, sgn * bw, 0, body_top, p["back"], "body",
+             front=0, rear=1, out=1, per=3)
 
     # 3. THE HAUNCHES - big blocky folded legs, standing PROUD of the body's back line so the
     #    profile gets its second hump, and past its sides so the plan gets its outline
     for s in (1, -1):
-        box(hip_u, rump_u, s * bw, s * qw, 0, haunch_top, p["back"], "haunch",
-            chamfer=("uv", "vy"))
+        # PER=3, NOT 2. An animal this size is 7 or 8 courses tall, so a step every second
+        # course insets four times before the top and the mass tapers to nothing: the haunch
+        # came out as a flat shelf at half height with one lone column standing on it. One
+        # step every third course rounds it and still arrives.
+        mass(hip_u, rump_u, s * bw, s * qw, 0, haunch_top, p["back"], "haunch",
+             front=0, rear=1, out=1, per=3)
         # the shin, folded forward along the flank at the animal's own widest
         # NO CHAMFER, AND IT MUST REACH THE HAUNCH. Chamfered, a part only two cells wide
         # loses both of its end stations entirely - the shin came out as a 2x3 slab floating
@@ -239,7 +262,12 @@ def build_frog(cfg: dict, donors=None) -> Canvas:
         # ...and the pupil is a raised CENTRE, not a plus. A five-cell cross on top of the
         # ring covers the ring's whole middle row and column, and in plan - the view this
         # medium gives away free - the eye came out as a black crosshair on a gold square
-        put(eu, s * (hw + 1), H + 2, p["pupil"], "eyes")   # ONE cell: two of them make a bar
+        # ...and the eye is a DOME, not a pad. Two courses read as a gold plate on the corner
+        # of the skull from every bearing but head-on; three give it a top, which is what the
+        # mob has and what the 3-D orbit sheet said was missing at 45, 135 and 225.
+        for du, dv in ((0, 0), (0, 1), (0, 2), (-1, 1), (1, 1)):
+            put(eu + du, s * (hw + dv), H + 2, p["iris"], "eyes")
+        put(eu, s * (hw + 1), H + 3, p["pupil"], "eyes")   # ONE cell: two of them make a bar
                                                            # across the ring, not a pupil in it
 
     # 7. THE FACE - a wide mouth line right across the front, a pale throat under it, and
@@ -258,8 +286,10 @@ def build_frog(cfg: dict, donors=None) -> Canvas:
     for u in range(0, hu):                                       # the pale chin, underneath
         for v in range(-hw + 1, hw):
             feats["throat"] += paint(u, v, chin, p["belly"], over=(p["back"],))
+    # ...and in the MID tone, not black. Two black cells on the brow between two black pupils
+    # read as a second pair of eyes from head-on, which is the only view that shows them.
     for s in (1, -1):                          # ON THE BROW, at the snout's own tip. Set back
-        feats["nostril"] += paint(0, s, H, p["pupil"], over=(p["back"],))   # on the skull they
+        feats["nostril"] += paint(0, s, H, p["mark"], over=(p["back"],))   # on the skull they
                                                                             # are hidden behind
                                                                             # the overhang
 

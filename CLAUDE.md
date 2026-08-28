@@ -494,7 +494,8 @@ rump on four posts at the corners. A renderer that flattered the jaguar would be
 profile - a low mass with a raised head"*. In 3D the profile is worse and the cause is localised: the
 haunch is a **flat-sided box** with a hard vertical rear face, and the value panel shows it as one
 untouched mid-grey rectangle. That is the jaguar's own failure - a flat wall painted two colours - in
-a build that passes head-on.
+a build that passes head-on. **FIXED the same day** - see the frog's own section: the cure
+was a course-by-course step, not a chamfer.
 
 **The trap inside it, which shipped a clean-looking render.** A ray whose FIRST voxel is solid never
 takes a step, so it reported whatever axis the march was initialised with, and every surface touching
@@ -4557,7 +4558,7 @@ or overrun the sides.
 
 ## The churchyard frog (2026-08-28) - and BOXES, not a lofted mass
 
-`configs/lowland_frog.yaml`, `mcbuild/gen/frog.py` - **832 blocks, one piece, 0 problems, 0
+`configs/lowland_frog.yaml`, `mcbuild/gen/frog.py` - **883 blocks, one piece, 0 problems, 0
 overlap in context, all cheap.** Jack: *"build a frog, put it opposite end from axo, on the far
 empty lot left of the church"*.
 
@@ -4703,6 +4704,44 @@ box build and the frog mob / the frog house / the outside voxel frog, all of the
 **832 blocks, one piece, 0 problems, 0 overlap, all cheap.** The stray-component check earned
 its keep twice more in this pass: the inner toe at `hw - 3` had no neighbour, so both hands
 shipped as three-cell strays.
+
+### Rebuilt again, with `tools/look.py` (2026-08-28)
+
+The whole animal up to this point had been judged from orthographic elevations and a plan, and
+the 3-D pass proved that was not enough. Its own note said so before I looked: *"the haunch is a
+flat-sided box with a hard vertical rear face, and the value panel shows it as one untouched
+mid-grey rectangle - the jaguar's own failure, in a build that passes head-on."* It was right,
+and the orbit sheet found more of the same at 45, 135 and 225 - the bearings an orthographic
+tool cannot render at all.
+
+**A CHAMFERED BOX IS STILL A CRATE.** Fixing the loft by going to boxes fixed the head and left
+the body as three unarticulated slabs; what rounds a mass at voxel scale is a course-by-course
+STEP, which is what the reference builds do and what a single dropped corner cell does not. The
+generator has a `mass()` now - a stack of boxes, each course inset at the nose end, the tail end
+or the outboard side - and it is what turns the haunch into a folded thigh and the rump into a
+fall rather than a wall.
+
+**AND THE STEP RATE IS A REAL PARAMETER.** At one inset every second course the taper reaches
+nothing before the top on an animal only eight courses tall: the haunch shipped as a flat shelf
+at half height with a single lone column standing on it, which every check passed. Every third
+course rounds it and still arrives.
+
+Four more things the 3-D views decided, none of which any flat render could have:
+
+- **THE HAUNCH IS AS TALL AS THE HEAD.** Built at 0.80 of the skull height the rear was lower
+  than the front all the way back, so the profile was a head on a loaf. A sitting frog is two
+  masses of about one height with a dip between them, and that dip is the whole line.
+- **THE EYE IS A DOME, NOT A PAD.** Two courses read as a gold plate on the corner of the skull
+  from every bearing except head-on - which is exactly the view the flat sheets had been showing
+  me. Three courses give it a top.
+- **THE NOSTRILS WENT FROM BLACK TO THE MID TONE.** Two black cells on the brow between two black
+  pupils read as a second pair of eyes head-on, and head-on is the only view that shows them.
+- **The animal is 15 blocks and it does not hold up at 6x.** That is a fact about its size, not
+  its shape, and the lot is what it is: a 22-block frog does not fit the flat ground east of the
+  church at roll <= 1.
+
+**883 blocks, one piece, 0 problems, 0 overlap, all cheap.** The working loop is now generate →
+`look.py --sheet orbit` → change one thing → look again, and it costs about a second a pass.
 
 ### The panel verdict, recorded (2026-08-28)
 

@@ -39,7 +39,7 @@ params:
                              # still planting moves the seat a course - the ring paid for this
   length: 15
   width: 13
-  height: 7
+  height: 8
   lamps: []                  # THE LIGHT LIVES IN THE NIGHT PASS, not here. A new animal is new
                              # walkable surface and something must light it, but a fixture sunk
                              # in the turf is not part of the animal - carried here it would
