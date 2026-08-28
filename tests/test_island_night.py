@@ -29,6 +29,7 @@ FULL = os.path.join(ROOT, "out", "island_full.litematic")
 NIGHT = os.path.join(ROOT, "out", "Island Night.work.json")
 FALLS = os.path.join(ROOT, "out", "Falls.work.json")
 THICKET = os.path.join(ROOT, "out", "Lowland Thicket.work.json")
+ENRICH = os.path.join(ROOT, "out", "Island Enrichment.work.json")
 FALLS_SIDE = os.path.join(ROOT, "out", "Falls.scan.json")
 
 needs_world = pytest.mark.skipif(
@@ -81,6 +82,7 @@ def world():
     # spot under itself. The night pass was re-solved against a world containing it.
     place(FALLS)
     place(THICKET)
+    place(ENRICH)   # stairs are not passable either
     place(NIGHT)
     return name, (ox, oy, oz)
 

@@ -39,7 +39,8 @@ name: Island Night
 gen: lowglow
 params:
   under: out/island_full.litematic
-  # solved against a world that already has the Falls cut and the Thicket planted:
+  # solved against a world that already has the Falls cut, the Thicket planted and the
+  # Enrichment hung - stairs and dripstone are not passable, so both move the classifier:
   # pointed dripstone is not passable, so a stalagmite can move the surface classifier
   froglights:
     - [-24247, 202, 30027]
@@ -85,16 +86,16 @@ params:
     - [-24204, 93, 29987]
     - [-24203, 30, 29988]
     - [-24203, 93, 29990]
+    - [-24194, 32, 29979]
     - [-24194, 61, 29976]
-    - [-24190, 34, 29973]
-    - [-24189, 32, 29982]
     - [-24189, 52, 29982]
-    - [-24187, 33, 29972]
     - [-24186, 29, 29989]
     - [-24186, 39, 30034]
     - [-24186, 50, 29961]
-    - [-24180, 40, 30032]
+    - [-24183, 33, 29973]
+    - [-24183, 40, 30034]
     - [-24178, 34, 30013]
+    - [-24177, 42, 30036]
     - [-24173, 37, 30024]
     - [-24172, 66, 30031]
     - [-24171, 68, 30028]
@@ -163,3 +164,13 @@ finish:
   ground: false
   drop_floaters: false
   verify_against: [out/island_full.litematic]
+  # BUILD THIS LAST, and it is a hard dependency rather than a preference. The night pass is a
+  # FIXPOINT solved against the finished world: a fixture standing in a surface cell makes that
+  # cell impassable, so the topmost standable block moves down and a spot that was hidden becomes
+  # a real spawn. Pointed dripstone is the one plant here that is not passable, so the Thicket
+  # moves the surface under this solution, and the Falls opens water that was rock.
+  #
+  # This is written down here because until now it was written down only in prose. `/cscan follow
+  # all` walked the tracked list as it came and could have solved the night against a world two
+  # designs short of finished; `Designs.inBuildOrder` reads this list and orders the run.
+  after: [Falls, Lowland Thicket]

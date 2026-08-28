@@ -10,6 +10,10 @@
     "z": 96
   },
   "generated_by": "lowglow",
+  "after": [
+    "Falls",
+    "Lowland Thicket"
+  ],
   "kind": "lowglow",
   "profile_view": "top",
   "facing": [

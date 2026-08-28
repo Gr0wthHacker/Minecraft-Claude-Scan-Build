@@ -1068,11 +1068,10 @@ confetti.
 
 #### Still open
 
-- **Bare `/cscan place` now places 61 designs.** The mod cannot see `sync.yaml`, so it has no idea
-  which ~14 are actually tracked. The `_fill ` prefix keeps scratch fills out; the rest of the pile
-  is untouched.
-- **The scans archive is unbounded** — 24 files, 1.6 MB today, and `/cscan auto` adds one per tick
-  forever.
+- ~~**Bare `/cscan place` now places 61 designs.**~~ FIXED — `designs.json` gave it the tracked
+  list, and the 2026-08-27 audit stopped `Designs.list` offering world CAPTURES as designs.
+- ~~**The scans archive is unbounded**~~ — 24 files and 1.6 MB when this was written, 56 and 4.4 MB
+  when it was measured again. Capped at twelve per scan name; see the audit below.
 - **Untested outside the game:** whether consuming `UseBlockCallback` really suppresses the eat
   animation on a live server. The packet should never leave the client, but that is reasoning, not
   evidence.
@@ -2344,8 +2343,8 @@ and is the test.
 ## Build & test
 
 ```bash
-python -m pytest -q                                   # 408 tests, keep green
-cd chunkscan && ./gradlew build test -q                # writes build/libs/chunkscan-<ver>.jar
+python -m pytest -q                                   # 456 tests, keep green
+cd chunkscan && ./gradlew build test -q                # 384 tests; writes build/libs/chunkscan-<ver>.jar
 python chunkscan/verify_synthetic.py                   # Java writer vs Python reader, block for block
 ```
 Jack uploads the jar through the launcher himself — **do not copy it into `custom_mods/`**, that
@@ -4231,6 +4230,209 @@ the props that make a place feel inhabited, and all of it was accepted as comple
 That is **~318 blocks that turn built into inhabited**, and none of it is new design work -
 only a decision to re-track designs that were accepted as finished.
 
+## The chunkscan audit (2026-08-27) — a scan had eaten a design
+
+A full read of the mod: 33 client classes, 15,537 lines, 364 Java tests green before it started.
+The build was healthy and the shipped SCHEMATICS FOLDER was not.
+
+### A SCAN AND A DESIGN SHARE ONE NAMESPACE, AND THE SCAN WINS
+
+`/cscan Falls` had been run. `ScanRunner` resolves `<name>.litematic` and writes unconditionally, so
+it overwrote the design of the same name:
+
+| | the design (`out/`) | what was in the schematics folder |
+|---|---|---|
+| litematic | 44×114×53, **30 blocks**, 4 palette | 103×335×103, **111,631 blocks**, 594 palette |
+| sidecar | `kind: falls`, **41 dig cells** | a capture sidecar, **0 dig** |
+
+`Falls.work.json` survived, so the mod's own state was internally inconsistent: `/cscan follow`
+still saw 30 cells of real work while `/cscan dig Falls` reported nothing to clear. The 41 lost
+cells include the notch that has to be cut LAST — pull it early and you flood the trench you are
+standing in. And `Falls` was in `designs.json`, so **bare `/cscan place` would have pasted a
+111,631-block island capture onto the island.**
+
+**Nine more captures were sitting in the same folder** under the names `clear`, `off`, `on`, `wand`,
+`islan`, `_fill here` and `AtelierCourt`. Every one is a mistyped or not-yet-existing subcommand:
+the bare `/cscan <name>` scan form is the last alternative in the command tree, so anything
+Brigadier does not recognise falls through to it and writes a multi-hundred-kilobyte world capture
+under that word. `Designs.list` then offered all of them as designs — its docstring said it "skips
+the raw scans" and it never did.
+
+**Restored and quarantined.** `Falls` is back from `out/` (the clobbering capture survives as
+`scans/falls_20260827-1813.*`, so nothing was lost either way); the nine junk captures moved to
+`schematics/_junk/` rather than deleted, because they are Jack's files.
+
+**Three guards, and the last of them is the one that matters:**
+
+- `Designs.isDesign` / `designExists` tell a design from a capture. **The CAPTURE markers are what
+  is tested, not a positive design marker** — that distinction is not pedantry. Testing for `kind` /
+  `generated_by` / `dig` looked equivalent and hid `Lowland Axolotl`, whose sidecar is a
+  hand-written as-built record carrying only `file`, `name`, `note`, `origin`. Absence of evidence
+  that a file is a capture is good evidence it is a design; the reverse does not hold. The scan
+  guard is more cautious still: an unparseable sidecar blocks a scan, because the cost of being
+  wrong there is a design and its dig list and the cost the other way is picking another name.
+- `ScanRunner` refuses to write over a design and says so. Re-scanning `island` over yesterday's
+  `island` is the daily loop and still works, because a capture is recognisable.
+- `ChunkScanClient.RESERVED` holds every command word — plus words that are NOT commands yet
+  (`scan`, `undo`, `progress`, `help`, `list`, `status`), because the failure mode is reaching for a
+  command that does not exist, which is exactly how `islan` and `clear` got there. `/cscan scan
+  <name>` is the explicit spelling for a scan name that collides on purpose.
+
+`SidecarSafetyTest` pins all of it, including that **every registered literal is reserved**, read
+from the command tree's own source so the list cannot drift behind a newly added verb.
+
+### THE DIG LIST WAS NOT WORK
+
+`Work.Split.complete()` was `todo.isEmpty() && unseen == 0` — placements only. A litematic cannot
+express removal, so "break this" lives in the sidecar, and nothing in the loop read it. `/cscan dig`
+could SHOW the list; showing is not the same as knowing.
+
+Measured on the tracked designs: **`Falls` is 58% dig** (30 to place, 41 to break) and **`Island
+Night` is 22%**. The loop would have placed thirty blocks, reported the design complete, and left
+the channel it exists to cut standing in solid rock.
+
+**Two questions, not one, and separating them is load-bearing.** A client mod cannot break a block —
+the printer places, and digging is Jack with a pickaxe. Had the loop's advance condition demanded an
+empty dig list it would have sat on `Falls` for ever waiting for something it can never do, and
+`follow all` would never have reached the next design: the "a thing that does nothing, quietly"
+failure this file keeps writing rules about. So `complete()` is the truth and `placementComplete()`
+is what the loop advances on, and every completion message now names what it is handing back.
+
+### Smaller defects, each one a rule this repo already wrote
+
+- **`Ignored` survived a disconnect** — and its own docstring said "a relog is the accidental
+  [clear]". That sentence was there before it was true. `Wand` states the rule these keys live
+  under, *coordinates mean nothing without a world*, and a strike list is nothing but coordinates.
+  Now cleared on DISCONNECT, along with the withdrawal's position-keyed cooling-off, the HUD's
+  arrow and the autopilot's approach. The loop's INTENT still resumes from `session.json`; the
+  positions do not.
+- **`Highlight.tick` had no try/catch**, and the pre-upload audit had already written down that *a
+  throw out of a tick event is a client CRASH*. It guarded the movement and looting ticks and missed
+  the busiest one — every highlight layer redraws there every tick over block lists a caller
+  supplied. Guarded, and it clears the batches rather than throwing again next tick. `Menu` too.
+- **Fourteen of sixteen path-resolving commands never validated the name.** `fill` and `copy` were
+  checked when the wand was audited because they WRITE; the read paths were not, so
+  `/cscan paste ../../../x` would load a schematic from anywhere on disk. The gate is now at the two
+  functions that turn a name into a path — `Work.file` and `Designs.load` — not at the sixteen
+  callers, so the next command to want a design name cannot forget it.
+- **The archive was unbounded**: 24 files and 1.6 MB when first noted, 56 and 4.4 MB when measured
+  again, and `/cscan auto` adds one per tick for ever. Capped at twelve per NAME — per name, so a
+  chatty auto-scan cannot evict the one hand-made capture a design was verified against — and sorted
+  by filename, because the name carries the timestamp and mtime moves when a folder is copied.
+- **The command sheet omitted five real verbs** (`chunks`, `sel`, `unmark`, `label`, `auto`) and
+  `MenuTest` named them in its `modifiers` exemption list, so the check written to catch a stale
+  sheet was configured not to see them. Rows added; the exemption list now holds only words you
+  would never type first, and the assertion is `isEmpty()` rather than `size() <= 2`.
+
+### What was added, because the audit kept finding built things with no door
+
+- **`/cscan undo <name>`** and **`/cscan undos`**. Every fill has always written `_undo <name>`,
+  `UndoAndStorageTest` has always asserted both of its halves, and `Designs.list` deliberately hides
+  them so a bare `place` cannot sweep one up — and nothing ever offered one. Both halves or it
+  half-works: re-placing restores what the fill covered, and the cells the fill made from AIR are
+  highlighted to break, because a litematic cannot express removal.
+- **`/cscan progress`** — every tracked design, how far along, what is left to place AND to break,
+  in build order. `python -m mcbuild progress` has always answered this and only offline.
+- **Build order reaches the game.** `finish.defer_to` settled precedence at generation time and
+  CLAUDE.md stated the sequences in prose; the sidecar carried neither, so `follow all` walked the
+  tracked list as written. `pipeline._after` derives an `after` list from `defer_to` — deferring IS
+  the ordering, since a design that yields a shared cell cannot be built first — and
+  `Designs.inBuildOrder` topologically sorts the run. A design with no `after` keeps its place, so a
+  folder written before this exists is ordered exactly as it was, and a cycle still builds something
+  rather than refusing everything.
+  **`Island Night` now records `after: [Falls, Lowland Thicket]`**, which was the one hard ordering
+  on the island written down only in prose: the night pass is a fixpoint solved against the finished
+  world, and the Thicket's dripstone is the one plant that is not passable, so it moves the surface
+  classifier under the solution.
+
+**Still open, deliberately:** `Lowland Thicket` has no `after` recorded — its config belongs to
+another session that was editing it, and the ordering it needs (`after: [Falls]`) is a one-line
+addition for whoever owns it next. And the two legitimate captures, `island` and `islandlow`, still
+live beside the designs; they are now correctly excluded from `Designs.list`, but a `scans/` home
+for them would be tidier than a rule that knows to skip them.
+
+384 Java tests, 0 failures.
+
+## Island Enrichment: the detail our buildings never had (2026-08-23)
+
+Jack, comparing our scenes to other people's: *"i dont think our area is nearly as detailed or
+up to snuff"*. He is right, and `tools/corpus.py` says by how much. Against 31 outside builds:
+
+| architecture | palette (median) | detail % (median) |
+|---|---|---|
+| theirs | 37 | 17.3 |
+| ours | 14 | 11.4 |
+
+and per building it was far worse than the median. The **Campanile was 575 cells of 12 block
+types at 1.4% detail** - a bell tower of three blackstone variants stacked - against their
+comparable watchtower at 45 types and 48.9%. The Sanctum, "the quarter's one complete
+building", was nine block types. Court Hall was 0.0%.
+
+**THE MISSING VOCABULARY IS SPECIFIC.** Per thousand cells, ours against theirs:
+
+    stairs    0.64 vs 4.51     seven times under
+    fences    0.07 vs 2.22     thirty times under
+    trapdoors 0.00 vs 1.07     we have never placed one
+    panes     0.08 vs 0.49
+
+while we OVER-use the chunky families: walls 1.8x, carpet 9.9x, lanterns 3.0x. That is the whole
+diagnosis - **we build in full blocks, slabs and walls and skip the three families that make a
+surface read as built.** An open trapdoor is the vertical slab Minecraft never shipped; an
+upside-down stair is an eave; a fence is a railing.
+
+**And the economy is not the constraint.** 350 detail blocks are 1.19-legal and spendable, 38 of
+them stone-family ones already in the quarter's own palette. This was self-imposed.
+
+`configs/island_enrichment.yaml`, `gen/enrich.py` - **416 blocks, 0 problems, OVERLAP 0.**
+
+**ADDITIVE ONLY.** Every zone is 89-97% built, so the pass writes into AIR and never over
+anything standing - the deck floor's rule that a remedial design is judged by what it REPLACES.
+The cost is that it cannot deepen the palette of an existing wall, only of the detail hung on
+it, which is why palette moves 12 -> 14 while detail moves 1.4% -> 15.9%.
+
+| design | detail% before | after |
+|---|---|---|
+| Lowland Campanile | 1.4 | **15.9** |
+| Court Hall | 0.0 | **15.4** |
+| Lowland Sanctum | 9.7 | **18.4** |
+| Deck Vault | 11.5 | **20.9** |
+| Lowland Ruinway | 48.0 | 61.9 |
+
+**RUNS, NOT CELLS** is the rule that decides whether it reads, and it is the deck soffit's
+lesson in a new place: that pass drew a coffer grid per cell and produced 215 runs of which 184
+were one or two cells - confetti, in the loudest block available. A cornice on scattered cells
+is the same mistake. So a course shorter than `min_run` gets nothing.
+
+Three things this cost, each of which shipped a clean-looking build first:
+
+- **The gate has to run on what is PLACED, not on the candidates.** Filtering after grouping
+  let a five-cell run with two blocked cells ship three scattered stairs: the run passed the
+  threshold and the placement did not. That is the soffit's bug wearing a different hat.
+- **One record per cell.** An inside corner has masonry on two sides, so it enters as two
+  candidates with two normals; left in, it counted toward a run on BOTH axes while only ever
+  being placed once, and three stairs shipped in runs of one because the other axis' span had
+  been emptied by the first.
+- **A SILL IS NOT A COURSE, so the run gate must not touch it.** The gate exists to stop a
+  course appearing on scattered cells; a sill is anchored to one opening, and an opening here
+  is one to three cells wide, so gating it by length deleted all 46 of them. And the first
+  opening test looked for masonry above and below a FACE cell, which asks whether the air
+  OUTSIDE a wall is boxed in - it never is, so it emitted nothing at all.
+
+**A stair leans INTO the wall it grows from** - its tall side is its `facing`, per the
+convention pinned in `test_stairhead`, and our renderer draws both directions identically, so
+`test_enrich` asserts it rather than trusting the eye.
+
+**Honest limitation: the payoff is geometric relief, and that does not show in our renders.**
+Blackstone on blackstone is within 12 RGB of itself, so an orthographic view of the enriched
+Campanile looks almost like the plain one. Projecting stairs cast shadows in game and read
+strongly there; offline this is the circularity CLAUDE.md already admits. Look at it in world
+before extending the pass.
+
+**Still open, and deliberately not built:** fences (30x under) and trapdoors (never used) are
+the two biggest remaining gaps in the vocabulary. A trapdoor shutter is the strongest single
+move in the corpus. Both want their own look at the geometry rather than being bolted onto
+this pass - `rail: false` is in the config for that reason.
+
 ## The daily loop
 
 ```bash
@@ -4315,7 +4517,8 @@ call them, so a change to how something is measured cannot drift between tools.
 `SidecarWriter` · `ScanRunner` (glue + archive) · `Litematica` (reflection bridge, soft dependency) ·
 `Markers` · `Storage` + `ContainerWatcher` (container index) · `Highlight` (particles) · `AutoScan` ·
 `Wand` + `Fill` + `Rules` (the steak wand — see below) ·
-`Designs` · `Work` (reads `.work.json`, diffs against the live world).
+`Designs` (sidecars, design-vs-CAPTURE, build order) · `Work` (reads `.work.json`, diffs against
+the live world, and counts the dig list as work) · `Ignored` · `Session`.
 
 ## Rules that were learned the hard way
 

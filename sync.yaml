@@ -33,11 +33,12 @@ regen: []
 # Build ORDER matters: the Falls' notch is the plug (dig it last), and the night pass was
 # solved against a world with the Falls already cut.
 # Build ORDER is the list order and it matters twice over: the Falls' notch is the plug (dig
-# it last within that design), and the Thicket must be planted BEFORE the night pass because
-# pointed dripstone is not passable and moves the surface classifier - the night solve was run
-# against a world that already contains both.
+# it last within that design), and the Thicket and the Enrichment both go in BEFORE the night
+# pass - pointed dripstone and stairs are not passable, so both move the surface classifier.
+# The night solve was run against a world that already contains all three.
 progress:
   - out/Falls.litematic           # 30 blocks + 41 dig: the channel that lets the isle spill
-  - out/Lowland Thicket.litematic # 1454 plants: the lush cave the lowland never had
+  - out/Lowland Thicket.litematic # 1424 plants: the lush cave the lowland never had
+  - out/Island Enrichment.litematic # 416 stairs and sills: the detail our buildings lacked
   - out/Island Night.litematic    # 107 fixtures + 31 dig: zero spawnable surface cells
 learn: true
