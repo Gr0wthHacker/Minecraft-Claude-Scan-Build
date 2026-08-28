@@ -89,11 +89,12 @@ def test_the_whole_animal_is_one_piece(built):
     assert len(seen) == len(cells), f"{len(cells) - len(seen)} cells are not attached"
 
 
-def test_it_has_arms(built):
-    """`forelegs: 0` shipped once and nothing else in the pipeline noticed."""
+def test_every_part_got_built(built):
+    """`forelegs: 0` shipped TWICE - a frog with no arms is still one connected piece with no
+    placement problem and a clean BOM, so nothing else in the pipeline noticed either time."""
     c, _ = built
     feats = c.meta["features_built"]
-    for part in ("head", "body", "haunch", "shin", "forelegs", "toes", "eyes", "mouth"):
+    for part in ("body", "haunch", "forelegs", "toes", "eyes", "mouth", "throat"):
         assert feats[part] > 0, f"{part} was not built at all: {feats}"
 
 
@@ -110,30 +111,32 @@ def test_the_gaze_is_cardinal_and_the_face_is_flat(built):
     assert len(nose) >= 3, f"the snout is {len(nose)} cell(s) - too narrow to be a face"
 
 
-def test_two_eyes_with_a_clear_gap(built):
-    """A pair of bulges with one cell between them reads as a single brow. The ladybird's
-    spot-spacing rule, which is also what sets this animal's width.
-
-    Keyed on the PUPIL block and on height, not on the iris: the gold went away when the
-    references were re-read - the mob's ring is one pixel of a sixteen-pixel face, so at this
-    size it is sub-block - and a test that names a material breaks the moment a palette
-    decision is revisited, which is the wrong thing to pin.
-    """
+def test_two_bright_eyes_in_dark_frames(built):
+    """The statue's loudest feature. A pale square on an orange head is a patch; the dark ring
+    is what turns it into an eye, and it is what every earlier version of this face was missing.
+    Two of them, separated, each fully surrounded on its own plane by the frame block."""
     c, cells = built
-    pupil = {**GENERATORS["frog"].DEFAULTS, **CFG["params"]}["pupil"]
-    top = max(y for (_, y, _) in cells)
-    beads = sorted(k for k, v in cells.items() if v == pupil and k[1] >= top - 1)
-    assert beads, "no eye blocks above the skull line"
-    zs = sorted({k[2] for k in beads})
+    p = {**GENERATORS["frog"].DEFAULTS, **CFG["params"]}
+    # THE EYES' OWN PLANE, found from the blocks rather than from the bounding box: the toes
+    # reach further forward than the face does, and the same block lights the crown - a lamp in
+    # the back is not an eye and is not framed.
+    lamps = [k for k, v in cells.items() if v == p["lamp"]]
+    assert lamps, "no bright blocks at all"
+    fx, _fz = c.meta["facing"]
+    plane = min(k[0] for k in lamps) if fx < 0 else max(k[0] for k in lamps)
+    bright = sorted(k for k in lamps if abs(k[0] - plane) <= 1)
+    assert bright, "no bright eye blocks"
+    zs = sorted({k[2] for k in bright})
     runs = [[zs[0]]]
     for z in zs[1:]:
-        if z == runs[-1][-1] + 1:
-            runs[-1].append(z)
-        else:
-            runs.append([z])
-    assert len(runs) == 2, f"expected two separated eyes across the body, got {len(runs)}: {zs}"
-    gap = min(runs[1]) - max(runs[0]) - 1
-    assert gap >= 2, f"only {gap} clear cell(s) between the eyes - they will read as one brow"
+        (runs[-1].append(z) if z == runs[-1][-1] + 1 else runs.append([z]))
+    assert len(runs) == 2, f"expected two separated eyes, got {len(runs)}: {zs}"
+    assert min(runs[1]) - max(runs[0]) - 1 >= 2, "the eyes will read as one bar"
+    x0 = min(k[0] for k in bright)
+    loose = [k for k in bright if k[0] == x0 and not all(
+        cells.get((k[0], k[1] + dy, k[2] + dz)) in (p["mark"], p["lamp"])
+        for dy, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)))]
+    assert not loose, f"{len(loose)} bright cells are not framed, e.g. {loose[:3]}"
 
 
 def test_the_eye_rests_on_the_skull(built):
@@ -154,20 +157,44 @@ def test_the_eye_rests_on_the_skull(built):
         f"{len(loose)} of {len(base)} eye-base cells hang over nothing, e.g. {loose[:3]}")
 
 
-def test_the_eyes_and_the_knee_break_the_outline(built):
-    """The panel's verdict on the first profile, made into a test. If the two features that
-    name the animal sit under the back line, the silhouette is a hill and nothing else helps."""
-    _, cells = built
-    top = {}
-    for (x, y, z) in cells:
-        top[x] = max(top.get(x, -999), y)
-    xs = sorted(top)
-    # the eye is in the front third, the knee behind the middle; between them the neck dips
-    third = len(xs) // 3
-    front, back = xs[:third], xs[third:]
-    dip = min(top[x] for x in xs[third - 2:third + 2])
-    assert max(top[x] for x in front) > dip, "the eyes do not rise above the neck"
-    assert max(top[x] for x in back) > dip, "the back does not rise above the neck"
+def test_it_is_an_upright_statue(built):
+    """THE REFERENCE CHANGED, and this test changed with it - deliberately, and it is worth
+    saying why rather than quietly editing a number. The mob is a flat crouching creature,
+    about 1.0 long : 0.75 wide : 0.5 tall, and this test used to pin that. Jack then gave a
+    third reference, Graysun's Frog Statue, and asked for THAT: an upright sitting statue,
+    about as tall as it is wide, whose whole front is a face. Those are two different animals
+    and no build satisfies both.
+
+    A test that pins a proportion is pinning a DECISION about which reference is being copied.
+    Change the reference and you must change the test in the same commit, or the suite is
+    quietly enforcing the thing that was rejected."""
+    c, cells = built
+    zs = [k[2] for k in cells]
+    W = max(zs) - min(zs) + 1
+    H = max(k[1] for k in cells) - c.meta["base_y"] + 1
+    assert 0.85 <= H / W <= 1.6, f"height/width is {H / W:.2f}; the statue is about 1.1"
+
+
+def test_the_front_is_a_face_stacked_in_this_order(built):
+    """Eyes, then the mouth band, then the belly - that stack IS the statue, and the courses
+    have to be budgeted rather than each placed from its own fraction of the height. Placed
+    that way once, the eye frame and the mouth band overlapped and the whole face came out as
+    one pale slab from the brow to the belly."""
+    c, cells = built
+    p = {**GENERATORS["frog"].DEFAULTS, **CFG["params"]}
+    fx, _fz = c.meta["facing"]
+    pales = [k for k, v in cells.items() if v == p["belly"]]
+    assert pales, "no pale blocks at all"
+    front = min(k[0] for k in pales) if fx < 0 else max(k[0] for k in pales)
+    plane = {k: v for k, v in cells.items() if abs(k[0] - front) <= 1}
+    eyes = [k[1] for k, v in plane.items() if v == p["lamp"]]
+    pale = [k[1] for k, v in plane.items() if v == p["belly"]]
+    assert eyes and pale, f"face plane has {len(eyes)} eye and {len(pale)} pale cells"
+    assert min(eyes) > max(pale), "the eyes are not above the pale mouth and belly"
+    # ...and the pale is in two bands, the mouth and the belly, not one slab
+    band = sorted(set(pale))
+    gaps = [b - a for a, b in zip(band, band[1:]) if b - a > 1]
+    assert gaps, f"the mouth and the belly have merged into one panel: courses {band}"
 
 
 def test_every_foot_sits_on_its_own_ground(built, world):
@@ -216,15 +243,24 @@ def test_every_block_is_cheap_spendable_and_1_19(built):
         assert blocks.available(b), f"{b} is not in the 1.19 allowlist"
 
 
-def test_the_coat_is_three_tones_of_one_hue(built):
-    """Three tones of one colour beat two tones and a third hue - the flamingo's bruise. The
-    ladder has to be a ladder: every step must be a step somebody can see."""
+def test_the_coat_is_a_ladder_and_it_is_not_the_ground(built):
+    """Three tones of one hue beat two tones and a third - the flamingo's bruise - and the
+    ladder has to be a ladder: every step visible.
+
+    AND THE GROUND TEST IS COLOUR DISTANCE, NOT LUMINANCE. The turtle already proved the point
+    on this floor: `brown_wool` is within five of moss in luminance and reads perfectly, because
+    what separates them is a full hue flip. Testing luminance would have failed the reference's
+    own palette and passed a green frog.
+    """
     p = {**GENERATORS["frog"].DEFAULTS, **CFG["params"]}
     lum = [sum(blocks.color(p[k])) / 3 for k in ("back", "flank", "mark")]
     assert lum[0] > lum[1] > lum[2], f"back/flank/mark are not a descending ladder: {lum}"
     assert min(lum[i] - lum[i + 1] for i in range(2)) >= 20, f"two rungs look alike: {lum}"
-    moss = sum(blocks.color("moss_block")) / 3
-    assert abs(lum[0] - moss) >= 40, "the animal is the same value as the moss it sits on"
+    assert sum(blocks.color(p["belly"])) / 3 > lum[0] + 30, "the belly does not read as pale"
+    moss = blocks.color("moss_block")
+    body = blocks.color(p["back"])
+    dist = sum((a - b) ** 2 for a, b in zip(moss, body)) ** 0.5
+    assert dist >= 60, f"the body is {dist:.0f} from the moss it sits on - it will vanish"
 
 
 def test_nothing_can_spawn_on_its_back(built):

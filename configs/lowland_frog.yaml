@@ -37,15 +37,16 @@ params:
   base_y: 40                 # PINNED to the measured plain (ground Y39 across the whole
                              # footprint). Derived instead, a rescan of ground somebody is
                              # still planting moves the seat a course - the ring paid for this
-  length: 15
+  length: 13
   width: 13
-  height: 8
+  height: 14
   lamps: []                  # THE LIGHT LIVES IN THE NIGHT PASS, not here. A new animal is new
                              # walkable surface and something must light it, but a fixture sunk
                              # in the turf is not part of the animal - carried here it would
                              # cost the design the one-connected-piece gate for four cells that
                              # belong to `Island Night`, which is where they are (froglights,
                              # because froglights come from frogs)
+  glow: 8
   seed: 0
 origin_lock: false           # LOUD: it sits on the lowland floor at Y39-48
 finish:

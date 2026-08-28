@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": -24175,
+    "x": -24174,
     "y": 38,
     "z": 29969
   },
   "size": {
-    "x": 15,
-    "y": 13,
+    "x": 13,
+    "y": 18,
     "z": 15
   },
   "generated_by": "frog",
@@ -23,18 +23,15 @@
   ],
   "base_y": 40,
   "features_built": {
-    "head": 462,
-    "body": 204,
-    "haunch": 226,
-    "shin": 36,
-    "forelegs": 16,
-    "toes": 32,
-    "skirt": 29,
-    "eyes": 28,
-    "mouth": 17,
-    "throat": 61,
-    "nostril": 2,
-    "marks": 0,
+    "body": 1633,
+    "haunch": 72,
+    "forelegs": 36,
+    "toes": 16,
+    "skirt": 21,
+    "eyes": 50,
+    "mouth": 39,
+    "throat": 52,
+    "marks": 11,
     "glow": 6
   },
   "dig": [],

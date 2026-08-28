@@ -4558,7 +4558,7 @@ or overrun the sides.
 
 ## The churchyard frog (2026-08-28) - and BOXES, not a lofted mass
 
-`configs/lowland_frog.yaml`, `mcbuild/gen/frog.py` - **1,029 blocks, one piece, 0 problems, 0
+`configs/lowland_frog.yaml`, `mcbuild/gen/frog.py` - **1,825 blocks, one piece, 0 problems, 0
 overlap in context, all cheap.** Jack: *"build a frog, put it opposite end from axo, on the far
 empty lot left of the church"*.
 
@@ -4743,49 +4743,93 @@ Four more things the 3-D views decided, none of which any flat render could have
 **1,029 blocks, one piece, 0 problems, 0 overlap, all cheap.** The working loop is now generate →
 `look.py --sheet orbit` → change one thing → look again, and it costs about a second a pass.
 
-### Reading the references properly: the head, the eyes, and one blind alley (2026-08-28)
+### The third reference, and what four passes of drift were actually about (2026-08-28)
 
-Jack, twice: *"the eyes are too obnoxious and feel weird"*, then *"don't love it, really think
-about it and compare to references."* Three findings, and a wrong turn worth recording because
-it was confidently wrong.
+Jack, in order: *"the eyes are too obnoxious and feel weird"*; *"don't love it, compare to
+references"*; *"we are getting further and further"*; then a third reference - **Graysun's Frog
+Statue** - and *"make it look like this."*
 
-**THE HEAD IS THE WIDEST THING ON THE ANIMAL.** Measured off the mob: its skull is wider than
-the body behind it, and the eyes sit on top of that width. This build had the head at 0.32 of
-the animal's width against haunches at 0.50 - so the widest part of the frog was its backside
-and the front tapered away, which is a rodent. At 0.46 the head leads, and every bearing changed
-at once. This was the actual complaint; the eyes were downstream of it.
+**THE STATUE IS A DIFFERENT ANIMAL FROM THE MOB, and that is why nothing converged.** The mob is
+a flat crouching creature, about 1.0 long : 0.75 wide : 0.5 tall. The statue is UPRIGHT and
+COMPACT, about as tall as it is wide, and **its whole front is a FACE, stacked**:
 
-**OBNOXIOUS: A SUB-BLOCK DETAIL MUST BE DROPPED, NOT ROUNDED UP TO A BLOCK.** The gold came from
-the mob, where the eye is a dark ball with a bright ring - and that ring is ONE PIXEL of a
-sixteen-pixel face. This animal is about one mob long, so the ring is a sixteenth of a block:
-rounding it up to a whole block multiplies its visual weight by sixteen, and it stopped being a
-rim and became a yellow shelf under a black cap. The other two references say the same from the
-other side - the house's eye is a plain dark band, the outside voxel frog's are bumps in the
-body's own colour. **Neither has any gold at all.** `eye_gold: true` is kept for the day one is
-built at three times this size, where a rim is a rim again.
+    two big BRIGHT eyes at the top, each ringed in dark, standing proud of the skull
+    a wide PALE MOUTH band right across, a dark line drawn over it
+    a big PALE BELLY panel under that, inset a cell from the sides
+    chunky arms down both flanks, ending in splayed toed feet on the ground
 
-**WEIRD: THE BULGE HUNG OFF THE SKULL ON A BRACKET.** It reached from the head's own edge to two
-cells past it, so two thirds of its base stood in open air - a lamp on a corbel, not an eye in a
-head. On the mob the eye is ATTACHED: it clears the outline by about a cell and the rest rests on
-the skull. `test_the_eye_rests_on_the_skull` allows a third of the base to overhang and no more.
-A third thing only that test found: at 0.16 of the length the eye's front row sat on the head
-box's own chamfered corner - dropped cells - so part of the base was resting on holes. 0.22 is
-solid skull, and it is where the mob's eyes are.
+I had been measuring the first two references' SILHOUETTES and missing their FRONTS. Read again
+with the statue in hand, they were saying the same thing all along: the house's "dark eye band
+and white belly band" IS this stack, and the mob's tan throat is the belly. Four passes of
+adjusting proportions were four passes of answering the wrong question.
 
-#### The blind alley: "both references are one mass"
+**THE FRAME IS NOT DECORATION.** A pale square on an orange head is a patch; the dark ring is
+what makes it an eye, and it is what every earlier version of this face was missing - I kept
+tuning the colour of the bright part and never gave it an edge. Same rule as the mouth line, the
+deck's zone bands and the void tower's string courses: a light block needs a dark edge or it
+reads as a hole. (And the mob's thin gold rim is a different thing, which is why copying it
+failed: it is ONE PIXEL of a sixteen-pixel face, sub-block at our size, and rounding a sub-block
+detail up to a whole block multiplies its weight by the block. A bright PUPIL is not a rim.)
 
-Looking at the house and the mob together it is obvious that neither is an articulated
-head-waist-haunch, and I rebuilt the whole animal as a single box on that reading. It came out a
-CRATE, twice - once as a plain cuboid and once as a per-station taper, which insets every station
-independently and ribs the flanks. Reverted.
+**THE EYES ARE THE LIGHT.** `ochre_froglight` behind a dark frame: the statue's eyes glow, the
+block is the one Minecraft makes FROM frogs, and this design was already carrying froglights for
+its own lighting because the island night pass cannot see this lot - its classifier takes each
+column's topmost standable cell and the lot lies 113 courses under the island's belly. The light
+is now a FEATURE rather than a fixture, with a spread of eight more worked into the back, which
+`test_nothing_can_spawn_on_its_back` verifies by re-propagating.
 
-**The error was taking the house as evidence about a creature.** The house is a HOUSE: it reads
-because a big box plus an eye band, a belly band and separate legs says frog-building. The mob is
-the creature, and it is not one box either - it is a wide low skull in front of a rounded body,
-which is what this build already had. What it did not have was the skull being the widest part.
+**THE FRONT IS A BUDGET, not a set of independent fractions.** Placed each from its own fraction
+of the height, the eye frame and the mouth band overlapped and the face came out as one pale slab
+from the brow to the belly. The courses are allotted in order now, and the test asserts the
+stack: eyes above pale, and the pale in TWO bands rather than one.
 
-*The general form of the mistake: two references agreeing on a feature does not mean they agree
-for the same reason, and a building shaped like an animal is evidence about buildings.*
+
+**AND THE PALETTE IS THE STATUE'S, matched by measurement.** Its body is mud brick;
+`mud_bricks` (137,104,79) and `packed_mud` are both CURRENCY on this server, and `jungle_planks`
+(160,115,81) is 23 RGB off the first and cheap. The saturated orange this build carried for four
+passes was picked against the moss on LUMINANCE, and it is most of why it never looked like the
+reference - the statue reads soft and warm, not fluorescent. Against moss (89,110,45) the new
+body is 80 apart in RGB, a full hue flip: the turtle already proved that is what carries on this
+floor, and `brown_wool` is within five of moss in luminance. The ground test is colour DISTANCE
+now, not luminance - measured the old way it would have failed the reference's own palette and
+passed a green frog.
+
+
+**THE EYES TOOK THREE MORE GOES, and all three faults were GEOMETRY, not colour** - which is
+why tuning the block kept failing. *(Jack: "still not right, eyes are not good.")*
+
+- **The frame was two blocks deep.** It was laid on the protruding plane AND on the face behind
+  it, so each eye read as a chunky pair of goggles bolted to the head rather than an outline
+  round a light. One plane; the dark wrapping the sides of the bulge is the ring's own edge
+  cells seen end-on, which is all the depth it needs.
+- **The head stood ABOVE them.** On the statue the eyes are the TOPMOST thing - they rise over
+  the crown and the dome dips between them, which is what makes it look up at you. Built under
+  a full head they were two windows in a wall.
+- **There was a brow between the eyes and the mouth.** Placed at its own fraction of the height
+  the mouth left two courses of forehead above it; on the statue there is none - eyes, a dark
+  lip, then the band. The mouth is pinned to the eye now, not to the height.
+
+#### The tests changed with the reference, deliberately
+
+`test_it_is_flat_and_wide_like_the_mob` pinned 1.0 : 0.75 : 0.5. It is now
+`test_it_is_an_upright_statue` and pins height against width instead. **A test that pins a
+proportion is pinning a DECISION about which reference is being copied** - change the reference
+and the test has to change in the same commit, or the suite quietly enforces the thing that was
+rejected. The rest of the old suite went the same way: a knee that breaks the outline, a haunch,
+a shin, a plan that is not a rectangle - all of them encoded my own invented anatomy, and none
+of them was ever a claim the references made.
+
+#### The blind alley, recorded because it was confidently wrong for three passes
+
+The house and the mob both look like ONE MASS rather than an articulated head-waist-haunch, so I
+rebuilt the animal as a single box on that reading. It came out a CRATE twice - once as a plain
+cuboid, once as a per-station taper, which insets every station independently and ribs the
+flanks. **The error was taking the HOUSE as evidence about a creature**: it works because a big
+box plus an eye band, a belly band and separate legs says frog-BUILDING. Two references agreeing
+on a feature does not mean they agree for the same reason - and a third reference settled it.
+
+**1,750 blocks, one piece, 0 problems, 0 overlap, all cheap.** 13 wide x 15 deep x 17 tall,
+which the measured lot holds with the skirt carrying three courses of roll at its north edge.
 
 ### The panel verdict, recorded (2026-08-28)
 
