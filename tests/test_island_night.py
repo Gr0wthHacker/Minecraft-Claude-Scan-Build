@@ -30,6 +30,7 @@ NIGHT = os.path.join(ROOT, "out", "Island Night.work.json")
 FALLS = os.path.join(ROOT, "out", "Falls.work.json")
 THICKET = os.path.join(ROOT, "out", "Lowland Thicket.work.json")
 ENRICH = os.path.join(ROOT, "out", "Island Enrichment.work.json")
+RUN = os.path.join(ROOT, "out", "Island Run.work.json")
 FALLS_SIDE = os.path.join(ROOT, "out", "Falls.scan.json")
 
 needs_world = pytest.mark.skipif(
@@ -83,6 +84,7 @@ def world():
     place(FALLS)
     place(THICKET)
     place(ENRICH)   # stairs are not passable either
+    place(RUN)      # 550 new walkable cells, every one of them self-lit
     place(NIGHT)
     return name, (ox, oy, oz)
 

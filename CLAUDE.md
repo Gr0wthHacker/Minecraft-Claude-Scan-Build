@@ -4433,6 +4433,56 @@ the two biggest remaining gaps in the vocabulary. A trapdoor shutter is the stro
 move in the corpus. Both want their own look at the geometry rather than being bolted onto
 this pass - `rail: false` is in the config for that reason.
 
+## The Island Run: a parkour descent, and the physics that shaped it (2026-08-23)
+
+Jack's idea: jump pads from the top that wind all the way around, all the way down. **The
+physics settled its shape before any of the design did**, and the numbers are the finding:
+
+    drop  2 blocks -> 0.35s of air -> ~2.0 blocks of horizontal reach
+    drop 13 blocks -> 0.90s        -> ~5.0
+    drop 30 blocks -> 1.37s        -> ~7.7
+
+One turn of this island at r=52 is **320 blocks of travel**, and there are **152 courses**
+between the plate rim and the lowland floor. So:
+
+- a **falling** course on slime pads buys ~5 blocks of travel per drop and winds about a
+  QUARTER of a turn before it runs out of island. It cannot do what was asked.
+- a **jumping** course of two-course drops needs ~80 hops for a full turn and spends 160
+  courses doing it.
+
+157 available against 160 needed is as close to an exact fit as this sort of thing gets, and it
+is why the run is a jump course. **It also means no slime anywhere**: a two-course drop does no
+damage, so a bounce pad would solve a problem the geometry had already removed.
+
+`configs/island_run.yaml`, `gen/parkour.py` - **77 pads, 795 blocks, 0 problems, overlap 0.**
+Y194 to Y42, **330 degrees swept (0.92 turns)**, max drop 2 so no hop costs health, max gap 4.5
+onto a 3x3 landing. A 5x5 station every eighth hop gives the run checkpoints.
+
+**THE ROUTE IS SEARCHED, NOT DRAWN.** Each hop looks for a site within jumping reach that is
+clear of the world, of every design, and has headroom, flexing radius then drop then angle. That
+is what threads it past the giraffe, the ladybird, the bat and the shop islet - all of which
+stand out to r 57-65 in the band it passes through. The island is not a column: r95 runs 56 at
+the plate, **36 at the belly waist**, 53-57 through the ornaments, **25-29 at the pinch
+(Y70-109)** and 55-65 at the lowland, so the run weaves in and out with it.
+
+**Every pad carries its own light**, and the two reasons agree. A pad is a new walkable surface
+hanging in the void: the run adds **550 walkable cells** and, because each has a flush
+froglight, the night pass still needs exactly **107 fixtures** - not one more. And a lit ring
+winding once around the island is what the thing is for after dark.
+
+Two traps, both of the family this file keeps collecting:
+
+- **OUT OF THE CAPTURE IS NOT EMPTY, IT IS UNKNOWN.** `Ctx.name_at` answers `air` for any
+  coordinate outside the scanned box, so the first build sited its opening pad a block past the
+  scan's east edge, in space nobody has ever looked at - and a circle of r=52 around this island
+  is 104 wide against a 103-wide capture, so a quarter of the route was out there. Same family
+  as "unloaded is not absent" and "passable is not empty".
+- **A MISS MUST NOT MANUFACTURE A GAP.** The first search answered a failed site by dropping two
+  courses and swinging on WITHOUT placing a pad, which quietly put a **118-course fall** in the
+  middle of an otherwise finished-looking route - a run that reads as complete and kills you at
+  hop twenty. It relaxes the search instead, and ends the run cleanly if even that finds
+  nothing.
+
 ## The daily loop
 
 ```bash

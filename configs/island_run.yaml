@@ -1,0 +1,47 @@
+# THE ISLAND RUN - a parkour descent that winds once around the island (2026-08-23).
+#
+# Jack's idea: jump pads from the top that wind all the way around, all the way down. The
+# PHYSICS settled its shape before the design did. Steering a fall buys you about 2.0 blocks
+# of horizontal reach for a 2-course drop, 5.0 for a 13-course drop, 7.7 for a 30-course one.
+# One turn of this island at r=52 is 320 blocks of travel and there are 157 courses between
+# the plate rim and the lowland floor. So:
+#
+#   a FALLING course on slime pads winds about a QUARTER of a turn before it runs out of
+#     island - it cannot do what was asked
+#   a JUMPING course of 2-course drops needs ~80 hops for a full turn and spends 160 courses
+#
+# 157 available against 160 needed is as close to an exact fit as this sort of thing gets, and
+# it is why the run is a jump course. It also means NO SLIME anywhere: a two-course drop does
+# no damage, so a bounce pad would solve a problem the geometry already removed.
+#
+# THE ROUTE IS SEARCHED, NOT DRAWN - each hop finds a site within jumping reach that is clear
+# of the world, of every design, and has headroom. That is what threads it past the giraffe,
+# the ladybird, the bat and the shop islet, which all stand out to r 57-65 in this band.
+#
+# EVERY PAD CARRIES ITS OWN LIGHT. A pad is a new walkable surface in the void, so unlit it is
+# 77 new places for a mob to stand; and a lit ring winding once around the island is what this
+# is for after dark. The stone follows the island's own gradient - island rock, then deepslate,
+# then the quarter's blackstone - the same one the Lowland Stair carries.
+name: Island Run
+gen: parkour
+params:
+  under: out/island_full.litematic
+  centre: [-24200, 30000]
+  y_top: 196
+  y_bottom: 42
+  radius: 52
+  max_reach: 4.6        # the jump this island's physics allows
+  pad: 1                # a 3x3 landing: +/-1 block of error on a 4-block jump
+  station_every: 8      # a 5x5 rest pad, so the run has checkpoints
+  station_pad: 2
+  light: ochre_froglight
+  seed: 3
+
+origin_lock: [-24251, 20, 29949]
+
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false      # the whole design floats: that is the point of a parkour run
+  verify_against: [out/island_full.litematic]

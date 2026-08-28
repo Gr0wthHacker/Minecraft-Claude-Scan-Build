@@ -40,7 +40,9 @@ gen: lowglow
 params:
   under: out/island_full.litematic
   # solved against a world that already has the Falls cut, the Thicket planted and the
-  # Enrichment hung - stairs and dripstone are not passable, so both move the classifier:
+  # Enrichment hung and the Run's 77 pads placed. Stairs and dripstone are not passable so
+  # both move the classifier; the Run adds 550 walkable cells and needs NO extra fixture,
+  # because every pad carries a froglight of its own:
   # pointed dripstone is not passable, so a stalagmite can move the surface classifier
   froglights:
     - [-24247, 202, 30027]
@@ -56,7 +58,7 @@ params:
     - [-24202, 41, 30034]
     - [-24202, 202, 29961]
     - [-24198, 202, 29961]
-    - [-24196, 37, 29951]
+    - [-24196, 37, 29953]
     - [-24196, 96, 29979]
     - [-24195, 97, 29983]
     - [-24192, 202, 29966]
@@ -100,7 +102,7 @@ params:
     - [-24172, 66, 30031]
     - [-24171, 68, 30028]
     - [-24169, 39, 30025]
-    - [-24160, 43, 30027]
+    - [-24166, 40, 30025]
     - [-24158, 44, 30026]
   lanterns:
     - [-24244, 198, 30026]

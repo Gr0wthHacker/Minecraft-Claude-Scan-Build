@@ -40,5 +40,6 @@ progress:
   - out/Falls.litematic           # 30 blocks + 41 dig: the channel that lets the isle spill
   - out/Lowland Thicket.litematic # 1424 plants: the lush cave the lowland never had
   - out/Island Enrichment.litematic # 416 stairs and sills: the detail our buildings lacked
+  - out/Island Run.litematic      # 77 lit pads: a parkour descent, one turn around the island
   - out/Island Night.litematic    # 107 fixtures + 31 dig: zero spawnable surface cells
 learn: true
