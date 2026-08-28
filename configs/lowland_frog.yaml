@@ -1,0 +1,61 @@
+# THE FROG - the churchyard animal, in the lot east of the sanctum (2026-08-28).
+#
+# Jack: "build a frog, put it opposite end from axo, on the far empty lot left of the church".
+#
+# THE LOT WAS MEASURED, not chosen. Standing at the sanctum's door looking out (the facade
+# faces south), the lot on its LEFT is the east one, and it is the far end of the lowland from
+# the axolotl - which lies on the harbor's west bank ~50 blocks away, so the two animals never
+# share a view. It is also the largest genuinely empty ground left down here: a dead-flat
+# plain at Y39 spanning X-24177..-24162 / Z29972..29982, with 0 blocks standing above it,
+# no lantern of the ground design's grid in it, and 113 blocks of headroom.
+#
+# WHY A FROG. The planar/columnar rule, third case: identity as a PATTERN ON A SINGLE CONVEX
+# MASS - the ladybird's category, and the one the download corpus confirmed (a curled cat
+# reads instantly because its legs fold into the mass; a standing one is a table). A sitting
+# frog is that by anatomy: eye bulges on top, a mouth line past them, a folded knee over the
+# back, a long foot open on the ground. Three of the four read in PLAN. And frogs are the 1.19
+# mob - the naming test is instant, and Jack's own scattered ochre froglights come from them.
+#
+# THE GAZE IS CARDINAL AND IT LOOKS AT THE CHURCH. Due west, nose 3 clear of the sanctum's
+# east wall, so the head is grid-straight (the axolotl's three-pass lesson) and the animal has
+# something to be looking at. Its PROFILE - the strongest silhouette, eye bump over folded
+# knee - is what you get walking up the building's east flank, which is the way people arrive
+# from the harbor.
+#
+# COLOUR: the TEMPERATE (orange) frog, because the moss floor is (89,110,45) and a green frog
+# is the green-turtle mistake. Three tones of one hue - orange wool, acacia planks, brown wool
+# - a pale birch throat, a gold iris, a black pupil. All cheap, all 1.19, none of it currency.
+name: Lowland Frog
+gen: frog
+params:
+  under: out/island_full.litematic
+  at: [-24168, 29975]        # the body centroid. ODD length and width on purpose: with an even
+                             # span every station lands on a .5 and round() is BANKER'S
+                             # rounding, which is what once built a clod as eighteen separate
+                             # one-wide towers
+  facing: [-1, 0]            # due west, at the church
+  base_y: 40                 # PINNED to the measured plain (ground Y39 across the whole
+                             # footprint). Derived instead, a rescan of ground somebody is
+                             # still planting moves the seat a course - the ring paid for this
+  length: 15
+  width: 11
+  height: 8
+  lamps: []                  # THE LIGHT LIVES IN THE NIGHT PASS, not here. A new animal is new
+                             # walkable surface and something must light it, but a fixture sunk
+                             # in the turf is not part of the animal - carried here it would
+                             # cost the design the one-connected-piece gate for four cells that
+                             # belong to `Island Night`, which is where they are (froglights,
+                             # because froglights come from frogs)
+  seed: 0
+origin_lock: false           # LOUD: it sits on the lowland floor at Y39-48
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  # generated AFTER the quarter and the thicket, so it yields any shared cell to them
+  defer_to: [out/Lowland Sanctum.litematic, out/Lowland Ruinway.litematic,
+             out/Lowland Thicket.litematic, out/Island Night.litematic]
+  context_clear: [vine, short_grass, tall_grass, fern, large_fern, moss_carpet, azalea,
+                  flowering_azalea, poppy, dandelion, glow_lichen]
+  verify_against: out/island_full.litematic

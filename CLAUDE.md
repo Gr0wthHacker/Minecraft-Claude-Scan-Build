@@ -4491,6 +4491,117 @@ or overrun the sides.
   with the reason beside it, because slime IS the jump pad and no cheap block cancels a fall
   (hay cuts damage 80%, honey 20%). 13 blocks is 117 slimeballs against the 193 in store.
 
+## The churchyard frog (2026-08-28)
+
+`configs/lowland_frog.yaml`, `mcbuild/gen/frog.py` - **722 blocks, one piece, 0 problems, 0
+overlap in context, all cheap.** Jack: *"build a frog, put it opposite end from axo, on the far
+empty lot left of the church"*.
+
+**THE LOT WAS MEASURED BEFORE IT WAS DRAWN.** Standing in the sanctum's doorway looking out (the
+facade faces south), the lot on its LEFT is the east one - and it is the far end of the lowland
+from the axolotl, which lies ~50 blocks west on the harbor bank, so the two never share a view.
+It is also the largest genuinely empty ground left down here, and the numbers say so: a dead-flat
+plain at **Y39** over X-24177..-24162 / Z29972..29982 with **0 blocks standing above it**, no
+lantern of the ground design's 9-grid inside it, and 113 courses of headroom. A search for a
+15x15 footprint at roll <= 1 across the whole lot returns **one** placement; at 15x13, six.
+
+**WHY A FROG.** The planar/columnar rule's third case - identity as a pattern on a single convex
+mass, the ladybird's category - plus what the download corpus settled: a curled cat reads
+instantly because its legs fold INTO the mass, and a sitting frog is that shape by anatomy
+rather than by pose. Four features do the naming and three of them read in the PLAN, the view
+this medium gives away free: eye bulges on top, a mouth line running back past them, a long flat
+foot, and (in profile) a folded knee. And frogs are the **1.19 mob** - the naming test is
+instant, and the ochre froglights Jack has been scattering by hand come from them.
+
+**SIZE FROM THE EYE, WIDTH FROM THE FOOT.** A bulge needs a 3x3 dome and a clear cell between the
+pair or the two read as one brow (the ladybird's spot spacing), which puts the skull at 9 wide
+and the body at 11; the hind feet then take the total to 15 across. **Odd length and width on
+purpose**: with an even span every station lands on a .5 and `round()` is banker's rounding - the
+bug that once built a clod as eighteen separate one-wide towers.
+
+**COLOUR.** The moss floor is (89,110,45), so a green frog is the green-turtle mistake. This is
+the TEMPERATE (orange) frog: three tones of one hue, which the flamingo proved beats two tones
+and a third - `orange_wool` (241,118,20) over `acacia_planks` (168,90,50) over `brown_wool`
+(114,72,41) - with a birch throat, a gold iris and a black pupil. `tests/test_frog.py` asserts
+the ladder is a ladder (>= 20 luminance a rung) and that the top tone is >= 40 clear of the moss.
+
+### The night pass cannot see this animal, and that is a hole in the whole island
+
+Propagated through the finished world, **129 of the 149 air cells over the frog's back stood at
+block light ZERO** - a zombie on the sculpture every night. `Island Night` reports zero spawnable
+surface cells with the frog in place, and it is wrong to be reassured by that: its classifier
+takes each column's **topmost standable cell**, and this lot lies 113 courses under the island's
+belly, so the frog, the lot and everything in it are invisible to it.
+
+Measured island-wide, the blind spot is not small:
+
+| | |
+|---|---|
+| lowland columns with a standable cell under Y60 | 6,852 |
+| ...that the night pass's classifier ever grades | **1,624** |
+| ...invisible to it because island stands overhead | **5,228 (76%)** |
+| lowland walking-surface cells actually at light 0 | **480 of 6,783 (7%)** |
+
+The Lowland Glow solved to zero because it ran on a LOWLAND-ONLY composite, where the floor IS
+the topmost standable cell; the island-wide pass then swallowed it. **Those 480 cells are open
+and are not this design's to fix** - a night re-solve scoped per LEVEL rather than per column is
+its own project, and it is Jack's call.
+
+What the frog does about its own back is carry five `ochre_froglight` **in the skin, not on it**:
+three along the spine, one in each hind foot. In the skin, because a fixture laid over a coat is
+the hole in a sculpture that the night pass's own rule forbids; the foot pads, because the spine
+lamps have to send light round the body to reach the toes and the two cells over the outer toe
+tip stayed at zero however the spine was spaced. Minimum light over the animal is now **5**, and
+the propagation is re-run in the test rather than trusted. It is also the one animal on the
+island that glows, which for the mob froglights are made from is the right animal to do it.
+
+### Five traps, every one of which shipped a clean audit and a wrong build
+
+- **The legs read their own output.** `flank_v` scanned everything built so far to find the
+  body's widest offset, so each pass answered one cell further out than the last and the animal
+  crept from 15 wide to **19**. It measures the MASS alone now - the set the first section fills,
+  before any limb exists.
+- **A leg anchored at its own HEIGHT climbs onto the back.** Anchored with `out_at` (one cell
+  outside the skin at that height), the knee - which is ABOVE the dome - found its widest
+  neighbour a cell or two off the spine, and the whole hind leg was laid along the animal's back
+  as a brown ridge. A leg presses against the FLANK: it follows the flank's plan outline and
+  rises past the back line in free air, carried by the cell under it.
+- **The forelegs were built after the hind FOOT, which lies exactly where the hand goes.** Every
+  cell found the ground course already taken and the frog shipped with `forelegs: 0` **in its own
+  sidecar** - and nothing noticed, because a frog with no arms is still one connected piece with
+  no placement problem and a clean BOM. `test_it_has_arms` is four lines and would have caught it
+  the moment it happened.
+- **The thigh had to MERGE into the flank.** The dome falls away fast at its widest offset, so a
+  leg standing one cell outside it touches the body only near the ground: the knee hung on
+  nothing - two clusters of ten cells the buildability check called unbuildable. Filling the cell
+  inboard anchors it, and is also what a haunch looks like: muscle, not a stick.
+- **`profile_view` in the sidecar OVERRODE the panel's own rule** and pointed it at the head-on
+  view, which is the one view a profile must not be. `panel.py` derives the axis from the facing
+  (an animal looking along x shows its profile to a viewer looking along z), so the meta key is
+  simply not written now. `Lowland Turtle` records `profile_view: side` with the same facing and
+  has been reviewed head-on ever since - worth a look when someone next opens it.
+
+### The panel verdict, recorded (2026-08-28)
+
+**First profile - FAILED.** *You cannot name it from the silhouette: a lumpy wedge, could be a
+rock or a shrew.* The cause was exact and measurable - the eye dome sat **two courses under** the
+back line and the knee **three** under it, so the only two features that say frog were inside the
+outline. Both were raised (the eyes finish level with the haunch, the neck dips hard between
+them, the knee clears both) and `test_the_eyes_and_the_knee_break_the_outline` pins it, so the
+next tuning pass cannot quietly undo it.
+
+**Second pass - PASSES on the plan and the face, MARGINAL on the silhouette.** Head-on it is
+unmistakable: wide skull, two gold eyes with black pupils, a dark brow between them, nostrils, a
+pale throat under a dark mouth line. In plan - the view a frog is actually recognised from - the
+eyes lead, the head is wide, the banded legs fold along the flanks and the feet point forward.
+The profile now has its two humps and a dip, but at 15 blocks a stranger would probably say
+"toad" before "frog", and that is the honest state of it. **It is not a big build**: if it has to
+read from the ruin path 40 blocks off it wants building at 1.5x, and the generator is written in
+fractions of its own dimensions so that costs one number.
+
+**Still open:** the frog defers 3 cells to `Lowland Thicket` (plant drifts inside its footprint),
+so build the Thicket first - which is what `defer_to` records and what the build order derives.
+
 ## The daily loop
 
 ```bash
