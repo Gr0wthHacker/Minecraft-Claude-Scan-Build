@@ -1,45 +1,40 @@
 """A frog, sitting - the churchyard animal for the lot east of the sanctum.
 
-WHY A FROG PASSES. Same test the ladybird, the turtle and the axolotl passed and eight mammals
-failed: identity carried by a SINGLE CONVEX MASS with hardware on it, never by compound
-volumetric muscle. A sitting frog is one squat dome with four things stuck to it that voxels
-render natively - two eye bulges ON TOP, a mouth line running back past them, a folded hind
-knee that rises above the back, and a long flat foot lying open on the ground. Three of those
-four read in the PLAN, which is the view this medium gives away free, and the fourth (the
-knee) is what breaks the profile. The download corpus settled the rest: `Warm Snooze` is a
-curled cat that reads instantly because its legs are folded INTO the mass, and a sitting frog
-is that shape by anatomy rather than by pose.
+BUILT FROM BOXES, AND THAT IS THE WHOLE LESSON. The first version was a lofted superellipse -
+the same machinery as the axolotl and the turtle - and Jack said it did not read as a frog. It
+did not. Three references settled why: the Minecraft frog mob, a frog-shaped house, and an
+outside builder's voxel frog. NOT ONE OF THEM IS A SMOOTH MASS. All three are assembled
+rectangular parts - a flat-topped head box, a lower body box, blocky haunches, splayed feet
+with separate toes - and all three read instantly.
 
-And on a 1.19 server the naming test is instant - frogs ARE the mob of this version, and the
-ochre froglights already scattered across this island come from them.
+That is the void tower's rule said again for a creature: what makes voxels legible is
+REGULARITY AND SEPARATION, not smoothing. A lofted dome averages every part into one hill, and
+a hill is what the panel could not name. The parts here are boxes with air between them, and
+the air does as much work as the blocks: under the chin, between the arms, between the knee
+and the back.
 
-SIZE COMES FROM THE EYE. A bulge needs a 3x3 dome plus a clear cell between the pair to read
-as two eyes rather than one brow (the ladybird's spot-spacing lesson), so the skull cannot be
-under ~9 wide; a frog's head is about four fifths of its body width, which puts the body at 11
-and the length at 14. Under that the eyes merge and it is a lump.
+AND THE PROPORTIONS ARE THE MOB'S, NOT THE ANIMAL'S. The naming test is "would a stranger say
+frog", and on a Minecraft server the stranger's reference is the mob: a HEAD that is nearly
+half the length, eyes bulging off the top of it past the outline, a small low body behind, a
+pale throat, feet that splay. A correctly-proportioned real frog reads as a toad; this reads as
+the thing people have seen a thousand times.
 
-COLOUR AGAINST THE GROUND, MEASURED. The lowland floor is moss (89,110,45): a green frog is
-the green-turtle mistake, invisible on its own ground. This is the TEMPERATE frog - orange -
-a full hue flip off the moss and the one hue the lowland does not already own. Three tones of
-ONE hue, which the flamingo proved beats two tones and a third: orange wool (241,118,20) over
-acacia planks (168,90,50) over brown wool (114,72,41), with a pale birch throat, a black pupil
-and a gold iris. All cheap, all 1.19.
+SIZE COMES FROM THE EYE. A bulge needs 3x3 and a clear cell between the pair or the two read as
+one brow (the ladybird's spot spacing), so the skull cannot be under 11 wide - and the eyes
+then take the animal to 13 across, which is what the measured lot will hold.
 
-IT CARRIES ITS OWN LIGHT, AND IT HAD TO BE MEASURED TO FIND THAT OUT. A new animal is new
-walkable surface; propagated through the finished world, 129 of the 149 air cells over this
-one's back stand at block light ZERO, which is a zombie on the frog every night.
+COLOUR AGAINST THE GROUND, MEASURED. The moss floor is (89,110,45): a green frog is the
+green-turtle mistake, invisible on its own ground. This is the TEMPERATE (orange) frog - a full
+hue flip off the moss, three tones of one hue (the flamingo's rule): orange wool (241,118,20)
+over acacia planks (168,90,50) over brown wool (114,72,41), with a pale birch throat, a gold
+iris and a black pupil. All cheap, all 1.19, none of it currency.
 
-The island night pass does not see it, and the reason generalises: its classifier takes each
-column's TOPMOST standable cell, and this lot is 113 courses under the island's belly - so
-the topmost standable block in every column here is up in the belly skin, and the whole lot,
-frog included, is invisible to the pass. That blind spot is not this animal's to fix, but the
-dark over its own back is.
-
-So it glows. Three ochre froglights sit IN the dorsal skin, spaced along the spine: light 15
-apiece takes every cell over the animal above zero, they read as the pale dorsal spots a real
-frog carries, and the block is the one Minecraft makes FROM frogs - which is also the block
-Jack has been scattering across this island by hand. `glow: 0` turns them off; then something
-else has to light it.
+IT CARRIES ITS OWN LIGHT, and that had to be measured to find out. Propagated through the
+finished world, 129 of the 149 air cells over the first build's back stood at block light ZERO.
+The island night pass does not see them: its classifier takes each column's TOPMOST standable
+cell, and this lot lies 113 courses under the island's belly, so the frog and the whole lot are
+invisible to it. Froglights go IN the skin - three down the back, one in each hind foot, which
+is where they have to be, because the back lamps cannot reach round the body to the toes.
 """
 from __future__ import annotations
 
@@ -51,12 +46,12 @@ FROG = {
     "under": None,             # capture/composite the ground is read from - required
     "at": None,                # [x, z] the body centroid sits over - required
     "facing": [-1, 0],         # CARDINAL only: the head is straight and its faces lie on the
-                               # block grid. Aimed off-axis, a flat face becomes a diagonal
+                               # block grid. Aimed off-axis a flat face becomes a diagonal
                                # staircase of corners - the axolotl paid three passes for that
     "base_y": None,            # the belly plane - PIN it once built, or a rescan drifts it
-    "length": 14,              # nose to rump along the gaze axis
-    "width": 11,               # across, at the haunches
-    "height": 7,               # belly plane to the top of the haunch
+    "length": 17,              # nose to rump along the gaze axis
+    "width": 13,               # across the eyes and the haunches, the animal's widest
+    "height": 8,               # belly plane to the top of the SKULL; the eyes go above it
     "seed": 0,
 
     "back": "orange_wool",     # three tones of one hue, brightest first
@@ -66,37 +61,13 @@ FROG = {
     "iris": "yellow_wool",
     "pupil": "black_wool",
     "lamp": "ochre_froglight",
-    "glow": 3,                 # dorsal froglights - see the docstring; 0 turns them off
-    "lamps": [],               # [x, z] turf columns to sink a froglight into; [] = none
+    "glow": 3,                 # froglights worked into the back; 0 turns them off
 }
 
-# Fractions of the animal's own dimensions, so every feature scales with it.
-# The waist behind the skull is deliberate. Without it the head is as wide as the body and
-# the animal reads as a worm with a face - the axolotl paid a whole pass for that pinch.
-_HALFW = [(0.00, 0.16), (0.08, 0.46), (0.20, 0.76), (0.30, 0.72), (0.40, 0.58),
-          (0.55, 0.78), (0.74, 1.00), (0.88, 0.86), (1.00, 0.34)]
-# TWO HUMPS AND A DIP, or the silhouette is a hill. The panel failed the first profile on
-# exactly this: the eye dome sat two courses UNDER the back line and the knee three under it,
-# so both features - the only two that say frog - were swallowed by the outline. The eyes now
-# finish level with the haunch, the neck dips hard between them, and the knee clears both.
-_TOP = [(0.00, 0.55), (0.08, 0.66), (0.20, 0.75), (0.34, 0.50), (0.50, 0.66),
-        (0.74, 0.875), (0.88, 0.80), (1.00, 0.50)]
-# The chest is held HIGH. At 0.15 the shoulder was one course off the ground, so the foreleg
-# was a single cell - a sitting frog props itself up on straight arms, and the lift is also
-# what puts the head over the back line where the eyes can break the outline.
-_FLOOR = [(0.00, 0.40), (0.12, 0.36), (0.30, 0.28), (0.45, 0.10), (0.60, 0.00), (1.00, 0.00)]
 
-_T_EYE, _T_EAR, _T_FORE, _T_KNEE, _T_HEEL = 0.19, 0.32, 0.30, 0.74, 0.44
-
-
-def _at(keys, t):
-    """Piecewise-linear read of a keyframe profile."""
-    if t <= keys[0][0]:
-        return keys[0][1]
-    for (t0, v0), (t1, v1) in zip(keys, keys[1:]):
-        if t <= t1:
-            return v0 + (v1 - v0) * (t - t0) / (t1 - t0)
-    return keys[-1][1]
+def _f(frac, size):
+    """A fraction of one of the animal's own dimensions, as whole blocks."""
+    return int(round(frac * size))
 
 
 class _Frame:
@@ -139,333 +110,214 @@ def build_frog(cfg: dict, donors=None) -> Canvas:
         BY = gs[len(gs) // 2] + 1
 
     w = World()
-    feats = {k: 0 for k in ("body", "skirt", "eyes", "mouth", "ear", "nostril",
-                            "forelegs", "hindlegs", "toes", "belly", "marks", "lamps",
-                            "glow")}
-    dig: list[tuple[int, int, int]] = []
-    top_at: dict[tuple[int, int], int] = {}     # OUR OWN top map: Canvas.get returns -1 out of
-                                                # bounds and -1 is truthy, which has produced a
-                                                # clean audit and a wrong build twice here
-    body: set[tuple[int, int, int]] = set()     # (u, v, y) in body frame, for anchoring limbs
-    mass: set[tuple[int, int, int]] = set()     # the MASS alone - see flank_v
+    feats = {k: 0 for k in ("head", "body", "haunch", "shin", "forelegs", "toes", "skirt",
+                            "eyes", "mouth", "throat", "nostril", "marks", "glow")}
+    cells: set[tuple[int, int, int]] = set()    # (u, v, y) - OUR OWN map. Canvas.get returns
+                                                # -1 out of bounds and -1 is truthy, which has
+                                                # produced a clean audit and a wrong build twice
 
-    def put(x, y, z, name, **props):
-        if _free(ctx, x, y, z) and not w.has(x, y, z):
-            w.put(x, y, z, name, **props)
-            return 1
-        return 0
+    def put(u, v, y, name, part=None):
+        x, z = fr.xz(u, v)
+        if not _free(ctx, x, y + BY, z) or w.has(x, y + BY, z):
+            return 0
+        w.put(x, y + BY, z, name)
+        cells.add((u, v, y))
+        if part:
+            feats[part] += 1
+        return 1
 
-    # ---- 1. THE MASS. Squat, widest at the haunches, propped at the front: the belly line is
-    # set INDEPENDENTLY of the floor, which is what the jaguar panel said a body needs and
-    # what makes a sitting frog sit rather than lie ----
-    for u in range(L):
-        t = u / (L - 1)
-        hw = _at(_HALFW, t) * (W / 2.0)
-        hi = _at(_TOP, t) * H
-        lo = _at(_FLOOR, t) * H
-        vi = int(hw + 0.5)
-        for v in range(-vi, vi + 1):
-            q = 1.0 - (abs(v) / hw) ** 2.2 if hw > 0 else 0.0
-            if q <= 0.02:
-                continue
-            colt = lo + (hi - lo) * q ** 0.45
-            x, z = fr.xz(u, v)
-            g = ground(x, z)
-            if g is None:
-                continue
-            y0 = BY + int(round(lo))
-            y1 = BY + int(round(colt))
-            for y in range(y0, y1 + 1):
-                skin = (y == y1) or abs(v) >= vi - 1
-                feats["body"] += put(x, y, z, p["back"] if skin else p["flank"])
-                body.add((u, v, y))
-                mass.add((u, v, y))
-            top_at[(u, v)] = y1
-            # the rim meets its own ground: on a course of roll the skirt is what stops the
-            # animal hovering over a dip. Never dug, only filled.
-            if int(round(lo)) == 0:
-                for y in range(g + 1, BY):
-                    feats["skirt"] += put(x, y, z, p["flank"])
-            # the pale throat, where the front is held clear of the ground. A PATCH down the
-            # middle, not the full width: birch under the whole head reads as a sandwich
-            # ...and not at the snout: a pale cell on the first two stations pokes out past
-            # the nose in profile and reads as something the animal is holding in its mouth
-            if y0 > BY and abs(v) <= 2 and u >= 2:
-                if w.name(x, y0, z) in (p["back"], p["flank"]):
-                    w.put(x, y0, z, p["belly"])
-                    feats["belly"] += 1
+    def paint(u, v, y, name, over=None):
+        """Recolour a cell that is already built - a marking, never a new block."""
+        x, z = fr.xz(u, v)
+        cur = w.name(x, y + BY, z)
+        if cur is None or (over is not None and cur not in over):
+            return 0
+        w.put(x, y + BY, z, name)
+        return 1
 
-    def out_at(u, y, sign):
-        """One step OUTSIDE the built skin at this station and height. Anything clinging is
-        anchored to the SURFACE THAT EXISTS - a feature placed at a computed radius comes off
-        as its own component, which is how the mane, the ossicones and the tail all detached."""
-        for v in range(int(W), 0, -1):
-            if (u, sign * v, y) in body:
-                return sign * (v + 1)
-        return None
+    def box(u0, u1, v0, v1, y0, y1, name, part, chamfer=()):
+        """A rectangular part. `chamfer` names the edge PAIRS whose shared corner cells are
+        dropped, which is all the rounding a voxel animal wants: a smooth taper averages the
+        parts back into one hill, which is exactly what the first build got wrong."""
+        for u in range(u0, u1 + 1):
+            for v in range(min(v0, v1), max(v0, v1) + 1):
+                for y in range(y0, y1 + 1):
+                    eu = u == u0 or u == u1
+                    ev = v == min(v0, v1) or v == max(v0, v1)
+                    ey = y == y0 or y == y1
+                    if ("uv" in chamfer and eu and ev) or ("vy" in chamfer and ev and ey) \
+                            or ("uy" in chamfer and eu and ey):
+                        continue
+                    put(u, v, y, name, part)
 
-    def flank_v(u, sign):
-        """The body's WIDEST offset at this station, whatever the height.
+    # ---------- the layout, every number of it derived from L, W and H ----------
+    hu = _f(0.42, L) - 1                       # last station of the head
+    # THE PLAN NEEDS A WAIST. At head 11, body 9 and haunches 13 the envelope was a constant
+    # rectangle 17x15 and the animal read as a brick from above - which is the view this medium
+    # gives away free, so it is the one that must not be a box. Narrow head, narrower body,
+    # wide haunches, and the eyes and the feet standing outside the head's own width.
+    hw = _f(0.32, W)                           # head half-width
+    bw = _f(0.24, W)                           # body half-width
+    qw = _f(0.50, W)                           # haunch outer offset - the animal's widest
+    chin = _f(0.25, H)                         # the head's underside: air below it
+    body_top = _f(0.62, H)
+    haunch_top = _f(0.80, H)
+    hip_u, rump_u = _f(0.58, L), L - 2
 
-        Not the widest at the limb's own height, which is what the first build asked for: at
-        the knee the leg is ABOVE the dome, so the widest cell at that height is a cell or two
-        off the spine and the whole hind leg was laid along the animal's back as a ridge. A
-        leg presses against the FLANK, so it follows the flank's plan outline and rises past
-        the back line in free air, carried by the cell under it.
+    # 1. THE HEAD - a flat-topped box, nearly half the animal, held clear of the ground. Its
+    #    front face is FLAT and square on the grid: that face is what a frog is known by.
+    box(1, hu, -hw, hw, chin, H, p["back"], "head", chamfer=("uv", "uy"))
+    # THE SNOUT is a step, not a chamfer: the front station is one course lower and one cell
+    # narrower on each side, which turns a cube into a face that has a front to it
+    box(0, 0, -hw + 1, hw - 1, chin, H - 1, p["back"], "head")
+    # ...and the TOP course still runs out to the nose at full width, so it overhangs the face
+    # below it on three sides. That brow is what the reference house has over its eye band, and
+    # it costs nothing: the animal cannot grow forward, the nose is 3 blocks off a church wall
+    box(0, 0, -hw, hw, H, H, p["back"], "head")
 
-        Measured on the MASS, never on everything built so far: reading `body` counts the limb
-        cells this walk has already laid, so each pass answered one cell further out than the
-        last and the legs crept outward until the animal was 19 wide instead of 15."""
-        for v in range(int(W), 0, -1):
-            if any((u, sign * v, y) in mass for y in range(BY, BY + H + 3)):
-                return sign * v
-        return None
+    # 2. THE BODY - lower and narrower, behind the head, sitting on the ground
+    box(hu + 1, L - 1, -bw, bw, 0, body_top, p["back"], "body", chamfer=("uv", "vy"))
+    for u in range(L - 3, L):                  # ...and the rump falls away behind
+        for v in range(-bw, bw + 1):
+            for y in range(body_top - (u - (L - 3)) + 1, body_top + 1):
+                x, z = fr.xz(u, v)
+                w.cells.pop((x, y + BY, z), None)
+                cells.discard((u, v, y))
 
-    # ---- 2. THE FORELEG: short, straight, propping the chest up - the reason the head is in
-    # the air and the profile is not two parallel horizontals.
-    #
-    # BEFORE the hind leg, because the hind FOOT lies exactly where the hand goes: built after
-    # it, every one of its cells found the ground course already taken and the animal shipped
-    # with `forelegs: 0` in its own sidecar - and nothing else noticed, because a frog missing
-    # its arms is still one connected piece with no placement problem ----
-    u_fore = int(round(_T_FORE * (L - 1)))
-    fore_y = BY + int(round(_at(_FLOOR, _T_FORE) * H))
-    for sign in (1, -1):
-        v = out_at(u_fore, fore_y, sign)
-        if v is None:
-            continue
-        v -= sign                               # the leg hangs under the shoulder, not beside
-        x, z = fr.xz(u_fore, v)
+    # 3. THE HAUNCHES - big blocky folded legs, standing PROUD of the body's back line so the
+    #    profile gets its second hump, and past its sides so the plan gets its outline
+    for s in (1, -1):
+        box(hip_u, rump_u, s * bw, s * qw, 0, haunch_top, p["back"], "haunch",
+            chamfer=("uv", "vy"))
+        # the shin, folded forward along the flank at the animal's own widest
+        # NO CHAMFER, AND IT MUST REACH THE HAUNCH. Chamfered, a part only two cells wide
+        # loses both of its end stations entirely - the shin came out as a 2x3 slab floating
+        # beside the body, seven cells the component check caught and nothing else would have
+        box(hip_u - 3, hip_u, s * (qw - 1), s * qw, 0, _f(0.25, H), p["back"], "shin")
+
+    # 4. THE FEET - flat on the ground, pointing forward, WITH GAPS BETWEEN THE TOES. Three
+    #    prongs with a clear cell between them read as a foot; five touching ones are a paddle
+    for s in (1, -1):
+        box(_f(0.18, L), hu, s * (qw - 1), s * qw, 0, 0, p["back"], "toes")
+        for k, reach in ((0, 0.18), (2, 0.10)):          # two long toes, and the gap between
+            for u in range(0, _f(reach, L) + 1):
+                put(u, s * (qw - k), 0, p["back"], "toes")
+        put(_f(0.10, L), s * (qw - 2), 0, p["back"], "toes")     # the inner toe, short
+        put(_f(0.16, L), s * (qw - 2), 0, p["back"], "toes")
+
+    # 5. THE ARMS - straight, under the front of the head, holding the chest up. The air
+    #    between them and under the chin is what makes the head read as a separate part
+    arm_u = _f(0.26, L)
+    for s in (1, -1):
+        box(arm_u, arm_u + 1, s * (hw - 1), s * hw, 0, chin - 1, p["back"], "forelegs")
+        # THE HAND IS A SPLAYED PAD WITH GAPS, reaching forward to the line of the snout: on
+        # the reference house and the voxel frog the front feet are the detail that says
+        # ANIMAL rather than ornament, and they are visible from the front, under the chin,
+        # and in plan poking past the face. They stay INBOARD of the hind feet - out at the
+        # animal's own widest there is no room, and the nose is 3 blocks off a church wall
+        for u in range(0, arm_u):
+            put(u, s * (hw - 1), 0, p["back"], "toes")           # the middle toe, longest
+        for u in range(1, arm_u):
+            put(u, s * (hw - 2), 0, p["back"], "toes")           # the inner toe - at hw-3 it
+                                                                 # had no neighbour and both
+                                                                 # hands shipped as strays
+        for u in range(1, arm_u - 1):
+            put(u, s * hw, 0, p["back"], "toes")                 # the outer toe, shortest
+        put(arm_u, s * (hw - 2), 0, p["back"], "toes")           # the web behind them
+
+    # 6. THE EYES - the feature that names the animal. Domes on TOP of the skull at its back
+    #    corners, protruding above the head line AND past its sides: on the mob they bulge off
+    #    the outline in every view, and a bulge inside the outline is a patch, not an eye
+    eu = _f(0.16, L)
+    for s in (1, -1):
+        # THE RIM IS BRIGHT, THE EYEBALL IS DARK. Built gold-dominant with one black cell on
+        # top, it read as two gold cubes on the corners of a box; on the mob and on the house
+        # the eye is DARK, and the gold is a ring around it. Same cells, opposite emphasis.
+        for du in range(-1, 2):
+            for dv in (0, 1, 2):
+                put(eu + du, s * (hw + dv), H + 1, p["iris"], "eyes")
+        # ...and the pupil is a raised CENTRE, not a plus. A five-cell cross on top of the
+        # ring covers the ring's whole middle row and column, and in plan - the view this
+        # medium gives away free - the eye came out as a black crosshair on a gold square
+        put(eu, s * (hw + 1), H + 2, p["pupil"], "eyes")   # ONE cell: two of them make a bar
+                                                           # across the ring, not a pupil in it
+
+    # 7. THE FACE - a wide mouth line right across the front, a pale throat under it, and
+    #    nostrils. The mouth is a LINE, never scattered cells: the deck soffit's rule
+    # THE PALE BAND IS TWO COURSES AND THE MOUTH SITS ON TOP OF IT. One course of birch under
+    # a dark line is a seam; the reference house carries a band you can see from across the
+    # water, and it is half of what makes a blocky orange box read as a face
+    for v in range(-hw, hw + 1):
+        feats["mouth"] += paint(0, v, chin + 2, p["mark"], over=(p["back"],))
+        feats["throat"] += paint(0, v, chin + 1, p["belly"], over=(p["back"],))
+        feats["throat"] += paint(0, v, chin, p["belly"], over=(p["back"],))
+    for u in range(1, hu + 1):                                   # ...and back along the jaw
+        for s in (1, -1):
+            feats["mouth"] += paint(u, s * hw, chin + 2, p["mark"], over=(p["back"],))
+            feats["throat"] += paint(u, s * hw, chin + 1, p["belly"], over=(p["back"],))
+    for u in range(0, hu):                                       # the pale chin, underneath
+        for v in range(-hw + 1, hw):
+            feats["throat"] += paint(u, v, chin, p["belly"], over=(p["back"],))
+    for s in (1, -1):                          # ON THE BROW, at the snout's own tip. Set back
+        feats["nostril"] += paint(0, s, H, p["pupil"], over=(p["back"],))   # on the skull they
+                                                                            # are hidden behind
+                                                                            # the overhang
+
+    # 8. THE COAT - a dorsolateral line down each side of the body and mottling in the MID
+    #    tone. Dark blotches on the back turned the plan into noise, and the plan is the view
+    #    this medium gives away free
+    for u in range(hu + 1, hip_u):
+        for s in (1, -1):
+            feats["marks"] += paint(u, s * bw, body_top, p["mark"], over=(p["back"],))
+    # NO BLOTCHES. Three attempts at mottling produced, in order: brown confetti, regular
+    # crosses (radius 1.4 over a lofted top yields the five-cell orthogonal plus) and a
+    # diamond stamped on the flat back of the box build. The animal reads better plain, and
+    # the dorsolateral line above is the one marking that is a LINE rather than a stain.
+
+    # 9. ITS OWN LIGHT - see the docstring. In the skin, never on it: a fixture laid over a
+    #    coat is the hole in a sculpture that the night pass's own rule forbids
+    tops: dict[tuple[int, int], int] = {}
+    for (u, v, y) in cells:
+        tops[(u, v)] = max(tops.get((u, v), -99), y)
+    for i in range(int(p.get("glow") or 0)):
+        uc = _f(0.52 + 0.16 * i, L)
+        for v in (0, 1, -1, 2, -2):
+            if (uc, v) in tops and paint(uc, v, tops[(uc, v)], p["lamp"],
+                                         over=(p["back"], p["flank"], p["mark"])):
+                feats["glow"] += 1
+                break
+    for s in (1, -1):                          # and one in each hind foot: the back lamps
+        fu = _f(0.14, L)                       # cannot send light round the body to the toes,
+        # AT THE FOOT'S OWN COURSE, not the column's top. The eye sits directly over the hind
+        # foot in plan - it is as wide as the haunch, which is what the mob looks like - so
+        # asking for the topmost cell of that column returns an eye, `paint` correctly refuses
+        # to recolour it, and both foot lamps were silently never placed
+        for du, dv in ((0, 0), (1, 0), (0, -1), (1, -1)):
+            if paint(fu + du, s * (qw + dv), 0, p["lamp"],
+                     over=(p["back"], p["flank"], p["mark"])):
+                feats["glow"] += 1
+                break
+    if int(p.get("glow") or 0):                # ...and one on the crown, because the EYES are
+        for v in (0, 1, -1):                   # the highest cells on the animal and the back
+            if (hu - 1, v) in tops and paint(hu - 1, v, tops[(hu - 1, v)], p["lamp"],
+                                             over=(p["back"], p["mark"])):
+                feats["glow"] += 1
+                break
+
+    # 10. THE SKIRT - every column that sits on the ground meets its OWN ground. On a course of
+    #     roll the animal would otherwise hover over the dip; never dug, only filled
+    for (u, v) in {(u, v) for (u, v, y) in cells if y == 0}:
+        x, z = fr.xz(u, v)
         g = ground(x, z)
         if g is None:
             continue
-        for y in range(g + 1, fore_y + 1):
-            feats["forelegs"] += put(x, y, z, p["back"])
-        for du, dv in ((1, 0), (2, 0), (1, sign), (1, -sign)):    # four toes, forward
-            x2, z2 = fr.xz(u_fore - du, v + dv)
-            if ground(x2, z2) is not None:
-                feats["toes"] += put(x2, BY, z2, p["back"])
-
-    # ---- 3. THE FOLDED HIND LEG - the half of the silhouette a frog cannot do without: hip
-    # low and back, knee up and forward, shin down and forward, and a long flat foot. In the
-    # PLAN it is a Z beside the body, which is the view this medium gives away free ----
-    # The hip sits at the back, the knee rides high over the flank, the heel comes down at
-    # mid-body and the foot runs forward from there - past the shoulder, level with the jaw,
-    # which is where a sitting frog's feet really are and what makes the plan read.
-    HIP, KNEE, HEEL = (0.92, 0.30), (0.75, 1.00), (0.50, 0.10)
-    limb_cells: set[tuple[int, int, int]] = set()
-
-    def limb(t0, h0, t1, h1, sign, thick=1):
-        """A staircase along the flank, never a diagonal, and never a gap.
-
-        Two rules, both learned the hard way here. A step that moves in u AND y at once leaves
-        two cells touching at a corner only, which 6-connectivity calls two pieces - how the
-        first cats' ear tips broke off. And a run steeper than one course per station skips
-        courses, so the cells above hang on nothing: the span between one step and the next is
-        FILLED, not sampled."""
-        u0, u1 = t0 * (L - 1), t1 * (L - 1)
-        y0, y1 = BY + int(round(h0 * H)), BY + int(round(h1 * H))
-        n = max(abs(int(round(u1 - u0))), abs(y1 - y0)) + 1
-        pu, py = None, None
-        for i in range(n):
-            f = i / max(1, n - 1)
-            u = int(round(u0 + (u1 - u0) * f))
-            y = int(round(y0 + (y1 - y0) * f))
-            for uu in sorted({pu, u} - {None}):
-                fv = flank_v(uu, sign)
-                if fv is None:
-                    continue
-                v = fv + sign
-                x, z = fr.xz(uu, v)
-                lo = min(y, py if py is not None else y) - (thick - 1)
-                for yy in range(lo, max(y, py if py is not None else y) + 1):
-                    feats["hindlegs"] += put(x, yy, z, p["back"] if yy == y else p["flank"])
-                    body.add((uu, v, yy))
-                    if yy == y:
-                        limb_cells.add((uu, v, yy))
-                    # THE THIGH MERGES INTO THE FLANK. The dome falls away fast at its widest
-                    # offset, so a leg standing one cell outside it touches the body only near
-                    # the ground and the knee hangs on nothing - two clusters of ten cells the
-                    # buildability check called unbuildable. Filling the cell inboard both
-                    # anchors it and is what a haunch actually looks like: muscle, not a stick
-                    if (uu, v - sign, yy) not in body:
-                        xi, zi = fr.xz(uu, v - sign)
-                        feats["hindlegs"] += put(xi, yy, zi, p["flank"])
-                        body.add((uu, v - sign, yy))
-            pu, py = u, y
-
-    for sign in (1, -1):
-        limb(*HIP, *KNEE, sign, thick=2)                 # thigh, up and forward
-        limb(*KNEE, *HEEL, sign, thick=2)                # shin, down and forward
-        # THE FOOT - half the body long, flat, pointing forward. THE TOES NEED A GAP: two
-        # prongs with a clear cell between them read as a foot, five touching ones read as a
-        # paddle (the ladybird's spot-spacing rule), and they must clear the head's own width
-        # or the plan view - the only view that shows a foot - hides them under the jaw.
-        heel = int(round(HEEL[0] * (L - 1)))
-        fv = flank_v(heel, sign)
-        if fv is None:
-            continue
-        v0 = fv + sign
-        cells = [(heel - du, v0 + dv * sign) for du in range(0, 4) for dv in (-1, 0, 1)]
-        cells += [(heel - 3 - du, v0 + sign) for du in range(1, 5)]      # outer toe, long
-        cells += [(heel - 3 - du, v0 - sign) for du in range(1, 4)]      # inner toe, shorter
-        cells = [(u, vv) for (u, vv) in cells if u >= 0]
-        gs = [g for (u, vv) in cells for g in [ground(*fr.xz(u, vv))] if g is not None]
-        if not gs:
-            continue
-        # ONE level for the whole foot, then filled down to each column's own ground: a pad
-        # held at the belly plane over ground that rolls away floats, and per-column seating
-        # puts neighbours on two courses, which touch only diagonally
-        level = min(BY, max(gs) + 1)
-        for (u, vv) in cells:
-            x, z = fr.xz(u, vv)
-            g = ground(x, z)
-            if g is None:
-                continue
-            for y in range(min(g + 1, level), level + 1):
-                feats["toes"] += put(x, y, z, p["back"] if y == level else p["flank"])
-                body.add((u, vv, y))
-                if y == level:
-                    limb_cells.add((u, vv, y))
-        # A GLOWING PAD IN THE FOOT. The dorsal lamps sit on the spine and their light has to
-        # travel round the body to reach the toes, which are the length of the animal away and
-        # in its shadow: measured, the two cells over the outer toe tip stayed at zero however
-        # the spine lamps were spaced. A frog's toe pads are pale, so this is where one goes.
-        if int(p.get("glow") or 0):
-            x, z = fr.xz(heel - 1, v0)
-            if w.name(x, level, z) == p["back"]:
-                w.put(x, level, z, p["lamp"])
-                feats["glow"] = feats.get("glow", 0) + 1
-
-    # ---- 4. THE FACE, read off the mass that was actually built ----
-    u_eye = int(round(_T_EYE * (L - 1)))
-    v_eye = max(2, int(round(0.26 * W)))
-    for sign in (1, -1):
-        ty = top_at.get((u_eye, sign * v_eye))
-        if ty is None:
-            continue
-        for du in (-1, 0, 1):                   # a 3x3 cap, then a crown: two courses, so the
-            for dv in (-1, 0, 1):               # bulge breaks the head line from the side too
-                x, z = fr.xz(u_eye + du, sign * v_eye + dv)
-                feats["eyes"] += put(x, ty + 1, z, p["iris"])
-        for du, dv in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)):
-            x, z = fr.xz(u_eye + du, sign * v_eye + dv)
-            feats["eyes"] += put(x, ty + 2, z, p["pupil"] if (du == 0 and dv == 0)
-                                 else p["iris"])
-        x, z = fr.xz(u_eye, sign * (v_eye + 2))  # a pupil on the outer face, so the eye
-        feats["eyes"] += put(x, ty + 1, z, p["pupil"])           # reads in profile as well
-
-    # the mouth: a continuous seam along the jaw from the snout back PAST the eye, which is
-    # where a frog's mouth really ends. A line, never scattered cells - the deck soffit's rule
-    for u in range(0, int(round(0.42 * (L - 1))) + 1):
-        t = u / (L - 1)
-        hw = _at(_HALFW, t) * (W / 2.0)
-        jaw = BY + int(round(_at(_FLOOR, t) * H))
-        for sign in (1, -1):
-            for v in range(int(hw + 0.5), 0, -1):
-                if (u, sign * v, jaw) in body:
-                    x, z = fr.xz(u, sign * v)
-                    if w.name(x, jaw, z) in (p["back"], p["flank"]):
-                        w.put(x, jaw, z, p["mark"])
-                        feats["mouth"] += 1
-                    break
-        if u <= 1:                              # the snout tip carries the seam across
-            for v in range(-1, 2):
-                x, z = fr.xz(u, v)
-                if w.name(x, jaw, z) in (p["back"], p["flank"]):
-                    w.put(x, jaw, z, p["mark"])
-                    feats["mouth"] += 1
-
-    # the tympanum: the ear disc behind the eye. A real field mark, four cells, on the skin
-    u_ear = int(round(_T_EAR * (L - 1)))
-    ear_y = BY + int(round(_at(_TOP, _T_EAR) * H * 0.55))
-    for sign in (1, -1):
-        for du, dy in ((0, 0), (1, 0), (0, 1), (1, 1)):
-            v = out_at(u_ear + du, ear_y + dy, sign)
-            if v is None:
-                continue
-            x, z = fr.xz(u_ear + du, v - sign)
-            if w.name(x, ear_y + dy, z) in (p["back"], p["flank"]):
-                w.put(x, ear_y + dy, z, p["mark"])
-                feats["ear"] += 1
-
-    for sign in (1, -1):                        # nostrils, on top of the snout
-        u = int(round(0.06 * (L - 1)))
-        ty = top_at.get((u, sign))
-        if ty is not None:
-            x, z = fr.xz(u, sign)
-            if w.name(x, ty, z) is not None:
-                w.put(x, ty, z, p["pupil"])
-                feats["nostril"] += 1
-
-    # ---- 5. THE COAT: a dorsolateral LINE and a few drifts. Not confetti - the thicket
-    # learned that in green and the deck soffit learned it in wood ----
-    for u in range(u_eye + 2, int(round(0.62 * (L - 1)))):
-        t = u / (L - 1)
-        hw = _at(_HALFW, t) * (W / 2.0)
-        for sign in (1, -1):
-            v = int(round(sign * hw * 0.78))
-            ty = top_at.get((u, v))
-            if ty is None:
-                continue
-            x, z = fr.xz(u, v)
-            if w.name(x, ty, z) == p["back"]:
-                w.put(x, ty, z, p["mark"])
-                feats["marks"] += 1
-    # mottling in the MID tone, not the dark one. Brown blotches on the back turned the plan -
-    # the view that matters for this animal - into noise; acacia against orange is 40 of
-    # luminance, which is texture at arm's length and one colour from across the lot
-    # RADII BIG ENOUGH TO BE DISCS. At 1.1-1.8 the test dx^2+dv^2 <= r^2 yields the five-cell
-    # orthogonal plus and the back came out stamped with regular crosses - the same confetti
-    # failure as the deck soffit, wearing a new hat
-    for i, (tc, vc) in enumerate(((0.52, 0.00), (0.70, 0.28), (0.70, -0.28))):
-        uc, rad = tc * (L - 1), 2.0 + 0.8 * hash01(seed, i, 11, 5)
-        for (u, v), ty in list(top_at.items()):
-            if (u - uc) ** 2 + (v - vc * W) ** 2 <= rad ** 2:
-                x, z = fr.xz(u, v)
-                if w.name(x, ty, z) == p["back"]:
-                    w.put(x, ty, z, p["flank"])
-                    feats["marks"] += 1
-
-    for (u, v, y) in sorted(limb_cells):
-        if (u + max(0, v)) % 3 == 0 and w.name(*fr.xz(u, v)[:1], y, fr.xz(u, v)[1]) is not None:
-            x, z = fr.xz(u, v)
-            if w.name(x, y, z) == p["back"]:
-                w.put(x, y, z, p["mark"])
-                feats["marks"] += 1
-
-    # ---- 6a. THE DORSAL FROGLIGHTS. In the skin, not on it: a fixture laid over a coat is
-    # the hole in a sculpture the night pass's own rule forbids, while a froglight worked INTO
-    # the back is a marking that happens to emit. Spaced along the spine so no cell of the
-    # animal is more than a few blocks of open air from one ----
-    for i in range(int(p.get("glow") or 0)):
-        t = 0.30 + 0.24 * i
-        u = int(round(t * (L - 1)))
-        for v in (0, 1, -1, 2, -2):                 # the spine first, then step off it if the
-            ty = top_at.get((u, v))                 # crown cell is somebody else's already
-            if ty is None:
-                continue
-            x, z = fr.xz(u, v)
-            if w.name(x, ty, z) in (p["back"], p["flank"], p["mark"]):
-                w.put(x, ty, z, p["lamp"])
-                feats["glow"] = feats.get("glow", 0) + 1
-                break
-
-    # ---- 6. ITS OWN LIGHT, flush in the turf: the froglight is the frog's own block, and a
-    # fixture standing proud of the moss beside an animal reads as a lamp somebody left ----
-    for lx, lz in (p.get("lamps") or []):
-        g = ground(int(lx), int(lz))
-        if g is None:
-            raise ValueError(f"lamp at {(lx, lz)} has no ground under it - resite it")
-        if w.has(int(lx), g, int(lz)):
-            raise ValueError(f"lamp at {(lx, lz)} is inside the frog - resite it")
-        dig.append((int(lx), g, int(lz)))       # flush: its own cell is dug first
-        w.put(int(lx), g, int(lz), p["lamp"])
-        feats["lamps"] += 1
+        for y in range(g + 1, BY):
+            if _free(ctx, x, y, z) and not w.has(x, y, z):
+                w.put(x, y, z, p["flank"])
+                feats["skirt"] += 1
 
     # NO `profile_view` HERE ON PURPOSE. panel.py derives it from the facing - an animal
-    # looking along x shows its profile to a viewer looking along z ("face") - and stating
-    # "side" overrides that with the head-on view, which is the one view a profile must not be.
-    return w.canvas({"kind": "frog",
-                     "facing": [int(v) for v in p["facing"]], "base_y": BY,
-                     "features_built": feats, "dig": [list(d) for d in dig]})
+    # looking along x shows its profile to a viewer looking along z - and stating "side"
+    # overrides that with the head-on view, which is the one view a profile must not be.
+    return w.canvas({"kind": "frog", "facing": [int(v) for v in p["facing"]], "base_y": BY,
+                     "features_built": feats, "dig": []})

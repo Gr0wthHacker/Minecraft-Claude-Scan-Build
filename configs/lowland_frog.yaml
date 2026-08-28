@@ -29,7 +29,7 @@ name: Lowland Frog
 gen: frog
 params:
   under: out/island_full.litematic
-  at: [-24168, 29975]        # the body centroid. ODD length and width on purpose: with an even
+  at: [-24168, 29976]        # the body centroid. ODD length and width on purpose: with an even
                              # span every station lands on a .5 and round() is BANKER'S
                              # rounding, which is what once built a clod as eighteen separate
                              # one-wide towers
@@ -38,8 +38,8 @@ params:
                              # footprint). Derived instead, a rescan of ground somebody is
                              # still planting moves the seat a course - the ring paid for this
   length: 15
-  width: 11
-  height: 8
+  width: 13
+  height: 7
   lamps: []                  # THE LIGHT LIVES IN THE NIGHT PASS, not here. A new animal is new
                              # walkable surface and something must light it, but a fixture sunk
                              # in the turf is not part of the animal - carried here it would

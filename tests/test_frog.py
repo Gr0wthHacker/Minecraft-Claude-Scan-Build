@@ -93,7 +93,7 @@ def test_it_has_arms(built):
     """`forelegs: 0` shipped once and nothing else in the pipeline noticed."""
     c, _ = built
     feats = c.meta["features_built"]
-    for part in ("forelegs", "hindlegs", "toes", "eyes", "mouth"):
+    for part in ("head", "body", "haunch", "shin", "forelegs", "toes", "eyes", "mouth"):
         assert feats[part] > 0, f"{part} was not built at all: {feats}"
 
 

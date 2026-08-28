@@ -2,11 +2,11 @@
   "origin": {
     "x": -24175,
     "y": 39,
-    "z": 29969
+    "z": 29970
   },
   "size": {
     "x": 15,
-    "y": 10,
+    "y": 11,
     "z": 13
   },
   "generated_by": "frog",
@@ -23,19 +23,19 @@
   ],
   "base_y": 40,
   "features_built": {
-    "body": 534,
-    "skirt": 13,
-    "eyes": 30,
-    "mouth": 16,
-    "ear": 4,
+    "head": 262,
+    "body": 267,
+    "haunch": 182,
+    "shin": 42,
+    "forelegs": 16,
+    "toes": 40,
+    "skirt": 22,
+    "eyes": 20,
+    "mouth": 13,
+    "throat": 41,
     "nostril": 2,
-    "forelegs": 4,
-    "hindlegs": 98,
-    "toes": 46,
-    "belly": 30,
-    "marks": 66,
-    "lamps": 0,
-    "glow": 5
+    "marks": 0,
+    "glow": 6
   },
   "dig": [],
   "file": "Lowland Frog.litematic",
