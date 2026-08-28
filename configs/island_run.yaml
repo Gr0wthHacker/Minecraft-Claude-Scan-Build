@@ -1,4 +1,18 @@
-# THE ISLAND RUN - a parkour descent that winds once around the island (2026-08-23).
+# THE ISLAND RUN - a parkour descent that winds around the island (2026-08-23).
+#
+# THE FIRST VERSION WAS A STAIRCASE AND JACK SAID SO: 3x3 landings four blocks apart with a
+# two-course drop every time - no failure mode, no variety, no jump pads. A ramp with gaps in
+# it is not parkour. This one has a vocabulary and a rhythm, and it gets harder as it goes:
+#
+#   LEDGE   a ONE-BLOCK landing, 3 to 4.5 out and nearly level - the sprint jump is the game
+#   PLUNGE  a real 8-16 course fall onto a SLIME pad, which bounces and cancels the damage.
+#           This is the jump pad, and it is what buys the height so the ledges can stay level.
+#   GATE    a wall on the landing, so the jump clears something as well as reaching it
+#   REST    a 3x3 lit checkpoint - the only place the run lets go of you
+#
+# And the boundary is real now: `mcbuild.plot` finds the island's BEDROCK at (-24200,200,30000)
+# and measures 49 out on each axis. The first build guarded against the CAPTURE box, which is
+# two blocks wider on every side, and shipped 120 cells off the edge of the plot.
 #
 # Jack's idea: jump pads from the top that wind all the way around, all the way down. The
 # PHYSICS settled its shape before the design did. Steering a fall buys you about 2.0 blocks
@@ -26,16 +40,34 @@ name: Island Run
 gen: parkour
 params:
   under: out/island_full.litematic
-  centre: [-24200, 30000]
-  y_top: 196
-  y_bottom: 42
-  radius: 52
-  max_reach: 4.6        # the jump this island's physics allows
-  pad: 1                # a 3x3 landing: +/-1 block of error on a 4-block jump
-  station_every: 8      # a 5x5 rest pad, so the run has checkpoints
-  station_pad: 2
-  light: ochre_froglight
+  y_top: 194
+  y_bottom: 44
+  radius: 43            # the PLOT clamps this: bedrock +/- 49, found not typed
   seed: 3
+
+  # never site into LIVE work, built or not - the run threads a void that several
+  # designs still have unplaced cells in
+  reserve:
+    - out/Castle Bridge.work.json
+    - out/Falls.work.json
+    - out/Island Belly Full.work.json
+    - out/Island Enrichment.work.json
+    - out/Island Night.work.json
+    - out/Lowland Bat.work.json
+    - out/Lowland Portal.work.json
+    - out/Lowland Root.work.json
+    - out/Lowland Stair.work.json
+    - out/Lowland Thicket.work.json
+    - out/Lowland.work.json
+    - out/Shop Islet.work.json
+    - out/Void Isle.work.json
+
+# THE ONE EXPENSIVE THING, declared rather than smuggled. Slime is `expensive` on this
+# economy and the run needs 13 blocks of it - because slime IS the jump pad, and no cheap
+# block cancels a fall the way it does (hay only cuts damage by 80%, honey by 20%). 13 blocks
+# is 117 slimeballs against the 193 in store, so it is affordable; it is stated here because
+# every other design on this island is cheap-tier and this one is not.
+expensive_allowance: 13
 
 origin_lock: [-24251, 20, 29949]
 

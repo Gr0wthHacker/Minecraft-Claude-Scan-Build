@@ -199,6 +199,34 @@ def _lock_origin(m, world_origin, lock):
     return m, (lx, ly, lz)
 
 
+def _after(cfg: dict) -> list[str]:
+    """Design names this one must be built AFTER, for the sidecar's `after` list.
+
+    Derived from `finish.defer_to` rather than restated: deferring IS the ordering. A design that
+    yields a shared cell to another one cannot be built first - the cell it dropped is the other
+    design's, and placing round a hole nobody has filled yet is how you build twice.
+
+    This only ever existed in Python. `finish.defer_to` settled precedence at generation time and
+    CLAUDE.md stated the sequences in prose ("portal first, ruinway defers to it"), and none of it
+    reached the mod - so `/cscan follow all` walked the tracked list as written. `finish.after` is
+    the escape hatch for an order that is real but not expressed as a shared cell, which is what
+    the Falls needs: its notch is the plug, and it has to be cut last.
+    """
+    fin = cfg.get("finish") or {}
+    out = []
+    for q in fin.get("defer_to") or []:
+        base = os.path.basename(str(q))
+        for ext in (".litematic", ".scan.json"):
+            if base.endswith(ext):
+                base = base[: -len(ext)]
+        if base and base not in out:
+            out.append(base)
+    for q in fin.get("after") or []:
+        if q not in out:
+            out.append(str(q))
+    return out
+
+
 def _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, verbose):
     lock = cfg.get("origin_lock", _profile().get("origin_lock"))
     if world_origin is not None and lock and cfg.get("origin_lock") is not False:
@@ -212,7 +240,8 @@ def _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, 
         sx, sy, sz = m.shape_xyz
         side_path = scan_mod.save_pair(out_path, m, {
             "origin": {"x": world_origin[0], "y": world_origin[1], "z": world_origin[2]},
-            "size": {"x": sx, "y": sy, "z": sz}, "generated_by": cfg.get("gen"), **gen_meta}, name=name)
+            "size": {"x": sx, "y": sy, "z": sz}, "generated_by": cfg.get("gen"),
+            **({"after": _after(cfg)} if _after(cfg) else {}), **gen_meta}, name=name)
         from . import work as work_mod
         work_path = work_mod.write(out_path, m, world_origin, name, gen_meta.get("dig", []))
         if verbose:

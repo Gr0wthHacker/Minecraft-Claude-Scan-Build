@@ -47,6 +47,57 @@ public final class ChunkScanClient implements ClientModInitializer {
 	/** A fill name becomes a filename, so it may not contain a path separator or `..`. */
 	private static final java.util.regex.Pattern FILL_NAME = java.util.regex.Pattern.compile("[A-Za-z0-9 _.-]{1,48}");
 
+	/**
+	 * Every word the command tree already means. Typing one of these where a SCAN NAME is expected
+	 * is a typo, not an instruction.
+	 *
+	 * <p>The bare `/cscan &lt;name&gt;` scan form is the last alternative in the tree, so anything
+	 * Brigadier does not recognise as a subcommand falls through to it and runs a full world scan
+	 * under that word. The live folder proved it: `clear`, `off`, `on`, `wand`, `islan` and
+	 * `AtelierCourt` were all sitting there as multi-hundred-kilobyte island captures, and
+	 * `Designs.list` offered every one of them as a design.
+	 *
+	 * <p>This is a SUPERSET of the current literals on purpose — it holds words that are not
+	 * commands today (`scan`, `undo`, `progress`, `help`, `list`, `status`) because the failure is
+	 * someone reaching for a command that does not exist yet, which is exactly how `islan` and
+	 * `clear` got here. `MenuTest` keeps the real literals inside it.
+	 */
+	static final java.util.Set<String> RESERVED = java.util.Set.of(
+		"all", "around", "auto", "autofly", "bom", "check", "chests", "chunks", "clear", "clips",
+		"copy", "dark", "dig", "done", "fetch", "fill", "find", "follow", "goto", "help", "hud",
+		"ignore", "label", "list", "mark", "marks", "mat", "move", "need", "next", "off", "on",
+		"paste", "place", "plan", "progress", "prune", "replace", "reset", "scaffold", "scan",
+		"sel", "speed", "stack", "status", "stop", "take", "tidy", "undo", "undos", "unmark",
+		"wand", "why");
+
+	/**
+	 * A design or clip name that is about to become a FILE PATH.
+	 *
+	 * <p>`schematicsDir.resolve(name + ".litematic")` on `../../x` walks straight out of the
+	 * schematics folder. The write paths (`fill`, `copy`) were validated when the wand was audited;
+	 * the fourteen READ paths were not, so `/cscan paste ../../../x` would load a schematic from
+	 * anywhere on disk. Lower severity than a write and the same one-line fix, so it is one helper
+	 * used by all of them rather than a pattern copied sixteen times.
+	 *
+	 * @return null when the name is fine, else the message to show
+	 */
+	static String badName(String name) {
+		if (name == null || name.isBlank()) return "name is empty";
+		String n = name.trim();
+		if (n.contains("/") || n.contains("\\")) return "name may not contain a path separator";
+		if (n.equals(".") || n.equals("..") || n.contains("..")) return "name may not contain \"..\"";
+		if (n.length() > 96) return "name is too long";
+		return null;
+	}
+
+	/** Validate, or report and return false. */
+	private static boolean nameOk(FabricClientCommandSource src, String name) {
+		String bad = badName(name);
+		if (bad == null) return true;
+		src.sendError(Component.literal("[cscan] " + bad));
+		return false;
+	}
+
 	@Override
 	public void onInitializeClient() {
 		ContainerWatcher.register();
@@ -57,6 +108,20 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Menu.register();
 		Screens.register();
 		Autopilot.register();
+		Ignored.register();
+		// EVERY PIECE OF COORDINATE STATE GOES ON DISCONNECT. `Wand` has always done this and stated
+		// the rule - "a selection is a pair of coordinates and coordinates mean nothing without a
+		// world" - and nothing else obeyed it. A strike list, a chest cooling off at a position, an
+		// arrow pointing at a block: reconnect somewhere else and all three are numbers from the
+		// last server aimed at this one. The loop's INTENT is restored from disk by Hud.resume just
+		// below, which is the part that should survive; the positions are not.
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
+			(handler, client) -> {
+				Withdraw.cancel();
+				Withdraw.clearFailures();
+				Hud.stopGuiding();
+				Autopilot.forget();
+			});
 		// RESUME. The loop's whole point is running while you are not watching, and a dropped
 		// connection at three in the morning otherwise ends it silently. Hud.resume holds off for a
 		// few seconds first: on the tick you join most of the world is unloaded, and Nav counts
@@ -241,6 +306,11 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(argument("radius", IntegerArgumentType.integer(1, 64))
 						.executes(ChunkScanClient::around)))
 				.then(literal("clips").executes(ChunkScanClient::clips))
+				.then(literal("undos").executes(ChunkScanClient::undos))
+				.then(literal("undo")
+					.then(argument("name", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::undo)))
+				.then(literal("progress").executes(ChunkScanClient::progress))
 				.then(literal("ignore")
 					.executes(ctx -> {
 						// Seeing the red is half of it; being able to take it back is the other.
@@ -292,9 +362,16 @@ public final class ChunkScanClient implements ClientModInitializer {
 						.executes(ChunkScanClient::selection)))
 				.then(literal("chunks")
 					.then(argument("name", StringArgumentType.word())
-						.executes(ctx -> run(ctx, DEFAULT_RADIUS, true))
+						.executes(ctx -> run(ctx, DEFAULT_RADIUS, true, true))
 						.then(argument("radius", IntegerArgumentType.integer(0, MAX_RADIUS))
-							.executes(ctx -> run(ctx, IntegerArgumentType.getInteger(ctx, "radius"), true)))))
+							.executes(ctx -> run(ctx, IntegerArgumentType.getInteger(ctx, "radius"), true, true)))))
+				// The explicit spelling. `/cscan island` still works and is what everyone types;
+				// this is how you say a scan name that collides with a command word on purpose.
+				.then(literal("scan")
+					.then(argument("name", StringArgumentType.word())
+						.executes(ctx -> run(ctx, DEFAULT_RADIUS, false, true))
+						.then(argument("radius", IntegerArgumentType.integer(0, MAX_RADIUS))
+							.executes(ctx -> run(ctx, IntegerArgumentType.getInteger(ctx, "radius"), false, true)))))
 				.then(argument("name", StringArgumentType.word())
 					.executes(ctx -> run(ctx, DEFAULT_RADIUS, false))
 					.then(argument("radius", IntegerArgumentType.integer(0, MAX_RADIUS))
@@ -303,6 +380,17 @@ public final class ChunkScanClient implements ClientModInitializer {
 	}
 
 	// ---------------------------------------------------------------- helpers
+
+	/**
+	 * " — and 41 still to break" for a design with a dig list outstanding, else "".
+	 *
+	 * <p>Five commands said "is complete in every loaded chunk" on an empty placement list alone.
+	 * On `Falls` that sentence was 42% true: 30 blocks placed, 41 cells of rock still standing.
+	 */
+	private static String digNote(Work.Split sp) {
+		int d = sp.digLeft();
+		return d == 0 ? "" : " — but " + d + " cell(s) still to BREAK: /cscan dig " + sp.name();
+	}
 
 	private static Path dir(FabricClientCommandSource src) {
 		return ScanRunner.schematicsDir(src.getClient());
@@ -674,7 +762,8 @@ public final class ChunkScanClient implements ClientModInitializer {
 			Minecraft mc = src.getClient();
 			BlockPos me = mc.player.blockPosition();
 			Work.Split sp = Work.split(mc.level, dir(src), name, me, 0);
-			if (sp.todo().isEmpty()) { ok(src, sp.name() + " is complete in every loaded chunk"); return 1; }
+			if (sp.todo().isEmpty()) { ok(src, sp.name() + " has nothing left to place in a loaded chunk"
+				+ digNote(sp)); return 1; }
 			Map<String, Integer> carrying = Work.carrying(mc.player);
 			Map<String, Storage.Container> index = Storage.load(dir(src));
 
@@ -736,7 +825,8 @@ public final class ChunkScanClient implements ClientModInitializer {
 			Minecraft mc = src.getClient();
 			BlockPos me = mc.player.blockPosition();
 			Work.Split sp = Work.split(mc.level, dir(src), name, me, 0);
-			if (sp.todo().isEmpty()) { ok(src, sp.name() + " is complete in every loaded chunk"); return 1; }
+			if (sp.todo().isEmpty()) { ok(src, sp.name() + " has nothing left to place in a loaded chunk"
+				+ digNote(sp)); return 1; }
 			Map<String, Integer> carrying = Work.carrying(mc.player);
 			Map<String, Storage.Container> index = Storage.load(dir(src));
 			java.util.Set<Long> blocked = new java.util.HashSet<>();
@@ -972,7 +1062,8 @@ public final class ChunkScanClient implements ClientModInitializer {
 			Minecraft mc = src.getClient();
 			// radius 0 = the WHOLE design, not what is in reach: `need` already answers the other one.
 			Work.Split sp = Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
-			if (sp.todo().isEmpty()) { ok(src, sp.name() + " is complete in every loaded chunk"); return 1; }
+			if (sp.todo().isEmpty()) { ok(src, sp.name() + " has nothing left to place in a loaded chunk"
+				+ digNote(sp)); return 1; }
 			Map<String, Integer> want = Work.tally(sp.todo());
 			Map<String, Integer> have = Work.carrying(mc.player);
 			int stacks = 0;
@@ -1029,6 +1120,112 @@ public final class ChunkScanClient implements ClientModInitializer {
 		ok(src, "selection set to " + (2 * r + 1) + "\u00b3 around " + Wand.fmt(c)
 			+ " — /cscan fill sphere|ball|dome|cylinder|tube|disc|ring <name>");
 		return 1;
+	}
+
+	/**
+	 * Put back what a fill covered.
+	 *
+	 * <p>Every fill already writes `_undo <name>` and `UndoAndStorageTest` asserts both of its
+	 * halves — the blocks it covered, and the cells it filled from AIR, which go in the sidecar's
+	 * `dig` list because a litematic cannot express removal. The whole mechanism was built, tested
+	 * and then had no front door: `Designs.list` deliberately hides `_undo ` so a bare
+	 * `/cscan place` never sweeps one up, and nothing else ever offered one. This is the door.
+	 *
+	 * <p>BOTH HALVES OR IT HALF-WORKS, which is worse than not working because you would believe
+	 * it. Re-placing restores every covered block; the dig list is the rest, and it is highlighted
+	 * and counted here rather than left for someone to remember.
+	 */
+	private static int undo(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String name = StringArgumentType.getString(ctx, "name").trim();
+		if (!nameOk(src, name)) return 0;
+		if (!Litematica.present()) {
+			src.sendError(Component.literal("[cscan] Litematica is not loaded"));
+			return 0;
+		}
+		String design = UNDO_PREFIX + name;
+		try {
+			Path lit = dir(src).resolve(design + ".litematic");
+			if (!java.nio.file.Files.exists(lit)) {
+				src.sendError(Component.literal("[cscan] no undo for \"" + name + "\" — /cscan undos"));
+				return 0;
+			}
+			Designs.Design d = Designs.load(dir(src), design);
+			Litematica.place(lit, d.origin(), design);
+			String dug = "";
+			if (!d.dig().isEmpty()) {
+				Highlight.show("dig", d.dig(), 0xFF4040, 120);
+				dug = "  " + d.dig().size() + " cell(s) the fill created are marked RED to break —"
+					+ " re-placing alone leaves those standing.";
+			}
+			ok(src, "undo for " + name + " placed at " + Wand.fmt(d.origin()) + "." + dug);
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/** What undos are on the shelf. `clips` for clips; these are hidden from `place` for good reason. */
+	private static int undos(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		try (var st = java.nio.file.Files.list(dir(src))) {
+			List<String> names = new ArrayList<>();
+			st.map(p -> p.getFileName().toString())
+				.filter(n -> n.startsWith(UNDO_PREFIX) && n.endsWith(".litematic"))
+				.forEach(n -> names.add(n.substring(UNDO_PREFIX.length(), n.length() - ".litematic".length())));
+			names.sort(String::compareToIgnoreCase);
+			if (names.isEmpty()) ok(src, "no undos — every fill writes one, so this fills up as you use the wand");
+			else ok(src, names.size() + " undo(s): " + String.join(", ", names));
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/**
+	 * Every tracked design, how far along it is, and what is left — placements AND dig.
+	 *
+	 * <p>`python -m mcbuild progress` has always answered this and only offline. `/cscan why`
+	 * answers it for the one design the loop is on. Neither tells you, standing in the world, which
+	 * of the tracked designs is nearly done.
+	 *
+	 * <p>Reported in BUILD ORDER rather than alphabetically, so the list reads as a plan.
+	 */
+	private static int progress(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		if (mc.level == null || mc.player == null) { src.sendError(Component.literal("[cscan] no world")); return 0; }
+		try {
+			List<String> names = Designs.tracked(dir(src));
+			if (names == null || names.isEmpty()) {
+				ok(src, names == null
+					? "nothing tracked — run `python -m mcbuild sync` to write designs.json"
+					: "designs.json tracks nothing. Add designs to sync.yaml's progress: list.");
+				return 1;
+			}
+			names = Designs.inBuildOrder(dir(src), names);
+			int totalLeft = 0, totalDig = 0;
+			for (String n : names) {
+				try {
+					Work.Split sp = Work.split(mc.level, dir(src), n, mc.player.blockPosition(), 0);
+					int pct = sp.total() == 0 ? 100 : Math.round(100f * sp.built() / sp.total());
+					totalLeft += sp.todo().size();
+					totalDig += sp.digLeft();
+					ok(src, String.format("%-22s %3d%%  %5d left  %4d dig  %4d unseen%s",
+						n, pct, sp.todo().size(), sp.digLeft(), sp.unseen(),
+						sp.complete() ? "  DONE" : ""));
+				} catch (Exception bad) {
+					ok(src, String.format("%-22s  --   %s", n, bad.getMessage()));
+				}
+			}
+			ok(src, "total: " + totalLeft + " to place, " + totalDig + " to break");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
 	}
 
 	private static int clips(CommandContext<FabricClientCommandSource> ctx) {
@@ -1387,7 +1584,8 @@ public final class ChunkScanClient implements ClientModInitializer {
 			Minecraft mc = src.getClient();
 			BlockPos me = mc.player.blockPosition();
 			Work.Split sp = Work.split(mc.level, dir(src), name, me, 0);
-			if (sp.todo().isEmpty()) { ok(src, sp.name() + " is complete in every loaded chunk"); return 1; }
+			if (sp.todo().isEmpty()) { ok(src, sp.name() + " has nothing left to place in a loaded chunk"
+				+ digNote(sp)); return 1; }
 			List<Work.Cell> take = sp.todo().subList(0, Math.min(n, sp.todo().size()));
 			Highlight.show("next", Work.positions(take, n), 0x40FF60, 180);
 			Work.Cell first = take.get(0);
@@ -1617,8 +1815,27 @@ public final class ChunkScanClient implements ClientModInitializer {
 	}
 
 	private static int run(CommandContext<FabricClientCommandSource> ctx, int radius, boolean chunkAligned) {
+		return run(ctx, radius, chunkAligned, false);
+	}
+
+	/**
+	 * Scan the world into `<name>.litematic`.
+	 *
+	 * <p>`explicit` is true for `/cscan scan <name>`, which means the word really is a scan name.
+	 * The bare `/cscan <name>` form cannot know that: it is the tree's last alternative, so every
+	 * mistyped or not-yet-existing subcommand lands here and used to write a full island capture
+	 * under that word. Six of them were sitting in the live folder.
+	 */
+	private static int run(CommandContext<FabricClientCommandSource> ctx, int radius,
+			boolean chunkAligned, boolean explicit) {
 		String name = StringArgumentType.getString(ctx, "name");
 		FabricClientCommandSource src = ctx.getSource();
+		if (!explicit && RESERVED.contains(name.toLowerCase(java.util.Locale.ROOT))) {
+			src.sendError(Component.literal("[cscan] \"" + name + "\" is a command word, not a scan "
+				+ "name — did you mean a subcommand? To scan under that name anyway: /cscan scan "
+				+ name));
+			return 0;
+		}
 		try {
 			ScanResult result = ScanRunner.scan(src.getClient(), name, radius, chunkAligned);
 			for (String line : result.summaryLines()) {

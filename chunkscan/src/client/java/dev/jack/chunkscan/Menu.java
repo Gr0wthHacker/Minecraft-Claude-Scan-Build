@@ -52,9 +52,14 @@ final class Menu extends Screen {
 				KeyMapping.Category.MISC));
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
 			if (key == null) return;
-			// consumeClick, not isDown: holding the key must open one screen, not sixty.
-			while (key.consumeClick()) {
-				if (mc.level != null) mc.setScreenAndShow(new Menu());
+			// Guarded for the reason Highlight.tick is: a throw out of a tick event is a client
+			// crash, and building the sheet reads the command tree and the live loop state.
+			try {
+				// consumeClick, not isDown: holding the key must open one screen, not sixty.
+				while (key.consumeClick()) {
+					if (mc.level != null) mc.setScreenAndShow(new Menu());
+				}
+			} catch (Exception ignored) {
 			}
 		});
 	}
@@ -76,6 +81,8 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan paste ", "<name> [90|180|270]  place a clip where you look"));
 		r.add(new Row("/cscan stack ", "<clip> <n> <dir> [step]  repeat it along an axis"));
 		r.add(new Row("/cscan clips", "what is on the clipboard"));
+		r.add(new Row("/cscan undo ", "<name>  put back what a fill covered, and mark what it made"));
+		r.add(new Row("/cscan undos", "the undos on the shelf"));
 
 		r.add(new Row(null, "BUILD A DESIGN"));
 		r.add(new Row("/cscan plan ", "<design>  where to stand, given what you carry"));
@@ -92,6 +99,7 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan autofly speed ", "<n>  blocks per tick; 1.0 is a sprint-fly"));
 		r.add(new Row("/cscan follow all", "work every tracked design, one after another"));
 		r.add(new Row("/cscan why", "what the loop is doing, and why it is not moving"));
+		r.add(new Row("/cscan progress", "every tracked design: how far, what is left, what to break"));
 		r.add(new Row("/cscan ignore", "places written off after failing twice, marked red"));
 		r.add(new Row("/cscan stop", "everything off: fetch, fly, follow, highlights, auto-scan"));
 		r.add(new Row("/cscan stop", "PANIC: cancel withdrawal, flight, follow and highlights"));
@@ -109,6 +117,12 @@ final class Menu extends Screen {
 
 		r.add(new Row(null, "SCAN AND PLACE"));
 		r.add(new Row("/cscan island", "scan the loaded chunks to a .litematic"));
+		r.add(new Row("/cscan scan ", "<name>  same, when the name collides with a command word"));
+		r.add(new Row("/cscan chunks ", "<name>  scan snapped to chunk borders"));
+		r.add(new Row("/cscan sel ", "<name>  scan Litematica's current selection"));
+		r.add(new Row("/cscan auto ", "<name> <mins>  rescan on a timer; `auto off` stops"));
+		r.add(new Row("/cscan label ", "<text>  name the container you are looking at"));
+		r.add(new Row("/cscan unmark ", "<label>  forget a marked coordinate"));
 		r.add(new Row("/cscan place ", "<design>  place it in Litematica at its recorded origin"));
 		r.add(new Row("/cscan dig ", "<design>  highlight what has to be broken"));
 		r.add(new Row("/cscan prune", "drop storage entries that are not containers"));

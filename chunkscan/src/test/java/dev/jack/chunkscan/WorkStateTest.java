@@ -122,11 +122,12 @@ class WorkStateTest {
 		// lists — and an empty todo therefore means "nothing left HERE". On a 240-block island that
 		// is routinely most of a design: start `follow all` at the far end and every design reads
 		// complete in turn, in about a second, and the loop congratulates itself and stops.
-		Work.Split seen = new Work.Split("x", java.util.List.of(), java.util.List.of(), 10, 0, null);
+		Work.Split seen = new Work.Split("x", java.util.List.of(), java.util.List.of(), 10, 0, null,
+			java.util.List.of());
 		assertTrue(seen.complete(), "nothing left and nothing hidden is finished");
 
 		Work.Split hidden = new Work.Split("x", java.util.List.of(), java.util.List.of(), 10, 40,
-			new net.minecraft.core.BlockPos(1, 2, 3));
+			new net.minecraft.core.BlockPos(1, 2, 3), java.util.List.of());
 		assertFalse(hidden.complete(), "called a design finished with 40 cells out of view");
 		assertEquals(50, hidden.total(), "the unseen cells are part of the design");
 	}
@@ -136,9 +137,40 @@ class WorkStateTest {
 		// The tempting shortcut - treat unloaded as built - reports a design finished and quietly
 		// leaves it half-standing. It is remaining WORK either way; we just cannot see it yet.
 		Work.Split hidden = new Work.Split("x", java.util.List.of(), java.util.List.of(), 0, 7,
-			new net.minecraft.core.BlockPos(0, 0, 0));
+			new net.minecraft.core.BlockPos(0, 0, 0), java.util.List.of());
 		assertEquals(0, hidden.built());
 		assertEquals(7, hidden.total());
+	}
+
+	@Test
+	void aDigListIsUnfinishedWork() {
+		// `Falls` is 30 blocks to place and 41 cells to break - 58% of the job. A litematic cannot
+		// express removal, so "break this" lives in the sidecar, and nothing in the loop read it:
+		// thirty blocks went down, the design reported COMPLETE, and the channel it exists to cut
+		// was still solid rock.
+		Work.Split placed = new Work.Split("Falls", java.util.List.of(), java.util.List.of(), 30, 0,
+			null, java.util.List.of(new net.minecraft.core.BlockPos(1, 2, 3)));
+		assertFalse(placed.complete(), "a design with rock still standing is not complete");
+		assertEquals(1, placed.digLeft());
+	}
+
+	@Test
+	void theLoopAdvancesOnPlacementBecauseItCannotDig() {
+		// The other half, and the one that would have hung the loop. A client mod cannot break a
+		// block, so if `follow` waited for an empty dig list it would sit on Falls for ever waiting
+		// for something it can never do, and `follow all` would never reach the next design.
+		Work.Split placed = new Work.Split("Falls", java.util.List.of(), java.util.List.of(), 30, 0,
+			null, java.util.List.of(new net.minecraft.core.BlockPos(1, 2, 3)));
+		assertTrue(placed.placementComplete(), "the loop's own work IS done");
+		assertFalse(placed.complete(), "...but the design is not");
+	}
+
+	@Test
+	void withNothingToDigTheTwoQuestionsAgree() {
+		Work.Split done = new Work.Split("x", java.util.List.of(), java.util.List.of(), 5, 0, null,
+			java.util.List.of());
+		assertEquals(done.complete(), done.placementComplete());
+		assertTrue(done.complete());
 	}
 
 	// ------------------------------------------------------------------ ice becomes water

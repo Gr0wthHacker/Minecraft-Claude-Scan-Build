@@ -31,6 +31,11 @@ import java.util.Map;
  * <p>Session-scoped on purpose, and NOT written to disk. Breaking one block can change the answer,
  * and a permanent file would quietly shrink the buildable island over weeks with nothing to say why.
  * `/cscan ignore clear` is the deliberate version, and a relog is the accidental one.
+ *
+ * <p><b>A relog really does clear it now.</b> That sentence sat in this docstring before it was
+ * true: nothing was registered on DISCONNECT, so the list survived a reconnect and carried its
+ * coordinates into whatever world came next. `Wand` already states the rule these keys live under —
+ * <i>coordinates mean nothing without a world</i> — and a strike list is nothing but coordinates.
  */
 final class Ignored {
 	/** How big a "place" is. See the note above about drifting centroids. */
@@ -84,6 +89,12 @@ final class Ignored {
 		int n = 0;
 		for (int v : strikes.values()) if (v >= STRIKES) n++;
 		return n;
+	}
+
+	/** Clear on DISCONNECT: these are coordinates, and coordinates mean nothing without a world. */
+	static void register() {
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
+			(handler, client) -> clear());
 	}
 
 	static void clear() {

@@ -65,15 +65,21 @@ class MenuTest {
 		// Not every literal deserves a row - `on`, `off`, `solid`, `hollow` and the other shape and
 		// modifier words live inside another command's row. But a whole verb going unlisted is the
 		// sheet failing at its one job.
+		//
+		// THIS EXEMPTION LIST IS THE TEST'S WEAK POINT, so it holds only words that genuinely
+		// modify another command. It used to name `chunks`, `sel`, `unmark`, `label` and `auto` -
+		// five real verbs, exempted rather than listed, so the sheet omitted them and this test was
+		// configured not to notice. That is precisely the quiet staleness the sheet exists to
+		// prevent, hidden in the check meant to catch it. Anything added here from now on has to be
+		// a word you would never type first.
 		Set<String> real = registered();
 		Set<String> menu = offered();
 		Set<String> modifiers = Set.of("cscan", "on", "off", "clear", "solid", "hollow", "walls",
 			"outline", "ball", "sphere", "dome", "cylinder", "tube", "disc", "ring", "done",
-			"reset", "next", "chunks", "sel", "unmark", "label", "auto", "copy", "stack", "around",
-			"paste", "clips");
+			"reset", "next", "all", "speed");
 		real.removeAll(modifiers);
 		real.removeAll(menu);
-		assertTrue(real.size() <= 2, "verbs missing from the sheet: " + real);
+		assertTrue(real.isEmpty(), "verbs missing from the sheet: " + real);
 	}
 
 	@Test

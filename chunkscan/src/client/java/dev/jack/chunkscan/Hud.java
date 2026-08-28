@@ -226,10 +226,17 @@ final class Hud {
 			}
 			return;
 		}
-		if (sp.complete()) {
+		if (sp.placementComplete()) {
 			if (target != null) {
+				// THE LOOP CANNOT DIG, so it says what it is handing back rather than calling a
+				// design finished that still has rock standing in it. `Falls` is 30 blocks placed
+				// and 41 cells to break; announcing that as complete is how the channel never
+				// gets cut.
+				String dig = sp.digLeft() == 0 ? ""
+					: "  " + sp.digLeft() + " cell(s) still to BREAK by hand — /cscan dig " + sp.name();
 				mc.player.sendSystemMessage(Component.literal(
-					"[cscan] " + sp.name() + " is complete in every loaded chunk. " + sessionReport()));
+					"[cscan] " + sp.name() + ": nothing left to place in a loaded chunk. "
+						+ sessionReport() + dig));
 			}
 			// ON TO THE NEXT ONE. A loop that finishes the deck floor at 2am and then idles until
 			// morning is half a loop, and `plan` with no argument already ranks work across all the
@@ -753,13 +760,21 @@ final class Hud {
 			java.nio.file.Path dir = ScanRunner.schematicsDir(mc);
 			java.util.List<String> all = Designs.tracked(dir);
 			if (all == null) return null;
+			// IN BUILD ORDER. `follow all` used to walk the tracked list as written, so it could
+			// start a design whose ground another one still owes - mcbuild settles that with
+			// `finish.defer_to` and CLAUDE.md states the sequences in prose, and none of it reached
+			// the mod. A design with no `after` in its sidecar keeps its place, so a folder written
+            // before this existed is ordered exactly as it was.
+			all = Designs.inBuildOrder(dir, all);
 			for (String name : all) {
 				if (name.equals(after)) continue;
 				try {
 					Work.Split sp = Work.split(mc.level, dir, name, mc.player.blockPosition(), 0);
 					// ...including what it cannot see. Otherwise standing at one end of the island
 					// makes every design look finished and the run ends before it starts.
-					if (!sp.complete()) return name;
+					// placementComplete, not complete: a design whose only remainder is a dig list
+					// is not work the loop can do, and choosing it means choosing to stall.
+					if (!sp.placementComplete()) return name;
 				} catch (Exception skip) {
 					// no work.json yet, or it will not parse: not this run's problem
 				}

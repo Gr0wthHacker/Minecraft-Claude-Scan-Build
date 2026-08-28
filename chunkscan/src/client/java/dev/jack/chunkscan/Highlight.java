@@ -73,6 +73,18 @@ final class Highlight {
 	}
 
 	private static void tick(Minecraft mc) {
+		// A THROW OUT OF A TICK EVENT IS A CLIENT CRASH. The pre-upload audit guarded the two ticks
+		// that drive movement and looting on exactly this ground and missed this one, which is the
+		// busiest of the lot - every highlight layer redraws here on every tick, over block lists
+		// the caller supplied. Drawing is never worth taking the client down for.
+		try {
+			draw(mc);
+		} catch (Exception e) {
+			BATCHES.clear();                       // whatever was malformed, stop redrawing it
+		}
+	}
+
+	private static void draw(Minecraft mc) {
 		if (mc.level == null || mc.player == null || BATCHES.isEmpty()) return;
 		long now = System.currentTimeMillis();
 		BATCHES.removeIf(b -> b.until() < now);

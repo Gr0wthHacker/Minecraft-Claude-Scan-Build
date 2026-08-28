@@ -42,7 +42,8 @@ params:
   # solved against a world that already has the Falls cut, the Thicket planted and the
   # Enrichment hung and the Run's 77 pads placed. Stairs and dripstone are not passable so
   # both move the classifier; the Run adds 550 walkable cells and needs NO extra fixture,
-  # because every pad carries a froglight of its own:
+  # because every landing on the Run IS a froglight - which it has to be, since when the
+  # night pass solved those ledges instead it put 14 lanterns in the cells you must land on:
   # pointed dripstone is not passable, so a stalagmite can move the surface classifier
   froglights:
     - [-24247, 202, 30027]
@@ -58,20 +59,19 @@ params:
     - [-24202, 41, 30034]
     - [-24202, 202, 29961]
     - [-24198, 202, 29961]
-    - [-24196, 37, 29953]
+    - [-24196, 37, 29951]
     - [-24196, 96, 29979]
     - [-24195, 97, 29983]
     - [-24192, 202, 29966]
     - [-24192, 202, 29967]
     - [-24183, 40, 29983]
+    - [-24178, 44, 30017]
     - [-24178, 151, 29972]
     - [-24178, 151, 29973]
     - [-24178, 151, 29976]
     - [-24178, 151, 29978]
-    - [-24176, 44, 30022]
     - [-24175, 205, 29998]
     - [-24173, 40, 29994]
-    - [-24173, 41, 29999]
     - [-24169, 40, 29987]
     - [-24165, 45, 30006]
     - [-24159, 193, 29983]
@@ -97,12 +97,12 @@ params:
     - [-24183, 33, 29973]
     - [-24183, 40, 30034]
     - [-24178, 34, 30013]
-    - [-24177, 42, 30036]
+    - [-24175, 42, 30036]
     - [-24173, 37, 30024]
-    - [-24172, 66, 30031]
+    - [-24171, 67, 30030]
     - [-24171, 68, 30028]
     - [-24169, 39, 30025]
-    - [-24166, 40, 30025]
+    - [-24160, 43, 30027]
     - [-24158, 44, 30026]
   lanterns:
     - [-24244, 198, 30026]
@@ -135,7 +135,6 @@ params:
     - [-24219, 112, 29978]
     - [-24203, 212, 29996]
     - [-24192, 121, 30043]
-    - [-24189, 117, 30042]
     - [-24189, 127, 30044]
     - [-24188, 183, 29965]
     - [-24183, 118, 30042]

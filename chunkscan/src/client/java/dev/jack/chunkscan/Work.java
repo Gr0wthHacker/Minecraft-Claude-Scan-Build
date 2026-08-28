@@ -58,16 +58,55 @@ final class Work {
 	 * @param nearestUnseen a cell in an unloaded chunk to go and look at, or null
 	 */
 	record Split(String name, List<Cell> todo, List<Cell> wrong, int built, int unseen,
-	             BlockPos nearestUnseen) {
+	             BlockPos nearestUnseen, List<BlockPos> dig) {
 		int total() { return todo.size() + wrong.size() + built + unseen; }
 
-		/** Nothing left to place, and nothing hiding in a chunk we do not have. */
-		boolean complete() { return todo.isEmpty() && unseen == 0; }
+		/**
+		 * Nothing left to place, nothing hiding in a chunk we do not have, AND nothing left to break.
+		 *
+		 * <p><b>The dig list is work.</b> It was not counted here until it was measured: `Falls` is
+		 * 30 blocks to place and 41 cells to break — 58% of the job — and `Island Night` is 22% dig.
+		 * A litematic cannot express removal, so "break this" lives in the sidecar and nothing in
+		 * the loop ever read it. The loop would place thirty blocks, report the design COMPLETE, and
+		 * leave the channel it exists to cut standing in solid rock.
+		 *
+		 * <p>`/cscan dig` has always been able to SHOW the list. Showing is not the same as knowing:
+		 * the number that ends a session has to include it.
+		 */
+		boolean complete() { return todo.isEmpty() && unseen == 0 && dig.isEmpty(); }
+
+		/**
+		 * Everything the LOOP can finish: placements only.
+		 *
+		 * <p>Kept separate from {@link #complete()} on purpose, and the distinction is load-bearing.
+		 * A client mod cannot break a block — the printer places, and digging is Jack with a
+		 * pickaxe. So if the loop's own advance condition demanded an empty dig list it would sit on
+		 * `Falls` for ever, never able to satisfy the thing it was waiting for, and `follow all`
+		 * would never reach the next design. That is the "a thing that does nothing, quietly"
+		 * failure this project keeps writing rules about.
+		 *
+		 * <p>So: the loop advances on THIS, and reports {@link #digLeft()} as it goes. The design is
+		 * not finished; the loop's part of it is.
+		 */
+		boolean placementComplete() { return todo.isEmpty() && unseen == 0; }
+
+		/** Cells still to break, for the report and the highlight. */
+		int digLeft() { return dig.size(); }
 	}
 
 	private Work() {}
 
+	/**
+	 * Where a design's work list lives.
+	 *
+	 * <p>THE NAME BECOMES A PATH, so it is validated HERE rather than at the fourteen commands that
+	 * pass one in. `resolve("../../x")` walks straight out of the schematics folder; the two write
+	 * paths were checked when the wand was audited and the read paths never were. One gate at the
+	 * point of conversion cannot be forgotten by the next command that wants a design name.
+	 */
 	static Path file(Path schematicsDir, String name) {
+		String bad = ChunkScanClient.badName(name);
+		if (bad != null) throw new IllegalArgumentException(bad);
 		return schematicsDir.resolve(name + ".work.json");
 	}
 
@@ -92,6 +131,27 @@ final class Work {
 	 * reporting "not built" for terrain you cannot see would send you to build something that is
 	 * already there.
 	 */
+	/**
+	 * The design's dig cells that are STILL SOLID — what is genuinely left to break.
+	 *
+	 * <p>Like `todo`, this is remaining work rather than the original list: a cell already broken is
+	 * done, and re-reporting it would make a finished dig look permanently outstanding. Cells in
+	 * unloaded chunks are skipped for the same reason `split` skips them — claiming a cell needs
+	 * breaking when you cannot see it sends you across the island to look at air.
+	 */
+	static List<BlockPos> digLeft(Level level, Path schematicsDir, String name) {
+		List<BlockPos> out = new ArrayList<>();
+		try {
+			for (BlockPos p : Designs.load(schematicsDir, name).dig()) {
+				if (!level.isLoaded(p)) continue;
+				if (!level.getBlockState(p).isAir()) out.add(p);
+			}
+		} catch (Exception ignored) {
+			// No sidecar, or not a design: no dig list. `split` still answers about placement.
+		}
+		return out;
+	}
+
 	static Split split(Level level, Path schematicsDir, String name, BlockPos near, int radius) throws IOException {
 		List<Cell> todo = new ArrayList<>(), wrong = new ArrayList<>();
 		int built = 0;
@@ -122,7 +182,14 @@ final class Work {
 			if (dy != 0) return dy;
 			return Double.compare(a.pos().distSqr(near), b.pos().distSqr(near));
 		});
-		return new Split(name, todo, wrong, built, unseen, nearestUnseen);
+		// Scoped by the same radius as the placements, so `need`/`next` stay about what is in reach
+		// while `bom`/`follow` (radius 0) see the whole design.
+		List<BlockPos> dig = new ArrayList<>();
+		for (BlockPos d : digLeft(level, schematicsDir, name)) {
+			if (radius > 0 && d.distSqr(near) > r2) continue;
+			dig.add(d);
+		}
+		return new Split(name, todo, wrong, built, unseen, nearestUnseen, dig);
 	}
 
 	private static boolean isReplaceable(BlockState st) {
