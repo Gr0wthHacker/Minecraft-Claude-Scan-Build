@@ -68,7 +68,11 @@ lion:
   build: {mane_volume: 3.0, head_r_ratio: 0.46}
   coat:
     coat_pattern: shaded
-    coat_ramp: [spruce_planks, stripped_spruce_wood, acacia_log, oak_log, stripped_oak_log]
+    # REBUILT 2026-08-27 by `tools/ladder.py --audit`. The hand-written ramp was OUT OF ORDER (89,93,98,88,147) with four rungs inside ten luminance.
+    # Rungs are now ordered dark->light and no two are closer than 15 luminance, which is
+    # where `coat.shade` stops shading and starts painting one colour.
+    # Three rungs, not five: the oak browns cannot supply five tones 15 apart at any setting.
+    coat_ramp: [dark_oak_wood, oak_log, oak_planks]
     shade_strength: 1.1
     coat_block: oak_log
     patch: oak_log
@@ -89,7 +93,10 @@ bear:
   build: {head_turn: 1}
   coat:
     coat_pattern: shaded
-    coat_ramp: [dark_oak_planks, stripped_dark_oak_wood, mangrove_wood, spruce_planks, acacia_log]
+    # REBUILT 2026-08-27 by `tools/ladder.py --audit`. The hand-written ramp was ordered but flat - minimum step 8.8.
+    # Rungs are now ordered dark->light and no two are closer than 15 luminance, which is
+    # where `coat.shade` stops shading and starts painting one colour.
+    coat_ramp: [dark_oak_wood, mangrove_wood, stripped_spruce_log, oak_planks]
     shade_strength: 1.1
     coat_block: mangrove_wood
     patch: mangrove_wood
@@ -120,7 +127,13 @@ polar_bear:
     coat_pattern: shaded
     # a NARROW ramp. Spanning tan to white made the shading paint the back snow and the
     # legs oak, so it read as two different animals joined together.
-    coat_ramp: [bone_block, bone_block, birch_wood, white_wool, snow_block]
+    # REBUILT 2026-08-27 by `tools/ladder.py --audit`. The hand-written ramp was `bone_block` TWICE and out of order (225,225,215,236,253).
+    # Rungs are now ordered dark->light and no two are closer than 15 luminance, which is
+    # where `coat.shade` stops shading and starts painting one colour.
+    # The narrow-ramp note above still holds and is why this stops at andesite rather than
+    # reaching for deepslate: a white animal must go down into grey to shade at all, but not
+    # so far that the legs read as a different animal.
+    coat_ramp: [andesite, smooth_stone, bone_block, snow_block]
     shade_strength: 1.2                  # a white animal lives or dies on its shading
     coat_block: bone_block
     patch: bone_block
@@ -136,7 +149,11 @@ elephant:
   build: {head_turn: 1}
   coat:
     coat_pattern: shaded
-    coat_ramp: [deepslate, tuff, stone, andesite, smooth_stone]
+    # REBUILT 2026-08-27 by `tools/ladder.py --audit`. The hand-written ramp was one rung pair 10.1 apart - the least bad of the five, and the elephant is the only
+    # animal that passes both panels.
+    # Rungs are now ordered dark->light and no two are closer than 15 luminance, which is
+    # where `coat.shade` stops shading and starts painting one colour.
+    coat_ramp: [deepslate, tuff, stone, light_gray_wool, smooth_stone]
     shade_strength: 1.15
     coat_block: stone
     patch: stone
@@ -153,7 +170,14 @@ capybara:
   build: {head_turn: 1}
   coat:
     coat_pattern: shaded
-    coat_ramp: [spruce_planks, stripped_spruce_wood, acacia_log, jungle_log, stripped_jungle_log]
+    # REBUILT 2026-08-27 by `tools/ladder.py --audit`. The hand-written ramp was OUT OF ORDER (89,93,98,69,138).
+    # Rungs are now ordered dark->light and no two are closer than 15 luminance, which is
+    # where `coat.shade` stops shading and starts painting one colour.
+    # A WASH on the rubric (form 0.80 -> 0.68, total 0.84 -> 0.83) and taken anyway: the old
+    # ramp painted the crevice tone onto lit cells, and its apparent advantage was an accident
+    # - the muddle produced speckle that `form`'s tonal-range term liked. Sorting it alone,
+    # which fixes nothing else, scores 0.63. A capybara's identity is hardware anyway.
+    coat_ramp: [spruce_log, jungle_log, stripped_spruce_log, oak_planks]
     shade_strength: 1.1
     coat_block: jungle_log
     patch: jungle_log
