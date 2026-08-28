@@ -42,7 +42,7 @@ progress:
   - out/Island Enrichment.litematic # 416 stairs and sills: the detail our buildings lacked
   - out/Island Run.litematic      # 97 moves: a parkour descent, 2 turns, 13 slime jump pads
   - out/Island Night.litematic    # 107 fixtures + 31 dig: zero spawnable surface cells
-  - out/Lowland Frog.litematic    # 883 blocks: the churchyard frog, east of the sanctum. It
+  - out/Lowland Frog.litematic    # 1029 blocks: the churchyard frog, east of the sanctum. It
                                   # defers to the Thicket, so the plants go in first; it carries
                                   # its own six froglights, because the night pass's classifier
                                   # cannot see anything in a lot that has island overhead

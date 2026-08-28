@@ -62,6 +62,7 @@ FROG = {
     "pupil": "black_wool",
     "lamp": "ochre_froglight",
     "glow": 3,                 # froglights worked into the back; 0 turns them off
+    "eye_gold": False,         # the mob's gold rim is SUB-BLOCK at this size - see the eyes
 }
 
 
@@ -174,7 +175,11 @@ def build_frog(cfg: dict, donors=None) -> Canvas:
     # rectangle 17x15 and the animal read as a brick from above - which is the view this medium
     # gives away free, so it is the one that must not be a box. Narrow head, narrower body,
     # wide haunches, and the eyes and the feet standing outside the head's own width.
-    hw = _f(0.32, W)                           # head half-width
+    # THE HEAD IS THE WIDEST THING ON THE ANIMAL. Measured off the mob: its skull is wider
+    # than the body behind it, and the eyes sit on top of that width. Built at 0.32 of W the
+    # head was narrower than the haunches, so the widest part of the frog was its backside and
+    # the front tapered away - which is a rodent.
+    hw = _f(0.46, W)                           # head half-width
     bw = _f(0.24, W)                           # body half-width
     qw = _f(0.50, W)                           # haunch outer offset - the animal's widest
     chin = _f(0.25, H)                         # the head's underside: air below it
@@ -232,43 +237,58 @@ def build_frog(cfg: dict, donors=None) -> Canvas:
     #    between them and under the chin is what makes the head read as a separate part
     arm_u = _f(0.26, L)
     for s in (1, -1):
-        box(arm_u, arm_u + 1, s * (hw - 1), s * hw, 0, chin - 1, p["back"], "forelegs")
+        # THE ARM IS UNDER THE SHOULDER, NOT AT THE HEAD'S EDGE. Once the head grew to the
+        # animal's full width its edge IS where the hind feet are, so every arm cell found the
+        # ground course taken and `forelegs: 0` shipped for the second time - which is the one
+        # failure this build has now made twice, and the reason the count is a test.
+        aw = max(2, hw - 2)
+        box(arm_u, arm_u + 1, s * (aw - 1), s * aw, 0, chin - 1, p["back"], "forelegs")
         # THE HAND IS A SPLAYED PAD WITH GAPS, reaching forward to the line of the snout: on
         # the reference house and the voxel frog the front feet are the detail that says
         # ANIMAL rather than ornament, and they are visible from the front, under the chin,
         # and in plan poking past the face. They stay INBOARD of the hind feet - out at the
         # animal's own widest there is no room, and the nose is 3 blocks off a church wall
         for u in range(0, arm_u):
-            put(u, s * (hw - 1), 0, p["back"], "toes")           # the middle toe, longest
+            put(u, s * (aw - 1), 0, p["back"], "toes")           # the middle toe, longest
         for u in range(1, arm_u):
-            put(u, s * (hw - 2), 0, p["back"], "toes")           # the inner toe - at hw-3 it
+            put(u, s * (aw - 2), 0, p["back"], "toes")           # the inner toe - at aw-3 it
                                                                  # had no neighbour and both
                                                                  # hands shipped as strays
         for u in range(1, arm_u - 1):
-            put(u, s * hw, 0, p["back"], "toes")                 # the outer toe, shortest
-        put(arm_u, s * (hw - 2), 0, p["back"], "toes")           # the web behind them
+            put(u, s * aw, 0, p["back"], "toes")                 # the outer toe, shortest
+        put(arm_u, s * (aw - 2), 0, p["back"], "toes")           # the web behind them
 
     # 6. THE EYES - the feature that names the animal. Domes on TOP of the skull at its back
     #    corners, protruding above the head line AND past its sides: on the mob they bulge off
     #    the outline in every view, and a bulge inside the outline is a patch, not an eye
-    eu = _f(0.16, L)
+    #    Jack, on the three-course gold dome: "too obnoxious, and they feel weird." Both were
+    #    true and they had different causes.
+    #
+    #    OBNOXIOUS: A SUB-BLOCK DETAIL MUST BE DROPPED, NOT ROUNDED UP TO A BLOCK. The gold came
+    #    from the mob, where the eye is a dark ball with a bright ring - and that ring is ONE
+    #    PIXEL of a sixteen-pixel face. This animal is about one mob long, so the ring is a
+    #    sixteenth of a block; rounding it up multiplies its weight by sixteen, and it stopped
+    #    being a rim and became a yellow shelf. The house's eye is a plain dark band and the
+    #    outside voxel frog's are bumps in the body's own colour - neither has any gold at all.
+    #
+    #    WEIRD: IT HUNG OFF THE SKULL ON A BRACKET. Reaching from the head's edge to two cells
+    #    past it, two thirds of its base stood in open air. On the mob the bulge is ATTACHED.
+    #
+    #    And set BACK: at 0.16 of the length the front row sat over the head box's own chamfered
+    #    corner, so part of the base rested on holes. 0.22 is solid skull, and it is where the
+    #    mob's eyes are - on the crown, not over the snout.
+    eu = _f(0.22, L)
+    # with the gold off the lower course is the MID tone, not the coat: left as the coat only
+    # the cap read, and two small dark plusses on the corners of a skull are ears
+    rim = p["iris"] if p.get("eye_gold", False) else p["mark"]
     for s in (1, -1):
-        # THE RIM IS BRIGHT, THE EYEBALL IS DARK. Built gold-dominant with one black cell on
-        # top, it read as two gold cubes on the corners of a box; on the mob and on the house
-        # the eye is DARK, and the gold is a ring around it. Same cells, opposite emphasis.
         for du in range(-1, 2):
-            for dv in (0, 1, 2):
-                put(eu + du, s * (hw + dv), H + 1, p["iris"], "eyes")
-        # ...and the pupil is a raised CENTRE, not a plus. A five-cell cross on top of the
-        # ring covers the ring's whole middle row and column, and in plan - the view this
-        # medium gives away free - the eye came out as a black crosshair on a gold square
-        # ...and the eye is a DOME, not a pad. Two courses read as a gold plate on the corner
-        # of the skull from every bearing but head-on; three give it a top, which is what the
-        # mob has and what the 3-D orbit sheet said was missing at 45, 135 and 225.
-        for du, dv in ((0, 0), (0, 1), (0, 2), (-1, 1), (1, 1)):
-            put(eu + du, s * (hw + dv), H + 2, p["iris"], "eyes")
-        put(eu, s * (hw + 1), H + 3, p["pupil"], "eyes")   # ONE cell: two of them make a bar
-                                                           # across the ring, not a pupil in it
+            for dv in (-1, 0, 1):
+                put(eu + du, s * (hw + dv), H + 1, rim, "eyes")
+        for du in range(-1, 2):
+            for dv in (-1, 0, 1):
+                if abs(du) + abs(dv) < 2:
+                    put(eu + du, s * (hw + dv), H + 2, p["pupil"], "eyes")
 
     # 7. THE FACE - a wide mouth line right across the front, a pale throat under it, and
     #    nostrils. The mouth is a LINE, never scattered cells: the deck soffit's rule

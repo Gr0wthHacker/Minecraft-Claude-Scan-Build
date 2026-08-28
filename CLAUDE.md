@@ -4558,7 +4558,7 @@ or overrun the sides.
 
 ## The churchyard frog (2026-08-28) - and BOXES, not a lofted mass
 
-`configs/lowland_frog.yaml`, `mcbuild/gen/frog.py` - **883 blocks, one piece, 0 problems, 0
+`configs/lowland_frog.yaml`, `mcbuild/gen/frog.py` - **1,029 blocks, one piece, 0 problems, 0
 overlap in context, all cheap.** Jack: *"build a frog, put it opposite end from axo, on the far
 empty lot left of the church"*.
 
@@ -4740,8 +4740,52 @@ Four more things the 3-D views decided, none of which any flat render could have
   its shape, and the lot is what it is: a 22-block frog does not fit the flat ground east of the
   church at roll <= 1.
 
-**883 blocks, one piece, 0 problems, 0 overlap, all cheap.** The working loop is now generate →
+**1,029 blocks, one piece, 0 problems, 0 overlap, all cheap.** The working loop is now generate →
 `look.py --sheet orbit` → change one thing → look again, and it costs about a second a pass.
+
+### Reading the references properly: the head, the eyes, and one blind alley (2026-08-28)
+
+Jack, twice: *"the eyes are too obnoxious and feel weird"*, then *"don't love it, really think
+about it and compare to references."* Three findings, and a wrong turn worth recording because
+it was confidently wrong.
+
+**THE HEAD IS THE WIDEST THING ON THE ANIMAL.** Measured off the mob: its skull is wider than
+the body behind it, and the eyes sit on top of that width. This build had the head at 0.32 of
+the animal's width against haunches at 0.50 - so the widest part of the frog was its backside
+and the front tapered away, which is a rodent. At 0.46 the head leads, and every bearing changed
+at once. This was the actual complaint; the eyes were downstream of it.
+
+**OBNOXIOUS: A SUB-BLOCK DETAIL MUST BE DROPPED, NOT ROUNDED UP TO A BLOCK.** The gold came from
+the mob, where the eye is a dark ball with a bright ring - and that ring is ONE PIXEL of a
+sixteen-pixel face. This animal is about one mob long, so the ring is a sixteenth of a block:
+rounding it up to a whole block multiplies its visual weight by sixteen, and it stopped being a
+rim and became a yellow shelf under a black cap. The other two references say the same from the
+other side - the house's eye is a plain dark band, the outside voxel frog's are bumps in the
+body's own colour. **Neither has any gold at all.** `eye_gold: true` is kept for the day one is
+built at three times this size, where a rim is a rim again.
+
+**WEIRD: THE BULGE HUNG OFF THE SKULL ON A BRACKET.** It reached from the head's own edge to two
+cells past it, so two thirds of its base stood in open air - a lamp on a corbel, not an eye in a
+head. On the mob the eye is ATTACHED: it clears the outline by about a cell and the rest rests on
+the skull. `test_the_eye_rests_on_the_skull` allows a third of the base to overhang and no more.
+A third thing only that test found: at 0.16 of the length the eye's front row sat on the head
+box's own chamfered corner - dropped cells - so part of the base was resting on holes. 0.22 is
+solid skull, and it is where the mob's eyes are.
+
+#### The blind alley: "both references are one mass"
+
+Looking at the house and the mob together it is obvious that neither is an articulated
+head-waist-haunch, and I rebuilt the whole animal as a single box on that reading. It came out a
+CRATE, twice - once as a plain cuboid and once as a per-station taper, which insets every station
+independently and ribs the flanks. Reverted.
+
+**The error was taking the house as evidence about a creature.** The house is a HOUSE: it reads
+because a big box plus an eye band, a belly band and separate legs says frog-building. The mob is
+the creature, and it is not one box either - it is a wide low skull in front of a rounded body,
+which is what this build already had. What it did not have was the skull being the widest part.
+
+*The general form of the mistake: two references agreeing on a feature does not mean they agree
+for the same reason, and a building shaped like an animal is evidence about buildings.*
 
 ### The panel verdict, recorded (2026-08-28)
 

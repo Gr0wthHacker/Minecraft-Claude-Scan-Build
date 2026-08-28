@@ -112,11 +112,19 @@ def test_the_gaze_is_cardinal_and_the_face_is_flat(built):
 
 def test_two_eyes_with_a_clear_gap(built):
     """A pair of bulges with one cell between them reads as a single brow. The ladybird's
-    spot-spacing rule, which is also what sets this animal's width."""
-    _, cells = built
-    iris = sorted(k for k, v in cells.items() if v == CFG["params"].get("iris", "yellow_wool"))
-    assert iris, "no iris blocks"
-    zs = sorted({k[2] for k in iris})
+    spot-spacing rule, which is also what sets this animal's width.
+
+    Keyed on the PUPIL block and on height, not on the iris: the gold went away when the
+    references were re-read - the mob's ring is one pixel of a sixteen-pixel face, so at this
+    size it is sub-block - and a test that names a material breaks the moment a palette
+    decision is revisited, which is the wrong thing to pin.
+    """
+    c, cells = built
+    pupil = {**GENERATORS["frog"].DEFAULTS, **CFG["params"]}["pupil"]
+    top = max(y for (_, y, _) in cells)
+    beads = sorted(k for k, v in cells.items() if v == pupil and k[1] >= top - 1)
+    assert beads, "no eye blocks above the skull line"
+    zs = sorted({k[2] for k in beads})
     runs = [[zs[0]]]
     for z in zs[1:]:
         if z == runs[-1][-1] + 1:
@@ -126,6 +134,24 @@ def test_two_eyes_with_a_clear_gap(built):
     assert len(runs) == 2, f"expected two separated eyes across the body, got {len(runs)}: {zs}"
     gap = min(runs[1]) - max(runs[0]) - 1
     assert gap >= 2, f"only {gap} clear cell(s) between the eyes - they will read as one brow"
+
+
+def test_the_eye_rests_on_the_skull(built):
+    """Jack: "the eyes feel weird." They overhung the head by two cells with open air beneath,
+    so each read as a lamp on a bracket. On the mob the bulge is ATTACHED - it clears the
+    outline by about a cell and the rest of it is resting on the head."""
+    _, cells = built
+    p = {**GENERATORS["frog"].DEFAULTS, **CFG["params"]}
+    eye = {k for k, v in cells.items() if v in (p["pupil"], p["mark"], p["iris"])}
+    top = max(y for (_, y, _) in cells)
+    bulge = {k for k in eye if k[1] >= top - 1}
+    assert bulge, "no eye bulge found"
+    floor = min(k[1] for k in bulge)
+    base = [k for k in bulge if k[1] == floor]
+    loose = [k for k in base if (k[0], k[1] - 1, k[2]) not in cells]
+    # a cell of overhang is the bulge; a third of the footprint in mid-air is a bracket
+    assert len(loose) * 3 <= len(base), (
+        f"{len(loose)} of {len(base)} eye-base cells hang over nothing, e.g. {loose[:3]}")
 
 
 def test_the_eyes_and_the_knee_break_the_outline(built):
