@@ -74,6 +74,8 @@ FROG = {
     "iris": "yellow_wool",
     "pupil": "black_wool",
     "lamp": "ochre_froglight",
+    "eye_frame": "spruce_planks",   # kept for callers; the statue's eye is a black band
+    "foot": "acacia_planks",        # the feet are BRIGHTER than the body in the reference
     "glow": 3,                 # froglights worked into the back; 0 turns them off
     "eye_gold": False,         # the mob's gold rim is SUB-BLOCK at this size - see the eyes
 }
@@ -193,185 +195,151 @@ def build_frog(cfg: dict, donors=None) -> Canvas:
                 break
             box(a0, a1, b0, b1, y, y, name, part)
 
-    # ---------- the layout: AN UPRIGHT SITTING STATUE ----------
+    # ---------- the layout: COLDROBIN'S FROG, READ OFF THE PICTURE ----------
     #
-    # Rebuilt from Graysun's Frog Statue, which is the reference that finally said what "cute"
-    # means here, and it is not what I had been building. Everything before this was a flat
-    # crouching creature copied off the mob's proportions; the statue is UPRIGHT and COMPACT -
-    # about as tall as it is wide - and the whole of its front is a FACE, stacked:
+    # Jack, five times: not like the reference. He was right every time, and the reason is that
+    # I kept refining MY frog with the reference's features bolted on instead of reading how the
+    # reference is BUILT. His last picture is unambiguous, so this is that construction:
     #
-    #     two big BRIGHT eyes at the top, dark-framed and proud of the skull
-    #     a huge PALE MOUTH band right across the width, a dark line drawn over it
-    #     a big PALE BELLY panel under that, inset from the sides
-    #     chunky arms down both sides, ending in splayed toed feet on the ground
+    #   * ONE BIG BOX for the body, flat-fronted, with stepped haunches behind.
+    #   * THE EYES ARE SEPARATE BOXES SITTING ON TOP OF IT. Each has a flat LID in the body's
+    #     own colour, and its FRONT FACE carries a BLACK BAND with a single YELLOW block at the
+    #     inner end. That is the whole eye. Not a bright square in a dark ring - which is what I
+    #     built four times over, and which is why no amount of resizing or recolouring helped.
+    #   * ONE HUGE PALE PANEL for the mouth and belly together, not two bands, with a notch of
+    #     body colour cut into the top middle of it - the upper lip.
+    #   * FLAT FEET ON THE GROUND in a BRIGHTER tone than the body, splayed forward with three
+    #     toes, standing clear of the mass.
     #
-    # That stack is the design. A frog seen from the front is a face and a belly, and the two
-    # references before this one were both saying the same thing in a way I read as being about
-    # the body: the house's "eye band and white band" IS this, and the mob's tan throat is the
-    # belly. I was measuring their silhouettes and missing their fronts.
-    #
-    # `length` is the DEPTH here, nose to rump; `height` is the animal, which is now the big
-    # dimension. The lot has 113 courses of headroom, so height was always free.
-    toe = _f(0.22, L)                          # the front feet occupy the first stations...
-    face = toe                                 # ...and the body's flat front face is behind them
-    half = W // 2
+    # `length` is the depth, `height` the body's own height; the eye boxes stand above it.
+    bw = _f(0.42, W)                           # the body's half-width
+    toe = _f(0.28, L)                          # how far the feet reach in front of the face
+    face = toe                                 # ...so the flat front face starts here
+    depth = L - 1 - face
 
-    # width and depth as fractions of the animal's own, by HEIGHT: narrow-ish at the crown,
-    # widest through the belly and the haunches, drawing in at the ground
-    # THE HEAD STAYS WIDE ALMOST TO THE CROWN. Tapered from 0.76 up, it was only nine wide
-    # where the eyes are and their frames hung out past it on both sides - the bracket problem
-    # again, and the narrow ridge left between them read as a mohawk. On the statue the head is
-    # a rounded dome that is nearly full width right up to the last course or two.
-    WBY = [(0.00, 0.84), (0.15, 1.00), (0.72, 1.00), (0.90, 0.92), (1.00, 0.72)]
-    DBY = [(0.00, 0.88), (0.20, 1.00), (0.70, 0.98), (0.90, 0.88), (1.00, 0.70)]
-
-    def wid_at_y(y):
-        return max(1, int(round(_at(WBY, y / H) * half)))
-
-    def dep_at_y(y):
-        return max(2, int(round(_at(DBY, y / H) * (L - 1 - face))))
-
-    # 1. THE MASS - one rounded upright body with a FLAT FRONT. The face and the belly are a
-    #    panel, so the front must be a plane; the back and the sides round away from it.
+    # 1. THE BODY - one box, corners stepped in at the top and the back so it is not a crate
     for y in range(0, H + 1):
-        wid, dep = wid_at_y(y), dep_at_y(y)
-        for u in range(face, face + dep + 1):
-            for v in range(-wid, wid + 1):
-                back = u >= face + dep - 1
-                edge = abs(v) >= wid - 1
-                if back and edge:              # the back corners are cut away, which is all
-                    continue                   # the rounding a voxel mass needs
+        # THE CROWN DOES NOT DRAW IN. It used to, for rounding, and it left the outer half of
+        # each eye box standing over air - 26 of 46 lid cells with nothing under them. The eye
+        # boxes are the thing that sits on the crown, so the crown is the one place this mass
+        # stays square; the rounding it needs is at the back corners, which it has.
+        pull = 0
+        for u in range(face, face + depth + 1):
+            for v in range(-bw + pull, bw - pull + 1):
+                deep = u >= face + depth - 1
+                if deep and abs(v) >= bw - pull - 1:
+                    continue                   # rounded back corners
                 put(u, v, y, p["back"], "body")
 
-    # 1b. THE HAUNCHES - a bulge at each rear quarter, standing a cell proud of the flank. The
-    #     statue's front is a face and its back is a plain rounded mass, which is true of the
-    #     reference too - but from the two profiles a plain mass is all you get, and a frog's
-    #     widest point when it sits is the fold of its hind leg.
+    # 2. THE HAUNCH - ONE mass down each flank that steps down toward the rump, FLUSH with the
+    #    body rather than standing off it. Built as two separate blocks of different widths it
+    #    read from behind as a pair of crates bolted to the animal: the gaps between them and
+    #    the body are what did it, and a haunch is not a thing you can see daylight behind.
     for s in (1, -1):
-        for u in range(face + _f(0.30, L), face + _f(0.78, L)):
-            for y in range(0, _f(0.46, H)):
-                put(u, s * (wid_at_y(y) + 1), y, p["back"], "haunch")
+        for u in range(face + _f(0.34, L), face + depth + 1):
+            t = (u - face - _f(0.34, L)) / max(1, depth - _f(0.34, L))
+            out = bw + (2 if t < 0.55 else 1)
+            top = _f(0.74, H) - int(round(t * _f(0.30, H)))
+            for v in range(bw - 1, out + 1):
+                for y in range(0, top + 1):
+                    put(u, s * v, y, p["back"], "haunch")
 
-    # 2. THE EYES - the statue's loudest feature and the reason it reads from across a room:
-    #    two BIG BRIGHT squares set into the top of the head, each ringed in dark, standing a
-    #    cell proud of the face. Ours glow for real - `ochre_froglight` is the block Minecraft
-    #    makes FROM frogs, this design already carried it for its own lighting, and a lit eye
-    #    is exactly what the reference has.
-    #
-    #    THE FRAME IS NOT DECORATION. A pale square on an orange head is a patch; the dark ring
-    #    is what turns it into an eye, and it is what every earlier version of this face was
-    #    missing. Same lesson as the mouth line and the deck's zone bands: a light block needs
-    #    a dark edge or it reads as a hole.
-    #
-    #    (The mob's thin gold rim is a different thing and is SUB-BLOCK at our size - one pixel
-    #    of a sixteen-pixel face - which is why rounding it up to a whole block made a yellow
-    #    shelf. A bright PUPIL is not a rim; it is the size of a block.)
-    #    THE FRONT IS A STACK and the courses have to be budgeted, not each placed from its own
-    #    fraction: built that way the eye frame and the mouth band overlapped and the face came
-    #    out as one pale slab from the brow to the belly.
-    #
-    #        H            crown - two courses of head ABOVE the eyes, or they read as a visor
-    #        0.62H        the eyes, three courses of light in a one-cell dark frame
-    #        0.50H        the mouth line, dark, drawn right across
-    #        below it     the mouth, two courses pale
-    #        0.10H..      the belly panel, pale, inset another cell each side
-    #    THREE THINGS WERE WRONG WITH THE FIRST ONES, all of them geometry rather than colour:
-    #
-    #    * THE FRAME WAS TWO BLOCKS DEEP. It was laid on the protruding plane AND on the face
-    #      behind it, so each eye read as a chunky pair of goggles bolted to the head instead of
-    #      an outline round a light. One plane. The dark that wraps the sides of the bulge is
-    #      the ring's own edge cells seen end-on, which is all the depth it needs.
-    #    * THE HEAD STOOD ABOVE THEM. On the statue the eyes are the TOPMOST thing - they rise
-    #      over the crown and the dome dips between them, which is what makes it look up at you.
-    #      Built under a full head they were a pair of windows in a wall.
-    #    * THE BRIGHT PART WAS SMALL INSIDE A HEAVY FRAME. The light is the feature; the ring is
-    #      one cell, and never more.
-    er = 3                                     # courses of light in each eye
-    ew = _f(0.30, W)                           # ...and how far off the middle they sit
-    ey = H - er + 1                            # the top course of light stands ONE over the
-    for s in (1, -1):                          # crown, which is the statue's own line
-        for dy in range(-1, er + 1):
-            for dv in range(-2, 3):
-                edge = dy in (-1, er) or abs(dv) == 2
-                if edge:
-                    put(face - 1, s * (ew + dv), ey + dy, p["mark"], "eyes")
-        for dy in range(0, er):
-            for dv in (-1, 0, 1):
-                x, z = fr.xz(face - 1, s * (ew + dv))
-                w.put(x, ey + dy + BY, z, p["lamp"])
-                cells.add((face - 1, s * (ew + dv), ey + dy))
-                feats["eyes"] += 1
+    # 3. THE EYE BOXES - on top, at the front, one per side. Lid in the body's colour; the front
+    #    face black with ONE yellow block at the inner end, which is the reference exactly.
+    ew = _f(0.16, W)                           # inner edge of the box - INSIDE the crown
+    for s in (1, -1):
+        for u in range(face - 1, face + _f(0.34, L)):   # a LONG lid: the reference's eye box
+                                                        # runs well back over the head
+            for v in range(ew, ew + 4):
+                put(u, s * v, H + 2, p["back"], "eyes")             # the lid
+                put(u, s * v, H + 1, p["pupil"], "eyes")            # ...on a dark box
+        for v in range(ew, ew + 4):                                 # the black brow band, and
+            put(face - 1, s * v, H + 1, p["pupil"], "eyes")         # the eye itself set in it
+        x, z = fr.xz(face - 1, s * ew)
+        w.put(x, H + 1 + BY, z, p["iris"])
+        cells.add((face - 1, s * ew, H + 1))
+        feats["eyes"] += 1
 
-    # 3. THE MOUTH - a pale band right across the front with a dark line drawn over it. On the
-    #    statue this is the widest thing on the face and it is most of what makes it smile.
-    # DIRECTLY UNDER THE EYES. Placed at a fraction of the height it left two courses of brow
-    # between the eye frames and the mouth, and on the statue there is none - eyes, a dark lip,
-    # then the band. That gap is what was still making it a face painted on a wall.
-    my = ey - 2
-    for v in range(-wid_at_y(my), wid_at_y(my) + 1):
-        feats["mouth"] += paint(face, v, my, p["mark"], over=(p["back"],))
-        for dy in (1, 2):
-            feats["mouth"] += paint(face, v, my - dy, p["belly"], over=(p["back"],))
-
-    # 4. THE BELLY - a big pale panel under the mouth, inset from the sides so the body's own
-    #    colour frames it. The house's white band and the mob's tan throat are both this.
-    for y in range(_f(0.08, H), my - 3):
-        w2 = wid_at_y(y) - 2
-        for v in range(-w2, w2 + 1):
+    # 4. THE BELLY - ONE pale panel, mouth and belly together, nearly the full width of the
+    #    front, with a notch of body colour cut into its top middle for the upper lip
+    # ...FROM THE GROUND UP, and about two thirds of the height. At 0.78 it ran nearly to the
+    # eyes and the head above it was a narrow band; on the reference there is a good depth of
+    # body colour between the pale and the eye boxes.
+    btop = _f(0.66, H)
+    for y in range(0, btop + 1):
+        for v in range(-bw + 1, bw):           # ...and nearly the full width of the front
             feats["throat"] += paint(face, v, y, p["belly"], over=(p["back"],))
+    for v in range(-_f(0.10, W), _f(0.10, W) + 1):                  # the lip: a narrow tongue
+        for y in range(btop, btop + 1):                             # cut into the panel's top,
+                                                                    # not a bite out of it
+            feats["mouth"] += paint(face, v, y, p["back"], over=(p["belly"],))
 
-    # 5. THE ARMS - chunky, down both sides of the belly, standing a little proud of the body
-    #    so they read as limbs and not as more body
+    # 5. THE FEET - THREE TOES FANNING FROM A PAD, which is what a foot is. Built as three
+    #    parallel prongs of equal length at equal spacing they were a RAKE: nothing radiates,
+    #    nothing tapers, and the eye reads a tool rather than an animal. Each toe here leaves
+    #    the pad on its own heading and is drawn as a STAIRCASE, because a diagonal line of
+    #    cells touches only at its corners and 6-connectivity calls that three separate toes.
+    def toe_run(u0, v0, du, dv, n, part="toes"):
+        u, v = u0, v0
+        put(u, v, 0, p["foot"], part)
+        for i in range(n):
+            if dv and (i % 2 == 1 or du == 0):
+                v += dv
+                put(u, v, 0, p["foot"], part)
+            if du:
+                u += du
+                put(u, v, 0, p["foot"], part)
+
     for s in (1, -1):
-        for y in range(0, _f(0.44, H)):
-            v = wid_at_y(y) + 1
-            for du in range(0, 3):
-                put(face + du, s * v, y, p["back"], "forelegs")
+        pad_v = bw
+        for dv in range(-2, 2):                                  # the pad the toes spring from
+            put(face - 1, s * (pad_v + dv), 0, p["foot"], "toes")
+        toe_run(face - 1, s * (pad_v - 2), -1, -s, toe - 1)      # inner toe, angled in
+        toe_run(face - 1, s * pad_v, -1, 0, toe)                 # middle toe, straight ahead
+        toe_run(face - 1, s * (pad_v + 1), -1, s, toe - 1)       # outer toe, angled out
+        # THE LAMP GOES IN THE PAD, AT face-1. On a toe it is a white block in an orange foot
+        # and reads as damage - and aimed at `face` it silently did nothing at all, because the
+        # BODY already owns that column at the ground course, so `paint` refused a cell that was
+        # never foot. The pad is the one course in front of the body.
+        feats["glow"] += paint(face - 1, s * (pad_v - 1), 0, p["lamp"], over=(p["foot"],))
 
-    # 6. THE FEET - splayed forward on the ground with a clear cell between the toes, which is
-    #    what the statue does and what says ANIMAL rather than ornament
+    # 6. THE HIND FEET - the same flat idiom, out beside the haunches
     for s in (1, -1):
-        base = wid_at_y(0) + 1
-        for du in range(0, toe + 1):
-            put(face - du, s * base, 0, p["back"], "toes")            # the outer toe
-            put(face - du, s * (base - 2), 0, p["back"], "toes")      # the inner toe
-        for dv in range(-2, 2):                                       # the pad behind them
-            put(face, s * (base + dv), 0, p["back"], "toes")
-        put(face - toe, s * (base - 1), 0, p["back"], "toes")         # ...and the web at the tip
+        u0 = face + _f(0.56, L)
+        for du in range(0, _f(0.22, L)):
+            put(u0 + du, s * (bw + 2), 0, p["foot"], "toes")
+        for dv in range(0, 3):
+            put(u0 + _f(0.22, L) - 1, s * (bw + dv), 0, p["foot"], "toes")
 
-    # 7. THE HIND FEET - at the rear quarters, pointing outward, the same idiom
-    for s in (1, -1):
-        for u in range(face + _f(0.34, L), face + _f(0.62, L)):
-            put(u, s * (wid_at_y(0) + 1), 0, p["back"], "toes")
-
-    # 8. THE COAT - a few darker patches on the crown and the shoulders. SPOTS, not a line:
-    #    a dorsolateral stripe ran on from the mouth seam and banded the animal like a badger.
-    for i, (tu, tv, ty) in enumerate(((0.30, 0.55, 0.86), (0.55, -0.40, 0.92),
-                                      (0.72, 0.30, 0.78), (0.48, 0.00, 0.96))):
+    # 7. THE COAT - a few darker patches on the back, the reference's own brick mottle
+    # THE REFERENCE'S BODY IS BRICK AND IT VARIES. A single uniform tone over 1,300 cells is
+    # the flattest thing in this build; the statue's own mass reads as many blocks because its
+    # texture changes across it. Patches of the mid tone on the crown and the shoulders, laid
+    # as blobs rather than a hash per cell - hashed per cell it is noise, which the deck soffit
+    # and the first three coats of this animal all shipped.
+    for tu, tv, ty in ((0.26, 0.55, 0.98), (0.50, -0.45, 0.98), (0.68, 0.35, 0.94),
+                       (0.22, 1.00, 0.72), (0.44, -1.00, 0.60), (0.62, 1.00, 0.80),
+                       (0.30, -1.00, 0.40), (0.78, 1.00, 0.46), (0.86, -1.00, 0.66)):
         u = face + _f(tu, L)
+        v = int(round(tv * bw))
         y = _f(ty, H)
-        v = int(round(tv * wid_at_y(y)))
-        for du, dv in ((0, 0), (1, 0), (0, 1), (0, -1)):
-            feats["marks"] += paint(u + du, v + dv, y, p["mark"], over=(p["back"],))
+        for du, dv, dy in ((0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 0, -1), (0, 0, -1)):
+            feats["marks"] += paint(u + du, v + dv, y + dy, p["flank"], over=(p["back"],))
 
-    # 9. ITS OWN LIGHT - THE EYES. Measured on the first build, 129 of the 149 air cells over
-    #    this animal's back stood at block light zero, and the island night pass cannot see
-    #    them: its classifier takes each column's topmost standable cell, and this lot lies 113
-    #    courses under the island's belly. Froglights used to be worked into the back for that.
-    #    They are the EYES now, which is both the reference's own look and a better answer -
-    #    the light is a feature instead of a fixture. Any shortfall is topped up on the crown.
+    # 8. ITS OWN LIGHT. The island night pass cannot see this lot - its classifier takes each
+    #    column's topmost standable cell and the lot lies 113 courses under the island's belly -
+    #    so the animal lights itself. Froglights are worked into the back, spread rather than
+    #    run down the spine: along the middle they leave the rear quarters dark, and those
+    #    corners are where a mob would stand.
     tops: dict[tuple[int, int], int] = {}
     for (u, v, y) in cells:
         tops[(u, v)] = max(tops.get((u, v), -99), y)
-    #    SPREAD ACROSS THE BACK, not down the spine. Placed along the middle they left the
-    #    rear quarters dark - the haunch tops are a course lower than the crown and out of
-    #    reach round the shoulder - and those corners are exactly where a mob would stand.
-    SPOTS = ((0.30, 0.0), (0.46, 0.55), (0.46, -0.55), (0.62, 0.0),
-             (0.70, 0.70), (0.70, -0.70), (0.86, 0.35), (0.86, -0.35))
-    for i, (tu, tv) in enumerate(SPOTS[:int(p.get("glow") or 0)]):
+    SPOTS = ((0.34, 0.0), (0.50, 0.60), (0.50, -0.60), (0.66, 0.0),
+             (0.74, 0.72), (0.74, -0.72), (0.88, 0.35), (0.88, -0.35))
+    for tu, tv in SPOTS[:int(p.get("glow") or 0)]:
         u = face + _f(tu, L)
         for dv in (0, 1, -1, 2, -2):
-            v = int(round(tv * (W // 2))) + dv
+            v = int(round(tv * bw)) + dv
             if (u, v) in tops and paint(u, v, tops[(u, v)], p["lamp"],
                                         over=(p["back"], p["flank"], p["mark"])):
                 feats["glow"] += 1

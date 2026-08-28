@@ -4558,7 +4558,7 @@ or overrun the sides.
 
 ## The churchyard frog (2026-08-28) - and BOXES, not a lofted mass
 
-`configs/lowland_frog.yaml`, `mcbuild/gen/frog.py` - **1,825 blocks, one piece, 0 problems, 0
+`configs/lowland_frog.yaml`, `mcbuild/gen/frog.py` - **1,584 blocks, one piece, 0 problems, 0
 overlap in context, all cheap.** Jack: *"build a frog, put it opposite end from axo, on the far
 empty lot left of the church"*.
 
@@ -4743,93 +4743,79 @@ Four more things the 3-D views decided, none of which any flat render could have
 **1,029 blocks, one piece, 0 problems, 0 overlap, all cheap.** The working loop is now generate →
 `look.py --sheet orbit` → change one thing → look again, and it costs about a second a pass.
 
-### The third reference, and what four passes of drift were actually about (2026-08-28)
+### The frog, rebuilt from the reference's CONSTRUCTION (2026-08-28)
 
-Jack, in order: *"the eyes are too obnoxious and feel weird"*; *"don't love it, compare to
-references"*; *"we are getting further and further"*; then a third reference - **Graysun's Frog
-Statue** - and *"make it look like this."*
+Jack, six times over one build: the eyes are obnoxious; don't love it; we are getting further
+and further; still not like the reference; the eyes are giant; *"you are slipping and letting
+this low quality pass when you should be auditing it more thoroughly than I am."* All fair. The
+record of what went wrong is worth more than the frog.
 
-**THE STATUE IS A DIFFERENT ANIMAL FROM THE MOB, and that is why nothing converged.** The mob is
-a flat crouching creature, about 1.0 long : 0.75 wide : 0.5 tall. The statue is UPRIGHT and
-COMPACT, about as tall as it is wide, and **its whole front is a FACE, stacked**:
+**I KEPT REFINING MY FROG WITH THE REFERENCE'S FEATURES BOLTED ON, instead of reading how the
+reference is BUILT.** Four references in the end, and the last one - Coldrobin's - is
+unambiguous. The construction:
 
-    two big BRIGHT eyes at the top, each ringed in dark, standing proud of the skull
-    a wide PALE MOUTH band right across, a dark line drawn over it
-    a big PALE BELLY panel under that, inset a cell from the sides
-    chunky arms down both flanks, ending in splayed toed feet on the ground
+    ONE BIG BOX for the body, flat-fronted, haunches stepping down at the rear
+    THE EYES ARE SEPARATE BOXES ON TOP: a flat LID in the body's own colour, and the box's
+      FRONT FACE a BLACK BAND with a single bright block set in it at the inner end
+    ONE HUGE PALE PANEL for mouth and belly together, ground up, about two thirds of the
+      height, with a narrow tongue of body colour cut into its top - the upper lip
+    FLAT FEET on the ground in a BRIGHTER tone, three toes FANNING from a pad
 
-I had been measuring the first two references' SILHOUETTES and missing their FRONTS. Read again
-with the statue in hand, they were saying the same thing all along: the house's "dark eye band
-and white belly band" IS this stack, and the mob's tan throat is the belly. Four passes of
-adjusting proportions were four passes of answering the wrong question.
+Every one of those is a shape, and I had built the wrong shape for each: a bright square in a
+dark ring (four times, resized and recoloured every way and never once the right shape); a
+mouth band, a dark line and a separate belly; and three parallel prongs of equal length at
+equal spacing, which is a RAKE - nothing radiates, nothing tapers, and the eye reads a tool.
 
-**THE FRAME IS NOT DECORATION.** A pale square on an orange head is a patch; the dark ring is
-what makes it an eye, and it is what every earlier version of this face was missing - I kept
-tuning the colour of the bright part and never gave it an edge. Same rule as the mouth line, the
-deck's zone bands and the void tower's string courses: a light block needs a dark edge or it
-reads as a hole. (And the mob's thin gold rim is a different thing, which is why copying it
-failed: it is ONE PIXEL of a sixteen-pixel face, sub-block at our size, and rounding a sub-block
-detail up to a whole block multiplies its weight by the block. A bright PUPIL is not a rim.)
+**THE PALETTE, matched by measurement.** The statue's body is mud brick; `mud_bricks`
+(137,104,79) and `packed_mud` are both CURRENCY on this server, and `jungle_planks` (160,115,81)
+is 23 RGB off the first and cheap. The saturated orange this build carried for four passes was
+picked against the moss on LUMINANCE, and it is most of why it never looked like the reference.
+Against moss (89,110,45) the new body is 80 apart in RGB - a full hue flip, which is what the
+turtle proved carries on this floor. The ground test is colour DISTANCE now: measured the old
+way it would have failed the reference's own palette and passed a green frog.
 
-**THE EYES ARE THE LIGHT.** `ochre_froglight` behind a dark frame: the statue's eyes glow, the
-block is the one Minecraft makes FROM frogs, and this design was already carrying froglights for
-its own lighting because the island night pass cannot see this lot - its classifier takes each
-column's topmost standable cell and the lot lies 113 courses under the island's belly. The light
-is now a FEATURE rather than a fixture, with a spread of eight more worked into the back, which
-`test_nothing_can_spawn_on_its_back` verifies by re-propagating.
+#### The audit I should have run before showing him anything
 
-**THE FRONT IS A BUDGET, not a set of independent fractions.** Placed each from its own fraction
-of the height, the eye frame and the mouth band overlapped and the face came out as one pale slab
-from the brow to the belly. The courses are allotted in order now, and the test asserts the
-stack: eyes above pale, and the pale in TWO bands rather than one.
-
-
-**AND THE PALETTE IS THE STATUE'S, matched by measurement.** Its body is mud brick;
-`mud_bricks` (137,104,79) and `packed_mud` are both CURRENCY on this server, and `jungle_planks`
-(160,115,81) is 23 RGB off the first and cheap. The saturated orange this build carried for four
-passes was picked against the moss on LUMINANCE, and it is most of why it never looked like the
-reference - the statue reads soft and warm, not fluorescent. Against moss (89,110,45) the new
-body is 80 apart in RGB, a full hue flip: the turtle already proved that is what carries on this
-floor, and `brown_wool` is within five of moss in luminance. The ground test is colour DISTANCE
-now, not luminance - measured the old way it would have failed the reference's own palette and
-passed a green frog.
-
-
-**THE EYES TOOK THREE MORE GOES, and all three faults were GEOMETRY, not colour** - which is
-why tuning the block kept failing. *(Jack: "still not right, eyes are not good.")*
-
-- **The frame was two blocks deep.** It was laid on the protruding plane AND on the face behind
-  it, so each eye read as a chunky pair of goggles bolted to the head rather than an outline
-  round a light. One plane; the dark wrapping the sides of the bulge is the ring's own edge
-  cells seen end-on, which is all the depth it needs.
-- **The head stood ABOVE them.** On the statue the eyes are the TOPMOST thing - they rise over
-  the crown and the dome dips between them, which is what makes it look up at you. Built under
-  a full head they were two windows in a wall.
-- **There was a brow between the eyes and the mouth.** Placed at its own fraction of the height
-  the mouth left two courses of forehead above it; on the statue there is none - eyes, a dark
-  lip, then the band. The mouth is pinned to the eye now, not to the height.
+- **A LAMP THAT SILENTLY DID NOTHING.** Moved off a toe (where a white block reads as damage)
+  and aimed at the pad at `face` - but the BODY owns that column at the ground course, so
+  `paint` refused a cell that was never foot. No error, no lamp, sixteen cells over the toes
+  still at block light zero. The pad is the course in FRONT of the body.
+- **EYE BOXES HANGING OVER AIR.** 26 of 46 lid cells had nothing under them: the crown drew in a
+  cell for rounding and the boxes that sit on it did not. The crown is the one place this mass
+  stays square; its rounding belongs at the back corners, which it has.
+- **HAUNCHES AS CRATES.** Two separate blocks of different widths standing off the flank - from
+  behind, luggage. One mass per side, flush with the body, stepping down toward the rump. A
+  haunch is not something you can see daylight behind.
+- **THE PANEL RAN TO 80% OF THE HEIGHT**, leaving the head a narrow band above it.
+- **ONE FLAT TONE OVER 1,300 CELLS** - the flattest surface in the build, against a reference
+  whose brick varies across the mass. Patches of the mid tone now, on the flanks where they can
+  be seen rather than only on the crown.
+- **THE SNOUT TEST WAS READING THE BOUNDING BOX**, whose front plane is now two splayed toe
+  tips. A test that reads the bounding box measures whatever sticks out furthest, which is not
+  the question; it reads the pale panel's own plane now.
 
 #### The tests changed with the reference, deliberately
 
-`test_it_is_flat_and_wide_like_the_mob` pinned 1.0 : 0.75 : 0.5. It is now
-`test_it_is_an_upright_statue` and pins height against width instead. **A test that pins a
-proportion is pinning a DECISION about which reference is being copied** - change the reference
-and the test has to change in the same commit, or the suite quietly enforces the thing that was
-rejected. The rest of the old suite went the same way: a knee that breaks the outline, a haunch,
-a shin, a plan that is not a rectangle - all of them encoded my own invented anatomy, and none
-of them was ever a claim the references made.
+They pinned 1.0:0.75:0.5 and a knee, a haunch and a shin - the mob's proportions and my own
+invented anatomy. **A test that pins a proportion is pinning a DECISION about which reference is
+being copied**, so it has to change in the same commit or the suite quietly enforces the thing
+that was rejected. They pin the CONSTRUCTION now: one pupil per eye set in a dark band under a
+body-coloured lid, the boxes resting on the head, the panel continuous in height with a lip cut
+into it. The next pass cannot drift back to a ring.
 
 #### The blind alley, recorded because it was confidently wrong for three passes
 
 The house and the mob both look like ONE MASS rather than an articulated head-waist-haunch, so I
-rebuilt the animal as a single box on that reading. It came out a CRATE twice - once as a plain
-cuboid, once as a per-station taper, which insets every station independently and ribs the
+rebuilt the animal as a single box on that reading. It came out a crate twice - as a plain
+cuboid, and as a per-station taper, which insets every station independently and ribs the
 flanks. **The error was taking the HOUSE as evidence about a creature**: it works because a big
 box plus an eye band, a belly band and separate legs says frog-BUILDING. Two references agreeing
-on a feature does not mean they agree for the same reason - and a third reference settled it.
+on a feature does not mean they agree for the same reason.
 
-**1,750 blocks, one piece, 0 problems, 0 overlap, all cheap.** 13 wide x 15 deep x 17 tall,
-which the measured lot holds with the skirt carrying three courses of roll at its north edge.
+**1,584 blocks, one piece, 0 problems, 0 overlap, all cheap, sanctum clearance 4.** Still not
+matched: the reference's body is BRICK with real texture across it and ours is plain planks in
+flat colour, and `render3d` has no emission, so the pupils and the toe pads read dull in every
+sheet here when in game they glow.
 
 ### The panel verdict, recorded (2026-08-28)
 

@@ -5,8 +5,8 @@
     "z": 29969
   },
   "size": {
-    "x": 13,
-    "y": 18,
+    "x": 16,
+    "y": 15,
     "z": 15
   },
   "generated_by": "frog",
@@ -23,15 +23,15 @@
   ],
   "base_y": 40,
   "features_built": {
-    "body": 1633,
-    "haunch": 72,
-    "forelegs": 36,
-    "toes": 16,
-    "skirt": 21,
-    "eyes": 50,
-    "mouth": 39,
-    "throat": 52,
-    "marks": 11,
+    "body": 1243,
+    "haunch": 163,
+    "forelegs": 0,
+    "toes": 35,
+    "skirt": 58,
+    "eyes": 98,
+    "mouth": 3,
+    "throat": 72,
+    "marks": 27,
     "glow": 6
   },
   "dig": [],

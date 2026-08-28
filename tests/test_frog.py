@@ -94,7 +94,7 @@ def test_every_part_got_built(built):
     placement problem and a clean BOM, so nothing else in the pipeline noticed either time."""
     c, _ = built
     feats = c.meta["features_built"]
-    for part in ("body", "haunch", "forelegs", "toes", "eyes", "mouth", "throat"):
+    for part in ("body", "haunch", "toes", "eyes", "mouth", "throat", "glow"):
         assert feats[part] > 0, f"{part} was not built at all: {feats}"
 
 
@@ -104,57 +104,49 @@ def test_the_gaze_is_cardinal_and_the_face_is_flat(built):
     c, cells = built
     fx, fz = c.meta["facing"]
     assert abs(fx) + abs(fz) == 1, f"facing {c.meta['facing']} is not one cardinal unit"
-    # the frontmost cells all share one x (or one z), which is what "flat" means on a grid
+    # ...measured on the FACE, found from the pale panel - not on the bounding box, whose front
+    # plane is now two splayed toe tips. A test that reads the bounding box is measuring
+    # whatever happens to stick out furthest, which is not the same question.
+    p = {**GENERATORS["frog"].DEFAULTS, **CFG["params"]}
+    pale = [k for k, v in cells.items() if v == p["belly"]]
     axis = 0 if fx else 2
-    front = min(k[axis] for k in cells) if (fx or fz) < 0 else max(k[axis] for k in cells)
-    nose = [k for k in cells if k[axis] == front]
-    assert len(nose) >= 3, f"the snout is {len(nose)} cell(s) - too narrow to be a face"
+    front = min(k[axis] for k in pale) if (fx or fz) < 0 else max(k[axis] for k in pale)
+    nose = [k for k in pale if k[axis] == front]
+    assert len(nose) >= 6, f"the face plane is {len(nose)} cell(s) - too small to be a face"
 
 
-def test_two_bright_eyes_in_dark_frames(built):
-    """The statue's loudest feature. A pale square on an orange head is a patch; the dark ring
-    is what turns it into an eye, and it is what every earlier version of this face was missing.
-    Two of them, separated, each fully surrounded on its own plane by the frame block."""
-    c, cells = built
+def test_the_eyes_are_boxes_with_a_black_band_and_one_pupil(built):
+    """THE CONSTRUCTION, read off Coldrobin's picture rather than invented. Each eye is a BOX
+    sitting on top of the head: a flat lid in the body's own colour, and its front face a BLACK
+    BAND with a single bright pupil at the inner end.
+
+    Four earlier versions built a bright square inside a dark ring, and no amount of resizing or
+    recolouring made them look like the reference, because the reference is not that shape. This
+    pins the shape, so the next pass cannot drift back to a ring."""
+    _c, cells = built
     p = {**GENERATORS["frog"].DEFAULTS, **CFG["params"]}
-    # THE EYES' OWN PLANE, found from the blocks rather than from the bounding box: the toes
-    # reach further forward than the face does, and the same block lights the crown - a lamp in
-    # the back is not an eye and is not framed.
-    lamps = [k for k, v in cells.items() if v == p["lamp"]]
-    assert lamps, "no bright blocks at all"
-    fx, _fz = c.meta["facing"]
-    plane = min(k[0] for k in lamps) if fx < 0 else max(k[0] for k in lamps)
-    bright = sorted(k for k in lamps if abs(k[0] - plane) <= 1)
-    assert bright, "no bright eye blocks"
-    zs = sorted({k[2] for k in bright})
-    runs = [[zs[0]]]
-    for z in zs[1:]:
-        (runs[-1].append(z) if z == runs[-1][-1] + 1 else runs.append([z]))
-    assert len(runs) == 2, f"expected two separated eyes, got {len(runs)}: {zs}"
-    assert min(runs[1]) - max(runs[0]) - 1 >= 2, "the eyes will read as one bar"
-    x0 = min(k[0] for k in bright)
-    loose = [k for k in bright if k[0] == x0 and not all(
-        cells.get((k[0], k[1] + dy, k[2] + dz)) in (p["mark"], p["lamp"])
-        for dy, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)))]
-    assert not loose, f"{len(loose)} bright cells are not framed, e.g. {loose[:3]}"
+    pupils = sorted(k for k, v in cells.items() if v == p["iris"])
+    assert len(pupils) == 2, f"expected one pupil per eye, got {len(pupils)}"
+    assert abs(pupils[0][2] - pupils[1][2]) >= 4, "the pupils are not on opposite sides"
+    assert pupils[0][1] == pupils[1][1], "the pupils are at different heights"
+    for k in pupils:
+        band = [cells.get((k[0], k[1], k[2] + d)) for d in (-1, 1)]
+        assert p["pupil"] in band, f"the pupil at {k} is not set in a dark band"
+        assert cells.get((k[0], k[1] + 1, k[2])) == p["back"], (
+            f"the eye box at {k} has no lid in the body's colour")
 
 
-def test_the_eye_rests_on_the_skull(built):
-    """Jack: "the eyes feel weird." They overhung the head by two cells with open air beneath,
-    so each read as a lamp on a bracket. On the mob the bulge is ATTACHED - it clears the
-    outline by about a cell and the rest of it is resting on the head."""
-    _, cells = built
+def test_the_eye_boxes_sit_on_the_head(built):
+    """They overhang the face by a cell - the reference's do - but a box standing on nothing is
+    a lamp on a bracket, which is what four earlier versions were."""
+    _c, cells = built
     p = {**GENERATORS["frog"].DEFAULTS, **CFG["params"]}
-    eye = {k for k, v in cells.items() if v in (p["pupil"], p["mark"], p["iris"])}
-    top = max(y for (_, y, _) in cells)
-    bulge = {k for k in eye if k[1] >= top - 1}
-    assert bulge, "no eye bulge found"
-    floor = min(k[1] for k in bulge)
-    base = [k for k in bulge if k[1] == floor]
-    loose = [k for k in base if (k[0], k[1] - 1, k[2]) not in cells]
-    # a cell of overhang is the bulge; a third of the footprint in mid-air is a bracket
-    assert len(loose) * 3 <= len(base), (
-        f"{len(loose)} of {len(base)} eye-base cells hang over nothing, e.g. {loose[:3]}")
+    lids = [k for k, v in cells.items() if v == p["back"]
+            and cells.get((k[0], k[1] - 1, k[2])) == p["pupil"]]
+    assert len(lids) >= 8, f"only {len(lids)} lid cells over a dark box"
+    loose = [k for k in lids if (k[0], k[1] - 2, k[2]) not in cells]
+    assert len(loose) * 2 <= len(lids), (
+        f"{len(loose)} of {len(lids)} eye-box cells stand over nothing")
 
 
 def test_it_is_an_upright_statue(built):
@@ -175,26 +167,25 @@ def test_it_is_an_upright_statue(built):
     assert 0.85 <= H / W <= 1.6, f"height/width is {H / W:.2f}; the statue is about 1.1"
 
 
-def test_the_front_is_a_face_stacked_in_this_order(built):
-    """Eyes, then the mouth band, then the belly - that stack IS the statue, and the courses
-    have to be budgeted rather than each placed from its own fraction of the height. Placed
-    that way once, the eye frame and the mouth band overlapped and the whole face came out as
-    one pale slab from the brow to the belly."""
+def test_the_belly_is_one_panel_with_a_lip_cut_into_it(built):
+    """The reference has ONE huge pale panel for the mouth and belly together, with a notch of
+    body colour cut into its top middle - the upper lip. Built as two separate bands with a dark
+    line between them, which is what I had for three passes, the front reads as a face painted
+    on a wall rather than as a mouth."""
     c, cells = built
     p = {**GENERATORS["frog"].DEFAULTS, **CFG["params"]}
     fx, _fz = c.meta["facing"]
-    pales = [k for k, v in cells.items() if v == p["belly"]]
-    assert pales, "no pale blocks at all"
-    front = min(k[0] for k in pales) if fx < 0 else max(k[0] for k in pales)
-    plane = {k: v for k, v in cells.items() if abs(k[0] - front) <= 1}
-    eyes = [k[1] for k, v in plane.items() if v == p["lamp"]]
-    pale = [k[1] for k, v in plane.items() if v == p["belly"]]
-    assert eyes and pale, f"face plane has {len(eyes)} eye and {len(pale)} pale cells"
-    assert min(eyes) > max(pale), "the eyes are not above the pale mouth and belly"
-    # ...and the pale is in two bands, the mouth and the belly, not one slab
-    band = sorted(set(pale))
-    gaps = [b - a for a, b in zip(band, band[1:]) if b - a > 1]
-    assert gaps, f"the mouth and the belly have merged into one panel: courses {band}"
+    pale = [k for k, v in cells.items() if v == p["belly"]]
+    assert pale, "no pale panel"
+    plane = min(k[0] for k in pale) if fx < 0 else max(k[0] for k in pale)
+    band = sorted({k[1] for k in pale if k[0] == plane})
+    assert band == list(range(band[0], band[-1] + 1)), (
+        f"the panel is not continuous in height: {band} - it has split into bands")
+    top = band[-1]
+    lip = [k for k, v in cells.items()
+           if k[0] == plane and k[1] in (top, top + 1) and v == p["back"]
+           and any(cells.get((k[0], k[1], k[2] + d)) == p["belly"] for d in (-1, 1))]
+    assert lip, "no lip notch cut into the top of the panel"
 
 
 def test_every_foot_sits_on_its_own_ground(built, world):
