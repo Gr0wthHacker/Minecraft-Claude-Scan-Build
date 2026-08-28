@@ -215,7 +215,8 @@ python tools/rubric.py "<design>"                  # 4. score it; read the WEAKE
 python tools/refine.py configs/<x>.yaml            # 5. sweep, scored by the WHOLE rubric
 python tools/compare.py --family <family>          # 6. against its SIBLINGS, not just the table
 python tools/views.py "<design>" --zoom 10         # 7. LOOK at it. Always.
-python tools/panel.py "<design>"                   # 8. and have it REVIEWED - see below
+python tools/look.py "<design>"                    # 8. ...and in 3D, from every bearing
+python tools/panel.py "<design>"                   # 9. and have it REVIEWED - see below
 ```
 
 **Never tune one dimension.** Sweeping `smoothness.py` alone took the bear's surface 0.60 → 0.73 and
@@ -452,6 +453,66 @@ a green fringe.
 
 One piece, 2,394 blocks, 0 problems, all cheap tier.
 
+## Seeing it in 3D: `tools/look.py` (2026-08-28)
+
+```bash
+python tools/look.py "X elephant"                     # eight bearings round it, on one sheet
+python tools/look.py "Lowland Frog" --sheet panel     # head-on, profile, plan, silhouette, value, distance
+python tools/look.py "Lowland Frog" --bearing 0 --dist 0.5 --look-high 0.85 --big    # its face, close
+```
+
+`mcbuild/render3d.py` is a voxel raycaster in numpy - perspective camera, Minecraft's own face
+ladder, corner AO by the game's rule, and a directional sun with hard cast shadows. No new
+dependency: numpy and Pillow, like everything else here.
+
+**IT EXISTS BECAUSE AN ORTHOGRAPHIC VIEW CANNOT SHOW THE THINGS THAT KEEP GOING WRONG.** This file
+already records the clearest case and did not draw the conclusion: the axolotl's head read as a blob
+in game and correct on every sheet, and the reason is stated here verbatim - *"an orthographic render
+along the body axis cannot show this failure - projecting along the diagonal de-jags it by
+construction."* Two more of the same shape: *"there is no weight anywhere: the outline is a
+constant-depth rectangle"* is a question about OCCLUSION, and depth-shading darkens a recess whether
+or not anything occludes it; and *"does it look BUILT"* is a question about how light breaks over
+steps, which a flat fill shaded by distance has none of.
+
+**THE BEARING IS RELATIVE TO THE RECORDED FACING**, read off the sidecar exactly as `panel.py`
+chooses its profile axis - 0 is head-on, 90 profile, 180 tail-on. Picked by hand this was got wrong
+twice in one session, and a design with no recorded facing SAYS SO rather than defaulting quietly.
+`tests/test_render3d.py` asserts it: bearing 0 puts the camera nearer the head, 180 nearer the tail,
+and the two profiles are mirror images to 99.6%.
+
+**What it costs.** 0.3-0.8s for an animal, **1.4s for the whole island** (110,551 blocks in a
+103x335x103 grid), because the march compacts its active set - a ray that has hit or left the box is
+dropped, so the arrays shrink every step instead of every ray paying for the longest one. Context
+views are therefore affordable, not just the animal alone.
+
+**Calibration, which is the only reason to trust it.** The elephant is *"the control the panel is
+calibrated against"* and it reads instantly here - trunk, ear, dome, columnar legs. The jaguar is the
+recorded failure and renders as exactly its recorded verdict: a constant-depth slab from shoulder to
+rump on four posts at the corners. A renderer that flattered the jaguar would be worthless.
+
+**It found something on the frog the panel had understated.** The recorded verdict was *"MARGINAL in
+profile - a low mass with a raised head"*. In 3D the profile is worse and the cause is localised: the
+haunch is a **flat-sided box** with a hard vertical rear face, and the value panel shows it as one
+untouched mid-grey rectangle. That is the jaguar's own failure - a flat wall painted two colours - in
+a build that passes head-on.
+
+**The trap inside it, which shipped a clean-looking render.** A ray whose FIRST voxel is solid never
+takes a step, so it reported whatever axis the march was initialised with, and every surface touching
+the grid's own bounding box shaded as an east/west face. A cropped model touches that box by
+definition, so this was wrong for the outermost shell of every design - and it looked fine, because a
+wrongly-shaded face is still a face. The entry axis now comes from the slab test. Two of the tests
+that caught it were mine and wrong first: a bar viewed down its own axis has no taper to measure
+(it occludes itself), and two cubes on the same sightline are one cube.
+
+**What it deliberately does NOT fix.** Colour. Every block is still a flat RGB from the same DB
+`nearest()` optimises against, so the circularity this file records is narrowed, not closed: what is
+new is GEOMETRY and OCCLUSION. Judge form, mass and silhouette here; judge palette in game. Real jar
+textures and real block models (stairs, slabs, trapdoors - 2,657 models and 1,269 textures are
+sitting in the client jar) would close the rest and are the obvious next step, but they buy almost
+nothing for ANIMALS, which are near-100% full cubes - `shell.py` gets no purchase on six of the
+eight. They are worth building the day the question is about the enrichment pass, whose *"payoff is
+geometric relief, and that does not show in our renders"*.
+
 ## The panel review — the last step before shipping
 
 `python tools/panel.py "<design>"`. The rubric measures proportion, surface, palette, symmetry, and
@@ -580,8 +641,11 @@ straight-on view. The fix is a lighter face mask on the ursid coat, not more geo
 - **~~The colour DB samples the TOP face and has no biome tint.~~ FIXED 2026-08-20** — see
   "The colour foundation" below. `blocks.color(name, face)` now answers per face and the tint is
   applied; `tools/recolour.py` owns it and `tools/extract_blocks.py` delegates to it.
-- **Validation is circular**: `views.py` renders with the same colour DB the palette picker optimises
-  against. Nothing built in this system has been placed in Minecraft and looked at.
+- **Validation is circular FOR COLOUR. It is no longer circular for SHAPE** - `tools/look.py`
+  renders real perspective, cast shadows and corner AO, which are ground truth about the form
+  whatever the colours are. The colours are still ours: `views.py` and `look.py` both draw with
+  the same DB the palette picker optimises against, so judge form and mass offline and judge
+  PALETTE in game. Nothing built in this system has been placed in Minecraft and looked at.
 - **`giraffe` stands at 57 against a floor of 59** — under-size, which is why `features` scores it
   0.83 (the ossicones and mane are the parts that lose). It is the only animal built in the world,
   so raising it would orphan placed blocks. Listed in `UNDERSIZED` in `tests/test_taxonomy.py`;
@@ -4726,6 +4790,7 @@ design without regenerating it.
 | `compare.py` | built models against EACH OTHER, per family: shape gap and coat gap, kept apart |
 | `emerge.py` | cut a design at a plane so a figure comes OUT of a surface, and trim to what is left |
 | `panel.py` | the review sheet: silhouette, value, distance thumbs, player bar + both panels' questions |
+| `look.py` | the 3D view: eight bearings, cast shadows, corner AO - the working loop for SHAPING |
 | `heron.py`, `bat.py` | in `gen/` — the two builds that play to what the medium is good at |
 | `views.py` | …and it draws slabs at half height, so half-block work is visible here |
 | `plan_merge.py` | composite designs onto a capture |
