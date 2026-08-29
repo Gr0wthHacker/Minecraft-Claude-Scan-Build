@@ -514,6 +514,14 @@ nothing for ANIMALS, which are near-100% full cubes - `shell.py` gets no purchas
 eight. They are worth building the day the question is about the enrichment pass, whose *"payoff is
 geometric relief, and that does not show in our renders"*.
 
+**AMENDED 2026-08-29: half of this is now done, and the reasoning above was wrong in a way worth
+keeping.** "Animals are near-100% full cubes" was true only while no animal used a shape block. The
+frog's toes are stairs - which is what makes a toe TAPER instead of ending at a vertical face - and
+the day they went in, every sheet here drew them as cubes. `render3d.subdivide` gives stairs and
+slabs their real shape by expanding each block to 2x2x2 half-cells; textures and the rest of the
+model zoo are still not done. The lesson generalises: *a renderer that cannot draw a feature is an
+argument for not using the feature*, and that is backwards.
+
 ## The panel review â€” the last step before shipping
 
 `python tools/panel.py "<design>"`. The rubric measures proportion, surface, palette, symmetry, and
@@ -4223,7 +4231,7 @@ And the positive one, which is the largest single gap on the island. The lowland
 "Minecraft's lush-caves palette - moss, azalea, fern, dripstone" throughout this file. Measured
 against the 15:54 scan it holds 38 block types and its entire flora is
 
-    moss_block 3986 · dripstone_block 4141 · vine 1098 · moss_carpet 56
+    moss_block 3986 Â· dripstone_block 4141 Â· vine 1098 Â· moss_carpet 56
 
 with ZERO azalea, fern, grass, dripleaf, spore blossom, cave vine, lily pad - and, despite
 4,141 dripstone BLOCKS, not one pointed dripstone. **A cave of rock and moss is not a lush
@@ -4290,7 +4298,7 @@ the props that make a place feel inhabited, and all of it was accepted as comple
 | Undercroft Store | 77 | a storeroom with **no barrels** (39) |
 | Lowland Portal | 114 | the lowland's ICON, never started, amethyst and all |
 | Chimneys | 10 | campfire + soul campfire: the only smoke the island can have |
-| Statue Footings · Apiary Flowers | 61 | the planting round the statues and for the bees |
+| Statue Footings Â· Apiary Flowers | 61 | the planting round the statues and for the bees |
 
 That is **~318 blocks that turn built into inhabited**, and none of it is new design work -
 only a decision to re-track designs that were accepted as finished.
@@ -4556,9 +4564,9 @@ or overrun the sides.
   with the reason beside it, because slime IS the jump pad and no cheap block cancels a fall
   (hay cuts damage 80%, honey 20%). 13 blocks is 117 slimeballs against the 193 in store.
 
-## The churchyard frog (2026-08-28) - and BOXES, not a lofted mass
+## The churchyard frog (2026-08-28) - ONE CONVEX MASS, and the pattern does the work
 
-`configs/lowland_frog.yaml`, `mcbuild/gen/frog.py` - **1,584 blocks, one piece, 0 problems, 0
+`configs/lowland_frog.yaml`, `mcbuild/gen/frog.py` - **2,079 blocks, one piece, 0 problems, 0
 overlap in context, all cheap.** Jack: *"build a frog, put it opposite end from axo, on the far
 empty lot left of the church"*.
 
@@ -4794,6 +4802,23 @@ way it would have failed the reference's own palette and passed a green frog.
   tips. A test that reads the bounding box measures whatever sticks out furthest, which is not
   the question; it reads the pale panel's own plane now.
 
+
+#### Three more shapes, after "overly square, the feet are random lines, the eyes are
+strange giant boxes"
+
+- **A FOOT IS A PAD WITH THE GAPS BETWEEN THE TOES.** Three one-cell prongs splayed wide with
+  air between them are three strokes on the ground. Then a solid pad with its TIP CORNERS
+  notched off is a PLUS SIGN, which is what a corner notch makes. The web runs the toes' whole
+  length: pad first, then prongs.
+- **A CHAMFER IS A RULE ABOUT AN EDGE, AND AN EDGE IS ONE AXIS AT A TIME.** The first attempt
+  at rounding the box measured the distance from both ends at once and cut slots up the flanks.
+  Every vertical arris and the top edge step in now - except the crown's FRONT edge, which
+  stays square on purpose, because the eye boxes stand on it and rounding it away is exactly
+  what left them hanging over air a pass earlier.
+- **AND IT IS A LOAF, NOT A CUBE.** The reference is clearly deeper front-to-back than it is
+  wide; at 15 deep against 13 wide mine was close to cubic, which is the other half of "overly
+  square". 19 deep. Both that and the toe length come off `length`, so one number moved them.
+
 #### The tests changed with the reference, deliberately
 
 They pinned 1.0:0.75:0.5 and a knee, a haunch and a shin - the mob's proportions and my own
@@ -4833,6 +4858,489 @@ every number in the generator is a fraction of L, W or H, so that costs one line
 
 **Still open:** the frog defers 6 cells to `Lowland Thicket` (plant drifts inside its footprint),
 so build the Thicket first - which is what `defer_to` records and what the build order derives.
+
+### The last deep pass: BOXES WERE ALSO WRONG (2026-08-28)
+
+Jack: *"still can be improved significantly, please audit in full and compare against
+references, last deep visual pass across all angles to fix."* Rendered every bearing and the
+review sheet, and the verdict was worse than the previous one recorded here - because the
+previous verdict was taken from ORTHOGRAPHIC sheets and this one was not:
+
+| | |
+|---|---|
+| profile silhouette | unnameable - a lumpy stepped box with a tab on it |
+| value panel | one flat grey ZIGGURAT, four horizontal ledges, no rounding anywhere |
+| plan | a rectangle: no waist, no head, the haunches two bolted-on crates |
+| head-on | a pale rectangle between two sunglasses - **there was no mouth** |
+| palette | 81% one block, 6% accent tail against the corpus median of 18.5% |
+
+**THE FINDING, AND IT REVERSES THIS FILE'S OWN ADVICE ONE LEVEL DOWN.** Going from a loft to
+BOXES was right about the head and the eyes and wrong about everything else, and each fix made
+it worse in the same way. Four correct pieces of frog anatomy, four pieces of luggage:
+
+    a haunch and a shoulder bolted on  ->  crates you could see daylight behind, four ledges a flank
+    a waist dip two courses deep       ->  a head crate and a rump crate with a slot between them
+    the haunch raised across the back  ->  a flat-topped box: a rucksack
+    the knee raised at the flanks only ->  a rectangle floating above the outer wall
+
+**AT THIRTEEN WIDE AND EIGHT COURSES TALL THERE IS NO RESOLUTION FOR ANATOMY.** Every feature is
+one or two cells, and a one-cell step at this scale is not modelled form - it is THE SEAM BETWEEN
+TWO OBJECTS. That is what the download corpus already said about exactly this scale and what this
+file already recorded twice without applying it: a sculpture reads when it is **one convex mass
+with a pattern on it** - the ladybird, `Warm Snooze`, and Coldrobin's frog, which is one
+flat-fronted box and nothing else.
+
+So: `col_top` is CONVEX and monotonic - the back line and the plan may rise to one peak and must
+fall from there, never twice - and every frog cue moved into the COAT.
+`test_the_mass_only_ever_falls_away_from_the_head` pins it, because the next person with a good
+idea about anatomy will re-invent all four.
+
+#### Two features were missing in every view, and no geometry substituted for either
+
+- **THERE WAS NO MOUTH.** Five passes of eye work on a front that was a pale rectangle. A dark
+  line across the panel that TURNS UP at the corners is what makes a blocky front read as a
+  FACE, and it is the single biggest change in the whole rebuild. Graysun's statue draws
+  exactly this and I had been reading it as a band rather than as a line.
+- **THE EYE WAS BLACK ON ITS OUTER FACE**, so it existed in exactly ONE view: every bearing but
+  head-on had two dark tabs and no eye at all. One iris cell on the outer face fixes the
+  profile. And the front band needs TWO - the reference's single bright block is right at the
+  scale it is drawn, but on a thirteen-wide head one cell in a four-cell band is a GLINT, and
+  the orbit sheet read the pair as sunglasses.
+- **AND THE MOUTH CARRIES ON ROUND THE JAW.** Drawn on the front plane alone it was a
+  head-on-only feature; three cells back along each flank and the profile has a mouth too.
+
+#### The coat, and the corpus number
+
+Blotches are **DARK**, and that was measured wrong first: pale drifts read as WEAR - bleached
+patches on the flank and dead centre of the rump. A real frog's markings are dark on a lighter
+skin. Drifts have a **LOBED radius** (noise on the boundary, never on the cell - the thicket's
+rule) and are painted only on cells with a face to the air, because a painted interior cell buys
+a number and shows nobody anything.
+
+Dominant block 81% -> 73%, and the value panel went from one untouched grey to a mass that
+carries light. The accent tail is 8.9% against the corpus's 18.5%, and **it is not being chased
+further**: this file already deleted "move a palette number" as a reason to put a block
+anywhere, when the deck gallery and then the deck soffit both did it.
+
+#### Four traps, each of which shipped a clean audit
+
+- **A FROGLIGHT LANDED ON AN EYE.** The lamp's `over` list takes the body's own block and an eye
+  box's LID is the body's own block, so it painted one white square in the middle of an eye. A
+  lamp may not touch a column whose top stands above the body.
+- **The lamps were read off `length`, not the body's own DEPTH.** `_f(0.88, 17)` is fifteen
+  stations into a twelve-station body, so the late spots never landed at all and the pair meant
+  for the hips ended up on the last course - tail-on, two pale squares side by side on a dark
+  rump are a second pair of eyes.
+- **Five lamps scattered on the back are a DICE-FIVE in plan**, and the loudest thing on the
+  animal. Landed in the middle of a dark drift each one is a spot with a lit centre, which is a
+  marking. (They are dull in every sheet here and glow in game - `render3d` has no emission.)
+- **Five bands terraced where four do not.** Each of the last four stations stepped in and down
+  by one and the rump came out as a flight of little ledges - which is the exact failure a
+  coarse band table exists to prevent, reintroduced by making the bands narrow.
+
+#### And three tests had to change in the same commit
+
+They pinned a `haunch` part, a single pupil per eye, and a lip notch in the belly panel - all
+three of which are decisions this pass reversed. **A test that pins a proportion or a part is
+pinning a DECISION about which reference is being copied**, so it changes with the decision or
+the suite quietly enforces the thing that was just rejected. This file has said that once
+already, about the mob's proportions; it applies to a construction as much as to a ratio.
+
+The monotonic test needed two corrections of its own, both instructive. Measured from the
+BOUNDING BOX, station zero is a lamp in a toe pad and every animal fails - the body begins at
+the pale panel's plane. And plain non-increasing was too strong: it failed the front corner's
+own chamfer, which is a rounding of the mass and not a second object. The property wanted is
+CONVEX - one peak - not monotonic.
+
+#### And the eyes were a station too far forward
+
+Jack, on the rebuilt animal: *"its eyes are pushed further vs the reference images which have it
+set a block back."* Correct, and it is an error the whole rebuild inherited without questioning -
+the boxes had overhung the front plane since the box build, where they were meant to read as a
+brow. **A cell is a sixth of this head's depth.** Proud of the face they give the animal a jutting
+brow with a shadow under it; the reference's eyes sit ON the head with their front in the SAME
+PLANE as the face. Set back one station, the head-on view gains a clean brow course in front of
+them and nothing else moves.
+
+It also let a test get stronger: `test_the_eye_boxes_sit_on_the_head` tolerated half its lid cells
+standing over nothing, because the overhang made that unavoidable. Flush, the answer is ZERO, and
+that is what it pins now.
+
+#### THE FEET ARE STAIRS, and the renderer could not see it
+
+Jack, sending the Graysun statue back a third time: *"i think the feet still are crappy, this one
+had feet done by using stairs."* That is the whole answer to four failed foot shapes, and I had
+been re-arranging cubes instead of reading the material.
+
+**A CUBE TOE ENDS. A STAIR TOE TAPERS.** A toe built of full blocks stops at a vertical face one
+block high, which is a plate - and that is why every arrangement of them read as a rake, a comb, a
+plus sign or a set of random lines however the prongs were spaced. Half height at the tip, sloping
+to the ground, is what a toe actually does, and it is one block per toe.
+
+It is also a gap the whole repo has and had already measured: against the download corpus we place
+stairs at **0.64 per thousand cells against their 4.51** - seven times under - and this design had
+none at all. `CLAUDE.md` listed "fences and trapdoors" as the biggest remaining vocabulary gaps and
+put stairs on the *already-solved* side, because `gen/stairhead.py` uses them. One generator using
+them for a staircase is not a vocabulary.
+
+Two more things came out of the same note:
+
+- **THE FEET BELONG AT THE BODY'S OUTER CORNERS.** At `bw - 2` they were inboard, tucked under the
+  belly with a slot between them; the reference's sit at the foot of the arms with the whole pale
+  front showing between them down to the ground.
+- **THE ANKLE RISES TWO COURSES and steps down to the pad**, so the foot has something to taper
+  FROM. Flat on the ground at one course there is no fall to describe, and the reference's feet are
+  plainly two blocks at the heel and one at the toes.
+
+Four stations deep and no more. At five - three toes two cells long - they read beautifully close
+up and **took over the head-on view**: 38% of a thirteen-deep animal's length was foot. The taper
+does the work the length was trying to.
+
+#### `render3d` now draws stairs and slabs at their real shape
+
+**THE FEET WERE REBUILT WITH STAIRS AND EVERY SHEET HERE DREW THEM AS FULL CUBES.** The change was
+unjudgeable - which is the same failure as rendering an animal orthographically along its own axis,
+the one this file already records: *the tool cannot show the class of error being hunted*. Shipping
+a change nobody can look at is how the axolotl's head happened.
+
+`render3d.subdivide` expands every block to **2x2x2 half-cells** and fills them from the block's
+shape: a slab is four, a stair is six, everything else is eight. Nothing in the raycaster changed -
+it still marches a boolean grid - so this cost about forty lines and roughly 2x the march, which on
+an animal is tenths of a second.
+
+- **Applied only to models that actually contain a shape block.** AO is computed on the half-cell
+  grid, so it is finer, and the image genuinely moves; applied to everything it would silently
+  shift every sheet in the repo. Six of the eight animals contain no shape block and render
+  bit-identically. `look.py --no-shapes` is the way back.
+- **AFTER the scale figure**, or the player marker subdivides separately and stops being 2 blocks
+  tall.
+- **The stair convention is the load-bearing part and a picture cannot check it.** A stair's TALL
+  side is its `facing`; until now this renderer drew both directions identically, so a backwards
+  flight and a correct one produced the same image. `tests/test_render3d_shapes.py` pins the mask
+  per facing, and `test_the_toes_taper_and_they_lean_the_right_way` pins the frog's own toes -
+  which lean BACK toward the body, because a toe tapers down and forward.
+
+**This corrects a claim in this file.** It said real block models "buy almost nothing for ANIMALS,
+which are near-100% full cubes". That was true only while no animal used a shape block; the moment
+one did it was wrong, and it was the reason the gap went unfixed.
+
+#### A HAND IS MOSTLY AIR
+
+Jack, on the first stair version: *"hands are now really thick and strange, how do we make the
+replica which is a bit more refined and feels cleaner."* They were - **twenty cells apiece, and
+solid**: a 3x2 pad, a five-wide web laid over it, and a two-course ankle behind that. Three courses
+of stacked mass with a taper stuck on the front is a boot with claws.
+
+The reference's hands are the opposite thing. They are almost entirely **NEGATIVE SPACE** - a flat
+wrist ONE course deep and ONE station deep, and thin toes with a clear cell of air between them.
+Eleven cells, and nothing stacked on anything except where the wrist meets the body.
+
+**The gaps are the feature.** That is the same rule as the eye pair needing a clear cell between
+them, and the ladybird's spots needing four courses of spacing rather than three - and filling them
+in to make the shape read stronger is the same mistake, made a fifth time. Adding the stairs was
+right and it was not enough on its own, because a taper on the front of a solid lump still leaves
+a solid lump.
+
+The animal is 16 long now rather than 17, and the church clearance went 4 -> 5.
+
+##### The wrist light: three candidates, and the economy picked
+
+The hands need their own light and that is MEASURED, not assumed - `hand_lamp: false` and six
+cells over them stand at block light zero, because the back lamps are seven courses up and five
+forward and light does not turn corners.
+
+But `ochre_froglight` is 209 RGB from `acacia_planks`, so at the hand's leading edge it read
+head-on as a pale CHIP knocked out of the toe. Measured against the foot:
+
+| | Î”RGB | tier | |
+|---|---|---|---|
+| `glowstone` | 53 | **expensive** | |
+| `jack_o_lantern` | 46 | cheap | a FACE texture - the `bee_nest` trap |
+| `shroomlight` | 95 | **expensive** | the right block on any other economy |
+| `ochre_froglight` | 209 | cheap | what we have |
+
+Two expensive blocks for a cosmetic is not a trade this design makes, so the fix is PLACEMENT: the
+wrist's inner corner, shaded by the body's own front, which is the least-read cell of the hand.
+
+**And a light must keep AIR OVER IT.** Tucking it under the wrist's rise would have switched it
+off - light travels through air, and a lamp walled in by its own foot lights nothing at all.
+
+**1,278 blocks, one piece, 0 problems, 0 overlap in context, all cheap, 16/16 frog + 9 renderer.**
+
+
+### IT IS UPRIGHT, and the rule that stopped it being so was mine (2026-08-29)
+
+Jack, on the finished loaf: *"no, this isnt good, i need you to really think about this, and
+audit carefully, visually this sucks."* He was right, and the audit found something bigger than
+the frog.
+
+**THIS FILE STATES, IN CAPITALS, THAT A SCULPTURE AT THIS SCALE MUST BE ONE CONVEX MASS WITH A
+PATTERN ON IT. That is a SCALE law and it was written down as a universal one.** It was measured
+at eight courses of body height, where every feature is one or two cells and a one-cell step is
+not modelled form but the seam between two objects. The reference does not delete the anatomy -
+it makes the animal TALL ENOUGH TO HOLD IT. At twenty-two courses a head is seven cells, an arm
+fourteen, a haunch five: those are masses.
+
+And the evidence was already in this file. *"It came out a crate twice"* is recorded here about
+the two earlier one-mass builds; the third was called a crate by Jack. **A rule that produces a
+crate three times running is the rule that is wrong**, not the execution.
+
+The lot was re-measured before anything was drawn: **15x13 is the largest pad at roll <= 1 and it
+carries 107 COURSES OF HEADROOM.** Height was always free here; the footprint was the only
+constraint, and the loaf was using 12 of the 107.
+
+#### Four things the rebuild got wrong first, each a general lesson
+
+- **UPRIGHT IS NOT THE SAME AS TALL.** The first attempt was a twenty-six course column with a
+  head at 15% of the height: a gravestone with a frog on top. Measured off the picture the head
+  and eyes are about **40%** of the total and the body below is **wider than it is tall**. A
+  statue is not a measurement of an animal.
+- **A PALE RECTANGLE INSET IN A DARKER FRAME IS A DOOR.** Four passes went into making the mass
+  squatter, tapering it, darkening the arms and shortening the torso, and the front stayed
+  architecture until the BELLY ITSELF stopped being a rectangle. It is a lens now - widest at
+  the middle, closing top and bottom. The straight line is what says architecture; the curve is
+  what says creature.
+- **THE HEAD MUST BE SHORT FRONT-TO-BACK.** Given the body's own depth, the whole rear was one
+  flat wall from crown to ground and the profile read as a BOOT. A sitting frog is head forward
+  and high, rump back and low: the head is the shallowest band and the haunches the deepest.
+- **THE ARMS HANG IN FRONT OF THE CHEST, not out at its sides.** Beside the body they are
+  swallowed by the haunches, which are wider - the first pass had arms visible over six courses
+  out of twenty-four. They also follow the body's own outline, because at a fixed offset they
+  filled the waist back out and HID the pinch: the body read as a straight-sided box because its
+  own silhouette was covered by its arms.
+
+#### The relief pass: every hard step gets a stair
+
+The last gap the corpus measured, and it was not close - outside sculpture runs about **17%
+detail blocks** and this animal ran **0.5%**. Every plane met the next at a hard right angle,
+which is what makes a voxel mass read as a crate however well it is proportioned, and it is why
+the reference looks like carved stone and ours looked like a box.
+
+The rule is general and places no cell by hand: **wherever a course steps IN, the shelf it leaves
+takes a stair leaning into the wall above it; wherever it steps OUT, the overhang takes an
+upside-down stair tucked under it.** Every hard ledge becomes a cove. `shell.py` has done exactly
+this for years and was never pointed at an animal.
+
+- **Only the skin, and only single steps.** The face, the belly, the eyes and the feet are drawn
+  features and a stair through one of them is a hole in a drawing; and a stair cut into a
+  two-course jump leaves a gap rather than a chamfer.
+- **The relief is the body's OWN material.** A chamfer is geometry; a stair in a different tone
+  is a stripe.
+- **It found that the head was the flattest thing left**, because a band of constant width has
+  no step to chamfer. Giving the crown a one-cell draw-in put relief on the head - and the eye
+  pair had to narrow from five cells to four to keep every lid over solid crown, which is the
+  third time on this animal that a box has been caught standing over air.
+
+#### And two colour findings
+
+- **`bone_block` alone reads cool grey** next to a warm body - 21 apart in R minus B where birch
+  is 71. The belly is two tones now: the bright core, and a warmer birch rim that stops the oval
+  reading as a cut-out pasted on the chest.
+- **`chiseled_sandstone` measures better than either and is NOT WITNESSED anywhere in this
+  world.** The tier table calls it cheap, which is a gap in the TABLE, not evidence the server
+  can supply it - and this file already recorded "sandstone does not exist on this skyblock".
+  Rule 12 from a new direction: ask the world, not the table.
+
+#### And then the legs and feet, which were three faults in one
+
+Jack: *"we're much closer with the frog but the legs/feet arent right."* A close look at the
+bottom found three, and the first is the one worth keeping:
+
+- **THE HANDS AND THE HIND FEET HAD MERGED INTO ONE L-SHAPED PLATE** round each front corner,
+  and the animal read as standing on a PLINTH rather than on four feet. Both were correct on
+  their own; they simply ran to the same stations. The separation has to be in DEPTH, not in
+  width - the hands live in front of the body's face, the hind feet start behind it, and the
+  arm's own station is the clear course between them.
+- **A HAND IS MOSTLY AIR, and it was two solid courses.** A wrist row and a web row under three
+  toe stubs is a flat PLATE with notches in its front edge, which is what four foot shapes on
+  the loaf were as well. One course of wrist and three toes with a clear cell between them is
+  eleven cells and reads as a webbed hand.
+- **THE LOW LIGHT GOES ON THE HOCK, NOT IN THE HAND.** The hands genuinely need lighting -
+  without it the air over them measures block light ZERO, because the body's lamps are high on
+  the back and light does not turn corners - but a cream froglight set in an acacia wrist is a
+  pale CHIP, and at the bottom of the animal it was the loudest thing on it. Moved to the
+  haunch's outer face a course off the ground it is a lit spot on a flank; it still reaches the
+  hand round the corner, because light floods air and needs no line of sight, and it lights the
+  hind foot on the way.
+
+#### One side was lumpier than the other, and the mass was symmetric by construction
+
+Jack read it straight off the render, and he was right: **104 of 1,615 cells differed across the
+sagittal plane.** Every part of this animal is built for `s in (1, -1)` and every span is centred,
+so construction was never the problem. Two other things were:
+
+- **THE COAT'S DRIFTS EACH CARRIED THEIR OWN SIGNED OFFSET**, so the dark blotches landed in
+  different places left and right. **A dark patch reads as a RECESS**, which is exactly why an
+  unmirrored coat looks like a body dented down one side rather than like markings. A real frog's
+  blotches are not symmetric; a STATUE of one is, the reference is, and the rubric has a whole
+  dimension for this that allows asymmetry only where it was deliberately asked for.
+- **`put` REFUSES A CELL THE TERRAIN OWNS**, and this lot rolls a course, so a foot cell existed
+  on one side and not the other. One cell - it only takes one. The mirror is ENFORCED now rather
+  than assumed, and dropping is the only safe direction: the missing cell is missing because
+  something real is already there.
+
+**And a facing MIRRORS, it does not COPY.** Written the obvious way the sweep assigned each cell's
+state verbatim to its twin and **60 of the 134 stairs came out facing the same way on both sides** -
+a chamfer leaning into the wall on one flank and out of it on the other. Only the ACROSS axis flips;
+a stair leaning fore or aft leans the same way both sides. **`render3d` had learned to draw a stair
+as anything but a cube the same day**, so a day earlier this would have been invisible in every
+sheet here and wrong in game for ever. That is the second defect the sub-block renderer has caught
+in one session, and it is the argument for having built it.
+
+**AND THE SKIRT WAS THE REST OF IT, which the first fix explicitly waived.** It fills each column
+down to its own ground; the ground under this site rolled THREE courses; and **all 34 of its
+columns came out on one flank**, in the body's own dark tone. That is a fringe hanging off one set
+of feet, and it is what Jack saw the second time.
+
+A fill CANNOT be mirrored downward - `put` refuses a cell the terrain owns, so the high side can
+never be given what the low side needs, and equalising the other way leaves the low side floating.
+Two things could be fixed and both were:
+
+- **RESEATED on the flattest ground the lot allows.** A search over every placement of the real
+  13x15 footprint that still clears the church by 3 found roll **2** at (-24169, 29976) - 161 of
+  195 columns at Y39. There is no roll-0 site: the lot has none for a footprint this size.
+- **EVERY FILL CELL TAKES THE MATERIAL OF THE CELL IT CARRIES.** Built as a proper base in the
+  church's own `polished_blackstone_bricks` it put a black post under every separate toe and the
+  animal looked like it was wearing BOOTS - **a plinth that follows the outline of a splayed foot
+  is not a plinth, it is a shadow.** Matched to what it carries, the fill reads as the toe
+  REACHING the ground, which is what it is.
+
+**42 unmirrored cells down to 23, all below the belly plane, all colour-matched.** Zero at or
+above it, geometry and colour, and the test now bounds the fill as well as forbidding the rest.
+
+**1,614 blocks, one piece, 0 problems, 0 overlap in context, all cheap, 18/18 - and 0 geometry and
+0 colour mismatches across the mirror above the belly plane.** Five tests
+changed with the decision - they pinned h/w 0.55-0.92, a monotonic mass, gold-in-black eyes, a
+rectangular panel and one-way stairs, and every one of those is a thing this pass reversed. One
+of them was measuring the CHIN rather than the belly, because the head's front plane stands
+forward of the chest's and `min(along)` picks the wrong plane.
+
+## The Island Line: a minecart spiral, deck to lowland (2026-08-28)
+
+`configs/rail_spiral.yaml`, `mcbuild/gen/railspiral.py` - **3,300 blocks, 673 track cells, 0
+problems, 0 overlap, one component, all cheap-or-ok, 1 dig cell.** Jack: delete the connecting
+train tracks, run a spiral all the way down to the lowlands that can also return, and use MORE
+POWERED RAILS THAN NORMAL ONES because of iron costs.
+
+### The iron premise is right and the reason is inverted
+
+    rail          6 iron -> 16 rails    0.375 iron each      iron_ingot  90 in store
+    powered_rail  6 gold ->  6 rails    1.0   gold each      gold       ~62, and FARMABLE
+
+A powered rail is ~7x a normal one in ingots, so the obvious reading is that powered rail is the
+expensive one - which is what I told Jack first, and it was wrong about this server. Gold is easy
+here and iron is not, so **the cheap rail is the gold one**. Lay powered rail everywhere and spend
+iron only where the game refuses.
+
+**IT REFUSES AT CORNERS, and that is the fact the whole design turns on.** Off `blocks.json`
+rather than off memory:
+
+    powered_rail  shape = north_south, east_west, ascending_{n,s,e,w}
+    rail          shape = ...those six, PLUS south_east, south_west, north_west, north_east
+
+A POWERED RAIL CANNOT CURVE. So every direction change is iron, and **the plan shape of the spiral
+becomes an iron decision rather than an aesthetic one**. At r=30 a square lap turns 4 times; a
+rasterised circle turns 60. Round is fifteen times the iron - more than is in store. Hence a square
+helix: four straight flights a lap with a landing at each corner, which is the void tower's rule
+again (regularity and openings, not curves).
+
+The shipped line is **11 corner rails, ~4 iron**. The whole railway's iron cost is four ingots.
+
+### The first radius sweep asked the wrong question, and Jack caught the result
+
+I scored whether the whole RING was clear at each course, concluded r=12 was the only workable
+radius and everything wider was 105-152 courses blocked. Jack: *"this doesnt make sense, it should
+be a much wider circle than the small staircase, these are separate things."*
+
+He was right and the sweep was what was wrong. **A helix occupies ONE CELL PER COURSE, not the
+ring** - a blocked ring only means the helix must arrive at a different PHASE. That is the same
+start-angle sweep `Lowland Stair` already documents, and I did not run it. Swept over centre,
+radius and phase together, wide radii are fine: r=30 at (-24206, 30014) threads the whole descent
+and stands **15 clear of the stair's outer edge** instead of 3.
+
+Wider is not better past that, and both limits are measured:
+
+| r | turns | ride | under island | to the deck rail head |
+|---|---|---|---|---|
+| 12 | 6.3 | 76s | 70% | 28 - and 3 from the stair: one tangled column |
+| **30** | **2.8** | **~84s** | **70%** | **43** |
+| 36 | 3.1 | 113s | **42%** | **85** |
+
+At r=36 most of the ride is a viaduct in open sky rather than one threading the island's underside,
+and the boarding platform ends up 85 blocks from the deck.
+
+### Five things that shipped a clean audit and a broken railway
+
+Every one of these passed `problems: 0`, `overlap 0` and a correct BOM. The audit can only see that
+a design is one connected solid; it has no idea what a rail is *for*.
+
+- **NEVER DESCEND INTO A CORNER.** A curve has no ascending shape either, so a corner and both its
+  neighbours must share one height - drop into one and the game re-derives the turn as a slope, the
+  turn is lost and the line dead-ends. Invisible in the model, because `shape` is DERIVED (it is
+  not in `work.INTENTIONAL`, exactly as a stair's is not). The grade skips the cell before a corner
+  as well as the corner itself.
+- **AN UNPOWERED POWERED_RAIL IS A BRAKE**, so every one has to carry signal - a `redstone_block`
+  in the bed every 8 cells. And the runs are counted **between corners**, because a normal rail
+  does not propagate the chain: a flat spacing leaves a dead rail past every turn, and a dead rail
+  is a cart that stops in mid-air a hundred blocks up.
+- **A TRACK CELL IS NOT OPTIONAL.** The first build let two track cells yield to other designs and
+  shipped 0 problems, 0 overlap and **three components** - the audit caught it only because a
+  broken line happens also to be a broken solid. Structural cells are now fatal-or-claimed and
+  never silently skipped: anything the WORLD holds is an error naming the cell, a cell only an
+  unbuilt DESIGN claims is taken and reported (nothing old is live on this island).
+- **THE LINE MUST END ON GROUND.** Ending at a fixed `y_bottom` put the terminus in the ONE 33-cell
+  stretch of the ring with no floor under it - a platform 43 blocks over open void that you step
+  out of the cart and fall off. 185 of the 240 ring columns have lowland floor and 55 do not, so
+  the line asks: it descends only where there is something to descend toward, holds level over
+  void, and lands the moment floor comes back under it.
+- **A TERMINUS NEEDS A STOP BLOCK.** A stationary cart on a powered rail launches AWAY from the
+  adjacent solid block. Written with the indices inverted it placed neither, silently, and the line
+  would have run only whichever way you happened to shove the cart.
+
+And two of the repo's standing traps, both hit again:
+
+- **`dict.get(x, z)` reads `z` as the DEFAULT**, so the tuple-keyed ground table returned a Z
+  coordinate as a height and the route terminated on its first cell.
+- **A fixture that belongs BESIDE a thing must be excluded from the thing by construction.** The
+  perpendicular flips through a corner, so the dressing offset walked back onto the line and stood
+  a lantern on a powered rail - the frog's "the eye sits over the hind foot in plan" in a hard hat.
+
+### The lighting was ten times the metal of the railway
+
+58 lanterns came to **~52 iron** against the eleven corner rails' 4. On the island whose scarce
+metal is iron, the lights cost more than the line. **61 ochre froglights set flush INTO the deck
+edge** cost none, use the idiom this island already lights itself with (Island Night, the lowland
+turf), cannot be knocked off a walkway 150 blocks up, and leave the 3-wide deck clear to walk. A
+flush froglight reaches 14, not 15 - it IS the floor, an opaque emitter a course down - and the
+spacing is set against that.
+
+The stone still carries the Lowland Stair's gradient (island stone brick, deepslate, the quarter's
+blackstone) so the two read as one hand. **The light does not go cold with it**: verdant and
+pearlescent froglight stock is zero and soul lanterns are iron. One tone, stated in the config.
+
+### What it costs, and what is still open
+
+The only real purchase is **518 powered rails = 518 gold**; stone brick, blackstone brick and
+deepslate brick wall all craft from stock, and 2,251 of the 3,300 blocks are already in containers.
+
+- **The existing east line is KEPT, not deleted.** Its 104 cells run deck -> east lobes -> bee
+  house and the spiral is affordable without salvaging them.
+- **THE DECK SPUR IS NOT BUILT, AND THE TOP STATION FLOATS.** The top terminus stands at
+  (-24231, 192, 29984): **43 blocks** from the deck rail head at (-24197, 192, 29993), and the
+  nearest island block of ANY kind is 22 away. **128 design cells sit at Y>=186 and not one of them
+  touches the island** - so the line is complete, printable (it builds upward off its own chain from
+  the lowland end) and not reachable on foot. Until the spur is built you can ride UP to the top
+  station and be stranded there. That junction is the next piece of work; it crosses the busiest
+  part of the deck, which is why it was not guessed at here.
+- **The ~1-in-8 power spacing and the corner deceleration are the two numbers still unverified.**
+  Everything else here is read off the registry or measured off a capture; these are reasoned. A
+  24-block test ramp with one corner answers both before 518 gold is committed.
+
+`tests/test_railspiral.py` (18) pins all of it: the registry fact about curves, corners flat on both
+sides, slopes ascending toward the higher neighbour, every run powered at both ends and never past
+the spacing, no source wasted on a corner, inside the plot, clear of the stair, the terminus on real
+ground with a stop block, nothing standing on the track, one piece, no iron-cost lights, and that a
+blocked track cell RAISES rather than leaving a gap.
 
 ## The daily loop
 

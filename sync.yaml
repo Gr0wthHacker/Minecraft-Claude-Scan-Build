@@ -42,8 +42,19 @@ progress:
   - out/Island Enrichment.litematic # 416 stairs and sills: the detail our buildings lacked
   - out/Island Run.litematic      # 97 moves: a parkour descent, 2 turns, 13 slime jump pads
   - out/Island Night.litematic    # 107 fixtures + 31 dig: zero spawnable surface cells
-  - out/Lowland Frog.litematic    # 1584 blocks: the churchyard frog, east of the sanctum. It
-                                  # defers to the Thicket, so the plants go in first; it carries
-                                  # its own six froglights, because the night pass's classifier
+  - out/Lowland Frog.litematic    # 1597 blocks: the churchyard frog, east of the sanctum.
+                                  # UPRIGHT - head, arms, haunches, and a relief pass that
+                                  # chamfers every step in the mass. The one-convex-mass rule
+                                  # this repo carried was a SCALE law recorded as a universal
+                                  # one; see the generator. It does NOT defer to the
+                                  # Thicket (a deferred cell
+                                  # orphaned a foot; the config records why), and it carries its
+                                  # own seven froglights, because the night pass's classifier
                                   # cannot see anything in a lot that has island overhead
+  - out/Rail Spiral.litematic     # 3300 blocks: the minecart line, deck Y192 to lowland Y41,
+                                  # 2.8 square turns at r=30. LAST in the order deliberately -
+                                  # it lands ON the lowland floor and clears one plant to do it,
+                                  # so the Thicket's drifts go in first; and it adds ~2,000
+                                  # walkable cells the night pass never solved, which is why it
+                                  # carries its own 61 froglights rather than waiting for one
 learn: true
