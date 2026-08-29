@@ -42,8 +42,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from . import palette
-from .schem import Model
+from . import nbt, palette
+from .schem import AIR_NAMES, Model
 
 # Vanilla's face brightness ladder, keyed (normal axis, sign) with axis 0=x, 1=y, 2=z. This is not a
 # taste choice: it is what the game does, so it decides which faces of a build can carry a detail.
@@ -74,6 +74,90 @@ def content_box(m: Model) -> tuple[np.ndarray, np.ndarray]:
     lo = np.array([xs.min(), ys.min(), zs.min()], float)
     hi = np.array([xs.max() + 1, ys.max() + 1, zs.max() + 1], float)
     return lo, hi
+
+
+# --------------------------------------------------------------- sub-block geometry
+
+_SUB = np.ones((2, 2, 2), bool)                       # [dy, dz, dx] within one block
+
+
+def _shape_mask(name: str, props: dict) -> np.ndarray:
+    """Which of a block's EIGHT half-cells it actually fills.
+
+    Only stairs and slabs, because they are the only sub-cube shapes this repo emits. Anything
+    else is a full cube, which is what the whole renderer assumed until now.
+
+    THE STAIR'S TALL SIDE IS ITS `facing`. That is the convention this project settled off
+    Jack's own flight and pinned in `tests/test_stairhead.py`, and it is asserted rather than
+    eyeballed precisely because a renderer that drew both directions identically could not tell
+    them apart - which is what this function exists to stop being true.
+    """
+    m = np.zeros((2, 2, 2), bool)
+    if name.endswith("_slab"):
+        t = props.get("type", "bottom")
+        if t == "double":
+            return _SUB.copy()
+        m[0 if t == "bottom" else 1] = True
+        return m
+    if name.endswith("_stairs"):
+        lo = 0 if props.get("half", "bottom") == "bottom" else 1
+        m[lo] = True                                  # the slab half, all four
+        hi = 1 - lo
+        f = props.get("facing", "north")              # ...and the step, on the TALL side
+        if f == "east":
+            m[hi, :, 1] = True
+        elif f == "west":
+            m[hi, :, 0] = True
+        elif f == "south":
+            m[hi, 1, :] = True
+        else:
+            m[hi, 0, :] = True
+        return m
+    return _SUB.copy()
+
+
+def has_shapes(m: Model) -> bool:
+    """Does this model contain anything that is not a full cube?"""
+    return any(n.endswith("_stairs") or (n.endswith("_slab")
+               and nbt.state_props(e).get("type", "bottom") != "double")
+               for n, e in zip(m.names, m.palette))
+
+
+def subdivide(m: Model) -> Model:
+    """Every block as 2x2x2 half-cells, so STAIRS AND SLABS HAVE THEIR REAL SHAPE.
+
+    THIS EXISTS BECAUSE THE RENDERER COULD NOT SEE THE THING IT WAS BEING ASKED ABOUT. Jack,
+    looking at the frog against his reference: *"the feet are done by using stairs"* - and he was
+    right, a stair is what makes a toe TAPER to the ground instead of ending at a vertical face.
+    The feet were rebuilt with stairs and every sheet here drew them as full cubes, so the change
+    was unjudgeable. That is the same failure as rendering an animal orthographically along its
+    own axis: the tool cannot show the class of error being hunted.
+
+    `mcbuild/render.py` has drawn slabs at half height for a long time and this file never did,
+    which is why CLAUDE.md's note that real block models "buy almost nothing for ANIMALS" held -
+    it was true only while no animal used them.
+
+    Cost is about 2x the march (the grid doubles in each axis, so a ray crosses twice as many
+    cells), which on an animal is tenths of a second. AO is computed on the half-cell grid, so
+    it is FINER than before - a real difference in the image, and the reason this is applied only
+    to models that actually contain a shape block rather than to everything.
+    """
+    ids = m.ids
+    sy, sz, sx = ids.shape
+    names, pal = m.names, m.palette
+    air = next((i for i, n in enumerate(names) if n in AIR_NAMES), None)
+    if air is None:
+        pal = list(pal) + [nbt.block_state("air")]
+        air = len(pal) - 1
+    masks = np.stack([np.zeros((2, 2, 2), bool) if n in AIR_NAMES
+                      else _shape_mask(n, nbt.state_props(e))
+                      for n, e in zip(names, m.palette)])
+    out = np.empty((sy * 2, sz * 2, sx * 2), ids.dtype)
+    for dy in range(2):
+        for dz in range(2):
+            for dx in range(2):
+                out[dy::2, dz::2, dx::2] = np.where(masks[:, dy, dz, dx][ids], ids, air)
+    return Model(out, pal)
 
 
 def orbit(m: Model, yaw: float = 215.0, pitch: float = 20.0, dist: float = 1.0,

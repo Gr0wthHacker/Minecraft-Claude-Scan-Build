@@ -136,6 +136,8 @@ def main() -> None:
     ap.add_argument("--big", action="store_true", help="one large panel instead of the sheet size")
     ap.add_argument("--no-ground", action="store_true", help="for anything that hangs in the void")
     ap.add_argument("--no-figure", action="store_true", help="drop the player-height marker")
+    ap.add_argument("--no-shapes", action="store_true",
+                    help="draw stairs and slabs as full cubes, as this tool always used to")
     ap.add_argument("--look-high", type=float, default=0.45,
                     help="what fraction up the build the camera aims: 0.85 is a head")
     ap.add_argument("--out")
@@ -151,6 +153,14 @@ def main() -> None:
     figure = False
     if not a.no_figure:
         m, figure = with_scale_figure(m)
+    # STAIRS AND SLABS GET THEIR REAL SHAPE, and only then. Subdividing is 2x the march and it
+    # computes AO on the half-cell grid, so it changes the image - applied to everything it
+    # would silently move every sheet in the repo. Applied to the models that actually contain
+    # a shape block it changes exactly the ones that were being drawn WRONG. (AFTER the scale
+    # figure, so the player marker is subdivided with the build and stays 2 blocks tall.)
+    shaped = r3.has_shapes(m) and not a.no_shapes
+    if shaped:
+        m = r3.subdivide(m)
     kw = dict(ground=not a.no_ground, look_high=a.look_high)
     t0 = time.perf_counter()
 
@@ -188,6 +198,8 @@ def main() -> None:
     print(f"  facing {meta.get('facing')}" + ("" if known else "  <-- NOT RECORDED, bearing 0 is world +z"))
     if figure:
         print("  the blue 1x2 column beside it is a player, standing on the same ground")
+    if shaped:
+        print("  stairs and slabs drawn at their REAL shape (2x2x2 half-cells)")
     if a.sheet == "panel":
         print("\n  Name it from the SILHOUETTE alone. If you cannot, nothing else matters.")
         print("  Where is the weight? Is there a line of action, or is the spine a straight rule?")
