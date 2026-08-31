@@ -10,18 +10,6 @@
     "z": 9
   },
   "generated_by": "casino",
-  "after": [
-    "Colour Wheel 1",
-    "Colour Wheel 2",
-    "High Roller 1",
-    "High Roller 2",
-    "High Roller 3",
-    "One In Three 1",
-    "One In Three 2",
-    "One In Three 3",
-    "Lucky Two 1",
-    "Lucky Two 2"
-  ],
   "kind": "casino/lucky_number",
   "facing": "east",
   "contract": "press once; pays ONLY on exactly 2 (1 in 3)",

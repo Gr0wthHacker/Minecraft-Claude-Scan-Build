@@ -110,20 +110,37 @@ def slice_plan(plan_name: str, floor_y: int, out_dir: str = "out",
     pl = planner.Plan.load(plan_name)
     prefix = prefix or plan_name.title()
 
+    # **THE PRECEDENCE LIVES HERE, ONCE, AND IT IS EXPLICIT.**
+    #
+    # The modules no longer defer, so they overlap - the hall's floor runs under every room. FIRST
+    # WRITER WINS, in plan order, which is the same precedence `defer_to` used to enforce by
+    # deleting cells from the loser: a room owns its own floor and the hall lays only the ground
+    # between them. Doing it here means the modules stay whole and one place decides.
     cells: dict = {}
     signs: dict = {}
+    contested = 0
     for m in pl.modules:
         c, s = _read(m["name"], out_dir)
-        # LAST WRITER WINS, and it does not matter: the plan is already asserted to have zero
-        # cross-design clashes, so where two modules share a cell they agree on what is in it.
-        cells.update(c)
+        for pos, v in c.items():
+            if pos in cells:
+                if cells[pos] != v:
+                    contested += 1
+                continue                      # first writer keeps it
+            cells[pos] = v
         signs.update(s)
+    if contested:
+        print(f"  {contested} contested cells resolved by plan order (the hall under the rooms)")
 
     buckets: dict = collections.defaultdict(dict)
     for pos, (name, props) in cells.items():
         buckets[_which(name, pos[1], floor_y)][pos] = (name, props)
 
     written = []
+    # **THE WHOLE THING, AS ONE DESIGN.** The layers are the build steps; this is the answer to
+    # "let me see everything in totality" - one file, nothing deferred, nothing hidden, which is
+    # what you load when you want to look at the casino rather than build it.
+    whole = f"{prefix} Complete"
+    written.append((whole, _write_layer(whole, cells, signs, out_dir)))
     for layer in LAYERS:
         got = buckets.get(layer)
         if not got:

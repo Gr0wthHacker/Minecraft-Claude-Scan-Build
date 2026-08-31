@@ -18,8 +18,5 @@ deep_cut:
 full_out: out/island_full.litematic
 regen: []
 progress:
-- Casino 1 Floor
-- Casino 2 Machines
-- Casino 3 Walls
-- Casino 4 Fittings
+- Casino Complete
 learn: true

@@ -7039,3 +7039,41 @@ late.
 
 The lineup is **14 games over 5 mechanics** - 3 High Roller, 3 One In Three, 3 Lucky Two, 3 Duel,
 2 Colour Wheel - every contract asserted by simulation, every one stating its odds on its own sign.
+
+### `defer_to` is gone from the casino (2026-08-31)
+
+Jack: *"can we stop with the defer crap so i can actually see everything in totality in the place
+simulation."* Yes, and it should have gone two rounds earlier.
+
+**`defer_to` RESOLVES A SHARED CELL BY DELETING IT FROM THE LOSER.** That is correct for cell
+ownership and it means every module ships as a fragment with holes in it - so looking at the casino
+meant loading a pile of overlapping designs each missing pieces. Three separate rounds of confusion
+came out of that and none of them was ever about the casino.
+
+    python -m mcbuild layers casino --floor 203 --ship
+
+    Casino Complete   14,874    the whole thing, one design - this is what you place and look at
+    Casino 1 Floor     7,636    the build steps, if you want to place it in stages
+    Casino 2 Machines  2,988
+    Casino 3 Walls     4,019
+    Casino 4 Fittings    231
+
+- **The modules are INTERMEDIATE artifacts now.** Each is generated WHOLE, overlaps and all, and no
+  casino config carries a `defer_to` - `test_no_module_config_defers_to_another` keeps it that way,
+  because deferring is the obvious way to stop two designs claiming a cell and is easy to
+  reintroduce by accident.
+- **THE PRECEDENCE LIVES IN ONE PLACE AND IS REPORTED.** `layers.slice_plan` applies first-writer-
+  wins in plan order - the same precedence `defer_to` used to enforce - and prints the count:
+  **923 contested cells**, which is the hall's floor under the rooms. Silently applied it is the
+  same trap; printed, it is a number you can check.
+- `Casino Complete` is verified to equal the union of the four layers exactly: same cells, same
+  block states, and one connected component with the island.
+
+**Two tests changed with the decision**, which is the rule this file keeps relearning: one asserted
+that no two modules share a cell, and the other compared the layers against a raw union of the
+modules. Both were true only because of deferring. They now assert that the overlap EXISTS, that it
+is resolved deterministically, and that the resolved result is exactly the design you place - and
+the first of them fails if anything quietly starts deferring again.
+
+`sync.yaml` tracks **one** design, so `/cscan place` puts down the whole casino with nothing hidden.
+The layers stay in the folder and can be placed by name when it is time to build in stages.

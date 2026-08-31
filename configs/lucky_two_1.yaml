@@ -12,13 +12,4 @@ params:
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic
-  defer_to:
-  - out/Colour Wheel 1.litematic
-  - out/Colour Wheel 2.litematic
-  - out/High Roller 1.litematic
-  - out/High Roller 2.litematic
-  - out/High Roller 3.litematic
-  - out/One In Three 1.litematic
-  - out/One In Three 2.litematic
-  - out/One In Three 3.litematic
 origin_lock: false

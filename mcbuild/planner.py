@@ -731,19 +731,16 @@ def emit(name: str, out_dir: str = "configs") -> list:
                 "; ".join(f"{v}x {k}" for k, v in sorted(exp.items()))
                 + " - a light cannot be substituted by colour (the nearest cheap match is a lamp "
                   "that does not light), so this cost is declared rather than hidden")
-        # **DEFER TO EVERY EARLIER MODULE, NOT JUST THE PREVIOUS ONE.**
+        # **NOTHING DEFERS ANY MORE, AND THAT IS THE POINT.**
         #
-        # Chained one-to-one this looks right and is right only for a line of modules that touch
-        # their neighbour. The hall touches ALL of them: it deferred to `House Bank 3` alone and
-        # drew its smooth_stone floor straight over all eighteen room floors - 60 cells each, the
-        # whole floor of every room. In game that is two placements fighting over one cell, which
-        # is exactly the "empty boxes and things not shown right" this was reported as.
+        # `defer_to` settles which design owns a shared cell, and it does that by DELETING the
+        # cell from the loser - so every module became a fragment with holes in it, and looking at
+        # the casino meant loading a pile of overlapping designs each missing pieces. Three rounds
+        # of confusion came out of that, and none of it was ever about the casino.
         #
-        # Nothing caught it because `verify_against` audits a design against the CAPTURE, and the
-        # capture does not contain the other designs. Cross-design overlap is its own check and is
-        # now run - see `tests/test_planner_fleet.py::test_no_two_modules_of_a_plan_share_a_cell`.
-        if prev:
-            cfg["finish"]["defer_to"] = [f"out/{n}.litematic" for n in prev]
+        # The modules are INTERMEDIATE artifacts now. Each is generated whole, overlaps and all;
+        # the conflicts are resolved once, explicitly, in `layers.slice_plan`, which is also the
+        # only place that knows the right precedence. What gets placed is the slice.
         p = os.path.join(out_dir, f"{slug}.yaml")
         with open(p, "w", encoding="utf-8") as f:
             yaml.safe_dump(cfg, f, sort_keys=False)

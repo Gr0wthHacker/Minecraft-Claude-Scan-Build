@@ -10,12 +10,6 @@
     "z": 10
   },
   "generated_by": "casino",
-  "after": [
-    "Colour Wheel 1",
-    "Colour Wheel 2",
-    "High Roller 1",
-    "High Roller 2"
-  ],
   "kind": "casino/high_roller",
   "facing": "east",
   "contract": "press once; the bar shows the roll, 3 outcomes [1, 2, 4]",

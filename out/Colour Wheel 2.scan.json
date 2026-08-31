@@ -10,9 +10,6 @@
     "z": 19
   },
   "generated_by": "casino",
-  "after": [
-    "Colour Wheel 1"
-  ],
   "kind": "casino/wheel",
   "facing": "east",
   "contract": "press once; exactly one of three pockets lights (1 in 3)",

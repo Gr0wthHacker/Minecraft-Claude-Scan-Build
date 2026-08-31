@@ -19,6 +19,7 @@ import pytest
 from mcbuild import layers
 
 NAMES = [f"Casino {i + 1} {l}" for i, l in enumerate(layers.LAYERS)]
+WHOLE = "Casino Complete"
 
 
 def _have():
@@ -53,10 +54,11 @@ def test_the_layers_are_disjoint_and_lose_nothing():
         shared = set(maps[a]) & set(maps[b])
         assert not shared, f"{a} and {b} share {len(shared)} cells - layers cannot collide"
 
-    from mcbuild import planner
-    plan = {}
-    for m in planner.Plan.load("casino").modules:
-        plan.update(layers._read(m["name"])[0])
+    # COMPARED AGAINST THE RESOLVED WHOLE, not the raw modules. The modules no longer defer, so
+    # they genuinely overlap - the hall's floor runs under every room - and a plain union of them
+    # is not what the casino is. `Casino Complete` is the union AFTER the precedence is applied,
+    # which is the thing the layers must add up to.
+    plan = layers._read(WHOLE)[0]
     lay = {}
     for n in NAMES:
         lay.update(maps[n])
@@ -121,3 +123,42 @@ def test_the_whole_slice_is_one_connected_piece():
         comps.append(k)
     comps.sort(reverse=True)
     assert len(comps) == 1, f"the casino is in {len(comps)} pieces: {comps[:8]}"
+
+
+def test_the_complete_design_is_the_whole_casino():
+    """**THE ANSWER TO "LET ME SEE EVERYTHING IN TOTALITY".**
+
+    `defer_to` resolved a shared cell by DELETING it from the loser, so every module was a fragment
+    and looking at the casino meant loading a pile of overlapping designs each missing pieces. It
+    is gone: the modules are generated whole, the precedence is applied once in the slice, and this
+    is the single design that holds all of it - nothing deferred, nothing hidden.
+    """
+    if not (_have() and os.path.exists(f"out/{WHOLE}.litematic")):
+        pytest.skip("the casino has not been sliced in this checkout")
+    whole = layers._read(WHOLE)[0]
+    union = {}
+    for n in NAMES:
+        union.update(layers._read(n)[0])
+    assert set(whole) == set(union), (
+        f"Complete is missing {len(set(union) - set(whole))} cells and has "
+        f"{len(set(whole) - set(union))} the layers do not")
+    bad = [c for c in whole if whole[c] != union[c]]
+    assert not bad, f"{len(bad)} cells differ in state between Complete and the layers"
+
+
+def test_no_module_config_defers_to_another():
+    """The modules are INTERMEDIATE artifacts and must stay whole.
+
+    Deferring is what made them unreadable, and it is easy to reintroduce by accident because it is
+    the obvious way to stop two designs claiming a cell. The conflict is resolved in the slice, in
+    one place, with an explicit precedence - and it is REPORTED there rather than silently applied.
+    """
+    import glob
+    import yaml as _yaml
+    for f in glob.glob("configs/*.yaml"):
+        with open(f, encoding="utf-8") as fh:
+            cfg = _yaml.safe_load(fh) or {}
+        if cfg.get("gen") != "casino":
+            continue
+        assert not (cfg.get("finish") or {}).get("defer_to"), (
+            f"{os.path.basename(f)} defers - the module will ship with holes in it")

@@ -10,14 +10,6 @@
     "z": 9
   },
   "generated_by": "casino",
-  "after": [
-    "Colour Wheel 1",
-    "Colour Wheel 2",
-    "High Roller 1",
-    "High Roller 2",
-    "High Roller 3",
-    "One In Three 1"
-  ],
   "kind": "casino/double_or_none",
   "facing": "east",
   "contract": "press once; pays ONLY on a roll of 4 (1 in 3)",

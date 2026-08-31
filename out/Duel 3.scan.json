@@ -10,21 +10,6 @@
     "z": 10
   },
   "generated_by": "casino",
-  "after": [
-    "Colour Wheel 1",
-    "Colour Wheel 2",
-    "High Roller 1",
-    "High Roller 2",
-    "High Roller 3",
-    "One In Three 1",
-    "One In Three 2",
-    "One In Three 3",
-    "Lucky Two 1",
-    "Lucky Two 2",
-    "Lucky Two 3",
-    "Duel 1",
-    "Duel 2"
-  ],
   "kind": "casino/duel",
   "facing": "east",
   "contract": "press once; you win ties - 6 in 9",

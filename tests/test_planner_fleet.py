@@ -228,21 +228,17 @@ def test_a_module_is_never_sited_on_something_you_use():
             assert not inside, f"{mod['name']} sits on a used block at {ux},{uy},{uz}"
 
 
-def test_no_two_modules_of_a_plan_share_a_cell():
-    """**THE CHECK THAT WAS MISSING, AND THE ONE THAT MATTERED.**
+def test_module_overlaps_are_RESOLVED_rather_than_absent():
+    """This test used to assert that no two modules share a cell, and that was only ever true
+    because `defer_to` deleted the loser's copy - which is what made every module a fragment with
+    holes in it, and made the casino impossible to look at.
 
-    `finish.verify_against` audits a design against the CAPTURE, and the capture does not contain
-    the other designs - so thirty modules each reported `overlap 0` while the hall drew its floor
-    straight over all eighteen room floors, sixty cells apiece. In game that is two placements
-    fighting over one cell, which is what "lots of empty boxes and things arent shown right" was.
-
-    The cause was one line in `emit`: `defer_to` was chained to the IMMEDIATELY PREVIOUS module
-    only, which is correct for a line of modules that touch their neighbour and wrong for a hall
-    that touches all of them.
+    The modules overlap on purpose now: the hall's floor runs under every room. What must hold is
+    that the overlap is RESOLVED once, deterministically, and that the resolved result is exactly
+    the design you place. A test that pins a decision changes with the decision.
     """
-    import itertools
     import numpy as np
-    from mcbuild import schem, scan as scan_mod, planner
+    from mcbuild import layers, planner, schem, scan as scan_mod
 
     try:
         pl = planner.Plan.load("casino")
@@ -251,32 +247,27 @@ def test_no_two_modules_of_a_plan_share_a_cell():
     names = [m["name"] for m in pl.modules]
     if not all(os.path.exists(f"out/{n}.litematic") for n in names):
         pytest.skip("the plan has not been generated in this checkout")
+    if not os.path.exists("out/Casino Complete.litematic"):
+        pytest.skip("the plan has not been sliced in this checkout")
 
-    def cells(n):
-        mo = schem.load(f"out/{n}.litematic")
-        sc = scan_mod.load(f"out/{n}.scan.json")
-        ox, oy, oz = sc.origin
-        pal = []
-        for t in mo.palette:
-            try:
-                pal.append(t.value["Name"].value.split(":")[-1])
-            except Exception:                                    # noqa: BLE001
-                pal.append("air")
-        out = {}
-        ys, zs, xs = np.nonzero(mo.ids)
-        for y, z, x in zip(ys, zs, xs):
-            nm = pal[mo.ids[y, z, x]]
-            if nm != "air":
-                out[(ox + int(x), oy + int(y), oz + int(z))] = nm
-        return out
+    # FIRST WRITER WINS, in plan order - the same precedence `defer_to` used to enforce.
+    resolved = {}
+    contested = 0
+    for n in names:
+        for pos, v in layers._read(n)[0].items():
+            if pos in resolved:
+                contested += 1 if resolved[pos] != v else 0
+                continue
+            resolved[pos] = v
+    assert contested > 0, ("the modules are expected to overlap now - if they do not, something "
+                           "has quietly started deferring again")
 
-    maps = {n: cells(n) for n in names}
-    clashes = []
-    for a, b in itertools.combinations(names, 2):
-        for c in set(maps[a]) & set(maps[b]):
-            if maps[a][c] != maps[b][c]:
-                clashes.append((a, b, c, maps[a][c], maps[b][c]))
-    assert not clashes, f"{len(clashes)} cross-design clashes, e.g. {clashes[:3]}"
+    whole = layers._read("Casino Complete")[0]
+    assert set(whole) == set(resolved), (
+        f"Complete differs from the resolved modules by "
+        f"{len(set(whole) ^ set(resolved))} cells")
+    bad = [c for c in whole if whole[c] != resolved[c]]
+    assert not bad, f"{len(bad)} cells resolved differently, e.g. {bad[:3]}"
 
 
 def test_the_whole_plan_is_one_connected_piece():
