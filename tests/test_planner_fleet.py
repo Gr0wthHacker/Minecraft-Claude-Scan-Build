@@ -4,6 +4,7 @@ Both are mostly REFUSALS, and a refusal is the easiest thing to relax later with
 """
 from __future__ import annotations
 
+import os
 import pytest
 
 from mcbuild import fleet, planner
@@ -125,3 +126,40 @@ def test_work_is_spread_rather_than_piled_on_one_account(tmp_path):
     for c in st["claims"].values():
         counts[c["account"]] = counts.get(c["account"], 0) + 1
     assert max(counts.values()) - min(counts.values()) <= 1, "the split is lopsided"
+
+
+def test_a_void_plot_sites_nothing_without_a_plane_and_everything_with_one():
+    """A FRESH SKYBLOCK ISLAND HAS NO GROUND, and requiring some is how a correct planner refuses
+    a perfectly buildable plot.
+
+    The real new island is a 12x12 starter pad in 99x99 of void: every pad search returns nothing
+    and all 33 modules report NO SITE, which reads as "the terrain is awkward" when the truth is
+    that there is no terrain. `plane` is a DECLARATION rather than a discovery - you say which
+    course the floor stands on - and every guard that is about correctness rather than about
+    terrain still applies, which is what this asserts.
+    """
+    from mcbuild import planner, islands as islands_mod
+    world = "out/newisle.litematic"
+    if not os.path.exists(world):
+        import pytest
+        pytest.skip("no new-island capture in this checkout")
+    plot = islands_mod.plot_of("newisle")
+    if plot is None:
+        import pytest
+        pytest.skip("newisle is not registered in this checkout")
+
+    bare = planner.make("redstone casino", world, name="_t_bare", island="newisle")
+    assert not bare.modules, "void ground must not silently site anything"
+    assert any("NO SITE" in n for n in bare.notes)
+
+    on = planner.make("redstone casino", world, name="_t_plane", island="newisle", plane=203)
+    assert len(on.modules) > 30, "a declared plane must site the whole theme"
+    assert any("BUILD PLANE" in n for n in on.notes), "and it must SAY it was declared, not found"
+    for m in on.modules:
+        x, y, z = m["at"]
+        w, _h, d = m["size"]
+        assert plot.contains(x, z) and plot.contains(x + w, z + d), (
+            f"{m['name']} is off the plot - the boundary guard must survive the plane")
+    # the floors are still stacked, and the gaming floor is the plane itself
+    assert min(m["at"][1] for m in on.modules) == 203
+    assert max(m["at"][1] for m in on.modules) > 203, "the mezzanine must still be lifted"

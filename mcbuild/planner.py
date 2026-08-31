@@ -265,7 +265,8 @@ def _clear(taken: list, x, y, z, size) -> bool:
 # ---------------------------------------------------------------------- planning
 
 def make(brief: str, world: str, name: str | None = None, theme: str | None = None,
-         plot_from: str | None = None, spacing: int = 2, island: str | None = None) -> Plan:
+         plot_from: str | None = None, spacing: int = 2, island: str | None = None,
+         plane: int | None = None) -> Plan:
     """Site a theme's modules on real ground and cost them. Nothing is generated yet.
 
     `island` names an entry in the island registry, so a plan can target a DIFFERENT island from
@@ -298,7 +299,25 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
         # it exists to prevent, so the plan says so rather than quietly siting off the island.
         pl.notes.append(f"PLOT UNKNOWN ({e}) - nothing is boundary-checked")
 
-    band = ground_band(sc)
+    # A SKYBLOCK PLOT HAS NO GROUND, and requiring some is how a correct planner refuses a
+    # perfectly buildable island. A fresh island is a 12x12 starter pad in 99x99 of void: every
+    # pad search returns nothing and every module reports NO SITE, which reads as "the terrain is
+    # awkward" when the truth is that there is no terrain at all.
+    #
+    # `plane` is the answer, and it is a DECLARATION rather than a discovery: you say which course
+    # the gaming floor stands on and the modules are laid out on the grid at that height. Every
+    # other guard still applies - the plot boundary, the overlap between modules, the vertical
+    # stacking - because those are the ones that are about correctness rather than about terrain.
+    #
+    # Each module carries its own floor and its own pit floor, so nothing hangs unsupported once
+    # it is built; what a plane cannot promise is something to place the FIRST block against, and
+    # the plan says so rather than letting the printer discover it.
+    band = None if plane is not None else ground_band(sc)
+    if plane is not None:
+        pl.notes.append(f"sited on a DECLARED BUILD PLANE at Y{plane} - this plot has no ground, "
+                        f"so the layout is the grid and each module carries its own floor")
+        pl.notes.append("the first module has nothing to place against: stand a starter platform "
+                        "under the gaming floor, or build outward from the island's own pad")
     if band:
         pl.notes.append(f"ground band Y{band[0]}..{band[1]} (modal surface) - "
                         f"nothing is sited on a rooftop or a sculpture")
@@ -322,14 +341,19 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             # THE GRID FIRST, so the plot is used rather than a strip of it. Each bay still has to
             # pass the SAME ground test a free-form pad would - flat enough, in the band, free -
             # because a tidy grid over rolling terrain is still a build on rolling terrain.
-            if pl_plot is not None:
+            if plane is not None and pl_plot is not None:
+                for (bx, bz) in bays(pl_plot, size, spacing=3):
+                    if _clear(taken, bx, plane, bz, size):
+                        spot = (bx, plane, bz, 0)
+                        break
+            elif pl_plot is not None:
                 for (bx, bz) in bays(pl_plot, size, spacing=3):
                     hits = [q for q in pads(sc, size, pl_plot, y_range=band, limit=4000)
                             if q[0] == bx and q[2] == bz]
                     if hits and _clear(taken, hits[0][0], hits[0][1], hits[0][2], size):
                         spot = hits[0]
                         break
-            if spot is None:
+            if spot is None and plane is None:
                 for (x, y, z, roll) in pads(sc, size, pl_plot, y_range=band, limit=4000):
                     if _clear(taken, x, y, z, size):
                         spot = (x, y, z, roll)
@@ -337,8 +361,9 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             lift = floors[min(int(mspec.get("floor", 0)), len(floors) - 1)]["y"]
             label = mspec["name"] + (f" {i + 1}" if int(mspec.get("count", 1)) > 1 else "")
             if spot is None:
-                pl.notes.append(f"{label}: NO SITE - nothing flat enough and free at "
-                                f"{size[0]}x{size[2]}")
+                why = ("no free bay left on the plane" if plane is not None
+                       else "nothing flat enough and free")
+                pl.notes.append(f"{label}: NO SITE - {why} at {size[0]}x{size[2]}")
                 continue
             x, y, z, roll = spot
             taken.append((x, y, z, size[0], size[1], size[2]))

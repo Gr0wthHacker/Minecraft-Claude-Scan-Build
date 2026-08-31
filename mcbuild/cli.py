@@ -236,7 +236,8 @@ def cmd_plan(a):
     if a.show:
         print(planner.Plan.load(a.show).report())
         return
-    pl = planner.make(a.brief or "", a.world, name=a.name, theme=a.theme, island=a.island)
+    pl = planner.make(a.brief or "", a.world, name=a.name, theme=a.theme,
+                      island=a.island, plane=a.plane)
     planner.verify(pl)
     pl.save()
     print(pl.report())
@@ -405,6 +406,9 @@ def main(argv=None):
     p.add_argument("--world", default="out/island_now.litematic")
     p.add_argument("--theme"); p.add_argument("--name")
     p.add_argument("--island", help="plan onto a registered island (see: mcbuild islands)")
+    p.add_argument("--plane", type=int,
+                   help="Y of the gaming floor on a plot with NO GROUND (a fresh skyblock island): "
+                        "lay the grid at this course instead of searching for flat terrain")
     p.add_argument("--show"); p.add_argument("--approve"); p.add_argument("--emit")
     p.set_defaults(fn=cmd_plan)
     p = sub.add_parser("islands", help="the islands this tooling knows: centre from BEDROCK, never typed")
