@@ -1,0 +1,78 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 195,
+    "z": 80551
+  },
+  "size": {
+    "x": 62,
+    "y": 24,
+    "z": 53
+  },
+  "generated_by": "casino",
+  "after": [
+    "Prize Wall 3"
+  ],
+  "kind": "casino/prize_wall",
+  "facing": "east",
+  "contract": "5 prizes, one button each, one item per press",
+  "inputs": [
+    [
+      97612,
+      217,
+      80603
+    ],
+    [
+      97612,
+      217,
+      80601
+    ],
+    [
+      97612,
+      217,
+      80599
+    ],
+    [
+      97612,
+      217,
+      80597
+    ],
+    [
+      97612,
+      217,
+      80595
+    ]
+  ],
+  "outputs": [
+    [
+      97611,
+      216,
+      80603
+    ],
+    [
+      97611,
+      216,
+      80601
+    ],
+    [
+      97611,
+      216,
+      80599
+    ],
+    [
+      97611,
+      216,
+      80597
+    ],
+    [
+      97611,
+      216,
+      80595
+    ]
+  ],
+  "unverified": [],
+  "budget": {},
+  "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "file": "Prize Wall 4.litematic",
+  "name": "Prize Wall 4"
+}

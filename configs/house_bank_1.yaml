@@ -1,0 +1,22 @@
+name: House Bank 1
+gen: casino
+params:
+  lanes: 6
+  at:
+  - 97592
+  - 215
+  - 80615
+  kind: counter
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+  defer_to:
+  - out/Prize Wall 4.litematic
+origin_lock:
+- 97551
+- 195
+- 80551
+expensive_allowance: 6
+expensive_reason: 6x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

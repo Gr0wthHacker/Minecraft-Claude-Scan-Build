@@ -1,0 +1,92 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 195,
+    "z": 80551
+  },
+  "size": {
+    "x": 66,
+    "y": 13,
+    "z": 40
+  },
+  "generated_by": "casino",
+  "after": [
+    "High Roller 1"
+  ],
+  "kind": "casino/high_roller",
+  "facing": "east",
+  "contract": "press once; the bar shows the roll, 3 outcomes [1, 2, 4]",
+  "inputs": [
+    [
+      97605,
+      204,
+      80585
+    ]
+  ],
+  "outputs": [
+    [
+      97613,
+      199,
+      80588
+    ],
+    [
+      97613,
+      199,
+      80587
+    ],
+    [
+      97613,
+      199,
+      80586
+    ],
+    [
+      97613,
+      199,
+      80585
+    ]
+  ],
+  "unverified": [
+    "the odds come from the ITEM MIX, not the wiring: a dropper ejects a uniformly random one of its occupied slots. The mix is recorded in `stock` and MUST be loaded exactly - the simulator has no entities and cannot check it for you."
+  ],
+  "budget": {
+    "redstone_lamp": 4
+  },
+  "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "lamps": [
+    [
+      97613,
+      199,
+      80588
+    ],
+    [
+      97613,
+      199,
+      80587
+    ],
+    [
+      97613,
+      199,
+      80586
+    ],
+    [
+      97613,
+      199,
+      80585
+    ]
+  ],
+  "rng_hopper": [
+    97610,
+    199,
+    80588
+  ],
+  "stock": {
+    "dropper": [
+      "a 64-stackable item (e.g. cobblestone)",
+      "a 16-stackable item (e.g. an egg)",
+      "a non-stackable item (e.g. a sword)"
+    ]
+  },
+  "reads": "bar",
+  "file": "High Roller 2.litematic",
+  "name": "High Roller 2"
+}

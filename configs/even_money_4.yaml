@@ -1,0 +1,19 @@
+name: Even Money 4
+gen: casino
+params:
+  outcomes: 2
+  pit: 2
+  at:
+  - 97560
+  - 203
+  - 80582
+  kind: double_or_none
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+  defer_to:
+  - out/Even Money 3.litematic
+origin_lock:
+- 97551
+- 195
+- 80551

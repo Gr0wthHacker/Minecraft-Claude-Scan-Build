@@ -1,0 +1,18 @@
+name: Prize Wall 1
+gen: casino
+params:
+  lanes: 5
+  at:
+  - 97593
+  - 215
+  - 80603
+  kind: prize_wall
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+  defer_to:
+  - out/Casino Marquee 4.litematic
+origin_lock:
+- 97551
+- 195
+- 80551

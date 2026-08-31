@@ -264,6 +264,96 @@ def _clear(taken: list, x, y, z, size) -> bool:
 
 # ---------------------------------------------------------------------- planning
 
+
+
+_FOOTPRINT_CACHE: dict = {}
+
+
+def measured_footprint(gen: str, kind: str, params: dict, declared):
+    """The module's REAL extent relative to its anchor, measured by building one.
+
+    **THE DECLARED SIZE WAS A HAND-TYPED GUESS AND IT WAS WRONG.** A casino game is declared 9x8x8
+    and builds 16x10x10 - and not centred on its anchor either: it runs from at-6 to at+9 across
+    and at-7 to at+2 along, because the shell, the pit and the payout all extend BACKWARDS from
+    the cell the player stands at. So every clearance test, every module-against-module check and
+    the plot boundary guard were all measuring a box the build does not occupy, and a game sited
+    its floor straight over the island's starter chest twice running.
+
+    This is rule 11 pointed at ourselves: ask the generator, not your memory. Building one module
+    costs milliseconds and is cached per (kind, params).
+
+    Returns (ox, oy, oz, w, h, d) - the offsets from `at` and the true size.
+    """
+    key = (gen, kind, tuple(sorted((k, str(v)) for k, v in params.items())))
+    if key in _FOOTPRINT_CACHE:
+        return _FOOTPRINT_CACHE[key]
+    out = None
+    try:
+        import numpy as np
+        from .gen import GENERATORS
+        probe = {**params, "at": [0, 64, 0], "kind": kind, "check": False}
+        probe.setdefault("facing", "east")
+        c = GENERATORS[gen].build(probe, [])
+        m = c.to_model()
+        ox, oy, oz = c.world_origin
+        names = []
+        for tag in m.palette:
+            try:
+                names.append(tag.value["Name"].value.split(":")[-1])
+            except Exception:                                    # noqa: BLE001
+                names.append("air")
+        solid = ~np.isin(m.ids, [i for i, n in enumerate(names) if n == "air"])
+        ys, zs, xs = np.where(solid)
+        if len(xs):
+            out = (int(xs.min()) + ox, int(ys.min()) + oy - 64, int(zs.min()) + oz,
+                   int(xs.max() - xs.min()) + 1, int(ys.max() - ys.min()) + 1,
+                   int(zs.max() - zs.min()) + 1)
+    except Exception:                                            # noqa: BLE001
+        out = None
+    if out is None:
+        # A MEASUREMENT THAT FAILED IS NOT A MEASUREMENT OF ZERO. Fall back to the declared box
+        # and say nothing clever about it.
+        out = (0, 0, 0, int(declared[0]), int(declared[1]), int(declared[2]))
+    _FOOTPRINT_CACHE[key] = out
+    return out
+
+
+USE_CLEAR = 3          # rule 10: room to stand at a chest, open it and walk past
+
+
+def _used_cells(sc) -> list:
+    """Every cell in the capture holding something a player STANDS AT AND USES.
+
+    Deliberately `protect.is_used` rather than `protect.is_protected`: the protected set is the
+    never-OVERWRITE list and holds `wool`, which on this project's own islands is most of the
+    sculpture material - used as a keep-clear radius it swallows whole builds. This project has
+    made that exact substitution once already, in the night pass, and written it down.
+    """
+    from .gen import protect
+    out = []
+    # THE PALETTE HOLDS NBT TAGS, NOT STRINGS, and `str(tag)` is the tag's repr - which contains
+    # the block name as a substring, so a careless parse SILENTLY MATCHES THE WRONG THING. The
+    # first version of this found one "used" cell on the island and it was the BEDROCK; the chest
+    # it was written to protect was never seen, and a module sited straight over it again.
+    m = sc.model if hasattr(sc, "model") else sc
+    ids = m.ids
+    names = []
+    for tag in m.palette:
+        try:
+            names.append(tag.value["Name"].value.split(":")[-1])
+        except Exception:                                        # noqa: BLE001
+            names.append("air")
+    keep = {i for i, n in enumerate(names) if protect.is_used(n)}
+    if not keep:
+        return out
+    import numpy as np
+    ox, oy, oz = sc.origin
+    for i in keep:
+        for (y, z, x) in zip(*np.where(ids == i)):
+            out.append((int(x) + ox, int(y) + oy, int(z) + oz))
+    return out
+
+
 def make(brief: str, world: str, name: str | None = None, theme: str | None = None,
          plot_from: str | None = None, spacing: int = 2, island: str | None = None,
          plane: int | None = None) -> Plan:
@@ -333,21 +423,43 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
         pl.notes.append(f"stacked over {len(floors)} floor(s): "
                         + ", ".join(f"{f['name']} at +{f['y']}" for f in floors)
                         + " - the plot is 99x99 but the vertical is free")
+    # WHAT IS ALREADY THERE AND USED IS NOT SITE, and the planner only ever checked itself.
+    #
+    # `_clear` compares module against module, so on a fresh island `High Roller 6` sited straight
+    # over the STARTER CHEST - the one holding everything the alt owns - and shipped with a single
+    # overlap and no placement problem. Rule 10 has been in this project for a year (leave about
+    # three blocks of working room around anything you stand at and use); nothing had ever applied
+    # it at the SITING stage, because on the main island the ground search happened to avoid them.
+    #
+    # A used block is seeded into `taken` as a box, so it costs nothing new: the same clearance
+    # test that keeps two modules apart keeps a module off a chest.
     taken: list = []
+    for (ux, uy, uz) in _used_cells(sc):
+        taken.append((ux - USE_CLEAR, uy - USE_CLEAR, uz - USE_CLEAR,
+                      USE_CLEAR * 2 + 1, USE_CLEAR * 2 + 1, USE_CLEAR * 2 + 1))
     for mspec in spec["modules"]:
+        fx, fy, fz, fw, fh, fd = measured_footprint(
+            mspec["gen"], mspec["kind"], dict(mspec.get("params", {})), mspec["size"])
         for i in range(int(mspec.get("count", 1))):
-            size = [mspec["size"][0] + spacing, mspec["size"][1], mspec["size"][2] + spacing]
+            size = [fw + spacing, fh, fd + spacing]
             spot = None
+            taken_box = None
             # THE GRID FIRST, so the plot is used rather than a strip of it. Each bay still has to
             # pass the SAME ground test a free-form pad would - flat enough, in the band, free -
             # because a tidy grid over rolling terrain is still a build on rolling terrain.
             if plane is not None and pl_plot is not None:
-                for (bx, bz) in bays(pl_plot, size, spacing=3):
-                    if _clear(taken, bx, plane, bz, size):
-                        spot = (bx, plane, bz, 0)
+                for (bx, bz) in bays(pl_plot, size, spacing=1):
+                    # bays() hands back where the BUILD goes; the anchor is offset from it
+                    ax, az = bx - fx, bz - fz
+                    if not (pl_plot.contains(bx, bz)
+                            and pl_plot.contains(bx + size[0], bz + size[2])):
+                        continue
+                    if _clear(taken, bx, plane + fy, bz, size):
+                        spot = (ax, plane, az, 0)
+                        taken_box = (bx, plane + fy, bz, size[0], size[1], size[2])
                         break
             elif pl_plot is not None:
-                for (bx, bz) in bays(pl_plot, size, spacing=3):
+                for (bx, bz) in bays(pl_plot, size, spacing=1):
                     hits = [q for q in pads(sc, size, pl_plot, y_range=band, limit=4000)
                             if q[0] == bx and q[2] == bz]
                     if hits and _clear(taken, hits[0][0], hits[0][1], hits[0][2], size):
@@ -366,10 +478,11 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 pl.notes.append(f"{label}: NO SITE - {why} at {size[0]}x{size[2]}")
                 continue
             x, y, z, roll = spot
-            taken.append((x, y, z, size[0], size[1], size[2]))
+            taken.append(taken_box or (x + fx, y + fy, z + fz, size[0], size[1], size[2]))
             pl.modules.append({
                 "name": label, "gen": mspec["gen"], "kind": mspec["kind"],
-                "at": [x, y + lift, z], "size": mspec["size"], "roll": roll,
+                "at": [x, y + lift, z], "size": [fw, fh, fd], "roll": roll,
+                "declared_size": list(mspec["size"]), "anchor_offset": [fx, fy, fz],
                 "floor": floors[min(int(mspec.get("floor", 0)), len(floors) - 1)]["name"],
                 "params": dict(mspec.get("params", {})),
                 "world": world,
@@ -451,6 +564,38 @@ def approve(name: str) -> Plan:
     return pl
 
 
+
+def measured_expensive(gen: str, kind: str, params: dict) -> dict:
+    """How many CURRENCY-tier blocks one of these modules really places.
+
+    A marquee is sixteen redstone lamps and a lamp cannot be substituted by colour - the nearest
+    cheap match is `acacia_planks`, which is a lamp that does not light. So the cost is real and
+    the honest thing is to DECLARE it, exactly as the Island Run declares its thirteen slime
+    blocks: the repo-wide eight-block ceiling stays meaningful for everything else, and the
+    exception sits in the config where a reader meets it.
+    """
+    from .gen import GENERATORS
+    from . import palette
+    out: dict = {}
+    try:
+        probe = {**params, "at": [0, 64, 0], "kind": kind, "check": False}
+        probe.setdefault("facing", "east")
+        c = GENERATORS[gen].build(probe, [])
+        m = c.to_model()
+        import numpy as np
+        for i, tag in enumerate(m.palette):
+            try:
+                name = tag.value["Name"].value.split(":")[-1]
+            except Exception:                                    # noqa: BLE001
+                continue
+            n = int((m.ids == i).sum())
+            if n and palette.tier(name) == "expensive":
+                out[name] = out.get(name, 0) + n
+    except Exception:                                            # noqa: BLE001
+        return {}
+    return out
+
+
 def emit(name: str, out_dir: str = "configs") -> list:
     """Write one config per module — and REFUSE if the plan is not approved.
 
@@ -462,6 +607,26 @@ def emit(name: str, out_dir: str = "configs") -> list:
         raise PermissionError(
             f"plan {name} is not approved. Nothing is emitted until a human says yes: "
             f"python -m mcbuild plan --approve {name}")
+    # THE ORIGIN LOCK BELONGS TO THE ISLAND BEING BUILT ON, NOT TO THE ONE THIS REPO GREW UP ON.
+    #
+    # `profile.origin_lock` is the main island's corner, and it is the default for every design
+    # here - so a casino at 97588/80595 would be padded from -24251/29949, a box 122,000 blocks
+    # wide. It passes the pipeline's own "lock <= natural origin" check, because it IS below and
+    # west of everything; it simply produces a schematic the size of the world.
+    #
+    # The lock's PURPOSE is one paste origin per island, so it is derived from the island's own
+    # plot corner. Every module of this plan then shares one origin, regeneration cannot move
+    # them, and `/cscan place` puts them all down against the same corner.
+    lock = None
+    if pl.island:
+        from . import islands as islands_mod
+        pp = islands_mod.plot_of(pl.island)
+        if pp is not None:
+            x0, x1, z0, z1 = pp.bounds() if callable(getattr(pp, "bounds", None)) else (
+                pp.cx - pp.radius, pp.cx + pp.radius, pp.cz - pp.radius, pp.cz + pp.radius)
+            floor = min(int(m["at"][1]) for m in pl.modules) if pl.modules else 0
+            lock = [int(x0), int(floor) - 8, int(z0)]
+
     written = []
     prev = None
     for m in pl.modules:
@@ -473,6 +638,16 @@ def emit(name: str, out_dir: str = "configs") -> list:
                        "under": m.get("world")},
             "finish": {"verify_against": m.get("world")},
         }
+        if lock is not None:
+            cfg["origin_lock"] = lock
+        exp = measured_expensive(m["gen"], m["kind"], dict(m.get("params", {})))
+        if exp:
+            total = sum(exp.values())
+            cfg["expensive_allowance"] = total
+            cfg["expensive_reason"] = (
+                "; ".join(f"{v}x {k}" for k, v in sorted(exp.items()))
+                + " - a light cannot be substituted by colour (the nearest cheap match is a lamp "
+                  "that does not light), so this cost is declared rather than hidden")
         # BUILD ORDER, from the same `after` the mod already understands: a module placed later
         # defers to the one before it, so two of them never ask for the same cell twice.
         if prev:

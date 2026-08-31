@@ -1,0 +1,40 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 195,
+    "z": 80551
+  },
+  "size": {
+    "x": 68,
+    "y": 22,
+    "z": 62
+  },
+  "generated_by": "casino",
+  "after": [
+    "Even Money 1"
+  ],
+  "kind": "casino/marquee",
+  "facing": "east",
+  "contract": "16 lamps, all of them, blinking on a 4-tick clock",
+  "inputs": [
+    [
+      97602,
+      215,
+      80611
+    ]
+  ],
+  "outputs": [
+    [
+      97618,
+      216,
+      80610
+    ]
+  ],
+  "unverified": [],
+  "budget": {
+    "redstone_lamp": 16
+  },
+  "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "file": "Casino Marquee 1.litematic",
+  "name": "Casino Marquee 1"
+}

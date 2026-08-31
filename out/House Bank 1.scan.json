@@ -1,0 +1,59 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 195,
+    "z": 80551
+  },
+  "size": {
+    "x": 44,
+    "y": 22,
+    "z": 65
+  },
+  "generated_by": "casino",
+  "after": [
+    "Prize Wall 4"
+  ],
+  "kind": "casino/counter",
+  "facing": "east",
+  "contract": "6 barrels, each with a fullness lamp",
+  "inputs": [],
+  "outputs": [
+    [
+      97594,
+      216,
+      80615
+    ],
+    [
+      97594,
+      216,
+      80614
+    ],
+    [
+      97594,
+      216,
+      80613
+    ],
+    [
+      97594,
+      216,
+      80612
+    ],
+    [
+      97594,
+      216,
+      80611
+    ],
+    [
+      97594,
+      216,
+      80610
+    ]
+  ],
+  "unverified": [],
+  "budget": {
+    "redstone_lamp": 6
+  },
+  "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "file": "House Bank 1.litematic",
+  "name": "House Bank 1"
+}

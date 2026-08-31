@@ -153,13 +153,63 @@ def test_a_void_plot_sites_nothing_without_a_plane_and_everything_with_one():
     assert any("NO SITE" in n for n in bare.notes)
 
     on = planner.make("redstone casino", world, name="_t_plane", island="newisle", plane=203)
-    assert len(on.modules) > 30, "a declared plane must site the whole theme"
+    assert len(on.modules) > 25, "a declared plane must site most of the theme"
     assert any("BUILD PLANE" in n for n in on.notes), "and it must SAY it was declared, not found"
+    # THE BOUNDARY IS CHECKED ON THE MEASURED EXTENT, NOT ON THE DECLARED BOX.
+    #
+    # A casino game is declared 9x8x8 and builds 16x10x10, running from at-6 to at+9 across -
+    # the shell, the pit and the payout all extend BACKWARDS from the cell the player stands at.
+    # Checking the declared box let a game put its floor over the island's starter chest twice,
+    # and would have let one finish past the plot edge.
     for m in on.modules:
-        x, y, z = m["at"]
+        ax, _ay, az = m["at"]
+        fx, _fy, fz = m["anchor_offset"]
         w, _h, d = m["size"]
-        assert plot.contains(x, z) and plot.contains(x + w, z + d), (
-            f"{m['name']} is off the plot - the boundary guard must survive the plane")
+        x0, z0 = ax + fx, az + fz
+        assert plot.contains(x0, z0) and plot.contains(x0 + w - 1, z0 + d - 1), (
+            f"{m['name']} is off the plot - the boundary guard must use the real footprint")
+    assert any(m["size"] != m["declared_size"] for m in on.modules), (
+        "the footprint must be MEASURED from the generator, not read from the theme table")
     # the floors are still stacked, and the gaming floor is the plane itself
     assert min(m["at"][1] for m in on.modules) == 203
     assert max(m["at"][1] for m in on.modules) > 203, "the mezzanine must still be lifted"
+
+
+def test_a_module_is_never_sited_on_something_you_use():
+    """RULE 10 AT THE SITING STAGE, which is where it had never been applied.
+
+    `_clear` compares module against module, so on a fresh island a game sited its floor straight
+    over the STARTER CHEST - the one holding everything that alt owns - and shipped with a single
+    overlap, no placement problem and a clean bill of materials.
+
+    The first fix did not work either, and the reason is worth keeping: the palette holds NBT
+    TAGS, and `str(tag)` is a repr that merely CONTAINS the block name, so a careless parse
+    matched the bedrock instead and the chest was still invisible.
+    """
+    from mcbuild import planner, islands as islands_mod, scan as scan_mod
+    from mcbuild.gen import protect
+    world = "out/newisle.litematic"
+    if not os.path.exists(world) or islands_mod.plot_of("newisle") is None:
+        pytest.skip("no new-island capture in this checkout")
+
+    sc = scan_mod.load(world)
+    used = planner._used_cells(sc)
+    assert used, "the capture has a chest in it - the scan must find it"
+    names = set()
+    m = sc.model
+    for tag in m.palette:
+        try:
+            names.add(tag.value["Name"].value.split(":")[-1])
+        except Exception:                                        # noqa: BLE001
+            pass
+    assert "chest" in names and any(protect.is_used(n) for n in names)
+
+    pl = planner.make("redstone casino", world, name="_t_used", island="newisle", plane=203)
+    for (ux, uy, uz) in used:
+        for mod in pl.modules:
+            ax, ay, az = mod["at"]
+            fx, fy, fz = mod["anchor_offset"]
+            w, h, d = mod["size"]
+            x0, y0, z0 = ax + fx, ay + fy, az + fz
+            inside = (x0 <= ux < x0 + w and y0 <= uy < y0 + h and z0 <= uz < z0 + d)
+            assert not inside, f"{mod['name']} sits on a used block at {ux},{uy},{uz}"
