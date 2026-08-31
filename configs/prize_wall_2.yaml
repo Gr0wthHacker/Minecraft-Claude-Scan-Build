@@ -4,7 +4,7 @@ params:
   lanes: 5
   at:
   - 97605
-  - 215
+  - 203
   - 80603
   kind: prize_wall
   title: Prize Wall 2

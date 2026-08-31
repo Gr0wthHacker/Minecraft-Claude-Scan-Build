@@ -405,15 +405,25 @@ def _room(w, p, x, y, z, dx, dz, sx, sz, width, depth, title, lines):
     for i in (0, width - 1):
         w.put(*at(i, depth // 2, ROOM_H - 1), "lantern", hanging="true", waterlogged="false")
 
-    # THE SIGNS, which are the whole point of this pass. One over the door saying what the room is,
-    # one inside saying how to play it and what the odds are. A machine nobody can read the rules
-    # of is a machine nobody plays twice.
-    dsx, dsy, dsz = at(door_i, depth, 4)
-    w.put(dsx, dsy, dsz, "oak_wall_sign", facing=p["facing"], waterlogged="false")
+    # THE SIGNS, which are the whole point of this pass. One over the door saying what the room
+    # is, one inside saying how to play it and what the odds are.
+    #
+    # **A WALL SIGN GOES ON A WALL, IN THE CELL IN FRONT OF IT.** Written the obvious way these
+    # were both wrong and a component count found it: the rules sign sat in the MIDDLE of the room
+    # attached to nothing - eighteen single-cell strays, one per room - and the door sign was
+    # placed INSIDE the wall plane, overwriting the lintel block it was supposed to hang on.
+    #
+    # `facing` is the direction the text FACES, which is away from the block it is fixed to.
+    back = {"east": "west", "west": "east", "north": "south", "south": "north"}[p["facing"]]
+
+    # Over the door, on the OUTSIDE face, where a shop sign goes - so it reads from the aisle.
+    dsx, dsy, dsz = at(door_i, depth + 1, 4)
+    w.put(dsx, dsy, dsz, "oak_wall_sign", facing=back, waterlogged="false")
     w.sign(dsx, dsy, dsz, front=[title, "", "", ""], colour="white", glowing=True)
 
-    isx, isy, isz = at(width - 1, depth - 1, 2)
-    back = {"east": "west", "west": "east", "north": "south", "south": "north"}[p["facing"]]
+    # The rules, on the BACK wall inside, facing whoever has just walked in. d=-1 is the far wall
+    # (d counts toward the front), so the sign hangs in the first interior course, d=0.
+    isx, isy, isz = at(door_i, 0, 2)
     w.put(isx, isy, isz, "oak_wall_sign", facing=back, waterlogged="false")
     w.sign(isx, isy, isz, front=list(lines)[:4])
     return (dsx, dsy, dsz)

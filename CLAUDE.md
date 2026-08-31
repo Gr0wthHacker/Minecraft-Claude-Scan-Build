@@ -6858,7 +6858,34 @@ Three more things came out of the same look:
   the cells yielded to a room were gone and the carpet was standing on air. The aisle is a floor
   MATERIAL now - a cell in the floor course cannot outlive its support, because it is the support.
 
-**Still open:** the interior has been verified by audit, simulation, cross-design overlap and block
-counts, not by eye -
+### FORTY-SIX PIECES, AND EVERY DESIGN SAID 0 PROBLEMS
+
+Jack: *"lots of things floating."* A 6-connected component count over the whole plan plus the
+island found **one building of 15,710 cells and 45 fragments hanging in open air.** Two causes,
+neither of them visible to a per-design check:
+
+- **THE THEME DECLARED A MEZZANINE AND NOTHING EVER BUILT ONE.** `floors: [{Gaming Floor, +0},
+  {Mezzanine, +12}]` lifted eleven modules eleven blocks and left them there - no deck, no
+  balustrade, no flight. **A floor entry is a LIFT, and a lift is only legitimate once something
+  carries what is lifted.** A gallery is a fine thing to build and it is a BUILD; until it exists
+  everything stands on the ground. `test_the_whole_plan_is_one_connected_piece` and a check on
+  `THEMES` both pin it.
+- **A WALL SIGN GOES IN THE CELL IN FRONT OF A WALL.** The rules sign was placed in the middle of
+  each room, attached to nothing - eighteen single-cell strays, one per game - and the door sign
+  was written INSIDE the wall plane, overwriting the lintel it was meant to hang from. `facing` is
+  the direction the text LOOKS, which is away from the block it is fixed to. The door sign is on
+  the outside face now, where a shop sign goes; the rules are on the back wall facing whoever has
+  walked in.
+
+**A DESIGN IS JUDGED IN CONTEXT, AND THE CONTEXT FOR A PLAN IS THE REST OF THE PLAN.** Rule 2 has
+said "verify in context, never in isolation" since the first island, and `verify_against` has only
+ever meant *against the capture*. For a thirty-module plan that is the wrong context twice over -
+it misses cross-design collisions and it misses floating work. Both now have their own test, and
+both found real defects the moment they were written.
+
+Final state: **one component, 16,028 cells, 0 clashes, 0 placement problems**, dominant block 43%.
+
+**Still open:** the interior has been verified by audit, simulation, cross-design overlap,
+connectivity and block counts, not by eye -
 `tools/look.py` cannot render these because the casino sidecar records `facing` as a word and it
 wants a vector. Place one room and look at it before building thirty.

@@ -170,9 +170,16 @@ def test_a_void_plot_sites_nothing_without_a_plane_and_everything_with_one():
             f"{m['name']} is off the plot - the boundary guard must use the real footprint")
     assert any(m["size"] != m["declared_size"] for m in on.modules), (
         "the footprint must be MEASURED from the generator, not read from the theme table")
-    # the floors are still stacked, and the gaming floor is the plane itself
-    assert min(m["at"][1] for m in on.modules) == 203
-    assert max(m["at"][1] for m in on.modules) > 203, "the mezzanine must still be lifted"
+    # EVERY MODULE STANDS ON THE PLANE. This used to assert the opposite - that a mezzanine was
+    # "still lifted" - and it was pinning a decision that turned out to be wrong: the theme
+    # declared a floor at +12 and nothing ever built one, so eleven modules hung in open air. A
+    # test that pins a decision changes with the decision, or the suite quietly enforces the bug.
+    ys = {m["at"][1] for m in on.modules}
+    assert ys == {203}, f"a module is lifted off the plane onto nothing: {sorted(ys)}"
+    from mcbuild.planner import THEMES
+    for f in THEMES["casino"]["floors"]:
+        assert f["y"] == 0, ("a floor entry is a LIFT, and a lift needs a deck, a railing and a "
+                             "flight built under it before it is legitimate")
 
 
 def test_a_module_is_never_sited_on_something_you_use():
@@ -270,3 +277,74 @@ def test_no_two_modules_of_a_plan_share_a_cell():
             if maps[a][c] != maps[b][c]:
                 clashes.append((a, b, c, maps[a][c], maps[b][c]))
     assert not clashes, f"{len(clashes)} cross-design clashes, e.g. {clashes[:3]}"
+
+
+def test_the_whole_plan_is_one_connected_piece():
+    """**THE CHECK THAT FINDS FLOATING WORK, AND PER-DESIGN AUDITS CANNOT.**
+
+    Every module reported 0 problems and 0 overlap and the built casino was still 46 pieces: one
+    building of 15,710 cells and 45 fragments hanging in open air. Two separate causes, neither
+    visible to a per-design check:
+
+    * the theme declared a "Mezzanine" at +12 and NOTHING EVER BUILT ONE - no deck, no railing, no
+      stairs - so eleven modules were lifted eleven blocks above the floor and left there. A floor
+      entry is a lift, and a lift is only legitimate when something carries what is lifted.
+    * a wall sign was placed in the MIDDLE of each room, attached to nothing: eighteen single-cell
+      strays, one per game. A wall sign goes in the cell IN FRONT of a wall, and `facing` is the
+      way the text looks, which is away from the block it is fixed to.
+
+    A design is judged in context, and the context for a plan is the REST OF THE PLAN.
+    """
+    import numpy as np
+    from mcbuild import schem, scan as scan_mod, planner
+
+    try:
+        pl = planner.Plan.load("casino")
+    except Exception:                                            # noqa: BLE001
+        pytest.skip("no casino plan in this checkout")
+    names = [m["name"] for m in pl.modules]
+    if not all(os.path.exists(f"out/{n}.litematic") for n in names):
+        pytest.skip("the plan has not been generated in this checkout")
+
+    def cells(n):
+        mo = schem.load(f"out/{n}.litematic")
+        sc = scan_mod.load(f"out/{n}.scan.json")
+        ox, oy, oz = sc.origin
+        pal = []
+        for t in mo.palette:
+            try:
+                pal.append(t.value["Name"].value.split(":")[-1])
+            except Exception:                                    # noqa: BLE001
+                pal.append("air")
+        out = set()
+        ys, zs, xs = np.nonzero(mo.ids)
+        for y, z, x in zip(ys, zs, xs):
+            if pal[mo.ids[y, z, x]] != "air":
+                out.add((ox + int(x), oy + int(y), oz + int(z)))
+        return out
+
+    u = set()
+    for n in names:
+        u |= cells(n)
+    # THE ISLAND COUNTS. The plan stands on a plot that already holds a starter pad, and leaving
+    # it out would report the casino as detached from the ground it is built on.
+    if os.path.exists("out/newisle.litematic"):
+        u |= cells("newisle")
+
+    seen, comps = set(), []
+    for c in u:
+        if c in seen:
+            continue
+        stack, comp = [c], 0
+        seen.add(c)
+        while stack:
+            x, y, z = stack.pop()
+            comp += 1
+            for q in ((x + 1, y, z), (x - 1, y, z), (x, y + 1, z),
+                      (x, y - 1, z), (x, y, z + 1), (x, y, z - 1)):
+                if q in u and q not in seen:
+                    seen.add(q)
+                    stack.append(q)
+        comps.append(comp)
+    comps.sort(reverse=True)
+    assert len(comps) == 1, f"the casino is in {len(comps)} pieces: {comps[:8]}"

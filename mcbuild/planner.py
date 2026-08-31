@@ -55,12 +55,18 @@ MAX_FOOTPRINT = 99
 THEMES = {
     "casino": {
         "blurb": "a redstone casino: four verified games over two floors, inside a 99x99 plot",
-        # TWO FLOORS, BECAUSE THE FOOTPRINT IS THE ONLY THING THAT IS SCARCE. The reference casino
-        # is 135x105 and does not fit; the vertical does not run out until Y320. Games below, where
-        # a player walks between them; marquee, prize wall and bank above.
+        # **ONE FLOOR, BECAUSE A SECOND ONE IS A STRUCTURE AND NOT A NUMBER.**
+        #
+        # This said two floors and lifted eleven modules to +12 - and nothing ever BUILT a
+        # mezzanine: no deck, no railing, no stairs. All eleven hung in open air eleven blocks
+        # over the gaming floor, and a component count of the finished casino found exactly that:
+        # one building of 15,710 cells and 45 floating fragments.
+        #
+        # A floor entry is a lift, and a lift is only legitimate when something carries the thing
+        # being lifted. Adding a real gallery - deck, balustrade and a flight down - is a fine
+        # thing to build and it is a BUILD, so until it exists everything stands on the ground.
         "floors": [
             {"name": "Gaming Floor", "y": 0},
-            {"name": "Mezzanine", "y": 12},
         ],
         # FOUR GAMES FROM TWO VERIFIED TOPOLOGIES, at two sets of odds. `high_roller` reads the
         # roll off a bar; `double_or_none` pays only on a win. Both are asserted by simulation at
@@ -75,11 +81,11 @@ THEMES = {
             {"name": "Even Money", "gen": "casino", "kind": "double_or_none",
              "size": [9, 8, 8], "params": {"outcomes": 2, "pit": 2}, "count": 5, "floor": 0},
             {"name": "Casino Marquee", "gen": "casino", "kind": "marquee",
-             "size": [18, 5, 4], "params": {"length": 16}, "count": 4, "floor": 1},
+             "size": [18, 5, 4], "params": {"length": 16}, "count": 4, "floor": 0},
             {"name": "Prize Wall", "gen": "casino", "kind": "prize_wall",
-             "size": [4, 5, 12], "params": {"lanes": 5}, "count": 4, "floor": 1},
+             "size": [4, 5, 12], "params": {"lanes": 5}, "count": 4, "floor": 0},
             {"name": "House Bank", "gen": "casino", "kind": "counter",
-             "size": [4, 4, 8], "params": {"lanes": 6}, "count": 3, "floor": 1},
+             "size": [4, 4, 8], "params": {"lanes": 6}, "count": 3, "floor": 0},
             # THE BUILDING GOES LAST, AND THAT ORDER IS LOAD-BEARING.
             #
             # `emit` chains `defer_to` down the list, so a later module yields any cell an earlier
