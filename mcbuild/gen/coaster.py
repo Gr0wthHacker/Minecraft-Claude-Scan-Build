@@ -56,6 +56,7 @@ continuous line, and the trestles join them.
 """
 from __future__ import annotations
 
+from .. import fluids
 from .canvas import Canvas, hash01
 from .park import LANDS, SIGN_WIDTH, _BACK, _Frame, _STEP, _sign
 from .vertical import Ctx, World
@@ -722,6 +723,38 @@ def _coaster(w: World, p: dict, ctx) -> dict:
 
 # --------------------------------------------------------------------------- the flume
 
+def _wall_offs(pts, j):
+    """`_sides` widened for a vertical WALL, never for a floor.
+
+    At a corner `_sides` deliberately returns BOTH legs' perpendiculars - "at a corner that is
+    BOTH axes, which is what fills the elbow" - and two of those four offsets are the unit
+    direction TOWARD THE PREVIOUS AND NEXT PATH CELL, because one leg's own perpendicular is the
+    other leg's travel axis. That is exactly right for a floor, which should fill the inside of
+    the turn, and it is exactly wrong for a wall: doubled for clearance (see `_flume`) it does
+    not land on j+1, it lands on j+2 along whichever leg it is - the ACTUAL WORLD POSITION of a
+    real path cell two steps up that leg, walled in from outside its own generation pass with no
+    way for the water loop to know a wall is coming. Every one of the five dry cells the first
+    corner-aware build produced came from exactly this: a corner's own doubled perpendicular
+    landing on a straight cell of one of its two legs.
+
+    The fix is not a smaller radius - radius 1 collides with j+1 the same way radius 2 collides
+    with j+2, any fixed offset along a leg's own axis eventually lands on a real cell of it. It is
+    dropping the two offsets that point along either leg at all, which leaves exactly the corner's
+    OUTER perimeter: the outside of the bend, which is the wall a trough actually wants there. The
+    inside of the bend is walled by the two straight neighbours either side of the corner, using
+    their own single-axis perpendiculars - unaffected, because neither of those offsets points
+    along the OTHER leg.
+    """
+    n = len(pts)
+    side = _sides(pts, j, False)
+    block = set()
+    if j:
+        block.add((pts[j - 1][0] - pts[j][0], pts[j - 1][1] - pts[j][1]))
+    if j + 1 < n:
+        block.add((pts[j + 1][0] - pts[j][0], pts[j + 1][1] - pts[j][1]))
+    return [o for o in side if o not in block]
+
+
 _FLUME_M = 4                # the flume's own margin, shared by the plan and the dock
 
 
@@ -808,31 +841,90 @@ def _flume(w: World, p: dict, ctx) -> dict:
             out.append(hs[j + 1])
         return out
 
-    # THE TROUGH. Floor, then two courses of water source, then side walls.
+    # THE TROUGH. Floor, then a SINGLE centre lane of water, then side walls TWO cells out -
+    # never one. At a corner `_sides` hands back the elbow's offsets un-doubled, and at
+    # magnitude 1 one of those offsets is exactly the NEXT path cell - a wall built there would
+    # seal the very cell the water is meant to reach next. Doubled, the wall clears every path
+    # cell (which only ever sits one step away) by construction; this is why the wall loop below
+    # keeps the `* 2` the floor already used.
     #
     # THE FLOOR IS A COLUMN, NOT A COURSE. Filled at one level per cell it is a diagonal
     # staircase on any graded run, and diagonal is not 6-connected - the ride would ship as one
     # fragment per flight. Filling from the LOWEST neighbour up to this cell's own level makes
     # every floor cell face-adjacent to the next by construction.
+    #
+    # **THE WIDE BED USES `_wall_offs`, NOT `side_of`, FOR THE SAME REASON THE WALLS DO.** A
+    # corner's doubled perpendicular does not stop at "two cells out" in the abstract - along
+    # either leg it lands EXACTLY on the real path cell two indices up that leg, and filling that
+    # column up to the CORNER's own height buries whatever that distant cell's own water lane
+    # needed to be. This is the one dry cell the wall fix on its own left standing: a corner's bed
+    # entombing the drop's next source two cells down the leg, solid straight through height 24
+    # where that cell wanted open water at hs+1.
     water = 0
     for j, (i, d) in enumerate(pts):
         lo, hi = min(nb_h(j)), hs[j]
-        for (oi, od) in [(0, 0)] + side_of[j] + [(o[0] * 2, o[1] * 2) for o in side_of[j]]:
+        wo = _wall_offs(pts, j)
+        for (oi, od) in [(0, 0)] + wo + [(o[0] * 2, o[1] * 2) for o in wo]:
             for hh in range(lo, hi + 1):
                 w.put(*f.at(i + oi, d + od, hh), pal["ground"])
-        # **SPACED SOURCES, AND NONE ON THE LIFT.** The first version filled every channel cell
-        # with level=0 - 564 source blocks - which is STILL water: a source does not push, so the
-        # ride carried nobody while looking perfect in every render. `mcbuild/fluids.py` simulates
-        # the spread and says so; a source every SRC_EVERY cells down a descending channel keeps
-        # the whole run flowing, and the game fills the cells between them.
-        #
-        # The lift RISES, and water does not flow uphill. It is a walk-up tube - climb the tower,
-        # then slide - which is how a water slide actually works.
-        rising = j > 0 and hs[j] > hs[j - 1]
-        if not rising and (j % SRC_EVERY == 0 or j == len(pts) - 1):
-            for (oi, od) in [(0, 0)] + side_of[j]:
-                w.put(*f.at(i + oi, d + od, hs[j] + 1), "water", level="0")
-                water += 1
+
+    # **SPACED SOURCES, ONE LANE, AND NONE ON THE LIFT.** The first version filled every channel
+    # cell with level=0 - 564 source blocks - which is STILL water: a source does not push, so
+    # the ride carried nobody while looking perfect in every render. The second version spaced
+    # sources by the RAW path index (`j % SRC_EVERY == 0`), which keeps counting through the
+    # cells the lift skips - so the first real source after the crest could land several cells
+    # into the descent with nothing behind it able to reach it (water does not flow uphill, so
+    # the last source before the climb is on the far side of a dry gap it cannot cross). Measured,
+    # it reached 161 cells and not one of them was flowing - AND `_seal` (below) then walled every
+    # one of those sparse sources into its own sealed pocket by filling the very gaps the next
+    # source needed to spread through.
+    #
+    # THE COUNTER NOW TRACKS CELLS SINCE THE LAST SOURCE, NOT THE RAW INDEX, and a climb always
+    # resets it so the FIRST CELL AFTER THE CREST IS ALWAYS A SOURCE - the mechanical lift ends,
+    # the boat is set down in fresh water, and the slide starts from there. The lift itself stays
+    # dry: it is a walk-up tube, water does not flow uphill, and nothing here tries to make it.
+    #
+    # A source cell is where the rider FLOATS rather than moves, so it is never part of the ride
+    # PATH this function reports - `path` below skips every cell this loop marks as a source.
+    #
+    # **THE CLIMB IS FOUND BY ITS LAST RISE, NOT ITS FIRST FLAT CELL.** `_profile` spreads a
+    # leg's climb over its free cells with `int((k + 0.5) * step)` picks, and at this ride's own
+    # numbers (30 courses over 31 free cells) that rounds to one cell that repeats its neighbour's
+    # height in the MIDDLE of the climb - a real, if tiny, plateau one course below the crest.
+    # Treating "the first non-rising cell after a rise" as the crest fired there instead, on the
+    # way UP, and placed a source floating mid-shaft while the lift kept climbing past it. The
+    # true crest is the LAST cell any leg rises into; everything from the first rise to the last,
+    # plateau included, is the lift and stays dry.
+    rises = [j for j in range(1, n) if hs[j] > hs[j - 1]]
+    lift_lo, lift_hi = (rises[0], rises[-1]) if rises else (n, -1)
+    descent0 = lift_hi + 1 if rises else 0     # the cell right after the crest
+
+    since_src = SRC_EVERY               # forces a source at j == 0, the dock's own launch pool
+    is_source = [False] * n
+    for j, (i, d) in enumerate(pts):
+        if lift_lo <= j <= lift_hi:
+            since_src = SRC_EVERY       # the lift is dry; the descent starts fresh past it
+            continue
+        since_src += 1
+        crest = bool(rises) and j == descent0
+        is_last = j == n - 1
+        if crest or since_src >= SRC_EVERY or is_last:
+            w.put(*f.at(i, d, hs[j] + 1), "water", level="0")
+            water += 1
+            since_src = 0
+            is_source[j] = True
+
+    # THE EXPOSED CONTRACT: everything from the top of the first drop (the crest cell, which the
+    # loop above always makes a source) through the run-out, split into the cells a rider
+    # actually travels (`path`) and the cells that feed them (`sources`) - so a caller can hand
+    # both straight to `fluids.carries` without re-deriving the geometry. `sequence` is the same
+    # stretch with the sources left IN, in ride order - what `fluids.dry_runs` wants, since it
+    # resets its own budget on every cell that IS a source rather than being handed two lists
+    # that have already had the sources subtracted out of one of them.
+    descent_js = [j for j in range(descent0, n)]
+    sequence_world = [f.at(pts[j][0], pts[j][1], hs[j] + 1) for j in descent_js]
+    path_world = [f.at(pts[j][0], pts[j][1], hs[j] + 1) for j in descent_js if not is_source[j]]
+    sources_world = [f.at(pts[j][0], pts[j][1], hs[j] + 1) for j in descent_js if is_source[j]]
 
     # THE WALLS, at twice the perpendicular offset, three courses over the floor. On the graded
     # sections - the lift and the drop, which is the whole ride - the two water courses are
@@ -842,7 +934,7 @@ def _flume(w: World, p: dict, ctx) -> dict:
     panes = 0
     for j, (i, d) in enumerate(pts):
         nxt = pts[j + 1] if j + 1 < n else pts[j - 1]
-        for (oi, od) in [(o[0] * 2, o[1] * 2) for o in side_of[j]]:
+        for (oi, od) in [(o[0] * 2, o[1] * 2) for o in _wall_offs(pts, j)]:
             for hh in range(hs[j] + 1, hs[j] + 4):
                 pos = f.at(i + oi, d + od, hh)
                 if w.has(*pos):
@@ -864,8 +956,9 @@ def _flume(w: World, p: dict, ctx) -> dict:
     roofed = 0
     for j, (i, d) in enumerate(pts):
         want = max(nb_h(j)) + 2
+        wo = _wall_offs(pts, j)
         for hh in range(hs[j] + 3, want + 1):
-            for (oi, od) in [(0, 0)] + side_of[j] + [(o[0] * 2, o[1] * 2) for o in side_of[j]]:
+            for (oi, od) in [(0, 0)] + wo + [(o[0] * 2, o[1] * 2) for o in wo]:
                 pos = f.at(i + oi, d + od, hh)
                 if not w.has(*pos):
                     w.put(*pos, pal["trim"])
@@ -963,35 +1056,65 @@ def _flume(w: World, p: dict, ctx) -> dict:
 
     sealed = _seal(w, pal["ground"])
 
+    # **VERIFY IT AT GENERATION TIME, THE SAME RULE `_feasible` ALREADY FOLLOWS FOR THE RAIL.**
+    # A flume that looks like a water ride and does not carry anyone is this project's cardinal
+    # sin, and it shipped once already: 564 source blocks, every one still water, invisible in
+    # every render and the audit. `fluids.carries` is cheap (a flood fill over a few hundred
+    # cells) and it runs on the SAME `w.cells` the printer will place, so a channel that cannot
+    # carry a rider fails here, in the generator, instead of in the world an hour later.
+    cells = {pos: name for pos, (name, _props) in w.cells.items()}
+    report = fluids.carries(cells, path_world, sources_world)
+    if not report["carries"]:
+        raise ValueError(
+            f"the flume's channel does not carry a rider: {report['dry']} dry cell(s), "
+            f"{report['still']} still cell(s) of {report['cells']}, stops at "
+            f"{report['stops_at']}")
+
     return {
         "kind": "flume",
         "channel": n, "corners": len(corners), "water": water, "panes": panes,
         "roof_cells": roofed, "trestles": trestles, "gantries": gantry,
         "pool": (pi1 - pi0 + 1) * (pd1 - pd0 + 1), "rim": rim, "sealed": sealed,
         "signs": signed, "top": int(p["flume_top"]), "span": s,
-        "contract": "a one-way water ride whose bed is water SOURCES cell by cell, so it neither "
-                    "drains nor stops seven blocks from a source. Every water cell has a solid "
-                    "bed and a solid or glazed face on all four sides - which is why the graded "
-                    "lift and drop are roofed and the flat runs are open.",
-        "unverified": ["nothing about a BOAT has been simulated - the channel is verified as "
-                       "watertight geometry, not as a ride that carries anything."],
+        # THE GENERATOR'S OWN GEOMETRY, WORLD COORDINATES, so a caller (a test, `fluids.carries`
+        # again after a regen, `look.py`) never has to re-derive the channel to check it. `path`
+        # is what a rider travels; `sources` is what feeds it - a source cell is still water and
+        # is deliberately NOT in `path`, because a rider floats there rather than moving.
+        "path": [list(c) for c in path_world],
+        "sources": [list(c) for c in sources_world],
+        "sequence": [list(c) for c in sequence_world],
+        "flow": {k: v for k, v in report.items() if k != "levels"},
+        "contract": "a one-way water ride whose channel is FLOWING water, verified by "
+                    "`fluids.carries` at generation time: a source every few cells (never on "
+                    "the lift, which is a walk-up tube - water does not flow uphill), a solid "
+                    "bed under every water cell, and side walls two cells clear of the centre "
+                    "lane so a wall can never land on the next cell the water has to reach.",
+        "unverified": ["nothing about a BOAT has been simulated - `fluids.carries` proves the "
+                       "water itself is flowing end to end, not that an entity riding it stays "
+                       "with the current. Ride it once before anyone is told it completes."],
     }
 
 
 def _seal(w: World, mat: str) -> int:
-    """The backstop: any empty cell touching a water source horizontally, or holding it up, is
-    filled. A source flows into open air, so an unsealed face is not a cosmetic problem - it is
-    the pool draining across the plot overnight. Nothing already placed is overwritten, so this
-    only ever finds what the trough's own geometry missed."""
+    """The backstop: any water cell with nothing solid UNDER it is given a bed.
+
+    ONLY UNDER - NEVER SIDEWAYS. The first version filled all four horizontal neighbours as well
+    as the one below, on the reasoning that an unsealed face is a leak. It is also exactly how a
+    channel of spaced sources gets walled into a row of sealed pockets: the cell between two
+    sources is deliberately left open so the game can fill it with flowing water, and a backstop
+    that cannot tell "open by design" from "open by accident" fills both the same way. Measured
+    after the fix, every source's forward and backward neighbour is already open by construction
+    (the floor is a solid column and the walls sit two cells clear of the centre lane - see
+    `_flume`), so the only genuine leak risk left is a water cell with no bed, which this still
+    catches. Nothing already placed is overwritten."""
     n = 0
     for (x, y, z), (name, _props) in list(w.cells.items()):
         if name != "water":
             continue
-        for (ox, oy, oz) in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, -1, 0)):
-            q = (x + ox, y + oy, z + oz)
-            if not w.has(*q):
-                w.put(*q, mat)
-                n += 1
+        below = (x, y - 1, z)
+        if not w.has(*below):
+            w.put(*below, mat)
+            n += 1
     return n
 
 

@@ -225,25 +225,27 @@ THEMES = {
             {"name": "Mine Coaster", "gen": "coaster", "kind": "coaster",
              "size": [47, 38, 47], "orient": False, "anchor": "edge", "side": "north",
              "params": {"land": "frontier", "span": 44, "top": 34, "facing": "south"}},
-            # **THE LOG FLUME IS WITHDRAWN UNTIL IT DEMONSTRABLY CARRIES A RIDER.**
+            # **THE LOG FLUME IS BACK - `fluids.carries` returns True for it now.**
             #
-            # Jack: *"the water slide etc are a good idea but functionally dont actually work so
-            # it makes it difficult"*. He is right and `mcbuild/fluids.py` now proves it: the ride
-            # placed 564 water cells and every one was level=0, a SOURCE. A trough of sources is
-            # STILL water - it does not push, so it carries nobody - and simulated with a single
-            # honest source at the top the rider stops at the SECOND cell, because the top
-            # traverse was dead flat and water dies seven blocks from its source.
+            # It was withdrawn once already for the reason Jack gave: *"the water slide etc are a
+            # good idea but functionally dont actually work"*. The second attempt (spaced sources,
+            # none on the lift) still failed - 161 cells reached, 0 flowing - and the cause was
+            # `_seal`, the leak backstop: it filled every empty cell horizontally adjacent to a
+            # water block, which is exactly the gap the NEXT source needs open to spread through.
+            # It walled every source into its own sealed pocket.
             #
-            # The generator has been improved (the traverse descends now, and water is placed as
-            # spaced sources rather than a solid trough, with none on the lift because water does
-            # not flow uphill) but it is NOT yet carrying: at the spaced placement heights the
-            # channel is not continuous, so the sources sit in sealed pockets. That is real work
-            # on the channel geometry, not a tuning pass.
-            #
-            # This repo cut `chase` and `vault` from the casino rather than ship machines it could
-            # not judge, and the same rule applies here: a ride that looks like it works and does
-            # not is worse than one that is absent. It goes back in the day `fluids.carries`
-            # returns True for it.
+            # Fixing that exposed two more of the same shape, both from a corner's own doubled
+            # wall/floor offset landing on a real cell of one of its two legs (two indices away,
+            # not one) - once in the wall loop, once in the floor's own bed. `_wall_offs` is the
+            # one fix for all three: it drops the two offsets that point back along either leg,
+            # leaving only the corner's genuine outer perimeter. `_seal` is now bed-only (below,
+            # never sideways) and finds nothing left to do - the geometry is correct by
+            # construction, not patched after the fact. `tests/test_flume.py` pins all of it,
+            # including every facing and three sizes, so the corner bug cannot come back quietly.
+            {"name": "Log Flume", "gen": "coaster", "kind": "flume",
+             "size": [31, 24, 31], "orient": False,
+             "params": {"land": "frontier", "flume_span": 29, "flume_top": 20, "pool": 4,
+                        "facing": "west"}},
             {"name": "Prospect Row", "gen": "frontiertown", "kind": "falsefront",
              "size": [13, 14, 39], "orient": False,
              "params": {"land": "frontier", "shops": 5, "facing": "east"}},
