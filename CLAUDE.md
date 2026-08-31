@@ -7118,3 +7118,134 @@ dust and 3 repeaters reading nothing** - one or two cells apiece in `double_or_n
 and `duel`, left where a link and a module's own `in` cell both wrote. Every contract still passes,
 so they are leftovers rather than faults; they are 20-odd cells out of 14,874 and worth a pass of
 their own, not a rushed one.
+
+## The theme park: three zones on three islands (2026-08-31)
+
+Jack asked for a zoo across three 99x99 plots, expandable to 200x200 each and connecting into
+600x200, with enclosures, animals and a gate. The zoo is not what got built, and the reason is
+worth more than the park is.
+
+### A ZOO IS THE ONE THING THIS SYSTEM CANNOT DO
+
+A zoo makes one promise about twenty times - *a stranger walks up and names the animal* - and this
+repo can keep it about eight times. The live roster is elephant, giraffe and capybara plus a
+handful of bespoke sculptures; every cat and both bears are RETIRED on panel evidence, and the
+failure is structural rather than a matter of effort or scale. Two more measurements settled it:
+
+- **Animals here are enormous.** `X elephant` is 21x49 and 39 tall, `X lion` is 17x69, a prowling
+  jaguar 13x59. At honest zoo proportions an elephant paddock is ~34x62 - a quarter of a 99x99
+  plot for ONE animal - and `tools/scale.py`'s floors (proboscid 30, giraffid 59) mean you cannot
+  shrink your way out of it.
+- **GRASS IS CURRENCY.** `blocks.spendable("grass_block")` is False, as is every form of dirt. A
+  park of lawns and naturalistic paddocks is not expensive, it is unbuildable in bulk. The lowland
+  already uses moss for exactly this reason and nobody had connected it to a zoo brief.
+
+What replaced it takes its variety from ARCHITECTURE and LAYOUT, which is the strongest thing in
+this repo - the void tower, sanctum, campanile and casino hall all settled one rule and the park
+inherits it whole: **what makes voxels read as architecture is regularity and openings, not
+damage.** Every attraction is a structure, so there is no sculpture risk anywhere in it.
+
+(The honest alternative, if the zoo feel is ever wanted back, is a PREHISTORIC park: a sauropod is
+a neck on columnar legs, a pterosaur is a membrane wing, a stegosaur is a convex mass with planar
+plates, and fossils are pure planar - every one a shape voxels render natively. It is a better fit
+than a modern zoo, and it costs 6-10 new bespoke generators.)
+
+### `gen/park.py` - seven kinds, three lands
+
+    gate  arch  plaza  tower  stall  booth  walkthrough
+
+    midway     wool and stone brick        the entrance, the plaza, the carnival
+    frontier   spruce and cobble           the mine, the saloon, the prospect tower
+    hollow     blackstone and deepslate    the haunted manor, the crypt, the clock tower
+
+Bright / warm / dark, wool / wood / stone - three places you could tell apart from a screenshot.
+Every block was checked against `palette.tier`, `blocks.spendable` and `blocks.available` before
+it was written down; nothing is currency, nothing is expensive, everything is 1.19.
+
+**THE HOLLOW'S WALL WAS ITS OWN GROUND.** Written first as `polished_blackstone_bricks` for both,
+the land had no value step at all - which is this file's most-repeated palette mistake, now made
+a fourth time. Three separate notes here conclude that this economy has almost no value contrast,
+and every one of them measured inside ONE material family, where a ladder cannot exist by
+construction. Measured across families the rungs are real:
+
+    black_wool 21  ->  polished_blackstone_bricks 45  ->  deepslate_bricks 71
+
+steps of 24 and 26, against the ~15 below which a trim course stops being a line. Pinned by
+`test_every_land_can_actually_draw_a_line`, which measures rather than trusting the table.
+
+### THE FAULT WORTH REMEMBERING: A SIGN ON A COLUMN THAT HAS AN OPENING IN IT
+
+Three of the seven kinds shipped a stray cell and a fourth shipped a sign the game would refuse,
+and all four were the same mistake: a gate's map board hung behind a LANE, a tower's nameplate
+behind a WINDOW SLIT, a walkthrough's EXIT sign behind its own EXIT, a stall's nameplate on an
+open shopfront. The wall exists everywhere except the one column somebody chose to sign.
+
+It is invisible in every render - a wall sign floating in air draws exactly like one on a wall -
+and **a connectivity check catches only three of the four**: the stall's sign was 6-adjacent to
+the canopy above it and so counted as connected while still having nothing to hang from. The
+support test catches all four, and it lives in `_sign` rather than at the call sites, so the next
+kind cannot forget it. `_sign` returns False when it refuses, and
+`test_every_kind_that_should_be_named_is_named` exists because a silently-refused sign is this
+project's most-repeated failure shape wearing a new hat.
+
+The stall's fix is architectural rather than a nudge: an open front has no wall to hang a sign
+from, so it got a FASCIA - the board a shop's name actually goes on.
+
+### Two planner faults, both of which produced a perfectly reasonable wrong answer
+
+- **A GENERIC KEYWORD SHADOWED EVERY LATER THEME'S OWN NAME.** `_theme_for` tested each theme's
+  name and its keywords together and returned on the first that passed either, so `midway`'s
+  keyword "theme park" swallowed "theme park frontier" and "theme park hollow" alike and all
+  three zones planned as the centre. It was caught only because two different briefs produced
+  byte-identical 10,403-block plans. An explicit name is now resolved first, across all themes,
+  before any keyword is considered.
+- **THE ORDERING WAS DECLARED RATHER THAN MEASURED.** `bays` packs in list order and the biggest
+  module must go first or it starves - the rule the Colour Wheel's three NO SITEs established.
+  Ordered by the hand-typed `size` all three zones looked correct and all three were wrong: a
+  tower declared 15x15 MEASURES 13x13 while a walkthrough declared 15x15 measures 15x15, so the
+  tower led every zone while being the smaller module. The test measures through
+  `measured_footprint` now, which is what the planner actually packs with.
+
+### `anchor: "edge"`
+
+`cover` already existed for a module that IS the ground. A gate needed the opposite: a module
+whose POSITION IS ITS MEANING. Sited by `bays` a gatehouse lands wherever there is a free bay,
+which is a gate in the middle of a field - you walk round it - and an arch to the west that is not
+on the western edge does not lead anywhere. `edge` pins to a named side and centres along it, and
+unlike `cover` it DOES claim its box, because everything else must keep out of the doorway.
+`test_every_edge_module_names_the_side_it_is_pinned_to` also asserts each one FACES outward.
+
+### The centre zone, planned and costed
+
+`newisle` is the middle island and the entrance; bedrock (97600, 200, 80600), starter pad top
+Y202, so the build plane is **Y203**. 16 modules, one gate on the south edge, an arch on each of
+the east and west edges pointing at the neighbours.
+
+    10,403 blocks · 21 materials · 4 short (849 black_wool, 25 signs)
+
+Everything else comes out of stock. `plan --approve park_centre` is the gate and has NOT been
+passed.
+
+**EACH ZONE IS PLANNED AGAINST ITS CORE, AND THE EXPANSION IS A SECOND PLAN.** Jack builds the
+inner 100x100 first and grows to 200x200 later, so nothing in the outer band may be load-bearing
+for the core. Planning against the island's CURRENT radius gets that for free: everything sites
+inside the ring that already exists and the expansion ADDS modules rather than moving them. A plan
+spread over the full 200 would put the plaza's centre and the gate's approach on ground that does
+not exist yet, and expanding would cost a rebuild rather than an addition.
+
+### Still open
+
+- **The left and right islands are not registered.** Only `main` and `newisle` are. Nothing can be
+  sited on them until `/cscan island` on each, then `islands --add`. Both themes are written and
+  dry-run clean, so this is data rather than work.
+- **The layout is PACKED, not COMPOSED.** `bays` fills a grid; it does not know that a gate wants
+  an avenue leading from it to the plaza, or that booths read best in a row facing each other. The
+  modules all fit, none collide, and the park has no street. That is the next real piece of design
+  work and it wants a path generator rather than another attraction kind.
+- **Nothing has been looked at in game, or rendered.** `tools/look.py` cannot draw these yet - it
+  wants a facing VECTOR and the park sidecar records a word, the same gap the casino has. Place
+  one module and look at it before building forty-eight.
+- **The gate's lanes are fence gates, deliberately.** `circuit.py` has no model of a DOOR, so a
+  plate-and-iron-door turnstile could not be asserted by simulation, and this repo cut two
+  finished casino games rather than ship a machine it could not judge. A powered turnstile is a
+  fine thing to add the day the simulator can judge one.

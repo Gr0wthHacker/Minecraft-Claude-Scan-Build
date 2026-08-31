@@ -129,6 +129,116 @@ THEMES = {
              "count": 1, "floor": 0},
         ],
     },
+
+    # ------------------------------------------------------------------ the theme park
+    #
+    # THREE ZONES, ONE PARK, AND THE ZONES ARE THREE SEPARATE PLANS ON PURPOSE. Each is its own
+    # island with its own bedrock and its own plot, so a single plan spanning all three would be
+    # sited against a boundary that does not exist. `newisle` is the centre and the entrance;
+    # left and right lead off it through arches pinned to their own edges.
+    #
+    # **EACH ZONE IS PLANNED AGAINST ITS CORE, AND THE EXPANSION IS A SECOND PLAN.** Jack builds
+    # the inner 100x100 first and grows the plot to 200x200 later, so the core must stand alone
+    # and nothing in the outer band may be load-bearing for it. Planning the core against the
+    # island's CURRENT radius gets that for free: everything sites inside the ring that already
+    # exists, and the expansion adds modules rather than moving them. A plan that had spread over
+    # the full 200 would put the plaza's centre and the gate's approach in ground that is not
+    # there yet, and expanding would cost a rebuild rather than an addition.
+    #
+    # The lands differ by PALETTE FAMILY - bright wool, warm wood, dark stone - because three
+    # zones that differ only by signage are one zone three times, which is exactly what made the
+    # casino read as the same room eighteen times over.
+    "midway": {
+        "blurb": "the park's front door: gate, plaza, landmark tower and a carnival midway",
+        "keywords": ["theme park", "midway", "entrance", "fairground", "carnival", "park centre"],
+        "floors": [{"name": "Ground", "y": 0}],
+        "modules": [
+            # LARGEST FIRST. `bays` packs in list order, so a big module listed late finds the
+            # grid full of booths and reports NO SITE - the Colour Wheel did exactly that three
+            # times. A module is not unsiteable because it is late.
+            {"name": "Hall of Mirrors", "gen": "park", "kind": "walkthrough",
+             "size": [15, 7, 15],
+             "params": {"land": "midway", "width": 13, "depth": 13, "facing": "south"}},
+            {"name": "Grand Tower", "gen": "park", "kind": "tower", "size": [15, 32, 15],
+             "params": {"land": "midway", "width": 9, "tiers": 5, "facing": "south"}, "count": 1},
+            # THE GATE IS THE ONE MODULE WHOSE POSITION IS ITS MEANING. On the southern edge,
+            # facing out, so you arrive at it rather than find it.
+            {"name": "Park Gate", "gen": "park", "kind": "gate", "size": [15, 9, 7],
+             "anchor": "edge", "side": "south",
+             "params": {"land": "midway", "lanes": 3, "depth": 6, "facing": "south"}},
+            # The ways to the other two zones, each pinned to the edge it points at. An arch to
+            # the west that is not on the western edge does not lead anywhere.
+            {"name": "Frontier Arch", "gen": "park", "kind": "arch", "size": [9, 9, 5],
+             "anchor": "edge", "side": "west",
+             "params": {"land": "frontier", "width": 7, "height": 6, "facing": "west"}},
+            {"name": "Hollow Arch", "gen": "park", "kind": "arch", "size": [9, 9, 5],
+             "anchor": "edge", "side": "east",
+             "params": {"land": "hollow", "width": 7, "height": 6, "facing": "east"}},
+            {"name": "Midway Booth", "gen": "park", "kind": "booth", "size": [9, 7, 7],
+             "params": {"land": "midway", "width": 7, "depth": 5, "facing": "south"},
+             "count": 6},
+            {"name": "Food Stall", "gen": "park", "kind": "stall", "size": [9, 7, 7],
+             "params": {"land": "midway", "width": 7, "depth": 5, "facing": "north"},
+             "count": 4},
+            # THE GROUND GOES LAST, for the casino hall's reason: a covering module laid first
+            # would take the floor out from under everything sited after it.
+            {"name": "Grand Plaza", "gen": "park", "kind": "plaza", "anchor": "cover",
+             "size": [72, 5, 72],
+             "params": {"land": "midway", "width": 72, "depth": 72, "facing": "south"}},
+        ],
+    },
+
+    "frontier": {
+        "blurb": "the west zone: a mine, a saloon and a prospect tower in spruce and cobble",
+        "keywords": ["frontier", "mine", "western", "wild west", "prospect"],
+        "floors": [{"name": "Ground", "y": 0}],
+        "modules": [
+            {"name": "Deep Mine", "gen": "park", "kind": "walkthrough", "size": [19, 7, 19],
+             "params": {"land": "frontier", "width": 17, "depth": 15, "facing": "east"}},
+            {"name": "The Saloon", "gen": "park", "kind": "walkthrough", "size": [15, 7, 13],
+             "params": {"land": "frontier", "width": 13, "depth": 11, "facing": "east"}},
+            {"name": "Prospect Tower", "gen": "park", "kind": "tower", "size": [15, 26, 15],
+             "params": {"land": "frontier", "width": 9, "tiers": 4, "facing": "east"}},
+            {"name": "Frontier Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
+             "anchor": "edge", "side": "east",
+             "params": {"land": "frontier", "width": 7, "height": 6, "facing": "east"}},
+            {"name": "Tin Can Alley", "gen": "park", "kind": "booth", "size": [9, 7, 7],
+             "params": {"land": "frontier", "width": 7, "depth": 5, "facing": "east"},
+             "count": 3},
+            {"name": "Trading Post", "gen": "park", "kind": "stall", "size": [9, 7, 7],
+             "params": {"land": "frontier", "width": 7, "depth": 5, "facing": "west"},
+             "count": 5},
+            {"name": "Frontier Plaza", "gen": "park", "kind": "plaza", "anchor": "cover",
+             "size": [72, 5, 72],
+             "params": {"land": "frontier", "width": 72, "depth": 72, "facing": "east"}},
+        ],
+    },
+
+    "hollow": {
+        "blurb": "the east zone: a haunted manor, a crypt and a clock tower in blackstone",
+        "keywords": ["hollow", "haunted", "gothic", "crypt", "manor", "spooky"],
+        "floors": [{"name": "Ground", "y": 0}],
+        "modules": [
+            {"name": "Haunted Manor", "gen": "park", "kind": "walkthrough", "size": [21, 7, 19],
+             "params": {"land": "hollow", "width": 19, "depth": 17, "facing": "west"}},
+            {"name": "The Crypt", "gen": "park", "kind": "walkthrough", "size": [15, 7, 15],
+             "params": {"land": "hollow", "width": 13, "depth": 13, "facing": "west"}},
+            {"name": "Clock Tower", "gen": "park", "kind": "tower", "size": [15, 32, 15],
+             "params": {"land": "hollow", "width": 9, "tiers": 5, "facing": "west"}},
+            {"name": "Hollow Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
+             "anchor": "edge", "side": "west",
+             "params": {"land": "hollow", "width": 7, "height": 6, "facing": "west"}},
+            {"name": "Fortunes", "gen": "park", "kind": "booth", "size": [9, 7, 7],
+             "params": {"land": "hollow", "width": 7, "depth": 5, "facing": "west"},
+             "count": 3},
+            {"name": "Curio Shop", "gen": "park", "kind": "stall", "size": [9, 7, 7],
+             "params": {"land": "hollow", "width": 7, "depth": 5, "facing": "east"},
+             "count": 4},
+            {"name": "Hollow Court", "gen": "park", "kind": "plaza", "anchor": "cover",
+             "size": [72, 5, 72],
+             "params": {"land": "hollow", "width": 72, "depth": 72, "facing": "west"}},
+        ],
+    },
 }
 
 
@@ -530,6 +640,32 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                     "params": dict(mspec.get("params", {})), "world": world,
                 })
                 continue
+            # AN EDGE MODULE IS A THRESHOLD, AND A THRESHOLD IS ONLY A THRESHOLD ON THE BOUNDARY.
+            #
+            # A gate sited by `bays` lands wherever there happens to be a free bay, which is a
+            # gatehouse in the middle of a field: you walk round it. Same for the arches that lead
+            # to the neighbouring zones - an arch to the west that is not ON the western edge does
+            # not point anywhere. So `anchor: edge` pins the module against the named side and
+            # centres it along that side, and unlike `cover` it DOES claim its box, because
+            # everything else must keep out of the doorway.
+            if mspec.get("anchor") == "edge" and pl_plot is not None and plane is not None:
+                x0, x1, z0, z1 = _plot_bounds(pl_plot)
+                side = mspec.get("side", "south")
+                if side in ("west", "east"):
+                    bx = x0 if side == "west" else x1 - fw + 1
+                    bz = z0 + max(0, ((z1 - z0 + 1) - fd) // 2)
+                else:
+                    bz = z0 if side == "north" else z1 - fd + 1
+                    bx = x0 + max(0, ((x1 - x0 + 1) - fw) // 2)
+                taken.append((bx, plane + fy, bz, fw + spacing, fh, fd + spacing))
+                pl.modules.append({
+                    "name": mspec["name"], "gen": mspec["gen"], "kind": mspec["kind"],
+                    "at": [bx - fx, plane, bz - fz], "size": [fw, fh, fd], "roll": 0,
+                    "declared_size": list(mspec["size"]), "anchor_offset": [fx, fy, fz],
+                    "floor": floors[0]["name"], "edge": side,
+                    "params": dict(mspec.get("params", {})), "world": world,
+                })
+                continue
             # THE GRID FIRST, so the plot is used rather than a strip of it. Each bay still has to
             # pass the SAME ground test a free-form pad would - flat enough, in the band, free -
             # because a tidy grid over rolling terrain is still a build on rolling terrain.
@@ -584,9 +720,18 @@ def _theme_for(brief: str) -> str:
     unmatched brief raises rather than defaulting to the only theme in the catalogue.
     """
     b = (brief or "").lower()
-    for theme, spec in THEMES.items():
+    # **A NAME BEATS A KEYWORD, AND THE TWO PASSES ARE THE WHOLE FIX.** Checked together, the
+    # first theme whose EITHER test passes wins - so `midway`'s generic "theme park" keyword
+    # swallowed "theme park frontier" and "theme park hollow" alike, and all three zones planned
+    # as the centre. Both dry runs came back byte-identical, which is the only reason it was
+    # caught: two different briefs producing the same 10,403-block plan is not a coincidence.
+    #
+    # An explicit name is the strongest possible signal a brief can carry, so it is resolved
+    # first, across ALL themes, before any keyword is considered.
+    for theme in THEMES:
         if theme in b:
             return theme
+    for theme, spec in THEMES.items():
         if any(word in b for word in spec.get("keywords", [])):
             return theme
     raise ValueError(f"no theme matches {brief!r}; have {sorted(THEMES)}. "
