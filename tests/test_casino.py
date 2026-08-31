@@ -405,3 +405,87 @@ def test_the_hall_lays_ground_and_leaves_one_way_in():
     m = c.to_model()
     assert len(m.tile_entities) == 1, "the building carries its own name over the gate"
     assert "hall" in c.meta["contract"] and "gateway" in c.meta["contract"]
+
+
+def test_the_exact_number_gate_passes_one_value_and_nothing_else():
+    """`window` is the first mechanic here that is NOT a maximum.
+
+    `threshold` pays on "roll high enough", which is the same game whatever number you put in it -
+    measured cell-for-cell the four games we first shipped were two: High Roller and Coin Toss were
+    99.2% identical machines, One In Three and Even Money 94.6%. An AND-NOT built from a subtract
+    comparator lets the middle of the mix win and the top lose, which is a different bet.
+    """
+    from mcbuild.gen import circuits
+    for target in (1, 2, 3, 4):
+        m = circuits.window((0, 70, 0), low=target, high=target + 1)
+        cells = dict(m["cells"])
+        fx, fy, fz = m["foot"]
+        cells[(fx - 1, fy, fz)] = "comparator[facing=east,mode=compare]"
+        cells[(fx - 2, fy, fz)] = "hopper[facing=down]"
+        for lvl in range(1, 7):
+            s = circuit.Circuit.from_cells(dict(cells))
+            s.fill((fx - 2, fy, fz), lvl)
+            s.run(40)
+            got = s.level(tuple(m["out"])) > 0
+            assert got == (lvl == target), f"window({target}) let {lvl} through" if got \
+                else f"window({target}) blocked {lvl}"
+
+
+def test_a_side_input_must_arrive_at_full_strength():
+    """A comparator reads its side as a LEVEL, so a boolean routed there as plain dust decays and
+    the subtract stops being a subtract: run that way the gate gave 15 - 13 = 2 and "passed" a
+    level it exists to block, quietly and by two. A repeater at the side delivers a clean 15."""
+    from mcbuild.gen import circuits
+    m = circuits.window((0, 70, 0), low=2, high=3)
+    assert any("repeater" in v for v in m["cells"].values()), \
+        "the window needs repeaters: two taps and a full-strength side input"
+
+
+def test_the_duel_pays_exactly_when_you_beat_the_house():
+    """Two rolls compared. **BOTH MUST BE DECIDED ADJACENT TO THE GATE** - a comparator reads back
+    and side as levels, and an analog value cannot travel. Routed to the side on its own lane the
+    house's roll decayed to 0, `A >= 0` was true for every A, and the machine paid on all nine
+    combinations while looking like it worked."""
+    c = GENERATORS["casino"].build({"at": [0, 70, 0], "kind": "duel", "outcomes": 3,
+                                    "pit": 2, "check": False, "title": "Duel"}, [])
+    out = tuple(c.meta["outputs"][0])
+    for a in (1, 2, 4):
+        for b in (1, 2, 4):
+            s = circuit.Circuit.of(c.to_model(), c.world_origin)
+            s.fill(tuple(c.meta["rng_hopper"]), a)
+            s.fill(tuple(c.meta["house_hopper"]), b)
+            s.press(tuple(c.meta["inputs"][0]), ticks=4)
+            s.run(80)
+            paid = s.fired.get(out, 0) > 0
+            assert paid == (a >= b), f"you={a} house={b} paid={paid}"
+
+
+def test_every_game_answers_a_DIFFERENT_question():
+    """The lineup is four MECHANICS, not four names for two.
+
+    Cell similarity measures the ROOM, not the game - a room is ~330 cells and a machine ~150 - so
+    the comparison is made on the machine alone. What must differ is `reads`: the thing the player
+    is actually being asked.
+    """
+    from mcbuild.planner import THEMES
+    kinds = {m["kind"] for m in THEMES["casino"]["modules"] if m["kind"] in
+             ("high_roller", "double_or_none", "lucky_number", "duel")}
+    assert len(kinds) == 4, f"expected four distinct game mechanics, got {sorted(kinds)}"
+    reads = set()
+    for k in sorted(kinds):
+        c = GENERATORS["casino"].build({"at": [0, 70, 0], "kind": k, "outcomes": 3, "pit": 2,
+                                        "check": False, "title": k}, [])
+        reads.add(c.meta["reads"])
+        assert "in" in c.meta["contract"] or "outcomes" in c.meta["contract"], \
+            f"{k} does not state its odds: {c.meta['contract']}"
+    assert len(reads) == 4, f"two games answer the same question: {sorted(reads)}"
+
+
+def test_each_mechanic_reads_differently_from_the_aisle():
+    """A player cannot see a circuit. Four verified mechanics in four identical grey rooms are
+    four identical rooms, so each kind carries its own accent."""
+    from mcbuild.gen import casino
+    accents = {v["accent"] for v in casino.KIND_ACCENT.values()}
+    assert len(accents) == len(casino.KIND_ACCENT), "two mechanics share a colour"
+    for k in ("high_roller", "double_or_none", "lucky_number", "duel"):
+        assert k in casino.KIND_ACCENT, f"{k} has no accent and will look like its neighbour"

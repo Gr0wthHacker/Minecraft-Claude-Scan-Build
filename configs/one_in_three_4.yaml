@@ -6,7 +6,7 @@ params:
   at:
   - 97563
   - 203
-  - 80565
+  - 80589
   kind: double_or_none
   title: One In Three 4
   under: out/newisle.litematic
@@ -18,12 +18,6 @@ finish:
   - out/High Roller 3.litematic
   - out/High Roller 4.litematic
   - out/High Roller 5.litematic
-  - out/High Roller 6.litematic
-  - out/Coin Toss 1.litematic
-  - out/Coin Toss 2.litematic
-  - out/Coin Toss 3.litematic
-  - out/Coin Toss 4.litematic
-  - out/Coin Toss 5.litematic
   - out/One In Three 1.litematic
   - out/One In Three 2.litematic
   - out/One In Three 3.litematic

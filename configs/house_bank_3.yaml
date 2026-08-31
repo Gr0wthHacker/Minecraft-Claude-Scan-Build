@@ -3,9 +3,9 @@ gen: casino
 params:
   lanes: 6
   at:
-  - 97604
+  - 97574
   - 203
-  - 80642
+  - 80633
   kind: counter
   title: House Bank 3
   under: out/newisle.litematic
@@ -17,19 +17,19 @@ finish:
   - out/High Roller 3.litematic
   - out/High Roller 4.litematic
   - out/High Roller 5.litematic
-  - out/High Roller 6.litematic
-  - out/Coin Toss 1.litematic
-  - out/Coin Toss 2.litematic
-  - out/Coin Toss 3.litematic
-  - out/Coin Toss 4.litematic
-  - out/Coin Toss 5.litematic
   - out/One In Three 1.litematic
   - out/One In Three 2.litematic
   - out/One In Three 3.litematic
   - out/One In Three 4.litematic
   - out/One In Three 5.litematic
-  - out/One In Three 6.litematic
-  - out/Even Money 1.litematic
+  - out/Lucky Two 1.litematic
+  - out/Lucky Two 2.litematic
+  - out/Lucky Two 3.litematic
+  - out/Lucky Two 4.litematic
+  - out/Duel 1.litematic
+  - out/Duel 2.litematic
+  - out/Duel 3.litematic
+  - out/Duel 4.litematic
   - out/Casino Marquee 1.litematic
   - out/Casino Marquee 2.litematic
   - out/Casino Marquee 3.litematic

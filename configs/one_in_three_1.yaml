@@ -4,9 +4,9 @@ params:
   outcomes: 3
   pit: 2
   at:
-  - 97629
+  - 97607
   - 203
-  - 80613
+  - 80625
   kind: double_or_none
   title: One In Three 1
   under: out/newisle.litematic
@@ -18,10 +18,4 @@ finish:
   - out/High Roller 3.litematic
   - out/High Roller 4.litematic
   - out/High Roller 5.litematic
-  - out/High Roller 6.litematic
-  - out/Coin Toss 1.litematic
-  - out/Coin Toss 2.litematic
-  - out/Coin Toss 3.litematic
-  - out/Coin Toss 4.litematic
-  - out/Coin Toss 5.litematic
 origin_lock: false

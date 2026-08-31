@@ -6933,3 +6933,57 @@ places four complete designs rather than thirty fragments.
 
 **The thirty module designs are kept**, because they are what the plan, the circuit verification
 and the cross-design checks are written against. They are simply no longer what you place.
+
+### The games were two games wearing four names (2026-08-31)
+
+Jack: *"audit all the games and make sure theyr unique, different."* Measured cell-for-cell, they
+were not:
+
+| | identical machine cells |
+|---|---|
+| High Roller vs Coin Toss | **98.7%** |
+| One In Three vs Even Money | **94.6%** |
+
+**`threshold` PAYS ON A MAXIMUM, AND A MAXIMUM IS THE SAME GAME WHATEVER NUMBER YOU PUT IN IT.**
+Changing `outcomes` from 3 to 2 changes the odds and nothing else; shipping that under a different
+name over a different door is what made the floor read as one room eighteen times. Both odds
+variants are deleted.
+
+**MEASURE THE MACHINE, NOT THE ROOM.** The first comparison ran over whole designs and reported
+everything as 94-99% alike including games that are genuinely different - because a room is ~330
+cells and a machine ~150, so the metric was measuring the walls. Sliced to the mechanism the four
+survivors sit at 68-89%, and the shared part is exactly right: they all roll dice. What differs is
+the resolution.
+
+Two new mechanics, each a new primitive verified by simulation before any of it was built:
+
+- **`circuits.window(low, high)` - an exact-value gate**, and the first mechanic here that is not
+  a maximum. An AND-NOT: two perpendicular taps off one dust line, `low-1` and `high-1` along, into
+  a comparator in SUBTRACT mode. 15 - 0 = 15 when only the low tap fired, 15 - 15 = 0 when both
+  did. `Lucky Two` pays on exactly 2 out of {1,2,4} - the middle wins and the top LOSES, which no
+  threshold can express.
+- **`circuits.duel()` - two rolls compared.** A comparator in COMPARE mode passes its back signal
+  when back >= side, so out of {1,2,4} there are nine equally likely pairs and six have A >= B:
+  **2 in 3, countable**, which is this file's bar for shipping a game at all.
+
+Three faults inside them, each of which built cleanly and simulated wrong:
+
+- **A SIDE INPUT IS READ AS A LEVEL, so it must arrive at FULL STRENGTH.** The window's HIGH tap
+  was routed to the gate as plain dust, decayed on the way, and the subtract gave 15 - 13 = **2**:
+  the gate "passed" a level it exists to block, quietly and by two. A repeater at the side delivers
+  a clean 15.
+- **The first window put both taps on one perpendicular** and the side input landed TWO cells from
+  the comparator, so it never arrived and the window was a threshold with extra parts.
+- **THE DUEL PAID ON ALL NINE COMBINATIONS.** The house's randomiser was placed on its own lane and
+  `_link`ed to the comparator's side - and **an analog value cannot travel**, so the side read 0
+  and `A >= 0` is true for every A. Both rolls are produced ADJACENT to the gate now, and the
+  geometry is derived from that rather than chosen: a randomiser's comparator sits at `pos + dx`
+  and fires along `facing`, so the house goes two cells back along the side's own line.
+
+**A PLAYER CANNOT SEE A CIRCUIT.** Four verified mechanics in four identical grey rooms are four
+identical rooms, so `KIND_ACCENT` gives each one its border, carpet and pilasters: High Roller
+yellow, One In Three red, Lucky Two lime, Duel light blue. That is what tells them apart from the
+aisle, which is the distance most of them are read from.
+
+The lineup is now **18 games over 4 mechanics** - 5 High Roller, 5 One In Three, 4 Lucky Two,
+4 Duel - every contract asserted by simulation, every one stating its odds on its own sign.

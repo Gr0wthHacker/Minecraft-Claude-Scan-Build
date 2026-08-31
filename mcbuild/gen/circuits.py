@@ -442,3 +442,111 @@ MODULES = {
 }
 # `connect` is not a MODULE: it takes two points rather than one, so it cannot go through the
 # same "build it at the origin and assert its contract" harness. It has its own tests.
+
+def window(pos, low: int, high: int, facing: str = "east") -> dict:
+    """Pass a signal ONLY when the level is at least `low` and BELOW `high`. An exact-value gate.
+
+    **THIS IS THE FIRST GAME MECHANIC HERE THAT IS NOT A MAXIMUM.** `threshold` pays on "roll high
+    enough", which is the same game whatever number you put in it - and a measurement of the four
+    games we shipped said so: High Roller and Coin Toss were 99.2% the same cells, One In Three and
+    Even Money 97.8%. Two shapes wearing four names. Paying on ONE value is a different bet, with
+    different odds, that a player reads differently.
+
+    It is an AND-NOT and it is built out of what is already modelled rather than invented:
+
+        run       one dust line off the source, so both taps see the SAME decaying signal
+        tap LOW   a repeater beside the line at low-1, on when the level was >= low
+        tap HIGH  a repeater beside the line at high-1, on when the level was >= high
+        gate      a comparator in SUBTRACT mode, back = LOW, side = HIGH
+
+    Subtract gives 15 - 0 = 15 when only LOW fired, and 15 - 15 = 0 when HIGH fired too. The taps
+    are PERPENDICULAR because a repeater laid in the line would break the line it is measuring.
+
+    CONTRACT: `out` carries a signal when low <= input < high, and nothing otherwise.
+    """
+    low = max(1, min(15, int(low)))
+    high = max(low + 1, min(16, int(high)))
+    dx, _dy, dz = STEP[facing]
+    sx, sz = -dz, -dx                      # the perpendicular the taps sit on
+    x, y, z = pos
+
+    def at(i, j):
+        return (x + dx * i + sx * j, y, z + dz * i + sz * j)
+
+    cells = {}
+    for i in range(high):                  # the line must reach the far tap
+        cells[at(i, 0)] = "redstone_wire"
+
+    # THE TAPS ARE PERPENDICULAR, because a repeater laid IN the line would break the line it is
+    # measuring. Each reads the dust cell beside it and outputs a clean 15 when that cell is lit.
+    face = _rev(facing, sx, sz)
+    cells[at(low - 1, 1)] = f"repeater[facing={face},delay=1]"
+    cells[at(high - 1, 1)] = f"repeater[facing={face},delay=1]"
+    cells[at(low - 1, 2)] = "redstone_wire"
+    cells[at(high - 1, 2)] = "redstone_wire"
+
+    # THE GATE: back = LOW, side = HIGH. Written with both taps on one perpendicular the side
+    # input landed TWO cells from the comparator and never arrived - the gate passed every level
+    # at or above `low` and the window was just a threshold with extra parts. The HIGH boolean is
+    # a full 15, so unlike the level it came from it CAN travel: it is routed along its own lane
+    # to the gate's side.
+    gate = at(low - 1, 3)
+    cells[gate] = f"comparator[facing={face},mode=subtract]"
+    # A SIDE INPUT IS READ AS A LEVEL, so it must arrive at FULL STRENGTH. Run as plain dust the
+    # HIGH boolean decayed on the way and the subtract gave 15 - 13 = 2 instead of 0: the gate
+    # "passed" a level it was built to block, quietly and by two. A repeater at the gate's side
+    # delivers a clean 15, and 15 - 15 is the zero the contract promises.
+    rev = {"east": "west", "west": "east", "north": "south", "south": "north"}[facing]
+    for i in range(low + 1, high):
+        cells[at(i, 3)] = "redstone_wire"
+    side = at(low, 3)
+    cells[side] = f"repeater[facing={rev},delay=1]"
+
+    out = at(low - 1, 4)
+    cells[out] = "redstone_wire"
+    return {"cells": cells, "in": at(-1, 0), "foot": at(0, 0), "out": out,
+            "low": low, "high": high,
+            "contract": f"passes only {low} <= level < {high}"}
+
+
+def _rev(facing, sx, sz):
+    """The direction a perpendicular tap must FACE to read the line beside it."""
+    if sx > 0:
+        return "east"
+    if sx < 0:
+        return "west"
+    return "south" if sz > 0 else "north"
+
+
+def _perp_out(facing, sx, sz):
+    return _rev(facing, sx, sz)
+
+
+def duel(pos, facing: str = "east") -> dict:
+    """Compare TWO rolls: pass when A is at least B. Two players' worth of luck in one machine.
+
+    **AN ANALOG VALUE CANNOT TRAVEL, so both rolls have to be DECIDED where they are made.** That
+    rule killed seven display attempts and it is what shapes this: the comparing comparator sits
+    with roll A directly behind it and roll B directly beside it, and only the yes/no leaves.
+
+    A comparator in COMPARE mode outputs its back signal when back >= side, and nothing otherwise.
+    So with two uniform rolls out of the same mix the odds are exactly countable - for the
+    three-outcome mix {1,2,4} there are 9 equally likely pairs and 6 of them have A >= B, which is
+    2 in 3. **That is a game whose odds we can state**, which is this file's whole bar for shipping
+    one.
+
+    CONTRACT: `out` carries a signal when the back roll is >= the side roll.
+    """
+    dx, _dy, dz = STEP[facing]
+    sx, sz = -dz, -dx
+    x, y, z = pos
+    cells = {
+        (x, y, z): f"comparator[facing={facing},mode=compare]",
+        (x + dx, y, z + dz): "redstone_wire",
+    }
+    return {"cells": cells,
+            "back": (x - dx, y, z - dz),      # roll A goes here
+            "side": (x + sx, y, z + sz),      # roll B goes here
+            "out": (x + dx, y, z + dz),
+            "contract": "passes when the back roll is at least the side roll"}
+

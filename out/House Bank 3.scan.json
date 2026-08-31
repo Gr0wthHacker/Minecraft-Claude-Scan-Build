@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97604,
+    "x": 97574,
     "y": 203,
-    "z": 80637
+    "z": 80628
   },
   "size": {
     "x": 3,
@@ -16,19 +16,19 @@
     "High Roller 3",
     "High Roller 4",
     "High Roller 5",
-    "High Roller 6",
-    "Coin Toss 1",
-    "Coin Toss 2",
-    "Coin Toss 3",
-    "Coin Toss 4",
-    "Coin Toss 5",
     "One In Three 1",
     "One In Three 2",
     "One In Three 3",
     "One In Three 4",
     "One In Three 5",
-    "One In Three 6",
-    "Even Money 1",
+    "Lucky Two 1",
+    "Lucky Two 2",
+    "Lucky Two 3",
+    "Lucky Two 4",
+    "Duel 1",
+    "Duel 2",
+    "Duel 3",
+    "Duel 4",
     "Casino Marquee 1",
     "Casino Marquee 2",
     "Casino Marquee 3",
@@ -46,34 +46,34 @@
   "inputs": [],
   "outputs": [
     [
-      97606,
+      97576,
       204,
-      80642
+      80633
     ],
     [
-      97606,
+      97576,
       204,
-      80641
+      80632
     ],
     [
-      97606,
+      97576,
       204,
-      80640
+      80631
     ],
     [
-      97606,
+      97576,
       204,
-      80639
+      80630
     ],
     [
-      97606,
+      97576,
       204,
-      80638
+      80629
     ],
     [
-      97606,
+      97576,
       204,
-      80637
+      80628
     ]
   ],
   "unverified": [],

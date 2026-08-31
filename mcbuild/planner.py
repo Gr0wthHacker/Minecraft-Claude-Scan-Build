@@ -68,18 +68,36 @@ THEMES = {
         "floors": [
             {"name": "Gaming Floor", "y": 0},
         ],
-        # FOUR GAMES FROM TWO VERIFIED TOPOLOGIES, at two sets of odds. `high_roller` reads the
-        # roll off a bar; `double_or_none` pays only on a win. Both are asserted by simulation at
-        # 2 and 3 outcomes - the only mixes with a measured uniform distribution.
+        # **FOUR DISTINCT MECHANICS, NOT FOUR NAMES FOR TWO.**
+        #
+        # The previous lineup was measured cell-for-cell and it was two games wearing four names:
+        # High Roller vs Coin Toss were 99.2% the same cells and One In Three vs Even Money 97.8%,
+        # because `threshold` pays on a MAXIMUM and a maximum is the same game whatever number you
+        # put in it. Changing the odds is not changing the game.
+        #
+        # What separates these four is the QUESTION the player is answering:
+        #
+        #   High Roller    what did I roll?          bar        reads a level
+        #   One In Three   did I roll high enough?   threshold  a maximum
+        #   Lucky Two      did I hit the number?     window     an AND-NOT, middle wins, top loses
+        #   Duel           did I beat the house?     compare    two rolls, ties to the player
+        #
+        # **THE ODDS VARIANTS ARE GONE.** "Coin Toss" was High Roller at 2 outcomes and measured
+        # 98.7% the same machine; "Even Money" was One In Three and measured 94.6%. Changing a
+        # number is not changing a game, and shipping it under a different name over a different
+        # door is the thing that made this read as the same room eighteen times.
+        #
+        # Each is a different circuit asserted by its own simulation, and each states its odds -
+        # a house that cannot state its odds does not know them.
         "modules": [
             {"name": "High Roller", "gen": "casino", "kind": "high_roller",
-             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 6, "floor": 0},
-            {"name": "Coin Toss", "gen": "casino", "kind": "high_roller",
-             "size": [9, 8, 8], "params": {"outcomes": 2, "pit": 2}, "count": 5, "floor": 0},
+             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 5, "floor": 0},
             {"name": "One In Three", "gen": "casino", "kind": "double_or_none",
-             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 6, "floor": 0},
-            {"name": "Even Money", "gen": "casino", "kind": "double_or_none",
-             "size": [9, 8, 8], "params": {"outcomes": 2, "pit": 2}, "count": 5, "floor": 0},
+             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 5, "floor": 0},
+            {"name": "Lucky Two", "gen": "casino", "kind": "lucky_number",
+             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 4, "floor": 0},
+            {"name": "Duel", "gen": "casino", "kind": "duel",
+             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 4, "floor": 0},
             {"name": "Casino Marquee", "gen": "casino", "kind": "marquee",
              "size": [18, 5, 4], "params": {"length": 16}, "count": 4, "floor": 0},
             {"name": "Prize Wall", "gen": "casino", "kind": "prize_wall",

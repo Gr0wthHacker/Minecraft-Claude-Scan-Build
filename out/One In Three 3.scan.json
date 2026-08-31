@@ -2,7 +2,7 @@
   "origin": {
     "x": 97623,
     "y": 197,
-    "z": 80619
+    "z": 80595
   },
   "size": {
     "x": 19,
@@ -16,12 +16,6 @@
     "High Roller 3",
     "High Roller 4",
     "High Roller 5",
-    "High Roller 6",
-    "Coin Toss 1",
-    "Coin Toss 2",
-    "Coin Toss 3",
-    "Coin Toss 4",
-    "Coin Toss 5",
     "One In Three 1",
     "One In Three 2"
   ],
@@ -32,14 +26,14 @@
     [
       97627,
       204,
-      80623
+      80599
     ]
   ],
   "outputs": [
     [
       97640,
       199,
-      80625
+      80601
     ]
   ],
   "unverified": [
@@ -50,7 +44,7 @@
   "rng_hopper": [
     97632,
     199,
-    80625
+    80601
   ],
   "win_level": 4,
   "stock": {

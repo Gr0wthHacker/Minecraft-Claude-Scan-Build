@@ -121,6 +121,22 @@ SIGN_COPY = {
     ("high_roller", 2): ["press to roll", "lamps = roll", "1 or 3", "free to play"],
     ("double_or_none", 3): ["press to roll", "roll 4 to win", "1 in 3", "pays 1 prize"],
     ("double_or_none", 2): ["press to roll", "roll 3 to win", "1 in 2", "pays 1 prize"],
+    ("lucky_number", 3): ["press to roll", "hit exactly 2", "not 1, not 4", "1 in 3"],
+    ("lucky_number", 2): ["press to roll", "hit exactly 1", "the LOW one", "1 in 2"],
+    ("duel", 3): ["you vs house", "high roll wins", "ties go to you", "6 in 9"],
+    ("duel", 2): ["you vs house", "high roll wins", "ties go to you", "3 in 4"],
+}
+
+
+# **EACH MECHANIC GETS ITS OWN COLOUR.** The circuits differ and a player cannot see a circuit;
+# what they see from the aisle is a row of doorways. One accent per game - the border course, the
+# aisle carpet and the pilasters - is what turns four verified mechanics into four rooms you can
+# tell apart at twenty blocks, which is the distance most of them are read from.
+KIND_ACCENT = {
+    "high_roller":    {"accent": "yellow_wool", "carpet": "yellow_carpet"},
+    "double_or_none": {"accent": "red_wool", "carpet": "red_carpet"},
+    "lucky_number":   {"accent": "lime_wool", "carpet": "lime_carpet"},
+    "duel":           {"accent": "light_blue_wool", "carpet": "light_blue_carpet"},
 }
 
 
@@ -472,6 +488,9 @@ def _game_common(w, p, ctx, width):
     pit = max(4, int(p["pit"]))
     outcomes = int(p["outcomes"])
     if p.get("room", True):
+        skin = KIND_ACCENT.get(p["kind"])
+        if skin:
+            p = {**p, "pal_floor": skin["accent"], "pal_carpet": skin["carpet"]}
         title = p.get("title") or p["kind"].replace("_", " ").upper()
         _room(w, p, x, y, z, dx, dz, sx, sz, width, 4,
               str(title).upper()[:15], _copy(p["kind"], outcomes))
@@ -586,6 +605,123 @@ def _double_or_none(w: World, p: dict, ctx) -> dict:
             "rng_hopper": list(g["rnd"]["hopper"]), "win_level": win,
             "stock": {"dropper": g["rnd"]["stock"]},
             "reads": "threshold", "unverified": [circuits.RANDOM_NOTE]}
+
+
+
+def _lucky_number(w: World, p: dict, ctx) -> dict:
+    """Hit ONE number exactly. Not "roll high enough" - a different bet with different tension.
+
+    **THE FOUR GAMES WE SHIPPED WERE TWO GAMES.** Measured cell-for-cell, High Roller and Coin Toss
+    were 99.2% identical and One In Three and Even Money 97.8%: `threshold` pays on a maximum, and
+    a maximum is the same game whatever number you put in it. `circuits.window` is the first
+    mechanic here that is not a maximum - an AND-NOT built from a subtract comparator - so the
+    middle of the mix can win and the top can lose, which is a bet a player reads differently.
+    """
+    g = _game_common(w, p, ctx, width=5)
+    levels = circuits.RNG_MIXES[g["outcomes"]]["levels"]
+    # THE MIDDLE of a three-outcome mix, the low of a two - never the maximum, or this is
+    # `double_or_none` with more parts.
+    target = levels[len(levels) // 2] if len(levels) > 2 else levels[0]
+    cmp_ = g["rnd"]["comparator"]
+    foot = (cmp_[0] + g["dx"], cmp_[1], cmp_[2] + g["dz"])
+    gate = circuits.window(foot, target, target + 1, facing=p["facing"])
+    amp = circuits.boost((gate["out"][0] + g["dx"], gate["out"][1], gate["out"][2] + g["dz"]),
+                         facing=p["facing"])
+    pay = circuits.payout((amp["out"][0] + g["dx"], amp["out"][1], amp["out"][2] + g["dz"]),
+                          count=1, facing=p["facing"])
+    _lay(w, p, (gate, amp, pay))
+    if not w.has(*pay["in"]):
+        w.put(pay["in"][0], pay["in"][1], pay["in"][2], "redstone_wire")
+    _link(w, p, ctx, amp["out"], pay["in"])
+    d0 = pay["droppers"][0]
+    bx, bz = d0[0] - g["dx"], d0[2] - g["dz"]
+    if not w.has(bx, d0[1], bz):
+        w.put(bx, d0[1], bz, "barrel", facing="up", open="false")
+    odds = len(levels)
+    return {"contract": f"press once; pays ONLY on exactly {target} (1 in {odds})",
+            "inputs": [list(g["btn"])], "outputs": [list(pay["droppers"][0])],
+            "rng_hopper": list(g["rnd"]["hopper"]), "win_level": target,
+            "stock": {"dropper": g["rnd"]["stock"]},
+            "reads": "window", "unverified": [circuits.RANDOM_NOTE]}
+
+
+def _duel(w: World, p: dict, ctx) -> dict:
+    """TWO rolls, side by side: yours against the house's. You win ties.
+
+    A comparator in COMPARE mode passes its back signal when back >= side, so the machine needs
+    both rolls DECIDED where they are made - which is the analog rule this whole file turns on,
+    used as a feature rather than fought. Out of the three-outcome mix there are nine equally
+    likely pairs and six have A >= B, so the odds are 2 in 3 and countable, which is this file's
+    bar for shipping a game at all.
+    """
+    g = _game_common(w, p, ctx, width=6)
+    levels = circuits.RNG_MIXES[g["outcomes"]]["levels"]
+    dx, dz, sx, sz = g["dx"], g["dz"], g["sx"], g["sz"]
+
+    # THE GATE SITS ON THE PLAYER'S OWN COMPARATOR, and the HOUSE'S COMPARATOR SITS ON ITS SIDE.
+    #
+    # **AN ANALOG VALUE CANNOT TRAVEL** - the rule this whole file turns on - and the first version
+    # of this game ignored it for the second roll: the house's randomiser was placed on a lane of
+    # its own and `_link`ed to the comparator's side. Dust decays, so the side read 0, and
+    # `A >= 0` is true for every A. It paid on all nine combinations and looked like a working
+    # machine doing it.
+    #
+    # A comparator reads its BACK from the cell behind it and its SIDE from the cells beside it,
+    # both at whatever level those cells hold. So both rolls have to be produced ADJACENT to the
+    # gate, and the geometry is derived from that rather than chosen.
+    cmp_ = g["rnd"]["comparator"]
+    gate = circuits.duel((cmp_[0] + dx * 2, cmp_[1], cmp_[2] + dz * 2), facing=p["facing"])
+    back, side = gate["back"], gate["side"]
+    _lay(w, p, (gate,))
+    if not w.has(*back):
+        w.put(back[0], back[1], back[2], "redstone_wire")   # the player's own output cell
+
+    # A randomiser's comparator sits at pos + (dx, -1) and fires along `facing`, so placing the
+    # house two cells back along that line puts its output exactly on the gate's side.
+    house = circuits.randomiser((side[0] - dx * 2, side[1] + 1, side[2] - dz * 2),
+                                outputs=g["outcomes"], facing=p["facing"])
+    _lay(w, p, (house,))
+    if not w.has(*side):
+        w.put(side[0], side[1], side[2], "redstone_wire")
+    if not w.has(*house["in"]):
+        w.put(house["in"][0], house["in"][1], house["in"][2], "redstone_wire")
+    # ONE PULSE FIRES BOTH. Two buttons would be two games in one room.
+    _link(w, p, ctx, g["pulse"]["out"], house["in"])
+
+    amp = circuits.boost((gate["out"][0] + dx, gate["out"][1], gate["out"][2] + dz),
+                         facing=p["facing"])
+    pay = circuits.payout((amp["out"][0] + dx, amp["out"][1], amp["out"][2] + dz),
+                          count=1, facing=p["facing"])
+    _lay(w, p, (amp, pay))
+    if not w.has(*pay["in"]):
+        w.put(pay["in"][0], pay["in"][1], pay["in"][2], "redstone_wire")
+    _link(w, p, ctx, amp["out"], pay["in"])
+    d0 = pay["droppers"][0]
+    bx, bz = d0[0] - dx, d0[2] - dz
+    if not w.has(bx, d0[1], bz):
+        w.put(bx, d0[1], bz, "barrel", facing="up", open="false")
+    n = len(levels)
+    wins = sum(1 for a in levels for b in levels if a >= b)
+    return {"contract": f"press once; you win ties - {wins} in {n * n}",
+            "inputs": [list(g["btn"])], "outputs": [list(pay["droppers"][0])],
+            "rng_hopper": list(g["rnd"]["hopper"]),
+            "house_hopper": list(house["hopper"]),
+            "stock": {"dropper": g["rnd"]["stock"], "house dropper": house["stock"]},
+            "reads": "duel", "unverified": [circuits.RANDOM_NOTE]}
+
+
+def _lay(w, mods_p, mods=None):
+    """Place a module's cells, never over something already standing."""
+    p, mods = mods_p, mods
+    for mod in mods:
+        for pos, spec in mod["cells"].items():
+            if w.has(pos[0], pos[1], pos[2]):
+                continue
+            name, props = _split(spec)
+            w.put(pos[0], pos[1], pos[2], name, **props)
+        for pos in mod["cells"]:
+            if not w.has(pos[0], pos[1] - 1, pos[2]):
+                w.put(pos[0], pos[1] - 1, pos[2], p["pal_shell"])
 
 
 # CHASE AND VAULT ARE NOT HERE, AND THAT IS THE ANSWER TO "100% FUNCTIONAL".
@@ -787,6 +923,7 @@ def _counter(w: World, p: dict, ctx) -> dict:
 
 
 BUILDERS = {"high_roller": _high_roller, "double_or_none": _double_or_none,
+            "lucky_number": _lucky_number, "duel": _duel,
             "prize_wall": _prize_wall, "marquee": _marquee, "counter": _counter,
             "hall": _hall}
 

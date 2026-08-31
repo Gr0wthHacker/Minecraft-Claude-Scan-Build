@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97580,
+    "x": 97601,
     "y": 202,
-    "z": 80562
+    "z": 80610
   },
   "size": {
     "x": 18,
@@ -16,19 +16,19 @@
     "High Roller 3",
     "High Roller 4",
     "High Roller 5",
-    "High Roller 6",
-    "Coin Toss 1",
-    "Coin Toss 2",
-    "Coin Toss 3",
-    "Coin Toss 4",
-    "Coin Toss 5",
     "One In Three 1",
     "One In Three 2",
     "One In Three 3",
     "One In Three 4",
     "One In Three 5",
-    "One In Three 6",
-    "Even Money 1",
+    "Lucky Two 1",
+    "Lucky Two 2",
+    "Lucky Two 3",
+    "Lucky Two 4",
+    "Duel 1",
+    "Duel 2",
+    "Duel 3",
+    "Duel 4",
     "Casino Marquee 1"
   ],
   "kind": "casino/marquee",
@@ -36,16 +36,16 @@
   "contract": "16 lamps, all of them, blinking on a 4-tick clock",
   "inputs": [
     [
-      97581,
+      97602,
       203,
-      80563
+      80611
     ]
   ],
   "outputs": [
     [
-      97597,
+      97618,
       204,
-      80562
+      80610
     ]
   ],
   "unverified": [],
