@@ -57,6 +57,8 @@ PALETTE = {
     # stairs against smooth stone is a value step of about 30 - visible, and cheap.
     "stair": "stone_brick_stairs",
     "pillar": "deepslate_bricks",   # 71 luminance against smooth stone's 159: the one real line
+    "tile": "stone",                # 126 against smooth stone's 159: a quiet checker, not a stripe
+    "aisle": "red_wool",            # the way in, in the floor course so it cannot be orphaned
 }
 
 CASINO = {
@@ -318,7 +320,11 @@ def _riser(w, p, ctx, frm, to, block):
 # luminance in five cheap stops, against the 51 we spent years calling our only contrast.
 
 ROOM_H = 5              # floor to ceiling: 4 clear courses, which is a room rather than a corridor
-DOOR_W = 2              # a doorway you can walk through beside somebody
+# **A GAME ROOM IS A SHOPFRONT, NOT A CELL.** Built with a two-wide door the casino was eighteen
+# sealed grey cubes: you could not tell one from another, could not see a game being played, and
+# had no reason to walk into any of them. A gaming floor is open bays you look INTO from the
+# aisle - the wall survives as a frame and a lintel, which is what carries the sign.
+DOOR_W = 4
 
 
 def _rect(width, depth):
@@ -335,8 +341,8 @@ def _room(w, p, x, y, z, dx, dz, sx, sz, width, depth, title, lines):
     def at(i, d, h=0):
         return (x + sx * i - dx * d, y + h, z + sz * i - dz * d)
 
-    door_i = width // 2
-    doors = {door_i, door_i + 1} if DOOR_W > 1 else {door_i}
+    door_i = max(0, width // 2 - DOOR_W // 2 + 1)
+    doors = {door_i + k for k in range(DOOR_W)}
 
     for (i, d) in _rect(width, depth):
         # FLOOR. A field with a carpet runner down the middle, so the room has a direction: you
@@ -631,8 +637,33 @@ def _hall(w: World, p: dict, ctx) -> dict:
             if p["check"] and _busy(ctx, cx, cy, cz):
                 continue
             edge = i in (0, wsize - 1) or d in (0, dsize - 1)
-            # A BORDER COURSE, because a floor plane with no edge reads as a slab someone left.
-            w.put(cx, cy, cz, line if edge else floor)
+            if edge:
+                # A BORDER COURSE, because a floor plane with no edge reads as a slab someone left.
+                w.put(cx, cy, cz, line)
+                continue
+            # **SEVEN THOUSAND IDENTICAL CELLS IS NOT A FLOOR, IT IS A SLAB.** The hall came out
+            # 68% one grey block and read exactly like the platforms it replaced. A floor pattern
+            # is the cheapest thing in this build that makes the place look designed: a grid of
+            # dark lines every eight, a carpet runner on the entrance axis, and plain stone bays
+            # between them. The grid is set in WORLD coordinates, so it stays aligned across
+            # everything sited on it - the deck soffit's rule, which it needed after a
+            # per-cell grid came out as confetti.
+            # THE AISLE IS A FLOOR MATERIAL, NOT A CARPET LAID ON ONE.
+            #
+            # Drawn as carpet at y+1 it shipped ten FLOATING cells every run, and the reason is
+            # about ORDER rather than about carpet: `defer_to` is applied in the finish stage,
+            # AFTER the generator has run, so at build time the floor is there, and by the time
+            # the design is written the cells it yielded to a room are gone and the carpet on top
+            # of them is standing on air. A cell in the floor course cannot outlive its support,
+            # because it IS the support.
+            aisle = i in (wsize // 2, wsize // 2 + 1)
+            gx, gz = cx % 8 == 0, cz % 8 == 0
+            if aisle:
+                w.put(cx, cy, cz, p["pal_aisle"])
+            elif gx or gz:
+                w.put(cx, cy, cz, line)
+            else:
+                w.put(cx, cy, cz, floor if (cx // 8 + cz // 8) % 2 else p["pal_tile"])
 
     door = {wsize // 2 - k for k in range(gate)}
     for i in range(wsize):

@@ -15,7 +15,7 @@ finish:
   defer_to:
   - out/High Roller 1.litematic
 origin_lock: false
-expensive_allowance: 6
-expensive_reason: 6x redstone_lamp - a light cannot be substituted by colour (the
+expensive_allowance: 4
+expensive_reason: 4x redstone_lamp - a light cannot be substituted by colour (the
   nearest cheap match is a lamp that does not light), so this cost is declared rather
   than hidden

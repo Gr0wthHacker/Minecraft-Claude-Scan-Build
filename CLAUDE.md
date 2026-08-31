@@ -6825,6 +6825,40 @@ gateway, twelve lanterns and the casino's name over the door. 9,874 blocks.
   the machine and payout run out under the floor; the room is 10x6. A ceiling test sampling the
   box's centre column, and a wall test checking the box's far edge, both failed on a correct build.
 
-**Still open:** the interior has been verified by audit, simulation and block counts, not by eye -
+### THE HALL WAS DRAWN OVER EVERY ROOM, AND ALL THIRTY DESIGNS REPORTED `overlap 0`
+
+Jack, on the placed casino: *"lots of empty boxes, and then things arent shown right."* The cause
+was one line in `planner.emit`:
+
+    if prev: cfg["finish"]["defer_to"] = [f"out/{prev}.litematic"]      # the PREVIOUS one only
+
+Chained one-to-one that is correct for a line of modules that touch their neighbour, and wrong for
+a hall that touches all of them. The hall deferred to `House Bank 3` alone and laid its floor
+across all eighteen room floors - **60 cells each, the whole floor of every room** - so in game two
+placements fought over one cell.
+
+**NOTHING CAUGHT IT, AND THE REASON GENERALISES.** `finish.verify_against` audits a design against
+the CAPTURE, and the capture does not contain the other designs. Every module honestly reported
+`overlap 0` against the world while colliding with its neighbours. Cross-design overlap is a
+DIFFERENT question and needs its own check; `test_no_two_modules_of_a_plan_share_a_cell` is it, and
+it compares every pair of a plan's designs in world coordinates. The measured tell was in the
+material counts all along: the union held **64 black_wool where eighteen room floors needed 558**.
+
+Three more things came out of the same look:
+
+- **SEVEN THOUSAND IDENTICAL CELLS IS NOT A FLOOR, IT IS A SLAB.** The hall was 68% smooth_stone
+  and read exactly like the platforms it replaced. A world-aligned grid of dark lines every eight,
+  a stone/smooth-stone checker between them and a red aisle on the entrance axis takes the
+  dominant block to 43% and costs nothing - all four materials are cheap.
+- **A GAME ROOM IS A SHOPFRONT, NOT A CELL.** With a two-wide door the floor was eighteen sealed
+  grey cubes: you could not tell one from another or see a game being played. The opening is four
+  wide now, and the wall survives as a frame and a lintel - which is what carries the sign.
+- **`defer_to` IS APPLIED AFTER THE GENERATOR RUNS.** An aisle drawn as carpet at floor+1 shipped
+  ten floating cells: at build time the floor was there, and by the time the design was written
+  the cells yielded to a room were gone and the carpet was standing on air. The aisle is a floor
+  MATERIAL now - a cell in the floor course cannot outlive its support, because it is the support.
+
+**Still open:** the interior has been verified by audit, simulation, cross-design overlap and block
+counts, not by eye -
 `tools/look.py` cannot render these because the casino sidecar records `facing` as a word and it
 wants a vector. Place one room and look at it before building thirty.

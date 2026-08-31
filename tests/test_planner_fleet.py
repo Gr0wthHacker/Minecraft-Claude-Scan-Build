@@ -219,3 +219,54 @@ def test_a_module_is_never_sited_on_something_you_use():
             x0, y0, z0 = ax + fx, ay + fy, az + fz
             inside = (x0 <= ux < x0 + w and y0 <= uy < y0 + h and z0 <= uz < z0 + d)
             assert not inside, f"{mod['name']} sits on a used block at {ux},{uy},{uz}"
+
+
+def test_no_two_modules_of_a_plan_share_a_cell():
+    """**THE CHECK THAT WAS MISSING, AND THE ONE THAT MATTERED.**
+
+    `finish.verify_against` audits a design against the CAPTURE, and the capture does not contain
+    the other designs - so thirty modules each reported `overlap 0` while the hall drew its floor
+    straight over all eighteen room floors, sixty cells apiece. In game that is two placements
+    fighting over one cell, which is what "lots of empty boxes and things arent shown right" was.
+
+    The cause was one line in `emit`: `defer_to` was chained to the IMMEDIATELY PREVIOUS module
+    only, which is correct for a line of modules that touch their neighbour and wrong for a hall
+    that touches all of them.
+    """
+    import itertools
+    import numpy as np
+    from mcbuild import schem, scan as scan_mod, planner
+
+    try:
+        pl = planner.Plan.load("casino")
+    except Exception:                                            # noqa: BLE001
+        pytest.skip("no casino plan in this checkout")
+    names = [m["name"] for m in pl.modules]
+    if not all(os.path.exists(f"out/{n}.litematic") for n in names):
+        pytest.skip("the plan has not been generated in this checkout")
+
+    def cells(n):
+        mo = schem.load(f"out/{n}.litematic")
+        sc = scan_mod.load(f"out/{n}.scan.json")
+        ox, oy, oz = sc.origin
+        pal = []
+        for t in mo.palette:
+            try:
+                pal.append(t.value["Name"].value.split(":")[-1])
+            except Exception:                                    # noqa: BLE001
+                pal.append("air")
+        out = {}
+        ys, zs, xs = np.nonzero(mo.ids)
+        for y, z, x in zip(ys, zs, xs):
+            nm = pal[mo.ids[y, z, x]]
+            if nm != "air":
+                out[(ox + int(x), oy + int(y), oz + int(z))] = nm
+        return out
+
+    maps = {n: cells(n) for n in names}
+    clashes = []
+    for a, b in itertools.combinations(names, 2):
+        for c in set(maps[a]) & set(maps[b]):
+            if maps[a][c] != maps[b][c]:
+                clashes.append((a, b, c, maps[a][c], maps[b][c]))
+    assert not clashes, f"{len(clashes)} cross-design clashes, e.g. {clashes[:3]}"

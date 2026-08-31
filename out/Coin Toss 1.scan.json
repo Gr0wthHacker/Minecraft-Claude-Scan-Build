@@ -11,6 +11,11 @@
   },
   "generated_by": "casino",
   "after": [
+    "High Roller 1",
+    "High Roller 2",
+    "High Roller 3",
+    "High Roller 4",
+    "High Roller 5",
     "High Roller 6"
   ],
   "kind": "casino/high_roller",

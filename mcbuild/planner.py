@@ -673,7 +673,7 @@ def emit(name: str, out_dir: str = "configs") -> list:
     # approved plan. The origin is already deterministic; the lock only adds air. So each design
     # hugs its own content and its placement sits where the module actually is.
     written = []
-    prev = None
+    prev: list = []
     for m in pl.modules:
         slug = m["name"].lower().replace(" ", "_")
         cfg = {
@@ -696,13 +696,22 @@ def emit(name: str, out_dir: str = "configs") -> list:
                 "; ".join(f"{v}x {k}" for k, v in sorted(exp.items()))
                 + " - a light cannot be substituted by colour (the nearest cheap match is a lamp "
                   "that does not light), so this cost is declared rather than hidden")
-        # BUILD ORDER, from the same `after` the mod already understands: a module placed later
-        # defers to the one before it, so two of them never ask for the same cell twice.
+        # **DEFER TO EVERY EARLIER MODULE, NOT JUST THE PREVIOUS ONE.**
+        #
+        # Chained one-to-one this looks right and is right only for a line of modules that touch
+        # their neighbour. The hall touches ALL of them: it deferred to `House Bank 3` alone and
+        # drew its smooth_stone floor straight over all eighteen room floors - 60 cells each, the
+        # whole floor of every room. In game that is two placements fighting over one cell, which
+        # is exactly the "empty boxes and things not shown right" this was reported as.
+        #
+        # Nothing caught it because `verify_against` audits a design against the CAPTURE, and the
+        # capture does not contain the other designs. Cross-design overlap is its own check and is
+        # now run - see `tests/test_planner_fleet.py::test_no_two_modules_of_a_plan_share_a_cell`.
         if prev:
-            cfg["finish"]["defer_to"] = [f"out/{prev}.litematic"]
+            cfg["finish"]["defer_to"] = [f"out/{n}.litematic" for n in prev]
         p = os.path.join(out_dir, f"{slug}.yaml")
         with open(p, "w", encoding="utf-8") as f:
             yaml.safe_dump(cfg, f, sort_keys=False)
         written.append(p)
-        prev = m["name"]
+        prev.append(m["name"])
     return written
