@@ -1,16 +1,16 @@
-name: Grand Plaza
+name: Kiosk 3
 gen: park
 params:
   land: midway
-  width: 80
-  depth: 80
+  width: 7
+  depth: 5
   facing: east
   at:
-  - 97639
+  - 97600
   - 203
-  - 80639
-  kind: plaza
-  title: Grand Plaza
+  - 80638
+  kind: stall
+  title: Kiosk 3
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic

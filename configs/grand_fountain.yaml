@@ -1,16 +1,15 @@
-name: Grand Plaza
-gen: park
+name: Grand Fountain
+gen: civic
 params:
   land: midway
-  width: 80
-  depth: 80
-  facing: east
+  radius: 8
+  facing: south
   at:
   - 97639
   - 203
-  - 80639
-  kind: plaza
-  title: Grand Plaza
+  - 80611
+  kind: fountain
+  title: Grand Fountain
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic

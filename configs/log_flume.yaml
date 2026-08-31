@@ -1,16 +1,17 @@
-name: The Saloon
-gen: frontiertown
+name: Log Flume
+gen: coaster
 params:
   land: frontier
-  width: 17
-  depth: 12
-  facing: south
+  flume_span: 29
+  flume_top: 20
+  pool: 4
+  facing: east
   at:
-  - 97571
+  - 97599
   - 203
-  - 80366
-  kind: saloon
-  title: The Saloon
+  - 80434
+  kind: flume
+  title: Log Flume
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic

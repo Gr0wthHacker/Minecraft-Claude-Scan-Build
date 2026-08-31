@@ -1,16 +1,14 @@
-name: The Saloon
+name: The Mine Head
 gen: frontiertown
 params:
   land: frontier
-  width: 17
-  depth: 12
   facing: south
   at:
-  - 97571
+  - 97572
   - 203
-  - 80366
-  kind: saloon
-  title: The Saloon
+  - 80394
+  kind: minehead
+  title: The Mine Head
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic

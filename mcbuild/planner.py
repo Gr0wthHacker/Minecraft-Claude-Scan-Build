@@ -132,120 +132,159 @@ THEMES = {
 
     # ------------------------------------------------------------------ the theme park
     #
-    # THREE ZONES, ONE PARK, AND THE ZONES ARE THREE SEPARATE PLANS ON PURPOSE. Each is its own
-    # island with its own bedrock and its own plot, so a single plan spanning all three would be
-    # sited against a boundary that does not exist. `newisle` is the centre and the entrance;
-    # left and right lead off it through arches pinned to their own edges.
+    # THREE ZONES THAT ARE NOT THE SAME ZONE. The first attempt gave all three an identical module
+    # list and three palettes, and Jack named it exactly: *"all 3 areas are the same with different
+    # materials... nothing actually exists outside of some infrastructure and some huts"*. He was
+    # right - it was 9,544 blocks a zone, nothing over 29 tall, eleven 9x7 huts and NO RIDES, in a
+    # thing whose entire point is rides.
     #
-    # **EACH ZONE IS PLANNED AGAINST ITS CORE, AND THE EXPANSION IS A SECOND PLAN.** Jack builds
-    # the inner 100x100 first and grows the plot to 200x200 later, so the core must stand alone
-    # and nothing in the outer band may be load-bearing for it. Planning the core against the
-    # island's CURRENT radius gets that for free: everything sites inside the ring that already
-    # exists, and the expansion adds modules rather than moving them. A plan that had spread over
-    # the full 200 would put the plaza's centre and the gate's approach in ground that is not
-    # there yet, and expanding would cost a rebuild rather than an addition.
+    # The zones now differ in KIND, not in paint:
     #
-    # The lands differ by PALETTE FAMILY - bright wool, warm wood, dark stone - because three
-    # zones that differ only by signage are one zone three times, which is exactly what made the
-    # casino read as the same room eighteen times over.
+    #   midway     THE ENTRANCE. Not a themed land at all - arrival, shops, a fountain, a statue,
+    #              a carousel and a ferris wheel. Lighthearted, bright, and the place you come in.
+    #   frontier   A WESTERN MINING TOWN, with a mine coaster as its headline ride.
+    #   hollow     A HAUNTED GOTHIC QUARTER, with a three-storey manor and a drop tower.
+    #
+    # ONE HEADLINE RIDE PER ZONE, and that is measured rather than chosen: a 57x57 coaster has
+    # exactly ONE viable bay in a 99x99 plot, so two of them cannot coexist. Which is also how
+    # real parks are laid out.
     "midway": {
-        "blurb": "the park's front door: gate, plaza, landmark tower and a carnival midway",
+        "blurb": "the entrance: a shopping street, a fountain, a carousel and the big wheel",
         "keywords": ["theme park", "midway", "entrance", "fairground", "carnival", "park centre"],
+        "greenfield": True,
         "orient": True,
         "paths": True,
         "paths_name": "Midway Paths",
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
-            # LARGEST FIRST. `bays` packs in list order, so a big module listed late finds the
-            # grid full of booths and reports NO SITE - the Colour Wheel did exactly that three
-            # times. A module is not unsiteable because it is late.
-            {"name": "Hall of Mirrors", "gen": "park", "kind": "walkthrough",
-             "size": [15, 7, 15],
-             "params": {"land": "midway", "width": 13, "depth": 13, "facing": "south"}},
-            {"name": "Grand Tower", "gen": "park", "kind": "tower", "size": [15, 32, 15],
-             "params": {"land": "midway", "width": 9, "tiers": 5, "facing": "south"}, "count": 1},
-            # THE GATE IS THE ONE MODULE WHOSE POSITION IS ITS MEANING. On the southern edge,
-            # facing out, so you arrive at it rather than find it.
+            # LARGEST RESERVED FOOTPRINT FIRST - `bays` packs in list order and a big module
+            # listed late finds the grid full of kiosks.
+            #
+            # `orient: False` on the long thin ones: a 16x55 street would book 55x55 to hold a
+            # rotation it does not want, because its frontage IS its design. It can still flip.
+            {"name": "Shop Street", "gen": "civic", "kind": "shopstreet",
+             "size": [16, 18, 55], "orient": False,
+             "params": {"land": "midway", "shops": 7, "facing": "east"}},
+            {"name": "Grand Fountain", "gen": "civic", "kind": "fountain",
+             "size": [25, 10, 25],
+             "params": {"land": "midway", "radius": 8, "facing": "east"}},
+            {"name": "The Big Wheel", "gen": "bigwheel", "kind": "wheel",
+             "size": [11, 51, 53], "orient": False,
+             "params": {"land": "midway", "spokes": 12, "cars": 12, "facing": "east"}},
+            {"name": "Carousel", "gen": "bigwheel", "kind": "carousel",
+             "size": [21, 24, 21],
+             "params": {"land": "midway", "mounts": 12, "facing": "east"}},
+            {"name": "Guest Services", "gen": "civic", "kind": "guestservices",
+             "size": [17, 22, 21],
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "Bandstand", "gen": "civic", "kind": "bandstand",
+             "size": [17, 16, 17],
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "Founders Statue", "gen": "civic", "kind": "statue",
+             "size": [11, 21, 11],
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "Kiosk", "gen": "park", "kind": "stall", "size": [9, 7, 7],
+             "params": {"land": "midway", "width": 7, "depth": 5, "facing": "east"},
+             "count": 3},
+            # THE GATE IS THE ONE MODULE WHOSE POSITION IS ITS MEANING.
             {"name": "Park Gate", "gen": "park", "kind": "gate", "size": [15, 9, 7],
              "anchor": "edge", "side": "west",
              "params": {"land": "midway", "lanes": 3, "depth": 6, "facing": "west"}},
-            # The ways to the other two zones, each pinned to the edge it points at. An arch to
-            # the west that is not on the western edge does not lead anywhere.
+            # The islands run along Z: left is NORTH, right is SOUTH.
             {"name": "Frontier Arch", "gen": "park", "kind": "arch", "size": [9, 9, 5],
              "anchor": "edge", "side": "north",
              "params": {"land": "frontier", "width": 7, "height": 6, "facing": "north"}},
             {"name": "Hollow Arch", "gen": "park", "kind": "arch", "size": [9, 9, 5],
              "anchor": "edge", "side": "south",
              "params": {"land": "hollow", "width": 7, "height": 6, "facing": "south"}},
-            {"name": "Midway Booth", "gen": "park", "kind": "booth", "size": [9, 7, 7],
-             "params": {"land": "midway", "width": 7, "depth": 5, "facing": "south"},
-             "count": 6},
-            {"name": "Food Stall", "gen": "park", "kind": "stall", "size": [9, 7, 7],
-             "params": {"land": "midway", "width": 7, "depth": 5, "facing": "north"},
-             "count": 4},
-            # THE GROUND GOES LAST, for the casino hall's reason: a covering module laid first
-            # would take the floor out from under everything sited after it.
             {"name": "Grand Plaza", "gen": "park", "kind": "plaza", "anchor": "cover",
-             "size": [72, 5, 72],
-             "params": {"land": "midway", "width": 72, "depth": 72, "facing": "south"}},
+             "size": [80, 5, 80],
+             "params": {"land": "midway", "width": 80, "depth": 80, "facing": "east"}},
         ],
     },
 
     "frontier": {
-        "blurb": "the west zone: a mine, a saloon and a prospect tower in spruce and cobble",
+        "blurb": "a western mining town: a mine coaster, a log flume, a headframe and a saloon",
         "keywords": ["frontier", "mine", "western", "wild west", "prospect"],
+        "greenfield": True,
         "orient": True,
         "paths": True,
         "paths_name": "Frontier Paths",
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
-            {"name": "Deep Mine", "gen": "park", "kind": "walkthrough", "size": [19, 7, 19],
-             "params": {"land": "frontier", "width": 17, "depth": 15, "facing": "east"}},
-            {"name": "The Saloon", "gen": "park", "kind": "walkthrough", "size": [15, 7, 13],
-             "params": {"land": "frontier", "width": 13, "depth": 11, "facing": "east"}},
-            {"name": "Prospect Tower", "gen": "park", "kind": "tower", "size": [15, 26, 15],
-             "params": {"land": "frontier", "width": 9, "tiers": 4, "facing": "east"}},
+            # THE HEADLINE RIDE, and it is sited first because it is a third of the plot.
+            {"name": "Mine Coaster", "gen": "coaster", "kind": "coaster",
+             "size": [47, 38, 47], "orient": False, "anchor": "edge", "side": "north",
+             "params": {"land": "frontier", "span": 44, "top": 34, "facing": "south"}},
+            {"name": "Log Flume", "gen": "coaster", "kind": "flume",
+             "size": [31, 24, 31], "orient": False,
+             "params": {"land": "frontier", "flume_span": 29, "flume_top": 20, "pool": 4, "facing": "west"}},
+            {"name": "Prospect Row", "gen": "frontiertown", "kind": "falsefront",
+             "size": [13, 14, 39], "orient": False,
+             "params": {"land": "frontier", "shops": 5, "facing": "east"}},
+            {"name": "The Mine Head", "gen": "frontiertown", "kind": "minehead",
+             "size": [19, 22, 21],
+             "params": {"land": "frontier", "facing": "east"}},
+            {"name": "The Saloon", "gen": "frontiertown", "kind": "saloon",
+             "size": [17, 16, 19],
+             "params": {"land": "frontier", "width": 17, "depth": 12, "facing": "east"}},
+            # orient False: a windmill's sails read from every side, so it does not need the
+            # square reservation - and at 13x21 booking 23x23 was the difference between it
+            # fitting and being refused.
+            {"name": "Windmill", "gen": "frontiertown", "kind": "windmill",
+             "size": [13, 24, 21], "orient": False,
+             "params": {"land": "frontier", "facing": "east"}},
+            {"name": "Water Tower", "gen": "frontiertown", "kind": "watertower",
+             "size": [13, 27, 13],
+             "params": {"land": "frontier", "facing": "east"}},
+            {"name": "Trestle Walk", "gen": "frontiertown", "kind": "trestlebridge",
+             "size": [7, 12, 28], "orient": False,
+             "params": {"land": "frontier", "length": 24, "facing": "east"}},
             {"name": "Frontier Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
              "anchor": "edge", "side": "south",
              "params": {"land": "frontier", "width": 7, "height": 6, "facing": "south"}},
-            {"name": "Tin Can Alley", "gen": "park", "kind": "booth", "size": [9, 7, 7],
-             "params": {"land": "frontier", "width": 7, "depth": 5, "facing": "east"},
-             "count": 3},
-            {"name": "Trading Post", "gen": "park", "kind": "stall", "size": [9, 7, 7],
-             "params": {"land": "frontier", "width": 7, "depth": 5, "facing": "west"},
-             "count": 5},
             {"name": "Frontier Plaza", "gen": "park", "kind": "plaza", "anchor": "cover",
-             "size": [72, 5, 72],
-             "params": {"land": "frontier", "width": 72, "depth": 72, "facing": "east"}},
+             "size": [80, 5, 80],
+             "params": {"land": "frontier", "width": 80, "depth": 80, "facing": "east"}},
         ],
     },
 
     "hollow": {
-        "blurb": "the east zone: a haunted manor, a crypt and a clock tower in blackstone",
+        "blurb": "a haunted quarter: a three-storey manor, a drop tower, a clock tower and a graveyard",
         "keywords": ["hollow", "haunted", "gothic", "crypt", "manor", "spooky"],
+        "greenfield": True,
         "orient": True,
         "paths": True,
         "paths_name": "Hollow Paths",
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
-            {"name": "Haunted Manor", "gen": "park", "kind": "walkthrough", "size": [21, 7, 19],
-             "params": {"land": "hollow", "width": 19, "depth": 17, "facing": "west"}},
-            {"name": "The Crypt", "gen": "park", "kind": "walkthrough", "size": [15, 7, 15],
-             "params": {"land": "hollow", "width": 13, "depth": 13, "facing": "west"}},
-            {"name": "Clock Tower", "gen": "park", "kind": "tower", "size": [15, 32, 15],
-             "params": {"land": "hollow", "width": 9, "tiers": 5, "facing": "west"}},
+            {"name": "Haunted Manor", "gen": "hollowmanor", "kind": "manor",
+             "size": [35, 45, 42],
+             "params": {"land": "hollow", "facing": "east"}},
+            {"name": "The Graveyard", "gen": "hollowmanor", "kind": "graveyard",
+             "size": [19, 13, 23],
+             "params": {"land": "hollow", "facing": "east"}},
+            {"name": "The Plummet", "gen": "bigwheel", "kind": "drop",
+             "size": [20, 69, 17],
+             "params": {"land": "hollow", "facing": "east"}},
+            {"name": "Clock Tower", "gen": "hollowmanor", "kind": "clocktower",
+             "size": [17, 49, 17],
+             "params": {"land": "hollow", "facing": "east"}},
+            {"name": "The Crypt", "gen": "hollowmanor", "kind": "crypt",
+             "size": [19, 15, 17],
+             "params": {"land": "hollow", "facing": "east"}},
+            {"name": "Iron Railing", "gen": "hollowmanor", "kind": "irongate",
+             "size": [7, 12, 23], "orient": False,
+             "params": {"land": "hollow", "facing": "east"}},
+            {"name": "Dead Tree", "gen": "hollowmanor", "kind": "deadtree",
+             "size": [9, 15, 9],
+             "params": {"land": "hollow", "facing": "east"}, "count": 3},
             {"name": "Hollow Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
              "anchor": "edge", "side": "north",
              "params": {"land": "hollow", "width": 7, "height": 6, "facing": "north"}},
-            {"name": "Fortunes", "gen": "park", "kind": "booth", "size": [9, 7, 7],
-             "params": {"land": "hollow", "width": 7, "depth": 5, "facing": "west"},
-             "count": 3},
-            {"name": "Curio Shop", "gen": "park", "kind": "stall", "size": [9, 7, 7],
-             "params": {"land": "hollow", "width": 7, "depth": 5, "facing": "east"},
-             "count": 4},
             {"name": "Hollow Court", "gen": "park", "kind": "plaza", "anchor": "cover",
-             "size": [72, 5, 72],
-             "params": {"land": "hollow", "width": 72, "depth": 72, "facing": "west"}},
+             "size": [80, 5, 80],
+             "params": {"land": "hollow", "width": 80, "depth": 80, "facing": "east"}},
         ],
     },
 }
@@ -618,10 +657,32 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
     #
     # A used block is seeded into `taken` as a box, so it costs nothing new: the same clearance
     # test that keeps two modules apart keeps a module off a chest.
+    #
+    # **AND ON A GREENFIELD PLOT THAT RULE DENIES THE WHOLE BUILD.** A fresh skyblock island has
+    # exactly one chest, and it sits AT THE CENTRE. A 44-wide module gets two bay columns out of a
+    # 99-wide plot and the chest's 7x7 clearance box straddles both, so a single starter chest
+    # reported NO SITE for the Haunted Manor, the Mine Coaster AND the Log Flume - the three
+    # headline pieces of the park, each silently refused by a box nobody would keep.
+    #
+    # Rule 10 is right and stays on by default: it exists because a module once sited its floor
+    # over the starter chest holding everything an alt owned. What is wrong is applying it
+    # unconditionally to a plot that is BEING CLEARED to build on. So a theme may declare
+    # `greenfield`, and when it does the containers are not treated as fixtures - but every one is
+    # NAMED IN THE PLAN and listed for removal, because a container silently built over is the
+    # exact loss this rule was written after.
     taken: list = []
-    for (ux, uy, uz) in _used_cells(sc):
-        taken.append((ux - USE_CLEAR, uy - USE_CLEAR, uz - USE_CLEAR,
-                      USE_CLEAR * 2 + 1, USE_CLEAR * 2 + 1, USE_CLEAR * 2 + 1))
+    used = list(_used_cells(sc))
+    if spec.get("greenfield") and used:
+        pl.notes.append(
+            f"GREENFIELD: {len(used)} container/fixture cell(s) are NOT treated as fixtures "
+            f"here - {', '.join(f'{x} {y} {z}' for (x, y, z) in used[:4])}"
+            + (" ..." if len(used) > 4 else "")
+            + ". Empty and break them before printing; on a fresh plot this is the starter chest, "
+              "and its keep-clear box otherwise refuses every module wider than about 40.")
+    else:
+        for (ux, uy, uz) in used:
+            taken.append((ux - USE_CLEAR, uy - USE_CLEAR, uz - USE_CLEAR,
+                          USE_CLEAR * 2 + 1, USE_CLEAR * 2 + 1, USE_CLEAR * 2 + 1))
     for mspec in spec["modules"]:
         fx, fy, fz, fw, fh, fd = measured_footprint(
             mspec["gen"], mspec["kind"], dict(mspec.get("params", {})), mspec["size"])
@@ -631,7 +692,13 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
         # reserved for it. Booking the larger dimension on both axes means any of the four
         # facings fits the same slot, so the turn can never push a building into its neighbour.
         # It costs a little packing efficiency and the plots are 13% used.
-        orient = bool(spec.get("orient")) and mspec.get("anchor") != "cover"
+        # A module may opt OUT of the square reservation. It matters at ride scale: a 16x55
+        # shop street would book 55x55 - a third of the plot - to hold a rotation it does not
+        # need, because its frontage IS its design. Such a module can still be FLIPPED 180
+        # degrees, which leaves the footprint identical, so it can still choose which side of
+        # its own axis to address; only the 90-degree turn is denied it.
+        orient = (bool(spec.get("orient")) and mspec.get("anchor") != "cover"
+                  and mspec.get("orient", True))
         bw = bd = max(fw, fd) if orient else 0
         for i in range(int(mspec.get("count", 1))):
             size = ([bw + spacing, fh, bd + spacing] if orient
@@ -676,7 +743,32 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 else:
                     bz = z0 if side == "north" else z1 - fd + 1
                     bx = x0 + max(0, ((x1 - x0 + 1) - fw) // 2)
-                taken.append((bx, plane + fy, bz, fw + spacing, fh, fd + spacing))
+                # **AN EDGE MODULE MUST STAY ON ITS EDGE, BUT IT CAN SLIDE ALONG IT.** This branch
+                # pinned and claimed without ever asking `_clear`, so the Park Gate was dropped
+                # straight onto Guest Services - the only module-against-module collision in the
+                # whole park, and one no amount of care in the bay packer could have prevented,
+                # because the edge branch never consulted it. Centred first, then outward along
+                # the edge in both directions; if the whole edge is full it is REPORTED rather
+                # than silently overlapping, since a gate you cannot reach is not a gate.
+                esize = [fw + spacing, fh, fd + spacing]
+                along_z = side in ("west", "east")
+                lo, hi = (z0, z1 - fd + 1) if along_z else (x0, x1 - fw + 1)
+                start = bz if along_z else bx
+                placed = False
+                for off in range(0, (hi - lo) + 1, 2):
+                    for cand in ({start + off, start - off} if off else {start}):
+                        if not (lo <= cand <= hi):
+                            continue
+                        tx, tz = (bx, cand) if along_z else (cand, bz)
+                        if _clear(taken, tx, plane + fy, tz, esize):
+                            bx, bz, placed = tx, tz, True
+                            break
+                    if placed:
+                        break
+                if not placed:
+                    pl.notes.append(f"{mspec['name']}: its {side} edge is full - placed at the "
+                                    f"centred position and OVERLAPPING something already sited")
+                taken.append((bx, plane + fy, bz, esize[0], fh, esize[2]))
                 pl.modules.append({
                     "name": mspec["name"], "gen": mspec["gen"], "kind": mspec["kind"],
                     "at": [bx - fx, plane, bz - fz], "size": [fw, fh, fd], "roll": 0,
@@ -709,6 +801,32 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                     if hits and _clear(taken, hits[0][0], hits[0][1], hits[0][2], size):
                         spot = hits[0]
                         break
+            # **THE GRID IS COMPUTED PER MODULE SIZE AND KNOWS NOTHING ABOUT WHAT IS ALREADY
+            # THERE, so one big module can deny every bay of every later one.** The 51x51 mine
+            # coaster landed dead centre of a 99-wide plot; a 15x15 water tower's grid is five
+            # columns at stride 16, and because the coaster spans 53 of the 99 EVERY column
+            # clipped it - 25 bays, 25 refusals, against a `taken` list holding exactly one box.
+            # Six of the Frontier's eight buildings were refused by one ride, with 23 blocks of
+            # clear margin down each side that the grid simply had no position for.
+            #
+            # So when the grid is exhausted, scan on a fine step instead - the leftover margins
+            # around a large neighbour are real site, and a grid is a layout convenience rather
+            # than a constraint. Sorted by distance from the plot centre, so a park still packs
+            # inward rather than scattering to the rim.
+            if spot is None and plane is not None and pl_plot is not None:
+                px0, px1, pz0, pz1 = _plot_bounds(pl_plot)
+                cx0, cz0 = (px0 + px1) // 2, (pz0 + pz1) // 2
+                cands = [(bx, bz)
+                         for bz in range(pz0 + 3, pz1 - size[2] - 2, 4)
+                         for bx in range(px0 + 3, px1 - size[0] - 2, 4)]
+                cands.sort(key=lambda t: (t[0] + size[0] // 2 - cx0) ** 2
+                                         + (t[1] + size[2] // 2 - cz0) ** 2)
+                for (bx, bz) in cands:
+                    if _clear(taken, bx, plane + fy, bz, size):
+                        spot = (bx - fx, plane, bz - fz, 0)
+                        taken_box = (bx, plane + fy, bz, size[0], size[1], size[2])
+                        bay = (bx, bz, bw or fw, bd or fd)
+                        break
             if spot is None and plane is None:
                 for (x, y, z, roll) in pads(sc, size, pl_plot, y_range=band, limit=4000):
                     if _clear(taken, x, y, z, size):
@@ -730,6 +848,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 "floor": floors[min(int(mspec.get("floor", 0)), len(floors) - 1)]["name"],
                 "params": dict(mspec.get("params", {})),
                 "bay": list(bay) if bay else None,
+                "square": bool(orient),
                 "world": world,
             })
     if spec.get("orient") and plane is not None:
@@ -758,6 +877,9 @@ def _front_of(m):
     if dx:
         return ((x1 + 2) if dx > 0 else (x0 - 2), cz)
     return (cx, (z1 + 2) if dz > 0 else (z0 - 2))
+
+
+_BACK_FACING = {"north": "south", "south": "north", "east": "west", "west": "east"}
 
 
 def _street_axis(m, cx, cz):
@@ -808,7 +930,13 @@ def _orient_to_streets(pl, plane):
         if m is hub or m.get("edge") or m["kind"] == "paths" or not m.get("bay"):
             continue
         facing, _along_z = _street_axis(m, cx, cz)
-        if facing == m["params"].get("facing"):
+        now = m["params"].get("facing")
+        if facing == now:
+            continue
+        # A module that did not reserve a square may only be FLIPPED, never turned: a 180-degree
+        # flip keeps the footprint identical, where a 90-degree turn swaps width for depth and
+        # would overrun the slot booked for it.
+        if not m.get("square") and facing != _BACK_FACING[now]:
             continue
         params = {**m.get("params", {}), "facing": facing}
         fx, fy, fz, fw, fh, fd = measured_footprint(
@@ -865,7 +993,14 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
     # three edge modules came back unreached for that reason, which read as a routing bug and is
     # actually the geometry being right. You walk THROUGH a threshold, so the street meets it on
     # the side the park is on.
-    links = [(m, _inside_of(m) if m.get("edge") else _front_of(m)) for m in others]
+    def _link_point(m):
+        if not m.get("edge"):
+            return _front_of(m)
+        front, inside = _front_of(m), _inside_of(m)
+        if pl_plot is not None and pl_plot.contains(*front):
+            return front
+        return inside
+    links = [(m, _link_point(m)) for m in others]
     fronts = [pt for _m, pt in links]
     if not fronts:
         return
@@ -897,8 +1032,12 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
     # THE SPURS: each door out to whichever avenue is nearer, perpendicular - a single straight
     # run with no corner, which is only possible because the avenues span the full range.
     for (m, (fx, fz)) in links:
-        if m.get("edge"):
-            continue          # centred on its own axis, so the avenue already runs to it
+        # EVERY module gets a spur, edge ones included. They used to be skipped on the grounds
+        # that an edge module is centred on its own axis and the avenue already reaches it - true
+        # until the gate learned to SLIDE along its edge to avoid a collision, at which point it
+        # was no longer on the axis and quietly lost its path. A spur that is already on an
+        # avenue comes out zero-length and is filtered out, so this costs nothing when it is
+        # unnecessary and is the difference between a reachable gate and an ornament otherwise.
         fx = min(max(fx, x0), x1)
         fz = min(max(fz, z0), z1)
         # ONE RULE, SHARED. `_street_axis` decides both which way a building turns and which

@@ -1,16 +1,15 @@
-name: The Saloon
+name: Prospect Row
 gen: frontiertown
 params:
   land: frontier
-  width: 17
-  depth: 12
-  facing: south
+  shops: 5
+  facing: west
   at:
-  - 97571
+  - 97612
   - 203
-  - 80366
-  kind: saloon
-  title: The Saloon
+  - 80402
+  kind: falsefront
+  title: Prospect Row
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic

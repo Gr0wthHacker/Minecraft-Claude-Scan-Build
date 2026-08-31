@@ -2,13 +2,13 @@ name: Frontier Plaza
 gen: park
 params:
   land: frontier
-  width: 72
-  depth: 72
+  width: 80
+  depth: 80
   facing: east
   at:
-  - 97635
+  - 97639
   - 203
-  - 80435
+  - 80439
   kind: plaza
   title: Frontier Plaza
   under: out/islandleft.litematic

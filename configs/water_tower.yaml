@@ -1,16 +1,14 @@
-name: The Saloon
+name: Water Tower
 gen: frontiertown
 params:
   land: frontier
-  width: 17
-  depth: 12
-  facing: south
+  facing: north
   at:
-  - 97571
+  - 97627
   - 203
-  - 80366
-  kind: saloon
-  title: The Saloon
+  - 80395
+  kind: watertower
+  title: Water Tower
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic

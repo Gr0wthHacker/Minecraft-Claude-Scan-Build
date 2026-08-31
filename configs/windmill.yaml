@@ -1,16 +1,14 @@
-name: The Saloon
+name: Windmill
 gen: frontiertown
 params:
   land: frontier
-  width: 17
-  depth: 12
-  facing: south
+  facing: east
   at:
-  - 97571
+  - 97636
   - 203
-  - 80366
-  kind: saloon
-  title: The Saloon
+  - 80428
+  kind: windmill
+  title: Windmill
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic

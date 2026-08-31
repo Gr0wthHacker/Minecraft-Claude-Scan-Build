@@ -1,15 +1,13 @@
 name: Clock Tower
-gen: park
+gen: hollowmanor
 params:
   land: hollow
-  width: 9
-  tiers: 5
-  facing: south
+  facing: west
   at:
-  - 97619
+  - 97605
   - 203
-  - 80803
-  kind: tower
+  - 80765
+  kind: clocktower
   title: Clock Tower
   under: out/islandright.litematic
 finish:

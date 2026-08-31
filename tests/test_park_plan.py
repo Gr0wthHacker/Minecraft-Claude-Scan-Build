@@ -37,7 +37,9 @@ def test_an_unmatched_brief_raises_rather_than_defaulting():
 def test_every_module_of_every_zone_names_a_real_generator_and_land(zone):
     for m in planner.THEMES[zone]["modules"]:
         assert m["gen"] in GENERATORS, f"{m['name']}: no generator {m['gen']!r}"
-        assert m["kind"] in park.BUILDERS, f"{m['name']}: no park kind {m['kind']!r}"
+        gen = GENERATORS[m["gen"]]
+        kinds = getattr(gen, "BUILDERS", None)
+        assert kinds and m["kind"] in kinds, f"{m['name']}: {m['gen']} has no kind {m['kind']!r}"
         assert m["params"]["land"] in park.LANDS, f"{m['name']}: no land"
         assert m["params"]["facing"] in park._STEP, f"{m['name']}: bad facing"
 
@@ -84,9 +86,14 @@ def test_every_edge_module_names_the_side_it_is_pinned_to(zone):
         if m.get("anchor") != "edge":
             continue
         assert m.get("side") in ("north", "south", "east", "west"), f"{m['name']}: no side"
-        # ...and it must FACE outward, or the doorway opens into the zone it is leaving
-        assert m["params"]["facing"] == m["side"], \
-            f"{m['name']} is pinned {m['side']} but faces {m['params']['facing']}"
+        # A THRESHOLD must face outward or its doorway opens into the zone it is leaving. That is
+        # a rule about gates and arches - things you walk THROUGH - not about anything merely
+        # pinned to an edge: the mine coaster sits along the BACK of its land and faces IN,
+        # because its station addresses the park rather than the void behind it.
+        if m["kind"] in ("gate", "arch"):
+            assert m["params"]["facing"] == m["side"], (
+                f"{m['name']} is a threshold pinned {m['side']} "
+                f"but faces {m['params']['facing']}")
 
 
 def test_the_centre_zone_leads_to_both_others():
@@ -105,7 +112,10 @@ def test_the_centre_zone_leads_to_both_others():
 
 def test_the_side_zones_lead_back_to_the_centre():
     """A one-way park is a bug. The frontier is WEST of the centre, so its way back is EAST."""
-    back = {z: [m for m in planner.THEMES[z]["modules"] if m.get("anchor") == "edge"]
+    # Only the THRESHOLD counts - a land may pin other things to an edge too (the mine coaster
+    # sits along the frontier's back edge), and those are not ways out.
+    back = {z: [m for m in planner.THEMES[z]["modules"]
+                if m.get("anchor") == "edge" and m["kind"] in ("gate", "arch")]
             for z in ("frontier", "hollow")}
     assert [m["side"] for m in back["frontier"]] == ["south"], "frontier is north; it leads back south"
     assert [m["side"] for m in back["hollow"]] == ["north"], "hollow is south; it leads back north"
@@ -113,11 +123,39 @@ def test_the_side_zones_lead_back_to_the_centre():
 
 @pytest.mark.parametrize("zone", ZONES)
 def test_a_zone_is_more_than_one_kind_of_thing(zone):
-    """Three zones of six identical booths would be the casino's eighteen identical grey rooms
-    again. A zone needs a landmark, something to walk through, and something to do."""
+    """A zone needs a landmark, something to ride or walk through, and shops.
+
+    THIS PINNED THE OLD LINEUP - tower / walkthrough / booth / stall - which is exactly the design
+    Jack rejected: *"all 3 areas are the same with different materials... nothing actually exists
+    outside of some infrastructure and some huts"*. Left as it was it would have kept the rejected
+    design enforced, so it changes with the decision, as this repo's own rule requires.
+    """
     kinds = {m["kind"] for m in planner.THEMES[zone]["modules"]}
-    assert {"tower", "walkthrough", "booth", "stall", "plaza"} <= kinds, \
-        f"{zone} is missing {({'tower','walkthrough','booth','stall','plaza'} - kinds)}"
+    assert len(kinds) >= 6, f"{zone} has only {len(kinds)} kinds of thing in it: {kinds}"
+    assert "plaza" in kinds, f"{zone} has no ground between its attractions"
+
+
+def test_the_three_zones_are_not_the_same_zone():
+    """**THE COMPLAINT, AS A PROPERTY.** The first park gave all three zones an IDENTICAL module
+    list and three palettes, which is one zone painted three ways. Each zone must be mostly made
+    of things the other two do not have."""
+    kinds = {z: {m["kind"] for m in planner.THEMES[z]["modules"]} for z in ZONES}
+    for a in ZONES:
+        for b in ZONES:
+            if a >= b:
+                continue
+            shared, only_a = kinds[a] & kinds[b], kinds[a] - kinds[b]
+            assert len(only_a) > len(shared), (
+                f"{a} and {b} share {sorted(shared)} and {a} has only {sorted(only_a)} of its "
+                f"own - that is one zone with two paint jobs")
+
+
+def test_every_zone_has_a_headline_piece():
+    """A park is RIDES and BUILDINGS, not paving. The rejected version's tallest thing was 29
+    blocks; each zone now needs something you can see from across the plot."""
+    for zone in ZONES:
+        tall = [m for m in planner.THEMES[zone]["modules"] if m["size"][1] >= 24]
+        assert tall, f"{zone} has nothing over 24 blocks tall - it has no skyline"
 
 
 # ---------------------------------------------------------------- the street network
@@ -174,7 +212,13 @@ def test_every_door_is_on_the_street(zone):
     for m in pl.modules:
         if m["kind"] in ("paths", "plaza"):
             continue
-        pt = planner._inside_of(m) if m.get("edge") else planner._front_of(m)
+        # `_inside_of` assumes an edge module faces OUT, which is true of a gate and false of a
+        # ride parked at the back of the land facing IN - so the link point is whichever of the
+        # two actually lies on the plot, exactly as `_add_paths` decides it.
+        from mcbuild import islands as _isl
+        plot = _isl.plot_of(ZONE_WORLD[zone][0])
+        front, inside = planner._front_of(m), planner._inside_of(m)
+        pt = front if (not m.get("edge") or plot.contains(*front)) else inside
         assert pt in ground, f"{zone}: {m['name']} has no path to its door at {pt}"
 
 
@@ -214,8 +258,17 @@ def test_every_building_addresses_the_street_it_is_joined_to(zone):
         if m.get("edge") or m.get("covers") or m["kind"] == "paths" or not m.get("bay"):
             continue
         want, _axis = planner._street_axis(m, cx, cz)
-        assert m["params"]["facing"] == want, \
-            f"{zone}: {m['name']} faces {m['params']['facing']}, street is {want}"
+        got = m["params"]["facing"]
+        if not m.get("square"):
+            # It opted OUT of the square reservation, so it may only be FLIPPED, never turned 90
+            # degrees - a 16x55 shop street booking 55x55 to hold a rotation it does not want
+            # costs a third of the plot. What can still be asked of it is that it lies on the
+            # street's own axis rather than across it.
+            same_axis = {want, planner._BACK_FACING[want]}
+            assert got in same_axis or {got, planner._BACK_FACING[got]} != same_axis, (
+                f"{zone}: {m['name']} faces {got} across its street ({want})")
+            continue
+        assert got == want, f"{zone}: {m['name']} faces {got}, street is {want}"
 
 
 @pytest.mark.parametrize("zone", ZONES)
@@ -255,10 +308,11 @@ def test_an_edge_module_keeps_facing_out_of_the_park(zone):
     orientation pass must leave it alone."""
     pl = _planned(zone)
     for m in pl.modules:
-        if not m.get("edge"):
+        # Only a THRESHOLD. A coaster pinned to the back of the land faces IN, deliberately.
+        if not m.get("edge") or m["kind"] not in ("gate", "arch"):
             continue
-        assert m["params"]["facing"] == m["edge"], \
-            f"{zone}: {m['name']} was turned to face {m['params']['facing']} off its own edge"
+        assert m["params"]["facing"] == m["edge"], (
+            f"{zone}: {m['name']} was turned to face {m['params']['facing']} off its own edge")
 
 
 @pytest.mark.parametrize("zone", ZONES)

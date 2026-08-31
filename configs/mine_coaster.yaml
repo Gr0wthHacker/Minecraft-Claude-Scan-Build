@@ -1,16 +1,16 @@
-name: The Saloon
-gen: frontiertown
+name: Mine Coaster
+gen: coaster
 params:
   land: frontier
-  width: 17
-  depth: 12
+  span: 44
+  top: 34
   facing: south
   at:
-  - 97571
+  - 97624
   - 203
-  - 80366
-  kind: saloon
-  title: The Saloon
+  - 80398
+  kind: coaster
+  title: Mine Coaster
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic

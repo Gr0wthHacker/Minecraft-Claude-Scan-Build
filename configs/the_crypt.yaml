@@ -1,15 +1,13 @@
 name: The Crypt
-gen: park
+gen: hollowmanor
 params:
   land: hollow
-  width: 13
-  depth: 13
-  facing: south
+  facing: north
   at:
-  - 97587
+  - 97561
   - 203
   - 80805
-  kind: walkthrough
+  kind: crypt
   title: The Crypt
   under: out/islandright.litematic
 finish:

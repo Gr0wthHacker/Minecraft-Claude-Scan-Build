@@ -1,16 +1,14 @@
-name: Grand Plaza
-gen: park
+name: Founders Statue
+gen: civic
 params:
   land: midway
-  width: 80
-  depth: 80
-  facing: east
+  facing: north
   at:
-  - 97639
+  - 97617
   - 203
-  - 80639
-  kind: plaza
-  title: Grand Plaza
+  - 80617
+  kind: statue
+  title: Founders Statue
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic
