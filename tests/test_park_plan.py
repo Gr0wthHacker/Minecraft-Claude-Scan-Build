@@ -65,17 +65,29 @@ def test_the_biggest_module_is_sited_first(zone):
     every zone while actually being the SMALLER module. `measured_footprint` is what the planner
     packs with, so it is what the ordering has to be judged against - rule 11 pointed at
     ourselves, exactly as that function's own docstring says.
+
+    **AND IT IS NO LONGER KEPT BY HAND.** `planner._site_order` derives it, because a step
+    that has to be remembered is a step that gets lost - so what is asserted here is that
+    the PLANNER orders correctly, not that somebody typed the theme list in the right
+    sequence. A theme list is now free to read in whatever order makes it legible.
     """
-    mods = [m for m in planner.THEMES[zone]["modules"]
-            if m.get("anchor") not in ("cover", "edge")]
+    order = planner._site_order(planner.THEMES[zone])
+
+    # THE GROUPS COME IN THE RIGHT ORDER: pinned first, free next, the ground last.
+    kinds = [m.get("anchor") if m.get("anchor") in ("cover", "edge", "centre") else "free"
+             for m in order]
+    assert kinds == sorted(kinds, key=lambda k: {"edge": 0, "centre": 0,
+                                                 "free": 1, "cover": 2}[k]),         f"{zone}: site groups out of order: {kinds}"
+
+    free = [m for m in order if m.get("anchor") not in ("cover", "edge", "centre")]
     areas = []
-    for m in mods:
+    for m in free:
         _fx, _fy, _fz, fw, _fh, fd = planner.measured_footprint(
             m["gen"], m["kind"], dict(m.get("params", {})), m["size"])
         areas.append(fw * fd)
-    assert areas[0] == max(areas), (
-        f"{zone}: {mods[0]['name']} is {areas[0]} but the largest is "
-        f"{mods[areas.index(max(areas))]['name']} at {max(areas)}")
+    assert areas == sorted(areas, reverse=True), (
+        f"{zone}: sited out of size order - "
+        + ", ".join(f"{m['name']}={a}" for m, a in zip(free, areas)))
 
 
 @pytest.mark.parametrize("zone", ZONES)

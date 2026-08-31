@@ -107,6 +107,65 @@ CASINO = {
 CASINO.update({f"pal_{k}": v for k, v in PALETTE.items()})
 
 
+# ------------------------------------------------------------------ a game in a THEME PARK
+#
+# The six verified games are used twice: in the casino, and as MIDWAY SIDESHOWS in the three
+# theme-park zones. A Hoopla stall on a bright fairground should not be built out of the casino's
+# black-and-white; it should wear the land it stands in, or the zone reads as a casino with a
+# ferris wheel parked outside it.
+#
+# **THE LADDER IS MEASURED ACROSS FAMILIES, AND IT IS THE WHOLE POINT OF THIS TABLE.** This repo
+# concluded three separate times that the economy has no value contrast, and every one of those
+# measurements was taken INSIDE one material family, where a ladder cannot exist by construction -
+# a family is one material shown four ways, and dressing a stone does not change how much light it
+# returns. Each skin below is field / shell / pillar with every adjacent pair at least 15 apart in
+# luminance, which is about where a trim course stops being a line:
+#
+#   midway     white_wool 236 · stone_bricks 122 · black_wool 21            steps 114, 101
+#   frontier   spruce_planks 89 · cobblestone 127 · spruce_log 41           steps  38,  86
+#   hollow     black_wool 21 · deepslate_bricks 71 · polished_blackstone 45 steps  50,  26
+#
+# `tests/test_casino.py` measures it rather than trusting this comment.
+LAND_SKIN = {
+    "midway": {
+        "floor": "white_wool", "shell": "stone_bricks", "pillar": "black_wool",
+        "trim": "black_wool", "accent": "yellow_wool", "stair": "stone_brick_stairs",
+        "tile": "stone", "carpet": "red_carpet", "aisle": "red_wool",
+    },
+    "frontier": {
+        "floor": "spruce_planks", "shell": "cobblestone", "pillar": "spruce_log",
+        "trim": "stone_bricks", "accent": "orange_wool", "stair": "spruce_stairs",
+        "tile": "stone", "carpet": "brown_carpet", "aisle": "stripped_oak_log",
+    },
+    "hollow": {
+        "floor": "black_wool", "shell": "deepslate_bricks",
+        "pillar": "polished_blackstone_bricks", "trim": "polished_blackstone_bricks",
+        "accent": "purple_wool", "stair": "polished_blackstone_brick_stairs",
+        "tile": "cobbled_deepslate", "carpet": "purple_carpet", "aisle": "purple_wool",
+    },
+}
+
+
+def _skin(p: dict) -> dict:
+    """Apply a land's skin over the casino palette, if one was asked for.
+
+    The BOARD is deliberately left alone. It is the readout a player looks at to see which
+    outcome came up, so its colours are doing a job rather than setting a mood, and repainting
+    them in a land's own two tones would be repainting the instrument to match the wall.
+    """
+    land = p.get("land")
+    if not land:
+        return p
+    if land not in LAND_SKIN:
+        raise ValueError(f"unknown land {land!r}; have {sorted(LAND_SKIN)}")
+    out = dict(p)
+    for k, v in LAND_SKIN[land].items():
+        # An explicit `pal_x` in the config still wins - the skin is a default, not an override.
+        if p.get(f"pal_{k}") == PALETTE.get(k):
+            out[f"pal_{k}"] = v
+    return out
+
+
 # WHAT EACH GAME'S SIGN SAYS. Four lines is the whole format, so every word has to earn its place:
 # what to do, what you see, what the odds are. THE ODDS ARE ON THE SIGN because this project
 # refuses to build a game whose distribution it cannot state - `RNG_MIXES` holds only the two item
@@ -158,7 +217,7 @@ def _busy(ctx, x, y, z) -> bool:
 
 
 def build(cfg: dict, donors=None) -> Canvas:
-    p = {**CASINO, **cfg}
+    p = _skin({**CASINO, **cfg})
     if not p.get("at"):
         raise ValueError("casino needs params.at = [x, y, z] of the play floor corner")
     if p["facing"] not in _STEP:

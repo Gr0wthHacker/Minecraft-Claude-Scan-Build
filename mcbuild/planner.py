@@ -155,6 +155,7 @@ THEMES = {
         "orient": True,
         "paths": True,
         "paths_name": "Midway Paths",
+        "furniture": ["bench", "planter", "lamppost", "topiary", "bin", "signpost"],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
             # LARGEST RESERVED FOOTPRINT FIRST - `bays` packs in list order and a big module
@@ -177,15 +178,18 @@ THEMES = {
              "params": {"land": "midway", "mounts": 12, "facing": "east"}},
             {"name": "Hoopla", "gen": "casino", "kind": "high_roller",
              "size": [9, 8, 8], "orient": False,
-             "params": {"outcomes": 3, "pit": 2, "facing": "east"}},
+             "params": {"land": "midway", "outcomes": 3, "pit": 2, "facing": "east"}},
             {"name": "Lucky Dip", "gen": "casino", "kind": "lucky_number",
              "size": [9, 8, 8], "orient": False,
-             "params": {"outcomes": 3, "pit": 2, "facing": "east"}},
+             "params": {"land": "midway", "outcomes": 3, "pit": 2, "facing": "east"}},
             {"name": "Guest Services", "gen": "civic", "kind": "guestservices",
              "size": [17, 22, 21],
              "params": {"land": "midway", "facing": "east"}},
             {"name": "Bandstand", "gen": "civic", "kind": "bandstand",
              "size": [17, 16, 17],
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "The Monument", "gen": "monument", "kind": "monument",
+             "size": [33, 49, 33], "anchor": "centre", "orient": False,
              "params": {"land": "midway", "facing": "east"}},
             {"name": "Founders Statue", "gen": "civic", "kind": "statue",
              "size": [11, 21, 11],
@@ -256,10 +260,10 @@ THEMES = {
              "params": {"land": "frontier", "facing": "east"}},
             {"name": "Tin Can Alley", "gen": "casino", "kind": "duel",
              "size": [9, 8, 8], "orient": False,
-             "params": {"outcomes": 3, "pit": 2, "facing": "east"}},
+             "params": {"land": "frontier", "outcomes": 3, "pit": 2, "facing": "east"}},
             {"name": "Gold Panning", "gen": "casino", "kind": "double_or_none",
              "size": [9, 8, 8], "orient": False,
-             "params": {"outcomes": 3, "pit": 2, "facing": "east"}},
+             "params": {"land": "frontier", "outcomes": 3, "pit": 2, "facing": "east"}},
             {"name": "Water Tower", "gen": "frontiertown", "kind": "watertower",
              "size": [13, 27, 13],
              "params": {"land": "frontier", "facing": "east"}},
@@ -298,10 +302,10 @@ THEMES = {
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "Fortune Wheel", "gen": "casino", "kind": "wheel",
              "size": [24, 4, 24], "orient": False,
-             "params": {"pit": 2, "facing": "east"}},
+             "params": {"land": "hollow", "pit": 2, "facing": "east"}},
             {"name": "The Reckoning", "gen": "casino", "kind": "lucky_number",
              "size": [9, 8, 8], "orient": False,
-             "params": {"outcomes": 3, "pit": 2, "facing": "east"}},
+             "params": {"land": "hollow", "outcomes": 3, "pit": 2, "facing": "east"}},
             {"name": "The Crypt", "gen": "hollowmanor", "kind": "crypt",
              "size": [19, 15, 17],
              "params": {"land": "hollow", "facing": "east"}},
@@ -610,6 +614,43 @@ def _used_cells(sc) -> list:
     return out
 
 
+def _site_order(spec: dict) -> list:
+    """The order modules are SITED in, which is not the order they are written in.
+
+    `bays` packs in list order, so a module listed late finds the grid full of kiosks and reports
+    NO SITE - the Colour Wheel did exactly that three times before anyone noticed. The rule is
+    "biggest first", and for a while it was kept BY HAND in the theme lists. That went wrong the
+    first time it was actually checked: ordered by the hand-typed `size`, a tower DECLARING 15x15
+    but MEASURING 13x13 led every zone while being the smaller module. **A step that has to be
+    remembered is a step that gets lost** - the same finding that turned the shop islet's hand-cut
+    well into `finish.carve_for` - so the order is DERIVED here, from `measured_footprint`, which
+    is what the packer actually consumes.
+
+    Three groups, and the order between them is load-bearing:
+
+      EDGE/CENTRE  first. A gate's position IS its meaning, it is not negotiable, and it claims
+                   its box. Sited late, a ride has already taken the edge and the gate slides
+                   somewhere it does not belong - which is how Park Gate once landed on Guest
+                   Services.
+      FREE         next, by DESCENDING MEASURED AREA. The rule this function exists for.
+      COVER        last. A covering module is not competing for space, it IS the space, so it
+                   must see every room already placed. Listed first it lays its floor under
+                   nothing.
+    """
+    edge, free, cover = [], [], []
+    for m in spec["modules"]:
+        a = m.get("anchor")
+        (cover if a == "cover" else edge if a in ("edge", "centre") else free).append(m)
+
+    def area(m):
+        _fx, _fy, _fz, fw, _fh, fd = measured_footprint(
+            m["gen"], m["kind"], dict(m.get("params", {})), m["size"])
+        return fw * fd
+
+    free.sort(key=area, reverse=True)
+    return edge + free + cover
+
+
 def make(brief: str, world: str, name: str | None = None, theme: str | None = None,
          plot_from: str | None = None, spacing: int = 2, island: str | None = None,
          plane: int | None = None) -> Plan:
@@ -715,7 +756,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
         for (ux, uy, uz) in used:
             taken.append((ux - USE_CLEAR, uy - USE_CLEAR, uz - USE_CLEAR,
                           USE_CLEAR * 2 + 1, USE_CLEAR * 2 + 1, USE_CLEAR * 2 + 1))
-    for mspec in spec["modules"]:
+    for mspec in _site_order(spec):
         fx, fy, fz, fw, fh, fd = measured_footprint(
             mspec["gen"], mspec["kind"], dict(mspec.get("params", {})), mspec["size"])
         # **A MODULE THAT WILL BE TURNED MUST RESERVE A SQUARE.** Orientation is decided after
@@ -907,6 +948,8 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
         _orient_to_streets(pl, plane)
     if spec.get("paths") and plane is not None:
         _add_paths(pl, spec, plane, world, pl_plot)
+    if spec.get("furniture") and plane is not None:
+        _add_furniture(pl, spec, plane, world, pl_plot)
     return pl
 
 
@@ -1117,6 +1160,121 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
         "params": {"land": land, "facing": "east", "routes": routes, "obstacles": obstacles},
         "world": world,
     })
+
+
+def _add_furniture(pl, spec, plane, world, pl_plot=None):
+    """Dress the avenues with benches, planters, lamps and bins.
+
+    **FURNITURE BELONGS TO THE STREET, NOT TO THE BAY GRID.** Listed as ordinary modules these
+    would be handed to `bays`, which packs a 99x99 plot into a grid of slots and would scatter
+    twenty benches evenly across the whole zone - including the middle of open ground nobody
+    walks over. A bench in a field is not furniture, it is litter. So they are placed the way the
+    lamp posts already are: ALONG the avenues the path pass has just drawn, at a fixed interval,
+    set back to the kerb.
+
+    Three rules, each of which produced a wrong-looking street first:
+
+    - **THE INTERVAL MUST CLEAR THE WIDEST PIECE.** Every kind here carries its own paved pad -
+      a bench measures 8x11, not 2x1 - so an interval shorter than the pad's own depth puts two
+      pads through each other. It is derived from the measured footprints rather than typed.
+    - **ALTERNATE KERBS.** Everything on one side reads as a fence; alternating gives a street.
+    - **NOTHING IN THE CROSSING.** The two avenues meet at the hub and that square is the one
+      place people gather, so a band around it is left clear.
+
+    A piece that would land inside a building's box, off the plot, or on top of another piece is
+    simply skipped - the street is dressed with what fits, and a missing bench costs nothing.
+    """
+    hub = next((m for m in pl.modules if m.get("covers") and m["kind"] != "paths"), None)
+    paths = next((m for m in pl.modules if m["kind"] == "paths"), None)
+    if hub is None or paths is None:
+        return
+    hx0, hz0, hx1, hz1 = _box_of(hub)
+    cx, cz = (hx0 + hx1) // 2, (hz0 + hz1) // 2
+
+    land = spec["modules"][0]["params"]["land"]
+    wanted = list(spec["furniture"])
+    if not wanted:
+        return
+
+    # measure once: the interval and the kerb offset both come off the real footprints
+    sized = []
+    for kind in wanted:
+        # The declared size is only ever a FALLBACK for a kind that fails to build; every one of
+        # these measures, so what is used is the real extent, pad included.
+        fx, fy, fz, fw, fh, fd = measured_footprint(
+            "streetfurniture", kind, {"land": land, "facing": "east"}, [9, 9, 9])
+        sized.append((kind, fx, fy, fz, fw, fh, fd))
+    step = max(max(fw, fd) for (_k, _x, _y, _z, fw, _h, fd) in sized) + 4
+    kerb = max(max(fw, fd) for (_k, _x, _y, _z, fw, _h, fd) in sized) // 2 + 4
+
+    obstacles = [list(_box_of(m)) for m in pl.modules
+                 if not m.get("covers") and m["kind"] != "paths"]
+    placed: list = []
+
+    def _free(x0, z0, x1, z1):
+        if pl_plot is not None and not (pl_plot.contains(x0, z0)
+                                        and pl_plot.contains(x1, z1)):
+            return False
+        for (bx0, bz0, bx1, bz1) in obstacles + placed:
+            if x0 <= bx1 and x1 >= bx0 and z0 <= bz1 and z1 >= bz0:
+                return False
+        return True
+
+    px0, px1, pz0, pz1 = (_plot_bounds(pl_plot) if pl_plot is not None
+                          else (cx - 40, cx + 40, cz - 40, cz + 40))
+    n = 0
+    # Both avenues, walked from one end to the other, dressing alternate kerbs.
+    runs = [("x", px0 + 6, px1 - 6, cz), ("z", pz0 + 6, pz1 - 6, cx)]
+    # **THE KERB IS A SEARCH, NOT A CONSTANT, AND THAT IS THE WHOLE DIFFERENCE.** Written with a
+    # single fixed offset every piece landed either on the avenue or inside a building, and the
+    # first run of this pass placed EXACTLY ZERO in a plot that is only half full: at 48% used,
+    # the two strips either side of the two avenues happen to be where most of the frontages are.
+    # Each piece carries its own paved pad - a bench measures 8x11, not 2x1 - so it needs real
+    # room. Trying a ladder of setbacks and taking the first that fits puts a bench in the gap
+    # BETWEEN two shopfronts instead of refusing to place one at all.
+    setbacks = [kerb + k for k in (0, 3, 6, 9, 12)]
+    for (axis, lo, hi, fixed) in runs:
+        t = lo
+        while t <= hi:
+            kind, fx, fy, fz, fw, fh, fd = sized[n % len(sized)]
+            got = None
+            # ALTERNATE SIDES, nearest setback first: everything on one kerb reads as a fence.
+            first = 1 if (n % 2 == 0) else -1
+            for off in setbacks:
+                for side in (first, -first):
+                    if axis == "x":
+                        ax, az = t, fixed + side * off
+                        facing = "north" if side > 0 else "south"
+                    else:
+                        ax, az = fixed + side * off, t
+                        facing = "west" if side > 0 else "east"
+                    # SKIP THE CROSSING: where the two avenues meet is where people gather,
+                    # which is the one square that must not have a bin in the middle of it.
+                    if abs(ax - cx) < step and abs(az - cz) < step:
+                        continue
+                    x0, z0 = ax - fw // 2, az - fd // 2
+                    x1, z1 = x0 + fw - 1, z0 + fd - 1
+                    if _free(x0, z0, x1, z1):
+                        got = (x0, z0, x1, z1, facing)
+                        break
+                if got:
+                    break
+            if got:
+                x0, z0, x1, z1, facing = got
+                placed.append((x0, z0, x1, z1))
+                pl.modules.append({
+                    "name": f"{kind.title()} {len(placed)}",
+                    "gen": "streetfurniture", "kind": kind,
+                    "at": [x0 - fx, plane, z0 - fz], "size": [fw, fh, fd], "roll": 0,
+                    "declared_size": [fw, fh, fd], "anchor_offset": [fx, fy, fz],
+                    "floor": pl.modules[0]["floor"],
+                    "params": {"land": land, "facing": facing},
+                    "world": world,
+                })
+                n += 1
+            t += step
+    if placed:
+        pl.notes.append(f"street furniture: {len(placed)} piece(s) along the avenues")
 
 
 def _theme_for(brief: str) -> str:
