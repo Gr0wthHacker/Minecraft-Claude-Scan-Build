@@ -1,0 +1,17 @@
+{
+  "origin": {
+    "x": 97557,
+    "y": 197,
+    "z": 80559
+  },
+  "size": {
+    "x": 85,
+    "y": 8,
+    "z": 84
+  },
+  "generated_by": "mcbuild.layers",
+  "kind": "casino-layer",
+  "note": "one complete build step; layers cannot collide, so nothing defers",
+  "file": "Casino 2 Machines.litematic",
+  "name": "Casino 2 Machines"
+}

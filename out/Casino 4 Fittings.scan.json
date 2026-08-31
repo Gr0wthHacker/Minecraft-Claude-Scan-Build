@@ -1,0 +1,17 @@
+{
+  "origin": {
+    "x": 97556,
+    "y": 199,
+    "z": 80561
+  },
+  "size": {
+    "x": 87,
+    "y": 10,
+    "z": 82
+  },
+  "generated_by": "mcbuild.layers",
+  "kind": "casino-layer",
+  "note": "one complete build step; layers cannot collide, so nothing defers",
+  "file": "Casino 4 Fittings.litematic",
+  "name": "Casino 4 Fittings"
+}

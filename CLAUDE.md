@@ -6889,3 +6889,47 @@ Final state: **one component, 16,028 cells, 0 clashes, 0 placement problems**, d
 connectivity and block counts, not by eye -
 `tools/look.py` cannot render these because the casino sidecar records `facing` as a word and it
 wants a vector. Place one room and look at it before building thirty.
+
+### The casino ships as FOUR LAYERS, not thirty fragments (2026-08-31)
+
+Jack, after three rounds of fixes: *"its still showing basically empty floors with holes in it for
+redstone etc, and nothing above it, can we instead just make this simple and split this into steps,
+e.g. floor, redstone, design."* He is right, and the diagnosis is his: **a design that DEFERS is
+incomplete on its own.**
+
+`finish.defer_to` settles which design owns a shared cell. That is exactly right for ownership and
+exactly wrong for looking at the result - every module becomes a fragment with holes in it where a
+neighbour won, and thirty of them loaded together are thirty overlapping boxes each missing pieces.
+"Empty floors with holes for redstone and nothing above it" is a precise description of the hall
+on its own.
+
+    python -m mcbuild layers casino --floor 203 --ship
+
+    Casino 1 Floor      7,640    the walking surface
+    Casino 2 Machines   2,951    everything under it: pits, wire, droppers
+    Casino 3 Walls      4,925    everything over it: rooms, ceilings, the perimeter
+    Casino 4 Fittings     368    signs, lanterns, buttons, carpet
+
+**LAYERS CANNOT COLLIDE, SO NOTHING DEFERS.** `_which(name, y, floor_y)` is a function of the CELL
+- what it is and where it sits - so every cell lands in exactly one layer by construction. There
+is no ownership question left to settle and no design is missing anything. Each loads on its own
+and the four together are the whole casino with nothing hidden. Verified as a partition rather than
+asserted: 0 shared cells, 0 lost, 0 invented, **0 block-state changes** (a stair's facing and a
+sign's facing are decisions, and a slice that dropped `Properties` would look identical in every
+render here and be wrong in game).
+
+Two rules inside it:
+
+- **A MACHINE STAYS WHOLE WHEREVER IT SITS.** Material wins over height: a mechanism half under the
+  floor and half above it is one machine, and splitting it by height gives two layers neither of
+  which works. A lamp above the floor is a display and goes to Fittings; the wire that drives it
+  does not.
+- **A SIGN'S TEXT FOLLOWS ITS BLOCK.** Left in another layer it would be a tile entity with no
+  block, which is a corrupt region rather than a lost line. All 37 land in Fittings.
+
+It also gives the build ORDER that matches how you would actually build it: stand the floor, hang
+the machines under it, raise the walls, fit it out. `sync.yaml` tracks the four, so `/cscan place`
+places four complete designs rather than thirty fragments.
+
+**The thirty module designs are kept**, because they are what the plan, the circuit verification
+and the cross-design checks are written against. They are simply no longer what you place.

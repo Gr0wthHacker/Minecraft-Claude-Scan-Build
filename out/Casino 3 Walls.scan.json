@@ -1,0 +1,17 @@
+{
+  "origin": {
+    "x": 97556,
+    "y": 204,
+    "z": 80556
+  },
+  "size": {
+    "x": 88,
+    "y": 6,
+    "z": 88
+  },
+  "generated_by": "mcbuild.layers",
+  "kind": "casino-layer",
+  "note": "one complete build step; layers cannot collide, so nothing defers",
+  "file": "Casino 3 Walls.litematic",
+  "name": "Casino 3 Walls"
+}

@@ -247,6 +247,19 @@ def cmd_plan(a):
               f"{len(c['short'])} short")
 
 
+def cmd_layers(a):
+    from . import layers
+    st = Settings()
+    written = layers.slice_plan(a.plan, floor_y=a.floor, prefix=a.prefix)
+    for name, n in written:
+        print(f"  {name:28s} {n:6d} blocks")
+    print(f"{len(written)} layer(s), {sum(n for _x, n in written)} blocks - each one COMPLETE, "
+          f"nothing deferred, so they cannot hide each other")
+    if a.ship:
+        layers.ship(written, st.schem_dir)
+        print("shipped to", st.schem_dir)
+
+
 def cmd_islands(a):
     from . import islands
     if a.add:
@@ -411,6 +424,12 @@ def main(argv=None):
                         "lay the grid at this course instead of searching for flat terrain")
     p.add_argument("--show"); p.add_argument("--approve"); p.add_argument("--emit")
     p.set_defaults(fn=cmd_plan)
+    p = sub.add_parser("layers", help="re-slice a plan into complete build steps: floor, machines, walls, fittings")
+    p.add_argument("plan")
+    p.add_argument("--floor", type=int, required=True, help="Y of the walking surface")
+    p.add_argument("--prefix", help="name prefix for the layers (default: the plan's name)")
+    p.add_argument("--ship", action="store_true", help="copy them to the schematics folder")
+    p.set_defaults(fn=cmd_layers)
     p = sub.add_parser("islands", help="the islands this tooling knows: centre from BEDROCK, never typed")
     p.add_argument("--add", help="name it")
     p.add_argument("--from", dest="from_", help="capture to discover the bedrock in")
