@@ -12,7 +12,4 @@ finish:
   verify_against: out/newisle.litematic
   defer_to:
   - out/Prize Wall 3.litematic
-origin_lock:
-- 97551
-- 195
-- 80551
+origin_lock: false

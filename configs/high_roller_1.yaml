@@ -11,10 +11,7 @@ params:
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic
-origin_lock:
-- 97551
-- 195
-- 80551
+origin_lock: false
 expensive_allowance: 4
 expensive_reason: 4x redstone_lamp - a light cannot be substituted by colour (the
   nearest cheap match is a lamp that does not light), so this cost is declared rather

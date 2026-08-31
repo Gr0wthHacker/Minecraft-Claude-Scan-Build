@@ -607,26 +607,20 @@ def emit(name: str, out_dir: str = "configs") -> list:
         raise PermissionError(
             f"plan {name} is not approved. Nothing is emitted until a human says yes: "
             f"python -m mcbuild plan --approve {name}")
-    # THE ORIGIN LOCK BELONGS TO THE ISLAND BEING BUILT ON, NOT TO THE ONE THIS REPO GREW UP ON.
+    # THE ORIGIN LOCK IS OFF FOR A PLAN, AND BOTH HALVES OF THAT ARE DELIBERATE.
     #
-    # `profile.origin_lock` is the main island's corner, and it is the default for every design
-    # here - so a casino at 97588/80595 would be padded from -24251/29949, a box 122,000 blocks
-    # wide. It passes the pipeline's own "lock <= natural origin" check, because it IS below and
-    # west of everything; it simply produces a schematic the size of the world.
+    # The default lock is the MAIN island's corner, so a casino at 97588/80595 would pad from
+    # -24251/29949 - a schematic the size of the world, which passes the pipeline's own
+    # "lock <= natural origin" check because it really is below and west of everything.
     #
-    # The lock's PURPOSE is one paste origin per island, so it is derived from the island's own
-    # plot corner. Every module of this plan then shares one origin, regeneration cannot move
-    # them, and `/cscan place` puts them all down against the same corner.
-    lock = None
-    if pl.island:
-        from . import islands as islands_mod
-        pp = islands_mod.plot_of(pl.island)
-        if pp is not None:
-            x0, x1, z0, z1 = pp.bounds() if callable(getattr(pp, "bounds", None)) else (
-                pp.cx - pp.radius, pp.cx + pp.radius, pp.cz - pp.radius, pp.cz + pp.radius)
-            floor = min(int(m["at"][1]) for m in pl.modules) if pl.modules else 0
-            lock = [int(x0), int(floor) - 8, int(z0)]
-
+    # Deriving the lock from THIS island's plot corner fixes the size and is still wrong. The lock
+    # exists so a design that regenerates cannot drift, and it pays for that with padding: each
+    # module then shipped as a 47x13x40 box holding 224 blocks - 99% AIR - and all 29 placements
+    # sat on one corner, overlapping, most of them looking empty from wherever you stand.
+    #
+    # A PLANNED MODULE DOES NOT NEED THE LOCK, because its `at` is pinned in the config by an
+    # approved plan. The origin is already deterministic; the lock only adds air. So each design
+    # hugs its own content and its placement sits where the module actually is.
     written = []
     prev = None
     for m in pl.modules:
@@ -638,8 +632,7 @@ def emit(name: str, out_dir: str = "configs") -> list:
                        "under": m.get("world")},
             "finish": {"verify_against": m.get("world")},
         }
-        if lock is not None:
-            cfg["origin_lock"] = lock
+        cfg["origin_lock"] = False
         exp = measured_expensive(m["gen"], m["kind"], dict(m.get("params", {})))
         if exp:
             total = sum(exp.values())
