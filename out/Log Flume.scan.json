@@ -1,0 +1,35 @@
+{
+  "origin": {
+    "x": 97566,
+    "y": 202,
+    "z": 80401
+  },
+  "size": {
+    "x": 32,
+    "y": 26,
+    "z": 34
+  },
+  "generated_by": "coaster",
+  "kind": "flume",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "a one-way water ride whose bed is water SOURCES cell by cell, so it neither drains nor stops seven blocks from a source. Every water cell has a solid bed and a solid or glazed face on all four sides - which is why the graded lift and drop are roofed and the flat runs are open.",
+  "unverified": [
+    "nothing about a BOAT has been simulated - the channel is verified as watertight geometry, not as a ride that carries anything."
+  ],
+  "channel": 74,
+  "corners": 3,
+  "water": 582,
+  "panes": 168,
+  "roof_cells": 114,
+  "trestles": 13,
+  "gantries": 7,
+  "pool": 63,
+  "rim": 36,
+  "sealed": 12,
+  "signs": 2,
+  "top": 20,
+  "span": 29,
+  "file": "Log Flume.litematic",
+  "name": "Log Flume"
+}

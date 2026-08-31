@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": 97554,
+    "y": 202,
+    "z": 80354
+  },
+  "size": {
+    "x": 19,
+    "y": 16,
+    "z": 17
+  },
+  "generated_by": "frontiertown",
+  "kind": "saloon",
+  "land": "frontier",
+  "facing": "south",
+  "contract": "two storeys under a false front, a covered porch on posts with a railed balcony over it, and a stair inside that actually reaches the first floor",
+  "unverified": [],
+  "width": 17,
+  "depth": 12,
+  "height": 15,
+  "front": "flat",
+  "signs": 3,
+  "file": "The Saloon.litematic",
+  "name": "The Saloon"
+}

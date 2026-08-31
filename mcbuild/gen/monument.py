@@ -56,11 +56,19 @@ FRONT of the monument is `-dd`, which is why the pilaster ring starts at -90 deg
 and back pilasters then exist at every column count, and the inscription has a solid wall behind
 it whatever else is configured.
 
-MATERIALS. Everything is `park.LANDS[land]` plus `end_rod` for the finial, which is cheap,
-spendable and 1.19-legal like every key of every land. No dirt or grass (CURRENCY on this
-server), no sand or gravel (they would pour off the corbels into the void), nothing expensive.
-The land's `accent` is GILDING and is rationed: capitals, the collar band, the frieze triglyphs,
-the mantle, the halo and the finial - about one accent cell in forty.
+MATERIALS. Everything is `park.LANDS[land]` plus `end_rod` for the finial and `civic._BALUSTRADE`
+for the gallery rail, both cheap, spendable and 1.19-legal like every key of every land. No dirt
+or grass (CURRENCY on this server), no sand or gravel (they would pour off the corbels into the
+void), nothing expensive. The land's `accent` is GILDING and is rationed: capitals, the collar
+band, the frieze triglyphs, the mantle, the halo and the finial - about one accent cell in forty.
+
+THE DETAIL VOCABULARY. Stairs already carried every moulding here; the climb adds the two
+families this repo's own corpus measurement says it under-uses - `pal["fence"]` as a banister and
+a bridge rail, `_BALUSTRADE`'s wall as the gallery rim - which took the whole monument from 12.9%
+detail-vocabulary blocks to 14.6%, measured the same way `tools/corpus.py` measures an outside
+build. No trapdoors: there was no cell on this design a shutter or a shelf actually belonged on,
+and forcing one in for the percentage is exactly the "move a palette number" mistake this repo's
+own notes on the deck gallery and the deck soffit already recorded and reversed.
 """
 from __future__ import annotations
 

@@ -25,12 +25,13 @@ import numpy as np
 import pytest
 import yaml
 
-from mcbuild import blocks, nightlight, palette, schem
+from mcbuild import blocks, nbt, nightlight, palette, schem
 from mcbuild.gen import park, transit
 from mcbuild.gen.railspiral import power_cells, runs_of, shapes_for
 
 CONFIG = "configs/park_line.yaml"
 ZONES = ["Park_Left Complete", "Park_Centre Complete", "Park_Right Complete"]
+CASINO = "Casino Complete"
 LANDS = sorted(park.LANDS)
 KINDS = sorted(transit.BUILDERS)
 
@@ -42,17 +43,34 @@ def _cfg():
         return yaml.safe_load(fh)["params"]
 
 
+def _states(model):
+    """The palette as full `name[k=v,...]` strings.
+
+    **`Model.names` DROPS THE PROPERTIES**, which this repo has been bitten by three times: a
+    stair's `facing`, a slab's `type` and a rail's `shape` all vanish, so a test that greps the
+    names for `half=bottom` is testing the wrong artifact and passes on a build that has none.
+    Read the palette NBT.
+    """
+    out = []
+    for e in model.palette:
+        name = nbt.state_name(e).split(":")[-1]
+        props = nbt.state_props(e)
+        tail = ",".join(f"{k}={v}" for k, v in sorted(props.items()))
+        out.append(f"{name}[{tail}]" if props else name)
+    return out
+
+
 def _cells(model, origin):
-    """{(x, y, z): 'block[state]'} in WORLD coordinates.
+    """{(x, y, z): 'block[state]'} in WORLD coordinates, properties included.
 
     Asserting in world coordinates is a rule this repo has already paid for: a canvas is sized
     to its own content, so it shifts between two builds with different settings and anything
     comparing them lines up against nothing.
     """
     ox, oy, oz = origin
-    names = [n.split(":")[-1] for n in model.names]
+    states = _states(model)
     ys, zs, xs = np.nonzero(model.ids > 0)
-    return {(x + ox, y + oy, z + oz): names[model.ids[y, z, x]]
+    return {(x + ox, y + oy, z + oz): states[model.ids[y, z, x]]
             for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist())}
 
 
@@ -147,8 +165,7 @@ def test_every_kind_builds_on_every_land_and_every_heading(kind, land, axis, for
 @pytest.mark.parametrize("land", LANDS)
 def test_every_block_state_is_legal(kind, land):
     m = transit.build(_small(kind, land)).to_model()
-    for n in m.names:
-        spec = n.split(":")[-1]
+    for spec in _states(m):                 # the STATES, not `m.names` - see `_states`
         base = spec.split("[")[0]
         if base == "air":
             continue
@@ -438,7 +455,7 @@ def test_the_span_hangs_from_the_deck_and_the_piers_reach_its_underside(line):
     through its own neighbours, which one connected component already gives; what this adds is
     that the pier bottoms really are below the deck and really are joined."""
     c, _m, cells = line
-    deck_y = int(c.meta["origin"][1]) - 1
+    deck_y = int(c.meta["line_origin"][1]) - 1
     below = [k for k in cells if k[1] < deck_y]
     assert below, "a viaduct with nothing under it is a plank"
     assert min(k[1] for k in below) == deck_y - int(_cfg()["pier_depth"])
@@ -455,14 +472,17 @@ def test_nothing_spawnable_on_the_line_is_dark(line):
     emits, what light passes and what a mob can stand on, so this cannot disagree with the
     design's own reasoning about it."""
     _c, m, _cells = line
-    opaque, emit, passy, spawn, _water = nightlight.classify(list(m.names))
+    # THE FULL STATES, not `m.names` - a bottom slab and a top slab are the same NAME and only
+    # one of them is a thing a mob can stand on, so the classifier needs the properties.
+    opaque, emit, passy, spawn, _water = nightlight.classify(_states(m))
     ids = m.ids
     light = nightlight.propagate(opaque[ids], emit[ids])
     clear = passy[ids] | (ids == 0)
+    standable = spawn[ids]
     ny = ids.shape[0]
     dark = []
     for y in range(ny - 1):
-        zz, xx = np.nonzero(spawn[y])
+        zz, xx = np.nonzero(standable[y])
         for z, x in zip(zz.tolist(), xx.tolist()):
             head = clear[y + 2, z, x] if y + 2 < ny else True
             if clear[y + 1, z, x] and head and light[y + 1, z, x] < 1:
@@ -608,3 +628,47 @@ def test_the_stations_yield_only_below_the_deck(line):
     skipped = sum(st["skipped_to_park"] for st in c.meta["stations_built"])
     assert 0 < skipped < 40, \
         f"{skipped} cells yielded: too many means the station is sited on top of the zone"
+
+
+def test_the_sidecar_origin_is_the_PASTE_origin(line):
+    """A generator's meta is merged straight into the sidecar, and the sidecar's `origin` is
+    where Litematica pastes the file. A meta key called `origin` overwrote it with the line's
+    own first rail cell - which places the whole design six east, ten up and two south of where
+    it belongs, silently, with nothing in the file to say so. The line's own datum is
+    `line_origin`, and the two must never be the same key again."""
+    c, _m, _cells = line
+    assert "origin" not in c.meta
+    assert c.meta["line_origin"] == list(_cfg()["at"])
+
+
+def test_the_only_known_conflict_is_the_casino_and_it_is_BOUNDED(line):
+    """A KNOWN CONFLICT RECORDED IS WORTH MORE THAN A CLAIM, and this one is not ours to settle.
+
+    `Casino Complete` stands on newisle at X 97556..97643 / Z 80555..80643 - and it already
+    shares **2,356 cells with `Park_Centre Complete`**, so the middle island currently holds two
+    designs that cannot both be built. Its east wall runs the full length of the plot at X 97643,
+    Y203-208, with a floor apron out to X 97640 at Y203, which is exactly the ground a station
+    stair has to land on.
+
+    So the corridor was moved one column east until the LINE ITSELF is clean - deck, track,
+    piers, arches and towers all clear of the casino as well as of the park - and what is left is
+    confined to the Midway station's own platform and flight. This test pins that boundary: if a
+    change starts putting the RAILWAY through the casino, or the conflict grows past the one
+    station, it fails and says so. It does not assert zero, because zero is a decision about
+    which of two other designs is authoritative and that decision is Jack's.
+    """
+    c, _m, cells = line
+    m = schem.load(f"out/{CASINO}.litematic")
+    with open(f"out/{CASINO}.scan.json", encoding="utf-8") as fh:
+        o = json.load(fh)["origin"]
+    casino = _cells(m, (o["x"], o["y"], o["z"]))
+    clash = sorted(set(cells) & set(casino))
+    rail = {tuple(r) for r in c.meta["rail"]}
+    assert not (rail & set(casino)), "the RAILWAY is inside the casino - move the corridor"
+    deck_y = int(c.meta["line_origin"][1]) - 1
+    assert all(k[1] <= deck_y for k in clash), "the conflict has reached the deck course or above"
+    mid = next(st for st in c.meta["stations_built"] if st["land"] == "midway")
+    lo, hi = mid["a0"] - 8, mid["a1"] + 8
+    z0 = int(c.meta["line_origin"][2])
+    assert all(z0 + lo <= k[2] <= z0 + hi for k in clash),         "the conflict has spread past the Midway station's own footprint"
+    assert len(clash) < 60, f"the casino conflict has grown to {len(clash)} cells"

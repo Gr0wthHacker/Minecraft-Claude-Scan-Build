@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": 97625,
+    "y": 202,
+    "z": 80413
+  },
+  "size": {
+    "x": 13,
+    "y": 27,
+    "z": 21
+  },
+  "generated_by": "frontiertown",
+  "kind": "windmill",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "four ten-block lattice sails on a hub clear of a tapering tower, so the silhouette is the sail circle and not the shaft",
+  "unverified": [],
+  "height": 26,
+  "shaft": 18,
+  "arm": 10,
+  "cloth": 40,
+  "signs": 1,
+  "file": "Windmill.litematic",
+  "name": "Windmill"
+}

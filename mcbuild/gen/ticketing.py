@@ -268,11 +268,16 @@ def _button_slot(w, f, pal, Q, R):
 
     Each step down needs an AIR cell over the lower dust or the signal simply does not descend,
     and every one of those cells is inside the wall's own two-deep footprint where nobody sees it.
-    The staircase deliberately avoids column P, which is adjacent to the torch pair.
+
+    THE STAIRCASE AVOIDS TWO COLUMNS AND ONE COURSE, and the second was found by simulation after
+    the build looked finished. Column P is adjacent to the torch pair. And the step at (R, d=0)
+    in the PAVING course sat directly beside the NEXT lane's door paving - the one block in a lane
+    that is strongly powered whenever that door is open - so opening lane two opened lane one as
+    well. Every lane checked out on its own; nothing but running two of them together showed it.
     """
     fwd = f.facing
     w.put(*f.at(Q, -1, 1), "stone_button", face="wall", facing=fwd, powered="false")
-    steps = [(Q, 1, 1), (R, 1, 0), (R, 0, PAVE_H), (Q, 0, MACH_H)]
+    steps = [(Q, 1, 1), (R, 1, 0), (Q, 1, PAVE_H), (Q, 0, MACH_H)]
     for (i, d, h) in steps:
         w.put(*f.at(i, d, h), "redstone_wire")
     for (i, d, h) in steps[1:]:
@@ -351,10 +356,18 @@ def _barrier(w: World, p: dict, ctx, trigger: str, lamp: bool = False) -> dict:
     lamps = []
     if lamp:
         for i in lane_i:
-            # over the lane, driven by the same paving block the door is - so it is lit exactly
-            # when the door is open, which is the only honest thing a GO lamp can say.
-            w.put(*f.at(i, 0, 2), "redstone_lamp", lit="false")
-            lamps.append(list(f.at(i, 0, 2)))
+            # **SET INTO THE FORECOURT PAVING, OVER THE OUT LINE.** Two placements were tried and
+            # simulated before this one, and both were wrong in ways only simulation shows:
+            #   - over the doorway at h=2 it touches nothing that is ever powered. The only
+            #     strongly powered block in a lane is the paving UNDER the door, and a lamp two
+            #     courses above it is not adjacent to anything. It could never have lit;
+            #   - beside the door at d=-1 it is LIT AT REST, because T0 - the torch that is lit
+            #     when the barrier is CLOSED - strongly powers the paving block above itself, and
+            #     that block is next door. A GO lamp that says GO at rest is worse than none.
+            # Over the OUT dust it is dark at rest and lit for exactly the hold, which is what a
+            # lane being open means.
+            w.put(*f.at(i, -4, PAVE_H), "redstone_lamp", lit="false")
+            lamps.append(list(f.at(i, -4, PAVE_H)))
 
     return {"width": width, "depth": 2, "height": height, "lanes": lanes, "stages": stages,
             "lane_i": lane_i, "span": span, "fore": fore,
@@ -553,9 +566,6 @@ def _queue(w: World, p: dict, ctx) -> dict:
     for i in range(-1, width + 1):
         for d in range(depth // 2, depth + 1):
             w.put(*f.at(i, d, 4), a if i % 2 == 0 else b)
-        for h in range(4):
-            if d == depth:
-                pass
     for i in (-1, width):
         for d in (depth // 2, depth):
             for h in range(4):
@@ -567,8 +577,9 @@ def _queue(w: World, p: dict, ctx) -> dict:
     title = str(p.get("title") or "QUEUE HERE").upper()[:SIGN_WIDTH]
     # THE SIGN HANGS ON A POST THAT EXISTS. `_sign` refuses one that does not, and a refused sign
     # is a sign that silently is not there - this project's most-repeated failure shape.
-    park._sign(w, f, pal, -1, depth // 2, 2, f.facing, [title, "wait from here", "", "keep left"])
-    park._sign(w, f, pal, width, depth, 2, f.back, ["THIS WAY", "to the gate", "", ""])
+    park._sign(w, f, pal, -1, depth // 2 - 1, 2, f.facing,
+               [title, "wait from here", "", "keep left"])
+    park._sign(w, f, pal, width, depth - 1, 2, f.facing, ["THIS WAY", "to the gate", "", ""])
     return {"kind": "ticketing/queue", "width": width, "depth": depth, "legs": legs,
             "contract": "a switchback line: one entrance, one exit at the far end, every leg "
                         "open at the end it turns at, and a canopy over the back half",
@@ -620,6 +631,11 @@ def _lockers(w: World, p: dict, ctx) -> dict:
         park._sign(w, f, pal, k + 1, depth - 3, 3, f.facing,
                    [f"LOCKER {k + 1}", "", "", ""])
     park._hang_light(w, f, pal, width // 2, 1, height - 2)
+    # THE FASCIA. An open-fronted shelter has no wall to hang a name board on, and `_sign` REFUSES
+    # a sign with nothing behind it - which is silent, and is this project's most-repeated failure
+    # shape. The stall in `gen/park.py` grew a fascia for exactly this reason.
+    for i in range(width):
+        w.put(*f.at(i, 0, height - 1), pal["trim"])
     title = str(p.get("title") or "LOCKERS").upper()[:SIGN_WIDTH]
     park._sign(w, f, pal, width // 2, -1, height - 1, f.facing,
                [title, "leave bags here", "", "not staffed"])
@@ -661,10 +677,10 @@ def build(cfg: dict, donors=None) -> Canvas:
         if name == "air":
             del w.cells[pos]
 
-    budget = dict(meta.get("budget") or {})
+    budget = {}
     for pos, (name, _pr) in w.cells.items():
         if name in BUDGETED:
-            budget[name] = budget.get(name, 0)
+            budget[name] = budget.get(name, 0) + 1
     return w.canvas({
         "kind": meta.get("kind", f"ticketing/{p['kind']}"),
         "land": p["land"],

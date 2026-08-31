@@ -51,7 +51,8 @@ MATERIALS. Everything comes from `park.LANDS[land]`; the few blocks added here w
 against `blocks.spendable`, `blocks.available` and `palette.tier` before being written down, and
 all are cheap or ok:
 
-    water · glass_pane (ok) · end_rod · bell · the land's own slab and stairs · eight cheap wools
+    water · glass_pane (ok) · end_rod · bell · barrel · the land's own wood trapdoor
+    the land's own slab and stairs · eight cheap wools
     stone_brick_wall / cobblestone_wall / polished_blackstone_brick_wall (the balustrade)
 
 No fence and no fence gate: the balustrade is wall-plus-slab, so `pal["fence"]`, `pal["gate"]`,
@@ -59,7 +60,10 @@ No fence and no fence gate: the balustrade is wall-plus-slab, so `pal["fence"]`,
 
 No dirt, grass, podzol or mud - they are CURRENCY on this server. No sand or gravel, which would
 pour into the void off an overhanging eave. No quartz, concrete, terracotta, glass block,
-sea lantern, glowstone, hay or note block - all expensive here.
+sea lantern, glowstone, hay or **note block** - all expensive here, note block deliberately: it is
+the reason the bandstand plays with a second BELL rather than a note block. A bell rings on a
+right-click whatever powers it and costs nothing; a note block is `expensive` tier
+(`palette.tier("note_block") == "expensive"`) even before anyone asks whether it is wired.
 """
 from __future__ import annotations
 
@@ -480,7 +484,8 @@ def _roof_crowstep(w, f, pal, i0, i1, df, db, rh, field, trim):
 # ------------------------------------------------------------------ the fountain
 
 def _fountain(w: World, p: dict, ctx) -> dict:
-    """THE PARK'S CENTREPIECE: three basins of real water on a round stepped surround.
+    """THE PARK'S CENTREPIECE: three basins of real water on a round stepped surround, and it
+    actually CASCADES - see `notch2`/`notch3` below.
 
     Seventeen across at the widest basin, twenty-one including the seat ring and twenty-five
     including the paving - which is the smallest a three-tier fountain can be and still have a
@@ -491,6 +496,14 @@ def _fountain(w: World, p: dict, ctx) -> dict:
     floor of `r0 = 8`. This said "twenty-five including the seat ring", which is the PAVING's
     number wearing the seat ring's name - the two are four blocks apart and only one of them is
     what a visitor sits on.)
+
+    THREE POOLS OF NOTHING BUT SOURCE BLOCKS IS THE LOG FLUME'S OWN FAILURE. It audits clean,
+    costs nothing, looks exactly like a fountain in every render here, and never moves - Jack's
+    own verdict on the flume, word for word, would apply. So each upper rim has ONE open notch
+    (never plugged with a block) and the column under it is left open too: real source blocks
+    only ever sit in the interior fill, never in the notch, so everything from the notch down to
+    where it lands is genuinely FLOWING or FALLING water, which `fluids.spread` in
+    `tests/test_civic.py` confirms rather than trusts.
     """
     f = _Frame(p)
     pal = LANDS[p["land"]]
@@ -623,7 +636,9 @@ def _fountain(w: World, p: dict, ctx) -> dict:
             "pad": pad, "lanterns": lamps, "posts": posts,
             "signs": say.want, "signs_placed": say.got,
             "contract": "three basins that hold water: every source has a solid bed one course "
-                        "under it and a solid rim exactly one radius out, so none of them leaks"}
+                        "under it and a solid rim exactly one radius out, EXCEPT one open notch "
+                        "per upper rim, so water genuinely cascades from tier three through tier "
+                        "two into the bottom pool rather than sitting as three static ponds"}
 
 
 # ------------------------------------------------------------------ the statue
@@ -881,11 +896,19 @@ def _one_shop(w, f, pal, say, s, i0, depth, min_run):
         for h in (1, 2):
             w.put(*f.at(i, 0, h), "glass_pane", **pane)
     if s["shutters"]:
+        # OPEN TRAPDOORS, NOT A PAINTED WOOL SQUARE - the vertical panel Minecraft never shipped
+        # as a block, and the corpus measurement that says so: outside builders place trapdoors
+        # at 1.07 per thousand cells against our 0.00. Mounted one cell PROUD of the wall, beside
+        # the window, matching `hollowmanor._facade`'s own shutter idiom - not flush with the
+        # wall plane, which is what the wool version did and why it read as a coloured square
+        # rather than as a shutter swung open.
+        wood = pal["wood"]
         for i in win:
             for j in (i - 1, i + 1):
                 if i0 < j < i1 and j not in win and j not in door:
                     for h in (1, 2):
-                        w.put(*f.at(j, 0, h), accent)
+                        w.put(*f.at(j, -1, h), f"{wood}_trapdoor", facing=f.facing,
+                              half="bottom", open="true", powered="false", waterlogged="false")
 
     # ---- the interior: a counter along the back and a light under the ceiling
     for i in range(i0 + 1, i1):
@@ -1124,6 +1147,15 @@ def _bandstand(w: World, p: dict, ctx) -> dict:
         for hh in range(prev, lv + 1):
             w.put(*f.at(c + di, c + dd, hh), pal["trim"])
     top = lv
+
+    # A SECOND BELL AT THE ENTRANCE, on the post you pass closest to walking in - NOTHING TO
+    # WIRE. A bell rings on a right-click (or an attack) whatever powers it, unlike a note block,
+    # which is `expensive` tier here (`palette.tier("note_block") == "expensive"`) and would be
+    # the wrong material to reach for on this economy even before asking whether it is wired. Two
+    # bells at two heights is a small carillon a visitor can actually play walking in.
+    gate_post = min(corners, key=lambda t: (t[1], t[0]))
+    w.put(*f.at(c + gate_post[0], c + gate_post[1] + 1, 3), "bell",
+          facing=f.back, attachment="single_wall", powered="false")
     w.put(*f.at(c, c, top + 1), pal["accent"])
     w.put(*f.at(c, c, top + 2), "end_rod", facing="up")
 
@@ -1149,10 +1181,11 @@ def _bandstand(w: World, p: dict, ctx) -> dict:
 
     return {"kind": "bandstand", "plan": plan, "radius": rd, "height": top + 2,
             "columns": len(corners), "rails": rails, "lanterns": lamps, "steep": steep,
-            "signs": say.want, "signs_placed": say.got,
+            "bells": 2, "signs": say.want, "signs_placed": say.got,
             "contract": "an open pavilion: a stepped base you climb, eight columns, a "
-                        "waist-height balustrade with the front left open, and a stepped roof "
-                        "with a bell under its apex"}
+                        "waist-height balustrade with the front left open, a stepped roof with "
+                        "a bell under its apex, and a second bell at the entrance - both playable "
+                        "with a right-click, nothing wired"}
 
 
 # ------------------------------------------------------------------ guest services
@@ -1255,6 +1288,19 @@ def _guestservices(w: World, p: dict, ctx) -> dict:
     _hang_light(w, f, pal, cx, db - 2, 4)
     _hang_light(w, f, pal, 3, db - 2, 4)
 
+    # LOST PROPERTY: two barrels, freestanding on the RIGHT flank, clear of the hatch queue and
+    # clear of the benches - rule 10, ~3 blocks of working room around anything you use, applied
+    # here rather than derived from a capture because this room has no capture to derive it from.
+    # Barrels answer `_DEFAULT_LINES[0]` ("lost property") with an actual container rather than
+    # only a word on a sign - the difference between a real building and a coloured box.
+    lock_i = (width - 4, width - 3)
+    for i in lock_i:
+        w.put(*f.at(i, 3, 0), "barrel", facing="up", open="false")
+    # THE SIGN'S SUPPORT IS HORIZONTAL, AT THE SIGN'S OWN HEIGHT - `park._sign` checks the cell
+    # one step behind it at the SAME h, so the sign sits at h=0, level with the barrel it is
+    # mounted against, not floating a course above it looking for a wall that is not there.
+    say(w, f, pal, lock_i[0], 2, 0, f.facing, ["LOST PROPERTY", "hand it in", "or check here", ""])
+
     # ---- cornice, ceiling, and the main roof
     _plane(w, f, 0, width - 1, 0, db, 6, pal["trim"])
     _eave(w, f, pal, 0, width - 1, 0, db, 6, int(p["min_run"]))
@@ -1325,11 +1371,12 @@ def _guestservices(w: World, p: dict, ctx) -> dict:
         _lamp_post(w, f, pal, i, d, 0, 3)
 
     return {"kind": "guestservices", "width": width, "depth": depth, "crown": crown,
-            "hipped": hipped, "height": top + 2,
+            "hipped": hipped, "height": top + 2, "lockers": 2,
             "signs": say.want, "signs_placed": say.got,
             "contract": "a counter window with a sill and a queue rail onto the forecourt, a "
-                        "raised bay carrying a clock or an emblem, and four signs that each hang "
-                        "on a wall that is actually there"}
+                        "raised bay carrying a clock or an emblem, two lost-property barrels "
+                        "with room to stand in front of them, and five signs that each hang on a "
+                        "wall that is actually there"}
 
 
 BUILDERS = {

@@ -1,0 +1,24 @@
+{
+  "origin": {
+    "x": 97592,
+    "y": 202,
+    "z": 80574
+  },
+  "size": {
+    "x": 15,
+    "y": 7,
+    "z": 15
+  },
+  "generated_by": "park",
+  "kind": "walkthrough",
+  "land": "midway",
+  "facing": "east",
+  "contract": "one way in at the front, one way out at the back, and a switchback route between them - never an empty box with two doors",
+  "unverified": [],
+  "width": 13,
+  "depth": 13,
+  "height": 5,
+  "turns": 3,
+  "file": "Hall of Mirrors.litematic",
+  "name": "Hall of Mirrors"
+}

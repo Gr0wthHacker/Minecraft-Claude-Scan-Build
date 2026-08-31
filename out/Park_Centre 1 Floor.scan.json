@@ -1,0 +1,17 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 202,
+    "z": 80551
+  },
+  "size": {
+    "x": 92,
+    "y": 1,
+    "z": 99
+  },
+  "generated_by": "mcbuild.layers",
+  "kind": "casino-layer",
+  "note": "one complete build step; layers cannot collide, so nothing defers",
+  "file": "Park_Centre 1 Floor.litematic",
+  "name": "Park_Centre 1 Floor"
+}

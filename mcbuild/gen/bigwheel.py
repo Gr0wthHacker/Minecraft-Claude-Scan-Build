@@ -81,12 +81,17 @@ RIDES = {
     # forty-one across, whose mounts then stood at a radius where the canopy is two courses up:
     # twelve hobby horses floating in six pieces. A default that is right for one kind and wrong
     # for another is worse than no default.
-    "diameter": None,           # wheel 41 (>= 40 is the brief) / carousel 25; forced odd
+    "diameter": None,           # wheel 65 / carousel 31; forced odd
     "spokes": 12,
     "cars": 12,
     "shaft": None,              # drop: the tower's side, odd (9)
-    "height": None,             # drop: shaft courses (54); the cap adds ~13 on top
-    "mounts": 12,
+    "height": None,             # drop: shaft courses (56); the cap adds 13 on top
+    "mounts": 12,               # carousel: the OUTER ring; the inner is two thirds of it
+    # THE CAROUSEL'S CIRCUIT, and it is the one number a rider feels. A redstone_block goes in the
+    # bed at both ends of every run BETWEEN CORNERS and then every `power_every` along it - a
+    # plain rail does not carry the power chain, so a flat spacing leaves a dead rail past every
+    # turn, and an unpowered powered_rail is a BRAKE.
+    "power_every": 8,
 }
 
 
@@ -643,7 +648,11 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     galset = set(gal)
     rails = 0
     for (i, d) in gal:                  # a rail wherever the deck ends, and round the chute mouth
-        edge = any((i + u, d + v) not in galset and (i + u, d + v) not in CHUTE
+        # **THE LIFT'S OWN COLUMN IS NOT AN EDGE.** Counted as one, all four cells round the
+        # column got a fence and the ride delivered the rider into a pen he could not step out of
+        # - which is the whole ride failing, silently, with every block legal and the piece one
+        # connected solid. `test_the_lift_delivers_you_onto_a_deck_you_can_stand_on` pins it.
+        edge = any((i + u, d + v) not in galset and (i + u, d + v) not in CORES
                    for (u, v) in ((1, 0), (-1, 0), (0, 1), (0, -1)))
         mouth = any((i + u, d + v) in CHUTE for (u, v) in ((1, 0), (-1, 0), (0, 1), (0, -1)))
         if (i, d) in LIFT:
@@ -726,6 +735,12 @@ def _wheel(w: World, p: dict, ctx) -> dict:
             "lift": [list(f.at(i, d, h)) for h in range(0, G + 1) for (i, d) in sorted(LIFT)],
             "lift_soul": [list(f.at(i, d, -1 - POOL_D)) for (i, d) in sorted(LIFT)],
             "chute": [list(f.at(i, d, h)) for h in range(0, G + 1) for (i, d) in sorted(CHUTE)],
+            # THE COLUMNS A FALLING BODY CAN OCCUPY, which is not the same set as the chute: the
+            # wheel's chute is a walled tube so the two coincide, and the drop tower's does not.
+            # Stated per ride so the test asks about the real landing area rather than assuming it.
+            "fall_zone": [[f.at(i, d, 0)[0], f.at(i, d, 0)[2]] for (i, d) in sorted(CHUTE)],
+            "fall_from": f.at(0, 0, G)[1],
+            "fall_to": f.at(0, 0, -1)[1],
             "pool": [list(c) for c in sorted(wet)],
             "pool_top": f.at(0, 0, -1)[1],
             "contract": "a two-cell ring spoked to a hub and straddled by two masts, and A RIDE: a "
@@ -1029,6 +1044,13 @@ def _drop(w: World, p: dict, ctx) -> dict:
             "lift": [list(f.at(i, d, h)) for h in range(0, PLAT + 1) for (i, d) in sorted(LIFT)],
             "lift_soul": [list(f.at(i, d, -1 - POOL_D)) for (i, d) in sorted(LIFT)],
             "chute": [list(f.at(i, d, h)) for h in range(0, PLAT + 1) for (i, d) in sorted(DROP)],
+            # **THE TOWER'S CHUTE IS NOT WALLED AND IT DOES NOT NEED TO BE**: the whole shaft
+            # interior is open below the platform and the whole shaft interior is the tank, so a
+            # body that drifts sideways on the way down still lands in water. That is a property
+            # of THIS tower and not of a chute in general, so it is stated rather than assumed.
+            "fall_zone": [[f.at(i, d, 0)[0], f.at(i, d, 0)[2]] for (i, d) in sorted(INSIDE - CASE)],
+            "fall_from": f.at(0, 0, PLAT)[1],
+            "fall_to": f.at(0, 0, -1)[1],
             "pool": [list(c) for c in sorted(wet)],
             "pool_top": f.at(0, 0, -1)[1],
             "contract": "a latticed shaft with real openings and glazed panels, and A RIDE: a "
@@ -1051,47 +1073,103 @@ def _cap_band(pal, k):
 
 # ------------------------------------------------------------------ the carousel
 
+def _mount(w, f, pal, c, a, b, coat, base, rear, tailed, barrel, top_h):
+    """One hobby horse on its pole: a small convex mass, and the pole that ties it to the canopy.
+
+    A mount is a barrel, a neck, a head and sometimes a tail, at five cells long, and that is all
+    the anatomy there is room for - trying for more is the eight-mammal mistake at 1/20 scale. The
+    pole runs deck to canopy because that is both what a carousel looks like and what turns twelve
+    small masses into one connected piece.
+    """
+    tu = (-b, a)
+    if abs(tu[0]) >= abs(tu[1]):
+        ui, ud = (1 if tu[0] > 0 else -1), 0
+    else:
+        ui, ud = 0, (1 if tu[1] > 0 else -1)
+    for h in range(1, top_h):
+        w.put(*f.at(c + a, c + b, h), pal["post"])
+    for t in barrel:
+        for h in (base, base + 1):
+            w.put(*f.at(c + a + ui * t, c + b + ud * t, h), coat)
+    w.put(*f.at(c + a + ui * 2, c + b + ud * 2, base + 1), coat)     # neck
+    w.put(*f.at(c + a + ui * 2, c + b + ud * 2, base + 2), coat)     # head
+    if rear:
+        w.put(*f.at(c + a + ui * 2, c + b + ud * 2, base + 3), coat)
+    if tailed:
+        w.put(*f.at(c + a - ui * 2, c + b - ud * 2, base + 1), coat)
+    return (coat, base, rear)
+
+
 def _carousel(w: World, p: dict, ctx) -> dict:
-    """A CAROUSEL: a raised disc, a banded column, a wedge-striped cone, and mounts on poles.
+    """A CAROUSEL, AND A RIDE THAT ACTUALLY GOES ROUND: a minecart circuit between two rings of
+    mounts, under a wedge-striped cone.
 
-    **THE CONE IS THE PIECE AND THE STRIPES ARE THE IDENTITY.** A cone in one colour is a roof; the
-    same cone in alternating radial wedges is a big top, and nothing else in the build has to do
-    any work. That is the ladybird's category exactly - a pattern on a convex mass, read from the
-    PLAN, which is the view voxels give away free.
+    **THE HORSES CANNOT MOVE, SO THE RIDER DOES.** Nothing in vanilla rotates a structure, and no
+    amount of redstone will turn a canopy - but a minecart on a closed circle is genuinely a
+    carousel from inside the cart, which is the only seat that matters. So the mounts stand still
+    on their poles and a rail circuit runs between the inner ring and the outer one, boarded off
+    the front gate, continuously powered so that a cart put on it goes.
 
-    **A CONE MUST CARRY ITS RISERS OR IT IS NOT ONE PIECE.** Ring r sits at apex-r and ring r+1 at
-    apex-r-1: orthogonal neighbours one course apart, which is DIAGONAL in 3-D and not connected.
-    Each ring therefore also fills the course above it, so consecutive rings share a face. Same
-    lesson as the twisted root that shipped as 26 components.
+    **THE CIRCLE IS WHAT THE IRON IS SPENT ON, AND IT IS SPENT DELIBERATELY.** `powered_rail` has
+    no curved state at all, so every direction change is a plain `rail` - iron, the scarce metal
+    here, against gold which is farmable. A voxel circle at r=11 is 88 cells of which 52 are
+    corners: about twenty iron ingots. The Island Line took a SQUARE helix to dodge exactly this
+    bill, and here it is paid, because a carousel that goes round a square is not a carousel. The
+    corner count, the iron and the gold are all reported rather than buried.
 
-    **AND EVERY MOUNT'S POLE RUNS THROUGH TO THE CANOPY**, which is both what a carousel looks like
-    and what ties twelve small masses into the one component.
+    **AN UNPOWERED POWERED_RAIL IS A BRAKE.** So the sources are dealt PER RUN between corners - a
+    plain rail does not carry the chain, and a flat spacing leaves a dead rail on the far side of
+    every turn, which is a cart that stops in mid-ride. `coaster._runs` and `coaster._power` are
+    the same code the roller coaster uses; two implementations of that rule would drift.
+
+    **AND THE CONE IS STILL THE PIECE.** A cone in one colour is a roof; the same cone in
+    alternating radial wedges is a big top, read from the PLAN, which is the view voxels give away
+    free. Every ring of it carries a riser, because ring r sits at apex-r and ring r+1 at
+    apex-r-1 - orthogonal neighbours one course apart, which is DIAGONAL in 3-D and not connected.
     """
     f = _Frame(p)
     pal = LANDS[p["land"]]
     mr = int(p["min_run"])
 
-    Dm = max(15, int(p["diameter"] or 25) | 1)
+    Dm = max(21, int(p["diameter"] or 31) | 1)
     R = Dm // 2
     RC = R + 1                          # the canopy oversails the deck by one
     W = 2 * RC + 1
     c = W // 2
-    # THE EAVE IS ELEVEN ABOVE THE DECK WHATEVER THE DIAMETER, so a wider carousel
-    # raises its own cone instead of dropping it onto the mounts.
-    APEX = RC + 11
-    nm = max(8, int(p["mounts"]))
-    ring_r = max(4, R - 2)
+    APEX = RC + 11                      # the eave sits eleven over the deck whatever the diameter
+    n_out = max(8, int(p["mounts"]))
+    n_in = max(6, (n_out * 2) // 3)
+    out_r = R - 1
+    in_r = max(5, R - 8)
+    track_r = (out_r + in_r) // 2       # BETWEEN the two rings, which is where a rider belongs
+    FORE = 5                            # the forecourt in front of the entrance gate
 
     def h_of(a, b):
         return APEX - int(round(math.sqrt(a * a + b * b)))
 
-    # ---- pad, then the deck one course proud of it: radial wedges, not a slab.
+    # ---- THE TRACK, PLANNED FIRST. It is the one thing here that may not be skipped: a rail cell
+    # quietly dropped for a pole or a fence is a broken circuit that audits perfectly clean, so
+    # the path is reserved before anything else is drawn and every later loop is checked against it.
+    track = _ring_path(track_r)
+    tset = set(track)
+    for r in (in_r, out_r):
+        if r == track_r:
+            raise ValueError("a mount ring and the track share a radius; the poles are on the rail")
+    corners = _corners(track, True)
+    power = _power(len(track), corners, int(p.get("power_every", 8)))
+
+    # ---- pad, forecourt, then the deck one course proud of it: radial wedges, not a slab.
     for (a, b) in _disc(RC):
         w.put(*f.at(c + a, c + b, -1), pal["trim"] if a * a + b * b > R * R else pal["ground"])
+    for a in range(-4, 5):
+        for b in range(-(RC + FORE), -RC):
+            w.put(*f.at(c + a, c + b, -1), pal["path"] if (a + b) % 2 else pal["ground"])
     deck = set()
     for (a, b) in _disc(R):
         r = math.hypot(a, b)
-        if r > R - 1.2 or (a == 0 and b == 0):
+        if (a, b) in tset:
+            blk = pal["trim"]           # the track's own bed, one tone, so the circuit reads
+        elif r > R - 1.2 or (a == 0 and b == 0):
             blk = pal["accent"]
         elif _wedge(a, b, 12) % 2 == 0:
             blk = pal["ground"]
@@ -1099,6 +1177,10 @@ def _carousel(w: World, p: dict, ctx) -> dict:
             blk = pal["path"]
         w.put(*f.at(c + a, c + b, 0), blk)
         deck.add((a, b))
+    missing = tset - deck
+    if missing:
+        raise ValueError("%d track cells have no deck under them, the first %s"
+                         % (len(missing), sorted(missing)[:3]))
 
     # ---- the rail: the deck's own outer edge, with four ways in.
     gates, fenced = 0, 0
@@ -1131,7 +1213,12 @@ def _carousel(w: World, p: dict, ctx) -> dict:
             a = ui * (R + 1) + (0 if ui else t)
             b = ud * (R + 1) + (0 if ud else t)
             w.put(*f.at(c + a, c + b, -1), pal["trim"])
-            steps.append((("s", ui, ud), t + 1, f.at(c + a, c + b, 0), _wdir(f, ui, ud)))
+            # **A FLIGHT THAT ASCENDS TOWARD D HAS EVERY TREAD facing=D.** These steps climb from
+            # the forecourt INWARD onto the deck, so the facing is inward - `(ui, ud)` points the
+            # other way, out of the ride. Written outward the risers face into the descent and the
+            # step cannot be walked up; our renderer draws both directions identically, so this is
+            # asserted in `tests/test_bigwheel_rides.py` rather than eyeballed.
+            steps.append((("s", ui, ud), t + 1, f.at(c + a, c + b, 0), _wdir(f, -ui, -ud)))
     _stair_run(w, f, pal, steps, mr, half="bottom")
 
     # ---- the centre column: banded, with a stair corbel top and bottom. It runs to APEX-2 so its
@@ -1152,46 +1239,31 @@ def _carousel(w: World, p: dict, ctx) -> dict:
                              _wdir(f, -ui, -ud)))
         _stair_run(w, f, pal, corb, mr, half="top")
 
-    # ---- the mounts. One colour each, varied between them, all left-right symmetric about
-    # their own axis; the pole runs deck to canopy, which is both correct and what connects them.
+    # ---- the mounts, in two rings with the track running between them.
     #
     # **THE MOUNT'S LENGTH IS GRADED BY ITS OWN ARC, and it has to be.** Twelve five-cell horses
-    # round a ring 44 cells long is 3.7 cells each: they touch, and in the PLAN - the view this
-    # medium gives away free - the ring reads as one continuous bar of wool with no horses in it
-    # at all. Every check passed, because a fused ring is still one connected piece of legal cheap
-    # blocks. So a crowded ring gets ponies and a roomy one gets full horses, and either way there
-    # is a clear cell between them. It is `tools/scale.py`'s rule seen from the side: a feature
-    # needs a minimum of space to read, and below it the honest move is to build a smaller feature.
-    arc = 2 * math.pi * ring_r / nm
-    barrel, tailed = ((-1, 0, 1), True) if arc >= 6.0 else                      ((-1, 0, 1), False) if arc >= 4.5 else ((0, 1), False)
-    mounts = []
-    for m in range(nm):
-        th = 2 * math.pi * m / nm
-        a = int(round(ring_r * math.cos(th)))
-        b = int(round(ring_r * math.sin(th)))
-        tu = (-math.sin(th), math.cos(th))
-        if abs(tu[0]) >= abs(tu[1]):
-            ui, ud = (1 if tu[0] > 0 else -1), 0
-        else:
-            ui, ud = 0, (1 if tu[1] > 0 else -1)
-        # ONE COLOUR EACH, DIFFERENT BETWEEN THEM, and some of them rear. A mount is a small convex
-        # mass on a pole - a barrel, a neck, a head, a tail - and at five cells long that is all
-        # the anatomy there is room for. Trying for more is the eight-mammal mistake at 1/20 scale.
-        coat = BRIGHT[int(hash01(m, nm, f.x, f.z) * len(BRIGHT))]
-        base = 4 if hash01(m, 3, f.z) < 0.5 else 5      # some ride high, some low
-        rear = hash01(m, 9, f.x) < 0.34                 # ...and some rear, head up a course
-        for h in range(1, h_of(a, b)):                  # the pole, deck to canopy
-            w.put(*f.at(c + a, c + b, h), pal["post"])
-        for t in barrel:                                # barrel
-            for h in (base, base + 1):
-                w.put(*f.at(c + a + ui * t, c + b + ud * t, h), coat)
-        w.put(*f.at(c + a + ui * 2, c + b + ud * 2, base + 1), coat)     # neck
-        w.put(*f.at(c + a + ui * 2, c + b + ud * 2, base + 2), coat)     # head
-        if rear:
-            w.put(*f.at(c + a + ui * 2, c + b + ud * 2, base + 3), coat)
-        if tailed:
-            w.put(*f.at(c + a - ui * 2, c + b - ud * 2, base + 1), coat)  # tail
-        mounts.append((coat, base, rear))
+    # round a ring 44 cells long is 3.7 cells each: they touch, and in the PLAN the ring reads as
+    # one continuous bar of wool with no horses in it at all. Every check passed, because a fused
+    # ring is still one connected piece of legal cheap blocks. So a crowded ring gets ponies and a
+    # roomy one gets full horses, and either way there is a clear cell between them.
+    mounts, arcs = [], []
+    for (r, n) in ((out_r, n_out), (in_r, n_in)):
+        arc = 2 * math.pi * r / n
+        arcs.append(round(arc, 2))
+        barrel, tailed = (((-1, 0, 1), True) if arc >= 6.0 else
+                          ((-1, 0, 1), False) if arc >= 4.5 else ((0, 1), False))
+        for m in range(n):
+            th = 2 * math.pi * m / n + (0.0 if r == out_r else math.pi / n)
+            a = int(round(r * math.cos(th)))
+            b = int(round(r * math.sin(th)))
+            if (a, b) in tset:
+                raise ValueError("mount %d of the r=%d ring stands on the track at %s"
+                                 % (m, r, (a, b)))
+            coat = BRIGHT[int(hash01(m, n, r, f.x) * len(BRIGHT))]
+            base = 4 if hash01(m, 3, r, f.z) < 0.5 else 5
+            rear = hash01(m, 9, r, f.x) < 0.34
+            mounts.append(_mount(w, f, pal, c, a, b, coat, base, rear, tailed, barrel,
+                                 h_of(a, b)))
 
     # ---- the canopy: alternating wedges, every ring carrying its own riser.
     # TWO COLOURS ALTERNATING, never six: one colour is a roof, two is a big top, and a wedge each
@@ -1226,21 +1298,82 @@ def _carousel(w: World, p: dict, ctx) -> dict:
         if _lamp(w, *f.at(c + a, c + b, h_of(a, b) - 1), pal["light"]):
             lit += 1
 
-    title = str(p.get("title") or "CAROUSEL").upper()
-    signs = 0
-    if p.get("sign", True):
-        signs += _signed(w, f, pal, c, c - 2, 6, f.facing,
-                         [title[:SIGN_WIDTH], "", f"{nm} mounts", "all ages"])
-        signs += _signed(w, f, pal, c, c + 2, 6, f.back,
-                         [title[:SIGN_WIDTH], "", "hold the pole", ""])
+    # ---- THE CIRCUIT, laid last so nothing can quietly take one of its cells. A cell that is
+    # already occupied is an ERROR, never a skip: a rail dropped for a fence post is a dead end
+    # a hundred blocks from anything that would show it.
+    shapes = _shapes([f.at(c + a, c + b, 1) for (a, b) in track], corners, True)
+    for j in power:
+        a, b = track[j]
+        w.put(*f.at(c + a, c + b, 0), "redstone_block")
+    for j, (a, b) in enumerate(track):
+        pos = f.at(c + a, c + b, 1)
+        if w.has(*pos):
+            raise ValueError("track cell %d at %s is occupied by %s"
+                             % (j, (a, b), w.name(*pos)))
+        w.put(*pos, "rail" if j in corners else "powered_rail", shape=shapes[j])
 
-    return {"kind": "carousel", "width": W, "depth": W, "diameter": Dm, "top": APEX + 1,
-            "mounts": len(mounts), "colours": len({m[0] for m in mounts}),
-            "shapes": len(set(mounts)), "mount_arc": round(arc, 2), "gates": gates,
+    # ---- the station: the gate you board at, its canopy, its queue and its name.
+    board_j = min(range(len(track)), key=lambda j: (track[j][0] ** 2 + (track[j][1] + track_r) ** 2))
+    board = f.at(c + track[board_j][0], c + track[board_j][1], 1)
+    signs = 0
+    title = str(p.get("title") or "CAROUSEL").upper()
+    for a in (-3, 3):
+        for h in range(5):
+            w.put(*f.at(c + a, c - (RC + 1), h), pal["post"])
+    for a in range(-3, 4):
+        w.put(*f.at(c + a, c - (RC + 1), 5), pal["trim"])
+    for a in range(-4, 5):
+        w.put(*f.at(c + a, c - (RC + 2), 6), pal["trim"])
+    # THE LAMPS COME AFTER THE LINTEL THEY HANG FROM. Placed before it, `_lamp` finds no full
+    # block above OR below, refuses, returns False, and the entrance is unlit in silence - the
+    # exact "does nothing, quietly" failure this file keeps writing rules about.
+    for a in (-3, 3):
+        _lamp(w, *f.at(c + a, c - (RC + 2), 5), pal["light"])
+    if p.get("sign", True) and _signed(w, f, pal, c, c - (RC + 2), 5, f.facing,
+                                       [title[:SIGN_WIDTH], "", "%d mounts" % len(mounts),
+                                        "board inside"]):
+        signs += 1
+    for lane in range(2):               # a switchback queue on the forecourt
+        b = -(RC + 2) - lane
+        lo, hi = (-4, 2) if lane == 0 else (-2, 4)
+        for a in range(lo, hi + 1):
+            if lane == 0 and abs(a) <= 1:
+                continue                # the way through
+            w.put(*f.at(c + a, c + b, 0), pal["fence"])
+    # ...and two on the column itself, which is what a rider reads from the cart.
+    if p.get("sign", True) and _signed(w, f, pal, c, c - 2, 7, f.facing,
+                                       [title[:SIGN_WIDTH], "", "%d mounts" % len(mounts),
+                                        "%d-cell circuit" % len(track)]):
+        signs += 1
+    if p.get("sign", True) and _signed(w, f, pal, c, c + 2, 7, f.back,
+                                       [title[:SIGN_WIDTH], "", "mind the rail", "hold the pole"]):
+        signs += 1
+
+    iron = round(len(corners) * 6 / 16.0, 1)
+    return {"kind": "carousel", "width": W, "depth": W + FORE, "diameter": Dm,
+            "top": APEX + 1, "mounts": len(mounts), "colours": len({m[0] for m in mounts}),
+            "shapes": len(set(mounts)), "mount_arcs": arcs, "gates": gates,
             "rail": fenced, "lamps": lit, "signs": signs,
+            "ride": "minecart circuit",
+            "track_r": track_r, "track": len(track), "corners": len(corners),
+            "powered": len(track) - len(corners), "sources": len(power),
+            "iron_ingots": iron, "gold_ingots": len(track) - len(corners),
+            "rail_path": [list(f.at(c + a, c + b, 1)) for (a, b) in track],
+            "rail_corners": sorted(corners),
+            "rail_power": [list(f.at(c + track[j][0], c + track[j][1], 0)) for j in sorted(power)],
+            "board": list(board),
             "contract": "a raised disc ringed by rail with four gated steps, a banded column, a "
-                        "wedge-striped cone whose every ring carries its riser, and mounts whose "
-                        "poles run from the deck to the canopy"}
+                        "wedge-striped cone whose every ring carries its riser, twenty mounts in "
+                        "two rings - and A RIDE: a closed minecart circuit of %d cells running "
+                        "between the two rings. Every direction change is a plain rail because a "
+                        "powered rail has no curved state; every straight run between corners "
+                        "carries a redstone_block at both ends, because an unpowered powered rail "
+                        "is a brake. %d corners, %d powered rails: about %s iron and %d gold."
+                        % (len(track), len(corners), len(track) - len(corners), iron,
+                           len(track) - len(corners)),
+            "unverified": ["nobody has ridden it in game. The circuit's geometry, its power chain "
+                           "and its clearances are asserted here; whether a cart holds speed round "
+                           "a corner every other cell is reasoning until someone rides it."]}
 
 
 BUILDERS = {

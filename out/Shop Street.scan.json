@@ -1,0 +1,43 @@
+{
+  "origin": {
+    "x": 97582,
+    "y": 202,
+    "z": 80572
+  },
+  "size": {
+    "x": 16,
+    "y": 17,
+    "z": 54
+  },
+  "generated_by": "civic",
+  "kind": "shopstreet",
+  "land": "midway",
+  "facing": "east",
+  "contract": "at least six shops on one shared frontage, no two of them the same building: width, storeys, roof, awning, jetty, door, windows, field material and accent all vary by a hash of the shop's index",
+  "unverified": [],
+  "shops": 7,
+  "frontage": 50,
+  "depth": 8,
+  "pavement": 864,
+  "lamps": 5,
+  "benches": 4,
+  "roofs": [
+    "crowstep",
+    "flat",
+    "gable",
+    "hip"
+  ],
+  "widths": [
+    8,
+    7,
+    5,
+    6,
+    10,
+    11,
+    9
+  ],
+  "signs": 8,
+  "signs_placed": 8,
+  "file": "Shop Street.litematic",
+  "name": "Shop Street"
+}

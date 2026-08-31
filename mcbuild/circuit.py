@@ -694,6 +694,17 @@ def inspect(model, origin=(0, 0, 0)) -> list:
             # cries wolf is a check nobody runs, which is a rule this project already wrote down
             # about the audit.
             near = False
+            # A DOOR IS ONE MECHANISM IN TWO BLOCKS. Power reaching EITHER half opens it, so the
+            # half that is not next to the wiring is not an unwired component - it is the top of
+            # a door that works. Reported per cell, every correctly built iron door in this repo
+            # came back as a finding, which is exactly the crying-wolf this file calibrates
+            # against on four reference builds.
+            probe = [pos]
+            if cell.name.endswith("_door"):
+                half = cell.prop("half", "lower")
+                other = (pos[0], pos[1] + (-1 if half == "upper" else 1), pos[2])
+                if c.name(other) == cell.name:
+                    probe.append(other)
             # QUASI-CONNECTIVITY COUNTS AS WIRED, because it is now MODELLED rather than merely
             # reported. Calibrated against a working bonemeal farm, which came back with seven
             # "piston is not wired" findings on pistons that a real build fires from above - a
@@ -705,18 +716,21 @@ def inspect(model, origin=(0, 0, 0)) -> list:
                     if n2 == "redstone_wire" or n2 in EMITTERS or n2 in SOURCES:
                         near = True
                         break
-            for d, nb in c.neighbours(pos):
-                n = c.name(nb)
-                if n == "redstone_wire" or n in EMITTERS or n in SOURCES:
-                    near = True
-                    break
-                if c.opaque(nb):
-                    for d2, nb2 in c.neighbours(nb):
-                        if c.name(nb2) in ("redstone_torch", "redstone_wall_torch", "repeater",
-                                           "comparator", "lever", "redstone_block",
-                                           "redstone_wire", "observer"):
-                            near = True
-                            break
+            for cell_pos in probe:
+                for d, nb in c.neighbours(cell_pos):
+                    n = c.name(nb)
+                    if n == "redstone_wire" or n in EMITTERS or n in SOURCES:
+                        near = True
+                        break
+                    if c.opaque(nb):
+                        for d2, nb2 in c.neighbours(nb):
+                            if c.name(nb2) in ("redstone_torch", "redstone_wall_torch", "repeater",
+                                               "comparator", "lever", "redstone_block",
+                                               "redstone_wire", "observer"):
+                                near = True
+                                break
+                    if near:
+                        break
                 if near:
                     break
             if not near and not moving_driver_near(c, pos):

@@ -158,6 +158,18 @@ THEMES = {
         "furniture": ["bench", "planter", "lamppost", "topiary", "bin", "signpost"],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            # ------------------------------------------------------------------ the rides
+            # `_site_order` sorts by MEASURED area, so these can be written where they read
+            # best rather than in size order.
+            {"name": "The Swings", "gen": "attractions", "kind": "swings",
+             "size": [26, 15, 26],
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "Teacups", "gen": "attractions", "kind": "teacups",
+             "size": [22, 11, 22],
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "The Arcade", "gen": "attractions", "kind": "arcade",
+             "size": [21, 7, 13],
+             "params": {"land": "midway", "facing": "east"}},
             # LARGEST RESERVED FOOTPRINT FIRST - `bays` packs in list order and a big module
             # listed late finds the grid full of kiosks.
             #
@@ -166,27 +178,27 @@ THEMES = {
             {"name": "Shop Street", "gen": "civic", "kind": "shopstreet",
              "size": [16, 15, 14], "orient": False,
              "params": {"land": "midway", "shops": 2, "facing": "east"}},
-            {"name": "Grand Fountain", "gen": "civic", "kind": "fountain",
-             "size": [25, 10, 25],
-             "params": {"land": "midway", "radius": 8, "facing": "east"}},
+            # **A FERRIS WHEEL IS A BACKDROP, SO IT IS PINNED TO AN EDGE.** Sited by `bays` it
+            # landed mid-plot with eight unusable columns behind it, and the 19x77 strip it casts
+            # then split the midway into three bands of which none was 33 wide - so the carousel,
+            # the swings AND the teacups all reported NO SITE in a plot only 43% used. Every ride
+            # in a fairground, denied by one ride's parking. On the east edge it frees the whole
+            # interior and it is where a landmark belongs anyway: you see it over the wall before
+            # you reach the gate. It faces WEST, into the park, because unlike a gate or an arch
+            # it is a thing you look at rather than walk through.
             {"name": "The Big Wheel", "gen": "bigwheel", "kind": "wheel",
              "size": [11, 75, 77], "orient": False,
+             "anchor": "edge", "side": "east",
              "params": {"land": "midway", "diameter": 65, "spokes": 16, "cars": 16,
-                        "facing": "east"}},
+                        "facing": "west"}},
             {"name": "Carousel", "gen": "bigwheel", "kind": "carousel",
              "size": [21, 24, 21],
              "params": {"land": "midway", "mounts": 12, "facing": "east"}},
             {"name": "Hoopla", "gen": "casino", "kind": "high_roller",
              "size": [9, 8, 8], "orient": False,
              "params": {"land": "midway", "outcomes": 3, "pit": 2, "facing": "east"}},
-            {"name": "Lucky Dip", "gen": "casino", "kind": "lucky_number",
-             "size": [9, 8, 8], "orient": False,
-             "params": {"land": "midway", "outcomes": 3, "pit": 2, "facing": "east"}},
             {"name": "Guest Services", "gen": "civic", "kind": "guestservices",
              "size": [17, 22, 21],
-             "params": {"land": "midway", "facing": "east"}},
-            {"name": "Bandstand", "gen": "civic", "kind": "bandstand",
-             "size": [17, 16, 17],
              "params": {"land": "midway", "facing": "east"}},
             {"name": "The Monument", "gen": "monument", "kind": "monument",
              "size": [33, 49, 33], "anchor": "centre", "orient": False,
@@ -217,6 +229,15 @@ THEMES = {
         "furniture": ["bench", "planter", "lamppost", "signpost", "bin", "flagpole"],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            {"name": "Runaway Mine", "gen": "attractions", "kind": "runawaymine",
+             "size": [26, 12, 23],
+             "params": {"land": "frontier", "facing": "east"}},
+            {"name": "The Riverboat", "gen": "attractions", "kind": "riverboat",
+             "size": [9, 10, 27], "orient": False,
+             "params": {"land": "frontier", "facing": "east"}},
+            {"name": "Shooting Gallery", "gen": "attractions", "kind": "shootinggallery",
+             "size": [15, 8, 9],
+             "params": {"land": "frontier", "facing": "east"}},
             # THE HEADLINE RIDE, and it is sited first because it is a third of the plot.
             {"name": "Mine Coaster", "gen": "coaster", "kind": "coaster",
              "size": [47, 38, 47], "orient": False, "anchor": "edge", "side": "north",
@@ -288,6 +309,15 @@ THEMES = {
         "furniture": ["bench", "lamppost", "topiary", "signpost", "bin", "planter"],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            {"name": "Ghost Train", "gen": "attractions", "kind": "ghosttrain",
+             "size": [21, 12, 15],
+             "params": {"land": "hollow", "facing": "east"}},
+            {"name": "The Chapel", "gen": "attractions", "kind": "chapel",
+             "size": [17, 17, 21],
+             "params": {"land": "hollow", "facing": "east"}},
+            {"name": "Mirror Maze", "gen": "attractions", "kind": "mirrormaze",
+             "size": [15, 5, 13],
+             "params": {"land": "hollow", "facing": "east"}},
             {"name": "Haunted Manor", "gen": "hollowmanor", "kind": "manor",
              "size": [35, 45, 42],
              "params": {"land": "hollow", "facing": "east"}},
@@ -909,9 +939,25 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             if spot is None and plane is not None and pl_plot is not None:
                 px0, px1, pz0, pz1 = _plot_bounds(pl_plot)
                 cx0, cz0 = (px0 + px1) // 2, (pz0 + pz1) // 2
+                # **THE STEP IS 2, NOT 4, AND THE DIFFERENCE IS WHOLE RIDES.** At a stride of 4
+                # the midway sited its ferris wheel and its monument and then reported NO SITE
+                # for the carousel, the swings AND the teacups - every ride in a fairground -
+                # with the plot only 51% used. The leftover margins around two big neighbours
+                # are real site and they are not on a 4-grid. Halving the stride is four times
+                # the candidates for a search that is already bounded by the plot.
+                # **AND THE MARGIN IS 1, WHICH IS THE OTHER HALF OF THE SAME BUG.** A monument
+                # pinned to the plot centre leaves exactly two bands of 33 either side of it, and
+                # a scan that starts three cells in can only ever offer a 33 a position that
+                # overhangs the monument. Every ride in the midway was refused by three cells of
+                # politeness. The box must simply END inside the plot: `bx + size - 1 <= px1`.
+                # ...and it steps by ONE, because a stride of two has a PARITY. The band left by
+                # a centred monument began at pz0 and the scan started at pz0+1, so every
+                # candidate it offered overhung the monument by a single cell and the whole band
+                # was invisible. A stride is an optimisation; on a 99x99 plot it was buying a few
+                # milliseconds and costing three rides.
                 cands = [(bx, bz)
-                         for bz in range(pz0 + 3, pz1 - size[2] - 2, 4)
-                         for bx in range(px0 + 3, px1 - size[0] - 2, 4)]
+                         for bz in range(pz0, pz1 - size[2] + 2)
+                         for bx in range(px0, px1 - size[0] + 2)]
                 cands.sort(key=lambda t: (t[0] + size[0] // 2 - cx0) ** 2
                                          + (t[1] + size[2] // 2 - cz0) ** 2)
                 for (bx, bz) in cands:

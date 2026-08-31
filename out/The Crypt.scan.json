@@ -1,0 +1,24 @@
+{
+  "origin": {
+    "x": 97557,
+    "y": 202,
+    "z": 80801
+  },
+  "size": {
+    "x": 17,
+    "y": 15,
+    "z": 19
+  },
+  "generated_by": "hollowmanor",
+  "kind": "crypt",
+  "land": "hollow",
+  "facing": "north",
+  "contract": "a sealed mausoleum: a stepped plinth, pilasters flanking an iron-barred door, urns at the corners and its inscription on the front",
+  "unverified": [],
+  "width": 9,
+  "depth": 11,
+  "roof": "pediment",
+  "signs": 1,
+  "file": "The Crypt.litematic",
+  "name": "The Crypt"
+}

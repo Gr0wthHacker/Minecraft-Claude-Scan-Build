@@ -1,0 +1,37 @@
+{
+  "origin": {
+    "x": 97577,
+    "y": 202,
+    "z": 80351
+  },
+  "size": {
+    "x": 47,
+    "y": 36,
+    "z": 47
+  },
+  "generated_by": "coaster",
+  "kind": "coaster",
+  "land": "frontier",
+  "facing": "south",
+  "contract": "a closed circuit: it leaves the station, climbs the lift hill, takes two drops and six flat corners, and returns to the same platform. Every corner is a plain rail and flat on both sides; every powered run carries a redstone_block at both ends and every 8 cells; every elevated course stands on trestles carried to the apron.",
+  "unverified": [
+    "the ride has not been run in game - a cart's SPEED over this grade and power spacing is reasoning, not evidence. Ride it once before anyone is told it completes the lap."
+  ],
+  "track": 160,
+  "corners": 6,
+  "powered": 28,
+  "trestles": 27,
+  "fences": 259,
+  "lamps": 6,
+  "station_blocks": 451,
+  "signs": 2,
+  "top": 34,
+  "span": 44,
+  "drops": [
+    20,
+    14,
+    10
+  ],
+  "file": "Mine Coaster.litematic",
+  "name": "Mine Coaster"
+}

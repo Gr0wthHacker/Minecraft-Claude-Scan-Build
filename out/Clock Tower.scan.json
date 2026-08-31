@@ -1,0 +1,24 @@
+{
+  "origin": {
+    "x": 97601,
+    "y": 202,
+    "z": 80761
+  },
+  "size": {
+    "x": 17,
+    "y": 49,
+    "z": 17
+  },
+  "generated_by": "hollowmanor",
+  "kind": "clocktower",
+  "land": "hollow",
+  "facing": "west",
+  "contract": "a square tower of four stages: string courses, glazed slits, a clock face on every side, a louvred belfry with a bell, and a crenellated crown carrying a spire",
+  "unverified": [],
+  "side": 9,
+  "height": 47,
+  "faces": 4,
+  "signs": 1,
+  "file": "Clock Tower.litematic",
+  "name": "Clock Tower"
+}

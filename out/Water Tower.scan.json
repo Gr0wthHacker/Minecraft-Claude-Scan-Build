@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": 97626,
+    "y": 202,
+    "z": 80394
+  },
+  "size": {
+    "x": 13,
+    "y": 27,
+    "z": 13
+  },
+  "generated_by": "frontiertown",
+  "kind": "watertower",
+  "land": "frontier",
+  "facing": "north",
+  "contract": "a tank carried on four braced legs, read as a silhouette: open frame below, banded staves above, a conical cap and a downspout to the ground",
+  "unverified": [],
+  "legs": 4,
+  "tank_r": 4,
+  "walk": 36,
+  "height": 26,
+  "signs": 1,
+  "file": "Water Tower.litematic",
+  "name": "Water Tower"
+}

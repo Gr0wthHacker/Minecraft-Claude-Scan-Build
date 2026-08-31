@@ -1,0 +1,31 @@
+{
+  "origin": {
+    "x": 97601,
+    "y": 202,
+    "z": 80573
+  },
+  "size": {
+    "x": 11,
+    "y": 51,
+    "z": 53
+  },
+  "generated_by": "bigwheel",
+  "kind": "bigwheel/wheel",
+  "ride": "wheel",
+  "land": "midway",
+  "facing": "east",
+  "contract": "a two-cell ring spoked to a hub, straddled by two A-frames whose feet reach the pad, with cars mounted OUTSIDE the rim so the silhouette stays a circle and the lowest car lands on the boarding platform",
+  "unverified": [],
+  "width": 49,
+  "depth": 6,
+  "diameter": 41,
+  "top": 49,
+  "cars": 12,
+  "spokes": 12,
+  "rim_lamps": 24,
+  "rim_lamp_slots": 24,
+  "car_lamps": 11,
+  "signs": 2,
+  "file": "The Big Wheel.litematic",
+  "name": "The Big Wheel"
+}

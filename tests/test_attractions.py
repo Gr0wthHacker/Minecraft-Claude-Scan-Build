@@ -165,16 +165,27 @@ def test_stair_facings_rotate_with_the_structure_rather_than_being_hardcoded(kin
 # ------------------------------------------------------------------ walkability: a generic flood
 
 def _walkable(w, pos):
-    """Is a player-height cell open - present but rider-passable, or simply not built."""
+    """Is a player-height cell open - present but rider-passable, or simply not built.
+
+    Slabs and stairs are walkable-through (a bottom slab or a stair tread is exactly how a real
+    ramp or a real step is built in this repo - the gangway and the flush froglight idiom both
+    rest on it), which `fluids.PASSABLE` deliberately does not grant since water treats them as
+    solid; a WALKER is not water.
+    """
     n = w.name(*pos)
-    return n is None or _base(n) in _RIDER_PASSABLE
+    if n is None:
+        return True
+    base = _base(n)
+    return base in _RIDER_PASSABLE or base.endswith("_slab") or base.endswith("_stairs")
 
 
 def _flood(w, start, bounds=None, max_steps=200000):
-    """A 2-cell-tall (feet + head) flood over a fixed height band - the practical proxy this repo
-    uses when a full 3D walker is not available: a cell is walkable if both the foot and head
-    layer are open, and the flood only ever steps horizontally, which is exactly right for these
-    single-storey platforms and decks."""
+    """A feet+head flood that may STEP up or down by one course - the practical proxy this repo
+    uses when a full 3D walker (`Nav` in the Java mod) is not available in Python. A one-block
+    step is real player movement (a stair, a slab, a station platform one course above its own
+    apron - `coaster._station`'s own convention, which several of these kinds reuse), so refusing
+    it would fail a platform that is honestly walkable.
+    """
     seen = {start}
     q = deque([start])
     steps = 0
@@ -182,7 +193,7 @@ def _flood(w, start, bounds=None, max_steps=200000):
         steps += 1
         x, y, z = q.popleft()
         for (dx, dz) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            for dy in (0,):
+            for dy in (0, 1, -1):
                 n = (x + dx, y + dy, z + dz)
                 if n in seen:
                     continue

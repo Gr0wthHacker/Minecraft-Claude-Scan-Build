@@ -1,0 +1,17 @@
+{
+  "origin": {
+    "x": 97580,
+    "y": 202,
+    "z": 80354
+  },
+  "size": {
+    "x": 41,
+    "y": 35,
+    "z": 41
+  },
+  "generated_by": "mcbuild.layers",
+  "kind": "casino-layer",
+  "note": "one complete build step; layers cannot collide, so nothing defers",
+  "file": "Park_Left 2 Machines.litematic",
+  "name": "Park_Left 2 Machines"
+}

@@ -48,12 +48,11 @@ vertical member is `iron_chain`, which is).
 from __future__ import annotations
 
 import math
-from collections import deque
 
 from .. import blocks
 from .canvas import Canvas, hash01
 from .coaster import _corners as _loop_corners, _power as _loop_power, _shapes as _loop_shapes
-from .park import (LANDS, ROOM_H, SIGN_WIDTH, _BACK, _Frame, _LEAN, _STEP,
+from .park import (LANDS, ROOM_H, SIGN_WIDTH, _Frame, _LEAN, _STEP,
                     _cornice, _crenellate, _hang_light, _pad, _sign, _trim_run, _walls)
 from .vertical import Ctx, World
 
@@ -546,7 +545,7 @@ def _runawaymine(w: World, p: dict, ctx) -> dict:
             "height": apex_h + 1, "track": loop["track"], "corners": len(loop["corners"]),
             "powered": len(loop["powered"]), "signed": bool(signed),
             "platform_at": list(f.at(li0 + 1, plat_d - 1, 0)),
-            "boarding_at": list(f.at(li0 + 4, ld0 - 1, 0)),
+            "boarding_at": list(f.at(li0 + 4, ld0 - 1, 1)),  # h=1: standing ON the h=0 platform floor
             "contract": "a closed, powered minecart loop out past the headframe and back, "
                         "boarded from a platform under the station roof"}
 
@@ -627,7 +626,6 @@ def _riverboat(w: World, p: dict, ctx) -> dict:
     Wd = max(7, int(p["width"] or 9))
     mr = int(p["min_run"])
     hull_h = 3
-    deck_h = hull_h + 3
 
     # THE DOCK: dry land, in front of the hull.
     for i in range(-1, Wd + 1):
@@ -649,6 +647,11 @@ def _riverboat(w: World, p: dict, ctx) -> dict:
     for d in range(pool_d0, pool_d1 + 1):
         w.put(*f.at(-4, d, -2), ex["rock"])
         w.put(*f.at(-4, d, -1), ex["rock"])
+        # THE INNER WALL, between the pool and the hull. The hull's own keel is a full cube at
+        # h=0, one course ABOVE the water at h=-1 - it shares no face with the water at all, so
+        # without a wall here the pool leaks sideways into the gap between i=-1 and the hull.
+        w.put(*f.at(-1, d, -2), ex["rock"])
+        w.put(*f.at(-1, d, -1), ex["rock"])
 
     # THE HULL: a full keel plate under the whole footprint - so the deck it carries is never
     # standing on a hole - with planked sides and a stair rake at bow and stern.

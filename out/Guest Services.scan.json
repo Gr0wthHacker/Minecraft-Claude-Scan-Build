@@ -1,0 +1,27 @@
+{
+  "origin": {
+    "x": 97558,
+    "y": 202,
+    "z": 80590
+  },
+  "size": {
+    "x": 21,
+    "y": 24,
+    "z": 17
+  },
+  "generated_by": "civic",
+  "kind": "guestservices",
+  "land": "midway",
+  "facing": "north",
+  "contract": "a counter window with a sill and a queue rail onto the forecourt, a raised bay carrying a clock or an emblem, and four signs that each hang on a wall that is actually there",
+  "unverified": [],
+  "width": 15,
+  "depth": 9,
+  "crown": "emblem",
+  "hipped": true,
+  "height": 22,
+  "signs": 4,
+  "signs_placed": 4,
+  "file": "Guest Services.litematic",
+  "name": "Guest Services"
+}

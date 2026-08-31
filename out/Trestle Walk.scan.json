@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": 97556,
+    "y": 202,
+    "z": 80401
+  },
+  "size": {
+    "x": 7,
+    "y": 12,
+    "z": 28
+  },
+  "generated_by": "frontiertown",
+  "kind": "trestlebridge",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "a decked trestle on battered, braced and stringered bents, landing on a masonry abutment at each end - never a plank floating between two posts",
+  "unverified": [],
+  "length": 24,
+  "deck": 8,
+  "bents": 6,
+  "piers": 2,
+  "signs": 1,
+  "file": "Trestle Walk.litematic",
+  "name": "Trestle Walk"
+}

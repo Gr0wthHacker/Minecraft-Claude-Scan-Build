@@ -1,0 +1,23 @@
+{
+  "origin": {
+    "x": 97560,
+    "y": 202,
+    "z": 80560
+  },
+  "size": {
+    "x": 80,
+    "y": 6,
+    "z": 80
+  },
+  "generated_by": "park",
+  "kind": "plaza",
+  "land": "midway",
+  "facing": "east",
+  "contract": "the ground between attractions, paved on a world-aligned grid so it stays aligned across module boundaries",
+  "unverified": [],
+  "width": 80,
+  "depth": 80,
+  "posts": 5,
+  "file": "Grand Plaza.litematic",
+  "name": "Grand Plaza"
+}

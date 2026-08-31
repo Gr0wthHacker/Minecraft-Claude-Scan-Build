@@ -1,0 +1,26 @@
+{
+  "origin": {
+    "x": 97554,
+    "y": 202,
+    "z": 80378
+  },
+  "size": {
+    "x": 21,
+    "y": 22,
+    "z": 19
+  },
+  "generated_by": "frontiertown",
+  "kind": "minehead",
+  "land": "frontier",
+  "facing": "south",
+  "contract": "a timbered adit through a spoil bank, a braced A-frame headframe with a sheave wheel and a hanging cable, and a tramway with loaded tubs on it",
+  "unverified": [],
+  "width": 17,
+  "depth": 16,
+  "height": 21,
+  "wheel": 16,
+  "tubs": 3,
+  "signs": 2,
+  "file": "The Mine Head.litematic",
+  "name": "The Mine Head"
+}

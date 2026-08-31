@@ -61,6 +61,7 @@ PALETTE = {
     "pillar": "deepslate_bricks",   # 71 luminance against smooth stone's 159: the one real line
     "tile": "stone",                # 126 against smooth stone's 159: a quiet checker, not a stripe
     "aisle": "red_wool",            # the way in, in the floor course so it cannot be orphaned
+    "canopy": ["yellow_wool", "white_wool"],   # the booth awning; a land's skin overrides this
 }
 
 CASINO = {
@@ -83,6 +84,10 @@ CASINO = {
     "sound": True,              # note blocks. Expensive here, so it can be switched off
     "title": None,              # the room's name on the door sign; the plan passes the module's
     "room": True,               # build the enclosing room. Off = the old open bay.
+    # BOOTH SWAPS THE SEALED CASINO ROOM FOR AN OPEN FAIRGROUND SHOPFRONT - see `_booth` below.
+    # A theme-park sideshow must be watched being played FROM THE STREET; a casino floor must
+    # not. Off by default so the casino theme itself never moves.
+    "booth": False,
     # THE BAR DISPLAY IS OFF, AND IT IS OFF BECAUSE IT DOES NOT WORK.
     #
     # The idea is sound: the randomiser's outcome is an analog level (1, 2, 4), wire loses one per
@@ -126,22 +131,35 @@ CASINO.update({f"pal_{k}": v for k, v in PALETTE.items()})
 #   hollow     black_wool 21 · deepslate_bricks 71 · polished_blackstone 45 steps  50,  26
 #
 # `tests/test_casino.py` measures it rather than trusting this comment.
+#
+# `canopy` is the booth awning's two stripe tones - reused from `gen/park.py::LANDS` for midway
+# and frontier so a sideshow's tent matches every other striped canopy in its zone, EXCEPT on
+# hollow: park's own hollow canopy is `["black_wool", "deepslate_bricks"]`, and the second of
+# those IS this land's `shell` (the booth's own wall block) - a stripe that equals the wall draws
+# nothing. Hollow's all-black palette is exactly the one the panel called "nearly featureless", so
+# its awning needs the biggest gap of the three: `light_gray_wool`/`white_wool` against
+# `deepslate_bricks` (71) measure 70.5 and 164.6 apart - a pale ghost-tent over a dark booth,
+# which is also the one place on this island bone-pale wool reads as intentional rather than as a
+# quartz substitute.
 LAND_SKIN = {
     "midway": {
         "floor": "white_wool", "shell": "stone_bricks", "pillar": "black_wool",
         "trim": "black_wool", "accent": "yellow_wool", "stair": "stone_brick_stairs",
         "tile": "stone", "carpet": "red_carpet", "aisle": "red_wool",
+        "canopy": ["red_wool", "white_wool"],
     },
     "frontier": {
         "floor": "spruce_planks", "shell": "cobblestone", "pillar": "spruce_log",
         "trim": "stone_bricks", "accent": "orange_wool", "stair": "spruce_stairs",
         "tile": "stone", "carpet": "brown_carpet", "aisle": "stripped_oak_log",
+        "canopy": ["spruce_planks", "stripped_oak_log"],
     },
     "hollow": {
         "floor": "black_wool", "shell": "deepslate_bricks",
         "pillar": "polished_blackstone_bricks", "trim": "polished_blackstone_bricks",
         "accent": "purple_wool", "stair": "polished_blackstone_brick_stairs",
         "tile": "cobbled_deepslate", "carpet": "purple_carpet", "aisle": "purple_wool",
+        "canopy": ["light_gray_wool", "white_wool"],
     },
 }
 
@@ -522,6 +540,110 @@ def _inward(i, d, width, depth, facing):
     return None
 
 
+# ---------------------------------------------------------------------- the fairground booth
+#
+# **A GAME IS A ROOM, NOT A PLATFORM - AND A SIDESHOW IS A SHOPFRONT, NOT A ROOM.** `_room` boxes
+# a player in on purpose: four walls and one doorway is what makes a casino floor read as a
+# casino floor. A midway sideshow needs the opposite - the whole point of Hoopla or Tin Can Alley
+# is that you watch the game being played FROM THE STREET, the same reason `gen/park.py::_stall`
+# gives a shop an open front. A visual review of the finished park found the six sideshow games
+# (Hoopla, Lucky Dip, Tin Can Alley, Gold Panning, Fortune Wheel, The Reckoning) "stand bare with
+# no booth/wall/sign, unlike the earlier 'casino became a building' work" - correct, because they
+# were still built with `room: True`, which is the CASINO's room, not a fairground one.
+#
+# So this is not `_room` with a hole cut in it - it is `_stall`'s proven shape (a full back wall,
+# thin corner POSTS rather than a solid side wall, a slab counter across the open front, a fascia
+# board over the opening because an open front has nothing else to hang a sign from) adapted to
+# `_room`'s own `at(i, d, h)` convention, so the verified machine underneath - the pit, the wiring,
+# the payout - never has to move by one cell.
+BOOTH_H = ROOM_H         # counter to awning: the same clearance a casino room gives floor-to-ceiling
+
+
+def _booth(w, p, x, y, z, dx, dz, sx, sz, width, depth, title, lines):
+    """Open front, short corner posts, a back wall carrying the prize shelf and the rules, a
+    slab counter, a fascia over the opening, and a striped awning. Returns the fascia sign's
+    position, matching `_room`'s return.
+    """
+    def at(i, d, h=0):
+        return (x + sx * i - dx * d, y + h, z + sz * i - dz * d)
+
+    door_i = max(0, width // 2 - DOOR_W // 2 + 1)
+    # A LAND WITH NO SKIN STILL GETS TWO TONES: fall back to the casino's own accent/trim rather
+    # than crash, so `booth=True` never depends on `land` being set.
+    canopy = p.get("pal_canopy") or [p["pal_accent"], p["pal_trim"]]
+
+    # FLOOR: the same field-and-aisle as `_room`, so the pit floor `_game_common` lays afterward
+    # still lines up, and the carpet still leads the eye from the counter to the button.
+    for (i, d) in _rect(width, depth):
+        border = i in (-2, width + 1) or d in (-1, depth)
+        w.put(*at(i, d), p["pal_floor"] if border else p["pal_trim"])
+        if i in (door_i, door_i + 1) and not border:
+            w.put(*at(i, d, 1), p["pal_carpet"])
+
+    # THE BACK WALL, full height and solid - what the prize shelf and the rules sign hang on.
+    for i in range(-2, width + 2):
+        for h in range(1, BOOTH_H):
+            w.put(*at(i, -1, h), p["pal_shell"])
+
+    # CORNER POSTS, NOT A SIDE WALL. A run of `pal_shell` between them would rebuild `_room`'s own
+    # sealed box; a single column per side is what lets a passer-by see past it into the booth,
+    # exactly the shape `_stall` already proved reads as a shopfront rather than a wall.
+    for d in range(-1, depth + 1):
+        for h in range(1, BOOTH_H):
+            w.put(*at(-2, d, h), p["pal_pillar"])
+            w.put(*at(width + 1, d, h), p["pal_pillar"])
+
+    # THE COUNTER: a slab top across the open front, at leaning height, so the opening is a
+    # serving hatch rather than a hole in the floor.
+    slab = p["pal_stair"].replace("_stairs", "_slab")
+    for i in range(-1, width + 1):
+        w.put(*at(i, depth, 0), p["pal_trim"])
+        w.put(*at(i, depth, 1), slab, type="bottom", waterlogged="false")
+
+    # THE PRIZE SHELF: alternating board colours on the wall face just inside the back wall, the
+    # way the reference casino's own display boards are built - a booth reads as "prizes" from
+    # thirty blocks before anyone is close enough to read the sign. It is drawn BEFORE the rules
+    # sign, deliberately, so the sign wins the one cell they share (the deck soffit's rule: decide
+    # order once, and the later placement is the one that survives).
+    board = p["pal_board"]
+    for k, i in enumerate(range(door_i - 1, door_i + DOOR_W + 1)):
+        if not (-1 <= i <= width):
+            continue
+        w.put(*at(i, 0, 2), board[k % len(board)])
+        w.put(*at(i, 0, 3), board[(k + 1) % len(board)])
+
+    # THE FASCIA: a solid board across the whole opening at awning height. An open front has no
+    # wall to hang a nameplate from, which is exactly the failure `_stall`'s own docstring warns
+    # about - "an open front has no wall to attach one to".
+    for i in range(-1, width + 1):
+        w.put(*at(i, depth, BOOTH_H - 1), p["pal_trim"])
+
+    # THE AWNING: two tones alternating, one course above the fascia, projecting over the back
+    # wall, the posts AND the counter into the aisle - roof over the interior, canopy over the
+    # street, one plane doing both. The alternation is what the corpus calls a STRIPE rather than
+    # a lid; a single colour here is a roof, not a fairground tent.
+    for i in range(-2, width + 2):
+        for d in range(-1, depth + 2):
+            w.put(*at(i, d, BOOTH_H), canopy[0] if i % 2 == 0 else canopy[1])
+
+    # LIGHT under the awning, near the counter, so the board reads after dark from the street.
+    for i in (0, width - 1):
+        w.put(*at(i, depth - 1, BOOTH_H - 1), "lantern", hanging="true", waterlogged="false")
+
+    # THE FASCIA SIGN, mounted on the fascia board and facing OUT into the aisle - the game's
+    # name, read the way a shop sign is read, from the street rather than from inside the booth.
+    back = {"east": "west", "west": "east", "north": "south", "south": "north"}[p["facing"]]
+    dsx, dsy, dsz = at(door_i, depth + 1, BOOTH_H - 1)
+    w.put(dsx, dsy, dsz, "oak_wall_sign", facing=back, waterlogged="false")
+    w.sign(dsx, dsy, dsz, front=[title, "", "", ""], colour="white", glowing=True)
+
+    # THE RULES, on the back wall inside, facing whoever has walked up to the counter.
+    isx, isy, isz = at(door_i, 0, 2)
+    w.put(isx, isy, isz, "oak_wall_sign", facing=back, waterlogged="false")
+    w.sign(isx, isy, isz, front=list(lines)[:4])
+    return (dsx, dsy, dsz)
+
+
 # The old open bay, kept because `marquee`, `prize_wall` and `counter` are FURNITURE rather than
 # rooms - they line a corridor and must not each be boxed in.
 def _shell(w, p, x, y, z, dx, dz, sx, sz, width, depth):
@@ -554,7 +676,11 @@ def _game_common(w, p, ctx, width):
         if skin:
             p = {**p, "pal_floor": skin["accent"], "pal_carpet": skin["carpet"]}
         title = p.get("title") or p["kind"].replace("_", " ").upper()
-        _room(w, p, x, y, z, dx, dz, sx, sz, width, 4,
+        # BOOTH SWAPS THE SHELL, NOTHING ELSE. `_booth` and `_room` share `at(i, d, h)`, `width`,
+        # `depth`, `title` and `lines`, so the button and the machine placed below need not know
+        # or care which one built the walls around them.
+        shell = _booth if p.get("booth") else _room
+        shell(w, p, x, y, z, dx, dz, sx, sz, width, 4,
               str(title).upper()[:15], _copy(p["kind"], outcomes))
     else:
         _shell(w, p, x, y, z, dx, dz, sx, sz, width, 4)
@@ -889,6 +1015,7 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     # rim and a rail at floor level so it reads as a table and nobody walks into it.
     span = [abs(c[0] - hop[0]) for c in gate_cells] + [abs(c[2] - hop[2]) for c in gate_cells]
     r = max(6, max(span) + 2)
+    rim_cells = []
     for i in range(-r - 1, r + 2):
         for d in range(-r - 1, r + 2):
             cx, cz = hop[0] + i, hop[2] + d
@@ -901,6 +1028,24 @@ def _wheel(w: World, p: dict, ctx) -> dict:
             elif rr <= (r + 1) * (r + 1):
                 w.put(cx, by, cz, p["pal_pillar"])             # the rim
                 w.put(cx, by + 1, cz, "oak_fence")             # the rail you lean on
+                rim_cells.append((i, d))
+
+    # THE ROOF, only when asked for. The wheel is deliberately walless - a sunken bowl read from
+    # above, per the docstring above - but a review of the finished park still called every
+    # sideshow "bare with no booth/wall/sign", and an open table with nothing over it reads as
+    # unfinished furniture even when its shape is doing real work. **NOT ONE GATE CELL MOVES**:
+    # everything here is placed AFTER the machine, stands on the rim's own solid `pal_pillar`
+    # cells (never floating, never a fifth free-standing post the audit would flag), and starts
+    # two courses above the rail so the awning cannot be mistaken for part of the game.
+    if p.get("booth") and rim_cells:
+        canopy = p.get("pal_canopy") or [p["pal_accent"], p["pal_trim"]]
+        step = max(1, len(rim_cells) // 4)
+        for (ci, cd) in rim_cells[::step][:4]:
+            for cy in range(by + 2, by + 5):
+                w.put(hop[0] + ci, cy, hop[2] + cd, p["pal_pillar"])
+        for i in range(-r - 1, r + 2):
+            for d in range(-r - 1, r + 2):
+                w.put(hop[0] + i, by + 5, hop[2] + d, canopy[0] if i % 2 == 0 else canopy[1])
 
     # **THE LINK MUST NOT RUN UNDER THE BUTTON.** Routed from the button itself, `connect`
     # descended straight through the cell below it - so the pad turned into redstone dust and a

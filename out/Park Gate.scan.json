@@ -1,0 +1,29 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 202,
+    "z": 80613
+  },
+  "size": {
+    "x": 10,
+    "y": 10,
+    "z": 19
+  },
+  "generated_by": "park",
+  "kind": "gate",
+  "land": "midway",
+  "facing": "west",
+  "contract": "a threshold: lanes through the front wall and matching ones through the back, so a visitor passes through the building rather than past it",
+  "unverified": [],
+  "width": 15,
+  "depth": 6,
+  "height": 7,
+  "lanes": 3,
+  "lane_i": [
+    5,
+    7,
+    9
+  ],
+  "file": "Park Gate.litematic",
+  "name": "Park Gate"
+}

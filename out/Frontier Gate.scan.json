@@ -1,0 +1,23 @@
+{
+  "origin": {
+    "x": 97596,
+    "y": 202,
+    "z": 80445
+  },
+  "size": {
+    "x": 9,
+    "y": 9,
+    "z": 5
+  },
+  "generated_by": "park",
+  "kind": "arch",
+  "land": "frontier",
+  "facing": "south",
+  "contract": "an opening you walk through, with the land's name over it",
+  "unverified": [],
+  "width": 7,
+  "depth": 3,
+  "height": 6,
+  "file": "Frontier Gate.litematic",
+  "name": "Frontier Gate"
+}

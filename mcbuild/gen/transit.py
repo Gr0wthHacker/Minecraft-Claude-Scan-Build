@@ -280,7 +280,7 @@ def _land_at(p, stations, a):
 
 # ------------------------------------------------------------------------------ the span
 
-def _deck(w, ln, p, cells, land_of, avoid, meta):
+def _deck(w, ln, p, cells, land_of, meta):
     """Deck, track, power, railings and lamps: everything at or above the deck floor."""
     left, right = int(p["deck_left"]), int(p["deck_right"])
     shapes = shapes_for(cells)
@@ -394,6 +394,15 @@ def _arcade(w, ln, p, n, land_of, meta):
             for h in range(lo, hi + 1):
                 for s in (-left, right):
                     w.put(*ln.at(a, s, h), pal["arch"])
+            # A STEPPED ARCH LEAVES A ONE-CELL SHELF AT EVERY STEP, and a shelf under a viaduct
+            # is an unlightable spawn spot: the deck over it is a solid course, so no lamp on it
+            # reaches underneath. The top of each step is a BOTTOM SLAB - nothing stands on one,
+            # the run stays 6-connected because the cell is still occupied, and a stepped arch
+            # moulded with slabs reads better than a staircase of cubes anyway. Not at the crown,
+            # where the deck is already the cell above.
+            if hi < -2:
+                for s in (-left, right):
+                    w.put(*ln.at(a, s, hi), pal["slab"], type="bottom", waterlogged="false")
             prev = hy
             arches += 1
     meta["piers"], meta["arch_cells"], meta["portals"] = piers, arches, portals
@@ -465,7 +474,11 @@ def _feature(w, ln, p, a, land_of, meta, subtitle=()):
     left, right = int(p["deck_left"]), int(p["deck_right"])
     ph = max(3, int(p["portal_h"]))
     pal = _pal(land_of(a))
-    top = ph + 4
+    # TALLER THAN THE PORTALS BY MORE THAN A COURSE OR TWO, or it is not a landmark, it is a
+    # bay that got lucky. At ph+4 it read in elevation as one slightly long post; the rule the
+    # ruins quarter settled is that below about six courses of clear separation a feature
+    # dissolves into the rhythm around it.
+    top = ph + 8
     for k in (0, 1):
         for s in (-left, right):
             for h in range(0, top + 1):
@@ -693,8 +706,14 @@ def _check(w, ln, p, cells, avoid, band):
 
 # ------------------------------------------------------------------------------ the builders
 
-def _skyway(w: World, p: dict, ctx) -> dict:
-    """The span alone: deck, track, arcade, mid-span towers. No stations."""
+def _skyway(w: World, p: dict, ctx, defer_lamps=False) -> dict:
+    """The span alone: deck, track, arcade, mid-span towers. No stations.
+
+    `defer_lamps` exists for one reason and it is the same fault twice: **A LAMP UNDER A FULL
+    BLOCK IS NOT A LAMP**, and a station's canopy posts stand on the same kerb the deck's lamps
+    are set into. `_lamps` slides a lamp out from under anything opaque, so it has to be the
+    LAST thing built - after the arcade, after the towers, and after the stations.
+    """
     ln = _Line(p["at"], p["axis"], p["forward"])
     cells = plan(p)
     n = len(cells)
@@ -708,7 +727,7 @@ def _skyway(w: World, p: dict, ctx) -> dict:
         return _land_at(p, stations, a)
 
     meta = {"track": n, "corners": sum(1 for c in cells if c[3]), "runs": len(runs_of(cells))}
-    _deck(w, ln, p, cells, land_of, avoid, meta)
+    _deck(w, ln, p, cells, land_of, meta)
     _arcade(w, ln, p, n, land_of, meta)
 
     # A MID-SPAN TOWER GOES WHERE THE MASONRY IS ALREADY CHANGING - the midpoint between two
@@ -724,8 +743,8 @@ def _skyway(w: World, p: dict, ctx) -> dict:
     for i, a in enumerate(feats):
         if 2 <= int(a) < n - 2:
             _feature(w, ln, p, int(a), land_of, meta, subs[i] if i < len(subs) else ())
-    # LAST, so it can see every post that would have put it out. See `_lamps`.
-    _lamps(w, ln, p, n, land_of, meta)
+    if not defer_lamps:                      # LAST of all; see the docstring
+        _lamps(w, ln, p, n, land_of, meta)
 
     meta["rail"] = [[x, y, z] for (x, y, z, _c) in cells]
     meta["heading"] = ln.heading
@@ -753,10 +772,11 @@ def _station_only(w: World, p: dict, ctx) -> dict:
     local = {**p, "at": list(_Line(p["at"], p["axis"], p["forward"]).at(a_c - half - lead, 0, 0)),
              "length": 2 * half + 1 + 2 * lead, "features": [],
              "stations": [{**st, "at_a": half + lead}]}
-    meta = _skyway(w, local, ctx)
+    meta = _skyway(w, local, ctx, defer_lamps=True)
     ln = _Line(local["at"], local["axis"], local["forward"])
-    _station(w, ln, local, local["stations"][0], lambda a: _land_at(local, local["stations"], a),
-             _reserved(p.get("avoid")), meta)
+    land_of = lambda a: _land_at(local, local["stations"], a)          # noqa: E731
+    _station(w, ln, local, local["stations"][0], land_of, _reserved(p.get("avoid")), meta)
+    _lamps(w, ln, local, int(local["length"]), land_of, meta)
     meta["kind"] = "station"
     meta["contract"] = ("a terminal you can board from the street: a platform behind a fence "
                         "with real gates, a canopy, a departure board on a wall that exists, "
@@ -772,14 +792,17 @@ def _line(w: World, p: dict, ctx) -> dict:
     from the loser - so every piece would ship with holes in it and nobody could look at the
     result. The casino spent three rounds on exactly that before it was rebuilt as one.
     """
-    meta = _skyway(w, p, ctx)
+    meta = _skyway(w, p, ctx, defer_lamps=True)
     ln = _Line(p["at"], p["axis"], p["forward"])
     stations = [{**STATION, **s} for s in (p.get("stations") or [])]
     for s in stations:
         s.setdefault("land", p["land"])
     avoid = _reserved(p.get("avoid"))
+    land_of = lambda a: _land_at(p, stations, a)                      # noqa: E731
     for st in stations:
-        _station(w, ln, p, st, lambda a: _land_at(p, stations, a), avoid, meta)
+        _station(w, ln, p, st, land_of, avoid, meta)
+    # THE LAMPS GO IN LAST, once every post that could cap one is standing. See `_skyway`.
+    _lamps(w, ln, p, int(p["length"]), land_of, meta)
     meta["kind"] = "line"
     meta["contract"] = ("one powered-rail line and one walkway from the frontier island to the "
                         "hollow island through the midway: every rail powered, a stop at each "
@@ -823,7 +846,10 @@ def build(cfg: dict, donors=None) -> Canvas:
         "land": p["land"],
         "facing": ln.heading,
         "axis": p["axis"],
-        "origin": list(p["at"]),
+        # NOT `origin`: the sidecar's own `origin` is the PASTE ORIGIN, and a meta key of that
+        # name silently overwrote it with the line's first rail cell - a design that places six
+        # east, ten up and two south of where it belongs, with nothing in the file to say so.
+        "line_origin": list(p["at"]),
         "contract": meta.get("contract", ""),
         "unverified": meta.get("unverified", [
             "a cart does not stop by itself at the middle station - it is a boarding point, "

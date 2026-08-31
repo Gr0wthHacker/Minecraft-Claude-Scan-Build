@@ -1,0 +1,32 @@
+{
+  "origin": {
+    "x": 97589,
+    "y": 202,
+    "z": 80812
+  },
+  "size": {
+    "x": 20,
+    "y": 69,
+    "z": 17
+  },
+  "generated_by": "bigwheel",
+  "kind": "bigwheel/drop",
+  "ride": "drop",
+  "land": "hollow",
+  "facing": "east",
+  "contract": "a latticed shaft with real openings and glazed panels, a ring car parked at a string course, a corbelled top house with a stepped cap, and a queue rail leading to the one door",
+  "unverified": [],
+  "width": 15,
+  "depth": 13,
+  "shaft": 9,
+  "height": 54,
+  "top": 67,
+  "car_h": 42,
+  "glazed": 224,
+  "openings": 467,
+  "rails": 48,
+  "seats": 40,
+  "signs": 2,
+  "file": "The Plummet.litematic",
+  "name": "The Plummet"
+}

@@ -1,0 +1,17 @@
+{
+  "origin": {
+    "x": 97556,
+    "y": 203,
+    "z": 80751
+  },
+  "size": {
+    "x": 86,
+    "y": 67,
+    "z": 91
+  },
+  "generated_by": "mcbuild.layers",
+  "kind": "casino-layer",
+  "note": "one complete build step; layers cannot collide, so nothing defers",
+  "file": "Park_Right 3 Walls.litematic",
+  "name": "Park_Right 3 Walls"
+}

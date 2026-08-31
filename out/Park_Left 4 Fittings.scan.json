@@ -1,0 +1,17 @@
+{
+  "origin": {
+    "x": 97556,
+    "y": 205,
+    "z": 80360
+  },
+  "size": {
+    "x": 82,
+    "y": 30,
+    "z": 90
+  },
+  "generated_by": "mcbuild.layers",
+  "kind": "casino-layer",
+  "note": "one complete build step; layers cannot collide, so nothing defers",
+  "file": "Park_Left 4 Fittings.litematic",
+  "name": "Park_Left 4 Fittings"
+}

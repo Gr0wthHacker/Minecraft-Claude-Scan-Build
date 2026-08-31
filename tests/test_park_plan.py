@@ -375,9 +375,13 @@ def test_a_sideshow_skin_is_spendable_and_on_the_server(land):
     """Rule 12 and rule 16 together: a block can be real, legal and still unbuildable here.
     Dirt and grass are CURRENCY on this skyblock, and the 1.19 allowlist is not the 26.2 registry.
     """
-    for key, name in casino.LAND_SKIN[land].items():
-        assert blocks.exists(name), f"{land}.{key}: no such block {name!r}"
-        assert blocks.spendable(name), f"{land}.{key}: {name} is currency on this server"
+    for key, value in casino.LAND_SKIN[land].items():
+        # A skin entry may be a single block or a PAIR - an awning is two alternating tones -
+        # so flatten rather than assuming a string. Assuming one was how this test started
+        # failing the moment the booth work added its striped canopy.
+        for name in ([value] if isinstance(value, str) else list(value)):
+            assert blocks.exists(name), f"{land}.{key}: no such block {name!r}"
+            assert blocks.spendable(name), f"{land}.{key}: {name} is currency on this server"
 
 
 @pytest.mark.parametrize("zone", ZONES)
