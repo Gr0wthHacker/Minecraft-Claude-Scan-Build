@@ -937,7 +937,12 @@ def _shopstreet(w: World, p: dict, ctx) -> dict:
     f = _Frame(p)
     pal = LANDS[p["land"]]
     say = _Plaques(p.get("sign", True))
-    n = max(6, int(p["shops"]))
+    # A FLOOR OF 6 WAS RIGHT WHEN THE STREET WAS THE CENTRE, AND IS WRONG NOW. It existed because
+    # this kind's whole point is a VARIED TERRACE and a terrace of two is not a terrace. But Jack
+    # rejected a centre that was "just a bunch of shops" and asked for "maybe 2" beside a grand
+    # monument, so two shops is the brief rather than a degenerate case. The per-shop variation
+    # still applies - two shops must still be visibly different buildings.
+    n = max(2, int(p["shops"]))
     depth = max(6, int(p["shop_depth"]))
     seed = int(p["seed"]) + f.x * 131 + f.z * 7
     min_run = int(p["min_run"])

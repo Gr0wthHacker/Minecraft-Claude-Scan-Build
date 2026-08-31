@@ -756,6 +756,11 @@ def _flume_dims(p):
     return m, s, t, half, dock, run
 
 
+# Water reaches seven blocks from a source on the flat and a drop restarts that budget, so a
+# source every six cells leaves no dry gap even where the channel runs level for a stretch.
+SRC_EVERY = 6
+
+
 def _flume_plan(p):
     """The channel, as waypoints in (i, d, h). NOT a circuit: a flume is a one-way ride that
     ends in the pool it started beside. Dock, LIFT, a top traverse, THE DROP, a run-out."""
@@ -763,8 +768,11 @@ def _flume_plan(p):
     return [
         (m,          m + 2,    0),      # the dock
         (m + dock,   m + 2,    0),      # dock end (colinear)
-        (s,          m + 2,    t),      # CORNER - the lift, an enclosed tube
-        (s,          s,        t),      # CORNER - the top traverse, open to the sky
+        (s,          m + 2,    t),      # CORNER - the lift, a CLIMB (see below), enclosed
+        # THE TRAVERSE DESCENDS. Held at a constant t it is a flat canal, and flat canals do not
+        # carry anything: water reaches exactly seven blocks from a source and then stops, so the
+        # rider stops with it. A gentle fall keeps the flow directed for the whole run.
+        (s,          s,        max(6, t - 6)),   # CORNER - the top traverse, open to the sky
         (m + 6,      s,        4),      # CORNER - THE DROP
         (m + 6,      s - run,  0),      # the run-out into the pool
     ]
@@ -812,9 +820,18 @@ def _flume(w: World, p: dict, ctx) -> dict:
         for (oi, od) in [(0, 0)] + side_of[j] + [(o[0] * 2, o[1] * 2) for o in side_of[j]]:
             for hh in range(lo, hi + 1):
                 w.put(*f.at(i + oi, d + od, hh), pal["ground"])
-        for (oi, od) in [(0, 0)] + side_of[j]:
-            for hh in (hs[j] + 1, hs[j] + 2):
-                w.put(*f.at(i + oi, d + od, hh), "water", level="0")
+        # **SPACED SOURCES, AND NONE ON THE LIFT.** The first version filled every channel cell
+        # with level=0 - 564 source blocks - which is STILL water: a source does not push, so the
+        # ride carried nobody while looking perfect in every render. `mcbuild/fluids.py` simulates
+        # the spread and says so; a source every SRC_EVERY cells down a descending channel keeps
+        # the whole run flowing, and the game fills the cells between them.
+        #
+        # The lift RISES, and water does not flow uphill. It is a walk-up tube - climb the tower,
+        # then slide - which is how a water slide actually works.
+        rising = j > 0 and hs[j] > hs[j - 1]
+        if not rising and (j % SRC_EVERY == 0 or j == len(pts) - 1):
+            for (oi, od) in [(0, 0)] + side_of[j]:
+                w.put(*f.at(i + oi, d + od, hs[j] + 1), "water", level="0")
                 water += 1
 
     # THE WALLS, at twice the perpendicular offset, three courses over the floor. On the graded

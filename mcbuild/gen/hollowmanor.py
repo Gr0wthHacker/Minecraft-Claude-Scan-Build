@@ -48,6 +48,27 @@ every render:
 
 **RULE 11: THE PLOT IS VOID.** Every kind lays its own pad at h=-1 and its own plinth; nothing
 here assumes terrain, and nothing is raised without something carrying it to the ground.
+
+**SCALE: THE MINIMUMS, MEASURED RATHER THAN INTENDED.** Each kind clamps its `width` / `depth` /
+`height` to its own floor and there is no way to ask for less - a manor at `width: 20` is a manor
+at 32. The floor is not the footprint, though, and the difference is what a siting search has to
+reserve: the pads, the porch steps, the plinth skirt and the engaged tower all stand OUTSIDE the
+nominal box. The right-hand columns are the built envelope at the clamped minimum, in the
+structure's own axes (i along the frontage, d into the building, h up from the pad at -1):
+
+    kind         clamps to           envelope  i  x   d  x   h     cells   default
+    manor        width 32, depth 24            42  x  35  x  45   10,362   as clamped
+    crypt        width  9, depth 11            17  x  19  x  15    1,586   as clamped
+    clocktower   width  9 (odd)                17  x  17  x  49    2,463   as clamped
+    graveyard    width 21, depth 17            23  x  19  x  13      714   25 x 21 -> 27 x 23
+    deadtree     height 9                      13  x  13  x  11      228   height 15 -> h 17
+    irongate     width 15                      19  x   7  x  12      228   width 23 -> i 27
+
+The manor is 42 across where its walls are 32, and 35 deep where its rooms are 24: eight of those
+courses are the porch and its approach, in front of `d=0`, and six are the tower engaged past the
+right-hand wall. Siting it on 32x24 puts the front steps and the tower over the edge of whatever
+was measured for it. The clocktower is the tall one and the manor the wide one; nothing here is
+small, which is the point - the quarter's whole argument is that a land needs one signature mass.
 """
 from __future__ import annotations
 
@@ -960,10 +981,11 @@ def _headstone(w, f, kit, pal, i, d, seed, used=None):
     matching pair, and the contract this build PRINTS said it could not. `used` carries the looks
     already standing and the salt is bumped until the look is new - deterministic, reproducible,
     and never `random`. The retry is bounded, because a field bigger than the vocabulary must
-    repeat and looping for ever is a worse answer than repeating.
+    repeat and looping for ever is a worse answer than repeating - and when it does repeat the
+    build SAYS SO in `unverified` rather than printing a contract it has not kept.
     """
     used = used if used is not None else set()
-    for salt in range(24):
+    for salt in range(64):
         r = hash01(seed, i, d, salt)
         shape = _SHAPES[int(r * len(_SHAPES)) % len(_SHAPES)]
         stone = kit["stones"][int(hash01(seed, i, d, 7, salt) * len(kit["stones"]))
@@ -1114,8 +1136,13 @@ def _graveyard(w: World, p: dict, ctx) -> dict:
     return {"kind": "graveyard", "width": W, "depth": D, "stones": stones, "shapes": kinds,
             "looks": len(looks), "signs": signed,
             "contract": "a railed enclosure with one gate, a crossing of paths, a lit monument "
-                        "at the centre, and at least twelve grave markers of which no two are "
-                        "the same shape, height and material"}
+                        "at the centre, and at least twelve grave markers of which no two share "
+                        "a shape, a height and a material - guaranteed by construction up to the "
+                        "110 markers the vocabulary holds (six shapes, their real heights, ten "
+                        "stones), which a field of 37x33 does not reach",
+            "unverified": ([] if len(looks) == stones else
+                           ["%d of %d markers repeat a look: the field is bigger than the "
+                            "110-marker vocabulary" % (stones - len(looks), stones)])}
 
 
 # ---------------------------------------------------------------------------- the dead tree
@@ -1244,7 +1271,7 @@ def _irongate(w: World, p: dict, ctx) -> dict:
             run = []
     pier_at |= short
 
-    piers, bars, spikes = 0, 0, 0
+    piers, bars, spikes, panel = 0, 0, 0, 0
     for i in range(L):
         if abs(i - gm) <= 2:
             continue
@@ -1257,7 +1284,13 @@ def _irongate(w: World, p: dict, ctx) -> dict:
             for h in range(1, 4):
                 w.put(*f.at(i, 0, h), "iron_bars", **_pane(a["ip"], a["im"]))
                 bars += 1
-            if i % 2:                        # SPEAR FINIALS: every other bar carries a fourth
+            # SPEAR FINIALS: every other BAR carries a fourth, counted off the bars themselves
+            # and not off `i`. On `i % 2` the rhythm is measured against the frame rather than
+            # against the railing, and since the panels between piers are three bars wide and
+            # start on whatever parity the gate's own offset produced, exactly ONE bar in three
+            # got a spike - a run of finials the docstring described and the build did not have.
+            panel += 1
+            if panel % 2:
                 w.put(*f.at(i, 0, 4), "iron_bars", **_pane(a["ip"], a["im"]))
                 spikes += 1
 

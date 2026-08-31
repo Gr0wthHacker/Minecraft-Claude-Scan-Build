@@ -163,17 +163,24 @@ THEMES = {
             # `orient: False` on the long thin ones: a 16x55 street would book 55x55 to hold a
             # rotation it does not want, because its frontage IS its design. It can still flip.
             {"name": "Shop Street", "gen": "civic", "kind": "shopstreet",
-             "size": [16, 18, 55], "orient": False,
-             "params": {"land": "midway", "shops": 7, "facing": "east"}},
+             "size": [16, 15, 14], "orient": False,
+             "params": {"land": "midway", "shops": 2, "facing": "east"}},
             {"name": "Grand Fountain", "gen": "civic", "kind": "fountain",
              "size": [25, 10, 25],
              "params": {"land": "midway", "radius": 8, "facing": "east"}},
             {"name": "The Big Wheel", "gen": "bigwheel", "kind": "wheel",
-             "size": [11, 51, 53], "orient": False,
-             "params": {"land": "midway", "spokes": 12, "cars": 12, "facing": "east"}},
+             "size": [11, 75, 77], "orient": False,
+             "params": {"land": "midway", "diameter": 65, "spokes": 16, "cars": 16,
+                        "facing": "east"}},
             {"name": "Carousel", "gen": "bigwheel", "kind": "carousel",
              "size": [21, 24, 21],
              "params": {"land": "midway", "mounts": 12, "facing": "east"}},
+            {"name": "Hoopla", "gen": "casino", "kind": "high_roller",
+             "size": [9, 8, 8], "orient": False,
+             "params": {"outcomes": 3, "pit": 2, "facing": "east"}},
+            {"name": "Lucky Dip", "gen": "casino", "kind": "lucky_number",
+             "size": [9, 8, 8], "orient": False,
+             "params": {"outcomes": 3, "pit": 2, "facing": "east"}},
             {"name": "Guest Services", "gen": "civic", "kind": "guestservices",
              "size": [17, 22, 21],
              "params": {"land": "midway", "facing": "east"}},
@@ -183,9 +190,6 @@ THEMES = {
             {"name": "Founders Statue", "gen": "civic", "kind": "statue",
              "size": [11, 21, 11],
              "params": {"land": "midway", "facing": "east"}},
-            {"name": "Kiosk", "gen": "park", "kind": "stall", "size": [9, 7, 7],
-             "params": {"land": "midway", "width": 7, "depth": 5, "facing": "east"},
-             "count": 3},
             # THE GATE IS THE ONE MODULE WHOSE POSITION IS ITS MEANING.
             {"name": "Park Gate", "gen": "park", "kind": "gate", "size": [15, 9, 7],
              "anchor": "edge", "side": "west",
@@ -216,9 +220,25 @@ THEMES = {
             {"name": "Mine Coaster", "gen": "coaster", "kind": "coaster",
              "size": [47, 38, 47], "orient": False, "anchor": "edge", "side": "north",
              "params": {"land": "frontier", "span": 44, "top": 34, "facing": "south"}},
-            {"name": "Log Flume", "gen": "coaster", "kind": "flume",
-             "size": [31, 24, 31], "orient": False,
-             "params": {"land": "frontier", "flume_span": 29, "flume_top": 20, "pool": 4, "facing": "west"}},
+            # **THE LOG FLUME IS WITHDRAWN UNTIL IT DEMONSTRABLY CARRIES A RIDER.**
+            #
+            # Jack: *"the water slide etc are a good idea but functionally dont actually work so
+            # it makes it difficult"*. He is right and `mcbuild/fluids.py` now proves it: the ride
+            # placed 564 water cells and every one was level=0, a SOURCE. A trough of sources is
+            # STILL water - it does not push, so it carries nobody - and simulated with a single
+            # honest source at the top the rider stops at the SECOND cell, because the top
+            # traverse was dead flat and water dies seven blocks from its source.
+            #
+            # The generator has been improved (the traverse descends now, and water is placed as
+            # spaced sources rather than a solid trough, with none on the lift because water does
+            # not flow uphill) but it is NOT yet carrying: at the spaced placement heights the
+            # channel is not continuous, so the sources sit in sealed pockets. That is real work
+            # on the channel geometry, not a tuning pass.
+            #
+            # This repo cut `chase` and `vault` from the casino rather than ship machines it could
+            # not judge, and the same rule applies here: a ride that looks like it works and does
+            # not is worse than one that is absent. It goes back in the day `fluids.carries`
+            # returns True for it.
             {"name": "Prospect Row", "gen": "frontiertown", "kind": "falsefront",
              "size": [13, 14, 39], "orient": False,
              "params": {"land": "frontier", "shops": 5, "facing": "east"}},
@@ -234,6 +254,12 @@ THEMES = {
             {"name": "Windmill", "gen": "frontiertown", "kind": "windmill",
              "size": [13, 24, 21], "orient": False,
              "params": {"land": "frontier", "facing": "east"}},
+            {"name": "Tin Can Alley", "gen": "casino", "kind": "duel",
+             "size": [9, 8, 8], "orient": False,
+             "params": {"outcomes": 3, "pit": 2, "facing": "east"}},
+            {"name": "Gold Panning", "gen": "casino", "kind": "double_or_none",
+             "size": [9, 8, 8], "orient": False,
+             "params": {"outcomes": 3, "pit": 2, "facing": "east"}},
             {"name": "Water Tower", "gen": "frontiertown", "kind": "watertower",
              "size": [13, 27, 13],
              "params": {"land": "frontier", "facing": "east"}},
@@ -270,6 +296,12 @@ THEMES = {
             {"name": "Clock Tower", "gen": "hollowmanor", "kind": "clocktower",
              "size": [17, 49, 17],
              "params": {"land": "hollow", "facing": "east"}},
+            {"name": "Fortune Wheel", "gen": "casino", "kind": "wheel",
+             "size": [24, 4, 24], "orient": False,
+             "params": {"pit": 2, "facing": "east"}},
+            {"name": "The Reckoning", "gen": "casino", "kind": "lucky_number",
+             "size": [9, 8, 8], "orient": False,
+             "params": {"outcomes": 3, "pit": 2, "facing": "east"}},
             {"name": "The Crypt", "gen": "hollowmanor", "kind": "crypt",
              "size": [19, 15, 17],
              "params": {"land": "hollow", "facing": "east"}},
@@ -723,6 +755,26 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                     "at": [bx - fx, plane, bz - fz], "size": [fw, fh, fd], "roll": 0,
                     "declared_size": list(mspec["size"]), "anchor_offset": [fx, fy, fz],
                     "floor": floors[0]["name"], "covers": True,
+                    "params": dict(mspec.get("params", {})), "world": world,
+                })
+                continue
+            # A CENTREPIECE BELONGS AT THE CENTRE, and that is not a thing the packer can know.
+            #
+            # `cover` centres a module and claims NOTHING, because it is the ground. A hero object
+            # is the opposite: it must be at the middle AND own its box, so the avenues cross at
+            # it and everything else keeps clear. Left to the bay packer a monument lands wherever
+            # there happened to be a slot, which for the one thing the whole zone is arranged
+            # around is the same mistake as siting the gate in the middle of a field.
+            if mspec.get("anchor") == "centre" and pl_plot is not None and plane is not None:
+                x0, x1, z0, z1 = _plot_bounds(pl_plot)
+                bx = x0 + ((x1 - x0 + 1) - fw) // 2
+                bz = z0 + ((z1 - z0 + 1) - fd) // 2
+                taken.append((bx, plane + fy, bz, fw + spacing, fh, fd + spacing))
+                pl.modules.append({
+                    "name": mspec["name"], "gen": mspec["gen"], "kind": mspec["kind"],
+                    "at": [bx - fx, plane, bz - fz], "size": [fw, fh, fd], "roll": 0,
+                    "declared_size": list(mspec["size"]), "anchor_offset": [fx, fy, fz],
+                    "floor": floors[0]["name"], "centrepiece": True,
                     "params": dict(mspec.get("params", {})), "world": world,
                 })
                 continue
