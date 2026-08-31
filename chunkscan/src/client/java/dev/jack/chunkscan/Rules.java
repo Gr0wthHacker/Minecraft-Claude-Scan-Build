@@ -50,6 +50,7 @@ final class Rules {
 			economy = strings(root, "economy");
 			serverBlocks = strings(root, "server_blocks");
 			serverAuthoritative = root.has("server_authoritative") && root.get("server_authoritative").getAsBoolean();
+			Plot.load(root);          // the buildable square, derived from the island's own bedrock
 			if (root.has("categories")) {
 				categories = new java.util.LinkedHashMap<>();
 				for (var e : root.getAsJsonObject("categories").entrySet()) {

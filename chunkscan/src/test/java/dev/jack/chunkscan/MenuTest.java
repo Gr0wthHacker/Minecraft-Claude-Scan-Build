@@ -41,11 +41,21 @@ class MenuTest {
 		return out;
 	}
 
-    /** Every `/cscan x ...` the sheet offers. */
+    /**
+     * Every word the sheet offers, from the WHOLE command string rather than its first verb.
+     *
+     * <p>Reading only the first word meant a row like `/cscan income sample` did not count as
+     * offering `sample`, so every real sub-verb had to be exempted instead - growing the one list
+     * this test calls its own weak point. Reading all of them shrinks it.
+     */
     private static Set<String> offered() throws IOException {
         Set<String> out = new LinkedHashSet<>();
-        Matcher m = Pattern.compile("new Row\\(\"/cscan ([a-z]+)").matcher(read(MENU));
-        while (m.find()) out.add(m.group(1));
+        Matcher m = Pattern.compile("new Row\\(\"/cscan ([^\"]+)\"").matcher(read(MENU));
+        while (m.find()) {
+            for (String w : m.group(1).trim().split("\\s+")) {
+                if (w.matches("[a-z]+")) out.add(w);
+            }
+        }
         return out;
     }
 
@@ -56,6 +66,10 @@ class MenuTest {
 		// `island` is the bare `/cscan <name>` scan form rather than a literal, so it is expected
 		// to be absent from the tree - it is an ARGUMENT, and the sheet uses it as the example.
 		menu.remove("island");
+		// ...and the fill MODES are argument values, not literals: `/cscan fill ball <name>` passes
+		// "ball" as a string to one command. Same case as `island`, which is a scan NAME.
+		menu.removeAll(Set.of("solid", "hollow", "walls", "outline", "ball", "sphere", "dome",
+			"cylinder", "tube", "disc", "ring"));
 		menu.removeAll(real);
 		assertTrue(menu.isEmpty(), "the sheet offers commands that do not exist: " + menu);
 	}
@@ -87,7 +101,7 @@ class MenuTest {
 		// It is pasted into the chat box with the cursor after it. Without the trailing space you
 		// type `/cscan planIsland Belly` and wonder why nothing happened.
 		String src = read(MENU);
-		Matcher m = Pattern.compile("new Row\\(\"(/cscan [^\"]+)\", \"(<[^\"]*)\"\\)").matcher(src);
+		Matcher m = Pattern.compile("new Row\\(\"(/cscan [^\"]+)\", \"([<\\[][^\"]*)\"\\)").matcher(src);
 		int checked = 0;
 		while (m.find()) {
 			checked++;
@@ -100,7 +114,8 @@ class MenuTest {
 	@Test
 	void aRowThatTakesNoArgumentDoesNotEndInASpace() throws IOException {
 		String src = read(MENU);
-		Matcher m = Pattern.compile("new Row\\(\"(/cscan [^\"]+)\", \"([^<\"][^\"]*)\"\\)").matcher(src);
+		// `<name>` is required and `[name]` optional; BOTH are arguments and both need the space.
+		Matcher m = Pattern.compile("new Row\\(\"(/cscan [^\"]+)\", \"([^<\\[\"][^\"]*)\"\\)").matcher(src);
 		while (m.find()) {
 			assertFalse(m.group(1).endsWith(" "),
 				"'" + m.group(1) + "' takes no argument but has a trailing space");

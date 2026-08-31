@@ -308,3 +308,64 @@ class Registry:
 
     def raw(self, name: str, **props) -> int:
         return self._add(nbt.block_state(name, **props))
+
+
+# ---------------------------------------------------------------------- affordable look-alikes
+
+def witnessed(capture: str | None = "out/island_full.litematic") -> frozenset:
+    """Every block this server has actually been SEEN to hold.
+
+    RULE 12, AND THE TIER TABLE IS NOT ENOUGH ON ITS OWN. Asked for a cheap stand-in for quartz,
+    the plain colour picker offered `pearlescent_froglight` - cheap by the table, and this island
+    holds ZERO of them, so it is a material you cannot spend. The allowlist plus what the capture
+    actually contains is the honest pool, which is the same union `ladder.py` uses.
+    """
+    import json
+    import pathlib as _p
+    out = set()
+    try:
+        d = json.loads((_p.Path(__file__).resolve().parent / "data/server_blocks.json")
+                       .read_text(encoding="utf-8"))
+        out |= set(d.get("blocks", ()))
+    except Exception:                                        # noqa: BLE001
+        pass
+    if capture:
+        try:
+            from . import scan as _scan
+            out |= {n.split(":")[-1] for n in _scan.load(capture).model.names}
+        except Exception:                                    # noqa: BLE001
+            pass
+    return frozenset(out)
+
+
+def affordable_like(name: str, face: str = "side", capture: str | None = "out/island_full.litematic"):
+    """The closest block to `name` that is CHEAP, WITNESSED here, and not a machine.
+
+    Three gates, because each one on its own gives an answer you cannot build with:
+
+      * cheap by the economy table          - or it is a material you will not spend
+      * witnessed on this server            - or it is a material you cannot GET (rule 12)
+      * not functional                      - or it is a container with a face on it, which is the
+                                              `bee_nest` trap and, this session, `black_shulker_box`
+
+    Returns (block, distance) or (None, None) when nothing close survives all three - which is a
+    real answer and better than a bad substitute.
+    """
+    import sys as _sys
+    import pathlib as _p
+    _sys.path.insert(0, str(_p.Path(__file__).resolve().parent.parent / "tools"))
+    from rubric import FUNCTIONAL                            # noqa: E402
+    from . import blocks as _b
+
+    rgb = _b.color(name, face)
+    if not rgb:
+        return None, None
+    seen = witnessed(capture)
+    pool = [b for b in _b.candidates(full_only=True)
+            if tier("minecraft:" + b) == "cheap"
+            and b in seen
+            and not any(f in b for f in FUNCTIONAL)]
+    best = _b.nearest(rgb, pool=pool, face=face)
+    if not best:
+        return None, None
+    return best, _b._dist(rgb, _b.color(best, face))

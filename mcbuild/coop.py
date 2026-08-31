@@ -251,8 +251,15 @@ def _paste_columns(ids, pal, key_index, g: Grid, own: np.ndarray, origin):
 
 # ------------------------------------------------------------------ shop
 
-def load_storage(schem_dir: str | None = None) -> collections.Counter:
-    """What chunkscan has seen inside your containers: {item: count} from schematics/storage.json."""
+def load_storage(schem_dir: str | None = None, boxed: bool = True) -> collections.Counter:
+    """What chunkscan has seen inside your containers: {item: count} from schematics/storage.json.
+
+    `boxed` counts what is inside SHULKER BOXES that are inside those containers, which the mod
+    records separately in `inBoxes`. The build loop keeps the two apart on purpose - a boxed block
+    is not placeable until you set the box down - but for "do I own enough to make this" a boxed
+    block is owned, and bulk storage on this island IS boxes in chests. Pass False for the
+    placeable-right-now question.
+    """
     path = os.path.join(schem_dir or load_profile()["schem_dir"], "storage.json")
     have = collections.Counter()
     if not os.path.exists(path):
@@ -262,6 +269,9 @@ def load_storage(schem_dir: str | None = None) -> collections.Counter:
     for c in data.get("containers", []):
         for item, n in (c.get("items") or {}).items():
             have[item.split(":")[-1]] += int(n)
+        if boxed:
+            for item, n in (c.get("inBoxes") or {}).items():
+                have[item.split(":")[-1]] += int(n)
     return have
 
 
@@ -427,6 +437,20 @@ def sync(cfg_path: str = "sync.yaml", verbose: bool = True) -> str:
     tracked = write_tracked(cfg, prof["schem_dir"])
     lines.append(f"tracked {len(tracked)} design(s) -> designs.json (the mod reads this for "
                  f"`/cscan place` and `/cscan plan`)")
+    # THE SCAN IS THE THING THAT CANNOT BE REGENERATED, and this is the moment a new one exists.
+    # Backing up on any other schedule backs up the world as it was before the change that made
+    # the run worth doing. A failure here is REPORTED and never fatal: a sync that dies because
+    # the backup drive is full has lost the sync as well as the backup.
+    if cfg.get("backup", True):
+        from . import backup as backup_mod
+        try:
+            man = backup_mod.run(keep=cfg.get("backup_keep", backup_mod.KEEP))
+            n = sum(p.get("files", 0) for p in man["parts"].values()
+                    if isinstance(p, dict) and isinstance(p.get("files"), int))
+            lines.append(f"backup {man['stamp']}: {n} files verified -> {man['dir']}"
+                         + (f" (pruned {len(man['pruned'])})" if man.get("pruned") else ""))
+        except Exception as e:                              # noqa: BLE001
+            lines.append(f"BACKUP FAILED: {e}")
     return "\n".join(lines)
 
 

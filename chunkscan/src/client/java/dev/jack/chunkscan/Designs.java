@@ -200,4 +200,52 @@ final class Designs {
 		}
 		return out;
 	}
+
+	/**
+	 * The design's recorded FACING, in degrees, or 0 when it has none.
+	 *
+	 * <p>THE BEARING IS RELATIVE TO THIS, exactly as {@code look.py} and {@code panel.py} choose
+	 * their profile axis — 0 head-on, 90 profile, 180 tail-on. Picked by hand it was got wrong
+	 * twice in one session, and a design with no recorded facing SAYS SO rather than defaulting
+	 * quietly: {@link #hasFacing} is what a caller checks before believing "head-on".
+	 */
+	static int facingDegrees(java.nio.file.Path schematicsDir, String name) {
+		String f = facingName(schematicsDir, name);
+		return switch (f) {
+			case "south" -> 180;
+			case "east" -> 90;
+			case "west" -> 270;
+			case "north" -> 0;
+			default -> {
+				try {
+					yield Integer.parseInt(f);
+				} catch (NumberFormatException e) {
+					yield 0;
+				}
+			}
+		};
+	}
+
+	static boolean hasFacing(java.nio.file.Path schematicsDir, String name) {
+		return !facingName(schematicsDir, name).isBlank();
+	}
+
+	private static String facingName(java.nio.file.Path schematicsDir, String name) {
+		try {
+			java.nio.file.Path side = schematicsDir.resolve(name + ".scan.json");
+			if (!java.nio.file.Files.exists(side)) return "";
+			com.google.gson.JsonObject o = com.google.gson.JsonParser
+				.parseString(java.nio.file.Files.readString(side)).getAsJsonObject();
+			for (String key : new String[] {"facing", "faces"}) {
+				if (o.has(key)) return o.get(key).getAsString().toLowerCase(java.util.Locale.ROOT);
+			}
+			if (o.has("designed") && o.getAsJsonObject("designed").has("facing")) {
+				return o.getAsJsonObject("designed").get("facing").getAsString()
+					.toLowerCase(java.util.Locale.ROOT);
+			}
+		} catch (Exception ignored) {
+			// a sidecar we cannot read has no facing, which is the honest answer
+		}
+		return "";
+	}
 }

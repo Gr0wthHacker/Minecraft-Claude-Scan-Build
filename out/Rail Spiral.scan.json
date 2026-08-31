@@ -1,0 +1,62 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 20,
+    "z": 29949
+  },
+  "size": {
+    "x": 77,
+    "y": 176,
+    "z": 97
+  },
+  "generated_by": "railspiral",
+  "after": [
+    "Lowland Thicket",
+    "Island Night"
+  ],
+  "kind": "railspiral",
+  "center": [
+    -24206,
+    30014
+  ],
+  "radius": 30,
+  "grade": 4,
+  "start_angle": 185,
+  "track": 694,
+  "powered": 683,
+  "corners": 11,
+  "power_sources": 104,
+  "runs": 12,
+  "turns": 2.89,
+  "y_top": 195,
+  "y_bottom": 41,
+  "stops": 2,
+  "lights": 62,
+  "claimed": [
+    [
+      -24176,
+      53,
+      30040
+    ]
+  ],
+  "dig": [
+    [
+      -24236,
+      40,
+      30027
+    ]
+  ],
+  "clear": [
+    "short_grass"
+  ],
+  "cleared": 1,
+  "skipped": {
+    "plot": 0,
+    "world": 5,
+    "reserved": 3,
+    "protected": 0,
+    "clear_of": 0
+  },
+  "file": "Rail Spiral.litematic",
+  "name": "Rail Spiral"
+}

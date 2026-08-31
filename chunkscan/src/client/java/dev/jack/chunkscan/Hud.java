@@ -397,6 +397,18 @@ final class Hud {
 			// spot and find it can place nothing. Told, not fetched.
 			Map<String, Integer> boxes = Work.boxed(mc.player);
 			targets = Plan.notInAPack(targets, boxes, item -> {
+				// ...AND IT UNPACKS ITSELF NOW. This used to tell you to "set it down and take
+				// them", which is the same shape of claim as "a client mod cannot place a block":
+				// a policy written as a fact. Unboxing is placing, opening, emptying and breaking,
+				// and this mod already does all four. If it cannot be done safely — nowhere to
+				// stand the box that is not over the void — Unbox refuses and the message stands.
+				if (!Unbox.running() && Unbox.boxWith(mc.player, item) >= 0) {
+					String said = Unbox.start(mc, item, boxes.get(item));
+					if (saidBoxed.add(item)) {
+						mc.player.sendSystemMessage(Component.literal("[cscan] " + said));
+					}
+					return;
+				}
 				if (saidBoxed.add(item)) {
 					mc.player.sendSystemMessage(Component.literal("[cscan] you are carrying "
 						+ boxes.get(item) + "x " + item + " in a shulker box — set it down and take"
@@ -576,8 +588,17 @@ final class Hud {
 				here = Plan.atStation(live, st, Plan.reach());
 			}
 		}
-		Loop.Station what = Loop.station(st.bin() == stationBin, arrived, here.size(), stationTodo,
-			now - stationSince, STATION_MS, stationRetry);
+		// WHEN WE ARE THE PRINTER, ASK THE PRINTER. The clocks below exist only because placement
+		// used to be silent; with a real report a placement is progress immediately and a refusal
+		// is proof immediately, where five seconds of nothing could only ever be a guess. Silence
+		// still falls through to the clock, because nothing attempted is not evidence of anything.
+		int[] rep = Printer.driving() ? Printer.drainReport() : new int[] {0, 0};
+		Loop.Station what = Printer.driving()
+			? Loop.stationFromReport(st.bin() == stationBin, arrived, here.size(), stationTodo,
+				now - stationSince, STATION_MS, stationRetry, rep[0], rep[1])
+			: Loop.station(st.bin() == stationBin, arrived, here.size(), stationTodo,
+				now - stationSince, STATION_MS, stationRetry);
+		if (rep[0] > 0) lastProgressMs = now;   // a placement is progress, whatever the count says
 		if (what != Loop.Station.NEW) {
 			if (what == Loop.Station.RECENTRE) {
 				stationSince = now;

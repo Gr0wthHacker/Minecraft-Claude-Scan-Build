@@ -68,7 +68,10 @@ public final class ChunkScanClient implements ClientModInitializer {
 		"ignore", "label", "list", "mark", "marks", "mat", "move", "need", "next", "off", "on",
 		"paste", "place", "plan", "progress", "prune", "replace", "reset", "scaffold", "scan",
 		"sel", "speed", "stack", "status", "stop", "take", "tidy", "undo", "undos", "unmark",
-		"wand", "why");
+		"wand", "why",
+		// the skyblock set
+		"add", "autodig", "buy", "craft", "farm", "forget", "income", "make", "photo", "plot",
+		"prices", "print", "sample", "smelt", "warp", "fleet", "unbox", "work");
 
 	/**
 	 * A design or clip name that is about to become a FILE PATH.
@@ -109,6 +112,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Screens.register();
 		Autopilot.register();
 		Ignored.register();
+		printerTick();
 		// EVERY PIECE OF COORDINATE STATE GOES ON DISCONNECT. `Wand` has always done this and stated
 		// the rule - "a selection is a pair of coordinates and coordinates mean nothing without a
 		// world" - and nothing else obeyed it. A strike list, a chest cooling off at a position, an
@@ -365,6 +369,73 @@ public final class ChunkScanClient implements ClientModInitializer {
 						.executes(ctx -> run(ctx, DEFAULT_RADIUS, true, true))
 						.then(argument("radius", IntegerArgumentType.integer(0, MAX_RADIUS))
 							.executes(ctx -> run(ctx, IntegerArgumentType.getInteger(ctx, "radius"), true, true)))))
+				.then(literal("craft")
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::craft)))
+				.then(literal("prices")
+					.executes(ChunkScanClient::pricesStatus)
+					.then(literal("on").executes(ctx -> { ok(ctx.getSource(), Prices.start()); return 1; }))
+					.then(literal("off").executes(ctx -> { ok(ctx.getSource(), Prices.stop(ctx.getSource().getClient())); return 1; })))
+				.then(literal("income")
+					.executes(ChunkScanClient::income)
+					.then(literal("sample").executes(ChunkScanClient::incomeSample)))
+				.then(literal("print")
+					.executes(ctx -> print(ctx, false))
+					.then(literal("off").executes(ctx -> print(ctx, false)))
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ctx -> print(ctx, true))))
+				.then(literal("make")
+					.then(argument("what", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::make)))
+				.then(literal("autodig")
+					.executes(ctx -> digAuto(ctx, false))
+					.then(literal("off").executes(ctx -> digAuto(ctx, false)))
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ctx -> digAuto(ctx, true))))
+				.then(literal("smelt")
+					.then(argument("what", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::smelt)))
+				.then(literal("buy")
+					.then(argument("design", StringArgumentType.string())
+						.executes(ctx -> buy(ctx, true))
+						.then(argument("cap", IntegerArgumentType.integer(1, 100000000))
+							.executes(ctx -> buy(ctx, false)))))
+				.then(literal("farm")
+					.executes(ctx -> { ok(ctx.getSource(), Farm.status()); return 1; })
+					.then(literal("off").executes(ctx -> farm(ctx, true)))
+					.then(argument("seed", StringArgumentType.word())
+						.then(argument("crop", StringArgumentType.word())
+							.executes(ctx -> farm(ctx, false)))))
+				.then(literal("photo")
+					.executes(ctx -> { ok(ctx.getSource(), Photo.status()); return 1; })
+					.then(literal("off").executes(ctx -> photo(ctx, true)))
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ctx -> photo(ctx, false))))
+				.then(literal("fleet")
+					.executes(ChunkScanClient::fleet)
+					.then(literal("take")
+						.then(argument("design", StringArgumentType.greedyString())
+							.executes(ChunkScanClient::fleetTake)))
+					.then(literal("work").executes(ChunkScanClient::fleetWork))
+					.then(literal("done")
+						.then(argument("design", StringArgumentType.greedyString())
+							.executes(ChunkScanClient::fleetDone))))
+				.then(literal("unbox")
+					.executes(ctx -> { ok(ctx.getSource(), Unbox.status()); return 1; })
+					.then(argument("what", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::unbox)))
+				.then(literal("plot").executes(ChunkScanClient::plot))
+				.then(literal("warp")
+					.executes(ChunkScanClient::warps)
+					.then(literal("off").executes(ctx -> { Warps.enabled(false); ok(ctx.getSource(), "routing will not use warps"); return 1; }))
+					.then(literal("on").executes(ctx -> { Warps.enabled(true); ok(ctx.getSource(), "routing may use warps again"); return 1; }))
+					.then(literal("add")
+						.executes(ctx -> warpAdd(ctx, ""))
+						.then(argument("name", StringArgumentType.word())
+							.executes(ctx -> warpAdd(ctx, StringArgumentType.getString(ctx, "name")))))
+					.then(literal("forget")
+						.then(argument("name", StringArgumentType.word())
+							.executes(ChunkScanClient::warpForget))))
 				// The explicit spelling. `/cscan island` still works and is what everyone types;
 				// this is how you say a scan name that collides with a command word on purpose.
 				.then(literal("scan")
@@ -391,6 +462,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 		int d = sp.digLeft();
 		return d == 0 ? "" : " — but " + d + " cell(s) still to BREAK: /cscan dig " + sp.name();
 	}
+
+	/** The design {@link Printer} is placing, or null. Set by `/cscan print`. */
+	static String printDesign;
 
 	private static Path dir(FabricClientCommandSource src) {
 		return ScanRunner.schematicsDir(src.getClient());
@@ -508,6 +582,26 @@ public final class ChunkScanClient implements ClientModInitializer {
 			Path d = dir(src);
 			Path lit = d.resolve(design + ".litematic");
 			Path side = d.resolve(design + ".scan.json");
+			// THE PLOT IS 99x99 AND DERIVED FROM THE BEDROCK; until now the mod could not see it,
+			// and the Island Run shipped 120 cells over the line with a human catching it rather
+			// than the tooling. Off the plot a placement may simply be refused, so you carry the
+			// blocks out there and come back with them. WARNS rather than refuses: the boundary is
+			// measured, but so was the server allowlist, and that turned out to be provisional.
+			{
+				// PER ISLAND, so a box drawn on alt 1's island is checked against ITS square rather
+				// than against whichever one happened to be exported. Falls back to the single
+				// baked-in plot when no registry exists.
+				java.nio.file.Path idir = dir(src);
+				int c00 = Islands.over(idir, plan.min().getX(), plan.min().getZ());
+				int c11 = Islands.over(idir, plan.max().getX(), plan.max().getZ());
+				int c01 = Islands.over(idir, plan.min().getX(), plan.max().getZ());
+				int c10 = Islands.over(idir, plan.max().getX(), plan.min().getZ());
+				int worst = Math.max(Math.max(c00, c11), Math.max(c01, c10));
+				if (worst > 0) {
+					src.sendError(Component.literal("[cscan] WARNING: this box reaches OUTSIDE the "
+						+ "island plot, up to " + worst + " block(s) over the line."));
+				}
+			}
 			Capture cap = Fill.capture(probe, plan);
 			LitematicWriter.write(lit, cap, design, player.getName().getString(),
 				"wand " + (replaceOnly != null ? "replace " + Rules.shortName(replaceOnly) + " -> " : "fill ")
@@ -1704,6 +1798,19 @@ public final class ChunkScanClient implements ClientModInitializer {
 			}
 			int dist = (int) Math.sqrt(near.distSqr(me));
 			ok(src, d.name() + ": " + d.dig().size() + " block(s) to clear, marked red for 2 minutes");
+			// BREAKING A BLOCK OVER THE VOID LOSES THE DROP - not scattered, not despawned in five
+			// minutes, GONE the moment it passes the bottom of the world. Most of this island hangs
+			// over it and the dig list has always been happy to walk you there in silence.
+			try {
+				java.util.List<VoidRisk.Cell> hz = VoidRisk.hazards(src.getClient().level, d.dig());
+				String warn = VoidRisk.warn(hz, d.dig().size());
+				if (!warn.isEmpty()) {
+					src.sendError(Component.literal("[cscan] " + warn));
+					Highlight.show("dig", hz.stream().map(VoidRisk.Cell::pos).toList(), 0xFFFF00, 120);
+				}
+			} catch (Exception ignored) {
+				// a hazard check that throws must never cost you the dig list itself
+			}
 			ok(src, "  nearest is " + near.getX() + " " + near.getY() + " " + near.getZ()
 				+ " - " + dist + "m " + Storage.direction(me, near));
 			if (dist > Highlight.RADIUS) {
@@ -1850,5 +1957,647 @@ public final class ChunkScanClient implements ClientModInitializer {
 			src.sendError(Component.literal("[cscan] failed: " + e));
 			return 0;
 		}
+	}
+
+	// ---------------------------------------------------------------- skyblock
+
+	/**
+	 * What a design is MADE of, all the way down, against what your containers hold.
+	 *
+	 * <p>The answer people actually want from a bill of materials on a server where nothing is
+	 * mined. {@code bom} says 518 powered rails; this says 289 gold ingots and that the rest is
+	 * already yours.
+	 */
+	private static int craft(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String name = StringArgumentType.getString(ctx, "design");
+		if (!Recipes.available()) {
+			src.sendError(Component.literal("[cscan] no recipe data in this jar - run "
+				+ "tools/extract_recipes.py then tools/export_rules.py and rebuild"));
+			return 0;
+		}
+		try {
+			Minecraft mc = src.getClient();
+			Work.Split sp = Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
+			Map<String, Integer> want = new java.util.LinkedHashMap<>();
+			for (Work.Cell c : sp.todo()) want.merge(Rules.shortName(c.block()), 1, Integer::sum);
+			if (want.isEmpty()) {
+				ok(src, sp.name() + " has nothing left to place" + digNote(sp));
+				return 1;
+			}
+			// Everything you own, boxed contents INCLUDED: for "can I make this" a block inside a
+			// shulker is owned. The build loop keeps them apart because a boxed block is not
+			// placeable - a different question, with a different right answer.
+			Map<String, Integer> have = new java.util.LinkedHashMap<>();
+			for (Storage.Container c : Storage.load(dir(src)).values()) {
+				c.items.forEach((k, v) -> have.merge(Rules.shortName(k), v, Integer::sum));
+				c.inBoxes.forEach((k, v) -> have.merge(Rules.shortName(k), v, Integer::sum));
+			}
+
+			Recipes.Plan plan = Recipes.plan(want, have);
+			ok(src, sp.name() + ": " + sp.todo().size() + " cells left, " + want.size() + " materials");
+			if (plan.steps.isEmpty() && plan.shortOf.isEmpty()) {
+				ok(src, "  everything is already in your containers - nothing to craft");
+			}
+			int shown = 0;
+			for (Recipes.Step st : plan.steps) {
+				if (shown++ >= 12) {
+					ok(src, "  ...and " + (plan.steps.size() - 12) + " more steps");
+					break;
+				}
+				StringBuilder from = new StringBuilder();
+				for (var e : st.from().entrySet()) {
+					if (from.length() > 0) from.append(", ");
+					from.append(e.getValue()).append("x ").append(e.getKey());
+				}
+				ok(src, "  " + st.kind() + " " + st.made() + "x " + st.item() + " from " + from);
+			}
+			if (plan.smelts() > 0) {
+				ok(src, "  " + plan.smelts() + " to smelt = about " + ((plan.smelts() + 7) / 8) + " coal of fuel");
+			}
+			if (plan.shortOf.isEmpty()) {
+				ok(src, "  SHORT: nothing - this is craftable from what you have");
+				return 1;
+			}
+			ok(src, "  SHORT - you must farm, buy or trade for:");
+			Prices.Book book = Prices.load(dir(src));
+			java.util.List<Income.Rate> rising = Income.rates(Income.load(dir(src)), true);
+			double coins = 0;
+			boolean priced = false;
+			for (var e : plan.shortOf.entrySet()) {
+				StringBuilder line = new StringBuilder("    " + e.getValue() + "x " + e.getKey());
+				if (plan.currency.contains(e.getKey())) line.append("  <- CURRENCY on this server");
+				double c = Prices.buyCost(book, e.getKey(), e.getValue());
+				if (c >= 0) {
+					line.append("  = ").append(Math.round(c)).append(" coins");
+					coins += c;
+					priced = true;
+				}
+				double hrs = Income.hoursFor(rising, e.getKey(), e.getValue());
+				if (hrs >= 0) line.append(String.format("  ~%.1fh of production", hrs));
+				ok(src, line.toString());
+			}
+			if (priced) ok(src, "  buying the priced part: about " + Math.round(coins) + " coins");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	private static int pricesStatus(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Prices.Book b = Prices.load(dir(src));
+		ok(src, "prices: " + b.prices.size() + " item(s) known"
+			+ (b.updated == null || b.updated.isBlank() ? "" : ", last seen " + b.updated)
+			+ (b.skipped > 0 ? ", " + b.skipped + " slot(s) had no readable price" : ""));
+		ok(src, "capture is " + (Prices.capturing() ? "ON - open the shop categories" : "OFF - /cscan prices on"));
+		ok(src, "real numbers instead of a three-bucket guess. Nothing is ever bought for you.");
+		return 1;
+	}
+
+	private static int incomeSample(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		try {
+			ok(src, Income.record(src.getClient()));
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	private static int income(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		try {
+			Income.Log log = Income.load(dir(src));
+			String why = Income.caveat(log);
+			java.util.List<Income.Rate> up = Income.rates(log, true);
+			java.util.List<Income.Rate> down = Income.rates(log, false);
+			if (up.isEmpty() && down.isEmpty()) {
+				ok(src, "no rate yet - " + (why.isBlank() ? "take two samples: /cscan income sample" : why));
+				return 1;
+			}
+			ok(src, "production per hour, from your indexed containers:");
+			int n = 0;
+			for (Income.Rate r : up) {
+				if (n++ >= 10) break;
+				ok(src, String.format("  %-24s %+.0f/h  (%+d)", r.item(), r.perHour(), r.delta()));
+			}
+			n = 0;
+			for (Income.Rate r : down) {
+				if (n++ >= 5) break;
+				ok(src, String.format("  %-24s %.0f/h  (%d)  spent or moved", r.item(), r.perHour(), r.delta()));
+			}
+			if (!why.isBlank()) ok(src, "  caveat: " + why);
+			ok(src, "  a fall is not a farm running backwards - building with something looks the same");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	private static int plot(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		// WHICHEVER ISLAND YOU ARE STANDING ON. The single baked-in plot is the fallback, not the
+		// answer: alt 2 on alt 1's island must be told about alt 1's square.
+		for (String line : Islands.describe(src.getClient(), dir(src)).lines().toList()) ok(src, line);
+		return 1;
+	}
+
+	private static int warps(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		java.util.List<Warps.Warp> ws = Warps.forServer(src.getClient());
+		if (ws.isEmpty()) {
+			ok(src, "no warps recorded. Type /is (or /is warp <name>), and WHERE IT DROPS YOU run "
+				+ "/cscan warp add [name] - the landing point is the thing routing needs");
+			return 1;
+		}
+		ok(src, ws.size() + " warp(s); routing " + (Warps.enabled() ? "may" : "will NOT") + " use them:");
+		for (Warps.Warp w : ws) {
+			ok(src, "  /" + w.command() + "  lands at " + w.x + " " + w.y + " " + w.z);
+		}
+		return 1;
+	}
+
+	private static int warpAdd(CommandContext<FabricClientCommandSource> ctx, String name) {
+		FabricClientCommandSource src = ctx.getSource();
+		try {
+			ok(src, Warps.add(src.getClient(), name));
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	private static int warpForget(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		try {
+			ok(src, Warps.remove(src.getClient(), StringArgumentType.getString(ctx, "name")));
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	// ---------------------------------------------------------------- print and make
+
+	/**
+	 * Place the design's blocks ourselves, and WATCH WHETHER THEY LANDED.
+	 *
+	 * <p>The point is not speed, it is the feedback signal the loop has never had. Delegating to
+	 * litematica-printer left {@code todo} shrinking as the only evidence anything was placed,
+	 * which is why there are four stall clocks.
+	 */
+	private static int print(CommandContext<FabricClientCommandSource> ctx, boolean on) {
+		FabricClientCommandSource src = ctx.getSource();
+		if (!on) {
+			Printer.reset();
+			printDesign = null;
+			ok(src, "printer off");
+			return 1;
+		}
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Minecraft mc = src.getClient();
+			Work.Split sp = Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
+			// TWO PRINTERS ON ONE DESIGN FIGHT: each sees the other's block as already built or as
+			// a deviation, and the placement report - the only honest signal this loop has - turns
+			// into noise. Refused rather than warned, because by the time you notice it has already
+			// cost both accounts their feedback.
+			if (Fleet.heldByOther(dir(src), sp.name(), Fleet.me(mc))) {
+				src.sendError(Component.literal("[cscan] " + sp.name() + " is claimed by another "
+					+ "account - /cscan fleet to see who, or /cscan fleet take to override"));
+				return 0;
+			}
+			Printer.reset();
+			noItemSaid = null;          // a new run must be allowed to say what it is missing
+			printDesign = sp.name();
+			ok(src, "printing " + sp.name() + ": " + sp.todo().size() + " cell(s) left. "
+				+ "It places into AIR only and never breaks anything" + digNote(sp));
+			ok(src, "  every placement is VERIFIED against the world, so a wrong state is reported "
+				+ "rather than counted. /cscan print off to stop");
+			if (!Litematica.enabled(sp.name()).equals("no")) {
+				ok(src, "  litematica-printer may also be running on this design — turn one of them "
+					+ "off, or two printers will fight over the same cells");
+			}
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/** Craft what `/cscan craft` worked out, with a crafting screen already open. */
+	private static int make(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String spec = StringArgumentType.getString(ctx, "what").trim();
+		Minecraft mc = src.getClient();
+		if (spec.equalsIgnoreCase("off")) {
+			Crafter.stop();
+			ok(src, "make off");
+			return 1;
+		}
+		if (!Recipes.available()) {
+			src.sendError(Component.literal("[cscan] no recipe data in this jar"));
+			return 0;
+		}
+		String item = spec;
+		int count = 1;
+		int sp = spec.lastIndexOf(' ');
+		if (sp > 0) {
+			try {
+				count = Integer.parseInt(spec.substring(sp + 1).trim());
+				item = spec.substring(0, sp).trim();
+			} catch (NumberFormatException ignored) {
+				// "make oak_planks" with no number is one craft, which is a reasonable default
+			}
+		}
+		ok(src, Crafter.start(mc, Rules.shortName(item), Math.max(1, count)));
+		java.util.Map<String, String> cannot = Crafter.unsupported(
+			Recipes.plan(java.util.Map.of(Rules.shortName(item), Math.max(1, count)), java.util.Map.of()));
+		for (var e : cannot.entrySet()) {
+			ok(src, "  note: " + e.getKey() + " needs a " + e.getValue() + " — not done here");
+		}
+		return 1;
+	}
+
+	/**
+	 * Drives {@link Printer} and {@link Crafter}.
+	 *
+	 * <p>Guarded, because a throw out of a tick event is a client CRASH — the rule this file
+	 * already learned twice, on the movement tick and then on the highlight tick.
+	 *
+	 * <p><b>Placement and VERIFICATION are separated by ticks on purpose.</b> The server has to
+	 * answer before the world can say whether a block landed, so placing and then reading the same
+	 * cell in one tick would report every placement as a failure. That gap is the whole feature:
+	 * it is the first honest signal this loop has ever had about whether anything is happening.
+	 */
+	private static void printerTick() {
+		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+			// One guarded tick for every machine. A throw out of a tick event is a client CRASH —
+			// the rule this file learned on the movement tick and then again on the highlight tick —
+			// and each of these is stopped rather than left half-running if it throws.
+			say(mc, guarded(mc, "crafter", Crafter::tick, Crafter::stop));
+			say(mc, guarded(mc, "smelter", Smelter::tick, Smelter::stop));
+			say(mc, guarded(mc, "shop", Shop::tick, Shop::stop));
+			say(mc, guarded(mc, "farm", Farm::tick, Farm::stop));
+			say(mc, guarded(mc, "photo", Photo::tick, Photo::stop));
+			say(mc, guarded(mc, "unbox", Unbox::tick, Unbox::stop));
+			try {
+				// Keep this account's fleet claims alive while it is actually working. Rate-limited
+				// inside Fleet: a lease exists to recover from a DEAD client, not to punish a slow one.
+				if (printDesign != null || digDesign != null) Fleet.heartbeat(mc);
+				if (digDesign != null && mc.level != null) {
+					String line = Digger.tick(mc,
+						Work.digLeft(mc.level, ScanRunner.schematicsDir(mc), digDesign));
+					say(mc, line);
+				}
+			} catch (Exception e) {
+				LOG.warn("digger tick", e);
+				digDesign = null;
+			}
+			try {
+				if (printDesign == null || mc.player == null || mc.level == null) return;
+				// Verify first: last tick's attempts have had time to land, and a verified cell must
+				// not be re-attempted this tick.
+				for (Printer.Attempt a : Printer.verify(mc)) {
+					if (a.verdict() == Printer.Verdict.MISMATCH) {
+						mc.player.sendSystemMessage(Component.literal("[cscan] WRONG STATE at "
+							+ a.pos().getX() + " " + a.pos().getY() + " " + a.pos().getZ()
+							+ ": wanted " + a.want() + ", got " + a.got() + " — left for you"));
+					}
+				}
+				if (Printer.busy() || !Printer.ready(mc)) return;
+				Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), printDesign,
+					mc.player.blockPosition(), (int) Printer.REACH + 2);
+				Work.Cell next = null;
+				double best = Double.MAX_VALUE;
+				for (Work.Cell c : sp.todo()) {
+					if (Printer.givenUpOn(c.pos())) continue;
+					double d = mc.player.getEyePosition().distanceToSqr(
+						net.minecraft.world.phys.Vec3.atCenterOf(c.pos()));
+					if (d < best && d <= Printer.REACH * Printer.REACH) {
+						best = d;
+						next = c;
+					}
+				}
+				if (next == null) return;                 // nothing in reach: the loop moves you
+				Printer.Verdict v = Printer.place(mc, next.pos(), next.block());
+				if (v == Printer.Verdict.NO_ITEM) {
+					// Said once per material rather than per tick: a message on a tick timer is a
+					// reason to turn the whole thing off.
+					if (!next.item().equals(noItemSaid)) {
+						noItemSaid = next.item();
+						mc.player.sendSystemMessage(Component.literal(
+							"[cscan] printer: no " + next.item() + " in your HOTBAR — it places what "
+							+ "you hold, so put a stack on the bar"));
+					}
+				}
+			} catch (Exception e) {
+				LOG.warn("printer tick", e);
+			}
+		});
+	}
+
+	private static String noItemSaid;
+
+	/** Run one machine's tick, stopping it rather than letting a throw reach the tick event. */
+	private static String guarded(Minecraft mc, String what,
+	                              java.util.function.Function<Minecraft, String> tick,
+	                              Runnable stop) {
+		try {
+			return tick.apply(mc);
+		} catch (Exception e) {
+			LOG.warn("{} tick", what, e);
+			stop.run();
+			return what + " stopped: " + e;
+		}
+	}
+
+	private static void say(Minecraft mc, String line) {
+		if (line != null && mc.player != null) {
+			mc.player.sendSystemMessage(Component.literal("[cscan] " + line));
+		}
+	}
+
+	// ---------------------------------------------------------------- dig, smelt, buy, farm, photo
+
+	/** Break the cells a design's dig list names, and nothing else. */
+	private static int digAuto(CommandContext<FabricClientCommandSource> ctx, boolean on) {
+		FabricClientCommandSource src = ctx.getSource();
+		if (!on) {
+			ok(src, "auto-dig off — " + Digger.summary());
+			Digger.reset();
+			digDesign = null;
+			return 1;
+		}
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Designs.Design d = Designs.load(dir(src), name);
+			if (d.dig().isEmpty()) {
+				ok(src, d.name() + " has no dig list");
+				return 1;
+			}
+			Digger.reset();
+			digDesign = d.name();
+			ok(src, "auto-dig " + d.name() + ": " + d.dig().size() + " cell(s). It breaks ONLY what "
+				+ "the sidecar names, never a protected block, and never over open void");
+			ok(src, "  it does not pick up what it breaks — stand where the drops land");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/** Drive a furnace or a stonecutter. */
+	private static int smelt(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String spec = StringArgumentType.getString(ctx, "what").trim();
+		if (spec.equalsIgnoreCase("off")) {
+			Smelter.stop();
+			ok(src, "smelt off");
+			return 1;
+		}
+		String item = spec;
+		int count = 64;
+		int sp = spec.lastIndexOf(' ');
+		if (sp > 0) {
+			try {
+				count = Integer.parseInt(spec.substring(sp + 1).trim());
+				item = spec.substring(0, sp).trim();
+			} catch (NumberFormatException ignored) {
+				// no number given: a stack is the obvious default for a furnace
+			}
+		}
+		ok(src, Smelter.start(src.getClient(), Rules.shortName(item), count));
+		ok(src, "  fuel it will spend, cheapest first: " + Smelter.describeFuels());
+		return 1;
+	}
+
+	/**
+	 * Buy a design's shortfall, up to a cap YOU name.
+	 *
+	 * <p>There is deliberately no form of this that spends an amount nobody chose.
+	 */
+	private static int buy(CommandContext<FabricClientCommandSource> ctx, boolean quoteOnly) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		String name = StringArgumentType.getString(ctx, "design");
+		if (name.equalsIgnoreCase("off")) {
+			Shop.stop();
+			ok(src, "buying off");
+			return 1;
+		}
+		try {
+			Work.Split sp = Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
+			Map<String, Integer> want = new java.util.LinkedHashMap<>();
+			for (Work.Cell c : sp.todo()) want.merge(Rules.shortName(c.block()), 1, Integer::sum);
+			Map<String, Integer> have = new java.util.LinkedHashMap<>();
+			for (Storage.Container c : Storage.load(dir(src)).values()) {
+				c.items.forEach((k, v) -> have.merge(Rules.shortName(k), v, Integer::sum));
+				c.inBoxes.forEach((k, v) -> have.merge(Rules.shortName(k), v, Integer::sum));
+			}
+			Recipes.Plan plan = Recipes.plan(want, have);
+			if (plan.shortOf.isEmpty()) {
+				ok(src, sp.name() + " is short of nothing — there is nothing to buy");
+				return 1;
+			}
+			if (quoteOnly) {
+				ok(src, sp.name() + " shortfall:");
+				for (String line : Shop.quote(plan.shortOf, mc).split("\n")) ok(src, "  " + line);
+				ok(src, "  to actually buy: /cscan buy " + name + " <cap in coins>");
+				return 1;
+			}
+			int cap = IntegerArgumentType.getInteger(ctx, "cap");
+			ok(src, Shop.arm(plan.shortOf, cap, mc));
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	/** A place-wait-harvest loop over the wand's box. */
+	private static int farm(CommandContext<FabricClientCommandSource> ctx, boolean off) {
+		FabricClientCommandSource src = ctx.getSource();
+		if (off) {
+			ok(src, "farm off — " + Farm.status());
+			Farm.stop();
+			return 1;
+		}
+		if (!Wand.complete()) {
+			src.sendError(Component.literal("[cscan] no box — /cscan wand on, then mark two corners"));
+			return 0;
+		}
+		String seed = StringArgumentType.getString(ctx, "seed");
+		String crop = StringArgumentType.getString(ctx, "crop");
+		ok(src, Farm.start(Wand.pos1(), Wand.pos2(), seed, crop));
+		return 1;
+	}
+
+	/**
+	 * Fly the eight bearings and photograph the design at each.
+	 *
+	 * <p>The only image in this pipeline that owes nothing to our own colour database.
+	 */
+	private static int photo(CommandContext<FabricClientCommandSource> ctx, boolean off) {
+		FabricClientCommandSource src = ctx.getSource();
+		if (off) {
+			Photo.stop();
+			Hud.stopGuiding();
+			ok(src, "photo tour off");
+			return 1;
+		}
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Designs.Design d = Designs.load(dir(src), name);
+			List<Work.Cell> cells = Work.load(dir(src), d.name());
+			if (cells.isEmpty()) {
+				src.sendError(Component.literal("[cscan] no work list for " + d.name()
+					+ " — python -m mcbuild work \"" + d.name() + "\" --ship"));
+				return 0;
+			}
+			int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+			int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+			for (Work.Cell c : cells) {
+				minX = Math.min(minX, c.pos().getX()); maxX = Math.max(maxX, c.pos().getX());
+				minY = Math.min(minY, c.pos().getY()); maxY = Math.max(maxY, c.pos().getY());
+				minZ = Math.min(minZ, c.pos().getZ()); maxZ = Math.max(maxZ, c.pos().getZ());
+			}
+			BlockPos centre = new BlockPos((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
+			double radius = Math.sqrt(Math.pow(maxX - minX, 2) + Math.pow(maxY - minY, 2)
+				+ Math.pow(maxZ - minZ, 2)) / 2.0;
+			if (!Designs.hasFacing(dir(src), d.name())) {
+				ok(src, "  NOTE: no facing recorded, so bearing 0 is +Z rather than head-on");
+			}
+			ok(src, Photo.start(d.name(), centre, radius, Designs.facingDegrees(dir(src), d.name())));
+			if (!Autopilot.on()) ok(src, "  autofly is OFF — /cscan autofly on, or fly the bearings yourself");
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	static String digDesign;
+
+	// ---------------------------------------------------------------- fleet
+
+	private static int fleet(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		for (String line : Fleet.report(dir(src), Fleet.me(mc)).split("\n")) ok(src, line);
+		ok(src, "all " + Fleet.LEASE_MINUTES + "-minute leases; they refresh while you build");
+		return 1;
+	}
+
+	private static int fleetTake(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		String design = StringArgumentType.getString(ctx, "design");
+		try {
+			ok(src, Fleet.claim(dir(src), design, Fleet.me(mc)));
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	private static int fleetDone(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		try {
+			ok(src, Fleet.finish(dir(src), StringArgumentType.getString(ctx, "design"),
+				Fleet.me(mc)));
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
+	// ---------------------------------------------------------------- unbox and fleet work
+
+	/**
+	 * Take what is inside a shulker box you are carrying.
+	 *
+	 * <p>Bulk storage on this island IS boxes in chests, and the loop already knew what was in
+	 * them — it just stopped at the last step because unpacking needed hands.
+	 */
+	private static int unbox(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String spec = StringArgumentType.getString(ctx, "what").trim();
+		if (spec.equalsIgnoreCase("off")) {
+			Unbox.stop();
+			ok(src, "unbox off");
+			return 1;
+		}
+		Minecraft mc = src.getClient();
+		String item = spec;
+		int count = 64;
+		int sp = spec.lastIndexOf(' ');
+		if (sp > 0) {
+			try {
+				count = Integer.parseInt(spec.substring(sp + 1).trim());
+				item = spec.substring(0, sp).trim();
+			} catch (NumberFormatException ignored) {
+				// no number: a stack is the obvious default
+			}
+		}
+		ok(src, Unbox.start(mc, item, count));
+		return 1;
+	}
+
+	/**
+	 * Work whatever this account is assigned, and nothing else.
+	 *
+	 * <p>`follow all` walks every tracked design, which is right for one player and wrong for a
+	 * fleet: five alts all starting at the top of the same list is five printers fighting over one
+	 * design. This walks only what {@link Fleet} says is MINE, claims it, keeps the lease alive
+	 * while it builds, and hands it back when the placements are done.
+	 */
+	private static int fleetWork(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		Minecraft mc = src.getClient();
+		String me = Fleet.me(mc);
+		List<String> mine = Fleet.mine(dir(src), me);
+		if (mine.isEmpty()) {
+			ok(src, me + " holds nothing. Assign work with:");
+			ok(src, "  python -m mcbuild fleet --assign <plan> --accounts " + me + ",...");
+			ok(src, "...or take one yourself: /cscan fleet take <design>");
+			return 1;
+		}
+		// The first one that still has placements left. A design whose remainder is only a DIG
+		// list is not this account's work to sit on - the loop cannot break blocks for you unless
+		// autodig is on, and either way the placement half is finished.
+		for (String d : mine) {
+			try {
+				Work.Split sp = Work.split(mc.level, dir(src), d, mc.player.blockPosition(), 0);
+				if (sp.placementComplete()) {
+					ok(src, d + " has nothing left to place" + digNote(sp) + " — handing it back");
+					ok(src, Fleet.finish(dir(src), d, me));
+					continue;
+				}
+				printDesign = null;
+				Printer.reset();
+				noItemSaid = null;
+				Hud.follow(d);
+				ok(src, me + " working " + d + ": " + sp.todo().size() + " cell(s) left"
+					+ " (of " + mine.size() + " assigned)");
+				ok(src, "  /cscan print " + d + " to place it yourself as well; the lease refreshes "
+					+ "while you build");
+				return 1;
+			} catch (Exception e) {
+				src.sendError(Component.literal("[cscan] " + d + ": " + e.getMessage()));
+			}
+		}
+		ok(src, me + ": every assigned design is finished. Nothing left.");
+		return 1;
 	}
 }

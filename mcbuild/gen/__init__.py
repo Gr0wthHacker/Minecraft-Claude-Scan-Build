@@ -1,5 +1,5 @@
 """Generator registry. Each module exposes DEFAULTS and build(cfg, donors)->Canvas."""
-from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge, hamlet, campanile, harborlight, turtle, rootreach, lowglow, falls, thicket, enrich, parkour, frog
+from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge, hamlet, campanile, harborlight, turtle, rootreach, lowglow, falls, thicket, enrich, parkour, frog, railspiral, casino
 from .canvas import Canvas, hash01
 
 class _Wrap:
@@ -9,6 +9,7 @@ class _Wrap:
 
 
 GENERATORS = {
+    "casino": casino,
     "tree": tree,
     "fox": fox,
     "tower": tower,
@@ -76,6 +77,7 @@ GENERATORS = {
     "thicket": _Wrap(thicket.build_thicket, thicket.THICKET),
     "enrich": _Wrap(enrich.build_enrich, enrich.ENRICH),
     "parkour": _Wrap(parkour.build_parkour, parkour.PARKOUR),
+    "railspiral": _Wrap(railspiral.build_railspiral, railspiral.RAILSPIRAL),
 }
 
 __all__ = ["GENERATORS", "Canvas", "hash01"]

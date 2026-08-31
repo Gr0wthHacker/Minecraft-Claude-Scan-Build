@@ -138,6 +138,13 @@ def _finish(m, cfg, world_origin, gen_meta, verbose):
     # DEFER_TO: drop any cell another design already claims, so two designs never ask the player
     # to place - or break - the same block twice. Precedence is stated by the config that yields,
     # which means the order you generate in matters: build the winner first.
+    if fin.get("carve_for"):
+        n = _carve_for(m, world_origin, fin["carve_for"])
+        if verbose and n:
+            print(f"carved {n} cells out for " + ", ".join(
+                os.path.basename(q["design"] if isinstance(q, dict) else q)
+                for q in (fin["carve_for"] if isinstance(fin["carve_for"], (list, tuple))
+                          else [fin["carve_for"]])))
     if fin.get("defer_to"):
         n = _defer_to(m, world_origin, fin["defer_to"])
         if verbose and n:
@@ -172,6 +179,19 @@ def _finish(m, cfg, world_origin, gen_meta, verbose):
                           ground_block=fin.get("ground_block"))
     if verbose:
         print(res.report())
+    # A REDSTONE DESIGN CANNOT SHIP UNEXAMINED. The audit answers whether every block is legal,
+    # supported and affordable, and a circuit passes all of that while doing nothing at all - the
+    # one subsystem whose wrongness is invisible in every render, every audit and every BOM. This
+    # is a SMELL check, not a proof: it catches dead wire runs, orphaned dust and components
+    # nothing can drive. A machine with a contract gets simulated properly by `mcbuild.circuit`.
+    # ...but only when there is no CONTEXT coming. A DESIGN HERE IS REMAINING WORK, so half a
+    # circuit may already be standing in the world and inspecting the design alone reports every
+    # comparator as reading nothing. The first version of this hook did exactly that to the item
+    # sorter - four false alarms on a design that is fine - which is the same "verify in context,
+    # never in isolation" rule as rule 2, arriving from a new direction.
+    from . import circuit as circuit_mod
+    if verbose and circuit_mod.has_redstone(m) and not fin.get("verify_against"):
+        print(circuit_mod.report(circuit_mod.inspect(m, world_origin or (0, 0, 0))))
     if fin.get("verify_against") and world_origin is not None:
         res = _verify_in_context(m, res, fin["verify_against"], world_origin, verbose,
                                  ignore=set(fin.get("verify_replaceable", [])),
@@ -340,6 +360,16 @@ def _verify_in_context(m, res, capture, origin, verbose: bool, ignore: set | Non
               f"cavity cells {ctx.cavity_cells}, leaks {ctx.leaks}")
         for pr in ctx.problems[:15]:
             print("  ", pr)
+    from . import circuit as circuit_mod
+    if verbose and circuit_mod.has_redstone(m):
+        # Inspect the design AS IT WILL STAND: the composite, not the remainder. And diff against
+        # the context ALONE, exactly as the audit's `baseline` above does - the island already has
+        # twelve quasi-connectivity risks and seven orphaned dust groups of its own, and reporting
+        # those against a new design sends you hunting faults you did not cause.
+        before = {(k, tuple(pos)) for k, pos, _ in circuit_mod.inspect(s.model, s.origin)}
+        new = [f for f in circuit_mod.inspect(merged, s.origin)
+               if (f[0], tuple(f[1])) not in before]
+        print(circuit_mod.report(new).replace("circuit:", "circuit (new):"))
     n_cl, n_cells = _floating(m, origin, s)
     if verbose and n_cl:
         print(f"buildability: {n_cl} free-floating cluster(s), {n_cells} cells - need temporary scaffold (nothing adjacent to place against)")
@@ -371,6 +401,60 @@ def _floating(m, origin, s):
                    for dx, dy, dz in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))):
             n_cl += 1; n_cells += int(sz_)
     return n_cl, n_cells
+
+
+def _carve_for(m: schem.Model, world_origin, specs) -> int:
+    """Zero every cell inside another design's WALKING ENVELOPE - its dig list and the headroom
+    over the things you stand on.
+
+    `defer_to` handles two designs wanting the same CELL. This handles the other case: a design
+    that must leave a HOLE for another one to pass through. The shop islet's lens fill sits exactly
+    where the Lowland Stair screws down through it, and the well was cut by hand once - with a note
+    in the config saying *"regenerating this design re-fills the well and must be followed by
+    re-carving"* and a test as the tripwire.
+
+    THAT NOTE IS THE BUG. A step that has to be remembered is a step that gets lost, and it was:
+    regenerating the islet to fix an unrelated grass problem re-filled the well and the tripwire
+    fired. It is part of the pipeline now, so the carve survives every regeneration by construction.
+
+    Each spec is `{design: <path>, headroom: 4, over: slab}` - the dig cells always, plus
+    `headroom` courses above every cell of `over` (a substring of the block name).
+    """
+    if world_origin is None:
+        return 0
+    from . import scan as scan_mod
+    ox, oy, oz = world_origin
+    hit = 0
+    for spec in (specs if isinstance(specs, (list, tuple)) else [specs]):
+        if isinstance(spec, str):
+            spec = {"design": spec}
+        try:
+            other = scan_mod.load(spec["design"])
+        except Exception:                                        # noqa: BLE001
+            continue
+        head = int(spec.get("headroom", 4))
+        over = spec.get("over", "slab")
+        env = set()
+        for d in (other.meta.get("dig") or []):
+            if isinstance(d, dict):
+                env.add((int(d["x"]), int(d["y"]), int(d["z"])))
+            elif isinstance(d, (list, tuple)) and len(d) >= 3:
+                env.add((int(d[0]), int(d[1]), int(d[2])))
+        om = other.model
+        names = [n.split(":")[-1] for n in om.names]
+        bx, by, bz = other.origin
+        for y, z, x in zip(*np.nonzero(om.ids != 0)):
+            if over and over not in names[om.ids[y, z, x]]:
+                continue
+            for k in range(head):
+                env.add((int(bx + x), int(by + y + k), int(bz + z)))
+        for (wx, wy, wz) in env:
+            lx, ly, lz = wx - ox, wy - oy, wz - oz
+            if (0 <= lx < m.ids.shape[2] and 0 <= ly < m.ids.shape[0]
+                    and 0 <= lz < m.ids.shape[1] and m.ids[ly, lz, lx]):
+                m.ids[ly, lz, lx] = 0
+                hit += 1
+    return hit
 
 
 def _defer_to(m: schem.Model, world_origin, paths) -> int:

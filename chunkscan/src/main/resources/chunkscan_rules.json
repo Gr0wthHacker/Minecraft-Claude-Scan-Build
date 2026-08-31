@@ -170,6 +170,17 @@
   "podzol",
   "rooted_dirt"
  ],
+ "plot": {
+  "cx": -24200,
+  "cz": 30000,
+  "found": true,
+  "radius": 49,
+  "source": "island_full.litematic",
+  "x0": -24249,
+  "x1": -24151,
+  "z0": 29951,
+  "z1": 30049
+ },
  "protected": [
   "_door",
   "amethyst",

@@ -36,7 +36,11 @@ RUBRIC = pathlib.Path(__file__).resolve().parent.parent / "mcbuild/data/rubric.y
 # Blocks that carry a face, a front, or machinery. Fine as an eye; never as skin.
 FUNCTIONAL = ("furnace", "barrel", "observer", "dispenser", "dropper", "crafting", "loom",
               "smoker", "blast", "chest", "beehive", "bee_nest", "jukebox", "note_block",
-              "command", "spawner", "hopper", "piston", "bulb", "lantern", "campfire")
+              "command", "spawner", "hopper", "piston", "bulb", "lantern", "campfire",
+              # shulker_box was a KNOWN gap in this list and it bit immediately: asked for a cheap
+              # stand-in for black stained glass, the picker offered `black_shulker_box` - sixteen
+              # containers admitted as surface material, which is the `bee_nest` trap exactly.
+              "shulker_box")
 
 
 def score(solid, names, meta, species, pose, model=None, spec=None):

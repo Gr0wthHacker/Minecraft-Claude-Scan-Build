@@ -71,18 +71,44 @@ def resolve_capture(path: str) -> str:
 
 
 class Ctx:
-    """Capture + optional belly, queried in world coordinates."""
+    """Capture + optional belly, queried in world coordinates.
 
-    def __init__(self, under: str, belly: str | None = None):
+    `under` may be a LIST, and when it is, later captures WIN where they have content.
+
+    THE GENERATOR MUST ASK THE SAME WORLD THE AUDIT VERIFIES AGAINST. The shop islet asked
+    `island_deep` (which reads air at Y150) while `verify_against` used `island_deep` AND
+    `island_now` (which holds Jack's cobblestone there). So it planted short_grass on what it
+    believed was its own moss - and the moss is never placed, because `ROCK_FAMILY` counts
+    cobblestone as satisfying it, so the grass ends up rooted in stone. One design, two worlds,
+    two answers: the same drift `proportions` and `rubric` share an entry point to avoid.
+    """
+
+    def __init__(self, under, belly: str | None = None):
+        extra = []
+        if isinstance(under, (list, tuple)):
+            under, extra = under[0], list(under[1:])
         self.m, (self.ox, self.oy, self.oz) = load_capture(under)
         self.names = np.array([n.split(":")[-1] for n in self.m.names])
         self.solid = (self.m.ids != 0) & ~np.isin(self.names[self.m.ids], ["vine", "water", "bubble_column"])
+        self._extra = []
+        for e in extra:
+            if os.path.exists(e):
+                em, eo = load_capture(e)
+                self._extra.append((em, eo, np.array([n.split(":")[-1] for n in em.names])))
         self.b = None
         if belly and os.path.exists(belly):
             self.b, (self.bx, self.by, self.bz) = load_capture(belly)
             self.bsolid = self.b.ids > 0
 
     def name_at(self, x, y, z) -> str:
+        # LATER CAPTURES WIN where they hold something: they are newer, and a stale capture that
+        # still reads air is exactly how the islet planted grass on Jack's cobblestone.
+        for em, (ex, ey, ez), enames in reversed(getattr(self, "_extra", [])):
+            lx, ly, lz = x - ex, y - ey, z - ez
+            if 0 <= ly < em.ids.shape[0] and 0 <= lz < em.ids.shape[1] and 0 <= lx < em.ids.shape[2]:
+                n = str(enames[em.ids[ly, lz, lx]])
+                if n not in ("air", "cave_air", "void_air"):
+                    return n
         lx, ly, lz = x - self.ox, y - self.oy, z - self.oz
         if 0 <= ly < self.m.ids.shape[0] and 0 <= lz < self.m.ids.shape[1] and 0 <= lx < self.m.ids.shape[2]:
             return str(self.names[self.m.ids[ly, lz, lx]])

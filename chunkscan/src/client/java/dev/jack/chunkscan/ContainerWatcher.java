@@ -153,6 +153,9 @@ final class ContainerWatcher {
 		Storage.upsert(all, c);
 		Storage.save(dir, all);
 		ChunkScanClient.LOG.info("indexed container #{} at {} ({} stacks)", c.id, c.key(), items.size());
+		// The index is a snapshot of everything owned; a SERIES of them is a rate. Taken here
+		// because this is the only moment the numbers are known to have changed.
+		Income.auto(mc);
 	}
 
 	/** Set a label on the container at `pos`; null if it has not been indexed yet. */

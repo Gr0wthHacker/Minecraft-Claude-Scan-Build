@@ -84,6 +84,22 @@ def cmd_hollow(a):
 
 def cmd_cheapen(a):
     m = schem.load(a.file)
+    if getattr(a, "by_price", False):
+        from . import prices as prices_mod
+        from .ops.cheapen import cheapen_by_price
+        if not prices_mod.known():
+            print("no price book yet - in game: /cscan prices on, then walk the shop")
+            return
+        rep = cheapen_by_price(m, tolerance=a.tolerance, keep=set(a.keep or []))
+        if not rep:
+            print("nothing to swap: no PRICED block was both cheaper and close enough in colour")
+        for (src, dst), n in rep.most_common():
+            sc, dc = prices_mod.buy(src), prices_mod.buy(dst)
+            print(f"  {src} -> {dst}: {n} cells, {sc:.1f} -> {dc:.1f} each, saves {(sc - dc) * n:.0f} coins")
+        out = _out(a.file, a.out, "_priced")
+        schem.save(out, m)
+        print("wrote", out)
+        return
     extra = {}
     for s in a.sub or []:
         k, v = s.split("=")
@@ -179,6 +195,136 @@ def cmd_sync(a):
     print(coop.sync(a.config))
 
 
+def cmd_craft(a):
+    """Resolve a design (or a bare item list) down to raw materials against your containers."""
+    import collections
+    from . import recipes as recipes_mod
+    if not recipes_mod.available():
+        print("no recipe data - run: python tools/extract_recipes.py")
+        return
+    want = collections.Counter()
+    for t in a.targets:
+        if "=" in t:                                   # craft gold_ingot=64 powered_rail=518
+            k, _, v = t.partition("=")
+            want[k.split(":")[-1]] += int(v)
+            continue
+        for _, n in (coop.progress(t, a.world).remaining_cells if a.world
+                     else coop.Grid(scan_mod.load(t)).cells()):
+            want[n.split(":")[-1]] += 1
+    have = collections.Counter() if a.no_have else coop.load_storage(boxed=not a.loose_only)
+    plan = recipes_mod.plan(want, have)
+    print(f"target: {sum(want.values())} items across {len(want)} kinds"
+          + ("" if a.no_have else " | stock: your indexed containers"))
+    print(plan.report())
+
+
+def cmd_prices(a):
+    from . import prices as prices_mod
+    print(prices_mod.report())
+
+
+def cmd_plan(a):
+    from . import planner
+    if a.approve:
+        pl = planner.approve(a.approve)
+        print(pl.report())
+        return
+    if a.emit:
+        for f in planner.emit(a.emit):
+            print("wrote", f)
+        return
+    if a.show:
+        print(planner.Plan.load(a.show).report())
+        return
+    pl = planner.make(a.brief or "", a.world, name=a.name, theme=a.theme, island=a.island)
+    planner.verify(pl)
+    pl.save()
+    print(pl.report())
+    if getattr(pl, "cost", None):
+        c = pl.cost
+        print(f"  cost: {c['blocks']} blocks, {c['materials']} materials, "
+              f"{len(c['short'])} short")
+
+
+def cmd_islands(a):
+    from . import islands
+    if a.add:
+        if not getattr(a, "from_", None):
+            print("--add needs --from <capture>: the centre is DISCOVERED from bedrock, never typed")
+            return
+        isl = islands.add(a.add, a.from_, owner=a.owner or "")
+        print(f"{a.add}: bedrock {isl['cx']} {isl['cz']}, radius {isl['radius']}"
+              + (f", owner {isl['owner']}" if isl['owner'] else ""))
+        return
+    if a.where:
+        x, z = a.where
+        name = islands.at(x, z)
+        print(f"{x},{z} -> " + (name or "no island within range"))
+        return
+    print(islands.report())
+
+
+def cmd_fleet(a):
+    from . import fleet, planner
+    if a.release:
+        freed = fleet.release(a.release)
+        print(f"released {len(freed)}: " + (", ".join(freed) or "nothing"))
+        return
+    if a.assign:
+        pl = planner.Plan.load(a.assign)
+        if not pl.approved:
+            print(f"plan {a.assign} is NOT approved - nothing is assigned until a human says yes")
+            return
+        designs = [m["name"] for m in pl.modules]
+        accounts = [x.strip() for x in (a.accounts or "").split(",") if x.strip()]
+        if not accounts:
+            print("name the accounts: --accounts Enroniti,Enroniti2,...")
+            return
+        # WHERE each design is, read from its own sidecar, so two islands can hold designs of the
+        # same name without one account being told its work is taken.
+        from . import islands as islands_mod
+        where = {}
+        for d in designs:
+            for cand in (f"out/{d}.litematic", d):
+                got = islands_mod.island_of_design(cand)
+                if got:
+                    where[d] = got
+                    break
+        st = fleet.assign(designs, accounts, islands_of=where)
+        st["plan"] = a.assign
+        fleet.save(st)
+    print(fleet.report())
+
+
+def cmd_circuit(a):
+    """Inspect a design's redstone, or simulate it against a contract."""
+    from . import circuit as circuit_mod
+    sc = scan_mod.load(a.design)
+    if not circuit_mod.has_redstone(sc.model):
+        print(f"{a.design}: no redstone in it")
+        return
+    findings = circuit_mod.inspect(sc.model, sc.origin)
+    print(circuit_mod.report(findings))
+    if a.verbose:
+        for kind, pos, detail in findings:
+            print(f"  {kind:32s} {pos}  {detail}")
+
+
+def cmd_backup(a):
+    from . import backup as backup_mod
+    if a.status:
+        print(backup_mod.status(a.dest))
+        return
+    man = backup_mod.run(a.dest, keep=a.keep)
+    n = sum(p.get("files", 0) for p in man["parts"].values()
+            if isinstance(p, dict) and isinstance(p.get("files"), int))
+    size = sum(p.get("bytes", 0) for p in man["parts"].values()
+               if isinstance(p, dict) and isinstance(p.get("bytes"), int))
+    print(f"backup {man['stamp']}: {n} files, {size/1e6:.0f} MB, ALL VERIFIED -> {man['dir']}")
+    if man.get("pruned"):
+        print("pruned:", ", ".join(man["pruned"]))
+
+
 def cmd_card(a):
     out = a.out or _out(scan_mod.resolve(a.design)[0], None, "_card").replace(".litematic", ".png")
     print("wrote", coop.card(a.design, out, a.world))
@@ -209,7 +355,11 @@ def main(argv=None):
     p.add_argument("--no-ground", action="store_true"); p.add_argument("--ceiling", action="store_true")
     p.add_argument("--no-floor", action="store_true"); p.add_argument("--keep-top", type=int, default=0); p.add_argument("--out"); p.set_defaults(fn=cmd_hollow)
     p = sub.add_parser("cheapen"); p.add_argument("file"); p.add_argument("--sub", action="append", help="src=dst")
-    p.add_argument("--keep", action="append"); p.add_argument("--out"); p.set_defaults(fn=cmd_cheapen)
+    p.add_argument("--keep", action="append"); p.add_argument("--out")
+    p.add_argument("--by-price", action="store_true",
+                   help="use the SERVER's real prices (from /cscan prices) instead of the tier table")
+    p.add_argument("--tolerance", type=float, default=30.0, help="max RGB distance a swap may move the colour")
+    p.set_defaults(fn=cmd_cheapen)
     p = sub.add_parser("gen"); p.add_argument("config"); p.add_argument("--set", action="append", help="dotted.key=value")
     p.add_argument("--ship", action="store_true"); p.add_argument("--out-dir", default="out"); p.add_argument("--no-render", action="store_true"); p.set_defaults(fn=cmd_gen)
     p = sub.add_parser("scan", help="inspect/cut a chunkscan capture (name in schematics dir, or a path)")
@@ -244,6 +394,40 @@ def main(argv=None):
     p.set_defaults(fn=cmd_history)
     p = sub.add_parser("sync", help="after /cscan: cut latest scan, regenerate remaining designs, progress + shop, learn")
     p.add_argument("--config", default="sync.yaml"); p.set_defaults(fn=cmd_sync)
+    p = sub.add_parser("craft", help="resolve a design (or item=count) to RAW materials through the recipe tree")
+    p.add_argument("targets", nargs="+", help="design name/path, or item=count")
+    p.add_argument("--world", help="only the UNBUILT cells, measured against this capture")
+    p.add_argument("--no-have", action="store_true", help="ignore your containers; price it from nothing")
+    p.add_argument("--loose-only", action="store_true", help="do not count items inside shulker boxes")
+    p.set_defaults(fn=cmd_craft)
+    p = sub.add_parser("plan", help="brief -> a sited, costed, circuit-verified island plan you approve")
+    p.add_argument("brief", nargs="?", help='e.g. "redstone casino"')
+    p.add_argument("--world", default="out/island_now.litematic")
+    p.add_argument("--theme"); p.add_argument("--name")
+    p.add_argument("--island", help="plan onto a registered island (see: mcbuild islands)")
+    p.add_argument("--show"); p.add_argument("--approve"); p.add_argument("--emit")
+    p.set_defaults(fn=cmd_plan)
+    p = sub.add_parser("islands", help="the islands this tooling knows: centre from BEDROCK, never typed")
+    p.add_argument("--add", help="name it")
+    p.add_argument("--from", dest="from_", help="capture to discover the bedrock in")
+    p.add_argument("--owner", help="whose island it is (a LABEL, not a permission)")
+    p.add_argument("--where", nargs=2, type=int, metavar=("X", "Z"))
+    p.set_defaults(fn=cmd_islands)
+    p = sub.add_parser("fleet", help="split an approved plan across up to 5 alts (shared schematics dir)")
+    p.add_argument("--assign", help="plan name to split")
+    p.add_argument("--accounts", help="comma-separated account names")
+    p.add_argument("--release", help="hand back everything one account holds")
+    p.set_defaults(fn=cmd_fleet)
+    p = sub.add_parser("circuit", help="does the redstone work: dead runs, unwired parts, QC risk")
+    p.add_argument("design"); p.add_argument("-v", "--verbose", action="store_true")
+    p.set_defaults(fn=cmd_circuit)
+    p = sub.add_parser("prices", help="what the shop charges, as read in game by /cscan prices on")
+    p.set_defaults(fn=cmd_prices)
+    p = sub.add_parser("backup", help="full VERIFIED backup of repo + git history + schematics (runs inside sync too)")
+    p.add_argument("--dest", help="where to write it (default $MCTEST_BACKUP_DIR, else ~/mctest-backups)")
+    p.add_argument("--keep", type=int, default=7, help="how many generations to keep (never below 1)")
+    p.add_argument("--status", action="store_true", help="list what backups exist and how old they are")
+    p.set_defaults(fn=cmd_backup)
     p = sub.add_parser("card", help="one PNG per design for chat: renders + origin + BOM (+ progress with --world)")
     p.add_argument("design"); p.add_argument("--world"); p.add_argument("--out"); p.set_defaults(fn=cmd_card)
     p = sub.add_parser("floating", help="design clusters touching nothing in the given context captures (need scaffold)")

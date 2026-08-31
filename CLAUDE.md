@@ -1757,11 +1757,26 @@ the far side of is a compass bearing to a region, not guidance.
 It steers toward whatever the HUD arrow is pointing at, so `follow` becomes hands-off: the plan
 picks the spot, the arrow points, and this closes the distance.
 
-**THIS IS MOVEMENT AUTOMATION ON A LIVE SERVER.** Most servers' rules treat it as a bot whatever it
-is for, and smooth constant-velocity flight is the exact signature anticheat is built to catch. That
-is a decision about Jack's account rather than about this code — recorded here so the next person to
-read it knows it was made deliberately and not stumbled into. What the code can do is be
-conservative and be trivially interruptible:
+**THIS IS MOVEMENT AUTOMATION ON A LIVE SERVER.** ~~Most servers' rules treat it as a bot whatever
+it is for, and smooth constant-velocity flight is the exact signature anticheat is built to catch.~~
+
+**AMENDED 2026-08-30 — Jack: automation is ALLOWED AND ENCOURAGED on skyblock.net.** That retires
+the constraint the rest of this section was written under, and several deliberate limitations
+elsewhere in the mod exist ONLY because of it and should be re-decided on their merits rather than
+inherited:
+
+- the speed cap at vanilla sprint-flight — *"no faster than a player can actually go"* was chosen as
+  the one bound defensible without knowing the server's rules, and now the rules are known;
+- `Prices` refusing to open a shop menu by itself;
+- and above all **the rule that the mod never places a block.** That is stated here as a technical
+  fact — *"a client mod cannot, and should not"* — and only the second half was ever true.
+  litematica-printer places blocks from a client exactly as this mod could. It is the reason the
+  loop has no feedback signal at all (*"the printer never reports back, so `todo` shrinking is the
+  only honest evidence a block was placed"*), which is why there are four stall clocks.
+
+What stays true whatever the rules say is the property that made it safe to leave running: it is
+trivially interruptible, it sets delta movement rather than teleporting, and `/cscan stop` is one
+word. What the code can do is be conservative and be trivially interruptible:
 
 - **Any movement key hands control straight back.** The one property that makes it safe to leave
   switched on: you never have to fight it, or go hunting for the off switch while it flies you into
@@ -5342,10 +5357,1104 @@ the spacing, no source wasted on a corner, inside the plot, clear of the stair, 
 ground with a stop block, nothing standing on the track, one piece, no iron-cost lights, and that a
 blocked track cell RAISES rather than leaving a gap.
 
+## The skyblock pass: cost, craft, income, boundary, void, warps (2026-08-30)
+
+The mod knew WHERE everything is and HOW to build it. It could not say what anything COSTS or
+whether you can MAKE it — and on a server where nothing is mined those are the only two questions.
+Six features, all shipped, plus a backup, plus `chunkscan 0.4.0`.
+
+| | |
+|---|---|
+| `python -m mcbuild craft <design>` · `/cscan craft` | resolve a design to RAW materials against your containers |
+| `/cscan prices on` | read the server's own shop prices while you browse it |
+| `/cscan income` | production per hour, from the container index over time |
+| `/cscan plot` | the 99x99 boundary, and a warning when a fill crosses it |
+| `/cscan dig` | now warns when what you break falls into the void |
+| `/cscan warp add` | teleports as a routing primitive, not only as a fall rescue |
+| `python -m mcbuild backup` | a full VERIFIED rotated backup, and it runs inside `sync` |
+
+### The BOM stopped at the block, and the recipes were in the jar the whole time
+
+**1,585 recipe files and 191 item tags sit inside `minecraft-client.jar`**, under
+`data/minecraft/recipe/` (singular in 26.x — it was `recipes/` up to 1.20) and
+`data/minecraft/tags/item/`. That is the same jar `tools/extract_blocks.py` already opens for
+textures, so `tools/extract_recipes.py` needed no datagen run and no new dependency. Rule 11 — ask
+the game, not your memory — had never been applied to what a block is MADE of.
+
+`mcbuild/recipes.py` and `Recipes.java` resolve a want-list down to raw materials against the
+container index. **Four traps, and every one of them shipped a plausible wrong answer first:**
+
+- **PACKING RECIPES ARE ARBITRAGE, NOT ROUTES.** Costing every leaf at one unit makes
+  `raw_gold_block` a *cheaper* source of raw gold than raw gold is, because one item becomes nine
+  for free. The first resolver answered "518 powered rails" with "unpack 58 gold blocks" — blocks
+  nobody owns — and **the cycle guard did not catch it, because a cycle guard stops the recursion,
+  not the arithmetic.** Packing recipes are barred from costing and offered only against stock you
+  actually hold, where they are exactly right: a chest of gold blocks is nine times the metal and
+  no trip.
+- **CRAFTING IS NOT ALWAYS THE ANSWER.** A recipe that costs the same as the thing it makes is a
+  wash, and following it anyway sends you shopping for its ingredients instead: the second version
+  answered the same question with "smelt 522 deepslate gold ore", which is not a material any chest
+  on this island has ever held. Craft when it is genuinely cheaper, or when you already hold an
+  ingredient; otherwise report the ITEM short, which is the thing you would go and buy.
+- **THE ALLOWLIST HOLDS BLOCKS, AND MOST INGREDIENTS ARE ITEMS.** `blocks.available("gold_ingot")`
+  is False — not because the server lacks gold but because a list of BLOCKS has nothing to say
+  about an item. Applied blind it priced every ingot 50x a block and sent the resolver mining. This
+  is rule 11's `NOT_FULL` holding `"grass"` in a new costume: one list, asked the wrong question.
+- **AN ALTERNATIVES LIST IS RESOLVED BY WHAT YOU HAVE.** A stick takes any of fourteen planks and a
+  torch takes coal or charcoal. Picking the first in the file sends you out for oak while 3,000
+  jungle planks sit in a chest.
+
+**And the stonecutter wins on its own merits.** Crafting stairs is 6 blocks for 4; cutting is 1 for
+1. Costing per OUTPUT unit gets that for free rather than special-casing it — over a design that is
+a third of the stone.
+
+**The two resolvers drifted the moment they existed, and the fix is the repo's own rule.** The
+`reversible` flag was computed at Python load time, so the exported JSON carried no flag and the
+Java port happily priced a gold block as cheap gold — the same shape as `proportions.measure` and
+`rubric.score` needing one entry point. It is written into `recipes.json` by the EXTRACTOR now, so
+both languages read one source, and `SkyblockTest.theJavaAnswerMatchesThePython` pins three cases
+that `tests/test_recipes.py` asserts identically.
+
+Measured, against the live index: `Rail Spiral` resolves to **289 gold ingots short** and everything
+else already owned; 58 lanterns are fully craftable from iron already in the hall; 2,000 terracotta
+is 1,968 clay short — which is the clay-farm conversation, answered by the tool instead of by hand.
+
+### Prices: the tier table was invented and the server has real numbers
+
+`palette.tier()` sorts the whole registry into cheap/ok/expensive with prices noted in a COMMENT
+("terracotta, 10 grass each"). Every palette this project has picked rests on it.
+
+**A shop menu IS a container screen**, which is why this was cheap: `ContainerWatcher` already
+hooks `ScreenEvents` and walks `menu.slots`. The price is not in the item, it is in the item's
+LORE, as text a human reads — so `Prices.java` is a text scraper and is honest about it:
+
+- **a slot with no readable price is skipped and counted, never defaulted to zero** — a missing
+  price must never read as "free", which is how a palette picker learns to love the one block
+  nobody can afford;
+- **buy and sell are kept apart**, because costing a build with a sell price understates it by the
+  spread, which on most servers is most of the price;
+- **a price is per ITEM, not per stack** — a menu offering 64 for 320 is 5 each, and recording 320
+  makes stone look like quartz;
+- **it never opens a menu by itself.** You walk the shop; this reads what you look at. Automating a
+  shop walk is a trading bot, which is a different thing.
+
+Written to `schematics/prices.json` — beside the storage index rather than baked into the jar,
+because these change when the SERVER changes. That is the same test that put the rules and the
+recipes IN the jar and `designs.json` outside it.
+
+### Income: "289 short" is a different sentence depending on the farm
+
+The container index is a snapshot of everything you own; a series of them is a rate, and nothing had
+ever kept the series. `Income.java` samples on demand and `/cscan craft` now prints
+`~7.2h of production` beside a shortfall that something is actually making.
+
+Three rules, two of which are ways to report a farm that does not exist:
+
+- **A snapshot is only evidence for containers you OPENED.** A total that rises because you finally
+  looked in the gold chest is not production; every sample records its container count and a
+  comparison across a different set says so instead of dividing.
+- **Spending is not negative income.** Taking 500 bricks out to build with looks exactly like a farm
+  running backwards, so rises and falls are reported separately.
+- **Two samples ten minutes apart is a rate; two a minute apart is noise**, and below that the pair
+  is not divided at all.
+
+Capped at 240 samples: this is a rate meter, not an archive, and the scans folder has already been
+an unbounded-growth bug once.
+
+### The plot, the void, and the warps
+
+- **THE PLOT IS 99x99 AND THE MOD COULD NOT SEE IT.** `mcbuild/plot.py` derived it from the island's
+  own bedrock and only the generators consulted it, so the Island Run shipped 120 cells over the
+  line and a HUMAN caught it. The bounds now ride in `chunkscan_rules.json` with everything else and
+  `/cscan fill` warns when a box crosses them. **NOT FOUND is not the same as INSIDE** — with no
+  bedrock in any capture every check answers "I cannot say" rather than "fine", because a boundary
+  guard that silently passes everything is the failure it exists to prevent wearing the opposite hat.
+- **BREAKING A BLOCK OVER THE VOID LOSES THE DROP** — not scattered, not despawned in five minutes,
+  gone the moment it passes the bottom of the world. `Falls` lists 41 dig cells and some are a
+  hundred blocks up, and `/cscan dig` walked you there in silence. `VoidRisk` searches DOWN to the
+  world floor (an item falls until something stops it), demands a **solid** catch — vine and grass
+  do not stop an item, and this file has been bitten twice by "not air" read as "solid" — and treats
+  an unloaded column as UNKNOWN rather than as void, or the whole lowland reads as a hazard from the
+  deck.
+- **WARPS ARE A ROUTING PRIMITIVE.** `Autopilot` already types `/is`, but only when falling; using
+  the same command because it is SHORTER is the same call in a different place and was never made.
+  The one thing that makes it work: **a warp is recorded by standing where it DROPS you**, so the
+  saving is measured against an observed position rather than an assumed one. Under 80 blocks saved
+  it is theatre and is not offered.
+
+### The backup, because none of this was backed up
+
+Three stores hold the island and only one is in git: the repo, the **schematics folder** (18 MB, not
+in git, and the only copy of every capture ever taken), and the game dir. `sync` regenerates designs
+from configs; it cannot regenerate a CAPTURE, because a capture is a photograph of a world that has
+moved on.
+
+`python -m mcbuild backup` writes a working-tree zip, a `git bundle` of all history, and a zip of
+the schematics — **29 MB, five seconds, 1,486 files.** It runs at the end of `sync` (the moment a new
+scan exists is the moment worth backing up) and a Windows task `mctest-backup` fires it daily at
+03:30. `$MCTEST_BACKUP_DIR` points it at OneDrive or a second drive and the same command becomes an
+offsite backup.
+
+Four rules, each of which is the difference between a backup and a folder of hope:
+
+- **A BACKUP THAT IS NOT VERIFIED IS NOT A BACKUP.** Every archive is re-opened and CRC-walked and
+  the bundle is handed to `git bundle verify`. A write that failed halfway still produces a valid
+  zip — with fewer entries in it.
+- **NOTHING IS PRUNED BEFORE THE NEW ONE VERIFIES**, never below one, and never a FAILED backup:
+  that one is the evidence of what went wrong.
+- **THE DESTINATION MUST BE OUTSIDE EVERYTHING IT COPIES**, or each run archives the last one and the
+  size doubles daily with nothing to say why.
+- **HISTORY IS A BUNDLE, NOT A COPY OF `.git`** — copying an object store while a gc runs copies a
+  torn one.
+
+### And the command sheet caught itself going stale, as designed
+
+`MenuTest` failed the moment the six commands existed, which is its whole job. Fixing it made it
+stronger rather than looser: `offered()` read only the FIRST word of a row, so `/cscan income sample`
+did not count as offering `sample` and every real sub-verb had to go in the exemption list — the one
+thing that test's own comment calls its weak point. It reads the whole command string now, so the
+exemption shrank instead of growing.
+
+### Still open
+
+- **`tests/test_designs.py::test_all_configs` fails on `shop_islet.yaml`** (`short_grass on
+  cobblestone`). PRE-EXISTING — it fails with this session's Python changes stashed, and comes in
+  with the newer `observed.json` already in the tree. Not this pass's to fix.
+- **`prices.json` is empty until someone walks the shop.** The scraper's patterns are written
+  against the common lore shapes and have never met skyblock.net's actual menu; expect one round of
+  pattern tuning, and `/cscan prices` reports how many slots it could not read so you can tell.
+- **The 1.19 recipe question is open the same way the block allowlist is.** These are 26.2 recipes
+  and a skyblock server may customise them. Provisional; report, never refuse.
+
+## The automation pass: the mod places its own blocks (2026-08-30, chunkscan 0.4.0)
+
+Four more, off the back of Jack confirming automation is allowed on skyblock.net.
+
+| | |
+|---|---|
+| `/cscan print <design>` | place the design OURSELVES, and verify every block landed |
+| `/cscan make <item> <n>` | craft it, with a crafting screen open |
+| `mcbuild cheapen --by-price` | palette by the shop's real prices, not the invented tier table |
+| `tools/timelapse.py` | the island being built, from the captures you already took |
+
+### The printer, and the signal this loop has never had
+
+This file said, as a technical fact, that *"a client mod cannot place a block, and should not"*.
+**Only the second half was ever true**, and it was a statement about server rules rather than about
+the client — litematica-printer places blocks from a client exactly as `Printer.java` now does.
+
+**THE POINT IS NOT SPEED, IT IS FEEDBACK.** Delegating placement left the loop with no signal at
+all — this file's own words: *"the printer never reports back, so `todo` shrinking is the only
+honest evidence a block was placed"* — and FOUR stall clocks, an abandoned-station set, a
+thrashing detector and a whole recovery ladder exist to paper over that silence. A placement made
+here is read back off the world a few ticks later, so the loop finally knows the difference between
+*it did not work* and *I have not looked yet*.
+
+**Placement and verification are separated by ticks on purpose.** The server has to answer first;
+reading the same cell in the same tick would report every placement as a failure.
+
+Three things it has to get right, and the first is the one a picture cannot check:
+
+- **THE STATE IS VERIFIED, NOT ASSUMED.** `facing` comes from where the player is LOOKING at the
+  moment of placement and `half`/`type` from where in the clicked face the hit landed — so both are
+  computed and the look angle is set before the click. A stair aimed the obvious way comes out
+  BACKWARDS (the game derives a stair's facing as the player's own direction reversed), and **our
+  renderer draws both directions identically**, which is why `PrinterTest` asserts the yaw table
+  rather than anyone eyeballing a flight. A cell whose block is right and whose state is wrong is
+  reported as a MISMATCH and never counted as built.
+- **It never breaks anything.** Placement goes into air only; `Rules` and the 99×99 `Plot` still
+  apply. Replacing stays a separate, explicit job with its own dig list, because breaking the wrong
+  block on a lived-in island is the one mistake with no undo.
+- **A cell that fails twice is left alone and reported** — `Ignored`'s rule for places, applied to
+  cells. One failure is a bad moment; two is a property of the cell.
+
+It uses what is in your **hotbar**, because that is what a click places, and says so once per
+material rather than once per tick.
+
+### `/cscan make`, and the data that could not craft
+
+`craft` said *"craft 87x powered_rail from 522 gold, 87 sticks, 87 redstone"* and then left you
+clicking for twenty minutes.
+
+**THE GRID IS THE WHOLE DIFFICULTY AND THE COST DATA DID NOT HAVE IT.** `needs` is an aggregate —
+six stone bricks — which is everything a COST needs and not enough to CRAFT: six bricks anywhere in
+the grid do not make stairs. The extractor keeps the real 3×3 layout now, for **1,056 of the 1,524
+recipes**, anchored top-left where the game matches a shaped recipe from.
+
+`Crafter` drives the screen the way `Withdraw` drives a chest — a state machine, because opening a
+menu is not synchronous. Four rules: one craft at a time with the result read back; **shift-click
+the result, never pick it up** (`QUICK_MOVE` crafts everything the grid can make and puts it away,
+where picking it up leaves it on the cursor); the grid is emptied back to you first, because what
+somebody left in it is not ours to consume; and a missing ingredient stops the round and names it.
+
+**Stonecutting and smelting are deliberately NOT done here and are REPORTED rather than skipped.** A
+stonecutter is one button and a furnace is two slots and a wait; both are worth having and neither
+is this state machine. A stopped-early craft that reports success is the "does nothing, quietly"
+failure this file keeps writing rules about.
+
+### Palette by price
+
+`mcbuild cheapen --by-price` asks the shop instead of the tier table: *of the blocks that would
+still look right, which is the least money.* **THE TOLERANCE IS THE WHOLE DESIGN** — nearest-by-
+colour ignores cost, cheapest-overall ignores the build, and 30 is about the gap this file already
+calls invisible (`light_gray_concrete` → `stone` is 11, `gray_concrete` → `gray_wool` is 15).
+
+Two refusals matter more than the feature:
+
+- **It does nothing without a price book.** Falling back to the tier table would make `--by-price`
+  a synonym for `cheapen` that merely sounds better informed, and you would never learn the shop
+  had not been walked.
+- **It only moves for a REAL, PRICED saving.** Swapping one unpriced block for another unpriced one
+  is churn dressed as economy, and it changes how the build looks for nothing.
+
+`face` defaults to **side**, not top: a statue is read in elevation, 155 blocks differ between their
+two faces, and the top-face default is right for a floor and wrong for everything this is pointed at.
+
+### The timelapse was sitting in the archive
+
+`tools/timelapse.py` — nineteen `island` captures going back to the first one, and `render3d` has
+been able to draw a capture since it was written. What was missing was the observation that a folder
+of dated captures of the same box IS a timelapse. **16 frames, 18–28 August, +42,266 blocks.**
+
+Three things it had to get right, and two of them are about honesty rather than rendering:
+
+- **THE FRAME MUST BE FIXED.** `orbit` sizes the camera to each model's own content, which is right
+  for one animal and wrong here: the island grows, so every frame would re-frame to its own bounding
+  box and the whole thing would swim. One camera, computed once, from the union of every frame's
+  content in WORLD coordinates.
+- **A CAPTURE THAT LOST A THIRD OF THE ISLAND IN AN HOUR SAW LESS OF IT.** All twenty cover the same
+  56 chunks, so chunk count says nothing — what differs is DEPTH: a scan taken from the deck never
+  receives the lowland's sections, and the archive ranges 49,762 to 137,857 blocks over the same
+  ground. Played straight, the underworld blinks in and out. Frames under 70% of the running peak
+  are skipped, **reported, and overridable** — because a big drop CAN be real: Jack removed 32,369
+  vines by hand between two of these scans, and a filter that quietly hid that would be editing the
+  history it exists to show.
+- **Ordered by the capture's own timestamp, never mtime** — copying a folder rewrites every one of
+  them, and the backup now copies that folder nightly.
+
+### Still open
+
+- **The printer has not been run in game.** Every piece of it is unit-tested and the API was checked
+  against the jar rather than remembered, but the aiming rules are reasoning until a stair goes in
+  and gets walked up. Start it on something small and forgiving.
+- **Two printers will fight** over the same cells. `/cscan print` warns when litematica-printer also
+  has the design enabled; it cannot turn the other one off.
+- **`make` does not open the crafting table**, on purpose — the same refusal `Prices` makes about
+  the shop. Whether that survives contact with an overnight run is Jack's call.
+
+## Full automation: the loop closes (2026-08-30, chunkscan 0.5.0)
+
+Seven more, and the first of them is a SUBTRACTION.
+
+| | |
+|---|---|
+| the loop asks the printer | a placement is progress and a refusal is proof, both immediately |
+| `/cscan autodig <design>` | break the cells the dig list names, and only those |
+| `/cscan smelt <item> <n>` | drive a furnace or a stonecutter |
+| `/cscan buy <design> [cap]` | quote the shortfall; with a cap, buy it |
+| `/cscan farm <seed> <crop>` | place-wait-harvest over the wand's box |
+| `/cscan photo <design>` | fly eight bearings and photograph each |
+| auto-sampled income | a rate exists without anyone remembering to ask for one |
+
+### The clocks were a workaround, and now there is a signal
+
+Every stall clock in this mod descends from one sentence in these notes: *"the printer never
+reports back, so `todo` shrinking is the only honest evidence a block was placed"*. Four clocks, an
+abandoned-station set, a thrashing detector and a recovery ladder, all inferring from silence.
+
+`Printer` reports now, and `Loop.stationFromReport` uses it. **The difference is not speed, it is
+a different KIND of answer:**
+
+- **a placement is progress immediately** — no waiting to see whether a count moves;
+- **A REFUSAL IS PROOF IMMEDIATELY.** The clock could only ever say "nothing for five seconds" and
+  guess why. A refused cell is the world saying no, and there is nothing to wait for, so the bin is
+  abandoned on the spot;
+- **and silence still means silence.** Nothing attempted is not evidence of anything, so it falls
+  through to the clock exactly as before. That fallback is what keeps it honest — the report
+  answers only what it actually observed, and litematica-printer is still an option.
+
+### `autodig`: the one operation with no undo
+
+A litematic cannot express removal, so "break this" has always lived in the sidecar and always
+meant a human with a pickaxe. `Falls` is 58% dig. **Every gate here is a REFUSAL rather than a
+warning** — the opposite posture to the rest of the mod, where a provisional list only ever warns:
+
+- **only cells the design's own dig list names.** Not "anything in the way";
+- **never a protected block** — `Rules` holds `wool` because wool may be a sculk sensor's silencer,
+  and this is precisely the pass that would find out the hard way. **THE LIST IS NOT THE AUTHORITY
+  ON SAFETY:** a dig list naming one is reported and skipped, not obeyed;
+- **never over open void.** `VoidRisk` already knows what falls forever, and a lost drop is the
+  skyblock-specific loss no undo can reach;
+- **one block at a time, watched**, giving up rather than swinging at bedrock all night.
+
+It does not pick up what it breaks, and says so.
+
+### The furnace, the stonecutter, and a wait that is not a stall
+
+`make` drove a crafting grid and reported the rest as out of scope, which was honest and still left
+you doing it. `Smelter` closes it — and the clay farm needs the furnace leg specifically: clay to
+terracotta is 1,968 smelts.
+
+**A FURNACE DOING ITS JOB LOOKS EXACTLY LIKE A STALL** for ten seconds an item, so there is no
+clock here at all, and `AutomationTest.aFurnaceWaitIsNotAStall` exists to stop someone adding one.
+**Fuel is handled before input**, because an input with no fuel is not a stall either — it is a
+furnace that will never start, and it looks identical to one that is working.
+
+**The stonecutter is a button, not a grid**, so there is no arrangement to get right — and that
+means the index is the ONLY thing naming the recipe, in an order the server chooses. It reads the
+output back and checks it is what was asked for. Trusting the index turns stone bricks into the
+wrong stair.
+
+### Buying, which is the only thing here that spends something
+
+Everything needed already existed; what is new is the part that cannot be undone by breaking a
+block. So it is almost entirely refusals:
+
+- **THE CAP IS AN ARGUMENT AND HAS NO DEFAULT.** `/cscan buy <design>` QUOTES; only
+  `/cscan buy <design> <cap>` spends. There is no form that spends an amount nobody chose, and a
+  test reads the command tree to keep it that way — a default, however conservative, is a number
+  someone else picked for money that is not theirs.
+- **It spends against the SHORTFALL, not the design.** Buying 518 powered rails when 167 sit in a
+  chest is 167 rails of waste, and knowing that difference is what the craft resolver is for.
+- **An unpriced item is never bought**, and **the price comes from the slot in front of you**, not
+  from the book — the book is a memory of a menu seen at some point in the past, and prices move.
+
+### The farm loop, and the photo tour
+
+`Farm` is deliberately generic — a seed, a crop and a box — because the shape is the same for clay,
+mud, ice or anything that converts in place. Nothing about clay is written into it. **It only ever
+breaks the CROP, and only inside its box**, so pointing it at a wall by mistake does nothing at all.
+And **it waits rather than deciding**: a conversion that has not happened yet is indistinguishable
+from one that never will, so it reports its rate and lets you judge.
+
+`Photo` closes the largest known-wrong in this file. The notes say it plainly: *"Validation is
+circular FOR COLOUR"*, and *"nothing built in this system has been placed in Minecraft and looked
+at"*. **A screenshot is the one image in the pipeline that owes nothing to our colour database** —
+the game's textures, the game's light, and the biome tint the extractor had to ASSUME. Eight
+bearings, the same eight `look.py --sheet orbit` renders, **relative to the recorded facing** so
+bearing 0 really is head-on; a design with no facing SAYS SO rather than defaulting quietly. It
+flies rather than teleporting.
+
+**A 26.x API note, found by javap rather than by memory:** there is no
+`Minecraft.getMainRenderTarget()`, so `Screenshot.grab`'s naming overload cannot be reached — its
+RenderTarget argument has nowhere to come from. `grab(mc, true)` is the F2 path: the game names the
+file and prints that name in chat, which is why the bearing is announced immediately before. The two
+lines together are the caption.
+
+### Income samples itself now
+
+`/cscan income sample` was manual, so the rate only existed if you remembered. It samples after every
+container the watcher indexes — but on **both** conditions, not either: ten minutes must have passed
+AND the totals must have moved. A pure timer fills the log with identical rows overnight and makes
+the "the index grew" caveat meaningless; sampling on every change writes a row per chest opened,
+which is a rate measured over thirty seconds of walking.
+
+### Still open
+
+- **None of the placing, breaking, smelting or buying has run in game.** Every piece is unit-tested
+  and every API was checked against the jar rather than remembered, but a stair being walkable and a
+  purchase costing what the lore said are reasoning until they happen. Start each on something small.
+- **Two printers will fight.** `/cscan print` warns when litematica-printer also has the design
+  enabled; it cannot turn the other one off.
+- **`make` and `smelt` do not open their own block**, on purpose — the same refusal `Prices` makes
+  about the shop. Whether that survives an overnight run is Jack's call.
+- **`tests/test_designs.py::test_all_configs`** still fails on `shop_islet.yaml` (`short_grass on
+  cobblestone`), unchanged and pre-existing.
+
+## Redstone that is VERIFIED, not drawn (2026-08-30)
+
+Jack: autonomous redstone, whole-island transformation from a brief, and up to five alt accounts
+building at once. Decisions taken: **5 alts, server-legal · propose -> approve -> build · fully
+functional redstone.** That third answer makes one thing mandatory before any of the rest, and
+this section is that thing.
+
+### Nothing in this pipeline had ever asked whether a circuit WORKS
+
+`audit` asks whether a block state is legal, supported and non-colliding. `blocks` asks whether
+the 1.19 server has it. `palette` asks what it costs. **A redstone circuit passes every one of
+those while doing absolutely nothing**, and you find out by flipping the lever an hour later. It is
+this project's oldest failure mode - *a clean audit and a wrong build* - aimed at the one subsystem
+where the wrongness is invisible in every render, every audit and every BOM.
+
+**THE PRECEDENT WAS ALREADY HERE.** The night pass is trusted because light is PROPAGATED through
+the finished model and the spawnable cells are counted. Signal is the same shape of problem: a
+value that spreads from sources, decays with distance, and is stopped by geometry. So
+`mcbuild/circuit.py` is a simulator, and a circuit is verified before a block is placed.
+
+    wire · redstone_block · torch · lever/button/plate · repeater (delay + LOCK) ·
+    comparator (compare/subtract, container fullness) · observer · piston · dispenser (rising edge)
+
+Every component's real state space came out of `blocks.json` - power 0-15, delay 1-4, compare and
+subtract - so the numbers are the game's, not remembered. `tests/test_circuit.py` is fifteen
+hand-worked cases, each one a fact you can check on a workbench.
+
+**What is NOT modelled, stated because a simulator you trust past its limits is worse than none:**
+quasi-connectivity (REPORTED per cell instead - Java also fires a piston from the block above, and
+real circuits both use and are broken by that), Java's update order and 0-tick pulses, and
+entities. **A container's fullness is an INPUT you state**, never something that fills itself:
+pretending otherwise would certify a sorter that has never seen an item.
+
+### Four bugs in the simulator, found by its own tests
+
+The tests did their job before the simulator did. In order:
+
+- **A torch was powering its own support block**, so it read "my attachment is powered", switched
+  itself off, and every circuit oscillated every other tick. A torch powers everything around it
+  EXCEPT what it is attached to; a lever is the opposite and strongly powers its attachment. **The
+  two cases are not symmetric and cannot share a rule.**
+- **The power model conflated "this cell radiates" with "this cell is aimed at".** That split is
+  the whole model: `emit` is a torch or a lever radiating to six neighbours; `into` is a repeater
+  or comparator driving one cell and nothing else - which is the entire reason a repeater is used
+  to isolate one line from another. Missing it reported a torch as powering nothing.
+- **A cell that emits is itself powered**, which sounds obvious and was missing - so a repeater fed
+  directly by a lever never turned on, and the failure looked like the delay logic.
+- **And one test was wrong where the code was right**: it put a lever on the block NEXT to a
+  torch's support and expected the torch to react. Power does not flow between two solid blocks, so
+  that circuit does nothing in Minecraft either. A hand-worked case exists to produce exactly that
+  outcome.
+
+### The module library: a contract, or it does not ship
+
+`mcbuild/gen/circuits.py` - clock, latch, pulse, randomiser, payout, lamp_bank. **Every module
+states a CONTRACT and `tests/test_circuits.py` asserts it by simulation.** A module whose contract
+is not asserted does not belong in the file.
+
+- **The clock's loop must close on the torch's SUPPORT, not on the torch.** The first version
+  pointed the repeater at the torch's own cell, which does nothing: four tidy blocks, a clean
+  audit, and it never ticked once. Found on this file's own first module.
+- **A long lamp bank needs a repeater every 15.** Wire dies at 15 and a twenty-lamp sign lights two
+  thirds of the way, which looks like a build somebody abandoned. Only simulation catches that
+  before it is placed.
+- **A payout fires every dropper exactly once per EDGE.** A dropper that fired every tick would
+  empty the bank into the floor - the most expensive bug a casino can have.
+- **RANDOMNESS IS NOT A CIRCUIT TRICK AND THE MODULE SAYS SO.** Redstone is deterministic; every
+  random build borrows entropy from item routing, which this simulator has no entities to model.
+  What is verified is one-lane-per-trigger and reset. The distribution is a property of the game
+  and must be checked in world - `RANDOM_NOTE` travels with it.
+
+### Wired into the pipeline, and it found a real bug immediately
+
+Any design containing redstone is now inspected on generation: dead wire runs measured by true path
+length from the nearest source, orphaned dust, components nothing can drive, repeaters pointing at
+air, and QC risk. It runs over the whole island in **0.1s**.
+
+Two corrections the integration needed, both of them rules this repo already knew:
+
+- **Verify in CONTEXT, never in isolation** (rule 2). A design here is REMAINING WORK, so half a
+  circuit may already be standing; inspecting the design alone called four of the sorter's
+  comparators unwired. It inspects the composite now.
+- **Diff against a BASELINE**, as the audit does. The island already carries twelve
+  quasi-connectivity risks and seven orphaned dust groups of its own, and reporting those against a
+  new design sends you hunting faults you did not cause. `circuit (new):` is what prints.
+- And the "is it wired" test had to accept a component driven by a powered BLOCK rather than by
+  dust - half the machines on this island are - because **a check that cries wolf is a check nobody
+  runs.**
+
+#### THE SORTER'S COMPARATORS WERE BACKWARDS, IN EVERY LANE, SINCE IT WAS WRITTEN
+
+The first run against real work in this repo reported `comparator reads nothing x4`. It was right.
+`gen/redstone.py` had a helper called `_toward`, whose own docstring said *"points a comparator back
+at the filter hopper"* - and **a comparator reads what is BEHIND it and outputs where it FACES**, so
+every lane read air and pushed its signal into the container.
+
+Nothing else could have seen it. The state is legal, supported, affordable, in 1.19, and **our
+renderer draws both directions identically** - which is the stair convention's exact failure mode,
+in a subsystem where it costs the whole machine rather than one step. It is `_away_from_hopper` now,
+and `test_the_sorters_comparators_read_the_hopper_rather_than_facing_it` pins all four runs.
+
+**Still open on the sorter, and NOT guessed at:** with the comparators reading correctly, the
+inspection now says `comparator drives nothing` - the design never routes their output to the
+torches that lock the hoppers. That is a real gap in the signal path and a redesign, not a
+one-line fix, so it is reported rather than invented. The simulator will judge whatever replaces it.
+
+### What is NOT built yet
+
+The simulator and the module library are the foundation; the two things Jack actually asked for sit
+on top of them and are not written:
+
+- **The island planner** - brief ("a redstone casino") -> module selection -> siting -> cost ->
+  circuit verification -> a PLAN artifact for approval -> build. Almost every piece it needs
+  already exists (`plot`, the distance-transform siting, `defer_to`, `after` ordering, `craft`,
+  `print`, `autodig`); what is new is the planner itself and the approval gate.
+- **The fleet** - up to five alts, which is a server-legal cap Jack confirmed and which must be
+  encoded as a hard limit rather than a default. Needs a per-account profile (its own schematics
+  dir, island and plot) and a coordinator that assigns designs.
+
+### Checked against the source, not against itself (2026-08-30)
+
+Jack supplied minecraft.wiki's Redstone mechanics and components pages. The model was built from
+reasoning plus hand-worked cases, which is exactly the situation rule 11 is about, so it was
+checked against them. **The power model held**, in its own words:
+
+- *"Redstone power component, a powered redstone repeater, or a powered redstone comparator"*
+  strongly power a block, and a strongly powered block *"can power adjacent redstone dust"* -- that
+  is `into`.
+- *"Redstone dust"* only weakly powers, and a weakly powered block *"cannot power adjacent redstone
+  dust, but can still activate adjacent redstone mechanisms, and power redstone repeaters and
+  comparators facing away from the block"* -- that is `emit` plus the wire-adjacency rule, and it
+  is why `_solve_wire` takes `into` from opaque neighbours and never `emit`.
+- *"the signal strength decreases by 1 for every block of redstone dust"*, and *"does not decrease
+  when transmitted from redstone dust to a block or a redstone component"*.
+
+**And it settled one thing the file had only DISCLAIMED.** QC was reported rather than modelled
+because it was unverified; the wiki states it plainly -- a piston *"can also be activated if a
+redstone signal is supplied to the block above them, even if that block is air"*, dispensers and
+droppers too. It is modelled now, on by default, with `qc=False` available to prove a circuit does
+not secretly depend on it. `quasi_connectivity_risk()` stops being a disclaimer and becomes a list
+of places whose behaviour rests on a mechanic most people do not expect.
+
+**The test for it was wrong first, and instructively.** It put dust DIRECTLY on the piston -- which
+powers it by ordinary adjacency and proves nothing about QC. The real fixture is dust that never
+touches the piston at all: the cell above is AIR and the dust is beside that air. A test that
+passes for the wrong reason is worse here than one that fails.
+
+(redstone.build is a tutorial site rather than a schematic or mechanics source -- no exportable
+designs -- so nothing was taken from it.)
+
+## The casino, the planner and the fleet (2026-08-30, chunkscan 0.6.0)
+
+Built on the circuit simulator, which is the only reason any of it can claim to work.
+
+    python -m mcbuild plan "redstone casino"      # sited, costed, circuit-verified
+    python -m mcbuild plan --approve casino       # THE GATE
+    python -m mcbuild plan --emit casino          # configs, only after approval
+    python -m mcbuild fleet --assign casino --accounts A,B,C
+    /cscan fleet                                  # in game: who holds what
+
+### Casino modules, out of verified circuits only
+
+`gen/casino.py` - slot, prize_wall, marquee, counter. **Nothing in it invents a circuit**; every
+mechanism comes from `gen/circuits.py`, whose modules each state a contract asserted by
+simulation. THE HOUSE MUST NOT BE ABLE TO LOSE BY ACCIDENT, so: every button goes through a pulse
+(a player HOLDS a button), the bank is a barrel a human stocks rather than something the machine
+can reach past, and the randomiser's distribution is carried forward as UNVERIFIED all the way
+into the plan.
+
+**And the contract travels with the build**, in the sidecar - inputs, outputs, what it promises,
+what it cannot. A machine whose promise lives only in a chat message is one nobody can audit a
+month later, which this project has been bitten by before.
+
+### COMPOSING VERIFIED MODULES DOES NOT GIVE YOU A VERIFIED MACHINE
+
+The single most useful thing learned here. The first slot machine was a correct pulse, a correct
+randomiser and a correct payout **sitting near each other with nothing between them**. Every part
+passed its own test. The machine did nothing, and the plan's circuit inspection said so on the
+first run: *wire dies before the end*, *dropper is not wired*, *repeater drives nothing*.
+
+`circuits.connect` is the fix - an L path with a repeater every 14, because **wire dies at 15** and
+that is the rule which turns a working bench test into a build that stops halfway.
+
+**Then the connectors ate the components.** `World.put` overwrites, and a path that starts AT its
+endpoint replaces the very thing it is connecting: the wired slot had a redstone wire where its
+button should be and another where its payout dropper should be, and simulated as firing **zero**.
+A connector runs BETWEEN two things and may not stand on either. `tests/test_casino.py` now
+presses the button and asserts the dropper fires exactly once, which is the only form of this
+check worth having - "no smells" is not "it works".
+
+### The planner: propose, verify, approve, build
+
+`mcbuild/planner.py`. **THE PLANNER DOES NOT UNDERSTAND ENGLISH AND DOES NOT PRETEND TO.** A brief
+selects a THEME from a catalogue. That is an honest split: what a casino should contain is a
+judgement, and whether it fits, collides, can be afforded and actually works is measurement.
+Wiring a model to the first half is a one-line change and it still cannot skip the second, which
+is the point - a model that could approve its own plan could build a spotted table at island scale.
+An unmatched brief RAISES rather than defaulting to the only theme in the catalogue.
+
+**The gate lives in `emit`, not in the CLI**, so no other caller can route around it.
+
+Two real bugs it caught on its first two runs, both in siting:
+
+- **THE TOPMOST SOLID CELL IS NOT THE GROUND.** The first plan sited the whole casino at **Y264,
+  on top of the sky bird**, because a naive height map takes the highest block in each column.
+  `ground_band` takes the MODAL surface height instead - a 2,000-column plate dominates any number
+  of sculptures, and it needs no hand-written Y. It now sites at Y204, on the deck. This is the
+  night pass's own lesson ("the lowest-standable classifier struck a THIRD time") arriving from the
+  opposite direction.
+- **A footprint is a box, so both corners are boundary-checked.** Checking only the origin sites a
+  module that starts inside the plot and finishes over the line - exactly how the Island Run put
+  120 cells past the edge.
+
+And it refuses honestly: the marquee (20x5) and the prize wall (6x12) report **NO SITE**, which
+matches this file's own note that the plate's largest genuinely flat area is 13x13.
+
+### The fleet: five alts, one folder
+
+Jack runs up to five alts, server-legal, all reading the SAME schematics directory on one machine.
+**That removes almost everything a fleet would otherwise be about** - no per-account profile, no
+separate design set, nothing to sync. What is left is the only hard part: who builds what.
+
+- **FIVE IS A CAP, NOT A DEFAULT.** It is a server rule, so it is enforced in `assign()` rather
+  than written in a comment. A tool that quietly allowed a sixth is a tool that gets an account
+  banned.
+- **TWO ACCOUNTS MUST NEVER SHARE A DESIGN** - not because the files collide (they are the same
+  file) but because two printers placing into the same cells fight: each sees the other's block as
+  already-built or as a deviation, and `Printer`'s report, the only honest signal this loop has,
+  becomes noise. `/cscan print` REFUSES a design another account holds.
+- **A CLAIM IS A LEASE, BECAUSE AN ALT CAN DIE.** A claim that never expires strands a design for
+  ever; one with no expiry lets a second account grab it the moment the first is slow. Fifteen
+  minutes, refreshed by a heartbeat while the loop runs - the same reasoning the chest cooling-off
+  already carries, and it has to expire for the same reason.
+
+### Two more of this session's own bugs, worth keeping
+
+- **`Set.of` REFUSES DUPLICATES AT CLASS-INIT TIME.** Re-adding `"take"` to `RESERVED` turned every
+  command in the mod into an `ExceptionInInitializerError` - six unrelated tests went red at once
+  and none of them mentioned the list. The stack trace names the initialiser, never the duplicate.
+- **A test fixture that is wrong twice for the same reason.** The connector's test drove it from
+  one cell OUTSIDE the endpoint, which after the endpoint-skip left it adjacent to nothing. Same
+  shape as the torch test earlier in the day: when a simulator and a fixture disagree, check which
+  one models Minecraft.
+
+### Still open
+
+- **None of the casino has been placed in game.** The machines simulate correctly and the API was
+  checked against the jar, but a slot machine paying out is reasoning until someone presses it.
+- **The randomiser's distribution is unverified by construction** and says so at every level -
+  module, build sidecar, and plan. Check the odds in world before anyone plays for stakes.
+- **`gen/redstone.py`'s sorter still has no signal path** from its comparators to the torches that
+  lock its hoppers. Reported by the inspection, not invented.
+- **`tests/test_designs.py::test_all_configs`** still fails on `shop_islet.yaml`, unchanged and
+  pre-existing.
+
+## Shulker pulls, and an alt that works its own assignment (2026-08-30, chunkscan 0.7.0)
+
+### "A client mod cannot unpack a box for you" was the same kind of claim as the last one
+
+This file has said for a long time that a boxed block *"is not placeable until you set the box
+down"* and that *"a client mod cannot unpack one for you"*. The first half is true; the second was
+a POLICY WRITTEN AS A FACT, exactly like *"a client mod cannot place a block"* before it. Placing,
+opening, emptying and breaking a box are four things this mod already did separately.
+
+It matters because **bulk storage on this island IS boxes in chests**. The index already read
+their contents into `inBoxes`, `Plan.notInAPack` already subtracted them from a shortfall so you
+were not sent shopping for something you owned - and then the loop stopped and told you to do the
+last step by hand. It does it itself now, inside the fetch phase.
+
+**Placed shulker boxes needed NO new code and that is worth recording.** `Storage.CONTAINERS`
+matches by substring, so a shulker box standing in the world has always been indexed, findable and
+withdrawable exactly like a chest. `UnboxTest` asserts it so nobody "adds" it later and breaks the
+substring match.
+
+**A SHULKER BOX IS THE MOST DANGEROUS BLOCK IN THE GAME TO AUTOMATE.** Everything else here risks
+one block; this risks a whole inventory, and the failure is silent - a box left on the ground looks
+exactly like one that was picked up. So the rules are refusals rather than warnings:
+
+- **Never over the void.** A dropped block is a block; a dropped shulker is everything in it.
+- **Only ever break a box THIS ROUTINE PLACED, at the exact cell it placed it.** The island is full
+  of boxes that are somebody's storage, and "a shulker box nearby" is not a thing it may touch.
+- **The box must come back**, checked against the pack afterwards. An unrecovered box is not a
+  failed step, it is a lost chest, so it stops everything and says where the box is.
+
+### `/cscan fleet work` - an alt that picks up its own assignment
+
+`follow all` walks every tracked design, which is right for one player and wrong for a fleet: five
+alts all starting at the top of the same list is five printers fighting over one design. `fleet
+work` walks only what this account holds, keeps the lease alive while it builds, and hands a design
+back the moment its placements are done.
+
+### Three defects found auditing this session's own work
+
+- **The Crafter's race, again, in `Unbox`.** `st.getCount()` is what the server is being ASKED to
+  move; a full pack moves less. Counted from the pack on a later tick now. The same bug twice in
+  one day is the argument for the rule rather than the fix.
+- **FIVE CLIENTS SHARE `fleet.json` AND IT WAS WRITTEN IN PLACE.** A plain write leaves a window
+  where the file on disk is truncated, and a client reading in that window sees an EMPTY fleet -
+  then claims a design another account is already building, which is the one thing the file exists
+  to prevent. Atomic temp-then-move on both sides now. **The remaining read-modify-write race is
+  documented rather than implied away**: two clients that both read and both write still lose one
+  change, and what carries it is that claims are near-idempotent and heartbeats repeat. A real lock
+  is the fix the day this assigns something that cannot be repeated.
+- **A tautological test** (`assertTrue(x || true)`) was removed. A test that cannot fail is worse
+  than no test, because it is counted.
+
+### Still open
+
+- **None of the unbox routine has run in game.** It is the one automation whose failure costs an
+  inventory rather than a block, so run it once by hand - `/cscan unbox <item> <n>` - on a box you
+  would not mind losing, before the loop is left to call it unattended.
+
+## More than one island, and the last red tests (2026-08-30, chunkscan 0.8.0)
+
+**599 Python and 447 Java tests, 0 failures** — the first time in this session the suite has been
+entirely green.
+
+### Alt 2 can build on alt 1's island
+
+Everything here assumed ONE island, because there was one: `plot.find` reads the bedrock out of a
+capture, the mod carried a single square baked in at export time, and `fleet.json` claimed designs
+with no idea where they were. All of it holds right up until a second account has its own island.
+
+**AN ISLAND IS IDENTIFIED BY ITS BEDROCK, NOT BY WHOSE IT IS.** Every skyblock island has exactly
+one bedrock at its origin, which is already how the plot is found — so the bedrock coordinate IS
+the identity: stable, discoverable from any capture, and indifferent to who is standing on it.
+Keying off the account would break the moment an alt walks next door, which is the entire case
+being built.
+
+    python -m mcbuild islands --add main --from out/island_now.litematic --owner Enroniti
+    python -m mcbuild islands --where -24200 30000        # -> main
+    /cscan plot                                            # ...whichever island you are ON
+
+**OWNERSHIP IS A LABEL, NOT A PERMISSION.** It makes a report read sensibly and never decides who
+may build; a tool that refused alt 2 on alt 1's island would be enforcing a rule the server does
+not have. What IS enforced is that every boundary check — the wand, the printer, the digger, the
+unbox siting — now asks about the island under THAT CELL rather than the one that happened to be
+exported. Judged against the wrong square, every build on a second island reads as four thousand
+blocks off-plot.
+
+Two refusals carried over deliberately: **an unknown place is not an off-plot one** (somewhere the
+registry has never been told about answers "I cannot say", the same posture `Plot` already takes
+when no bedrock was found), and **with no registry at all it falls back to the single plot**, so a
+setup that has never heard of a second island is unchanged.
+
+A claim is keyed by ISLAND AND DESIGN now, because two alts can be building designs of the same
+name in two places and a bare name would hand one account's work to the other.
+
+### Three bugs, and two of them were latent for months
+
+- **THE GENERATOR ASKED A DIFFERENT WORLD FROM THE ONE THE AUDIT VERIFIES AGAINST.** `shop_islet`
+  consulted `island_deep` (which reads air at Y150) while `verify_against` used deep AND
+  `island_now` — which holds the cobblestone Jack placed in the massif rework. So it planted
+  short_grass believing its own moss would be underneath, and the moss is never placed, because
+  `ROCK_FAMILY` counts cobblestone as satisfying it. Grass rooted in stone, one failing test, and
+  the cause three files away. `Ctx` takes a LIST now and later captures win where they hold
+  something. One design, two worlds, two answers: the same drift `proportions` and `rubric` share
+  an entry point to avoid.
+- **"REGENERATING THIS DESIGN MUST BE FOLLOWED BY RE-CARVING" WAS THE BUG, NOT THE FIX.** The shop
+  islet's lens fill sits where the Lowland Stair screws down through it; the well was cut by hand
+  once, with that note in the config and a test as the tripwire. Regenerating the islet to fix the
+  grass re-filled the well and the tripwire fired — exactly as predicted, months later, by an
+  unrelated change. **A step that has to be remembered is a step that gets lost.** `finish.carve_for`
+  is a pipeline step now: dig cells plus headroom over whatever you stand on, re-derived on every
+  run. 250 cells, by construction, for ever.
+- **A cache keyed on the clock alone.** `Islands.all` cached per 30 seconds and not per DIRECTORY,
+  so a second schematics folder silently got the first one's islands. Benign today — there is one
+  folder — and precisely the latent bug that bites the day there are two. Its own test found it.
+
+### Still open, and deliberately not guessed at
+
+**The item sorter's threshold.** With the comparators reading correctly, the lock never flips: the
+signal path from comparator to the torch that locks each filter hopper does not exist. The
+simulator confirms the comparator reads the hopper (out == fill) and that nothing reaches the
+torch. The correct topology is a THRESHOLD — unlock at signal >= 2, not >= 1, because the baseline
+of 1 target + 4 filler already reads 1 — and I do not have a verified design for it. It is the one
+thing here I am not willing to invent, because a sorter that looks right and voids items is worse
+than one that plainly does not run.
+
+**And none of the multi-island work has been exercised with a second island**, because there is
+only one recorded. The fallbacks are tested; the two-island case is tested against a synthetic
+registry. Record alt 2's island with `--add` and walk over before trusting it.
+
+## Two reference builds, and the mistake they caught (2026-08-30)
+
+Jack supplied a working four-lane `item_filter.schem` and a bonemeal farm with a shulker loader.
+They are checked into `reference/` and they earned their place immediately.
+
+### Reading the OTHER schematic format
+
+`mcbuild/sponge.py` reads WorldEdit `.schem`. Everything here speaks Litematica because that is
+what chunkscan writes, and **a reference build that cannot be opened is a reference build nobody
+learns from** - the same reason `tools/corpus.py` exists. Two things to get right: **the block
+array is VARINT-packed, not bit-packed**, and **Sponge's palette is NAME -> INDEX, the reverse of
+Litematica's list** and not necessarily in index order, so it is built by position. Read in the
+wrong order it silently relabels every block and looks like a clean import of a different build.
+`load_any` decides by CONTENT, because a file called `.litematic.gz` is still a litematic.
+
+### THE SORTER'S COMPARATOR WAS RIGHT, AND I TURNED IT ROUND
+
+Earlier the same day the circuit inspection reported `comparator reads nothing` on the item sorter,
+and the general rule - *a comparator reads what is behind it* - was applied to flip every lane's
+comparator to face away from its hopper. **The rule is true and the inference was wrong.**
+
+The reference settles it in one minute: the comparator sits beside the filter hopper and faces
+INTO it. It is not reading the hopper, it is **driving** it - a comparator's output locks a hopper
+- and its own input arrives from BEHIND, off a smooth-stone block that a wire bus weakly powers.
+The wiki's own rule is what makes that legal: a weakly powered block *"cannot power adjacent
+redstone dust, but can still ... power redstone repeaters and redstone comparators facing away from
+the block"*.
+
+So the original orientation was correct; the lane's real fault was that it had nothing behind the
+comparator and **no lock line at all**. The whole lane is now copied cell for cell from the
+reference - torch, repeater, stone, glass, bus - and `tests/test_circuits.py` compares the
+generated lane against the reference FILE rather than against anybody's memory.
+
+**Reasoning got this backwards twice and a reference build settled it immediately.** That is the
+strongest argument yet for the corpus discipline this file already recorded: outside builds are
+the only non-circular evidence this project has.
+
+### Calibrating the inspection against builds known to work
+
+Run over the bonemeal farm - a machine that demonstrably works - the inspection returned **74
+findings**. Almost all of it was noise, and fixing that is worth more than any new check:
+
+- **62 quasi-connectivity lines, one per component.** A piston machine is pistons with things over
+  them; that is what one looks like. One counted line now, with an example. A per-cell warning that
+  fires on every cell of a working build is how a real finding gets scrolled past.
+- **Seven "piston is not wired" on pistons a real build fires from above.** QC is MODELLED now, so
+  it counts as wired.
+- **Five findings within one cell of the file boundary.** Every finite cut truncates something -
+  the audit already knows this about captures - so `near_edge` separates a cropping artifact from a
+  fault. 74 -> 13, of which 5 are edge.
+
+And the seven that remain are a REAL LIMIT, now written into the module: **anything driven by a
+MOVING redstone block is invisible to static inspection.** They are one row at a single course,
+no wire, no observer, nothing overhead - a redstone block a piston pushes along, which is how half
+the compact farms in the game work. At rest the driver is not next to the thing it drives.
+
+### Still open
+
+**The sorter has not been tested in game, and the lane is a copy rather than an understanding.**
+The bus's power path is not derivable from a static snapshot - the inspection still says "dust with
+no source" on the REFERENCE itself - so what is shipped is a faithful reproduction of a build that
+works, not a mechanism this project can explain. Place it and put an item through it before
+trusting it. That is a much better position than the invented lane it replaces, and it is not the
+same as verified.
+
+## The wiki closes the odds question (2026-08-30)
+
+Jack sent minecraft.wiki's Tutorials index and pwouik's advanced-redstone resource gist. The gist
+is an INDEX of learning material rather than data, and nothing was taken from it; the wiki's
+`Tutorial:Randomizers` and `Tutorial:Item_sorting` both changed real code.
+
+### A casino that does not know its own odds
+
+`circuits.randomiser` took any N up to 8 and said, in writing, that it could not tell you the
+distribution. **For a slot machine that is not a caveat, it is a bug** - a house that does not know
+its odds cannot know whether it is losing money, and the whole point of `gen/casino.py` is that
+the house must not be able to lose by accident.
+
+The wiki gives an equal-probability figure for exactly two item mixes, and **the odds are a
+property of the MIX, not of the wiring**: a dropper ejects a uniformly random one of its OCCUPIED
+slots.
+
+    2 outcomes, EQUAL   one stackable + one non-stackable            -> power 1 or 3
+    3 outcomes, EQUAL   64-stackable + 16-stackable + non-stackable  -> power 1, 2 or 4
+
+and, quoting the same page, extras make it lopsided: *"with two different stackable items and three
+different non-stackable items, the RNG will output power level 1 40% of the time and power level 3
+60% of the time"*. So those two mixes are the only ones on offer, **anything else RAISES**, and the
+required items travel in the build's sidecar exactly as the sorter's filter stock does. A machine
+built right and loaded wrong pays wrong.
+
+### Two bugs the rewrite exposed, and one test that had been passing for the wrong reason
+
+- **The randomiser's comparator was not reading its hopper.** Placed by hand, its BACK pointed away
+  from the container it exists to read, so the machine could never have paid out. It is placed one
+  step along its own facing from the hopper now, which makes the relationship automatic rather than
+  remembered.
+- **`test_a_press_pays_exactly_once` had been passing without stating a win.** The old randomiser
+  passed the trigger straight through, so the test proved nothing about the machine; with a
+  randomiser that genuinely gates on items it went red immediately. The win is STATED now, through
+  `fill` - which is exactly the contract the simulator documents: *a container's fullness is an
+  INPUT you state*. **The simulator has no entities and a test that hides that is worse than no
+  test.**
+
+### What the sorting tutorial confirmed, and what it did not settle
+
+Confirmed, and now sourced rather than remembered: the filter hopper takes **1 target + 4 filler**;
+the comparator's reading rises when the target arrives; the torch-and-repeater chain drives a dust
+line that **locks the hopper below the filter**; and the mechanism rests on the rule that *"hoppers
+search for an item to be taken from the input side BEFORE outputting an item to another
+container"*.
+
+Not settled: **what powers the bus in Jack's reference filter.** The inspection still reports "dust
+with no source" on the reference ITSELF, which is either my model missing a path or the power
+arriving from outside the exported region. The shipped lane remains a faithful copy of a build that
+works rather than a mechanism this project can explain, and that distinction stays in the docstring.
+
+## Four reference builds calibrated the inspection: 74 findings -> 1 (2026-08-30)
+
+Jack sent two more working contraptions (`reference/contraption_31323.litematic`,
+`contraption_24829.litematic`) on top of the item filter and the bonemeal farm. Run against builds
+that DEMONSTRABLY WORK, the circuit inspection was mostly shouting at itself:
+
+| build | findings before | after |
+|---|---|---|
+| bonemeal farm + shulker loader | **74** | 1 |
+| contraption 31323 | 2 | 1 |
+| contraption 24829 | 9 | 1 |
+| item filter | 2 | 1 |
+
+and the one that remains on each is the informational quasi-connectivity line, except the item
+filter's - which is the bus question, now the ONLY real finding across four independent builds and
+therefore much more likely to be a fact about that exported region than noise.
+
+**THE ONLY QUESTION THAT DECIDES WHETHER A TOOL GETS USED IS WHETHER IT STAYS QUIET ON A MACHINE
+THAT WORKS.** This project already learned that on the audit and again on the deck soffit - *a
+check that cries wolf is a check nobody runs* - and a redstone inspector has more chances to cry
+wolf than anything else here. `tests/test_circuit_calibration.py` pins a CEILING per build, so a
+future change that starts shouting fails.
+
+### Four false-positive classes, each a real bug in the tool
+
+- **SEEDS ARE NOT SOURCES**, and this was a genuine defect. The walk that measures "how far is this
+  dust from power" collected the EMITTER - which may be two cells away, through a block it powers -
+  and then seeded from dust ADJACENT TO THAT EMITTER. The two never match: a dust cell fed through
+  a stone block is not adjacent to the torch under it. So the walk seeded nothing, every cell
+  measured as unreachable, and six runs of a working build were reported as dying. It collects the
+  cells power ARRIVES AT now. This one was also mis-reporting our own designs and nobody had
+  noticed.
+- **A MOVING REDSTONE BLOCK DRIVES HALF THE COMPACT MACHINES IN THE GAME.** At rest the driver is
+  not next to the thing it drives, so a static inspection calls a working machine unwired - seven
+  "unwired" pistons in one row of the farm, and a repeater pointing at empty air with a redstone
+  block sitting on a sticky piston one cell above. `moving_driver_near` is deliberately generous: a
+  false negative costs a real finding, a false positive costs a warning nobody needed.
+- **An OBSERVER pulses rather than holding**, and what it watches for may only exist while
+  something moves. Two repeaters came back as "reads nothing" with observers on two sides.
+- **62 quasi-connectivity lines, one per component.** A piston machine is pistons with things over
+  them; that is what one looks like. One counted line now.
+
+**And the calibration was checked for blindness**, which matters more than the numbers: a stranded
+comparator, a 30-cell run with no repeater and an orphaned dust group are all still reported, and
+`test_our_own_broken_lane_is_still_caught` pins it. Buying quiet by going blind would be worse than
+the noise.
+
+Our own item sorter, generated from the reference lane, now reports **nothing suspicious** - which
+is not the same as working, and the docstring still says so.
+
+## A real casino, and the third schematic format (2026-08-30)
+
+`reference/` now holds six outside builds. Two of them changed the picture.
+
+### `casino_chirurg.litematic` — what a redstone casino actually is
+
+**135x75x105, 185,198 blocks, 774 palette states, 5,000 redstone cells.** Ours was a 24-block
+"slot machine". Theirs has 513 repeaters, 468 comparators, 404 hoppers, 329 observers, 300
+droppers and **303 note blocks** - sound is a whole dimension of a casino and `gen/casino.py` had
+none of it.
+
+**AND A QUARTER OF IT CANNOT BE BUILT HERE.** Priced against this server's economy: 67.5% cheap,
+7.4% ok, and **25.2% expensive - 46,609 blocks**, almost all of it quartz (25,054) and stained
+glass (14,500). The aesthetic of a casino is quartz and coloured glass, and on this island that is
+not a palette, it is a wish.
+
+So the substitution has to be done properly, and doing it exposed two traps this file already
+knew about:
+
+    quartz_block          -> pearlescent_froglight   CHEAP BY THE TABLE, and this island holds ZERO
+    black_stained_glass   -> black_shulker_box       a CONTAINER, admitted as skin
+
+The first is rule 12 - *ask the world, not the table* - and the second is the `bee_nest` trap, via
+the `shulker_box` gap this file has had listed as open under `rubric.FUNCTIONAL` for weeks. Both
+are closed: `shulker_box` is in FUNCTIONAL now, and `palette.affordable_like` applies **three**
+gates rather than one - cheap by the table, WITNESSED on this server, and not a machine. It
+returns `(None, None)` rather than a bad substitute when nothing survives.
+
+    quartz_block         -> white_wool   (24)
+    black_stained_glass  -> black_wool   (10)
+    snow                 -> snow_block   (0)
+
+**A LIGHT CANNOT BE SUBSTITUTED BY COLOUR.** `sea_lantern -> birch_log` at distance 85 and
+`redstone_lamp -> acacia_planks` at 50 are what a pure colour match gives you, and both are wrong
+in KIND. A lamp is replaced by a lamp or not at all.
+
+### The pre-1.13 format, and a reader that admits what it cannot see
+
+`mcedit_1216.schematic` is the OLD MCEdit format: numeric block ids, no palette, orientation in a
+parallel `Data` nibble array. `sponge.load_mcedit` reads it against a table of ~80 ids, and **an id
+outside the table becomes `unknown_<id>` rather than a guess** - a reader that renders an unknown
+id as stone produces a build that looks imported and is wrong, and nothing downstream can tell.
+This file had exactly one (id 128) and it is named.
+
+**But the orientation is not decoded**, and run blind that produced **66 direction findings, every
+one of them about the reader rather than the build**. Rather than guess the nibble convention -
+this session has been bitten twice already by guessing an orientation rule - the inspection now
+DETECTS the situation: if not one directional component in a model carries a facing, the direction
+checks are skipped and **the reason becomes the finding**. 73 -> 2, and the one that matters names
+the reader's own limit.
+
+### Where the calibration stands
+
+| build | findings |
+|---|---|
+| item filter | 1 |
+| bonemeal farm | 1 |
+| contraption 31323 | 1 |
+| contraption 24829 | 1 |
+| casino (185,198 blocks, 5,000 redstone) | 37 |
+| mcedit (orientation unknown) | 2 |
+
+37 on the casino is **0.7% of its redstone components**, and a human-made build that size genuinely
+has leftovers. Chasing it to zero would be buying quiet by going blind, which is what
+`test_our_own_broken_lane_is_still_caught` exists to prevent.
+
+### Still open
+
+**The casino theme is still my invented module list**, now known to be a toy beside the reference.
+Rebuilding it on what a real casino contains - and on a palette this server can actually buy - is
+the next piece of work, and it is a design decision rather than a bug fix.
+
+## The casino, rebuilt against the reference — and it does not fit (2026-08-30)
+
+### THE REFERENCE CASINO IS BIGGER THAN A SKYBLOCK PLOT
+
+135 x 105 against a 99 x 99 plot: **36 over on X and 6 over on Z.** Jack: *"it cant be bigger than
+99x99 ... but we can go vertically higher and much lower"*, and that is the whole shape of the
+answer - the same volume is **1.45 floors** stacked, and Y-64 to Y320 is 384 courses of room.
+
+So the theme carries a `floors` plan rather than sprawling, and **a module wider than the plot is
+reported as impossible up front** rather than after a full pad search: "NO SITE" reads like awkward
+ground, when the truth is that the design can never fit at any position.
+
+### The game, rebuilt
+
+The first `slot` was 24 blocks. One of the reference's games is 16x12x16 with 97 wire, 27
+comparators, 27 repeaters, 22 observers, 29 lamps, 16 note blocks and 27 signs. Three structural
+things were wrong and all three are fixed: **the machine lives under the floor** (the reference has
+two redstone layers with a play floor over them), **the display is the game** (nearly half of a
+machine is coloured wool and lamps), and **sound** (303 note blocks there, none here).
+
+**A quarter of the reference cannot be built on this economy** - 46,609 expensive blocks, almost
+all quartz and stained glass - so the palette is re-derived through `palette.affordable_like`:
+`quartz_block -> white_wool` (24), `black_stained_glass -> black_wool` (10). The board COLOURS
+needed no substitution; they were already cheap, and the board is the part that matters.
+
+**Two things are budgeted rather than substituted.** `redstone_lamp` and `note_block` are both
+expensive, and their nearest cheap colours are `acacia_planks` and `soul_sand` - a lamp that does
+not light and a note block that makes no sound. **A light cannot be substituted by colour.** They
+are counted into `budget` and the count reaches the plan: 120 lamps priced out as 480 redstone (in
+stock) plus 120 glowstone, of which **214 dust was short**. A shopping list, not a shrug.
+
+### THE BAR DISPLAY DOES NOT SHIP, AND THAT IS THE POINT
+
+The idea is sound - the outcome is an analog level, wire loses one per block, so a dust run reads
+it off as a bar. Three attempts did not get a signal from the pit to the board:
+
+1. **`connect` IS PLANAR and said so nowhere.** It lays an L path at ONE height and quietly never
+   climbed the six-course pit. `circuits.climb` was written for this and is keeping regardless: a
+   vertical run is a staircase of step blocks with dust on each, and it needed to exist.
+2. **The lamps sat on the back wall, diagonal from the bus.** Diagonal is not adjacent.
+3. **The riser shared cells with links already laid**, so `w.has` skipped its STEP BLOCKS and left
+   dust stacked on dust, which connects to nothing. Rerouting it sideways did not fix it either.
+
+At that point the honest move is to stop. `display: False`, the reason recorded in the config, and
+a test that asserts the build SAYS the board is not wired. **A display that looked like a readout
+and was not would be exactly the failure this subsystem exists to prevent** - it would pass the
+audit, the bill of materials and the eye. What ships is the machine, and its contract is verified
+by simulation: one press, one payout, never zero and never twice.
+
+### Planning onto another island
+
+`mcbuild plan --island <name>` takes the plot from the island REGISTRY rather than from the
+capture's own bedrock, so a capture holding two islands cannot pick the wrong square. The games
+report NO SITE on the main island, which is correct - CLAUDE.md has said for weeks that the plate's
+largest genuinely flat area is 13x13, and a game wants 12x10 clear.
+
+### The runbook for the fresh plot
+
+    /cscan casinoisle                                   # in game, on the NEW island
+    python -m mcbuild islands --add casino --from <capture> --owner <alt>
+    python -m mcbuild plan "redstone casino" --world <capture> --island casino
+    python -m mcbuild plan --approve casino             # THE GATE
+    python -m mcbuild plan --emit casino
+    python -m mcbuild fleet --assign casino --accounts A,B,C
+    # then on each alt:  /cscan fleet work
+
 ## The daily loop
 
 ```bash
-python -m mcbuild sync            # cut the newest scan, regenerate ground designs, progress + shop, learn
+python -m mcbuild sync            # cut the newest scan, regenerate ground designs, progress + shop, learn, BACK UP
+python -m mcbuild backup --status # what backups exist and how old the newest is
+python -m mcbuild craft <design>  # what it is MADE of, against your containers
 ```
 `sync.yaml` says which designs regenerate and which get reported. After that:
 

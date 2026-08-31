@@ -133,6 +133,39 @@ final class Loop {
 		return retries == 0 ? Station.CLOSER : Station.ABANDON;
 	}
 
+	/**
+	 * The same decision, but with the PRINTER'S OWN REPORT instead of a stopwatch.
+	 *
+	 * <p>Every clock in this file exists because of one sentence in the project's notes: <i>"the
+	 * printer never reports back, so `todo` shrinking is the only honest evidence a block was
+	 * placed"</i>. When {@link Printer} is the thing placing, that is no longer true, and the
+	 * difference is not merely faster - it is a different KIND of answer:
+	 *
+	 * <ul>
+	 *   <li><b>a placement is progress, immediately.</b> No waiting to see whether the count
+	 *       moves;</li>
+	 *   <li><b>a REFUSAL is proof, immediately.</b> The clock could only ever say "nothing has
+	 *       happened for five seconds" and guess why; a refused cell is the world saying no. There
+	 *       is nothing to wait for, so the bin is abandoned on the spot;</li>
+	 *   <li><b>and silence still means silence.</b> Nothing attempted yet is not evidence of
+	 *       anything, so it falls through to the clock exactly as before. That fallback is what
+	 *       keeps this honest: the report answers only what it actually observed.</li>
+	 * </ul>
+	 *
+	 * @param placed   cells the printer saw land since the last recount
+	 * @param refused  cells it saw refused - still air after its retries, or the wrong state
+	 */
+	static Station stationFromReport(boolean sameBin, boolean arrived, int todoHere, int todoBefore,
+	                                 long sinceMs, long stallMs, int retries,
+	                                 int placed, int refused) {
+		if (!sameBin) return Station.NEW;
+		if (placed > 0) return Station.RECENTRE;
+		// A refusal is knowledge, not a timeout. One more try from closer in, because the commonest
+		// refusal is reach; then it is not this trip's work.
+		if (refused > 0) return retries == 0 ? Station.CLOSER : Station.ABANDON;
+		return station(sameBin, arrived, todoHere, todoBefore, sinceMs, stallMs, retries);
+	}
+
 	// ---------------------------------------------------------------- going nowhere
 
 	/**

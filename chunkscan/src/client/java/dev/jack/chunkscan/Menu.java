@@ -105,6 +105,29 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan stop", "PANIC: cancel withdrawal, flight, follow and highlights"));
 		r.add(new Row("/cscan fetch", "cancel just the fetch and clear the instruction"));
 
+		r.add(new Row(null, "SKYBLOCK: COST, CRAFT, INCOME"));
+		r.add(new Row("/cscan print ", "<design>  place it OURSELVES, and verify every block landed"));
+		r.add(new Row("/cscan make ", "<item> <n>  craft it, with a crafting table open"));
+		r.add(new Row("/cscan smelt ", "<item> <n>  drive a furnace or a stonecutter"));
+		r.add(new Row("/cscan autodig ", "<design>  break the cells its dig list names, and only those"));
+		r.add(new Row("/cscan buy ", "<design>  what the shortfall costs; add a cap to actually buy"));
+		r.add(new Row("/cscan farm ", "<seed> <crop>  place-wait-harvest over the wand's box"));
+		r.add(new Row("/cscan photo ", "<design>  fly 8 bearings and screenshot each"));
+		r.add(new Row("/cscan fleet", "who is building what, across your alts"));
+		r.add(new Row("/cscan fleet take ", "<design>  claim it for this account"));
+		r.add(new Row("/cscan fleet done ", "<design>  hand it back as finished"));
+		r.add(new Row("/cscan fleet work", "start on whatever THIS account is assigned"));
+		r.add(new Row("/cscan unbox ", "<item> <n>  set a carried shulker down, empty it, pick it up"));
+		r.add(new Row("/cscan craft ", "<design>  resolve it to RAW materials against what you own"));
+		r.add(new Row("/cscan prices on", "read the shop's own prices while you browse it"));
+		r.add(new Row("/cscan prices", "what prices are known, and how stale"));
+		r.add(new Row("/cscan income sample", "snapshot your containers; two samples make a rate"));
+		r.add(new Row("/cscan income", "production per hour, and what you are spending"));
+		r.add(new Row("/cscan plot", "the 99x99 boundary, and whether you are inside it"));
+		r.add(new Row("/cscan warp add ", "[name]  record where a warp DROPS you, for routing"));
+		r.add(new Row("/cscan warp forget ", "<name>  drop one"));
+		r.add(new Row("/cscan warp", "the warps routing may use; on and off gate their use"));
+
 		r.add(new Row(null, "THE WORLD"));
 		r.add(new Row("/cscan dark", "standable cells the light does not reach"));
 		r.add(new Row("/cscan find ", "<item>  which container holds it"));
