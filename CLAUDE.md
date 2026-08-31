@@ -6742,3 +6742,89 @@ nobody has written down is one nobody checks for. **Load the dropper, never the 
   `reference/casino_chirurg.litematic` and the palette is derived from it by measurement
   (`palette.affordable_like`: quartz -> white_wool at 24 RGB, black glass -> black_wool at 10),
   because its own materials are expensive here. The plot is 99x99; the answer is to STACK.
+
+## The casino became a BUILDING (2026-08-31)
+
+Jack, on the first placed version: *"its not clear what any of the games are, how to play them...
+we need signs... lets put them into proper rooms, and design the entire casino around it... this is
+just random platforms of shit."* All correct. 29 open bays scattered over a void plot, nothing
+saying what any of them was.
+
+**30 designs, 17,138 blocks, 37 signs, 0 overlap and 0 placement problems.**
+
+### THIS PROJECT HAD NEVER PLACED A SIGN
+
+The writer emits tile entities and the pipeline shifts them when a design is padded - both have
+worked for a year - and `Canvas` had no way to make one, so nothing above that layer could. A room
+with no sign is a room nobody can be told the rules in, which is exactly the complaint.
+
+`Canvas.sign_text` and `World.sign` close it. Three things they had to get right:
+
+- **26.x nests the lines under `front_text`/`back_text` as a `messages` list of JSON strings, and
+  there are ALWAYS FOUR.** A sign with two lines still stores four; a shorter list is a sign the
+  game refuses to load, so the padding is done in the helper rather than at every caller.
+- **The BLOCK and the TEXT are separate things** - a palette entry and a tile entity, in different
+  halves of the file - so `put` places the sign and `sign` says what it reads.
+- **Text is only carried across if the BLOCK survived.** A design is remaining work and cells get
+  deferred or trimmed, so a sign's text can outlive its sign, and a tile entity with no block is a
+  corrupt region rather than a harmless leftover.
+
+**FIFTEEN CHARACTERS IS THE LINE.** "lamps show your roll" is twenty and clips mid-word; `_copy`
+asserts the width, because the failure only appears in a screenshot after the build is placed.
+
+**The odds are ON the sign** - "1 in 3", "pays 1 prize". A house that will not print its odds is a
+house that does not know them, and `RNG_MIXES` holds only the two item mixes with a measured
+uniform result.
+
+### A GAME IS A ROOM, NOT A PLATFORM
+
+Four walls, one doorway, a ceiling, a skirting, a cornice, corner pilasters, two lanterns and two
+signs. Deliberately ordinary: **what makes voxels read as architecture is regularity and openings**,
+which the void tower settled when a jagged ruin was rejected on sight and a plain regular one with a
+door and window slits worked immediately.
+
+- **The doorway is left EMPTY by the wall loop, never punched afterwards.** Building the ring and
+  cutting a hole repaints cells that already exist - the void tower's crenellations shipped as a
+  plain drum for exactly this reason and nothing about the code looked wrong.
+- **A CASINO IS DARK WITH BRIGHT TRIM, NOT A WHITE BOX.** Built white-field / grey-wall /
+  grey-ceiling it rendered as a bathroom. The field is `black_wool` (21), the border and cornice
+  `white_wool` (236), the walls `smooth_stone` (159), the ceiling and pilasters `deepslate_bricks`
+  (71) - the 215-point cheap value range this project measured ACROSS families after three separate
+  notes here wrongly concluded, from searching WITHIN one family, that this economy has none.
+- **Stairs as skirting and cornice.** The corpus says we place stairs at a seventh of the rate
+  outside builders do; this is the first generator to use them as trim rather than as a staircase.
+
+### The hall, and why it is built LAST but placed FIRST
+
+`kind: hall` - an 88x88 floor, a perimeter wall with plinth, string course and parapet, a 3-wide
+gateway, twelve lanterns and the casino's name over the door. 9,874 blocks.
+
+- **NO ROOF, deliberately.** Every room has its own ceiling, and an 88x88 lid is seven thousand
+  blocks nobody inside a room can see. What reads from outside is the WALL and the GATEWAY.
+- **It is the last module in the theme, and that order is load-bearing.** `emit` chains `defer_to`
+  down the list, so a later module yields any cell an earlier one claimed. Built first, the hall's
+  floor would take every room's floor and the rooms would stop being rooms. Built last it lays only
+  the ground BETWEEN them, which is what a hall is.
+- **A COVERING MODULE IS NOT COMPETING FOR SPACE, IT IS THE SPACE.** Asked to find a free bay it
+  correctly reported NO SITE, because by then the plane is full of rooms. `anchor: cover` centres it
+  on the plot and claims nothing.
+- It is also the fix for *nothing to place against*: the plot is void, and that is why every design
+  reported free-floating cells.
+
+### Four faults, all caught by checks that already existed
+
+- **Carpet laid IN the floor course had nothing under it** - six floating carpets per room, rule 9,
+  and the audit caught it exactly as designed. The carpet goes ON the floor.
+- **A REDSTONE LAMP IS A DARK BLOCK UNTIL SOMETHING POWERS IT.** Two per room, wired to nothing;
+  the circuit inspection said so on the first run. Lanterns hung from the ceiling need no signal
+  and cost an iron ingot and a torch.
+- **The spread report read `at` as a minimum corner.** A game runs from at-6 to at+9 and the hall
+  from at-87 to at, so the report claimed the casino spilled 80 blocks past the plot and used 113%
+  of it while every module was inside. A boundary report that cries wolf is one nobody reads.
+- **Three of my own tests measured the MODEL BOX rather than the room.** The box is 16x10 because
+  the machine and payout run out under the floor; the room is 10x6. A ceiling test sampling the
+  box's centre column, and a wall test checking the box's far edge, both failed on a correct build.
+
+**Still open:** the interior has been verified by audit, simulation and block counts, not by eye -
+`tools/look.py` cannot render these because the casino sidecar records `facing` as a word and it
+wants a vector. Place one room and look at it before building thirty.

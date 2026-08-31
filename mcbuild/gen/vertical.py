@@ -25,9 +25,19 @@ class World:
 
     def __init__(self):
         self.cells: dict[tuple[int, int, int], tuple[str, dict]] = {}
+        # Sign TEXT, in world coordinates, carried across to the canvas at export. Kept apart from
+        # `cells` because a sign is two things in two halves of the file: a palette entry for the
+        # block and a tile entity for what it reads.
+        self.signs: dict[tuple[int, int, int], dict] = {}
 
     def put(self, x, y, z, name, **props):
         self.cells[(int(x), int(y), int(z))] = (name, props)
+
+    def sign(self, x, y, z, front=(), back=(), colour="black", glowing=False):
+        """Say what the sign at this cell READS. Place the block with `put` as usual."""
+        self.signs[(int(x), int(y), int(z))] = {
+            "front": list(front), "back": list(back),
+            "colour": colour, "glowing": bool(glowing)}
 
     def has(self, x, y, z):
         return (int(x), int(y), int(z)) in self.cells
@@ -44,6 +54,13 @@ class World:
         c = Canvas(max(xs) - x0 + 1, max(ys) - y0 + 1, max(zs) - z0 + 1)
         for (x, y, z), (name, props) in self.cells.items():
             c.put(x - x0, y - y0, z - z0, c.raw_state(name, **props))
+        for (x, y, z), t in self.signs.items():
+            # ONLY IF THE BLOCK SURVIVED. A design is remaining work and cells get deferred or
+            # trimmed, so a sign's text can outlive its sign - and a tile entity with no block is
+            # a corrupt region, not a harmless leftover.
+            if (x, y, z) in self.cells:
+                c.sign_text(x - x0, y - y0, z - z0, t["front"], t["back"],
+                            t["colour"], t["glowing"])
         c.world_origin = (x0, y0, z0)
         c.meta = meta or {}
         return c

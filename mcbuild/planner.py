@@ -80,6 +80,18 @@ THEMES = {
              "size": [4, 5, 12], "params": {"lanes": 5}, "count": 4, "floor": 1},
             {"name": "House Bank", "gen": "casino", "kind": "counter",
              "size": [4, 4, 8], "params": {"lanes": 6}, "count": 3, "floor": 1},
+            # THE BUILDING GOES LAST, AND THAT ORDER IS LOAD-BEARING.
+            #
+            # `emit` chains `defer_to` down the list, so a later module yields any cell an earlier
+            # one already claimed. Built first, the hall's floor would take every room's floor and
+            # the rooms would lose the thing that makes them rooms. Built last it lays only the
+            # ground BETWEEN them - which is exactly what a hall is.
+            #
+            # It is also the fix for "nothing to place against": the plot is void, and every design
+            # reported free-floating cells because there is no ground on a fresh skyblock island.
+            {"name": "Casino Hall", "gen": "casino", "kind": "hall", "anchor": "cover",
+             "size": [88, 7, 88], "params": {"width": 88, "depth": 88, "gate": 3},
+             "count": 1, "floor": 0},
         ],
     },
 }
@@ -135,9 +147,20 @@ class Plan:
             for f in m.get("circuit", [])[:3]:
                 out.append(f"      CIRCUIT: {f}")
         if self.modules:
-            xs = [m["at"][0] for m in self.modules] + [m["at"][0] + m["size"][0] for m in self.modules]
-            zs = [m["at"][2] for m in self.modules] + [m["at"][2] + m["size"][2] for m in self.modules]
-            area = sum(m["size"][0] * m["size"][2] for m in self.modules)
+            # THE SPREAD IS READ OFF THE ANCHOR OFFSET, NOT OFF `at`.
+            #
+            # A module's anchor is not its minimum corner - a game runs from at-6 to at+9 and the
+            # hall runs from at-87 to at - so treating `at` as the corner reported the casino
+            # spilling 80 blocks past the plot and using 113% of it, when every module was in fact
+            # inside. A boundary report that cries wolf is one nobody reads.
+            xs, zs, area = [], [], 0
+            for m in self.modules:
+                fx, _fy, fz = m.get("anchor_offset", (0, 0, 0))
+                x0, z0 = m["at"][0] + fx, m["at"][2] + fz
+                xs += [x0, x0 + m["size"][0] - 1]
+                zs += [z0, z0 + m["size"][2] - 1]
+                if not m.get("covers"):          # the hall IS the floor; it is not "used up"
+                    area += m["size"][0] * m["size"][2]
             out.append(f"  spread: X {min(xs)}..{max(xs)}  Z {min(zs)}..{max(zs)}  "
                        f"({area} of {99 * 99} plot cells used by module footprints, "
                        f"{100 * area / (99 * 99):.0f}%)")
@@ -318,6 +341,14 @@ def measured_footprint(gen: str, kind: str, params: dict, declared):
     return out
 
 
+
+def _plot_bounds(pp):
+    b = getattr(pp, "bounds", None)
+    if callable(b):
+        return b()
+    return (pp.cx - pp.radius, pp.cx + pp.radius, pp.cz - pp.radius, pp.cz + pp.radius)
+
+
 USE_CLEAR = 3          # rule 10: room to stand at a chest, open it and walk past
 
 
@@ -444,6 +475,26 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             size = [fw + spacing, fh, fd + spacing]
             spot = None
             taken_box = None
+            # A COVERING MODULE IS NOT COMPETING FOR SPACE, IT IS THE SPACE.
+            #
+            # The hall's whole job is to lay the ground under and between the rooms, so the
+            # overlap test that keeps two games apart is exactly wrong for it: asked to find a
+            # free bay it correctly reported NO SITE, because by then the plane is full of rooms.
+            # It is centred on the plot instead, and it claims nothing, so nothing sited after it
+            # is pushed out.
+            if mspec.get("anchor") == "cover" and pl_plot is not None and plane is not None:
+                x0, x1, z0, z1 = _plot_bounds(pl_plot)
+                cw, cd = size[0] - spacing, size[2] - spacing
+                bx = x0 + max(0, ((x1 - x0 + 1) - cw) // 2)
+                bz = z0 + max(0, ((z1 - z0 + 1) - cd) // 2)
+                pl.modules.append({
+                    "name": mspec["name"], "gen": mspec["gen"], "kind": mspec["kind"],
+                    "at": [bx - fx, plane, bz - fz], "size": [fw, fh, fd], "roll": 0,
+                    "declared_size": list(mspec["size"]), "anchor_offset": [fx, fy, fz],
+                    "floor": floors[0]["name"], "covers": True,
+                    "params": dict(mspec.get("params", {})), "world": world,
+                })
+                continue
             # THE GRID FIRST, so the plot is used rather than a strip of it. Each bay still has to
             # pass the SAME ground test a free-form pad would - flat enough, in the band, free -
             # because a tidy grid over rolling terrain is still a build on rolling terrain.
@@ -628,8 +679,12 @@ def emit(name: str, out_dir: str = "configs") -> list:
         cfg = {
             "name": m["name"],
             "gen": m["gen"],
+            # THE MODULE'S NAME REACHES THE BUILD, so the door sign says which room this is.
+            # Without it every door in the casino reads "HIGH ROLLER" and a player cannot tell
+            # one room from the next - which is most of what "it is not clear what any of the
+            # games are" meant.
             "params": {**m.get("params", {}), "at": m["at"], "kind": m["kind"],
-                       "under": m.get("world")},
+                       "title": m["name"], "under": m.get("world")},
             "finish": {"verify_against": m.get("world")},
         }
         cfg["origin_lock"] = False

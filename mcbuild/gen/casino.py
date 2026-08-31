@@ -53,6 +53,10 @@ PALETTE = {
     "board": ["red_wool", "blue_wool", "green_wool", "pink_wool", "cyan_wool",
               "light_blue_wool", "orange_wool", "lime_wool"],
     "carpet": "red_carpet",
+    # The relief vocabulary the download corpus says we are seven times short of. Stone brick
+    # stairs against smooth stone is a value step of about 30 - visible, and cheap.
+    "stair": "stone_brick_stairs",
+    "pillar": "deepslate_bricks",   # 71 luminance against smooth stone's 159: the one real line
 }
 
 CASINO = {
@@ -64,12 +68,17 @@ CASINO = {
     "board": 5,                 # display board width, in cells
     "length": 16,               # marquee only
     "lanes": 5,                 # prize_wall / counter only
+    "width": 40,                # hall only: the building's footprint
+    "depth": 40,
+    "gate": 3,                  # hall only: how wide the way in is
     # ONE COURSE UNDER THE FLOOR, NOT SIX. The reference puts its machines deep, and it can:
     # its displays are driven by decoded booleans. Ours reads the roll's own LEVEL, and a level of
     # 4 reaches four blocks - a six-course pit eats the number before it arrives. Shallow, with the
     # lamps set into the floor, is a lit floor panel and needs no journey at all.
     "pit": 2,
     "sound": True,              # note blocks. Expensive here, so it can be switched off
+    "title": None,              # the room's name on the door sign; the plan passes the module's
+    "room": True,               # build the enclosing room. Off = the old open bay.
     # THE BAR DISPLAY IS OFF, AND IT IS OFF BECAUSE IT DOES NOT WORK.
     #
     # The idea is sound: the randomiser's outcome is an analog level (1, 2, 4), wire loses one per
@@ -92,6 +101,32 @@ CASINO = {
     "check": True,
 }
 CASINO.update({f"pal_{k}": v for k, v in PALETTE.items()})
+
+
+# WHAT EACH GAME'S SIGN SAYS. Four lines is the whole format, so every word has to earn its place:
+# what to do, what you see, what the odds are. THE ODDS ARE ON THE SIGN because this project
+# refuses to build a game whose distribution it cannot state - `RNG_MIXES` holds only the two item
+# mixes with a measured uniform result, and a house that will not print its odds is a house that
+# does not know them.
+# FIFTEEN CHARACTERS IS THE LINE. A sign renders about that much before it clips, so a line that
+# reads well in a python file - "lamps show your roll" is twenty - is a line cut off mid-word in
+# game. `_copy` asserts the limit rather than trusting the eye, because the failure only shows up
+# in a screenshot after the build is placed.
+SIGN_WIDTH = 15
+
+SIGN_COPY = {
+    ("high_roller", 3): ["press to roll", "lamps = roll", "1 . 2 . or 4", "free to play"],
+    ("high_roller", 2): ["press to roll", "lamps = roll", "1 or 3", "free to play"],
+    ("double_or_none", 3): ["press to roll", "roll 4 to win", "1 in 3", "pays 1 prize"],
+    ("double_or_none", 2): ["press to roll", "roll 3 to win", "1 in 2", "pays 1 prize"],
+}
+
+
+def _copy(kind, outcomes):
+    lines = SIGN_COPY.get((kind, int(outcomes)), ["press to roll", "", "", ""])
+    for ln in lines:
+        assert len(ln) <= SIGN_WIDTH, f"sign line {ln!r} is {len(ln)} chars, over {SIGN_WIDTH}"
+    return lines
 
 _STEP = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
 _BACK = {"north": "south", "south": "north", "east": "west", "west": "east"}
@@ -202,7 +237,8 @@ def _machine(w, p, ctx, x, y, z, dx, dz, sx, sz, outcomes, pit):
 # Structural fill a wire run is allowed to cut through. NOT a component: a link that overwrites a
 # comparator is the bug that ate the first casino's button and payout.
 def _structural(p) -> set:
-    out = {p["pal_floor"], p["pal_shell"], p["pal_trim"], p["pal_accent"], p["pal_carpet"]}
+    out = {p["pal_floor"], p["pal_shell"], p["pal_trim"], p["pal_accent"], p["pal_carpet"],
+           p["pal_stair"], p["pal_pillar"]}
     out |= set(p["pal_board"])
     return out
 
@@ -264,6 +300,136 @@ def _riser(w, p, ctx, frm, to, block):
     return m
 
 
+# ---------------------------------------------------------------------- the room
+#
+# **A GAME IS A ROOM, NOT A PLATFORM.** The first casino built a floor, one back wall and a trim
+# line per game and scattered 29 of them across the plot - Jack's verdict was "random platforms of
+# shit", and it was the correct one. Nothing told you what a machine was, how to play it, or what
+# it paid, and nothing joined one to the next.
+#
+# What makes voxels read as ARCHITECTURE is regularity and openings - this project settled that on
+# the void tower, where a jagged ruin was rejected on sight and a plain regular one with a door and
+# window slits worked immediately. So a room here is deliberately ordinary: four walls, one
+# doorway, a ceiling, a skirting, a cornice, corner pilasters and a light. The interest comes from
+# the ORDER and from the signs, not from novelty.
+#
+# The palette is the cheap value ladder this project measured across families rather than within
+# one: white_wool 236 . smooth_stone 159 . stone 126 . deepslate_bricks 71 . black_wool 21 - 215
+# luminance in five cheap stops, against the 51 we spent years calling our only contrast.
+
+ROOM_H = 5              # floor to ceiling: 4 clear courses, which is a room rather than a corridor
+DOOR_W = 2              # a doorway you can walk through beside somebody
+
+
+def _rect(width, depth):
+    """The room's footprint as (i, d) pairs, one course of wall thickness outside the bay."""
+    return [(i, d) for i in range(-2, width + 2) for d in range(-1, depth + 1)]
+
+
+def _edge(i, d, width, depth):
+    return i in (-2, width + 1) or d in (-1, depth)
+
+
+def _room(w, p, x, y, z, dx, dz, sx, sz, width, depth, title, lines):
+    """Four walls, a door, a ceiling and two signs. Returns the door's centre cell."""
+    def at(i, d, h=0):
+        return (x + sx * i - dx * d, y + h, z + sz * i - dz * d)
+
+    door_i = width // 2
+    doors = {door_i, door_i + 1} if DOOR_W > 1 else {door_i}
+
+    for (i, d) in _rect(width, depth):
+        # FLOOR. A field with a carpet runner down the middle, so the room has a direction: you
+        # walk in on the red line and it takes you to the machine.
+        #
+        # THE CARPET GOES ON TOP OF THE FLOOR, NOT INSTEAD OF IT. Laid in the floor course it had
+        # nothing under it and every room shipped six FLOATING carpets - rule 9, and the audit
+        # caught it exactly as it is supposed to.
+        # **A CASINO IS DARK WITH BRIGHT TRIM, NOT A WHITE BOX.** Built the other way round -
+        # white_wool field, smooth stone walls, smooth stone ceiling - the render was a white
+        # room with a red line in it, which is a bathroom. The field is the dark end of the
+        # cheap ladder (black_wool 21), the border and the cornice are the bright end
+        # (white_wool 236), and the walls sit between them at smooth_stone 159. That is the
+        # 215-point value range this economy has across families, used as it was measured.
+        border = i in (-2, width + 1) or d in (-1, depth)
+        w.put(*at(i, d), p["pal_floor"] if border else p["pal_trim"])
+        if i in (door_i, door_i + 1) and not border:
+            w.put(*at(i, d, 1), p["pal_carpet"])
+
+        if not _edge(i, d, width, depth):
+            continue
+        corner = i in (-2, width + 1) and d in (-1, depth)
+        for h in range(1, ROOM_H):
+            # THE DOORWAY IS LEFT EMPTY BY THE WALL LOOP, never punched afterwards. Building the
+            # ring first and cutting a hole repaints cells that already exist - the void tower's
+            # crenellations shipped as a plain drum for exactly this reason, and the code looked
+            # perfectly correct.
+            if d == depth and i in doors and h < 4:
+                continue
+            # CORNER PILASTERS in the dark brick, so the room has four vertical lines and does
+            # not read as one continuous drum of stone.
+            w.put(*at(i, d, h), p["pal_pillar"] if corner else p["pal_shell"])
+
+    # CEILING, one plane, and DARK - a bright lid over a dark floor reads as a lightwell. A room
+    # has a ceiling; a deck does not, which is a distinction the deck soffit's own notes settled
+    # after a deck-wide "ceiling" came out as 25 lacy patches at six different heights.
+    for (i, d) in _rect(width, depth):
+        w.put(*at(i, d, ROOM_H), p["pal_pillar"])
+
+    # SKIRTING and CORNICE: upside-down stairs under the ceiling, plain stairs at the floor. This
+    # is the vocabulary the corpus says we are seven times short of, and it is what stops a wall
+    # being a flat plane of one block.
+    lean = {"east": "west", "west": "east", "north": "south", "south": "north"}
+    for (i, d) in _rect(width, depth):
+        if not _edge(i, d, width, depth):
+            continue
+        if d == depth and i in doors:
+            continue
+        face = _inward(i, d, width, depth, p["facing"])
+        if face is None:
+            continue
+        w.put(*at(i, d, ROOM_H - 1), p["pal_stair"], facing=lean[face], half="top",
+              shape="straight", waterlogged="false")
+
+    # LIGHT. **A REDSTONE LAMP IS A DARK BLOCK UNTIL SOMETHING POWERS IT**, and two of them hung
+    # in every room's ceiling wired to nothing - the circuit inspection said so on the first run.
+    # A lantern hung from the ceiling needs no signal, costs an iron ingot and a torch, and is what
+    # a room is lit with. Powering the lamps instead would be a second circuit per room to build,
+    # verify and go wrong.
+    for i in (0, width - 1):
+        w.put(*at(i, depth // 2, ROOM_H - 1), "lantern", hanging="true", waterlogged="false")
+
+    # THE SIGNS, which are the whole point of this pass. One over the door saying what the room is,
+    # one inside saying how to play it and what the odds are. A machine nobody can read the rules
+    # of is a machine nobody plays twice.
+    dsx, dsy, dsz = at(door_i, depth, 4)
+    w.put(dsx, dsy, dsz, "oak_wall_sign", facing=p["facing"], waterlogged="false")
+    w.sign(dsx, dsy, dsz, front=[title, "", "", ""], colour="white", glowing=True)
+
+    isx, isy, isz = at(width - 1, depth - 1, 2)
+    back = {"east": "west", "west": "east", "north": "south", "south": "north"}[p["facing"]]
+    w.put(isx, isy, isz, "oak_wall_sign", facing=back, waterlogged="false")
+    w.sign(isx, isy, isz, front=list(lines)[:4])
+    return (dsx, dsy, dsz)
+
+
+def _inward(i, d, width, depth, facing):
+    """Which way a wall cell's ROOM side faces - so a cornice stair leans into the room."""
+    if d == depth:
+        return {"east": "west", "west": "east", "north": "south", "south": "north"}[facing]
+    if d == -1:
+        return facing
+    side = {"east": "north", "west": "south", "north": "west", "south": "east"}[facing]
+    other = {"east": "south", "west": "north", "north": "east", "south": "west"}[facing]
+    if i == -2:
+        return other
+    if i == width + 1:
+        return side
+    return None
+
+
+# The old open bay, kept because `marquee`, `prize_wall` and `counter` are FURNITURE rather than
+# rooms - they line a corridor and must not each be boxed in.
 def _shell(w, p, x, y, z, dx, dz, sx, sz, width, depth):
     """The bay a player stands in: a floor, a back wall, and a trim line."""
     for i in range(-1, width + 1):
@@ -289,7 +455,12 @@ def _game_common(w, p, ctx, width):
     sx, sz = -dz, -dx
     pit = max(4, int(p["pit"]))
     outcomes = int(p["outcomes"])
-    _shell(w, p, x, y, z, dx, dz, sx, sz, width, 4)
+    if p.get("room", True):
+        title = p.get("title") or p["kind"].replace("_", " ").upper()
+        _room(w, p, x, y, z, dx, dz, sx, sz, width, 4,
+              str(title).upper()[:15], _copy(p["kind"], outcomes))
+    else:
+        _shell(w, p, x, y, z, dx, dz, sx, sz, width, 4)
     btn = _button(w, p, x, y, z, dx, dz, sx, sz, width // 2)
     mach = _machine(w, p, ctx, x, y, z, dx, dz, sx, sz, outcomes, pit)
     _link(w, p, ctx, btn, mach["pulse"]["in"])
@@ -427,6 +598,97 @@ def _double_or_none(w: World, p: dict, ctx) -> dict:
 
 # ---------------------------------------------------------------------- the rest
 
+
+def _hall(w: World, p: dict, ctx) -> dict:
+    """THE BUILDING. A floor, a perimeter wall, a gateway and a lit colonnade.
+
+    Without this the rooms stand in void, which is both why the casino read as scattered platforms
+    and why every design reported free-floating cells: on a fresh skyblock plot there is nothing to
+    place a first block against. The floor is the fix for both.
+
+    **NO ROOF, DELIBERATELY.** Each room already has its own ceiling, and a 85x85 lid is seven
+    thousand blocks that nobody standing inside a room can see. What makes the place read as built
+    from outside is the WALL and the GATEWAY - a regular edge with an opening in it - which is the
+    void tower's rule, and it costs a tenth as much. An open sky over a lit plaza is a courtyard,
+    not an unfinished room.
+
+    The wall carries a plinth, a string course and a parapet in `deepslate_bricks` - 71 luminance
+    against smooth stone's 159, which is the one real value line this economy has at cheap tier.
+    Cracked and chiseled variants are within 4 RGB of plain and would draw nothing at all; this
+    project has proved that twice and written it down both times.
+    """
+    x, y, z = (int(v) for v in p["at"])
+    wsize, dsize = max(8, int(p["width"])), max(8, int(p["depth"]))
+    gate = max(2, int(p["gate"]))
+    dx, dz = _STEP[p["facing"]]
+    sx, sz = -dz, -dx
+
+    floor, wall, line = p["pal_shell"], p["pal_shell"], p["pal_pillar"]
+    lamps = 0
+    for i in range(wsize):
+        for d in range(dsize):
+            cx, cy, cz = x + sx * i - dx * d, y, z + sz * i - dz * d
+            if p["check"] and _busy(ctx, cx, cy, cz):
+                continue
+            edge = i in (0, wsize - 1) or d in (0, dsize - 1)
+            # A BORDER COURSE, because a floor plane with no edge reads as a slab someone left.
+            w.put(cx, cy, cz, line if edge else floor)
+
+    door = {wsize // 2 - k for k in range(gate)}
+    for i in range(wsize):
+        for d in (0, dsize - 1):
+            for h in range(1, 7):
+                cx, cy, cz = x + sx * i - dx * d, y + h, z + sz * i - dz * d
+                if p["check"] and _busy(ctx, cx, cy, cz):
+                    continue
+                # THE GATEWAY IS LEFT EMPTY BY THE LOOP, not cut afterwards - the same rule the
+                # rooms follow, and the same one the void tower's crenellations shipped without.
+                if d == dsize - 1 and i in door and h < 5:
+                    continue
+                if h in (1, 4):
+                    w.put(cx, cy, cz, line)          # plinth and string course
+                elif h == 6:
+                    w.put(cx, cy, cz, line if i % 2 == 0 else wall)   # parapet
+                else:
+                    w.put(cx, cy, cz, wall)
+    for d in range(dsize):
+        for i in (0, wsize - 1):
+            for h in range(1, 7):
+                cx, cy, cz = x + sx * i - dx * d, y + h, z + sz * i - dz * d
+                if p["check"] and _busy(ctx, cx, cy, cz):
+                    continue
+                if h in (1, 4):
+                    w.put(cx, cy, cz, line)
+                elif h == 6:
+                    w.put(cx, cy, cz, line if d % 2 == 0 else wall)
+                else:
+                    w.put(cx, cy, cz, wall)
+
+    # A LANTERN EVERY SIX ALONG THE INSIDE OF THE WALL. Cheap (iron and a torch), warm, and it is
+    # what stops a walled plaza reading as a pen. Set ON the string course so it has a real block
+    # under it - a fixture hanging off nothing is this project's oldest audit failure.
+    for i in range(3, wsize - 2, 6):
+        for d in (1, dsize - 2):
+            cx, cy, cz = x + sx * i - dx * d, y + 5, z + sz * i - dz * d
+            if p["check"] and _busy(ctx, cx, cy, cz):
+                continue
+            w.put(cx, cy - 1, cz, line)
+            w.put(cx, cy, cz, "lantern", hanging="false", waterlogged="false")
+            lamps += 1
+
+    # THE NAME OVER THE DOOR.
+    gi = max(door) + 1
+    sx_, sy_, sz_ = x + sx * gi - dx * (dsize - 1), y + 5, z + sz * gi - dz * (dsize - 1)
+    if not (p["check"] and _busy(ctx, sx_, sy_, sz_)):
+        back = {"east": "west", "west": "east", "north": "south", "south": "north"}[p["facing"]]
+        w.put(sx_, sy_, sz_, "oak_wall_sign", facing=back, waterlogged="false")
+        w.sign(sx_, sy_, sz_, front=[str(p.get("title") or "CASINO")[:15], "", "", ""],
+               colour="white", glowing=True)
+
+    return {"contract": f"{wsize}x{dsize} hall, {gate}-wide gateway, {lamps} lanterns",
+            "inputs": [], "outputs": []}
+
+
 def _prize_wall(w: World, p: dict, ctx) -> dict:
     x, y, z = (int(v) for v in p["at"])
     dx, dz = _STEP[p["facing"]]
@@ -484,7 +746,8 @@ def _counter(w: World, p: dict, ctx) -> dict:
 
 
 BUILDERS = {"high_roller": _high_roller, "double_or_none": _double_or_none,
-            "prize_wall": _prize_wall, "marquee": _marquee, "counter": _counter}
+            "prize_wall": _prize_wall, "marquee": _marquee, "counter": _counter,
+            "hall": _hall}
 
 
 def _split(spec: str):

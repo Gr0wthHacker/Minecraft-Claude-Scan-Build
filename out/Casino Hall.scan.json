@@ -1,0 +1,26 @@
+{
+  "origin": {
+    "x": 97556,
+    "y": 203,
+    "z": 80556
+  },
+  "size": {
+    "x": 88,
+    "y": 7,
+    "z": 88
+  },
+  "generated_by": "casino",
+  "after": [
+    "House Bank 3"
+  ],
+  "kind": "casino/hall",
+  "facing": "east",
+  "contract": "88x88 hall, 3-wide gateway, 28 lanterns",
+  "inputs": [],
+  "outputs": [],
+  "unverified": [],
+  "budget": {},
+  "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "file": "Casino Hall.litematic",
+  "name": "Casino Hall"
+}

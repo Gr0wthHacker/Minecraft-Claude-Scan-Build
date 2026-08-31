@@ -7,6 +7,7 @@ params:
   - 215
   - 80603
   kind: prize_wall
+  title: Prize Wall 3
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic

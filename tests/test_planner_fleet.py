@@ -207,6 +207,12 @@ def test_a_module_is_never_sited_on_something_you_use():
     pl = planner.make("redstone casino", world, name="_t_used", island="newisle", plane=203)
     for (ux, uy, uz) in used:
         for mod in pl.modules:
+            # A COVERING MODULE IS EXEMPT, and it has to be: the hall lays the ground across the
+            # whole plot, so of course its box contains the island's own chest. It is protected
+            # one level down instead - the generator tests `_busy` per CELL and steps over
+            # anything the capture already holds, which is why the hall ships with 0 overlap.
+            if mod.get("covers"):
+                continue
             ax, ay, az = mod["at"]
             fx, fy, fz = mod["anchor_offset"]
             w, h, d = mod["size"]

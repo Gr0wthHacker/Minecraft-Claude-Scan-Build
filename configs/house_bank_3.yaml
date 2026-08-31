@@ -7,6 +7,7 @@ params:
   - 215
   - 80642
   kind: counter
+  title: House Bank 3
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic

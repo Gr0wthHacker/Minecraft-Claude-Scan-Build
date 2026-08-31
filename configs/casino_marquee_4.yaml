@@ -7,6 +7,7 @@ params:
   - 215
   - 80634
   kind: marquee
+  title: Casino Marquee 4
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic

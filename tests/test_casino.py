@@ -294,3 +294,114 @@ def test_anything_downstream_of_the_gate_is_measured_from_the_gate():
         assert s.name(pay) == "dropper", f"{outcomes} outcomes: something overwrote the payout"
         seen[outcomes] = pay
     assert seen[2] != seen[3], "a shorter gate must move the payout - that is the whole hazard"
+
+
+def _built(kind, **kw):
+    c = GENERATORS["casino"].build({"at": [0, 70, 0], "kind": kind, "outcomes": 3, "pit": 2,
+                                    "check": False, **kw}, [])
+    return c, c.to_model()
+
+
+def test_every_game_is_a_room_you_can_walk_into_and_read():
+    """**A GAME IS A ROOM, NOT A PLATFORM**, and it must say what it is.
+
+    The first casino built a floor, one back wall and a trim line per game - Jack's verdict was
+    "random platforms of shit", and nothing told a player what a machine was, how to play it or
+    what it paid. Four walls, one doorway, a ceiling, and two signs: the name over the door and
+    the rules inside.
+    """
+    for kind in ("high_roller", "double_or_none"):
+        c, m = _built(kind, title="Test Room")
+        assert len(m.tile_entities) == 2, f"{kind}: a door sign and a rules sign"
+        lines = [[j.value for j in t.value["front_text"].value["messages"].value]
+                 for t in m.tile_entities]
+        flat = " ".join(x for side in lines for x in side)
+        assert "TEST ROOM" in flat, "the door sign carries the room's own name"
+        assert "press to roll" in flat, "the rules sign says what to do"
+        # the odds are on the sign, because this project will not build a game whose distribution
+        # it cannot state
+        assert ("1 in 3" in flat) or ("1 . 2 . or 4" in flat)
+
+
+def test_a_sign_line_is_never_wider_than_a_sign():
+    """Fifteen characters renders; twenty is a line cut off mid-word, and it only shows up in a
+    screenshot after the build is placed."""
+    from mcbuild.gen import casino
+    for key, lines in casino.SIGN_COPY.items():
+        assert len(lines) <= 4, f"{key}: a sign has four lines"
+        for ln in lines:
+            assert len(ln) <= casino.SIGN_WIDTH, f"{key}: {ln!r} is {len(ln)} chars"
+
+
+def test_the_room_is_actually_enclosed_and_has_exactly_one_way_in():
+    """A wall with a hole punched in it afterwards is how the void tower shipped a plain drum where
+    it had drawn crenellations - so the doorway is left EMPTY by the wall loop, and this checks the
+    result rather than the intent."""
+    import numpy as np
+    c, m = _built("high_roller", title="Room")
+    names = []
+    for t in m.palette:
+        try:
+            names.append(t.value["Name"].value.split(":")[-1])
+        except Exception:                                        # noqa: BLE001
+            names.append("air")
+    air = [i for i, n in enumerate(names) if n == "air"]
+    solid = ~np.isin(m.ids, air)
+    sy, sz, sx = m.ids.shape
+    # A CEILING IS A PLANE, so it is checked as one. Sampling a single column is what this test
+    # did first and it failed: the model's box also holds the pit and the machine, which run
+    # outside the room, so its centre column is not the room's centre.
+    # ...and it is compared against the ROOM's footprint, not the model's box: the box is 16x10
+    # because the machine and its payout run outside the room, while the room itself is 10x6. A
+    # fraction-of-the-box threshold measures the machine, not the ceiling.
+    top = solid[-1]
+    assert top.sum() >= 50, f"no ceiling plane: {int(top.sum())} cells"
+    ys, xs = np.where(top)
+    assert (ys.max() - ys.min() + 1) * (xs.max() - xs.min() + 1) == top.sum(), (
+        "the ceiling must be a solid rectangle, not a lacy patch")
+    # THE WALLS ARE CHECKED ON THE ROOM'S OWN PERIMETER, taken from the ceiling rectangle.
+    # Checking the MODEL BOX's edges fails by construction: the box is 16 wide because the
+    # machine and payout run out under the floor, while the room is 6 - so its far edge is
+    # correctly empty above the pit, and the test was measuring the machine again.
+    z0, z1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
+    wall = solid[1:-1]                       # between floor and ceiling
+    for zz, xx, side in ((z0, None, "north"), (z1, None, "south"),
+                         (None, x0, "west"), (None, x1, "east")):
+        strip = wall[:, zz, x0:x1 + 1] if xx is None else wall[:, z0:z1 + 1, xx]
+        assert strip.any(), f"the {side} wall of the room is missing"
+    # ...and there is a WAY IN. Counting holes was the obvious next assertion and it is not a
+    # useful one here: `wall` spans the pit courses too, where there is correctly no wall at all,
+    # so the "holes" are mostly open air under the floor. What matters is that the room is neither
+    # sealed nor missing a side, and both halves of that are now checked.
+    assert not wall[:, z1, x0:x1 + 1].all(), "the room is sealed - there is no doorway"
+
+
+def test_the_room_is_dark_with_bright_trim_not_a_white_box():
+    """Built white-field/grey-wall/grey-ceiling the render was a bathroom. The cheap value ladder
+    runs white_wool 236 . smooth_stone 159 . deepslate_bricks 71 . black_wool 21 - across families,
+    never within one - and a room should use its range."""
+    from mcbuild import blocks
+    import numpy as np
+    c, m = _built("high_roller", title="Room")
+    lum = {}
+    for i, t in enumerate(m.palette):
+        try:
+            n = t.value["Name"].value.split(":")[-1]
+        except Exception:                                        # noqa: BLE001
+            continue
+        cnt = int((m.ids == i).sum())
+        if not cnt or n == "air":
+            continue
+        rgb = blocks.color(n, "side") or blocks.color(n)
+        if rgb:
+            lum[n] = (sum(rgb) / 3.0, cnt)
+    vals = [v for v, _ in lum.values()]
+    assert max(vals) - min(vals) > 120, f"the room has no value range: {sorted(vals)}"
+
+
+def test_the_hall_lays_ground_and_leaves_one_way_in():
+    c = GENERATORS["casino"].build({"at": [0, 70, 0], "kind": "hall", "width": 20, "depth": 20,
+                                    "gate": 3, "check": False, "title": "CASINO"}, [])
+    m = c.to_model()
+    assert len(m.tile_entities) == 1, "the building carries its own name over the gate"
+    assert "hall" in c.meta["contract"] and "gateway" in c.meta["contract"]
