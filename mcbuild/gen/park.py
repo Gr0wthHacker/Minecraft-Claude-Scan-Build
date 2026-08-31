@@ -682,8 +682,71 @@ def _walkthrough(w: World, p: dict, ctx) -> dict:
                         "route between them - never an empty box with two doors"}
 
 
+def _paths(w: World, p: dict, ctx) -> dict:
+    """The streets: avenues between the gate, the hub and the arches, and a spur to every door.
+
+    **THE ROUTES ARE COMPUTED BY THE PLANNER, NOT HERE, AND THAT SPLIT IS THE POINT.** A path
+    connects things, so the only place that can draw one is the place that knows where everything
+    ended up - and a generator is handed one module's `at` and nothing else. `planner._routes`
+    reads the sited plan and passes the network in; this draws it.
+
+    Without this the park was PACKED rather than COMPOSED: `bays` fills a grid, everything fit,
+    nothing collided, and there was no street. A visitor arrived at a gate and faced a field with
+    buildings scattered across it.
+
+    THE NETWORK IS A CROSS, WHICH IS WHAT MAKES THE SPURS SINGLE STRAIGHT RUNS. Both avenues pass
+    through the hub on cardinal axes, so a spur from any door reaches one of them by running
+    perpendicular until it lands on it - no L, no corner, and connected by construction.
+    """
+    pal = LANDS[p["land"]]
+    y = int(p["at"][1])
+    routes = list(p.get("routes") or [])
+    if not routes:
+        raise ValueError("park/paths needs params.routes - the planner computes them")
+    obstacles = [tuple(int(v) for v in b) for b in (p.get("obstacles") or [])]
+
+    def blocked(x, z):
+        return any(x0 <= x <= x1 and z0 <= z <= z1 for (x0, z0, x1, z1) in obstacles)
+
+    laid, lamps = 0, 0
+    for r in routes:
+        ax, az = int(r["a"][0]), int(r["a"][1])
+        bx, bz = int(r["b"][0]), int(r["b"][1])
+        half = max(1, int(r.get("width", 3))) // 2
+        along_x = abs(bx - ax) >= abs(bz - az)
+        n = max(abs(bx - ax), abs(bz - az))
+        for k in range(n + 1):
+            cx = ax + (1 if bx > ax else -1) * min(k, abs(bx - ax)) if along_x else ax
+            cz = az if along_x else az + (1 if bz > az else -1) * min(k, abs(bz - az))
+            for o in range(-half, half + 1):
+                x, z = (cx, cz + o) if along_x else (cx + o, cz)
+                # THE PAVING IS LAID EVEN UNDER A BUILDING, deliberately: skipping obstacle cells
+                # can SPLIT a route in two, and a network that is not connected is not a network.
+                # A building's own pad occupies the same course and wins in `layers.slice_plan`,
+                # so the overlap is invisible and the connectivity is guaranteed.
+                w.put(x, y - 1, z, pal["trim"] if abs(o) == half else pal["path"])
+                laid += 1
+            # LAMP POSTS ON THE KERB, and only on an avenue - a lit spur to every food stall is
+            # a lamp every four blocks, which reads as a fence rather than as a street.
+            if r.get("lamps") and k and k % int(r.get("lamp_every", 12)) == 0:
+                for o in (-half, half):
+                    x, z = (cx, cz + o) if along_x else (cx + o, cz)
+                    if blocked(x, z):
+                        continue
+                    for h in range(3):
+                        w.put(x, y + h, z, pal["post"])
+                    w.put(x, y + 3, z, pal["trim"])
+                    # standing, not hanging: there is no block above a post top to hang from
+                    w.put(x, y + 4, z, pal["light"], hanging="false", waterlogged="false")
+                    lamps += 1
+    return {"kind": "paths", "routes": len(routes), "cells": laid, "lamps": lamps,
+            "contract": "every attraction's door is joined to an avenue, and both avenues meet "
+                        "at the hub - so the whole network is one connected walk"}
+
+
 BUILDERS = {
     "gate": _gate,
+    "paths": _paths,
     "arch": _arch,
     "plaza": _plaza,
     "tower": _tower,

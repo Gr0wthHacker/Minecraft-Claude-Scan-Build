@@ -7233,15 +7233,88 @@ inside the ring that already exists and the expansion ADDS modules rather than m
 spread over the full 200 would put the plaza's centre and the gate's approach on ground that does
 not exist yet, and expanding would cost a rebuild rather than an addition.
 
+### The three plots, and the streets (2026-08-31)
+
+All three islands are registered. **They run along Z, not X** - bedrock at (97600, 200, 80400),
+(97600, 200, 80600) and (97600, 200, 80800), which is 200 apart and confirms the 600x200 endgame
+outright. So "left" is NORTH and "right" is SOUTH, and the first theme geometry - arches east and
+west - was pointing them at empty void on the wrong axis entirely.
+
+    islandleft   80351..80449   frontier   north
+    newisle      80551..80649   midway     centre, and the entrance
+    islandright  80751..80849   hollow     south
+
+The main gate takes the free axis, west. Each side zone leads back along Z toward the centre.
+Starter pad tops are Y202 on all three, so the build plane is **Y203** everywhere.
+
+#### `park/paths` - and why the planner owns the routes
+
+A path connects things, so the only thing that can draw one is the thing that knows where
+everything ended up - and a generator is handed one module's `at` and nothing else. So
+`planner._add_paths` reads the sited plan and passes a route network in; `gen/park._paths` draws
+it. Without this the park was PACKED rather than COMPOSED: `bays` fills a grid, everything fit,
+nothing collided, and there was no street. A visitor arrived at a gate and faced a field.
+
+**BOTH AVENUES SPAN THE WHOLE PARK, AND THAT IS WHAT MAKES THE NETWORK CONNECTED.** Written the
+obvious way - an avenue from each EDGE module to the hub - the paving came out in three to five
+separate islands and missed six doors outright, for one cause with two faces: an avenue that
+stops at the hub covers only the half of its axis its gate is on, so a spur from a door on the far
+side runs out to a coordinate where there is no avenue to land on; and a SIDE zone has only one
+edge module, so one of the two axes never existed at all. Full-length cross axes fix both by
+construction - every front lies inside the spanned rectangle, so a perpendicular spur ALWAYS
+terminates on an avenue, and the two avenues cross at the hub. That also makes every spur a
+single straight run with no corner.
+
+Three more faults, each of which drew a plausible-looking wrong network:
+
+- **`_plot_bounds` returns (x0, x1, z0, z1)** - both X values, THEN both Z. Unpacked as
+  (x0, z0, x1, z1) the axes scramble into each other and the avenues span the diagonal of the
+  world: **170,191 cells of paving**, which is the only reason it was caught on sight.
+- **AN EDGE MODULE IS JOINED ON ITS INSIDE FACE.** A gate faces OUT of the park - that is what
+  makes it a gate - so its front approach is a cell beyond the plot boundary, which the clamp
+  correctly threw away. All three edge modules read as unreached, which looks like a routing bug
+  and is the geometry being right. You walk THROUGH a threshold, so the street meets it on the
+  side the park is on. `_inside_of` is the counterpart to `_front_of`.
+- **THE PAVING IS INSERTED BEFORE THE PLAZA, NOT APPENDED AFTER IT.** `layers.slice_plan` resolves
+  a contested cell first-writer-wins in plan order, and the paving and the plaza occupy the same
+  course - appended last, every avenue would be overwritten by the plaza it crosses and the park
+  would have invisible streets. Buildings still come first and still win: building over path over
+  plaza is the order actually wanted.
+
+The paving is laid even UNDER a building, deliberately: skipping obstacle cells can SPLIT a route,
+and a network that is not connected is not a network. The building's own pad occupies the same
+course and wins in the slice, so the overlap is invisible and the connectivity is guaranteed. Only
+LAMP POSTS are skipped inside a footprint, and lamps are only placed on avenues - a lit spur to
+every food stall is a lamp every four blocks, which reads as a fence rather than as a street.
+
+`tests/test_park_plan.py` pins the network against all three real plots: one connected walk, every
+door on the street, and nothing off the plot.
+
+#### The three zones as planned
+
+    park_centre   17 modules   11,419 blocks    short: 1,325 black_wool + 25 signs
+    park_left     14 modules   10,884 blocks    short: 380 spruce_log + 17 signs
+    park_right    13 modules   11,383 blocks    short: blackstone family ~5,400 + 16 signs
+                  ---------    ------------
+                  44 modules   33,686 blocks
+
+**The Hollow is the expensive one and the reason is structural, not a mistake**: it is the only
+land whose ground, wall and trim are all stone rather than wool, and none of the blackstone family
+is in stock in quantity. It is all `cheap`-or-`ok` tier, so it is a crafting and buying job rather
+than an affordability problem - but build the centre first.
+
+None of the three is approved.
+
 ### Still open
 
-- **The left and right islands are not registered.** Only `main` and `newisle` are. Nothing can be
-  sited on them until `/cscan island` on each, then `islands --add`. Both themes are written and
-  dry-run clean, so this is data rather than work.
-- **The layout is PACKED, not COMPOSED.** `bays` fills a grid; it does not know that a gate wants
-  an avenue leading from it to the plaza, or that booths read best in a row facing each other. The
-  modules all fit, none collide, and the park has no street. That is the next real piece of design
-  work and it wants a path generator rather than another attraction kind.
+- ~~The left and right islands are not registered.~~ DONE - all four islands are in the registry.
+- ~~The layout is PACKED, not COMPOSED.~~ DONE - see the street network above.
+- **The buildings are not oriented toward the streets.** Every module's `facing` is a theme
+  constant, so a booth sited north of the avenue faces the same way as one sited south of it and
+  half of them present their backs to the street they are joined to. The path network knows each
+  door's position and could pick the facing; the siting loop would have to run before the facing
+  is fixed. This is the next real piece of layout work and it is the difference between a park
+  and a park you would want to walk round.
 - **Nothing has been looked at in game, or rendered.** `tools/look.py` cannot draw these yet - it
   wants a facing VECTOR and the park sidecar records a word, the same gap the casino has. Place
   one module and look at it before building forty-eight.

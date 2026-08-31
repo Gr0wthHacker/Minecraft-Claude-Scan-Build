@@ -151,6 +151,8 @@ THEMES = {
     "midway": {
         "blurb": "the park's front door: gate, plaza, landmark tower and a carnival midway",
         "keywords": ["theme park", "midway", "entrance", "fairground", "carnival", "park centre"],
+        "paths": True,
+        "paths_name": "Midway Paths",
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
             # LARGEST FIRST. `bays` packs in list order, so a big module listed late finds the
@@ -164,16 +166,16 @@ THEMES = {
             # THE GATE IS THE ONE MODULE WHOSE POSITION IS ITS MEANING. On the southern edge,
             # facing out, so you arrive at it rather than find it.
             {"name": "Park Gate", "gen": "park", "kind": "gate", "size": [15, 9, 7],
-             "anchor": "edge", "side": "south",
-             "params": {"land": "midway", "lanes": 3, "depth": 6, "facing": "south"}},
+             "anchor": "edge", "side": "west",
+             "params": {"land": "midway", "lanes": 3, "depth": 6, "facing": "west"}},
             # The ways to the other two zones, each pinned to the edge it points at. An arch to
             # the west that is not on the western edge does not lead anywhere.
             {"name": "Frontier Arch", "gen": "park", "kind": "arch", "size": [9, 9, 5],
-             "anchor": "edge", "side": "west",
-             "params": {"land": "frontier", "width": 7, "height": 6, "facing": "west"}},
+             "anchor": "edge", "side": "north",
+             "params": {"land": "frontier", "width": 7, "height": 6, "facing": "north"}},
             {"name": "Hollow Arch", "gen": "park", "kind": "arch", "size": [9, 9, 5],
-             "anchor": "edge", "side": "east",
-             "params": {"land": "hollow", "width": 7, "height": 6, "facing": "east"}},
+             "anchor": "edge", "side": "south",
+             "params": {"land": "hollow", "width": 7, "height": 6, "facing": "south"}},
             {"name": "Midway Booth", "gen": "park", "kind": "booth", "size": [9, 7, 7],
              "params": {"land": "midway", "width": 7, "depth": 5, "facing": "south"},
              "count": 6},
@@ -191,6 +193,8 @@ THEMES = {
     "frontier": {
         "blurb": "the west zone: a mine, a saloon and a prospect tower in spruce and cobble",
         "keywords": ["frontier", "mine", "western", "wild west", "prospect"],
+        "paths": True,
+        "paths_name": "Frontier Paths",
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
             {"name": "Deep Mine", "gen": "park", "kind": "walkthrough", "size": [19, 7, 19],
@@ -200,8 +204,8 @@ THEMES = {
             {"name": "Prospect Tower", "gen": "park", "kind": "tower", "size": [15, 26, 15],
              "params": {"land": "frontier", "width": 9, "tiers": 4, "facing": "east"}},
             {"name": "Frontier Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
-             "anchor": "edge", "side": "east",
-             "params": {"land": "frontier", "width": 7, "height": 6, "facing": "east"}},
+             "anchor": "edge", "side": "south",
+             "params": {"land": "frontier", "width": 7, "height": 6, "facing": "south"}},
             {"name": "Tin Can Alley", "gen": "park", "kind": "booth", "size": [9, 7, 7],
              "params": {"land": "frontier", "width": 7, "depth": 5, "facing": "east"},
              "count": 3},
@@ -217,6 +221,8 @@ THEMES = {
     "hollow": {
         "blurb": "the east zone: a haunted manor, a crypt and a clock tower in blackstone",
         "keywords": ["hollow", "haunted", "gothic", "crypt", "manor", "spooky"],
+        "paths": True,
+        "paths_name": "Hollow Paths",
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
             {"name": "Haunted Manor", "gen": "park", "kind": "walkthrough", "size": [21, 7, 19],
@@ -226,8 +232,8 @@ THEMES = {
             {"name": "Clock Tower", "gen": "park", "kind": "tower", "size": [15, 32, 15],
              "params": {"land": "hollow", "width": 9, "tiers": 5, "facing": "west"}},
             {"name": "Hollow Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
-             "anchor": "edge", "side": "west",
-             "params": {"land": "hollow", "width": 7, "height": 6, "facing": "west"}},
+             "anchor": "edge", "side": "north",
+             "params": {"land": "hollow", "width": 7, "height": 6, "facing": "north"}},
             {"name": "Fortunes", "gen": "park", "kind": "booth", "size": [9, 7, 7],
              "params": {"land": "hollow", "width": 7, "depth": 5, "facing": "west"},
              "count": 3},
@@ -709,7 +715,135 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 "params": dict(mspec.get("params", {})),
                 "world": world,
             })
+    if spec.get("paths") and plane is not None:
+        _add_paths(pl, spec, plane, world, pl_plot)
     return pl
+
+
+def _front_of(m):
+    """The cell a visitor stands in to face this module's door, in world coordinates.
+
+    `at` is the module's FRONT-LEFT corner and `d` runs from the front INTO the building, so the
+    front face is the box edge in the +facing direction - not the minimum corner, and not the
+    anchor. Getting this from the box rather than from `at` is the same lesson
+    `measured_footprint` records: the declared anchor is not where the build actually is.
+    """
+    from .gen.park import _STEP
+    ax, _ay, az = m["at"]
+    ox, _oy, oz = m.get("anchor_offset", (0, 0, 0))
+    w, _h, d = m["size"]
+    x0, z0 = ax + ox, az + oz
+    x1, z1 = x0 + w - 1, z0 + d - 1
+    dx, dz = _STEP[m.get("params", {}).get("facing", "east")]
+    cx, cz = (x0 + x1) // 2, (z0 + z1) // 2
+    if dx:
+        return ((x1 + 2) if dx > 0 else (x0 - 2), cz)
+    return (cx, (z1 + 2) if dz > 0 else (z0 - 2))
+
+
+def _inside_of(m):
+    """The cell a visitor stands in on the PARK side of a threshold - the opposite of `_front_of`.
+
+    An edge module faces outward by definition, so its front approach lies beyond the plot; the
+    street has to meet it where the park is.
+    """
+    from .gen.park import _STEP
+    x0, z0, x1, z1 = _box_of(m)
+    dx, dz = _STEP[m.get("params", {}).get("facing", "east")]
+    cx, cz = (x0 + x1) // 2, (z0 + z1) // 2
+    if dx:
+        return ((x0 - 2) if dx > 0 else (x1 + 2), cz)
+    return (cx, (z0 - 2) if dz > 0 else (z1 + 2))
+
+
+def _box_of(m):
+    ax, _ay, az = m["at"]
+    ox, _oy, oz = m.get("anchor_offset", (0, 0, 0))
+    w, _h, d = m["size"]
+    return (ax + ox, az + oz, ax + ox + w - 1, az + oz + d - 1)
+
+
+def _add_paths(pl, spec, plane, world, pl_plot=None):
+    """Join every door to an avenue, and both avenues to the hub.
+
+    **A CROSS, NOT A STAR.** Running a spoke from the hub to each of sixteen modules is sixteen
+    paths radiating out of one square, which reads as a spider rather than as a street. Both
+    avenues run through the hub on cardinal axes instead, so a spur from any door reaches one of
+    them by running PERPENDICULAR until it lands - a single straight segment, no corner, and
+    connected by construction.
+    """
+    hub = next((m for m in pl.modules if m.get("covers")), None)
+    if hub is None:
+        return
+    hx0, hz0, hx1, hz1 = _box_of(hub)
+    cx, cz = (hx0 + hx1) // 2, (hz0 + hz1) // 2
+
+    others = [m for m in pl.modules if m is not hub and m["kind"] != "paths"]
+    obstacles = [list(_box_of(m)) for m in others]
+    # **AN EDGE MODULE IS JOINED ON ITS INSIDE FACE, NOT ITS FRONT.** A gate faces OUT of the
+    # park - that is what makes it a gate - so its front approach is a cell beyond the plot
+    # boundary, which the avenue cannot legally reach and the clamp correctly threw away. All
+    # three edge modules came back unreached for that reason, which read as a routing bug and is
+    # actually the geometry being right. You walk THROUGH a threshold, so the street meets it on
+    # the side the park is on.
+    links = [(m, _inside_of(m) if m.get("edge") else _front_of(m)) for m in others]
+    fronts = [pt for _m, pt in links]
+    if not fronts:
+        return
+
+    # **BOTH AVENUES SPAN THE WHOLE PARK, AND THAT IS WHAT MAKES THE NETWORK CONNECTED.**
+    #
+    # Written the obvious way - an avenue from each EDGE module to the hub - the paving came out
+    # as three to five separate islands and missed six doors outright. Two reasons, one cause:
+    # an avenue that stops at the hub only covers the half of the axis its gate is on, so a spur
+    # from a door on the far side runs out to a coordinate where there is no avenue to land on;
+    # and a side zone has only ONE edge module, so one of the two axes never existed at all.
+    #
+    # Full-length axes fix both by construction. Every front lies within [x0,x1] x [z0,z1], so a
+    # perpendicular spur ALWAYS terminates on an avenue, and the two avenues cross at the hub.
+    xs = [f[0] for f in fronts] + [cx]
+    zs = [f[1] for f in fronts] + [cz]
+    # `_plot_bounds` returns (x0, x1, z0, z1) - both X values, THEN both Z values. Unpacked as
+    # (x0, z0, x1, z1) the axes scramble into each other and the two avenues span the diagonal of
+    # the world: 170,191 cells of paving, which is the only reason it was caught immediately.
+    px0, px1, pz0, pz1 = (_plot_bounds(pl_plot) if pl_plot is not None
+                          else (min(xs), max(xs), min(zs), max(zs)))
+    x0, x1 = max(min(xs), px0 + 2), min(max(xs), px1 - 2)
+    z0, z1 = max(min(zs), pz0 + 2), min(max(zs), pz1 - 2)
+    routes = [
+        {"a": [x0, cz], "b": [x1, cz], "width": 5, "lamps": True},
+        {"a": [cx, z0], "b": [cx, z1], "width": 5, "lamps": True},
+    ]
+
+    # THE SPURS: each door out to whichever avenue is nearer, perpendicular - a single straight
+    # run with no corner, which is only possible because the avenues span the full range.
+    for (m, (fx, fz)) in links:
+        if m.get("edge"):
+            continue          # centred on its own axis, so the avenue already runs to it
+        fx = min(max(fx, x0), x1)
+        fz = min(max(fz, z0), z1)
+        if abs(fz - cz) <= abs(fx - cx):
+            routes.append({"a": [fx, fz], "b": [fx, cz], "width": 3})
+        else:
+            routes.append({"a": [fx, fz], "b": [cx, fz], "width": 3})
+
+    routes = [r for r in routes if r["a"] != r["b"]]
+    if not routes:
+        return
+    land = spec["modules"][0]["params"]["land"]
+    # **INSERTED BEFORE THE PLAZA, NOT APPENDED AFTER IT.** `layers.slice_plan` resolves a
+    # contested cell first-writer-wins in plan order, and the paving and the plaza occupy the
+    # same course - appended last, every avenue would be overwritten by the plaza it crosses and
+    # the park would have invisible streets. Buildings still come first and still win, which is
+    # the order that is actually wanted: building over path over plaza.
+    pl.modules.insert(pl.modules.index(hub), {
+        "name": spec.get("paths_name", "Park Paths"), "gen": "park", "kind": "paths",
+        "at": [cx, plane, cz], "size": [1, 5, 1], "roll": 0,
+        "declared_size": [1, 5, 1], "anchor_offset": [0, 0, 0],
+        "floor": pl.modules[0]["floor"], "covers": True,
+        "params": {"land": land, "facing": "east", "routes": routes, "obstacles": obstacles},
+        "world": world,
+    })
 
 
 def _theme_for(brief: str) -> str:

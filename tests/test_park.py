@@ -18,10 +18,22 @@ LANDS = sorted(park.LANDS)
 FACINGS = ("east", "north", "west", "south")
 
 
+# A small cross with one spur - the same shape `planner._add_paths` computes, so `paths` gets
+# swept by every generic check here (legality, economy, connectivity, lanterns) rather than being
+# quietly exempted from them. The spur lands ON the east-west avenue, which is the property that
+# makes the whole network one piece.
+_ROUTES = [{"a": [-20, 0], "b": [20, 0], "width": 5, "lamps": True},
+           {"a": [0, -20], "b": [0, 20], "width": 5, "lamps": True},
+           {"a": [10, 10], "b": [10, 0], "width": 3}]
+
+
 def _cfg(kind, land="midway", facing="east", **kw):
-    return {**park.PARK, "at": [0, 64, 0], "kind": kind, "land": land, "facing": facing,
-            "title": kind.upper(), "width": 11, "depth": 9, "lanes": 3, "tiers": 3,
-            "height": 6, **kw}
+    cfg = {**park.PARK, "at": [0, 64, 0], "kind": kind, "land": land, "facing": facing,
+           "title": kind.upper(), "width": 11, "depth": 9, "lanes": 3, "tiers": 3,
+           "height": 6, **kw}
+    if kind == "paths":
+        cfg.setdefault("routes", _ROUTES)
+    return cfg
 
 
 def _built(kind, land="midway", facing="east", **kw):
