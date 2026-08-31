@@ -3,10 +3,12 @@
 Both faults produced a plan that looked completely reasonable and was wrong, which is the only
 kind this project keeps shipping.
 """
+import itertools
+
 import pytest
 
-from mcbuild import planner
-from mcbuild.gen import GENERATORS, park
+from mcbuild import blocks, planner
+from mcbuild.gen import GENERATORS, casino, park
 
 ZONES = ["midway", "frontier", "hollow"]
 
@@ -224,6 +226,11 @@ def test_every_door_is_on_the_street(zone):
     for m in pl.modules:
         if m["kind"] in ("paths", "plaza"):
             continue
+        # **A BENCH HAS NO DOOR.** Street furniture is dressing placed ALONG the avenues after
+        # they are drawn, so it never gets a spur and never needs one - what it owes the street
+        # is proximity, which `test_street_furniture_stands_on_the_street` asserts instead.
+        if m["gen"] == "streetfurniture":
+            continue
         # `_inside_of` assumes an edge module faces OUT, which is true of a gate and false of a
         # ride parked at the back of the land facing IN - so the link point is whichever of the
         # two actually lies on the plot, exactly as `_add_paths` decides it.
@@ -334,3 +341,77 @@ def test_a_zone_is_not_all_one_facing(zone):
     faces = {m["params"]["facing"] for m in pl.modules
              if not m.get("edge") and not m.get("covers") and m["kind"] != "paths"}
     assert len(faces) >= 3, f"{zone}: buildings face only {faces}"
+
+
+# --------------------------------------------------------------- the sideshow games wear the land
+
+def _lum(name):
+    r, g, b = blocks.color(name, "side")
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+@pytest.mark.parametrize("land", sorted(casino.LAND_SKIN))
+def test_a_sideshow_skin_can_actually_draw_a_line(land):
+    """MEASURED ACROSS FAMILIES, WHICH IS THE ONLY WAY A LADDER CAN EXIST.
+
+    This repo concluded three separate times that the economy has almost no value contrast, and
+    every one of those measurements was taken INSIDE a single material family - where a ladder
+    cannot exist by construction, because a family is one material shown four ways and dressing a
+    stone does not change how much light it returns. Searched ACROSS families the cheap neutral
+    ladder is white_wool 236 / smooth_stone 159 / stone 126 / deepslate_bricks 71 / black_wool 21.
+
+    So a skin is only a skin if its field, its walls and its pillars are far enough apart to READ.
+    Fifteen is about where a trim course stops being a line and becomes texture.
+    """
+    sk = casino.LAND_SKIN[land]
+    rungs = [sk["floor"], sk["shell"], sk["pillar"]]
+    for a, b in itertools.combinations(rungs, 2):
+        assert abs(_lum(a) - _lum(b)) >= 15, (
+            f"{land}: {a} ({_lum(a):.0f}) and {b} ({_lum(b):.0f}) are the same tone")
+
+
+@pytest.mark.parametrize("land", sorted(casino.LAND_SKIN))
+def test_a_sideshow_skin_is_spendable_and_on_the_server(land):
+    """Rule 12 and rule 16 together: a block can be real, legal and still unbuildable here.
+    Dirt and grass are CURRENCY on this skyblock, and the 1.19 allowlist is not the 26.2 registry.
+    """
+    for key, name in casino.LAND_SKIN[land].items():
+        assert blocks.exists(name), f"{land}.{key}: no such block {name!r}"
+        assert blocks.spendable(name), f"{land}.{key}: {name} is currency on this server"
+
+
+@pytest.mark.parametrize("zone", ZONES)
+def test_every_sideshow_game_names_the_land_it_stands_in(zone):
+    """A Hoopla stall on a bright fairground built out of the casino's black-and-white reads as a
+    casino with a ferris wheel parked outside it. The games are used twice - in the casino and as
+    midway sideshows - and only the second use carries a land."""
+    for m in planner.THEMES[zone]["modules"]:
+        if m["gen"] != "casino":
+            continue
+        assert m["params"].get("land") == zone, (
+            f"{m['name']}: a sideshow in {zone} must wear {zone}, got "
+            f"{m['params'].get('land')!r}")
+
+
+@pytest.mark.parametrize("zone", ZONES)
+def test_street_furniture_stands_on_the_street(zone):
+    """Furniture's whole justification is that it belongs to the AVENUE rather than to the bay
+    grid: handed to `bays` these would be scattered evenly over the plot, and a bench in the
+    middle of open ground is not furniture, it is litter.
+
+    So what is asserted is proximity to real paving, not a spur. The tolerance is the setback
+    ladder `_add_furniture` searches - a piece carries its own pad, so it may have to stand a
+    little back to find room between two shopfronts, and that is the design rather than a miss.
+    """
+    pl = _planned(zone)
+    if not any(m["gen"] == "streetfurniture" for m in pl.modules):
+        pytest.skip(f"{zone} declares no street furniture")
+    ground = _paving(pl)
+    assert ground, f"{zone}: no paving at all"
+    for m in pl.modules:
+        if m["gen"] != "streetfurniture":
+            continue
+        x0, z0, x1, z1 = planner._box_of(m)
+        near = min(min(abs(px - cx) + abs(pz - cz) for (px, pz) in ground)
+                   for cx, cz in ((x0, z0), (x1, z1), (x0, z1), (x1, z0)))
+        assert near <= 16, f"{zone}: {m['name']} is {near} from the nearest paving"

@@ -218,6 +218,7 @@ THEMES = {
         "orient": True,
         "paths": True,
         "paths_name": "Frontier Paths",
+        "furniture": ["bench", "planter", "lamppost", "signpost", "bin", "flagpole"],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
             # THE HEADLINE RIDE, and it is sited first because it is a third of the plot.
@@ -286,6 +287,7 @@ THEMES = {
         "orient": True,
         "paths": True,
         "paths_name": "Hollow Paths",
+        "furniture": ["bench", "lamppost", "topiary", "signpost", "bin", "planter"],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
             {"name": "Haunted Manor", "gen": "hollowmanor", "kind": "manor",
@@ -1232,7 +1234,10 @@ def _add_furniture(pl, spec, plane, world, pl_plot=None):
     # Each piece carries its own paved pad - a bench measures 8x11, not 2x1 - so it needs real
     # room. Trying a ladder of setbacks and taking the first that fits puts a bench in the gap
     # BETWEEN two shopfronts instead of refusing to place one at all.
-    setbacks = [kerb + k for k in (0, 3, 6, 9, 12)]
+    # The ladder is short ON PURPOSE. Its job is to find room BETWEEN two frontages, not to
+    # rehouse a bench in the middle of a field: past about three blocks of extra setback the
+    # piece stops belonging to the street, which is the only reason it exists.
+    setbacks = [kerb + k for k in (0, 2, 4, 6)]
     for (axis, lo, hi, fixed) in runs:
         t = lo
         while t <= hi:
