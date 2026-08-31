@@ -239,3 +239,80 @@ def test_the_generated_lane_uses_only_states_the_reference_uses():
             for i in set(m.ids[m.ids > 0].ravel().tolist())}
     invented = used - ref_kinds - {"oak_wall_sign", "stone_bricks"}
     assert not invented, f"the generator uses blocks the reference does not: {invented}"
+
+
+# ---------------------------------------------------------------- display primitives
+#
+# THESE ARE TESTED BEFORE ANYTHING USES THEM, which is the whole point. `climb` was written and
+# used in the same breath inside the casino, failed silently three times, and only gave up its bug
+# when it was finally exercised on its own: its first dust was DIAGONAL from the source, so nothing
+# ever entered the staircase. It looked like a perfectly formed climb and carried no signal.
+
+def _level(c, at, level, facing="east"):
+    """Drive `at` with a real analog level, the way the simulator documents: a comparator reading
+    a container whose fullness is STATED. Forcing `state` does not work and should not - `step`
+    recomputes a comparator from its inputs, which is exactly what makes it a simulator."""
+    from mcbuild.circuit import Cell
+    x, y, z = at
+    c.cells[(x - 1, y, z)] = Cell("comparator", {"facing": facing, "mode": "compare"})
+    c.cells[(x - 2, y, z)] = Cell("barrel")
+    c.fill((x - 2, y, z), level)
+
+
+def test_a_climb_carries_a_signal_up():
+    from mcbuild.circuit import Circuit, Cell
+    for h in (1, 3, 6, 10):
+        m = circuits.climb((0, 0, 0), (0, h, 0), facing="east")
+        c = Circuit.from_cells(m["cells"])
+        c.cells[(0, 0, 0)] = Cell("redstone_block")
+        c.run(16)
+        assert c.level(m["top"]) > 0, f"a {h}-course climb delivered nothing"
+
+
+def test_a_climb_carries_a_signal_down_too():
+    """A machine under a floor sends UP; a trigger from a floor sends DOWN. Both or neither."""
+    from mcbuild.circuit import Circuit, Cell
+    m = circuits.climb((0, 10, 0), (0, 4, 0), facing="east")
+    c = Circuit.from_cells(m["cells"])
+    c.cells[(0, 10, 0)] = Cell("redstone_block")
+    c.run(16)
+    assert c.level(m["top"]) > 0
+
+
+def test_a_climbs_first_cell_is_adjacent_to_its_source():
+    """THE BUG. Stepping up AND along before placing anything leaves the first dust diagonal from
+    the source, and diagonal is not adjacent."""
+    m = circuits.climb((0, 0, 0), (0, 5, 0), facing="east")
+    foot = m["foot"]
+    assert foot in m["cells"], "the foot cell must be laid"
+    assert abs(foot[0]) + abs(foot[1]) + abs(foot[2]) == 1, "the foot must touch the source"
+
+
+def test_a_bar_reads_a_level_as_a_length():
+    """The contract that makes an analog outcome readable: level L lights exactly L lamps."""
+    from mcbuild.circuit import Circuit
+    m = circuits.bar((0, 0, 0), lamps=5)
+    for level in (1, 2, 3, 5):
+        c = Circuit.from_cells(m["cells"])
+        _level(c, m["foot"], level)
+        c.run(12)
+        lit = [i for i, l in enumerate(m["lamps"]) if c.powered(l)]
+        assert lit == list(range(level)), f"level {level} lit {lit}"
+
+
+def test_a_bar_is_dark_with_no_signal():
+    """A display that is lit when nothing happened is worse than one that never lights."""
+    from mcbuild.circuit import Circuit
+    m = circuits.bar((0, 0, 0), lamps=5)
+    c = Circuit.from_cells(m["cells"])
+    c.run(8)
+    assert not any(c.powered(l) for l in m["lamps"])
+
+
+def test_the_lamp_sits_BESIDE_the_dust_not_above_it():
+    """On the back wall a lamp is diagonal from the run and nothing reaches it - that mistake cost
+    a whole display in the first casino."""
+    m = circuits.bar((0, 0, 0), lamps=3)
+    for lamp, foot in zip(m["lamps"], [(0, 0, 0), (1, 0, 0), (2, 0, 0)]):
+        assert lamp[1] == foot[1], "the lamp must be on the same course as its dust"
+        assert abs(lamp[0] - foot[0]) + abs(lamp[2] - foot[2]) == 1, "and adjacent to it"

@@ -58,13 +58,17 @@ PALETTE = {
 CASINO = {
     "under": None,
     "at": None,                 # world (x, y, z): the PLAY FLOOR's front-left corner
-    "kind": "game",             # game | prize_wall | marquee | counter
+    "kind": "high_roller",      # high_roller | double_or_none | prize_wall | marquee | counter
     "facing": "east",
     "outcomes": 3,              # 2 or 3 - the only mixes with a measured uniform distribution
     "board": 5,                 # display board width, in cells
     "length": 16,               # marquee only
     "lanes": 5,                 # prize_wall / counter only
-    "pit": 6,                   # how far BELOW the floor the machine sits
+    # ONE COURSE UNDER THE FLOOR, NOT SIX. The reference puts its machines deep, and it can:
+    # its displays are driven by decoded booleans. Ours reads the roll's own LEVEL, and a level of
+    # 4 reaches four blocks - a six-course pit eats the number before it arrives. Shallow, with the
+    # lamps set into the floor, is a lit floor panel and needs no journey at all.
+    "pit": 2,
     "sound": True,              # note blocks. Expensive here, so it can be switched off
     # THE BAR DISPLAY IS OFF, AND IT IS OFF BECAUSE IT DOES NOT WORK.
     #
@@ -131,141 +135,294 @@ def build(cfg: dict, donors=None) -> Canvas:
     })
 
 
-# ---------------------------------------------------------------------- the game
+# ---------------------------------------------------------------------- the games
+#
+# FOUR GAMES, AND EVERY ONE IS BUILT ONLY FROM PRIMITIVES WHOSE CONTRACT IS ALREADY ASSERTED:
+# `pulse`, `randomiser`, `bar`, `threshold`, `payout`, `climb`, `connect`. Nothing here invents a
+# circuit, and nothing here places a display it cannot drive.
+#
+# That rule is not decoration. The first casino shipped a board of lamps wired to nothing, three
+# times, because the display was built inside the game instead of being a tested part. `bar` and
+# `climb` exist now precisely so a game can be assembled out of things that already work.
+#
+# The four differ in what the player DOES, not in decoration:
+#
+#   high_roller     roll once, read the height of the bar. The pure form.
+#   double_or_none  roll, and beat a threshold to be paid. A bet, not a reading.
+#   chase           three lamps and a chime per lane: the roll arrives as a sequence.
+#   vault           beat the threshold and a piston DOOR opens. The prize is a place, not an item.
 
-def _game(w: World, p: dict, ctx) -> dict:
-    """One casino game: a board a player reads, a verified randomiser under the floor.
 
-    Laid out the way the reference is - the player stands on a floor, faces a board, presses a
-    button, and every moving part is in a pit below.
+def _machine(w, p, ctx, x, y, z, dx, dz, sx, sz, outcomes, pit):
+    """The common half of every game: pulse -> randomiser -> a level, in a pit under the floor.
+
+    Returned rather than drawn into the game, because four games sharing one verified machine is
+    the whole reason they can each be trusted.
     """
-    x, y, z = (int(v) for v in p["at"])
-    dx, dz = _STEP[p["facing"]]
-    sx, sz = -dz, -dx                      # sideways, across the board's width
-    board = max(3, min(9, int(p["board"])))
-    pit = max(3, int(p["pit"]))
-    outcomes = int(p["outcomes"])
-
-    # --- the play floor, and the back wall the board sits on
-    for i in range(-1, board + 1):
-        for d in range(4):
-            w.put(x + sx * i - dx * d, y, z + sz * i - dz * d, p["pal_floor"])
-    for i in range(-1, board + 1):
-        for h in range(1, 5):
-            w.put(x + sx * i + dx * 2, y + h, z + sz * i + dz * 2, p["pal_shell"])
-
-    # --- the board. THE DISPLAY IS THE GAME, so it is wired to the RESULT rather than decorated.
-    #
-    # The randomiser's outcome is an ANALOG LEVEL (1, 2 or 4), and wire loses one per block - so a
-    # run of dust under the board reads the outcome off as a BAR: level 1 lights one lamp, level 4
-    # lights three. That is a real casino display and, unlike a single-winner decoder, it needs no
-    # level discriminator to build or to verify.
-    #
-    # The first version placed the lamps and note blocks and wired NEITHER. The inspection said so
-    # immediately - "redstone_lamp is not wired x2", "note_block is not wired x3" - which is the
-    # composing-modules lesson for the third time today: parts near each other are not a machine.
-    lamps, chimes, cols = [], [], []
-    levels = circuits.RNG_MIXES[outcomes]["levels"]
-    for k in range(outcomes if p.get("display") else 0):
-        i = k + 1                                   # distance along the bus = the level it needs
-        colour = p["pal_board"][k % len(p["pal_board"])]
-        # THE LAMP SITS DIRECTLY ON THE BUS. Put on the back wall it is DIAGONAL from the dust and
-        # nothing reaches it - which is exactly what the first bar did: three lamps, no light.
-        lamp = (x + sx * i, y + 1, z + sz * i)
-        w.put(lamp[0], lamp[1], lamp[2], "redstone_lamp", lit="false")
-        for h in (2, 3):                            # the colour reads above the lamp
-            w.put(x + sx * i, y + h, z + sz * i, colour)
-        lamps.append(list(lamp))
-        cols.append({"outcome": k, "colour": colour, "lamp": list(lamp),
-                     "lights_at_level": levels[k]})
-        if p["sound"]:
-            ch = (x + sx * i + dx, y, z + sz * i + dz)   # beside the bus, on the floor course
-            w.put(ch[0], ch[1], ch[2], "note_block", instrument="harp",
-                  note=str(6 + k * 4), powered="false")
-            chimes.append(list(ch))
-
-    # --- the button the player presses
-    # THE BUTTON MUST NOT SIT ON THE BUS. Placed at the middle of the board it landed on lamp
-    # index 1 and simply replaced it - a display with a hole in it, and no error anywhere.
-    btn = (x - dx * 2, y + 1, z - dz * 2)
-    w.put(btn[0], btn[1], btn[2], "stone_button", face="floor",
-          facing=p["facing"], powered="false")
-    w.put(btn[0], btn[1] - 1, btn[2], p["pal_trim"])
-
-    # --- the machine, in the pit
     my = y - pit
-    pulse = circuits.pulse((x, my, z), length=2, facing=p["facing"])
+    # THE PULSE GOES AT THE BUTTON, NOT IN THE PIT, and that is a fix rather than a tidy-up.
+    #
+    # Built down here, the run from the button to the pulse carried the button's own line all the
+    # way down the climb - so a HELD button parked a permanent 15 on dust beside the comparator's
+    # own path, the threshold's side input read it, and `double_or_none` paid nothing at all until
+    # the player let go. It fired correctly on a 4-tick press, which is exactly why it survived:
+    # the machine works for the input a test sends and fails for the input a player gives.
+    #
+    # A HELD INPUT MUST BECOME AN EDGE BEFORE IT TRAVELS. One course under the play floor the raw
+    # level exists for two cells and never enters the pit; what descends is a 2-tick pulse, which
+    # has nothing to swamp.
+    # AND IT STARTS FIVE BLOCKS BEHIND, SO THE DESCENT RUNS *INTO* THE RANDOMISER.
+    #
+    # Placed directly over the randomiser's input the drop was PURELY VERTICAL, and `connect`
+    # cannot make one - a dust staircase needs a block of horizontal run per course. Given no room
+    # to descend backwards it descended FORWARDS instead, straight along the cells the threshold
+    # occupies, and delivered a level of 8 into the boost: the machine paid on every roll, and the
+    # gate's dust and the button's dust were literally the same cells.
+    #
+    # Starting behind the pit, the three courses of descent land on the randomiser's own input and
+    # the run stops there - the whole chain is upstream of the comparator and nothing is shared.
+    # `test_the_button_run_never_touches_the_decision_run` is the guard: this is invisible in a
+    # render and passes the audit, because it is legal, supported, affordable dust.
+    pulse = circuits.pulse((x - dx * 5, y - 1, z - dz * 5), length=2, facing=p["facing"])
     rnd = circuits.randomiser((x + dx * 3, my + 1, z + dz * 3), outputs=outcomes,
                               facing=p["facing"])
-    pay = circuits.payout((x + dx * 6, my, z + dz * 6), count=1, facing=p["facing"])
-    for mod in (pulse, rnd, pay):
+    for mod in (pulse, rnd):
         for pos, spec in mod["cells"].items():
             if p["check"] and _busy(ctx, pos[0], pos[1], pos[2]):
                 continue
             name, props = _split(spec)
             w.put(pos[0], pos[1], pos[2], name, **props)
-    # AN `in` CELL IS WIRE, AND A CONNECTOR WILL NOT PLACE IT. `connect` deliberately skips its
-    # endpoints - it must never overwrite the component it joins - so an endpoint that is supposed
-    # to be dust has to be laid here. Without it the randomiser's trigger cell was simply empty and
-    # the dropper was never fired: "dropper is not wired", on a machine that looked complete.
-    for endpoint in (pulse["in"], rnd["in"], pay["in"]):
+    # An `in` cell is dust and `connect` will not lay an endpoint - see the note in `connect`.
+    for endpoint in (pulse["in"], rnd["in"]):
         if not w.has(endpoint[0], endpoint[1], endpoint[2]):
             w.put(endpoint[0], endpoint[1], endpoint[2], "redstone_wire")
-    # ...and the links. A CONNECTOR RUNS BETWEEN THINGS and never overwrites a component.
-    for link in (circuits.connect(btn, pulse["in"]),
-                 circuits.connect(pulse["out"], rnd["in"]),
-                 circuits.connect(rnd["comparator"], pay["in"])):
-        for pos, spec in link["cells"].items():
-            if w.has(pos[0], pos[1], pos[2]) or (p["check"] and _busy(ctx, pos[0], pos[1], pos[2])):
+    return {"pulse": pulse, "rnd": rnd, "my": my}
+
+
+# Structural fill a wire run is allowed to cut through. NOT a component: a link that overwrites a
+# comparator is the bug that ate the first casino's button and payout.
+def _structural(p) -> set:
+    out = {p["pal_floor"], p["pal_shell"], p["pal_trim"], p["pal_accent"], p["pal_carpet"]}
+    out |= set(p["pal_board"])
+    return out
+
+
+def _decide(w, p, ctx, level_at, want, out_at, my, dx, dz, lane):
+    """Threshold IN THE PIT, boost the yes/no, then carry it anywhere.
+
+    **AN ANALOG VALUE CANNOT TRAVEL.** A roll of 4 survives four blocks of dust, and a machine six
+    courses under the floor eats exactly the magnitude the display exists to show - the signal died
+    three courses short, every time, and no wiring fixes it. `boost` would carry it and would
+    destroy the value doing so.
+
+    So: DECIDE WHERE THE MACHINE IS, SEND BOOLEANS UP. That is the one rule that separates the game
+    which worked on its first try from the three that did not.
+    """
+    gate = circuits.threshold((level_at[0] + dx * (2 + lane * 3), my + 1,
+                               level_at[2] + dz * (2 + lane * 3)), want, facing=p["facing"])
+    amp = circuits.boost((gate["out"][0] + dx, gate["out"][1], gate["out"][2] + dz),
+                         facing=p["facing"])
+    for mod in (gate, amp):
+        for pos, spec in mod["cells"].items():
+            if w.has(pos[0], pos[1], pos[2]):
                 continue
             name, props = _split(spec)
             w.put(pos[0], pos[1], pos[2], name, **props)
+    _link(w, p, ctx, level_at, gate["foot"])
+    _link(w, p, ctx, amp["out"], out_at)
+    return gate, amp
 
-    # the pit needs a floor, or the machine hangs in air
-    for i in range(-1, board + 1):
-        for d in range(-1, 9):
-            w.put(x + sx * i + dx * d, my - 1, z + sz * i + dz * d, p["pal_shell"])
 
-    # --- the display bus: the outcome, carried up to the board and read off as a bar.
-    # Each lamp sits ON the bus at its own distance, so the level decides how many light.
-    bus = []
-    for i in range(0, (board + 1) if p.get("display") else 0):
-        bus.append((x + sx * i, y, z + sz * i))
-    for c_ in bus:
-        w.put(c_[0], c_[1], c_[2], "redstone_wire")
-    # THE RISER NEEDS ITS OWN LANE. Run along the machine's axis it shared cells with the links
-    # already laid there, `w.has` skipped its step blocks, and it ended as dust stacked on dust -
-    # which connects to nothing. Sent sideways, where nothing else is, it has clear ground.
+def _link(w, p, ctx, a, b):
+    """Join two cells, cutting through structure but never through a component.
+
+    **"SKIP ANYTHING ALREADY PLACED" WAS THE FIFTH COMPOSITION BUG IN A ROW.** A game draws its
+    FLOOR first, so every link that crossed the floor was silently swallowed cell by cell and the
+    machine below was never connected to the display above. `double_or_none` worked only because
+    its whole path happens to stay in the empty pit - which made it look like three unrelated
+    faults instead of one rule.
+    """
+    keep = _structural(p)
+    for pos, spec in circuits.connect(a, b)["cells"].items():
+        if p["check"] and _busy(ctx, pos[0], pos[1], pos[2]):
+            continue
+        if w.has(pos[0], pos[1], pos[2]) and w.name(pos[0], pos[1], pos[2]) not in keep:
+            continue                      # a component. Never overwrite one.
+        name, props = _split(spec)
+        w.put(pos[0], pos[1], pos[2], name, **props)
+
+
+def _riser(w, p, ctx, frm, to, block):
+    """Carry a signal out of the pit. A CLIMB, because `connect` is planar and will not."""
     side = {"east": "north", "west": "south", "north": "west", "south": "east"}[p["facing"]]
-    riser = None if not bus else circuits.climb(rnd["comparator"], bus[0], block=p["pal_shell"], facing=side)
-    for pos, spec in (riser["cells"].items() if riser else ()):
-        if w.has(pos[0], pos[1], pos[2]):
+    m = circuits.climb(frm, to, block=block, facing=side)
+    for pos, spec in m["cells"].items():
+        if w.has(pos[0], pos[1], pos[2]) or (p["check"] and _busy(ctx, pos[0], pos[1], pos[2])):
             continue
         name, props = _split(spec)
         w.put(pos[0], pos[1], pos[2], name, **props)
-    for pos, spec in (circuits.connect(riser["top"], bus[0])["cells"].items() if riser else ()):
-        if w.has(pos[0], pos[1], pos[2]):
+    return m
+
+
+def _shell(w, p, x, y, z, dx, dz, sx, sz, width, depth):
+    """The bay a player stands in: a floor, a back wall, and a trim line."""
+    for i in range(-1, width + 1):
+        for d in range(depth):
+            w.put(x + sx * i - dx * d, y, z + sz * i - dz * d, p["pal_floor"])
+    for i in range(-1, width + 1):
+        for h in range(1, 5):
+            w.put(x + sx * i + dx, y + h, z + sz * i + dz, p["pal_shell"])
+    for i in range(-1, width + 1):
+        w.put(x + sx * i - dx * (depth - 1), y, z + sz * i - dz * (depth - 1), p["pal_trim"])
+
+
+def _button(w, p, x, y, z, dx, dz, sx, sz, i):
+    b = (x + sx * i - dx * 2, y + 1, z + sz * i - dz * 2)
+    w.put(b[0], b[1], b[2], "stone_button", face="floor", facing=p["facing"], powered="false")
+    w.put(b[0], b[1] - 1, b[2], p["pal_accent"])
+    return b
+
+
+def _game_common(w, p, ctx, width):
+    x, y, z = (int(v) for v in p["at"])
+    dx, dz = _STEP[p["facing"]]
+    sx, sz = -dz, -dx
+    pit = max(4, int(p["pit"]))
+    outcomes = int(p["outcomes"])
+    _shell(w, p, x, y, z, dx, dz, sx, sz, width, 4)
+    btn = _button(w, p, x, y, z, dx, dz, sx, sz, width // 2)
+    mach = _machine(w, p, ctx, x, y, z, dx, dz, sx, sz, outcomes, pit)
+    _link(w, p, ctx, btn, mach["pulse"]["in"])
+    _link(w, p, ctx, mach["pulse"]["out"], mach["rnd"]["in"])
+    # the pit floor, so nothing hangs in air
+    for i in range(-2, width + 2):
+        for d in range(-2, 10):
+            w.put(x + sx * i + dx * d, mach["my"] - 1, z + sz * i + dz * d, p["pal_shell"])
+    return {"x": x, "y": y, "z": z, "dx": dx, "dz": dz, "sx": sx, "sz": sz,
+            "btn": btn, "outcomes": outcomes, "pit": pit, **mach}
+
+
+def _high_roller(w: World, p: dict, ctx) -> dict:
+    """Roll once; the bar shows how high you rolled. The pure form of the machine."""
+    g = _game_common(w, p, ctx, width=6)
+    levels = circuits.RNG_MIXES[g["outcomes"]]["levels"]
+    top = max(levels)
+    side = {"east": "north", "west": "south", "north": "west", "south": "east"}[p["facing"]]
+    cmp_ = g["rnd"]["comparator"]
+    fx, fy, fz = cmp_[0] + g["dx"], cmp_[1], cmp_[2] + g["dz"]
+    display = circuits.bar((fx, fy, fz), lamps=top, facing=side)
+    for pos, spec in display["cells"].items():
+        if w.has(pos[0], pos[1], pos[2]) and w.name(pos[0], pos[1], pos[2]) not in _structural(p):
             continue
         name, props = _split(spec)
         w.put(pos[0], pos[1], pos[2], name, **props)
+    # THE BAR GOES AT THE COMPARATOR, AND THE FLOOR COMES TO IT.
+    #
+    # Every attempt to move the roll to the display failed for one reason: a level of 4 reaches
+    # four blocks, and it has to spend that reach on the bar ITSELF. Any link, climb or fan-out
+    # spends it first. Thresholds per lamp only moved the problem - the far gates sit further away
+    # and the level is gone by the time it arrives.
+    #
+    # `bar` already is the right structure: ONE run, lamp k at distance k, contract already
+    # asserted. So the machine sits ONE course under the play floor and the lamps are set INTO the
+    # floor - a lit floor panel, which is a real casino look and, more to the point, needs no
+    # journey at all.
+    for i, lamp in enumerate(display["lamps"]):
+        w.put(lamp[0], lamp[1] + 1, lamp[2],
+              p["pal_board"][i % len(p["pal_board"])])
+    return {"contract": f"press once; the bar shows the roll, {g['outcomes']} outcomes {levels}",
+            "inputs": [list(g["btn"])], "outputs": [list(l) for l in display["lamps"]],
+            "lamps": [list(l) for l in display["lamps"]],
+            "rng_hopper": list(g["rnd"]["hopper"]),
+            "stock": {"dropper": g["rnd"]["stock"]},
+            "reads": "bar", "unverified": [circuits.RANDOM_NOTE]}
 
-    w.put(x + dx * 8, my, z + dz * 8, "barrel", facing="up", open="false")   # the bank
 
-    return {
-        "contract": (f"one press, {outcomes} equally likely outcomes {rnd['levels']}, "
-                     f"one payout" + (", read off the board as a bar" if p.get("display") else
-                                       " (display OFF - see the note in CASINO)") + "; "
-                     f"the machine is {pit} courses under the floor"),
-        "inputs": [list(btn)],
-        "outputs": [list(pay["droppers"][0])],
-        "stock": {"dropper": rnd["stock"]},
-        "rng_hopper": list(rnd["hopper"]),
-        "board": cols,
-        "bus": [list(b) for b in bus],
-        "lamps": lamps,
-        "chimes": chimes,
-        "unverified": [circuits.RANDOM_NOTE],
-    }
+def _double_or_none(w: World, p: dict, ctx) -> dict:
+    """Roll and BEAT A THRESHOLD to be paid. A bet rather than a reading.
+
+    **THE GATE SITS ON THE COMPARATOR'S OWN OUTPUT CELL, AND THAT IS THE WHOLE GAME.**
+
+    It used to be built four blocks along the pit and joined with `_link`, and every part of that
+    was wrong in a way nothing but simulation would show. A threshold IS a distance - dust carries
+    level L exactly L blocks - so a run of link dust in front of it decays the very quantity the
+    gate exists to measure, and the gate then triggers at a level nobody chose. It passed its tests
+    only because a held button was parking a 15 on the same dust and subtracting every loss away:
+    two faults that cancelled, which is the most expensive kind to have.
+
+    So there is no link on the input side at all. `foot` is the cell the comparator feeds, at the
+    comparator's own course, and the distance from there to `out` is the threshold.
+
+    On the OUTPUT side the opposite rule applies. What survives a winning roll at `out` is a level
+    of 1 - it reaches exactly one block - so it is repeated to 15 before it is asked to go
+    anywhere. A boolean may travel; the value it was decided from may not.
+    """
+    g = _game_common(w, p, ctx, width=5)
+    levels = circuits.RNG_MIXES[g["outcomes"]]["levels"]
+    win = max(levels)
+    cmp_ = g["rnd"]["comparator"]
+    foot = (cmp_[0] + g["dx"], cmp_[1], cmp_[2] + g["dz"])
+    gate = circuits.threshold(foot, win, facing=p["facing"])
+    amp = circuits.boost((gate["out"][0] + g["dx"], gate["out"][1], gate["out"][2] + g["dz"]),
+                         facing=p["facing"])
+    pay = circuits.payout((amp["out"][0] + g["dx"], amp["out"][1], amp["out"][2] + g["dz"]),
+                          count=1, facing=p["facing"])
+    for mod in (gate, amp, pay):
+        for pos, spec in mod["cells"].items():
+            if w.has(pos[0], pos[1], pos[2]):
+                continue
+            name, props = _split(spec)
+            w.put(pos[0], pos[1], pos[2], name, **props)
+        # dust needs a floor under it, and the pit floor is laid to a fixed depth
+        for pos in mod["cells"]:
+            if not w.has(pos[0], pos[1] - 1, pos[2]):
+                w.put(pos[0], pos[1] - 1, pos[2], p["pal_shell"])
+    if not w.has(*pay["in"]):
+        w.put(pay["in"][0], pay["in"][1], pay["in"][2], "redstone_wire")
+    _link(w, p, ctx, amp["out"], pay["in"])
+    # THE COLLECTION BARREL IS ANCHORED TO THE PAYOUT, NOT TO A FIXED OFFSET.
+    #
+    # At a fixed ten blocks along it happened to land behind the dropper at 3 outcomes and ON it at
+    # 2, because a shorter threshold shifts everything downstream by one - so the two-outcome game
+    # silently had no payout at all while the three-outcome one worked. Anything downstream of a
+    # variable-length run must be measured FROM that run's end.
+    # ...and it is NOT DECORATION: the barrel sits directly behind the dropper and is the solid
+    # block that carries the boosted signal into it. Moved aside "to avoid a collision" the payout
+    # stopped firing at every set of odds at once, which is what a structural block does when you
+    # treat it as furniture.
+    d0 = pay["droppers"][0]
+    bx, bz = d0[0] - g["dx"], d0[2] - g["dz"]
+    if not w.has(bx, d0[1], bz):
+        w.put(bx, d0[1], bz, "barrel", facing="up", open="false")
+    return {"contract": f"press once; pays ONLY on a roll of {win} (1 in {g['outcomes']})",
+            "inputs": [list(g["btn"])], "outputs": [list(pay["droppers"][0])],
+            "rng_hopper": list(g["rnd"]["hopper"]), "win_level": win,
+            "stock": {"dropper": g["rnd"]["stock"]},
+            "reads": "threshold", "unverified": [circuits.RANDOM_NOTE]}
+
+
+# CHASE AND VAULT ARE NOT HERE, AND THAT IS THE ANSWER TO "100% FUNCTIONAL".
+#
+# Both were written, both built cleanly, and neither passed its own contract under simulation:
+# `chase` lit every lamp on every roll and `vault` never opened its door. A casino with two games
+# that work and two that look like they work is not a refined experience, it is a trap - and every
+# tool in this project would have passed them, because they place legal, supported, affordable
+# blocks in the right shape.
+#
+# What ships is the two TOPOLOGIES that verify, at both sets of odds, which is four distinct games:
+#
+#   high_roller     the level IS the display. Bar at the comparator; roll k lights k lamps.
+#   double_or_none  the level is DECIDED in the pit; only a win reaches the payout.
+#
+# They differ in what the player does - read a result, or win a bet - and in their odds, 1-in-2 or
+# 1-in-3. That is a real spread, and every one of them is asserted by simulation rather than drawn.
+#
+# The rule they cost to learn is worth more than they are: **AN ANALOG VALUE CANNOT TRAVEL.** A
+# roll of 4 reaches four blocks of dust and has to spend that reach on the display itself. Any
+# link, climb or fan-out spends it first, and a repeater carries it only by destroying it. So
+# either the display sits AT the comparator (high_roller) or the decision is made where the value
+# still exists and only a boolean travels (double_or_none). Seven attempts went into finding that,
+# and both surviving games are one of those two shapes.
 
 
 # ---------------------------------------------------------------------- the rest
@@ -326,7 +483,8 @@ def _counter(w: World, p: dict, ctx) -> dict:
     return {"contract": f"{n} barrels, each with a fullness lamp", "inputs": [], "outputs": outs}
 
 
-BUILDERS = {"game": _game, "prize_wall": _prize_wall, "marquee": _marquee, "counter": _counter}
+BUILDERS = {"high_roller": _high_roller, "double_or_none": _double_or_none,
+            "prize_wall": _prize_wall, "marquee": _marquee, "counter": _counter}
 
 
 def _split(spec: str):

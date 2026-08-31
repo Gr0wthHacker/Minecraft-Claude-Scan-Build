@@ -54,23 +54,32 @@ MAX_FOOTPRINT = 99
 
 THEMES = {
     "casino": {
-        "blurb": "a redstone casino, stacked: games on their own floors, machines in pits below",
-        # Sized off `reference/casino_chirurg.litematic`, whose games are ~16x12x16 with the
-        # mechanism under the play floor - not the 7x5x4 cabinets this theme first invented.
+        "blurb": "a redstone casino: four verified games over two floors, inside a 99x99 plot",
+        # TWO FLOORS, BECAUSE THE FOOTPRINT IS THE ONLY THING THAT IS SCARCE. The reference casino
+        # is 135x105 and does not fit; the vertical does not run out until Y320. Games below, where
+        # a player walks between them; marquee, prize wall and bank above.
         "floors": [
             {"name": "Gaming Floor", "y": 0},
-            {"name": "Upper Floor", "y": 14},
+            {"name": "Mezzanine", "y": 12},
         ],
+        # FOUR GAMES FROM TWO VERIFIED TOPOLOGIES, at two sets of odds. `high_roller` reads the
+        # roll off a bar; `double_or_none` pays only on a win. Both are asserted by simulation at
+        # 2 and 3 outcomes - the only mixes with a measured uniform distribution.
         "modules": [
+            {"name": "High Roller", "gen": "casino", "kind": "high_roller",
+             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 6, "floor": 0},
+            {"name": "Coin Toss", "gen": "casino", "kind": "high_roller",
+             "size": [9, 8, 8], "params": {"outcomes": 2, "pit": 2}, "count": 5, "floor": 0},
+            {"name": "One In Three", "gen": "casino", "kind": "double_or_none",
+             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 6, "floor": 0},
+            {"name": "Even Money", "gen": "casino", "kind": "double_or_none",
+             "size": [9, 8, 8], "params": {"outcomes": 2, "pit": 2}, "count": 5, "floor": 0},
             {"name": "Casino Marquee", "gen": "casino", "kind": "marquee",
-             "size": [18, 5, 4], "params": {"length": 16}, "count": 1, "floor": 1},
-            {"name": "Casino Game", "gen": "casino", "kind": "game",
-             "size": [10, 12, 8], "params": {"outcomes": 3, "board": 5, "pit": 6},
-             "count": 4, "floor": 0},
-            {"name": "Casino Prizes", "gen": "casino", "kind": "prize_wall",
-             "size": [4, 5, 12], "params": {"lanes": 5}, "count": 1, "floor": 0},
-            {"name": "Casino Bank", "gen": "casino", "kind": "counter",
-             "size": [4, 4, 8], "params": {"lanes": 4}, "count": 1, "floor": 1},
+             "size": [18, 5, 4], "params": {"length": 16}, "count": 4, "floor": 1},
+            {"name": "Prize Wall", "gen": "casino", "kind": "prize_wall",
+             "size": [4, 5, 12], "params": {"lanes": 5}, "count": 4, "floor": 1},
+            {"name": "House Bank", "gen": "casino", "kind": "counter",
+             "size": [4, 4, 8], "params": {"lanes": 6}, "count": 3, "floor": 1},
         ],
     },
 }
@@ -125,6 +134,13 @@ class Plan:
                 out.append(f"      contract: {m['contract']}")
             for f in m.get("circuit", [])[:3]:
                 out.append(f"      CIRCUIT: {f}")
+        if self.modules:
+            xs = [m["at"][0] for m in self.modules] + [m["at"][0] + m["size"][0] for m in self.modules]
+            zs = [m["at"][2] for m in self.modules] + [m["at"][2] + m["size"][2] for m in self.modules]
+            area = sum(m["size"][0] * m["size"][2] for m in self.modules)
+            out.append(f"  spread: X {min(xs)}..{max(xs)}  Z {min(zs)}..{max(zs)}  "
+                       f"({area} of {99 * 99} plot cells used by module footprints, "
+                       f"{100 * area / (99 * 99):.0f}%)")
         for n in self.notes:
             out.append(f"  note: {n}")
         for u in self.unverified:
@@ -205,6 +221,37 @@ def pads(sc, size, plot=None, roll: int = 1, limit: int = 200, y_range=None) -> 
     return out
 
 
+def bays(plot, size, spacing: int = 3, margin: int = 4) -> list:
+    """Lay the plot out as a GRID of bays, the way a floor is actually planned.
+
+    **FIRST FIT DOES NOT USE A PLOT, IT FILLS A STRIP.** `pads` returns the first 200 flat spots it
+    finds, which on a 99x99 plot is one row along the near edge - so the first few modules took
+    them all and every module after that reported NO SITE beside 94% empty ground. The plan used
+    **6%** of the plot and looked like a queue rather than a casino.
+
+    A grid is also simply what the thing IS: bays of equal size, aisles between them, a margin off
+    the boundary so nothing is built against the void. Returned in a spiral from the centre, so a
+    half-full plan is a cluster around the middle rather than a line down one side.
+    """
+    x0, z0, x1, z1 = plot.bounds
+    w, _h, d = (int(v) for v in size)
+    stride_x, stride_z = w + spacing, d + spacing
+    cols = max(1, ((x1 - x0 + 1) - 2 * margin) // stride_x)
+    rows = max(1, ((z1 - z0 + 1) - 2 * margin) // stride_z)
+    # centre the grid in the plot rather than pinning it to a corner
+    used_x, used_z = cols * stride_x - spacing, rows * stride_z - spacing
+    ox = x0 + ((x1 - x0 + 1) - used_x) // 2
+    oz = z0 + ((z1 - z0 + 1) - used_z) // 2
+    out = []
+    for r in range(rows):
+        for c in range(cols):
+            out.append((ox + c * stride_x, oz + r * stride_z))
+    mid_c, mid_r = (cols - 1) / 2, (rows - 1) / 2
+    out.sort(key=lambda t: ((t[0] - (ox + mid_c * stride_x)) ** 2
+                            + (t[1] - (oz + mid_r * stride_z)) ** 2))
+    return out
+
+
 def _clear(taken: list, x, y, z, size) -> bool:
     """Does this footprint miss everything already placed. Boxes, because a module is a box."""
     w, h, d = (int(v) for v in size)
@@ -272,10 +319,21 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
         for i in range(int(mspec.get("count", 1))):
             size = [mspec["size"][0] + spacing, mspec["size"][1], mspec["size"][2] + spacing]
             spot = None
-            for (x, y, z, roll) in pads(sc, size, pl_plot, y_range=band):
-                if _clear(taken, x, y, z, size):
-                    spot = (x, y, z, roll)
-                    break
+            # THE GRID FIRST, so the plot is used rather than a strip of it. Each bay still has to
+            # pass the SAME ground test a free-form pad would - flat enough, in the band, free -
+            # because a tidy grid over rolling terrain is still a build on rolling terrain.
+            if pl_plot is not None:
+                for (bx, bz) in bays(pl_plot, size, spacing=3):
+                    hits = [q for q in pads(sc, size, pl_plot, y_range=band, limit=4000)
+                            if q[0] == bx and q[2] == bz]
+                    if hits and _clear(taken, hits[0][0], hits[0][1], hits[0][2], size):
+                        spot = hits[0]
+                        break
+            if spot is None:
+                for (x, y, z, roll) in pads(sc, size, pl_plot, y_range=band, limit=4000):
+                    if _clear(taken, x, y, z, size):
+                        spot = (x, y, z, roll)
+                        break
             lift = floors[min(int(mspec.get("floor", 0)), len(floors) - 1)]["y"]
             label = mspec["name"] + (f" {i + 1}" if int(mspec.get("count", 1)) > 1 else "")
             if spot is None:

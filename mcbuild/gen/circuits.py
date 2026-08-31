@@ -229,7 +229,7 @@ def lamp_bank(pos, count: int = 5, facing: str = "east") -> dict:
     }
 
 
-def connect(a, b, y: int | None = None, every: int = 14) -> dict:
+def connect(a, b, y: int | None = None, every: int = 14, facing: str = "east") -> dict:
     """A wire run from `a` to `b`, with a repeater before the signal would die.
 
     COMPOSING VERIFIED MODULES DOES NOT GIVE YOU A VERIFIED MACHINE. The casino's first slot
@@ -259,6 +259,29 @@ def connect(a, b, y: int | None = None, every: int = 14) -> dict:
     # thing being connected: the casino's first wired slot replaced its own button and its own
     # payout dropper with redstone dust, and simulated as firing nothing at all. A connector runs
     # BETWEEN two things; it is not allowed to stand on either of them.
+    # A HEIGHT DIFFERENCE IS NOT AN ERROR, IT IS A STAIRCASE.
+    #
+    # This function was planar and said so only in a docstring, and that ONE fact broke four
+    # casino games in a row: the button sits on the floor, the machine sits seven courses down,
+    # and every link between them ran happily along at the wrong height and delivered nothing.
+    # Each failure looked like a different bug. It was always this.
+    #
+    # A caller should not have to know whether two points happen to share a Y. So when they do
+    # not, the climb is done FIRST - it is a tested primitive - and the planar run continues from
+    # the top of it.
+    if ay != by:
+        up = climb((ax, ay, az), (ax, by, az), facing=facing)
+        rest = connect(up["top"], (bx, by, bz), y=by, every=every, facing=facing)
+        cells = dict(up["cells"])
+        for pos, spec in rest["cells"].items():
+            cells.setdefault(pos, spec)
+        laid_ = [q for q in cells if cells[q] != "smooth_stone"]
+        return {"cells": cells,
+                "from": up["foot"], "to": rest["to"],
+                "ends": (tuple(a), tuple(b)), "length": len(laid_),
+                "climbed": abs(by - ay),
+                "contract": f"{abs(by - ay)} step(s) of climb then a planar run to the target"}
+
     ends = {tuple(a), tuple(b)}
     cells = {}
     facing_x = "east" if bx >= ax else "west"
@@ -285,6 +308,84 @@ def connect(a, b, y: int | None = None, every: int = 14) -> dict:
             "contract": f"{len(path)} cells; a repeater every {every} so the far end still fires"}
 
 
+def bar(pos, lamps: int = 4, facing: str = "east") -> dict:
+    """An ANALOG BAR: a run of dust with a lamp beside each cell, so a level reads as a length.
+
+    Signal strength falls by one per block of dust, so a level of L reaches L cells and lights L
+    lamps. That turns the randomiser's analog outcome into something a player can READ, with no
+    level discriminator to build and nothing to get subtly wrong.
+
+    **THE LAMP GOES BESIDE THE DUST, NOT ON TOP OF IT.** On the back wall it is diagonal from the
+    run and nothing reaches it; that mistake cost a whole display in the first casino. Beside it,
+    on the same course, is simply adjacent.
+
+    CONTRACT: driving the foot at level L lights exactly the first L lamps and no others.
+    """
+    lamps = max(2, min(14, int(lamps)))
+    dx, _dy, dz = STEP[facing]
+    px, pz = -dz, -dx                                # sideways, for the lamp row
+    x, y, z = pos
+    cells, row = {}, []
+    for i in range(lamps):
+        c = (x + dx * i, y, z + dz * i)
+        cells[c] = "redstone_wire"
+        lamp = (c[0] + px, c[1], c[2] + pz)
+        cells[lamp] = "redstone_lamp[lit=false]"
+        row.append(lamp)
+    return {"cells": cells, "in": (x - dx, y, z - dz), "foot": (x, y, z),
+            "lamps": row, "length": lamps,
+            "contract": f"level L lights the first L of {lamps} lamps"}
+
+
+def boost(pos, facing: str = "east") -> dict:
+    """A repeater that restores a dying signal to full strength - and DESTROYS its analog value.
+
+    **AN ANALOG VALUE CANNOT TRAVEL.** This is the constraint the whole casino turned on and it is
+    worth stating plainly: dust loses one per block, so a roll of 4 survives four blocks. Carrying
+    it six courses up out of a machine pit consumes exactly the magnitude you were trying to show,
+    and no amount of wiring fixes that - a repeater would carry it, but a repeater outputs 15 and
+    the value is gone either way.
+
+    So the rule is: **DECIDE IN THE PIT, AND SEND BOOLEANS UP.** Compare, threshold and choose
+    where the machine is; then boost the yes/no and it travels as far as you like. That is exactly
+    why `double_or_none` worked on the first try while three analog displays did not.
+
+    CONTRACT: out is full strength whenever in carries anything at all.
+    """
+    dx, _dy, dz = STEP[facing]
+    x, y, z = pos
+    return {"cells": {(x, y, z): f"repeater[facing={facing},delay=1]"},
+            "in": (x - dx, y, z - dz), "out": (x + dx, y, z + dz),
+            "contract": "any signal in -> full strength out (the analog value is lost, on purpose)"}
+
+
+def threshold(pos, level: int, facing: str = "east") -> dict:
+    """Pass a signal ONLY when the incoming level is at least `level`.
+
+    **DISTANCE IS THE THRESHOLD, AND IT IS ALREADY PROVEN.** Dust loses one per block, so a tap
+    `level - 1` cells along a run carries something only when the signal was at least `level` to
+    begin with. That is the same property `bar` reads as a length, used to gate instead of to
+    display - which means this needs no new mechanism and inherits a contract that is already
+    tested.
+
+    The alternative was a per-lane subtract decoder, and it was tried: every lane needs its own
+    threshold as an analog SIDE input, which needs another comparator chain per lane to produce.
+    That is inventing a circuit, and this file's rule is that it does not.
+
+    CONTRACT: `out` carries a signal when the input is >= `level`, and nothing when it is below.
+    """
+    level = max(1, min(15, int(level)))
+    dx, _dy, dz = STEP[facing]
+    x, y, z = pos
+    cells = {}
+    for i in range(level):
+        cells[(x + dx * i, y, z + dz * i)] = "redstone_wire"
+    return {"cells": cells, "in": (x - dx, y, z - dz), "foot": (x, y, z),
+            "out": (x + dx * (level - 1), y, z + dz * (level - 1)),
+            "level": level,
+            "contract": f"passes only a level >= {level}"}
+
+
 def climb(frm, to, block: str = "smooth_stone", facing: str = "east") -> dict:
     """A staircase of dust from one height to another.
 
@@ -305,6 +406,19 @@ def climb(frm, to, block: str = "smooth_stone", facing: str = "east") -> dict:
     steps = abs(ty - fy)
     up = 1 if ty >= fy else -1
     x, y, z = fx, fy, fz
+
+    # THE FIRST CELL MUST BE ADJACENT TO THE SOURCE, AT ITS OWN HEIGHT. The first version stepped
+    # up AND along before placing anything, so its first dust was DIAGONAL from `frm` - and nothing
+    # ever entered the staircase. It looked like a perfectly formed climb and carried no signal,
+    # which is how it cost three attempts inside the casino before being tested on its own.
+    #
+    # THE LESSON IS THE TESTING ORDER, NOT THE GEOMETRY: this primitive was written and used in the
+    # same breath. Every other module in this file had its contract asserted before anything was
+    # built on it, and this one did not.
+    x += dx
+    z += dz
+    cells[(x, y - 1, z)] = block
+    cells[(x, y, z)] = "redstone_wire"
     for i in range(steps):
         y += up
         x += dx
@@ -313,6 +427,7 @@ def climb(frm, to, block: str = "smooth_stone", facing: str = "east") -> dict:
         cells[(x, y, z)] = ("redstone_wire" if (i + 1) % 14 else
                             f"repeater[facing={facing},delay=1]")
     return {"cells": cells, "top": (x, y, z), "bottom": tuple(frm),
+            "foot": (fx + dx, fy, fz + dz),
             "steps": steps,
             "contract": f"{steps} step(s) of climb; a repeater every 14 so the top still fires"}
 
