@@ -6,8 +6,8 @@ barrier, lockers -- and exactly one part of it carries a signal:
     boxoffice    the vending hall. Chests of tickets on a counter, a price board naming GRASS.
                  NO MECHANISM AT ALL, and that is a decision, not an omission - see below.
     queue        a switchback line with a canopy. Architecture; one connected walk, two ends.
-    ticketgate   THE BARRIER. Drop the ticket in the slot; the iron door opens for ~1.5s and
-                 closes by itself. The ticket falls through to a collection barrel behind.
+    ticketgate   THE BARRIER. Drop the ticket in the slot; the door opens for about 13 redstone
+                 ticks (1.3s) and closes by itself. The ticket falls through to a barrel behind.
     turnstile    the same barrier driven by a BUTTON - the exit/staff lane, where no ticket is
                  owed. Same verified mechanism, different trigger.
     ridegate     a one-lane version for a ride's own entrance, with a lamp that lights when open.
@@ -63,7 +63,7 @@ Four things about it are load-bearing and each was measured rather than assumed:
 
 * **A HOPPER PASSES ITS ITEM ON IN 8 GAME TICKS.** So the comparator's pulse is about four
   redstone ticks and the door would be open for half a second - not long enough to walk through.
-  The hold is what turns that into ~1.5s.
+  The hold is what turns that into 2*hold+5 ticks - 13 of them at the default, 1.3s.
 * **A DELAY CHAIN DELAYS BOTH EDGES; IT DOES NOT EXTEND A PULSE.** A repeater chain moves a
   4-tick pulse later and leaves it 4 ticks long. What extends it is a chain TAPPED AT EVERY
   STAGE into a shared output line: the taps overlap, so the output is high continuously from the

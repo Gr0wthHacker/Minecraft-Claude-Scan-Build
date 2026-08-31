@@ -1,6 +1,26 @@
-"""THE SILHOUETTE RIDES: the three park pieces whose whole job is to be recognised from far away.
+"""THE THREE BIG RIDES: recognised from far away, and RIDEABLE when you get there.
 
-**WHY THESE THREE, AND WHY THEY ARE NOT ANIMALS.** `gen/park.py` settled that a park's variety
+**THEY WERE SCULPTURE AND NOW THEY ARE RIDES.** Jack: *"when relevant - fully functional as
+rides"*. Vanilla cannot rotate a structure, so no wheel turns and no carousel spins - but three
+mechanics in the game DO carry a player, and each piece now uses the one that suits it:
+
+    wheel      a soul-sand bubble lift up the king post to a gallery at the axle, and a walled
+               chute back down into the channel you set off from
+    drop       the same lift up the shaft, a platform under the winch house, and fifty courses of
+               open shaft into the tank at the bottom
+    carousel   an eighty-cell minecart circuit running between two rings of mounts
+
+and one thing that is NOT possible, stated plainly because it is the first thing anybody reaches
+for: **A FERRIS WHEEL'S RIM CANNOT CARRY A RAIL.** A rail lies flat and ascends 45 degrees once;
+a wheel's rim is vertical at three o'clock and inverted over the top. No diameter, no amount of
+iron and no cleverness changes it, so the wheel's ride is the ASCENT rather than the rotation.
+
+Everything about those three is asserted by simulation in `tests/test_bigwheel_rides.py` before it
+ships, because this is the subsystem where a clean audit and a broken ride look identical: a water
+column with one hole drains onto the platform, a chute with one block in it hurts, and an
+unpowered powered_rail is a brake. See THE RIDE MECHANICS below.
+
+WHY THESE THREE SHAPES, AND WHY THEY ARE NOT ANIMALS. `gen/park.py` settled that a park's variety
 comes from ARCHITECTURE, and this file is the part of that argument that has to carry across the
 zone. A stall reads at fifteen blocks; a skyline piece has to read at a hundred and fifty, from an
 angle nobody chose, against open sky - which is exactly the case this repo has measured most often
@@ -52,7 +72,7 @@ import math
 
 from .. import blocks, fluids
 from .canvas import Canvas, hash01
-from .coaster import _corners, _power, _runs, _shapes
+from .coaster import _corners, _power, _shapes
 from .park import LANDS, SIGN_WIDTH, _Frame, _STEP, _sign
 from .vertical import Ctx, World
 
@@ -373,7 +393,7 @@ def _watertight(w, sources):
 
 
 def _clear_fall(w, f, core, h0, h1):
-    """Cells of a drop chute that are NOT open. A chute is a ride only if every cell of it is air."""
+    """Cells of a drop chute that are NOT open. A chute is a ride only if all of them are air."""
     bad = []
     for h in range(h0, h1 + 1):
         for (i, d) in sorted(core):
@@ -646,7 +666,7 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     for (i, d) in gal:
         w.put(*f.at(i, d, G), pal["trim"] if (i + d) % 2 else pal["ground"])
     galset = set(gal)
-    rails = 0
+    rails, mouth = 0, None
     for (i, d) in gal:                  # a rail wherever the deck ends, and round the chute mouth
         # **THE LIFT'S OWN COLUMN IS NOT AN EDGE.** Counted as one, all four cells round the
         # column got a fence and the ride delivered the rider into a pen he could not step out of
@@ -654,14 +674,15 @@ def _wheel(w: World, p: dict, ctx) -> dict:
         # connected solid. `test_the_lift_delivers_you_onto_a_deck_you_can_stand_on` pins it.
         edge = any((i + u, d + v) not in galset and (i + u, d + v) not in CORES
                    for (u, v) in ((1, 0), (-1, 0), (0, 1), (0, -1)))
-        mouth = any((i + u, d + v) in CHUTE for (u, v) in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+        at_mouth = any((i + u, d + v) in CHUTE for (u, v) in ((1, 0), (-1, 0), (0, 1), (0, -1)))
         if (i, d) in LIFT:
             continue
-        if edge or mouth:
+        if edge or at_mouth:
             # the one gap in the rail round the mouth is the way in - a hole you step into on
             # purpose, not one you walk into
-            if mouth and d == min(dd for (_ii, dd) in CHUTE) - 1 and i == ci:
-                w.put(*f.at(i, d, G + 1), pal["gate"], facing=_wdir(f, 0, 1),
+            if at_mouth and d == min(dd for (_ii, dd) in CHUTE) - 1 and i == ci:
+                mouth = f.at(i, d, G + 1)
+                w.put(*mouth, pal["gate"], facing=_wdir(f, 0, 1),
                       open="true", in_wall="false", powered="false")
             else:
                 w.put(*f.at(i, d, G + 1), pal["fence"])
@@ -698,7 +719,8 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     for i in range(ci - 4, ci + 5):
         w.put(*f.at(i, -3, 6), pal["trim"])
     if p.get("sign", True) and _signed(w, f, pal, ci, -3, 5, f.facing,
-                                       [title[:SIGN_WIDTH], "", "dive in below", "lift to the top"]):
+                                       [title[:SIGN_WIDTH], "", "dive in below",
+                                        "lift to the top"]):
         signs += 1
     for lane in range(2):               # a switchback queue in front of the mouth
         d = -4 - lane
@@ -732,6 +754,7 @@ def _wheel(w: World, p: dict, ctx) -> dict:
             "ride": "bubble lift + free fall",
             "board": list(board),
             "gallery_y": f.at(0, 0, G)[1],
+            "mouth": list(mouth) if mouth else None,
             "lift": [list(f.at(i, d, h)) for h in range(0, G + 1) for (i, d) in sorted(LIFT)],
             "lift_soul": [list(f.at(i, d, -1 - POOL_D)) for (i, d) in sorted(LIFT)],
             "chute": [list(f.at(i, d, h)) for h in range(0, G + 1) for (i, d) in sorted(CHUTE)],
@@ -922,13 +945,14 @@ def _drop(w: World, p: dict, ctx) -> dict:
     for (i, d) in plat_cells:
         w.put(*f.at(i, d, PLAT), pal["trim"] if (i + d) % 2 else pal["wall"])
     plat_set = set(plat_cells)
-    rails, gate_at = 0, None
+    rails, gate_at, mouth = 0, None, None
     for (i, d) in plat_cells:
         if not any((i + u, d + v) in DROP for (u, v) in ((1, 0), (-1, 0), (0, 1), (0, -1))):
             continue
         if gate_at is None and d == min(dd for (_i, dd) in DROP) - 1 and i == dz_i + 1:
             gate_at = (i, d)
-            w.put(*f.at(i, d, PLAT + 1), pal["gate"], facing=_wdir(f, 0, 1),
+            mouth = f.at(i, d, PLAT + 1)
+            w.put(*mouth, pal["gate"], facing=_wdir(f, 0, 1),
                   open="true", in_wall="false", powered="false")
         else:
             w.put(*f.at(i, d, PLAT + 1), pal["fence"])
@@ -1026,7 +1050,9 @@ def _drop(w: World, p: dict, ctx) -> dict:
                          "that hurts" % (blocked[:3],))
 
     title = str(p.get("title") or "DROP TOWER").upper()
-    lines = list(p.get("lines") or ["swim in, ride up", "then step off", "the water catches"])
+    # FIFTEEN CHARACTERS. Longer and the line is silently truncated by `_signed`, which reads as
+    # a typo in game and cannot be seen in any render here.
+    lines = list(p.get("lines") or ["swim in and up", "then step off", "water catches"])
     signs = 0
     if p.get("sign", True):
         signs += _signed(w, f, pal, W // 2, -1, 4, f.facing,
@@ -1037,6 +1063,7 @@ def _drop(w: World, p: dict, ctx) -> dict:
     return {"kind": "drop", "width": W, "depth": DP, "shaft": S, "height": H,
             "top": top + 1, "glazed": glazed, "openings": opened,
             "platform_y": f.at(0, 0, PLAT)[1], "platform_rail": rails,
+            "mouth": list(mouth) if mouth else None,
             "platform_lamps": plat_lamps, "signs": signs,
             "ride": "bubble lift + free fall",
             "fall": PLAT + 2,
@@ -1313,7 +1340,8 @@ def _carousel(w: World, p: dict, ctx) -> dict:
         w.put(*pos, "rail" if j in corners else "powered_rail", shape=shapes[j])
 
     # ---- the station: the gate you board at, its canopy, its queue and its name.
-    board_j = min(range(len(track)), key=lambda j: (track[j][0] ** 2 + (track[j][1] + track_r) ** 2))
+    board_j = min(range(len(track)),
+                  key=lambda j: track[j][0] ** 2 + (track[j][1] + track_r) ** 2)
     board = f.at(c + track[board_j][0], c + track[board_j][1], 1)
     signs = 0
     title = str(p.get("title") or "CAROUSEL").upper()

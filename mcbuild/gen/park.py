@@ -30,11 +30,16 @@ core's paths, plaza or sightlines have to move when the plot grows, the expansio
 rebuild - so the planner sites every module against the CORE radius and the band only ever adds.
 
 **NO UNVERIFIED MECHANISM SHIPS.** The gate's lanes are fence gates, not a powered turnstile, and
-that is a deliberate refusal. `circuit.py` models wire, torches, levers, plates, repeaters,
-comparators, observers, pistons and dispensers - it does not model DOORS, so a plate-and-iron-door
-turnstile could not be asserted by simulation. This project's cardinal sin is shipping a machine
-that looks like it works; `chase` and `vault` were both cut from the casino for exactly that. A
-powered turnstile is a fine thing to add the day the simulator can judge one.
+that stays true - this kind is architecture and nothing in it carries a signal. This project's
+cardinal sin is shipping a machine that looks like it works; `chase` and `vault` were both cut
+from the casino for exactly that.
+
+**But the REASON recorded here was wrong and is corrected.** It said `circuit.py` "does not model
+DOORS, so a plate-and-iron-door turnstile could not be asserted by simulation". It does:
+`iron_door` has been in `circuit.OUTPUTS` and `circuit.DRIVEN` all along, so `powered()` answers
+for a door exactly as it does for a lamp or a piston. `gen/ticketing.py` is the powered turnstile
+that note said was a fine thing to add "the day the simulator can judge one" - it always could.
+A stale claim about a tool's limits is worse than no note: it retires a feature nobody re-checks.
 
 GEOMETRY, stated once because getting it wrong is invisible in every render:
 
@@ -414,29 +419,294 @@ def _arch(w: World, p: dict, ctx) -> dict:
             "contract": "an opening you walk through, with the land's name over it"}
 
 
+# ---------------------------------------------------------------------------- plaza landscaping
+#
+# THE PLAZA WAS A CAR PARK. A rendered establishing view of the midway showed one flat grey
+# platform with a ferris wheel standing on it, and the numbers said the same thing measured: 81%
+# of the ground was paved and only 48% carried anything three blocks tall - most of every zone was
+# bare ground. This is the fix: planting beds, trees, a sunken court, a bedded pool, and a floor
+# whose pattern actually changes near the hub.
+#
+# **GRASS AND DIRT ARE CURRENCY, SO NOTHING HERE ROOTS IN THEM.** Every plant is on `moss_block`,
+# exactly as `gen/thicket.py` and `gen/streetfurniture.py::_planter` already do - the same
+# `blocks.spendable` rule that kept the zoo out of this project keeps a lawn out of it too.
+#
+# **A DRIFT IS A PATCH, NEVER A DUSTING.** `_bed` copies the Thicket's own idiom rather than
+# reinventing it: the interior fills SOLID and only the boundary is noised, because thresholding
+# every cell against a falloff is what produced 191 blobs of which 75% were one or two cells the
+# first time this project tried it.
+#
+# **THE TWO MAIN AVENUES ALWAYS CROSS THIS MODULE'S OWN CENTRE.** `planner._add_paths` sites the
+# hub (this module, `anchor: cover`) and then runs both avenues through the hub's centre on the
+# cardinal axes - so a plaza can compute exactly where they are with no plan data at all, and
+# `_AVENUE_HALF` is kept well clear of the real avenue's own half-width (2) plus a spur's (1).
+# What a plaza CANNOT know from here is where every other building's door and spur ended up - see
+# the docstring on `_plaza` itself for what that costs and the one-line fix for it.
+_AVENUE_HALF = 4
+
+# Leaves per land, kept LOCAL rather than imported from `streetfurniture` - that module already
+# imports FROM this one, and importing back would be circular. A few duplicated lines are cheaper
+# than a coupling neither module needs.
+_CANOPY = {
+    "midway": ["oak_leaves", "azalea_leaves", "flowering_azalea_leaves"],
+    "frontier": ["spruce_leaves", "oak_leaves"],
+    "hollow": ["dark_oak_leaves", "spruce_leaves"],
+}
+
+
+def _clear_of(x, z, obstacles, span=0):
+    """True if (x, z) is at least `span` clear of every obstacle box (world x0,z0,x1,z1)."""
+    return not any(x0 - span <= x <= x1 + span and z0 - span <= z <= z1 + span
+                   for (x0, z0, x1, z1) in obstacles)
+
+
+def _plaza_tree(w, f, pal, land, ci, cd, seed):
+    """A trunk and a wind-noised leaf blob - the ORGANIC counterpart to `streetfurniture`'s
+    clipped topiary, so a plaza has both a gardener's hand and something that just grew.
+
+    Rooted in the land's own wood (`pal['wood']`), so a midway tree is oak, a frontier tree is
+    spruce and a hollow tree is dark oak - the same three-material discipline the rest of the
+    park keeps.
+    """
+    trunk = f"{pal['wood']}_log"
+    leaves = _CANOPY[land]
+    leaf = leaves[int(hash01(ci, cd, seed, 1) * len(leaves)) % len(leaves)]
+    trunk_h = 3 + int(hash01(ci, cd, seed, 2) * 3)          # 3..5 - small, a plaza tree not a ride
+    for h in range(trunk_h):
+        w.put(*f.at(ci, cd, h), trunk)
+    top, r, n = trunk_h - 1, 2, 0
+    for di in range(-r, r + 1):
+        for dd in range(-r, r + 1):
+            for dh in range(0, r + 2):
+                dist = (di * di + dd * dd + (dh - 1) * (dh - 1)) ** 0.5
+                if dist > r * (0.72 + 0.45 * hash01(ci + di, cd + dd, top + dh, seed, 3)):
+                    continue
+                i, d, h = ci + di, cd + dd, top + dh
+                if not w.has(*f.at(i, d, h)):
+                    w.put(*f.at(i, d, h), leaf, persistent="true", waterlogged="false")
+                    n += 1
+    return {"trunk": trunk_h, "leaves": n}
+
+
+def _plaza_bed(w, f, pal, ci, cd, seed):
+    """A flush planting bed: a low kerb, moss soil, a drift planting inside - never confetti.
+
+    THE DRIFT FILLS SOLID AND ONLY THE EDGE IS NOISED, the Thicket's own rule
+    (`gen/thicket.py::build_thicket`, the floor-drift loop): thresholding every cell against a
+    falloff is what turned a planting pass into 191 mostly one- and two-cell blobs the first time
+    this repo tried it. A PLANT ROOTS IN THE DIRT FAMILY AND NOWHERE ELSE - moss_block, laid by
+    this same function, is the only soil anything here is ever planted in.
+    """
+    rad = 2.7
+    n = 0
+    for di in range(-4, 5):
+        for dd in range(-4, 5):
+            dist = (di * di + dd * dd) ** 0.5
+            if dist > rad + 1.0:
+                continue
+            i, d = ci + di, cd + dd
+            if dist > rad:
+                w.put(*f.at(i, d, 0), pal["trim"])                     # the kerb ring
+                continue
+            if dist > rad * (0.62 + 0.5 * hash01(i, d, seed, 5)):
+                w.put(*f.at(i, d, 0), "moss_carpet")                   # the ragged fringe
+            else:
+                w.put(*f.at(i, d, 0), "moss_block")
+                roll = hash01(i, d, seed, 6)
+                if roll < 0.30:
+                    w.put(*f.at(i, d, 1),
+                          "flowering_azalea" if hash01(i, d, seed, 7) < 0.35 else "azalea")
+                elif roll < 0.60:
+                    w.put(*f.at(i, d, 1), "fern")
+                elif roll < 0.82:
+                    w.put(*f.at(i, d, 1), "short_grass")
+                # else: bare moss - a drift is not solid planting either
+            n += 1
+    return n
+
+
+def _terrace_sunk(ci, cd, r=4):
+    """The (i, d) cells a sunken terrace will leave OPEN, so the main floor loop can skip them.
+
+    A LITEMATIC CANNOT EXPRESS REMOVAL. If the plaza's own floor loop writes a solid block into
+    every one of these cells first - which it does, by default, across the whole footprint - a
+    later `w.put` for the terrace's kerb and steps cannot un-place it: the dict just keeps the
+    newest write, and the pit's own floor already has a lid on it. So the deep interior is
+    computed BEFORE the floor loop runs and excluded from it, the same way `Falls`'s dig list is
+    computed before anything is placed.
+    """
+    W = D = 2 * r + 1
+    return {(ci - r + li, cd - r + ld)
+            for li in range(W) for ld in range(D)
+            if 2 <= li <= W - 3 and 2 <= ld <= D - 3}
+
+
+def _plaza_terrace(w, f, pal, ci, cd, r=4):
+    """A one-course sunken court: a rim you can sit on, a ring of steps down, a floor a course
+    below the plaza's own. THE LEVEL CHANGE this park has never had.
+
+    Three rings, each a different job: the RIM stays at the plaza's own floor height with a seat
+    slab on it, so the court reads as part of the plaza rather than a hole cut into it; the TREAD
+    ring is the step down, one stair per cell, leaning in the direction `_Frame.inward` already
+    uses for every cornice in this file; the deep INTERIOR is a course lower again, left open by
+    `_terrace_sunk` before the floor loop ever runs.
+    """
+    W = D = 2 * r + 1
+    n = 0
+    for li in range(W):
+        for ld in range(D):
+            i, d = ci - r + li, cd - r + ld
+            if li in (0, W - 1) or ld in (0, D - 1):
+                w.put(*f.at(i, d, -1), pal["ground"])
+                w.put(*f.at(i, d, 0), pal["slab"], type="bottom", waterlogged="false")
+            elif li in (1, W - 2) or ld in (1, D - 2):
+                w.put(*f.at(i, d, -2), pal["trim"])
+                if li == 1:
+                    face = f.inward(0, ld, W, D)
+                elif li == W - 2:
+                    face = f.inward(W - 1, ld, W, D)
+                elif ld == 1:
+                    face = f.inward(li, 0, W, D)
+                else:
+                    face = f.inward(li, D - 1, W, D)
+                w.put(*f.at(i, d, -1), pal["stair"], facing=_LEAN[face] if face else f.back,
+                      half="bottom", shape="straight", waterlogged="false")
+            else:
+                w.put(*f.at(i, d, -2), pal["trim"] if (i + d) % 2 == 0 else pal["path"])
+            n += 1
+    # corner piers, so the rim carries light as well as somewhere to sit
+    for (li, ld) in ((0, 0), (0, D - 1), (W - 1, 0), (W - 1, D - 1)):
+        i, d = ci - r + li, cd - r + ld
+        for h in range(3):
+            w.put(*f.at(i, d, h), pal["post"])
+        w.put(*f.at(i, d, 3), pal["light"], hanging="false", waterlogged="false")
+    return n
+
+
+def _plaza_pool(w, f, pal, ci, cd, r=3):
+    """A bedded, kerbed still pool, flush with the plaza floor.
+
+    MUST BE BOTH BEDDED AND ENCLOSED, or it is not still water in six months. `_SOIL`-style rules
+    do not apply to a fluid: what a pool needs is a SOLID block under every water cell (the bed,
+    laid here before the water) and a solid wall on every side at the water's own height (the
+    kerb ring), because a source with an open lateral neighbour spreads and a source with an open
+    cell beneath it drains. Both are true here by construction - the ring is drawn first and the
+    interior is entirely enclosed by it.
+    """
+    W = D = 2 * r + 1
+    n = 0
+    for li in range(W):
+        for ld in range(D):
+            i, d = ci - r + li, cd - r + ld
+            if li in (0, W - 1) or ld in (0, D - 1):
+                w.put(*f.at(i, d, -1), pal["ground"])
+                w.put(*f.at(i, d, 0), pal["trim"])                     # the kerb, one block tall
+            else:
+                w.put(*f.at(i, d, -1), pal["trim"])                    # the bed
+                w.put(*f.at(i, d, 0), "water")
+                n += 1
+    for (di, dd) in ((-1, -1), (1, 1)):
+        i, d = ci + di, cd + dd
+        if w.name(*f.at(i, d, 0)) == "water":
+            # lily_pad carries no properties at all in 26.2 - the taproot's own note.
+            w.put(*f.at(i, d, 1), "lily_pad")
+    for (li, ld) in ((0, 0), (W - 1, D - 1)):
+        i, d = ci - r + li, cd - r + ld
+        for h in range(2):
+            w.put(*f.at(i, d, h), pal["post"])
+        w.put(*f.at(i, d, 2), pal["light"], hanging="false", waterlogged="false")
+    return n
+
+
 def _plaza(w: World, p: dict, ctx) -> dict:
-    """The hub: paving with a radial pattern, a ring of lamp posts, and seating.
+    """The hub: paving with a radial pattern, a ring of lamp posts, planting, a sunken court, a
+    pool, and trees - the ground between attractions, not a car park under them.
 
     A COVERING MODULE IS NOT COMPETING FOR SPACE, IT IS THE SPACE. Sited by the planner with
     `anchor: cover` exactly as the casino hall is, so it claims the ground between attractions
     rather than trying to find a free bay in a plane that is already full of them.
+
+    **THE PLAZA CANNOT SEE THE OTHER BUILDINGS, AND THAT IS A REAL LIMIT, STATED RATHER THAN
+    HIDDEN.** It always knows exactly where the two main avenues are - they always cross this
+    module's own centre, by construction of `planner._add_paths` - so raised landscaping (trees,
+    bed kerbs, the terrace, the pool) never stands on either of them. What it cannot know without
+    help is where every OTHER building's door and spur ended up, because that is decided by
+    `planner.make`'s siting pass and never reaches this generator. `params.obstacles` - a list of
+    world `[x0, z0, x1, z1]` boxes, the exact shape `planner._box_of` already produces for every
+    sibling module - closes that gap when supplied: any landscaping slot within `span` of an
+    obstacle is skipped rather than placed blind. **THE RECOMMENDED WIRING** is one line in
+    `planner._add_paths`, right where it already computes `obstacles` for the paths module: set
+    `hub["params"]["obstacles"] = obstacles` on the same line. Left unwired, this module falls
+    back to what the rest of the plaza has always done - the floor and the lamp ring have laid
+    across the whole footprint with no obstacle awareness since the day this kind was written,
+    and a building simply wins the cells it needs via `layers.slice_plan`'s first-writer-wins.
     """
     f = _Frame(p)
     pal = LANDS[p["land"]]
+    land = p["land"]
     width = max(9, int(p["width"]))
     depth = max(9, int(p["depth"]))
     cx, cd = width // 2, depth // 2
+    obstacles = [tuple(int(v) for v in b) for b in (p.get("obstacles") or [])]
+    seed_base = int(hash01(cx, cd, sum(map(ord, land)), 97) * 1_000_000)
+
+    def on_spine(i, d):
+        """Both main avenues always cross this module's own centre - see the docstring."""
+        return abs(i - cx) <= _AVENUE_HALF or abs(d - cd) <= _AVENUE_HALF
+
+    # ---- lay out the set-pieces on a coarse grid, clear of the avenue cross and of any
+    # obstacle the caller supplied. A grid rather than a hand-placed layout because a plaza this
+    # size (up to 80x80) needs many independent tries at finding open ground, and each individual
+    # try is cheap to lose - exactly the same reasoning `Island Night`'s greedy cover uses.
+    margin = 9
+    step = max(16, min(width, depth) // 4)
+    slots = []
+    i = margin
+    while i <= width - margin:
+        d = margin
+        while d <= depth - margin:
+            x0, _y0, z0 = f.at(i, d, 0)
+            if not on_spine(i, d) and _clear_of(x0, z0, obstacles, span=5):
+                slots.append((i, d))
+            d += step
+        i += step
+
+    sunk = set()
+    terrace_at = pool_at = None
+    features = []
+    if slots:
+        terrace_at = slots[0]
+        pool_at = slots[-1] if len(slots) > 1 else None
+        sunk = _terrace_sunk(*terrace_at, r=4)
+        rest = [s for s in slots if s not in (terrace_at, pool_at)]
+        for (si, sd) in rest:
+            roll = hash01(si, sd, seed_base, 8)
+            if roll < 0.38:
+                features.append(("tree", si, sd))
+            elif roll < 0.74:
+                features.append(("bed", si, sd))
+            # else: bare paving on purpose - not every corner of a real plaza is planted
 
     # SEVEN THOUSAND IDENTICAL CELLS IS NOT A FLOOR, IT IS A SLAB - the casino hall's own lesson.
     # A world-aligned grid of dark lines with a checker between them, and an accent ring, takes
     # the dominant block well under half and costs nothing: all three materials are cheap.
+    #
+    # AND THE PATTERN CHANGES NEAR THE HEART, so the ground itself says where you are: a finer
+    # lattice within a few paces of the crossing, the ordinary coarse grid past it. `sunk` cells
+    # are skipped here - see `_terrace_sunk` - or the terrace's own pit gets paved shut before it
+    # is ever dug.
     for i in range(width):
         for d in range(depth):
+            if (i, d) in sunk:
+                continue
             wx, _wy, wz = f.at(i, d, -1)
             r = max(abs(i - cx), abs(d - cd))
+            heart = r <= _AVENUE_HALF + 6
             if r == min(cx, cd) - 2:
                 blk = pal["accent"]
-            elif wx % 8 == 0 or wz % 8 == 0:
+            elif heart and (wx % 4 == 0 or wz % 4 == 0):
+                blk = pal["trim"]
+            elif (not heart) and (wx % 8 == 0 or wz % 8 == 0):
                 blk = pal["trim"]
             elif (wx + wz) % 2 == 0:
                 blk = pal["ground"]
@@ -446,10 +716,13 @@ def _plaza(w: World, p: dict, ctx) -> dict:
 
     # Lamp posts on the ring. A POST CARRIES ITS OWN LANTERN from a full block, never from air.
     posts = 0
-    step = max(4, min(width, depth) // 3)
-    for i in range(2, width - 2, step):
-        for d in range(2, depth - 2, step):
+    step2 = max(4, min(width, depth) // 3)
+    for i in range(2, width - 2, step2):
+        for d in range(2, depth - 2, step2):
             if max(abs(i - cx), abs(d - cd)) != min(cx, cd) - 2:
+                continue
+            px, _py, pz = f.at(i, d, 0)
+            if not _clear_of(px, pz, obstacles, span=2):
                 continue
             for h in range(3):
                 w.put(*f.at(i, d, h), pal["post"])
@@ -461,9 +734,26 @@ def _plaza(w: World, p: dict, ctx) -> dict:
             w.put(*f.at(i, d, 4), pal["light"], hanging="false", waterlogged="false")
             posts += 1
 
+    # ---- the set-pieces themselves, drawn after the floor so their own geometry wins
+    if terrace_at:
+        _plaza_terrace(w, f, pal, *terrace_at, r=4)
+    if pool_at:
+        _plaza_pool(w, f, pal, *pool_at, r=3)
+    trees = beds = 0
+    for (kind, si, sd) in features:
+        seed = seed_base + si * 1009 + sd
+        if kind == "tree":
+            _plaza_tree(w, f, pal, land, si, sd, seed)
+            trees += 1
+        else:
+            _plaza_bed(w, f, pal, si, sd, seed)
+            beds += 1
+
     return {"kind": "plaza", "width": width, "depth": depth, "posts": posts,
-            "contract": "the ground between attractions, paved on a world-aligned grid so it "
-                        "stays aligned across module boundaries"}
+            "trees": trees, "beds": beds, "terrace": bool(terrace_at), "pool": bool(pool_at),
+            "contract": "the ground between attractions: a paved grid that changes near the "
+                        "heart, planting beds and trees rooted in moss, a sunken seating court, "
+                        "and a bedded pool - never a flat slab, and never dirt or grass"}
 
 
 def _tower(w: World, p: dict, ctx) -> dict:

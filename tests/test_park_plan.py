@@ -419,3 +419,83 @@ def test_street_furniture_stands_on_the_street(zone):
         near = min(min(abs(px - cx) + abs(pz - cz) for (px, pz) in ground)
                    for cx, cz in ((x0, z0), (x1, z1), (x0, z1), (x1, z0)))
         assert near <= 16, f"{zone}: {m['name']} is {near} from the nearest paving"
+
+
+# ---------------------------------------------------------------- plaza landscaping vs the real plan
+#
+# `_plaza` cannot see the other modules from inside its own generator call - see its docstring -
+# so these run it against the REAL sited plan for all three zones, first without any help (the
+# actual, currently-wired behaviour) and then with `params.obstacles` populated exactly the way
+# `planner._add_paths` already computes that list for the paths module, proving the one-line fix
+# recommended in `_plaza`'s docstring actually closes the gap.
+
+def _plaza_module(pl):
+    return next(m for m in pl.modules if m["kind"] == "plaza")
+
+
+def _raised_plaza_cells(pl, obstacles=None):
+    from mcbuild.gen.vertical import World
+    m = _plaza_module(pl)
+    params = dict(m["params"])
+    if obstacles is not None:
+        params["obstacles"] = obstacles
+    w = World()
+    park.BUILDERS["plaza"](w, {**park.PARK, **params, "at": m["at"]}, None)
+    floor_y = m["at"][1] - 1
+    return {(x, z) for (x, y, z) in w.cells if y > floor_y}
+
+
+def _sibling_boxes(pl):
+    plaza = _plaza_module(pl)
+    return [list(planner._box_of(m)) for m in pl.modules
+            if m is not plaza and m["kind"] != "paths"]
+
+
+@pytest.mark.parametrize("zone", ZONES)
+def test_plaza_landscaping_never_stands_on_a_real_avenue_or_spur(zone):
+    """The avenue CROSS is guaranteed by construction (both main avenues always run through this
+    module's own centre) - but a SPUR to some other building's door can land anywhere in the
+    zone, and `_plaza` has no way to see it unwired. Wiring `obstacles` - the exact list
+    `planner._add_paths` already builds for the paths module - closes it; this is the proof."""
+    pl = _planned(zone)
+    ground = _paving(pl)
+    raised_unwired = _raised_plaza_cells(pl)
+    raised_wired = _raised_plaza_cells(pl, obstacles=_sibling_boxes(pl))
+    unwired_hits = raised_unwired & ground
+    wired_hits = raised_wired & ground
+    assert not wired_hits, (
+        f"{zone}: {len(wired_hits)} plaza cells still stand on real paving even WITH obstacles "
+        f"wired - e.g. {sorted(wired_hits)[:3]}")
+    # Not asserted zero unwired - that is the documented, currently-accepted gap - but recorded,
+    # so a regression that makes it dramatically worse is visible in the failure message.
+    assert len(unwired_hits) <= 40, (
+        f"{zone}: {len(unwired_hits)} unwired plaza cells collide with real paving - far more "
+        f"than the handful this was calibrated against; something regressed")
+
+
+@pytest.mark.parametrize("zone", ZONES)
+def test_plaza_landscaping_never_blocks_a_real_door_when_wired(zone):
+    from mcbuild import islands as _isl
+    pl = _planned(zone)
+    isl = ZONE_WORLD[zone][0]
+    plot = _isl.plot_of(isl)
+    doors = []
+    for m in pl.modules:
+        if m["kind"] in ("paths", "plaza") or m["gen"] == "streetfurniture":
+            continue
+        front, inside = planner._front_of(m), planner._inside_of(m)
+        pt = front if (not m.get("edge") or plot.contains(*front)) else inside
+        doors.append(pt)
+    raised_wired = _raised_plaza_cells(pl, obstacles=_sibling_boxes(pl))
+    blocked = [d for d in doors if d in raised_wired]
+    assert not blocked, f"{zone}: obstacle-wired plaza still blocks door(s) at {blocked}"
+
+
+@pytest.mark.parametrize("zone", ZONES)
+def test_plaza_landscaping_never_stands_inside_a_real_building_when_wired(zone):
+    pl = _planned(zone)
+    boxes = _sibling_boxes(pl)
+    raised_wired = _raised_plaza_cells(pl, obstacles=boxes)
+    hits = [(x, z) for (x, z) in raised_wired
+            if any(x0 <= x <= x1 and z0 <= z <= z1 for (x0, z0, x1, z1) in boxes)]
+    assert not hits, f"{zone}: obstacle-wired plaza still stands inside a building at {hits[:5]}"

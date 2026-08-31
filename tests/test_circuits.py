@@ -51,19 +51,48 @@ def test_a_slower_clock_is_slower():
 
 
 def test_a_pulse_does_not_care_how_long_you_hold_it():
-    """A player HOLDS a button. A payout must fire once."""
-    mod = circuits.pulse((0, 0, 0), length=2)
-    c = build(mod)
-    c.cells[mod["in"]] = circuits and __import__(
-        "mcbuild.circuit", fromlist=["Cell"]).Cell("lever", {"face": "floor", "facing": "north"})
-    c.set(mod["in"], True)
-    high = 0
-    for _ in range(20):
-        c.step()
-        if c.powered(mod["out"]):
-            high += 1
-    assert high > 0, "the pulse never fired at all"
-    assert high < 20, "held input must not hold the output high for ever"
+    """A player HOLDS a button. A payout must fire once.
+
+    **THIS TEST USED TO PASS ON A CIRCUIT THAT DID NOT PULSE.** Its bound was `high < 20` out of
+    twenty ticks, and the thing it was guarding was a bare repeater - which delays both edges and
+    therefore held the output high for 21 of 24 ticks under a held input, comfortably satisfying
+    "fewer than twenty of the first twenty". Every casino game runs its button through here, so
+    the house paid for as long as somebody leaned on the button.
+
+    A bound looser than the bug is not a test. What is asserted now is the CONTRACT: high for
+    about `length`, then low and STAYING low while the input is still held, and armed again on
+    the next press.
+    """
+    for length in (1, 2, 3, 4):
+        mod = circuits.pulse((0, 0, 0), length=length)
+        c = build(mod)
+        c.cells[mod["in"]] = __import__(
+            "mcbuild.circuit", fromlist=["Cell"]).Cell("lever", {"face": "floor",
+                                                                 "facing": "north"})
+        c.set(mod["in"], True)
+        trace = []
+        for _ in range(30):
+            c.step()
+            trace.append(c.powered(mod["out"]))
+        high = sum(trace)
+        assert high > 0, f"length {length}: the pulse never fired at all"
+        # generous either way - what must not happen is a HELD output
+        assert high <= length + 3, (
+            f"length {length}: held input gave {high} ticks high - that is a delay, not a pulse")
+        # ONE continuous pulse, not a stutter, and it must be OVER well before the end
+        assert not any(trace[12:]), (
+            f"length {length}: still high {trace[12:].count(True)} ticks in with the input held")
+
+        # AND IT RE-ARMS. A monostable that fires once per chunk load is not a button.
+        c.set(mod["in"], False)
+        for _ in range(6):
+            c.step()
+        c.set(mod["in"], True)
+        again = []
+        for _ in range(12):
+            c.step()
+            again.append(c.powered(mod["out"]))
+        assert any(again), f"length {length}: a second press fired nothing"
 
 
 def test_a_latch_holds_after_the_pulse_ends():

@@ -48,6 +48,14 @@ WALK_THROUGH = {
     "dark_oak_sign", "oak_fence_gate", "spruce_fence_gate", "dark_oak_fence_gate",
 }
 
+# ...and what will not hold a player up. Water is the interesting one: a rider floats in it, but
+# a walk test that treats it as a floor walks across the pool and proves nothing about the way in.
+NO_FOOTING = {
+    "air", "water", "rail", "powered_rail", "detector_rail", "activator_rail",
+    "torch", "soul_torch", "wall_torch", "vine",
+    "oak_wall_sign", "spruce_wall_sign", "dark_oak_wall_sign",
+}
+
 
 # ------------------------------------------------------------------ harness
 
@@ -91,9 +99,29 @@ def _name(w, p):
 
 
 def _solid(w, p):
-    """Anything a body or a fluid cannot pass. Absent is air, which is neither."""
+    """Anything a FLUID cannot pass. Absent is air, which is not one."""
     n = _name(w, p)
     return bool(n) and n.split("[")[0] not in fluids.PASSABLE
+
+
+def _blocks_body(w, p):
+    """Anything a PLAYER cannot pass, which is a different list and must stay one.
+
+    A glass pane stops a body and passes no water either; an OPEN FENCE GATE stops water and
+    passes a body; a rail passes both. Sharing one list makes the gate at the top of a ride read
+    as a wall, and then a walk test fails on a ride that walks perfectly well - or, far worse,
+    passes on one that does not.
+    """
+    n = _name(w, p)
+    return bool(n) and n.split("[")[0] not in WALK_THROUGH
+
+
+def _supports(w, p):
+    """Is there something here to stand ON. Water is not, and neither is a rail's own cell."""
+    n = _name(w, p)
+    if not n:
+        return False
+    return n.split("[")[0] not in NO_FOOTING
 
 
 def _components(cells):
@@ -127,9 +155,9 @@ def _walkable(w, seed, limit=400000):
     """
     def stands(p):
         x, y, z = p
-        if _solid(w, p) or _solid(w, (x, y + 1, z)):
+        if _blocks_body(w, p) or _blocks_body(w, (x, y + 1, z)):
             return False
-        return _solid(w, (x, y - 1, z))
+        return _supports(w, (x, y - 1, z))
 
     assert stands(seed), "the flood was seeded somewhere a player cannot stand: %s (%s under it)" \
                          % (seed, _name(w, (seed[0], seed[1] - 1, seed[2])))
@@ -142,7 +170,7 @@ def _walkable(w, seed, limit=400000):
                 o = (x + dx, y + dy, z + dz)
                 if o in seen or not stands(o):
                     continue
-                if dy == 1 and _solid(w, (x, y + 2, z)):
+                if dy == 1 and _blocks_body(w, (x, y + 2, z)):
                     continue                    # no headroom to step up
                 seen.add(o)
                 q.append(o)
@@ -487,12 +515,36 @@ def test_the_lift_delivers_you_onto_a_deck_you_can_stand_on(kind, request):
     assert top == deck_y, "the column tops out at y=%d and the deck is at y=%d" % (top, deck_y)
     head = [c for c in col if c[1] == top][0]
     stand = (head[0], head[1] + 1, head[2])
-    assert not _solid(w, stand), "the column's mouth is capped"
+    assert not _blocks_body(w, stand), "the column's mouth is capped"
     out = [(stand[0] + dx, stand[1], stand[2] + dz)
            for (dx, dz) in ((1, 0), (-1, 0), (0, 1), (0, -1))]
-    ok = [o for o in out if not _solid(w, o) and not _solid(w, (o[0], o[1] + 1, o[2]))
-          and _solid(w, (o[0], o[1] - 1, o[2]))]
+    ok = [o for o in out if not _blocks_body(w, o)
+          and not _blocks_body(w, (o[0], o[1] + 1, o[2]))
+          and _supports(w, (o[0], o[1] - 1, o[2]))]
     assert ok, "there is nowhere to step out onto at the top of the lift"
+
+
+@pytest.mark.parametrize("kind", ("wheel", "drop"))
+def test_the_top_of_the_lift_walks_to_the_mouth_of_the_chute(kind, request):
+    """The other half of the loop, and the half nothing else here would catch: a rider delivered
+    onto a deck he cannot cross is a rider stuck at the top of a shaft with no ladder. Flooded on
+    foot from the cell the column pushes him out into, and the mouth is a fence GATE - so the
+    hole is one you step through on purpose rather than one you walk into."""
+    w, meta = request.getfixturevalue(kind)
+    col = [tuple(c) for c in meta["lift"]]
+    head = max(col, key=lambda c: c[1])
+    out = [(head[0] + dx, head[1] + 1, head[2] + dz)
+           for (dx, dz) in ((1, 0), (-1, 0), (0, 1), (0, -1))]
+    seeds = [o for o in out if not _blocks_body(w, o)
+             and not _blocks_body(w, (o[0], o[1] + 1, o[2]))
+             and _supports(w, (o[0], o[1] - 1, o[2]))]
+    assert seeds, "nowhere to step out at the top of the lift"
+    mouth = tuple(meta["mouth"])
+    assert mouth is not None
+    assert _name(w, mouth).endswith("_fence_gate"), \
+        "the chute's mouth is %s, not a gate" % _name(w, mouth)
+    region = _walkable(w, seeds[0])
+    assert mouth in region, "you cannot walk from the lift's exit to the chute at the top"
 
 
 # ------------------------------------------------------------------ the drops

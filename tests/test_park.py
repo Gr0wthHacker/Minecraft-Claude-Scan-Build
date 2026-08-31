@@ -190,9 +190,13 @@ def test_the_gate_lanes_are_open_all_the_way_through(facing):
 
 
 def test_the_gate_ships_no_unverified_mechanism():
-    """The lanes are fence gates on purpose. `circuit.py` has no model of a DOOR, so a
-    plate-and-iron-door turnstile could not be asserted by simulation - and this repo cut two
-    finished casino games rather than ship a machine it could not judge."""
+    """The lanes are fence gates on purpose: this kind is architecture, and nothing in it carries
+    a signal that would have to be verified.
+
+    NOT because a door cannot be simulated - that reason was recorded here and it was wrong.
+    `iron_door` is in `circuit.OUTPUTS`, and `gen/ticketing.py` is a powered barrier whose
+    contract is asserted by simulation. What survives is the rule this test really pins: a module
+    that ships a mechanism must be able to prove it, so a module that proves nothing ships none."""
     m = park.build(_cfg("gate")).to_model()
     names = {n.split(":")[-1].split("[")[0] for n in m.names}
     for banned in ("iron_door", "redstone_wire", "repeater", "comparator", "observer",
@@ -319,6 +323,180 @@ def test_an_unknown_kind_or_land_raises_rather_than_defaulting():
     catalogue - the planner's own rule, for the same reason."""
     with pytest.raises(ValueError):
         park.build(_cfg("carousel"))
+
+
+# ------------------------------------------------------------------ the plaza's landscaping
+#
+# The generic KINDS-parametrized tests above use `_cfg`'s tiny 11x9 default, which is too small
+# for any of the set-pieces below to place at all (the grid needs a 9-block margin on every side
+# just to try). These build the plaza at its REAL size - the one every land actually ships,
+# `width: 80, depth: 80` in `planner.THEMES` - so the landscaping is exercised at all.
+
+_PLANTED = {"azalea", "flowering_azalea", "fern", "short_grass", "moss_carpet"}
+_PARK_SOIL = {"moss_block"}
+
+
+def _big_plaza(land="midway", facing="east", **kw):
+    p = {**park.PARK, "at": [0, 64, 0], "kind": "plaza", "land": land, "facing": facing,
+         "width": 80, "depth": 80, **kw}
+    w = World()
+    meta = park.BUILDERS["plaza"](w, p, None)
+    return w, park._Frame(p), park.LANDS[land], meta
+
+
+@pytest.mark.parametrize("land", LANDS)
+def test_the_plaza_is_no_longer_a_bare_slab(land):
+    """The finding that started this: a rendered midway plaza was one flat grey platform. A real
+    plaza at 80x80 must carry a tree, a bed, a sunken court and a pool - not always all four at
+    every land/seed, but the grid is generous enough that all four should land somewhere."""
+    w, _f, _pal, meta = _big_plaza(land)
+    assert meta["terrace"], f"{land}: no sunken court - still a flat slab"
+    assert meta["pool"], f"{land}: no pool"
+    assert meta["trees"] + meta["beds"] >= 3, f"{land}: only {meta['trees']} trees, " \
+        f"{meta['beds']} beds - still mostly bare ground"
+
+
+@pytest.mark.parametrize("land", LANDS)
+def test_the_plaza_is_still_one_connected_piece_at_real_size(land):
+    """The generic connectivity test only ever sees the tiny 11x9 default, where none of this
+    landscaping fires at all. At 80x80 every set-piece is drawn AFTER the floor loop and must
+    still land on it, or a tree or a terrace tread ships as a floating fragment."""
+    w, _f, _pal, _meta = _big_plaza(land)
+    cells = set(w.cells)
+    start = next(iter(cells))
+    seen, q = {start}, deque([start])
+    while q:
+        x, y, z = q.popleft()
+        for d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+            n = (x + d[0], y + d[1], z + d[2])
+            if n in cells and n not in seen:
+                seen.add(n)
+                q.append(n)
+    assert len(seen) == len(cells), f"{land}: plaza landscaping is in {len(cells) - len(seen)} " \
+        f"stray cells at real size"
+
+
+@pytest.mark.parametrize("land", LANDS)
+def test_every_block_the_landscaping_places_is_legal_spendable_and_cheap(land):
+    """The generic economy tests run at the tiny default size too, so the drift, tree and pool
+    palette has never actually been checked against the server."""
+    w, _f, _pal, _meta = _big_plaza(land)
+    for (name, props) in w.cells.values():
+        assert blocks.validate(name, props) == [], f"{land}: {name}{props} is not a legal state"
+        assert blocks.spendable(name), f"{land}: plaza places CURRENCY: {name}"
+        assert blocks.available(name), f"{land}: plaza places {name}, not on the 1.19 allowlist"
+        assert palette.tier(name) != "expensive", f"{land}: plaza places expensive: {name}"
+
+
+@pytest.mark.parametrize("land", LANDS)
+def test_the_drifts_are_patches_not_confetti(land):
+    """The Thicket's own number, copied rather than re-derived: a drift that fills solid and
+    noises only its own boundary reads as a patch; thresholded per cell it was 191 blobs of which
+    75% were one or two cells. 26-connectivity, exactly as `tests/test_thicket.py` uses it."""
+    w, _f, _pal, meta = _big_plaza(land, width=80, depth=80)
+    assert meta["beds"] >= 1, f"{land}: no beds landed at all - nothing to measure"
+    pts = {pos for pos, (name, _pr) in w.cells.items() if name in _PLANTED}
+    seen, sizes = set(), []
+    for start in pts:
+        if start in seen:
+            continue
+        stack, n = [start], 0
+        seen.add(start)
+        while stack:
+            c = stack.pop()
+            n += 1
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    for dz in (-1, 0, 1):
+                        q = (c[0] + dx, c[1] + dy, c[2] + dz)
+                        if q in pts and q not in seen:
+                            seen.add(q)
+                            stack.append(q)
+        sizes.append(n)
+    assert pts, f"{land}: nothing planted at all"
+    big = sum(s for s in sizes if s >= 8)
+    assert big / len(pts) > 0.60, (
+        f"{land}: only {100*big/len(pts):.0f}% of planted cells live in blobs of 8 or more "
+        f"(sizes {sorted(sizes, reverse=True)[:8]}) - that is the deck floor's confetti again")
+    assert max(sizes) >= 15, f"{land}: largest drift is {max(sizes)} cells - too small to read"
+
+
+@pytest.mark.parametrize("land", LANDS)
+def test_every_plant_roots_in_moss_and_nowhere_else(land):
+    """A PLANT ROOTS IN THE DIRT FAMILY AND NOWHERE ELSE - and moss_block, laid by this same
+    module, is the only soil it ever puts down. 173 placement problems came from listing a
+    mossy STONE as soil because it looks like ground; this checks the actual neighbour."""
+    w, _f, _pal, _meta = _big_plaza(land)
+    for (x, y, z), (name, _props) in w.cells.items():
+        if name not in (_PLANTED - {"moss_carpet"}):
+            continue
+        below = w.cells.get((x, y - 1, z))
+        assert below and below[0] in _PARK_SOIL, \
+            f"{land}: {name} at {(x, y, z)} roots in {below[0] if below else 'air'}"
+
+
+@pytest.mark.parametrize("land", LANDS)
+def test_the_pool_is_bedded_and_cannot_leak(land):
+    """MUST BE BOTH BEDDED AND ENCLOSED, or it is not still water in six months. A solid block
+    under every water cell (the bed), and every lateral neighbour of a water cell is either more
+    water or a solid kerb - never open air, or the source spreads past its own rim."""
+    w, _f, _meta_pal, meta = _big_plaza(land)
+    assert meta["pool"], f"{land}: no pool landed - nothing to check"
+    water = {pos for pos, (name, _pr) in w.cells.items() if name == "water"}
+    assert water, f"{land}: pool reported but no water cells found"
+    for (x, y, z) in water:
+        below = w.cells.get((x, y - 1, z))
+        assert below and blocks.is_full_cube(below[0]), \
+            f"{land}: water at {(x, y, z)} has no solid bed under it - it will drain"
+        for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nb = (x + dx, y, z + dz)
+            if nb in water:
+                continue
+            nb_v = w.cells.get(nb)
+            assert nb_v and blocks.is_full_cube(nb_v[0]), \
+                f"{land}: water at {(x, y, z)} is open toward {nb} - it will spread"
+
+
+@pytest.mark.parametrize("land", LANDS)
+def test_nothing_raised_stands_on_the_avenue_cross(land):
+    """Both main avenues always cross this module's own centre - `planner._add_paths` sites the
+    hub and then runs them through its centre on the cardinal axes. The plaza can compute exactly
+    where that is with no plan data at all, so raised landscaping must never stand there, however
+    the dice fall on tree/bed placement."""
+    w, f, _pal, _meta = _big_plaza(land)
+    cx, cd = 40, 40                          # width=depth=80, matching `_plaza`'s own cx, cd
+    # The avenue cross is a property of (i, d) local coordinates, not of world (x, z), and the
+    # mapping between them depends on facing - so it is rebuilt through the same `_Frame.at` the
+    # generator itself uses, rather than re-derived by hand for every facing.
+    on_spine_cells = set()
+    for i in range(80):
+        for d in range(80):
+            if abs(i - cx) <= park._AVENUE_HALF or abs(d - cd) <= park._AVENUE_HALF:
+                on_spine_cells.add(f.at(i, d, 0)[0::2])          # (x, z), any height
+    for (x, y, z), (_name, _props) in w.cells.items():
+        if y <= f.y - 1:
+            continue
+        assert (x, z) not in on_spine_cells, \
+            f"{land}: raised plaza cell {(x, y, z)} stands on the avenue cross"
+
+
+@pytest.mark.parametrize("land", LANDS)
+def test_obstacles_are_actually_avoided_when_supplied(land):
+    """`params.obstacles` is the hook a future planner wiring uses (see the `_plaza` docstring for
+    the one-line change that closes the gap). Prove the mechanism itself works: a synthetic
+    obstacle box dropped right over the plaza's whole landscaped half must leave nothing raised
+    inside it."""
+    f = park._Frame({"at": [0, 64, 0], "facing": "east"})
+    x0, _y0, z0 = f.at(0, 0, 0)
+    x1, _y1, z1 = f.at(80, 80, 0)
+    box = [min(x0, x1) - 2, min(z0, z1) - 2, max(x0, x1) // 2, max(z0, z1) + 2]
+    w, _f, _pal, meta = _big_plaza(land, obstacles=[box])
+    for (x, y, z), (_name, _props) in w.cells.items():
+        if y <= _f.y - 1:
+            continue
+        bx0, bz0, bx1, bz1 = box
+        assert not (bx0 <= x <= bx1 and bz0 <= z <= bz1), \
+            f"{land}: raised cell {(x, y, z)} sits inside the supplied obstacle box {box}"
     with pytest.raises(ValueError):
         park.build(_cfg("stall", land="atlantis"))
     with pytest.raises(ValueError):

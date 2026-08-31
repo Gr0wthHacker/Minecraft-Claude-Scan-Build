@@ -92,24 +92,57 @@ def latch(pos, facing: str = "east") -> dict:
     }
 
 
-def pulse(pos, length: int = 2, facing: str = "east") -> dict:
-    """Stretch any input to a fixed-length pulse.
+def pulse(pos, length: int = 2, facing: str = "east", side: int = 1) -> dict:
+    """Stretch any input - HELD OR NOT - to a fixed-length pulse. A rising-edge monostable.
 
     A casino needs this because a player HOLDS a button and a payout must fire once. It is the
     same reason `circuit` models a dispenser as edge-triggered.
 
-    CONTRACT: however long the input is held, `out` is high for about `length` ticks and then low.
+    **THE FIRST VERSION OF THIS WAS A REPEATER, AND A REPEATER DOES NOT PULSE.** It delays both
+    edges, so a held input gives a held output: measured against the simulator, a lever left on
+    put the output high for 21 of 24 ticks against a contract promising two. Every casino game
+    runs its button through here, so the house paid for as long as a player leaned on the button -
+    the one failure a house must not have. It shipped because its own test asserted only that the
+    output was high for FEWER than twenty ticks out of twenty, which a delay satisfies as easily
+    as a pulse: **a test whose bound is looser than the bug passes vacuously.**
+
+    What it is now is the standard AND-NOT, built out of what is already modelled:
+
+        run     the input reaches the comparator's BACK immediately
+        delay   and its SIDE through a repeater, `length` ticks later
+        gate    a comparator in SUBTRACT mode
+
+    Back minus side is the input while the side is still dark, and zero the moment it arrives -
+    however long the input is held. This is the same shape as `window`, one axis down.
+
+    CONTRACT: an input of ANY length, held or momentary, gives `out` high for about `length`
+    ticks and then low; releasing and pressing again gives another pulse.
     """
-    length = max(1, min(4, int(length)))
+    n = max(1, min(4, int(length)))
+    dx, _dy, dz = STEP[facing]
+    # WHICH SIDE THE DELAY LEG SITS ON IS THE CALLER'S CHOICE, for `window`'s reason: several of
+    # these radiating from one machine collide otherwise.
+    sx, sz = (-dz * side, -dx * side)
+    x, y, z = pos
+
+    def at(i, j):
+        return (x + dx * i + sx * j, y, z + dz * i + sz * j)
+
     return {
         "cells": {
-            pos: f"repeater[facing={facing},delay={length}]",
-            _off(pos, facing, 1): "redstone_wire",
-            _off(pos, facing, 2): "redstone_wire",
+            at(0, 0): "redstone_wire",
+            at(1, 0): "redstone_wire",
+            at(2, 0): f"comparator[facing={facing},mode=subtract]",
+            at(3, 0): "redstone_wire",
+            # the delay leg, PERPENDICULAR, so it reaches the comparator's side input rather than
+            # standing in the line it is supposed to be racing.
+            at(0, 1): "redstone_wire",
+            at(1, 1): f"repeater[facing={facing},delay={n}]",
+            at(2, 1): "redstone_wire",
         },
-        "in": _off(pos, BACKWARD[facing], 1),
-        "out": _off(pos, facing, 2),
-        "contract": f"input of any length -> about {length} ticks high",
+        "in": at(-1, 0),
+        "out": at(3, 0),
+        "contract": f"input of ANY length, held or not -> about {n} ticks high, then low",
     }
 
 
