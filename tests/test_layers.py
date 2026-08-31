@@ -85,8 +85,14 @@ def test_the_signs_follow_their_blocks():
             ox, oy, oz = sc.origin
             pos = (ox + int(v["x"].value), oy + int(v["y"].value), oz + int(v["z"].value))
             assert pos in cells, f"{n}: sign text at {pos} with no block under it"
+    # DERIVED, NOT PINNED. The count moves whenever the lineup does - it was 37 for eighteen
+    # booths and is 27 for fourteen games and two wheels - so a hardcoded number is a test that
+    # fails the next time the casino changes size and says nothing about the slice.
+    from mcbuild import planner
+    want = sum(len(schem.load(f"out/{m['name']}.litematic").tile_entities)
+               for m in planner.Plan.load("casino").modules)
     total = sum(len(schem.load(f"out/{n}.litematic").tile_entities) for n in NAMES)
-    assert total == 37, f"expected all 37 signs to survive the slice, got {total}"
+    assert total == want, f"the slice lost signs: {total} of {want}"
 
 
 def test_the_whole_slice_is_one_connected_piece():

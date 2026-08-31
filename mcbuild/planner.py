@@ -81,6 +81,11 @@ THEMES = {
         #   One In Three   did I roll high enough?   threshold  a maximum
         #   Lucky Two      did I hit the number?     window     an AND-NOT, middle wins, top loses
         #   Duel           did I beat the house?     compare    two rolls, ties to the player
+        #   Colour Wheel   where did it land?        decoder    one roll, three pockets, one lit
+        #
+        # The Wheel is the first with a different SHAPE as well as a different circuit - a sunken
+        # round bowl with a rail, read from above - because four verified mechanics in four
+        # identical booths are still four identical rooms.
         #
         # **THE ODDS VARIANTS ARE GONE.** "Coin Toss" was High Roller at 2 outcomes and measured
         # 98.7% the same machine; "Even Money" was One In Three and measured 94.6%. Changing a
@@ -90,14 +95,20 @@ THEMES = {
         # Each is a different circuit asserted by its own simulation, and each states its odds -
         # a house that cannot state its odds does not know them.
         "modules": [
+            # **THE BIGGEST MODULE IS SITED FIRST.** `bays` packs in list order, so the booths
+            # filled the grid and the 23x21 wheel reported NO SITE three times - a module is not
+            # unsiteable because it is late, it is unsiteable because everything smaller got there
+            # first. Largest footprint first is the only order that does not starve it.
+            {"name": "Colour Wheel", "gen": "casino", "kind": "wheel",
+             "size": [24, 4, 24], "params": {"pit": 2}, "count": 2, "floor": 0},
             {"name": "High Roller", "gen": "casino", "kind": "high_roller",
-             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 5, "floor": 0},
+             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 3, "floor": 0},
             {"name": "One In Three", "gen": "casino", "kind": "double_or_none",
-             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 5, "floor": 0},
+             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 3, "floor": 0},
             {"name": "Lucky Two", "gen": "casino", "kind": "lucky_number",
-             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 4, "floor": 0},
+             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 3, "floor": 0},
             {"name": "Duel", "gen": "casino", "kind": "duel",
-             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 4, "floor": 0},
+             "size": [9, 8, 8], "params": {"outcomes": 3, "pit": 2}, "count": 3, "floor": 0},
             {"name": "Casino Marquee", "gen": "casino", "kind": "marquee",
              "size": [18, 5, 4], "params": {"length": 16}, "count": 4, "floor": 0},
             {"name": "Prize Wall", "gen": "casino", "kind": "prize_wall",

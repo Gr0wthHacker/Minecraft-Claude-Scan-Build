@@ -1,0 +1,79 @@
+{
+  "origin": {
+    "x": 97565,
+    "y": 201,
+    "z": 80579
+  },
+  "size": {
+    "x": 21,
+    "y": 4,
+    "z": 19
+  },
+  "generated_by": "casino",
+  "kind": "casino/wheel",
+  "facing": "east",
+  "contract": "press once; exactly one of three pockets lights (1 in 3)",
+  "inputs": [
+    [
+      97566,
+      203,
+      80588
+    ]
+  ],
+  "outputs": [
+    [
+      97579,
+      202,
+      80584
+    ],
+    [
+      97572,
+      202,
+      80592
+    ],
+    [
+      97572,
+      202,
+      80582
+    ]
+  ],
+  "unverified": [
+    "the odds come from the ITEM MIX, not the wiring: a dropper ejects a uniformly random one of its occupied slots. The mix is recorded in `stock` and MUST be loaded exactly - the simulator has no entities and cannot check it for you."
+  ],
+  "budget": {
+    "redstone_lamp": 3
+  },
+  "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "rng_hopper": [
+    97576,
+    202,
+    80588
+  ],
+  "pockets": [
+    [
+      97579,
+      202,
+      80584
+    ],
+    [
+      97572,
+      202,
+      80592
+    ],
+    [
+      97572,
+      202,
+      80582
+    ]
+  ],
+  "stock": {
+    "dropper": [
+      "a 64-stackable item (e.g. cobblestone)",
+      "a 16-stackable item (e.g. an egg)",
+      "a non-stackable item (e.g. a sword)"
+    ]
+  },
+  "reads": "wheel",
+  "file": "Colour Wheel 1.litematic",
+  "name": "Colour Wheel 1"
+}

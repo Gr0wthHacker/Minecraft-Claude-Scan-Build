@@ -12,24 +12,20 @@ params:
 finish:
   verify_against: out/newisle.litematic
   defer_to:
+  - out/Colour Wheel 1.litematic
+  - out/Colour Wheel 2.litematic
   - out/High Roller 1.litematic
   - out/High Roller 2.litematic
   - out/High Roller 3.litematic
-  - out/High Roller 4.litematic
-  - out/High Roller 5.litematic
   - out/One In Three 1.litematic
   - out/One In Three 2.litematic
   - out/One In Three 3.litematic
-  - out/One In Three 4.litematic
-  - out/One In Three 5.litematic
   - out/Lucky Two 1.litematic
   - out/Lucky Two 2.litematic
   - out/Lucky Two 3.litematic
-  - out/Lucky Two 4.litematic
   - out/Duel 1.litematic
   - out/Duel 2.litematic
   - out/Duel 3.litematic
-  - out/Duel 4.litematic
   - out/Casino Marquee 1.litematic
   - out/Casino Marquee 2.litematic
   - out/Casino Marquee 3.litematic

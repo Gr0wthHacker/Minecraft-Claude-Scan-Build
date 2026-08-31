@@ -38,6 +38,8 @@ than something the machine can reach past.
 """
 from __future__ import annotations
 
+import math
+
 from . import circuits
 from .canvas import Canvas
 from .vertical import Ctx, World
@@ -137,6 +139,7 @@ KIND_ACCENT = {
     "double_or_none": {"accent": "red_wool", "carpet": "red_carpet"},
     "lucky_number":   {"accent": "lime_wool", "carpet": "lime_carpet"},
     "duel":           {"accent": "light_blue_wool", "carpet": "light_blue_carpet"},
+    "wheel":          {"accent": "purple_wool", "carpet": "purple_carpet"},
 }
 
 
@@ -724,6 +727,131 @@ def _lay(w, mods_p, mods=None):
                 w.put(pos[0], pos[1] - 1, pos[2], p["pal_shell"])
 
 
+
+def _wheel(w: World, p: dict, ctx) -> dict:
+    """THE COLOUR WHEEL: a SUNKEN bowl you look down into, three pockets, one lights per spin.
+
+    **THIS IS THE FIRST GAME HERE WITH A DIFFERENT SHAPE, and that is the point.** Four verified
+    mechanics in four identical booths are four identical rooms - the report was that the games
+    "look like theyre identical", and a bar, a payout and a window all read as a button in a grey
+    box. This is round, open, sunk into the floor and read from ABOVE, so it resembles none of them
+    from the aisle.
+
+    Mechanically it is a DECODER, which none of the others are: one roll, three outputs, exactly
+    one live. That needs one comparator per pocket and they all read the SAME hopper -
+    **A SPUR OFF THE SOURCE DUST DOES NOT WORK**, because dust adjacent to the comparator's output
+    is already a level down and every gate is then off by one. A hopper has four horizontal sides;
+    three comparators sit on three of them and each reads the container at full strength.
+
+    **THE POCKET SITS AT ITS OWN GATE'S OUTPUT, AT THE SAME LEVEL.** Two earlier layouts failed for
+    the same reason from opposite directions: lamps on a raised tabletop needed the signal routed
+    up and over, and the three routes merged - one roll lit two pockets. Sinking the bowl to the
+    machine's own course means every pocket is simply the cell next to its gate, there is no
+    journey, and nothing can cross.
+
+    **IT IS A COLOUR BET, NOT A NUMBER BET, and that is honest rather than decorative.** Three
+    pockets is what three uniform outcomes buys, and `RNG_MIXES` holds only mixes whose
+    distribution is measured. Red/green/black is a real roulette bet at odds we can state;
+    thirty-seven numbered pockets would be a wheel whose odds we would be inventing.
+    """
+    x, y, z = (int(v) for v in p["at"])
+    dx, dz = _STEP[p["facing"]]
+    sx, sz = -dz, -dx
+    outcomes = 3
+    levels = circuits.RNG_MIXES[outcomes]["levels"]
+    by = y - 1                                   # the bowl's floor, one course down
+
+    pulse = circuits.pulse((x - dx * 12, y - 1, z - dz * 12), length=2, facing=p["facing"])
+    rnd = circuits.randomiser((x - dx * 2, by + 1, z - dz * 2), outputs=outcomes,
+                              facing=p["facing"])
+    _lay(w, p, (pulse, rnd))
+    for e in (pulse["in"], rnd["in"]):
+        if not w.has(*e):
+            w.put(e[0], e[1], e[2], "redstone_wire")
+
+    hop = rnd["hopper"]
+    # **THE THREE GATES ARE ARRANGED SO THEY CANNOT TOUCH, and the arrangement is SEARCHED rather
+    # than chosen.** Each window occupies a 5x5 quadrant off the hub; with the perpendicular fixed
+    # two of them always land in the same one, and the wheel's first build put two pockets in
+    # adjacent cells with a third never firing. Opposite faces plus one, all taps outward, is the
+    # first assignment with no shared cell - `test_the_wheels_three_gates_never_touch` pins it by
+    # rebuilding the search, so a change to `window`'s footprint fails here rather than in game.
+    rot = {"east": {"east": "east", "west": "west", "north": "north"},
+           "west": {"east": "west", "west": "east", "north": "south"},
+           "north": {"east": "north", "west": "south", "north": "west"},
+           "south": {"east": "south", "west": "north", "north": "east"}}[p["facing"]]
+    faces = [rot["east"], rot["west"], rot["north"]]
+    # **CLEARANCE, NOT JUST NO OVERLAP.** The first search demanded only that the three gates share
+    # no cell, and found an arrangement where gate 1's output sat ONE BLOCK from gate 4's dust:
+    # adjacent dust is one network, so a roll of 4 pushed 15 into the level-1 pocket and lit two.
+    # The north gate's taps point the other way, which is the nearest assignment with a real gap.
+    tap_sides = [1, 1, -1]
+    seg = ["red_wool", "green_wool", "black_wool"]
+    # **EVERY GATE FIRST, THEN EVERY POCKET.** Built in one pass the first pocket's colour ring
+    # was painted into cells the third gate had not reached yet, `_lay` then skipped them as
+    # occupied, and the level-4 gate shipped with its subtract comparator replaced by red wool -
+    # so a roll of 4 lit the level-1 pocket. Decoration laid before structure is decoration that
+    # eats structure.
+    pockets, gate_cells, plan = [], set(), []
+    for face, sd, lvl, colour in zip(faces, tap_sides, levels, seg):
+        fx, fz = _STEP[face]
+        cmp_pos = (hop[0] + fx, hop[1], hop[2] + fz)
+        if not w.has(*cmp_pos):
+            w.put(cmp_pos[0], cmp_pos[1], cmp_pos[2], "comparator",
+                  facing=face, mode="compare", powered="false")
+        gate = circuits.window((cmp_pos[0] + fx, cmp_pos[1], cmp_pos[2] + fz),
+                               low=lvl, high=lvl + 1, facing=face, side=sd)
+        _lay(w, p, (gate,))
+        gate_cells |= set(gate["cells"])
+        plan.append((face, colour, (gate["out"][0] + fx, gate["out"][1], gate["out"][2] + fz)))
+
+    for face, colour, lamp in plan:
+        fx, fz = _STEP[face]
+        w.put(lamp[0], lamp[1], lamp[2], "redstone_lamp", lit="false")
+        # THE COLOUR OF THE POCKET, ringed round the lamp so the bet reads when it is dark - and
+        # never over a cell another gate owns.
+        for ox, oz in ((fx, fz), (-fz, -fx), (fz, fx)):
+            c2 = (lamp[0] + ox, lamp[1], lamp[2] + oz)
+            if not w.has(*c2) and c2 not in gate_cells:
+                w.put(c2[0], c2[1], c2[2], colour)
+        pockets.append(list(lamp))
+
+    # THE BOWL, sized to whatever the machine turned out to need rather than guessed at, then a
+    # rim and a rail at floor level so it reads as a table and nobody walks into it.
+    span = [abs(c[0] - hop[0]) for c in gate_cells] + [abs(c[2] - hop[2]) for c in gate_cells]
+    r = max(6, max(span) + 2)
+    for i in range(-r - 1, r + 2):
+        for d in range(-r - 1, r + 2):
+            cx, cz = hop[0] + i, hop[2] + d
+            rr = i * i + d * d
+            if rr <= r * r:
+                if not w.has(cx, by - 1, cz):
+                    w.put(cx, by - 1, cz, p["pal_trim"])       # the bowl's own floor
+                if not w.has(cx, by, cz):
+                    w.put(cx, by, cz, p["pal_floor"])          # the felt
+            elif rr <= (r + 1) * (r + 1):
+                w.put(cx, by, cz, p["pal_pillar"])             # the rim
+                w.put(cx, by + 1, cz, "oak_fence")             # the rail you lean on
+
+    btn = (hop[0] - dx * (r + 2), by + 1, hop[2] - dz * (r + 2))
+    w.put(btn[0], btn[1] - 1, btn[2], p["pal_accent"])
+    w.put(btn[0], btn[1], btn[2], "stone_button", face="floor",
+          facing=p["facing"], powered="false")
+    _link(w, p, ctx, btn, pulse["in"])
+    _link(w, p, ctx, pulse["out"], rnd["in"])
+
+    sgn = (btn[0] - dx, btn[1] + 1, btn[2] - dz)
+    w.put(sgn[0], sgn[1] - 1, sgn[2], p["pal_pillar"])
+    w.put(sgn[0], sgn[1], sgn[2], "oak_wall_sign", facing=p["facing"], waterlogged="false")
+    w.sign(sgn[0], sgn[1], sgn[2],
+           front=[str(p.get("title") or "WHEEL")[:15], "red green black", "1 in 3", "spin to win"])
+    return {"contract": "press once; exactly one of three pockets lights (1 in 3)",
+            "inputs": [list(btn)], "outputs": pockets,
+            "rng_hopper": list(hop), "pockets": pockets,
+            "stock": {"dropper": rnd["stock"]},
+            "reads": "wheel", "unverified": [circuits.RANDOM_NOTE]}
+
+
 # CHASE AND VAULT ARE NOT HERE, AND THAT IS THE ANSWER TO "100% FUNCTIONAL".
 #
 # Both were written, both built cleanly, and neither passed its own contract under simulation:
@@ -923,7 +1051,7 @@ def _counter(w: World, p: dict, ctx) -> dict:
 
 
 BUILDERS = {"high_roller": _high_roller, "double_or_none": _double_or_none,
-            "lucky_number": _lucky_number, "duel": _duel,
+            "lucky_number": _lucky_number, "duel": _duel, "wheel": _wheel,
             "prize_wall": _prize_wall, "marquee": _marquee, "counter": _counter,
             "hall": _hall}
 

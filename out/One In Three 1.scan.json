@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97601,
+    "x": 97623,
     "y": 197,
-    "z": 80619
+    "z": 80607
   },
   "size": {
     "x": 19,
@@ -11,27 +11,27 @@
   },
   "generated_by": "casino",
   "after": [
+    "Colour Wheel 1",
+    "Colour Wheel 2",
     "High Roller 1",
     "High Roller 2",
-    "High Roller 3",
-    "High Roller 4",
-    "High Roller 5"
+    "High Roller 3"
   ],
   "kind": "casino/double_or_none",
   "facing": "east",
   "contract": "press once; pays ONLY on a roll of 4 (1 in 3)",
   "inputs": [
     [
-      97605,
+      97627,
       204,
-      80623
+      80611
     ]
   ],
   "outputs": [
     [
-      97618,
+      97640,
       199,
-      80625
+      80613
     ]
   ],
   "unverified": [
@@ -40,9 +40,9 @@
   "budget": {},
   "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
   "rng_hopper": [
-    97610,
+    97632,
     199,
-    80625
+    80613
   ],
   "win_level": 4,
   "stock": {

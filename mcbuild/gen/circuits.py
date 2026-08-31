@@ -443,7 +443,7 @@ MODULES = {
 # `connect` is not a MODULE: it takes two points rather than one, so it cannot go through the
 # same "build it at the origin and assert its contract" harness. It has its own tests.
 
-def window(pos, low: int, high: int, facing: str = "east") -> dict:
+def window(pos, low: int, high: int, facing: str = "east", side: int = 1) -> dict:
     """Pass a signal ONLY when the level is at least `low` and BELOW `high`. An exact-value gate.
 
     **THIS IS THE FIRST GAME MECHANIC HERE THAT IS NOT A MAXIMUM.** `threshold` pays on "roll high
@@ -467,7 +467,11 @@ def window(pos, low: int, high: int, facing: str = "east") -> dict:
     low = max(1, min(15, int(low)))
     high = max(low + 1, min(16, int(high)))
     dx, _dy, dz = STEP[facing]
-    sx, sz = -dz, -dx                      # the perpendicular the taps sit on
+    # **WHICH SIDE THE TAPS SIT ON IS THE CALLER'S CHOICE**, because three of these radiating from
+    # one hopper collide otherwise: each occupies a 5x5 quadrant, and with the perpendicular fixed
+    # two of them always land in the same one. The wheel's east and north gates overlapped exactly
+    # this way and two pockets ended up in adjacent cells.
+    sx, sz = (-dz * side, -dx * side)
     x, y, z = pos
 
     def at(i, j):

@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97580,
+    "x": 97559,
     "y": 197,
-    "z": 80633
+    "z": 80555
   },
   "size": {
     "x": 18,
@@ -11,20 +11,17 @@
   },
   "generated_by": "casino",
   "after": [
+    "Colour Wheel 1",
+    "Colour Wheel 2",
     "High Roller 1",
     "High Roller 2",
     "High Roller 3",
-    "High Roller 4",
-    "High Roller 5",
     "One In Three 1",
     "One In Three 2",
     "One In Three 3",
-    "One In Three 4",
-    "One In Three 5",
     "Lucky Two 1",
     "Lucky Two 2",
     "Lucky Two 3",
-    "Lucky Two 4",
     "Duel 1",
     "Duel 2"
   ],
@@ -33,16 +30,16 @@
   "contract": "press once; you win ties - 6 in 9",
   "inputs": [
     [
-      97584,
+      97563,
       204,
-      80637
+      80559
     ]
   ],
   "outputs": [
     [
-      97596,
+      97575,
       199,
-      80640
+      80562
     ]
   ],
   "unverified": [
@@ -51,14 +48,14 @@
   "budget": {},
   "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
   "rng_hopper": [
-    97589,
+    97568,
     199,
-    80640
+    80562
   ],
   "house_hopper": [
-    97590,
+    97569,
     199,
-    80639
+    80561
   ],
   "stock": {
     "dropper": [

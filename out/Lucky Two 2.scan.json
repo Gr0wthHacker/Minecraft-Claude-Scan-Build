@@ -2,7 +2,7 @@
   "origin": {
     "x": 97621,
     "y": 197,
-    "z": 80607
+    "z": 80619
   },
   "size": {
     "x": 17,
@@ -11,16 +11,14 @@
   },
   "generated_by": "casino",
   "after": [
+    "Colour Wheel 1",
+    "Colour Wheel 2",
     "High Roller 1",
     "High Roller 2",
     "High Roller 3",
-    "High Roller 4",
-    "High Roller 5",
     "One In Three 1",
     "One In Three 2",
     "One In Three 3",
-    "One In Three 4",
-    "One In Three 5",
     "Lucky Two 1"
   ],
   "kind": "casino/lucky_number",
@@ -30,14 +28,14 @@
     [
       97625,
       204,
-      80611
+      80623
     ]
   ],
   "outputs": [
     [
       97636,
       199,
-      80609
+      80621
     ]
   ],
   "unverified": [
@@ -48,7 +46,7 @@
   "rng_hopper": [
     97630,
     199,
-    80613
+    80625
   ],
   "win_level": 2,
   "stock": {

@@ -2,7 +2,7 @@
   "origin": {
     "x": 97580,
     "y": 197,
-    "z": 80555
+    "z": 80633
   },
   "size": {
     "x": 18,
@@ -11,20 +11,17 @@
   },
   "generated_by": "casino",
   "after": [
+    "Colour Wheel 1",
+    "Colour Wheel 2",
     "High Roller 1",
     "High Roller 2",
     "High Roller 3",
-    "High Roller 4",
-    "High Roller 5",
     "One In Three 1",
     "One In Three 2",
     "One In Three 3",
-    "One In Three 4",
-    "One In Three 5",
     "Lucky Two 1",
     "Lucky Two 2",
-    "Lucky Two 3",
-    "Lucky Two 4"
+    "Lucky Two 3"
   ],
   "kind": "casino/duel",
   "facing": "east",
@@ -33,14 +30,14 @@
     [
       97584,
       204,
-      80559
+      80637
     ]
   ],
   "outputs": [
     [
       97596,
       199,
-      80562
+      80640
     ]
   ],
   "unverified": [
@@ -51,12 +48,12 @@
   "rng_hopper": [
     97589,
     199,
-    80562
+    80640
   ],
   "house_hopper": [
     97590,
     199,
-    80561
+    80639
   ],
   "stock": {
     "dropper": [

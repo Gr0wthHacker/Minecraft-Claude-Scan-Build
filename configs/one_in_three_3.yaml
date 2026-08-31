@@ -4,20 +4,20 @@ params:
   outcomes: 3
   pit: 2
   at:
-  - 97629
+  - 97607
   - 203
-  - 80601
+  - 80565
   kind: double_or_none
   title: One In Three 3
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic
   defer_to:
+  - out/Colour Wheel 1.litematic
+  - out/Colour Wheel 2.litematic
   - out/High Roller 1.litematic
   - out/High Roller 2.litematic
   - out/High Roller 3.litematic
-  - out/High Roller 4.litematic
-  - out/High Roller 5.litematic
   - out/One In Three 1.litematic
   - out/One In Three 2.litematic
 origin_lock: false

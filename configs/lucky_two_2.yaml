@@ -6,22 +6,20 @@ params:
   at:
   - 97627
   - 203
-  - 80613
+  - 80625
   kind: lucky_number
   title: Lucky Two 2
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic
   defer_to:
+  - out/Colour Wheel 1.litematic
+  - out/Colour Wheel 2.litematic
   - out/High Roller 1.litematic
   - out/High Roller 2.litematic
   - out/High Roller 3.litematic
-  - out/High Roller 4.litematic
-  - out/High Roller 5.litematic
   - out/One In Three 1.litematic
   - out/One In Three 2.litematic
   - out/One In Three 3.litematic
-  - out/One In Three 4.litematic
-  - out/One In Three 5.litematic
   - out/Lucky Two 1.litematic
 origin_lock: false

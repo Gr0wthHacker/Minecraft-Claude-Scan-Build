@@ -6987,3 +6987,55 @@ aisle, which is the distance most of them are read from.
 
 The lineup is now **18 games over 4 mechanics** - 5 High Roller, 5 One In Three, 4 Lucky Two,
 4 Duel - every contract asserted by simulation, every one stating its odds on its own sign.
+
+### The Colour Wheel, and what a redstone casino CANNOT be (2026-08-31)
+
+Jack: *"majority of the games look like theyre identical, what about things like roulette, or other
+games, blackjack."* The first half is right for a reason colour could not fix: a bar, a threshold,
+a window and a comparator all read as **a button in a grey box**. Four verified mechanics in four
+identical booths are four identical rooms.
+
+**`wheel` is the first game here with a different SHAPE as well as a different circuit** - a sunken
+round bowl with a rail, read from above, no walls at all - and the first that is a DECODER: one
+roll, three outputs, exactly one live. Red/green/black, 1 in 3, `test_the_wheel_lights_exactly_one_
+pocket_in_every_orientation` asserts it at all four facings.
+
+Four faults inside it, each of which built cleanly and simulated wrong:
+
+- **A SPUR OFF THE SOURCE DUST DOES NOT WORK.** Three branches off the comparator's output cell
+  left every pocket dark, because dust adjacent to that cell is already a level down and every gate
+  is off by one. A hopper has four horizontal sides; three comparators read the container itself.
+- **DUST BELOW A LAMP DOES NOT LIGHT IT.** Every gate fired correctly and not one lamp came on. A
+  repeater into a solid block lights a lamp above it; simpler still, sinking the bowl to the
+  machine's own course puts every pocket in the cell NEXT to its gate, so there is no journey.
+- **DECORATION LAID BEFORE STRUCTURE EATS STRUCTURE.** The first pocket's colour ring was painted
+  into cells the third gate had not reached, `_lay` skipped them as occupied, and the level-4 gate
+  shipped with its subtract comparator replaced by red wool - so a roll of 4 lit the level-1
+  pocket. Every gate is built before any pocket now.
+- **ADJACENT DUST IS ONE NETWORK: CLEARANCE, NOT JUST NO OVERLAP.** The gate arrangement was
+  SEARCHED, and the first search demanded only that no two gates share a cell. The winner put gate
+  1's output one block from gate 4's dust; a roll of 4 pushed 15 into the level-1 pocket. The
+  search requires a real gap now and the test re-derives it, so a change to `window`'s footprint
+  fails here rather than in game.
+
+**And the biggest module must be sited FIRST.** `bays` packs in list order, so the booths filled the
+grid and the 23x21 wheel reported NO SITE three times. A module is not unsiteable because it is
+late.
+
+#### What cannot be built, and why it is not a matter of effort
+
+- **BLACKJACK IS OUT OF REACH.** It needs card identity, a running total, a dealer rule and a hit/
+  stand decision - state that has to be held and compared across turns. Redstone can do it with
+  enough hardware, but nothing in `circuits.py` could verify it and this file's rule is that a game
+  ships only with a contract asserted by simulation. Building it unverified is how `chase` and
+  `vault` happened.
+- **A 37-POCKET ROULETTE IS OUT OF REACH FOR THE ODDS, NOT THE WIRING.** `RNG_MIXES` holds only the
+  two item mixes whose distribution minecraft.wiki gives as uniform. A wheel with more pockets
+  would be a wheel whose odds we are inventing, and **a house that cannot state its odds does not
+  know them**. Three pockets is what three measured outcomes buys - so it is a COLOUR bet, which is
+  a real roulette bet at odds we can print on the sign.
+- Two rolls would give nine uniform outcomes and a proper wheel; it needs nine AND gates and is a
+  genuine piece of work rather than a tweak. That is the honest next step if a bigger wheel matters.
+
+The lineup is **14 games over 5 mechanics** - 3 High Roller, 3 One In Three, 3 Lucky Two, 3 Duel,
+2 Colour Wheel - every contract asserted by simulation, every one stating its odds on its own sign.

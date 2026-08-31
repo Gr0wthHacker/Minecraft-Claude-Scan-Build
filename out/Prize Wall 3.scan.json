@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97586,
+    "x": 97598,
     "y": 203,
-    "z": 80595
+    "z": 80583
   },
   "size": {
     "x": 3,
@@ -11,24 +11,20 @@
   },
   "generated_by": "casino",
   "after": [
+    "Colour Wheel 1",
+    "Colour Wheel 2",
     "High Roller 1",
     "High Roller 2",
     "High Roller 3",
-    "High Roller 4",
-    "High Roller 5",
     "One In Three 1",
     "One In Three 2",
     "One In Three 3",
-    "One In Three 4",
-    "One In Three 5",
     "Lucky Two 1",
     "Lucky Two 2",
     "Lucky Two 3",
-    "Lucky Two 4",
     "Duel 1",
     "Duel 2",
     "Duel 3",
-    "Duel 4",
     "Casino Marquee 1",
     "Casino Marquee 2",
     "Casino Marquee 3",
@@ -41,56 +37,56 @@
   "contract": "5 prizes, one button each, one item per press",
   "inputs": [
     [
-      97588,
+      97600,
       205,
-      80603
+      80591
     ],
     [
-      97588,
+      97600,
       205,
-      80601
+      80589
     ],
     [
-      97588,
+      97600,
       205,
-      80599
+      80587
     ],
     [
-      97588,
+      97600,
       205,
-      80597
+      80585
     ],
     [
-      97588,
+      97600,
       205,
-      80595
+      80583
     ]
   ],
   "outputs": [
     [
-      97587,
+      97599,
       204,
-      80603
+      80591
     ],
     [
-      97587,
+      97599,
       204,
-      80601
+      80589
     ],
     [
-      97587,
+      97599,
       204,
-      80599
+      80587
     ],
     [
-      97587,
+      97599,
       204,
-      80597
+      80585
     ],
     [
-      97587,
+      97599,
       204,
-      80595
+      80583
     ]
   ],
   "unverified": [],

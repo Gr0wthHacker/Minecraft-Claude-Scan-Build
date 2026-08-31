@@ -489,3 +489,77 @@ def test_each_mechanic_reads_differently_from_the_aisle():
     assert len(accents) == len(casino.KIND_ACCENT), "two mechanics share a colour"
     for k in ("high_roller", "double_or_none", "lucky_number", "duel"):
         assert k in casino.KIND_ACCENT, f"{k} has no accent and will look like its neighbour"
+
+
+def test_the_wheel_lights_exactly_one_pocket_in_every_orientation():
+    """THE FIRST GAME HERE WITH A DIFFERENT SHAPE, and the first that is a DECODER.
+
+    A bar reads a level as a length and a threshold gates it; this splits one roll into three
+    outputs, exactly one live. Orientation is tested because the three gates are arranged by a
+    rotation table, and a mistake there is invisible in a render.
+    """
+    for facing in ("east", "west", "north", "south"):
+        c = GENERATORS["casino"].build({"at": [0, 70, 0], "kind": "wheel", "pit": 2,
+                                        "check": False, "facing": facing, "title": "W"}, [])
+        pockets = [tuple(v) for v in c.meta["pockets"]]
+        lit_for = {}
+        for roll in (1, 2, 4):
+            s = circuit.Circuit.of(c.to_model(), c.world_origin)
+            s.fill(tuple(c.meta["rng_hopper"]), roll)
+            s.press(tuple(c.meta["inputs"][0]), ticks=4)
+            s.run(80)
+            lit = [i for i, q in enumerate(pockets) if s.powered(q)]
+            assert len(lit) == 1, f"{facing}: roll {roll} lit {lit} pockets, want exactly 1"
+            lit_for[roll] = lit[0]
+        assert len(set(lit_for.values())) == 3, \
+            f"{facing}: two rolls share a pocket - {lit_for}"
+
+
+def test_the_wheels_gates_have_CLEARANCE_not_just_no_overlap():
+    """**ADJACENT DUST IS ONE NETWORK.** The arrangement was first searched for gates that shared
+    no cell, and the winner put gate 1's output ONE BLOCK from gate 4's dust: a roll of 4 pushed
+    15 into the level-1 pocket and lit two. Clearance is the property, so clearance is the test -
+    and it re-derives the search, so a change to `window`'s footprint fails here, not in game.
+    """
+    from mcbuild.gen import circuits
+    hop = (0, 69, 0)
+    faces, sides, levels = ("east", "west", "north"), (1, 1, -1), (1, 2, 4)
+    boxes = {}
+    for face, sd, lvl in zip(faces, sides, levels):
+        fx, _fy, fz = circuits.STEP[face]
+        cmp_pos = (hop[0] + fx, hop[1], hop[2] + fz)
+        g = circuits.window((cmp_pos[0] + fx, cmp_pos[1], cmp_pos[2] + fz),
+                            low=lvl, high=lvl + 1, facing=face, side=sd)
+        lamp = (g["out"][0] + fx, g["out"][1], g["out"][2] + fz)
+        boxes[lvl] = set(g["cells"]) | {lamp, cmp_pos}
+
+    def nbrs(c):
+        x, y, z = c
+        return [(x + 1, y, z), (x - 1, y, z), (x, y + 1, z),
+                (x, y - 1, z), (x, y, z + 1), (x, y, z - 1)]
+
+    import itertools
+    for a, b in itertools.combinations(boxes, 2):
+        assert not (boxes[a] & boxes[b]), f"gates {a} and {b} share cells"
+        touching = [c for c in boxes[a] for d in nbrs(c) if d in boxes[b]]
+        assert not touching, f"gates {a} and {b} touch at {touching[:2]} - one dust network"
+
+
+def test_decoration_is_never_laid_before_structure():
+    """The pocket colour ring was painted into cells a later gate had not reached yet, `_lay` then
+    skipped them as occupied, and the level-4 gate shipped with its subtract comparator replaced by
+    red wool - so a roll of 4 lit the level-1 pocket. Every gate is built before any pocket now."""
+    c = GENERATORS["casino"].build({"at": [0, 70, 0], "kind": "wheel", "pit": 2,
+                                    "check": False, "title": "W"}, [])
+    m = c.to_model()
+    names = []
+    for t in m.palette:
+        try:
+            names.append(t.value["Name"].value.split(":")[-1])
+        except Exception:                                        # noqa: BLE001
+            names.append("air")
+    import numpy as np
+    have = {names[i] for i in np.unique(m.ids) if names[i] != "air"}
+    assert "comparator" in have, "the wheel lost its comparators to decoration"
+    n_cmp = sum(int((m.ids == i).sum()) for i, n in enumerate(names) if n == "comparator")
+    assert n_cmp >= 6, f"expected 3 readers + 3 subtract gates, found {n_cmp} comparators"
