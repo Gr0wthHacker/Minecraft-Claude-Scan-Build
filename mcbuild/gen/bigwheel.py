@@ -50,8 +50,9 @@ from __future__ import annotations
 
 import math
 
-from .. import blocks
+from .. import blocks, fluids
 from .canvas import Canvas, hash01
+from .coaster import _corners, _power, _runs, _shapes
 from .park import LANDS, SIGN_WIDTH, _Frame, _STEP, _sign
 from .vertical import Ctx, World
 
@@ -248,30 +249,219 @@ def _flush_run(w, run, pal, min_run, half, block):
     return len(run)
 
 
+# ------------------------------------------------------------------ THE RIDE MECHANICS
+#
+# **VANILLA CANNOT ROTATE A STRUCTURE, SO A "RIDE" HAS TO BE A MECHANIC THE GAME ACTUALLY HAS.**
+# There are exactly three that carry a player, and this module uses all three:
+#
+#     a MINECART on rail            the carousel's circuit
+#     a SOUL-SAND BUBBLE COLUMN     the lift in the wheel's mast and in the drop tower
+#     a FREE FALL INTO WATER        the descent from both, which costs no damage at all
+#
+# and one that does NOT exist, stated plainly because it is the first thing anybody reaches for:
+# **A FERRIS WHEEL'S RIM CANNOT CARRY A RAIL.** A rail lies in the horizontal plane and an
+# ascending rail climbs exactly one course per cell - 45 degrees, once. A wheel's rim is VERTICAL
+# at three o'clock and INVERTED over the top. There is no arrangement of rails that follows it, at
+# any diameter, and no amount of iron changes that. The wheel's ride is therefore the ASCENT.
+#
+# **THE WATER RULES, from the game and re-checked by simulation rather than remembered:**
+#
+#     soul sand under a column of water SOURCES pushes an entity UP the whole column
+#     a source with an AIR neighbour FLOWS, and flowing water on a walkway is a leak
+#     water does not flow upward, so a column may be open at the top and sealed nowhere else
+#     landing in water cancels ALL fall damage, at any height
+#
+# The second of those decides every piece of geometry here. **A WATER SHAFT CANNOT HAVE A DOOR.**
+# Put a doorway in the casing at the water's own level and the column drains through it across the
+# boarding platform - so you go in from BELOW, swimming under the casing out of a sunk basin whose
+# surface sits one course under the walking level. That is not decoration, it is the only entrance
+# a sealed column can have, and it is why both lift rides have a pool at their foot.
+#
+# `_watertight` runs `fluids.spread` over the FINISHED model and the builders REFUSE TO EMIT a
+# build whose water reaches one cell it was not placed in. Same posture as `coaster._feasible`
+# about a leg that cannot absorb its own climb: a ride that does not work fails here, at generation
+# time, rather than in the world an hour later.
+
+WATER = "water"
+SOUL = "soul_sand"
+
+
+def _shell_of(core):
+    """The cells ORTHOGONALLY outside a footprint - exactly the ones water could escape through.
+
+    Diagonals are deliberately absent: water spreads on the four horizontal neighbours, so a
+    diagonal gap is not a leak. A mast still gets its four corners for the look; watertightness
+    only ever needs this set, and keeping the two apart is what makes the guarantee checkable.
+    """
+    ring = set()
+    for (i, d) in core:
+        for (ui, ud) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            if (i + ui, d + ud) not in core:
+                ring.add((i + ui, d + ud))
+    return ring
+
+
+def _case(w, f, pal, ring, h0, h1, block=None):
+    """Solid casing over a set of (i, d) for every course h0..h1. NEVER overwrites.
+
+    It refuses to overwrite because the casing runs through the hub, the gallery and the A-frames,
+    all of which are already solid there - and replacing a hub cell with wall would punch a hole
+    through the one part of the wheel that reads as machinery.
+    """
+    n = 0
+    for h in range(h0, h1 + 1):
+        for (i, d) in sorted(ring):
+            if not _full(w, *f.at(i, d, h)):
+                w.put(*f.at(i, d, h), block or pal["wall"])
+                n += 1
+    return n
+
+
+def _fill_water(w, f, core, h0, h1):
+    """Water SOURCES, cell by cell.
+
+    Every cell a source, and here that is right for the opposite reason it was wrong in the flume:
+    a flume of sources carries nobody because a source does not push, and a LIFT column must stand
+    still and hold its height - what pushes is the soul sand at the bottom of it.
+    """
+    out = []
+    for h in range(h0, h1 + 1):
+        for (i, d) in sorted(core):
+            w.put(*f.at(i, d, h), WATER, level="0")
+            out.append(f.at(i, d, h))
+    return out
+
+
+def _basin(w, f, pal, cells, top, depth, floor_block=None):
+    """A sunk tank whose surface is FLUSH with the course under the walking level.
+
+    That flush surface is the whole point. A pool whose lip stands proud is a wall you cannot step
+    over; a pool whose water is AT walking level leaks across the floor. One course down, the pad's
+    own blocks are the tank's top rim and you step off the edge straight into it.
+    """
+    cells = set(cells)
+    floor = top - depth
+    for (i, d) in sorted(cells):
+        w.put(*f.at(i, d, floor), floor_block or pal["trim"])
+    for (i, d) in sorted(_shell_of(cells)):
+        for h in range(floor, top + 1):
+            if not _full(w, *f.at(i, d, h)):
+                w.put(*f.at(i, d, h), pal["trim"])
+    return _fill_water(w, f, cells, floor + 1, top)
+
+
+def _watertight(w, sources):
+    """Every cell the water would reach that we did not place it in. Empty, or the build is wrong.
+
+    Run over the WHOLE model, so it catches a leak opened by any other part of the build - a car
+    strut, an A-frame leg, a sign - and not only by the shaft's own casing.
+    """
+    cells = {q: v[0] for q, v in w.cells.items()}
+    xs = [q[0] for q in cells]
+    ys = [q[1] for q in cells]
+    zs = [q[2] for q in cells]
+    pad = 2
+    bounds = (min(xs) - pad, min(ys) - pad, min(zs) - pad,
+              max(xs) + pad, max(ys) + pad, max(zs) + pad)
+    lv = fluids.spread(cells, list(sources), bounds)
+    return sorted(set(lv) - set(sources))
+
+
+def _clear_fall(w, f, core, h0, h1):
+    """Cells of a drop chute that are NOT open. A chute is a ride only if every cell of it is air."""
+    bad = []
+    for h in range(h0, h1 + 1):
+        for (i, d) in sorted(core):
+            n = w.name(*f.at(i, d, h))
+            if n is not None and n != WATER:
+                bad.append((f.at(i, d, h), n))
+    return bad
+
+
+def _ring_path(R):
+    """A rasterised circle as an ORDERED, SIMPLE, 6-CONNECTED CYCLE - a rail circuit's plan.
+
+    **A CIRCLE IS THE EXPENSIVE SHAPE AND THE COST IS IRON.** `powered_rail` has no curved state at
+    all - read off `data/blocks.json`, asserted by this module's test, never remembered - so every
+    direction change is a plain `rail`, and a voxel circle changes direction more than half the
+    time. The Island Line took a SQUARE helix rather than pay that. Here the shape IS the ride: a
+    carousel that goes round a square is not a carousel, and at this radius the bill is about
+    twenty iron, which this island can find.
+
+    Two properties are checked rather than hoped for, because both fail silently in game: every
+    cell appears ONCE, and every cell has EXACTLY TWO path neighbours. A cell with three orthogonal
+    rail neighbours does not connect the way the path says - the game picks two by its own priority
+    - and the circuit quietly becomes a dead end.
+    """
+    n = max(64, int(2 * math.pi * R * 4))
+    raw = []
+    for k in range(n):
+        th = 2 * math.pi * k / n
+        q = (int(round(R * math.cos(th))), int(round(R * math.sin(th))))
+        if not raw or q != raw[-1]:
+            raw.append(q)
+    if len(raw) > 1 and raw[0] == raw[-1]:
+        raw.pop()
+    out = []
+    for a, b in zip(raw, raw[1:] + raw[:1]):
+        out.extend(_line2(a[0], a[1], b[0], b[1])[:-1])
+    seen = set(out)
+    if len(seen) != len(out):
+        raise ValueError("the r=%d track visits a cell twice; it is not a simple circuit" % R)
+    for q in out:
+        deg = sum(1 for (u, v) in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                  if (q[0] + u, q[1] + v) in seen)
+        if deg != 2:
+            raise ValueError("track cell %s has %d rail neighbours, not 2 - the game would not "
+                             "connect the circuit the way the path says" % (q, deg))
+    return out
+
+
 # ------------------------------------------------------------------ the ferris wheel
 
 def _wheel(w: World, p: dict, ctx) -> dict:
-    """A FERRIS WHEEL: a ring standing in the frontage plane on two A-frames carried to the floor.
+    """A FERRIS WHEEL, AND THE RIDE INSIDE IT: a bubble lift up the mast to a gallery at the axle,
+    and a free-fall chute back down into the pool you set off from.
 
-    **THE RING IS THE WHOLE PIECE AND IT IS DRAWN, NOT MODELLED.** A two-cell annulus is a circle
-    at any diameter, so the only decisions left are the ones that make it read as a machine rather
-    than as a hoop: spokes to a hub (a hoop with no spokes is a letter O), cars around the outside
-    (which is what says it turns), and A-frames straddling it in DEPTH (which is what says it is
-    held up). All three are outside-the-rim or inside-the-rim by construction, so the silhouette
-    stays a clean circle with bumps - never a circle with a mess in it.
+    **THE WHEEL CANNOT TURN AND ITS RIM CANNOT CARRY A RAIL.** Both are facts about the game, not
+    limits of effort: nothing rotates a structure in vanilla, and a rail lies flat with a single
+    45-degree ascending state, so it cannot follow a circle that is vertical at three o'clock and
+    inverted over the top. Every mechanic that would make a wheel a wheel is unavailable. What IS
+    available is the thing a wheel is actually FOR - going up and looking out - so that is what
+    was built, and the loop is:
 
-    **THE CARS HANG OUTSIDE THE RIM, and that is a geometry decision rather than a style one.** A
-    car hung below its own rim point crosses the rim at every angle except the top and the bottom -
-    at three o'clock the cell four courses under the rim is inside the ring - so the wheel would
-    have twelve boxes buried in its own structure. Mounted radially outward they can never
-    intersect it at any angle, and the bottom car lands one course above the boarding platform,
-    which is what makes the platform a place rather than a plinth.
+        queue -> the splash pool -> the bubble lift, 48 courses -> the gallery at the axle
+              -> the chute -> back into the pool
+
+    **THE COST OF THAT IS A CENTRAL MAST AND IT IS PAID DELIBERATELY.** A bubble column is vertical
+    by definition, so the lift cannot live in an A-frame's raking leg; it needs a straight shaft
+    from the pad to the axle, and the only place a shaft reaches the axle is under it. So the
+    support is now an A-frame WITH A KING POST - two 5x5 masts straddling the wheel's plane, cased
+    round a 3x3 water shaft each - and from the front there is a five-wide tower up the middle of a
+    seventy-three-wide wheel. That is 7% of the silhouette, it reads as the tower carrying the
+    axle, and it is the price of the ride being real. The alternative - a mast outside the ring and
+    a thirty-eight-block gantry to the hub at axle height - spends the same silhouette horizontally
+    and is structurally absurd.
+
+    **THE CARS THEREFORE GET THEIR OWN DEPTH BAND.** A car at the bottom of the ring sits at the
+    wheel's own centre-line, which is exactly where the mast is; drawn over the full depth as
+    before, every car passing six o'clock would be built inside the tower. The depth is banded
+    instead - mast, cars, rim, cars, mast - so the two can never share a cell at any angle, and
+    `rim_bottom` is raised so the lowest car clears the station roof rather than the boarding
+    platform.
+
+    **THE LIFT HAS NO DOOR, AND THAT IS NOT AN OVERSIGHT.** A doorway in the casing at the water's
+    own level drains the column across the platform. You go in from BELOW: a channel of water three
+    courses deep runs the whole depth of the piece under both masts, its surface flush one course
+    under the walking level, and you dive at the front, swim under the casing, and surface in the
+    column over the soul sand. The same channel is what the chute drops you into, so the ride
+    closes without leaving the water. `_watertight` proves it at generation time.
     """
     f = _Frame(p)
     pal = LANDS[p["land"]]
     mr = int(p["min_run"])
 
-    D = max(41, int(p["diameter"] or 41) | 1)
+    D = max(41, int(p["diameter"] or 65) | 1)
     R = D // 2
     ncar = max(8, int(p["cars"]))
     nspoke = max(8, int(p["spokes"]))
@@ -279,26 +469,55 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     CAR_R = R + 3                       # car centres ride this radius; outer reach CAR_R + 1
     W = 2 * (CAR_R + 1) + 1             # the footprint the cars need, not the one the ring needs
     ci = W // 2
-    DEPTH = 6                           # frame | . | rim rim | . | frame
-    RIM_D = (2, 3)
-    FRAME_D = (0, DEPTH - 1)
-    rim_bottom = 5
+
+    # THE DEPTH IS BANDED, and the bands are what keep the cars out of the masts.
+    #     0..4   front mast (5x5 cased, 3x3 shaft)      9..13  back mast
+    #     5..8   the cars' band                          6,7   the rim, centred inside it
+    # **A SHAFT IS ONE CELL WIDE AND THAT IS A COST DECISION, NOT A GEOMETRIC ONE.** A 3x3 lift is
+    # a nicer thing to swim up and it is 477 water SOURCES; a bubble column has to be source blocks
+    # the whole way, which is a bucket per cell by hand - nobody would ever build it. One cell wide
+    # is 53, the mast that cases it is 3x3 rather than 5x5, and the tower costs 4% of the
+    # silhouette instead of 7%.
+    MAST = 3
+    FRONT0, FRONT1 = 0, MAST - 1
+    BACK0, BACK1 = MAST + 4, 2 * MAST + 3
+    DEPTH = BACK1 + 1
+    CAR_D = (MAST, MAST + 3)
+    RIM_D = (MAST + 1, MAST + 2)
+    FRAME_D = (FRONT0, BACK1)
+    LIFT = {(ci, FRONT0 + 1)}
+    CHUTE = {(ci, BACK0 + 1)}
+    CORES = LIFT | CHUTE
+    MAST_RING = ({(ci + a, FRONT0 + b) for a in (-1, 0, 1) for b in range(MAST)} |
+                 {(ci + a, BACK0 + b) for a in (-1, 0, 1) for b in range(MAST)}) - CORES
+
+    rim_bottom = 12                     # the lowest car then clears the station, not the pad
     hh = rim_bottom + R                 # the axle
+    G = hh + 4                          # the gallery deck, one course over the hub
+    QUEUE = 6
+    POOL_D = 3
 
-    _ground(w, f, pal, -2, W + 1, -3, DEPTH + 1)
+    _ground(w, f, pal, -2, W + 1, -QUEUE, DEPTH + 2)
 
-    # ---- the boarding platform, one course proud of the pad, skirted in stairs.
-    plat = range(ci - 8, ci + 9)
-    for i in plat:
-        for d in range(DEPTH):
-            w.put(*f.at(i, d, 0), pal["path"] if (i + d) % 2 else pal["ground"])
-    skirt = [(0, i, f.at(i, 0, 0), f.facing) for i in plat]
-    _stair_run(w, f, pal, skirt, mr, half="bottom")
-    for d in range(DEPTH):              # a rail down both sides, the front left open to board
-        for i in (ci - 8, ci + 8):
-            w.put(*f.at(i, d, 1), pal["fence"])
-    for i in plat:
-        w.put(*f.at(i, DEPTH - 1, 1), pal["fence"])
+    # ---- THE CHANNEL. One body of water from the forecourt to the back of the piece, three
+    # courses deep, surface flush at h=-1. It is the lift's entrance, the chute's landing and the
+    # walk between them, and it is the only way into a shaft that may not have a door.
+    chan = {(ci + a, d) for a in (-1, 0, 1) for d in range(-2, DEPTH + 2)}
+    wet = _basin(w, f, pal, chan, top=-1, depth=POOL_D)
+    for (i, d) in sorted(LIFT):         # the pump: soul sand under the lift, and only there
+        w.put(*f.at(i, d, -1 - POOL_D), SOUL)
+
+    # ---- the masts, cased to the gallery. The casing is what makes the shaft watertight and it
+    # is also the tower, so it is drawn as a full 5x5 ring rather than as the four faces water
+    # could actually escape through.
+    _case(w, f, pal, MAST_RING, 0, G, pal["wall"])
+    for h in range(0, G + 1):           # corner posts, and a string course every sixth
+        for (i, d) in ((ci - 1, FRONT0), (ci + 1, FRONT0), (ci - 1, FRONT1), (ci + 1, FRONT1),
+                       (ci - 1, BACK0), (ci + 1, BACK0), (ci - 1, BACK1), (ci + 1, BACK1)):
+            w.put(*f.at(i, d, h), pal["post"])
+        if h % 6 == 0:
+            for (i, d) in sorted(MAST_RING):
+                w.put(*f.at(i, d, h), pal["trim"])
 
     # ---- the rim. Alternating wedges: one colour is a hoop, two is a fairground.
     ring = _annulus(R, 2.0)
@@ -308,10 +527,13 @@ def _wheel(w: World, p: dict, ctx) -> dict:
         for d in RIM_D:
             w.put(*f.at(ci + a, d, hh + b), blk)
 
-    # ---- hub and spokes. The hub spans the WHOLE depth so it ties both A-frames to the wheel;
-    # without that the two frames are separate pieces standing next to a floating ring.
+    # ---- hub and spokes. The hub spans the WHOLE depth so it ties both masts and both A-frames
+    # to the wheel; without that they are separate pieces standing next to a floating ring. The
+    # two shafts are skipped through it - a hub cell in the lift's column is a plug in the lift.
     for (a, b) in _disc(3):
         for d in range(DEPTH):
+            if (ci + a, d) in CORES:
+                continue
             w.put(*f.at(ci + a, d, hh + b), pal["trim"])
     for k in range(nspoke):
         th = 2 * math.pi * k / nspoke
@@ -328,18 +550,24 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     for d in FRAME_D:
         for s in (-1, 1):
             for (a, b) in _line2(s * foot, 0, 0, hh):
+                if (ci + a, d) in CORES:
+                    continue
                 w.put(*f.at(ci + a, d, b), pal["post"])
                 if b == 0:              # a footing pad, so a leg lands on something
                     for j in (-1, 1):
-                        w.put(*f.at(ci + a + j, d, 0), pal["trim"])
+                        if (ci + a + j, d) not in CORES:
+                            w.put(*f.at(ci + a + j, d, 0), pal["trim"])
         for tie_h in (hh // 3, (2 * hh) // 3):
             span = int(round(foot * (1 - tie_h / hh)))
             if span * 2 + 1 >= mr:
                 for a in range(-span, span + 1):
+                    if (ci + a, d) in CORES:
+                        continue
                     w.put(*f.at(ci + a, d, tie_h), pal["trim"])
 
-    # ---- the cars. Radially outward of the rim so they can never cross it, hung on a strut.
+    # ---- the cars, in their own depth band so no car can ever be built inside a mast.
     cars, car_lamps = 0, 0
+    d_lo, d_hi = CAR_D
     for m in range(ncar):
         th = 2 * math.pi * m / ncar + math.pi / (2 * ncar)
         cia = int(round(CAR_R * math.cos(th)))
@@ -356,41 +584,28 @@ def _wheel(w: World, p: dict, ctx) -> dict:
         body = BRIGHT[int(hash01(m, R, f.x, f.z) * len(BRIGHT))]
         roof = pal["trim"] if hash01(m, 7, f.z) < 0.5 else BRIGHT[(m * 5 + 3) % len(BRIGHT)]
         style = int(hash01(m, 13, f.x) * 3)
-        d_lo, d_hi = (1, DEPTH - 2) if style != 2 else (1, DEPTH - 3)   # a pod, or a full cabin
+        lo, hi = (d_lo, d_hi) if style != 2 else (d_lo, d_hi - 1)   # a pod, or a full cabin
         i0, h0 = ci + cia, hh + cib
         for di in (-1, 0, 1):
-            for d in range(d_lo, d_hi + 1):
+            for d in range(lo, hi + 1):
                 w.put(*f.at(i0 + di, d, h0 - 1), pal["beam"])        # floor
                 w.put(*f.at(i0 + di, d, h0 + 1), roof)               # roof
-                edge = di in (-1, 1) or d in (d_lo, d_hi)
+                edge = di in (-1, 1) or d in (lo, hi)
                 if not edge:
                     continue
-                if di == 0 and d == d_lo:                            # the way in
+                if di == 0 and d == lo:                              # the way in
                     continue
                 w.put(*f.at(i0 + di, d, h0), body)
-        awn = [f.at(i0 + di, d_lo - 1, h0 + 1) for di in (-1, 0, 1)]
-        # AN AWNING OVER THE DOOR - three cells, exactly the shortest run rule 9 allows, and
-        # the only thing on this piece that leans. All three or none: two of them, where an
-        # A-frame member already stands in the third, is the scattered course rule 9 is about.
-        #
-        # AND IT IS GATED ON `min_run` LIKE EVERY OTHER TRIM COURSE. Placed with a bare `put` it
-        # bypassed the gate entirely, so a config asking for runs of five still got this run of
-        # three - the one place in the piece where the documented rule and the code disagreed,
-        # and invisible because the default `min_run` is exactly 3.
+        awn = [f.at(i0 + di, lo - 1, h0 + 1) for di in (-1, 0, 1)]
+        # AN AWNING OVER THE DOOR - three cells, exactly the shortest run rule 9 allows, and gated
+        # on `min_run` like every other trim course. Placed with a bare `put` it bypassed the gate
+        # entirely, so a config asking for runs of five still got this run of three.
         if style == 1 and mr <= 3 and not any(w.has(*cell) for cell in awn):
             for cell in awn:
                 w.put(*cell, pal["stair"], facing=_wdir(f, 0, 1),
                       half="top", shape="straight", waterlogged="false")
-        # A LIGHT RIDING THE RIM, UNDER WHICHEVER OF THE CAR'S THREE FLOOR COLUMNS IS FREE.
-        # The centre column alone lost two of twelve and said nothing: the car's own radial
-        # strut climbs through that column at some angles, and the bottom car hangs over the
-        # boarding platform, which owns the cell outright. All three columns carry the same
-        # floor overhead, so a side column is the same lamp. The bottom car still cannot have
-        # one - there is a platform where the lamp would go - so the count is REPORTED rather
-        # than assumed, because a lamp that quietly is not there is the failure this file keeps
-        # writing rules about.
         for lit_di in (0, -1, 1):
-            if _lamp(w, *f.at(i0 + lit_di, (d_lo + d_hi) // 2, h0 - 2), pal["light"]):
+            if _lamp(w, *f.at(i0 + lit_di, (lo + hi) // 2, h0 - 2), pal["light"]):
                 car_lamps += 1
                 break
         cars += 1
@@ -399,19 +614,10 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     #
     # A lantern needs a full block above it or below it, and on a circle neither is true at the
     # sides: at three o'clock the cell under a rim cell is outside the annulus and the cell over it
-    # is too, so a naive ring lit only the top and the bottom arcs and quietly skipped the rest -
-    # `_lamp` returning False is exactly the "does nothing, quietly" failure this repo keeps
-    # writing rules about. A one-cell bracket proud of the rim makes the answer the same at every
-    # angle, and it is drawn from the rim outward so it can never be a floating stub.
-    #
-    # **AND THE LAMP MUST BE TRIED ON BOTH SIDES OF THE TIP.** The bracket alone did not deliver
-    # that promise, and the measurement is the exact inverse of the paragraph above: hanging the
-    # lantern under the tip placed 15 of 24, and every one of the nine that vanished was on the
-    # TOP arc. "Below the tip" points away from the hub on the lower half - open air - and back
-    # TOWARD it on the upper half, where it lands on the bracket's own radial line or back inside
-    # the annulus. Whichever of the two neighbours is inward is the one that is occupied, so the
-    # other is free by construction: try under the tip, then over it, and a refusal on both is a
-    # real obstruction rather than an artefact of which way round the circle we are.
+    # is too, so a naive ring lit only the top and the bottom arcs and quietly skipped the rest.
+    # A one-cell bracket proud of the rim makes the answer the same at every angle, and the lamp is
+    # tried on BOTH sides of the tip - hanging it under the tip alone placed 15 of 24, and every
+    # one of the nine that vanished was on the TOP arc, where "below" points back toward the hub.
     lit = 0
     for k in range(ncar * 2):
         th = math.pi * k / ncar
@@ -426,36 +632,129 @@ def _wheel(w: World, p: dict, ctx) -> dict:
                 or _lamp(w, *f.at(ci + ba, RIM_D[0], hh + bb + 1), pal["light"])):
             lit += 1
 
-    # ---- entrance pylons, which are also the only thing a nameplate can hang on out here.
-    title = str(p.get("title") or "BIG WHEEL").upper()
+    # ---- THE GALLERY at the axle: the place the lift delivers you to, and the reason to go up.
+    # It is laid over the hub across the whole depth, with the lift's column and the chute's mouth
+    # left OPEN by the loop rather than punched afterwards - the void tower's crenellations shipped
+    # as a plain drum for exactly that mistake and nothing about the code looked wrong.
+    gal = [(i, d) for i in range(ci - 4, ci + 5) for d in range(DEPTH)
+           if (i, d) not in CORES]
+    for (i, d) in gal:
+        w.put(*f.at(i, d, G), pal["trim"] if (i + d) % 2 else pal["ground"])
+    galset = set(gal)
+    rails = 0
+    for (i, d) in gal:                  # a rail wherever the deck ends, and round the chute mouth
+        edge = any((i + u, d + v) not in galset and (i + u, d + v) not in CHUTE
+                   for (u, v) in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+        mouth = any((i + u, d + v) in CHUTE for (u, v) in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+        if (i, d) in LIFT:
+            continue
+        if edge or mouth:
+            # the one gap in the rail round the mouth is the way in - a hole you step into on
+            # purpose, not one you walk into
+            if mouth and d == min(dd for (_ii, dd) in CHUTE) - 1 and i == ci:
+                w.put(*f.at(i, d, G + 1), pal["gate"], facing=_wdir(f, 0, 1),
+                      open="true", in_wall="false", powered="false")
+            else:
+                w.put(*f.at(i, d, G + 1), pal["fence"])
+            rails += 1
+    gal_lamps = 0
+    for (i, d) in ((ci - 4, FRONT0), (ci + 4, FRONT0), (ci - 4, BACK1), (ci + 4, BACK1)):
+        for h in range(G + 1, G + 4):
+            w.put(*f.at(i, d, h), pal["post"])
+        w.put(*f.at(i, d, G + 4), pal["trim"])
+        if _lamp(w, *f.at(i, d, G + 5), pal["light"]):
+            gal_lamps += 1
+
+    # ---- THE WATER, last, so every cell that has to seal it is already standing.
+    wet += _fill_water(w, f, LIFT, 0, G)
+    leaks = _watertight(w, wet)
+    if leaks:
+        raise ValueError("the wheel's lift leaks at %d cells, the first %s - a water shaft with a "
+                         "hole in it drains onto the platform" % (len(leaks), leaks[:3]))
+    blocked = _clear_fall(w, f, CHUTE, 0, G)
+    if blocked:
+        raise ValueError("the wheel's chute is obstructed at %s - a fall that hits a block is a "
+                         "fall that hurts" % (blocked[:3],))
+
+    # ---- the boarding house over the pool mouth, the queue, and the signs.
     signs = 0
+    title = str(p.get("title") or "BIG WHEEL").upper()
+    for i in (ci - 3, ci + 3):
+        for h in range(5):
+            w.put(*f.at(i, -2, h), pal["post"])
+        w.put(*f.at(i, -3, 0), pal["trim"])
+        _lamp(w, *f.at(i, -3, 4), pal["light"])
+    for i in range(ci - 3, ci + 4):     # the lintel the nameplate hangs on
+        w.put(*f.at(i, -2, 5), pal["trim"])
+    for i in range(ci - 4, ci + 5):
+        w.put(*f.at(i, -3, 6), pal["trim"])
+    if p.get("sign", True) and _signed(w, f, pal, ci, -3, 5, f.facing,
+                                       [title[:SIGN_WIDTH], "", "dive in below", "lift to the top"]):
+        signs += 1
+    for lane in range(2):               # a switchback queue in front of the mouth
+        d = -4 - lane
+        lo, hi = (2, W - 4) if lane == 0 else (3, W - 3)
+        for i in range(lo, hi + 1):
+            if abs(i - ci) <= 1 and lane == 0:
+                continue                # the way through
+            w.put(*f.at(i, d, 0), pal["fence"])
+    for i in (2, W - 3):
+        for h in range(3):
+            w.put(*f.at(i, -QUEUE, h), pal["post"])
+        w.put(*f.at(i, -QUEUE, 3), pal["trim"])
+        _lamp(w, *f.at(i, -QUEUE, 4), pal["light"])
+
+    # ---- entrance pylons, which are also the only thing a second nameplate can hang on out here.
     for k, i in enumerate((1, W - 2)):
         for h in range(6):
             w.put(*f.at(i, -1, h), pal["post"])
         w.put(*f.at(i, -1, 6), pal["trim"])
         _lamp(w, *f.at(i, -1, 7), pal["light"])
-        lines = ([title[:SIGN_WIDTH], "", "board below", ""] if k == 0
-                 else [title[:SIGN_WIDTH], "", f"{ncar} cars", f"{D} across"])
+        lines = ([title[:SIGN_WIDTH], "", "%d cars" % ncar, "%d across" % D] if k == 0
+                 else [title[:SIGN_WIDTH], "", "%d up" % (G + 1), "then jump"])
         if p.get("sign", True) and _signed(w, f, pal, i, -2, 3, f.facing, lines):
             signs += 1
 
+    board = f.at(ci, -1, -1)            # the cell you step into to start the ride
     return {"kind": "wheel", "width": W, "depth": DEPTH, "diameter": D,
             "top": hh + CAR_R + 1, "cars": cars, "spokes": nspoke, "rim_lamps": lit,
-            "rim_lamp_slots": ncar * 2, "car_lamps": car_lamps, "signs": signs,
-            "contract": "a two-cell ring spoked to a hub, straddled by two A-frames whose feet "
-                        "reach the pad, with cars mounted OUTSIDE the rim so the silhouette stays "
-                        "a circle and the lowest car lands on the boarding platform"}
+            "rim_lamp_slots": ncar * 2, "car_lamps": car_lamps, "gallery_lamps": gal_lamps,
+            "signs": signs, "gallery_rail": rails,
+            "ride": "bubble lift + free fall",
+            "board": list(board),
+            "gallery_y": f.at(0, 0, G)[1],
+            "lift": [list(f.at(i, d, h)) for h in range(0, G + 1) for (i, d) in sorted(LIFT)],
+            "lift_soul": [list(f.at(i, d, -1 - POOL_D)) for (i, d) in sorted(LIFT)],
+            "chute": [list(f.at(i, d, h)) for h in range(0, G + 1) for (i, d) in sorted(CHUTE)],
+            "pool": [list(c) for c in sorted(wet)],
+            "pool_top": f.at(0, 0, -1)[1],
+            "contract": "a two-cell ring spoked to a hub and straddled by two masts, and A RIDE: a "
+                        "soul-sand bubble column lifts you %d courses up the front mast to a "
+                        "gallery at the axle, and a walled chute drops you back into the same "
+                        "three-course channel you set off from, which cancels the fall entirely. "
+                        "The shaft has no door because a water shaft cannot have one - you swim in "
+                        "under the casing - and the whole water body is proved leak-free by "
+                        "simulation before the design is emitted." % (G + 1 + POOL_D),
+            "unverified": ["nobody has ridden it in game. The bubble column, the seal and the "
+                           "clear fall are all simulated here; the FEEL of a 50-course drop into "
+                           "three courses of water is reasoning until someone jumps."]}
 
 
 # ------------------------------------------------------------------ the drop tower
 
 def _drop(w: World, p: dict, ctx) -> dict:
-    """A DROP TOWER: a latticed shaft with real openings, a car near the top, a house and a cap.
+    """A DROP TOWER, AND IT IS THE ONE RIDE VANILLA GIVES YOU OUTRIGHT.
 
-    The void tower settled the shape of this and it is followed rather than re-derived: a plinth,
-    regular coursework, openings that are OPENINGS, a string course per tier, a corbelled overhang
-    and a crowned top. Its first attempt was a sheared jagged stub and was rejected on sight as
-    *"a tossed grouping of vague blocks"* - what makes voxels read as a building is regularity.
+    A soul-sand bubble column lifts you the full height of the shaft, you step out onto a platform
+    under the winch house, and then you jump: fifty courses of open shaft with the park flashing
+    past the window slits, into two courses of water at the bottom. **LANDING IN WATER CANCELS ALL
+    FALL DAMAGE AT ANY HEIGHT**, which is why this is the one park mechanic that needs no machine,
+    no redstone and no compromise. Then you swim four cells to the lift and go again.
+
+    The architecture is the void tower's, followed rather than re-derived: a plinth, regular
+    coursework, openings that are OPENINGS, a string course per tier, a corbelled overhang and a
+    crowned top. Its first attempt was a sheared jagged stub and was rejected on sight as *"a
+    tossed grouping of vague blocks"* - what makes voxels read as a building is regularity.
 
     **THE OPENINGS ARE LEFT EMPTY BY THE WALL LOOP.** Building the ring and cutting holes
     afterwards repaints cells that already exist; the void tower's crenellations shipped as a plain
@@ -463,20 +762,48 @@ def _drop(w: World, p: dict, ctx) -> dict:
 
     **AND THE GLAZING IS DECIDED PER PANEL, NOT PER CELL.** Hashed per cell it is confetti - the
     deck soffit's 184 runs of one or two cells, in glass. One hash per (tier, face) glazes a whole
-    panel or none of it, so the tower reads as a building with some windows in rather than as a
-    building with a rash.
+    panel or none of it.
+
+    **THE THREE THINGS THE RIDE ITSELF IMPOSES**, none of which is negotiable:
+
+      the shaft interior must be EMPTY over the drop zone, all the way down, or the fall is a fall
+      onto a block. `_clear_fall` refuses to emit a tower whose chute is obstructed;
+      the lift cannot have a door at the water's level, so the pool at the base is its entrance and
+      the base of the tower is a tank, not a floor;
+      and the platform is a FLOOR WITH A HOLE IN IT, the hole left open by the loop rather than
+      punched afterwards, ringed in rail with a single gate. A hole you can walk into by accident
+      is not a ride, it is a hazard.
     """
     f = _Frame(p)
     pal = LANDS[p["land"]]
     mr = int(p["min_run"])
 
-    S = max(7, int(p["shaft"] or 9) | 1)
-    H = max(48, int(p["height"] or 54))
+    S = max(9, int(p["shaft"] or 9) | 1)
+    H = max(48, int(p["height"] or 56))
     W, DP = S + 6, S + 4
     i0, d0 = (W - S) // 2, (DP - S) // 2
     QUEUE = 5
+    POOL_D = 2
+
+    # the shaft's own interior, and the two things that live in it
+    IN_I = range(i0 + 1, i0 + S - 1)
+    IN_D = range(d0 + 1, d0 + S - 1)
+    INSIDE = {(i, d) for i in IN_I for d in IN_D}
+    LIFT = {(i0 + 2, d0 + 2)}
+    CASE = {(i, d) for i in range(i0 + 1, i0 + 4) for d in range(d0 + 1, d0 + 4)} - LIFT
+    dz_i, dz_d = i0 + 4, d0 + 3
+    DROP = {(i, d) for i in range(dz_i, dz_i + 3) for d in range(dz_d, dz_d + 3)}
+    if DROP & CASE:
+        raise ValueError("the drop chute and the lift casing share a cell; the shaft is too narrow")
+    PLAT = 6 * ((H - 6) // 6)           # the platform lands ON a string course, never between two
 
     _ground(w, f, pal, -1, W, -QUEUE - 1, DP)
+
+    # ---- THE TANK. The tower's base is not a floor, it is the pool the ride lands in - and it is
+    # also the only way into the lift, because a water shaft may not have a door at its own level.
+    wet = _basin(w, f, pal, INSIDE, top=-1, depth=POOL_D)
+    for (i, d) in sorted(LIFT):
+        w.put(*f.at(i, d, -1 - POOL_D), SOUL)
 
     # ---- the base station: a walled room round the shaft's foot, with the door left empty.
     door = {W // 2 - 1, W // 2, W // 2 + 1}
@@ -499,8 +826,8 @@ def _drop(w: World, p: dict, ctx) -> dict:
     # A CORNICE UNDER IT - AND IT LEAVES THE DOOR COLUMNS AS A PLAIN LINTEL BAND. Run across them
     # it replaces the top wall course with stairs, and the nameplate over the door then has a STAIR
     # behind it rather than a full block, so the sign is silently refused and the entrance ends up
-    # unnamed. The gatehouse already knew this: a lintel band over an opening reads as an arcade,
-    # and it is the only thing a front sign has to hang on.
+    # unnamed. A lintel band over an opening reads as an arcade, and it is the only thing a front
+    # sign has to hang on.
     corn = []
     for i in range(W):
         for d in range(DP):
@@ -531,7 +858,6 @@ def _drop(w: World, p: dict, ctx) -> dict:
                 if corner:
                     w.put(*f.at(i, d, h), pal["post"])
                     continue
-                # which face, and how far along it - the run's OWN axis
                 if ed:
                     k, face_ix, nrm = i - i0, (0 if d == d0 else 1), (0, 1 if d == d0 else -1)
                 else:
@@ -541,7 +867,11 @@ def _drop(w: World, p: dict, ctx) -> dict:
                 # `solid_k` and the check can never fire: the tower shipped with two thin slots
                 # either side of a solid pier and NO DOOR, aligned perfectly with the station's
                 # own doorway, and every render showed a lattice that looked exactly right.
-                if d == d0 and abs(k - S // 2) <= 1 and 1 <= h <= 3:
+                #
+                # AND IT STARTS AT THE FLOOR. At h=1 it was a one-course step up out of a station
+                # whose walking level is h=0 - a threshold you have to jump, on the way out of a
+                # pool.
+                if d == d0 and abs(k - S // 2) <= 1 and 0 <= h <= 2:
                     opened += 1
                     continue
                 if band or k in solid_k:
@@ -551,14 +881,11 @@ def _drop(w: World, p: dict, ctx) -> dict:
                     # exactly that once and nothing about the code looked wrong.
                     hot = hash01(x, y, z) < (0.30 if band else 0.16)
                     if band:
-                        # ...but the band's OWN material changes by tier, so fifty-four courses of
-                        # tower are not nine identical storeys stacked.
                         blk = pal["trim"] if hash01(f.x, f.z, h // 6, 5) < 0.62 else pal["post"]
                     else:
                         blk = pal["trim"] if hot else pal["wall"]
                     w.put(x, y, z, blk)
                     continue
-                # an OPENING. Glazed or open, decided once per panel.
                 tier = h // 6
                 if hash01(f.x, f.z, tier, face_ix) < 0.34:
                     _pane(w, f, *f.at(i, d, h), *(-nrm[1], nrm[0]))
@@ -571,38 +898,43 @@ def _drop(w: World, p: dict, ctx) -> dict:
                     if i in (i0 - 1, i0 + S) or d in (d0 - 1, d0 + S):
                         w.put(*f.at(i, d, h), pal["trim"])
 
-    # ---- the car, parked at a string course so its floor has a full ring to hold on to.
-    car_h = (H - 12) - ((H - 12) % 6)
-    seats, rails = [], 0
-    for i in range(i0 - 2, i0 + S + 2):
-        for d in range(d0 - 2, d0 + S + 2):
-            ring = max(abs(i - (i0 + S // 2)), abs(d - (d0 + S // 2))) - S // 2
-            if ring not in (1, 2):
-                continue
-            w.put(*f.at(i, d, car_h), pal["accent"] if ring == 1 else pal["trim"])
-            if ring == 2:
-                w.put(*f.at(i, d, car_h + 1), pal["fence"])
-                rails += 1
-            else:
-                # A SEAT'S RUN GOES ALONG ITS OWN FACE. Keyed the other way round every run
-                # measures one cell and the whole course is dropped as confetti - the deck
-                # soffit's inverted axis, which shipped once and made a measurement and the code
-                # acting on it agree with each other perfectly.
-                ai, ad = abs(i - (i0 + S // 2)), abs(d - (d0 + S // 2))
-                di = (1 if i > i0 + S // 2 else -1) if ai > ad else 0
-                dd = 0 if di else (1 if d > d0 + S // 2 else -1)
-                key, order = (("ni", i), d) if di else (("nd", d), i)
-                seats.append((key, order, f.at(i, d, car_h + 1), _wdir(f, di, dd)))
-    nseat = _stair_run(w, f, pal, seats, mr, half="bottom")
+    # ---- THE LIFT CASING, floor to platform. It stands in the pool, so the water runs UNDER it
+    # and that is how you get in: dive, swim four cells, surface over the soul sand, go up.
+    _case(w, f, pal, CASE, 0, PLAT, pal["trim"])
+
+    # ---- THE PLATFORM. A floor with a hole in it, the hole left open by the loop.
+    plat_cells = sorted(INSIDE - DROP - LIFT)
+    for (i, d) in plat_cells:
+        w.put(*f.at(i, d, PLAT), pal["trim"] if (i + d) % 2 else pal["wall"])
+    plat_set = set(plat_cells)
+    rails, gate_at = 0, None
+    for (i, d) in plat_cells:
+        if not any((i + u, d + v) in DROP for (u, v) in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+            continue
+        if gate_at is None and d == min(dd for (_i, dd) in DROP) - 1 and i == dz_i + 1:
+            gate_at = (i, d)
+            w.put(*f.at(i, d, PLAT + 1), pal["gate"], facing=_wdir(f, 0, 1),
+                  open="true", in_wall="false", powered="false")
+        else:
+            w.put(*f.at(i, d, PLAT + 1), pal["fence"])
+        rails += 1
+    plat_lamps = 0
+    for (i, d) in ((i0 + 1, d0 + S - 2), (i0 + S - 2, d0 + 1), (i0 + S - 2, d0 + S - 2)):
+        if (i, d) not in plat_set:
+            continue
+        for h in (PLAT + 1, PLAT + 2):
+            w.put(*f.at(i, d, h), pal["post"])
+        if _lamp(w, *f.at(i, d, PLAT + 3), pal["light"]):
+            plat_lamps += 1
 
     # ---- corbel, top house, cap. Each course steps OUT, which is what a corbel is; a plain
     # extruded box with a hat on it is the thing this is avoiding.
     #
     # **A CORBEL COURSE MUST INCLUDE THE SHAFT'S OWN RING, not just the ring outside it.** Drawn as
-    # the 11x11 perimeter alone it sits one cell clear of a 9x9 shaft on every side and touches
-    # nothing: the house, the cap and both corbels shipped as three separate lumps 54 courses up,
-    # 500-odd blocks of building hanging in the sky. Nothing about the code looked wrong and every
-    # block state was legal - it is the connectivity check that catches this and only that.
+    # the perimeter alone it sits one cell clear of the shaft on every side and touches nothing:
+    # the house, the cap and both corbels shipped as three separate lumps 54 courses up. Nothing
+    # about the code looked wrong and every block state was legal - it is the connectivity check
+    # that catches this and only that.
     for k, h in enumerate((H, H + 1)):
         for i in range(i0 - 2, i0 + S + 2):
             for d in range(d0 - 2, d0 + S + 2):
@@ -610,7 +942,7 @@ def _drop(w: World, p: dict, ctx) -> dict:
                 if 0 <= ring <= k + 1:
                     w.put(*f.at(i, d, h), pal["trim"])
     hi0, hd0, HS = i0 - 1, d0 - 1, S + 2
-    for i in range(hi0, hi0 + HS):                     # the machine-room floor is a RING; the
+    for i in range(hi0, hi0 + HS):                     # the winch room's floor is a RING; the
         for d in range(hd0, hd0 + HS):                 # shaft stays open all the way up
             if i in (hi0, hi0 + HS - 1) or d in (hd0, hd0 + HS - 1):
                 w.put(*f.at(i, d, H + 2), pal["trim"])
@@ -666,21 +998,49 @@ def _drop(w: World, p: dict, ctx) -> dict:
     for i in (1, W - 2):
         for d in (1, DP - 2):
             _lamp(w, *f.at(i, d, 4), pal["light"])
+
+    # ---- THE WATER, last, so everything that has to seal it is already standing.
+    wet += _fill_water(w, f, LIFT, 0, PLAT)
+    leaks = _watertight(w, wet)
+    if leaks:
+        raise ValueError("the tower's lift leaks at %d cells, the first %s - a water shaft with a "
+                         "hole in it drains across the station floor" % (len(leaks), leaks[:3]))
+    blocked = _clear_fall(w, f, DROP, 0, PLAT)
+    if blocked:
+        raise ValueError("the drop chute is obstructed at %s - a fall that hits a block is a fall "
+                         "that hurts" % (blocked[:3],))
+
     title = str(p.get("title") or "DROP TOWER").upper()
-    lines = list(p.get("lines") or ["hold the bar", "one drop", "mind the step"])
+    lines = list(p.get("lines") or ["swim in, ride up", "then step off", "the water catches"])
     signs = 0
     if p.get("sign", True):
         signs += _signed(w, f, pal, W // 2, -1, 4, f.facing,
-                         [title[:SIGN_WIDTH], "", f"{top + 1} up", ""])
+                         [title[:SIGN_WIDTH], "", "%d up" % (PLAT + 1), "%d down" % (PLAT + 2)])
         signs += _signed(w, f, pal, W // 2 + 2, 1, 2, f.back,
                          ["RULES"] + [str(s)[:SIGN_WIDTH] for s in lines[:3]])
 
     return {"kind": "drop", "width": W, "depth": DP, "shaft": S, "height": H,
-            "top": top + 1, "car_h": car_h, "glazed": glazed, "openings": opened,
-            "rails": rails, "seats": nseat, "signs": signs,
-            "contract": "a latticed shaft with real openings and glazed panels, a ring car parked "
-                        "at a string course, a corbelled top house with a stepped cap, and a "
-                        "queue rail leading to the one door"}
+            "top": top + 1, "glazed": glazed, "openings": opened,
+            "platform_y": f.at(0, 0, PLAT)[1], "platform_rail": rails,
+            "platform_lamps": plat_lamps, "signs": signs,
+            "ride": "bubble lift + free fall",
+            "fall": PLAT + 2,
+            "board": list(f.at(W // 2, d0 + 1, -1)),
+            "lift": [list(f.at(i, d, h)) for h in range(0, PLAT + 1) for (i, d) in sorted(LIFT)],
+            "lift_soul": [list(f.at(i, d, -1 - POOL_D)) for (i, d) in sorted(LIFT)],
+            "chute": [list(f.at(i, d, h)) for h in range(0, PLAT + 1) for (i, d) in sorted(DROP)],
+            "pool": [list(c) for c in sorted(wet)],
+            "pool_top": f.at(0, 0, -1)[1],
+            "contract": "a latticed shaft with real openings and glazed panels, and A RIDE: a "
+                        "soul-sand bubble column lifts you %d courses from the pool in the "
+                        "tower's base to a platform under the winch house, and the platform is a "
+                        "floor with a %dx%d hole in it. The chute below that hole is proved clear "
+                        "cell by cell and lands in two courses of water, which cancels the fall "
+                        "entirely; the lift's seal is proved by simulation. You swim back to the "
+                        "lift without leaving the tank." % (PLAT + 1 + POOL_D, 3, 3),
+            "unverified": ["nobody has ridden it in game. The column, the seal and the clear fall "
+                           "are simulated here; whether a %d-course drop lands cleanly in the "
+                           "middle of a 3x3 chute is reasoning until someone jumps." % (PLAT + 2)]}
 
 
 def _cap_band(pal, k):

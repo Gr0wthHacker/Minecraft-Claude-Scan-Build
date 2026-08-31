@@ -191,10 +191,6 @@ THEMES = {
             {"name": "The Monument", "gen": "monument", "kind": "monument",
              "size": [33, 49, 33], "anchor": "centre", "orient": False,
              "params": {"land": "midway", "facing": "east"}},
-            {"name": "Founders Statue", "gen": "civic", "kind": "statue",
-             "size": [11, 21, 11],
-             "params": {"land": "midway", "facing": "east"}},
-            # THE GATE IS THE ONE MODULE WHOSE POSITION IS ITS MEANING.
             {"name": "Park Gate", "gen": "park", "kind": "gate", "size": [15, 9, 7],
              "anchor": "edge", "side": "west",
              "params": {"land": "midway", "lanes": 3, "depth": 6, "facing": "west"}},

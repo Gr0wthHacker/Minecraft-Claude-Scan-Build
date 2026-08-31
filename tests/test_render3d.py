@@ -99,6 +99,54 @@ def test_an_unrecorded_facing_is_reported_not_guessed():
         assert not known and yaw == 0.0
 
 
+# --------------------------------------------------------------- structures (compass-word facing)
+#
+# `gen/park.py` and everything built on it (casino, coaster, bigwheel, civic, frontiertown,
+# hollowmanor, monument, streetfurniture) records `facing` as a COMPASS WORD, not a vector -
+# park.py's own docstring: "the direction the FRONT looks out; a visitor stands in the +facing
+# direction." That is the same fact an animal's nose vector states, so a word must land on the
+# same yaw a vector would, via the ONE map that says what a word means (`park._STEP`) rather
+# than a second, hand-typed copy that could disagree with it.
+
+def test_a_compass_word_facing_is_converted_via_parks_own_step_map():
+    from mcbuild.gen.park import _STEP
+    for word, vec in _STEP.items():
+        by_word = look.facing_yaw({"facing": word})
+        by_vec = look.facing_yaw({"facing": list(vec)})
+        assert by_word[0] == pytest.approx(by_vec[0]), word
+        assert by_word[1] is True
+
+
+def test_bearing_zero_faces_a_park_modules_front_door():
+    """A visitor 'stands in the +facing direction' and looks at the front door - that is the
+    structure's version of an animal's camera standing off the nose looking into the face, so
+    bearing 0 must land nearer the door than the back wall, for EVERY compass word, not just the
+    one this project has already gotten wrong by hand (CLAUDE.md: got wrong twice in one
+    session)."""
+    from mcbuild.gen.park import _STEP
+    m = filled(9, 5, 7)                                    # a little room, not yet given a facing
+    lo, hi = np.zeros(3), np.array([9.0, 5.0, 7.0])
+    centre = (lo + hi) / 2
+    for word, (dx, dz) in _STEP.items():
+        door = centre.copy()
+        door[0] = hi[0] - 0.5 if dx > 0 else (lo[0] + 0.5 if dx < 0 else centre[0])
+        door[2] = hi[2] - 0.5 if dz > 0 else (lo[2] + 0.5 if dz < 0 else centre[2])
+        back = 2 * centre - door                            # the wall on the opposite side
+        yaw0, known = look.facing_yaw({"facing": word})
+        assert known, word
+        p = np.array(r3.orbit(m, yaw=yaw0, pitch=5).pos)
+        assert np.linalg.norm(p - door) < np.linalg.norm(p - back), \
+            f"facing={word!r}: bearing 0 looked at the back wall, not the door"
+
+
+def test_an_unknown_compass_word_is_reported_not_guessed():
+    """A typo'd or not-yet-invented kind of facing must say so, the same as a missing vector -
+    silently defaulting to world +z here is the same trap this file already pins for vectors."""
+    for meta in ({"facing": "northeast"}, {"facing": "up"}, {"facing": ""}):
+        yaw, known = look.facing_yaw(meta)
+        assert not known and yaw == 0.0
+
+
 def test_the_two_profiles_are_mirror_images_of_a_symmetric_build():
     m = filled(9, 9, 25)
     m.ids[:, :4, :3] = 0                                    # break the symmetry along z only

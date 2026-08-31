@@ -41,6 +41,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mcbuild import render3d as r3, scan                          # noqa: E402
+from mcbuild.gen.park import _STEP as _COMPASS                    # noqa: E402
 
 WORDS = {0: "head-on", 45: "3/4 front", 90: "profile", 135: "3/4 rear",
          180: "tail-on", 225: "3/4 rear", 270: "profile", 315: "3/4 front"}
@@ -56,10 +57,29 @@ def _font(size: int):
 
 
 def facing_yaw(meta: dict) -> tuple[float, bool]:
-    """Camera yaw that puts you in FRONT of the animal, and whether the sidecar actually said so."""
+    """Camera yaw that puts you in FRONT of the build, and whether the sidecar actually said so.
+
+    An ANIMAL records `facing` as a vector - the direction its own nose points, away from the
+    body. A STRUCTURE (`mcbuild/gen/park.py` and everything built on it: casino, coaster,
+    bigwheel, civic, frontiertown, hollowmanor, monument, streetfurniture) records it as a
+    COMPASS WORD instead - "the direction the front looks out; a visitor stands in the +facing
+    direction" (park.py's own docstring). Those are the SAME fact stated two ways: a visitor
+    standing in +facing, looking back at the front door, is exactly the animal's camera standing
+    off the nose looking back at the face. So a word is converted to the vector `park._STEP`
+    already gives it - imported from there rather than re-guessed, because this project has
+    picked a bearing convention by hand before and got it wrong twice in one session.
+
+    A design with no recorded facing SAYS SO rather than defaulting quietly - the same rule for
+    a missing vector and for a word that is not in `_STEP` (a typo, or a future kind that has not
+    picked one yet).
+    """
     f = (meta or {}).get("facing")
     if not f:
         return 0.0, False
+    if isinstance(f, str):
+        f = _COMPASS.get(f)
+        if f is None:
+            return 0.0, False
     fx, fz = float(f[0]), float(f[1])
     if fx == 0 and fz == 0:
         return 0.0, False

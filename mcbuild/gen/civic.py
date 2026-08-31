@@ -546,23 +546,41 @@ def _fountain(w: World, p: dict, ctx) -> dict:
     for (di, dd) in _cells(c, r1 - 1, _disc):
         w.put(*f.at(c + di, c + dd, 3), pal["trim"])
 
+    # ---- THE CASCADE. Three basins of nothing but source blocks is exactly how the log flume
+    # failed - it audits, it costs nothing, and a rider (or here, the water itself) never moves.
+    # So each upper rim carries ONE open notch, toward the front where the approach sees it, and
+    # nothing is placed in the column under it: water is a SOURCE only where the interior fill
+    # puts it, and every cell it reaches past the notch is FLOWING, which is what
+    # `tests/test_civic.py` asks `fluids.spread` to prove rather than trusting the geometry.
+    notch2 = (0, -r1)           # basin two spills over its own lip, onto the pedestal below it
+    notch3 = (0, -r2)           # basin three spills the same way, straight into basin two
+
     # ---- h=4 basin two
     lip2 = set(_annulus(r1, _disc))
     for (di, dd) in lip2:
+        if (di, dd) == notch2:
+            continue
         w.put(*f.at(c + di, c + dd, 4), pal["trim"])
     for (di, dd) in _cells(c, r2, _disc):
+        if (di, dd) == notch3:
+            continue
         w.put(*f.at(c + di, c + dd, 4), pal["ground"])
         w.put(*f.at(c + di, c + dd, 5), pal["ground"])
 
     # ---- h=6 basin three, a dish around a jet column
     for (di, dd) in set(_annulus(r2, _disc)):
+        if (di, dd) == notch3:
+            continue
         w.put(*f.at(c + di, c + dd, 6), pal["trim"])
     w.put(*f.at(c, c, 6), pal["accent"])
     w.put(*f.at(c, c, 7), pal["accent"])
     w.put(*f.at(c, c, 8), "end_rod", facing="up")
 
     # ---- WATER LAST, and only into cells nothing else claimed. Source blocks: flowing water dies
-    # seven cells from its source, and a basin fed by flow is a basin that empties.
+    # seven cells from its source, and a basin fed by flow is a basin that empties - which is
+    # fine here, because every source is still an interior fill, never the notch itself, so the
+    # notch and everything below it down to the next basin is real FLOWING water, not a second
+    # source pretending to be a waterfall.
     water = 0
     for (di, dd) in _cells(c, r0 - 1, _disc):
         water += int(_put_free(w, f, c + di, c + dd, 1, "water", level="0"))

@@ -11,7 +11,19 @@ silhouette converges to a point and the eye is carried up it from forty blocks a
     2  PODIUM         a drum with pilasters, RECESSED inscription panels, moulded cap and base
     3  COLONNADE      eight to twelve columns carrying an entablature - THE GAPS ARE THE POINT
     4  SHAFT          a fluted taper with a gilded collar partway up
-    5  CROWN          a WINGED figure, 21 blocks across, built as one-thick sheets
+   4.5 GALLERY        a railed, lit deck on the shaft's own capital, reached by...
+    -  THE CLIMB      a spiral stair tower behind the podium and a fenced bridge to the gallery
+    5  CROWN          a WINGED figure, 21 blocks across, built as one-thick sheets, standing ON
+                       the gallery rather than screwed to the tower's tip
+
+**THE PLAQUE SAYS "CLIMB THE STEPS, THE VIEW IS FREE" AND IT HAS TO BE TRUE.** A monument that
+only *reads* as climbable is the same failure this project keeps finding in its rides - a track
+228 cells long walled off from its own platform, a flume of nothing but source blocks. So there
+is a real path: 39 stair treads wound round a newel post behind the podium (`_turret`), a fenced
+walkway across to the tower (`_bridge`), and a railed gallery under the crown's own feet
+(`_gallery`). `tests/test_monument.py` floods the built model from a real ground cell and asserts
+the gallery is in the same connected region - the axolotl's own lesson, that a test seeded in the
+void proves nothing, applied here to a staircase instead of an animal.
 
 **THE CROWN IS PLANAR AND THAT IS NOT A STYLE CHOICE.** This repo cannot build volumetric muscle
 and has the panel verdicts to prove it: every cat and both bears are retired, and the jaguar at
@@ -56,7 +68,8 @@ import math
 
 from .canvas import Canvas, hash01
 from .civic import (
-    _Plaques, _annulus, _cells, _disc, _face_out_radial, _lamp_post, _put_free, _slab, _stair,
+    _BALUSTRADE, _Plaques, _annulus, _cells, _disc, _face_out_radial, _lamp_post, _pane_props,
+    _put_free, _slab, _stair,
 )
 from .park import LANDS, SIGN_WIDTH, _BACK, _STEP, _Frame
 from .vertical import Ctx, World
@@ -102,12 +115,27 @@ H_SHAFT0 = 13                   # the shaft starts on the cap and rises through 
 H_COLLAR = 27                   # the moulded collar: corbel, band, return
 H_TAPER0, H_TAPER1 = 29, 36     # the upper, narrower shaft
 H_SHAFTCAP = 37
-H_ABACUS = 38
-FIG0 = 39                       # the crown's own floor
+H_ABACUS = 38                   # the shaft's own capital
+
+# ---- tier 4.5: THE GALLERY, because a plaque that says "the view is free" has to mean it. It
+# sits on the abacus - one clear course above the shaft cap, safely below the crown - so the
+# crown reads as a figure STANDING on the tower rather than a finial screwed to its tip.
+GAL_R = 4                       # wider than the shaft, narrower than the podium
+H_GALLERY = H_ABACUS + 1        # the floor you actually stand on
+H_GALLERY_RAIL = H_GALLERY + 1  # the balustrade course
+FIG0 = H_GALLERY_RAIL + 1       # the crown's own floor, one clear course above the rail
+# THE STAIR TOWER'S OFFSET BEHIND THE DRUM. Clear of every ring up to CAP_R+1 (the widest the
+# podium or colonnade ever get) is not enough on its own - `_ring_points(STEP_R[0]-1, 8)` puts a
+# foot lamp on the monument's own BACK AXIS at radius STEP_R[0]-1, and a turret at exactly that
+# radius plus one (its own south tread) lands a stair on top of a lamp post and the lamp post
+# wins, because it is placed last. Shipped once at CAP_R+3=12, which is exactly STEP_R[0]-2 - one
+# short of the lamp's own radius. CAP_R+6 clears it with room either side.
+TURRET_D = CAP_R + 6
 
 MIN_HEIGHT = 45                 # asserted: below this it is a bollard, not a monument
 MIN_WINGSPAN = 15               # asserted: below this the wings read as shoulders
 MIN_RING = 3                    # a moulding ring shorter than this is confetti, not a course
+MIN_CLIMB = 30                  # asserted: a "climb" under this many treads is a doorstep
 
 
 # ------------------------------------------------------------------ radial helpers
@@ -440,6 +468,113 @@ def _shaft(w, f, pal, c):
     return n
 
 
+# ------------------------------------------------------------------ tier 4.5: the climb
+
+# The eight offsets of a lighthouse spiral - three cells around a centre post. THE ORDER IS
+# CHECKED, NOT ASSUMED: every consecutive pair here differs by exactly one cell on exactly one
+# axis, which is what lets each tread's `facing` be asserted the stairhead way - "a flight that
+# ascends toward D has every tread facing=D" - even though the direction of travel turns a full
+# revolution every eight treads. `tests/test_monument.py` pins the shape, not just the read-out.
+_SPIRAL = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
+
+
+def _turret(w, f, pal, c, td, h0, h1):
+    """A detached stair tower behind the podium: a newel post with eight treads a revolution,
+    every one of them exactly one step and one course from the last.
+
+    A TREAD AND THE ONE BEFORE IT DO NOT SHARE A FACE, AND THAT IS NORMAL - it is how every real
+    flight in this file is built (the stairhead precedent itself: "each one course UP AND one
+    step east"), and it is exactly what `rimstair.py`'s STRINGER exists to fix: a solid fill
+    under a tread that reaches down to something real. Here the fill is one cell, not a column -
+    a RISER at the PREVIOUS tread's own offset, one course higher, which shares a face with the
+    tread below it (same offset, one course up) and with the tread above it (same course, one
+    step over, because two consecutive `_SPIRAL` offsets are never more than a single step
+    apart - checked, not assumed, at the top of this file). Without it the spiral audits as
+    thirty-nine separate floating stairs, which shipped once and is why this comment exists.
+
+    THE NEWEL IS ADDITIONAL, not load-bearing - the riser already connects every tread to the
+    one either side of it - but it gives the eye something to spiral round and the lanterns
+    something to stand on, so it is built anyway, full height, in one pass at the end.
+
+    ONLY THE FOUR CARDINAL TREADS CARRY A BANISTER OR A LAMP. Doubling a cardinal offset
+    (east -> two east) lands on a cell that shares a face with the tread; doubling a diagonal one
+    (south-east -> two south-east) lands on a cell that only touches it at the CORNER, which is
+    the same non-adjacency this docstring just paid for once already.
+    """
+    treads, rails, lamps = [], 0, 0
+    prev = None
+    for h in range(h0, h1):
+        k = (h - h0) % 8
+        di, dd = _SPIRAL[k]
+        ndi, ndd = _SPIRAL[(k + 1) % 8]
+        face = _face_out_radial(f, ndi - di, ndd - dd)
+        pos = f.at(c + td[0] + di, c + td[1] + dd, h)
+        w.put(*pos, pal["stair"], facing=face, half="bottom", shape="straight",
+              waterlogged="false")
+        treads.append((pos, face))
+        if prev is not None:
+            w.put(*f.at(c + td[0] + prev[0], c + td[1] + prev[1], h), pal["post"])
+        prev = (di, dd)
+        if k % 2 == 0:                                    # cardinal: east, south, west, north
+            oi, od = td[0] + di * 2, td[1] + dd * 2
+            if k == 0 and h > h0:                          # a lit pedestal, once a lap
+                w.put(*f.at(c + oi, c + od, h), pal["post"])
+                lamps += int(_put_free(w, f, c + oi, c + od, h + 1, pal["light"],
+                                       hanging="false", waterlogged="false"))
+            else:                                          # the banister, the rest of the lap
+                w.put(*f.at(c + oi, c + od, h), pal["fence"],
+                      north="false", south="false", east="false", west="false",
+                      waterlogged="false")
+                rails += 1
+    for h in range(h0 - 1, h1 + 1):     # the newel, full height, so every tread keys off it
+        w.put(*f.at(c + td[0], c + td[1], h), pal["post"])
+    return treads, rails, lamps
+
+
+def _gallery(w, f, pal, c):
+    """THE VIEWING GALLERY the plaque promises: a corbelled ring around the shaft's own capital,
+    railed at 1.5 blocks so the view over it is real, and lit at the four cardinal points.
+
+    THE GAP IN THE RAIL IS LEFT BY THE LOOP, never punched afterwards - the void tower's own
+    rule, paid for once already on this file's own colonnade and podium. It falls exactly where
+    `_bridge` lands, because both read the same `GAL_R` rather than one of them guessing it.
+    """
+    n = _moulding(w, f, pal, c, GAL_R, H_ABACUS, "top")        # corbel: r3 abacus out to r4
+    n += _fill(w, f, c, GAL_R, H_GALLERY, pal["trim"])         # the floor
+    rail = _BALUSTRADE.get(pal["ground"], "stone_brick_wall")
+    gap = (0, GAL_R)
+    rails = 0
+    for (di, dd) in sorted(_annulus(GAL_R, _disc)):
+        if (di, dd) == gap:
+            continue
+        _put(w, f, c, di, dd, H_GALLERY_RAIL, rail)
+        _slab(w, f, c + di, c + dd, H_GALLERY_RAIL + 1, pal["slab"], "bottom")
+        rails += 1
+    lamps = 0
+    for (di, dd) in ((2, 0), (-2, 0), (0, 2), (0, -2)):
+        if _put_free(w, f, c + di, c + dd, H_GALLERY_RAIL, pal["light"],
+                     hanging="false", waterlogged="false"):
+            lamps += 1
+    return n, rails, lamps
+
+
+def _bridge(w, f, pal, c, td, h):
+    """A single-file, fenced walkway from the gallery's own rail gap out to the stair tower.
+
+    Both ends are read off `GAL_R` and `td`, never re-typed, which is the same discipline
+    `_gallery`'s gap and `_turret`'s landing already follow - two numbers agreeing by
+    construction rather than by two people remembering to keep them in step.
+    """
+    props = _pane_props(f, along_i=False)
+    n = 0
+    for dd in range(GAL_R, td[1]):
+        _put(w, f, c, 0, dd, h, pal["trim"])
+        for di in (-1, 1):
+            w.put(*f.at(c + di, c + dd, h + 1), pal["fence"], **props)
+        n += 1
+    return n
+
+
 # ------------------------------------------------------------------ tier 5: the crown
 
 def _wing(w, f, pal, c, side, wings, sh):
@@ -506,13 +641,14 @@ def _crown(w, f, pal, c, wings):
         _put(w, f, c, a, b, sh + 4, pal["accent"])
     _put(w, f, c, 0, 0, sh + 5, "end_rod", facing="up")
 
-    # LIGHT ON THE ABACUS, NOT ON THE FIGURE. A lamp set into a sculpture is a hole in it - the
-    # island night pass's own rule, and its cost model exists to keep fixtures off a coat. These
-    # four stand on the abacus a course below the hem, which is ordinary ground by any reading,
-    # and they uplight the robe and the underside of both wings.
+    # LIGHT ON THE GALLERY FLOOR, NOT ON THE FIGURE. A lamp set into a sculpture is a hole in it -
+    # the island night pass's own rule, and its cost model exists to keep fixtures off a coat.
+    # These four stand on the gallery's own deck, a course below the hem, which is ordinary
+    # ground by any reading, and they uplight the robe and the underside of both wings AND light
+    # the gallery a visitor is actually standing on.
     lamps = 0
     for (di, dd) in ((2, 0), (-2, 0), (0, 2), (0, -2)):
-        if _put_free(w, f, c + di, c + dd, FIG0, pal["light"],
+        if _put_free(w, f, c + di, c + dd, FIG0 - 1, pal["light"],
                      hanging="false", waterlogged="false"):
             lamps += 1
     return wing, lamps, sh + 5
@@ -542,6 +678,10 @@ def _monument(w: World, p: dict, ctx) -> dict:
                            _ring_points(POD_R, columns))
     hung = _colonnade(w, f, pal, c, columns, seed)
     _shaft(w, f, pal, c)
+    gal_floor, gal_rails, gal_lamps = _gallery(w, f, pal, c)
+    td = (0, TURRET_D)
+    treads, turret_rails, turret_lamps = _turret(w, f, pal, c, td, 0, H_GALLERY)
+    bridge = _bridge(w, f, pal, c, td, H_GALLERY)
     wing, crown_lamps, top = _crown(w, f, pal, c, wings)
 
     # LAMP POSTS ROUND THE FOOT, on the lowest step, standing clear of the one above it. A post
@@ -555,15 +695,27 @@ def _monument(w: World, p: dict, ctx) -> dict:
     span = 2 * wings + 1
     assert top >= MIN_HEIGHT, f"monument is {top} tall, under the {MIN_HEIGHT}-course floor"
     assert span >= MIN_WINGSPAN, f"wingspan {span} is under {MIN_WINGSPAN}"
+    assert len(treads) >= MIN_CLIMB, \
+        f"the climb is {len(treads)} treads, under the {MIN_CLIMB}-tread floor"
     return {"kind": "monument", "height": top, "base": 2 * STEP_R[0] + 1, "pad": pad,
             "steps": len(STEP_R), "columns": columns, "bays": bays, "panels": panels,
             "wingspan": span, "wing_cells": wing,
-            "lanterns": hung + crown_lamps + posts, "posts": posts,
+            "lanterns": hung + crown_lamps + posts + gal_lamps + turret_lamps,
+            "posts": posts,
+            # THE CLIMB. `climb_treads` is the ordered path itself - world position and facing
+            # per tread - so a test can walk it directly rather than re-deriving `_SPIRAL` on its
+            # own and testing a copy of the code instead of the code.
+            "climb_treads": treads, "climb_length": len(treads),
+            "climb_rails": turret_rails + gal_rails, "climb_lanterns": turret_lamps + gal_lamps,
+            "bridge": bridge, "gallery_height": H_GALLERY, "gallery_radius": GAL_R,
+            "gallery_floor": gal_floor, "gallery_rails": gal_rails, "turret_at": td,
             "signs": say.want, "signs_placed": say.got,
             "contract": "five tiers, each narrower and taller than the one below: a four-step "
                         "base you can sit on, a panelled podium, a colonnade you can see "
                         "through, a fluted taper with a gilded collar, and a planar winged "
-                        "figure at least 45 courses up"}
+                        "figure at least 45 courses up - and a real climb: a spiral stair tower "
+                        "behind the podium, a fenced bridge, and a railed viewing gallery under "
+                        "the crown, lit the whole way"}
 
 
 BUILDERS = {"monument": _monument}
