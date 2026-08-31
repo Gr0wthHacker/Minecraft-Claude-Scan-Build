@@ -70,6 +70,9 @@
   "unverified": [],
   "budget": {},
   "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "stock": {
+    "each dispenser": "the prize it hands out"
+  },
   "file": "Prize Wall 4.litematic",
   "name": "Prize Wall 4"
 }

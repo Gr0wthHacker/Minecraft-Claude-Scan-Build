@@ -536,9 +536,13 @@ def _high_roller(w: World, p: dict, ctx) -> dict:
     # asserted. So the machine sits ONE course under the play floor and the lamps are set INTO the
     # floor - a lit floor panel, which is a real casino look and, more to the point, needs no
     # journey at all.
-    for i, lamp in enumerate(display["lamps"]):
-        w.put(lamp[0], lamp[1] + 1, lamp[2],
-              p["pal_board"][i % len(p["pal_board"])])
+    # **THE BAR IS ONE INSTRUMENT, SO IT IS ONE COLOUR.** The caps used to cycle through an
+    # eight-colour board list, which on a four-lamp bar means four arbitrary colours - and it is
+    # where the stray three pink and three blue wool in the whole casino came from. A reading
+    # instrument in four unrelated colours reads as confetti, not as a scale.
+    cap = KIND_ACCENT.get(p["kind"], {}).get("accent", p["pal_accent"])
+    for lamp in display["lamps"]:
+        w.put(lamp[0], lamp[1] + 1, lamp[2], cap)
     return {"contract": f"press once; the bar shows the roll, {g['outcomes']} outcomes {levels}",
             "inputs": [list(g["btn"])], "outputs": [list(l) for l in display["lamps"]],
             "lamps": [list(l) for l in display["lamps"]],
@@ -757,6 +761,12 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     x, y, z = (int(v) for v in p["at"])
     dx, dz = _STEP[p["facing"]]
     sx, sz = -dz, -dx
+    # THE WHEEL NEVER WENT THROUGH `_room`, so it never picked up its own accent and its button pad
+    # came out High Roller yellow - a colour that means "this is a bar game" on the one machine
+    # that is not one.
+    skin = KIND_ACCENT.get("wheel")
+    if skin:
+        p = {**p, "pal_accent": skin["accent"]}
     outcomes = 3
     levels = circuits.RNG_MIXES[outcomes]["levels"]
     by = y - 1                                   # the bowl's floor, one course down
@@ -833,11 +843,20 @@ def _wheel(w: World, p: dict, ctx) -> dict:
                 w.put(cx, by, cz, p["pal_pillar"])             # the rim
                 w.put(cx, by + 1, cz, "oak_fence")             # the rail you lean on
 
+    # **THE LINK MUST NOT RUN UNDER THE BUTTON.** Routed from the button itself, `connect`
+    # descended straight through the cell below it - so the pad turned into redstone dust and a
+    # floor button ended up standing on wire, which is not a placement the game allows. The wire
+    # starts one cell further out and the button powers it from the side.
     btn = (hop[0] - dx * (r + 2), by + 1, hop[2] - dz * (r + 2))
-    w.put(btn[0], btn[1] - 1, btn[2], p["pal_accent"])
     w.put(btn[0], btn[1], btn[2], "stone_button", face="floor",
           facing=p["facing"], powered="false")
-    _link(w, p, ctx, btn, pulse["in"])
+    tail = (btn[0] - dx, btn[1], btn[2] - dz)
+    if not w.has(*tail):
+        w.put(tail[0], tail[1], tail[2], "redstone_wire")
+    _link(w, p, ctx, tail, pulse["in"])
+    w.put(btn[0], btn[1] - 1, btn[2], p["pal_accent"])
+    if not w.has(tail[0], tail[1] - 1, tail[2]):
+        w.put(tail[0], tail[1] - 1, tail[2], p["pal_shell"])
     _link(w, p, ctx, pulse["out"], rnd["in"])
 
     sgn = (btn[0] - dx, btn[1] + 1, btn[2] - dz)
@@ -995,23 +1014,43 @@ def _hall(w: World, p: dict, ctx) -> dict:
 
 
 def _prize_wall(w: World, p: dict, ctx) -> dict:
+    """One button, one prize. **THE REDSTONE BLOCK WAS THE BUG AND IT MADE THE WHOLE WALL DEAD.**
+
+    Every dispenser had a `redstone_block` stuck permanently to its back, so every one of them was
+    LIVE AT REST. A dispenser fires on a RISING EDGE: powered for ever means it dispensed once when
+    the chunk loaded and never again, and the buttons - mounted diagonally, not even touching it -
+    did nothing at all. Four walls, twenty dispensers, permanently on and permanently useless.
+
+    Nothing caught it because this module had no contract asserted by simulation, which every game
+    here has had since the day `chase` and `vault` were cut for exactly this. It has one now.
+
+    The button drives it directly instead: a button on a solid block strongly powers that block,
+    and a block above a dispenser powers the dispenser. Press, one item, and the signal falls again
+    so the next press works too.
+    """
     x, y, z = (int(v) for v in p["at"])
     dx, dz = _STEP[p["facing"]]
     n = max(1, min(12, int(p["lanes"])))
     outs, ins = [], []
     for i in range(n):
         px, pz = x - dz * i * 2, z - dx * i * 2
-        for h in range(3):
+        for h in range(4):
             w.put(px, y + h, pz, p["pal_shell"])
         w.put(px, y + 1, pz, "dispenser", facing=p["facing"], triggered="false")
-        w.put(px - dx, y + 1, pz - dz, "redstone_block")
-        w.put(px + dx, y + 2, pz + dz, "stone_button", face="wall",
+        # THE BUTTON IS ON THE BLOCK DIRECTLY ABOVE, which is the only place it can be and still
+        # reach: mounted a cell out in front it was diagonal from the dispenser and touching
+        # nothing. A barrel behind holds the prizes a human stocks - the machine never reaches
+        # past it, which is the same rule the games' payout barrels follow.
+        btn = (px + dx, y + 2, pz + dz)
+        w.put(btn[0], btn[1], btn[2], "stone_button", face="wall",
               facing=p["facing"], powered="false")
+        w.put(px - dx, y + 1, pz - dz, "barrel", facing=p["facing"], open="false")
         w.put(px, y + 3, pz, p["pal_accent"])
         outs.append([px, y + 1, pz])
-        ins.append([px + dx, y + 2, pz + dz])
+        ins.append(list(btn))
     return {"contract": f"{n} prizes, one button each, one item per press",
-            "inputs": ins, "outputs": outs}
+            "inputs": ins, "outputs": outs,
+            "stock": {"each dispenser": "the prize it hands out"}}
 
 
 def _marquee(w: World, p: dict, ctx) -> dict:

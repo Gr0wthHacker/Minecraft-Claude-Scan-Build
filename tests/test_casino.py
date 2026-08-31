@@ -563,3 +563,73 @@ def test_decoration_is_never_laid_before_structure():
     assert "comparator" in have, "the wheel lost its comparators to decoration"
     n_cmp = sum(int((m.ids == i).sum()) for i, n in enumerate(names) if n == "comparator")
     assert n_cmp >= 6, f"expected 3 readers + 3 subtract gates, found {n_cmp} comparators"
+
+
+def test_the_prize_wall_is_dead_at_rest_and_one_button_gives_one_prize():
+    """**THE REDSTONE BLOCK MADE THE WHOLE WALL USELESS AND NOTHING NOTICED.**
+
+    Every dispenser had a `redstone_block` stuck permanently to its back, so all of them were LIVE
+    AT REST. A dispenser fires on a rising edge: powered for ever means it dispensed once when the
+    chunk loaded and never again, and the buttons - mounted diagonally, touching nothing - did
+    nothing at all. Twenty dispensers across four walls, permanently on and permanently dead.
+
+    It survived because this module was the one thing here with no contract asserted by simulation,
+    which is exactly the gap `chase` and `vault` were cut to close.
+    """
+    c = GENERATORS["casino"].build({"at": [0, 70, 0], "kind": "prize_wall", "lanes": 5,
+                                    "check": False}, [])
+    m = c.to_model()
+    outs = [tuple(o) for o in c.meta["outputs"]]
+    ins = [tuple(i) for i in c.meta["inputs"]]
+    s = circuit.Circuit.of(m, c.world_origin)
+    s.run(40)
+    live = [o for o in outs if s.powered(o)]
+    assert not live, f"{len(live)} dispensers are powered with nobody pressing anything"
+    for k, btn in enumerate(ins):
+        s2 = circuit.Circuit.of(m, c.world_origin)
+        s2.press(btn, ticks=4)
+        s2.run(40)
+        fired = [i for i, o in enumerate(outs) if s2.fired.get(o, 0)]
+        assert fired == [k], f"button {k} fired dispensers {fired}"
+
+
+def test_a_floor_button_never_stands_on_wire():
+    """The wheel's link descended straight through the cell under its button, so the pad became
+    redstone dust - and a floor button on wire is not a placement the game allows. It was invisible
+    in every render and the audit passed it."""
+    from mcbuild.gen import vertical, casino as K
+    w = vertical.World()
+    p = dict(K.CASINO)
+    p.update({f"pal_{k}": v for k, v in K.PALETTE.items()})
+    p.update({"at": [0, 70, 0], "kind": "wheel", "pit": 2, "check": False,
+              "facing": "east", "title": "W"})
+    meta = K._wheel(w, p, None)
+    bx, by_, bz = meta["inputs"][0]
+    under = w.name(bx, by_ - 1, bz)
+    assert under not in (None, "redstone_wire", "air"), \
+        f"the button is standing on {under}"
+
+
+def test_every_material_in_the_casino_has_a_purpose():
+    """**NO MYSTERY BLOCKS.** The bar's lamp caps used to cycle an eight-colour board list, which
+    on a four-lamp bar is four arbitrary colours - and it is where the whole casino's stray three
+    pink and three blue wool came from. A reading instrument in four unrelated colours is confetti,
+    not a scale, so the caps are the kind's own accent and the palette is closed.
+    """
+    import collections
+    import os as _os
+    from mcbuild import layers
+    if not _os.path.exists("out/Casino Complete.litematic"):
+        import pytest as _p
+        _p.skip("the casino has not been sliced in this checkout")
+    allowed = {
+        "smooth_stone", "deepslate_bricks", "stone", "black_wool", "white_wool", "red_wool",
+        "green_wool", "yellow_wool", "lime_wool", "light_blue_wool", "purple_wool",
+        "red_carpet", "yellow_carpet", "lime_carpet", "light_blue_carpet", "purple_carpet",
+        "redstone_wire", "repeater", "comparator", "dropper", "dispenser", "hopper", "barrel",
+        "redstone_block", "redstone_torch", "redstone_wall_torch", "redstone_lamp", "note_block",
+        "lantern", "oak_wall_sign", "stone_button", "oak_fence", "stone_brick_stairs",
+    }
+    got = collections.Counter(n for n, _ in layers._read("Casino Complete")[0].values())
+    stray = {n: k for n, k in got.items() if n not in allowed}
+    assert not stray, f"blocks with no stated purpose: {stray}"

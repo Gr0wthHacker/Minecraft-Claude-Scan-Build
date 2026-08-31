@@ -7077,3 +7077,44 @@ the first of them fails if anything quietly starts deferring again.
 
 `sync.yaml` tracks **one** design, so `/cscan place` puts down the whole casino with nothing hidden.
 The layers stay in the folder and can be placed by name when it is time to build in stages.
+
+### "A lot of this feels useless" - the purpose audit (2026-08-31)
+
+Jack, on the placed casino: *"what are the random dispensers and yellow wool etc."* Both were real,
+and one of them was a module that had never worked.
+
+**THE PRIZE WALL WAS DEAD, AND IT WAS THE ONE MODULE WITH NO SIMULATED CONTRACT.** Every dispenser
+had a `redstone_block` stuck permanently to its back, so all twenty across four walls were LIVE AT
+REST. A dispenser fires on a RISING EDGE: powered for ever means it dispensed once when the chunk
+loaded and never again - and the buttons were mounted a cell out in front, diagonal from the
+dispenser, touching nothing. It is driven by its button now (a button on a solid block strongly
+powers it, and a block above a dispenser fires it), verified at rest and per button.
+
+Every game has had a contract asserted by simulation since `chase` and `vault` were cut for
+precisely this; the furniture did not, and the gap is exactly where the dead module was.
+
+**THE YELLOW WOOL WAS TWO DIFFERENT THINGS, one fine and one not.** Button pads and the High Roller
+accent are deliberate. The stray **three pink and three blue** wool in the whole casino were the
+bar's lamp CAPS, cycling an eight-colour board list - on a four-lamp bar that is four arbitrary
+colours, which reads as confetti rather than as a scale. The caps are the kind's own accent now,
+one colour per instrument.
+
+**A FLOOR BUTTON WAS STANDING ON WIRE.** The wheel's link ran from the button itself, so `connect`
+descended through the cell underneath and turned its pad into redstone dust - not a placement the
+game allows, invisible in every render, and the audit passed it. The wire starts one cell further
+out and the button powers it from the side.
+
+`test_every_material_in_the_casino_has_a_purpose` closes the palette: 28 materials, every one on a
+stated list, and a new block that nothing explains fails the suite.
+
+**And a correction worth keeping, because it was mine.** Counting the wheel's materials I wrote
+`cnt[name] = k` instead of `+=`, so two palette entries of the same block with different facings
+overwrote each other - the wheel appeared to have ONE comparator where it has six, and I nearly
+went hunting a bug that did not exist. **A block is a NAME PLUS ITS STATE, and any tally that keys
+on the name alone must accumulate.**
+
+**Not fixed, and stated rather than quietly left:** the whole casino carries **14 stubs of dead
+dust and 3 repeaters reading nothing** - one or two cells apiece in `double_or_none`, `lucky_number`
+and `duel`, left where a link and a module's own `in` cell both wrote. Every contract still passes,
+so they are leftovers rather than faults; they are 20-odd cells out of 14,874 and worth a pass of
+their own, not a rushed one.
