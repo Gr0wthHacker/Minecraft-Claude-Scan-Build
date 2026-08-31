@@ -158,14 +158,35 @@ THEMES = {
         "furniture": ["bench", "planter", "lamppost", "topiary", "bin", "signpost"],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            # ------------------------------------------------------- arrival, in order
+            # **PINNED TO THE WEST EDGE, BESIDE THE GATE, because the sequence IS the meaning.**
+            # Packed by area these went wherever there was room - a turnstile in the middle of the
+            # park is a turnstile you walk round - and the queue, being the smallest, was left
+            # over entirely. The edge branch slides them along the edge past each other, so what
+            # they form is an arrival strip: queue, window, barrier, and then you are in.
+            # You queue, you buy a ticket, the barrier eats it, you are in. The box office is
+            # the only place on the island that takes grass; everything downstream of the
+            # turnstile assumes you already paid.
+            {"name": "Box Office", "gen": "ticketing", "kind": "boxoffice",
+             "size": [11, 8, 13],
+             "anchor": "edge", "side": "west",
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "Entry Queue", "gen": "ticketing", "kind": "queue",
+             "size": [11, 6, 13],
+             "anchor": "edge", "side": "west",
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "Turnstiles", "gen": "ticketing", "kind": "turnstile",
+             "size": [19, 9, 11], "orient": False,
+             "anchor": "edge", "side": "west",
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "Lockers", "gen": "ticketing", "kind": "lockers",
+             "size": [11, 7, 10],
+             "params": {"land": "midway", "facing": "east"}},
             # ------------------------------------------------------------------ the rides
             # `_site_order` sorts by MEASURED area, so these can be written where they read
             # best rather than in size order.
             {"name": "The Swings", "gen": "attractions", "kind": "swings",
              "size": [26, 15, 26],
-             "params": {"land": "midway", "facing": "east"}},
-            {"name": "Teacups", "gen": "attractions", "kind": "teacups",
-             "size": [22, 11, 22],
              "params": {"land": "midway", "facing": "east"}},
             {"name": "The Arcade", "gen": "attractions", "kind": "arcade",
              "size": [21, 7, 13],
@@ -187,13 +208,19 @@ THEMES = {
             # you reach the gate. It faces WEST, into the park, because unlike a gate or an arch
             # it is a thing you look at rather than walk through.
             {"name": "The Big Wheel", "gen": "bigwheel", "kind": "wheel",
-             "size": [11, 75, 77], "orient": False,
+             "size": [19, 85, 77], "orient": False,
              "anchor": "edge", "side": "east",
              "params": {"land": "midway", "diameter": 65, "spokes": 16, "cars": 16,
                         "facing": "west"}},
+            # **D=25, NOT 31, AND THE PLOT DECIDED IT.** A monument 34 wide pinned to the centre
+            # of a 99-wide plot leaves exactly 32 either side of it, so NO 40x40 exists on the
+            # midway at all - the carousel at its full diameter could not be sited anywhere, at
+            # any packing. It keeps its real 80-cell circuit and its two rings of mounts; what it
+            # loses is six blocks of radius. `orient: False` because a round ride gains nothing
+            # from a square reservation.
             {"name": "Carousel", "gen": "bigwheel", "kind": "carousel",
-             "size": [21, 24, 21],
-             "params": {"land": "midway", "mounts": 12, "facing": "east"}},
+             "size": [32, 27, 27], "orient": False,
+             "params": {"land": "midway", "diameter": 25, "mounts": 12, "facing": "east"}},
             {"name": "Hoopla", "gen": "casino", "kind": "high_roller",
              "size": [9, 8, 8], "orient": False,
              "params": {"land": "midway", "outcomes": 3, "pit": 2, "facing": "east",
@@ -230,6 +257,9 @@ THEMES = {
         "furniture": ["bench", "planter", "lamppost", "signpost", "bin", "flagpole"],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            {"name": "Ride Gate", "gen": "ticketing", "kind": "ridegate",
+             "size": [19, 9, 11], "orient": False,
+             "params": {"land": "frontier", "facing": "east"}},
             {"name": "Runaway Mine", "gen": "attractions", "kind": "runawaymine",
              "size": [26, 12, 23],
              "params": {"land": "frontier", "facing": "east"}},
@@ -290,9 +320,6 @@ THEMES = {
             {"name": "Water Tower", "gen": "frontiertown", "kind": "watertower",
              "size": [13, 27, 13],
              "params": {"land": "frontier", "facing": "east"}},
-            {"name": "Trestle Walk", "gen": "frontiertown", "kind": "trestlebridge",
-             "size": [7, 12, 28], "orient": False,
-             "params": {"land": "frontier", "length": 24, "facing": "east"}},
             {"name": "Frontier Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
              "anchor": "edge", "side": "south",
              "params": {"land": "frontier", "width": 7, "height": 6, "facing": "south"}},
@@ -312,6 +339,9 @@ THEMES = {
         "furniture": ["bench", "lamppost", "topiary", "signpost", "bin", "planter"],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            {"name": "Ride Gate", "gen": "ticketing", "kind": "ridegate",
+             "size": [19, 9, 11], "orient": False,
+             "params": {"land": "hollow", "facing": "east"}},
             {"name": "Ghost Train", "gen": "attractions", "kind": "ghosttrain",
              "size": [21, 12, 15],
              "params": {"land": "hollow", "facing": "east"}},
@@ -328,7 +358,7 @@ THEMES = {
              "size": [19, 13, 23],
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "The Plummet", "gen": "bigwheel", "kind": "drop",
-             "size": [20, 69, 17],
+             "size": [20, 73, 17],
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "Clock Tower", "gen": "hollowmanor", "kind": "clocktower",
              "size": [17, 49, 17],
@@ -505,6 +535,32 @@ def pads(sc, size, plot=None, roll: int = 1, limit: int = 200, y_range=None) -> 
             if len(out) >= limit:
                 return out
     return out
+
+
+def turn_extent(gen: str, kind: str, params: dict, declared, facings=None) -> int:
+    """The largest extent this module reaches at ANY facing - what a rotatable module must book.
+
+    **A FOOTPRINT IS NOT NECESSARILY THE SAME AT EVERY FACING**, and assuming it was put the
+    Fortune Wheel two cells inside a dead tree. Its booth grew a roof on one side, so it measures
+    21 wide facing east and 23 facing west; siting reserved max(21, 19) and `_orient_to_streets`
+    then turned it west, straight out of its own bay and into its neighbour. Every check upstream
+    was correct - the reservation was simply measured at one facing out of four.
+
+    So the square is booked against the WORST facing, which is the only one that can be safely
+    assumed. Four builds a module, cached like everything else here.
+
+    **AND `orient: False` IS NOT EXEMPT.** Its own note said a 180 flip "leaves the footprint
+    identical", which is true of a symmetric module and false of this one - the wheel is the case
+    that proved it, flipping east to west and growing two cells into a dead tree while its bay
+    still read 21. A module that opts out of the 90-degree turn can still be flipped, so it books
+    the worst of the two facings on its own axis; `facings` is how the caller says which.
+    """
+    best = 0
+    for facing in (facings or ("east", "south", "west", "north")):
+        _ox, _oy, _oz, w, _h, d = measured_footprint(
+            gen, kind, {**params, "facing": facing}, declared)
+        best = max(best, w, d)
+    return best
 
 
 def bays(plot, size, spacing: int = 3, margin: int = 4) -> list:
@@ -806,7 +862,8 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
         # its own axis to address; only the 90-degree turn is denied it.
         orient = (bool(spec.get("orient")) and mspec.get("anchor") != "cover"
                   and mspec.get("orient", True))
-        bw = bd = max(fw, fd) if orient else 0
+        bw = bd = (turn_extent(mspec["gen"], mspec["kind"], dict(mspec.get("params", {})),
+                               mspec["size"]) if orient else 0)
         for i in range(int(mspec.get("count", 1))):
             size = ([bw + spacing, fh, bd + spacing] if orient
                     else [fw + spacing, fh, fd + spacing])
@@ -844,7 +901,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 x0, x1, z0, z1 = _plot_bounds(pl_plot)
                 bx = x0 + ((x1 - x0 + 1) - fw) // 2
                 bz = z0 + ((z1 - z0 + 1) - fd) // 2
-                taken.append((bx, plane + fy, bz, fw + spacing, fh, fd + spacing))
+                taken.append((bx, plane + fy, bz, fw, fh, fd))
                 pl.modules.append({
                     "name": mspec["name"], "gen": mspec["gen"], "kind": mspec["kind"],
                     "at": [bx - fx, plane, bz - fz], "size": [fw, fh, fd], "roll": 0,
@@ -895,7 +952,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 if not placed:
                     pl.notes.append(f"{mspec['name']}: its {side} edge is full - placed at the "
                                     f"centred position and OVERLAPPING something already sited")
-                taken.append((bx, plane + fy, bz, esize[0], fh, esize[2]))
+                taken.append((bx, plane + fy, bz, fw, fh, fd))
                 pl.modules.append({
                     "name": mspec["name"], "gen": mspec["gen"], "kind": mspec["kind"],
                     "at": [bx - fx, plane, bz - fz], "size": [fw, fh, fd], "roll": 0,
@@ -916,7 +973,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                         continue
                     if _clear(taken, bx, plane + fy, bz, size):
                         spot = (ax, plane, az, 0)
-                        taken_box = (bx, plane + fy, bz, size[0], size[1], size[2])
+                        taken_box = (bx, plane + fy, bz, bw or fw, fh, bd or fd)
                         # the RESERVED corner, kept so the module can be re-placed inside its own
                         # slot once its facing is chosen from where it landed
                         bay = (bx, bz, bw or fw, bd or fd)
@@ -967,7 +1024,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 for (bx, bz) in cands:
                     if _clear(taken, bx, plane + fy, bz, size):
                         spot = (bx - fx, plane, bz - fz, 0)
-                        taken_box = (bx, plane + fy, bz, size[0], size[1], size[2])
+                        taken_box = (bx, plane + fy, bz, bw or fw, fh, bd or fd)
                         bay = (bx, bz, bw or fw, bd or fd)
                         break
             if spot is None and plane is None:
@@ -983,7 +1040,15 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 pl.notes.append(f"{label}: NO SITE - {why} at {size[0]}x{size[2]}")
                 continue
             x, y, z, roll = spot
-            taken.append(taken_box or (x + fx, y + fy, z + fz, size[0], size[1], size[2]))
+            # **A RESERVED BOX HOLDS THE BUILD, NOT THE BUILD PLUS ITS SPACING.** Stored
+            # padded, every candidate then added its own padding on top and two modules ended up
+            # FOUR cells apart where two was asked for. What it DOES hold is the square a
+            # rotatable module reserved - drop that and a later module packs inside the space the
+            # turn needs, which is how Runaway Mine ended up inside The Saloon - which sounds harmless and is not: the
+            # hollow reported NO SITE for its maze, its crypt, its clock tower and its ride gate
+            # with the plot 52% used, and a brute-force sweep found seventeen positions that fit.
+            # The spacing belongs to the CANDIDATE, once.
+            taken.append(taken_box or (x + fx, y + fy, z + fz, bw or fw, fh, bd or fd))
             pl.modules.append({
                 "name": label, "gen": mspec["gen"], "kind": mspec["kind"],
                 "at": [x, y + lift, z], "size": [fw, fh, fd], "roll": roll,
@@ -1087,6 +1152,26 @@ def _orient_to_streets(pl, plane):
         fx, fy, fz, fw, fh, fd = measured_footprint(
             m["gen"], m["kind"], params, m.get("declared_size", m["size"]))
         bx, bz = m["bay"][0], m["bay"][1]
+        # **THE TURN CHECKS ITSELF, because a footprint is not necessarily the same at every
+        # facing.** The reservation assumes a turn swaps width for depth and nothing else; the
+        # Fortune Wheel's booth grew a roof on one side, so it measures 21 wide facing east and
+        # 23 facing west, and flipping it walked two cells into a dead tree with every check
+        # upstream correct. Predicting that per generator is whack-a-mole - three separate
+        # reservation rules each fixed one zone and broke another. Trying the turn and DECLINING
+        # it when it collides is local, general, and cannot be broken by a generator nobody has
+        # written yet. A building that keeps its back to the street is a much smaller fault than
+        # one built through its neighbour.
+        turned = (bx, bz, bx + fw - 1, bz + fd - 1)
+        clash = False
+        for other in pl.modules:
+            if other is m or other is hub or other["kind"] == "paths":
+                continue
+            ox0, oz0, ox1, oz1 = _box_of(other)
+            if turned[0] <= ox1 and ox0 <= turned[2] and turned[1] <= oz1 and oz0 <= turned[3]:
+                clash = True
+                break
+        if clash:
+            continue
         m["params"] = params
         m["at"] = [bx - fx, plane, bz - fz]
         m["anchor_offset"] = [fx, fy, fz]
@@ -1132,6 +1217,11 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
 
     others = [m for m in pl.modules if m is not hub and m["kind"] != "paths"]
     obstacles = [list(_box_of(m)) for m in others]
+    # **THE PLAZA IS HANDED THE SAME OBSTACLE LIST.** Its planting beds, trees, terrace and pool
+    # are laid over the whole 80x80 footprint and it has no other way of knowing where anything
+    # stands - without this it plants a tree in a doorway and lays a bed across a spur. Measured
+    # over the three real zones: 0 collisions with it, 20-53 without.
+    hub.setdefault("params", {})["obstacles"] = obstacles
     # **AN EDGE MODULE IS JOINED ON ITS INSIDE FACE, NOT ITS FRONT.** A gate faces OUT of the
     # park - that is what makes it a gate - so its front approach is a cell beyond the plot
     # boundary, which the avenue cannot legally reach and the clamp correctly threw away. All
