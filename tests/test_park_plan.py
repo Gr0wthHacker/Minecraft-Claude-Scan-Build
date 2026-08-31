@@ -192,3 +192,79 @@ def test_paths_refuses_to_draw_a_network_nobody_computed():
     ended up. Asked to draw with none, this RAISES rather than emitting an empty design."""
     with pytest.raises(ValueError):
         park.build({**park.PARK, "at": [0, 64, 0], "kind": "paths", "land": "midway"})
+
+
+# ---------------------------------------------------------------- buildings address the street
+
+def _hub_centre(pl):
+    hub = next(m for m in pl.modules if m.get("covers"))
+    x0, z0, x1, z1 = planner._box_of(hub)
+    return (x0 + x1) // 2, (z0 + z1) // 2
+
+
+@pytest.mark.parametrize("zone", ZONES)
+def test_every_building_addresses_the_street_it_is_joined_to(zone):
+    """**HALF OF THEM PRESENTED THEIR BACKS.** `facing` was a theme constant, so a booth sited
+    north of the avenue faced exactly the same way as one sited south of it, and about half the
+    park showed a blank rear wall to the street its own spur ran to. A shopfront that cannot be
+    seen into is a shed."""
+    pl = _planned(zone)
+    cx, cz = _hub_centre(pl)
+    for m in pl.modules:
+        if m.get("edge") or m.get("covers") or m["kind"] == "paths" or not m.get("bay"):
+            continue
+        want, _axis = planner._street_axis(m, cx, cz)
+        assert m["params"]["facing"] == want, \
+            f"{zone}: {m['name']} faces {m['params']['facing']}, street is {want}"
+
+
+@pytest.mark.parametrize("zone", ZONES)
+def test_the_facing_decision_is_stable(zone):
+    """**IT MUST BE MEASURED FROM SOMETHING THE TURN CANNOT MOVE.** Decided from the built box,
+    turning a building moves its centre, which can flip the very decision that turned it - one
+    module per zone came out facing one avenue while the recomputed answer named the other, so
+    its shopfront addressed one street and its spur ran to another. The reserved square does not
+    move, so the answer is a fixpoint: asking again after the turn gives the same answer."""
+    pl = _planned(zone)
+    cx, cz = _hub_centre(pl)
+    for m in pl.modules:
+        if m.get("edge") or m.get("covers") or m["kind"] == "paths" or not m.get("bay"):
+            continue
+        once = planner._street_axis(m, cx, cz)
+        assert planner._street_axis(m, cx, cz) == once, f"{zone}: {m['name']} is not a fixpoint"
+        assert len(m["bay"]) == 4, "the bay must carry its size, or the centre is not stable"
+
+
+@pytest.mark.parametrize("zone", ZONES)
+def test_turning_a_building_never_pushes_it_into_its_neighbour(zone):
+    """Orientation happens AFTER siting, so a 9x7 building becoming 7x9 could overrun the slot
+    reserved for it. Siting books a SQUARE for anything that may be turned, which is what makes
+    the turn safe - and this is the check that would catch it if that ever stopped being true."""
+    pl = _planned(zone)
+    boxes = [(m["name"], planner._box_of(m)) for m in pl.modules
+             if not m.get("covers") and m["kind"] != "paths"]
+    for i, (na, a) in enumerate(boxes):
+        for nb, b in boxes[i + 1:]:
+            overlap = a[0] <= b[2] and b[0] <= a[2] and a[1] <= b[3] and b[1] <= a[3]
+            assert not overlap, f"{zone}: {na} overlaps {nb} after orientation"
+
+
+@pytest.mark.parametrize("zone", ZONES)
+def test_an_edge_module_keeps_facing_out_of_the_park(zone):
+    """A gate faces OUT by definition - that is the whole reason it is on the edge - so the
+    orientation pass must leave it alone."""
+    pl = _planned(zone)
+    for m in pl.modules:
+        if not m.get("edge"):
+            continue
+        assert m["params"]["facing"] == m["edge"], \
+            f"{zone}: {m['name']} was turned to face {m['params']['facing']} off its own edge"
+
+
+@pytest.mark.parametrize("zone", ZONES)
+def test_a_zone_is_not_all_one_facing(zone):
+    """The symptom, stated as a property: one constant facing per zone is what this fixes."""
+    pl = _planned(zone)
+    faces = {m["params"]["facing"] for m in pl.modules
+             if not m.get("edge") and not m.get("covers") and m["kind"] != "paths"}
+    assert len(faces) >= 3, f"{zone}: buildings face only {faces}"

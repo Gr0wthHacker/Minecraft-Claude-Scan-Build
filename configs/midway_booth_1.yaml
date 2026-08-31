@@ -1,0 +1,17 @@
+name: Midway Booth 1
+gen: park
+params:
+  land: midway
+  width: 7
+  depth: 5
+  facing: south
+  at:
+  - 97614
+  - 203
+  - 80600
+  kind: booth
+  title: Midway Booth 1
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

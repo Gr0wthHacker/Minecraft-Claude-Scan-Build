@@ -1,0 +1,17 @@
+name: Frontier Gate
+gen: park
+params:
+  land: frontier
+  width: 7
+  height: 6
+  facing: south
+  at:
+  - 97603
+  - 203
+  - 80448
+  kind: arch
+  title: Frontier Gate
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

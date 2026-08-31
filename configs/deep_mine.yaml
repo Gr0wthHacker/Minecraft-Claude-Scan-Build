@@ -1,0 +1,17 @@
+name: Deep Mine
+gen: park
+params:
+  land: frontier
+  width: 17
+  depth: 15
+  facing: east
+  at:
+  - 97594
+  - 203
+  - 80374
+  kind: walkthrough
+  title: Deep Mine
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

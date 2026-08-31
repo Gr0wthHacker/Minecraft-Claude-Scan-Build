@@ -1,0 +1,17 @@
+name: Hollow Arch
+gen: park
+params:
+  land: hollow
+  width: 7
+  height: 6
+  facing: south
+  at:
+  - 97603
+  - 203
+  - 80648
+  kind: arch
+  title: Hollow Arch
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

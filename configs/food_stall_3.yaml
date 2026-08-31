@@ -1,0 +1,17 @@
+name: Food Stall 3
+gen: park
+params:
+  land: midway
+  width: 7
+  depth: 5
+  facing: south
+  at:
+  - 97578
+  - 203
+  - 80576
+  kind: stall
+  title: Food Stall 3
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

@@ -1,0 +1,17 @@
+name: Park Gate
+gen: park
+params:
+  land: midway
+  lanes: 3
+  depth: 6
+  facing: west
+  at:
+  - 97553
+  - 203
+  - 80593
+  kind: gate
+  title: Park Gate
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

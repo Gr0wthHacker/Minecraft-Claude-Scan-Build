@@ -1,0 +1,17 @@
+name: Hollow Gate
+gen: park
+params:
+  land: hollow
+  width: 7
+  height: 6
+  facing: north
+  at:
+  - 97597
+  - 203
+  - 80752
+  kind: arch
+  title: Hollow Gate
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

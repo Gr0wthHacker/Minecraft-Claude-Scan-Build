@@ -1,0 +1,17 @@
+name: Hollow Court
+gen: park
+params:
+  land: hollow
+  width: 72
+  depth: 72
+  facing: west
+  at:
+  - 97564
+  - 203
+  - 80764
+  kind: plaza
+  title: Hollow Court
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

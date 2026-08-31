@@ -1,0 +1,17 @@
+name: The Saloon
+gen: park
+params:
+  land: frontier
+  width: 13
+  depth: 11
+  facing: south
+  at:
+  - 97587
+  - 203
+  - 80403
+  kind: walkthrough
+  title: The Saloon
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

@@ -19,4 +19,7 @@ full_out: out/island_full.litematic
 regen: []
 progress:
 - Casino Complete
+- Park_Centre Complete
+- Park_Left Complete
+- Park_Right Complete
 learn: true

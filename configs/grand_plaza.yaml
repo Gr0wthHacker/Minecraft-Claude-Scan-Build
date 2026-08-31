@@ -1,0 +1,17 @@
+name: Grand Plaza
+gen: park
+params:
+  land: midway
+  width: 72
+  depth: 72
+  facing: south
+  at:
+  - 97635
+  - 203
+  - 80635
+  kind: plaza
+  title: Grand Plaza
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

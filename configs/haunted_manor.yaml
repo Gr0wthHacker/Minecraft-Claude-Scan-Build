@@ -1,0 +1,17 @@
+name: Haunted Manor
+gen: park
+params:
+  land: hollow
+  width: 19
+  depth: 17
+  facing: east
+  at:
+  - 97606
+  - 203
+  - 80784
+  kind: walkthrough
+  title: Haunted Manor
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

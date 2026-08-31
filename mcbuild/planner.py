@@ -151,6 +151,7 @@ THEMES = {
     "midway": {
         "blurb": "the park's front door: gate, plaza, landmark tower and a carnival midway",
         "keywords": ["theme park", "midway", "entrance", "fairground", "carnival", "park centre"],
+        "orient": True,
         "paths": True,
         "paths_name": "Midway Paths",
         "floors": [{"name": "Ground", "y": 0}],
@@ -193,6 +194,7 @@ THEMES = {
     "frontier": {
         "blurb": "the west zone: a mine, a saloon and a prospect tower in spruce and cobble",
         "keywords": ["frontier", "mine", "western", "wild west", "prospect"],
+        "orient": True,
         "paths": True,
         "paths_name": "Frontier Paths",
         "floors": [{"name": "Ground", "y": 0}],
@@ -221,6 +223,7 @@ THEMES = {
     "hollow": {
         "blurb": "the east zone: a haunted manor, a crypt and a clock tower in blackstone",
         "keywords": ["hollow", "haunted", "gothic", "crypt", "manor", "spooky"],
+        "orient": True,
         "paths": True,
         "paths_name": "Hollow Paths",
         "floors": [{"name": "Ground", "y": 0}],
@@ -622,10 +625,20 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
     for mspec in spec["modules"]:
         fx, fy, fz, fw, fh, fd = measured_footprint(
             mspec["gen"], mspec["kind"], dict(mspec.get("params", {})), mspec["size"])
+        # **A MODULE THAT WILL BE TURNED MUST RESERVE A SQUARE.** Orientation is decided after
+        # siting - it depends on where the module landed relative to the hub - and turning a 9x7
+        # building through 90 degrees makes it 7x9, which no longer fits the slot that was
+        # reserved for it. Booking the larger dimension on both axes means any of the four
+        # facings fits the same slot, so the turn can never push a building into its neighbour.
+        # It costs a little packing efficiency and the plots are 13% used.
+        orient = bool(spec.get("orient")) and mspec.get("anchor") != "cover"
+        bw = bd = max(fw, fd) if orient else 0
         for i in range(int(mspec.get("count", 1))):
-            size = [fw + spacing, fh, fd + spacing]
+            size = ([bw + spacing, fh, bd + spacing] if orient
+                    else [fw + spacing, fh, fd + spacing])
             spot = None
             taken_box = None
+            bay = None
             # A COVERING MODULE IS NOT COMPETING FOR SPACE, IT IS THE SPACE.
             #
             # The hall's whole job is to lay the ground under and between the rooms, so the
@@ -685,6 +698,9 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                     if _clear(taken, bx, plane + fy, bz, size):
                         spot = (ax, plane, az, 0)
                         taken_box = (bx, plane + fy, bz, size[0], size[1], size[2])
+                        # the RESERVED corner, kept so the module can be re-placed inside its own
+                        # slot once its facing is chosen from where it landed
+                        bay = (bx, bz, bw or fw, bd or fd)
                         break
             elif pl_plot is not None:
                 for (bx, bz) in bays(pl_plot, size, spacing=1):
@@ -713,8 +729,11 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 "declared_size": list(mspec["size"]), "anchor_offset": [fx, fy, fz],
                 "floor": floors[min(int(mspec.get("floor", 0)), len(floors) - 1)]["name"],
                 "params": dict(mspec.get("params", {})),
+                "bay": list(bay) if bay else None,
                 "world": world,
             })
+    if spec.get("orient") and plane is not None:
+        _orient_to_streets(pl, plane)
     if spec.get("paths") and plane is not None:
         _add_paths(pl, spec, plane, world, pl_plot)
     return pl
@@ -739,6 +758,66 @@ def _front_of(m):
     if dx:
         return ((x1 + 2) if dx > 0 else (x0 - 2), cz)
     return (cx, (z1 + 2) if dz > 0 else (z0 - 2))
+
+
+def _street_axis(m, cx, cz):
+    """Which avenue this module belongs to, and which way it must face to address it.
+
+    Decided from the module's CENTRE rather than from its front, because the front is a function
+    of the facing and this is what chooses the facing - reading it off the front would be circular
+    and would let the orientation and the spur disagree about which avenue a building is on.
+    Returns (facing, along_z) where along_z means it spurs perpendicular to the east-west avenue.
+    """
+    # **MEASURED FROM THE RESERVED SQUARE, NOT FROM THE BUILT BOX.** Turning a building moves
+    # its box, which moves its centre, which can flip the very decision that turned it - one
+    # module per zone came out facing one avenue while the recomputed answer named the other, so
+    # its shopfront addressed one street and its spur ran to another. The reserved bay does not
+    # move when the module turns, so deciding from it is stable by construction.
+    bay = m.get("bay")
+    if bay and len(bay) == 4:
+        bx, bz, bw, bd = bay
+        mx, mz = bx + bw // 2, bz + bd // 2
+    else:
+        x0, z0, x1, z1 = _box_of(m)
+        mx, mz = (x0 + x1) // 2, (z0 + z1) // 2
+    dx, dz = mx - cx, mz - cz
+    if abs(dz) <= abs(dx):
+        return ("north" if dz > 0 else "south"), True
+    return ("west" if dx > 0 else "east"), False
+
+
+def _orient_to_streets(pl, plane):
+    """Turn every building to address the street it is joined to.
+
+    **HALF OF THEM PRESENTED THEIR BACKS.** `facing` was a theme constant, so a booth sited north
+    of the avenue faced exactly the same way as one sited south of it, and about half the park
+    showed a blank rear wall to the street its own spur ran to. A shopfront that cannot be seen
+    into is a shed.
+
+    This runs AFTER siting because the answer depends on where the module landed, and it is only
+    safe because siting reserved a SQUARE: turning a 9x7 building makes it 7x9, and re-measuring
+    inside its own slot is what keeps it out of its neighbour. The edge modules are left alone -
+    a gate faces out of the park by definition, which is the whole reason it is on the edge.
+    """
+    hub = next((m for m in pl.modules if m.get("covers")), None)
+    if hub is None:
+        return
+    hx0, hz0, hx1, hz1 = _box_of(hub)
+    cx, cz = (hx0 + hx1) // 2, (hz0 + hz1) // 2
+    for m in pl.modules:
+        if m is hub or m.get("edge") or m["kind"] == "paths" or not m.get("bay"):
+            continue
+        facing, _along_z = _street_axis(m, cx, cz)
+        if facing == m["params"].get("facing"):
+            continue
+        params = {**m.get("params", {}), "facing": facing}
+        fx, fy, fz, fw, fh, fd = measured_footprint(
+            m["gen"], m["kind"], params, m.get("declared_size", m["size"]))
+        bx, bz = m["bay"][0], m["bay"][1]
+        m["params"] = params
+        m["at"] = [bx - fx, plane, bz - fz]
+        m["anchor_offset"] = [fx, fy, fz]
+        m["size"] = [fw, fh, fd]
 
 
 def _inside_of(m):
@@ -822,7 +901,10 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
             continue          # centred on its own axis, so the avenue already runs to it
         fx = min(max(fx, x0), x1)
         fz = min(max(fz, z0), z1)
-        if abs(fz - cz) <= abs(fx - cx):
+        # ONE RULE, SHARED. `_street_axis` decides both which way a building turns and which
+        # avenue its spur runs to; asking the question twice in two places is how a shopfront
+        # ends up addressing one street while its path goes to the other.
+        if _street_axis(m, cx, cz)[1]:
             routes.append({"a": [fx, fz], "b": [fx, cz], "width": 3})
         else:
             routes.append({"a": [fx, fz], "b": [cx, fz], "width": 3})

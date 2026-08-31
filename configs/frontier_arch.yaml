@@ -1,0 +1,17 @@
+name: Frontier Arch
+gen: park
+params:
+  land: frontier
+  width: 7
+  height: 6
+  facing: north
+  at:
+  - 97597
+  - 203
+  - 80552
+  kind: arch
+  title: Frontier Arch
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

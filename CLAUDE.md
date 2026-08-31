@@ -7305,16 +7305,55 @@ than an affordability problem - but build the centre first.
 
 None of the three is approved.
 
+#### Buildings that address the street (2026-08-31)
+
+`facing` was a theme constant, so a booth sited north of the avenue faced exactly the same way as
+one sited south of it and about half the park showed a blank rear wall to the street its own spur
+ran to. A shopfront that cannot be seen into is a shed.
+
+**ORIENTATION IS DECIDED AFTER SITING, WHICH MEANS SITING MUST RESERVE A SQUARE.** The answer
+depends on where a module landed relative to the hub, and turning a 9x7 building through 90
+degrees makes it 7x9 - which no longer fits the slot booked for it. `orient: True` on a theme
+makes the siting loop book `max(w, d)` on both axes, so any of the four facings fits the same
+slot and the turn can never push a building into its neighbour. It costs a little packing
+efficiency; the plots are 13% used.
+
+**AND THE DECISION MUST BE MEASURED FROM SOMETHING THE TURN CANNOT MOVE.** Taken from the built
+box, turning a module moves its centre, which can flip the very decision that turned it - one
+module per zone came out facing one avenue while the recomputed answer named the other, so its
+shopfront addressed one street and its spur ran to another. `_street_axis` reads the RESERVED BAY
+instead, which does not move, so the answer is a fixpoint. The same function decides both the
+facing and which avenue the spur runs to: asking that question twice in two places is exactly how
+the two disagree.
+
+Edge modules are left alone - a gate faces OUT of the park by definition, which is the whole
+reason it is on the edge.
+
+#### Shipped (2026-08-31)
+
+    Park_Centre Complete   9,544 blocks   origin 97551 202 80551
+    Park_Left Complete     9,145 blocks   origin 97564 202 80357
+    Park_Right Complete    9,326 blocks   origin 97564 202 80751
+
+All three approved, emitted, generated, sliced and shipped; tracked in `sync.yaml`. Each zone is
+one connected walk with every door on the street, no module overlaps, nothing off the plot.
+
+**`layers --floor` IS THE COURSE THE FLOOR BLOCKS OCCUPY, NOT THE PLANE YOU STAND ON.** The park
+declares a build plane of Y203 and every module lays its pad at Y202, so `--floor 203` filed the
+entire park as MACHINES - 5,549 blocks of paving in the basement layer of a park with no machines
+in it, and a Floor layer of 462. It is `--floor 202`.
+
+**The starter island is in the way, by about 54 cells per zone** - a 6x6 grass pad, two dirt, and
+the centre's tree. A printer places into AIR, so those cells simply will not fill and the paving
+will show a small green patch. Clear the pad and the tree before printing, or keep it.
+
 ### Still open
 
 - ~~The left and right islands are not registered.~~ DONE - all four islands are in the registry.
 - ~~The layout is PACKED, not COMPOSED.~~ DONE - see the street network above.
-- **The buildings are not oriented toward the streets.** Every module's `facing` is a theme
-  constant, so a booth sited north of the avenue faces the same way as one sited south of it and
-  half of them present their backs to the street they are joined to. The path network knows each
-  door's position and could pick the facing; the siting loop would have to run before the facing
-  is fixed. This is the next real piece of layout work and it is the difference between a park
-  and a park you would want to walk round.
+- ~~The buildings are not oriented toward the streets.~~ DONE - see above.
+- **Nothing has been looked at in game yet.** All three zones are shipped and placeable; that is
+  the next thing, and it is the only check this pipeline does not have.
 - **Nothing has been looked at in game, or rendered.** `tools/look.py` cannot draw these yet - it
   wants a facing VECTOR and the park sidecar records a word, the same gap the casino has. Place
   one module and look at it before building forty-eight.

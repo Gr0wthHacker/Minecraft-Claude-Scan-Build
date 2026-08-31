@@ -1,0 +1,17 @@
+name: Hall of Mirrors
+gen: park
+params:
+  land: midway
+  width: 13
+  depth: 13
+  facing: east
+  at:
+  - 97605
+  - 203
+  - 80587
+  kind: walkthrough
+  title: Hall of Mirrors
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

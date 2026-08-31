@@ -1,0 +1,17 @@
+name: Frontier Plaza
+gen: park
+params:
+  land: frontier
+  width: 72
+  depth: 72
+  facing: east
+  at:
+  - 97635
+  - 203
+  - 80435
+  kind: plaza
+  title: Frontier Plaza
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false
