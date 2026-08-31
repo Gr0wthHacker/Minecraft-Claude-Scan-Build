@@ -46,18 +46,25 @@ visitor has to be able to come back.
 
 **THE CORRIDOR WAS MEASURED, NOT CHOSEN.** Every park module of all three zones was loaded and
 binned by X: content runs 97551..97642 and there is **not one cell at X >= 97643 in any zone**,
-at any height, over the whole Z of every plot. The plots end at X 97649. So the line runs down
-the east edge on X 97643..97648 with the track at 97646, and it collides with nothing. It is
-also where each zone's own paving comes closest to it - all three plazas sit at X 97639, and
-each zone has floor reaching X 97638+ over a long Z run (left 80360..80439, centre 80560..80639,
-right 80760..80839), which is what the station stairs land beside.
+at any height, over the whole Z of every plot. The plots end at X 97649. It is also where each
+zone's own paving comes closest to the edge - all three plazas sit at X 97639, and every zone
+has floor reaching X 97638+ over a long Z run (left 80360..80439, centre 80560..80639, right
+80760..80839), which is what the station stairs land beside.
+
+That gave a corridor at X 97643..97648, and it had to move one column east. `Casino Complete`
+also stands on newisle, its east wall running the whole plot at X 97643 (Y203-208) - and it
+already shares **2,356 cells with `Park_Centre Complete`**, so the middle island currently holds
+two designs that cannot both be built. The line is not the place to settle that, so the corridor
+sits at X 97644..97649 with the track at 97647, where the deck, the track, the piers, the arches
+and the towers are clear of BOTH. What is left is 37 cells of the Midway station's own platform
+and flight, pinned by a test so it cannot grow quietly and reported rather than papered over.
 
 **THE DECK IS FOUR COURSES OVER THE STREET, AND THE NUMBER IS THE STAIR'S.** The park's floor
 blocks are at Y202 and you stand at Y203; the deck floor is Y206 and the rail Y207. Four courses
 is exactly a four-tread flight, and the flight has to fit in the four columns X 97640..97643
-that are free of park content beside the station - one course per cell is the most a stair can
-fall. Higher and the flight runs out of ground before it runs out of height; lower and the
-viaduct is a road.
+that lie between the zone's own paving and the deck - one course per cell is the most a stair
+can fall. Higher and the flight runs out of ground before it runs out of height; lower and the
+viaduct is a road you cannot walk under.
 
 WHAT MAKES 350 BLOCKS OF SPAN READ AS ARCHITECTURE IS REGULARITY AND OPENINGS, NOT LENGTH - the
 void tower's rule, and a viaduct is the purest case of it. A bay repeats every `bay` cells: a
@@ -587,24 +594,28 @@ def _station(w, ln, p, st, land_of, avoid, meta):
         else:
             w.put(*ln.at(a, -1, 0), pal["fence"])
 
-    # BENCHES - stairs, facing the track. Not a flight: a bench is one course and has no rise,
-    # so the ascending-tread rule does not apply to it and the test that pins that rule is told
-    # which cells are a flight rather than being left to guess from the block name.
-    bench = []
-    for a in range(a0 + 2, a1 - 1, 5):
-        for k in range(3):
-            if a + k > a1 - 1:
-                break
-            w.put(*ln.at(a + k, -back + 1, 0), pal["stair"],
-                  facing=ln.perp_name(1), half="bottom", shape="straight", waterlogged="false")
-            bench.append(list(ln.at(a + k, -back + 1, 0)))
-
     # THE DEPARTURE BOARD and the name, on the back wall, facing whoever is on the platform.
     wood = pal["wood"]
     board = list(s0.get("board") or ["DEPARTURES", "", "", ""])
     named = _sign(w, *ln.at(a_c, -back + 1, 2), ln.perp_name(1), wood,
                   [str(s0.get("title") or "STATION")[:SIGN_WIDTH], "", "", ""])
     boarded = _sign(w, *ln.at(a_c - 2, -back + 1, 2), ln.perp_name(1), wood, board)
+
+    # BENCHES - stairs, facing the track. Not a flight: a bench is one course and has no rise,
+    # so the ascending-tread rule does not apply to it and the test that pins that rule is told
+    # which cells are a flight rather than being left to guess from the block name. They go in
+    # AFTER the signs and skip anything already standing: benches and the departure board share
+    # the strip in front of the back wall, and a bench recorded in the meta that is really a
+    # sign is a small lie that a later test would believe.
+    bench = []
+    for a in range(a0 + 2, a1 - 1, 5):
+        for k in range(3):
+            cell = ln.at(a + k, -back + 1, 0)
+            if a + k > a1 - 1 or w.has(*cell):
+                continue
+            w.put(*cell, pal["stair"],
+                  facing=ln.perp_name(1), half="bottom", shape="straight", waterlogged="false")
+            bench.append(list(cell))
 
     # THE STAIR, descending along the line on the platform's own strip.
     flight, skipped = [], 0
