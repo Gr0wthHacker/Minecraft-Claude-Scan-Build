@@ -1,11 +1,11 @@
 {
   "origin": {
-    "x": 97578,
+    "x": 97579,
     "y": 202,
     "z": 80584
   },
   "size": {
-    "x": 34,
+    "x": 33,
     "y": 53,
     "z": 33
   },
@@ -13,7 +13,7 @@
   "kind": "monument",
   "land": "midway",
   "facing": "east",
-  "contract": "five tiers, each narrower and taller than the one below: a four-step base you can sit on, a panelled podium, a colonnade you can see through, a fluted taper with a gilded collar, and a planar winged figure at least 45 courses up - and a real climb: a spiral stair tower behind the podium, a fenced bridge, and a railed viewing gallery under the crown, lit the whole way",
+  "contract": "five tiers, each narrower and taller than the one below: a four-step base you can sit on, a panelled podium, a colonnade you can see through, a fluted taper with a gilded collar, and a planar winged figure at least 45 courses up - and an OBSERVATION TOWER anyone can find: a lit, signed portal on the flank facing the approach, a marked route to it across the apron, a spiral stair lit every four courses, a railed landing, a fenced bridge, and a railed gallery with a bell and a plaque naming the view - walkable from the door to the deck",
   "unverified": [],
   "height": 51,
   "base": 29,
@@ -23,337 +23,359 @@
   "bays": 8,
   "panels": 0,
   "wingspan": 21,
-  "wing_cells": 166,
-  "lanterns": 24,
-  "posts": 8,
+  "wing_cells": 158,
+  "lanterns": 35,
+  "posts": 7,
+  "posts_skipped": 1,
+  "door": [
+    97598,
+    203,
+    80615
+  ],
+  "portal_lanterns": 2,
+  "forecourt": 9,
+  "marked_route": 48,
+  "landing_floor": 23,
+  "landing_rails": 15,
+  "stair_mouth": [
+    [
+      -15,
+      0
+    ],
+    [
+      -15,
+      1
+    ]
+  ],
   "climb_treads": [
     [
       [
-        97580,
+        97596,
         203,
-        80599
+        80614
       ],
-      "west"
+      "north"
     ],
     [
       [
-        97579,
+        97596,
         204,
-        80599
+        80613
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97579,
+        97595,
         205,
-        80600
+        80613
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97579,
+        97594,
         206,
-        80601
+        80613
       ],
-      "east"
+      "south"
     ],
     [
       [
-        97580,
+        97594,
         207,
-        80601
+        80614
       ],
-      "east"
+      "south"
     ],
     [
       [
-        97581,
+        97594,
         208,
-        80601
+        80615
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97581,
+        97595,
         209,
-        80600
+        80615
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97581,
+        97596,
         210,
-        80599
+        80615
       ],
-      "west"
+      "north"
     ],
     [
       [
-        97580,
+        97596,
         211,
-        80599
+        80614
       ],
-      "west"
+      "north"
     ],
     [
       [
-        97579,
+        97596,
         212,
-        80599
+        80613
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97579,
+        97595,
         213,
-        80600
+        80613
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97579,
+        97594,
         214,
-        80601
+        80613
       ],
-      "east"
+      "south"
     ],
     [
       [
-        97580,
+        97594,
         215,
-        80601
+        80614
       ],
-      "east"
+      "south"
     ],
     [
       [
-        97581,
+        97594,
         216,
-        80601
+        80615
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97581,
+        97595,
         217,
-        80600
+        80615
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97581,
+        97596,
         218,
-        80599
+        80615
       ],
-      "west"
+      "north"
     ],
     [
       [
-        97580,
+        97596,
         219,
-        80599
+        80614
       ],
-      "west"
+      "north"
     ],
     [
       [
-        97579,
+        97596,
         220,
-        80599
+        80613
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97579,
+        97595,
         221,
-        80600
+        80613
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97579,
+        97594,
         222,
-        80601
+        80613
       ],
-      "east"
+      "south"
     ],
     [
       [
-        97580,
+        97594,
         223,
-        80601
+        80614
       ],
-      "east"
+      "south"
     ],
     [
       [
-        97581,
+        97594,
         224,
-        80601
+        80615
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97581,
+        97595,
         225,
-        80600
+        80615
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97581,
+        97596,
         226,
-        80599
+        80615
       ],
-      "west"
+      "north"
     ],
     [
       [
-        97580,
+        97596,
         227,
-        80599
+        80614
       ],
-      "west"
+      "north"
     ],
     [
       [
-        97579,
+        97596,
         228,
-        80599
+        80613
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97579,
+        97595,
         229,
-        80600
+        80613
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97579,
+        97594,
         230,
-        80601
+        80613
       ],
-      "east"
+      "south"
     ],
     [
       [
-        97580,
+        97594,
         231,
-        80601
+        80614
       ],
-      "east"
+      "south"
     ],
     [
       [
-        97581,
+        97594,
         232,
-        80601
+        80615
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97581,
+        97595,
         233,
-        80600
+        80615
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97581,
+        97596,
         234,
-        80599
+        80615
       ],
-      "west"
+      "north"
     ],
     [
       [
-        97580,
+        97596,
         235,
-        80599
+        80614
+      ],
+      "north"
+    ],
+    [
+      [
+        97596,
+        236,
+        80613
       ],
       "west"
     ],
     [
       [
-        97579,
-        236,
-        80599
-      ],
-      "south"
-    ],
-    [
-      [
-        97579,
+        97595,
         237,
-        80600
+        80613
+      ],
+      "west"
+    ],
+    [
+      [
+        97594,
+        238,
+        80613
       ],
       "south"
     ],
     [
       [
-        97579,
-        238,
-        80601
-      ],
-      "east"
-    ],
-    [
-      [
-        97580,
+        97594,
         239,
-        80601
+        80614
+      ],
+      "south"
+    ],
+    [
+      [
+        97594,
+        240,
+        80615
       ],
       "east"
     ],
     [
       [
-        97581,
-        240,
-        80601
-      ],
-      "north"
-    ],
-    [
-      [
-        97581,
+        97595,
         241,
-        80600
+        80615
       ],
-      "north"
+      "east"
     ]
   ],
   "climb_length": 39,
-  "climb_rails": 35,
-  "climb_lanterns": 8,
-  "bridge": 11,
+  "climb_rails": 55,
+  "climb_lanterns": 20,
+  "bridge": 8,
   "gallery_height": 39,
-  "gallery_radius": 4,
-  "gallery_floor": 69,
-  "gallery_rails": 19,
+  "gallery_radius": 5,
+  "gallery_floor": 113,
+  "gallery_rails": 31,
+  "gallery_soffit_lanterns": 4,
   "turret_at": [
-    0,
-    15
+    -14,
+    0
   ],
-  "signs": 2,
-  "signs_placed": 2,
+  "signs": 8,
+  "signs_placed": 8,
   "file": "The Monument.litematic",
   "name": "The Monument"
 }

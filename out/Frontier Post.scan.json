@@ -1,0 +1,44 @@
+{
+  "origin": {
+    "x": 97589,
+    "y": 202,
+    "z": 80437
+  },
+  "size": {
+    "x": 6,
+    "y": 8,
+    "z": 6
+  },
+  "generated_by": "wayfinding",
+  "kind": "fingerpost",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "2-4 arms, each pointing the direction its own sign faces, each naming a real module, zone or transit station",
+  "arms": [
+    {
+      "direction": "south",
+      "dest": "Midway",
+      "sign_facing": "south",
+      "placed": true,
+      "sign_at": [
+        97593,
+        206,
+        80442
+      ]
+    },
+    {
+      "direction": "west",
+      "dest": "Mine Coaster",
+      "sign_facing": "west",
+      "placed": true,
+      "sign_at": [
+        97589,
+        207,
+        80438
+      ]
+    }
+  ],
+  "post_h": 6,
+  "file": "Frontier Post.litematic",
+  "name": "Frontier Post"
+}

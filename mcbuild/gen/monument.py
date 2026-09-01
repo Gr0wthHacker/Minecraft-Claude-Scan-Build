@@ -12,18 +12,35 @@ silhouette converges to a point and the eye is carried up it from forty blocks a
     3  COLONNADE      eight to twelve columns carrying an entablature - THE GAPS ARE THE POINT
     4  SHAFT          a fluted taper with a gilded collar partway up
    4.5 GALLERY        a railed, lit deck on the shaft's own capital, reached by...
-    -  THE CLIMB      a spiral stair tower behind the podium and a fenced bridge to the gallery
+    -  THE CLIMB      a portal on the flank, a spiral stair tower, a landing and a fenced bridge
     5  CROWN          a WINGED figure, 21 blocks across, built as one-thick sheets, standing ON
                        the gallery rather than screwed to the tower's tip
 
-**THE PLAQUE SAYS "CLIMB THE STEPS, THE VIEW IS FREE" AND IT HAS TO BE TRUE.** A monument that
-only *reads* as climbable is the same failure this project keeps finding in its rides - a track
-228 cells long walled off from its own platform, a flume of nothing but source blocks. So there
-is a real path: 39 stair treads wound round a newel post behind the podium (`_turret`), a fenced
-walkway across to the tower (`_bridge`), and a railed gallery under the crown's own feet
-(`_gallery`). `tests/test_monument.py` floods the built model from a real ground cell and asserts
-the gallery is in the same connected region - the axolotl's own lesson, that a test seeded in the
-void proves nothing, applied here to a staircase instead of an animal.
+**IT IS AN OBSERVATION TOWER AND FOR ONE WHOLE VERSION NOBODY COULD TELL.** Everything above was
+built and the verdict from the first person to look at the finished park was that they had no
+idea what the centrepiece was or what it was for. Two separate faults, and neither is a matter
+of taste:
+
+- **THE WAY IN WAS BEHIND THE PODIUM**, diametrically opposite the axis a visitor walks up. A
+  feature whose entrance you cannot see does not exist. The stair tower is on the LEFT FLANK now
+  (`TURRET_AT`), in silhouette from the approach and clear of the monument's own face; its foot
+  is a framed, lit, signed PORTAL (`_portal`) standing on its own forecourt; and the walkway ring
+  between the base and the apron's edge is repaved from the front round to that door with a
+  gilded dash every third cell (`_approach`), because a plan view is how this park is reviewed
+  and paving is the only cue that survives one.
+- **AND THE CLIMB COULD NOT BE CLIMBED.** The riser that ties each tread to the last was placed
+  one course ABOVE the previous tread - exactly the cell a player standing on it occupies - so
+  every step in the flight had a solid block resting on it. The audit, the legality check, the
+  connectivity check, the tread-path check and the stair-facing check all passed, because every
+  one of them asks about BLOCKS and the failure was in the AIR. `tests/test_monument.py` now
+  floods the STANDING space from the portal's own threshold cell and requires the gallery deck
+  to be in it - the axolotl's lesson (a flood seeded in the void proves nothing) applied to a
+  staircase, and seeded from the door rather than from a cell that happened to work.
+
+So there is a real, findable path: a portal, 39 treads wound round a newel and lit every four
+courses (`_turret`), a railed landing with the stairwell left open (`_landing`), a fenced bridge
+(`_bridge`), and a railed gallery with lanterns under its own deck, a bell and a plaque naming
+what lies which way (`_gallery`).
 
 **THE CROWN IS PLANAR AND THAT IS NOT A STYLE CHOICE.** This repo cannot build volumetric muscle
 and has the panel verdicts to prove it: every cat and both bears are retired, and the jaguar at
@@ -76,8 +93,8 @@ import math
 
 from .canvas import Canvas, hash01
 from .civic import (
-    _BALUSTRADE, _Plaques, _annulus, _cells, _disc, _face_out_radial, _lamp_post, _pane_props,
-    _put_free, _slab, _stair,
+    _BALUSTRADE, _Plaques, _annulus, _cells, _d_dir, _disc, _face_out_radial, _i_dir, _lamp_post,
+    _pane_props, _put_free, _slab, _stair,
 )
 from .park import LANDS, SIGN_WIDTH, _BACK, _STEP, _Frame
 from .vertical import Ctx, World
@@ -92,9 +109,18 @@ MONUMENT = {
     "lines": None,              # the rest of the inscription, three lines
     "columns": 8,               # the colonnade: eight to twelve, and EVEN (see _ring_points)
     "wings": 10,                # the crown's half-span, so the wingspan is 2*wings + 1
+    "viewpoints": None,         # what the gallery plaque names, and which way each lies
     "seed": 0,
     "sign": True,
 }
+
+# WHAT YOU CAN SEE FROM THE TOP, which is the reward the plaque promises and the only thing on
+# the gallery that could not have been guessed from the ground. The three islands run along Z -
+# left is NORTH (the frontier), right is SOUTH (the hollow) - and the gate is on the midway's
+# west edge with the big wheel on its east, so these are WORLD directions and do not move when
+# the monument's own `facing` does. Overridable, because a monument in another park looks out
+# on other things.
+VIEWPOINTS = ("N THE FRONTIER", "S THE HOLLOW", "W THE GATE", "E THE BIG WHEEL")
 
 # ---- the tiers, in courses above the plaza. Stated once, here, because every one of them is
 # read by two or three stages and a height that drifts between them is a floating cornice.
@@ -128,17 +154,38 @@ H_ABACUS = 38                   # the shaft's own capital
 # ---- tier 4.5: THE GALLERY, because a plaque that says "the view is free" has to mean it. It
 # sits on the abacus - one clear course above the shaft cap, safely below the crown - so the
 # crown reads as a figure STANDING on the tower rather than a finial screwed to its tip.
-GAL_R = 4                       # wider than the shaft, narrower than the podium
+# GAL_R WAS 4 AND A FOUR-RADIUS DECK IS A LEDGE. Read from the plaza forty courses down, the
+# gallery has to be a PLACE - the crown's own plinth eats the middle nine cells and four lamps
+# take four more, so at r=4 there were twelve cells a visitor could stand on and the deck read as
+# a collar round the shaft. At r=5 there are thirty-six, the corbel throws a real shadow line,
+# and four lanterns hang UNDER it, which is the one cue that says "occupied" from below.
+GAL_R = 5
 H_GALLERY = H_ABACUS + 1        # the floor you actually stand on
 H_GALLERY_RAIL = H_GALLERY + 1  # the balustrade course
 FIG0 = H_GALLERY_RAIL + 1       # the crown's own floor, one clear course above the rail
-# THE STAIR TOWER'S OFFSET BEHIND THE DRUM. Clear of every ring up to CAP_R+1 (the widest the
-# podium or colonnade ever get) is not enough on its own - `_ring_points(STEP_R[0]-1, 8)` puts a
-# foot lamp on the monument's own BACK AXIS at radius STEP_R[0]-1, and a turret at exactly that
-# radius plus one (its own south tread) lands a stair on top of a lamp post and the lamp post
-# wins, because it is placed last. Shipped once at CAP_R+3=12, which is exactly STEP_R[0]-2 - one
-# short of the lamp's own radius. CAP_R+6 clears it with room either side.
-TURRET_D = CAP_R + 6
+# NOTHING MAY HANG OVER THE DECK AT HEAD HEIGHT. A visitor standing on the gallery floor occupies
+# FIG0-1 and FIG0, so the crown's wings start one course higher than its own feet - built from
+# FIG0 the wing tips at t=2 and t=4 sat exactly where a head goes, on the only two cells the
+# bridge arrives across.
+WING_LO = FIG0 + 1
+
+# THE STAIR TOWER IS ON THE LEFT FLANK, NOT BEHIND THE PODIUM, and that is the whole of this
+# design's legibility. Shipped once at (0, CAP_R+6) - dead astern, diametrically opposite the way
+# a visitor walks up - and the verdict was that nobody could tell the monument was climbable at
+# all. On the flank axis it stands clear of the monument's own face (a tower in FRONT of the
+# podium hides the inscription, which is the other thing the front is for), it is in silhouette
+# from the moment you start walking, and its portal faces the plaza.
+#
+# CAP_R+5 = 14 is not a taste: at 14 both of the turret's cardinal outriggers - the banister at
+# td-2 and the lit pedestal at td+2 - land at |offset| 12 and 16, inside the apron and inside the
+# module's own 33x33 footprint. At 15 the outer one lands at 17 and hangs off the plot.
+TURRET_D = CAP_R + 5
+TURRET_AT = (-TURRET_D, 0)
+# THE _SPIRAL INDEX OF THE FIRST TREAD, chosen so the flight starts on the cell nearest the
+# plaza: `_SPIRAL[6]` is (0,-1), one step toward the front, which is where the portal opens.
+TURRET_PHASE = 6
+PORTAL_D = -3                   # the portal's own dd - three cells in front of the newel
+PORTAL_I = TURRET_AT[0] - 1     # ...and its doorway column, one out from the newel
 
 MIN_HEIGHT = 45                 # asserted: below this it is a bollard, not a monument
 MIN_WINGSPAN = 15               # asserted: below this the wings read as shoulders
@@ -223,6 +270,24 @@ def _ring_points(r, n):
 
 def _put(w, f, c, di, dd, h, block, **props):
     w.put(*f.at(c + di, c + dd, h), block, **props)
+
+
+def _fence_props(f, along_i=False, along_d=False):
+    """A fence's connection flags, set ALONG the run it belongs to.
+
+    Exactly `_pane_props`' rule and exactly its reason - a fence with every side false renders as
+    a lone post rather than as a rail - except that a rail RING turns corners, so the two axes are
+    asked for separately and a corner asks for both.
+    """
+    pr = {"north": "false", "south": "false", "east": "false", "west": "false",
+          "waterlogged": "false"}
+    if along_i:
+        pr[_i_dir(f, 1)] = "true"
+        pr[_i_dir(f, -1)] = "true"
+    if along_d:
+        pr[_d_dir(f, 1)] = "true"
+        pr[_d_dir(f, -1)] = "true"
+    return pr
 
 
 def _fill(w, f, c, r, h, block):
@@ -361,7 +426,14 @@ def _podium(w, f, pal, c, say, title, lines, pilasters):
         [title[:SIGN_WIDTH]] + [str(s)[:SIGN_WIDTH] for s in lines[:3]])
     say(w, f, pal, c + bi, c + bd + 1, H_PANEL0, f.back,
         [s[:SIGN_WIDTH] for s in
-         ("THE MONUMENT", "", "climb the steps", "the view is free")])
+         ("THE MONUMENT", "", "climb the tower", "view is free")])
+
+    # AND ONE AT EYE LEVEL ON THE FRONT PLINTH, because the inscription is eight courses up and
+    # the question it has to answer - what IS this, and what do I do here - is asked by somebody
+    # standing at the bottom of the steps. Hung on the plinth's own face, which is solid at every
+    # course, rather than on the dado, which is a hole for two of them.
+    say(w, f, pal, c, c - PLI_R - 1, H_PLINTH - 1, f.facing,
+        ["OBSERVATION", "TOWER", "climb the tower", "view is free"])
 
     return panels, len(bays)
 
@@ -486,33 +558,44 @@ def _shaft(w, f, pal, c):
 _SPIRAL = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
 
 
-def _turret(w, f, pal, c, td, h0, h1):
-    """A detached stair tower behind the podium: a newel post with eight treads a revolution,
-    every one of them exactly one step and one course from the last.
+def _turret(w, f, pal, c, td, h0, h1, phase=0):
+    """A detached stair tower on the monument's flank: a newel post with eight treads a
+    revolution, every one of them exactly one step and one course from the last.
 
-    A TREAD AND THE ONE BEFORE IT DO NOT SHARE A FACE, AND THAT IS NORMAL - it is how every real
-    flight in this file is built (the stairhead precedent itself: "each one course UP AND one
-    step east"), and it is exactly what `rimstair.py`'s STRINGER exists to fix: a solid fill
-    under a tread that reaches down to something real. Here the fill is one cell, not a column -
-    a RISER at the PREVIOUS tread's own offset, one course higher, which shares a face with the
-    tread below it (same offset, one course up) and with the tread above it (same course, one
-    step over, because two consecutive `_SPIRAL` offsets are never more than a single step
-    apart - checked, not assumed, at the top of this file). Without it the spiral audits as
-    thirty-nine separate floating stairs, which shipped once and is why this comment exists.
+    **THE RISER GOES UNDER THE NEXT TREAD, NEVER ON TOP OF THE LAST ONE, AND THAT IS THE WHOLE
+    DIFFERENCE BETWEEN A STAIRCASE AND A SCULPTURE OF ONE.** A tread and the one before it do not
+    share a face - they are one course up and one cell over - so something has to tie them
+    together or the spiral audits as thirty-nine floating stairs. The first version put that
+    something at the PREVIOUS tread's offset ONE COURSE UP, which is exactly the cell a player
+    standing on that tread occupies: every tread in the flight had a solid block resting on it,
+    and the climb this monument's own plaque promises **could not be walked at all**. It passed
+    every check in the pipeline - legal states, one connected piece, treads a real path, every
+    facing correct - because all of those ask about BLOCKS and none of them asks about the air.
+    Placed under the NEXT tread instead it ties the same two cells together (it touches the tread
+    above it, and the tread beside it at its own course, since two consecutive `_SPIRAL` offsets
+    are one step apart - checked, not assumed, at the top of this file) and it is under the stair
+    where a riser belongs. `tests/test_monument.py` now floods the STANDING space from the portal.
 
-    THE NEWEL IS ADDITIONAL, not load-bearing - the riser already connects every tread to the
-    one either side of it - but it gives the eye something to spiral round and the lanterns
-    something to stand on, so it is built anyway, full height, in one pass at the end.
+    `phase` is the `_SPIRAL` index of the first tread, so the flight can be made to start on the
+    side the door is on rather than wherever index zero happens to fall.
+
+    THE NEWEL stops one course below the landing, which caps the tower; it is additional rather
+    than load-bearing - the risers already chain every tread to its neighbours - but it gives the
+    eye something to spiral round and the lamps something to stand on.
 
     ONLY THE FOUR CARDINAL TREADS CARRY A BANISTER OR A LAMP. Doubling a cardinal offset
     (east -> two east) lands on a cell that shares a face with the tread; doubling a diagonal one
     (south-east -> two south-east) lands on a cell that only touches it at the CORNER, which is
-    the same non-adjacency this docstring just paid for once already.
+    the same non-adjacency this docstring just paid for once already. **And the FIRST tread gets
+    neither**: its outrigger stands in the doorway, one cell in front of the entry tread, which
+    is a fence across the only way in.
+
+    A LAMP EVERY FOUR COURSES, NOT EVERY EIGHT. An unlit spiral is a spiral nobody takes, and one
+    pedestal a revolution left eleven-course gaps of darkness on a flight forty courses tall.
     """
-    treads, rails, lamps = [], 0, 0
-    prev = None
+    treads, rails, lamps, mouth = [], 0, 0, []
     for h in range(h0, h1):
-        k = (h - h0) % 8
+        k = (h - h0 + phase) % 8
         di, dd = _SPIRAL[k]
         ndi, ndd = _SPIRAL[(k + 1) % 8]
         face = _face_out_radial(f, ndi - di, ndd - dd)
@@ -520,12 +603,16 @@ def _turret(w, f, pal, c, td, h0, h1):
         w.put(*pos, pal["stair"], facing=face, half="bottom", shape="straight",
               waterlogged="false")
         treads.append((pos, face))
-        if prev is not None:
-            w.put(*f.at(c + td[0] + prev[0], c + td[1] + prev[1], h), pal["post"])
-        prev = (di, dd)
-        if k % 2 == 0:                                    # cardinal: east, south, west, north
+        # THE LAST TWO TREADS' OWN COLUMNS. The landing floor is one course above the top tread,
+        # so it roofs the head of anyone standing on the tread below that one as well: a mouth
+        # of one cell let a climber reach the second-from-top step and stop there, with nothing
+        # in the build looking wrong. Two is what a spiral's stairwell actually is.
+        mouth = ([(di, dd)] + mouth)[:2]
+        if h > h0:
+            w.put(*f.at(c + td[0] + di, c + td[1] + dd, h - 1), pal["post"])
+        if k % 2 == 0 and h > h0:                          # cardinal, and never the entry tread
             oi, od = td[0] + di * 2, td[1] + dd * 2
-            if k == 0 and h > h0:                          # a lit pedestal, once a lap
+            if k in (0, 4):                                # a lit pedestal, twice a lap
                 w.put(*f.at(c + oi, c + od, h), pal["post"])
                 lamps += int(_put_free(w, f, c + oi, c + od, h + 1, pal["light"],
                                        hanging="false", waterlogged="false"))
@@ -534,23 +621,105 @@ def _turret(w, f, pal, c, td, h0, h1):
                       north="false", south="false", east="false", west="false",
                       waterlogged="false")
                 rails += 1
-    for h in range(h0 - 1, h1 + 1):     # the newel, full height, so every tread keys off it
+    for h in range(h0 - 1, h1):         # the newel, up to the landing it carries
         w.put(*f.at(c + td[0], c + td[1], h), pal["post"])
-    return treads, rails, lamps
+    return treads, rails, lamps, tuple((td[0] + a, td[1] + b) for (a, b) in mouth)
 
 
-def _gallery(w, f, pal, c):
+def _landing(w, f, pal, c, td, h, mouth):
+    """The stair's own top platform - five by five, railed, with the stairwell left open.
+
+    **THE STAIRWELL MOUTH IS LEFT EMPTY BY THE LOOP**, never punched afterwards: the last tread
+    is one course below this floor, so a player standing on it occupies exactly that column, and
+    a platform laid solid over the top of the flight is a ceiling on the last step. Same rule as
+    the gallery's rail gap and the podium's panels, for the same reason.
+
+    AND THE RAIL IS ON THE OUTER RING ONLY. Railing the inner ring as well leaves nowhere to
+    stand: the platform is three cells across inside its own parapet, and a fence in every one of
+    them is a cage. What the outer ring buys is that the walk from the stairwell round to the
+    bridge is protected on every side without a single walking cell being blocked.
+    """
+    floor = rails = 0
+    mouth = set(mouth)
+    for di in range(td[0] - 2, td[0] + 3):
+        for dd in range(td[1] - 2, td[1] + 3):
+            if (di, dd) in mouth:
+                continue
+            _put(w, f, c, di, dd, h, pal["trim"])
+            floor += 1
+    gate = (td[0] + 2, td[1])           # where the bridge leaves; the rail opens for it
+    for di in range(td[0] - 2, td[0] + 3):
+        for dd in range(td[1] - 2, td[1] + 3):
+            if abs(di - td[0]) != 2 and abs(dd - td[1]) != 2:
+                continue
+            if (di, dd) == gate:
+                continue
+            _put(w, f, c, di, dd, h + 1, pal["fence"],
+                 **_fence_props(f, along_i=abs(dd - td[1]) == 2, along_d=abs(di - td[0]) == 2))
+            rails += 1
+    return floor, rails
+
+
+def _portal(w, f, pal, say, c, td, steps):
+    """**THE WAY IN, BUILT AS A DOOR SOMEBODY CAN SEE FROM THE PLAZA.**
+
+    The monument was climbable and unmistakably did not look it: thirty-nine treads, a bridge and
+    a railed gallery, and the verdict from someone looking at the finished thing was that they
+    could not tell what the structure was for. A feature nobody can find the entrance to does not
+    exist, so the entrance is now a piece of architecture in its own right - two jambs, a lintel,
+    a signboard above it and a standing lamp on each shoulder - standing on its own forecourt
+    three cells in front of the first tread, with its face turned toward the approach.
+
+    IT IS A REAL OPENING, three courses clear, and the walk from it to the first tread is checked
+    by the same flood that checks the climb. A framed doorway that is not the way in is worse
+    than no doorway at all - it is a sign pointing at a wall.
+    """
+    i0, i1 = PORTAL_I - 1, PORTAL_I + 1
+    dd = PORTAL_D
+    for di in (i0, i1):                                     # the jambs
+        for h in range(0, 3):
+            _put(w, f, c, di, dd, h, pal["post"])
+    for di in range(i0, i1 + 1):                            # the lintel, then the signboard
+        _put(w, f, c, di, dd, 3, pal["trim"])
+        _put(w, f, c, di, dd, 4, pal["wall"])
+        _put(w, f, c, di, dd, 5, pal["trim"])
+    _put(w, f, c, PORTAL_I, dd, 4, pal["accent"])           # the keystone, gilded
+    lamps = 0
+    for di in (i0, i1):
+        lamps += int(_put_free(w, f, c + di, c + dd, 6, pal["light"],
+                               hanging="false", waterlogged="false"))
+    # THE BOARD READS FROM THE PLAZA. `f.facing` puts the text on the -dd face and the board
+    # itself one course behind it, which is the support `park._sign` checks for.
+    say(w, f, pal, PORTAL_I + c, c + dd - 1, 4, f.facing,
+        ["CLIMB THE TOWER", f"{steps} steps up", "VIEW FROM", "THE TOP"])
+    say(w, f, pal, i0 + c, c + dd - 1, 2, f.facing,
+        ["TOWER ENTRANCE", "free to climb", "", ""])
+    return lamps
+
+
+def _gallery(w, f, pal, say, c, viewpoints):
     """THE VIEWING GALLERY the plaque promises: a corbelled ring around the shaft's own capital,
-    railed at 1.5 blocks so the view over it is real, and lit at the four cardinal points.
+    railed at 1.5 blocks so the view over it is real, lit above AND BELOW, and named.
 
     THE GAP IN THE RAIL IS LEFT BY THE LOOP, never punched afterwards - the void tower's own
     rule, paid for once already on this file's own colonnade and podium. It falls exactly where
-    `_bridge` lands, because both read the same `GAL_R` rather than one of them guessing it.
+    `_bridge` lands, because both read the same `GAL_R` and `TURRET_AT` rather than one of them
+    guessing it.
+
+    **FOUR LANTERNS HANG UNDER THE DECK, and they are the only thing on this monument that says
+    "somebody is up there" from the ground.** A rail read from forty courses below is a thin dark
+    line; a lit soffit under an overhanging deck is a shape, and the corbel that throws the
+    shadow is already built. They hang from the gallery's own floor, which is a full block - a
+    lantern under a slab reads as hanging from air, which this repo has shipped once.
+
+    AND THERE IS SOMETHING TO FIND AT THE TOP. A climb whose reward is the same view you could
+    infer from the ground is a climb nobody makes twice: the deck carries a bell you can ring and
+    a plaque naming what lies which way, both of which need no signal and cannot be got wrong.
     """
-    n = _moulding(w, f, pal, c, GAL_R, H_ABACUS, "top")        # corbel: r3 abacus out to r4
+    n = _moulding(w, f, pal, c, GAL_R, H_ABACUS, "top")        # corbel: the abacus out to GAL_R
     n += _fill(w, f, c, GAL_R, H_GALLERY, pal["trim"])         # the floor
     rail = _BALUSTRADE.get(pal["ground"], "stone_brick_wall")
-    gap = (0, GAL_R)
+    gap = (-GAL_R, 0)
     rails = 0
     for (di, dd) in sorted(_annulus(GAL_R, _disc)):
         if (di, dd) == gap:
@@ -563,24 +732,82 @@ def _gallery(w, f, pal, c):
         if _put_free(w, f, c + di, c + dd, H_GALLERY_RAIL, pal["light"],
                      hanging="false", waterlogged="false"):
             lamps += 1
-    return n, rails, lamps
+    under = 0
+    for (di, dd) in ((3, 0), (-3, 0), (0, 3), (0, -3)):
+        if _put_free(w, f, c + di, c + dd, H_ABACUS, pal["light"],
+                     hanging="true", waterlogged="false"):
+            under += 1
+    # A BELL RINGS ON A RIGHT-CLICK AND NEEDS NOTHING WIRED TO IT, which is why it is here and a
+    # note block is not: `palette.tier("note_block") == "expensive"` before anyone even asks what
+    # would drive it, and nothing that carries a signal ships from this repo unverified.
+    _put(w, f, c, 3, 2, H_GALLERY_RAIL, "bell",
+         attachment="floor", facing=f.facing, powered="false")
+    say(w, f, pal, c, c + 4, H_GALLERY_RAIL, f.facing,
+        ["VIEW FROM THE", "TOP OF THE PARK", "ring the bell", ""])
+    say(w, f, pal, c, c - 4, H_GALLERY_RAIL, f.back, list(viewpoints)[:4])
+    return n, rails, lamps, under
 
 
 def _bridge(w, f, pal, c, td, h):
-    """A single-file, fenced walkway from the gallery's own rail gap out to the stair tower.
+    """A single-file, fenced walkway from the gallery's own rail gap out to the stair tower's
+    landing, along the flank axis the tower stands on.
 
     Both ends are read off `GAL_R` and `td`, never re-typed, which is the same discipline
-    `_gallery`'s gap and `_turret`'s landing already follow - two numbers agreeing by
-    construction rather than by two people remembering to keep them in step.
+    `_gallery`'s gap and `_landing`'s rail gate already follow - numbers agreeing by construction
+    rather than by two people remembering to keep them in step.
     """
-    props = _pane_props(f, along_i=False)
+    props = _pane_props(f, along_i=True)
     n = 0
-    for dd in range(GAL_R, td[1]):
-        _put(w, f, c, 0, dd, h, pal["trim"])
-        for di in (-1, 1):
-            w.put(*f.at(c + di, c + dd, h + 1), pal["fence"], **props)
+    for k in range(GAL_R, abs(td[0]) - 1):
+        _put(w, f, c, -k, 0, h, pal["trim"])
+        for dd in (-1, 1):
+            w.put(*f.at(c - k, c + dd, h + 1), pal["fence"], **props)
         n += 1
     return n
+
+
+# ------------------------------------------------------------------ the approach on the ground
+
+def _approach(w, f, pal, say, c, td, steps):
+    """The forecourt at the tower's foot, the marked route to it, and the fingerpost that names
+    it from the bottom of the front steps.
+
+    **THE ROUTE IS DRAWN ON THE GROUND, because that is the only cue that survives a plan view.**
+    Everything else added for legibility - the portal, its lamps, its board - is an elevation
+    cue, and the way this park is actually reviewed is from above. The walkway ring between the
+    base's lowest step and the apron's edge is repaved from the front round to the door in the
+    land's own path block with a gilded dash every third cell, so from overhead there is a line
+    leading off the axis a visitor arrives on and ending at a doorway.
+
+    The forecourt is a small rectangle of paving at the tower's foot. It exists because the apron
+    is a DISC and the portal is a straight three-cell frame: the outer jamb sits at radius 16.3,
+    a third of a block outside the circle, and a jamb standing on nothing is the floating-cell
+    failure this repo checks for on every design. It stays inside the module's own 33x33 - the
+    furthest cell it reaches is exactly `PAD_R` on both axes.
+    """
+    yard = 0
+    for di in range(td[0] - 2, td[0] + 3):
+        for dd in range(PORTAL_D - 3, td[1] + 3):
+            if abs(di) > PAD_R or abs(dd) > PAD_R:
+                continue
+            if _put_free(w, f, c + di, c + dd, -1, pal["path"]):
+                yard += 1
+
+    ring = [t for t in _band(STEP_R[0], PAD_R) if t[0] <= 0 and t[1] <= 0]
+    ring.sort(key=lambda t: -math.atan2(t[1], t[0]))
+    for k, (di, dd) in enumerate(ring):
+        _put(w, f, c, di, dd, -1, pal["accent"] if k % 3 == 0 else pal["path"])
+
+    # THE FINGERPOST, at the foot of the front steps and ON the marked route, so the first thing
+    # a visitor reads is that there is a tower and it is free.
+    fi, fd = -3, -(PAD_R - 1)
+    for h in range(0, 3):
+        _put(w, f, c, fi, fd, h, pal["post"])
+    _put(w, f, c, fi, fd, 3, pal["trim"])
+    _put(w, f, c, fi, fd, 4, pal["light"], hanging="false", waterlogged="false")
+    say(w, f, pal, c + fi, c + fd - 1, 2, f.facing,
+        ["VIEWING TOWER", f"{steps} steps up", "free to climb", "follow the path"])
+    return yard, len(ring)
 
 
 # ------------------------------------------------------------------ tier 5: the crown
@@ -608,13 +835,13 @@ def _wing(w, f, pal, c, side, wings, sh):
         top = sh + 1 + k // 2
         bot = sh - 5 + k
         tail = bot - 2 if k % 2 == 0 else bot
-        for hh in range(max(FIG0, tail), top + 1):
+        for hh in range(max(WING_LO, tail), top + 1):
             blk = pal["trim"] if hh < bot else pal["wall"]
             _put(w, f, c, side * t, 0, hh, blk)
             n += 1
         if k <= 2:                      # the coverts: a second sheet at the shoulder only
             for dd in (-1, 1):
-                for hh in range(bot, max(bot, top - 1) + 1):
+                for hh in range(max(WING_LO, bot), max(bot, top - 1) + 1):
                     _put(w, f, c, side * t, dd, hh, pal["wall"])
                     n += 1
     return n
@@ -629,6 +856,13 @@ def _crown(w, f, pal, c, wings):
     """
     sh = FIG0 + 5                       # the shoulder: where the wings leave the body
     body = [(a, b) for a in (-1, 0, 1) for b in (-1, 0, 1)]
+    # THE PLINTH, AND IT IS STRUCTURAL. Without it the figure's lowest course is FIG0 and the
+    # only thing under it is open air over the gallery deck - the crown was hanging off the four
+    # lamps beside it, which is a hundred and sixty cells of statue keyed to a lantern. It is
+    # also what a statue stands on, and it takes the nine deck cells a visitor could not have
+    # stood on anyway (the figure is over their head there).
+    for (a, b) in body:
+        _put(w, f, c, a, b, FIG0 - 1, pal["trim"])
     for h in range(FIG0, sh + 1):
         for (a, b) in body:
             _put(w, f, c, a, b, h, pal["wall"])
@@ -681,22 +915,36 @@ def _monument(w: World, p: dict, ctx) -> dict:
     lines = list(p.get("lines") or [])
     lines += ["raised by the", "park company", "for the island"][len(lines):]
 
+    viewpoints = list(p.get("viewpoints") or VIEWPOINTS)
+
     pad = _base(w, f, pal, c, seed)
     panels, bays = _podium(w, f, pal, c, say, title, lines,
                            _ring_points(POD_R, columns))
     hung = _colonnade(w, f, pal, c, columns, seed)
     _shaft(w, f, pal, c)
-    gal_floor, gal_rails, gal_lamps = _gallery(w, f, pal, c)
-    td = (0, TURRET_D)
-    treads, turret_rails, turret_lamps = _turret(w, f, pal, c, td, 0, H_GALLERY)
+    gal_floor, gal_rails, gal_lamps, gal_under = _gallery(w, f, pal, say, c, viewpoints)
+    td = TURRET_AT
+    treads, turret_rails, turret_lamps, mouth = _turret(
+        w, f, pal, c, td, 0, H_GALLERY, TURRET_PHASE)
+    land_floor, land_rails = _landing(w, f, pal, c, td, H_GALLERY, mouth)
     bridge = _bridge(w, f, pal, c, td, H_GALLERY)
     wing, crown_lamps, top = _crown(w, f, pal, c, wings)
+    yard, marked = _approach(w, f, pal, say, c, td, len(treads))
+    portal_lamps = _portal(w, f, pal, say, c, td, len(treads))
 
     # LAMP POSTS ROUND THE FOOT, on the lowest step, standing clear of the one above it. A post
     # carries its own light and the lantern STANDS on the cap: written `hanging=true` it looks
     # for a block above, finds open sky, and is a lantern hanging from nothing.
-    posts = 0
+    #
+    # AND ONE OF THE EIGHT IS SKIPPED, BECAUSE IT STOOD IN THE STAIRCASE. `_ring_points` puts a
+    # post on every axis at radius STEP_R[0]-1, which is one cell inside the turret's own lit
+    # pedestal - and the posts are placed LAST, so the post won and overwrote a tread. A stair
+    # with a lamp post where its third step should be is a stair that stops at the second.
+    posts = skipped = 0
     for (di, dd) in _ring_points(STEP_R[0] - 1, 8):
+        if max(abs(di - td[0]), abs(dd - td[1])) <= 2:
+            skipped += 1
+            continue
         _lamp_post(w, f, pal, c + di, c + dd, 1, 3)
         posts += 1
 
@@ -708,22 +956,32 @@ def _monument(w: World, p: dict, ctx) -> dict:
     return {"kind": "monument", "height": top, "base": 2 * STEP_R[0] + 1, "pad": pad,
             "steps": len(STEP_R), "columns": columns, "bays": bays, "panels": panels,
             "wingspan": span, "wing_cells": wing,
-            "lanterns": hung + crown_lamps + posts + gal_lamps + turret_lamps,
-            "posts": posts,
+            "lanterns": (hung + crown_lamps + posts + gal_lamps + gal_under + turret_lamps
+                         + portal_lamps),
+            "posts": posts, "posts_skipped": skipped,
+            # THE WAY IN, in world coordinates, so a test can walk from the DOOR rather than from
+            # a cell somebody chose because it happened to work.
+            "door": f.at(c + PORTAL_I, c + PORTAL_D, 0),
+            "portal_lanterns": portal_lamps, "forecourt": yard, "marked_route": marked,
+            "landing_floor": land_floor, "landing_rails": land_rails, "stair_mouth": mouth,
             # THE CLIMB. `climb_treads` is the ordered path itself - world position and facing
             # per tread - so a test can walk it directly rather than re-deriving `_SPIRAL` on its
             # own and testing a copy of the code instead of the code.
             "climb_treads": treads, "climb_length": len(treads),
-            "climb_rails": turret_rails + gal_rails, "climb_lanterns": turret_lamps + gal_lamps,
+            "climb_rails": turret_rails + gal_rails + land_rails,
+            "climb_lanterns": turret_lamps + gal_lamps + gal_under + portal_lamps,
             "bridge": bridge, "gallery_height": H_GALLERY, "gallery_radius": GAL_R,
-            "gallery_floor": gal_floor, "gallery_rails": gal_rails, "turret_at": td,
+            "gallery_floor": gal_floor, "gallery_rails": gal_rails,
+            "gallery_soffit_lanterns": gal_under, "turret_at": td,
             "signs": say.want, "signs_placed": say.got,
             "contract": "five tiers, each narrower and taller than the one below: a four-step "
                         "base you can sit on, a panelled podium, a colonnade you can see "
                         "through, a fluted taper with a gilded collar, and a planar winged "
-                        "figure at least 45 courses up - and a real climb: a spiral stair tower "
-                        "behind the podium, a fenced bridge, and a railed viewing gallery under "
-                        "the crown, lit the whole way"}
+                        "figure at least 45 courses up - and an OBSERVATION TOWER anyone can "
+                        "find: a lit, signed portal on the flank facing the approach, a marked "
+                        "route to it across the apron, a spiral stair lit every four courses, a "
+                        "railed landing, a fenced bridge, and a railed gallery with a bell and a "
+                        "plaque naming the view - walkable from the door to the deck"}
 
 
 BUILDERS = {"monument": _monument}

@@ -193,7 +193,14 @@ def randomiser(pos, outputs: int = 3, facing: str = "east") -> dict:
     # the way its signal is going. Placed one step along `facing` from the hopper and pointed the
     # same way, that is automatic; placed by hand it was wrong first time, and the simulator caught
     # it as a machine that could never pay out.
-    dx, dy, dz = STEP[facing][0], 0, STEP[facing][1]
+    # **`STEP` IS (dx, dy, dz) AND THIS LINE READ dy WHERE IT MEANT dz.** Written
+    # `STEP[facing][0], 0, STEP[facing][1]` it is correct for east and west by coincidence - their
+    # dz is 0 anyway - and for NORTH and SOUTH it returns dx=0, dz=0, so the comparator is placed
+    # ON TOP OF the hopper it is meant to read and whatever is laid next overwrites one of them.
+    # Every check in this project passes that: the states are legal, the blocks are affordable,
+    # the count is right, and the machine simply never fires. `casino.wheel` and every game that
+    # takes its facing from the planner shares the fault on two of the four facings.
+    dx, _dy, dz = STEP[facing]
     hop = (x, y - 1, z)
     cmp_ = (hop[0] + dx, hop[1], hop[2] + dz)
     cells = {

@@ -179,11 +179,21 @@ def _pane(a: str, b: str) -> dict:
     return p
 
 
-def _ground(w, f, i0, i1, d0, d1, block, h=-1, alt=None, mix=0.0):
-    """The pad. RULE 11: a skyblock plot is VOID, so every structure brings its own floor."""
+def _ground(w, f, i0, i1, d0, d1, block, h=-1, alt=None, mix=0.0, holes=()):
+    """The pad. RULE 11: a skyblock plot is VOID, so every structure brings its own floor.
+
+    `holes` is what a STAIR DOWN needs and nothing else could give it. A World is sparse, so an
+    empty cell is air - but the pad is laid first and covers the whole footprint, so a flight
+    that descends through it has to be left out of the pad rather than carved out afterwards.
+    `w.put` overwrites, so a later carve would have to DELETE, and a generator that deletes cells
+    it has already placed is one whose output depends on the order two unrelated passes ran in.
+    """
+    holes = set(holes)
     n = 0
     for i in range(i0, i1 + 1):
         for d in range(d0, d1 + 1):
+            if (i, d) in holes:
+                continue
             x, y, z = f.at(i, d, h)
             # THE WEATHERING HASH IS ON THE CELL, never on the course - hashed on the course a
             # whole row comes out one material and the surface is horizontal stripes, which the
@@ -416,15 +426,164 @@ def _hang(w, f, pal, i, d, h, above):
     w.put(*f.at(i, d, h), pal["light"], hanging="true", waterlogged="false")
 
 
+# ---------------------------------------------------------------------------- circulation
+#
+# THE THREE HELPERS BELOW ARE WHY THIS QUARTER HAS A ROUTE AT ALL, and they exist as helpers
+# rather than as three hand-rolled flights because every one of them is a place a build can be
+# legal, connected, affordable and NOT WALKABLE - which is the one failure nothing in this
+# pipeline has ever looked for. A flight whose treads rise two courses at a time audits clean and
+# renders identically to one that rises one; a stair under a floor plane nobody holed audits
+# clean and dead-ends at a plank ceiling. `tests/test_hollow_flow.py` floods from the door.
+#
+# THE STAIR CONVENTION, which our renderer draws identically either way and which is therefore
+# asserted rather than eyeballed: A FLIGHT THAT ASCENDS TOWARD D HAS EVERY TREAD `facing=D`,
+# `half=bottom`. Built the other way the risers face into the descent and you cannot walk up it.
+
+
+def _flight(w, f, kit, pal, i0, i1, d_from, h_from, steps, down=False, step=1,
+            support=None, floor_to=None):
+    """One straight flight along d, ONE COURSE PER CELL, with the stringer under it.
+
+    A player standing on a solid cell at height `h` occupies `h+1`; a tread at `h+1` is therefore
+    one step up and a tread at `h-1` one step down. So `h_from` is the WALKING level at the head
+    of the flight and the arithmetic below is stated once here rather than four times at the
+    call sites, where it was got wrong twice while this was being written.
+
+    Returns (d_landing, h_landing) - the cell the flight delivers you to and the level you walk
+    at there - so a caller never has to re-derive where its own stair came out.
+
+    `support` fills every column under a tread down to `floor_to`, which is what makes a
+    descending flight into open ground stand on something instead of being six stairs in a shaft.
+    """
+    # THE TREAD'S FACING IS DERIVED, NEVER TYPED. Increasing d runs INTO the building, which is
+    # `f.back`; so a flight walked with `step` while going `down` ascends along `-step`, and the
+    # convention names the tread after the direction of ASCENT.
+    up_along_d = (-step) if down else step
+    face = f.back if up_along_d > 0 else f.facing
+    treads = []
+    d, h = d_from, h_from
+    for _k in range(steps):
+        d += step
+        h += -1 if down else 1
+        # the tread block sits one course BELOW the level you walk at when standing on it
+        for i in range(i0, i1 + 1):
+            w.put(*f.at(i, d, h - 1), kit["roof_stair"], facing=face,
+                  half="bottom", shape="straight", waterlogged="false")
+            if support is not None and floor_to is not None:
+                for y in range(floor_to, h - 1):
+                    w.put(*f.at(i, d, y), support)
+        treads.append((d, h))
+    return (d, h)
+
+
+def _undercroft(w, f, kit, pal, i0, i1, d0, d1, floor_h, walk_h, ceil_h, shaft=()):
+    """A lit vault under a building: a floor, a wall ring, niches, and lanterns on the ceiling.
+
+    `ceil_h` is the course the vault's LID occupies and it is normally somebody else's - the
+    manor's own pad - so it is never re-laid here, only hung from. `shaft` names the (i, d)
+    columns the stair comes down, which the wall ring must not close off.
+
+    THE HEADROOM IS A CONTRACT, not a consequence: `walk_h` to `ceil_h - 1` must be at least
+    three courses or the vault is a crawlspace that the walk test correctly refuses to enter.
+    """
+    shaft = set(shaft)
+    niches, lamps = 0, 0
+    # THE NICHES ARE DECIDED BEFORE THE RING IS DRAWN, never carved out of it afterwards. `put`
+    # overwrites and cannot remove, so a recess cut after the wall exists would have to DELETE
+    # cells - and the void tower shipped a plain drum once for exactly this: it built the full
+    # ring and then "alternated" merlons over cells that were already there.
+    recess = set()
+    for d in range(d0 + 1, d1, 3):
+        recess |= {(i0 - 1, d), (i1 + 1, d)}
+    for i in range(i0 - 1, i1 + 2):
+        for d in range(d0 - 1, d1 + 2):
+            w.put(*f.at(i, d, floor_h), kit["stone"])
+            if not (i in (i0 - 1, i1 + 1) or d in (d0 - 1, d1 + 1)) or (i, d) in shaft:
+                continue
+            for h in range(walk_h, ceil_h):
+                if (i, d) in recess and h in (walk_h, walk_h + 1):
+                    continue                       # left EMPTY by the ring loop - the niche
+                _weathered(w, f, i, d, h, kit["stone"], kit["rough"], 0.18)
+    for (i, d) in sorted(recess):
+        out = -1 if i == i0 - 1 else 1
+        for h in range(walk_h - 1, ceil_h):        # the niche's own back, floor and head
+            _weathered(w, f, i + out, d, h, kit["stone"], kit["rough"], 0.2)
+        w.put(*f.at(i, d, walk_h), "skeleton_skull", rotation="0")
+        niches += 1
+    for i in range(i0 + 2, i1, 5):
+        for d in range(d0 + 2, d1, 5):
+            if (i, d) in shaft:
+                continue
+            _hang(w, f, pal, i, d, ceil_h - 1, kit["stone"])
+            lamps += 1
+    return niches, lamps
+
+
+def _cobwebs(w, f, cells):
+    """Cobwebs, and every one of them ANCHORED to a cell that is already built.
+
+    A cobweb hanging in open interior air with nothing beside it is a floating singleton and its
+    own component - the chapel's own note, and the same 6-connectivity trap that broke the
+    leopard's ear tips. It is also the one prop here a player walks THROUGH, so it may never be
+    placed in a cell the route needs: every call site passes ceiling corners, not doorways.
+    """
+    n = 0
+    for (i, d, h) in cells:
+        x, y, z = f.at(i, d, h)
+        if w.has(x, y, z):
+            continue
+        if any(w.has(*f.at(i + a, d + b, h + c))
+               for (a, b, c) in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0),
+                                 (0, 0, 1), (0, 0, -1))):
+            w.put(x, y, z, "cobweb")
+            n += 1
+    return n
+
+
+def _candle(w, f, i, d, h, count=2):
+    """A candle needs a full block under it, so the support is checked and never assumed."""
+    x, y, z = f.at(i, d, h - 1)
+    if not blocks.is_full_cube(w.name(x, y, z) or "air"):
+        return False
+    if w.has(*f.at(i, d, h)):
+        return False
+    w.put(*f.at(i, d, h), "candle", candles=str(count), lit="true", waterlogged="false")
+    return True
+
+
 # ---------------------------------------------------------------------------- the manor
 
 def _manor(w: World, p: dict, ctx) -> dict:
-    """THE SIGNATURE MASS. Three storeys, a gabled roof with three cross-gables, a corner tower.
+    """THE SIGNATURE MASS, AND A WALKTHROUGH THROUGH IT.
 
     It is built in the order a mason would: pad, plinth, walls, floors, string courses, cornice,
     roof, then the entrance bay, the tower and the chimneys OVER the top of them - so the bay
     interrupts the string course exactly as a projecting bay does in stone, and the turret grows
     THROUGH the gable end rather than standing beside it.
+
+    **AND THEN IT WAS 10,362 BLOCKS OF NOTHING TO DO.** The verdict on the shipped Hollow was
+    that it "serves low function and feels confusing" - you arrive, and there is nothing to do
+    and no idea where to go. The manor is the zone's headline and it was a facade with a ladder
+    in the corner: three floors, one vertical link, no exit, no set pieces and no route. The
+    building is unchanged above the cornice; everything added here is CIRCULATION.
+
+        front door  ->  THE HALL       ground, front half, hearth and candles
+                    ->  grand stair    five treads up the left wall
+                    ->  THE LIBRARY    first floor, front half, barrels and lecterns
+                    ->  partition door first floor, into the back half
+                    ->  back stair     five treads down the right wall
+                    ->  THE BACK HALL  ground, back half
+                    ->  cellar stair   six treads down, through the plinth and the pad
+                    ->  THE CELLAR     a lit vault of niches under the back half - a DEAD END
+                    ->  back door      out into the graveyard, on the far side from the porch
+
+    A visitor therefore enters at one face and leaves at the other, which is what makes it a
+    walkthrough and not a room. **THE ROUTE IS ASSERTED BY FLOOD FILL FROM THE DOOR**, because
+    every one of the four ways it can be wrong - a flight rising two courses at a time, a floor
+    plane nobody holed over a stair, a doorway two cells wide in a wall three cells thick, a
+    cellar with a ceiling one course over its floor - is legal, connected, affordable, and
+    renders identically to the version that works. `meta["route"]` carries the waypoints the
+    test walks between, so the contract and the check read the same list.
     """
     f = _Frame(p)
     pal = LANDS[p["land"]]
@@ -446,10 +605,21 @@ def _manor(w: World, p: dict, ctx) -> dict:
     ti0, ti1 = W - 1, W + 5                 # the corner tower, ENGAGED with the right wall
     td0, td1 = -1, 5
 
+    # ---- THE CIRCULATION, decided before anything is laid, because two planes have to be left
+    # open for it: the plinth at h=0 and the pad at h=-1 are both continuous surfaces and the
+    # cellar stair goes THROUGH them.
+    gs_i0, gs_i1, gs_d = 1, 2, 1            # grand stair: up the left wall, front half
+    bs_i0, bs_i1, bs_d = W - 3, W - 2, D - 2  # back stair: down the right wall, back half
+    cs_i0, cs_i1, cs_d = 4, 5, D // 2 + 1   # cellar stair: down out of the back hall
+    CELL_FLOOR, CELL_WALK, CELL_CEIL = -6, -5, -1
+    shaft = {(i, d) for i in range(cs_i0, cs_i1 + 1)
+             for d in range(cs_d + 1, cs_d + 7)}
+    back_door_i = set(range(bmid, bmid + 3))
+
     # ---- pad and plinth. A stepped plinth is what stops a wall meeting the ground at a line.
-    _ground(w, f, -3, W + 2, -8, D + 2, pal["path"], alt=pal["ground"], mix=0.30)
+    _ground(w, f, -3, W + 2, -8, D + 2, pal["path"], alt=pal["ground"], mix=0.30, holes=shaft)
     _ground(w, f, W - 4, W + 6, -3, 7, pal["path"], alt=pal["ground"], mix=0.30)
-    _fill(w, f, -1, W, -4, D, 0, pal["trim"])
+    _fill(w, f, -1, W, -4, D, 0, pal["trim"], holes=shaft)
     _fill(w, f, ti0 - 2, ti1 + 1, td0 - 1, td1 + 1, 0, pal["trim"])
 
     # ---- the walls, storey by storey. THE BASE IS HEAVIER THAN THE UPPER STOREYS, in material
@@ -468,7 +638,14 @@ def _manor(w: World, p: dict, ctx) -> dict:
             in_tower = i >= ti0 - 5
             if not (in_bay or in_tower):
                 windows.append((i, 0, base, (a["ip"], a["im"]), -1, False))
-            windows.append((i, D - 1, base, (a["ip"], a["im"]), D, False))
+            # THE BACK DOOR TAKES PRECEDENCE OVER A BACK WINDOW, and it has to: the back-wall
+            # rhythm puts a three-cell light every five columns, so the widest clear gap in it
+            # is TWO - a three-cell doorway cannot fit between two windows anywhere on that
+            # wall. Left in, the window's own glazing pass would fill the door opening with
+            # panes after the wall loop had correctly left it empty, and the walkthrough would
+            # dead-end at a window nobody could see was a window.
+            if not (k == 0 and set(range(i, i + 3)) & back_door_i):
+                windows.append((i, D - 1, base, (a["ip"], a["im"]), D, False))
         # `out` is the cell OUTSIDE this window's own wall, and for a side wall that is an i and
         # not a d. Written as -1/D for all four walls the shutters on the side windows landed in
         # the middle of the third storey, floating: two cells, and a component count found them.
@@ -486,6 +663,10 @@ def _manor(w: World, p: dict, ctx) -> dict:
     for i in range(bmid - 1, bmid + 2):
         for h in range(F0, F0 + 3):
             holes.append((i, 0, h))
+    # ...and the BACK door, the walkthrough's exit, on the far wall from the porch
+    for i in sorted(back_door_i):
+        for h in range(F0, F0 + 3):
+            holes.append((i, D - 1, h))
 
     for k in range(STOREYS):
         base = F0 + k * SH
@@ -526,10 +707,19 @@ def _manor(w: World, p: dict, ctx) -> dict:
             _lancet(w, f, kit, pal, i, dd, base, axis, "glass_pane",
                     boarded=boarded, shutter=shutter)
 
-    # ---- floors, a ceiling, partitions and the stair turret. AN INTERIOR, NOT A SHELL.
-    holes_floor = {(2, D - 4), (2, D - 5)}
-    for k in (1, 2):
-        _fill(w, f, 1, W - 2, 1, D - 2, F0 + k * SH - 1, kit["timber"], holes=holes_floor)
+    # ---- floors, a ceiling, partitions and the three flights. AN INTERIOR WITH A ROUTE IN IT.
+    #
+    # THE HOLES COME FIRST AND THE FLIGHTS SECOND. A floor plane is laid across the whole storey
+    # and a stair passing through it needs BOTH the course it lands on and the course over the
+    # walker's head left open - so the openings are part of the floor's own definition, never
+    # something repainted afterwards. Written the other way round the flight is built, the floor
+    # is laid over it, and the manor audits clean with a staircase into a plank ceiling.
+    holes_floor = {(2, D - 4), (2, D - 5)}                    # the attic ladder
+    holes_first = set(holes_floor)
+    holes_first |= {(i, d) for i in range(gs_i0, gs_i1 + 1) for d in range(gs_d + 1, gs_d + 6)}
+    holes_first |= {(i, d) for i in range(bs_i0, bs_i1 + 1) for d in range(bs_d - 4, bs_d)}
+    _fill(w, f, 1, W - 2, 1, D - 2, F0 + SH - 1, kit["timber"], holes=holes_first)
+    _fill(w, f, 1, W - 2, 1, D - 2, F0 + 2 * SH - 1, kit["timber"], holes=holes_floor)
     _fill(w, f, 1, W - 2, 1, D - 2, TOP, kit["timber"])
     for h in range(F0, TOP):
         w.put(*f.at(2, D - 3, h), pal["post"])
@@ -541,6 +731,44 @@ def _manor(w: World, p: dict, ctx) -> dict:
                 continue                       # the doorway between the two halves of the plan
             for r in range(base, base + SH - 1):
                 _weathered(w, f, i, D // 2, r, kit["timber"], pal["wall"], 0.10)
+
+    # ---- THE CELLAR, dug before the flight that reaches it, because `_undercroft` lays a floor
+    # plane across its whole rectangle and would otherwise bury the bottom tread under it.
+    niches, vault_lamps = _undercroft(w, f, kit, pal, gs_i0 + 2, W - 4, cs_d + 1, D - 3,
+                                      CELL_FLOOR, CELL_WALK, CELL_CEIL, shaft=shaft)
+    # THE SARCOPHAGUS, at the far end, so the cellar has something at the bottom of it. It is a
+    # dead end on purpose: a dare with a reason to turn round is better than a loop with nothing
+    # in it, and the exit is the back door upstairs.
+    for i in range(W // 2 - 1, W // 2 + 2):
+        w.put(*f.at(i, D - 5, CELL_WALK), kit["dressed"])
+        w.put(*f.at(i, D - 5, CELL_WALK + 1), kit["roof_slab"], type="bottom",
+              waterlogged="false")
+
+    # ---- the three flights
+    gs_land = _flight(w, f, kit, pal, gs_i0, gs_i1, gs_d, F0, 5,
+                      support=kit["stone"], floor_to=F0)
+    bs_land = _flight(w, f, kit, pal, bs_i0, bs_i1, bs_d, F0 + SH, 4, down=True, step=-1,
+                      support=kit["stone"], floor_to=F0)
+    cs_land = _flight(w, f, kit, pal, cs_i0, cs_i1, cs_d, F0, 6, down=True,
+                      support=kit["stone"], floor_to=CELL_FLOOR)
+
+    # A BALUSTRADE ROUND EVERY OPENING, and every post of it standing on a real floor cell. A
+    # stairwell in a plank floor with no rail is a hole you walk into in the dark, and a rail
+    # placed at the tread's own level is a rail in mid-air - so both runs are laid on the floor
+    # plane beside the opening, never over the flight.
+    rails = 0
+    for d in range(gs_d + 1, gs_d + 7):
+        for (i, h) in ((gs_i1 + 1, F0 + SH),):
+            if w.has(*f.at(i, d, h - 1)) and not w.has(*f.at(i, d, h)):
+                w.put(*f.at(i, d, h), pal["fence"], north="false", south="false",
+                      east="false", west="false", waterlogged="false")
+                rails += 1
+    for d in range(cs_d + 1, cs_d + 7):
+        for i in (cs_i0 - 1, cs_i1 + 1):
+            if w.has(*f.at(i, d, F0 - 1)) and not w.has(*f.at(i, d, F0)):
+                w.put(*f.at(i, d, F0), pal["fence"], north="false", south="false",
+                      east="false", west="false", waterlogged="false")
+                rails += 1
 
     # ---- string courses and the cornice: a proud ring on a stair corbel, at every floor line
     for k in range(1, STOREYS):
@@ -622,6 +850,24 @@ def _manor(w: World, p: dict, ctx) -> dict:
               facing=a["im"] if i < bmid else a["ip"], half="top", shape="straight",
               waterlogged="false")
 
+    # THE BACK DOOR - the walkthrough's exit, and the reason it is a walkthrough. Doors on the
+    # outer pair, standing open, and the middle column left clear: exactly the front door's own
+    # arrangement, so a visitor recognises it as a way out rather than as a cupboard.
+    bd = sorted(back_door_i)
+    for (i, hinge) in ((bd[0], "right"), (bd[2], "left")):
+        w.put(*f.at(i, D - 1, F0), kit["door"], facing=f.back, half="lower", hinge=hinge,
+              open="true", powered="false")
+        w.put(*f.at(i, D - 1, F0 + 1), kit["door"], facing=f.back, half="upper", hinge=hinge,
+              open="true", powered="false")
+    w.put(*f.at(bd[1], D - 1, F0 + 2), kit["dressed"])
+    # ...and steps down off the plinth on the far side, or the exit is a one-course drop into
+    # void: the pad reaches to D+2, so the ground is there, but the plinth's top is a course
+    # above it and nothing had ever walked off the back of this building.
+    _run(w, f, [(i, D + 1, 0) for i in bd], kit["roof_stair"], a["fwd"],
+         half="bottom", min_run=1)
+    _lamp_post(w, f, kit, pal, bd[0] - 2, D + 1, 0, tall=2)
+    _lamp_post(w, f, kit, pal, bd[2] + 2, D + 1, 0, tall=2)
+
     # the porch: steps up onto the plinth, newel posts with lamps, and lit under the bay ceiling
     _run(w, f, [(i, -5, 0) for i in range(bmid - 2, bmid + 3)], kit["roof_stair"], a["back"],
          half="bottom", min_run=mr)
@@ -695,7 +941,42 @@ def _manor(w: World, p: dict, ctx) -> dict:
               signal_fire="false", waterlogged="false")
         stacks += 1
 
-    # ---- the nameplate, over the porch, on the bay's own front wall
+    # ---- THE SET DRESSING. It is placed LAST and it never places into an occupied cell, so
+    # nothing here can eat a tread, a rail or a doorway - the casino's own lesson, where a
+    # pocket's colour ring was painted into cells a gate had not reached and the gate shipped
+    # with its comparator replaced by red wool.
+    props = 0
+    for (i, d, h) in ((3, 2, F0), (W - 4, 2, F0), (3, D - 3, F0), (W - 4, D - 3, F0),
+                      (gs_i1 + 2, gs_d + 6, F0 + SH), (W - 5, 3, F0 + SH),
+                      (W // 2 + 3, D - 6, CELL_WALK), (W // 2 - 3, D - 6, CELL_WALK)):
+        props += int(_candle(w, f, i, d, h, count=2 + (i % 3)))
+    for (i, d, h) in ((6, 2, F0), (6, D - 4, F0 + SH)):
+        if not w.has(*f.at(i, d, h)):
+            w.put(*f.at(i, d, h), "lectern", facing=f.facing, has_book="false",
+                  powered="false")
+            props += 1
+    # THE LIBRARY: barrels along the first-floor front wall, which is what a shelf is on this
+    # economy - `bookshelf` is EXPENSIVE here and `chiseled_bookshelf` is a 1.20 block, so a wall
+    # of either is a wall this server cannot supply. A barrel is cheap, 1.19, and reads as
+    # storage from across a room.
+    shelves = 0
+    for i in range(4, W - 4):
+        if abs(i - bmid) <= 4 or gs_i0 - 1 <= i <= gs_i1 + 1:
+            continue                    # clear of the bay's attic window and the stairwell
+        for h in (F0 + SH, F0 + SH + 1):
+            if not w.has(*f.at(i, 1, h)):
+                w.put(*f.at(i, 1, h), "barrel", facing=f.back, open="false")
+                shelves += 1
+    webs = _cobwebs(w, f, [(1, 1, TOP - 1), (W - 2, 1, TOP - 1), (1, D - 2, TOP - 1),
+                           (W - 2, D - 2, TOP - 1), (1, 1, F0 + SH - 2),
+                           (W - 2, D - 2, F0 + SH - 2), (gs_i0, cs_d, F0 + 3),
+                           (cs_i0 - 1, cs_d + 2, CELL_WALK + 2),
+                           (cs_i1 + 1, cs_d + 4, CELL_WALK + 2),
+                           (W // 2, D - 4, CELL_WALK + 2)])
+
+    # ---- the nameplate, over the porch, and the room signs the route is told apart by. EVERY
+    # ONE OF THESE HANGS ON A NAMED WALL, and the wall is chosen for being solid THERE: the back
+    # wall's window rhythm leaves only two-wide gaps, so a sign put on it by eye lands on glass.
     title = str(p.get("title") or "HOLLOW MANOR").upper()
     signed = 0
     if p.get("sign", True):
@@ -703,13 +984,46 @@ def _manor(w: World, p: dict, ctx) -> dict:
                         [title[:SIGN_WIDTH], "", "", ""])
         signed += _sign(w, f, pal, bi0 + 1, -4, F0 + 2, f.facing,
                         ["THE HOLLOW", "no callers", "after dusk", ""])
+        # the hall, read walking in - hung on the partition's front face
+        signed += _sign(w, f, pal, bmid - 3, D // 2 - 1, F0 + 2, f.facing,
+                        ["THE HALL", "stair on your", "left", ""])
+        signed += _sign(w, f, pal, bmid + 3, D // 2 - 1, F0 + 2, f.facing,
+                        ["WAY THROUGH", "up, round, and", "down again", ""])
+        # the library, on the same wall one storey up
+        signed += _sign(w, f, pal, bmid - 3, D // 2 - 1, F0 + SH + 2, f.facing,
+                        ["THE LIBRARY", "nothing here", "is lent twice", ""])
+        # the back hall, read walking out of the partition door - hung on its BACK face
+        signed += _sign(w, f, pal, cs_i1 + 2, D // 2 + 1, F0 + 2, f.back,
+                        ["THE CELLAR", "steps down", "on your left", ""])
+        # the way out, on the back wall in a column the window rhythm leaves solid
+        signed += _sign(w, f, pal, bmid - 4, D - 2, F0 + 2, f.facing,
+                        ["WAY OUT", "to the", "graveyard", ""])
+
+    # THE ROUTE, as world coordinates, so the contract and the walk test read ONE list. A test
+    # that re-derives the waypoints from its own reading of the geometry is a second opinion
+    # about what was built, not a check on it.
+    route = [("front door", f.at(bmid, 0, F0)),
+             ("the hall", f.at(bmid, 3, F0)),
+             ("grand stair foot", f.at(gs_i0, gs_d, F0)),
+             ("first landing", f.at(gs_i0, gs_land[0] + 1, gs_land[1])),
+             ("the library", f.at(bmid, 2, F0 + SH)),
+             ("first floor, back half", f.at(bs_i0, D // 2 + 2, F0 + SH)),
+             ("back stair foot", f.at(bs_i0, bs_land[0] - 1, F0)),
+             ("the back hall", f.at(cs_i0, cs_d, F0)),
+             ("the cellar", f.at(cs_i0, cs_land[0] + 2, CELL_WALK)),
+             ("back door", f.at(bmid, D - 1, F0))]
 
     return {"kind": "manor", "width": W, "depth": D, "storeys": STOREYS,
             "wall_top": TOP, "ridge": RIDGE, "tower_top": TW + 3 + len(spire),
             "windows": len(windows), "chimneys": stacks, "signs": signed,
-            "contract": "three storeys with a floor at each, a gabled roof carrying three "
-                        "cross-gables, and a corner tower standing clear above the ridge - "
-                        "intact and imposing first, with two boarded lights as the only damage"}
+            "route": [[n, list(c)] for (n, c) in route],
+            "entry_at": list(f.at(bmid, 0, F0)), "exit_at": list(f.at(bmid, D - 1, F0)),
+            "niches": niches, "vault_lamps": vault_lamps, "shelves": shelves,
+            "props": props, "cobwebs": webs, "rails": rails,
+            "contract": "a WALKTHROUGH: in at the front door, through the hall, up the grand "
+                        "stair to the library, across the first floor, down the back stair, "
+                        "down again into a lit cellar of niches, and out of the back door on "
+                        "the far side - every leg of it walkable, and the rooms named on signs"}
 
 
 # ---------------------------------------------------------------------------- the crypt
@@ -822,12 +1136,52 @@ def _crypt(w: World, p: dict, ctx) -> dict:
 
 # ---------------------------------------------------------------------------- the clocktower
 
+def _ring(S):
+    """The interior perimeter of an S x S tower, walked in order, each cell ONE STEP from the last.
+
+    That property is what a spiral stair is made of and it is asserted rather than assumed: two
+    consecutive treads that are only diagonal neighbours are two stairs that happen to line up,
+    which is the 6-connectivity trap that broke the leopard's ear tips and detached the giraffe's
+    ossicones - and here it would also be unwalkable, because a diagonal step up is not a step.
+    """
+    lo, hi = 1, S - 2
+    cells = [(i, lo) for i in range(lo, hi + 1)]
+    cells += [(hi, d) for d in range(lo + 1, hi + 1)]
+    cells += [(i, hi) for i in range(hi - 1, lo - 1, -1)]
+    cells += [(lo, d) for d in range(hi - 1, lo, -1)]
+    return cells
+
+
+def _dir_of(f, a, di, dd):
+    if dd:
+        return f.back if dd > 0 else f.facing
+    return a["ip"] if di > 0 else a["im"]
+
+
 def _clocktower(w: World, p: dict, ctx) -> dict:
-    """A square tower with a stage per string course, a clock on all four faces, and a belfry.
+    """A square tower with a stage per string course, a clock on all four faces, and a belfry -
+    AND A STAIR YOU CAN ACTUALLY CLIMB, TO A GALLERY WORTH CLIMBING TO.
 
     THE CLOCK IS THE ONLY BRIGHT THING FOR A HUNDRED BLOCKS, which is the whole reason it reads:
     white_wool (236) on a blackstone shaft (45) is the widest value step this economy has at
     cheap tier, and the hands are the dark end of the same ladder (21).
+
+    **AND THE VERDICT ON IT WAS THAT A CLOCK DOES NOT SERVE A REAL PURPOSE.** It did not: it was
+    a 2,463-block landmark with a service ladder up the inside of it and a bell nobody could get
+    to. What it has now is the one thing a tower is FOR - height you can be at:
+
+        door  ->  a SPIRAL STAIR round the inside face, one course per tread, 29 of them
+              ->  THE BELFRY GALLERY at h=31: the bell, and the lower two courses of every
+                  louvred opening taken out so you can see the whole zone from inside it
+              ->  a short ladder to the CROWN DECK inside the crenellations at h=37
+
+    Two things make the spiral work and neither is visible in a render. **CONSECUTIVE TREADS ARE
+    ONE STEP APART**, which `_ring` guarantees by construction; and **EVERY TREAD TOUCHES THE
+    SHAFT WALL**, which is what keeps the flight one 6-connected piece - a tread and the one
+    above it are diagonal neighbours and share no face, so a free-standing helix audits as
+    twenty-nine floating stairs. `gen/monument.py` solves the same problem with a riser block
+    above the previous tread; that riser stands in the cell a walker's legs occupy, so it makes
+    a spiral that LOOKS right and cannot be climbed. Against a wall, no riser is needed at all.
     """
     f = _Frame(p)
     pal = LANDS[p["land"]]
@@ -891,11 +1245,25 @@ def _clocktower(w: World, p: dict, ctx) -> dict:
         w.put(*f.at(i, d, h), "glass_pane", **_pane(*axis))
     # LOUVRES ARE TRAPDOORS, closed, alternating half - horizontal slats in a vertical opening,
     # which is the shape a belfry actually has and a vocabulary this repo has never used.
+    #
+    # **BUT THE BOTTOM TWO COURSES ARE THE VIEW, so they are not louvred at all.** The belfry is
+    # the gallery this climb exists to reach, and a closed trapdoor at eye height is a wall with
+    # a texture on it: the whole point of getting up here is seeing the zone. `GALLERY_SILL` is
+    # a rail of bars you lean on and the course above it is left open, so the louvres start at
+    # the walker's own head height and the tower still reads as a belfry from the ground.
+    gallery_sill = BELFRY - 4
     for (i, d, h) in louvres:
         face = a["back"] if d == 0 else a["fwd"] if d == S - 1 else (
             a["ip"] if i == 0 else a["im"])
-        w.put(*f.at(i, d, h), kit["trapdoor"], facing=face, half="top" if h % 2 else "bottom",
-              open="false", powered="false", waterlogged="false")
+        if h == gallery_sill:
+            axis = (a["ip"], a["im"]) if d in (0, S - 1) else (a["fwd"], a["back"])
+            w.put(*f.at(i, d, h), "iron_bars", **_pane(*axis))
+        elif h == gallery_sill + 1:
+            continue                    # OPEN - this is the view, and it is the only one
+        else:
+            w.put(*f.at(i, d, h), kit["trapdoor"], facing=face,
+                  half="top" if h % 2 else "bottom",
+                  open="false", powered="false", waterlogged="false")
     w.put(*f.at(mid, 0, 5), kit["roof_stair"], facing=a["back"], half="top",
           shape="straight", waterlogged="false")
 
@@ -915,9 +1283,42 @@ def _clocktower(w: World, p: dict, ctx) -> dict:
         _proud_ring(w, f, 0, S - 1, 0, S - 1, h, pal["trim"])
         _corbel_ring(w, f, 0, S - 1, 0, S - 1, h - 1, kit["roof_stair"], mr)
 
-    # the belfry floor and a real bell hanging from it, then the crown. THE FLOOR AND THE DECK
-    # BOTH NEED A HATCH where the ladder passes, or the climb stops at a solid plate.
-    _fill(w, f, 1, S - 2, 1, S - 2, BELFRY - 5, kit["timber"], holes={(1, S - 3)})
+    # ---- THE SPIRAL. One tread per ring cell, one course per tread, starting at the door so
+    # the first thing a visitor sees inside is the way up. The ring is ROTATED to the door
+    # rather than the door moved to the ring: the door's position is a facade decision and the
+    # stair's is not, and letting the stair pick would have put the entrance on a corner.
+    ring = _ring(S)
+    start = ring.index((mid, 1))
+    ring = ring[start:] + ring[:start]
+    BELFRY_FLOOR = BELFRY - 5
+    treads = []
+    for k in range(BELFRY_FLOOR - 1):            # tread block heights 1 .. BELFRY_FLOOR - 1
+        ci, cd = ring[k % len(ring)]
+        ni, nd = ring[(k + 1) % len(ring)]
+        w.put(*f.at(ci, cd, 1 + k), kit["roof_stair"],
+              facing=_dir_of(f, a, ni - ci, nd - cd), half="bottom", shape="straight",
+              waterlogged="false")
+        treads.append((ci, cd, 1 + k))
+    # THE NEWEL, and the only reason it is here is the LIGHT. It is not load-bearing - every
+    # tread keys off the shaft wall - but a stair bracket hung in the middle of an open well is
+    # a floating two-cell component, so the lanterns need a column to be attached to.
+    stair_lamps = 0
+    for h in range(1, BELFRY_FLOOR + 1):
+        w.put(*f.at(mid, mid, h), kit["stone"])
+    for h in range(6, BELFRY_FLOOR - 2, 7):
+        _hang(w, f, pal, mid + 1, mid, h, kit["stone"])
+        stair_lamps += 1
+
+    # the belfry floor and a real bell hanging from it, then the crown. THE FLOOR NEEDS A HATCH
+    # WHERE THE SPIRAL ARRIVES and the DECK ONE WHERE THE LADDER DOES, or each climb stops at a
+    # solid plate - which is legal, connected, affordable and a dead end.
+    # THE HATCH IS TWO CELLS, NOT ONE. A walker on the second-to-last tread stands one course
+    # below the floor plane and their HEAD is in it - so holing only the cell the flight lands
+    # on leaves the last step blocked by a plank ceiling, which is what the first build did and
+    # what a render cannot show. The rule is that every tread within two courses of a plane
+    # needs that plane open over it.
+    _fill(w, f, 1, S - 2, 1, S - 2, BELFRY_FLOOR, kit["timber"],
+          holes={(t[0], t[1]) for t in treads[-2:]} | {(mid, mid)})
     # A BELL HANGS FROM A BEAM, and the beam has to reach the walls. Hung from a single block in
     # the middle of the belfry, the bell and its block were two cells floating in mid-air - the
     # audit passes them and the component count is the only thing that ever says so.
@@ -925,7 +1326,12 @@ def _clocktower(w: World, p: dict, ctx) -> dict:
         w.put(*f.at(i, mid, BELFRY - 1), kit["timber"])
     w.put(*f.at(mid, mid, BELFRY - 2), "bell", attachment="ceiling", facing=f.facing,
           powered="false")
-    for h in range(2, TW + 2):
+    # THE LAST LEG IS A LADDER, and only the last leg: from the gallery floor to the crown deck
+    # is six courses in a chamber a bell already occupies, and a second spiral in there would be
+    # a spiral you cannot stand up in. It runs one course PAST the deck plane on purpose - a
+    # ladder that stops level with the hatch leaves you climbing out onto a cell you are
+    # standing in, and the step onto the deck is then a step you cannot take.
+    for h in range(BELFRY_FLOOR + 1, TW + 3):
         w.put(*f.at(1, S - 2, h), pal["post"])
         w.put(*f.at(1, S - 3, h), "ladder", facing=f.facing, waterlogged="false")
 
@@ -945,15 +1351,31 @@ def _clocktower(w: World, p: dict, ctx) -> dict:
     for (i, d) in ((-1, -1), (S, -1), (-1, S), (S, S)):
         _lamp_post(w, f, kit, pal, i, d, 2)
 
+    # THE GALLERY IS LIT, or the one place worth climbing to is the darkest cell in the zone.
+    # Hung from the bell beam's own course, which is a full timber run and therefore real.
+    for (gi, gd) in ((2, 2), (S - 3, 2), (2, S - 3), (S - 3, S - 3)):
+        _hang(w, f, pal, gi, gd, BELFRY - 2, kit["timber"])
+
     title = str(p.get("title") or "THE HOUR").upper()
     signed = 0
     if p.get("sign", True):
         signed += _sign(w, f, pal, mid, -1, 6, f.facing,
-                        [title[:SIGN_WIDTH], "", "it strikes", "thirteen"])
+                        [title[:SIGN_WIDTH], "climb it:", "the gallery", "is 29 steps"])
+        # Inside, at the foot of the spiral. ON THE SHAFT WALL, because the whole interior ring
+        # is stair and the only solid thing at head height in this room is the wall itself - the
+        # park's four floating signs were every one of them hung on a column with a hole in it.
+        signed += _sign(w, f, pal, 1, 1, 4, a["ip"],
+                        ["UP TO THE BELL", "and the deck", "over the roofs", ""])
     return {"kind": "clocktower", "side": S, "height": top + 1, "faces": 4, "signs": signed,
-            "contract": "a square tower of four stages: string courses, glazed slits, a clock "
-                        "face on every side, a louvred belfry with a bell, and a crenellated "
-                        "crown carrying a spire"}
+            "treads": len(treads), "stair_lamps": stair_lamps,
+            "climb_from": list(f.at(mid, 0, 2)),
+            "gallery_at": list(f.at(mid, mid - 1, BELFRY_FLOOR + 1)),
+            "deck_at": list(f.at(0, S - 3, TW + 2)),
+            "contract": "a square tower of four stages - string courses, glazed slits, a clock "
+                        "face on every side, a louvred belfry with a bell and a crenellated "
+                        "crown - and A CLIMB THROUGH IT: a spiral stair off the door, one "
+                        "course per tread, to a lit gallery you can see the zone out of, and a "
+                        "ladder on to the crown deck"}
 
 
 # ---------------------------------------------------------------------------- the graveyard
@@ -1040,7 +1462,21 @@ def _headstone(w, f, kit, pal, i, d, seed, used=None):
 
 
 def _graveyard(w: World, p: dict, ctx) -> dict:
-    """A railed enclosure, a crossing of paths, a monument, and a field of unrepeated stones."""
+    """A railed enclosure, a crossing of paths, a monument, a field of unrepeated stones - AND
+    THE VAULT UNDER IT, which is the only thing here a visitor can do rather than look at.
+
+    A graveyard is scenery by nature and this one was 991 blocks of it: you walked in through
+    the gate, round the obelisk, and out again. What it has now is a WAY DOWN - a lit undercroft
+    of niches with a sarcophagus in it, reached by six steps behind the monument and left the
+    same way. It is a dead end on purpose. A dare with a reason to turn round is a better thing
+    to put at the bottom of a stair than a loop with nothing in it, and it means the vault costs
+    the enclosure no second gate.
+
+    THE WELL IS CUT OUT OF THE GROUND PLANE, NOT INTO IT. `w.put` overwrites and cannot remove,
+    so the six columns the steps descend through are named before the ground is laid and left
+    out of it - and out of the path overlay, and out of the headstone grid, which would
+    otherwise plant a marker in mid-air over the stair.
+    """
     f = _Frame(p)
     pal = LANDS[p["land"]]
     kit = GOTHIC[p["land"]]
@@ -1051,9 +1487,20 @@ def _graveyard(w: World, p: dict, ctx) -> dict:
     mi, md = W // 2, D // 2
     seed = abs(int(p["at"][0]) * 31 + int(p["at"][2]))
 
-    _ground(w, f, -1, W, -1, D, pal["ground"], alt=kit["rough"], mix=0.22)
+    vault = bool(p.get("vault", True))
+    # THE HEAD OF THE STAIR CLEARS THE MONUMENT'S OWN BASE, which reaches to d = md + 2. Set one
+    # cell nearer, the doorcase stood on the plinth and the first step was a block you could not
+    # walk off - a build that audits clean, renders correctly and has no way into its own vault.
+    v_d0, v_steps = md + 3, 6
+    V_FLOOR, V_WALK, V_CEIL = -7, -6, -1
+    well = ({(i, d) for i in range(mi - 1, mi + 2)
+             for d in range(v_d0 + 1, v_d0 + 1 + v_steps)} if vault else set())
+
+    _ground(w, f, -1, W, -1, D, pal["ground"], alt=kit["rough"], mix=0.22, holes=well)
     for i in range(-1, W + 1):
         for d in range(-1, D + 1):
+            if (i, d) in well:
+                continue
             if abs(i - mi) <= 1 or abs(d - md) <= 1:
                 w.put(*f.at(i, d, -1), pal["path"])
 
@@ -1109,6 +1556,8 @@ def _graveyard(w: World, p: dict, ctx) -> dict:
                 continue                                    # the paths stay clear
             if abs(i - mi) <= 2 and abs(d - md) <= 2:
                 continue                                    # ...and so does the monument's base
+            if vault and abs(i - mi) <= 3 and d >= v_d0:
+                continue                                    # ...and the vault's well and its rail
             if i + 1 > W - 2 or not 1 <= d <= D - 2:
                 continue
             if hash01(seed, i, d0, 11) < 0.12:
@@ -1123,9 +1572,38 @@ def _graveyard(w: World, p: dict, ctx) -> dict:
             continue
         _lamp_post(w, f, kit, pal, i, md, 0, tall=2)
     for d in range(3, D - 3, 7):
-        if abs(d - md) <= 2:
-            continue
+        if abs(d - md) <= 2 or (mi, d) in well:
+            continue                       # ...and a post over the open well stands on nothing
         _lamp_post(w, f, kit, pal, mi, d, 0, tall=2)
+
+    # ---- THE VAULT. Dug first, then the flight, because `_undercroft` lays a floor plane across
+    # its whole rectangle and would bury the bottom tread under it.
+    niches = lamps = 0
+    v_land = None
+    if vault:
+        niches, lamps = _undercroft(w, f, kit, pal, mi - 5, mi + 5, v_d0 + 1, D - 2,
+                                    V_FLOOR, V_WALK, V_CEIL, shaft=well)
+        for i in range(mi + 3, mi + 6):
+            w.put(*f.at(i, D - 3, V_WALK), kit["dressed"])
+            w.put(*f.at(i, D - 3, V_WALK + 1), kit["roof_slab"], type="bottom",
+                  waterlogged="false")
+        v_land = _flight(w, f, kit, pal, mi - 1, mi + 1, v_d0, 0, v_steps, down=True,
+                         support=kit["stone"], floor_to=V_FLOOR)
+        # THE HEAD OF THE STAIR IS A DOORCASE, not a hole in the lawn. Two piers and a lintel is
+        # the whole difference between "somebody dug here" and "there is a way down here" - the
+        # void tower's rule, which is that openings and regularity are what read as built.
+        for i in (mi - 2, mi + 2):
+            for h in range(4):
+                _weathered(w, f, i, v_d0, h, kit["dressed"], kit["stone"], 0.16)
+            _lamp_post(w, f, kit, pal, i, v_d0, 4, tall=1)
+        for i in range(mi - 2, mi + 3):
+            w.put(*f.at(i, v_d0, 4), pal["trim"] if abs(i - mi) < 2 else kit["dressed"])
+        # ...and a rail down both sides of the well, standing on the ground it borders.
+        for d in range(v_d0 + 1, v_d0 + 1 + v_steps):
+            for i in (mi - 2, mi + 2):
+                if w.has(*f.at(i, d, -1)) and not w.has(*f.at(i, d, 0)):
+                    w.put(*f.at(i, d, 0), pal["fence"], north="false", south="false",
+                          east="false", west="false", waterlogged="false")
 
     title = str(p.get("title") or "HOLLOW GROUND").upper()
     signed = 0
@@ -1133,13 +1611,23 @@ def _graveyard(w: World, p: dict, ctx) -> dict:
         # ON THE LINTEL, NOT IN THE GATEWAY. `mi` at h=4 is the opening the wall loop left
         # empty, so a sign there has nothing behind it - the park's own four-sign bug.
         signed += _sign(w, f, pal, mi, -1, 5, f.facing, [title[:SIGN_WIDTH], "", "", ""])
+        if vault:
+            # ON THE PIER, because the doorcase's opening has nothing behind it - the same
+            # column-with-a-hole-in-it that shipped four floating signs in `gen/park.py`.
+            signed += _sign(w, f, pal, mi - 1, v_d0, 3, a["ip"],
+                            ["THE VAULT", "six steps down", "and the same", "six back up"])
     return {"kind": "graveyard", "width": W, "depth": D, "stones": stones, "shapes": kinds,
             "looks": len(looks), "signs": signed,
+            "vault": bool(vault), "niches": niches, "vault_lamps": lamps,
+            "gate_at": list(f.at(mi, 0, 0)),
+            "vault_at": (list(f.at(mi, v_land[0], V_WALK)) if v_land else None),
+            "sarcophagus_at": (list(f.at(mi + 4, D - 4, V_WALK)) if v_land else None),
             "contract": "a railed enclosure with one gate, a crossing of paths, a lit monument "
-                        "at the centre, and at least twelve grave markers of which no two share "
+                        "at the centre, at least twelve grave markers of which no two share "
                         "a shape, a height and a material - guaranteed by construction up to the "
                         "110 markers the vocabulary holds (six shapes, their real heights, ten "
-                        "stones), which a field of 37x33 does not reach",
+                        "stones), which a field of 37x33 does not reach - and a VAULT under it, "
+                        "walkable down from the gate and back",
             "unverified": ([] if len(looks) == stones else
                            ["%d of %d markers repeat a look: the field is bigger than the "
                             "110-marker vocabulary" % (stones - len(looks), stones)])}
@@ -1332,8 +1820,187 @@ def _irongate(w: World, p: dict, ctx) -> dict:
                         "finials, and one arched walk-through gate lit from both sides"}
 
 
+# ---------------------------------------------------------------------------- the seance
+
+def _seance(w: World, p: dict, ctx) -> dict:
+    """THE SEANCE: press the bell-pull and the veil answers - one lamp, two, or all four.
+
+    **THE ZONE HAD TWO BUTTON GAMES AND BOTH WERE THE SAME THING TO LOOK AT.** Fortune Wheel is a
+    decoder (`casino.wheel`: one roll, three pockets, exactly one lights) and The Reckoning is a
+    window gate (`casino.lucky_number`: one roll, pays on one value). Both are "press a button,
+    a light comes on", and the casino's own record says what that produces - four verified
+    mechanics in four identical booths read as four identical rooms. A third decoder would have
+    been the same mistake a third time.
+
+    So this is the ONE mechanic in the casino's library that the Hollow does not already have and
+    that reads as a MAGNITUDE rather than as a pick: `circuits.bar`, where the analog level IS the
+    display. The randomiser gives 1, 2 or 4 at equal odds and dust loses one per block, so a roll
+    of L lights exactly the first L of four lamps - a meter, not a winner. A visitor learns the
+    reading from the four signs above it and there is nothing to work out.
+
+    **AN ANALOG VALUE CANNOT TRAVEL**, which is the constraint the whole casino turned on and the
+    reason the meter is set FLUSH IN THE FLOOR rather than up the shrine's back wall where it
+    would be easier to read. A roll of 4 reaches four blocks of dust; any climb, link or fan-out
+    spends exactly the magnitude being displayed, and a repeater carries the signal only by
+    destroying its value. So the bar sits at the comparator, at the machine's own course, and the
+    signs come to it.
+
+    NOT VERIFIED, and it travels in the sidecar: the DISTRIBUTION. Redstone is deterministic and
+    the randomness comes from a dropper choosing uniformly among its occupied slots, which this
+    simulator has no entities to model. `stock` names the exact item mix the odds rest on -
+    minecraft.wiki's own 3-outcome mix - and a dropper loaded with anything else is a meter with
+    made-up odds.
+    """
+    from . import circuits
+
+    f = _Frame(p)
+    pal = LANDS[p["land"]]
+    kit = GOTHIC[p["land"]]
+    a = _ax(f)
+    mr = int(p["min_run"])
+
+    W = max(13, int(p["width"] or 13))
+    D = max(9, int(p["depth"] or 9))
+    mid = W // 2
+    LAMPS = 4
+
+    # ---- THE MACHINE FIRST, AND THE PAD AFTER IT. Laid the other way round, the pad at h=-2
+    # was already standing where the hopper, the comparator and all four lamps go, every one of
+    # them was skipped by the never-overwrite rule, and what shipped was a dropper wired to
+    # nothing: 997 correct blocks, a clean audit and a meter that could not light. The order is
+    # the fix; a never-overwrite rule is only safe if the thing that must win goes down first.
+
+    # ---- THE MACHINE, IN THE FLOOR PLANE. It is laid FIRST and the floor is filled round it, so
+    # nothing of the paving can land on a component - `casino._link`'s fifth composition bug in a
+    # row was a game drawing its floor first and swallowing every wire that crossed it.
+    dirn = a["ip"]                                   # the bar runs along the frontage
+    btn_at = f.at(mid - 3, 2, 0)
+    # THE BUTTON STANDS ON A BLOCK AND THE WIRE STARTS BESIDE THAT BLOCK. A button on the floor
+    # powers its own support STRONGLY, and a strongly powered block drives adjacent dust - so
+    # there is no wire under the button to turn the pad into redstone, which is the placement the
+    # casino's floor button shipped once and the game does not allow.
+    pulse = circuits.pulse(f.at(mid - 3, 4, -1), length=2, facing=f.back)
+    # THE DROPPER SITS IN THE FLOOR PLANE, NOT ON IT, and that is a wiring decision rather than a
+    # styling one: the trigger cell is at the dropper's own course, so with the dropper standing
+    # a course proud of the pulse the two were one cell apart VERTICALLY and nothing joined them.
+    # `connect` is planar, so it ran the L happily at the wrong height and delivered nothing -
+    # the fault that broke four casino games in a row, each time looking like a different bug.
+    # Sunk, the whole logic path is one plane and the meter lands one course under the paving,
+    # which is where a meter you look DOWN at belongs.
+    rnd = circuits.randomiser(f.at(mid - 2, 7, -1), outputs=3, facing=dirn)
+    bar = circuits.bar(rnd["out"], lamps=LAMPS, facing=dirn)
+
+    laid = {}
+    for mod in (pulse, rnd, bar):
+        laid.update(mod["cells"])
+    # THE ENDS OF A LINK ARE ADDRESSES, NOT CELLS. `pulse["in"]` and `rnd["in"]` say where a
+    # signal must ARRIVE; neither module emits a block there, and `connect` refuses to stand on
+    # either endpoint - so left alone both are a one-cell gap that the floor pass then paves over.
+    # The chain simulated as completely dead and every block in it was correct.
+    for e in (pulse["in"], rnd["in"]):
+        laid.setdefault(tuple(e), "redstone_wire")
+    for pos, spec in circuits.connect(pulse["out"], rnd["in"])["cells"].items():
+        laid.setdefault(pos, spec)
+    for pos, spec in laid.items():
+        if w.has(*pos):
+            continue
+        name, _, rest = spec.partition("[")
+        props = {}
+        if rest:
+            for kv in rest.rstrip("]").split(","):
+                k, _, v = kv.partition("=")
+                props[k] = v
+        w.put(pos[0], pos[1], pos[2], name, **props)
+    for pos in list(laid):
+        if not w.has(pos[0], pos[1] - 1, pos[2]):
+            w.put(pos[0], pos[1] - 1, pos[2], kit["stone"])
+
+    # ---- the shrine: a stone floor, a back screen with a gable, two returns, an open front.
+    # **THE FLOOR IS LAID ROUND THE MACHINE, NEVER OVER IT.** `_fill` overwrites, and the first
+    # build of this used it: the paving swallowed the hopper, the comparator and all four lamps,
+    # and what shipped was a shrine with a dropper in it and no circuit at all - clean audit,
+    # correct block count, and every lamp dark for ever. That is `casino._link`'s fifth
+    # composition bug arriving from the opposite direction.
+    # the pad, laid round whatever the machine already occupies
+    for i in range(-3, W + 3):
+        for d in range(-3, D + 3):
+            x, y, z = f.at(i, d, -2)
+            if not w.has(x, y, z):
+                w.put(x, y, z, pal["ground"] if hash01(x, y, z) < 0.30 else pal["path"])
+
+    # ...and the four lamps sit a course BELOW the paving, so the columns over them are left open:
+    # a four-cell slot in the shrine floor that you stand in and read from above. Paved over, the
+    # meter is a perfectly working machine nobody can see, which is this project's own favourite
+    # way of shipping something broken.
+    slot = {(c[0], c[2]) for c in bar["lamps"]}
+    for i in range(-1, W + 1):
+        for d in range(-1, D + 1):
+            x, y, z = f.at(i, d, -1)
+            if (x, z) in slot or w.has(x, y, z):
+                continue
+            w.put(x, y, z, pal["ground"])
+    _box(w, f, 0, W - 1, 0, D - 1, 0, 4, pal["wall"], pal["post"],
+         holes=[(i, 0, h) for i in range(1, W - 1) for h in range(5)]
+               + [(i, d, h) for i in (0, W - 1) for d in range(1, 4) for h in range(5)],
+         alt=kit["stone"])
+    _proud_ring(w, f, 0, W - 1, 0, D - 1, 5, pal["trim"])
+    _corbel_ring(w, f, 0, W - 1, 0, D - 1, 4, kit["roof_stair"], mr)
+    for i in range(W):
+        for d in range(D):
+            w.put(*f.at(i, d, 6), kit["roof"])
+    field = {(i, d): (7 + min(i, W - 1 - i) // 2, a["ip"] if i < mid else a["im"], i == mid)
+             for i in range(W) for d in range(D)}
+    _slope(w, f, field, 7, kit["roof"], kit["roof_stair"], kit["roof"], alt=kit["roof_alt"])
+
+    # ---- the pedestal and the bell-pull. THE BUTTON DOES NOT STAND ON THE WIRE: the link starts
+    # one cell away and the button powers it from the side, which is the fix the casino's floor
+    # button needed after it turned its own pad into redstone dust.
+    for h in range(0, 2):
+        w.put(*f.at(mid - 3, 1, h), kit["dressed"])
+    w.put(btn_at[0], btn_at[1] - 1, btn_at[2], kit["dressed"])
+    w.put(btn_at[0], btn_at[1], btn_at[2], "stone_button", face="floor",
+          facing=f.facing, powered="false")
+
+    # ---- the readings, one sign per lamp, on the back wall above the meter
+    reading = [["FAINT", "one lamp:", "nothing here", "but a draught"],
+               ["STIRRING", "two lamps:", "something", "is listening"],
+               ["", "", "", ""],
+               ["THEY ARE HERE", "four lamps:", "do not turn", "round"]]
+    signed = 0
+    if p.get("sign", True):
+        signed += _sign(w, f, pal, mid, D - 1, 3, f.facing,
+                        [str(p.get("title") or "THE SEANCE")[:SIGN_WIDTH],
+                         "press the pull", "1 in 3 each", "read the lamps"])
+        for k, lamp in enumerate(bar["lamps"]):
+            if not any(reading[k]):
+                continue
+            # THE SIGN GOES WHERE THE WALL IS, not where the lamp is. A lamp set in the floor has
+            # nothing over it to hang from; the back screen is two cells behind and solid.
+            si = mid - 3 + k
+            if 0 < si < W - 1:
+                signed += _sign(w, f, pal, si, D - 2, 2, f.facing, reading[k])
+
+    lit = 0
+    for (i, d) in ((1, D - 2), (W - 2, D - 2), (1, 1), (W - 2, 1)):
+        _hang(w, f, pal, i, d, 4, pal["trim"])
+        lit += 1
+    for (i, d, h) in ((2, D - 3, 0), (W - 3, D - 3, 0)):
+        _candle(w, f, i, d, h, count=3)
+    _cobwebs(w, f, [(1, D - 2, 4), (W - 2, D - 2, 4)])
+
+    return {"kind": "seance", "width": W, "depth": D, "signs": signed, "lamps": LAMPS,
+            "inputs": [list(btn_at)], "outputs": [list(c) for c in bar["lamps"]],
+            "rng_hopper": list(rnd["hopper"]), "lanterns": lit,
+            "stock": {"dropper": rnd["stock"]},
+            "contract": "press the pull once and the meter answers: a roll of 1, 2 or 4 at equal "
+                        "odds lights exactly the first 1, 2 or 4 of four lamps, and nothing is "
+                        "lit at rest",
+            "unverified": [circuits.RANDOM_NOTE]}
+
+
 BUILDERS = {
     "manor": _manor,
+    "seance": _seance,
     "crypt": _crypt,
     "clocktower": _clocktower,
     "graveyard": _graveyard,

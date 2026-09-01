@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": 97604,
+    "x": 97605,
     "y": 202,
     "z": 80773
   },
   "size": {
     "x": 7,
-    "y": 9,
+    "y": 8,
     "z": 7
   },
   "generated_by": "streetfurniture",
@@ -17,12 +17,12 @@
   "contract": "a clipped crown on a stem in a tub: the stem runs through every tier, so the whole shrub is one piece rather than discs hanging over a pot",
   "unverified": [],
   "crown": "tiered",
-  "tub": "pot",
-  "leaf": "dark_oak_leaves",
+  "tub": "ring",
+  "leaf": "azalea_leaves",
   "radius": 3,
   "stem": 1,
-  "height": 8,
-  "seed": 128088022,
+  "height": 7,
+  "seed": 128089259,
   "file": "Topiary 3.litematic",
   "name": "Topiary 3"
 }

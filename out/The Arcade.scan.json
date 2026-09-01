@@ -12,7 +12,7 @@
   "generated_by": "attractions",
   "kind": "arcade",
   "land": "midway",
-  "facing": "west",
+  "facing": "east",
   "contract": "architecture: an open pavilion you can see all the way into, counters reachable, shelving that is real open-trapdoor geometry",
   "unverified": [],
   "width": 21,

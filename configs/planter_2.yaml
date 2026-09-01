@@ -2,11 +2,11 @@ name: Planter 2
 gen: streetfurniture
 params:
   land: midway
-  facing: south
+  facing: east
   at:
-  - 97619
+  - 97588
   - 203
-  - 80593
+  - 80559
   kind: planter
   title: Planter 2
   under: out/newisle.litematic

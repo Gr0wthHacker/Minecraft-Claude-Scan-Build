@@ -1,25 +1,29 @@
 {
   "origin": {
-    "x": 97619,
+    "x": 97602,
     "y": 202,
-    "z": 80374
+    "z": 80362
   },
   "size": {
     "x": 19,
-    "y": 16,
+    "y": 19,
     "z": 17
   },
   "generated_by": "frontiertown",
   "kind": "saloon",
   "land": "frontier",
   "facing": "south",
-  "contract": "two storeys under a false front, a covered porch on posts with a railed balcony over it, and a stair inside that actually reaches the first floor",
+  "contract": "two storeys under a false front, a covered porch on posts with a railed balcony over it, a stair inside that actually reaches the first floor - and a room you can USE at the top and bottom of it: a served bar with stools, tables and chairs, and beds upstairs, which is what the sign over the door has been promising all along",
   "unverified": [],
   "width": 17,
   "depth": 12,
-  "height": 15,
-  "front": "flat",
+  "height": 18,
+  "front": "triangular",
   "signs": 3,
+  "tables": 3,
+  "beds": 3,
+  "stools": 5,
+  "walk_cells": 451,
   "file": "The Saloon.litematic",
   "name": "The Saloon"
 }

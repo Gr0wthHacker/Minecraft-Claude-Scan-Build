@@ -1,0 +1,20 @@
+name: Hollow Post
+gen: wayfinding
+params:
+  land: hollow
+  facing: east
+  arms:
+  - direction: north
+    dest: Midway
+  - direction: west
+    dest: Haunted Manor
+  at:
+  - 97569
+  - 203
+  - 80825
+  kind: fingerpost
+  title: Hollow Post
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

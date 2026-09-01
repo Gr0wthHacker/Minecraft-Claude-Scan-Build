@@ -1,5 +1,5 @@
 """Generator registry. Each module exposes DEFAULTS and build(cfg, donors)->Canvas."""
-from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge, hamlet, campanile, harborlight, turtle, rootreach, lowglow, falls, thicket, enrich, parkour, frog, railspiral, casino, park, coaster, bigwheel, civic, frontiertown, hollowmanor, monument, streetfurniture, attractions, transit, ticketing
+from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge, hamlet, campanile, harborlight, turtle, rootreach, lowglow, falls, thicket, enrich, parkour, frog, railspiral, casino, park, coaster, bigwheel, civic, frontiertown, hollowmanor, monument, streetfurniture, attractions, transit, ticketing, wayfinding, isthmus
 from .canvas import Canvas, hash01
 
 class _Wrap:
@@ -12,8 +12,10 @@ GENERATORS = {
     "attractions": attractions,
     "ticketing": ticketing,
     "transit": transit,
+    "isthmus": isthmus,
     "casino": casino,
     "park": park,
+    "wayfinding": wayfinding,
     "monument": monument,
     "streetfurniture": streetfurniture,
     "hollowmanor": hollowmanor,

@@ -4,7 +4,7 @@ params:
   land: hollow
   facing: west
   at:
-  - 97604
+  - 97605
   - 203
   - 80758
   kind: lamppost

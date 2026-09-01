@@ -5,7 +5,7 @@
     "z": 80751
   },
   "size": {
-    "x": 88,
+    "x": 89,
     "y": 10,
     "z": 99
   },
@@ -16,10 +16,10 @@
   "contract": "the ground between attractions: a paved grid that changes near the heart, planting beds and trees rooted in moss, a sunken seating court, and a bedded pool - never a flat slab, and never dirt or grass",
   "unverified": [],
   "width": 99,
-  "depth": 88,
-  "posts": 1,
-  "trees": 3,
-  "beds": 3,
+  "depth": 89,
+  "posts": 2,
+  "trees": 1,
+  "beds": 2,
   "terrace": true,
   "pool": true,
   "file": "Hollow Court.litematic",

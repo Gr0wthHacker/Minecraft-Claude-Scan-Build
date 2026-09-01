@@ -160,6 +160,26 @@ THEMES = {
         "reserve": [[97640, 80551, 97649, 80649]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            # ------------------------------------------------------------- wayfinding
+            # **THE FURTHEST ATTRACTION IS ~436 WALKING BLOCKS FROM THE GATE.** A park that size
+            # is not legible from inside it, and a flow audit found the four thematic gateways
+            # between zones leading to nothing a visitor could see. A board at the entrance and a
+            # post at the crossing are what turn a layout into a place you can find your way
+            # around; the destinations are validated against the live theme rosters at build
+            # time, so a renamed module fails here rather than in game.
+            {"name": "Midway Map", "gen": "wayfinding", "kind": "mapboard",
+             "size": [3, 9, 11], "orient": False,
+             "params": {"land": "midway", "zone": "midway", "title": "MIDWAY",
+                        "facing": "east"}},
+            {"name": "Park Notices", "gen": "wayfinding", "kind": "noticeboard",
+             "size": [3, 7, 7], "orient": False,
+             "params": {"land": "midway", "title": "PARK RULES", "facing": "east"}},
+            {"name": "Midway Post", "gen": "wayfinding", "kind": "fingerpost",
+             "size": [9, 9, 9], "orient": False,
+             "params": {"land": "midway", "facing": "east",
+                        "arms": [{"direction": "north", "dest": "Frontier"},
+                                 {"direction": "south", "dest": "Hollow"},
+                                 {"direction": "west", "dest": "Park Gate"}]}},
             {"name": "Hall Of Mirrors", "gen": "attractions", "kind": "mirrormaze",
              "size": [15, 5, 13], "orient": False,
              "params": {"land": "midway", "facing": "east"}},
@@ -247,9 +267,14 @@ THEMES = {
              # **`width` IS THE FRONTAGE AND ON AN EAST-FACING MODULE THAT IS Z.** Written 88x96 the
             # plaza came out 96 wide across X and paved ten columns of the transit corridor, while
             # the carousel in the south-west corner stood on bare void because Z was three short.
-            # 99 along Z covers the plot end to end; 88 across X stops at the railway.
+            # 99 along Z covers the plot end to end; 89 across X runs from the western boundary
+            # to X 97639, which is the last column the theme owns and the one the transit
+            # station's landing pad sits against. At 88 it stopped one short and left a
+            # ONE-BLOCK UNMARKED GAP OVER OPEN VOID between the zone's paving and the pad -
+            # present in the frontier and the hollow, absent in the midway, which is the worst
+            # combination: jumpable, unsigned, and inconsistent between zones.
             "size": [88, 5, 99],
-             "params": {"land": "midway", "width": 99, "depth": 88, "facing": "east"}},
+             "params": {"land": "midway", "width": 99, "depth": 89, "facing": "east"}},
         ],
     },
 
@@ -265,6 +290,15 @@ THEMES = {
         "reserve": [[97640, 80351, 97649, 80449]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            {"name": "Frontier Map", "gen": "wayfinding", "kind": "mapboard",
+             "size": [3, 9, 11], "orient": False,
+             "params": {"land": "frontier", "zone": "frontier", "title": "FRONTIER",
+                        "facing": "east"}},
+            {"name": "Frontier Post", "gen": "wayfinding", "kind": "fingerpost",
+             "size": [9, 9, 9], "orient": False,
+             "params": {"land": "frontier", "facing": "east",
+                        "arms": [{"direction": "south", "dest": "Midway"},
+                                 {"direction": "west", "dest": "Mine Coaster"}]}},
             {"name": "Ride Gate", "gen": "ticketing", "kind": "ridegate",
              "size": [19, 9, 11], "orient": False,
              "params": {"land": "frontier", "facing": "east"}},
@@ -325,9 +359,14 @@ THEMES = {
              # **`width` IS THE FRONTAGE AND ON AN EAST-FACING MODULE THAT IS Z.** Written 88x96 the
             # plaza came out 96 wide across X and paved ten columns of the transit corridor, while
             # the carousel in the south-west corner stood on bare void because Z was three short.
-            # 99 along Z covers the plot end to end; 88 across X stops at the railway.
+            # 99 along Z covers the plot end to end; 89 across X runs from the western boundary
+            # to X 97639, which is the last column the theme owns and the one the transit
+            # station's landing pad sits against. At 88 it stopped one short and left a
+            # ONE-BLOCK UNMARKED GAP OVER OPEN VOID between the zone's paving and the pad -
+            # present in the frontier and the hollow, absent in the midway, which is the worst
+            # combination: jumpable, unsigned, and inconsistent between zones.
             "size": [88, 5, 99],
-             "params": {"land": "frontier", "width": 99, "depth": 88, "facing": "east"}},
+             "params": {"land": "frontier", "width": 99, "depth": 89, "facing": "east"}},
         ],
     },
 
@@ -343,6 +382,15 @@ THEMES = {
         "reserve": [[97640, 80751, 97649, 80849]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            {"name": "Hollow Map", "gen": "wayfinding", "kind": "mapboard",
+             "size": [3, 9, 11], "orient": False,
+             "params": {"land": "hollow", "zone": "hollow", "title": "HOLLOW",
+                        "facing": "east"}},
+            {"name": "Hollow Post", "gen": "wayfinding", "kind": "fingerpost",
+             "size": [9, 9, 9], "orient": False,
+             "params": {"land": "hollow", "facing": "east",
+                        "arms": [{"direction": "north", "dest": "Midway"},
+                                 {"direction": "west", "dest": "Haunted Manor"}]}},
             {"name": "Ghost Train", "gen": "attractions", "kind": "ghosttrain",
              "size": [21, 12, 15],
              "params": {"land": "hollow", "facing": "east"}},
@@ -378,9 +426,14 @@ THEMES = {
              # **`width` IS THE FRONTAGE AND ON AN EAST-FACING MODULE THAT IS Z.** Written 88x96 the
             # plaza came out 96 wide across X and paved ten columns of the transit corridor, while
             # the carousel in the south-west corner stood on bare void because Z was three short.
-            # 99 along Z covers the plot end to end; 88 across X stops at the railway.
+            # 99 along Z covers the plot end to end; 89 across X runs from the western boundary
+            # to X 97639, which is the last column the theme owns and the one the transit
+            # station's landing pad sits against. At 88 it stopped one short and left a
+            # ONE-BLOCK UNMARKED GAP OVER OPEN VOID between the zone's paving and the pad -
+            # present in the frontier and the hollow, absent in the midway, which is the worst
+            # combination: jumpable, unsigned, and inconsistent between zones.
             "size": [88, 5, 99],
-             "params": {"land": "hollow", "width": 99, "depth": 88, "facing": "east"}},
+             "params": {"land": "hollow", "width": 99, "depth": 89, "facing": "east"}},
         ],
     },
 }

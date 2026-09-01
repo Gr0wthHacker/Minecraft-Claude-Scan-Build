@@ -1,0 +1,15 @@
+name: Park Notices
+gen: wayfinding
+params:
+  land: midway
+  title: Park Notices
+  facing: east
+  at:
+  - 97617
+  - 203
+  - 80606
+  kind: noticeboard
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

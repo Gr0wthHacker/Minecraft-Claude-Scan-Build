@@ -145,3 +145,67 @@ def dry_runs(path: list, sources: set) -> list:
             out.append(list(run))
             run = []
     return out
+
+
+def escapes(cells: dict, sources: list, envelope, bounds=None,
+            max_steps: int = 400000) -> list:
+    """Every cell the flood reaches that the design never meant water to occupy.
+
+    **`carries` AND THIS ARE DIFFERENT QUESTIONS AND A RIDE NEEDS BOTH ANSWERED.** `carries` asks
+    whether the PATH is wet and moving - it says nothing at all about the cells beside the path.
+    The shipped log flume returned `carries: True` and simultaneously poured its entire channel
+    out of the open head of its dock, over the apron and off the plot: 199,959 wet cells reaching
+    Y-1908 before the step budget stopped counting. Every render, every audit, the bill of
+    materials and the generator's own self-check passed it.
+
+    So a water design states the cells water is ALLOWED in - its `envelope` - and this returns the
+    ones it got to anyway. An empty list is the only acceptable answer. The envelope is the
+    generator's own geometry (the trough interior, the pool interior), not a bounding box: a box
+    round a flume contains the apron it spills onto and would have passed the shipped build.
+    """
+    env = {tuple(c) for c in envelope}
+    lv = spread(cells, sources, bounds, max_steps)
+    return sorted(c for c in lv if c not in env)
+
+
+def unenclosed(cells: dict, allow=()) -> list:
+    """Water blocks in `cells` with nowhere for the water to stay: no bed, or an open side.
+
+    A STATIC check, so it is usable on a finished litematic with no idea what the design intended.
+    It is deliberately weaker than `escapes`: a cell whose sideways neighbour is air is fine IF
+    that neighbour has a solid bed, because water spreading one cell into a bedded trough is what
+    a three-wide channel is FOR. What it catches is the two genuinely unsurvivable shapes - water
+    over a hole, and water beside a hole.
+
+    **IT IS THE CHECK FOR STILL WATER, AND A CASCADE NEEDS `allow`.** A graded channel steps down
+    a course at a time, so every cell's downhill neighbour IS a hole - that is the ride. Pass the
+    design's own envelope as `allow` and a hole inside it stops being a fault; a design with no
+    envelope to declare is one whose water is not supposed to be going anywhere, and the default
+    empty `allow` is exactly right for it.
+
+    Returns [(cell, reason, neighbour)]. Empty is the only acceptable answer for a shipped design.
+    """
+    ok = {tuple(c) for c in allow}
+    def water(p):
+        n = cells.get(p)
+        return n is not None and n.split("[")[0] == "water"
+
+    def bedded(p):
+        n = cells.get((p[0], p[1] - 1, p[2]))
+        return n is not None and (not _passable(n) or n.split("[")[0] == "water")
+
+    out = []
+    for p, name in cells.items():
+        if name.split("[")[0] != "water":
+            continue
+        if not bedded(p) and (p[0], p[1] - 1, p[2]) not in ok:
+            out.append((p, "no bed", (p[0], p[1] - 1, p[2])))
+        for (dx, dz) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            n = (p[0] + dx, p[1], p[2] + dz)
+            if water(n) or n in ok:
+                continue
+            if not _passable(cells.get(n)):
+                continue
+            if not bedded(n):
+                out.append((p, "open side over a hole", n))
+    return out

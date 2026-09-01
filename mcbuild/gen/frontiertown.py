@@ -48,7 +48,7 @@ toward the building it grows out of.
 """
 from __future__ import annotations
 
-from .. import blocks
+from .. import blocks, circuit, fluids, walk
 from .canvas import Canvas, hash01
 from .park import LANDS, SIGN_WIDTH, _Frame, _STEP, _hang_light, _sign
 from .vertical import Ctx, World
@@ -313,6 +313,81 @@ def _lamp_post(w, f, pal, i, d, h0=0, tall=3):
 
 # ------------------------------------------------------------------------------ 1. the saloon
 
+def _table(w, f, pal, i, d, pi, mi):
+    """A round table and two chairs. A fence post under a top slab is the idiom; the chairs are
+    stairs looking AT the table, which is the whole reason a chair reads as a chair."""
+    w.put(*f.at(i, d, 0), pal["fence"])
+    _slab(w, f, i, d, 1, pal["slab"], "top")
+    _stair(w, f, i - 1, d, 0, pal["stair"], pi, "bottom")
+    _stair(w, f, i + 1, d, 0, pal["stair"], mi, "bottom")
+
+
+def _saloon_fitout(w: World, f, pal, ex, W, D, DECK, ROOF, seed) -> dict:
+    """WHAT YOU CAN ACTUALLY DO IN THE SALOON, which up to now was: stand in an empty room.
+
+    The building was already right - two storeys, a porch, a balcony, a stair that reaches the
+    first floor, and a sign over the door promising `whiskey & beds`. Nothing inside it delivered
+    either. What goes in is chosen for USE rather than for looks: a barrel is the till and the
+    cellar, a brewing stand and a cauldron are the back bar, a bell on the counter calls the
+    barkeep, beds upstairs are the rooms the sign has been selling, and a lectern is the register
+    you sign. Every one of them is a block a player right-clicks.
+
+    **NO PIANO, AND THE REASON IS MEASURED.** `note_block` and `jukebox` are BOTH `expensive` on
+    this economy - the second was suggested precisely because it was assumed not to be, which is
+    rule 12 from a new direction. The upright is built out of its own silhouette instead (dark
+    body, a keyboard of black and white wool, a stool) and the sound in the room is the BELL,
+    which is cheap and is a real one.
+    """
+    pi, mi = _axis_dirs(f)
+    bar_end = max(2, W // 2 - 2)
+    out = {"tables": 0, "beds": 0, "stools": 0}
+
+    # ---- the back bar: the till, the still, the wash, and the bell
+    w.put(*f.at(1, D - 2, 1), "barrel", facing="up", open="false")
+    w.put(*f.at(2, D - 2, 1), "brewing_stand",
+          has_bottle_0="false", has_bottle_1="false", has_bottle_2="false")
+    w.put(*f.at(3, D - 2, 0), "cauldron")
+    w.put(*f.at(bar_end - 1, D - 2, 1), "bell", facing=f.facing,
+          attachment="floor", powered="false")
+    for i in range(1, bar_end):                                  # bottles on the shelf behind
+        w.put(*f.at(i, D - 1, 3), ex["band"])
+    # STOOLS AT THE BAR, facing it. A stair looking the wrong way is a step, not a seat, and our
+    # renderer draws the two identically - so the direction is reasoned, never eyeballed.
+    for i in range(1, bar_end):
+        _stair(w, f, i, D - 4, 0, pal["stair"], f.back, "bottom")
+        out["stools"] += 1
+
+    # ---- tables in the room, clear of the door lane and of the stair well
+    for (ti, td) in ((W - 5, 3), (W - 5, D - 5), (bar_end + 2, D - 6)):
+        if 1 < ti < W - 2 and 1 < td < D - 2 and not w.has(*f.at(ti, td, 0)):
+            _table(w, f, pal, ti, td, pi, mi)
+            out["tables"] += 1
+
+    # ---- the upright, against the side wall
+    for h in (1, 2, 3):
+        for i in (1, 2):
+            w.put(*f.at(i, D - 6, h), ex["band"] if h == 3 else pal["trim"])
+    w.put(*f.at(1, D - 5, 1), "white_wool")
+    w.put(*f.at(2, D - 5, 1), "black_wool")
+    _stair(w, f, 1, D - 4, 0, pal["stair"], f.back, "bottom")
+
+    # ---- upstairs: the rooms the sign has been advertising, and a lectern to sign in on
+    for k, i in enumerate(range(2, W - 3, 4)):
+        if i + 1 >= W - 2:
+            break
+        w.put(*f.at(i, D - 3, DECK + 1), "red_bed", facing=f.facing,
+              part="head", occupied="false")
+        w.put(*f.at(i, D - 4, DECK + 1), "red_bed", facing=f.facing,
+              part="foot", occupied="false")
+        w.put(*f.at(i + 1, D - 3, DECK + 1), "barrel", facing="up", open="false")
+        for d in range(D - 5, D - 2):                            # a partition between rooms
+            for h in range(DECK + 1, DECK + 4):
+                w.put(*f.at(i + 2, d, h), pal["wall"])
+        out["beds"] += 1
+    w.put(*f.at(W - 3, 2, DECK + 1), "lectern", facing=f.back, has_book="false", powered="false")
+    return out
+
+
 def _saloon(w: World, p: dict, ctx) -> dict:
     """TWO STOREYS, A FALSE FRONT, A PORCH AND A BALCONY - the town's one big building.
 
@@ -452,6 +527,8 @@ def _saloon(w: World, p: dict, ctx) -> dict:
     for i in (1, W - 2):                                        # porch lamps, hung off the fascia
         _hang_light(w, f, pal, i, -P + 1, DECK - 2)
 
+    fitted = _saloon_fitout(w, f, pal, ex, W, D, DECK, ROOF, seed) if p.get("fitout", True) else {}
+
     # ---- signs. The big one goes on the false front, where the centre column is tallest.
     title = str(p.get("title") or "SALOON").upper()
     signed = 0
@@ -461,10 +538,27 @@ def _saloon(w: World, p: dict, ctx) -> dict:
         signed += _sign(w, f, pal, dc, -1, 4, f.facing, ["ROOMS 2 BITS", "", "", ""])
         lines = list(p.get("lines") or ["no shooting", "settle up", "at the bar"])
         signed += _sign(w, f, pal, W // 2, D, 2, f.back, ["HOUSE RULES"] + lines)
+    # **AN INTERIOR IS ONLY AN INTERIOR IF YOU CAN GET INTO IT.** The batwing doors, the stair
+    # and the upstairs partitions are all geometry that reads perfectly and can each seal the
+    # room they serve, and nothing here had ever asked. `walk.py` states the movement model;
+    # these three legs are the building's whole promise: come in, get served, go up to bed.
+    if fitted:
+        cells = {pos: name for pos, (name, _pr) in w.cells.items()}
+        reach = walk.reachable(cells, f.at(W // 2, -(P + 1), 0))
+        for leg, target in (("the bar", f.at(2, D - 3, 0)),
+                            ("the first floor", f.at(W - 8, D - 3, DECK + 1))):
+            if target not in reach:
+                raise ValueError(f"the saloon's {leg} at {target} cannot be walked to from the "
+                                 f"street; {len(reach)} cells reachable")
+        fitted["walk_cells"] = len(reach)
+
     return {"kind": "saloon", "width": W, "depth": D, "height": ROOF + 1 + max(prof),
-            "front": style, "signs": signed,
+            "front": style, "signs": signed, **fitted,
             "contract": "two storeys under a false front, a covered porch on posts with a railed "
-                        "balcony over it, and a stair inside that actually reaches the first floor"}
+                        "balcony over it, a stair inside that actually reaches the first floor - "
+                        "and a room you can USE at the top and bottom of it: a served bar with "
+                        "stools, tables and chairs, and beds upstairs, which is what the sign "
+                        "over the door has been promising all along"}
 
 
 # ------------------------------------------------------------------------------ 2. water tower
@@ -771,6 +865,389 @@ def _windmill(w: World, p: dict, ctx) -> dict:
 
 # --------------------------------------------------------------------------------- 4. minehead
 
+# ------------------------------------------------------------------------------- 0. the sluice
+
+def _sluice(w: World, p: dict, ctx) -> dict:
+    """GOLD PANNING, AND IT ACTUALLY WORKS: throw it in the head box, take it out of the poke.
+
+    Everything else in this zone that looks like a machine is scenery with a sign on it. This one
+    is a real item conveyor: a stepped launder carrying FLOWING water (not a trough of sources -
+    `fluids.py` exists because that shipped once and carried nobody), a row of hoppers under the
+    tail taking whatever the current brings them, a barrel to collect it, and a comparator reading
+    that barrel to raise a gold block into the window and ring the bell. Both halves are proven
+    before it ships: `fluids.carries` for the wash, `circuit.Circuit` for the strike.
+
+    **THE WATER IS THE INTERACTION, WHICH IS WHY IT HAS TO FLOW.** A player drops something in the
+    head box and watches it travel; a launder of source blocks is a puddle you throw things into.
+    And the same water that carries an item off the plot if it escapes: the trough is walled and
+    bedded by construction and checked with `fluids.escapes` against its own declared envelope,
+    the check the log flume shipped without and drained itself through.
+    """
+    f = _Frame(p)
+    pal, ex = _pal(p)
+    W = max(11, int(p["width"]))
+    D = max(11, int(p["depth"]))
+    ci = W // 2
+    mr = int(p["min_run"])
+    seed = f.x * 277 + f.z
+    pi, mi = _axis_dirs(f)
+    TOP = 5                                  # the head box's floor; the tail lands at TOP - runs
+
+    _pad(w, f, pal, -1, W, -1, D)
+
+    d0, d1 = 1, D - 2
+    def bed(d):
+        """The launder falls one course every three cells - a step, not a ramp.
+
+        A LEVEL LAUNDER IS A PUDDLE. Water reaches exactly seven cells from a source on the flat
+        and then stops, and so does anything floating on it; a fall restarts that budget, so the
+        steps are what make the whole run carry rather than the first seven cells of it.
+        """
+        return max(1, TOP - (d - d0) // 3)
+
+    # THE TRESTLE UNDER IT, and the launder floor on top. Both are solid columns from the pad up,
+    # so every water cell has a real bed and the whole thing is one piece by construction rather
+    # than a deck standing on hope.
+    for d in range(d0, d1 + 1):
+        for i in range(ci - 2, ci + 3):
+            for h in range(0, bed(d) + 1):
+                if i in (ci - 2, ci + 2) or h == bed(d) or (d - d0) % 3 == 0:
+                    w.put(*f.at(i, d, h), pal["post"] if i in (ci - 2, ci + 2) and h < bed(d)
+                          else pal["beam"])
+    # THE RIFFLES: a bar across the floor every third cell, which is what a sluice IS - and they
+    # are SLABS, so they hold a step without damming the run.
+    riffles = 0
+    for d in range(d0 + 2, d1, 3):
+        # **NEVER ACROSS THE CENTRE LANE.** Drawn the full width they sat in the water course and
+        # DAMMED it - four of nine cells dry, the run stopping at the first bar, and a design that
+        # still audited clean and still looked exactly like a sluice. The bars flank the run; the
+        # lane down the middle is what carries. Waterlogged, so the trough still reads as full.
+        for i in (ci - 1, ci + 1):
+            w.put(*f.at(i, d, bed(d) + 1), pal["slab"], type="bottom", waterlogged="true")
+            riffles += 1
+
+    # THE SIDES, two courses over the floor, and the end walls. The head box is capped at the back
+    # so the water cannot run out the top of the run, and the tail wall is what makes the items
+    # settle over the hoppers instead of sailing off the end.
+    for d in range(d0, d1 + 1):
+        for i in (ci - 2, ci + 2):
+            for h in range(bed(d), bed(d) + 3):
+                w.put(*f.at(i, d, h), pal["wall"])
+    for i in range(ci - 2, ci + 3):
+        for h in range(bed(d0), bed(d0) + 3):
+            w.put(*f.at(i, d0 - 1, h), pal["wall"])
+        for h in range(bed(d1), bed(d1) + 3):
+            w.put(*f.at(i, d1 + 1, h), pal["wall"])
+
+    # **THE HOPPERS ARE THE LAUNDER'S OWN FLOOR AT THE TAIL.** An item riding the current sits in
+    # the water cell above the floor, which is exactly the cell a hopper collects from - so the
+    # tail row IS the collector and there is no chute to get wrong. They feed the middle one, and
+    # that one feeds down into the poke.
+    tail = d1
+    for i in (ci - 1, ci + 1):
+        w.put(*f.at(i, tail, bed(tail)), "hopper",
+              facing=(mi if i > ci else pi), enabled="true")
+    w.put(*f.at(ci, tail, bed(tail)), "hopper", facing="down", enabled="true")
+    barrel = (ci, tail, bed(tail) - 1)
+    w.put(*f.at(*barrel), "barrel", facing="up", open="false")
+
+    # THE WATER. Sources at the head and every few cells down the run; the falls between steps do
+    # the rest. Nothing is a source at the tail, or the items would sit still on top of the poke.
+    water, sources, path = 0, [], []
+    for d in range(d0, d1 + 1):
+        cell = f.at(ci, d, bed(d) + 1)
+        if (d - d0) % 5 == 0 and d < tail:
+            w.put(*cell, "water", level="0")
+            sources.append(cell)
+            water += 1
+        else:
+            path.append(cell)
+
+    # ---- the strike detector. Comparator reads the poke; a repeater carries it to the piston
+    # that lifts a gold block into the window, and to the bell beside it.
+    ph = bed(tail) - 1
+    cmp_ = (ci, tail - 1, ph)
+    w.put(*f.at(*cmp_), "comparator", facing=f.facing, mode="compare", powered="false")
+    for d in (tail - 2, tail - 3):
+        w.put(*f.at(ci, d, ph), "redstone_wire")
+    bell = (ci + 1, tail - 2, ph)
+    w.put(*f.at(*bell), "bell", facing=pi, attachment="floor", powered="false")
+    piston = (ci, tail - 4, ph)
+    w.put(*f.at(*piston), "sticky_piston", facing="up", extended="false")
+    w.put(*f.at(ci, tail - 4, ph + 1), "raw_gold_block")
+    for (bi, bd) in ((ci - 1, tail - 4), (ci + 1, tail - 4), (ci, tail - 5)):
+        for h in range(ph, ph + 3):
+            if not w.has(*f.at(bi, bd, h)):
+                w.put(*f.at(bi, bd, h), pal["trim"])
+    _pane(w, f, ci, tail - 4, ph + 2, "i")
+
+    # ---- the deck you stand on to work it, and a flight up to the head box
+    for i in (ci - 3, ci + 3):
+        for d in range(d0, d1 + 1):
+            w.put(*f.at(i, d, 0), pal["beam"])
+    for k in range(min(4, TOP)):
+        _stair(w, f, ci + 3, d0 + k, k, pal["stair"], f.back, "bottom")
+        for h in range(k):
+            w.put(*f.at(ci + 3, d0 + k, h), pal["beam"])
+    for d in (d0 + 1, (d0 + d1) // 2, d1 - 1):
+        _lamp_post(w, f, pal, ci + 4, d, 0, 3)
+
+    signed = 0
+    title = str(p.get("title") or "GOLD SLUICE").upper()
+    if p.get("sign", True):
+        signed += _sign(w, f, pal, ci, d1 + 2, bed(d1) + 1, f.back,
+                        [title[:SIGN_WIDTH], "drop it in the", "head box - the", "poke keeps it"])
+        signed += _sign(w, f, pal, ci, d0 - 2, bed(d0) + 1, f.facing,
+                        ["HEAD BOX", "throw dirt here", "hoppers below", "ring the bell"])
+
+    # ---- and now prove both halves, because a sluice that looks like one is worth nothing
+    cells = {pos: name for pos, (name, _pr) in w.cells.items()}
+    flow = fluids.carries(cells, path, sources)
+    if not flow["carries"]:
+        raise ValueError(
+            f"the sluice does not wash: {flow['dry']} dry and {flow['still']} still of "
+            f"{flow['cells']} cells, stops at {flow['stops_at']}")
+    # THE LAUNDER'S WHOLE INTERIOR, floor to wall top - not just the water course. Water crossing
+    # from the cell above a step arrives a course or two high before it falls, and an envelope
+    # drawn at the water line alone reports the ride's own cascade as a leak. What matters is
+    # that nothing gets OUT of the trough, and the wall top is where the trough stops.
+    envelope = {f.at(i, d, hh) for d in range(d0, d1 + 1) for i in range(ci - 1, ci + 2)
+                for hh in range(bed(d) + 1, bed(d) + 4)}
+    out = fluids.escapes(cells, sources, envelope)
+    if out:
+        raise ValueError(f"the sluice leaks: {len(out)} cell(s) outside the launder, "
+                         f"first at {out[0]}")
+
+    # **THE STRIKE, SIMULATED, BOTH WAYS ROUND.** An empty poke must leave the window dark - a
+    # detector that is always on is a decoration with a redstone cost - and a stocked one must
+    # fire the piston AND the bell. `fill` is how a container's contents enter this simulator:
+    # it has no entities and pretending a barrel fills itself would certify a machine that has
+    # never seen an item.
+    spec = {pos: (name if not pr else
+                  name + "[" + ",".join(f"{k}={v}" for k, v in sorted(pr.items())) + "]")
+            for pos, (name, pr) in w.cells.items()}
+    idle = circuit.Circuit.from_cells(spec)
+    idle.run(12)
+    if idle.powered(f.at(*piston)) or idle.powered(f.at(*bell)):
+        raise ValueError("the sluice's strike detector is live with an empty poke")
+    live = circuit.Circuit.from_cells(spec)
+    live.fill(f.at(*barrel), 3)
+    live.run(12)
+    for what, pos in (("the gold-block piston", piston), ("the bell", bell)):
+        if not live.powered(f.at(*pos)):
+            raise ValueError(f"a stocked poke does not fire {what} at {f.at(*pos)}")
+
+    return {"kind": "sluice", "width": W, "depth": D, "height": TOP + 3,
+            "riffles": riffles, "water": water, "run": len(path) + len(sources),
+            "signs": signed,
+            "barrel": list(f.at(*barrel)), "bell": list(f.at(*bell)),
+            "piston": list(f.at(*piston)), "comparator": list(f.at(*cmp_)),
+            "flow": {k: v for k, v in flow.items() if k != "levels"},
+            "contract": "a stepped launder of FLOWING water (`fluids.carries`) that cannot leak "
+                        "(`fluids.escapes` against its own envelope), a hopper row in the tail "
+                        "floor feeding a barrel, and a comparator on that barrel that raises a "
+                        "gold block and rings a bell when anything lands in it "
+                        "(`circuit.Circuit`)",
+            "unverified": ["nothing here simulates an ITEM. The water is proven to flow and the "
+                           "detector is proven to fire on a stocked poke; that an entity riding "
+                           "the current reaches the hoppers is the game's business, not this "
+                           "simulator's. Throw a stack in before anyone is told it pays."]}
+
+
+# ---------------------------------------------------------------- the workings under the mine
+
+# The gallery's own courses, measured DOWN from the pad. Three clear courses is a drift you walk
+# through rather than a crawl, and eleven of descent is far enough that the ladder is a journey
+# and short enough that the shaft lining is not most of the design's block count.
+MINE_FLOOR = -11
+MINE_CLEAR = 3
+
+# What a working face is made of, in the order a vein is worth finding. Every one checked with
+# `blocks.spendable` / `blocks.available` / `palette.tier`: all cheap except `iron_ore`, which is
+# `ok` and is used as the rarest and smallest vein for exactly that reason.
+VEINS = (("coal_ore", 5), ("copper_ore", 4), ("redstone_ore", 3),
+         ("lapis_ore", 3), ("gold_ore", 2), ("iron_ore", 2))
+
+
+def _carve(w: World, f, i, d, h):
+    """Take a cell back OUT of the world. A shaft is a hole, and the pad was laid over it first.
+
+    `World.put` overwrites but never removes, and the pad, the spoil bank and the tramway are all
+    laid before anything knows where the shaft goes. Reordering the whole generator so the hole
+    is reserved first would put the shaft's arithmetic ahead of the geometry that decides where
+    it belongs; popping the cell is the smaller and more honest edit, and it is the only place in
+    this file that does it.
+    """
+    w.cells.pop(f.at(i, d, h), None)
+
+
+def _shaft(w: World, f, pal, ex, i, d, top_h, bot_h, seed, skip=frozenset(),
+           sup=(0, 1), face=None):
+    """A lined vertical shaft with a ladder in it, from `top_h` down to `bot_h` inclusive.
+
+    THE LADDER'S SUPPORT IS THE LINING BEHIND IT, and `facing` is the direction the ladder LOOKS -
+    away from the block holding it up, exactly as a wall sign's is. Built the other way round the
+    ladder faces into solid rock, which the game refuses to place and no render of ours would
+    distinguish from the right answer.
+    """
+    ring = [(di, dd) for di in (-1, 0, 1) for dd in (-1, 0, 1) if (di, dd) != (0, 0)]
+    for h in range(bot_h, top_h + 1):
+        _carve(w, f, i, d, h)
+        for (di, dd) in ring:
+            # **NEVER LINE A CELL THAT IS ALREADY SOMEBODY'S ROOM.** The shaft is driven after
+            # the gallery is carved, so at the shaft FOOT its lining ring lands squarely on the
+            # drift the ladder is meant to deliver you into - and walls it. The ladder still ran
+            # the full eleven courses, the design was still one piece, the audit was still clean,
+            # and you climbed down into a sealed box. `skip` is the drift, stated by the caller.
+            if (i + di, d + dd, h) in skip or h >= 0:
+                # **ABOVE THE PAD THE LINING IS SOMEBODY ELSE'S WALL.** A shaft's collar course
+                # sits inside the adit at one end and inside the collar house at the other, and
+                # a ring drawn there bricks up the room the ladder exists to serve - the adit
+                # sealed itself round its own shaft head, and the collar house's doorway was
+                # filled by the shaft it is the door to. Below the pad the shaft is in void and
+                # has to make its own walls; above it, it never should.
+                continue
+            if not w.has(*f.at(i + di, d + dd, h)):
+                w.put(*f.at(i + di, d + dd, h),
+                      _weather(ex["rock"], ex["aged"], f, i + di, d + dd, h, seed, 0.25))
+        # **THE SUPPORT COLUMN IS BUILT WHATEVER `skip` SAYS.** A ladder with nothing behind it is
+        # a block the game refuses to place, and the audit found four of them: at the collar
+        # course, where the ring is deliberately not drawn, and at the shaft foot, where the
+        # drift the ladder serves is deliberately left open. The chosen side is the caller's,
+        # because at the foot of the escape shaft three of the four neighbours ARE the drift.
+        back = f.at(i + sup[0], d + sup[1], h)
+        if not w.has(*back):
+            w.put(*back, _weather(ex["rock"], ex["aged"], f, i + sup[0], d + sup[1], h, seed, 0.25))
+        w.put(*f.at(i, d, h), "ladder", facing=face or f.facing, waterlogged="false")
+    return top_h - bot_h + 1
+
+
+def _workings(w: World, f, pal, ex, W, D, ci, seed) -> dict:
+    """THE MINE HEAD STOPS BEING A PROP: a real descent, a gallery you can walk, and a way out.
+
+    What stood here was a seven-cell dead-end adit driven into a spoil bank - a hole with timber
+    in it, and the honest answer to *what can a player DO here* was "look at it". A skyblock plot
+    is void in every direction, so DOWN is the one direction a park has for free: the whole
+    gallery is eleven courses under the pad, in space nothing else can ever want.
+
+    The route is a LOOP, not a dead end, because a dead end is a corridor you walk twice: in at
+    the adit, down the hoist shaft on a ladder, round the drifts past the working faces, and up
+    the escape shaft into a collar house out on the pad. `walk.connects` proves it end to end at
+    generation time - the same rule `fluids.carries` and `circuit` already hold their subsystems
+    to, and the one this attraction could never have passed before.
+    """
+    lo, hi = MINE_FLOOR, MINE_FLOOR + MINE_CLEAR        # floor course, top clear course
+    ceil = hi + 1
+
+    # THE PLAN OF THE WORKINGS. An inverted T with a stope at each end of the cross-cut, so the
+    # walk has somewhere to arrive rather than only somewhere to turn round in.
+    drift = {(i, d) for i in range(ci - 1, ci + 2) for d in range(3, D - 2)}
+    cross = {(i, d) for i in range(3, W - 3) for d in range(2, 5)}
+    stopes = ({(i, d) for i in range(3, 6) for d in range(5, 8)}
+              | {(i, d) for i in range(W - 6, W - 3) for d in range(5, 8)})
+    gallery = drift | cross | stopes
+
+    for (i, d) in gallery:
+        for h in range(lo + 1, ceil):
+            _carve(w, f, i, d, h)
+        w.put(*f.at(i, d, lo), _weather(ex["rock"], ex["aged"], f, i, d, lo, seed, 0.3))
+        w.put(*f.at(i, d, ceil), _weather(ex["rock"], ex["aged"], f, i, d, ceil, seed, 0.3))
+
+    # THE LINING, on the eight-neighbourhood so the diagonals are filled too. Four-neighbour
+    # lining leaves a diagonal hole at every inside corner, which is the same shape of gap the
+    # flume drained itself through - and here it would be a window onto the void.
+    lining = {(i + di, d + dd) for (i, d) in gallery
+              for di in (-1, 0, 1) for dd in (-1, 0, 1)} - gallery
+    faces = []
+    for (i, d) in sorted(lining):
+        for h in range(lo, ceil + 1):
+            if w.has(*f.at(i, d, h)):
+                continue
+            w.put(*f.at(i, d, h), _weather(ex["rock"], ex["aged"], f, i, d, h, seed, 0.3))
+        if lo < ceil and any((i + di, d + dd) in gallery
+                             for (di, dd) in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+            faces.append((i, d))
+
+    # THE VEINS, in the walls a player is standing in front of. Clustered rather than sprinkled:
+    # single ore blocks in a wall are the deck soffit's confetti in a different palette, and the
+    # thing that makes a working face read is a PATCH of one mineral, not a dusting of six.
+    veined = 0
+    for (i, d) in faces:
+        r = hash01(i, d, seed + 7)
+        if r > 0.30:
+            continue
+        pick = VEINS[int(hash01(i, d, seed + 11) * len(VEINS)) % len(VEINS)]
+        for h in range(lo + 1, min(ceil, lo + 1 + pick[1] // 2 + 1)):
+            w.put(*f.at(i, d, h), pick[0])
+            veined += 1
+
+    # TIMBER SETS AND LAMPS along the main drift. The posts go in the LINING, never in the drift -
+    # a three-wide drift with posts at its own edges is a one-wide drift with an obstacle course.
+    sets = lamps = 0
+    for d in range(4, D - 2, 3):
+        for i in (ci - 2, ci + 2):
+            for h in range(lo + 1, ceil):
+                w.put(*f.at(i, d, h), pal["post"])
+        for i in range(ci - 2, ci + 3):
+            w.put(*f.at(i, d, ceil), ex["band"])
+        sets += 1
+    for d in range(4, D - 2, 3):
+        w.put(*f.at(ci, d, hi), pal["light"], hanging="true", waterlogged="false")
+        lamps += 1
+    for (si, sd) in ((4, 3), (W - 5, 3), (4, 6), (W - 5, 6)):
+        if (si, sd) in gallery:
+            w.put(*f.at(si, sd, hi), pal["light"], hanging="true", waterlogged="false")
+            lamps += 1
+
+    # WHAT THE WORKINGS ARE FOR: an ore chute at each stope, so what you find has somewhere to go,
+    # and a crate at the shaft foot. A barrel is the only container this economy calls cheap and
+    # it is a real one - the point of the whole exercise is that these are things you USE.
+    for (si, sd) in ((4, 6), (W - 5, 6)):
+        if (si, sd) in gallery:
+            w.put(*f.at(si, sd, lo + 1), "barrel", facing="up", open="false")
+    w.put(*f.at(ci + 1, D - 3, lo + 1), "barrel", facing="up", open="false")
+
+    keep = {(i, d, h) for (i, d) in gallery for h in range(lo + 1, ceil)}
+    pi, _mi = _axis_dirs(f)
+    hoist = _shaft(w, f, pal, ex, ci, D - 3, 0, lo + 1, seed, keep, (0, 1), f.facing)
+    # THE ESCAPE SHAFT LEANS ON THE ONE SIDE THAT IS NOT DRIFT. Three of its four neighbours are
+    # the cross-cut, so the default deeper side would have had to wall a walkway to hold a ladder.
+    escape = _shaft(w, f, pal, ex, 3, 3, 0, lo + 1, seed + 3, keep, (-1, 0), pi)
+
+    # THE COLLAR HOUSE over the escape shaft, so the way out is a BUILDING on the pad rather than
+    # a hole in it. Regularity and an opening: four walls, one door, a capped roof.
+    for di in (-1, 0, 1):
+        for dd in (-1, 0, 1):
+            if (di, dd) == (0, 0):
+                continue
+            for h in range(3):
+                if (di, dd) == (0, -1) and h < 2:
+                    continue                        # the doorway, left empty by the loop
+                w.put(*f.at(3 + di, 3 + dd, h),
+                      pal["post"] if abs(di) == abs(dd) else pal["wall"])
+    for di in (-1, 0, 1):
+        for dd in (-1, 0, 1):
+            w.put(*f.at(3 + di, 3 + dd, 3), pal["trim"])
+    # ON TOP OF THE ROOF, NOT IN IT. Written as a hanging lamp at h=3 it simply OVERWROTE the
+    # roof cell it was meant to hang from - the audit called it "hanging from air" and it was
+    # right; a cell written twice is a cell you do not have. There is no interior to light here
+    # (the collar's only inside cell is the shaft), so the light stands on the ridge where it
+    # marks the way out from across the pad.
+    w.put(*f.at(3, 2, 4), pal["light"], hanging="false", waterlogged="false")
+
+    return {"gallery": len(gallery), "veins": veined, "sets": sets, "lamps": lamps,
+            "hoist_shaft": hoist, "escape_shaft": escape,
+            # THE TOUR IS CHECKED FROM THE STREET, not from inside the adit. Starting at the
+            # portal proves the drifts join each other and proves nothing about whether a visitor
+            # can get to the portal - and the tramway's own sleeper bed stands a course proud of
+            # the pad right across the approach, which is a step a walk model has to take rather
+            # than a fact anyone would have thought to assert.
+            "floor_h": lo, "adit_mouth": list(f.at(ci, -1, 0)),
+            "shaft_head": list(f.at(ci, D - 3, 0)),
+            "gallery_far": list(f.at(W - 5, 7, lo + 1)),
+            "way_out": list(f.at(3, 2, 0))}
+
+
 def _minehead(w: World, p: dict, ctx) -> dict:
     """THE LAND'S SIGNATURE: a timbered portal into a spoil bank under an A-frame headframe.
 
@@ -914,6 +1391,9 @@ def _minehead(w: World, p: dict, ctx) -> dict:
     for d in (1, 5):                                            # trackside lamps
         _lamp_post(w, f, pal, ci - 3, d, 0, 3)
 
+    # ---- and then the reason to come here at all: the workings under it
+    work = _workings(w, f, pal, ex, W, D, ci, seed) if p.get("workings", True) else None
+
     signed = 0
     if p.get("sign", True):
         title = str(p.get("title") or "NO. 3 MINE").upper()
@@ -923,13 +1403,99 @@ def _minehead(w: World, p: dict, ctx) -> dict:
                         [title[:SIGN_WIDTH], "", "hard hats on", ""])
         signed += _sign(w, f, pal, ci - 3, face_d - 2, 2, f.facing,
                         ["ASSAY OFFICE", "", "ore weighed", "here"])
-    return {"kind": "minehead", "width": W, "depth": D, "height": PH + 6,
+    if work:
+        # ON THE COLLAR HOUSE'S FRONT WALL AND ON THE ADIT'S OWN RIB POST - never on the shaft,
+        # which is a hole. `_sign` returns False rather than placing a sign attached to nothing,
+        # and the first pair of these did exactly that, silently, on both of them.
+        signed += _sign(w, f, pal, 3, 1, 2, f.facing,
+                        ["ESCAPE SHAFT", "", "ladder up", "from no. 3"])
+        signed += _sign(w, f, pal, ci - 1, D - 3, 2, pi,
+                        ["HOIST SHAFT", "ladder down", "to the drifts", "mind the step"])
+
+    meta = {"kind": "minehead", "width": W, "depth": D, "height": PH + 6,
+            "depth_below": -MINE_FLOOR if work else 0,
             "wheel": wheel, "tubs": len(tubs), "signs": signed,
             "contract": "a timbered adit through a spoil bank, a braced A-frame headframe with a "
-                        "sheave wheel and a hanging cable, and a tramway with loaded tubs on it"}
+                        "sheave wheel and a hanging cable, a tramway with loaded tubs on it - and "
+                        "a WALKTHROUGH under all of it: adit, ladder down a lined hoist shaft, "
+                        "lit drifts past worked ore faces, and an escape shaft up into a collar "
+                        "house, proven walkable end to end by `walk.connects` before it ships"}
+    if work:
+        meta.update(work)
+        # **PROVE THE WALK, DO NOT ASSERT IT.** A tunnel that reads perfectly and cannot be
+        # entered is the same failure as a flume that cannot carry and a circuit that cannot
+        # fire, and this file has shipped a seven-cell dead end for months without anything
+        # asking the question. The model is stated in `mcbuild/walk.py`; every one of these
+        # legs is a leg of the tour a visitor is being sold.
+        cells = {pos: name for pos, (name, _pr) in w.cells.items()}
+        reach = walk.reachable(cells, tuple(work["adit_mouth"]))
+        for leg, target in (("the hoist shaft head", work["shaft_head"]),
+                            ("the far stope", work["gallery_far"]),
+                            ("the way out", work["way_out"])):
+            if tuple(target) not in reach:
+                raise ValueError(
+                    f"the mine's workings are not walkable: {leg} at {tuple(target)} cannot be "
+                    f"reached on foot from the adit mouth. {len(reach)} cells were reachable.")
+        meta["walk_cells"] = len(reach)
+    return meta
 
 
 # ------------------------------------------------------------------------------- 5. falsefront
+
+# WHAT EACH TRADE ACTUALLY SELLS, as blocks a player right-clicks. Every one measured `cheap`,
+# spendable and 1.19-legal before it was written here. A shop with a door, a sign and nothing
+# behind the counter is the thing this zone was sent back for twice, and the fix is not more
+# joinery - it is that the room has a REASON, and on a Minecraft server a reason is a workstation.
+TRADE_KIT = {
+    "GENERAL STORE": ("barrel", "crafting_table", "barrel"),
+    "ASSAY OFFICE": ("stonecutter", "furnace", "barrel"),
+    "BARBER": ("cauldron", "barrel"),
+    "LIVERY": ("barrel", "composter", "barrel"),
+    "GUNSMITH": ("fletching_table", "grindstone", "target"),
+    "BANK": ("barrel", "barrel", "lectern"),
+    "TELEGRAPH": ("lectern", "barrel"),
+    "FEED & SEED": ("composter", "barrel", "composter"),
+}
+
+
+def _kit_props(name, out, side):
+    """A workstation faces the CUSTOMER. `out` is the way out of the shop, which is where the
+    customer is standing; `side` is along the frontage, for the few that read better turned."""
+    return {
+        "barrel": {"facing": "up", "open": "false"},
+        "stonecutter": {"facing": out},
+        "grindstone": {"face": "floor", "facing": out},
+        "loom": {"facing": out},
+        "lectern": {"facing": out, "has_book": "false", "powered": "false"},
+        "composter": {"level": "0"},
+        "cauldron": {},
+        "anvil": {"facing": side},
+        "furnace": {"facing": out, "lit": "false"},
+        "target": {"power": "0"},
+    }.get(name, {})
+
+
+def _shop_fitout(w, f, pal, ex, i0, width, D, roof, trade, k):
+    """A counter, a light and the trade's own tools - so the door leads somewhere."""
+    dc = i0 + width // 2
+    pi, _mi = _axis_dirs(f)
+    placed = 0
+    # THE COUNTER, with a gap at one end so the shopkeeper's side is reachable. A counter right
+    # across is a wall, and a wall with a slab on it is still a wall.
+    for i in range(i0 + 1, i0 + width - 2):
+        w.put(*f.at(i, 2, 0), pal["trim"])
+        _slab(w, f, i, 2, 1, pal["slab"], "top")
+    kit = TRADE_KIT.get(trade, ("barrel",))
+    for n, name in enumerate(kit):
+        i = i0 + 1 + n
+        if i > i0 + width - 2:
+            break
+        w.put(*f.at(i, D - 2, 0), name, **_kit_props(name, f.facing, pi))
+        placed += 1
+    if roof - 1 > 2:
+        w.put(*f.at(dc, D - 2, roof - 1), pal["light"], hanging="true", waterlogged="false")
+    return placed
+
 
 def _shopfront(w, f, pal, ex, p, i0, width, D, k, mr):
     """One storefront of the row. EVERY DECISION HERE IS HASHED ON ITS INDEX, so the row is varied
@@ -1034,9 +1600,11 @@ def _shopfront(w, f, pal, ex, p, i0, width, D, k, mr):
     trades = ["GENERAL STORE", "ASSAY OFFICE", "BARBER", "LIVERY", "GUNSMITH",
               "BANK", "TELEGRAPH", "FEED & SEED"]
     trade = trades[k % len(trades)]
+    fitted = _shop_fitout(w, f, pal, ex, i0, width, D, roof, trade, k) if p.get("fitout", True) else 0
     signed = _sign(w, f, pal, dc, -1, roof + 1, f.facing, [trade[:SIGN_WIDTH], "", "", ""])
     return {"width": width, "style": style, "roof": roof, "porch": porch,
-            "trade": trade, "signed": bool(signed)}
+            "trade": trade, "signed": bool(signed), "fitted": fitted,
+            "counter": list(f.at(dc, 3, 0))}
 
 
 def _falsefront(w: World, p: dict, ctx) -> dict:
@@ -1067,13 +1635,34 @@ def _falsefront(w: World, p: dict, ctx) -> dict:
     for k in range(0, n):                                        # a lamp on the boardwalk kerb
         _lamp_post(w, f, pal, min(total - 1, sum(widths[:k + 1]) - 1), -2, 0, 3)
 
+    # **EVERY SHOP HAS TO BE ENTERABLE, AND ONE OF THEM WAS NOT GOING TO BE.** A door, a sign and
+    # a counter are three separate pieces of geometry that each read perfectly while sealing the
+    # room; the counter is the new one and it is the obvious candidate. Checked from the
+    # boardwalk, once, for all of them - the same rule the mine's drifts and the saloon's stair
+    # are held to.
+    if p.get("fitout", True):
+        cells = {pos: name for pos, (name, _pr) in w.cells.items()}
+        # ON THE BOARDWALK ITSELF (d = -1), NOT THE KERB BEHIND IT: d = -2 carries the lamp
+        # posts and the porch posts, and a start cell inside one of those reports the whole row
+        # unreachable - a walk test that seeds in a wall proves nothing, which this repo has
+        # already recorded once as a VACUOUS test seeded in the void.
+        reach = walk.reachable(cells, f.at(total // 2, -1, 0))
+        for s in shops:
+            if tuple(s["counter"]) not in reach:
+                raise ValueError(f"the {s['trade']} shop cannot be walked into from the "
+                                 f"boardwalk: {tuple(s['counter'])} is unreachable")
+
     styles = {s["style"] for s in shops}
     return {"kind": "falsefront", "shops": len(shops), "width": total, "depth": D,
+            "fitted": sum(s["fitted"] for s in shops),
             "styles": sorted(styles), "widths": widths,
             "signs": sum(1 for s in shops if s["signed"]),
             "trades": [s["trade"] for s in shops],
             "contract": "at least four storefronts sharing one boardwalk, each with its own "
-                        "width, parapet profile, roof height, porch and glazing"}
+                        "width, parapet profile, roof height, porch and glazing - and each with "
+                        "an INTERIOR you can walk into (proven, not assumed) holding the "
+                        "workstations of the trade on its sign, which is what turns a row of "
+                        "signed sheds into a street of shops"}
 
 
 # ---------------------------------------------------------------------------- 6. trestlebridge
@@ -1173,6 +1762,7 @@ def _trestlebridge(w: World, p: dict, ctx) -> dict:
 
 BUILDERS = {
     "saloon": _saloon,
+    "sluice": _sluice,
     "watertower": _watertower,
     "windmill": _windmill,
     "minehead": _minehead,

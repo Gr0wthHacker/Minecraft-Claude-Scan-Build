@@ -1,0 +1,27 @@
+{
+  "origin": {
+    "x": 97616,
+    "y": 202,
+    "z": 80601
+  },
+  "size": {
+    "x": 3,
+    "y": 7,
+    "z": 7
+  },
+  "generated_by": "wayfinding",
+  "kind": "noticeboard",
+  "land": "midway",
+  "facing": "east",
+  "contract": "park rules and hours on a board at the entrance, header plus body signs",
+  "width": 5,
+  "height": 6,
+  "signed": 2,
+  "rules": [
+    "OPEN 9AM-9PM",
+    "HAVE FUN",
+    "MIND THE GAP"
+  ],
+  "file": "Park Notices.litematic",
+  "name": "Park Notices"
+}

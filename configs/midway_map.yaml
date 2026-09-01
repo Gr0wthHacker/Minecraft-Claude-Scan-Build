@@ -1,0 +1,16 @@
+name: Midway Map
+gen: wayfinding
+params:
+  land: midway
+  zone: midway
+  title: Midway Map
+  facing: east
+  at:
+  - 97572
+  - 203
+  - 80590
+  kind: mapboard
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

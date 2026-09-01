@@ -6,9 +6,9 @@ params:
   depth: 12
   facing: south
   at:
-  - 97636
+  - 97619
   - 203
-  - 80386
+  - 80374
   kind: saloon
   title: The Saloon
   under: out/islandleft.litematic

@@ -99,13 +99,51 @@ _FIELDS = {
 _ACCENTS = ["red_wool", "yellow_wool", "lime_wool", "light_blue_wool",
             "orange_wool", "purple_wool", "cyan_wool", "magenta_wool"]
 
-# What a shop sells. The sign is the only thing that says so, and a street of unnamed shops is a
-# street of sheds.
+# What a shop sells, and THE TOOL IT SELLS IT WITH. The sign used to be the only thing that said
+# so, which is how a "bakery" ended up being a facade with a counter in it and got cut by name.
+# Every trade now names a real workstation that stands at the end of its own counter: a map
+# seller has a cartography table, a hat stand has a loom, a book nook has a lectern you can
+# actually open. All eleven are 1.19, cheap and spendable, and none of them carries a signal.
+#
+# THE ORDER IS THE DEAL ORDER. `_deal` hands out `options[0], options[1], ...` before it
+# shuffles, so on a two-shop street the first two entries here ARE the street - which is exactly
+# how "we dont need a bakery" came to be about the shop at the top of this list.
 _TRADES = [
-    ("BAKERY", "fresh daily"), ("TOY SHOP", "wind-ups"), ("HAT STAND", "all sizes"),
-    ("SWEET SHOP", "by the ounce"), ("MAP SELLER", "know the park"), ("ICE CREAM", "nine flavours"),
-    ("FLOWER STALL", "cut and potted"), ("BOOK NOOK", "second hand"), ("CLOCKMAKER", "repairs"),
-    ("TEA ROOM", "pot for one"), ("PIN & BADGE", "collect them"), ("KITE SHOP", "windy days"),
+    ("MAP SELLER", "know the park", "cartography_table"),
+    ("HAT STAND", "all sizes", "loom"),
+    ("TOY SHOP", "wind-ups", "fletching_table"),
+    ("SWEET SHOP", "by the ounce", "barrel"),
+    ("FLOWER STALL", "cut and potted", "composter"),
+    ("BOOK NOOK", "second hand", "lectern"),
+    ("CLOCKMAKER", "repairs", "smithing_table"),
+    ("KITE SHOP", "windy days", "fletching_table"),
+    ("ICE CREAM", "nine flavours", "barrel"),
+    ("PIN & BADGE", "collect them", "smithing_table"),
+    ("TEA ROOM", "pot for one", "barrel"),
+]
+
+# THE STATE A TOOL NEEDS, per tool, stated once. A workstation placed with the wrong property set
+# is an illegal block state that the audit catches an hour later; placed with NO properties, a
+# loom or a lectern faces whatever the palette's default happens to be, which on a shop counter
+# is a lectern with its back to the room. Asked for by name so a new trade cannot forget one.
+_TOOL_PROPS = {
+    "cartography_table": lambda f: {},
+    "fletching_table": lambda f: {},
+    "smithing_table": lambda f: {},
+    "loom": lambda f: {"facing": f.facing},
+    "composter": lambda f: {"level": "0"},
+    "barrel": lambda f: {"facing": "up", "open": "false"},
+    "lectern": lambda f: {"facing": f.facing, "has_book": "false", "powered": "false"},
+}
+
+# The records a park keeps, for `hallofame`. Fifteen characters a line, asserted by `_Plaques`.
+_RECORDS = [
+    ("BIG WHEEL", "most laps"),
+    ("HOOPLA", "most hoops"),
+    ("THE MONUMENT", "first to climb"),
+    ("MINE COASTER", "front car"),
+    ("THE PLUMMET", "eyes open"),
+    ("COLOUR WHEEL", "three in a row"),
 ]
 
 CIVIC = {
@@ -826,7 +864,13 @@ def _shop_specs(n, seed, land):
     and trade all move independently, so a stranger can tell any two shops apart at a glance -
     which is the single thing the rejected version could not do.
     """
-    width = _deal([5, 6, 7, 8, 9, 10, 11], n, seed, 1)
+    # THE GENEROUS WIDTHS COME FIRST, and that is the deal order doing real work: `_deal` hands
+    # out `options[0], options[1], ...` before it shuffles, so a two-shop terrace used to get the
+    # two NARROWEST buildings in the table - five and six wide, which is a three-cell room. A
+    # street of two has to be two shops worth walking into, so the pair a two-shop deal produces
+    # is nine and eleven. Every width is still used before any is used twice, so an eight-shop
+    # terrace still has the same skyline it had.
+    width = _deal([9, 11, 7, 13, 8, 10, 12], n, seed, 1)
     storey = _deal([2, 1], n, seed, 2)
     roof = _deal(["gable", "hip", "flat", "crowstep"], n, seed, 3)
     door = _deal(["left", "centre", "right"], n, seed, 4)
@@ -881,9 +925,17 @@ def _one_shop(w, f, pal, say, s, i0, depth, min_run):
         win = free[::2]
     win = [i for i in win if i not in door]
 
+    # A BACK WINDOW, so the room behind the counter is not a cupboard. One course only: the
+    # interior nameplate hangs on the course above it and `park._sign` places NOTHING when the
+    # wall behind it has an opening in it, silently.
+    mid = (i0 + i1) // 2
+    back_win = [i for i in (mid - 1, mid, mid + 1) if i0 < i < i1]
     holes = [(i, 0, h) for i in door for h in (0, 1, 2)]
     holes += [(i, 0, h) for i in win for h in (1, 2)]
+    holes += [(i, db, 2) for i in back_win]
     _box(w, f, i0, i1, 0, db, 0, _GND_H - 1, field, corner=pal["post"], holes=holes)
+    for i in back_win:
+        w.put(*f.at(i, db, 2), "glass_pane", **_pane_props(f, along_i=True))
 
     # ---- the floor, and the ceiling course that doubles as the fascia band
     _plane(w, f, i0, i1, 0, db, -1, pal["ground"])
@@ -910,11 +962,49 @@ def _one_shop(w, f, pal, say, s, i0, depth, min_run):
                         w.put(*f.at(j, -1, h), f"{wood}_trapdoor", facing=f.facing,
                               half="bottom", open="true", powered="false", waterlogged="false")
 
-    # ---- the interior: a counter along the back and a light under the ceiling
-    for i in range(i0 + 1, i1):
+    # ---- THE INTERIOR, WHICH IS THE POINT OF A SHOP AND USED TO BE A COUNTER AND A LAMP.
+    #
+    # "we dont need a bakery" was about a building you could walk into and find nothing in. A
+    # room is a shop when it has the three things a shop has: a counter to be served over, the
+    # TOOL of its own trade at the end of that counter, and STOCK you can see. All three are
+    # here, and none of them is decoration painted on a wall.
+    inner = list(range(i0 + 1, i1))
+    name, tag, tool = s["trade"]
+    tool_i = inner[-1]
+    for i in inner:
+        if i == tool_i:
+            continue                                    # the tool stands IN the counter line
         w.put(*f.at(i, db - 1, 0), pal["trim"])
         _slab(w, f, i, db - 1, 1, pal["slab"], "top")
-    _hang_light(w, f, pal, (i0 + i1) // 2, max(1, db // 2), _BAND - 1)
+    w.put(*f.at(tool_i, db - 1, 0), tool, **_TOOL_PROPS.get(tool, lambda _f: {})(f))
+
+    # STOCK, WITH ROOM TO STAND IN FRONT OF IT - rule 10, and it is why a narrow shop gets none.
+    # Three barrels down the left flank leave `len(inner) - 1` columns of floor between them and
+    # the far wall; under three that is a corridor you cannot turn round in, so the shop keeps
+    # its stock on the shelves instead and says so in `stock`.
+    stock = 0
+    if len(inner) >= 5 and db >= 6:
+        for d in (2, 3, 4):
+            w.put(*f.at(inner[0], d, 0), "barrel", facing="up", open="false")
+            stock += 1
+    # SHELVES ARE OPEN TRAPDOORS LAID FLAT, which is the vertical-and-horizontal panel Minecraft
+    # never shipped as a block and the vocabulary the corpus says this project is short of. Fixed
+    # to the right-hand party wall, so `_BACK[facing]` really does point at something solid.
+    shelves = 0
+    if len(inner) >= 4:
+        for d in (2, 3, 4):
+            if d >= db - 1:
+                break
+            w.put(*f.at(inner[-1], d, 2), f"{pal['wood']}_trapdoor", facing=_i_dir(f, -1),
+                  half="top", open="false", powered="false", waterlogged="false")
+            shelves += 1
+    _hang_light(w, f, pal, mid, max(1, db // 2), _BAND - 1)
+    # ...AND A SECOND LAMP OVER THE COUNTER, because one lantern in the middle of a five-course
+    # room leaves the served end of it dark, which is where a customer stands.
+    _hang_light(w, f, pal, inner[0] if len(inner) > 2 else mid, db - 2, _BAND - 1)
+    # The nameplate INSIDE, on the back wall over the counter: a stranger who has walked in
+    # should be able to read what the shop is without going back out to look at its sign.
+    say(w, f, pal, mid, db - 1, 3, f.facing, [name[:SIGN_WIDTH], tag[:SIGN_WIDTH], "please ask", ""])
 
     # ---- the awning, one course under the fascia so the nameplate above it stays clear
     if s["awning"] == "canopy":
@@ -962,9 +1052,9 @@ def _one_shop(w, f, pal, say, s, i0, depth, min_run):
 
     # ---- the nameplate. On a jettied shop the fascia has moved forward with the storey above it,
     # so the sign moves with it - a sign at a fixed offset would be hung on air.
-    name, tag = s["trade"]
-    say(w, f, pal, (i0 + i1) // 2, df - 1, _BAND, f.facing, [name[:SIGN_WIDTH], tag[:SIGN_WIDTH]])
-    return {"i0": i0, "i1": i1, "top": top, "door": door, "windows": win, **s}
+    say(w, f, pal, mid, df - 1, _BAND, f.facing, [name[:SIGN_WIDTH], tag[:SIGN_WIDTH]])
+    return {"i0": i0, "i1": i1, "top": top, "door": door, "windows": win,
+            "tool": tool, "stock": stock, "shelves": shelves, **s}
 
 
 def _shopstreet(w: World, p: dict, ctx) -> dict:
@@ -1037,10 +1127,17 @@ def _shopstreet(w: World, p: dict, ctx) -> dict:
             "pavement": pave, "lamps": lamps, "benches": benches,
             "roofs": sorted({s["roof"] for s in specs}),
             "widths": [s["width"] for s in specs],
+            "tools": [b["tool"] for b in built],
+            "stock": sum(b["stock"] for b in built),
+            "shelves": sum(b["shelves"] for b in built),
+            "doors": [tuple(b["door"]) for b in built],
             "signs": say.want, "signs_placed": say.got,
-            "contract": "at least six shops on one shared frontage, no two of them the same "
-                        "building: width, storeys, roof, awning, jetty, door, windows, field "
-                        "material and accent all vary by a hash of the shop's index"}
+            "contract": "shops on one shared frontage, no two of them the same building - width, "
+                        "storeys, roof, awning, jetty, door, windows, field material and accent "
+                        "all vary by a hash of the shop's index - and every one of them is a "
+                        "ROOM you can walk into: a counter, its own trade's workstation at the "
+                        "end of it, stock on the floor or on flat-laid shelves, a back window, "
+                        "two lamps and its name on the wall inside"}
 
 
 # ------------------------------------------------------------------ the bandstand
@@ -1379,11 +1476,149 @@ def _guestservices(w: World, p: dict, ctx) -> dict:
                         "wall that is actually there"}
 
 
+# ------------------------------------------------------------------ the hall of fame
+
+def _hallofame(w: World, p: dict, ctx) -> dict:
+    """**THE BUILDING THAT REPLACES GUEST SERVICES**, which was rejected in its own words:
+    *"the building with the clock design on it to the right doesnt seem to serve a real purpose
+    and we can do something more interesting there"*. It was right. An information counter is a
+    hatch you cannot be served at, a queue rail for a queue that never forms, and two barrels of
+    lost property nobody lost - a building whose entire content is a claim about a service.
+
+    **A HALL OF FAME IS THE OPPOSITE: EVERYTHING IN IT IS SOMETHING A PLAYER DOES.** You walk in
+    under an open colonnade, you read six record plaques off the back wall, you open a lectern,
+    you stand on the winners' podium, and you ring the bell. Not one of those needs a signal,
+    a container of loot, or a shopkeeper - and a bell and a lectern are both cheap, both 1.19,
+    and both work on a right-click with nothing wired to them, which is why they are here and a
+    note block is not (`palette.tier("note_block") == "expensive"` before you even ask what
+    would drive it).
+
+    IT IS OPEN-FRONTED, and that is what makes it read from the street rather than being a shed
+    with a sign on it. A rail across every bay but the middle one turns the opening into a DOOR -
+    the void tower's rule, that what makes voxels read as architecture is regularity and
+    openings - and the fascia over it is the only thing an open front gives a nameplate to hang
+    on, which is `attractions._arcade`'s own note arrived at from the same direction.
+
+    THE PODIUM FACES THE DOOR AND IS THE FIRST THING YOU SEE. Three steps, the middle one a
+    course taller and capped in the land's own gilding, standing clear of everything by three
+    cells so somebody can actually get onto it.
+    """
+    f = _Frame(p)
+    pal = LANDS[p["land"]]
+    say = _Plaques(p.get("sign", True))
+    width = max(13, int(p["width"]) | 1)        # ODD, so a centre bay exists for the door
+    depth = max(11, int(p["depth"]))
+    db = depth - 1
+    cx = width // 2
+    height = 6                                  # wall courses h=0..5; four clear over a head
+    min_run = int(p["min_run"])
+    seed = int(p["seed"]) + f.x * 23 + f.z * 11
+    hipped = hash01(seed, 3) < 0.5
+
+    # ---- pad and forecourt. A skyblock plot is VOID: every kind carries its own ground.
+    for i in range(-3, width + 3):
+        for d in range(-5, depth + 2):
+            x, y, z = f.at(i, d, -1)
+            if d < 0:
+                blk = pal["trim"] if d == -5 else (pal["ground"] if (x + z) % 2 == 0
+                                                   else pal["path"])
+            else:
+                blk = pal["ground"]
+            w.put(x, y, z, blk)
+
+    # ---- the shell: three solid walls, and a colonnade across the front
+    piers = sorted({0, width - 1} | {i for i in range(0, width, 4)})
+    for i in range(width):
+        for d in range(depth):
+            if not (i in (0, width - 1) or d in (0, db)):
+                continue
+            if d == 0 and i not in piers:
+                continue                        # the front is OPEN between its piers
+            corner = i in (0, width - 1) and d in (0, db)
+            for h in range(height):
+                w.put(*f.at(i, d, h), pal["post"] if (corner or d == 0) else pal["wall"])
+    # THE RAIL, and the gap in it IS the door - left by the loop, never punched afterwards.
+    door = tuple(i for i in range(cx - 1, cx + 2) if i not in piers)
+    rails = 0
+    for i in range(1, width - 1):
+        if i in piers or i in door:
+            continue
+        w.put(*f.at(i, 0, 0), pal["fence"], **_pane_props(f, along_i=True))
+        rails += 1
+    for i in range(width):                      # the fascia: what the nameplate hangs on
+        w.put(*f.at(i, 0, height - 1), pal["trim"])
+
+    # ---- ceiling, eave and roof
+    _plane(w, f, 0, width - 1, 0, db, height, pal["trim"])
+    _eave(w, f, pal, 0, width - 1, 0, db, height, min_run)
+    if hipped:
+        top = _roof_hip(w, f, pal, 0, width - 1, 0, db, height + 1, pal["wall"], pal["trim"])
+    else:
+        top = _roof_crowstep(w, f, pal, 0, width - 1, 0, db, height + 1, pal["wall"], pal["trim"])
+
+    # ---- the record wall: a shelf, trophies standing on it, plaques hung over them
+    _plane(w, f, 0, width - 1, 0, db, -1, pal["ground"])
+    for i in range(1, width - 1):
+        w.put(*f.at(i, db - 1, 0), pal["trim"])
+        _slab(w, f, i, db - 1, 1, pal["slab"], "top")
+    trophies = plaques = 0
+    for k, i in enumerate(range(2, width - 2, 3)):
+        w.put(*f.at(i, db - 1, 2), pal["accent"])
+        w.put(*f.at(i, db - 1, 3), "end_rod", facing="up")
+        trophies += 1
+        if k < len(_RECORDS) and i + 1 < width - 1:
+            name, tag = _RECORDS[k]
+            if say(w, f, pal, i + 1, db - 1, 3, f.facing, [name, tag, "", ""]):
+                plaques += 1
+
+    # ---- the lecterns: where a record is written down, three cells clear of anything
+    lecterns = 0
+    for i in (cx - 3, cx, cx + 3):
+        if not 0 < i < width - 1:
+            continue
+        w.put(*f.at(i, db - 3, 0), "lectern", **_TOOL_PROPS["lectern"](f))
+        lecterns += 1
+
+    # ---- the podium, facing the door, and the bell beside it
+    _plane(w, f, cx - 1, cx + 1, 3, 3, 0, pal["trim"])
+    w.put(*f.at(cx, 3, 1), pal["accent"])
+    w.put(*f.at(cx + 3, 3, 0), "bell",
+          attachment="floor", facing=f.facing, powered="false")
+
+    for (i, d) in ((2, db - 2), (width - 3, db - 2), (2, 2), (width - 3, 2)):
+        _hang_light(w, f, pal, i, d, height - 1)
+    for (i, d) in ((-2, -2), (width + 1, -2)):
+        _lamp_post(w, f, pal, i, d, 0, 3)
+
+    # ---- signage. The name over the door, and how the place works on the way in.
+    title = str(p.get("title") or "HALL OF FAME").upper()
+    say(w, f, pal, cx, -1, height - 1, f.facing, [title[:SIGN_WIDTH], "park champions", "", ""])
+    say(w, f, pal, 1, 3, 3, _i_dir(f, 1),
+        ["HOW IT WORKS", "beat a record", "write it down", "ring the bell"])
+    say(w, f, pal, width - 2, 3, 3, _i_dir(f, -1),
+        ["THE PODIUM", "stand on it", "1st is tallest", ""])
+
+    return {"kind": "hallofame", "width": width, "depth": depth, "height": top,
+            "hipped": hipped, "door": door, "rails": rails, "piers": len(piers),
+            "trophies": trophies, "plaques": plaques, "lecterns": lecterns,
+            "signs": say.want, "signs_placed": say.got,
+            "contract": "an open-fronted hall whose every fitting is something a visitor DOES: "
+                        "a railed colonnade with one bay left open as the door, a back wall of "
+                        "trophies under named record plaques, lecterns to write a record down, "
+                        "a three-step winners' podium you can stand on and a bell you can ring - "
+                        "and not one block in it carries a signal"}
+
+
 BUILDERS = {
     "fountain": _fountain,
     "statue": _statue,
     "shopstreet": _shopstreet,
     "bandstand": _bandstand,
+    "hallofame": _hallofame,
+    # RETIRED FROM THE MIDWAY, kept as a record rather than deleted - the same standing the
+    # retired species carry in `species.yaml`. It still builds and is still tested; what it no
+    # longer is, is the thing the entrance zone puts on its main street. `hallofame` took its
+    # site. See `_hallofame`'s docstring for the verdict, in the words it was given in.
     "guestservices": _guestservices,
 }
 

@@ -13,11 +13,12 @@
   "kind": "falsefront",
   "land": "frontier",
   "facing": "east",
-  "contract": "at least four storefronts sharing one boardwalk, each with its own width, parapet profile, roof height, porch and glazing",
+  "contract": "at least four storefronts sharing one boardwalk, each with its own width, parapet profile, roof height, porch and glazing - and each with an INTERIOR you can walk into (proven, not assumed) holding the workstations of the trade on its sign, which is what turns a row of signed sheds into a street of shops",
   "unverified": [],
   "shops": 5,
   "width": 36,
   "depth": 9,
+  "fitted": 14,
   "styles": [
     "bracketed",
     "flat",

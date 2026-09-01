@@ -1,0 +1,16 @@
+name: Frontier Map
+gen: wayfinding
+params:
+  land: frontier
+  zone: frontier
+  title: Frontier Map
+  facing: west
+  at:
+  - 97637
+  - 203
+  - 80395
+  kind: mapboard
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

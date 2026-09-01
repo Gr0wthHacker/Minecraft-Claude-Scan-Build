@@ -13,12 +13,29 @@
   "kind": "clocktower",
   "land": "hollow",
   "facing": "east",
-  "contract": "a square tower of four stages: string courses, glazed slits, a clock face on every side, a louvred belfry with a bell, and a crenellated crown carrying a spire",
+  "contract": "a square tower of four stages - string courses, glazed slits, a clock face on every side, a louvred belfry with a bell and a crenellated crown - and A CLIMB THROUGH IT: a spiral stair off the door, one course per tread, to a lit gallery you can see the zone out of, and a ladder on to the crown deck",
   "unverified": [],
   "side": 9,
   "height": 47,
   "faces": 4,
-  "signs": 1,
+  "signs": 2,
+  "treads": 29,
+  "stair_lamps": 4,
+  "climb_from": [
+    97635,
+    205,
+    80800
+  ],
+  "gallery_at": [
+    97632,
+    234,
+    80800
+  ],
+  "deck_at": [
+    97629,
+    240,
+    80804
+  ],
   "file": "Clock Tower.litematic",
   "name": "Clock Tower"
 }

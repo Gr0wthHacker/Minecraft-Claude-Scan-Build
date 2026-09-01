@@ -1,26 +1,55 @@
 {
   "origin": {
     "x": 97619,
-    "y": 202,
+    "y": 192,
     "z": 80352
   },
   "size": {
     "x": 19,
-    "y": 22,
+    "y": 32,
     "z": 21
   },
   "generated_by": "frontiertown",
   "kind": "minehead",
   "land": "frontier",
   "facing": "west",
-  "contract": "a timbered adit through a spoil bank, a braced A-frame headframe with a sheave wheel and a hanging cable, and a tramway with loaded tubs on it",
+  "contract": "a timbered adit through a spoil bank, a braced A-frame headframe with a sheave wheel and a hanging cable, a tramway with loaded tubs on it - and a WALKTHROUGH under all of it: adit, ladder down a lined hoist shaft, lit drifts past worked ore faces, and an escape shaft up into a collar house, proven walkable end to end by `walk.connects` before it ships",
   "unverified": [],
   "width": 17,
   "depth": 16,
   "height": 21,
+  "depth_below": 11,
   "wheel": 16,
   "tubs": 3,
-  "signs": 2,
+  "signs": 4,
+  "gallery": 78,
+  "veins": 37,
+  "sets": 4,
+  "lamps": 8,
+  "hoist_shaft": 11,
+  "escape_shaft": 11,
+  "floor_h": -11,
+  "adit_mouth": [
+    97620,
+    203,
+    80362
+  ],
+  "shaft_head": [
+    97634,
+    203,
+    80362
+  ],
+  "gallery_far": [
+    97628,
+    193,
+    80366
+  ],
+  "way_out": [
+    97623,
+    203,
+    80357
+  ],
+  "walk_cells": 388,
   "file": "The Mine Head.litematic",
   "name": "The Mine Head"
 }

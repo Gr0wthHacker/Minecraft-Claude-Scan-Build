@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97602,
+    "x": 97583,
     "y": 202,
-    "z": 80556
+    "z": 80569
   },
   "size": {
     "x": 7,
@@ -13,14 +13,14 @@
   "kind": "streetfurniture/lamppost",
   "piece": "lamppost",
   "land": "midway",
-  "facing": "west",
+  "facing": "east",
   "contract": "a lit post between six and nine courses to its cap, with a moulded base of four three-cell runs and every lantern either standing on a full block or hanging under one",
   "unverified": [],
   "height": 11,
-  "shaft": "fluted",
-  "crown": "lantern",
-  "arms": 0,
-  "seed": 128067129,
+  "shaft": "banded",
+  "crown": "rod",
+  "arms": 1,
+  "seed": 128047465,
   "file": "Lamppost 3.litematic",
   "name": "Lamppost 3"
 }

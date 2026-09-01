@@ -1,0 +1,55 @@
+{
+  "origin": {
+    "x": 97613,
+    "y": 202,
+    "z": 80590
+  },
+  "size": {
+    "x": 6,
+    "y": 9,
+    "z": 9
+  },
+  "generated_by": "wayfinding",
+  "kind": "fingerpost",
+  "land": "midway",
+  "facing": "east",
+  "contract": "2-4 arms, each pointing the direction its own sign faces, each naming a real module, zone or transit station",
+  "arms": [
+    {
+      "direction": "north",
+      "dest": "Frontier",
+      "sign_facing": "north",
+      "placed": true,
+      "sign_at": [
+        97617,
+        206,
+        80590
+      ]
+    },
+    {
+      "direction": "south",
+      "dest": "Hollow",
+      "sign_facing": "south",
+      "placed": true,
+      "sign_at": [
+        97617,
+        207,
+        80598
+      ]
+    },
+    {
+      "direction": "west",
+      "dest": "Park Gate",
+      "sign_facing": "west",
+      "placed": true,
+      "sign_at": [
+        97613,
+        208,
+        80594
+      ]
+    }
+  ],
+  "post_h": 7,
+  "file": "Midway Post.litematic",
+  "name": "Midway Post"
+}

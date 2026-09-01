@@ -1,0 +1,23 @@
+{
+  "origin": {
+    "x": 97571,
+    "y": 202,
+    "z": 80581
+  },
+  "size": {
+    "x": 3,
+    "y": 9,
+    "z": 11
+  },
+  "generated_by": "wayfinding",
+  "kind": "mapboard",
+  "land": "midway",
+  "facing": "east",
+  "contract": "a coloured three-zone layout at the entrance, with the zone you are standing in picked out - read as a plan, not a paragraph",
+  "width": 9,
+  "height": 8,
+  "zone": "midway",
+  "signed": true,
+  "file": "Midway Map.litematic",
+  "name": "Midway Map"
+}

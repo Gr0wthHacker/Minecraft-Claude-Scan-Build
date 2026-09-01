@@ -1,6 +1,6 @@
 {
   "origin": {
-    "x": 97610,
+    "x": 97611,
     "y": 202,
     "z": 80803
   },
@@ -16,10 +16,10 @@
   "facing": "west",
   "contract": "a bin between two and three courses tall with a rim on top of it, standing on its own paved cell",
   "unverified": [],
-  "style": "composter",
+  "style": "cauldron",
   "height": 3,
   "banded": false,
-  "seed": 128096846,
+  "seed": 128098083,
   "file": "Bin 5.litematic",
   "name": "Bin 5"
 }

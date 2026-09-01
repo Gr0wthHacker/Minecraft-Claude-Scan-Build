@@ -755,6 +755,87 @@ def _wall_offs(pts, j):
     return [o for o in side if o not in block]
 
 
+def _cap(w, f, pal, pts, hs, j, wo):
+    """Wall the OPEN END of the trough at path cell `j`, one step beyond it.
+
+    A channel's walls are its perpendiculars, so the two ENDS of the run are never walled by the
+    wall loop - and the head of this flume was therefore a lip one course above the apron, out of
+    which the entire ride drained. The cap is the full five-wide section (centre, the two bed
+    lanes, and the two wall lines) from the bed up past the wall top, so it meets the side walls
+    face-to-face rather than diagonally: a cap only three wide leaves a diagonal gap at each
+    shoulder, and diagonal is not a seal any more than it is a connection.
+    """
+    ci, cd = pts[j]
+    nxt = pts[j + 1] if j + 1 < len(pts) else pts[j - 1]
+    step = (ci - nxt[0], cd - nxt[1])                    # one step OUT of the channel
+    step = (max(-1, min(1, step[0])), max(-1, min(1, step[1])))
+    offs = [(0, 0)] + wo + [(o[0] * 2, o[1] * 2) for o in wo]
+    for (oi, od) in offs:
+        for hh in range(hs[j], hs[j] + 4):
+            w.put(*f.at(ci + step[0] + oi, cd + step[1] + od, hh), pal["wall"])
+
+
+def _touches(w: World, pos) -> bool:
+    (x, y, z) = pos
+    return any(w.has(x + dx, y + dy, z + dz) for (dx, dy, dz) in
+               ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)))
+
+
+_SHELL_DROP = 6     # how far a plug reaches for footing before it gives up
+
+
+def _shell(w: World, pal, envelope) -> int:
+    """Give every cell water is ALLOWED in a bed, and a wall on every side that is not.
+
+    **THIS IS `_seal`'S IDEA WITH THE ONE DISTINCTION IT COULD NOT MAKE.** `_seal` filled the
+    neighbours of every WATER BLOCK, which walled each spaced source into its own pocket - the
+    gap between two sources is deliberately open, and a backstop working off water blocks cannot
+    tell "open by design" from "open by accident". Working off the ENVELOPE it can: the gaps
+    between sources are inside the envelope and are never touched, and everything outside it is
+    a hole by definition.
+
+    The hole this exists for is the OUTER CORNER'S DIAGONAL. `_wall_offs` correctly returns a
+    corner's two outer perpendiculars, so the corner gets a bed and a wall on each of them - and
+    nothing at all on the cell diagonal between the two, which has neither. Water crossed the bed
+    lane, stepped diagonally into that cell, found no floor, and fell twenty courses to the apron
+    and off the plot. Two corners, two holes, and the whole ride drained through them.
+    """
+    open_env = [c for c in envelope
+                if (c not in w.cells) or w.cells[c][0] == "water"]
+    seen = set(open_env)
+    n = 0
+    for (x, y, z) in open_env:
+        # A BED, unless the cell below is itself part of the envelope - which is what a fall
+        # inside the channel looks like. Bedding those would drop cobble straight into the water
+        # lane of the cell below, and the ride would report every one of its forty path cells
+        # dry while the design still audited clean.
+        if (x, y - 1, z) not in seen and not w.has(x, y - 1, z):
+            w.put(x, y - 1, z, pal["ground"])
+            n += 1
+        for (dx, dz) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nb = (x + dx, y, z + dz)
+            if nb in seen or w.has(*nb):
+                continue
+            w.put(*nb, pal["wall"])
+            n += 1
+            # **AND IT NEEDS SOMETHING TO STAND ON.** A corner diagonal has neither bed nor wall,
+            # so the plug filling it hangs in open air with all six neighbours empty - three of
+            # them across the whole ride, which the connectivity test caught and nothing else
+            # would have. Carried down to whatever is already there it joins the bed lanes either
+            # side of it, which is what a corner's outer wall is in the first place.
+            cur = nb
+            for _k in range(_SHELL_DROP):
+                if _touches(w, cur):
+                    break
+                low = (cur[0], cur[1] - 1, cur[2])
+                if low in seen or w.has(*low):
+                    break
+                w.put(*low, pal["ground"])
+                n += 1
+                cur = low
+    return n
+
+
 _FLUME_M = 4                # the flume's own margin, shared by the plan and the dock
 
 
@@ -867,6 +948,19 @@ def _flume(w: World, p: dict, ctx) -> dict:
         for (oi, od) in [(0, 0)] + wo + [(o[0] * 2, o[1] * 2) for o in wo]:
             for hh in range(lo, hi + 1):
                 w.put(*f.at(i + oi, d + od, hh), pal["ground"])
+
+    # **THE HEAD OF THE CHANNEL IS A HOLE UNTIL SOMETHING CAPS IT, AND THAT ONE MISSING WALL
+    # EMPTIED THE WHOLE RIDE ONTO THE PLOT.** The wall loop below builds the channel's SIDES -
+    # `_sides` returns perpendiculars, and a perpendicular is by definition not the end of a
+    # run. So cell 0 had open air where the trough should stop, one course above an apron that
+    # is a course lower again: the launch pool poured over the lip, spread across the apron at
+    # walking level and off the edge of the island. Simulated, 199,959 cells were wet and the
+    # flood reached Y-1908 before the step budget cut it off, and NOTHING saw it - the design
+    # audited clean, cost nothing new, and `fluids.carries` reported the ride carrying a rider
+    # perfectly, because the path really was wet the whole way. `carries` and `escapes` are two
+    # different questions and this ride needed both. See `_cap`.
+    _cap(w, f, pal, pts, hs, 0, _wall_offs(pts, 0))
+    caps = 1
 
     # **SPACED SOURCES, ONE LANE, AND NONE ON THE LIFT.** The first version filled every channel
     # cell with level=0 - 564 source blocks - which is STILL water: a source does not push, so
@@ -1054,6 +1148,34 @@ def _flume(w: World, p: dict, ctx) -> dict:
     signed += _sign(w, f, pal, (dock_i0 + dock_i1) // 2, dock_d + 6, 2, f.facing,
                     ["BOARDING", "one to a boat", "hold the bar", ""])
 
+    # **THE ENVELOPE: EVERY CELL THIS RIDE IS WILLING FOR WATER TO BE IN.** The three bed lanes
+    # of each path cell, from the water course up to the wall top, plus the pool's two courses.
+    # It is stated as geometry rather than as a bounding box on purpose - a box round a flume
+    # contains the apron it spilled onto, and would have passed the shipped build.
+    #
+    # **THE LIFT IS WET, AND SAYING OTHERWISE WAS THE SECOND HALF OF THE LEAK.** The note here
+    # used to call it "a walk-up tube - water does not flow uphill, and nothing here tries to
+    # make it". Nothing has to: the crest source sits at the top of a staircase that descends in
+    # BOTH directions, so it runs back down the lift exactly as it runs down the drop, a fall per
+    # step resetting the seven-block budget every time. No source is placed on the lift and the
+    # lift fills anyway. That is correct - a real flume's chain lift runs in a wet trough - and it
+    # is contained. The envelope says so out loud instead of a comment claiming a dryness the
+    # physics never had.
+    envelope = set()
+    for j, (i, d) in enumerate(pts):
+        # FROM THIS CELL'S OWN WATER COURSE UP TO ONE OVER THE HIGHEST NEIGHBOUR. Water arriving
+        # from a higher cell crosses at ITS level and falls here, so the column between the two is
+        # reachable; anything BELOW this cell's floor belongs to the lower neighbour's own entry,
+        # and claiming it here is how the shell came to bed the lane under it.
+        for (oi, od) in [(0, 0)] + _wall_offs(pts, j):
+            for hh in range(hs[j] + 1, max(nb_h(j)) + 2):
+                envelope.add(f.at(i + oi, d + od, hh))
+    for i in range(pi0, pi1 + 1):
+        for d in range(pd0, pd1 + 1):
+            for hh in (end_h + 1, end_h + 2):
+                envelope.add(f.at(i, d, hh))
+    shelled = _shell(w, pal, envelope)
+
     sealed = _seal(w, pal["ground"])
 
     # **VERIFY IT AT GENERATION TIME, THE SAME RULE `_feasible` ALREADY FOLLOWS FOR THE RAIL.**
@@ -1070,11 +1192,30 @@ def _flume(w: World, p: dict, ctx) -> dict:
             f"{report['still']} still cell(s) of {report['cells']}, stops at "
             f"{report['stops_at']}")
 
+    # **AND THEN ASK THE OTHER QUESTION.** `carries` walks the PATH; it has nothing to say about
+    # the cells beside it, and the shipped flume passed it while draining onto the plot.
+    all_sources = [pos for pos, (name, pr) in w.cells.items()
+                   if name == "water" and pr.get("level", "0") == "0"]
+    out = fluids.escapes(cells, all_sources, envelope)
+    if out:
+        raise ValueError(
+            f"the flume leaks: water reaches {len(out)} cell(s) outside its own trough and "
+            f"pool, the first at {out[0]}. A channel end with no cap drains the whole ride.")
+    stranded = fluids.unenclosed(cells, allow=envelope)
+    if stranded:
+        raise ValueError(f"{len(stranded)} water cell(s) are not enclosed: {stranded[:3]}")
+
     return {
         "kind": "flume",
         "channel": n, "corners": len(corners), "water": water, "panes": panes,
         "roof_cells": roofed, "trestles": trestles, "gantries": gantry,
         "pool": (pi1 - pi0 + 1) * (pd1 - pd0 + 1), "rim": rim, "sealed": sealed,
+        "caps": caps, "shelled": shelled,
+        # THE WET ENVELOPE, in world coordinates: every cell this ride is willing for water to be
+        # in. A caller re-checking a regenerated build hands it straight to `fluids.escapes`
+        # rather than re-deriving a trough from a bounding box, which is what would have passed
+        # the leaking version.
+        "basin": [list(c) for c in sorted(envelope)],
         "signs": signed, "top": int(p["flume_top"]), "span": s,
         # THE GENERATOR'S OWN GEOMETRY, WORLD COORDINATES, so a caller (a test, `fluids.carries`
         # again after a regen, `look.py`) never has to re-derive the channel to check it. `path`
@@ -1084,11 +1225,12 @@ def _flume(w: World, p: dict, ctx) -> dict:
         "sources": [list(c) for c in sources_world],
         "sequence": [list(c) for c in sequence_world],
         "flow": {k: v for k, v in report.items() if k != "levels"},
-        "contract": "a one-way water ride whose channel is FLOWING water, verified by "
-                    "`fluids.carries` at generation time: a source every few cells (never on "
-                    "the lift, which is a walk-up tube - water does not flow uphill), a solid "
-                    "bed under every water cell, and side walls two cells clear of the centre "
-                    "lane so a wall can never land on the next cell the water has to reach.",
+        "contract": "a one-way water ride whose channel is FLOWING water and whose water STAYS "
+                    "IN IT, both verified at generation time: `fluids.carries` for the ride "
+                    "path, and `fluids.escapes` against the declared basin for containment - "
+                    "two different questions, and the shipped version passed the first while "
+                    "draining the whole ride onto the plot through an uncapped channel head and "
+                    "two unfilled corner diagonals.",
         "unverified": ["nothing about a BOAT has been simulated - `fluids.carries` proves the "
                        "water itself is flowing end to end, not that an entity riding it stays "
                        "with the current. Ride it once before anyone is told it completes."],

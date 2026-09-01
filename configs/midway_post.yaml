@@ -1,0 +1,22 @@
+name: Midway Post
+gen: wayfinding
+params:
+  land: midway
+  facing: east
+  arms:
+  - direction: north
+    dest: Frontier
+  - direction: south
+    dest: Hollow
+  - direction: west
+    dest: Park Gate
+  at:
+  - 97617
+  - 203
+  - 80594
+  kind: fingerpost
+  title: Midway Post
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

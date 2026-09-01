@@ -1,0 +1,44 @@
+{
+  "origin": {
+    "x": 97565,
+    "y": 202,
+    "z": 80821
+  },
+  "size": {
+    "x": 6,
+    "y": 8,
+    "z": 6
+  },
+  "generated_by": "wayfinding",
+  "kind": "fingerpost",
+  "land": "hollow",
+  "facing": "east",
+  "contract": "2-4 arms, each pointing the direction its own sign faces, each naming a real module, zone or transit station",
+  "arms": [
+    {
+      "direction": "north",
+      "dest": "Midway",
+      "sign_facing": "north",
+      "placed": true,
+      "sign_at": [
+        97569,
+        206,
+        80821
+      ]
+    },
+    {
+      "direction": "west",
+      "dest": "Haunted Manor",
+      "sign_facing": "west",
+      "placed": true,
+      "sign_at": [
+        97565,
+        207,
+        80825
+      ]
+    }
+  ],
+  "post_h": 6,
+  "file": "Hollow Post.litematic",
+  "name": "Hollow Post"
+}
