@@ -1,27 +1,27 @@
 {
   "origin": {
-    "x": 97619,
+    "x": 97597,
     "y": 202,
-    "z": 80812
+    "z": 80782
   },
   "size": {
-    "x": 11,
+    "x": 10,
     "y": 3,
-    "z": 4
+    "z": 7
   },
   "generated_by": "streetfurniture",
   "kind": "streetfurniture/bench",
   "piece": "bench",
   "land": "hollow",
-  "facing": "north",
+  "facing": "south",
   "contract": "a seat you can sit on: stair seats at floor level with a back behind them and an arm rest at each end, all of it standing on its own pad",
   "unverified": [],
-  "shape": "straight",
-  "seats": 7,
-  "back": "fence",
-  "arm": "slat",
-  "length": 7,
-  "seed": 128110035,
+  "shape": "corner",
+  "seats": 9,
+  "back": "slat",
+  "arm": "fence",
+  "length": 6,
+  "seed": 128089296,
   "file": "Bench 1.litematic",
   "name": "Bench 1"
 }

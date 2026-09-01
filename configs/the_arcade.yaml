@@ -2,11 +2,11 @@ name: The Arcade
 gen: attractions
 params:
   land: midway
-  facing: east
+  facing: west
   at:
-  - 97597
+  - 97586
   - 203
-  - 80639
+  - 80619
   kind: arcade
   title: The Arcade
   under: out/newisle.litematic

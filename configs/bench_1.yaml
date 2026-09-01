@@ -2,11 +2,11 @@ name: Bench 1
 gen: streetfurniture
 params:
   land: hollow
-  facing: north
+  facing: south
   at:
-  - 97620
+  - 97605
   - 203
-  - 80812
+  - 80788
   kind: bench
   title: Bench 1
   under: out/islandright.litematic

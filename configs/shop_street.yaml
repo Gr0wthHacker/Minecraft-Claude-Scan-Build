@@ -5,9 +5,9 @@ params:
   shops: 2
   facing: east
   at:
-  - 97583
+  - 97590
   - 203
-  - 80572
+  - 80579
   kind: shopstreet
   title: Shop Street
   under: out/newisle.litematic

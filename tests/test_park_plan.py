@@ -236,8 +236,15 @@ def test_every_door_is_on_the_street(zone):
         # two actually lies on the plot, exactly as `_add_paths` decides it.
         from mcbuild import islands as _isl
         plot = _isl.plot_of(ZONE_WORLD[zone][0])
+        # **THE OWNED LAND, NOT THE PLOT** - the same question `_add_paths` asks, and it has to be
+        # the same question or this test measures a routing rule nobody uses. The Clock Tower is
+        # pinned to the east edge of what the theme owns, which stops ten columns short of the
+        # boundary because the transit corridor is reserved there; its front approach lands on
+        # the plot and outside the streets, so the avenue correctly meets it on its inside face.
+        own = planner._owned_bounds(plot, planner.THEMES[zone])
         front, inside = planner._front_of(m), planner._inside_of(m)
-        pt = front if (not m.get("edge") or plot.contains(*front)) else inside
+        on_own = own[0] <= front[0] <= own[1] and own[2] <= front[1] <= own[3]
+        pt = front if (not m.get("edge") or on_own) else inside
         assert pt in ground, f"{zone}: {m['name']} has no path to its door at {pt}"
 
 
@@ -466,7 +473,14 @@ def test_plaza_landscaping_never_stands_on_a_real_avenue_or_spur(zone):
     pl = _planned(zone)
     ground = _paving(pl)
     raised_unwired = _raised_plaza_cells(pl)
-    raised_wired = _raised_plaza_cells(pl, obstacles=_sibling_boxes(pl))
+    # **THE REAL OBSTACLE LIST, not a re-derived one.** `_sibling_boxes` is the module boxes
+    # alone, which is what the planner used to hand over - and a plaza given only the buildings
+    # planted a tree in the middle of a SPUR, because a spur is not a building. `_add_paths` now
+    # appends every route's own box to the same list, so what this test must check is the list
+    # the plan actually ships. Re-deriving it here would test a contract nobody uses.
+    _hub = next(m for m in pl.modules if m.get('covers') and m['kind'] != 'paths')
+    raised_wired = _raised_plaza_cells(
+        pl, obstacles=_hub['params'].get('obstacles') or _sibling_boxes(pl))
     unwired_hits = raised_unwired & ground
     wired_hits = raised_wired & ground
     assert not wired_hits, (
@@ -497,7 +511,14 @@ def test_plaza_landscaping_never_blocks_a_real_door_when_wired(zone):
         front, inside = planner._front_of(m), planner._inside_of(m)
         pt = front if (not m.get("edge") or plot.contains(*front)) else inside
         doors.append(pt)
-    raised_wired = _raised_plaza_cells(pl, obstacles=_sibling_boxes(pl))
+    # **THE REAL OBSTACLE LIST, not a re-derived one.** `_sibling_boxes` is the module boxes
+    # alone, which is what the planner used to hand over - and a plaza given only the buildings
+    # planted a tree in the middle of a SPUR, because a spur is not a building. `_add_paths` now
+    # appends every route's own box to the same list, so what this test must check is the list
+    # the plan actually ships. Re-deriving it here would test a contract nobody uses.
+    _hub = next(m for m in pl.modules if m.get('covers') and m['kind'] != 'paths')
+    raised_wired = _raised_plaza_cells(
+        pl, obstacles=_hub['params'].get('obstacles') or _sibling_boxes(pl))
     blocked = [d for d in doors if d in raised_wired]
     assert not blocked, f"{zone}: obstacle-wired plaza still blocks door(s) at {blocked}"
 

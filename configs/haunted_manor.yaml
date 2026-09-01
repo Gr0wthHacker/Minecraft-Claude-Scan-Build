@@ -2,11 +2,11 @@ name: Haunted Manor
 gen: hollowmanor
 params:
   land: hollow
-  facing: south
+  facing: east
   at:
-  - 97595
+  - 97583
   - 203
-  - 80783
+  - 80795
   kind: manor
   title: Haunted Manor
   under: out/islandright.litematic

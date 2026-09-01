@@ -2,11 +2,11 @@ name: Lamppost 2
 gen: streetfurniture
 params:
   land: hollow
-  facing: south
+  facing: north
   at:
-  - 97633
+  - 97618
   - 203
-  - 80789
+  - 80809
   kind: lamppost
   title: Lamppost 2
   under: out/islandright.litematic

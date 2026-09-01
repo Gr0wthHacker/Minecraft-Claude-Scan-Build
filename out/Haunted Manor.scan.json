@@ -5,14 +5,14 @@
     "z": 80757
   },
   "size": {
-    "x": 42,
+    "x": 35,
     "y": 45,
-    "z": 35
+    "z": 42
   },
   "generated_by": "hollowmanor",
   "kind": "manor",
   "land": "hollow",
-  "facing": "south",
+  "facing": "east",
   "contract": "three storeys with a floor at each, a gabled roof carrying three cross-gables, and a corner tower standing clear above the ridge - intact and imposing first, with two boarded lights as the only damage",
   "unverified": [],
   "width": 32,

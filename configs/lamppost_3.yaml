@@ -2,11 +2,11 @@ name: Lamppost 3
 gen: streetfurniture
 params:
   land: midway
-  facing: east
+  facing: west
   at:
-  - 97591
+  - 97604
   - 203
-  - 80633
+  - 80558
   kind: lamppost
   title: Lamppost 3
   under: out/newisle.litematic

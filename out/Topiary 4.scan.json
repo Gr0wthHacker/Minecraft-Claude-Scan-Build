@@ -1,0 +1,28 @@
+{
+  "origin": {
+    "x": 97604,
+    "y": 202,
+    "z": 80633
+  },
+  "size": {
+    "x": 7,
+    "y": 10,
+    "z": 7
+  },
+  "generated_by": "streetfurniture",
+  "kind": "streetfurniture/topiary",
+  "piece": "topiary",
+  "land": "midway",
+  "facing": "west",
+  "contract": "a clipped crown on a stem in a tub: the stem runs through every tier, so the whole shrub is one piece rather than discs hanging over a pot",
+  "unverified": [],
+  "crown": "tiered",
+  "tub": "pot",
+  "leaf": "birch_leaves",
+  "radius": 3,
+  "stem": 2,
+  "height": 9,
+  "seed": 128075282,
+  "file": "Topiary 4.litematic",
+  "name": "Topiary 4"
+}

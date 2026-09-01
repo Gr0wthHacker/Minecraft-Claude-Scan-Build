@@ -654,22 +654,52 @@ def _plaza(w: World, p: dict, ctx) -> dict:
         """Both main avenues always cross this module's own centre - see the docstring."""
         return abs(i - cx) <= _AVENUE_HALF or abs(d - cd) <= _AVENUE_HALF
 
+    def on_spine_near(i, d, pad):
+        """...and the same question asked with room for the feature that will stand there."""
+        return abs(i - cx) <= _AVENUE_HALF + pad or abs(d - cd) <= _AVENUE_HALF + pad
+
     # ---- lay out the set-pieces on a coarse grid, clear of the avenue cross and of any
     # obstacle the caller supplied. A grid rather than a hand-placed layout because a plaza this
     # size (up to 80x80) needs many independent tries at finding open ground, and each individual
     # try is cheap to lose - exactly the same reasoning `Island Night`'s greedy cover uses.
     margin = 9
-    step = max(16, min(width, depth) // 4)
-    slots = []
+    # **A COARSE GRID OF CANDIDATES IS NOT A SEARCH, AND IT WENT SILENT.** At a stride of 20 an
+    # 80x80 plaza offers sixteen slots, and a real zone has fifteen buildings standing in it - so
+    # every slot collided, the plaza planted NOTHING, and its own meta reported `trees: 0,
+    # beds: 0, terrace: False, pool: False` while the design audited clean and shipped 6,405
+    # cells of bare paving. That is this project's cardinal failure shape: a thing that does
+    # nothing, quietly.
+    #
+    # The gaps between buildings are real ground and they are not on a 20-grid. Scan finely,
+    # then thin the result so the set-pieces stay spread out rather than clustering in whichever
+    # corner happens to be empty - which is what the coarse grid was really buying.
+    # ...and the stride is 2, because 4 has a PARITY. With span 5 this plaza has exactly twelve
+    # legal positions and a stride of 4 stepped over every one of them - the third time today a
+    # stride hid the answer it was searching for. A clearance of 4 is what a bed and a tree
+    # actually need; 5 was a guess, and on a zone this full a guess of one cell is the whole
+    # feature.
+    step = 2
+    found = []
     i = margin
     while i <= width - margin:
         d = margin
         while d <= depth - margin:
             x0, _y0, z0 = f.at(i, d, 0)
-            if not on_spine(i, d) and _clear_of(x0, z0, obstacles, span=5):
-                slots.append((i, d))
+            # **THE SLOT'S CENTRE CLEARING THE SPINE IS NOT ENOUGH - ITS RADIUS MUST.** A bed
+            # is about four cells across from its centre, so a slot three cells off the avenue
+            # puts planting IN the avenue. It passed while the candidate stride was 20 and
+            # nothing ever landed that close; at a stride of 2 it fired immediately.
+            if not on_spine_near(i, d, 5) and _clear_of(x0, z0, obstacles, span=4):
+                found.append((i, d))
             d += step
         i += step
+    # The thinning keeps set-pieces apart; too large a separation and a packed zone yields two
+    # slots, which the terrace and the pool take, leaving nothing planted at all.
+    spread = 10
+    slots = []
+    for (si, sd) in found:
+        if all(max(abs(si - ai), abs(sd - ad)) >= spread for (ai, ad) in slots):
+            slots.append((si, sd))
 
     sunk = set()
     terrace_at = pool_at = None

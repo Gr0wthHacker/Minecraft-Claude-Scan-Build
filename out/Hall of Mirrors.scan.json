@@ -2,7 +2,7 @@
   "origin": {
     "x": 97563,
     "y": 202,
-    "z": 80601
+    "z": 80559
   },
   "size": {
     "x": 17,
@@ -26,12 +26,12 @@
   "entry_at": [
     97577,
     203,
-    80616
+    80574
   ],
   "exit_at": [
     97565,
     203,
-    80604
+    80562
   ],
   "file": "Hall Of Mirrors.litematic",
   "name": "Hall Of Mirrors"

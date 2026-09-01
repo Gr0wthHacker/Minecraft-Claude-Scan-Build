@@ -2,11 +2,11 @@ name: Planter 6
 gen: streetfurniture
 params:
   land: hollow
-  facing: west
+  facing: east
   at:
-  - 97614
+  - 97581
   - 203
-  - 80819
+  - 80804
   kind: planter
   title: Planter 6
   under: out/islandright.litematic

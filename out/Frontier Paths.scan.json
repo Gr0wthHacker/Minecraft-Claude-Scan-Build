@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 64,
-    "y": 6,
+    "y": 1,
     "z": 84
   },
   "generated_by": "park",
@@ -15,9 +15,9 @@
   "facing": "east",
   "contract": "every attraction's door is joined to an avenue, and both avenues meet at the hub - so the whole network is one connected walk",
   "unverified": [],
-  "routes": 11,
-  "cells": 1035,
-  "lamps": 3,
+  "routes": 12,
+  "cells": 1065,
+  "lamps": 0,
   "file": "Frontier Paths.litematic",
   "name": "Frontier Paths"
 }

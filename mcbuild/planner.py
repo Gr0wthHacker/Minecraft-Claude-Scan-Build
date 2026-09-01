@@ -244,8 +244,8 @@ THEMES = {
              "anchor": "edge", "side": "south",
              "params": {"land": "hollow", "width": 7, "height": 6, "facing": "south"}},
             {"name": "Grand Plaza", "gen": "park", "kind": "plaza", "anchor": "cover",
-             "size": [80, 5, 80],
-             "params": {"land": "midway", "width": 80, "depth": 80, "facing": "east"}},
+             "size": [88, 5, 96],  # w along X, d along Z - the params below are the FRAME's
+             "params": {"land": "midway", "width": 96, "depth": 88, "facing": "east"}},
         ],
     },
 
@@ -318,8 +318,8 @@ THEMES = {
              "anchor": "edge", "side": "south",
              "params": {"land": "frontier", "width": 7, "height": 6, "facing": "south"}},
             {"name": "Frontier Plaza", "gen": "park", "kind": "plaza", "anchor": "cover",
-             "size": [80, 5, 80],
-             "params": {"land": "frontier", "width": 80, "depth": 80, "facing": "east"}},
+             "size": [88, 5, 96],  # w along X, d along Z - the params below are the FRAME's
+             "params": {"land": "frontier", "width": 96, "depth": 88, "facing": "east"}},
         ],
     },
 
@@ -367,8 +367,8 @@ THEMES = {
              "anchor": "edge", "side": "north",
              "params": {"land": "hollow", "width": 7, "height": 6, "facing": "north"}},
             {"name": "Hollow Court", "gen": "park", "kind": "plaza", "anchor": "cover",
-             "size": [80, 5, 80],
-             "params": {"land": "hollow", "width": 80, "depth": 80, "facing": "east"}},
+             "size": [88, 5, 96],  # w along X, d along Z - the params below are the FRAME's
+             "params": {"land": "hollow", "width": 96, "depth": 88, "facing": "east"}},
         ],
     },
 }
@@ -722,6 +722,31 @@ def _used_cells(sc) -> list:
     return out
 
 
+def _owned_bounds(pl_plot, spec) -> tuple:
+    """The plot MINUS the strips a theme has declared it does not own.
+
+    A reserved strip is infrastructure - the transit corridor down the east of every park plot -
+    and it has to shrink the land in three different places or it only half works. Seeding
+    `taken` stops the PACKER using it; it does nothing for the two branches that compute a
+    position from the plot's own bounds. The edge branch parked the Big Wheel and the Clock Tower
+    on the railway; the cover branch then centred an 88-wide plaza across it, which claims nothing
+    and so passed every collision check while paving the track.
+    """
+    x0, x1, z0, z1 = _plot_bounds(pl_plot)
+    for (rx0, rz0, rx1, rz1) in spec.get("reserve", ()):
+        if rz0 <= z0 and rz1 >= z1:                  # a full-height strip moves X
+            if rx1 >= x1:
+                x1 = min(x1, rx0 - 1)
+            if rx0 <= x0:
+                x0 = max(x0, rx1 + 1)
+        if rx0 <= x0 and rx1 >= x1:                  # a full-width strip moves Z
+            if rz1 >= z1:
+                z1 = min(z1, rz0 - 1)
+            if rz0 <= z0:
+                z0 = max(z0, rz1 + 1)
+    return x0, x1, z0, z1
+
+
 def _site_order(spec: dict) -> list:
     """The order modules are SITED in, which is not the order they are written in.
 
@@ -910,7 +935,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             # It is centred on the plot instead, and it claims nothing, so nothing sited after it
             # is pushed out.
             if mspec.get("anchor") == "cover" and pl_plot is not None and plane is not None:
-                x0, x1, z0, z1 = _plot_bounds(pl_plot)
+                x0, x1, z0, z1 = _owned_bounds(pl_plot, spec)
                 cw, cd = size[0] - spacing, size[2] - spacing
                 bx = x0 + max(0, ((x1 - x0 + 1) - cw) // 2)
                 bz = z0 + max(0, ((z1 - z0 + 1) - cd) // 2)
@@ -930,7 +955,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             # there happened to be a slot, which for the one thing the whole zone is arranged
             # around is the same mistake as siting the gate in the middle of a field.
             if mspec.get("anchor") == "centre" and pl_plot is not None and plane is not None:
-                x0, x1, z0, z1 = _plot_bounds(pl_plot)
+                x0, x1, z0, z1 = _owned_bounds(pl_plot, spec)
                 bx = x0 + ((x1 - x0 + 1) - fw) // 2
                 bz = z0 + ((z1 - z0 + 1) - fd) // 2
                 taken.append((bx, plane + fy, bz, fw, fh, fd))
@@ -951,24 +976,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             # centres it along that side, and unlike `cover` it DOES claim its box, because
             # everything else must keep out of the doorway.
             if mspec.get("anchor") == "edge" and pl_plot is not None and plane is not None:
-                x0, x1, z0, z1 = _plot_bounds(pl_plot)
-                # **A RESERVED STRIP SHRINKS THE EDGE, IT DOES NOT JUST BLOCK IT.** The edge
-                # branch slides ALONG its edge, never inward, so a module pinned to the east with
-                # the transit corridor reserved there had nowhere legal to go - and slid the whole
-                # length of an edge it did not own before giving up and overlapping. The Big Wheel
-                # and the Clock Tower both parked on the railway that way. The edge a module is
-                # pinned to is the edge of the land the theme actually owns.
-                for (rx0, rz0, rx1, rz1) in spec.get("reserve", ()):
-                    if rz0 <= z0 and rz1 >= z1:            # a full-height strip: it moves X
-                        if rx1 >= x1:
-                            x1 = min(x1, rx0 - 1)
-                        if rx0 <= x0:
-                            x0 = max(x0, rx1 + 1)
-                    if rx0 <= x0 and rx1 >= x1:            # a full-width strip: it moves Z
-                        if rz1 >= z1:
-                            z1 = min(z1, rz0 - 1)
-                        if rz0 <= z0:
-                            z0 = max(z0, rz1 + 1)
+                x0, x1, z0, z1 = _owned_bounds(pl_plot, spec)
                 side = mspec.get("side", "south")
                 if side in ("west", "east"):
                     bx = x0 if side == "west" else x1 - fw + 1
@@ -1307,6 +1315,7 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
     hx0, hz0, hx1, hz1 = _box_of(hub)
     cx, cz = (hx0 + hx1) // 2, (hz0 + hz1) // 2
 
+    _own = _owned_bounds(pl_plot, spec) if pl_plot is not None else None
     others = [m for m in pl.modules if m is not hub and m["kind"] != "paths"]
     obstacles = [list(_box_of(m)) for m in others]
     # **THE PLAZA IS HANDED THE SAME OBSTACLE LIST.** Its planting beds, trees, terrace and pool
@@ -1324,7 +1333,12 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
         if not m.get("edge"):
             return _front_of(m)
         front, inside = _front_of(m), _inside_of(m)
-        if pl_plot is not None and pl_plot.contains(*front):
+        # **AGAINST THE OWNED LAND, NOT THE PLOT.** The Clock Tower is pinned to the east edge of
+        # what the theme owns, which since the transit corridor is ten columns short of the plot
+        # boundary - so its front approach lands ON the plot and OUTSIDE the streets, and the
+        # avenue could never reach it. `contains` was the right question against the wrong land.
+        if _own is not None and (_own[0] <= front[0] <= _own[1]
+                                 and _own[2] <= front[1] <= _own[3]):
             return front
         return inside
     links = [(m, _link_point(m)) for m in others]
@@ -1347,7 +1361,12 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
     # `_plot_bounds` returns (x0, x1, z0, z1) - both X values, THEN both Z values. Unpacked as
     # (x0, z0, x1, z1) the axes scramble into each other and the two avenues span the diagonal of
     # the world: 170,191 cells of paving, which is the only reason it was caught immediately.
-    px0, px1, pz0, pz1 = (_plot_bounds(pl_plot) if pl_plot is not None
+    # **THE AVENUES RUN TO THE EDGE OF THE LAND THE THEME OWNS, not of the plot.** Clamped to the
+    # plot they ran straight into the reserved transit corridor - so every zone reached X 97646
+    # with the railway's deck at 97644, and the line and the park fought over 57 cells while every
+    # building sat correctly clear. The reserve has to shrink all four things that read the plot's
+    # own bounds: the packer, the edge branch, the cover branch and the streets.
+    px0, px1, pz0, pz1 = (_owned_bounds(pl_plot, spec) if pl_plot is not None
                           else (min(xs), max(xs), min(zs), max(zs)))
     x0, x1 = max(min(xs), px0 + 2), min(max(xs), px1 - 2)
     z0, z1 = max(min(zs), pz0 + 2), min(max(zs), pz1 - 2)
@@ -1378,6 +1397,16 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
     routes = [r for r in routes if r["a"] != r["b"]]
     if not routes:
         return
+    # **AND THE STREETS THEMSELVES ARE OBSTACLES TO THE PLANTING.** The plaza was handed the
+    # buildings and told to keep clear of them, which it did - and then put a tree in the middle
+    # of a spur, because a spur is not a building and the avenue check only knows about the two
+    # main axes through the hub. A route is a box like anything else.
+    for r in routes:
+        (ax, az), (bx, bz) = r["a"], r["b"]
+        half = int(r.get("width", 3)) // 2 + 1
+        hub["params"]["obstacles"].append(
+            [min(ax, bx) - half, min(az, bz) - half,
+             max(ax, bx) + half, max(az, bz) + half])
     land = spec["modules"][0]["params"]["land"]
     # **INSERTED BEFORE THE PLAZA, NOT APPENDED AFTER IT.** `layers.slice_plan` resolves a
     # contested cell first-writer-wins in plan order, and the paving and the plaza occupy the

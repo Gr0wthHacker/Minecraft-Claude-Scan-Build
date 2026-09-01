@@ -1,29 +1,29 @@
 {
   "origin": {
-    "x": 97613,
+    "x": 97576,
     "y": 202,
-    "z": 80818
+    "z": 80799
   },
   "size": {
     "x": 7,
-    "y": 4,
+    "y": 3,
     "z": 7
   },
   "generated_by": "streetfurniture",
   "kind": "streetfurniture/planter",
   "piece": "planter",
   "land": "hollow",
-  "facing": "west",
+  "facing": "east",
   "contract": "a raised bed whose rim is a real moulding and whose planting is rooted in moss - never dirt or grass, which cannot be spent on this server",
   "unverified": [],
-  "plan": "square",
-  "rim": "coping",
-  "planting": "tuft",
+  "plan": "stepped",
+  "rim": "slab",
+  "planting": "azalea",
   "leaf": "spruce_leaves",
   "width": 5,
   "depth": 5,
   "cells": 9,
-  "seed": 128103250,
+  "seed": 128061064,
   "file": "Planter 6.litematic",
   "name": "Planter 6"
 }

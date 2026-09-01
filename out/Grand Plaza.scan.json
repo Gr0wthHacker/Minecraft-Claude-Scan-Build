@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": 97560,
-    "y": 202,
-    "z": 80560
+    "x": 97551,
+    "y": 201,
+    "z": 80552
   },
   "size": {
-    "x": 80,
+    "x": 88,
     "y": 6,
-    "z": 80
+    "z": 96
   },
   "generated_by": "park",
   "kind": "plaza",
@@ -15,13 +15,13 @@
   "facing": "east",
   "contract": "the ground between attractions: a paved grid that changes near the heart, planting beds and trees rooted in moss, a sunken seating court, and a bedded pool - never a flat slab, and never dirt or grass",
   "unverified": [],
-  "width": 80,
-  "depth": 80,
-  "posts": 1,
+  "width": 96,
+  "depth": 88,
+  "posts": 0,
   "trees": 0,
-  "beds": 0,
-  "terrace": false,
-  "pool": false,
+  "beds": 1,
+  "terrace": true,
+  "pool": true,
   "file": "Grand Plaza.litematic",
   "name": "Grand Plaza"
 }

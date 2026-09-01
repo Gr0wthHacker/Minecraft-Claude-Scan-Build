@@ -4,9 +4,9 @@ params:
   land: hollow
   facing: west
   at:
-  - 97609
+  - 97604
   - 203
-  - 80773
+  - 80758
   kind: signpost
   title: Signpost 4
   under: out/islandright.litematic

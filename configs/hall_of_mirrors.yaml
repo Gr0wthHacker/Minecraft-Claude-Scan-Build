@@ -6,7 +6,7 @@ params:
   at:
   - 97577
   - 203
-  - 80617
+  - 80575
   kind: mirrormaze
   title: Hall Of Mirrors
   under: out/newisle.litematic

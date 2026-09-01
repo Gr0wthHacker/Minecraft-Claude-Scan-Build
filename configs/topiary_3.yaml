@@ -2,11 +2,11 @@ name: Topiary 3
 gen: streetfurniture
 params:
   land: hollow
-  facing: west
+  facing: south
   at:
-  - 97610
+  - 97634
   - 203
-  - 80759
+  - 80790
   kind: topiary
   title: Topiary 3
   under: out/islandright.litematic

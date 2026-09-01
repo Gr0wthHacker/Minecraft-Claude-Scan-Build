@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 60,
-    "y": 6,
+    "y": 1,
     "z": 91
   },
   "generated_by": "park",
@@ -16,8 +16,8 @@
   "contract": "every attraction's door is joined to an avenue, and both avenues meet at the hub - so the whole network is one connected walk",
   "unverified": [],
   "routes": 17,
-  "cells": 1241,
-  "lamps": 5,
+  "cells": 1259,
+  "lamps": 0,
   "file": "Midway Paths.litematic",
   "name": "Midway Paths"
 }
