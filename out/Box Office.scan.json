@@ -1,0 +1,45 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 202,
+    "z": 80594
+  },
+  "size": {
+    "x": 11,
+    "y": 8,
+    "z": 13
+  },
+  "generated_by": "ticketing",
+  "kind": "ticketing/boxoffice",
+  "land": "midway",
+  "facing": "east",
+  "contract": "a hall you buy a ticket in: a counter you can see over, a chest of tickets at every hatch, and the price in grass on the board",
+  "unverified": [
+    "NOTHING HERE CARRIES A SIGNAL, so there is nothing to verify - which is the decision. Watching the chest itself cannot work: a comparator reads floor(1 + 14 * fullness) and a 27-slot chest moves 1/(64*27) per stackable item against the 1/14 needed, so the signal never changes. A 5-slot hopper of non-stackable tickets does step (~3 a ticket) and a delayed-copy detector for one is buildable - a comparator chain carries an analog level exactly and adds two ticks a stage, both measured here - but it was not built and asserted end to end, so it does not ship."
+  ],
+  "budget": {},
+  "width": 11,
+  "depth": 9,
+  "height": 6,
+  "windows": 3,
+  "chests": [
+    [
+      97558,
+      203,
+      80602
+    ],
+    [
+      97558,
+      203,
+      80600
+    ],
+    [
+      97558,
+      203,
+      80598
+    ]
+  ],
+  "signed": true,
+  "file": "Box Office.litematic",
+  "name": "Box Office"
+}

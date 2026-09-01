@@ -4,9 +4,9 @@ params:
   land: frontier
   facing: east
   at:
-  - 97636
+  - 97563
   - 203
-  - 80428
+  - 80427
   kind: windmill
   title: Windmill
   under: out/islandleft.litematic

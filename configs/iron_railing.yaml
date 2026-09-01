@@ -2,11 +2,11 @@ name: Iron Railing
 gen: hollowmanor
 params:
   land: hollow
-  facing: west
+  facing: east
   at:
-  - 97619
+  - 97640
   - 203
-  - 80818
+  - 80781
   kind: irongate
   title: Iron Railing
   under: out/islandright.litematic

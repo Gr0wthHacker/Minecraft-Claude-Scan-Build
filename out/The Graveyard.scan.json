@@ -1,31 +1,32 @@
 {
   "origin": {
-    "x": 97616,
+    "x": 97586,
     "y": 202,
-    "z": 80786
+    "z": 80815
   },
   "size": {
-    "x": 27,
+    "x": 23,
     "y": 13,
-    "z": 23
+    "z": 27
   },
   "generated_by": "hollowmanor",
   "kind": "graveyard",
   "land": "hollow",
-  "facing": "south",
-  "contract": "a railed enclosure with one gate, a crossing of paths, a lit monument at the centre, and at least twelve grave markers of which no two are the same shape, height and material",
+  "facing": "east",
+  "contract": "a railed enclosure with one gate, a crossing of paths, a lit monument at the centre, and at least twelve grave markers of which no two share a shape, a height and a material - guaranteed by construction up to the 110 markers the vocabulary holds (six shapes, their real heights, ten stones), which a field of 37x33 does not reach",
   "unverified": [],
   "width": 25,
   "depth": 21,
-  "stones": 29,
+  "stones": 30,
   "shapes": {
-    "cross": 4,
-    "lean": 4,
-    "round": 4,
-    "obelisk": 3,
-    "slab": 7,
-    "broken": 7
+    "round": 5,
+    "obelisk": 8,
+    "lean": 7,
+    "broken": 3,
+    "slab": 3,
+    "cross": 4
   },
+  "looks": 30,
   "signs": 1,
   "file": "The Graveyard.litematic",
   "name": "The Graveyard"

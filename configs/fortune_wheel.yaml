@@ -1,0 +1,21 @@
+name: Fortune Wheel
+gen: casino
+params:
+  land: hollow
+  pit: 2
+  facing: east
+  booth: true
+  at:
+  - 97565
+  - 203
+  - 80838
+  kind: wheel
+  title: Fortune Wheel
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false
+expensive_allowance: 3
+expensive_reason: 3x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

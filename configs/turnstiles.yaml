@@ -1,0 +1,15 @@
+name: Turnstiles
+gen: ticketing
+params:
+  land: midway
+  facing: east
+  at:
+  - 97555
+  - 203
+  - 80590
+  kind: turnstile
+  title: Turnstiles
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

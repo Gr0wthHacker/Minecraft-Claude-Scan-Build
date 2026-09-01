@@ -1,0 +1,27 @@
+{
+  "origin": {
+    "x": 97614,
+    "y": 202,
+    "z": 80814
+  },
+  "size": {
+    "x": 21,
+    "y": 18,
+    "z": 25
+  },
+  "generated_by": "attractions",
+  "kind": "chapel",
+  "land": "hollow",
+  "facing": "north",
+  "contract": "a ruin that is a complete order with pieces missing: a whole facade, a regular arcade falling away in even steps, a crest that is a LINE across the back wall rather than a single surviving shard",
+  "unverified": [],
+  "width": 17,
+  "depth": 21,
+  "height": 17,
+  "piers": 14,
+  "crest_run": 15,
+  "lights": 0,
+  "signed": true,
+  "file": "The Chapel.litematic",
+  "name": "The Chapel"
+}

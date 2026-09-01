@@ -1,0 +1,18 @@
+name: Gold Panning
+gen: casino
+params:
+  land: frontier
+  outcomes: 3
+  pit: 2
+  facing: north
+  booth: true
+  at:
+  - 97629
+  - 203
+  - 80441
+  kind: double_or_none
+  title: Gold Panning
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

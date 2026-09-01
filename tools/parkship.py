@@ -34,10 +34,18 @@ PLANE = 203
 FLOOR = PLANE - 1
 
 
-def run(*args, quiet=False):
+def run(*args, quiet=False, ok_if=None):
+    """Run a mcbuild subcommand. `ok_if` is text that makes a non-zero exit acceptable.
+
+    **`gen` EXITS 1 ON OVERLAP, AND ON A GREENFIELD PLOT THAT IS EXPECTED.** Every module sited
+    over the island's starter pad overlaps it - the plan says so in its own GREENFIELD note and
+    tells you to break the pad before printing. The design is still written, so the honest reading
+    is "wrote the litematic, and here is what it overlaps", not "failed". What must NOT happen is
+    a blanket ignore: the run only passes if the command actually produced its output.
+    """
     r = subprocess.run([sys.executable, "-m", "mcbuild", *args],
                        capture_output=True, text=True)
-    if r.returncode:
+    if r.returncode and not (ok_if and ok_if in r.stdout):
         sys.stderr.write(r.stdout + r.stderr)
         raise SystemExit(f"failed: mcbuild {' '.join(args)}")
     if not quiet:
@@ -75,9 +83,16 @@ def main():
         n = 0
         for line in cfgs.splitlines():
             line = line.strip()
-            if line.endswith(".yaml"):
-                run("gen", line, quiet=True)
-                n += 1
+            if not line.endswith('.yaml'):
+                continue
+            # `emit` prints "wrote configs/x.yaml", so take the LAST field. Passing the
+            # whole line ran `mcbuild gen 'wrote configs/box_office.yaml'` and died on the
+            # first module of the first zone.
+            out_g = run('gen', line.split()[-1], quiet=True, ok_if='wrote out')
+            for ln in out_g.splitlines():
+                if 'NEW problems' in ln and 'NEW problems 0' not in ln:
+                    print(f'    {line.split()[-1]}: {ln.strip()}')
+            n += 1
         print(f"  generated {n} config(s)")
         args = ["layers", name, "--floor", str(FLOOR)]
         if not a.no_ship:

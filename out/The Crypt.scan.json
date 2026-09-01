@@ -1,18 +1,18 @@
 {
   "origin": {
-    "x": 97557,
+    "x": 97580,
     "y": 202,
-    "z": 80801
+    "z": 80822
   },
   "size": {
-    "x": 17,
+    "x": 19,
     "y": 15,
-    "z": 19
+    "z": 17
   },
   "generated_by": "hollowmanor",
   "kind": "crypt",
   "land": "hollow",
-  "facing": "north",
+  "facing": "east",
   "contract": "a sealed mausoleum: a stepped plinth, pilasters flanking an iron-barred door, urns at the corners and its inscription on the front",
   "unverified": [],
   "width": 9,

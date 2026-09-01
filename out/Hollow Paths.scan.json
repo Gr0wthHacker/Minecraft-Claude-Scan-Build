@@ -5,9 +5,9 @@
     "z": 80756
   },
   "size": {
-    "x": 68,
+    "x": 78,
     "y": 6,
-    "z": 75
+    "z": 84
   },
   "generated_by": "park",
   "kind": "paths",
@@ -15,9 +15,9 @@
   "facing": "east",
   "contract": "every attraction's door is joined to an avenue, and both avenues meet at the hub - so the whole network is one connected walk",
   "unverified": [],
-  "routes": 10,
-  "cells": 1087,
-  "lamps": 15,
+  "routes": 11,
+  "cells": 1074,
+  "lamps": 9,
   "file": "Hollow Paths.litematic",
   "name": "Hollow Paths"
 }

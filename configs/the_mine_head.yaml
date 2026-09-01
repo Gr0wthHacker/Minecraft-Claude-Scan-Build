@@ -2,11 +2,11 @@ name: The Mine Head
 gen: frontiertown
 params:
   land: frontier
-  facing: south
+  facing: west
   at:
-  - 97572
+  - 97621
   - 203
-  - 80394
+  - 80354
   kind: minehead
   title: The Mine Head
   under: out/islandleft.litematic

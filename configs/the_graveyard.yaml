@@ -2,11 +2,11 @@ name: The Graveyard
 gen: hollowmanor
 params:
   land: hollow
-  facing: south
+  facing: east
   at:
-  - 97641
+  - 97607
   - 203
-  - 80807
+  - 80840
   kind: graveyard
   title: The Graveyard
   under: out/islandright.litematic

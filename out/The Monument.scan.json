@@ -1,0 +1,359 @@
+{
+  "origin": {
+    "x": 97583,
+    "y": 202,
+    "z": 80584
+  },
+  "size": {
+    "x": 34,
+    "y": 53,
+    "z": 33
+  },
+  "generated_by": "monument",
+  "kind": "monument",
+  "land": "midway",
+  "facing": "east",
+  "contract": "five tiers, each narrower and taller than the one below: a four-step base you can sit on, a panelled podium, a colonnade you can see through, a fluted taper with a gilded collar, and a planar winged figure at least 45 courses up - and a real climb: a spiral stair tower behind the podium, a fenced bridge, and a railed viewing gallery under the crown, lit the whole way",
+  "unverified": [],
+  "height": 51,
+  "base": 29,
+  "pad": 2365,
+  "steps": 4,
+  "columns": 8,
+  "bays": 8,
+  "panels": 0,
+  "wingspan": 21,
+  "wing_cells": 166,
+  "lanterns": 24,
+  "posts": 8,
+  "climb_treads": [
+    [
+      [
+        97585,
+        203,
+        80599
+      ],
+      "west"
+    ],
+    [
+      [
+        97584,
+        204,
+        80599
+      ],
+      "south"
+    ],
+    [
+      [
+        97584,
+        205,
+        80600
+      ],
+      "south"
+    ],
+    [
+      [
+        97584,
+        206,
+        80601
+      ],
+      "east"
+    ],
+    [
+      [
+        97585,
+        207,
+        80601
+      ],
+      "east"
+    ],
+    [
+      [
+        97586,
+        208,
+        80601
+      ],
+      "north"
+    ],
+    [
+      [
+        97586,
+        209,
+        80600
+      ],
+      "north"
+    ],
+    [
+      [
+        97586,
+        210,
+        80599
+      ],
+      "west"
+    ],
+    [
+      [
+        97585,
+        211,
+        80599
+      ],
+      "west"
+    ],
+    [
+      [
+        97584,
+        212,
+        80599
+      ],
+      "south"
+    ],
+    [
+      [
+        97584,
+        213,
+        80600
+      ],
+      "south"
+    ],
+    [
+      [
+        97584,
+        214,
+        80601
+      ],
+      "east"
+    ],
+    [
+      [
+        97585,
+        215,
+        80601
+      ],
+      "east"
+    ],
+    [
+      [
+        97586,
+        216,
+        80601
+      ],
+      "north"
+    ],
+    [
+      [
+        97586,
+        217,
+        80600
+      ],
+      "north"
+    ],
+    [
+      [
+        97586,
+        218,
+        80599
+      ],
+      "west"
+    ],
+    [
+      [
+        97585,
+        219,
+        80599
+      ],
+      "west"
+    ],
+    [
+      [
+        97584,
+        220,
+        80599
+      ],
+      "south"
+    ],
+    [
+      [
+        97584,
+        221,
+        80600
+      ],
+      "south"
+    ],
+    [
+      [
+        97584,
+        222,
+        80601
+      ],
+      "east"
+    ],
+    [
+      [
+        97585,
+        223,
+        80601
+      ],
+      "east"
+    ],
+    [
+      [
+        97586,
+        224,
+        80601
+      ],
+      "north"
+    ],
+    [
+      [
+        97586,
+        225,
+        80600
+      ],
+      "north"
+    ],
+    [
+      [
+        97586,
+        226,
+        80599
+      ],
+      "west"
+    ],
+    [
+      [
+        97585,
+        227,
+        80599
+      ],
+      "west"
+    ],
+    [
+      [
+        97584,
+        228,
+        80599
+      ],
+      "south"
+    ],
+    [
+      [
+        97584,
+        229,
+        80600
+      ],
+      "south"
+    ],
+    [
+      [
+        97584,
+        230,
+        80601
+      ],
+      "east"
+    ],
+    [
+      [
+        97585,
+        231,
+        80601
+      ],
+      "east"
+    ],
+    [
+      [
+        97586,
+        232,
+        80601
+      ],
+      "north"
+    ],
+    [
+      [
+        97586,
+        233,
+        80600
+      ],
+      "north"
+    ],
+    [
+      [
+        97586,
+        234,
+        80599
+      ],
+      "west"
+    ],
+    [
+      [
+        97585,
+        235,
+        80599
+      ],
+      "west"
+    ],
+    [
+      [
+        97584,
+        236,
+        80599
+      ],
+      "south"
+    ],
+    [
+      [
+        97584,
+        237,
+        80600
+      ],
+      "south"
+    ],
+    [
+      [
+        97584,
+        238,
+        80601
+      ],
+      "east"
+    ],
+    [
+      [
+        97585,
+        239,
+        80601
+      ],
+      "east"
+    ],
+    [
+      [
+        97586,
+        240,
+        80601
+      ],
+      "north"
+    ],
+    [
+      [
+        97586,
+        241,
+        80600
+      ],
+      "north"
+    ]
+  ],
+  "climb_length": 39,
+  "climb_rails": 35,
+  "climb_lanterns": 8,
+  "bridge": 11,
+  "gallery_height": 39,
+  "gallery_radius": 4,
+  "gallery_floor": 69,
+  "gallery_rails": 19,
+  "turret_at": [
+    0,
+    15
+  ],
+  "signs": 2,
+  "signs_placed": 2,
+  "file": "The Monument.litematic",
+  "name": "The Monument"
+}

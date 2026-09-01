@@ -320,12 +320,14 @@ def test_every_sideshow_in_a_park_zone_asks_for_a_booth():
     assert sideshows, "no casino sideshows found in any park zone - did the zones get renamed?"
     for theme_name, name, params in sideshows:
         assert params.get("booth") is True, f"{theme_name}/{name} does not ask for a booth"
-    # and the six named in this fix, if still present under these names, are among them
-    named = {(t, n) for t, n, _p in sideshows}
-    for theme_name, name in (("midway", "Hoopla"), ("frontier", "Tin Can Alley"),
-                              ("frontier", "Gold Panning"), ("hollow", "Fortune Wheel"),
-                              ("hollow", "The Reckoning")):
-        assert (theme_name, name) in named, f"{theme_name}/{name} is missing entirely"
+    # **AND NO ROSTER HERE.** This test used to name five modules and assert they exist, three
+    # lines under its own docstring explaining why a hardcoded set goes stale. It went stale the
+    # same day: Gold Panning was traded away to fit Tin Can Alley once the transit corridor took
+    # twelve columns off the frontier. What the booth work is responsible for is that every
+    # sideshow that EXISTS asks for a booth, which is asserted above; which sideshows exist is a
+    # curation decision and belongs to the theme, not to this file.
+    assert len(sideshows) >= 3, f"only {len(sideshows)} sideshows across all three zones"
+
 
 
 def test_the_casino_theme_itself_is_untouched():

@@ -13,11 +13,15 @@
   "kind": "plaza",
   "land": "hollow",
   "facing": "east",
-  "contract": "the ground between attractions, paved on a world-aligned grid so it stays aligned across module boundaries",
+  "contract": "the ground between attractions: a paved grid that changes near the heart, planting beds and trees rooted in moss, a sunken seating court, and a bedded pool - never a flat slab, and never dirt or grass",
   "unverified": [],
   "width": 80,
   "depth": 80,
-  "posts": 5,
+  "posts": 4,
+  "trees": 0,
+  "beds": 0,
+  "terrace": false,
+  "pool": false,
   "file": "Hollow Court.litematic",
   "name": "Hollow Court"
 }

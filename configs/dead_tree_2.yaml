@@ -4,9 +4,9 @@ params:
   land: hollow
   facing: north
   at:
-  - 97564
+  - 97636
   - 203
-  - 80828
+  - 80816
   kind: deadtree
   title: Dead Tree 2
   under: out/islandright.litematic

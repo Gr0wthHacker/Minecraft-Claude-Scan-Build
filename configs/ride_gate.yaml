@@ -1,0 +1,19 @@
+name: Ride Gate
+gen: ticketing
+params:
+  land: frontier
+  facing: west
+  at:
+  - 97615
+  - 203
+  - 80434
+  kind: ridegate
+  title: Ride Gate
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false
+expensive_allowance: 2
+expensive_reason: 2x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

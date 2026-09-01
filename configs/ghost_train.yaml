@@ -1,0 +1,15 @@
+name: Ghost Train
+gen: attractions
+params:
+  land: hollow
+  facing: south
+  at:
+  - 97636
+  - 203
+  - 80776
+  kind: ghosttrain
+  title: Ghost Train
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": 97584,
+    "y": 202,
+    "z": 80618
+  },
+  "size": {
+    "x": 16,
+    "y": 9,
+    "z": 23
+  },
+  "generated_by": "attractions",
+  "kind": "arcade",
+  "land": "midway",
+  "facing": "east",
+  "contract": "architecture: an open pavilion you can see all the way into, counters reachable, shelving that is real open-trapdoor geometry",
+  "unverified": [],
+  "width": 21,
+  "depth": 13,
+  "height": 7,
+  "shelves": 12,
+  "signed": true,
+  "file": "The Arcade.litematic",
+  "name": "The Arcade"
+}

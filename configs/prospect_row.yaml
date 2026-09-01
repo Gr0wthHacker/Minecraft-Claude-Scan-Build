@@ -3,11 +3,11 @@ gen: frontiertown
 params:
   land: frontier
   shops: 5
-  facing: west
+  facing: east
   at:
-  - 97612
+  - 97565
   - 203
-  - 80402
+  - 80397
   kind: falsefront
   title: Prospect Row
   under: out/islandleft.litematic

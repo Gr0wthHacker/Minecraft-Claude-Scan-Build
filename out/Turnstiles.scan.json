@@ -1,0 +1,81 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 200,
+    "z": 80581
+  },
+  "size": {
+    "x": 19,
+    "y": 9,
+    "z": 11
+  },
+  "generated_by": "ticketing",
+  "kind": "ticketing/turnstile",
+  "land": "midway",
+  "facing": "east",
+  "contract": "a press opens that lane's door for about 13 redstone ticks and it closes by itself",
+  "unverified": [],
+  "budget": {},
+  "width": 9,
+  "depth": 2,
+  "height": 5,
+  "lanes": 2,
+  "stages": 4,
+  "lane_i": [
+    1,
+    5
+  ],
+  "span": 12,
+  "fore": 14,
+  "doors": [
+    [
+      97555,
+      203,
+      80589
+    ],
+    [
+      97555,
+      203,
+      80585
+    ]
+  ],
+  "slots": [
+    [
+      97556,
+      204,
+      80587
+    ],
+    [
+      97556,
+      204,
+      80583
+    ]
+  ],
+  "lamps": [],
+  "inputs": [
+    [
+      97556,
+      204,
+      80587
+    ],
+    [
+      97556,
+      204,
+      80583
+    ]
+  ],
+  "outputs": [
+    [
+      97555,
+      203,
+      80589
+    ],
+    [
+      97555,
+      203,
+      80585
+    ]
+  ],
+  "file": "Turnstiles.litematic",
+  "name": "Turnstiles"
+}

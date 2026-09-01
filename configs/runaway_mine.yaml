@@ -1,0 +1,15 @@
+name: Runaway Mine
+gen: attractions
+params:
+  land: frontier
+  facing: north
+  at:
+  - 97605
+  - 203
+  - 80405
+  kind: runawaymine
+  title: Runaway Mine
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

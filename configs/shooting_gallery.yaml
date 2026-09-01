@@ -1,0 +1,15 @@
+name: Shooting Gallery
+gen: attractions
+params:
+  land: frontier
+  facing: east
+  at:
+  - 97564
+  - 203
+  - 80416
+  kind: shootinggallery
+  title: Shooting Gallery
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

@@ -1,0 +1,15 @@
+name: The Arcade
+gen: attractions
+params:
+  land: midway
+  facing: east
+  at:
+  - 97597
+  - 203
+  - 80639
+  kind: arcade
+  title: The Arcade
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

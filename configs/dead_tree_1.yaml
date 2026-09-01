@@ -2,11 +2,11 @@ name: Dead Tree 1
 gen: hollowmanor
 params:
   land: hollow
-  facing: south
+  facing: west
   at:
-  - 97634
+  - 97602
   - 203
-  - 80770
+  - 80788
   kind: deadtree
   title: Dead Tree 1
   under: out/islandright.litematic

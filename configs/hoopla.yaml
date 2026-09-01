@@ -1,0 +1,22 @@
+name: Hoopla
+gen: casino
+params:
+  land: midway
+  outcomes: 3
+  pit: 2
+  facing: west
+  booth: true
+  at:
+  - 97631
+  - 203
+  - 80553
+  kind: high_roller
+  title: Hoopla
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false
+expensive_allowance: 4
+expensive_reason: 4x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

@@ -626,7 +626,12 @@ def test_the_stations_yield_only_below_the_deck(line):
     instead of fight. Anything above the deck yielding would be a hole in the viaduct."""
     c, _m, _cells = line
     skipped = sum(st["skipped_to_park"] for st in c.meta["stations_built"])
-    assert 0 < skipped < 40, \
+    # **ZERO IS THE GOAL, NOT A FAILURE.** The lower bound was written when the stair
+    # genuinely landed on the zone's floor and 37 cells had to give way; it was pinning
+    # the CONFLICT rather than the property. The zones now RESERVE the corridor before
+    # they pack, so nothing yields - and a lower bound of one fails on exactly the
+    # outcome the reservation was built for.
+    assert skipped < 40, \
         f"{skipped} cells yielded: too many means the station is sited on top of the zone"
 
 

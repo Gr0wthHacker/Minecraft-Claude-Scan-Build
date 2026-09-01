@@ -4,9 +4,9 @@ params:
   land: frontier
   facing: north
   at:
-  - 97627
+  - 97554
   - 203
-  - 80395
+  - 80400
   kind: watertower
   title: Water Tower
   under: out/islandleft.litematic

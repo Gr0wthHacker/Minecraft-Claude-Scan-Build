@@ -6,7 +6,7 @@ params:
   height: 6
   facing: north
   at:
-  - 97597
+  - 97592
   - 203
   - 80552
   kind: arch

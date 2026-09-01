@@ -1,0 +1,15 @@
+name: Signpost 4
+gen: streetfurniture
+params:
+  land: hollow
+  facing: west
+  at:
+  - 97609
+  - 203
+  - 80773
+  kind: signpost
+  title: Signpost 4
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

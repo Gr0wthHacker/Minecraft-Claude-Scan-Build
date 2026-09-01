@@ -1,0 +1,43 @@
+{
+  "origin": {
+    "x": 97614,
+    "y": 202,
+    "z": 80760
+  },
+  "size": {
+    "x": 25,
+    "y": 15,
+    "z": 20
+  },
+  "generated_by": "attractions",
+  "kind": "ghosttrain",
+  "land": "hollow",
+  "facing": "south",
+  "contract": "a closed, powered minecart loop that enters one arch, crosses a dark interior past lit set-pieces, and leaves through the other - the ride IS the attraction",
+  "unverified": [],
+  "width": 21,
+  "depth": 15,
+  "height": 12,
+  "track": 54,
+  "corners": 4,
+  "powered": 12,
+  "lamps": 0,
+  "signed": true,
+  "boarding_at": [
+    97626,
+    203,
+    80779
+  ],
+  "entry_at": [
+    97633,
+    203,
+    80776
+  ],
+  "exit_at": [
+    97619,
+    203,
+    80776
+  ],
+  "file": "Ghost Train.litematic",
+  "name": "Ghost Train"
+}

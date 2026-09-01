@@ -1,35 +1,34 @@
 {
   "origin": {
-    "x": 97609,
+    "x": 97556,
     "y": 202,
-    "z": 80401
+    "z": 80361
   },
   "size": {
     "x": 13,
-    "y": 12,
-    "z": 33
+    "y": 14,
+    "z": 38
   },
   "generated_by": "frontiertown",
   "kind": "falsefront",
   "land": "frontier",
-  "facing": "west",
+  "facing": "east",
   "contract": "at least four storefronts sharing one boardwalk, each with its own width, parapet profile, roof height, porch and glazing",
   "unverified": [],
   "shops": 5,
-  "width": 31,
+  "width": 36,
   "depth": 9,
   "styles": [
     "bracketed",
     "flat",
-    "stepped",
     "triangular"
   ],
   "widths": [
+    8,
+    9,
+    8,
     6,
-    6,
-    6,
-    5,
-    8
+    5
   ],
   "signs": 5,
   "trades": [

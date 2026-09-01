@@ -1,0 +1,37 @@
+{
+  "origin": {
+    "x": 97601,
+    "y": 202,
+    "z": 80401
+  },
+  "size": {
+    "x": 30,
+    "y": 13,
+    "z": 26
+  },
+  "generated_by": "attractions",
+  "kind": "runawaymine",
+  "land": "frontier",
+  "facing": "north",
+  "contract": "a closed, powered minecart loop out past the headframe and back, boarded from a platform under the station roof",
+  "unverified": [],
+  "width": 26,
+  "depth": 23,
+  "height": 12,
+  "track": 46,
+  "corners": 4,
+  "powered": 10,
+  "signed": true,
+  "platform_at": [
+    97608,
+    203,
+    80405
+  ],
+  "boarding_at": [
+    97611,
+    204,
+    80407
+  ],
+  "file": "Runaway Mine.litematic",
+  "name": "Runaway Mine"
+}

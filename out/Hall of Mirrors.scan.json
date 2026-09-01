@@ -1,24 +1,38 @@
 {
   "origin": {
-    "x": 97592,
+    "x": 97563,
     "y": 202,
-    "z": 80574
+    "z": 80601
   },
   "size": {
-    "x": 15,
-    "y": 7,
-    "z": 15
+    "x": 17,
+    "y": 10,
+    "z": 19
   },
-  "generated_by": "park",
-  "kind": "walkthrough",
+  "generated_by": "attractions",
+  "kind": "mirrormaze",
   "land": "midway",
   "facing": "east",
-  "contract": "one way in at the front, one way out at the back, and a switchback route between them - never an empty box with two doors",
+  "contract": "a real maze: one solved spanning-tree route from the marked entrance to the marked exit, with genuine dead-end branches off it, never a plain corridor with two doors",
   "unverified": [],
-  "width": 13,
+  "width": 15,
   "depth": 13,
   "height": 5,
-  "turns": 3,
-  "file": "Hall of Mirrors.litematic",
-  "name": "Hall of Mirrors"
+  "cells_i": 7,
+  "cells_d": 6,
+  "panes": 60,
+  "lamps": 5,
+  "signed": true,
+  "entry_at": [
+    97577,
+    203,
+    80616
+  ],
+  "exit_at": [
+    97565,
+    203,
+    80604
+  ],
+  "file": "Hall Of Mirrors.litematic",
+  "name": "Hall Of Mirrors"
 }

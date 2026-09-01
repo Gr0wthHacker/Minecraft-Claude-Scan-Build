@@ -1,0 +1,28 @@
+{
+  "origin": {
+    "x": 97609,
+    "y": 202,
+    "z": 80758
+  },
+  "size": {
+    "x": 7,
+    "y": 11,
+    "z": 7
+  },
+  "generated_by": "streetfurniture",
+  "kind": "streetfurniture/topiary",
+  "piece": "topiary",
+  "land": "hollow",
+  "facing": "west",
+  "contract": "a clipped crown on a stem in a tub: the stem runs through every tier, so the whole shrub is one piece rather than discs hanging over a pot",
+  "unverified": [],
+  "crown": "sphere",
+  "tub": "pot",
+  "leaf": "dark_oak_leaves",
+  "radius": 3,
+  "stem": 2,
+  "height": 10,
+  "seed": 128092842,
+  "file": "Topiary 3.litematic",
+  "name": "Topiary 3"
+}

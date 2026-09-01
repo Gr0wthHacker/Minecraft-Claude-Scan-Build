@@ -2,11 +2,11 @@ name: The Crypt
 gen: hollowmanor
 params:
   land: hollow
-  facing: north
+  facing: east
   at:
-  - 97561
+  - 97594
   - 203
-  - 80805
+  - 80834
   kind: crypt
   title: The Crypt
   under: out/islandright.litematic

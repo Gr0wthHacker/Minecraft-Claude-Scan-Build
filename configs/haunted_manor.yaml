@@ -4,9 +4,9 @@ params:
   land: hollow
   facing: south
   at:
-  - 97594
+  - 97595
   - 203
-  - 80782
+  - 80783
   kind: manor
   title: Haunted Manor
   under: out/islandright.litematic

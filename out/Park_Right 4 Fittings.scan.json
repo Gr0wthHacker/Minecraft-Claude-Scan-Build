@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": 97560,
-    "y": 205,
+    "x": 97552,
+    "y": 202,
     "z": 80751
   },
   "size": {
-    "x": 79,
-    "y": 66,
-    "z": 87
+    "x": 86,
+    "y": 71,
+    "z": 92
   },
   "generated_by": "mcbuild.layers",
   "kind": "casino-layer",

@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97601,
+    "x": 97623,
     "y": 202,
-    "z": 80761
+    "z": 80792
   },
   "size": {
     "x": 17,
@@ -12,7 +12,7 @@
   "generated_by": "hollowmanor",
   "kind": "clocktower",
   "land": "hollow",
-  "facing": "west",
+  "facing": "east",
   "contract": "a square tower of four stages: string courses, glazed slits, a clock face on every side, a louvred belfry with a bell, and a crenellated crown carrying a spire",
   "unverified": [],
   "side": 9,

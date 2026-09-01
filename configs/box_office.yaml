@@ -1,0 +1,15 @@
+name: Box Office
+gen: ticketing
+params:
+  land: midway
+  facing: east
+  at:
+  - 97560
+  - 203
+  - 80605
+  kind: boxoffice
+  title: Box Office
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

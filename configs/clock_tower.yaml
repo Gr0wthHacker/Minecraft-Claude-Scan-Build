@@ -2,11 +2,11 @@ name: Clock Tower
 gen: hollowmanor
 params:
   land: hollow
-  facing: west
+  facing: east
   at:
-  - 97605
+  - 97635
   - 203
-  - 80765
+  - 80804
   kind: clocktower
   title: Clock Tower
   under: out/islandright.litematic

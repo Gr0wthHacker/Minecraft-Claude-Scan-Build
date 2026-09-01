@@ -2,11 +2,11 @@ name: The Plummet
 gen: bigwheel
 params:
   land: hollow
-  facing: east
+  facing: north
   at:
-  - 97602
+  - 97558
   - 203
-  - 80827
+  - 80807
   kind: drop
   title: The Plummet
   under: out/islandright.litematic

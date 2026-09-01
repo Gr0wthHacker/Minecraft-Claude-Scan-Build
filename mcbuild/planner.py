@@ -156,8 +156,13 @@ THEMES = {
         "paths": True,
         "paths_name": "Midway Paths",
         "furniture": ["bench", "planter", "lamppost", "topiary", "bin", "signpost"],
+        "spacing": 1,
+        "reserve": [[97640, 80551, 97649, 80649]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            {"name": "Hall Of Mirrors", "gen": "attractions", "kind": "mirrormaze",
+             "size": [15, 5, 13], "orient": False,
+             "params": {"land": "midway", "facing": "east"}},
             # ------------------------------------------------------- arrival, in order
             # **PINNED TO THE WEST EDGE, BESIDE THE GATE, because the sequence IS the meaning.**
             # Packed by area these went wherever there was room - a turnstile in the middle of the
@@ -185,9 +190,6 @@ THEMES = {
             # ------------------------------------------------------------------ the rides
             # `_site_order` sorts by MEASURED area, so these can be written where they read
             # best rather than in size order.
-            {"name": "The Swings", "gen": "attractions", "kind": "swings",
-             "size": [26, 15, 26],
-             "params": {"land": "midway", "facing": "east"}},
             {"name": "The Arcade", "gen": "attractions", "kind": "arcade",
              "size": [21, 7, 13],
              "params": {"land": "midway", "facing": "east"}},
@@ -255,6 +257,8 @@ THEMES = {
         "paths": True,
         "paths_name": "Frontier Paths",
         "furniture": ["bench", "planter", "lamppost", "signpost", "bin", "flagpole"],
+        "spacing": 1,
+        "reserve": [[97640, 80351, 97649, 80449]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
             {"name": "Ride Gate", "gen": "ticketing", "kind": "ridegate",
@@ -267,7 +271,7 @@ THEMES = {
              "size": [9, 10, 27], "orient": False,
              "params": {"land": "frontier", "facing": "east"}},
             {"name": "Shooting Gallery", "gen": "attractions", "kind": "shootinggallery",
-             "size": [15, 8, 9],
+             "size": [15, 8, 9], "orient": False,
              "params": {"land": "frontier", "facing": "east"}},
             # THE HEADLINE RIDE, and it is sited first because it is a third of the plot.
             {"name": "Mine Coaster", "gen": "coaster", "kind": "coaster",
@@ -298,7 +302,7 @@ THEMES = {
              "size": [13, 14, 39], "orient": False,
              "params": {"land": "frontier", "shops": 5, "facing": "east"}},
             {"name": "The Mine Head", "gen": "frontiertown", "kind": "minehead",
-             "size": [19, 22, 21],
+             "size": [19, 22, 21], "orient": False,
              "params": {"land": "frontier", "facing": "east"}},
             {"name": "The Saloon", "gen": "frontiertown", "kind": "saloon",
              "size": [17, 16, 19],
@@ -306,20 +310,10 @@ THEMES = {
             # orient False: a windmill's sails read from every side, so it does not need the
             # square reservation - and at 13x21 booking 23x23 was the difference between it
             # fitting and being refused.
-            {"name": "Windmill", "gen": "frontiertown", "kind": "windmill",
-             "size": [13, 24, 21], "orient": False,
-             "params": {"land": "frontier", "facing": "east"}},
             {"name": "Tin Can Alley", "gen": "casino", "kind": "duel",
              "size": [9, 8, 8], "orient": False,
              "params": {"land": "frontier", "outcomes": 3, "pit": 2, "facing": "east",
                         "booth": True}},
-            {"name": "Gold Panning", "gen": "casino", "kind": "double_or_none",
-             "size": [9, 8, 8], "orient": False,
-             "params": {"land": "frontier", "outcomes": 3, "pit": 2, "facing": "east",
-                        "booth": True}},
-            {"name": "Water Tower", "gen": "frontiertown", "kind": "watertower",
-             "size": [13, 27, 13],
-             "params": {"land": "frontier", "facing": "east"}},
             {"name": "Frontier Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
              "anchor": "edge", "side": "south",
              "params": {"land": "frontier", "width": 7, "height": 6, "facing": "south"}},
@@ -337,19 +331,15 @@ THEMES = {
         "paths": True,
         "paths_name": "Hollow Paths",
         "furniture": ["bench", "lamppost", "topiary", "signpost", "bin", "planter"],
+        "spacing": 1,
+        "reserve": [[97640, 80751, 97649, 80849]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
-            {"name": "Ride Gate", "gen": "ticketing", "kind": "ridegate",
-             "size": [19, 9, 11], "orient": False,
-             "params": {"land": "hollow", "facing": "east"}},
             {"name": "Ghost Train", "gen": "attractions", "kind": "ghosttrain",
              "size": [21, 12, 15],
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "The Chapel", "gen": "attractions", "kind": "chapel",
              "size": [17, 17, 21],
-             "params": {"land": "hollow", "facing": "east"}},
-            {"name": "Mirror Maze", "gen": "attractions", "kind": "mirrormaze",
-             "size": [15, 5, 13],
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "Haunted Manor", "gen": "hollowmanor", "kind": "manor",
              "size": [35, 45, 42],
@@ -361,7 +351,7 @@ THEMES = {
              "size": [20, 73, 17],
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "Clock Tower", "gen": "hollowmanor", "kind": "clocktower",
-             "size": [17, 49, 17],
+             "size": [17, 49, 17], "anchor": "edge", "side": "east",
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "Fortune Wheel", "gen": "casino", "kind": "wheel",
              "size": [24, 4, 24], "orient": False,
@@ -370,15 +360,9 @@ THEMES = {
              "size": [9, 8, 8], "orient": False,
              "params": {"land": "hollow", "outcomes": 3, "pit": 2, "facing": "east",
                         "booth": True}},
-            {"name": "The Crypt", "gen": "hollowmanor", "kind": "crypt",
-             "size": [19, 15, 17],
-             "params": {"land": "hollow", "facing": "east"}},
-            {"name": "Iron Railing", "gen": "hollowmanor", "kind": "irongate",
-             "size": [7, 12, 23], "orient": False,
-             "params": {"land": "hollow", "facing": "east"}},
             {"name": "Dead Tree", "gen": "hollowmanor", "kind": "deadtree",
              "size": [9, 15, 9],
-             "params": {"land": "hollow", "facing": "east"}, "count": 3},
+             "params": {"land": "hollow", "facing": "east"}, "count": 1},
             {"name": "Hollow Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
              "anchor": "edge", "side": "north",
              "params": {"land": "hollow", "width": 7, "height": 6, "facing": "north"}},
@@ -592,6 +576,40 @@ def bays(plot, size, spacing: int = 3, margin: int = 4) -> list:
     out.sort(key=lambda t: ((t[0] - (ox + mid_c * stride_x)) ** 2
                             + (t[1] - (oz + mid_r * stride_z)) ** 2))
     return out
+
+
+def _contact(bx, bz, size, taken, bounds) -> int:
+    """How much of this candidate box's edge touches something already there, or the boundary.
+
+    **THIS IS WHAT STOPS A PLOT FRAGMENTING.** Ordered by distance from the centre, every module
+    packs inward and the free space is left as a RING - wide, thin, and never square - so the
+    hollow reported NO SITE for its clock tower and its crypt with the plot 51% used and a
+    brute-force sweep finding no 18x18 anywhere on it. Preferring a spot that HUGS a neighbour's
+    wall or the boundary keeps the leftover in one piece.
+
+    It is also what a street looks like. Buildings stand shoulder to shoulder along a frontage;
+    scattered evenly over a field is a business park.
+    """
+    px0, px1, pz0, pz1 = bounds
+    w, _h, d = (int(v) for v in size)
+    x1, z1 = bx + w - 1, bz + d - 1
+    touch = 0
+    if bx <= px0 + 1:
+        touch += d
+    if x1 >= px1 - 1:
+        touch += d
+    if bz <= pz0 + 1:
+        touch += w
+    if z1 >= pz1 - 1:
+        touch += w
+    for (ax, _ay, az, aw, _ah, ad) in taken:
+        ox = min(x1, ax + aw - 1) - max(bx, ax) + 1
+        oz = min(z1, az + ad - 1) - max(bz, az) + 1
+        if oz > 0 and (abs(bx - (ax + aw)) <= 1 or abs(ax - (bx + w)) <= 1):
+            touch += oz
+        if ox > 0 and (abs(bz - (az + ad)) <= 1 or abs(az - (bz + d)) <= 1):
+            touch += ox
+    return touch
 
 
 def _clear(taken: list, x, y, z, size) -> bool:
@@ -833,7 +851,20 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
     # `greenfield`, and when it does the containers are not treated as fixtures - but every one is
     # NAMED IN THE PLAN and listed for removal, because a container silently built over is the
     # exact loss this rule was written after.
+    # **A THEME MAY SET ITS OWN SPACING, and a park wants less of it than a casino.** The gap
+    # between two casino games is circulation; the gap between two fairground buildings is the
+    # AVENUE, which the path pass draws separately and which is five cells wide. Paying for it
+    # twice cost the frontier its shooting gallery and the hollow its clock tower and its crypt -
+    # three real landmarks, refused for padding nobody walks in.
+    spacing = int(spec.get("spacing", spacing))
     taken: list = []
+    # **INFRASTRUCTURE IS RESERVED BEFORE THE BUILDINGS ARE PACKED, or it has nowhere to land.**
+    # The transit line runs a fixed corridor down the east of all three plots and its stations
+    # reach into each zone at platform level. As soon as the packer learned to hug the boundary
+    # the parks filled that corridor - 270 cells of collision, and the railway had been sited
+    # against a layout two packing changes old. A theme declares the strips it does not own.
+    for (rx0, rz0, rx1, rz1) in spec.get("reserve", ()):
+        taken.append((rx0, (plane or 0) - 8, rz0, rx1 - rx0 + 1, 64, rz1 - rz0 + 1))
     used = list(_used_cells(sc))
     if spec.get("greenfield") and used:
         pl.notes.append(
@@ -870,6 +901,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             spot = None
             taken_box = None
             bay = None
+            turned_params = None
             # A COVERING MODULE IS NOT COMPETING FOR SPACE, IT IS THE SPACE.
             #
             # The hall's whole job is to lay the ground under and between the rooms, so the
@@ -920,6 +952,23 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             # everything else must keep out of the doorway.
             if mspec.get("anchor") == "edge" and pl_plot is not None and plane is not None:
                 x0, x1, z0, z1 = _plot_bounds(pl_plot)
+                # **A RESERVED STRIP SHRINKS THE EDGE, IT DOES NOT JUST BLOCK IT.** The edge
+                # branch slides ALONG its edge, never inward, so a module pinned to the east with
+                # the transit corridor reserved there had nowhere legal to go - and slid the whole
+                # length of an edge it did not own before giving up and overlapping. The Big Wheel
+                # and the Clock Tower both parked on the railway that way. The edge a module is
+                # pinned to is the edge of the land the theme actually owns.
+                for (rx0, rz0, rx1, rz1) in spec.get("reserve", ()):
+                    if rz0 <= z0 and rz1 >= z1:            # a full-height strip: it moves X
+                        if rx1 >= x1:
+                            x1 = min(x1, rx0 - 1)
+                        if rx0 <= x0:
+                            x0 = max(x0, rx1 + 1)
+                    if rx0 <= x0 and rx1 >= x1:            # a full-width strip: it moves Z
+                        if rz1 >= z1:
+                            z1 = min(z1, rz0 - 1)
+                        if rz0 <= z0:
+                            z0 = max(z0, rz1 + 1)
                 side = mspec.get("side", "south")
                 if side in ("west", "east"):
                     bx = x0 if side == "west" else x1 - fw + 1
@@ -965,7 +1014,10 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             # pass the SAME ground test a free-form pad would - flat enough, in the band, free -
             # because a tidy grid over rolling terrain is still a build on rolling terrain.
             if plane is not None and pl_plot is not None:
-                for (bx, bz) in bays(pl_plot, size, spacing=1):
+                _gb = _plot_bounds(pl_plot)
+                _bays = sorted(bays(pl_plot, size, spacing=1),
+                               key=lambda t: -_contact(t[0], t[1], size, taken, _gb))
+                for (bx, bz) in _bays:
                     # bays() hands back where the BUILD goes; the anchor is offset from it
                     ax, az = bx - fx, bz - fz
                     if not (pl_plot.contains(bx, bz)
@@ -1019,14 +1071,54 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 cands = [(bx, bz)
                          for bz in range(pz0, pz1 - size[2] + 2)
                          for bx in range(px0, px1 - size[0] + 2)]
-                cands.sort(key=lambda t: (t[0] + size[0] // 2 - cx0) ** 2
-                                         + (t[1] + size[2] // 2 - cz0) ** 2)
+                # **BEST FIT, NOT NEAREST THE CENTRE.** Sorted by distance from the middle, every
+                # module packs inward and the leftovers are a RING - wide, thin, and never square,
+                # so the hollow reported NO SITE for its clock tower and its crypt with the plot
+                # 51% used and a brute-force sweep finding no 18x18 anywhere. Preferring a spot
+                # that HUGS what is already there - a neighbour's wall or the plot boundary -
+                # leaves the free space in one piece instead of a dozen slots too narrow to use.
+                # It is also what a street looks like: buildings shoulder to shoulder, not
+                # scattered evenly over a field.
+                _b = (px0, px1, pz0, pz1)
+                cands.sort(key=lambda t: (-_contact(t[0], t[1], size, taken, _b),
+                                          (t[0] + size[0] // 2 - cx0) ** 2
+                                          + (t[1] + size[2] // 2 - cz0) ** 2))
                 for (bx, bz) in cands:
                     if _clear(taken, bx, plane + fy, bz, size):
                         spot = (bx - fx, plane, bz - fz, 0)
                         taken_box = (bx, plane + fy, bz, bw or fw, fh, bd or fd)
                         bay = (bx, bz, bw or fw, bd or fd)
                         break
+            # **AND IF IT WILL NOT FIT ONE WAY ROUND, TURN IT.** A module that opts out of the
+            # square reservation keeps its rectangle - which is right, a 16x55 street should not
+            # book 55x55 - but it also meant a 17x19 maze was refused outright by a plot holding
+            # plenty of 19x17. `orient: False` says "do not book a square", not "never turn"; the
+            # square exists so a turn decided AFTER siting is safe, and a turn decided DURING
+            # siting needs no reservation at all because the footprint is measured at the facing
+            # it will actually be built with.
+            if spot is None and not orient and plane is not None and pl_plot is not None:
+                _f = dict(mspec.get("params", {})).get("facing", "east")
+                _alt = {"east": "north", "west": "north",
+                        "north": "east", "south": "east"}[_f]
+                _p2 = {**dict(mspec.get("params", {})), "facing": _alt}
+                afx, afy, afz, afw, afh, afd = measured_footprint(
+                    mspec["gen"], mspec["kind"], _p2, mspec["size"])
+                asize = [afw + spacing, afh, afd + spacing]
+                px0, px1, pz0, pz1 = _plot_bounds(pl_plot)
+                _b = (px0, px1, pz0, pz1)
+                acands = [(bx, bz)
+                          for bz in range(pz0, pz1 - asize[2] + 2)
+                          for bx in range(px0, px1 - asize[0] + 2)]
+                acands.sort(key=lambda t: -_contact(t[0], t[1], asize, taken, _b))
+                for (bx, bz) in acands:
+                    if _clear(taken, bx, plane + afy, bz, asize):
+                        spot = (bx - afx, plane, bz - afz, 0)
+                        taken_box = (bx, plane + afy, bz, afw, afh, afd)
+                        bay = (bx, bz, afw, afd)
+                        turned_params, fx, fy, fz = _p2, afx, afy, afz
+                        fw, fh, fd = afw, afh, afd
+                        break
+
             if spot is None and plane is None:
                 for (x, y, z, roll) in pads(sc, size, pl_plot, y_range=band, limit=4000):
                     if _clear(taken, x, y, z, size):
@@ -1054,7 +1146,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 "at": [x, y + lift, z], "size": [fw, fh, fd], "roll": roll,
                 "declared_size": list(mspec["size"]), "anchor_offset": [fx, fy, fz],
                 "floor": floors[min(int(mspec.get("floor", 0)), len(floors) - 1)]["name"],
-                "params": dict(mspec.get("params", {})),
+                "params": dict(turned_params or mspec.get("params", {})),
                 "bay": list(bay) if bay else None,
                 "square": bool(orient),
                 "world": world,

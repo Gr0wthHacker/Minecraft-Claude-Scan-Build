@@ -2,12 +2,13 @@ name: Carousel
 gen: bigwheel
 params:
   land: midway
+  diameter: 25
   mounts: 12
-  facing: south
+  facing: east
   at:
-  - 97642
+  - 97577
   - 203
-  - 80582
+  - 80647
   kind: carousel
   title: Carousel
   under: out/newisle.litematic

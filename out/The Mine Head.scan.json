@@ -1,18 +1,18 @@
 {
   "origin": {
-    "x": 97554,
+    "x": 97619,
     "y": 202,
-    "z": 80378
+    "z": 80352
   },
   "size": {
-    "x": 21,
+    "x": 19,
     "y": 22,
-    "z": 19
+    "z": 21
   },
   "generated_by": "frontiertown",
   "kind": "minehead",
   "land": "frontier",
-  "facing": "south",
+  "facing": "west",
   "contract": "a timbered adit through a spoil bank, a braced A-frame headframe with a sheave wheel and a hanging cable, and a tramway with loaded tubs on it",
   "unverified": [],
   "width": 17,

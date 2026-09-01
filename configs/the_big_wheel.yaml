@@ -2,13 +2,14 @@ name: The Big Wheel
 gen: bigwheel
 params:
   land: midway
-  spokes: 12
-  cars: 12
-  facing: east
+  diameter: 65
+  spokes: 16
+  cars: 16
+  facing: west
   at:
-  - 97608
+  - 97627
   - 203
-  - 80623
+  - 80564
   kind: wheel
   title: The Big Wheel
   under: out/newisle.litematic

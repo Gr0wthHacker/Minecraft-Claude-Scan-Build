@@ -8,7 +8,7 @@ params:
   at:
   - 97553
   - 203
-  - 80615
+  - 80563
   kind: gate
   title: Park Gate
   under: out/newisle.litematic

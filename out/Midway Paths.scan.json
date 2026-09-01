@@ -2,12 +2,12 @@
   "origin": {
     "x": 97561,
     "y": 202,
-    "z": 80556
+    "z": 80554
   },
   "size": {
-    "x": 70,
+    "x": 60,
     "y": 6,
-    "z": 89
+    "z": 91
   },
   "generated_by": "park",
   "kind": "paths",
@@ -15,9 +15,9 @@
   "facing": "east",
   "contract": "every attraction's door is joined to an avenue, and both avenues meet at the hub - so the whole network is one connected walk",
   "unverified": [],
-  "routes": 14,
-  "cells": 1189,
-  "lamps": 8,
+  "routes": 17,
+  "cells": 1241,
+  "lamps": 5,
   "file": "Midway Paths.litematic",
   "name": "Midway Paths"
 }

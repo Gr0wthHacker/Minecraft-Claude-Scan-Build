@@ -1,0 +1,24 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 202,
+    "z": 80608
+  },
+  "size": {
+    "x": 11,
+    "y": 6,
+    "z": 13
+  },
+  "generated_by": "ticketing",
+  "kind": "ticketing/queue",
+  "land": "midway",
+  "facing": "east",
+  "contract": "a switchback line: one entrance, one exit at the far end, every leg open at the end it turns at, and a canopy over the back half",
+  "unverified": [],
+  "budget": {},
+  "width": 11,
+  "depth": 9,
+  "legs": 4,
+  "file": "Entry Queue.litematic",
+  "name": "Entry Queue"
+}

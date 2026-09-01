@@ -2,11 +2,11 @@ name: Guest Services
 gen: civic
 params:
   land: midway
-  facing: north
+  facing: west
   at:
-  - 97561
+  - 97604
   - 203
-  - 80596
+  - 80565
   kind: guestservices
   title: Guest Services
   under: out/newisle.litematic

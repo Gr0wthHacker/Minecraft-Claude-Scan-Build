@@ -2,12 +2,12 @@ name: Shop Street
 gen: civic
 params:
   land: midway
-  shops: 7
+  shops: 2
   facing: east
   at:
-  - 97591
+  - 97583
   - 203
-  - 80623
+  - 80572
   kind: shopstreet
   title: Shop Street
   under: out/newisle.litematic

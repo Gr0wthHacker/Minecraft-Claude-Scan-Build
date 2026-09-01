@@ -1,0 +1,46 @@
+{
+  "origin": {
+    "x": 97608,
+    "y": 202,
+    "z": 80772
+  },
+  "size": {
+    "x": 5,
+    "y": 10,
+    "z": 5
+  },
+  "generated_by": "streetfurniture",
+  "kind": "streetfurniture/signpost",
+  "piece": "signpost",
+  "land": "hollow",
+  "facing": "west",
+  "contract": "two to four arms pointing different ways, each a full block with its sign in the cell beyond it, so every sign has something to hang on",
+  "unverified": [],
+  "arms": 3,
+  "cap": "lantern",
+  "ways": [
+    {
+      "dir": "south",
+      "h": 5,
+      "to": "FRONTIER",
+      "placed": true
+    },
+    {
+      "dir": "west",
+      "h": 4,
+      "to": "FRONTIER",
+      "placed": true
+    },
+    {
+      "dir": "north",
+      "h": 3,
+      "to": "CAROUSEL",
+      "placed": true
+    }
+  ],
+  "seed": 128092879,
+  "signs": 3,
+  "signs_placed": 3,
+  "file": "Signpost 4.litematic",
+  "name": "Signpost 4"
+}
