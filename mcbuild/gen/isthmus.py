@@ -11,7 +11,23 @@ islands should have things along the way, sculptures, or other things to visit o
 this to feel like 1 full big theme park with multiple sections." A bulge with two benches at the
 midpoint is a passing place, not a section of a park. Each span now carries five stops spaced
 along its length: two sited creatures, a still pool, a planted garden roundel, and an overlook
-platform out past the rim at the middle.
+platform out past the rim at the middle - the overlook now carrying two REAL seats and the whole
+span named at both of its own ends by a REAL threshold, not a pair of stair blocks and a lone sign.
+
+**DO NOT WRITE NEW FURNITURE OR NEW SIGNAGE EITHER.** `gen/streetfurniture.py` (bench, planter,
+lamppost, topiary, flagpole, signpost, bin) and `gen/wayfinding.py` (mapboard, fingerpost, marker,
+archway, noticeboard) are both tested generators of their own, and pasting their output is the
+same siting job a heron or a ladybird already is here - `_site_bench` and `_site_archway` do it
+exactly the way `_site_heron` does. Two things had to be added for it to work at all: `_paste` only
+ever read block STATES (`_canvas_cells` walks `canvas.ids`/`canvas.palette`), so a pasted
+`wayfinding.archway` shipped its own wall-sign block with nothing behind it - a sign is two things
+in two halves of the file, and the TEXT half lives in `canvas.tiles`, JSON-encoded, keyed in the
+sub-canvas's own LOCAL coordinates. `_paste` decodes it and re-records it in `w.signs` at the
+PASTED position, same as any sign this file places directly. And `wayfinding.archway`'s own
+`entering` is checked against `known_destinations()` - real module names, the three zone names,
+and transit station titles - so only the zone names ("FRONTIER" / "MIDWAY" / "HOLLOW") are legal
+things for an isthmus archway to say; a creature's own plaque is not a registered destination and
+stays on the plain `_sign` this file already had, exactly as it did before.
 
 **DO NOT WRITE A NEW SCULPTURE. SITE AN OLD ONE.** This repo has eight failed mammal builds and
 three that read instantly behind it, and the line between them is not species, it is
@@ -316,6 +332,25 @@ def _paste(w: World, canvas: Canvas, origin=None, keep_largest=False) -> int:
         cells = _largest_component(cells)
     for (x, y, z), (name, props) in cells.items():
         w.put(x + ox, y + oy, z + oz, name, **props)
+    # A SIGN IS TWO THINGS IN TWO HALVES OF THE FILE - `_canvas_cells` only reads the BLOCK
+    # states, so a pasted design carrying its own signage (`wayfinding`'s archway does) would
+    # ship the wall-sign block with no text at all unless the tile entity comes across too.
+    # `canvas.tiles` stores it already JSON-encoded (`Canvas.sign_text`'s own format); `World.sign`
+    # wants plain lines, so it is decoded back rather than passed through raw.
+    import json as _json
+    for (x, y, z), t in getattr(canvas, "tiles", {}).items():
+        if (x, y, z) not in cells:
+            continue          # the block did not survive `keep_largest` - no floating text either
+        def _plain(msgs):
+            out = []
+            for m in msgs:
+                try:
+                    out.append(_json.loads(m).get("text", ""))
+                except (TypeError, ValueError):
+                    out.append(str(m))
+            return out
+        w.sign(x + ox, y + oy, z + oz, front=_plain(t["front"]), back=_plain(t["back"]),
+               colour=t.get("colour", "black"), glowing=bool(t.get("glowing")))
     return len(cells)
 
 
@@ -477,6 +512,66 @@ def _site_ladybug(w, plinth_top, cx, cz, spec):
 
 _SITERS = {"heron": _site_heron, "ladybug": _site_ladybug}
 
+
+# --- real furniture and real signage, sited rather than hand-rolled: `streetfurniture.py` and
+# `wayfinding.py` are both tested generators of their own, and pasting their output is the same
+# siting job as a heron or a ladybird - not a licence to re-invent a bench or a nameplate here.
+
+def _paste_bbox(canvas: Canvas, keep_largest=False):
+    """The world-coordinate (x, z) footprint of a canvas about to be pasted, WITHOUT pasting it -
+    the caller records this so a design like an archway lintel, which legitimately bridges open
+    air between its two posts, can be told apart from an actual floating defect by anything
+    checking column-by-column contiguity (see `test_nothing_floats_between_two_terraces`)."""
+    cells = _canvas_cells(canvas)
+    if keep_largest:
+        cells = _largest_component(cells)
+    if not cells:
+        return None
+    ox, _oy, oz = canvas.world_origin
+    xs_ = [k[0] + ox for k in cells]
+    zs_ = [k[2] + oz for k in cells]
+    return [[min(xs_), min(zs_)], [max(xs_), max(zs_)]]
+
+
+def _site_bench(w, cols, cx, cz, land, side):
+    """A real seat - `streetfurniture.bench`'s own back, arm rests and pad - replacing what used
+    to be two lone stair blocks at the overlook. `side` decides which way it opens: AWAY from
+    the spine, so a sitter looks out over the drop rather than back at the walkway they just
+    crossed. The offset from (cx, cz) to the piece's own front-left corner is fixed rather than
+    measured from the randomised length `streetfurniture` picks internally - exact centring is
+    not the point, staying inside the room this stop already reserved is.
+
+    Returns (cells placed, world (x, z) bounding box) - the bbox is for bookkeeping only, so a
+    test can exclude this stop's own footprint from a check written for plain terraced ground.
+    """
+    from . import streetfurniture as sf_mod
+    info = cols.get((cx, cz))
+    if not info:
+        return 0, None
+    y = info["y"]
+    facing = "east" if side < 0 else "west"
+    at = [cx - 2 * side, y + 1, cz - 4 * side]
+    c = sf_mod.build({"kind": "bench", "at": at, "facing": facing, "land": land,
+                      "shape": "straight",
+                      "seed": (abs(int(cx)) * 7919 + abs(int(cz)) * 104729) % 1_000_003})
+    bbox = _paste_bbox(c, keep_largest=True)
+    return _paste(w, c, keep_largest=True), bbox
+
+
+def _site_archway(w, at, facing, land, entering):
+    """A real threshold - `wayfinding.archway`'s own job - naming the land you are about to walk
+    into, at the exact spot the walk actually crosses into it. Its posts stand at the two edges
+    of the widened gateway spine (`arch_width=9` matches `spine_half_wide`'s own measured nine
+    columns) and every interior column is left open, so the arch marks the walkway without ever
+    standing in it - which is exactly why its own lintel bridges open air over those columns; see
+    `_paste_bbox`'s own docstring for why that footprint is recorded rather than only its count.
+    """
+    from . import wayfinding as wf_mod
+    c = wf_mod.build({"kind": "archway", "at": list(at), "facing": facing, "land": land,
+                      "arch_width": 9, "arch_height": 5, "entering": entering})
+    bbox = _paste_bbox(c, keep_largest=True)
+    return _paste(w, c, keep_largest=True), bbox
+
 # The plinth only has to be wide enough for a creature's own feet or clod, not its wingspan or
 # its leaf - see `_site_heron`'s own note. The bulge asks for a little more than that so the
 # plinth reads as a made platform rather than a pedestal cut flush with its own footing.
@@ -528,6 +623,17 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
         stops.append((ccx, ccz, room + 4, cextra, "creature", spec))
         creature_stops.append((ccx, ccz, int(_PLINTH_HALF[kind]), spec))
 
+    # a real streetfurniture bench either side of the overlook's own centre, at the void's own
+    # midpoint rather than tuned to whatever `t` the pool/garden/creatures already occupy -
+    # nothing else in this gap sits at t=0.5 on either side.
+    bench_half = 8
+    boff, bextra = _room_for(spine_half, bench_half)
+    bench_stops = []             # (cx, cz, side)
+    for side in (-1, 1):
+        bcx = xs + side * boff
+        stops.append((bcx, mid_z, 10, bextra, "bench", {"side": side}))
+        bench_stops.append((bcx, mid_z, side))
+
     # ------------------------------------------------------------ pass 1: the footprint + height
     cols = {}
     row_half, row_spine_half = {}, {}
@@ -574,6 +680,8 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
         elif kind == "creature":
             half = next(h for (ccx, ccz, h, s) in creature_stops if s is spec)
             _flatten(cols, cx, cz, half + 3)          # the plinth PLUS a flat forecourt round it
+        elif kind == "bench":
+            _flatten(cols, cx, cz, 8)          # a level pad for a real piece, not a tuned lump
 
     # ------------------------------------------------------------ pass 2: seat every column on
     # its lowest orthogonal neighbour, and mark the true outline (`_seat` is the fix for a
@@ -623,14 +731,31 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
             rim_n += 1
             w.put(x, y + 1, z, pal["fence"])
 
+    # ------------------------------------------------------------ pass 3b: name the span at BOTH
+    # ends - a real `wayfinding.archway` at each flush join, reused rather than another hand-
+    # rolled sign. Only where the span is long enough that the two thresholds cannot reach into
+    # each other (each needs a few rows clear of its own end); every shipped gap clears this by
+    # a wide margin, and a gap too short for one is still a legal, if unmarked, causeway.
+    archways_built = []
+    if span >= 20:
+        a_lo, bbox_lo = _site_archway(w, [xs + 4, BASE_Y + 1, z_lo + 2], "south", land_a, land_a)
+        a_hi, bbox_hi = _site_archway(w, [xs - 4, BASE_Y + 1, z_hi - 2], "north", land_b, land_b)
+        archways_built = [{"end": "z_lo", "entering": land_a, "cells": a_lo, "bbox": bbox_lo},
+                          {"end": "z_hi", "entering": land_b, "cells": a_hi, "bbox": bbox_hi}]
+
     # ------------------------------------------------------------ pass 4: drifts on the shoulder,
     # excluding every stop's own footprint - a stop plants ITS OWN ground, deliberately, rather
     # than competing with a chance-picked ambient drift for the same cells.
     exclude = set()
     for (cx, cz, _zspan, _ehalf, kind, spec) in stops:
-        r = (int(p["pool_radius"]) + 2 if kind == "pool" else
-             int(p["garden_radius"]) + 2 if kind == "garden" else
-             next(h for (ccx, ccz, h, s) in creature_stops if s is spec) + 3)
+        if kind == "pool":
+            r = int(p["pool_radius"]) + 2
+        elif kind == "garden":
+            r = int(p["garden_radius"]) + 2
+        elif kind == "bench":
+            r = 9
+        else:
+            r = next(h for (ccx, ccz, h, s) in creature_stops if s is spec) + 3
         for dx in range(-r, r + 1):
             for dz in range(-r, r + 1):
                 if dx * dx + dz * dz <= r * r:
@@ -725,6 +850,20 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
         creatures_built.append({"kind": spec["kind"], "at": [ccx, top, ccz],
                                 "cells": placed, "named": plaqued})
 
+    # ------------------------------------------------------------ pass 5e: the overlook's own
+    # benches - real `streetfurniture.bench`, one either side, reused rather than the two lone
+    # stair blocks this used to be.
+    benches_built = []
+    for (bcx, bcz, side) in bench_stops:
+        info = cols.get((bcx, bcz))
+        if not info:
+            continue
+        land_here = _land_at(land_a, land_b, info["t"], seed)
+        n, bbox = _site_bench(w, cols, bcx, bcz, land_here, side)
+        if n:
+            benches_built.append({"at": [bcx, info["y"], bcz], "side": side, "cells": n,
+                                  "bbox": bbox})
+
     # ------------------------------------------------------------ pass 6: the light, last - a
     # brick grid over the WHOLE shape, not just the spine, offset row to row so no seam lines
     # up twice. Slides to the nearest column whose own cell above is clear - `transit._lamps`'s
@@ -766,6 +905,7 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
         "bench": bench_n, "named": named, "lamps": lamps, "lamps_unplaceable": missed,
         "pool": pool_n, "pool_water": pool_water, "garden": garden_n,
         "creatures": creatures_built,
+        "benches": benches_built, "archways": archways_built,
         "columns": list(cols.keys()),
     })
 
@@ -856,7 +996,9 @@ def _reach(w: World, p: dict, ctx) -> dict:
                         "nine columns where it meets them, moss shoulders that flare to meet the "
                         "plots and narrow between, a fenced rim wherever the ground actually "
                         "ends, and five stops along the way - two sited creatures, a bedded "
-                        "still pool, a planted garden and a lit overlook past the rim")
+                        "still pool, a planted garden and a lit overlook past the rim, carrying "
+                        "two real streetfurniture benches and named at both flush ends by a real "
+                        "wayfinding archway")
     return meta
 
 
@@ -878,8 +1020,10 @@ def _isthmus(w: World, p: dict, ctx) -> dict:
                         "wherever the ground gives way to the two-hundred-block drop, and five "
                         "stops on every span - two sited creatures on their own plinths, a "
                         "bedded still pool, a planted garden roundel and a lit overlook past "
-                        "the rim - so the walk between the islands is a section of the park in "
-                        "its own right rather than a gap between the real ones")
+                        "the rim carrying two real streetfurniture benches - every span named at "
+                        "both its own flush ends by a real wayfinding archway, so the walk "
+                        "between the islands is a section of the park in its own right rather "
+                        "than a gap between the real ones")
     return meta
 
 

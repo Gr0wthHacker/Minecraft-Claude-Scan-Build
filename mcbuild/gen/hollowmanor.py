@@ -1378,6 +1378,11 @@ def _clocktower(w: World, p: dict, ctx) -> dict:
                         ["UP TO THE BELL", "and the deck", "over the roofs", ""])
     return {"kind": "clocktower", "side": S, "height": top + 1, "faces": 4, "signs": signed,
             "treads": len(treads), "stair_lamps": stair_lamps,
+            # THE TREADS THEMSELVES, in WORLD coordinates, so the headroom check and the build
+            # read ONE list. Re-derived in a test from `_ring` and a remembered base course, the
+            # check agrees with the build by repeating its arithmetic - and a flight whose whole
+            # failure mode is arithmetic is the last place to allow that.
+            "tread_cells": [list(f.at(ci, cd, th)) for (ci, cd, th) in treads],
             "climb_from": list(f.at(mid, 0, 2)),
             "gallery_at": list(f.at(mid, mid - 1, BELFRY_FLOOR + 1)),
             "deck_at": list(f.at(0, S - 3, TW + 2)),

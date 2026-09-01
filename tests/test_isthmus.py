@@ -217,9 +217,23 @@ def test_nothing_floats_between_two_terraces():
     # (checked separately, in world coordinates, by `test_every_sign_has_a_block_and_a_support_
     # behind_it`) and is under no obligation to be vertically contiguous with whatever the
     # ground happens to be doing two columns away. Excluded here on that basis alone.
+    #
+    # A REAL ARCHWAY LINTEL BRIDGES OPEN AIR BY DESIGN - its two posts carry it and every column
+    # in between is deliberately left open under the walkway, which is exactly what makes it an
+    # archway rather than a wall. That is genuine 6-connectivity through the lintel's own run of
+    # cells at one Y (already proven whole by `test_one_gap_alone_is_one_connected_piece`'s real
+    # flood fill), not the terracing defect this per-COLUMN check exists to catch - so the two
+    # archways' own recorded footprints are excluded here on the same grounds as the sign.
+    excl = set()
+    for gap in c.meta["gaps_built"]:
+        for a in gap["archways"]:
+            (x0, z0), (x1, z1) = a["bbox"]
+            for x in range(x0, x1 + 1):
+                for z in range(z0, z1 + 1):
+                    excl.add((x, z))
     cols = {}
     for (x, y, z), state in cells.items():
-        if _base(state).endswith("_wall_sign"):
+        if _base(state).endswith("_wall_sign") or (x, z) in excl:
             continue
         cols.setdefault((x, z), []).append(y)
     for (x, z), ys_here in cols.items():
@@ -593,6 +607,102 @@ def test_the_gateways_get_the_full_nine_columns(built):
             covered = sum(1 for x in range(97591, 97600) if (x, 202, z) in cells)
             assert covered == 9, \
                 f"{gap['title']} z={z}: only {covered}/9 gateway columns are paved"
+
+
+# --------------------------------------------------------------------------- furniture & signage
+
+def _sign_lines(model):
+    """Every sign's own text, decoded from the tile entities `_paste` carries across - the same
+    JSON-messages shape `Canvas.sign_text` writes, read back rather than trusted blind."""
+    import json as _json
+    out = []
+    for te in model.tile_entities:
+        d = te.value
+        if d.get("id") is None or d["id"].value != "minecraft:sign":
+            continue
+        pos = (d["x"].value, d["y"].value, d["z"].value)
+        for side in ("front_text", "back_text"):
+            msgs = d[side].value["messages"].value
+            lines = [_json.loads(m.value).get("text", "") for m in msgs]
+            out.append((pos, side, lines))
+    return out
+
+
+def test_every_span_carries_two_real_benches(built):
+    """`streetfurniture.bench` reused, not two lone stair blocks - the overlook's own furniture
+    is now a real generator's output, pasted the same way a heron is."""
+    _c, _m, cells = built
+    for gap in _c.meta["gaps_built"]:
+        benches = gap["benches"]
+        assert len(benches) == 2, f"{gap['title']} does not carry two benches"
+        sides = {b["side"] for b in benches}
+        assert sides == {-1, 1}, f"{gap['title']}'s benches are not one to each side"
+        for b in benches:
+            assert b["cells"] > 30, f"bench on {gap['title']} pasted implausibly few cells"
+            (x0, z0), (x1, z1) = b["bbox"]
+            found_seat = any(
+                x0 <= x <= x1 and z0 <= z <= z1 and _base(state).endswith("_stairs")
+                for (x, y, z), state in cells.items())
+            assert found_seat, f"bench on {gap['title']} has no seat inside its own bbox"
+
+
+def test_no_bench_sits_on_the_spine(built):
+    """A bench earns its own room to the SIDE of the walkway exactly as the pool, the garden and
+    the creatures do - `_room_for`'s whole point, checked directly against the bench's own
+    recorded footprint rather than trusted from the reservation maths alone."""
+    _c, _m, _cells = built
+    for gap in _c.meta["gaps_built"]:
+        for b in gap["benches"]:
+            (x0, _z0), (x1, _z1) = b["bbox"]
+            half = isthmus.ISTHMUS["spine_half"]
+            assert x1 < isthmus.X_SPINE - half or x0 > isthmus.X_SPINE + half, \
+                f"bench bbox {b['bbox']} on {gap['title']} reaches the spine (half={half})"
+
+
+def test_every_span_is_named_at_both_ends_by_a_real_archway(built):
+    """`wayfinding.archway` reused, not another hand-rolled sign - and each end actually says
+    which land you are about to walk into, read back off the tile entity rather than assumed."""
+    c, m, cells = built
+    ox, oy, oz = c.world_origin
+    signs = _sign_lines(m)
+    for gap in c.meta["gaps_built"]:
+        archways = gap["archways"]
+        assert len(archways) == 2, f"{gap['title']} is not named at both ends"
+        ends = {a["end"] for a in archways}
+        assert ends == {"z_lo", "z_hi"}
+        for a in archways:
+            assert a["cells"] > 50, f"archway at {a['end']} of {gap['title']} pasted too little"
+            assert a["bbox"], f"archway at {a['end']} of {gap['title']} recorded no footprint"
+            (x0, z0), (x1, z1) = a["bbox"]
+            wanted = str(a["entering"]).upper()
+            hit = False
+            for (sx, sy, sz), _side, lines in signs:
+                wx, wy, wz = sx + ox, sy + oy, sz + oz
+                if x0 <= wx <= x1 and z0 <= wz <= z1 and any(wanted in ln for ln in lines):
+                    hit = True
+                    break
+            assert hit, f"no sign inside the {a['end']} archway of {gap['title']} reads " \
+                        f"{wanted!r} - got {[ln for _p, _s, ls in signs for ln in ls]}"
+
+
+def test_the_two_archways_of_a_span_name_the_near_and_far_land():
+    """The z_lo archway sits against `land_a`'s own zone and the z_hi one against `land_b`'s -
+    swapping them would put "ENTERING MIDWAY" at the frontier end."""
+    for gap in isthmus.GAPS:
+        c = isthmus.build({"kind": "reach", "gaps": gap})
+        for a in c.meta["gaps_built"][0]["archways"]:
+            expected = gap["land_a"] if a["end"] == "z_lo" else gap["land_b"]
+            assert a["entering"] == expected, \
+                f"{gap['title']} {a['end']} archway names {a['entering']!r}, wanted {expected!r}"
+
+
+def test_a_short_span_still_builds_with_no_archway():
+    """`span >= 20` is a guard, not a silent failure: a gap too short for two thresholds to clear
+    each other is still a legal causeway, just an unmarked one - checked directly rather than
+    only inferred from the shipped gaps, which are all comfortably long enough to trigger it."""
+    c = isthmus.build({"kind": "reach", "gaps": _small_gap(z_lo=5000, z_hi=5012)})
+    assert c.to_model().ids.size > 0
+    assert c.meta["gaps_built"][0]["archways"] == []
 
 
 def test_the_land_blend_is_gradual_across_the_whole_span():

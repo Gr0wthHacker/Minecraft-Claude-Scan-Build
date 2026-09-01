@@ -54,6 +54,11 @@ WAYFINDING = {
     # marker
     "name": None,
     "number": None,
+    # WHAT YOU DO THERE, up to two lines under the name. A nameplate that says only "THE VAULT"
+    # tells a visitor which building they are looking at and nothing about whether it is worth
+    # walking into - which is half of the verdict this zone was rejected on: you arrive and there
+    # is nothing to do and no idea where to go. A name answers the second half only.
+    "does": None,
     # archway
     "entering": None,
     "arch_width": 5,
@@ -284,7 +289,14 @@ def _marker(w: World, p: dict, ctx) -> dict:
     lines = [str(name).upper()[:SIGN_WIDTH]]
     if p.get("number") is not None:
         lines.append(f"NO {p['number']}"[:SIGN_WIDTH])
-    lines += [""] * (4 - len(lines))
+    # ...then what you DO there. Clipped rather than refused, because a nameplate is worth
+    # standing whatever its second line says - but the clip is at SIGN_WIDTH, which is where a
+    # line stops rendering rather than where it stops being sensible, so a caller that writes
+    # nineteen characters gets fifteen and no warning. `tests/test_wayfinding.py` pins the width.
+    does = p.get("does")
+    if does:
+        lines += [str(t)[:SIGN_WIDTH] for t in ([does] if isinstance(does, str) else does)]
+    lines = (lines + [""] * 4)[:4]
     # ONE CELL OUT FROM THE POST, not on it: `_sign` overwrites whatever is at its own cell, so
     # signing the post's own top block would replace the post with a sign and leave the sign with
     # nothing behind it. Offset outward by the facing direction, the post itself is the support.

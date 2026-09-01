@@ -163,6 +163,30 @@ def test_the_marker_carries_the_name_it_was_given():
     assert any("MINE COASTER" in line for t in w.signs.values() for line in t["front"])
 
 
+def test_the_marker_also_says_WHAT_YOU_DO_THERE():
+    """A nameplate reading only "THE VAULT" tells a visitor which building they are looking at
+    and nothing about whether it is worth going in - which is half of the verdict the Hollow was
+    rejected on. A sign has four lines and the marker was using one of them.
+
+    `does` takes a string or a list, and the four-line limit is enforced by TRUNCATION rather
+    than by a raise: a nameplate is worth standing whatever its second line says, and a raise
+    here would take the name down with the blurb.
+    """
+    w, _p, meta = _built("marker", name="Mine Coaster", does=["1 in 3", "win a prize"])
+    assert meta["signed"]
+    front = [t["front"] for t in w.signs.values()]
+    assert any(f[:3] == ["MINE COASTER", "1 in 3", "win a prize"] for f in front), front
+    for f in front:
+        assert len(f) == 4 and all(len(line) <= wf.SIGN_WIDTH for line in f)
+
+    # a name and a number still leave room for one line, and never for five
+    w2, _p2, _m2 = _built("marker", name="Mine Coaster", number=3,
+                          does=["ride it", "then ride it again", "and again"])
+    for t in w2.signs.values():
+        assert len(t["front"]) == 4
+        assert t["front"][:3] == ["MINE COASTER", "NO 3", "ride it"]
+
+
 # -------------------------------------------------------------- the destination roster
 
 def test_known_destinations_covers_every_theme_module_and_every_zone():

@@ -13,7 +13,7 @@
   "kind": "ghosttrain",
   "land": "hollow",
   "facing": "south",
-  "contract": "a closed, powered minecart loop that enters one arch, crosses a dark interior past lit set-pieces, and leaves through the other - the ride IS the attraction",
+  "contract": "a closed, powered minecart loop that enters one arch, crosses a dark interior past lit set-pieces - a barred mausoleum, two candle-lit tombs and four hung lanterns - and leaves through the other; boarded from a lit platform that is walkable from the zone's own paving",
   "unverified": [],
   "width": 21,
   "depth": 15,
@@ -21,12 +21,18 @@
   "track": 54,
   "corners": 4,
   "powered": 12,
-  "lamps": 0,
+  "lamps": 12,
   "signed": true,
+  "signs": 2,
   "boarding_at": [
     97626,
     203,
     80781
+  ],
+  "approach_at": [
+    97626,
+    203,
+    80762
   ],
   "entry_at": [
     97633,
@@ -37,6 +43,16 @@
     97619,
     203,
     80778
+  ],
+  "windows": 4,
+  "tombs": 2,
+  "chandeliers": 4,
+  "webs": 8,
+  "tomb_bounds": [
+    5,
+    15,
+    2,
+    11
   ],
   "file": "Ghost Train.litematic",
   "name": "Ghost Train"

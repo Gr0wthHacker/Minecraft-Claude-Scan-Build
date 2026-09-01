@@ -750,6 +750,141 @@ def _riverboat(w: World, p: dict, ctx) -> dict:
 
 # ---------------------------------------------------------------------- 7. ghosttrain (hollow)
 
+# The four world directions in a frame's own terms. `hollowmanor._ax` says the same thing for the
+# quarter's own kinds; a grille needs it here because a run of `iron_bars` with every side false
+# renders as a lone POST rather than as bars - the campanile's own note - so the run's axis is
+# always stated and never left to default.
+_FACE = {v: k for k, v in _STEP.items()}
+
+
+def _bars(f, along_i: bool) -> dict:
+    p = {"north": "false", "south": "false", "east": "false", "west": "false",
+         "waterlogged": "false"}
+    a, b = ((_FACE[(f.sx, f.sz)], _FACE[(-f.sx, -f.sz)]) if along_i
+            else (f.facing, f.back))
+    p[a] = p[b] = "true"
+    return p
+
+
+def _web(w, f, i, d, h) -> bool:
+    """A cobweb, ANCHORED to a cell that is already built.
+
+    A cobweb hanging in open air with nothing beside it is a floating singleton and its own
+    component - `hollowmanor._cobwebs`' note, and the same 6-connectivity trap that broke the
+    leopard's ear tips. It is also the one prop a body passes THROUGH, so it may never be placed
+    where the ride or the walk needs the cell: every call site here passes a ceiling corner or a
+    cell against the mausoleum's outer wall, never a track column.
+    """
+    x, y, z = f.at(i, d, h)
+    if w.has(x, y, z):
+        return False
+    if not any(w.has(x + a, y + b, z + c)
+               for (a, b, c) in ((1, 0, 0), (-1, 0, 0), (0, 1, 0),
+                                 (0, -1, 0), (0, 0, 1), (0, 0, -1))):
+        return False
+    w.put(x, y, z, "cobweb")
+    return True
+
+
+def _ghost_scenes(w, f, pal, ex, width, depth, height, i0, i1) -> dict:
+    """THE THING A DARK RIDE IS FOR, and this one shipped without any of it.
+
+    **MEASURED ON THE BUILD BEFORE THIS: THE WHOLE ATTRACTION CONTAINED ZERO LIGHT SOURCES.**
+    1,689 cells, and a census of them returned wool, blackstone, deepslate, rail and one sign -
+    not a lantern, not a torch, not a candle. Both places light was asked for returned False and
+    both returns were dropped on the floor:
+
+        the three interior lamps sat at h=2 in open air, with nothing under them to stand on and
+        nothing over them to hang from, so `_lamp` refused all three and `meta["lamps"]` shipped 0
+        the two platform lamps were asked for at h=2 BEFORE the post that fills h=0..2 was built,
+        so each was refused for empty air and then had a post put through its own cell
+
+    That is this repo's most-repeated failure shape - *a thing that does nothing, quietly* - and
+    it is why `_lamp` returns a bool at all. Every light placed here is counted and the count is
+    returned, so a lamp that does not land shows up as a number rather than as a dark ride.
+
+    What the rider passes, in order round the loop, is a MAUSOLEUM standing in the middle of the
+    hall: a closed tomb with a barred window on each of its four faces and a lantern burning
+    behind each grille, two raised tombs with a skull and a lit candle standing proud in the side
+    alleys, and four chained lanterns hung from the hall's own lid at the corners. Regularity and
+    openings, not damage - the void tower's rule, and the reason a lit grille reads at speed
+    where a heap of cobwebs does not.
+
+    **NOTHING HERE MAY STAND IN A TRACK COLUMN.** The loop is the perimeter `i0`/`i1` x
+    `0`/`depth-2`; the mausoleum is inset two cells from it on all four sides and every prop
+    outside it sits in the one-cell alley between, so no cell placed here is a rail cell or the
+    cell a rider's head occupies over one. `tests/test_attractions.py` asserts that against the
+    built rail set rather than against this comment.
+    """
+    mi0, mi1 = i0 + 2, i1 - 2
+    md0, md1 = 2, depth - 4
+    TOP = 3                                    # the tomb's wall head; a rider's eye is at h=1
+    out = {"lamps": 0, "webs": 0, "windows": 0, "tombs": 0, "chandeliers": 0,
+           "bounds": [mi0, mi1, md0, md1]}
+    if mi1 - mi0 < 4 or md1 - md0 < 4:
+        return out                             # no room for a centrepiece; leave the hall empty
+
+    # THE WINDOWS ARE DECIDED BEFORE THE WALL IS DRAWN, never cut out of it afterwards. `put`
+    # overwrites and cannot remove, so an opening made after the ring exists has to repaint cells
+    # that are already there - which is exactly how the void tower shipped a plain drum where it
+    # had "alternated" merlons over a course it had already filled.
+    ci, cd = (mi0 + mi1) // 2, (md0 + md1) // 2
+    lights = [(ci, md0, 1), (ci, md1, -1), (mi0, cd, 1), (mi1, cd, -1)]
+    win = {(i, d, h) for (i, d, _s) in lights for h in (1, 2)}
+
+    for i in range(mi0, mi1 + 1):
+        for d in range(md0, md1 + 1):
+            if i in (mi0, mi1) or d in (md0, md1):
+                for h in range(TOP + 1):
+                    if (i, d, h) in win:
+                        continue
+                    x, y, z = f.at(i, d, h)
+                    # weathered per CELL - hashed on the course, a course comes out all one
+                    # material and the wall is horizontal stripes (the deck soffit's own bug)
+                    w.put(x, y, z, ex["aged"] if hash01(x, y, z) < 0.18 else pal["wall"])
+            w.put(*f.at(i, d, TOP + 1), pal["trim"])          # the lid, and the tomb is closed
+
+    for (i, d, s) in lights:
+        along_i = d in (md0, md1)
+        for h in (1, 2):
+            w.put(*f.at(i, d, h), "iron_bars", **_bars(f, along_i))
+        # THE LANTERN BURNS BEHIND THE GRILLE, on a pedestal of its own. The tomb's interior
+        # floor is the module's pad at h=-1, so a lantern asked for at h=1 has nothing under it -
+        # the same refusal that left this building dark in the first place.
+        (pi, pd) = (i, d + s) if along_i else (i + s, d)
+        w.put(*f.at(pi, pd, 0), pal["trim"])
+        if _lamp(w, *f.at(pi, pd, 1), pal["light"]):
+            out["lamps"] += 1
+        out["windows"] += 1
+
+    # THE TOMBS, proud in the side alleys where a rider passes within one cell of them.
+    for (ti, td) in ((mi0 - 1, md0 + 1), (mi1 + 1, md1 - 1)):
+        w.put(*f.at(ti, td, 0), ex["aged"])
+        w.put(*f.at(ti, td + 1, 0), ex["aged"])
+        w.put(*f.at(ti, td, 1), pal["trim"])
+        w.put(*f.at(ti, td, 2), "skeleton_skull", rotation="0", powered="false")
+        w.put(*f.at(ti, td + 1, 1), "candle", candles="2", lit="true", waterlogged="false")
+        out["lamps"] += 1
+        out["tombs"] += 1
+
+    # THE CHANDELIERS. A lantern hangs from a chain, and a chain is not a full cube - so `_lamp`
+    # correctly refuses it and the hanging state is stated here instead.
+    for (hi, hd) in ((mi0 - 1, md0 - 1), (mi1 + 1, md0 - 1),
+                     (mi0 - 1, md1 + 1), (mi1 + 1, md1 + 1)):
+        for h in range(4, height):
+            _member(w, *f.at(hi, hd, h), "iron_chain", "y")
+        w.put(*f.at(hi, hd, 3), pal["light"], hanging="true", waterlogged="false")
+        out["lamps"] += 1
+        out["chandeliers"] += 1
+
+    for (bi, bd, bh) in ((1, 1, height - 1), (width - 2, 1, height - 1),
+                         (1, depth - 2, height - 1), (width - 2, depth - 2, height - 1),
+                         (mi0 - 1, md0 + 3, TOP), (mi1 + 1, md1 - 3, TOP),
+                         (mi0 + 3, md0 - 1, TOP), (mi1 - 3, md1 + 1, TOP)):
+        out["webs"] += _web(w, f, bi, bd, bh)
+    return out
+
+
 def _ghosttrain(w: World, p: dict, ctx) -> dict:
     """A RIDE. A dark-ride facade with a lit sign; track enters through one arch, loops through a
     dark interior past a few lit set-pieces, and comes back out through a second arch, closed
@@ -775,6 +910,18 @@ def _ghosttrain(w: World, p: dict, ctx) -> dict:
             for h in range(4):
                 holes.add((i, 0, h))
         holes.add((base_i, 0, 4))                # the arch's point
+    # **THE LOOP'S FRONT LEG RUNS IN THE FRONT WALL'S OWN PLANE**, so `_lay_loop` overwrites that
+    # wall's ground course with rail and the course ABOVE it stays solid - eleven cells with a
+    # block on the rider's head, which is a suffocation tunnel and not a ride. Measured: 11 of
+    # the 50 track cells had their headroom blocked, and nothing looked wrong in any render,
+    # because a wall resting on a rail draws exactly like a wall resting on the ground.
+    #
+    # The course is left OPEN instead, which costs nothing and buys the one thing this zone was
+    # rejected for lacking: **you can see the ride from the platform.** A slot at h=1 is exactly
+    # a standing player's eye level, so carts crossing the frontage are visible from the queue
+    # rather than the building being a sealed box you are told contains a ride.
+    for i in range(entry_i, exit_i + 1):
+        holes.add((i, 0, 1))
     _walls(w, f, pal, width, depth, height, openings=holes, corner=pal["post"])
     for base_i in (entry_i, exit_i):
         for i in (base_i - 1, base_i + 1):
@@ -789,12 +936,10 @@ def _ghosttrain(w: World, p: dict, ctx) -> dict:
     pts = _rect_loop_local(entry_i, exit_i, 0, depth - 2)
     loop = _lay_loop(w, f, pal, pts, 0, int(p["power_every"]), deck=ex["rock"])
 
-    # A FEW LIT SET-PIECES along the back stretch - the only light in the building, which is the
-    # point of a dark ride.
-    lamps = 0
-    for i in (entry_i + 2, (entry_i + exit_i) // 2, exit_i - 2):
-        if _lamp(w, *f.at(i, depth - 3, 2), pal["light"]):
-            lamps += 1
+    # THE SET PIECES - a mausoleum with lit grilles, tombs and chandeliers. See `_ghost_scenes`:
+    # the building measured ZERO light sources before this, inside and out.
+    scenes = _ghost_scenes(w, f, pal, ex, width, depth, height, entry_i, exit_i)
+    lamps = scenes["lamps"]
 
     # A BOARDING PLATFORM in front of the facade, outside, lit and signed. THE FLOOR IS h=-1,
     # matching `_pad` - built at h=0 it sat one course above its own margin and read as one
@@ -802,22 +947,38 @@ def _ghosttrain(w: World, p: dict, ctx) -> dict:
     for i in range(-2, width + 2):
         w.put(*f.at(i, -3, -1), pal["path"] if i % 2 else pal["ground"])
     for i in (-2, width + 1):
-        _lamp(w, *f.at(i, -3, 2), pal["light"])
+        # THE POST GOES IN BEFORE THE LAMP THAT STANDS ON IT. Asked for first, at h=2, the lamp
+        # was refused for empty air - and then the post was driven through the cell it had just
+        # been refused. Both platform lights were missing and nothing said so.
         for h in range(3):
             w.put(*f.at(i, -3, h), pal["post"])
+        if _lamp(w, *f.at(i, -3, 3), pal["light"]):
+            lamps += 1
 
     title = str(p.get("title") or "GHOST TRAIN").upper()
     signed = _sign(w, f, pal, width // 2, -1, height - 3, f.facing,
                    [title[:SIGN_WIDTH], "", "dare to ride", ""])
+    # ...and a second sign at EYE LEVEL beside the entry arch, because a name eight courses up
+    # says what the building is and not what you do at it. It hangs on the wall two columns
+    # outside the arch - the arch's own column is an OPENING, and `_sign` refuses a support that
+    # is not there rather than shipping a sign attached to nothing.
+    boarded = _sign(w, f, pal, max(0, entry_i - 2), -1, 2, f.facing,
+                    ["RIDE THE CART", "board here", "one at a time", ""])
 
     return {"kind": "ghosttrain", "width": width, "depth": depth, "height": height,
             "track": loop["track"], "corners": len(loop["corners"]),
-            "powered": len(loop["powered"]), "lamps": lamps, "signed": bool(signed),
+            "powered": len(loop["powered"]), "lamps": lamps,
+            "signed": bool(signed) and bool(boarded), "signs": int(signed) + int(boarded),
             "boarding_at": list(f.at(width // 2, -3, 0)),
+            "approach_at": list(f.at(width // 2, depth + 1, 0)),
             "entry_at": list(f.at(entry_i, 0, 0)), "exit_at": list(f.at(exit_i, 0, 0)),
+            "windows": scenes["windows"], "tombs": scenes["tombs"],
+            "chandeliers": scenes["chandeliers"], "webs": scenes["webs"],
+            "tomb_bounds": scenes["bounds"],
             "contract": "a closed, powered minecart loop that enters one arch, crosses a dark "
-                        "interior past lit set-pieces, and leaves through the other - the ride "
-                        "IS the attraction"}
+                        "interior past lit set-pieces - a barred mausoleum, two candle-lit "
+                        "tombs and four hung lanterns - and leaves through the other; boarded "
+                        "from a lit platform that is walkable from the zone's own paving"}
 
 
 # --------------------------------------------------------------------- 8. mirrormaze (hollow)
