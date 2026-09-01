@@ -1,0 +1,134 @@
+{
+  "origin": {
+    "x": 97614,
+    "y": 202,
+    "z": 80762
+  },
+  "size": {
+    "x": 23,
+    "y": 10,
+    "z": 25
+  },
+  "generated_by": "hollowmanor",
+  "kind": "ossuary",
+  "land": "hollow",
+  "facing": "south",
+  "contract": "an AND of three: the vault doors are shut and the vault lamp dark while any of the three shroud-levers is down, and open and lit only while all three are up - and each lever lights its own lamp on the way",
+  "unverified": [
+    "WHAT IS IN THE PRIZE BARRELS is the operator's business; the barrels are placed here and stocked by hand."
+  ],
+  "width": 15,
+  "depth": 17,
+  "height": 4,
+  "levers": [
+    [
+      97630,
+      205,
+      80776
+    ],
+    [
+      97628,
+      205,
+      80776
+    ],
+    [
+      97626,
+      205,
+      80776
+    ]
+  ],
+  "pull_lamps": [
+    [
+      97630,
+      206,
+      80776
+    ],
+    [
+      97628,
+      206,
+      80776
+    ],
+    [
+      97626,
+      206,
+      80776
+    ]
+  ],
+  "vault_lamp": [
+    97621,
+    204,
+    80774
+  ],
+  "lamps": 4,
+  "doors": [
+    [
+      97621,
+      205,
+      80775
+    ],
+    [
+      97620,
+      205,
+      80775
+    ]
+  ],
+  "prizes": 2,
+  "lanterns": 2,
+  "signs": 3,
+  "inputs": [
+    [
+      97630,
+      205,
+      80776
+    ],
+    [
+      97628,
+      205,
+      80776
+    ],
+    [
+      97626,
+      205,
+      80776
+    ]
+  ],
+  "outputs": [
+    [
+      97621,
+      205,
+      80775
+    ],
+    [
+      97620,
+      205,
+      80775
+    ],
+    [
+      97630,
+      206,
+      80776
+    ],
+    [
+      97628,
+      206,
+      80776
+    ],
+    [
+      97626,
+      206,
+      80776
+    ],
+    [
+      97621,
+      204,
+      80774
+    ]
+  ],
+  "entry_at": [
+    97625,
+    204,
+    80782
+  ],
+  "file": "The Ossuary.litematic",
+  "name": "The Ossuary"
+}

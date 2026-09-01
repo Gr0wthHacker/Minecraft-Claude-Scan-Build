@@ -1,0 +1,19 @@
+name: The Reliquary
+gen: arcade
+params:
+  land: hollow
+  facing: west
+  at:
+  - 97606
+  - 203
+  - 80811
+  kind: prizecounter
+  title: The Reliquary
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false
+expensive_allowance: 5
+expensive_reason: 5x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

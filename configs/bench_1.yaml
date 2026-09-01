@@ -4,9 +4,9 @@ params:
   land: hollow
   facing: west
   at:
-  - 97607
+  - 97611
   - 203
-  - 80761
+  - 80764
   kind: bench
   title: Bench 1
   under: out/islandright.litematic

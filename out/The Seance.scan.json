@@ -1,18 +1,18 @@
 {
   "origin": {
-    "x": 97624,
+    "x": 97583,
     "y": 200,
-    "z": 80828
+    "z": 80800
   },
   "size": {
-    "x": 15,
+    "x": 19,
     "y": 14,
-    "z": 19
+    "z": 15
   },
   "generated_by": "hollowmanor",
   "kind": "seance",
   "land": "hollow",
-  "facing": "west",
+  "facing": "north",
   "contract": "press the pull once and the meter answers: a roll of 1, 2 or 4 at equal odds lights exactly the first 1, 2 or 4 of four lamps, and nothing is lit at rest",
   "unverified": [
     "the odds come from the ITEM MIX, not the wiring: a dropper ejects a uniformly random one of its occupied slots. The mix is recorded in `stock` and MUST be loaded exactly - the simulator has no entities and cannot check it for you."
@@ -23,37 +23,37 @@
   "lamps": 4,
   "inputs": [
     [
-      97629,
+      97589,
       203,
-      80834
+      80805
     ]
   ],
   "outputs": [
     [
-      97633,
+      97592,
       201,
-      80837
+      80809
     ],
     [
-      97633,
+      97593,
       201,
-      80838
+      80809
     ],
     [
-      97633,
+      97594,
       201,
-      80839
+      80809
     ],
     [
-      97633,
+      97595,
       201,
-      80840
+      80809
     ]
   ],
   "rng_hopper": [
-    97634,
+    97590,
     201,
-    80835
+    80810
   ],
   "lanterns": 4,
   "stock": {

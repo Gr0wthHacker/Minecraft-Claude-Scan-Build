@@ -35,7 +35,15 @@ FACINGS = ("east", "north", "west", "south")
 # `expensive` on this economy and there is no cheap substitute: a lamp cannot be replaced by
 # colour, because the thing it does is switch. The casino budgets its lamps the same way and for
 # the same reason. Four is the whole of the Hollow's bill.
-EXPENSIVE_ALLOWANCE = {"seance": {"redstone_lamp": 4}}
+#
+# The manor's three set pieces take one lamp each, and the ossuary takes one over each of its
+# three pulls plus one in the vault. In a quarter whose walls are `black_wool` at luminance 21 a
+# lamp is not decoration - it is the only feedback a player can read from across a dark room, and
+# the alternative (a `bell`) has to be adjacent to lit dust, which in a room whose floor must stay
+# walkable there is nowhere to put. So it is priced: eleven lamps for the whole Hollow.
+EXPENSIVE_ALLOWANCE = {"seance": {"redstone_lamp": 4},
+                       "manor": {"redstone_lamp": 3},
+                       "ossuary": {"redstone_lamp": 4}}
 
 
 def _cfg(kind, land="hollow", facing="east", **kw):

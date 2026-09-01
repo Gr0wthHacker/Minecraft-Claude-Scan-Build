@@ -17,7 +17,7 @@ span named at both of its own ends by a REAL threshold, not a pair of stair bloc
 **DO NOT WRITE NEW FURNITURE OR NEW SIGNAGE EITHER.** `gen/streetfurniture.py` (bench, planter,
 lamppost, topiary, flagpole, signpost, bin) and `gen/wayfinding.py` (mapboard, fingerpost, marker,
 archway, noticeboard) are both tested generators of their own, and pasting their output is the
-same siting job a heron or a ladybird already is here - `_site_bench` and `_site_archway` do it
+same siting job a heron or a gecko already is here - `_site_bench` and `_site_archway` do it
 exactly the way `_site_heron` does. Two things had to be added for it to work at all: `_paste` only
 ever read block STATES (`_canvas_cells` walks `canvas.ids`/`canvas.palette`), so a pasted
 `wayfinding.archway` shipped its own wall-sign block with nothing behind it - a sign is two things
@@ -29,17 +29,23 @@ and transit station titles - so only the zone names ("FRONTIER" / "MIDWAY" / "HO
 things for an isthmus archway to say; a creature's own plaque is not a registered destination and
 stays on the plain `_sign` this file already had, exactly as it did before.
 
-**DO NOT WRITE A NEW SCULPTURE. SITE AN OLD ONE.** This repo has eight failed mammal builds and
-three that read instantly behind it, and the line between them is not species, it is
-PLANAR/COLUMNAR against VOLUMETRIC - a spread wing, a neck, a splayed limb, a pattern on one
-convex dome all read; four legs standing on the ground never do, at any scale (see CLAUDE.md's
-ANIMALS section). `heron.py`, `dragonfly.py` and `ladybug.py` are three of the shapes that
-passed, and none of them need a world capture to stand up - they take a world coordinate
-directly - so sitting one on a plinth here is a siting job, exactly as asked, not a modelling one.
-`turtle.py` and `frog.py` were left out on the same grounds this file already follows for every
-other choice: both hard-code a ground-probing range that assumes the lowland's own Y band, and
-patching a tested generator's internals to reuse it somewhere else is a bigger, riskier change
-than choosing a different one of the seven that already stands on its own.
+**DO NOT WRITE A NEW SCULPTURE. SITE AN OLD ONE - AND SITE FOUR DIFFERENT ONES.** This repo has
+eight failed mammal builds and three that read instantly behind it, and the line between them is
+not species, it is PLANAR/COLUMNAR against VOLUMETRIC - a spread wing, a neck, a splayed limb, a
+pattern on one convex dome all read; four legs standing on the ground never do, at any scale
+(see CLAUDE.md's ANIMALS section). `heron.py`, `bat.py`, `gecko.py` and `sloth.py` are four of
+the shapes that passed and none needs a world capture, so putting one here is a siting job
+exactly as asked, not a modelling one - see `_SITERS` for what each of them has to be given to
+stand up at all, and `GAPS` for why no two of them may be the same generator. `turtle.py`,
+`frog.py` and `axolotl.py` are left out on the standing grounds: all three take a `Ctx` world
+capture and probe a ground band that assumes the lowland's own Y, and patching a tested
+generator's internals to reuse it somewhere else is a bigger, riskier change than choosing one
+of the four that already stands on its own.
+
+**AND A SCULPTURE IS NOT TERRAIN, WHICH IS THE OTHER HALF OF SITING ONE.** Every lighting rule
+in this file is written for the SHAPE it lights, and the night sweep at the end had none - it
+replaced the block under any dark cell with a froglight, which put **1,138 lamps inside the four
+creatures' own coats** on the first shipped build and nowhere else at all. See `_delight`.
 
 **THE TWO SPANS DIFFER BECAUSE THEY LEAD SOMEWHERE DIFFERENT.** The frontier reach runs bright
 midway wool into weathered frontier spruce; the hollow reach runs midway into blackstone and
@@ -149,33 +155,57 @@ BASE_Y = 202               # the park's own floor course; flush ends must land e
 # The two gaps, measured off the shipped zones - see the module docstring's table. Each carries
 # its own pair of sited creatures, so the two spans are never twins of one another.
 #
-# `dragonfly.py` was tried and dropped: its two wing pairs are `birch_trapdoor`s placed with a
-# deliberate gap from the body and from each other ("closed birch trapdoors... need no
-# support" - its own docstring), which is a real design choice for a piece meant to be looked
-# at, not placed, and it makes the model FIVE separate components by construction, at any
-# scale. `heron.py` has the opposite problem in the other direction: it is tuned for its own
-# full size and comes apart into a dozen fragments below about scale 0.85 - "wants to be built
-# big rather than survive being small" is not a metaphor. Measured with a flood fill rather
-# than assumed, `variant=heron` and `variant=flamingo` are both ONE piece at scale 0.9 and
-# `ladybug.py` is one piece from 0.7 up - those are the numbers used below, and
-# `_site_creature`'s own largest-component filter is the second line of defence against the
-# odd stray cell (flamingo sheds a lone 2-cell fragment at its own full scale 1.0).
+# FOUR SCULPTURES, FOUR SHAPES, AND NOT ONE GENERATOR USED TWICE. The first version shipped a
+# heron and a flamingo - the same body plan off `heron.py`, differing only in colour and two
+# curves, which its own docstring says outright - and a ladybird on both spans. Four pieces
+# showing two shapes, and the verdict on seeing it was exactly that: "we dont need 2 standing
+# birds", and the ladybird had to go for its own reasons (see `_delight`). What replaces them is
+# chosen on CLAUDE.md's own measured line, PLANAR/COLUMNAR against VOLUMETRIC, not on taste:
+#
+#   heron   an upright column - stilt legs, an S-neck, a dagger bill, a layered planar wing
+#   gecko   a vertical plane  - splayed limbs and fanned toes flat on a face, read side-on
+#   bat     a horizontal sheet - a membrane one block thick on straight finger struts
+#   sloth   a body slung UNDER a line - four columnar limbs hooked over a branch
+#
+# Scales are MEASURED with a flood fill, never assumed, because every one of these generators
+# has its own fragility. `heron.py` is tuned for its full size and comes apart into a dozen
+# fragments below about scale 0.85 - "wants to be built big rather than survive being small" is
+# not a metaphor - and is one piece at 0.9. `bat.py` is one piece at 0.5, 0.55 and 0.7 and
+# sheds two two-cell wisps at 0.6, so 0.55 is what is used. `gecko.py` and `sloth.py` have no
+# scale parameter at all: their geometry is written at one size and they are each one piece
+# there. `_largest_component` is the second line of defence in every case, and any cell it
+# drops is reported rather than silently discarded.
+#
+# `dragonfly.py` was tried and dropped again, for the reason already recorded: its two wing
+# pairs are `birch_trapdoor`s placed with a deliberate gap from the body and from each other
+# ("closed birch trapdoors... need no support" - its own docstring), which is a real design
+# choice for a piece meant to be looked at rather than placed, and it makes the model FIVE
+# separate components by construction, at any scale. Bridging that gap would be editing a
+# tested generator's own silhouette to suit this file, which is not a trade worth making for
+# a fifth shape. `turtle.py`, `frog.py` and `axolotl.py` are out on the standing grounds: all
+# three take a world CAPTURE (`Ctx`) and probe a ground band that assumes the lowland's own Y.
 GAPS = [
     {"z_lo": 80450, "z_hi": 80550, "land_a": "frontier", "land_b": "midway",
      "title": "THE FRONTIER REACH",
      "creatures": [
          {"kind": "heron", "variant": "heron", "t": 0.14, "side": 1, "scale": 0.9,
-          "title": "GREY HERON", "lines": ["wades the shallows", "of the frontier", "marsh"]},
-         {"kind": "ladybug", "t": 0.86, "side": -1, "scale": 0.7,
-          "title": "LADYBIRD", "lines": ["seven spots", "on a leaf", "by the road"]},
+          "title": "GREY HERON", "lines": ["stands in the", "frontier marsh"]},
+         # brown fur and moss against spruce and cobble, hung in the air so its own outline is
+         # read against the sky rather than against the ground it never touches.
+         {"kind": "sloth", "t": 0.82, "side": -1, "clear": 5,
+          "title": "SLOTH", "lines": ["asleep on a", "bough over two", "hundred of void"]},
      ]},
     {"z_lo": 80650, "z_hi": 80750, "land_a": "midway", "land_b": "hollow",
      "title": "THE HOLLOW REACH",
      "creatures": [
-         {"kind": "heron", "variant": "flamingo", "t": 0.14, "side": 1, "scale": 0.9,
-          "title": "FLAMINGO", "lines": ["a flare of pink", "against the", "hollow dark"]},
-         {"kind": "ladybug", "t": 0.86, "side": -1, "scale": 1.0,
-          "title": "LADYBIRD", "lines": ["seven spots", "on a leaf", "in the gloom"]},
+         # a bat belongs in the hollow, and a membrane against a dark land is the one thing on
+         # this causeway that is pure outline.
+         {"kind": "bat", "t": 0.26, "side": 1, "scale": 0.7, "clear": 5,
+          "title": "GREAT BAT", "lines": ["a wing of skin", "over the gap", "to the hollow"]},
+         # lime wool on blackstone is the biggest hue flip either land can offer - the turtle's
+         # own rule, measured: a creature the colour of its ground is not a creature.
+         {"kind": "gecko", "t": 0.80, "side": -1,
+          "title": "ROCK GECKO", "lines": ["clings to stone", "head down,", "watching the road"[:15]]},
      ]},
 ]
 
@@ -316,22 +346,32 @@ def _canvas_cells(canvas: Canvas) -> dict:
             for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist())}
 
 
-def _paste(w: World, canvas: Canvas, origin=None, keep_largest=False) -> int:
+def _put_cells(w: World, cells: dict, record=None) -> int:
+    """Write a {(world x, y, z): (name, props)} mapping into `w`, optionally recording which
+    cells it claimed. `record` is what tells `_delight` a cell belongs to a SCULPTURE'S COAT and
+    is therefore not somewhere a lamp may go - see `_delight`'s own docstring."""
+    for (x, y, z), (name, props) in cells.items():
+        w.put(x, y, z, name, **props)
+        if record is not None:
+            record.add((x, y, z))
+    return len(cells)
+
+
+def _paste(w: World, canvas: Canvas, origin=None, keep_largest=False, record=None) -> int:
     """Copy an already-built `Canvas`'s cells into `w` at a world position.
 
-    This is how a sited creature reaches the causeway: `heron.py` and `ladybug.py` are both
-    tested, finished generators in their own right, and pasting their output is a siting job,
-    never a re-modelling one. `origin` overrides the canvas's own `world_origin`, for callers
-    that place it by hand rather than through a generator's own `feet`/`root` parameter.
-    `keep_largest` runs `_largest_component` first - see its own docstring for why a sited
-    creature needs it even at a scale that is otherwise safe.
+    This is how a sited creature reaches the causeway: `heron.py`, `bat.py`, `sloth.py` and
+    `gecko.py` are all tested, finished generators in their own right, and pasting their output
+    is a siting job, never a re-modelling one. `origin` overrides the canvas's own
+    `world_origin`, for callers that place it by hand rather than through a generator's own
+    `feet`/`hang` parameter. `keep_largest` runs `_largest_component` first - see its own
+    docstring for why a sited creature needs it even at a scale that is otherwise safe.
     """
     ox, oy, oz = origin if origin is not None else getattr(canvas, "world_origin", (0, 0, 0))
     cells = _canvas_cells(canvas)
     if keep_largest:
         cells = _largest_component(cells)
-    for (x, y, z), (name, props) in cells.items():
-        w.put(x + ox, y + oy, z + oz, name, **props)
+    _put_cells(w, {(x + ox, y + oy, z + oz): v for (x, y, z), v in cells.items()}, record)
     # A SIGN IS TWO THINGS IN TWO HALVES OF THE FILE - `_canvas_cells` only reads the BLOCK
     # states, so a pasted design carrying its own signage (`wayfinding`'s archway does) would
     # ship the wall-sign block with no text at all unless the tile entity comes across too.
@@ -480,10 +520,128 @@ def _plaque(w, cx, cz, plinth_top, pal, facing, title, lines):
                  [str(title)[:park.SIGN_WIDTH]] + list(lines)[:3])
 
 
-# --- sited creatures: two tested, non-mammal generators, neither of which needs a world capture
+# --- sited creatures: four tested, non-mammal generators, none of which needs a world capture,
+# and THE STRUCTURE EACH ONE NEEDS TO EXIST AT ALL.
+#
+# A CREATURE IS SITED WITH THE THING IT STANDS ON, HANGS FROM OR CLINGS TO, and that is the whole
+# of the work here. `heron.py` wants a pedestal and nothing else. `bat.py` and `sloth.py` are
+# HANGING animals - a bat's own docstring places it under a cave roof and a sloth's says to paste
+# it "with the top layer touching the underside" - and a causeway has no ceiling anywhere, so each
+# is given a beam of the land's own masonry to grip. `gecko.py` clings to a vertical face and its
+# own docstring says to "paste with the z=0 face flush against the cliff", so it is given one.
+# Every one of those is masonry this file already lays - the same siting job `_plinth` always was
+# - and not one line of any creature generator is touched.
+#
+# NO TWO OF THE FOUR SHARE A SILHOUETTE, which is the point and was the complaint: an upright
+# column (the heron), a vertical plane (the gecko on its stele), a horizontal sheet (the bat's
+# membrane) and a body slung under a bough (the sloth). Two standing birds off one generator, and
+# two ladybirds off another, was four sculptures showing two shapes.
 
-def _site_heron(w, plinth_top, cx, cz, spec):
-    """A heron (or a flamingo, via `variant`) planted foot-first on the plinth.
+BAND = "deepslate_bricks"     # THE ONE CHEAP BLOCK THAT CAN DRAW A LINE ON ANY OF THE THREE
+                              # LANDS' OWN MASONRY. Measured, because `pal["trim"]` cannot: on the
+                              # frontier, cobblestone against stone_bricks is FIVE points of
+                              # luminance and the band is invisible. deepslate_bricks is 56 off
+                              # cobblestone, 51 off stone_bricks and 26 off polished blackstone -
+                              # the same block, and the same reasoning, as the void tower's.
+
+
+_AXIS_TURN = {"x": "z", "z": "x", "y": "y"}
+_VERTICAL_PROPS = ("waterlogged", "up", "down", "half", "type", "open", "powered", "lit",
+                   "snowy", "persistent", "distance", "berries", "thickness", "age")
+
+
+def _turn(cells: dict) -> dict:
+    """A quarter turn about Y of a canvas-local cell map: (x, y, z) -> (-z, y, x).
+
+    EVERY SITED CREATURE ON THIS CAUSEWAY NEEDS ONE, AND THE FIRST BUILD OF TWO OF THEM DID NOT
+    HAVE IT. `_paste` only offsets, so a pasted generator keeps its own long axis on world X -
+    and a creature stop is itself offset along world X, which is the axis a walker on the spine
+    looks straight down. So a 39-block wingspan and a 28-block bough both came out EDGE-ON from
+    the only place anybody stands: a post and a lump. It is invisible in a plan view and obvious
+    the moment `tools/look.py` is pointed at the bearing the walkway actually gives you. The
+    gecko had already been turned by hand, for exactly this, and the rule was not generalised.
+
+    A turn is only SAFE on a block whose state does not name a horizontal direction. `axis` is
+    turned; a purely vertical property is carried through; anything else - a facing, a live wall
+    or fence connection, a hinge, a stair's shape - is REFUSED, because re-deriving those is a
+    rotation library and this is a siting helper. A fence with every connection false, which is
+    what `sloth.py` hangs its claws from, has no direction to turn and passes.
+    """
+    out = {}
+    for (x, y, z), (name, props) in cells.items():
+        turned = {}
+        for k, v in props.items():
+            if k == "axis":
+                turned[k] = _AXIS_TURN.get(v, v)
+            elif k in _VERTICAL_PROPS or (k in ("north", "south", "east", "west") and v == "false"):
+                turned[k] = v
+            else:
+                raise ValueError(f"{name} carries {k}={v!r}, which names a horizontal direction - "
+                                 f"a quarter turn cannot re-aim it, so this siting is not safe")
+        out[(-z, y, x)] = (name, turned)
+    return out
+
+
+def _y_props(name):
+    """A log or a stripped wood laid as an upright post needs its own axis said out loud;
+    everything else this file stands in a column is plain masonry."""
+    return {"axis": "y"} if name.endswith(("_log", "_wood", "_stem", "_hyphae")) else {}
+
+
+def _ground_pier(w, cols, x, z, y_top, name, band_every=0, y_from=None) -> int:
+    """Fill one column from ITS OWN ground up to `y_top`.
+
+    The causeway terraces, so a pier's foot cannot be assumed level with the plinth's - `cols`
+    is asked for the real cap height exactly as `_seat` does. A column that starts from a
+    guessed Y is the floating-structure bug this design already has a whole test for.
+    """
+    info = cols.get((x, z))
+    if not info:
+        return 0
+    props, band = _y_props(name), _y_props(BAND)
+    n = 0
+    for y in range(info["y"] + 1 if y_from is None else y_from, y_top + 1):
+        if w.has(x, y, z):
+            continue
+        if band_every and (y - info["y"]) % band_every == 0:
+            w.put(x, y, z, BAND, **band)
+        else:
+            w.put(x, y, z, name, **props)
+        n += 1
+    return n
+
+
+def creature_canvas(spec: dict, place=None) -> Canvas:
+    """The creature's OWN canvas, at exactly the scale and seed this design sites it at.
+
+    ONE ENTRY POINT, so the one-piece check in `tests/test_isthmus.py` and the siting here
+    cannot drift apart about what is actually being pasted - the same rule `proportions.measure`
+    and `rubric.score` already share, and the reason it matters is that every one of these
+    generators is fragile at some scale and the fragile scale is not the same for any two of
+    them. `place` is whatever that generator calls its own anchor: a heron's `feet`, a bat's
+    `hang`; the gecko and the sloth have neither and are placed by this file instead.
+    """
+    kind, seed = spec["kind"], spec.get("seed", 0)
+    if kind == "heron":
+        from . import heron as m
+        return m.build_heron({"variant": spec.get("variant", "heron"),
+                              "scale": float(spec.get("scale", 0.9)), "seed": seed,
+                              "feet": list(place or [0, 0, 0])})
+    if kind == "bat":
+        from . import bat as m
+        return m.build_bat({"scale": float(spec.get("scale", 0.7)), "seed": seed,
+                            "hang": list(place or [0, 0, 0])})
+    if kind == "gecko":
+        from . import gecko as m
+        return m.build({"seed": seed})
+    if kind == "sloth":
+        from . import sloth as m
+        return m.build({"seed": seed})
+    raise ValueError(f"unknown creature kind {kind!r}; have {sorted(_SITERS)}")
+
+
+def _site_heron(w, cols, top, cx, cz, spec, pal, side, record):
+    """A heron planted foot-first on the plinth.
 
     ONLY THE FEET NEED TO STAND ON SOMETHING - the neck, the wings and the tail coverts are
     already one connected piece with the legs inside `heron.py`'s own geometry (verified at
@@ -491,31 +649,131 @@ def _site_heron(w, plinth_top, cx, cz, spec):
     the plinth's own edge exactly as a real heron's silhouette does. What the plinth has to get
     right is the two leg columns, not the whole bird's footprint.
     """
-    from . import heron as heron_mod
-    scale = float(spec.get("scale", 0.9))
-    variant = spec.get("variant", "heron")
-    c = heron_mod.build_heron({"variant": variant, "scale": scale,
-                               "seed": spec.get("seed", 0),
-                               "feet": [cx, plinth_top + 1, cz]})
-    return _paste(w, c, keep_largest=True)
+    return _paste(w, creature_canvas(spec, [cx, top + 1, cz]), keep_largest=True, record=record)
 
 
-def _site_ladybug(w, plinth_top, cx, cz, spec):
-    """A ladybird - which brings its own leaf and its own rock clod, so the plinth underneath
-    is a flat place for THAT to stand on rather than the beetle itself."""
-    from . import ladybug as ladybug_mod
-    scale = float(spec.get("scale", 0.75))
-    c = ladybug_mod.build_ladybug({"scale": scale, "seed": spec.get("seed", 0),
-                                   "root": [cx, plinth_top + 1, cz]})
-    return _paste(w, c, keep_largest=True)
+def _site_gecko(w, cols, top, cx, cz, spec, pal, side, record):
+    """A gecko splayed on a STELE - a slab of the land's own masonry standing on the plinth,
+    with the lizard on the face that looks back at the walkway.
+
+    `gecko.py`'s canvas is x ALONG the wall, y up, z OUT from it, so the siting is one quarter
+    turn: the lizard's length becomes the walk's own axis and its depth becomes the walk's
+    width, which is what puts a 28-block animal on a causeway seven columns wide. The turn is
+    written out here as three coordinate lines rather than run through `_paste`, because a
+    general rotation would have to re-aim every `facing` and `axis` it met - and it is only
+    SAFE at all because the gecko is six plain wools and a moss block with no directional
+    property anywhere. That is checked, not remembered: the moment it stops being true this
+    refuses to build rather than shipping a lizard facing into its own wall.
+
+    THE STELE IS ALSO WHY THIS STOP HAS NO GLOW PROBLEM. A sculpture on a vertical face has
+    almost no upward-facing surface for a mob to stand on, so there is next to nothing for the
+    night pass to want to light - `_delight`'s own worst case, avoided by the geometry rather
+    than argued with afterwards.
+    """
+    cells = _largest_component(_canvas_cells(creature_canvas(spec)))
+    for name, props in cells.values():
+        if props:
+            raise ValueError(f"gecko.py now emits {name} with {sorted(props)} - a turned paste "
+                             f"cannot re-aim that, so this siting is no longer safe")
+    gx = [k[0] for k in cells]
+    gy = [k[1] for k in cells]
+    x0, x1, y0, y1 = min(gx), max(gx), min(gy), max(gy)
+    hw = (x1 - x0) // 2 + 2                       # the stele's half-width, along the walk
+    height = (y1 - y0) + 4                        # ...and its height above the plinth's own top
+    n = 0
+    crown = top + height
+    for dz in range(-hw, hw + 1):
+        for k in range(2):                        # two courses thick: a slab, not a wall
+            n += _ground_pier(w, cols, cx + side * k, cz + dz, crown, pal["ground"], band_every=8)
+    # THE CROWN IS A THIRTY-BLOCK FLAT ROOF AND IT LIGHTS ITSELF. Flush froglights in the top
+    # course, this island's own idiom - a lamp standing ON a stele's cap is a lamp somebody
+    # knocks off, and a cap left dark is the mob highway the whole night pass exists to stop.
+    for dz in range(-hw, hw + 1, 4):
+        w.put(cx, crown, cz + dz, LAMP)
+    face = cx - side                              # the column the lizard's own z=0 lands in
+    mid = (x0 + x1) // 2
+    n += _put_cells(w, {(face - side * z, top + 2 + (y - y0), cz + (x - mid)): v
+                        for (x, y, z), v in cells.items()}, record)
+    return n
 
 
-_SITERS = {"heron": _site_heron, "ladybug": _site_ladybug}
+def _site_bat(w, cols, top, cx, cz, spec, pal, side, record):
+    """A bat hanging under a GANTRY - two piers and a lintel, spanned wide enough that the
+    membrane clears both posts.
+
+    THE PIERS STAND OUTSIDE THE WINGSPAN, and that is measured off the bat itself rather than
+    guessed: a pier inside the span would be overwritten cell for cell by the wing pasted over
+    it and could be cut in half without anything noticing, because the design would still audit
+    as one piece through the lintel. THE WHOLE GANTRY RUNS ALONG THE WALK, not across it - see
+    `_turn`: a wingspan laid on world X points its own edge at everyone who ever looks at it.
+    """
+    c = creature_canvas(spec, [0, 0, 0])
+    ox, oy, oz = c.world_origin
+    rel = _turn({(x + ox, y + oy, z + oz): v
+                 for (x, y, z), v in _largest_component(_canvas_cells(c)).items()})
+    span = max(abs(k[2]) for k in rel)                       # half the wingspan, along the walk
+    drop = -min(k[1] for k in rel)                           # how far it hangs below its grip
+    beam = cols[(cx, cz)]["y"] + drop + int(spec.get("clear", 4))
+    pz = span + 2
+    n = 0
+    for s in (-1, 1):
+        for dx in (0, 1):
+            n += _ground_pier(w, cols, cx + dx, cz + s * pz, beam, pal["post"], band_every=6)
+    # THE LINTEL IS A FLAT ROOF THIRTY-SEVEN BLOCKS LONG AND IT HAS TO LIGHT ITSELF, so the
+    # froglights ARE part of the beam's own far course rather than something laid on it after -
+    # written the other way round the band went in first, `w.has` was then true at every one of
+    # those cells and not a single lamp was placed, silently, leaving seventy dark spawnable
+    # cells fifteen blocks over the walkway. `transit._lamps`'s own rule, in a new body.
+    for z in range(cz - pz, cz + pz + 1):
+        for dx in (0, 1):
+            if w.has(cx + dx, beam, z):
+                continue
+            lit = dx == 1 and (z - cz) % 5 == 0
+            w.put(cx + dx, beam, z, LAMP if lit else BAND, **({} if lit else _y_props(BAND)))
+            n += 1
+    return n + _put_cells(w, {(cx + kx, beam + ky, cz + kz): v
+                              for (kx, ky, kz), v in rel.items()}, record)
+
+
+def _site_sloth(w, cols, top, cx, cz, spec, pal, side, record):
+    """A sloth slung under a BOUGH, on two posts.
+
+    `sloth.py` brings its own branch - two courses of spruce log the whole length of the piece,
+    with the animal's four limbs hooked over it - so all this has to add is something to hold
+    that branch up at each end. The posts are found from the BRANCH'S OWN LOG CELLS rather than
+    from the canvas's corner: the body, the head and the limbs all hang past the branch's ends
+    in places, so a post placed off the bounding box would stand in the middle of the animal.
+    Turned a quarter (`_turn`) so the bough runs ALONG the walk, which is the only bearing from
+    which a hanging animal is anything but a lump - and which turns its own `spruce_log` axis
+    with it, because a log laid the wrong way is a bough with its grain running across it.
+    """
+    cells = _turn(_largest_component(_canvas_cells(creature_canvas(spec))))
+    ks = list(cells)
+    x0, x1 = min(k[0] for k in ks), max(k[0] for k in ks)
+    z0, z1 = min(k[2] for k in ks), max(k[2] for k in ks)
+    logs = [k for k, (nm, _p) in cells.items() if nm.endswith("_log")]
+    lz0, lz1 = min(k[2] for k in logs), max(k[2] for k in logs)
+    lx = sorted({k[0] for k in logs})
+    bough = min(k[1] for k in logs)                          # the branch's own lowest course
+    ground = cols[(cx, cz)]["y"]
+    ox = cx - (x0 + x1) // 2
+    oz = cz - (z0 + z1) // 2
+    oy = ground + int(spec.get("clear", 4)) - min(k[1] for k in ks)
+    n = 0
+    for z in (lz0, lz0 + 1, lz1 - 1, lz1):
+        for x in lx:
+            n += _ground_pier(w, cols, x + ox, z + oz, oy + bough - 1, pal["post"], band_every=6)
+    return n + _put_cells(w, {(x + ox, y + oy, z + oz): v for (x, y, z), v in cells.items()},
+                          record)
+
+
+_SITERS = {"heron": _site_heron, "gecko": _site_gecko,
+           "bat": _site_bat, "sloth": _site_sloth}
 
 
 # --- real furniture and real signage, sited rather than hand-rolled: `streetfurniture.py` and
 # `wayfinding.py` are both tested generators of their own, and pasting their output is the same
-# siting job as a heron or a ladybird - not a licence to re-invent a bench or a nameplate here.
+# siting job as a heron or a gecko - not a licence to re-invent a bench or a nameplate here.
 
 def _paste_bbox(canvas: Canvas, keep_largest=False):
     """The world-coordinate (x, z) footprint of a canvas about to be pasted, WITHOUT pasting it -
@@ -572,16 +830,39 @@ def _site_archway(w, at, facing, land, entering):
     bbox = _paste_bbox(c, keep_largest=True)
     return _paste(w, c, keep_largest=True), bbox
 
-# The plinth only has to be wide enough for a creature's own feet or clod, not its wingspan or
-# its leaf - see `_site_heron`'s own note. The bulge asks for a little more than that so the
-# plinth reads as a made platform rather than a pedestal cut flush with its own footing.
-_PLINTH_HALF = {"heron": 5, "ladybug": 6}
-_CREATURE_ROOM = {"heron": 13, "ladybug": 15}
+# The plinth only has to be wide enough for a creature's own feet, or for the foot of whatever
+# it hangs from or clings to - see `_site_heron`'s own note. The bulge asks for a good deal more
+# than that, because a gantry's piers and a stele's own footing stand well outside it and each
+# one seats on its own real ground (`_ground_pier`), which only exists where the shape does.
+#
+#   _PLINTH_HALF     the pedestal, and the block the name plaque hangs on
+#   _CREATURE_ROOM   half-width of shoulder the stop opens for itself, in BOTH axes
+#   _FLATTEN         radius levelled before the terrace is cut, so a stele's or a gantry's feet
+#                    all start from one course. The gecko's is the big one: its stele is 33
+#                    blocks long ALONG the walk, so the level patch has to be too.
+# A HANGING CREATURE WANTS A MARKER STONE, NOT A PEDESTAL. Given the heron's own
+# five-block plinth the bat and the sloth each stood over a two-course disc of the
+# land's own trim with nothing on it - an empty plinth reads as a statue somebody has
+# taken away. Three is enough to carry the name plaque and no more.
+_PLINTH_HALF = {"heron": 5, "gecko": 5, "bat": 3, "sloth": 3}
+_CREATURE_ROOM = {"heron": 13, "gecko": 15, "bat": 18, "sloth": 16}
+_FLATTEN = {"heron": 8, "gecko": 18, "bat": 21, "sloth": 16}
+# HOW FAR A STOP'S OWN STRUCTURE REACHES ALONG THE WALK, either side of its own centre.
+#
+# THIS EXISTS BECAUSE A GANTRY SHIPPED WITH ONE LEG. A span is 101 rows and a stele is 33 of
+# them; a creature sited at t=0.86 puts its far end two rows PAST the plot the causeway stops
+# against, `cols` has no column out there at all, and `_ground_pier` therefore built exactly
+# nothing - no error, no missing-cell report, and the design still audits as one piece because
+# the lintel carries it. It was visible only in a render, from the one bearing the walkway
+# gives you. The centre is CLAMPED into the span now and the clamp is recorded, so a gap too
+# short for a stop still builds and says so rather than quietly losing half a structure.
+_CREATURE_ZHALF = {"heron": 7, "gecko": 18, "bat": 22, "sloth": 16}
 
 
 # ------------------------------------------------------------------------------------ one gap
 
 def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
+    protect = meta.setdefault("protect", set())     # every cell a sited creature's COAT owns
     z_lo, z_hi = int(gap["z_lo"]), int(gap["z_hi"])
     if z_hi - z_lo < 8:
         raise ValueError("a gap needs at least 8 rows - it is not worth a shape below that")
@@ -618,7 +899,12 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
         kind = spec["kind"]
         room = int(_CREATURE_ROOM[kind])
         coff, cextra = _room_for(spine_half, room)
-        ccz = z_lo + int(round(float(spec["t"]) * span))
+        want = z_lo + int(round(float(spec["t"]) * span))
+        zh = min(int(_CREATURE_ZHALF[kind]), span // 2)
+        ccz = max(z_lo + zh, min(z_hi - zh, want))
+        if ccz != want:
+            meta.setdefault("stops_clamped", []).append(
+                {"kind": kind, "wanted_z": want, "at_z": ccz, "reach": zh})
         ccx = xs + int(spec.get("side", 1)) * coff
         stops.append((ccx, ccz, room + 4, cextra, "creature", spec))
         creature_stops.append((ccx, ccz, int(_PLINTH_HALF[kind]), spec))
@@ -678,8 +964,11 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
         elif kind == "garden":
             _flatten(cols, cx, cz, int(p["garden_radius"]) + 1)
         elif kind == "creature":
-            half = next(h for (ccx, ccz, h, s) in creature_stops if s is spec)
-            _flatten(cols, cx, cz, half + 3)          # the plinth PLUS a flat forecourt round it
+            # THE WHOLE STOP, not just the plinth: a stele is 33 blocks long along the walk and
+            # a gantry's piers stand well outside the wingspan, and each of those columns seats
+            # on its own real ground. Level it all first or the structure carrying a sculpture
+            # is the one thing on this causeway that steps.
+            _flatten(cols, cx, cz, int(_FLATTEN[spec["kind"]]))
         elif kind == "bench":
             _flatten(cols, cx, cz, 8)          # a level pad for a real piece, not a tuned lump
 
@@ -746,20 +1035,30 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
     # ------------------------------------------------------------ pass 4: drifts on the shoulder,
     # excluding every stop's own footprint - a stop plants ITS OWN ground, deliberately, rather
     # than competing with a chance-picked ambient drift for the same cells.
-    exclude = set()
+    # TWO DIFFERENT RADII, BECAUSE THEY ANSWER TWO DIFFERENT QUESTIONS. A drift must keep out of
+    # the whole levelled stop - ferns sprouting through a stele's footing is the ambient pass
+    # competing with a made thing for its own ground. The LAMP grid must not, and using the one
+    # radius for both was a real regression the moment a creature's stop grew from a nine-block
+    # plinth to a twenty-block structure: 534 columns of moss went unlit at a stroke, because
+    # "a stop lights itself" is only true of the stop's own FOOTPRINT, never of the twenty
+    # blocks of open shoulder around it.
+    exclude, light_exclude = set(), set()
     for (cx, cz, _zspan, _ehalf, kind, spec) in stops:
         if kind == "pool":
-            r = int(p["pool_radius"]) + 2
+            r = lr = int(p["pool_radius"]) + 2
         elif kind == "garden":
-            r = int(p["garden_radius"]) + 2
+            r = lr = int(p["garden_radius"]) + 2
         elif kind == "bench":
-            r = 9
+            r = lr = 9
         else:
-            r = next(h for (ccx, ccz, h, s) in creature_stops if s is spec) + 3
+            r = int(_FLATTEN[spec["kind"]]) + 2
+            lr = int(_PLINTH_HALF[spec["kind"]]) + 3
         for dx in range(-r, r + 1):
             for dz in range(-r, r + 1):
                 if dx * dx + dz * dz <= r * r:
                     exclude.add((cx + dx, cz + dz))
+                    if dx * dx + dz * dz <= lr * lr:
+                        light_exclude.add((cx + dx, cz + dz))
 
     shoulder_cells = [(x, z, info["y"]) for (x, z), info in cols.items()
                        if info["band"] != "spine" and not info["rim"] and (x, z) not in exclude]
@@ -844,11 +1143,19 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
         top = _plinth(w, cols, ccx, ccz, pal_c, half=half)
         if top is None:
             continue
-        placed = _SITERS[spec["kind"]](w, top, ccx, ccz, spec)
+        # THE COAT IS RECORDED CELL BY CELL, and that record is the whole glow fix: `_delight`
+        # is told which cells belong to a sculpture so that it can light them from beside
+        # rather than turn them into lamps. Only what the CREATURE generator placed goes in -
+        # a stele's crown or a gantry's lintel is masonry this file laid and is a perfectly
+        # good place for a flush froglight.
+        coat = set()
+        placed = _SITERS[spec["kind"]](w, cols, top, ccx, ccz, spec, pal_c,
+                                       int(spec.get("side", 1)), coat)
+        protect |= coat
         plaqued = _plaque(w, ccx, ccz, top, pal_c, "north",
                           spec.get("title") or spec["kind"].upper(), spec.get("lines") or [])
         creatures_built.append({"kind": spec["kind"], "at": [ccx, top, ccz],
-                                "cells": placed, "named": plaqued})
+                                "cells": placed, "coat": len(coat), "named": plaqued})
 
     # ------------------------------------------------------------ pass 5e: the overlook's own
     # benches - real `streetfurniture.bench`, one either side, reused rather than the two lone
@@ -883,7 +1190,7 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
                 ring = [(0, 0)] if r == 0 else [(r, 0), (-r, 0), (0, r), (0, -r)]
                 for (ddx, ddz) in ring:
                     x, z = tx + ddx, z0 + ddz
-                    if not z_lo <= z <= z_hi or (x, z) in placed_at or (x, z) in exclude:
+                    if not z_lo <= z <= z_hi or (x, z) in placed_at or (x, z) in light_exclude:
                         continue
                     info = cols.get((x, z))
                     if not info or info["rim"] or w.has(x, info["y"] + 1, z):
@@ -920,21 +1227,46 @@ def _full_states(model):
     return out
 
 
-def _delight(w: World, rounds=3) -> int:
-    """Patch every spawnable cell still dark, by turning its own supporting block into a flush
-    light - `frog.py`'s own rule ("in the skin, not on it") generalised to whatever this design
-    actually built rather than guessed at in advance.
+LICHEN = "glow_lichen"
+LICHEN_SPACING = 5       # its light is 7, so one reaches six cells of air: this is well inside
+
+
+def _delight(w: World, rounds=6, protect=frozenset()) -> dict:
+    """Patch every spawnable cell still dark - and NEVER by turning a sculpture into a lamp.
 
     A SITED CREATURE ARRIVES WITH A SURFACE THIS DESIGN DID NOT MEASURE IN ADVANCE. Every other
-    light in this file is placed by a rule written for the SHAPE it is lighting - the flush
-    grid for the terrain, one lamp in a pool's own bed, a lamp on each rim rail of the overlook
-    - and a heron's back or a ladybird's shell is neither of those; it is whatever `heron.py`
-    or `ladybug.py` happened to build. `Island Night` and `Lowland Glow` both solved their own
-    islands the same way: place, measure again, repeat, because lighting one cell can only ever
-    help its neighbours, never re-darken them, so a small fixed number of rounds converges.
+    light in this file is placed by a rule written for the SHAPE it is lighting - the flush grid
+    for the terrain, one lamp in a pool's own bed, a lamp on each rim rail of the overlook - and
+    a bat's membrane or a gecko's back is neither of those; it is whatever the creature
+    generator happened to build. So it has to be swept for afterwards, and that much was right.
+
+    WHAT WAS WRONG IS WHERE THE LIGHT WENT. This pass used to replace the dark block itself with
+    `ochre_froglight`, and on a design carrying four large sculptures it did that 1,138 times -
+    every single one of them inside a creature's coat, 299 cells of black wool, 295 of red, 147
+    of the ladybird's own leaf. Three per cent of the whole causeway was a lamp and the verdict
+    was the obvious one: the sculptures were "all glowing". `frog.py`'s "in the skin, not on it"
+    was cited for it, and that rule is about a HANDFUL of lamps a designer chose and placed; it
+    is not a licence to perforate a coat wholesale. The rule that actually governs here is
+    `Island Night`'s, and this file simply had no cost model to state it with:
+
+        a fixture ON a sculpture damages it - ordinary ground is cheap, a coat is dear
+
+    So a dark cell over ordinary ground still gets the flush froglight. A dark cell over a COAT
+    gets `glow_lichen` in the AIR above it instead - `Lowland Glow`'s own answer, arrived at for
+    exactly this and on exactly this kind of surface (it is what lit the axolotl's back). It
+    emits 7, it is passable, it is cheap and 1.19, and above all it ADDS to the sculpture rather
+    than eating it: not one cell of any creature is replaced. Because 7 carries six blocks
+    through air, they are thinned to `LICHEN_SPACING` and the model is re-propagated - so a
+    handful of them settles a whole flank, where a lamp per dark cell settled nothing but the
+    count.
+
+    Lighting a cell can only ever help its neighbours and never re-darken them, so the rounds
+    converge; `Island Night` and `Lowland Glow` both solve their own islands this way.
     """
     from .. import nightlight
-    fixed = 0
+    faces = {"down": "true", "up": "false", "north": "false", "south": "false",
+             "east": "false", "west": "false", "waterlogged": "false"}
+    out = {"ground": 0, "lichen": 0, "in_coat": 0, "left_dark": 0}
     for _ in range(rounds):
         if not w.cells:
             break
@@ -956,11 +1288,44 @@ def _delight(w: World, rounds=3) -> int:
                 if clear[y + 1, z, x] and head and light[y + 1, z, x] < 1:
                     dark.append((x + ox, y + oy, z + oz))
         if not dark:
+            out["left_dark"] = 0
             break
+        out["left_dark"] = len(dark)
+        laid = []
         for (wx, wy, wz) in dark:
-            w.put(wx, wy, wz, LAMP)
-            fixed += 1
-    return fixed
+            if (wx, wy, wz) not in protect:
+                w.put(wx, wy, wz, LAMP)                  # ordinary ground: flush, as it always was
+                out["ground"] += 1
+                continue
+            air = (wx, wy + 1, wz)
+            if air in protect or w.has(*air):
+                continue                     # a coat cell of its own overhead: the next round's
+                                              # re-propagation reaches this from a neighbour
+            if any(max(abs(air[0] - q[0]), abs(air[1] - q[1]), abs(air[2] - q[2]))
+                   < LICHEN_SPACING for q in laid):
+                continue
+            w.put(*air, LICHEN, **faces)
+            laid.append(air)
+            out["lichen"] += 1
+    out["total"] = out["ground"] + out["lichen"]
+    return out
+
+
+def _finish_light(w: World, meta: dict) -> None:
+    """Run the night sweep over everything the design built, and record what it had to do.
+
+    The COAT set is a build artifact, not a sidecar fact - it is thousands of coordinates and a
+    reader wants the counts - so it is popped rather than shipped, and what survives is the one
+    number this file now has to keep honest: how many lamps ended up inside a sculpture.
+    """
+    protect = meta.pop("protect", set())
+    d = _delight(w, protect=protect)
+    meta["delight"] = d["total"]
+    meta["delight_ground"] = d["ground"]
+    meta["delight_lichen"] = d["lichen"]
+    meta["delight_in_coat"] = sum(1 for k, (nm, _p) in w.cells.items()
+                                  if nm == LAMP and k in protect)
+    meta["spawnable_dark"] = d["left_dark"]
 
 
 # --------------------------------------------------------------------------------- the builders
@@ -988,7 +1353,7 @@ def _reach(w: World, p: dict, ctx) -> dict:
     gap = p.get("gaps") or GAPS[0]
     meta = {}
     _build_gap(w, p, gap, meta)
-    meta["delight"] = _delight(w)
+    _finish_light(w, meta)
     _check(w, p)
     meta["kind"] = "reach"
     meta["contract"] = ("a walkable causeway across one void gap: a paved spine at the avenue's "
@@ -1010,7 +1375,7 @@ def _isthmus(w: World, p: dict, ctx) -> dict:
     meta = {}
     for gap in gaps:
         _build_gap(w, p, gap, meta)
-    meta["delight"] = _delight(w)
+    _finish_light(w, meta)
     _check(w, p)
     meta["kind"] = "isthmus"
     meta["contract"] = ("the void between every pair of theme-park islands, walkable end to "

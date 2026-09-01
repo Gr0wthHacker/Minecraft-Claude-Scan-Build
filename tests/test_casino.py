@@ -633,3 +633,122 @@ def test_every_material_in_the_casino_has_a_purpose():
     got = collections.Counter(n for n, _ in layers._read("Casino Complete")[0].values())
     stray = {n: k for n, k in got.items() if n not in allowed}
     assert not stray, f"blocks with no stated purpose: {stray}"
+
+
+# --------------------------------------------------------------------------- the INPUT half
+#
+# **EVERY TEST ABOVE DRIVES THE HOPPER WITH `Circuit.fill`, WHICH STATES A ROLL RATHER THAN ROLLING
+# ONE.** That is the honest way to test the payout half - the simulator has no entities and cannot
+# eject an item - and it meant the whole INPUT half of every machine was unexercised. Two games
+# shipped with a randomiser their own button could not trigger: the button's descent ran
+# orthogonally adjacent to the pulse's delay leg for three cells, a held button parked a permanent
+# 15 on the subtract's side, the monostable never opened, the hopper never received an item and the
+# comparator read 0 for ever. `high_roller` escaped only because it is one block wider.
+#
+# A dropper firing is an EDGE, and an edge is something the simulator DOES model. So this half is
+# testable after all, and it is the assertion that was missing.
+
+
+def _roll_check(kind, outcomes):
+    c = GENERATORS["casino"].build({"at": [0, 70, 0], "kind": kind, "outcomes": outcomes,
+                                    "pit": 2, "check": False, "title": "T"}, [])
+    s = circuit.Circuit.of(c.to_model(), c.world_origin)
+    s.press(tuple(c.meta["inputs"][0]), ticks=4)
+    s.run(60)
+    return c, s
+
+
+def _dropper_over(hopper):
+    """A `circuits.randomiser` puts its dropper directly over its hopper."""
+    return (hopper[0], hopper[1] + 1, hopper[2])
+
+
+@pytest.mark.parametrize("kind", ["high_roller", "double_or_none", "lucky_number", "duel",
+                                  "wheel"])
+@pytest.mark.parametrize("outcomes", [2, 3])
+def test_a_press_actually_rolls_the_dice(kind, outcomes):
+    """ONE PRESS, ONE ROLL. Not "the payout works if you tell it the hopper is full" - the button
+    has to reach the dropper, and the dropper has to eject exactly once."""
+    c, s = _roll_check(kind, outcomes)
+    d = _dropper_over(tuple(c.meta["rng_hopper"]))
+    assert s.name(d) == "dropper", "something overwrote the randomiser"
+    assert s.fired.get(d, 0) == 1, f"{kind}/{outcomes}: the button never rolled the dice"
+
+
+@pytest.mark.parametrize("outcomes", [2, 3])
+def test_the_house_rolls_too(outcomes):
+    """The duel is TWO rolls, and the house's was not wired: the second `_link` from the pulse
+    ended on the player's own randomiser dropper, `_link` correctly refuses to overwrite a
+    component, and what was left sat one diagonal short. A diagonal is not a connection - so the
+    house's hopper stayed empty, its side of the gate read 0, and `A >= 0` is true for every A.
+    That is the machine paying on all nine combinations, which is the exact fault the game's own
+    docstring says it fixed at the gate."""
+    c, s = _roll_check("duel", outcomes)
+    house = _dropper_over(tuple(c.meta["house_hopper"]))
+    assert s.fired.get(house, 0) == 1, "the house never rolled - it would win nothing, for ever"
+
+
+def test_holding_the_button_still_rolls_only_once():
+    """A player HOLDS a button, and a held roll is a bank being emptied one item at a time."""
+    c = GENERATORS["casino"].build({"at": [0, 70, 0], "kind": "double_or_none", "outcomes": 3,
+                                    "pit": 2, "check": False, "title": "T"}, [])
+    s = circuit.Circuit.of(c.to_model(), c.world_origin)
+    s.press(tuple(c.meta["inputs"][0]), ticks=40)
+    s.run(80)
+    d = _dropper_over(tuple(c.meta["rng_hopper"]))
+    assert s.fired.get(d, 0) == 1, "a held button must be one roll, not a stream of them"
+
+
+def test_a_losing_test_must_also_prove_the_machine_can_win():
+    """**A BOUND LOOSER THAN THE BUG IS NOT A TEST.**
+    `test_the_button_run_never_touches_the_decision_run` asserted only that a LOSING roll pays
+    nothing - which a machine that cannot pay at all satisfies perfectly. Both halves, or the
+    assertion is free."""
+    for outcomes in (2, 3):
+        levels = circuits_levels(outcomes)
+        c = GENERATORS["casino"].build({"at": [0, 70, 0], "kind": "double_or_none", "pit": 2,
+                                        "outcomes": outcomes, "check": False}, [])
+        pay = tuple(c.meta["outputs"][0])
+        won = circuit.Circuit.of(c.to_model(), c.world_origin)
+        won.fill(tuple(c.meta["rng_hopper"]), max(levels))
+        won.press(tuple(c.meta["inputs"][0]), ticks=4)
+        won.run(60)
+        assert won.fired.get(pay, 0) == 1, f"{outcomes}: a winning roll paid nothing"
+
+        lost = circuit.Circuit.of(c.to_model(), c.world_origin)
+        lost.fill(tuple(c.meta["rng_hopper"]), min(levels))
+        lost.press(tuple(c.meta["inputs"][0]), ticks=4)
+        lost.run(60)
+        assert lost.fired.get(pay, 0) == 0, f"{outcomes}: a loss paid out"
+
+
+def test_the_wheels_approach_never_crosses_a_gate(facings=("east", "west", "north", "south")):
+    """THREE GATES RADIATE FROM THE HUB AND EACH READS A DECAYING LINE. A run that crosses one
+    injects 15 into the very dust whose decay is the measurement, and every roll then reads as the
+    highest - which is what happened the moment the button moved by a single cell: two pockets lit
+    on one roll. The approach comes in on `rot["south"]`, the one face with no gate on it, and
+    nothing may sit within a cell of any gate's own line."""
+    for facing in facings:
+        c = GENERATORS["casino"].build({"at": [0, 70, 0], "kind": "wheel", "pit": 2,
+                                        "check": False, "facing": facing, "title": "W"}, [])
+        s = circuit.Circuit.of(c.to_model(), c.world_origin)
+        hop = tuple(c.meta["rng_hopper"])
+        btn = tuple(c.meta["inputs"][0])
+        # the approach column: every cell between the button and the hub, at the button's course
+        ax = 0 if btn[0] == hop[0] else (1 if btn[0] > hop[0] else -1)
+        az = 0 if btn[2] == hop[2] else (1 if btn[2] > hop[2] else -1)
+        assert (ax == 0) != (az == 0), "the approach must be one straight column"
+        n = max(abs(btn[0] - hop[0]), abs(btn[2] - hop[2]))
+        for k in range(1, n):
+            cell = (hop[0] + ax * k, btn[1], hop[2] + az * k)
+            if s.name(cell) == "air":
+                continue
+            assert s.name(cell) in ("redstone_wire", "repeater", "comparator"), \
+                f"{facing}: the approach is interrupted at {cell} by {s.name(cell)}"
+        for roll in (1, 2, 4):
+            t = circuit.Circuit.of(c.to_model(), c.world_origin)
+            t.fill(hop, roll)
+            t.press(btn, ticks=4)
+            t.run(80)
+            lit = [i for i, q in enumerate(c.meta["pockets"]) if t.powered(tuple(q))]
+            assert len(lit) == 1, f"{facing}: roll {roll} lit {lit}"

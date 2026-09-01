@@ -1008,8 +1008,11 @@ def _weigh(w: World, p: dict, ctx) -> dict:
     _lay(w, pal, (judge,))
     gate = circuits.window(judge["out"], target, target + 1, facing=D["in"], side=1)
     _lay(w, pal, (gate,))
-    amp = circuits.boost((gate["out"][0] + _STEP[D["in"]][0], gate["out"][1],
-                          gate["out"][2] + _STEP[D["in"]][1]), facing=D["in"])
+    # **`next`, NOT ONE STEP ALONG THE RUN.** One step along is the cell beside the gate's own
+    # SIDE input, which carries the HIGH boolean at a full 15 - so anything put there reads the
+    # very signal the gate exists to reject, and "stop at exactly N" quietly becomes "anything at
+    # or over N", which is the shelf this game's own docstring says it is not.
+    amp = circuits.boost(gate["next"], facing=gate["face"])
     _lay(w, pal, (amp,))
     award = _award(w, pal, amp["out"], D["in"])
     # A BELL RATHER THAN A LAMP: it costs nothing on this economy, it is heard from the aisle, and
@@ -1125,8 +1128,7 @@ def _safe(w: World, p: dict, ctx) -> dict:
         _lay(w, pal, (gate,))
         # BOOSTED WHERE IT IS DECIDED. The window's own out is a level of 1; one block later it is
         # a 15 that may be routed anywhere at all.
-        amp = circuits.boost((gate["out"][0] + _STEP[D["in"]][0], gate["out"][1],
-                              gate["out"][2] + _STEP[D["in"]][1]), facing=D["in"])
+        amp = circuits.boost(gate["next"], facing=gate["face"])
         _lay(w, pal, (amp,))
         outs.append(_ij(f, amp["out"])[:2])       # (i, d) of the boosted boolean, ASKED not guessed
 

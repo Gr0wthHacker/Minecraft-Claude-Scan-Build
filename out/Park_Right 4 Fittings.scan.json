@@ -1,17 +1,18 @@
 {
   "origin": {
-    "x": 97557,
-    "y": 201,
+    "x": 97559,
+    "y": 197,
     "z": 80751
   },
   "size": {
-    "x": 82,
-    "y": 72,
-    "z": 92
+    "x": 80,
+    "y": 76,
+    "z": 94
   },
   "generated_by": "mcbuild.layers",
   "kind": "casino-layer",
-  "note": "one complete build step; layers cannot collide, so nothing defers",
+  "slice": true,
+  "note": "one build step; a SLICE of the whole, so its circuits are cut at the seam",
   "file": "Park_Right 4 Fittings.litematic",
   "name": "Park_Right 4 Fittings"
 }

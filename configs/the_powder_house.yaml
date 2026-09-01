@@ -1,0 +1,16 @@
+name: The Powder House
+gen: frontiertown
+params:
+  land: frontier
+  facing: west
+  drift: 21
+  at:
+  - 97587
+  - 203
+  - 80433
+  kind: powderhouse
+  title: The Powder House
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

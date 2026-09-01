@@ -140,7 +140,7 @@ def slice_plan(plan_name: str, floor_y: int, out_dir: str = "out",
     # "let me see everything in totality" - one file, nothing deferred, nothing hidden, which is
     # what you load when you want to look at the casino rather than build it.
     whole = f"{prefix} Complete"
-    written.append((whole, _write_layer(whole, cells, signs, out_dir)))
+    written.append((whole, _write_layer(whole, cells, signs, out_dir, whole=True)))
     for layer in LAYERS:
         got = buckets.get(layer)
         if not got:
@@ -150,7 +150,7 @@ def slice_plan(plan_name: str, floor_y: int, out_dir: str = "out",
     return written
 
 
-def _write_layer(name: str, cells: dict, signs: dict, out_dir: str) -> int:
+def _write_layer(name: str, cells: dict, signs: dict, out_dir: str, whole: bool = False) -> int:
     xs = [p[0] for p in cells]
     ys = [p[1] for p in cells]
     zs = [p[2] for p in cells]
@@ -171,7 +171,15 @@ def _write_layer(name: str, cells: dict, signs: dict, out_dir: str) -> int:
         "size": {"x": m.ids.shape[2], "y": m.ids.shape[0], "z": m.ids.shape[1]},
         "generated_by": "mcbuild.layers",
         "kind": "casino-layer",
-        "note": "one complete build step; layers cannot collide, so nothing defers",
+        # **A SLICE IS HALF A MACHINE, AND ANY CHECKER MUST BE TOLD SO.** A layer holds the part of
+        # every circuit that landed in it, so the wire crossing the floor course reads as dust with
+        # no source and the dropper above it reads as unwired - `tools/redstone_audit.py` reported
+        # 301 such faults over the layers alone, every one of them a cut rather than a defect. It
+        # is rule 2 (verify in CONTEXT, never in isolation) applied to this project's own slicing:
+        # the context for a layer is the whole.
+        "slice": not whole,
+        "note": ("the whole thing, nothing deferred" if whole else
+                 "one build step; a SLICE of the whole, so its circuits are cut at the seam"),
     }, name=name)
     work.write(path, m, (x0, y0, z0), name)
     return int((m.ids > 0).sum())

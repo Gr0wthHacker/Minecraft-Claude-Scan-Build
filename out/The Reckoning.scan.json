@@ -1,30 +1,30 @@
 {
   "origin": {
-    "x": 97556,
+    "x": 97623,
     "y": 197,
-    "z": 80806
+    "z": 80752
   },
   "size": {
-    "x": 17,
+    "x": 16,
     "y": 12,
     "z": 9
   },
   "generated_by": "casino",
   "kind": "casino/lucky_number",
-  "facing": "east",
+  "facing": "west",
   "contract": "press once; pays ONLY on exactly 2 (1 in 3)",
   "inputs": [
     [
-      97560,
+      97634,
       204,
-      80810
+      80756
     ]
   ],
   "outputs": [
     [
-      97571,
+      97625,
       199,
-      80808
+      80759
     ]
   ],
   "unverified": [
@@ -33,9 +33,9 @@
   "budget": {},
   "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
   "rng_hopper": [
-    97565,
+    97629,
     199,
-    80812
+    80754
   ],
   "win_level": 2,
   "stock": {

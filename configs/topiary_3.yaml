@@ -4,7 +4,7 @@ params:
   land: hollow
   facing: west
   at:
-  - 97606
+  - 97610
   - 203
   - 80774
   kind: topiary

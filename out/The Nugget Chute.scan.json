@@ -1,0 +1,226 @@
+{
+  "origin": {
+    "x": 97552,
+    "y": 202,
+    "z": 80396
+  },
+  "size": {
+    "x": 17,
+    "y": 17,
+    "z": 18
+  },
+  "generated_by": "arcade",
+  "kind": "plinko",
+  "footprint": [
+    18,
+    17
+  ],
+  "courses": [
+    -1,
+    15
+  ],
+  "land": "frontier",
+  "facing": "east",
+  "contract": "5 channels; a ball read by channel k pays [3, 2, 1, 2, 3] prizes from that channel alone, exactly once per ball, and nothing from any other",
+  "unverified": [
+    "WHERE THE BALL LANDS is Minecraft's item physics, which this simulator has no entities to model. The board is real and the pegs are staggered; the distribution is the game's own and must be watched in world, exactly as the dropper randomiser's odds are."
+  ],
+  "budget": {},
+  "width": 16,
+  "depth": 15,
+  "height": 16,
+  "lanes": 5,
+  "pegs": 56,
+  "prizes": [
+    3,
+    2,
+    1,
+    2,
+    3
+  ],
+  "hoppers": [
+    [
+      97566,
+      203,
+      80411
+    ],
+    [
+      97566,
+      203,
+      80408
+    ],
+    [
+      97566,
+      203,
+      80405
+    ],
+    [
+      97566,
+      203,
+      80402
+    ],
+    [
+      97566,
+      203,
+      80399
+    ]
+  ],
+  "droppers": [
+    [
+      [
+        97558,
+        204,
+        80411
+      ],
+      [
+        97557,
+        204,
+        80411
+      ],
+      [
+        97556,
+        204,
+        80411
+      ]
+    ],
+    [
+      [
+        97558,
+        204,
+        80408
+      ],
+      [
+        97557,
+        204,
+        80408
+      ]
+    ],
+    [
+      [
+        97558,
+        204,
+        80405
+      ]
+    ],
+    [
+      [
+        97558,
+        204,
+        80402
+      ],
+      [
+        97557,
+        204,
+        80402
+      ]
+    ],
+    [
+      [
+        97558,
+        204,
+        80399
+      ],
+      [
+        97557,
+        204,
+        80399
+      ],
+      [
+        97556,
+        204,
+        80399
+      ]
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97566,
+      203,
+      80411
+    ],
+    [
+      97566,
+      203,
+      80408
+    ],
+    [
+      97566,
+      203,
+      80405
+    ],
+    [
+      97566,
+      203,
+      80402
+    ],
+    [
+      97566,
+      203,
+      80399
+    ]
+  ],
+  "outputs": [
+    [
+      97558,
+      204,
+      80411
+    ],
+    [
+      97557,
+      204,
+      80411
+    ],
+    [
+      97556,
+      204,
+      80411
+    ],
+    [
+      97558,
+      204,
+      80408
+    ],
+    [
+      97557,
+      204,
+      80408
+    ],
+    [
+      97558,
+      204,
+      80405
+    ],
+    [
+      97558,
+      204,
+      80402
+    ],
+    [
+      97557,
+      204,
+      80402
+    ],
+    [
+      97558,
+      204,
+      80399
+    ],
+    [
+      97557,
+      204,
+      80399
+    ],
+    [
+      97556,
+      204,
+      80399
+    ]
+  ],
+  "stock": {
+    "each lane's droppers": "the prize that channel pays",
+    "the player": "a ball to drop - an egg, a snowball, any item"
+  },
+  "file": "The Nugget Chute.litematic",
+  "name": "The Nugget Chute"
+}

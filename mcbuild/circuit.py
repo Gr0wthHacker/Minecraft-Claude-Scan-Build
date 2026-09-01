@@ -231,7 +231,20 @@ class Circuit:
                        "light_weighted_pressure_plate", "heavy_weighted_pressure_plate"):
                 if self.inputs.get(pos):
                     emit[pos] = MAX_POWER
-                    att = self._attachment(pos, c.prop("face", "wall"), c.prop("facing", "north"))
+                    # **A PRESSURE PLATE HAS NO `face` PROPERTY, AND THE DEFAULT WAS "wall".**
+                    # A plate lies on the ground and strongly powers the block BENEATH it
+                    # (minecraft.wiki, Redstone mechanics); read through `_attachment` with a
+                    # made-up wall face it strongly powered a cell to one SIDE instead, decided by
+                    # a `facing` the block does not have either. So a plate could power a lamp
+                    # beside it - `emit` reaches all six neighbours and that part was right - and
+                    # could never feed dust under its own support, which is where a hidden machine
+                    # has to take its trigger from. Legal states, correct blocks, and a set piece
+                    # that cannot fire.
+                    if n.endswith("_pressure_plate"):
+                        att = (pos[0], pos[1] - 1, pos[2])
+                    else:
+                        att = self._attachment(pos, c.prop("face", "wall"),
+                                               c.prop("facing", "north"))
                     if att is not None:
                         into[att] = MAX_POWER
             elif n in ("redstone_torch", "redstone_wall_torch"):
@@ -402,7 +415,7 @@ class Circuit:
                 if self._locked(pos, c, src):
                     continue                                   # a locked repeater holds its state
                 back = self._back(pos, c)
-                want[pos] = self._drives(back, src)
+                want[pos] = self._drives(back, src, pos)
             elif n == "comparator":
                 want[pos] = self._comparator_out(pos, c, src)
             elif n == "observer":
@@ -452,11 +465,53 @@ class Circuit:
             out[pos] = on
         return out
 
-    def _drives(self, pos, src: dict) -> bool:
+    def _drives(self, pos, src: dict, reader=None) -> bool:
         """Is this cell delivering a signal INTO a component that reads it."""
         if self.name(pos) == "redstone_wire":
             return self.power.get(pos, 0) > 0
+        aimed = self._aimed(pos, src, reader)
+        if aimed is not None:
+            return aimed > 0
         return self._block_power(pos, src) > 0
+
+    def _aimed(self, pos, src: dict, reader) -> int | None:
+        """What a repeater/comparator at `pos` delivers to `reader` — None if it is neither.
+
+        **A REPEATER IS NOT A CONDUCTOR, AND READING AMBIENT POWER AT ITS CELL IS A LEAK.** Both
+        `_read` and `_drives` used to fall through to `_block_power(pos)`, which is the maximum of
+        everything touching that cell — so a repeater standing beside an unrelated dust run
+        reported that run's level to whatever was reading it. Measured on `circuits.window(5, 9)`,
+        the gate's side input read 12 instead of the repeater's own 15 and the subtract gave
+        `15 - 12 = 3`: the gate PASSED a level it exists to block, quietly and by three, and the
+        machine's own test could not see it because the simulator and the build agreed.
+
+        A repeater or comparator outputs only out of its FRONT, and only into the cell it faces.
+        Read from anywhere else it is a solid obstruction carrying nothing, which is what 0 means
+        here. That distinction is the same one `_sources` already draws between `emit` and `into`;
+        it simply was not applied to the two places that read a neighbour.
+        """
+        c = self.at(pos)
+        if c is None:
+            # **AN EMPTY CELL IS NOT AN INPUT.** `_block_power` answers "how hard is this cell
+            # driven", which for AIR is the maximum of everything touching it - and that is right
+            # for quasi-connectivity, where the game really does read the empty cell above a
+            # piston. It is quite wrong for a component's own back or side: dust running past a
+            # comparator one cell out is DIAGONAL to it and powers nothing, and the game knows it.
+            #
+            # Read the other way, the casino's pulse had a permanent 14 on its subtract's side the
+            # moment the button's descent passed within two cells - so the monostable never opened,
+            # the randomiser's dropper was never triggered, its hopper never received an item, and
+            # `double_or_none` and `lucky_number` could not pay at any odds. They shipped that way,
+            # and every test drove the hopper with `fill`, which states a roll rather than rolling
+            # one, so the entire input half of both machines was unexercised.
+            return 0
+        if c.name not in ("repeater", "comparator"):
+            return None
+        if reader is not None and self._front(pos, c) != reader:
+            return 0
+        if c.name == "repeater":
+            return MAX_POWER if self.state.get(pos, False) else 0
+        return int(self.state.get(pos, 0) or 0)
 
     def _locked(self, pos, c: Cell, src: dict) -> bool:
         """A repeater is LOCKED by a powered repeater or comparator pointing into its side.
@@ -476,22 +531,29 @@ class Circuit:
 
     def _comparator_out(self, pos, c: Cell, src: dict) -> int:
         back = self._back(pos, c)
-        rear = self._read(back, src)
+        rear = self._read(back, src, pos)
         side = 0
         for s in self._sides(pos, c):
-            side = max(side, self._read(s, src))
+            side = max(side, self._read(s, src, pos))
         if c.prop("mode", "compare") == "subtract":
             return max(0, rear - side)
         return rear if rear >= side else 0
 
-    def _read(self, pos, src: dict) -> int:
-        """Signal strength a comparator reads from this cell, container fullness included."""
+    def _read(self, pos, src: dict, reader=None) -> int:
+        """Signal strength a comparator at `reader` reads from this cell.
+
+        `reader` is not decoration: a repeater or comparator at `pos` delivers 15 (or its own
+        output) ONLY into the cell it faces, and nothing at all anywhere else. See `_aimed`.
+        """
         n = self.name(pos)
         if n == "redstone_wire":
             return self.power.get(pos, 0)
         fill = self.container.get(pos)
         if fill is not None:
             return int(fill)
+        aimed = self._aimed(pos, src, reader)
+        if aimed is not None:
+            return aimed
         return self._block_power(pos, src)
 
     # Container fullness is an INPUT, not something that fills itself: this simulator has no

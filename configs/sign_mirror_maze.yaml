@@ -8,9 +8,9 @@ params:
   - find your way
   - no way back
   at:
-  - 97574
+  - 97634
   - 203
-  - 80806
+  - 80810
   kind: marker
   title: Sign Mirror Maze
   under: out/islandright.litematic

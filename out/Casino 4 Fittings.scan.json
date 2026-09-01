@@ -11,7 +11,8 @@
   },
   "generated_by": "mcbuild.layers",
   "kind": "casino-layer",
-  "note": "one complete build step; layers cannot collide, so nothing defers",
+  "slice": true,
+  "note": "one build step; a SLICE of the whole, so its circuits are cut at the seam",
   "file": "Casino 4 Fittings.litematic",
   "name": "Casino 4 Fittings"
 }

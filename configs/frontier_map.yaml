@@ -6,9 +6,9 @@ params:
   title: Frontier Map
   facing: west
   at:
-  - 97606
+  - 97638
   - 203
-  - 80432
+  - 80408
   kind: mapboard
   under: out/islandleft.litematic
 finish:

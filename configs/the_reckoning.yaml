@@ -4,12 +4,12 @@ params:
   land: hollow
   outcomes: 3
   pit: 2
-  facing: east
+  facing: west
   booth: true
   at:
-  - 97562
+  - 97632
   - 203
-  - 80812
+  - 80754
   kind: lucky_number
   title: The Reckoning
   under: out/islandright.litematic

@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97573,
+    "x": 97637,
     "y": 202,
-    "z": 80801
+    "z": 80809
   },
   "size": {
     "x": 3,
@@ -12,7 +12,7 @@
   "generated_by": "wayfinding",
   "kind": "marker",
   "land": "hollow",
-  "facing": "east",
+  "facing": "north",
   "contract": "a nameplate for one attraction, standing beside its door",
   "name": "Sign The Plummet",
   "signed": true,

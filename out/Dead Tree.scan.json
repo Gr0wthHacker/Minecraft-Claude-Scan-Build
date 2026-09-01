@@ -1,18 +1,18 @@
 {
   "origin": {
-    "x": 97600,
+    "x": 97601,
     "y": 202,
-    "z": 80787
+    "z": 80829
   },
   "size": {
-    "x": 14,
-    "y": 16,
+    "x": 13,
+    "y": 17,
     "z": 13
   },
   "generated_by": "hollowmanor",
   "kind": "deadtree",
   "land": "hollow",
-  "facing": "south",
+  "facing": "west",
   "contract": "a tapering leaning trunk with six branches, every one of them walked one axis at a time so the whole tree is a single 6-connected piece",
   "unverified": [],
   "height": 15,

@@ -3,10 +3,12 @@ gen: attractions
 params:
   land: hollow
   facing: west
+  maze_w: 4
+  maze_d: 4
   at:
-  - 97624
+  - 97603
   - 203
-  - 80811
+  - 80775
   kind: mirrormaze
   title: Mirror Maze
   under: out/islandright.litematic

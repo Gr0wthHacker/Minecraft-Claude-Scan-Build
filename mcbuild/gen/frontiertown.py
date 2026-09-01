@@ -49,6 +49,8 @@ toward the building it grows out of.
 from __future__ import annotations
 
 from .. import blocks, circuit, fluids, walk
+from . import circuits
+from .arcade import _dirs, _ij, _lay, _line
 from .canvas import Canvas, hash01
 from .park import LANDS, SIGN_WIDTH, _Frame, _STEP, _hang_light, _sign
 from .vertical import Ctx, World
@@ -95,6 +97,7 @@ FRONTIER = {
     "height": None,             # watertower / windmill: overall reach, floored per kind
     "shops": 5,                 # falsefront: how many storefronts in the row
     "length": 24,               # trestlebridge: how far it spans
+    "drift": 21,                # powderhouse: how far the heading runs from the mouth
     "deck": 8,                  # trestlebridge: how high the deck rides over its own ground
     "min_run": 3,               # a trim course shorter than this is not drawn at all
     "sign": True,
@@ -388,6 +391,112 @@ def _saloon_fitout(w: World, f, pal, ex, W, D, DECK, ROOF, seed) -> dict:
     return out
 
 
+def _saloon_table(w: World, f, pal, ex, W, D, seed) -> dict:
+    """THE FARO TABLE - the one thing in the saloon you can actually PLAY.
+
+    The saloon was the best room in the zone and its honest answer to *what do you DO here* was
+    still "look at the furniture": a bar with no barkeep, beds nobody sleeps in, a piano that is a
+    silhouette. A saloon is where a frontier town GAMBLES, so this is a card game with a real
+    machine behind it - two decks turned at once, high card takes it.
+
+    **THE MECHANIC IS `circuits.duel`, AND THE ODDS ARE COUNTABLE**, which is this project's bar
+    for shipping a game at all. A comparator in COMPARE mode passes its back when back >= side, so
+    out of the three-outcome mix {1, 2, 4} there are nine equally likely pairs and six have
+    yours >= the house's: **6 in 9, and ties go to the player**. Anything outside `RNG_MIXES`
+    would be odds nobody has measured, and a house that does not know its odds loses money.
+
+    **THE HOUSE'S ROLL IS PRODUCED ADJACENT TO THE GATE, NEVER ROUTED TO IT.** An analog value
+    cannot travel: the casino's first duel put the house on a lane of its own and linked it in,
+    dust decayed the level to zero, and `A >= 0` is true for every A - it paid on all nine
+    combinations and looked like a working machine doing it.
+
+    **THE POT IS A DROPPER, NOT A PISTON**, and that is an edge-safety decision rather than a
+    stylistic one. A comparator reads a hopper for as long as the card sits in it, so anything
+    driven by a LEVEL stays driven: a piston would thump once and then stand there extended. A
+    dropper fires on a RISING EDGE, so a held reading pays exactly one chip - the same rule
+    `circuits.payout` states and the reason the casino runs every lane through it.
+
+    IT IS A ONE-COURSE PODIUM, not a pit. Every machine pit in this project has cost a floating
+    floor - `arcade._reaction`'s own button climb replaces four cells of its play floor with dust,
+    and a dust cell is not something a player can stand on. Here the gear is set INTO a table a
+    single course proud of the boards, which a player steps onto in one stride and can read.
+
+    Built AFTER `_saloon_fitout` on purpose: `World.put` overwrites, so whichever runs last wins,
+    and the table's own cells are the ones that must survive a chair landing on them.
+    """
+    D_ = _dirs(f.facing)
+    gi, gd = 3, 3                       # the gate's own cell, in the room's front-left quarter
+
+    rnd = circuits.randomiser(f.at(gi, gd, 1), outputs=3, facing=D_["i+"])
+    _lay(w, pal, (rnd,))
+    gate = circuits.duel(f.at(gi + 3, gd, 0), facing=D_["i+"])
+    _lay(w, pal, (gate,))
+    for cell in (gate["back"], gate["side"], gate["out"]):
+        if not w.has(*cell):
+            w.put(cell[0], cell[1], cell[2], "redstone_wire")
+
+    # A randomiser's comparator sits one step along `facing` from its hopper and fires the same
+    # way, so two steps back from the gate's side puts its output exactly ON that side.
+    si, sd, _sh = _ij(f, gate["side"])
+    house = circuits.randomiser(f.at(si - 2, sd, 1), outputs=3, facing=D_["i+"])
+    _lay(w, pal, (house,))
+
+    # ONE BUTTON TURNS BOTH CARDS. Two buttons would be two games at one table.
+    btn = f.at(gi - 2, gd, 1)
+    w.put(*f.at(gi - 2, gd, 0), pal["accent"])
+    w.put(btn[0], btn[1], btn[2], "stone_button", face="floor",
+          facing=f.facing, powered="false")
+    hi, hd, _hh = _ij(f, house["in"])
+    for (ti, td) in ((gi - 1, gd), (gi - 1, hd), (hi, hd)):
+        if not w.has(*f.at(ti, td, 1)):
+            w.put(*f.at(ti, td, 1), "redstone_wire")
+
+    # THE PAY LINE. `boost` first, because a roll of 1 reaches exactly one block of dust and
+    # arrives nowhere - the same reason `arcade._award` amplifies before it pulses.
+    oi, od, _oh = _ij(f, gate["out"])
+    amp = circuits.boost(f.at(oi + 1, gd, 0), facing=D_["i+"])
+    _lay(w, pal, (amp,))
+    for k in (2, 3):
+        if not w.has(*f.at(oi + k, gd, 0)):
+            w.put(*f.at(oi + k, gd, 0), "redstone_wire")
+    pot = f.at(oi + 3, gd, 1)
+    w.put(pot[0], pot[1], pot[2], "dropper", facing="up", triggered="false")
+    bell = f.at(oi + 2, hd, 0)
+    w.put(bell[0], bell[1], bell[2], "bell", facing=f.facing,
+          attachment="floor", powered="false")
+
+    # THE TABLE, filled AROUND the gear - never over it - and stopped short of the door lane and
+    # of the room's own furniture. Green baize is not a block this economy has; what a faro layout
+    # actually reads as is a chequer, so it is one.
+    lo_d, hi_d = min(gd, hd) - 1, max(gd, hd) + 1
+    laid = 0
+    for i in range(1, oi + 4):
+        for d in range(lo_d, hi_d + 1):
+            if not (1 <= i <= W - 2 and 2 <= d <= D - 3):
+                continue
+            if not w.has(*f.at(i, d, 0)):
+                w.put(*f.at(i, d, 0), pal["trim"] if (i + d) % 2 else ex["worn"])
+                laid += 1
+    # TWO CHAIRS, DRAWN UP TO THE TABLE. A chair is a stair looking AT what you sit at - the same
+    # convention `_table` and the bar stools already use, and our renderer draws a stair the same
+    # both ways round, so it is reasoned rather than eyeballed. The seats go at the near edge in
+    # the row BEYOND the layout, which is the side a player walks in on.
+    chairs = 0
+    for ci in (gi, oi + 1):
+        seat = f.at(ci, hi_d + 1, 0)
+        if 1 <= ci <= W - 2 and hi_d + 1 <= D - 3 and not w.has(*seat):
+            _stair(w, f, ci, hi_d + 1, 0, pal["stair"], f.facing, "bottom")
+            chairs += 1
+
+    return {"table_button": list(btn), "table_pot": list(pot), "table_bell": list(bell),
+            "table_gate": list(gate["out"]), "table_cells": laid, "table_chairs": chairs,
+            "player_hopper": list(rnd["hopper"]), "house_hopper": list(house["hopper"]),
+            "table_stock": {"the deal": rnd["stock"], "the house": house["stock"]},
+            "table_contract": ("one button turns two cards out of the same three-outcome mix; "
+                               "the pot pays and the bell rings when yours is at least the "
+                               "house's - 6 in 9, ties to the player")}
+
+
 def _saloon(w: World, p: dict, ctx) -> dict:
     """TWO STOREYS, A FALSE FRONT, A PORCH AND A BALCONY - the town's one big building.
 
@@ -528,6 +637,10 @@ def _saloon(w: World, p: dict, ctx) -> dict:
         _hang_light(w, f, pal, i, -P + 1, DECK - 2)
 
     fitted = _saloon_fitout(w, f, pal, ex, W, D, DECK, ROOF, seed) if p.get("fitout", True) else {}
+    # AFTER the fit-out, deliberately: `World.put` overwrites, so the last writer wins, and the
+    # table's own cells are the ones that must survive a chair landing on them.
+    if p.get("game", True):
+        fitted.update(_saloon_table(w, f, pal, ex, W, D, seed))
 
     # ---- signs. The big one goes on the false front, where the centre column is tallest.
     title = str(p.get("title") or "SALOON").upper()
@@ -545,8 +658,11 @@ def _saloon(w: World, p: dict, ctx) -> dict:
     if fitted:
         cells = {pos: name for pos, (name, _pr) in w.cells.items()}
         reach = walk.reachable(cells, f.at(W // 2, -(P + 1), 0))
-        for leg, target in (("the bar", f.at(2, D - 3, 0)),
-                            ("the first floor", f.at(W - 8, D - 3, DECK + 1))):
+        legs = [("the bar", f.at(2, D - 3, 0)),
+                ("the first floor", f.at(W - 8, D - 3, DECK + 1))]
+        if fitted.get("table_button"):
+            legs.append(("the card table", tuple(fitted["table_button"])))
+        for leg, target in legs:
             if target not in reach:
                 raise ValueError(f"the saloon's {leg} at {target} cannot be walked to from the "
                                  f"street; {len(reach)} cells reachable")
@@ -1058,6 +1174,13 @@ def _sluice(w: World, p: dict, ctx) -> dict:
             "piston": list(f.at(*piston)), "comparator": list(f.at(*cmp_)),
             "basin": [list(c) for c in sorted(envelope)],
             "head_box": list(f.at(ci, d0, bed(d0) + 2)),
+            # **WHAT A PLAYER TOUCHES AND WHAT THEY SEE, SAID OUT LOUD.** Not every input is a
+            # switch: this one is a shovelful of gravel tipped into the head box, and a checker
+            # that counts buttons calls a working machine "nothing to press" -
+            # `tools/redstone_audit.py` did exactly that. `inputs`/`outputs` are the same two keys
+            # every arcade and casino machine records, and they are what the census reads.
+            "inputs": [list(f.at(ci, d0, bed(d0) + 2))],
+            "outputs": [list(f.at(*bell)), list(f.at(*piston)), list(f.at(*barrel))],
             "flow": {k: v for k, v in flow.items() if k != "levels"},
             "contract": "a stepped launder of FLOWING water (`fluids.carries`) that cannot leak "
                         "(`fluids.escapes` against its own declared basin), a hopper row in the "
@@ -1630,6 +1753,17 @@ def _falsefront(w: World, p: dict, ctx) -> dict:
     Width, false-front profile, roof height, porch-or-awning, window pattern, wall tone, door
     hinge and trade all vary by a hash of the shop's index. Four shops of one design is a repeated
     box, which is exactly what this zone was sent back for.
+
+    **RETIRED FROM THE FRONTIER THEME (2026-09-01) - a record, not a threshold.** Nothing computes
+    this and nothing should; the kind still builds and still has its tests. What it lost is its
+    place as live work, and the reason is measured rather than felt: as `Prospect Row` it was
+    **1,582 blocks containing zero buttons, zero levers, zero targets and zero outputs of any
+    kind**. Jack, twice: *"lots of wasted space for the buildings that are shops/etc and purely
+    decorative, i said we dont need these"*. The previous pass answered that by FITTING IT OUT -
+    a counter, a ceiling lamp and the workstations of the trade behind each sign - and the
+    verdict came back the same, because a row of shopfronts with workbenches in them is a
+    crafting village and not an attraction. **The fix for a building nobody does anything in is
+    not more furniture in it.** `_powderhouse` is what took its ground.
     """
     f = _Frame(p)
     pal, ex = _pal(p)
@@ -1777,6 +1911,223 @@ def _trestlebridge(w: World, p: dict, ctx) -> dict:
                         "masonry abutment at each end - never a plank floating between two posts"}
 
 
+# ------------------------------------------------------------------- 7. the powder house
+
+# THE FUSE, IN PISTONS RATHER THAN LAMPS. `redstone_lamp` is the only switchable light in the
+# game and it is `expensive` on this economy, so a six-lamp fuse is six blocks nobody here can
+# buy - and `tests/test_frontier.py::test_nothing_new_is_expensive` says so out loud. What a
+# piston costs is cobblestone and a plank. It is also the better instrument: a lamp in a lit
+# drift is a dull square, and a piston head banging out of the wall beside you as the shot runs
+# past is MOTION, which reads from the far end of the tunnel and through a crowd.
+FUSE_STAGES = 5
+
+
+def _powderhouse(w: World, p: dict, ctx) -> dict:
+    """THE POWDER HOUSE - arm the lever, press the plunger, and watch the shot run to the face.
+
+    **THE ZONE HAD ZERO BUTTONS AND ZERO LEVERS IN IT.** Every structure in the frontier was
+    either a rail circuit you ride or a room you walk into and look at; nothing anywhere in it
+    was a thing a player could PRESS. This is the answer, and it is deliberately the loudest one
+    available: two visible inputs, a dozen pistons of feedback and a bell.
+
+    THE INTERLOCK IS THE GAME. A shot needs TWO deliberate acts - arm, then fire - and refusing
+    either is what makes the lever mean something. Redstone has no AND primitive, and the
+    eight-block `arcade.and_gate` is the general answer; this needs the two-block one:
+
+        lever -> a solid block -> a wall torch      = NOT armed
+        that torch -> dust -> the comparator's SIDE
+        button -> dust -> the comparator's BACK
+        comparator in SUBTRACT mode                 = back - NOT(armed)
+
+    Unarmed, the torch is lit and the side reads 15, so `back - 15` is nothing however hard the
+    button is pressed. Armed, the torch is dark and the press passes whole. It is `circuits.pulse`
+    one axis down, and it fits inside a bench rather than needing a machine pit - which is the
+    whole reason this kind has NO PIT AT ALL. Every pit in this project has cost a floating floor:
+    `arcade._reaction`'s button climb replaces four cells of its own play floor with dust, and a
+    dust cell is not something a player can stand on.
+
+    **THE BUTTON IS THE PULSE.** A stone button releases itself after about a second, so there is
+    no `circuits.pulse` here and no held-signal hazard: nothing in this machine pays anything out,
+    and the one thing a held press could do - hold the charges extended - it cannot do, because
+    the button stops holding on its own. `test_the_blast_ends_by_itself` pins it.
+
+    **EVERY LANE IS TWO APART FROM THE NEXT THING IT MUST NOT TOUCH.** A comparator reads its
+    SIDES off the cells beside it whatever is standing there, so a feed run one lane over is a
+    feed run into the side input - which is the casino `duel`'s own bug, where a side that read 0
+    made `A >= 0` true for every A and the machine paid on all nine combinations.
+
+    Geometry, in the frame's own axes:
+
+        i=0, i=W-1     the shell's posts
+        i=1..5         the shot-firer's ledge, one course proud, with the gear set into it
+        i=6            the fuse wall: the chase pistons at head height, their chain on top
+        i=7..9         the walkway - three wide, which is a drift rather than a hall
+        d=D-2          the face: a row of charges with the bell at the end of it
+    """
+    f = _Frame(p)
+    pal, ex = _pal(p)
+    D_ = _dirs(p["facing"])
+    W = 11
+    # **NOT `depth`.** The shared FRONTIER table's `depth` is 12 - the saloon's - so
+    # reading it here silently built a 15-deep drift whose fuse had room for TWO stages
+    # out of five, and the chase read as a stutter rather than as a run. A kind whose
+    # size means something different needs its own key.
+    DP = max(15, int(p["drift"]))
+    H = 6
+    seed = f.x * 131 + f.z
+    FACE = DP - 2                       # the working face, one course in front of the back wall
+    LEDGE = FACE - 1                    # everything walkable stops here
+
+    def rock(i, d, h):
+        return _weather(ex["rock"], ex["aged"], f, i, d, h, seed, 0.22)
+
+    # ---- the ground and the shell
+    _pad(w, f, pal, -1, W, -1, DP)
+    for i in range(W):
+        for d in range(DP):
+            if not (i in (0, W - 1) or d == DP - 1):
+                continue
+            for h in range(H):
+                if i in (0, W - 1) and d == 0 and h < 3:
+                    continue            # the mouth's own jambs stay open at head height
+                w.put(*f.at(i, d, h), pal["post"] if i in (0, W - 1) else rock(i, d, h))
+    for i in range(-1, W + 1):          # the roof, and the portal beam over the mouth
+        for d in range(-1, DP):
+            w.put(*f.at(i, d, H), pal["beam"])
+        w.put(*f.at(i, 0, H - 1), pal["trim"])
+
+    # ---- THE MACHINE, laid FIRST so the ledge fills around it rather than over it.
+    lever = f.at(1, 1, 1)
+    w.put(*f.at(1, 1, 0), pal["accent"])
+    w.put(lever[0], lever[1], lever[2], "lever", face="floor",
+          facing=p["facing"], powered="false")
+    btn = f.at(4, 1, 1)
+    w.put(*f.at(4, 1, 0), pal["accent"])
+    w.put(btn[0], btn[1], btn[2], "stone_button", face="floor",
+          facing=p["facing"], powered="false")
+
+    for d in (2, 3, 4):                                     # ARMED: the lever's own line
+        w.put(*f.at(1, d, 0), "redstone_wire")
+    w.put(*f.at(2, 4, 0), pal["trim"])                       # the block the torch stands on
+    w.put(*f.at(3, 4, 0), "redstone_wall_torch", facing=D_["i+"], lit="true")
+    w.put(*f.at(4, 4, 0), "redstone_wire")                   # ...into the comparator's SIDE
+    for (i, d) in ((4, 2), (5, 2), (5, 3)):                  # FIRE: the button's own line
+        w.put(*f.at(i, d, 0), "redstone_wire")
+    cmp_ = f.at(5, 4, 0)
+    w.put(cmp_[0], cmp_[1], cmp_[2], "comparator",
+          facing=D_["in"], mode="subtract", powered="false")
+    w.put(*f.at(5, 5, 0), "redstone_wire")                   # the shot leaves here
+
+    # ---- the cable up onto the fuse wall
+    up = circuits.climb(f.at(5, 5, 0), f.at(5, 5, 2), block=ex["rock"], facing=D_["in"])
+    _lay(w, pal, (up,))
+    _line(w, pal, f, (5, 8), (6, 8), 2)
+
+    # ---- the ledge, filled around the gear
+    for i in range(1, 7):
+        for d in range(1, 9):
+            if not w.has(*f.at(i, d, 0)):
+                w.put(*f.at(i, d, 0), rock(i, d, 0))
+    for i in (5, 6):                                         # the corner the cable turns on
+        if not w.has(*f.at(i, 8, 1)):
+            w.put(*f.at(i, 8, 1), ex["band"])
+    for d in (2, 3):                                         # the notice board the rules hang on
+        for h in (1, 2):
+            w.put(*f.at(6, d, h), ex["band"])
+
+    # ---- THE FUSE WALL. A chase of pistons, each fired in turn as the pulse walks the chain.
+    chase, chain = [], []
+    for k in range(FUSE_STAGES):
+        rd, dd = 9 + 2 * k, 10 + 2 * k
+        if dd > LEDGE:
+            break
+        w.put(*f.at(6, rd, 2), "repeater", facing=D_["in"], delay="2",
+              locked="false", powered="false")
+        w.put(*f.at(6, dd, 2), "redstone_wire")
+        chain += [f.at(6, rd, 2), f.at(6, dd, 2)]
+        # THE PISTON GOES UNDER THE DUST, NEVER UNDER THE REPEATER. A repeater strongly powers
+        # ONE cell - its own front - and nothing at all beneath it, so a piston under a repeater
+        # is a piston nothing can ever fire. Dust sits ON a piston and powers it, which is why
+        # the chain alternates and the chase reads as one thump per stage.
+        w.put(*f.at(6, dd, 1), "piston", facing=D_["i+"], extended="false")
+        chase.append(f.at(6, dd, 1))
+        w.put(*f.at(6, rd, 1), ex["band"])
+    for d in range(9, LEDGE + 1):
+        for h in (0, 1, 2):
+            if not w.has(*f.at(6, d, h)):
+                w.put(*f.at(6, d, h), rock(6, d, h) if h == 0 else ex["band"])
+
+    # ---- THE FACE. The charges, the bell, and the rock they are set in.
+    w.put(*f.at(6, FACE, 2), rock(6, FACE, 2))               # the cable's last step up
+    shots, feed = [], []
+    for i in range(1, W - 1):
+        w.put(*f.at(i, FACE, 0), rock(i, FACE, 0))
+        w.put(*f.at(i, FACE, 1), rock(i, FACE, 1))
+        for h in (4, 5):
+            w.put(*f.at(i, FACE, h), rock(i, FACE, h))
+        if i in (6, W - 2):
+            continue
+        w.put(*f.at(i, FACE, 2), "piston", facing=D_["out"], extended="false")
+        shots.append(f.at(i, FACE, 2))
+    for i in range(1, W - 2):
+        w.put(*f.at(i, FACE, 3), "redstone_wire")
+        feed.append(f.at(i, FACE, 3))
+    w.put(*f.at(W - 2, FACE, 2), rock(W - 2, FACE, 2))
+    bell = f.at(W - 2, FACE, 3)
+    w.put(bell[0], bell[1], bell[2], "bell", facing=p["facing"],
+          attachment="floor", powered="false")
+
+    # ---- light, and the sleeper track a drift has down its middle
+    for d in range(4, LEDGE, 5):
+        _hang_light(w, f, pal, 8, d, H - 2)
+    for d in range(1, LEDGE + 1, 2):
+        w.put(*f.at(8, d, -1), ex["band"])
+
+    # ---- the signs. Every one is CHECKED for something behind it, because a wall sign floating
+    # in air draws exactly like one on a wall and the game simply refuses to place it.
+    title = str(p.get("title") or "POWDER HOUSE").upper()
+    signed = 0
+    if p.get("sign", True):
+        signed += _sign(w, f, pal, W // 2, -1, H - 1, p["facing"], [title[:SIGN_WIDTH]])
+        # ON THE NOTICE BOARD, WHICH IS BUILT FOR THEM. The first version hung these on the
+        # ledge at h=1 - and the ledge is ONE course tall, so there was nothing behind either of
+        # them and `_sign` refused both in silence. That is the failure `_sign` returns False for
+        # and the reason `signed` is counted rather than assumed.
+        signed += _sign(w, f, pal, 7, 2, 2, D_["i+"],
+                        ["FIRE A SHOT", "1 ARM THE LEVER", "2 PRESS TO FIRE", "then stand back"])
+        signed += _sign(w, f, pal, 7, 3, 2, D_["i+"],
+                        ["THE PLUNGER", "", "no shot without", "the lever armed"])
+
+    cells = {pos: name for pos, (name, _pr) in w.cells.items()}
+    reach = walk.reachable(cells, f.at(8, -1, 0))
+    # THE TARGETS ARE THE CONTROLS THEMSELVES. A lever and a button are both PASSABLE cells
+    # standing on their own accent block, so "can a player stand where the lever is" is the exact
+    # question - and it is not the same question as "is the ledge walkable": the first version
+    # aimed at a ledge cell that turned out to be one of the machine's own dust bays, which is
+    # air under your feet.
+    for leg, target in (("the lever", lever), ("the plunger", btn),
+                        ("the face", f.at(8, LEDGE, 0))):
+        if target not in reach:
+            raise ValueError("the powder house's %s at %s cannot be walked to; %d cells reachable"
+                             % (leg, target, len(reach)))
+
+    return {"kind": "powderhouse", "width": W, "depth": DP, "height": H + 1,
+            "lever": list(lever), "button": list(btn), "comparator": list(cmp_),
+            "chase": [list(c) for c in chase], "shots": [list(s) for s in shots],
+            "bell": list(bell), "feed": [list(c) for c in feed],
+            "chain": [list(c) for c in chain], "face": FACE,
+            "inputs": [list(lever), list(btn)],
+            "outputs": [list(c) for c in chase] + [list(s) for s in shots] + [list(bell)],
+            "signs": signed, "walk_cells": len(reach),
+            "contract": ("nothing fires unless the lever is ARMED and the button PRESSED; a "
+                         "press then walks a chase of %d pistons down the drift, fires all %d "
+                         "charges at the face and rings the bell - and the button releases "
+                         "itself, so a held press is one shot" % (len(chase), len(shots))),
+            "unverified": ["A PISTON HEAD IS MOTION AND THIS SIMULATOR HAS NONE - it answers "
+                           "whether each piston is POWERED, never what the head looks like "
+                           "coming out of the wall beside you."]}
+
+
 BUILDERS = {
     "saloon": _saloon,
     "sluice": _sluice,
@@ -1785,6 +2136,7 @@ BUILDERS = {
     "minehead": _minehead,
     "falsefront": _falsefront,
     "trestlebridge": _trestlebridge,
+    "powderhouse": _powderhouse,
 }
 
 

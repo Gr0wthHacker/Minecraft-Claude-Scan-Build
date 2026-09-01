@@ -20,12 +20,12 @@ three found while this was written:
 """
 import json
 import os
-from collections import deque
+from collections import Counter, deque
 
 import numpy as np
 import pytest
 
-from mcbuild import blocks, fluids, nbt, nightlight, palette, schem
+from mcbuild import blocks, fluids, morph, nbt, nightlight, palette, schem
 from mcbuild.gen import isthmus, park
 
 CONFIG = "configs/isthmus.yaml"
@@ -543,6 +543,95 @@ def test_the_two_spans_use_different_creatures():
     assert a_specs != b_specs, "both spans site the exact same (kind, variant) pairs"
 
 
+def test_no_two_sculptures_on_the_causeway_share_a_GENERATOR():
+    """THE COMPLAINT THAT PRODUCED THE CURRENT LINEUP, pinned so it cannot come back. The first
+    build sited a heron and a flamingo - which are one generator and one body plan, differing by
+    colour and two curves, as `heron.py`'s own docstring says - plus a ladybird on each span:
+    four sculptures showing two shapes, and the verdict was exactly "we dont need 2 standing
+    birds". `test_the_two_spans_use_different_creatures` above cannot catch that, because two
+    spans CAN differ while each of them repeats a shape the other already used.
+
+    A variant is not a difference. This checks the KIND, across the whole causeway.
+    """
+    kinds = [s["kind"] for gap in isthmus.GAPS for s in gap["creatures"]]
+    assert len(kinds) == len(set(kinds)), \
+        f"the causeway sites the same generator twice: {sorted(kinds)}"
+
+
+@pytest.mark.parametrize("spec", [s for g in isthmus.GAPS for s in g["creatures"]],
+                         ids=lambda s: s["kind"])
+def test_a_creature_is_ONE_PIECE_AT_THE_SCALE_IT_IS_SITED_AT(spec):
+    """MEASURED AT THE SITED SCALE, never at the generator's own default.
+
+    Every one of these four is fragile somewhere and no two of them are fragile in the same
+    place: `heron.py` comes apart into a dozen fragments below about scale 0.85, `bat.py` sheds
+    two two-cell wisps at 0.6 and is whole at 0.55, 0.7 and 1.0, and `gecko.py` and `sloth.py`
+    have no scale parameter at all. `_largest_component` will quietly hide every one of those
+    by discarding the fragments, which is exactly why this asks the creature's own canvas
+    rather than the finished causeway - through `isthmus.creature_canvas`, the one entry point
+    the siting itself uses, so a scale changed in `GAPS` cannot be checked here at a different
+    one from the one that ships.
+    """
+    c = isthmus.creature_canvas(spec)
+    solid = c.to_model().ids > 0
+    _lab, sizes = morph.components(solid, conn=6)
+    assert len(sizes) == 1, \
+        f"{spec['kind']} at scale {spec.get('scale')} came out in {len(sizes)} pieces: " \
+        f"{sorted(sizes, reverse=True)[:6]}"
+
+
+def test_no_plaque_line_is_written_wider_than_a_sign():
+    """`_sign` truncates to `park.SIGN_WIDTH`, which is a guard against a corrupt region and NOT
+    a licence to write a line nobody can read - a plaque saying "clings to the sto" is a plaque
+    with a typo on it, and the truncation happens silently in a build nobody re-reads. Checked
+    on the CONFIG, which is where the words are actually chosen."""
+    for gap in isthmus.GAPS:
+        for spec in gap["creatures"]:
+            for line in [spec["title"]] + list(spec.get("lines") or []):
+                assert len(line) <= park.SIGN_WIDTH, \
+                    f"{spec['kind']}'s plaque line {line!r} is {len(line)} characters and would " \
+                    f"be cut to {park.SIGN_WIDTH}"
+
+
+def test_no_stop_has_to_be_clamped_into_its_own_span():
+    """A GANTRY SHIPPED WITH ONE LEG AND NOTHING SAID SO. A stop's structure reaches
+    `_CREATURE_ZHALF` rows either side of its centre - a stele is 33 rows of a 101-row span -
+    and at t=0.86 the far end lands PAST the plot the causeway stops against, where `cols` has
+    no column at all, so `_ground_pier` built precisely nothing: no error, no missing-cell
+    report, and the design still audits as one piece because the lintel carries it. The clamp
+    that now stops that is a safety net for short spans, not a licence for the shipped `t`
+    values to be wrong, so this asserts the shipped ones never reach it."""
+    c = isthmus.build({"kind": "isthmus"})
+    assert not c.meta.get("stops_clamped"), \
+        f"a shipped stop had to be moved to fit its own span: {c.meta['stops_clamped']}"
+    for gap in isthmus.GAPS:
+        span = gap["z_hi"] - gap["z_lo"]
+        for s in gap["creatures"]:
+            zh = isthmus._CREATURE_ZHALF[s["kind"]]
+            cz = gap["z_lo"] + round(s["t"] * span)
+            assert gap["z_lo"] <= cz - zh and cz + zh <= gap["z_hi"], \
+                f"{s['kind']} at t={s['t']} reaches {zh} rows and runs off {gap['title']}"
+
+
+def test_a_gantry_stands_on_BOTH_of_its_legs():
+    """The same fault from the other side, and the one a render caught: every column a sited
+    creature's own structure needs must be real GROUND at the moment `_ground_pier` asks for
+    it. Checked as a property of the built world - a pier is a run of solid cells from the
+    causeway's own cap up to the beam - rather than by trusting the arithmetic that put it
+    there, because the arithmetic was what was wrong."""
+    c = isthmus.build({"kind": "isthmus"})
+    cells = _cells(c.to_model(), c.world_origin)
+    for gap in c.meta["gaps_built"]:
+        for cr in gap["creatures"]:
+            if cr["kind"] not in ("bat", "sloth"):
+                continue                          # only the hung creatures carry a gantry
+            cx, top, cz = cr["at"]
+            near = [dz for dz in range(-26, 27)
+                    if any((x, top + 6, cz + dz) in cells for x in (cx, cx + 1))]
+            assert near and min(near) < -6 and max(near) > 6, \
+                f"{cr['kind']}'s gantry has legs only at {sorted(set(near))} - one side is missing"
+
+
 @pytest.mark.parametrize("i", [0, 1])
 def test_a_sited_creature_is_one_piece_standing_on_its_own_plinth(i):
     """A CREATURE ARRIVES AS A SEPARATE, ALREADY-TESTED GENERATOR'S OUTPUT, and this is the
@@ -733,9 +822,81 @@ def test_delight_converges_to_zero_and_is_recorded(built):
     """The whole reason `_delight` exists: a sited creature's own surface was never measured
     by any rule this design wrote for the terrain, so it has to be swept for afterward. Its
     count is recorded, and it must be nonzero - a delight pass that always fixes 0 cells on a
-    design carrying two large sited creatures is not exercising anything."""
+    design carrying four large sited creatures is not exercising anything."""
     c, _m, _cells = built
     assert c.meta.get("delight", 0) > 0
+    assert c.meta.get("spawnable_dark", 1) == 0, "the sweep gave up with cells still dark"
+
+
+def test_NOT_ONE_LAMP_STANDS_INSIDE_A_SCULPTURE(built):
+    """THE GLOW. `_delight` used to patch a dark spawnable cell by replacing the block under it
+    with `ochre_froglight`, and every rule it wrote for the terrain was right - but a sculpture
+    is not terrain, and on the first build of this causeway it did that ONE THOUSAND ONE HUNDRED
+    AND THIRTY-EIGHT times, every single one of them inside a creature's coat: 299 cells of
+    black wool, 295 of red, 147 of the ladybird's own leaf. Three per cent of the whole design
+    was a lamp and the verdict was "all glowing".
+
+    `Island Night`'s rule is the one that governs and this file had no way to state it: a
+    fixture ON a sculpture damages it, ordinary ground is cheap and a coat is dear. So a coat
+    is lit from the air beside it with `glow_lichen` instead, and this is the assertion that
+    keeps it that way - checked against the creatures' OWN cells rather than against the
+    recorded count, so it cannot be satisfied by the bookkeeping alone.
+    """
+    c, _m, cells = built
+    assert c.meta.get("delight_in_coat", 1) == 0, "a lamp was placed inside a creature's coat"
+    assert c.meta["delight_lichen"] > 0, \
+        "no glow lichen was placed at all - the sculptures are either unlit or lamped"
+    assert [k for k, s in cells.items() if _base(s) == isthmus.LAMP], \
+        "the causeway has no froglights at all - this check would prove nothing"
+
+    # AND CROSS-CHECKED WITHOUT THE BOOKKEEPING, because `delight_in_coat` is counted by the
+    # very pass being judged. Every cell a creature generator emitted must still be standing in
+    # the finished causeway: the plinth, the stele and the gantry are all laid BEFORE the paste
+    # and the sweep is the only thing afterwards that writes anything, so a shortfall in any
+    # block of a creature's own palette is a coat cell that something replaced.
+    for gap, spec_gap in zip(c.meta["gaps_built"], isthmus.GAPS):
+        for cr, spec in zip(gap["creatures"], spec_gap["creatures"]):
+            own = Counter()
+            cc = isthmus.creature_canvas(spec)
+            for (name, _p) in isthmus._canvas_cells(cc).values():
+                own[name] += 1
+            have = Counter(_base(s) for s in cells.values())
+            for name, want in own.items():
+                assert have[name] >= want, \
+                    f"{cr['kind']} emitted {want} {name} and only {have[name]} survive in the " \
+                    f"causeway - {want - have[name]} of its own cells were overwritten"
+
+
+def test_the_lichen_hangs_on_a_real_surface(built):
+    """`glow_lichen` with `down=true` grows on the TOP face of the block beneath it. Placed in
+    a cell with nothing under it, it is a fixture hanging on air - the same fault the vines on
+    the bat's perch and the chains over the taproot well both shipped once."""
+    _c, _m, cells = built
+    n = 0
+    for (x, y, z), state in cells.items():
+        if _base(state) != isthmus.LICHEN:
+            continue
+        n += 1
+        assert state.split("[")[1].startswith("down=true"), \
+            f"the lichen at {(x, y, z)} is not growing downward: {state}"
+        assert (x, y - 1, z) in cells, f"the lichen at {(x, y, z)} has nothing under it"
+    assert n > 0, "no lichen was placed at all"
+
+
+def test_a_quarter_turn_refuses_a_block_it_cannot_re_aim():
+    """`_turn` is what puts a bat's wingspan and a sloth's bough ALONG the walk instead of
+    pointing their own edge at everyone who looks at them. It re-aims an `axis` and carries a
+    vertical property through; anything that names a horizontal direction it must REFUSE rather
+    than paste at the wrong bearing, because our own renderer draws a wrong facing and a right
+    one identically - the stair convention's exact failure, in a new body."""
+    ok = {(0, 0, 0): ("spruce_log", {"axis": "x"}),
+          (1, 0, 0): ("spruce_fence", {"north": "false", "east": "false", "waterlogged": "false"})}
+    turned = isthmus._turn(ok)
+    assert turned[(0, 0, 0)][1]["axis"] == "z", "a log's grain did not turn with it"
+    with pytest.raises(ValueError):
+        isthmus._turn({(0, 0, 0): ("oak_stairs", {"facing": "north"})})
+    with pytest.raises(ValueError):
+        isthmus._turn({(0, 0, 0): ("vine", {"east": "true"})})
 
 
 # --------------------------------------------------------------------------- the config

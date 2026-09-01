@@ -317,7 +317,12 @@ def test_every_sideshow_in_a_park_zone_asks_for_a_booth():
         for m in THEMES[theme_name]["modules"]:
             if m.get("gen") == "casino":
                 sideshows.append((theme_name, m["name"], m.get("params", {})))
-    assert sideshows, "no casino sideshows found in any park zone - did the zones get renamed?"
+    # **ZERO IS A LEGITIMATE ANSWER NOW.** Every casino sideshow has been traded out of the
+    # park zones for a game that takes a player INPUT - a plinko board, a target range that
+    # scores by accuracy, a combination vault, a sculk corridor, a powder-house fuse. The
+    # verdict on the ones that were here was that they are "very simple and wont do as
+    # expected", which is exactly what press-and-watch-a-randomiser is. This file is
+    # responsible for a sideshow that EXISTS wearing a booth; how many exist is curation.
     for theme_name, name, params in sideshows:
         assert params.get("booth") is True, f"{theme_name}/{name} does not ask for a booth"
     # **AND NO ROSTER HERE.** This test used to name five modules and assert they exist, three
@@ -333,7 +338,13 @@ def test_every_sideshow_in_a_park_zone_asks_for_a_booth():
     # corridor. What this file is responsible for is that a sideshow which EXISTS wears a booth
     # rather than casino black-and-white, which is asserted above. How many exist is a curation
     # decision that belongs to the theme, and a count here only goes stale.
-    assert sideshows, "no casino sideshows in any park zone - did the zones get renamed?"
+    # **AND ZERO IS NOW A LEGITIMATE ANSWER.** Every casino sideshow has been traded out of the
+    # park zones for a game that takes a player input - a plinko board, a target range that scores
+    # by accuracy, a combination vault, a sculk corridor. The user's verdict on the ones that were
+    # here was that they are "very simple and wont do as expected", which is exactly what a
+    # press-and-watch-a-randomiser machine is. What this file is responsible for is that a
+    # sideshow which EXISTS wears a booth rather than casino black-and-white; how many exist is a
+    # curation decision, and asserting a floor here only makes this test go red for a good change.
 
 
 

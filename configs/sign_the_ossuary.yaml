@@ -1,18 +1,18 @@
-name: Sign The Reckoning
+name: Sign The Ossuary
 gen: wayfinding
 params:
   land: hollow
-  facing: east
-  name: The Reckoning
+  facing: north
+  name: The Ossuary
   does:
-  - 1 in 3
-  - pays 1 prize
+  - pull all three
+  - at once
   at:
-  - 97562
+  - 97638
   - 203
-  - 80802
+  - 80790
   kind: marker
-  title: Sign The Reckoning
+  title: Sign The Ossuary
   under: out/islandright.litematic
 finish:
   verify_against: out/islandright.litematic

@@ -8,9 +8,9 @@ params:
   - ride the cart
   - in the dark
   at:
-  - 97578
+  - 97630
   - 203
-  - 80806
+  - 80790
   kind: marker
   title: Sign Ghost Train
   under: out/islandright.litematic

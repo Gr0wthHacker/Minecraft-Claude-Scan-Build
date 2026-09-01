@@ -12,7 +12,7 @@ params:
   at:
   - 97602
   - 203
-  - 80772
+  - 80760
   kind: mapboard
   under: out/islandright.litematic
 finish:

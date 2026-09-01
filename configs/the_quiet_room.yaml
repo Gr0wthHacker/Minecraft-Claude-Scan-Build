@@ -4,7 +4,7 @@ params:
   land: hollow
   facing: east
   at:
-  - 97598
+  - 97578
   - 203
   - 80812
   kind: quiet

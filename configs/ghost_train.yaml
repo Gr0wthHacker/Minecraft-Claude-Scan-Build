@@ -2,11 +2,11 @@ name: Ghost Train
 gen: attractions
 params:
   land: hollow
-  facing: south
+  facing: north
   at:
-  - 97636
+  - 97616
   - 203
-  - 80778
+  - 80817
   kind: ghosttrain
   title: Ghost Train
   under: out/islandright.litematic

@@ -2,15 +2,15 @@ name: Sign The Seance
 gen: wayfinding
 params:
   land: hollow
-  facing: north
+  facing: east
   name: The Seance
   does:
   - pull the cord
   - read the meter
   at:
-  - 97638
+  - 97622
   - 203
-  - 80790
+  - 80810
   kind: marker
   title: Sign The Seance
   under: out/islandright.litematic

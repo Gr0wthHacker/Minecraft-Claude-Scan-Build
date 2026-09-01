@@ -7,9 +7,9 @@ params:
   pool: 4
   facing: east
   at:
-  - 97601
+  - 97569
   - 203
-  - 80434
+  - 80401
   kind: flume
   title: Log Flume
   under: out/islandleft.litematic

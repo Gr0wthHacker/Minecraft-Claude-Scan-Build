@@ -1,20 +1,22 @@
 {
   "origin": {
     "x": 97558,
-    "y": 197,
+    "y": 195,
     "z": 80758
   },
   "size": {
     "x": 35,
-    "y": 50,
+    "y": 52,
     "z": 42
   },
   "generated_by": "hollowmanor",
   "kind": "manor",
   "land": "hollow",
   "facing": "east",
-  "contract": "a WALKTHROUGH: in at the front door, through the hall, up the grand stair to the library, across the first floor, down the back stair, down again into a lit cellar of niches, and out of the back door on the far side - every leg of it walkable, and the rooms named on signs",
-  "unverified": [],
+  "contract": "a WALKTHROUGH WITH THINGS IN IT: in at the front door, through the hall, up the grand stair to the library, across the first floor, down the back stair, down again into a lit cellar of niches, and out of the back door on the far side - every leg of it walkable, the rooms named on signs, and THREE SET PIECES on the way: a plate in the hall, a lever at the head of the cellar stair and a button on the sarcophagus, each firing a piston, a lamp and a dispenser ONCE and resetting, however long it is held down",
+  "unverified": [
+    "WHAT A DISPENSER SPITS OUT is an entity and the simulator has none. That it fires exactly once per trigger IS verified; what comes out of it is whatever `stock` was loaded with."
+  ],
   "width": 32,
   "depth": 24,
   "storeys": 3,
@@ -23,7 +25,7 @@
   "tower_top": 43,
   "windows": 49,
   "chimneys": 2,
-  "signs": 7,
+  "signs": 10,
   "route": [
     [
       "front door",
@@ -119,9 +121,237 @@
   "niches": 4,
   "vault_lamps": 4,
   "shelves": 30,
-  "props": 10,
+  "props": 9,
   "cobwebs": 7,
   "rails": 18,
+  "scares": [
+    {
+      "where": "the hall",
+      "sign": [
+        "MIND THE FLOOR",
+        "it is not",
+        "as sound as",
+        "it looks"
+      ],
+      "trigger": [
+        97581,
+        204,
+        80782
+      ],
+      "kind": "plate",
+      "pad": [
+        97581,
+        203,
+        80782
+      ],
+      "vents": {
+        "piston": [
+          [
+            97581,
+            203,
+            80775
+          ]
+        ],
+        "lamp": [
+          [
+            97581,
+            203,
+            80774
+          ]
+        ],
+        "dispenser": [
+          [
+            97581,
+            203,
+            80773
+          ]
+        ]
+      },
+      "cells": 18,
+      "lamps": 1,
+      "dispensers": [
+        [
+          97581,
+          203,
+          80773
+        ]
+      ]
+    },
+    {
+      "where": "the cellar stair foot",
+      "sign": [
+        "PULL IT",
+        "the house",
+        "answers once",
+        "then forgets"
+      ],
+      "trigger": [
+        97569,
+        198,
+        80788
+      ],
+      "kind": "lever",
+      "pad": [
+        97569,
+        197,
+        80788
+      ],
+      "vents": {
+        "piston": [
+          [
+            97569,
+            197,
+            80781
+          ]
+        ],
+        "lamp": [
+          [
+            97569,
+            197,
+            80780
+          ]
+        ],
+        "dispenser": [
+          [
+            97569,
+            197,
+            80779
+          ]
+        ]
+      },
+      "cells": 18,
+      "lamps": 1,
+      "dispensers": [
+        [
+          97569,
+          197,
+          80779
+        ]
+      ]
+    },
+    {
+      "where": "the sarcophagus",
+      "sign": [
+        "KNOCK",
+        "something",
+        "down here",
+        "keeps count"
+      ],
+      "trigger": [
+        97566,
+        198,
+        80783
+      ],
+      "kind": "button",
+      "pad": [
+        97566,
+        197,
+        80783
+      ],
+      "vents": {
+        "piston": [
+          [
+            97566,
+            197,
+            80776
+          ]
+        ],
+        "lamp": [
+          [
+            97566,
+            197,
+            80775
+          ]
+        ],
+        "dispenser": [
+          [
+            97566,
+            197,
+            80774
+          ]
+        ]
+      },
+      "cells": 18,
+      "lamps": 1,
+      "dispensers": [
+        [
+          97566,
+          197,
+          80774
+        ]
+      ]
+    }
+  ],
+  "inputs": [
+    [
+      97581,
+      204,
+      80782
+    ],
+    [
+      97569,
+      198,
+      80788
+    ],
+    [
+      97566,
+      198,
+      80783
+    ]
+  ],
+  "outputs": [
+    [
+      97581,
+      203,
+      80775
+    ],
+    [
+      97581,
+      203,
+      80774
+    ],
+    [
+      97581,
+      203,
+      80773
+    ],
+    [
+      97569,
+      197,
+      80781
+    ],
+    [
+      97569,
+      197,
+      80780
+    ],
+    [
+      97569,
+      197,
+      80779
+    ],
+    [
+      97566,
+      197,
+      80776
+    ],
+    [
+      97566,
+      197,
+      80775
+    ],
+    [
+      97566,
+      197,
+      80774
+    ]
+  ],
+  "lamps": 3,
+  "stock": {
+    "dispenser": [
+      "anything the house should spit out of the floor - a firework, a snowball, an arrow. The dispenser fires ONE item per trigger, so what is in it decides the scare."
+    ]
+  },
   "file": "Haunted Manor.litematic",
   "name": "Haunted Manor"
 }

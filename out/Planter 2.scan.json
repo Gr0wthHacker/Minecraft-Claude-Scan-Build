@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": 97585,
+    "x": 97583,
     "y": 202,
-    "z": 80552
+    "z": 80618
   },
   "size": {
-    "x": 5,
-    "y": 3,
-    "z": 9
+    "x": 7,
+    "y": 4,
+    "z": 7
   },
   "generated_by": "streetfurniture",
   "kind": "streetfurniture/planter",
@@ -16,14 +16,14 @@
   "facing": "east",
   "contract": "a raised bed whose rim is a real moulding and whose planting is rooted in moss - never dirt or grass, which cannot be spent on this server",
   "unverified": [],
-  "plan": "trough",
-  "rim": "slab",
+  "plan": "stepped",
+  "rim": "coping",
   "planting": "azalea",
-  "leaf": "azalea_leaves",
-  "width": 7,
-  "depth": 3,
-  "cells": 5,
-  "seed": 128047428,
+  "leaf": "oak_leaves",
+  "width": 5,
+  "depth": 5,
+  "cells": 9,
+  "seed": 128053252,
   "file": "Planter 2.litematic",
   "name": "Planter 2"
 }

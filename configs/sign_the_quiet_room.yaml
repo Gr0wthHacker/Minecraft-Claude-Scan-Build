@@ -8,9 +8,9 @@ params:
   - make no sound
   - sculk listens
   at:
-  - 97570
+  - 97626
   - 203
-  - 80802
+  - 80810
   kind: marker
   title: Sign The Quiet Room
   under: out/islandright.litematic

@@ -21,6 +21,7 @@ counted - and this suite has shipped a vacuous one before.
 """
 from __future__ import annotations
 
+import collections
 import json
 import os
 from collections import deque
@@ -394,7 +395,7 @@ def test_the_mine_coasters_track_can_be_reached_on_foot():
 
 # ------------------------------------------------------------------- the usual gates, per kind
 
-NEW_KINDS = ("sluice", "minehead", "saloon", "falsefront")
+NEW_KINDS = ("sluice", "minehead", "saloon", "falsefront", "powderhouse")
 
 
 @pytest.mark.parametrize("kind", NEW_KINDS)
@@ -513,3 +514,288 @@ def test_escapes_notices_water_that_gets_out():
     assert fluids.escapes(bowl, [(0, 0, 0)], env) == []
     bowl.pop((2, 0, 0))                                   # knock a brick out of the rim
     assert fluids.escapes(bowl, [(0, 0, 0)], env) != []
+
+
+# ------------------------------------------------------------------------- the powder house
+#
+# THE MEASUREMENT THAT PRODUCED THIS KIND: the whole frontier zone contained ZERO buttons and
+# ZERO levers. Every structure in it was either a rail circuit you ride or a room you walk into
+# and look at, and the shops were the worst of it - a row of counters with the tools of a trade
+# behind them is a crafting village, not an attraction. Prospect Row is cut and this is half of
+# what replaces it, so its tests are about the two things it exists to have: an input you can
+# press, and feedback you can see from the far end of the drift.
+
+
+def _fire(w, meta, arm=True, ticks=60, hold=10):
+    """Arm (or do not), press, and return {output cell -> first tick it came on}."""
+    sim = _sim(w)
+    if arm:
+        sim.set(tuple(meta["lever"]), True)
+        sim.run(6)
+    sim.press(tuple(meta["button"]), ticks=hold)
+    trace = sim.run(ticks)
+    first = {}
+    for k, frame in enumerate(trace):
+        for pos, on in frame.items():
+            if on and pos not in first:
+                first[pos] = k
+    return first, trace
+
+
+@pytest.mark.parametrize("facing", ["east", "north", "west", "south"])
+def test_the_powder_house_will_not_fire_unless_it_is_armed(facing):
+    """THE INTERLOCK IS THE GAME. Three states have to be silent and only the fourth may fire."""
+    w, meta, _p = _build("powderhouse", facing=facing)
+    live = [tuple(c) for c in meta["outputs"]]
+
+    at_rest = _sim(w)
+    at_rest.run(20)
+    assert not [c for c in live if at_rest.powered(c)], "it fires the moment it is built"
+
+    unarmed, _tr = _fire(w, meta, arm=False)
+    assert not [c for c in live if c in unarmed], "a press with the lever down fired the shot"
+
+    armed_only = _sim(w)
+    armed_only.set(tuple(meta["lever"]), True)
+    tr = armed_only.run(40)
+    ever = {pos for frame in tr for pos, on in frame.items() if on}
+    assert not [c for c in live if c in ever], "arming alone fired the shot"
+
+
+@pytest.mark.parametrize("facing", ["east", "north", "west", "south"])
+def test_arming_and_firing_runs_the_shot_all_the_way_to_the_face(facing):
+    """Every stage of the chase, in ORDER, then every charge and the bell.
+
+    The order is the assertion that matters: a chain whose stages all came on together is a
+    square wave, not a fuse, and it reads as the whole wall flinching at once rather than as
+    something running away from you down the drift. It is the same distinction `arcade._reaction`
+    draws between a travelling point and a band.
+    """
+    w, meta, _p = _build("powderhouse", facing=facing)
+    first, _tr = _fire(w, meta)
+
+    chase = [first.get(tuple(c)) for c in meta["chase"]]
+    assert all(t is not None for t in chase), f"a chase piston never fired: {chase}"
+    assert chase == sorted(chase) and chase[0] < chase[-1], f"the chase is not a chase: {chase}"
+
+    missed = [c for c in meta["shots"] if tuple(c) not in first]
+    assert missed == [], f"{len(missed)} charge(s) at the face never fired"
+    assert tuple(meta["bell"]) in first, "the bell never rang"
+    assert first[tuple(meta["bell"])] >= chase[0], "the bell rang before the fuse reached it"
+
+
+def test_the_blast_ends_by_itself():
+    """A STONE BUTTON RELEASES ITSELF, WHICH IS WHY THERE IS NO `circuits.pulse` HERE.
+
+    Held, the one thing a signal could do to this machine is stand every charge out for ever -
+    and it cannot, because the button stops holding. `press` models that; a test that drove the
+    button with `set` would silently be testing a lever, which is the trap `Circuit.press`'s own
+    docstring warns about.
+    """
+    w, meta, _p = _build("powderhouse")
+    _first, trace = _fire(w, meta, ticks=80, hold=10)
+    end = trace[-1]
+    assert not [c for c in meta["outputs"] if end.get(tuple(c))], "the shot never stopped"
+
+
+def test_the_interlock_check_can_actually_fail():
+    """TAKE THE INVERTER OUT AND AN UNARMED PRESS MUST GET THROUGH.
+
+    Every assertion above passes on a correct build, which is exactly what the shipped flume's
+    own self-check did. The only way to know an interlock test means anything is to break the
+    interlock and watch the machine start firing without its lever.
+    """
+    w, meta, _p = _build("powderhouse")
+    torch = [pos for pos, (n, _pr) in w.cells.items() if n == "redstone_wall_torch"]
+    assert len(torch) == 1, "the ARMED inverter is the only torch in this kind"
+    w.cells.pop(torch[0])
+    leaked, _tr = _fire(w, meta, arm=False)
+    assert [c for c in meta["shots"] if tuple(c) in leaked], \
+        "with the inverter gone an unarmed press still fired nothing - the test proves nothing"
+
+
+def test_a_chase_piston_never_sits_under_a_repeater():
+    """A REPEATER STRONGLY POWERS ONE CELL - ITS OWN FRONT - AND NOTHING BENEATH IT.
+
+    So a piston under a repeater is a piston nothing can ever fire, and it is invisible: the
+    state is legal, the block is supported, the bill of materials is right and the audit is clean.
+    The chain alternates repeater/dust for exactly this reason and the alternation is pinned.
+    """
+    w, meta, _p = _build("powderhouse")
+    for piston in meta["chase"]:
+        above = (piston[0], piston[1] + 1, piston[2])
+        assert w.name(*above) == "redstone_wire", \
+            f"the chase piston at {piston} is fired by {w.name(*above)!r}, not by dust"
+
+
+@pytest.mark.parametrize("facing", ["east", "north", "west", "south"])
+def test_the_powder_houses_drift_is_walkable_with_headroom_end_to_end(facing):
+    """A PLAYER IS TWO BLOCKS TALL, and this repo has shipped seven flume cells and eleven ghost
+    train cells where the rider does not fit. Flood-filled from real ground outside the mouth -
+    the seed is asserted to be standable first, because this suite has shipped a coaster test
+    that seeded in the void and therefore asserted nothing at all.
+    """
+    w, meta, p = _build("powderhouse", facing=facing)
+    from mcbuild.gen.park import _Frame
+    f = _Frame(p)
+    cells = _names(w)
+    seed = f.at(8, -1, 0)
+    assert walk.stands(cells, seed), "the seed is not standable - the flood would be vacuous"
+    reach = walk.reachable(cells, seed)
+    # the three-wide walkway, every course of it, from the mouth to the face
+    missing = [(i, d) for i in (7, 8, 9) for d in range(1, meta["face"] - 1)
+               if f.at(i, d, 0) not in reach]
+    assert missing == [], f"{len(missing)} cell(s) of the drift cannot be walked, e.g. {missing[:4]}"
+    for name in ("lever", "button"):
+        assert tuple(meta[name]) in reach, f"you cannot stand where the {name} is"
+
+
+def test_the_powder_house_states_what_it_has_not_proven():
+    _w, meta, _p = _build("powderhouse")
+    assert meta["unverified"], "a machine with nothing unverified has not been thought about"
+    assert meta["inputs"] and meta["outputs"]
+
+
+# --------------------------------------------------------------------- the saloon card table
+
+
+def _deal(w, meta, you, house, ticks=40):
+    """State both readings - the simulator has no entities and cannot turn a card - press once,
+    and report whether the pot paid and the bell rang."""
+    sim = _sim(w)
+    sim.fill(tuple(meta["player_hopper"]), you)
+    sim.fill(tuple(meta["house_hopper"]), house)
+    sim.press(tuple(meta["table_button"]), ticks=10)
+    trace = sim.run(ticks)
+    return (sim.fired.get(tuple(meta["table_pot"]), 0),
+            any(frame.get(tuple(meta["table_bell"])) for frame in trace))
+
+
+@pytest.mark.parametrize("facing", ["east", "north", "west", "south"])
+def test_the_card_table_pays_every_tie_and_never_a_loss(facing):
+    """ALL NINE PAIRS OF THE THREE-OUTCOME MIX, which is what makes the odds a stated fact.
+
+    A comparator in COMPARE mode passes its back when back >= side, so out of {1, 2, 4} six of
+    the nine pairs win and ties go to the player: 6 in 9, printed on the table's own sign.
+    """
+    w, meta, _p = _build("saloon", facing=facing, width=17, depth=12)
+    levels = [1, 2, 4]
+    wins = 0
+    for you in levels:
+        for house in levels:
+            paid, rang = _deal(w, meta, you, house)
+            if you >= house:
+                assert paid == 1 and rang, f"you={you} house={house} did not pay"
+                wins += 1
+            else:
+                assert paid == 0 and not rang, f"you={you} house={house} paid on a loss"
+    assert wins == 6, f"the odds moved: {wins} in 9"
+
+
+def test_the_card_table_is_dark_until_somebody_plays_it():
+    """A house that pays the moment it is built pays on every chunk load."""
+    w, meta, _p = _build("saloon", width=17, depth=12)
+    sim = _sim(w)
+    sim.run(20)
+    assert sim.fired.get(tuple(meta["table_pot"]), 0) == 0
+    assert not sim.powered(tuple(meta["table_bell"]))
+
+
+def test_a_held_press_at_the_card_table_pays_exactly_one_chip():
+    """THE POT IS A DROPPER BECAUSE A DROPPER FIRES ON AN EDGE.
+
+    A comparator reads a hopper for as long as the card sits in it, so anything driven by the
+    LEVEL stays driven - which is the hazard the casino pins and does not fix. A dropper is the
+    cheapest correct answer and this is the assertion that says so.
+    """
+    w, meta, _p = _build("saloon", width=17, depth=12)
+    sim = _sim(w)
+    sim.fill(tuple(meta["player_hopper"]), 4)
+    sim.fill(tuple(meta["house_hopper"]), 1)
+    sim.press(tuple(meta["table_button"]), ticks=60)
+    sim.run(80)
+    assert sim.fired.get(tuple(meta["table_pot"]), 0) == 1
+
+
+def test_the_card_table_can_be_switched_off():
+    """`game: False` has to keep working - the old shape is what would be standing in world."""
+    _w, meta, _p = _build("saloon", width=17, depth=12, game=False)
+    assert "table_button" not in meta
+
+
+def test_the_card_table_is_reachable_and_the_saloon_still_works():
+    """The generator refuses to build otherwise; this exercises the same contract from outside,
+    and it is the check that catches a table laid across the only way in."""
+    w, meta, p = _build("saloon", width=17, depth=12)
+    from mcbuild.gen.park import _Frame
+    f = _Frame(p)
+    cells = _names(w)
+    reach = walk.reachable(cells, f.at(p["width"] // 2, -4, 0))
+    assert tuple(meta["table_button"]) in reach
+    assert f.at(2, p["depth"] - 3, 0) in reach, "the bar is walled off behind the card table"
+    assert meta["tables"] >= 2 and meta["beds"] >= 2
+
+
+def test_the_card_table_states_its_odds_and_what_it_has_not_proven():
+    _w, meta, _p = _build("saloon", width=17, depth=12)
+    assert "6 in 9" in meta["table_contract"]
+    assert meta["table_stock"]["the deal"] and meta["table_stock"]["the house"]
+
+
+# -------------------------------------------------------- the mine, and its headroom for real
+
+
+def test_the_mine_has_no_pocket_you_can_stand_in_and_not_reach():
+    """EVERY STANDABLE CELL UNDERGROUND IS ON THE TOUR.
+
+    A timber set, a lamp or a shaft lining one cell into a drift does not make the walkthrough
+    fail - it makes a pocket you can be in and cannot get to, which no leg-by-leg check sees
+    because the legs still connect. Measured off the design's own floor course.
+    """
+    w, meta, _p = _build("minehead")
+    cells = _names(w)
+    reach = walk.reachable(cells, tuple(meta["adit_mouth"]))
+    fy = meta["floor_h"] + 100                       # `_build` stands the design at y = 100
+    stand = {(x, y + 1, z) for (x, y, z) in cells if y == fy}
+    stand = {s for s in stand if walk.stands(cells, s)}
+    assert len(stand) > 60, "no underground floor at all - the check would be vacuous"
+    orphan = sorted(stand - reach)
+    assert orphan == [], f"{len(orphan)} standable cell(s) underground are cut off, e.g. {orphan[:3]}"
+
+
+def test_the_mine_walk_check_can_actually_fail():
+    """PLUG BOTH SHAFTS AND THE WORKINGS MUST GO DARK.
+
+    One is not enough and that is the design being right: the tour is a LOOP, so blocking the
+    hoist still leaves the escape shaft. A check that cannot fail is worse than no check.
+    """
+    w, meta, _p = _build("minehead")
+    cells = dict(_names(w))
+    for leg in ("shaft_head", "way_out"):
+        x, y, z = meta[leg]
+        cells[(x, y, z)] = "cobblestone"
+        cells[(x, y + 1, z)] = "cobblestone"
+    reach = walk.reachable(cells, tuple(meta["adit_mouth"]))
+    assert tuple(meta["gallery_far"]) not in reach
+    fy = meta["floor_h"] + 100
+    assert not [c for c in reach if c[1] <= fy + 3], "the workings are still reachable"
+
+
+# ------------------------------------------------------- the census that started all of this
+
+
+def test_the_zone_has_something_to_press():
+    """ZERO BUTTONS AND ZERO LEVERS IN A WHOLE ZONE IS THE NUMBER THIS PASS EXISTS FOR.
+
+    Counted over the kinds this file owns, because the arcade units and the rides have their own
+    suites. It is a floor rather than a target: the point is that the frontier's own buildings
+    now contain something a hand can operate.
+    """
+    inputs = collections.Counter()
+    for kind in ("powderhouse", "saloon", "minehead", "sluice"):
+        w, _meta, _p = _build(kind, **({"width": 17, "depth": 12} if kind == "saloon" else {}))
+        for _pos, (name, _pr) in w.cells.items():
+            if name in ("lever", "stone_button"):
+                inputs[name] += 1
+    assert inputs["lever"] >= 1, "nothing in the zone can be armed"
+    assert inputs["stone_button"] >= 2, "nothing in the zone can be pressed"

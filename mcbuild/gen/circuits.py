@@ -286,6 +286,24 @@ def connect(a, b, y: int | None = None, every: int = 14, facing: str = "east") -
     """
     ax, ay, az = a
     bx, by, bz = b
+
+    # **TWO CELLS THAT ALREADY TOUCH NEED NO CONNECTOR, AND BUILDING ONE ANYWAY LEAVES A STRAY.**
+    # A one-course descent to a cell one step along is exactly the shape `casino` asks for when it
+    # joins a boost to its payout - and `climb` steps a full cell along the run BEFORE it descends,
+    # so it lands one PAST the destination, drops its dust there, and then the planar leg back has
+    # nothing to lay because both of its ends are endpoints. The result is a single orphaned dust
+    # cell on its own step block, which is precisely what `circuit.inspect` reported on The
+    # Reckoning as "dust with no source".
+    #
+    # Dust carries across a one-block step, so a Manhattan distance of one - or one along plus one
+    # down - is already a connection. Laying nothing is the honest answer, and it is reported so a
+    # caller cannot mistake it for a run that failed.
+    dm = (abs(bx - ax), abs(by - ay), abs(bz - az))
+    if sum(dm) <= 1 or (dm[1] == 1 and dm[0] + dm[2] == 1):
+        return {"cells": {}, "from": tuple(a), "to": tuple(b),
+                "ends": (tuple(a), tuple(b)), "length": 0, "climbed": dm[1],
+                "contract": "already adjacent - nothing to lay"}
+
     y = ay if y is None else y
     path = []
     step = 1 if bx >= ax else -1
@@ -502,15 +520,47 @@ def window(pos, low: int, high: int, facing: str = "east", side: int = 1) -> dic
     Subtract gives 15 - 0 = 15 when only LOW fired, and 15 - 15 = 0 when HIGH fired too. The taps
     are PERPENDICULAR because a repeater laid in the line would break the line it is measuring.
 
+    **THE FIRST VERSION WAS A THRESHOLD WHENEVER `high == low + 1`, WHICH IS EVERY CALLER THERE
+    IS.** It routed the HIGH boolean to the gate's side along a lane `range(low + 1, high)` - and
+    for an exact-value gate that range is EMPTY, so the side repeater had nothing behind it, was
+    never on, and the subtract was `15 - 0 = 15` for every level at or above `low`. Three shipped
+    machines were affected and all three were the same bet as `double_or_none` wearing another
+    name: The Vault opened on any page at or over each dial, the Assay Office paid for anything
+    heavier than the mark ("not a guessing game, a shelf" - its own docstring), and The Reckoning
+    paid on 2 AND on 4.
+
+    It survived because the SIMULATOR agreed with it. `_read` fell through to `_block_power` at
+    the side repeater's cell, which is the maximum of everything touching that cell - and the HIGH
+    tap's own output dust is touching it. So the sim saw a 15 arrive by a route Minecraft does not
+    have, the exact-value test passed, and the fault was invisible from both ends. `circuit._aimed`
+    is the fix on that side: a repeater delivers only into the cell it FACES.
+
+    So the geometry is rebuilt around the one thing that is always true - **a repeater aimed
+    straight into a comparator is a full 15, with no lane to run and nothing to decay**:
+
+        j=0   the decaying line, i = 0 .. high-1
+        j=1   LOW tap at i=low-1, HIGH tap at i=high-1, both facing across
+        j=2   the GATE at i=low-1 - fed at 15 by the LOW tap DIRECTLY INTO ITS BACK,
+              and its side cell at i=low carries the HIGH boolean
+        j=3   the output
+
+    When `high == low + 1` the HIGH tap is already at i=low, so its own output cell IS the gate's
+    side: one repeater into one dust cell, 15, no lane at all. When the window is wider, the HIGH
+    boolean runs a lane down j=2 into a repeater at i=low that aims into the gate. Either way the
+    side arrives at full strength, which is what the contract needs and what the old shape could
+    not deliver.
+
+    It is also a cell NARROWER than the old one (4 across, not 5) and the same length.
+
     CONTRACT: `out` carries a signal when low <= input < high, and nothing otherwise.
     """
     low = max(1, min(15, int(low)))
     high = max(low + 1, min(16, int(high)))
     dx, _dy, dz = STEP[facing]
     # **WHICH SIDE THE TAPS SIT ON IS THE CALLER'S CHOICE**, because three of these radiating from
-    # one hopper collide otherwise: each occupies a 5x5 quadrant, and with the perpendicular fixed
-    # two of them always land in the same one. The wheel's east and north gates overlapped exactly
-    # this way and two pockets ended up in adjacent cells.
+    # one hopper collide otherwise: each occupies a quadrant off the hub, and with the
+    # perpendicular fixed two of them always land in the same one. The wheel's east and north
+    # gates overlapped exactly this way and two pockets ended up in adjacent cells.
     sx, sz = (-dz * side, -dx * side)
     x, y, z = pos
 
@@ -526,30 +576,37 @@ def window(pos, low: int, high: int, facing: str = "east", side: int = 1) -> dic
     face = _rev(facing, sx, sz)
     cells[at(low - 1, 1)] = f"repeater[facing={face},delay=1]"
     cells[at(high - 1, 1)] = f"repeater[facing={face},delay=1]"
-    cells[at(low - 1, 2)] = "redstone_wire"
-    cells[at(high - 1, 2)] = "redstone_wire"
 
-    # THE GATE: back = LOW, side = HIGH. Written with both taps on one perpendicular the side
-    # input landed TWO cells from the comparator and never arrived - the gate passed every level
-    # at or above `low` and the window was just a threshold with extra parts. The HIGH boolean is
-    # a full 15, so unlike the level it came from it CAN travel: it is routed along its own lane
-    # to the gate's side.
-    gate = at(low - 1, 3)
+    # THE GATE SITS WHERE THE LOW TAP POINTS. A repeater into a comparator's back is 15 with no
+    # dust in between, so there is nothing left to decay on the input side either.
+    gate = at(low - 1, 2)
     cells[gate] = f"comparator[facing={face},mode=subtract]"
-    # A SIDE INPUT IS READ AS A LEVEL, so it must arrive at FULL STRENGTH. Run as plain dust the
-    # HIGH boolean decayed on the way and the subtract gave 15 - 13 = 2 instead of 0: the gate
-    # "passed" a level it was built to block, quietly and by two. A repeater at the gate's side
-    # delivers a clean 15, and 15 - 15 is the zero the contract promises.
-    rev = {"east": "west", "west": "east", "north": "south", "south": "north"}[facing]
-    for i in range(low + 1, high):
-        cells[at(i, 3)] = "redstone_wire"
-    side = at(low, 3)
-    cells[side] = f"repeater[facing={rev},delay=1]"
 
-    out = at(low - 1, 4)
+    # THE SIDE. `at(low, 2)` is the gate's own side cell, one step further along the run.
+    if high == low + 1:
+        # The HIGH tap is at i = low, so it already points straight at that cell: dust there is
+        # driven to a full 15 by the repeater and read as the side input. No lane exists to decay.
+        cells[at(low, 2)] = "redstone_wire"
+    else:
+        # A wider window: carry the HIGH boolean down the lane and RESTORE it at the gate. The
+        # lane is a boolean, not a level, so its decay costs nothing - but it must not arrive as
+        # dust, or the side reads a decayed number and the subtract leaks by exactly that much.
+        back = {"east": "west", "west": "east", "north": "south", "south": "north"}[facing]
+        for i in range(low + 1, high):
+            cells[at(i, 2)] = "redstone_wire"
+        cells[at(low, 2)] = f"repeater[facing={back},delay=1]"
+
+    out = at(low - 1, 3)
     cells[out] = "redstone_wire"
+    # **`next` IS WHERE THE OUTPUT MAY BE CONSUMED, AND IT IS NOT "ONE MORE STEP ALONG THE RUN".**
+    # The cell one step along `facing` from `out` is `at(low, 3)` - which touches `at(low, 2)`, the
+    # gate's own SIDE, carrying the HIGH boolean at a full 15. The wheel put its lamp there and
+    # every pocket lit as though the gate were a threshold: the lamp was reading the signal the
+    # gate exists to REJECT. Continuing across the run instead is clear of every cell this module
+    # places, so a caller that asks rather than derives cannot make that mistake.
     return {"cells": cells, "in": at(-1, 0), "foot": at(0, 0), "out": out,
-            "low": low, "high": high,
+            "next": at(low - 1, 4), "face": face,
+            "gate": gate, "low": low, "high": high,
             "contract": f"passes only {low} <= level < {high}"}
 
 

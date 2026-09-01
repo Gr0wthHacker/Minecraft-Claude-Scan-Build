@@ -2,15 +2,15 @@ name: Sign The Plummet
 gen: wayfinding
 params:
   land: hollow
-  facing: east
+  facing: north
   name: The Plummet
   does:
   - 50 course drop
   - hold on
   at:
-  - 97574
+  - 97638
   - 203
-  - 80802
+  - 80810
   kind: marker
   title: Sign The Plummet
   under: out/islandright.litematic

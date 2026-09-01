@@ -257,3 +257,74 @@ def test_quasi_connectivity_can_be_switched_off_to_prove_a_circuit_does_not_rely
     without.run(3)
     assert with_qc.fired[(0, 0, 0)] == 1
     assert without.fired[(0, 0, 0)] == 0, "with QC off, only a direct signal should fire it"
+
+
+# --------------------------------------------------------------------------- what a component reads
+#
+# Two over-reads lived in `_read`/`_drives` and both made the simulator AGREE with a broken build,
+# which is the worst failure a checker can have. Each is pinned by a fixture that is unambiguous in
+# Minecraft, so a future "simplification" back to `_block_power` fails here.
+
+
+def test_a_repeater_only_powers_the_cell_it_faces():
+    """**A REPEATER IS NOT A CONDUCTOR.** `_read` fell through to `_block_power` at the repeater's
+    own cell, which is the maximum of everything touching it - so a repeater standing beside an
+    unrelated dust run reported that run's level to whatever was reading it. On `window(5, 9)` the
+    gate's side read 12 instead of 15 and `15 - 12 = 3` passed a level the gate exists to block."""
+    # A comparator reading a repeater that faces AWAY from it, with a loud dust run beside them.
+    cells = {
+        (0, 0, 0): "comparator[facing=east,mode=subtract]",
+        (-1, 0, 0): "redstone_block",                       # rear: a clean 15
+        (0, 0, 1): "repeater[facing=south,delay=1]",         # at the comparator's SIDE, facing away
+        (0, 0, 2): "redstone_wire",
+        (1, 0, 1): "redstone_wire",                          # ...and dust right beside it
+        (2, 0, 1): "redstone_block",
+    }
+    for p in list(cells):
+        cells.setdefault((p[0], p[1] - 1, p[2]), "smooth_stone")
+    c = Circuit.from_cells(cells)
+    c.run(20)
+    assert c.state.get((0, 0, 0)) == 15, \
+        "a repeater facing away delivers nothing to the side it is not aimed at"
+
+
+def test_a_repeater_aimed_into_a_comparators_side_delivers_a_full_fifteen():
+    """The other half of the same rule, and the one the exact-value gate is built on."""
+    cells = {
+        (0, 0, 0): "comparator[facing=east,mode=subtract]",
+        (-1, 0, 0): "redstone_block",
+        (0, 0, 1): "repeater[facing=north,delay=1]",         # aimed INTO the comparator
+        (0, 0, 2): "redstone_block",
+    }
+    for p in list(cells):
+        cells.setdefault((p[0], p[1] - 1, p[2]), "smooth_stone")
+    c = Circuit.from_cells(cells)
+    c.run(20)
+    assert c.state.get((0, 0, 0)) == 0, "15 - 15 is the zero a subtract gate promises"
+
+
+def test_an_empty_cell_is_not_an_input():
+    """**AIR CARRIES NOTHING, and reading it as the maximum of its neighbours is how dust two cells
+    away became a side input.** `_block_power` answers "how hard is this cell driven", which for an
+    empty cell is right for quasi-connectivity and quite wrong for a component's own back or side:
+    dust running past one cell out is DIAGONAL and powers nothing.
+
+    Read the other way it cost two casino games. The button's descent passed within two cells of
+    the pulse's subtract, the empty cell between them reported a permanent 14, the monostable never
+    opened, and `double_or_none` and `lucky_number` reported a randomiser that never fired."""
+    cells = {
+        (0, 0, 0): "comparator[facing=east,mode=subtract]",
+        (-1, 0, 0): "redstone_block",                       # rear 15
+        # (0, 0, 1) is the SIDE and is deliberately left EMPTY
+        (0, 0, 2): "redstone_wire",                          # dust one cell past it
+        (1, 0, 2): "redstone_block",
+    }
+    for p in list(cells):
+        cells.setdefault((p[0], p[1] - 1, p[2]), "smooth_stone")
+    c = Circuit.from_cells(cells)
+    c.run(20)
+    assert c.state.get((0, 0, 0)) == 15, "an empty side cell provides no side input"
+
+
+# The counterpart - that an empty cell is STILL read for quasi-connectivity - is already pinned by
+# `test_quasi_connectivity_fires_a_piston_from_above` above, which is exactly this fixture.

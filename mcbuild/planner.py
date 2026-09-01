@@ -277,6 +277,23 @@ THEMES = {
         "reserve": [[97640, 80351, 97649, 80449]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            # **A LEVER TO ARM AND A BUTTON TO FIRE.** A two-block SUBTRACT interlock rather
+            # than a machine pit - every pit in this repo has cost a floating floor - then a
+            # five-piston fuse thumps the length of the drift, seven charges go at the face and a
+            # bell rings. `drift` is a NEW key on purpose: the shared FRONTIER["depth"] is the
+            # saloon's 12, and reading that built a drift with room for two fuse stages of five.
+            {"name": "The Powder House", "gen": "frontiertown", "kind": "powderhouse",
+             "size": [23, 8, 13], "orient": False,
+             "params": {"land": "frontier", "facing": "east", "drift": 21}},
+            # Reuse, not new code: a plinko board is a gravel-washing chute in a mining town, and
+            # DROP is a fourth verb beside press, shoot and weigh.
+            {"name": "The Nugget Chute", "gen": "arcade", "kind": "plinko",
+             "size": [17, 17, 18], "orient": False,
+             "params": {"land": "frontier", "facing": "east", "title": "NUGGET CHUTE"}},
+            # Four paying games and nowhere to spend a win is a machine, not a game.
+            {"name": "Pay Window", "gen": "arcade", "kind": "prizecounter",
+             "size": [11, 7, 17], "orient": False,
+             "params": {"land": "frontier", "facing": "east"}},
             # A shooting range and an assay scale: both are things you do with your hands, and
             # both belong to a mining town.
             {"name": "Shooting Range", "gen": "arcade", "kind": "range",
@@ -332,9 +349,6 @@ THEMES = {
             # Three shops, not five. Every one of them now has a counter, a ceiling lamp
             # and the workstations of the trade on its sign - so they are worth entering, and
             # three good ones beat five that cost the zone its saloon.
-            {"name": "Prospect Row", "gen": "frontiertown", "kind": "falsefront",
-             "size": [13, 14, 25], "orient": False,
-             "params": {"land": "frontier", "shops": 3, "facing": "east"}},
             {"name": "The Mine Head", "gen": "frontiertown", "kind": "minehead",
              "size": [19, 32, 21], "orient": False,
              "params": {"land": "frontier", "facing": "east"}},
@@ -376,6 +390,22 @@ THEMES = {
         "reserve": [[97640, 80751, 97649, 80849]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            # **A TOMB YOU WALK INTO AND A PUZZLE YOU SOLVE.** Three shroud-levers, each
+            # lighting its own lamp; the vault's doors open onto the prize alcove only while all
+            # three are up, and shut the moment one drops. It replaces the Graveyard and the Crypt,
+            # which were a field of stones and a sealed door.
+            {"name": "The Ossuary", "gen": "hollowmanor", "kind": "ossuary",
+             "size": [25, 10, 23],
+             "params": {"land": "hollow", "facing": "east"}},
+            # ...and this is where a Vault or Ossuary win gets spent. A game with no payout is a
+            # machine, not a game.
+            {"name": "The Reliquary", "gen": "arcade", "kind": "prizecounter",
+             "size": [11, 7, 17], "orient": False,
+             "params": {"land": "hollow", "facing": "east"}},
+            {"name": "Sign The Ossuary", "gen": "wayfinding", "kind": "marker",
+             "size": [3, 5, 3], "orient": False,
+             "params": {"land": "hollow", "facing": "east", "name": "The Ossuary",
+                        "does": ["pull all three", "at once"]}},
             # **A NAMEPLATE THAT ONLY NAMES A BUILDING ANSWERS THE WRONG QUESTION.** "THE
             # VAULT" tells you which building it is and not whether it is worth going in,
             # which is half the verdict a visitor makes from the street. Every marker
@@ -408,21 +438,17 @@ THEMES = {
              "size": [3, 5, 3], "orient": False,
              "params": {"land": "hollow", "facing": "east", "name": 'The Quiet Room',
                         "does": ['make no sound', 'sculk listens']}},
-            {"name": "Sign Fortune Wheel", "gen": "wayfinding", "kind": "marker",
-             "size": [3, 5, 3], "orient": False,
-             "params": {"land": "hollow", "facing": "east", "name": 'Fortune Wheel',
-                        "does": ['red green black', '1 in 3']}},
-            {"name": "Sign The Reckoning", "gen": "wayfinding", "kind": "marker",
-             "size": [3, 5, 3], "orient": False,
-             "params": {"land": "hollow", "facing": "east", "name": 'The Reckoning',
-                        "does": ['1 in 3', 'pays 1 prize']}},
             {"name": "Sign The Seance", "gen": "wayfinding", "kind": "marker",
              "size": [3, 5, 3], "orient": False,
              "params": {"land": "hollow", "facing": "east", "name": 'The Seance',
                         "does": ['pull the cord', 'read the meter']}},
+            # A 4x4 grid rather than 7x6: measured, 13x13 against 17x19. The hollow gained an
+            # ossuary and a prize counter and the maze was the piece that no longer fitted; it
+            # keeps its spanning-tree branches and its single solved route, so it is a shorter
+            # walk rather than a simpler one.
             {"name": "Mirror Maze", "gen": "attractions", "kind": "mirrormaze",
-             "size": [15, 5, 13], "orient": False,
-             "params": {"land": "hollow", "facing": "east"}},
+             "size": [13, 10, 13], "orient": False,
+             "params": {"land": "hollow", "facing": "east", "maze_w": 4, "maze_d": 4}},
             # The hollow gets the two games that need a dark room: a combination vault, and a
             # corridor of sculk sensors you have to cross without making a sound.
             {"name": "The Vault", "gen": "arcade", "kind": "safe",
@@ -449,8 +475,11 @@ THEMES = {
             {"name": "Ghost Train", "gen": "attractions", "kind": "ghosttrain",
              "size": [21, 12, 15],
              "params": {"land": "hollow", "facing": "east"}},
+            # It grew SEVEN COURSES DOWNWARD, not outward: every set piece hides its wiring
+            # under the floorboard it fires through, so the footprint is unchanged and the height
+            # is not.
             {"name": "Haunted Manor", "gen": "hollowmanor", "kind": "manor",
-             "size": [35, 45, 42],
+             "size": [35, 52, 42],
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "The Plummet", "gen": "bigwheel", "kind": "drop",
              "size": [20, 73, 17],
@@ -458,16 +487,6 @@ THEMES = {
             {"name": "Clock Tower", "gen": "hollowmanor", "kind": "clocktower",
              "size": [17, 49, 17], "anchor": "edge", "side": "east",
              "params": {"land": "hollow", "facing": "east"}},
-            {"name": "Fortune Wheel", "gen": "casino", "kind": "wheel",
-             "size": [24, 4, 24], "orient": False,
-             "params": {"land": "hollow", "pit": 2, "facing": "east", "booth": True}},
-            {"name": "The Reckoning", "gen": "casino", "kind": "lucky_number",
-             "size": [9, 8, 8], "orient": False,
-             "params": {"land": "hollow", "outcomes": 3, "pit": 2, "facing": "east",
-                        "booth": True}},
-            {"name": "Dead Tree", "gen": "hollowmanor", "kind": "deadtree",
-             "size": [9, 15, 9],
-             "params": {"land": "hollow", "facing": "east"}, "count": 1},
             {"name": "Hollow Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
              "anchor": "edge", "side": "north",
              "params": {"land": "hollow", "width": 7, "height": 6, "facing": "north"}},
@@ -1661,9 +1680,25 @@ def _add_furniture(pl, spec, plane, world, pl_plot=None):
                 return False
         return True
 
+    # **WALK THE AVENUES THAT WERE ACTUALLY DRAWN, not the plot they sit in.** An avenue is
+    # clamped to the spread of the doors it serves, so it is routinely shorter than the plot -
+    # and furniture stepped from `px0+6` to `px1-6` walked off both ends of it, leaving a bench
+    # twenty blocks from the nearest paving in a zone whose whole street network is five wide.
+    # The routes are already computed and sitting on the paths module; read them.
+    lanes = {}
+    for r in (paths["params"].get("routes") or []):
+        if not r.get("lamps"):          # the two full-length avenues are the lamped ones
+            continue
+        (ax, az), (bx, bz) = r["a"], r["b"]
+        if az == bz:
+            lanes["x"] = (min(ax, bx), max(ax, bx), az)
+        elif ax == bx:
+            lanes["z"] = (min(az, bz), max(az, bz), ax)
+
     n = 0
     # Both avenues, walked from one end to the other, dressing alternate kerbs.
-    runs = [("x", px0 + 6, px1 - 6, cz), ("z", pz0 + 6, pz1 - 6, cx)]
+    runs = [(axis, lo + 4, hi - 4, fixed)
+            for axis, (lo, hi, fixed) in lanes.items() if hi - lo > 16]
     # **THE KERB IS A SEARCH, NOT A CONSTANT, AND THAT IS THE WHOLE DIFFERENCE.** Written with a
     # single fixed offset every piece landed either on the avenue or inside a building, and the
     # first run of this pass placed EXACTLY ZERO in a plot that is only half full: at 48% used,

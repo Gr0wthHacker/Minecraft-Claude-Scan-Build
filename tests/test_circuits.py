@@ -345,3 +345,105 @@ def test_the_lamp_sits_BESIDE_the_dust_not_above_it():
     for lamp, foot in zip(m["lamps"], [(0, 0, 0), (1, 0, 0), (2, 0, 0)]):
         assert lamp[1] == foot[1], "the lamp must be on the same course as its dust"
         assert abs(lamp[0] - foot[0]) + abs(lamp[2] - foot[2]) == 1, "and adjacent to it"
+
+
+# --------------------------------------------------------------------------- the exact-value gate
+#
+# `window` shipped as a THRESHOLD for its whole life, and the two things that hid it are worth as
+# much as the fix: the geometry was only wrong in the degenerate case `high == low + 1`, which is
+# what every caller asks for; and the SIMULATOR agreed with it, because `_read` fell through to
+# `_block_power` on the side repeater's cell and picked up the very dust the gate exists to reject.
+# So the module was wrong, the model was wrong in the same direction, and the test that would have
+# caught it passed. Everything below drives the gate through a real level, at every facing and both
+# perpendiculars, degenerate AND wide.
+
+
+def _drive_window(low, high, level, facing="east", side=1):
+    """Feed a window a known level and report what leaves it.
+
+    THE LEVEL IS BUILT OUT OF DISTANCE, not stated: a redstone block `15 - level` cells back gives
+    exactly `level` at the run's foot, which is the same way the machines that use this get theirs.
+    """
+    g = circuits.window((0, 0, 0), low, high, facing=facing, side=side)
+    cells = dict(g["cells"])
+    dx, _dy, dz = circuits.STEP[facing]
+    pos = g["in"]
+    for _ in range(15 - level):
+        cells[pos] = "redstone_wire"
+        pos = (pos[0] - dx, pos[1], pos[2] - dz)
+    cells[pos] = "redstone_block"
+    for p in list(cells):
+        cells.setdefault((p[0], p[1] - 1, p[2]), "smooth_stone")
+    c = Circuit.from_cells(cells)
+    c.run(30)
+    return c.power.get(g["out"], 0)
+
+
+def test_an_exact_value_gate_is_exact_at_every_facing_and_both_sides():
+    """**THE ONE THAT WAS MISSING.** `window(v, v + 1)` used to pass every level at or above `v`,
+    so three shipped machines were `double_or_none` wearing another name: The Vault opened on any
+    page over each dial, the Assay Office paid for anything heavier than the mark, and The
+    Reckoning paid on 2 AND on 4."""
+    for facing in ("east", "west", "north", "south"):
+        for side in (1, -1):
+            for target in (1, 2, 3, 4, 6):
+                for level in range(1, 9):
+                    got = _drive_window(target, target + 1, level, facing, side) > 0
+                    assert got == (level == target), (
+                        f"{facing}/{side}: window({target}) "
+                        f"{'let' if got else 'blocked'} {level}")
+
+
+def test_a_wider_window_passes_a_band_and_nothing_outside_it():
+    for low, high in ((5, 9), (2, 5), (1, 4)):
+        for level in range(1, 12):
+            got = _drive_window(low, high, level) > 0
+            assert got == (low <= level < high), f"window({low},{high}) on {level}"
+
+
+def test_the_gates_side_input_arrives_at_FULL_strength():
+    """A comparator reads its side as a LEVEL, so a boolean that decays on the way turns the
+    subtract into an off-by-that-much: measured, the old wide window gave `15 - 12 = 3` at a level
+    it exists to block and 'passed' it quietly and by three. The property is the LEVEL, not the
+    presence of a repeater somewhere in the module - that was the old assertion and every window
+    has repeaters in it whether or not the side ever arrives."""
+    g = circuits.window((0, 0, 0), 5, 9)
+    cells = dict(g["cells"])
+    pos = g["in"]
+    for _ in range(15 - 9):                       # a level of 9: the HIGH tap must fire
+        cells[pos] = "redstone_wire"
+        pos = (pos[0] - 1, pos[1], pos[2])
+    cells[pos] = "redstone_block"
+    for p in list(cells):
+        cells.setdefault((p[0], p[1] - 1, p[2]), "smooth_stone")
+    c = Circuit.from_cells(cells)
+    c.run(30)
+    gate = g["gate"]
+    sides = [c._read(s, c._last_src, gate) for s in c._sides(gate, c.at(gate))]
+    assert max(sides) == 15, f"the side arrived at {max(sides)}, so the subtract leaks by that much"
+
+
+def test_nothing_may_be_consumed_one_step_along_the_run():
+    """`next`, not `out + facing`. One step along the run is the cell beside the gate's own SIDE,
+    which carries the HIGH boolean at a full 15 - a lamp put there reads the signal the gate
+    exists to reject, which is exactly how the wheel lit every pocket in turn."""
+    for low in (1, 2, 4):
+        g = circuits.window((0, 0, 0), low, low + 1)
+        step = circuits.STEP["east"]
+        naive = (g["out"][0] + step[0], g["out"][1], g["out"][2] + step[2])
+        assert g["next"] != naive, "next must not be the cell one step along the run"
+        # ...and `next` touches nothing the module placed except `out` itself.
+        touching = [q for q in g["cells"]
+                    if sum(abs(a - b) for a, b in zip(q, g["next"])) == 1]
+        assert touching == [g["out"]], f"next touches {touching}"
+
+
+def test_a_connector_between_two_cells_that_already_touch_lays_nothing():
+    """`climb` steps a full cell ALONG the run before it descends, so a one-course drop to a cell
+    one step along lands one PAST the destination - and the planar leg back has nothing to lay
+    because both its ends are endpoints. What was left was a single orphaned dust cell on its own
+    step block, reported by `circuit.inspect` as "dust with no source" on The Reckoning."""
+    for b in ((1, 0, 0), (0, 0, 1), (1, -1, 0), (0, 1, -1), (-1, -1, 0)):
+        m = circuits.connect((0, 0, 0), b)
+        assert m["cells"] == {}, f"{b}: laid {len(m['cells'])} cells between two adjacent points"
+    assert circuits.connect((0, 0, 0), (4, 0, 0))["cells"], "a real gap still gets a run"

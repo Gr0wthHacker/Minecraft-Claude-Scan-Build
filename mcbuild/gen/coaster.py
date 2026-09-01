@@ -56,7 +56,7 @@ continuous line, and the trestles join them.
 """
 from __future__ import annotations
 
-from .. import fluids
+from .. import fluids, walk
 from .canvas import Canvas, hash01
 from .park import LANDS, SIGN_WIDTH, _BACK, _Frame, _STEP, _sign
 from .vertical import Ctx, World
@@ -96,6 +96,10 @@ COASTER = {
     "flume_top": 30,
     "pool": 7,                  # the splash pool's half-width
     "gantry_every": 5,          # an arch over the lift channel this often
+
+    # --- rapids (the flume's replacement - see the section above it) -----
+    "rapids_span": 24,          # the circuit's outer (i, d) extent
+    "rapids_top": 14,           # courses the stair tower climbs, and the whole descent
 
     "min_run": 3,               # a trim course shorter than this is not drawn at all
 }
@@ -791,8 +795,15 @@ def _touches(w: World, pos) -> bool:
 _SHELL_DROP = 6     # how far a plug reaches for footing before it gives up
 
 
-def _shell(w: World, pal, envelope) -> int:
+def _shell(w: World, pal, envelope, keep=()) -> int:
     """Give every cell water is ALLOWED in a bed, and a wall on every side that is not.
+
+    **`keep` IS WHERE A PLAYER'S HEAD GOES, AND IT IS NOT THE ENVELOPE.** A walkway beside the
+    water needs two clear courses over it, and the obvious move - declaring those courses part of
+    the envelope - does not work: this walls one ring further out, onto the next cell of the
+    approach, which then needs declaring too. Chased along a terrace it never terminates. Cells in
+    `keep` are simply never filled, and they are deliberately NOT envelope, so if water ever does
+    reach one `fluids.escapes` says so instead of the omission passing quietly.
 
     **THIS IS `_seal`'S IDEA WITH THE ONE DISTINCTION IT COULD NOT MAKE.** `_seal` filled the
     neighbours of every WATER BLOCK, which walled each spaced source into its own pocket - the
@@ -807,6 +818,7 @@ def _shell(w: World, pal, envelope) -> int:
     lane, stepped diagonally into that cell, found no floor, and fell twenty courses to the apron
     and off the plot. Two corners, two holes, and the whole ride drained through them.
     """
+    keep = {tuple(c) for c in keep}
     open_env = [c for c in envelope
                 if (c not in w.cells) or w.cells[c][0] == "water"]
     seen = set(open_env)
@@ -821,7 +833,7 @@ def _shell(w: World, pal, envelope) -> int:
             n += 1
         for (dx, dz) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
             nb = (x + dx, y, z + dz)
-            if nb in seen or w.has(*nb):
+            if nb in seen or nb in keep or w.has(*nb):
                 continue
             w.put(*nb, pal["wall"])
             n += 1
@@ -835,7 +847,7 @@ def _shell(w: World, pal, envelope) -> int:
                 if _touches(w, cur):
                     break
                 low = (cur[0], cur[1] - 1, cur[2])
-                if low in seen or w.has(*low):
+                if low in seen or low in keep or w.has(*low):
                     break
                 w.put(*low, pal["ground"])
                 n += 1
@@ -1267,7 +1279,646 @@ def _seal(w: World, mat: str) -> int:
     return n
 
 
-BUILDERS = {"coaster": _coaster, "flume": _flume}
+# --------------------------------------------------------------------------- the rapids
+#
+# **THE LOG FLUME IS REPLACED, NOT REPAIRED, AND THE HEADROOM WAS THE SMALLER OF ITS TWO FAULTS.**
+#
+# Measured off the shipped `out/Log Flume.litematic`, 137 water cells:
+#
+#     3 courses clear over the water   130
+#     1 course  clear                    4      the roof, at water+2 on a graded run
+#     0 courses clear                    3      a gantry beam, and the roof at water+1
+#
+# A player is two blocks tall, so seven cells of that ride are a wall you swim into. That alone is
+# a two-line fix - the roof sits at `max(neighbour) + 2` and the highest water a column can hold is
+# `max(neighbour) + 1`, so the ceiling lands one course over the water by arithmetic. Move it two
+# and every cell clears.
+#
+# **THE FAULT THAT CANNOT BE FIXED BY GEOMETRY IS THAT THERE IS NO WAY TO THE TOP.** A flume is a
+# LIFT HILL and a drop, and vanilla has no chain lift: nothing carries a boat or a player UP a
+# water channel. `_flume`'s own docstring records what actually happens - *"the crest source sits
+# at the top of a staircase that descends in BOTH directions, so it runs back down the lift exactly
+# as it runs down the drop"* - which is to say the lift is twenty courses of water flowing
+# downhill AT the rider. Fixing the ceiling would have shipped a ride nobody can start, which is
+# this project's cardinal sin wearing a taller hat.
+#
+# **THE ONLY VANILLA MECHANISM THAT RAISES A PLAYER THROUGH WATER IS A SOUL-SAND BUBBLE COLUMN,
+# AND IT WAS BUILT HERE AND THEN TAKEN OUT AGAIN.** A water column standing above the surrounding
+# water line has to be sealed on every side above that line or it drains, so its only opening is
+# ONE COURSE TALL, at the water, and you swim through it. `bigwheel.py` accepted exactly that and
+# wrote the reason down - *"a water shaft cannot have a door... you go in from BELOW"*. A
+# one-course gap is a cell a player cannot stand in, so no flood fill can prove you get aboard,
+# and this brief asks for that proof. The bubble lift is the right mechanism for a wheel, whose
+# rider is already in the water; it is the wrong one for a ride you queue for.
+#
+# **A REAL WATER SLIDE'S LIFT IS A STAIRCASE.** It is walkable, provable, needs no exotic block,
+# and it puts the queue where a queue belongs. So the water feature the frontier keeps is a RAPIDS
+# CIRCUIT: a stair tower up to a start box at the head of a wide open channel, and a long gentle
+# descent all the way round the plot into a splash pool you climb out of beside the tower. It is
+# the brief's "lazy river" and its "rapids run" being the same ride: no lift hill, no drops to
+# survive, and WIDTH is the point.
+#
+# Four things follow, and each is asserted rather than hoped for:
+#
+#   HEADROOM IS A PROPERTY OF THE ENVELOPE, NOT OF A ROOF. The channel declares `_HEADROOM` clear
+#   courses over the deepest water any column can hold, `_shell` walls the outside of THAT, and so
+#   the ceiling is two courses clear by construction instead of by a separate roofing pass whose
+#   arithmetic nobody rechecked. Nothing is roofed at all: an open channel needs no lid when its
+#   walls out-top its own water.
+#
+#   THE DESCENT IS THE FLOW. Falling water is level 8 and spreads again from where it lands, so
+#   every step down restarts the seven-block budget - which means ONE source, in the start box,
+#   feeds the entire ride. `_MAX_FLAT` is the rule that keeps it true, and the grade is checked
+#   against it before a block is placed. The flume needed a source every six cells and shipped
+#   193 of them for a player to place by hand; the channel here needs one.
+#
+#   A CORNER IS NOT FROZEN HERE. `_profile` holds a corner and both its neighbours at one height
+#   because a curved rail has no ascending shape - a registry fact about RAILS. Water has no such
+#   rule, and inheriting the rail's constraint is what pushed the flat runs past seven cells and
+#   dried the channel out on the first attempt.
+#
+#   YOU CAN GET IN AND OUT ON FOOT, and `mcbuild/walk.py` proves it from real ground rather than
+#   the geometry looking about right.
+
+_RAPIDS_M = 3               # the channel's inset from the frame origin
+_HEADROOM = 2               # CLEAR COURSES OVER THE DEEPEST WATER. A PLAYER IS TWO BLOCKS TALL.
+_MAX_FLAT = 5               # cells a run may stay level: water reaches 7 from a fall, so 6 is the
+                            # true ceiling and 5 leaves the margin the corner freeze once ate
+_POOL_TOP = 1 + _HEADROOM   # courses the basin declares: its surface, the course water spreading
+                            # in off the outfall stands at, and the headroom over THAT
+
+
+def _tower_side(top):
+    """The stair tower's footprint: big enough that one turn of its perimeter carries the climb.
+
+    A spiral that wraps would put a tread back over a tread sixteen courses down - legal, but it
+    is also the only way this shape can eat its own headroom, so it is sized out of existence
+    rather than guarded against.
+    """
+    side = 5
+    while 4 * (side - 1) < top + 2:
+        side += 1
+    return side
+
+
+def _rapids_dims(p):
+    """The circuit's own lengths, derived once so the plan and the buildings cannot disagree.
+
+    The pool is deliberately NOT square with the plot: it is pushed to the low-`i` side, clear of
+    the channel's own elevated head, so that no trestle leg ever comes down through the water you
+    board in.
+    """
+    m = _RAPIDS_M
+    s = int(p["rapids_span"])
+    t = int(p["rapids_top"])
+    wide = max(4, min(6, int(p["pool"])))
+    if t < 6:
+        raise ValueError(f"rapids_top is {t}; a climb under 6 courses is not a ride")
+    tside = _tower_side(t)
+    need = 2 * m + tside + 12
+    if s < need:
+        raise ValueError(f"rapids_span {s} cannot close a circuit round a {tside}-wide stair "
+                         f"tower; it needs at least {need}")
+    pool = (m + 1 - wide, m + 1, m - 3, m + 6)
+    return m, s, t, wide, pool, tside
+
+
+def _rapids_plan(p):
+    """The channel's turns, in (i, d): a closed rectangle back over the pool it started above.
+
+    The head sits one cell off the tower's top landing, so you step off the stairs straight into
+    the start box. The tail comes back down the low-`i` side and ends IN the splash pool, which
+    makes the whole thing a circuit you can ride again without leaving the water.
+    """
+    m, s, _t, _wide, _pool, tside = _rapids_dims(p)
+    return [(m + 3 + tside, m), (s - m, m), (s - m, s - m), (m, s - m), (m, m + 5)]
+
+
+def _rapids_grade(pts, top):
+    """A height per cell: single-course steps from `top` down to the pool's own floor at -1.
+
+    **NO CORNER IS FROZEN**, and that is the difference between this and `_profile`. The rail rule
+    exists because a curved rail has no ascending shape; a corner of a water channel is just a
+    corner. Freezing them clustered the flat cells at the bends, and a flat run of seven is a DRY
+    CELL - water reaches exactly seven blocks from where it last fell, and the eighth is where the
+    rider stops. The spacing is checked here rather than discovered by `fluids.carries` later,
+    because a failure that names the dimension at fault beats one that names a coordinate.
+    """
+    n = len(pts)
+    drops = top + 1                              # the bed ends a course under the walking level
+    if drops >= n:
+        raise ValueError(f"a {drops}-course descent cannot be spread over {n} cells")
+    step = (n - 1) / float(drops)
+    picks = set()
+    for k in range(drops):
+        j = 1 + int(k * step)
+        while j in picks:
+            j += 1
+        picks.add(j)
+    hs, cur, flat = [], top, 0
+    for j in range(n):
+        if j in picks:
+            cur -= 1
+            flat = 0
+        else:
+            flat += 1
+            if flat > _MAX_FLAT:
+                raise ValueError(
+                    f"the rapids run level for {flat} cells at index {j}; water reaches seven "
+                    f"blocks from a fall, so anything past {_MAX_FLAT} risks a dry cell. Raise "
+                    f"rapids_top or lower rapids_span.")
+        hs.append(cur)
+    if hs[-1] != -1:
+        raise ValueError(f"the channel ends at h={hs[-1]}, not in the pool at -1")
+    return hs
+
+
+def _perimeter(i0, i1, d0, d1):
+    """The ring of a rectangle, in walking order - each cell face-adjacent to the next."""
+    out = [(i, d0) for i in range(i0, i1)]
+    out += [(i1, d) for d in range(d0, d1)]
+    out += [(i, d1) for i in range(i1, i0, -1)]
+    out += [(i0, d) for d in range(d1, d0, -1)]
+    return out
+
+
+def _rapids(w: World, p: dict, ctx) -> dict:
+    f = _Frame(p)
+    pal = LANDS[p["land"]]
+    seed = int(p["seed"])
+    m, s, t, _wide, (pi0, pi1, pd0, pd1), tside = _rapids_dims(p)
+    pts, _marks = _trace(_rapids_plan(p))
+    corners = _corners(pts, False)
+    hs = _rapids_grade(pts, t)
+    n = len(pts)
+
+    def nb_h(j):
+        out = [hs[j]]
+        if j:
+            out.append(hs[j - 1])
+        if j + 1 < n:
+            out.append(hs[j + 1])
+        return out
+
+    def in_pool(i, d):
+        return pi0 <= i <= pi1 and pd0 <= d <= pd1
+
+    wall_offs = [_wall_offs(pts, j) for j in range(n)]
+    # THE TOP OF EACH COLUMN'S ENVELOPE, and the window is the point.
+    #
+    # **WATER SPREADS SIDEWAYS AT WHATEVER COURSE IT ARRIVES AT, NOT ONLY AT ITS OWN SURFACE.**
+    # `fluids.spread` falls first and spreads second - so a cell whose lower neighbour is ALREADY
+    # wet keeps travelling horizontally instead of dropping, and the water in a column stands as
+    # high as the highest surface within reach UPSTREAM of it, not as high as its own neighbours.
+    # Sized off the neighbours alone, thirty-two cells came out with a lid one course over the
+    # water: the log flume's own fault, arrived at from a different direction. Water dies seven
+    # blocks from where it last fell, so seven cells upstream is the honest window, and the
+    # `+ _HEADROOM` on top of it is what makes the clearance arithmetic rather than inspection.
+    env_top = [max(hs[max(0, j - fluids.MAX_LEVEL):j + 2]) + 1 + _HEADROOM for j in range(n)]
+    # AND THE WALL GOES A COURSE HIGHER THAN THE ENVELOPE WHERE ITS NEIGHBOUR'S DOES. `env_top`
+    # steps down along the run, so `_shell` lays a one-course lid across the lane triple wherever
+    # the upstream column's envelope reaches above this one's. That lid is harmless to the water -
+    # it is `_HEADROOM` clear by construction - and it hangs in mid-air unless the wall beside it
+    # is there to hold it, which is twenty-four fragments in nine pieces. Built to the
+    # neighbourhood's own maximum, the wall is always there.
+    wall_top = [max(env_top[max(0, j - 1):j + 2]) for j in range(n)]
+    # THE LANES A RIDER TRAVELS: the centre and one cell either side. Three wide, which is what
+    # makes it a river rather than a gutter, and it is the same set the envelope is built from so
+    # the two cannot drift.
+    lanes = {(i + oi, d + od) for j, (i, d) in enumerate(pts)
+             for (oi, od) in [(0, 0)] + wall_offs[j]}
+
+    # ---- the ground. A skyblock plot is void, so the ride brings its own.
+    _apron(w, f, pal, pts, seed, radius=3)
+    _pad(w, f, pal, pi0 - 4, m + 4 + tside, pd0 - 7, pd1 + 4, seed)
+
+    # ---- THE BED. A COLUMN, NOT A COURSE: filled from the lowest neighbour's level up to this
+    # cell's own, so every floor cell is face-adjacent to the next on a graded run. Filled one
+    # level per cell it is a diagonal staircase, and diagonal is not 6-connected.
+    for j, (i, d) in enumerate(pts):
+        lo, hi = min(nb_h(j)), hs[j]
+        wo = wall_offs[j]
+        for (oi, od) in [(0, 0)] + wo + [(o[0] * 2, o[1] * 2) for o in wo]:
+            for hh in range(lo, hi + 1):
+                w.put(*f.at(i + oi, d + od, hh), pal["ground"])
+
+    # ---- THE TROUGH'S OWN WALLS, BUILT AS COLUMNS AND NOT LEFT TO THE BACKSTOP. `_shell` fills
+    # whatever gap it finds beside the envelope, cell by cell, and carries a plug down only six
+    # courses before giving up - which on a channel twenty courses in the air leaves the wall as
+    # a scatter of fragments hanging beside the water. Forty of them, in twelve pieces. Drawn here
+    # as a column from the bed's own footing up to the top of the envelope, every wall cell stands
+    # on the one below it and the shell has nothing left to invent.
+    #
+    # THE CORNER'S OUTER DIAGONAL IS PART OF THE WALL. `_wall_offs` hands back a corner's two
+    # perpendiculars and nothing at all for the cell diagonally between them, which has neither
+    # bed nor wall - and that is the hole the whole ride once drained through.
+    for j, (i, d) in enumerate(pts):
+        wo = wall_offs[j]
+        offs = [(o[0] * 2, o[1] * 2) for o in wo]
+        # ONLY AT A REAL CORNER, AND ONLY ACROSS TWO AXES. A straight cell's two perpendiculars
+        # are opposite ends of ONE axis, so combining them yields (0, 0) - the centre lane - and
+        # walling that seals the channel at every cell: 59 of 59 dry, which is at least a failure
+        # nobody could miss.
+        if j in corners and len(wo) > 1 and wo[0][0] * wo[1][0] + wo[0][1] * wo[1][1] == 0:
+            (ai, ad), (bi_, bd) = wo[0], wo[1]
+            offs += [(ai * q + bi_ * r, ad * q + bd * r) for q in (1, 2) for r in (1, 2)]
+        for (oi, od) in offs:
+            for hh in range(min(nb_h(j)), wall_top[j] + 1):
+                if not w.has(*f.at(i + oi, d + od, hh)):
+                    w.put(*f.at(i + oi, d + od, hh),
+                          pal["trim"] if hh == wall_top[j] else pal["wall"])
+
+    # ---- what carries the bed. A low channel gets a solid bank; a high one gets a trestle.
+    every = max(2, int(p["trestle_every"]))
+    trestles = 0
+    for j, (i, d) in enumerate(pts):
+        deck = min(nb_h(j))
+        if deck < 1 or in_pool(i, d):
+            continue
+        wo = wall_offs[j]
+        offs = [(o[0] * 2, o[1] * 2) for o in wo]
+        if deck <= 3:
+            for (oi, od) in [(0, 0)] + wo + offs:
+                if in_pool(i + oi, d + od):
+                    continue
+                for hh in range(0, deck):
+                    if not w.has(*f.at(i + oi, d + od, hh)):
+                        w.put(*f.at(i + oi, d + od, hh), pal["ground"])
+        elif j % every == 0 or j in corners:
+            _trestle(w, f, pal, i, d, deck, offs, int(hash01(j, seed, 23) * 3), seed)
+            trestles += 1
+
+    # ---- THE STAIR TOWER, and it is the whole reason this ride replaced the flume.
+    #
+    # **VANILLA HAS NO CHAIN LIFT AND ONLY ONE MECHANISM THAT RAISES A PLAYER THROUGH WATER - A
+    # SOUL-SAND BUBBLE COLUMN - AND A BUBBLE COLUMN CANNOT BE WALKED INTO.** A water column
+    # standing above the surrounding water line has to be sealed on every side above that line or
+    # it drains, so its only opening is one course tall at the water and you SWIM through it.
+    # `bigwheel.py` accepted exactly that and wrote the reason down: *"a water shaft cannot have a
+    # door... you go in from BELOW"*. A one-course gap is a cell a player cannot stand in, so no
+    # flood fill can prove you get aboard, and the brief asks for that proof.
+    #
+    # A real water slide's lift is a STAIRCASE. It is walkable, provable, needs no exotic block,
+    # and it puts the queue where a queue belongs. So the tower is a solid core with a single
+    # helical flight wrapped round it, sized so one turn carries the whole climb, ending on a
+    # landing whose top course is level with the start box's own water - you step DOWN one course
+    # into the channel, which is a step `walk.py` takes and which keeps the water walled by the
+    # landing rather than spilling over it.
+    # **THE FLIGHT MAY NOT END AGAINST THE TROUGH.** `_shell` walls every cell beside the start
+    # box's water, so a landing taken on the tower's own east face put the step BEFORE it under
+    # that wall - a tread with no headroom, fourteen courses up, and the only symptom was a walk
+    # that would not complete. The tower stands a cell clear and a BRIDGE spans the gap: solid, so
+    # it is the wall the shell wanted, and walkable, so it is the way in.
+    ti0, ti1 = m + 2, m + 1 + tside
+    td0, td1 = m - 2, m - 3 + tside
+    landing = (ti1, m)
+    bridge = (ti1 + 1, m)
+    perim = _perimeter(ti0, ti1, td0, td1)
+    if landing not in perim:
+        raise ValueError(f"the tower's landing {landing} is not on its own stair")
+    start = (perim.index(landing) - (t + 1)) % len(perim)
+    # THE LANDING'S TOP COURSE MUST BE THE START BOX'S OWN WATER COURSE. Numbered from -1 - the
+    # apron - instead of from 0, the whole flight came out a course short, the landing stood at
+    # `top` where the water is at `top + 1`, and the start box poured straight over it and off the
+    # plot: 193,763 wet cells. One index, and every other check passed.
+    treads = [(perim[(start + k) % len(perim)], k) for k in range(t + 2)]
+    for (i, d) in {c for c, _h in treads}:
+        top_h = max(h for c, h in treads if c == (i, d))
+        for hh in range(-1, top_h + 1):
+            w.put(*f.at(i, d, hh), pal["ground"])
+    for k, ((i, d), h) in enumerate(treads[:-1]):
+        # **A TREAD FACES THE CELL IT CLIMBS INTO, NOT THE ONE IT CAME FROM.** A flight that
+        # ascends toward D has every tread facing=D - the convention `test_stairhead` pins - and
+        # on a spiral D changes every cell, so taking the direction from the PREVIOUS tread puts
+        # every riser one step behind and the whole flight faces the wrong way. Our renderer draws
+        # a stair facing either way identically, so this is asserted and never eyeballed. The
+        # landing is left a full block: it is where you step off, not a tread.
+        (ni, nd) = treads[k + 1][0]
+        x0, _y, z0 = f.at(i, d, 0)
+        x1, _y1, z1 = f.at(ni, nd, 0)
+        up = _DIRS.get((max(-1, min(1, x1 - x0)), max(-1, min(1, z1 - z0))))
+        if up:
+            w.put(*f.at(i, d, h), pal["stair"], facing=up, half="bottom",
+                  shape="straight", waterlogged="false")
+    w.put(*f.at(bridge[0], bridge[1], t + 1), pal["ground"])
+    # WHERE A CLIMBER'S HEAD GOES. Two clear courses over every tread and over the bridge, handed
+    # to `_shell` as cells it may not fill - see its docstring for why these are not envelope.
+    keep = {f.at(i, d, h + k) for (i, d), h in treads for k in range(1, _HEADROOM + 1)}
+    keep |= {f.at(bridge[0], bridge[1], t + 1 + k) for k in range(1, _HEADROOM + 1)}
+    core_top = max(h for _c, h in treads)
+    for i in range(ti0 + 1, ti1):
+        for d in range(td0 + 1, td1):
+            for hh in range(-1, core_top + 1):
+                w.put(*f.at(i, d, hh), pal["post"] if hh % 5 == 0 else pal["wall"])
+    w.put(*f.at((ti0 + ti1) // 2, (td0 + td1) // 2, core_top + 1), pal["light"],
+          hanging="false", waterlogged="false")
+
+    # ---- THE POOL, and its SHORE, which is three courses of step and not a decision anyone is
+    # free to skip. `_shell` walls one ring outside whatever the water is allowed to occupy, and
+    # what the water is allowed to occupy has to include the clear courses over it (see the
+    # envelope below) - so the quay stands three courses proud of the surface by construction. A
+    # three-course wall is a three-course climb and a flood fill steps ONE, so the slipway is the
+    # answer: a trench of step INSIDE the basin, level with the quay at the top and with the
+    # water at the bottom, so the whole walk in is single courses.
+    #
+    # A lane cell never holds water here: a lane holding a SOURCE is a cell where the rider floats
+    # and stops, which is the fault `fluids.carries` was written to catch and the one that
+    # withdrew the first flume.
+    for i in range(pi0, pi1 + 1):
+        for d in range(pd0, pd1 + 1):
+            if not w.has(*f.at(i, d, -1)):
+                w.put(*f.at(i, d, -1), pal["ground"])
+    # **THE SLIPWAY IS A TRENCH WITH SOLID SIDES, AND THE SIDES ARE THE WHOLE TRICK.** `_shell`
+    # walls every non-envelope neighbour of every open envelope cell, at every course - so any
+    # walkable cell beside the basin gets a block on its head, and declaring that cell open just
+    # moves the wall one ring out, onto the next cell of the approach. Chased, it never
+    # terminates. Flanked by masonry it terminates immediately: each step's clear courses have
+    # nothing but solid blocks and other envelope cells beside them, so no wall is generated at
+    # all, and the descent is three ordinary one-course steps from the quay to the water.
+    bi = m - 1
+    slip = {(bi, pd0 + k): _POOL_TOP - 1 - k for k in range(_POOL_TOP)}
+    flank = [(bi + k, pd0 + q) for k in (-1, 1) for q in range(-1, _POOL_TOP)]
+    flank += [(bi, pd0 - 1)]
+    for (i, d) in flank:
+        for hh in range(-1, _POOL_TOP + 1):
+            w.put(*f.at(i, d, hh), pal["trim"] if hh == _POOL_TOP else pal["path"])
+    for (i, d), tp in slip.items():
+        for hh in range(-1, tp + 1):
+            # A FLIGHT THAT ASCENDS TOWARD D HAS EVERY TREAD facing=D. The slipway climbs OUT
+            # of the pool, which is toward the frontage - written the other way round it is a
+            # flight you cannot walk up, and our renderer draws both identically.
+            w.put(*f.at(i, d, hh), pal["stair"] if hh == tp else pal["path"],
+                  **({"facing": f.facing, "half": "bottom", "shape": "straight",
+                      "waterlogged": "false"} if hh == tp else {}))
+    pool_wet = []
+    for i in range(pi0, pi1 + 1):
+        for d in range(pd0, pd1 + 1):
+            if (i, d) in lanes or (i, d) in slip or w.has(*f.at(i, d, 0)):
+                continue
+            w.put(*f.at(i, d, 0), "water", level="0")
+            pool_wet.append(f.at(i, d, 0))
+
+    # ---- THE START BOX. One source, at the head of the channel, and it is the ONLY one the ride
+    # needs: falling water is level 8 and spreads again from where it lands, so every step down
+    # restarts the seven-block budget and one source feeds sixty cells. The flume needed a source
+    # every six cells and shipped 193 for a player to place by hand.
+    head = f.at(pts[0][0], pts[0][1], hs[0] + 1)
+    w.put(*head, "water", level="0")
+
+    # ---- THE ENVELOPE: every cell this ride is willing for water to be in, PLUS the clear
+    # courses a body needs over it. Nothing is roofed; `_shell` walls the OUTSIDE of this.
+    #
+    # **THE `+ _HEADROOM` IS THE WHOLE FIX, AND WITHOUT IT THIS SHIPPED THE FLUME'S OWN BUG.**
+    # Stopped at the deepest water a column can hold, cell j's envelope tops at `max(nb) + 1` -
+    # and its UPHILL neighbour's tops one course higher, because that neighbour's own window sees
+    # a cell higher again. `_shell` then walls j's column at that course: a lid one block over the
+    # water, on every cell below a drop. Measured, that is exactly the log flume's four
+    # one-course-clear cells, arrived at from a different direction. Adding the headroom to the
+    # envelope makes the first walled course `max(nb) + 2 + _HEADROOM` while the deepest water is
+    # `max(nb) + 1`, so the clearance is `_HEADROOM` by arithmetic instead of by inspection.
+    #
+    # The basin follows the SAME rule for the same reason: a pool declared one course deep has its
+    # own surface walled wherever the channel's taller envelope runs beside it.
+    envelope = set()
+    for j, (i, d) in enumerate(pts):
+        for (oi, od) in [(0, 0)] + wall_offs[j]:
+            for hh in range(hs[j] + 1, env_top[j] + 1):
+                envelope.add(f.at(i + oi, d + od, hh))
+    for pos in pool_wet:
+        for k in range(_POOL_TOP + 1):
+            envelope.add((pos[0], pos[1] + k, pos[2]))
+    for (i, d), tp in slip.items():
+        for hh in range(tp + 1, _POOL_TOP + 1):
+            envelope.add(f.at(i, d, hh))
+    envelope.add(head)
+    sources_world = sorted(set(pool_wet) | {head})
+
+    # ---- CONTAINMENT, from the envelope rather than from the water. A backstop working off water
+    # blocks cannot tell "open by design" from "open by accident"; working off the envelope it can.
+    shelled = _shell(w, pal, envelope, keep)
+
+    # ---- DRESSING. A fence along the trough's top rail, and a lantern on it now and then. It is
+    # placed AFTER containment and never inside the envelope, so it cannot become the lid the
+    # whole design exists to avoid - a rail sited by arithmetic instead took thirty-two cells'
+    # headroom the first time.
+    lights = 0
+    for j, (i, d) in enumerate(pts):
+        if j % 3:
+            continue
+        for (oi, od) in [(o[0] * 2, o[1] * 2) for o in wall_offs[j]]:
+            top_h = None
+            for hh in range(max(nb_h(j)) + 3 + _HEADROOM, hs[j] - 1, -1):
+                if w.has(*f.at(i + oi, d + od, hh)):
+                    top_h = hh
+                    break
+            if top_h is None:
+                continue
+            pos = f.at(i + oi, d + od, top_h + 1)
+            if pos in envelope or w.has(*pos) or w.name(*f.at(i + oi, d + od, top_h)) == "water":
+                continue
+            if j % 12 == 0:
+                w.put(*pos, pal["light"], hanging="false", waterlogged="false")
+                lights += 1
+            else:
+                w.put(*pos, pal["fence"], waterlogged="false",
+                      north="false", south="false", east="false", west="false")
+
+    # ---- THE TERRACE. The quay `_shell` builds is three courses; these are the three steps up to
+    # the top of it, one course each, so the walk in is continuous from the apron.
+    tops = {k: _POOL_TOP - k + 1 for k in range(2, _POOL_TOP + 2)}
+    for i in range(pi0 - _POOL_TOP - 2, pi1 + _POOL_TOP + 3):
+        for d in range(pd0 - _POOL_TOP - 2, pd1 + _POOL_TOP + 3):
+            edge = max(abs(i - min(max(i, pi0), pi1)), abs(d - min(max(d, pd0), pd1)))
+            if edge not in tops:
+                continue
+            for hh in range(-1, tops[edge]):
+                pos = f.at(i, d, hh)
+                if pos in envelope or w.has(*pos):
+                    continue
+                w.put(*pos, pal["trim"] if edge == 2 else pal["path"])
+
+    # ---- THE GATEWAY, on the forecourt, with the ride's name and how to ride it.
+    gi0, gi1, gd = pi0, pi1, pd0 - 5
+    for i in (gi0, gi1):
+        for hh in range(0, 4):
+            if not w.has(*f.at(i, gd, hh)):
+                w.put(*f.at(i, gd, hh), pal["post"])
+    for i in range(gi0, gi1 + 1):
+        for hh in (2, 3):
+            if not w.has(*f.at(i, gd, hh)):
+                w.put(*f.at(i, gd, hh), pal["wall"])
+    a, b = pal["canopy"]
+    for i in range(gi0 - 1, gi1 + 2):
+        w.put(*f.at(i, gd, 4), a if (i + gd) % 2 == 0 else b)
+    w.put(*f.at((gi0 + gi1) // 2, gd, 3), pal["light"], hanging="true", waterlogged="false")
+
+    title = str(p.get("title") or "RAPIDS").upper()[:SIGN_WIDTH]
+    signed = 0
+    signed += _sign(w, f, pal, (gi0 + gi1) // 2, gd - 1, 2, f.facing,
+                    [title, "", "you will get", "wet"])
+    signed += _sign(w, f, pal, gi0, gd - 1, 1, f.facing,
+                    ["BOARDING", "wade the pool,", "climb the tower,", "float back down"])
+
+    cells = {pos: name for pos, (name, _props) in w.cells.items()}
+
+    # ---- THE RIDE PATH, in world coordinates: the water lane of every channel cell after the
+    # start box, in order. The box itself is the one source and is deliberately not on the path -
+    # a source does not push, so a rider floats there until they let go, which is exactly what a
+    # start box is for.
+    path_world = [f.at(i, d, hs[j] + 1) for j, (i, d) in enumerate(pts)][1:]
+
+    # **VERIFY IT HERE, NOT IN THE WORLD AN HOUR LATER.** Four questions, and a ride needs every
+    # one answered: does the water carry a rider, does it stay in, does a BODY FIT, and can a
+    # player get on and off.
+    report = fluids.carries(cells, path_world, sources_world)
+    if not report["carries"]:
+        raise ValueError(
+            f"the rapids channel does not carry a rider: {report['dry']} dry cell(s), "
+            f"{report['still']} still cell(s) of {report['cells']}, stops at {report['stops_at']}")
+
+    out = fluids.escapes(cells, sources_world, envelope)
+    if out:
+        raise ValueError(
+            f"the rapids leak: water reaches {len(out)} cell(s) outside the channel and the pool, "
+            f"the first at {out[0]}.")
+    stranded = fluids.unenclosed(cells, allow=envelope)
+    if stranded:
+        raise ValueError(f"{len(stranded)} water cell(s) are not enclosed: {stranded[:3]}")
+
+    # **CHECKED OVER EVERY CELL THE WATER REACHES, NOT OVER THE BLOCKS THAT SHIP.** A design emits
+    # SOURCES; the flowing water that fills the channel is computed by the game, so a check that
+    # walks `w.cells` for `water` inspects sixty-five cells and misses the sixty a rider is
+    # actually carried through - which is exactly where a lid lands.
+    wet_cells = set(fluids.spread(cells, sources_world))
+    tight = [c for c in sorted(wet_cells) if _clear_over(w, c) < _HEADROOM]
+    if tight:
+        raise ValueError(
+            f"{len(tight)} water cell(s) have less than {_HEADROOM} clear courses over them, the "
+            f"first at {tight[0]} - a player is two blocks tall and stops there. This is the "
+            f"fault that withdrew the log flume.")
+
+    stray = _floating(w)
+    if stray:
+        raise ValueError(f"{len(stray)} cell(s) do not touch the rest of the ride, the first at "
+                         f"{sorted(stray)[0]}; a design is one piece or it is not a design")
+
+    narrow = [c for c in path_world if _lane_width(cells, c) < 2]
+    if narrow:
+        raise ValueError(f"{len(narrow)} channel cell(s) are one cell wide, the first at "
+                         f"{narrow[0]}; a rider scrapes the wall the whole way down.")
+
+    # ---- AND THAT YOU CAN GET IN AND OUT ON FOOT. `walk.py`'s model is stated in its own module
+    # and every caller gets the same one, so a route it finds is one a player walks BOTH ways.
+    ground = f.at((pi0 + pi1) // 2, pd0 - 6, 0)
+    if not walk.stands(cells, ground):
+        raise ValueError(f"the forecourt at {ground} is not somewhere a player can stand")
+    walkable = walk.reachable(cells, ground)
+    if head not in walkable:
+        raise ValueError(f"the start box at {head} cannot be walked to from the forecourt at "
+                         f"{ground}; there is no way to board the ride")
+    if path_world[-1] not in walkable:
+        raise ValueError(f"the splash pool at {path_world[-1]} has no way back up to the "
+                         f"forecourt; the ride ends somewhere you cannot get out of")
+
+    return {
+        "kind": "rapids",
+        "channel": n, "corners": len(corners), "descent": t,
+        "water": len(sources_world), "pool_water": len(pool_wet),
+        "tower": tside, "treads": len(treads), "trestles": trestles,
+        "shelled": shelled, "lights": lights, "signs": signed, "span": s,
+        "headroom": _HEADROOM,
+        "basin": [list(c) for c in sorted(envelope)],
+        "path": [list(c) for c in path_world],
+        "sources": [list(c) for c in sources_world],
+        "sequence": [list(c) for c in [head] + path_world],
+        "board": list(head), "ground": list(ground), "exit": list(path_world[-1]),
+        "flow": {k: v for k, v in report.items() if k != "levels"},
+        "contract":
+            "a rapids circuit a player can actually ride, and every clause of that is checked "
+            "before a block is emitted: a stair tower carries you to a start box whose top course "
+            "is level with the water so you step down into it (vanilla has no chain lift, and the "
+            "one mechanism that raises a player through water - a soul-sand bubble column - "
+            "cannot be walked into, which is why this replaced the flume rather than repairing "
+            "it); ONE source feeds the whole descent because every step down restarts water's "
+            "seven-block budget; `fluids.carries` proves the channel is flowing end to end with "
+            "no still cell, `fluids.escapes` proves it stays in, every water cell has two clear "
+            "courses over it and every channel cell is at least two wide, and `walk.py` walks a "
+            "player from the forecourt to the start box and out of the splash pool.",
+        "unverified": [
+            "nothing about a BOAT has been simulated. The channel is one deep and the ride is "
+            "meant to be swum; a boat may ground on a step.",
+            "the current's SPEED is not modelled - `fluids.py` answers where water is and which "
+            "way it flows, not how fast it carries you. Ride it once before anyone is told the "
+            "descent completes without swimming.",
+        ],
+    }
+
+
+def _floating(w: World) -> set:
+    """Every cell not 6-connected to the largest mass. Empty, or the design is not one piece.
+
+    **REPORTED, NEVER PRUNED.** Sweeping strays away was tried and it is the wrong operation: one
+    of the fifty cells it removed was holding the trough's bed, and dropping it poured four hundred
+    thousand cells of water onto the plot. A fragment is evidence that something upstream is wrong,
+    so it fails the build and names a coordinate instead of being tidied out of sight.
+    Six-connectivity, because that is what the game counts as touching.
+    """
+    cells = set(w.cells)
+    seen, best = set(), set()
+    for start in cells:
+        if start in seen:
+            continue
+        stack, group = [start], set()
+        seen.add(start)
+        while stack:
+            (x, y, z) = stack.pop()
+            group.add((x, y, z))
+            for (dx, dy, dz) in ((1, 0, 0), (-1, 0, 0), (0, 1, 0),
+                                 (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+                t = (x + dx, y + dy, z + dz)
+                if t in cells and t not in seen:
+                    seen.add(t)
+                    stack.append(t)
+        if len(group) > len(best):
+            best = group
+    return cells - best
+
+
+def _clear_over(w: World, pos) -> int:
+    """How many courses of air a body has over this cell, capped at what it is asked for.
+
+    `fluids.PASSABLE` rather than "is there a block": a lantern, a rail or water itself is not a
+    ceiling, and counting them as one would report a perfectly rideable channel as blocked.
+    """
+    (x, y, z) = pos
+    k = 0
+    for dy in range(1, _HEADROOM + 1):
+        n = w.name(x, y + dy, z)
+        if n is None or n.split("[")[0] in fluids.PASSABLE:
+            k += 1
+        else:
+            break
+    return k
+
+
+def _lane_width(cells: dict, pos) -> int:
+    """The widest open run through this cell on either horizontal axis, at its own course."""
+    (x, y, z) = pos
+    best = 0
+    for (dx, dz) in ((1, 0), (0, 1)):
+        run = 1
+        for sgn in (1, -1):
+            k = 1
+            while fluids._passable(cells.get((x + dx * k * sgn, y, z + dz * k * sgn))):
+                run += 1
+                k += 1
+                if k > 4:
+                    break
+        best = max(best, run)
+    return best
+
+
+BUILDERS = {"coaster": _coaster, "flume": _flume, "rapids": _rapids}
 
 
 def build(cfg: dict, donors=None) -> Canvas:

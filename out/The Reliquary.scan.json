@@ -1,0 +1,147 @@
+{
+  "origin": {
+    "x": 97603,
+    "y": 202,
+    "z": 80808
+  },
+  "size": {
+    "x": 11,
+    "y": 7,
+    "z": 17
+  },
+  "generated_by": "arcade",
+  "kind": "prizecounter",
+  "footprint": [
+    17,
+    11
+  ],
+  "courses": [
+    -1,
+    5
+  ],
+  "land": "hollow",
+  "facing": "west",
+  "contract": "each barrel's lamp is lit while that barrel holds anything and dark when it is empty",
+  "unverified": [],
+  "budget": {
+    "redstone_lamp": 5
+  },
+  "width": 11,
+  "depth": 5,
+  "height": 6,
+  "lanes": 5,
+  "barrels": [
+    [
+      97609,
+      204,
+      80812
+    ],
+    [
+      97609,
+      204,
+      80814
+    ],
+    [
+      97609,
+      204,
+      80816
+    ],
+    [
+      97609,
+      204,
+      80818
+    ],
+    [
+      97609,
+      204,
+      80820
+    ]
+  ],
+  "lamps": [
+    [
+      97607,
+      204,
+      80812
+    ],
+    [
+      97607,
+      204,
+      80814
+    ],
+    [
+      97607,
+      204,
+      80816
+    ],
+    [
+      97607,
+      204,
+      80818
+    ],
+    [
+      97607,
+      204,
+      80820
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97609,
+      204,
+      80812
+    ],
+    [
+      97609,
+      204,
+      80814
+    ],
+    [
+      97609,
+      204,
+      80816
+    ],
+    [
+      97609,
+      204,
+      80818
+    ],
+    [
+      97609,
+      204,
+      80820
+    ]
+  ],
+  "outputs": [
+    [
+      97607,
+      204,
+      80812
+    ],
+    [
+      97607,
+      204,
+      80814
+    ],
+    [
+      97607,
+      204,
+      80816
+    ],
+    [
+      97607,
+      204,
+      80818
+    ],
+    [
+      97607,
+      204,
+      80820
+    ]
+  ],
+  "stock": {
+    "each barrel": "the prizes it hands out"
+  },
+  "file": "The Reliquary.litematic",
+  "name": "The Reliquary"
+}

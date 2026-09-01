@@ -2,12 +2,12 @@
   "origin": {
     "x": 97601,
     "y": 201,
-    "z": 80821
+    "z": 80789
   },
   "size": {
-    "x": 21,
+    "x": 19,
     "y": 7,
-    "z": 19
+    "z": 22
   },
   "generated_by": "casino",
   "kind": "casino/wheel",
@@ -15,26 +15,26 @@
   "contract": "press once; exactly one of three pockets lights (1 in 3)",
   "inputs": [
     [
-      97602,
+      97610,
       203,
-      80830
+      80809
     ]
   ],
   "outputs": [
     [
-      97615,
+      97612,
       202,
-      80826
+      80794
     ],
     [
-      97608,
+      97607,
       202,
-      80834
+      80802
     ],
     [
-      97608,
+      97606,
       202,
-      80824
+      80793
     ]
   ],
   "unverified": [
@@ -45,25 +45,25 @@
   },
   "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
   "rng_hopper": [
-    97612,
+    97610,
     202,
-    80830
+    80798
   ],
   "pockets": [
     [
-      97615,
+      97612,
       202,
-      80826
+      80794
     ],
     [
-      97608,
+      97607,
       202,
-      80834
+      80802
     ],
     [
-      97608,
+      97606,
       202,
-      80824
+      80793
     ]
   ],
   "stock": {

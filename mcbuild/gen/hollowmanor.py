@@ -57,7 +57,8 @@ nominal box. The right-hand columns are the built envelope at the clamped minimu
 structure's own axes (i along the frontage, d into the building, h up from the pad at -1):
 
     kind         clamps to           envelope  i  x   d  x   h     cells   default
-    manor        width 32, depth 24            42  x  35  x  45   10,362   as clamped
+    manor        width 32, depth 24            42  x  35  x  52   11,139   as clamped
+    ossuary      width 15, depth 17            23  x  25  x  10    2,265   as clamped
     crypt        width  9, depth 11            17  x  19  x  15    1,586   as clamped
     clocktower   width  9 (odd)                17  x  17  x  49    2,463   as clamped
     graveyard    width 21, depth 17            23  x  19  x  13      714   25 x 21 -> 27 x 23
@@ -69,6 +70,28 @@ courses are the porch and its approach, in front of `d=0`, and six are the tower
 right-hand wall. Siting it on 32x24 puts the front steps and the tower over the edge of whatever
 was measured for it. The clocktower is the tall one and the manor the wide one; nothing here is
 small, which is the point - the quarter's whole argument is that a land needs one signature mass.
+
+**THE MANOR GREW SEVEN COURSES DOWNWARD AND NOT AN INCH SIDEWAYS**, which is a siting fact and is
+why it is recorded here rather than left to be discovered: its three set pieces hide their wiring
+at h = -1 and at CELL_FLOOR - 1, and each wire cell carries its own floor a course below that. It
+now occupies h = -8 .. 43 against -6 .. 43. Nothing above ground moved.
+
+## THINGS TO DO IN IT
+
+The quarter was rejected a second time - *"it feels like it's just an abandoned town vs a theme
+park"* - and the measurement behind that is blunt: THREE BUTTONS AND THREE SCULK SENSORS in a
+zone of a dozen structures, against 215 cells of redstone wire. Wiring with almost nothing for a
+player to touch. Two answers, and they are deliberately different mechanisms so that a visitor
+who has met both knows the difference without being told:
+
+    `_scare`     A MONOSTABLE. Fires once and resets, however long the trigger is held. Three of
+                 them along the manor's walkthrough, on three different inputs.
+    `_ossuary`   A COMBINATIONAL AND. Three shroud-levers, and the vault is open only WHILE all
+                 three are up. It has no memory at all: let one go and it shuts.
+
+Neither invents a circuit. The first is `circuits.pulse`, the second is `arcade.and_gate`, and
+both have contracts asserted by simulation in `tests/test_hollow_play.py` - including that they
+RESET, which is the half of a set piece a render cannot show and a block count cannot count.
 """
 from __future__ import annotations
 
@@ -551,6 +574,136 @@ def _candle(w, f, i, d, h, count=2):
     return True
 
 
+# ---------------------------------------------------------------------------- set pieces
+
+def _put_spec(w, pos, spec: str) -> None:
+    """Place a `"name[k=v,...]"` string. Every circuit module in this repo speaks that dialect."""
+    name, _, rest = spec.partition("[")
+    props = {}
+    if rest:
+        for kv in rest.rstrip("]").split(","):
+            k, _, v = kv.partition("=")
+            props[k] = v
+    w.put(pos[0], pos[1], pos[2], name, **props)
+
+
+# The three set-piece outputs, and what each one is FOR. All three are full cubes, which is the
+# property that lets them sit IN a floor a player walks over: at rest they are the floor.
+_VENTS = {
+    # A bare piston head punching up out of the boards under your feet. It has nothing to push,
+    # deliberately: a sticky piston with a block on it would leave that block standing in the
+    # walkway at rest, which is an obstacle rather than a scare.
+    "piston": ("piston", {"facing": "up", "extended": "false"}),
+    # THE ONLY SWITCHABLE LIGHT IN THE GAME, and `expensive` on this economy - so it is counted
+    # into `budget` and declared, never smuggled. In a black-walled quarter it is also the single
+    # strongest piece of feedback available: the floor lights under you.
+    "lamp": ("redstone_lamp", {"lit": "false"}),
+    # Something comes out of the floor. WHAT it dispenses is an entity and therefore unverifiable
+    # here, so the loading instruction travels in `stock` exactly as the randomiser's mix does.
+    "dispenser": ("dispenser", {"facing": "up", "triggered": "false"}),
+}
+
+# What a set piece can be TRIGGERED by, and the block that makes each one obvious. All three are
+# `face=floor` on their own accent pad, and all three strongly power the block BENEATH them -
+# which is where the machine takes its signal from, and the reason `circuit._sources` had to stop
+# reading a pressure plate as if it were mounted on a wall.
+#
+# **A PLATE HAS NO `facing`, AND A LEVER AND A BUTTON DO.** Handing every trigger the structure's
+# own facing put an illegal property on the plate - which `blocks.validate` catches here and
+# Litematica would simply have refused in game an hour later. So the state is a property of the
+# trigger, stated once, rather than something the call site adds.
+_TRIGGERS = {
+    "plate": ("stone_pressure_plate", {"powered": "false"}, False),
+    "lever": ("lever", {"face": "floor", "powered": "false"}, True),
+    "button": ("stone_button", {"face": "floor", "powered": "false"}, True),
+}
+
+
+def _scare(w, f, kit, pal, ti, d, h, *, kind="plate", vents=("piston", "lamp", "dispenser"),
+           length=2, side=1):
+    """A SET PIECE: a visible trigger, a monostable, and things that move ONCE and then reset.
+
+    **A HAUNTED HOUSE IS A SEQUENCE OF EVENTS, AND THE MANOR HAD NONE.** It was 10,362 blocks of
+    correct gothic architecture with a walkthrough drawn through it, and the verdict on the zone
+    was still that it reads as an abandoned town: three buttons and three sculk sensors in a
+    quarter of a dozen structures. A route is not an activity. What makes a walk into a ride is
+    that the building DOES something when you reach a particular cell of it.
+
+    A scare is a MONOSTABLE - it fires once and resets - and that is not a flourish, it is the
+    contract. Wired straight through, a plate held down by a player standing on it holds the
+    piston out and the lamp on for as long as they stand there, which is a stuck prop rather than
+    a scare, and a dispenser wired the same way empties itself. `circuits.pulse` is the AND-NOT
+    that turns any input, held or not, into a fixed edge; its own docstring records that the first
+    version of it was a bare repeater, that a repeater delays BOTH edges, and that a held lever
+    therefore drove a casino payout for 21 ticks out of 24. Every one of those failures is
+    invisible in a render and none of them is a placement problem.
+
+    THE GEOMETRY, three courses and no climbing anywhere:
+
+        h + 2   the trigger        a plate, a lever or a button, `face=floor`
+        h + 1   the trigger's PAD, and the vents - all full cubes, so the walkway is unbroken
+        h       the machine        pulse -> boost -> a dust spine, running along +i
+        h - 1   a floor for it
+
+    **THE COUPLING IS THE ONE PART THAT CANNOT BE DONE ANY OTHER WAY.** A floor-mounted trigger
+    strongly powers the block directly beneath it, and a strongly powered opaque block passes 15
+    to any wire touching it - so the dust under the pad is fed and nothing else on the course is.
+    Anything else would need the signal to CLIMB out of the machine's course into the floor, and
+    dust only climbs the side of a block whose own lid is not opaque: under a floor, it never is.
+    That is the fault `circuits.climb` exists for and the reason it is not needed here.
+
+    Laid LAST, and it overwrites. The pad and the plinth are continuous surfaces poured before it;
+    a machine that yielded to them would be swallowed cell by cell, which is `casino._link`'s
+    composition bug and the one the seance shipped once with a dropper wired to nothing.
+
+    CONTRACT: nothing is powered at rest; the trigger fires every vent exactly once; a trigger
+    HELD DOWN fires them exactly once and they go dark again; releasing and triggering again
+    fires them again.
+    """
+    from . import circuits
+
+    a = _ax(f)
+    ip = a["ip"]
+    vents = [v for v in vents if v in _VENTS]
+    tri = f.at(ti, d, h + 2)
+    pad = f.at(ti, d, h + 1)
+
+    laid = {}
+    pul = circuits.pulse(f.at(ti + 1, d, h), length=length, facing=ip, side=side)
+    amp = circuits.boost(f.at(ti + 6, d, h), facing=ip)
+    laid.update(pul["cells"])
+    laid.update(amp["cells"])
+    # THE ENDS OF A MODULE ARE ADDRESSES, NOT CELLS. `pulse["in"]` and `boost["in"]` say where a
+    # signal must ARRIVE and neither module emits a block there; left alone each is a one-cell gap
+    # that the chain dies in, and every block of it is correct.
+    laid[tuple(pul["in"])] = "redstone_wire"          # ...directly under the trigger's own pad
+    laid[tuple(amp["in"])] = "redstone_wire"          # ...bridging the pulse to the boost
+    spine = [f.at(ti + 7 + k, d, h) for k in range(max(1, len(vents)))]
+    for c in spine:
+        laid[c] = "redstone_wire"
+
+    for pos, spec in laid.items():
+        _put_spec(w, pos, spec)
+    for pos in laid:
+        if not w.has(pos[0], pos[1] - 1, pos[2]):
+            w.put(pos[0], pos[1] - 1, pos[2], kit["stone"])
+
+    made = {}
+    for k, name in enumerate(vents):
+        block, props = _VENTS[name]
+        cell = (spine[k][0], spine[k][1] + 1, spine[k][2])
+        w.put(cell[0], cell[1], cell[2], block, **props)
+        made.setdefault(name, []).append(list(cell))
+
+    w.put(*pad, kit["dressed"])
+    block, props, aimed = _TRIGGERS[kind]
+    w.put(tri[0], tri[1], tri[2], block, **(dict(props, facing=f.facing) if aimed else props))
+    return {"trigger": list(tri), "kind": kind, "pad": list(pad),
+            "vents": made, "cells": len(laid) + len(vents) + 2,
+            "lamps": len(made.get("lamp", [])),
+            "dispensers": [list(c) for c in made.get("dispenser", [])]}
+
+
 # ---------------------------------------------------------------------------- the manor
 
 def _manor(w: World, p: dict, ctx) -> dict:
@@ -941,6 +1094,50 @@ def _manor(w: World, p: dict, ctx) -> dict:
               signal_fire="false", waterlogged="false")
         stacks += 1
 
+    # ---- THE THREE SET PIECES, one on each leg of the route, and the reason this is a
+    # walkthrough rather than a corridor with signs in it.
+    #
+    # **THE MACHINE HAS TO HIDE IN A COURSE THAT ALREADY EXISTS**, and on this building there are
+    # exactly two: the pad at h=-1 under the ground floor, and the void under the cellar's own
+    # floor at CELL_FLOOR - 1. The library was tried and abandoned: its floor plane is ONE course
+    # thick with the hall's open air under it, so a machine there would hang from the hall's
+    # ceiling in full view and lower it by two courses. A set piece with nowhere honest to put its
+    # wiring is a set piece that does not get built.
+    #
+    # THE THREE ARE DELIBERATELY DIFFERENT AT THE ONE END A PLAYER TOUCHES. The mechanism is the
+    # same monostable in all three - one verified primitive, three times, rather than three
+    # inventions - and what changes is the INPUT, because that is the part a visitor reads:
+    #
+    #   the hall     a PLATE  you cannot avoid it: it is the third cell inside the front door
+    #   the back     a LEVER  you choose to pull it, at the head of the cellar stair - and it is
+    #                         the one that PROVES the monostable, because a lever can be left on
+    #                         and the vents still go dark
+    #   the cellar   a BUTTON you knock on the sarcophagus, at the dead end, which is the climax
+    #
+    # **WHERE THEY ARE NOT IS A MEASUREMENT, NOT AN OVERSIGHT.** The back half of the ground
+    # floor and the whole first floor carry no set piece, and both refusals are geometric:
+    #
+    #   the back half   the undercroft runs d = cs_d .. D-2 and its LID IS THIS SAME PAD at
+    #                   h = -1. A machine there punches its wiring through the cellar's ceiling
+    #                   and stands its own floor course inside the cellar's headroom.
+    #   the partition   d = D//2 is a solid wall except the three doorway columns, so a trigger
+    #                   on that line lands INSIDE it.
+    #   the first floor its floor plane is ONE course thick with the hall's open air under it.
+    #                   A machine there hangs off the hall's ceiling in full view and lowers it.
+    #
+    # So the front half gets one and the cellar gets two - which is also the right dramatic
+    # shape, since the cellar is the dead end and the thing a visitor turns round in.
+    scares = []
+    scares.append({"where": "the hall", "sign": ["MIND THE FLOOR", "it is not", "as sound as",
+                                                 "it looks"],
+                   **_scare(w, f, kit, pal, bmid - 1, 3, F0 - 2, kind="plate")})
+    scares.append({"where": "the cellar stair foot",
+                   "sign": ["PULL IT", "the house", "answers once", "then forgets"],
+                   **_scare(w, f, kit, pal, 8, D - 9, CELL_FLOOR - 1, kind="lever")})
+    scares.append({"where": "the sarcophagus",
+                   "sign": ["KNOCK", "something", "down here", "keeps count"],
+                   **_scare(w, f, kit, pal, W // 2 - 3, D - 6, CELL_FLOOR - 1, kind="button")})
+
     # ---- THE SET DRESSING. It is placed LAST and it never places into an occupied cell, so
     # nothing here can eat a tread, a rail or a doorway - the casino's own lesson, where a
     # pocket's colour ring was painted into cells a gate had not reached and the gate shipped
@@ -1001,6 +1198,15 @@ def _manor(w: World, p: dict, ctx) -> dict:
         # the way out, on the back wall in a column the window rhythm leaves solid
         signed += _sign(w, f, pal, bmid - 4, D - 2, F0 + 2, f.facing,
                         ["WAY OUT", "to the", "graveyard", ""])
+        # THE SET PIECES NAME THEMSELVES, because a trigger nobody knows is a trigger is a plate
+        # you walk over and a lever you walk past. **AND EACH ONE HANGS ON A WALL CHOSEN FOR
+        # BEING SOLID THERE**, which on this building means the partition (open only at the three
+        # doorway columns) and the cellar's own side wall (open only at its three niches). A sign
+        # placed by eye beside its trigger lands in a doorway or a recess, `_sign` silently
+        # refuses it, and the count is the only thing that would ever say so.
+        signed += _sign(w, f, pal, bmid + 5, D // 2 - 1, F0 + 2, f.facing, scares[0]["sign"])
+        signed += _sign(w, f, pal, gs_i0 + 2, D - 10, CELL_WALK + 1, a["ip"], scares[1]["sign"])
+        signed += _sign(w, f, pal, gs_i0 + 2, D - 7, CELL_WALK + 1, a["ip"], scares[2]["sign"])
 
     # THE ROUTE, as world coordinates, so the contract and the walk test read ONE list. A test
     # that re-derives the waypoints from its own reading of the geometry is a second opinion
@@ -1023,10 +1229,241 @@ def _manor(w: World, p: dict, ctx) -> dict:
             "entry_at": list(f.at(bmid, 0, F0)), "exit_at": list(f.at(bmid, D - 1, F0)),
             "niches": niches, "vault_lamps": vault_lamps, "shelves": shelves,
             "props": props, "cobwebs": webs, "rails": rails,
-            "contract": "a WALKTHROUGH: in at the front door, through the hall, up the grand "
-                        "stair to the library, across the first floor, down the back stair, "
-                        "down again into a lit cellar of niches, and out of the back door on "
-                        "the far side - every leg of it walkable, and the rooms named on signs"}
+            "scares": scares,
+            "inputs": [s["trigger"] for s in scares],
+            "outputs": [c for s in scares for cs in s["vents"].values() for c in cs],
+            "lamps": sum(s["lamps"] for s in scares),
+            "stock": {"dispenser": ["anything the house should spit out of the floor - a "
+                                    "firework, a snowball, an arrow. The dispenser fires ONE "
+                                    "item per trigger, so what is in it decides the scare."]},
+            "contract": "a WALKTHROUGH WITH THINGS IN IT: in at the front door, through the "
+                        "hall, up the grand stair to the library, across the first floor, down "
+                        "the back stair, down again into a lit cellar of niches, and out of the "
+                        "back door on the far side - every leg of it walkable, the rooms named "
+                        "on signs, and THREE SET PIECES on the way: a plate in the hall, a lever "
+                        "at the head of the cellar stair and a button on the sarcophagus, each "
+                        "firing a piston, a lamp and a dispenser ONCE and resetting, however "
+                        "long it is held down",
+            "unverified": ["WHAT A DISPENSER SPITS OUT is an entity and the simulator has none. "
+                           "That it fires exactly once per trigger IS verified; what comes out "
+                           "of it is whatever `stock` was loaded with."]}
+
+
+# ---------------------------------------------------------------------------- the ossuary
+
+def _ossuary(w: World, p: dict, ctx) -> dict:
+    """THE OSSUARY: a tomb chamber you walk into, three shroud-pulls, and a vault that opens.
+
+    **THE ZONE LOST ITS ONLY OUTDOOR SET PIECE WHEN THE GRAVEYARD AND THE CRYPT WERE DROPPED, AND
+    NEITHER OF THEM WAS SOMETHING YOU DID ANYTHING IN.** The graveyard was a field of stones and
+    the crypt states in its own docstring that it is sealed - *"you look in, you do not go in"*.
+    That is a defensible thing for a mausoleum to be and it is the wrong thing for a zone whose
+    verdict is that it reads as an abandoned town. So this is the crypt's opposite number rather
+    than a change to it: the same masonry, the same palette, and a way in.
+
+    **IT IS A PUZZLE, WHICH IS THE ONE PLAYER ACTION THE HOLLOW DID NOT HAVE.** The zone's five
+    machines are a decoder (Fortune Wheel), a window gate (The Reckoning), an analog meter (The
+    Seance), a lectern combination (The Vault) and a sculk corridor (The Quiet Room). Four of
+    those five are *press a thing and read what happened*; the fifth is a corridor you cross.
+    Nothing asked a visitor to do two things at ONCE, and that is what an AND gate is:
+
+        three levers, on three tombs, and the vault opens only while ALL THREE are pulled
+
+    `arcade.and_gate` is that gate and it is already verified - one torch per input inverts it,
+    the inversions merge onto one dust line, and one more torch inverts the merge. It is reused
+    here rather than re-derived, which is this repo's standing rule about not inventing a
+    mechanism when a tested one fits.
+
+    **AND IT RESETS BY BEING COMBINATIONAL.** There is no memory in it at all: drop any lever and
+    the doors shut again. That is the difference between this and the manor's set pieces, which
+    are monostables - and it is deliberate that the zone now has one of each, because a player who
+    has met both knows the difference without being told.
+
+    THE GEOMETRY, and the reason every part of the machine is on ONE course:
+
+        h = 4   the ceiling, and the vault's lid
+        h = 3   the lever lamps, and the prize barrels on the vault's shelf
+        h = 2   THE WHOLE MACHINE - the levers, the gate, the route, the doors, the vault feed
+        h = 1   the walking course, and the machine's own floor slab in the service void
+        h = 0   the floor
+
+    A boolean can travel where an analog value cannot, but neither can CLIMB: dust only goes up
+    the side of a block whose lid is not opaque, and under a floor it never is. Every failed
+    display in the casino and every dead link in the first four of its games was that one fact. So
+    the levers are on the WALL at the machine's own course rather than on the floor - a floor
+    lever strongly powers the block BENEATH it, which is a course this gate cannot reach.
+
+    **THE SERVICE VOID IS BEHIND THE BACK WALL, WHICH IS ALSO WHERE THE LEVERS HANG.** A wall
+    lever strongly powers the block it is attached to, and a strongly powered opaque block passes
+    15 to any wire touching it - so each feed sits directly on the far side of the wall from its
+    own lever and nothing has to be routed to it at all. Three levers, three feeds, no crossings:
+    which is the arrangement `and_gate`'s docstring asks for and the one the first `safe` could
+    not lay.
+
+    CONTRACT: the vault doors are SHUT and the vault lamp dark while any lever is down, and open
+    and lit only while all three are up; letting any one go shuts it again.
+    """
+    from .arcade import and_gate, _run as _wire_run
+
+    f = _Frame(p)
+    pal = LANDS[p["land"]]
+    kit = GOTHIC[p["land"]]
+    a = _ax(f)
+    mr = int(p["min_run"])
+
+    # THE MINIMUMS ARE THE MACHINE'S, NOT A STYLE CHOICE. The gate is eight cells deep behind the
+    # wall and its merge column is five wide; the route needs a lane clear of every `keep_clear`
+    # cell, and the vault has to sit past that lane. Ask for less and you get this.
+    W = max(15, int(p["width"] or 15))
+    D = max(17, int(p["depth"] or 17))
+    CD = 7                                  # the chamber's own depth; the service void is behind
+    H = 3                                   # interior courses: h = 1, 2, 3
+    mid = W // 2
+    MACH = 2                                # the ONE course the whole machine lives on
+    pulls = [2, 4, 6]                       # `and_gate` spaces its feeds exactly TWO apart
+    vi = [W - 4, W - 3]                     # the vault's two columns
+    lane = 8                                # the route's lane, clear of every keep_clear cell
+
+    # ---- pad and plinth
+    _ground(w, f, -4, W + 3, -4, D + 3, pal["path"], alt=pal["ground"], mix=0.35)
+    _fill(w, f, -2, W + 1, -2, D + 1, 0, kit["stone"])
+
+    # ---- THE MACHINE FIRST. The walls, the floor slab and the roof are all continuous surfaces
+    # laid with `w.put`, which overwrites; a machine laid after them is swallowed cell by cell and
+    # audits clean. The seance shipped exactly that once - 997 correct blocks and a dropper wired
+    # to nothing - so the order is stated here rather than left to whoever edits next.
+    gate = and_gate(f.at(pulls[0], CD + 2, MACH), facing=a["back"], side=a["ip"], inputs=3)
+    for pos, spec in gate["cells"].items():
+        _put_spec(w, pos, spec)
+    for pos in gate["cells"]:
+        if not w.has(pos[0], pos[1] - 1, pos[2]):
+            w.put(pos[0], pos[1] - 1, pos[2], kit["stone"])
+
+    # ---- the route: gate out -> the lane -> along the back of the wall -> the vault's feed.
+    # It runs at the machine's own course the whole way and turns twice, and `arcade._run` puts a
+    # repeater ONE CELL PAST each corner - never on it, because a repeater standing on a bend
+    # reads along its outgoing axis and takes the incoming leg on its SIDE, which LOCKS it rather
+    # than feeding it. Two of the reaction game's routes died at their first corner that way.
+    _wire_run(w, pal, f, [(pulls[0], CD + 8), (lane, CD + 8), (lane, CD + 1), (vi[1], CD + 1)],
+              MACH)
+
+    # ---- the floor slab under the service void, laid ROUND the machine and never over it
+    for i in range(1, W - 1):
+        for d in range(CD + 1, D - 1):
+            if not w.has(*f.at(i, d, 1)):
+                w.put(*f.at(i, d, 1), kit["stone"])
+
+    # ---- the chamber and the service void: one box each, sharing the back wall at d = CD
+    door = [(i, 0, h) for i in range(mid - 1, mid + 2) for h in range(1, H + 1)]
+    vault = [(i, CD, h) for i in vi for h in (MACH, MACH + 1)]
+    _box(w, f, 0, W - 1, 0, CD, 1, H, pal["wall"], pal["post"], holes=door + vault,
+         alt=kit["stone"])
+    _box(w, f, 0, W - 1, CD, D - 1, 1, H, kit["stone"], pal["post"], alt=kit["rough"])
+    for i in range(-1, W + 1):
+        for d in range(-1, D + 1):
+            if not w.has(*f.at(i, d, H + 1)):
+                w.put(*f.at(i, d, H + 1), pal["trim"])
+    for i in range(1, W - 1):
+        for d in range(1, CD):
+            if not w.has(*f.at(i, d, 0)):
+                w.put(*f.at(i, d, 0), pal["ground"])
+
+    # ---- THE THREE PULLS. A wall lever's `facing` is the way it LOOKS, which is AWAY from the
+    # block it hangs on - so a lever in the chamber on the back wall faces the front. Written the
+    # other way round it hangs on the air in front of it: a legal state, an identical render, and
+    # a block the game refuses to place.
+    levers, lamps = [], []
+    for li in pulls:
+        for h in (1, H):                          # a dressed panel, so a pull reads as a tomb
+            w.put(*f.at(li, CD, h), kit["dressed"])
+        cell = f.at(li, CD - 1, MACH)
+        w.put(cell[0], cell[1], cell[2], "lever", face="wall", facing=f.facing, powered="false")
+        levers.append(list(cell))
+        # ...and a light OVER each pull, so a visitor can see which of the three are up. It is
+        # driven by nothing but the lever's own six-neighbour radiation and costs no wiring.
+        lamp = f.at(li, CD - 1, MACH + 1)
+        w.put(lamp[0], lamp[1], lamp[2], "redstone_lamp", lit="false")
+        lamps.append(list(lamp))
+
+    # ---- THE VAULT: two iron doors in the back wall at chest height, a lit alcove behind them,
+    # and the prize on a shelf inside it. **BOTH DOOR COLUMNS GET THEIR OWN FEED CELL**, because
+    # the route's last two cells are the alcove's own floor: fed at one column only, the second
+    # door is a door nothing drives - legal, supported, affordable, and shut for ever.
+    doors = []
+    for i in vi:
+        for (h, half) in ((MACH, "lower"), (MACH + 1, "upper")):
+            c = f.at(i, CD, h)
+            w.put(c[0], c[1], c[2], "iron_door", facing=f.facing, half=half,
+                  hinge="left" if i == vi[0] else "right", open="false", powered="false")
+            if half == "lower":
+                doors.append(list(c))
+    vault_lamp = f.at(vi[0], CD + 1, 1)
+    w.put(vault_lamp[0], vault_lamp[1], vault_lamp[2], "redstone_lamp", lit="false")
+    prizes = 0
+    for i in vi:
+        c = f.at(i, CD + 1, MACH + 1)
+        w.put(c[0], c[1], c[2], "barrel", facing=f.back, open="false")
+        prizes += 1
+    for h in range(1, H + 1):                     # the alcove's own sides and back
+        for i in (vi[0] - 1, vi[1] + 1):
+            if not w.has(*f.at(i, CD + 1, h)):
+                w.put(*f.at(i, CD + 1, h), kit["stone"])
+        for i in vi:
+            if not w.has(*f.at(i, CD + 2, h)):
+                w.put(*f.at(i, CD + 2, h), kit["stone"])
+
+    # ---- the front hood, the cornice, the roof and the urns: the crypt's own language, so the
+    # two read as one hand and a visitor knows this is the same kind of building with a way in.
+    for i in range(mid - 2, mid + 3):
+        w.put(*f.at(i, -1, H + 1), pal["trim"])
+    _corbel_ring(w, f, 0, W - 1, 0, D - 1, H, kit["roof_stair"], mr)
+    _proud_ring(w, f, 0, W - 1, 0, D - 1, H + 1, pal["trim"])
+    field = {}
+    for i in range(W):
+        t = mid - abs(i - mid)
+        for d in range(D):
+            field[(i, d)] = (H + 2 + min(3, t), a["ip"] if i < mid else a["im"], i == mid)
+    lo_of = _slope(w, f, field, H + 2, kit["roof"], kit["roof_stair"], kit["roof"],
+                   alt=kit["roof_alt"])
+    for i in range(W):
+        for d in (0, D - 1):
+            for y in range(H + 2, lo_of[(i, d)]):
+                _weathered(w, f, i, d, y, kit["stone"], kit["rough"], 0.14)
+    for (i, d) in ((-2, -2), (W + 1, -2), (-2, D + 1), (W + 1, D + 1)):
+        _urn(w, f, kit, pal, i, d, 1)
+    lit = 0
+    for (i, d) in ((2, 2), (W - 3, 2)):
+        _hang(w, f, pal, i, d, H, pal["trim"])
+        lit += 1
+
+    # ---- the signs. THE SUPPORT IS CHOSEN FOR BEING SOLID THERE, which on this building means
+    # the back wall away from the three pull panels and the vault, and the cornice course over
+    # the doorway - the front wall's own middle three columns ARE the way in.
+    title = str(p.get("title") or "THE OSSUARY").upper()
+    signed = 0
+    if p.get("sign", True):
+        signed += _sign(w, f, pal, mid, -1, H + 1, f.facing,
+                        [title[:SIGN_WIDTH], "pull all three", "at once", "and it opens"])
+        signed += _sign(w, f, pal, pulls[-1] + 2, CD - 1, MACH, f.facing,
+                        ["THREE PULLS", "one lamp each", "all three lit", "and it opens"])
+        signed += _sign(w, f, pal, vi[0] - 2, CD - 1, MACH, f.facing,
+                        ["THE VAULT", "let one go", "and it shuts", "again"])
+
+    # `lamps` is a COUNT everywhere else in this module (`_seance`, `_manor`), so the positions
+    # get their own name rather than shadowing it. A sidecar key that means a number in one kind
+    # and a list of cells in another is a tool downstream reading whichever it happened to meet.
+    return {"kind": "ossuary", "width": W, "depth": D, "height": H + 1,
+            "levers": levers, "pull_lamps": lamps, "vault_lamp": list(vault_lamp),
+            "lamps": len(lamps) + 1,
+            "doors": doors, "prizes": prizes, "lanterns": lit, "signs": signed,
+            "inputs": levers, "outputs": doors + lamps + [list(vault_lamp)],
+            "entry_at": list(f.at(mid, 0, 1)),
+            "contract": "an AND of three: the vault doors are shut and the vault lamp dark while "
+                        "any of the three shroud-levers is down, and open and lit only while all "
+                        "three are up - and each lever lights its own lamp on the way",
+            "unverified": ["WHAT IS IN THE PRIZE BARRELS is the operator's business; the barrels "
+                           "are placed here and stocked by hand."]}
+
 
 
 # ---------------------------------------------------------------------------- the crypt
@@ -2017,6 +2454,7 @@ def _seance(w: World, p: dict, ctx) -> dict:
 BUILDERS = {
     "manor": _manor,
     "seance": _seance,
+    "ossuary": _ossuary,
     "crypt": _crypt,
     "clocktower": _clocktower,
     "graveyard": _graveyard,

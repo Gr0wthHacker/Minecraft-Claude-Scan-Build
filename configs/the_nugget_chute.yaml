@@ -1,0 +1,15 @@
+name: The Nugget Chute
+gen: arcade
+params:
+  land: frontier
+  facing: east
+  title: The Nugget Chute
+  at:
+  - 97567
+  - 203
+  - 80412
+  kind: plinko
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

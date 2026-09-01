@@ -316,7 +316,24 @@ def _machine(w, p, ctx, x, y, z, dx, dz, sx, sz, outcomes, pit):
     # the run stops there - the whole chain is upstream of the comparator and nothing is shared.
     # `test_the_button_run_never_touches_the_decision_run` is the guard: this is invisible in a
     # render and passes the audit, because it is legal, supported, affordable dust.
-    pulse = circuits.pulse((x - dx * 5, y - 1, z - dz * 5), length=2, facing=p["facing"])
+    # **THE PULSE'S DELAY LEG GOES ON THE SIDE THE BUTTON DOES NOT COME DOWN.**
+    #
+    # `_button` sits at `sx * (width // 2)` - the negative perpendicular - and `pulse`'s default
+    # leg is on that same side. On a 5-wide game the button's descent ran ORTHOGONALLY ADJACENT to
+    # the leg for three cells, which is one dust network: a held button parked a permanent 15 on
+    # the subtract's side input, the monostable never opened, the randomiser's dropper was never
+    # triggered, its hopper never received an item, and the comparator read 0 for ever.
+    # `double_or_none` and `lucky_number` both shipped that way and could not pay at any odds.
+    # `high_roller` is 6 wide, which put its button one cell further out, and it worked - the
+    # difference between a machine that runs and one that does not was a single `width` value.
+    #
+    # Nothing could see it. The states are legal, the run is connected, the audit is clean, no
+    # cell is shared, and every test drove the hopper with `Circuit.fill` - which STATES a roll
+    # rather than rolling one, so the whole INPUT half of both machines was unexercised.
+    # `test_a_press_actually_rolls_the_dice` is the assertion that was missing, and it is
+    # entity-free: a dropper firing is an EDGE, which the simulator does model.
+    pulse = circuits.pulse((x - dx * 5, y - 1, z - dz * 5), length=2, facing=p["facing"],
+                           side=-1)
     rnd = circuits.randomiser((x + dx * 3, my + 1, z + dz * 3), outputs=outcomes,
                               facing=p["facing"])
     for mod in (pulse, rnd):
@@ -775,9 +792,6 @@ def _double_or_none(w: World, p: dict, ctx) -> dict:
         for pos in mod["cells"]:
             if not w.has(pos[0], pos[1] - 1, pos[2]):
                 w.put(pos[0], pos[1] - 1, pos[2], p["pal_shell"])
-    if not w.has(*pay["in"]):
-        w.put(pay["in"][0], pay["in"][1], pay["in"][2], "redstone_wire")
-    _link(w, p, ctx, amp["out"], pay["in"])
     # THE COLLECTION BARREL IS ANCHORED TO THE PAYOUT, NOT TO A FIXED OFFSET.
     #
     # At a fixed ten blocks along it happened to land behind the dropper at 3 outcomes and ON it at
@@ -792,6 +806,13 @@ def _double_or_none(w: World, p: dict, ctx) -> dict:
     bx, bz = d0[0] - g["dx"], d0[2] - g["dz"]
     if not w.has(bx, d0[1], bz):
         w.put(bx, d0[1], bz, "barrel", facing="up", open="false")
+    # **THE BARREL IS THE CONNECTOR, SO `payout`'s OWN INPUT DUST IS DEAD WEIGHT.** The boost
+    # drives the barrel, the barrel is a solid block behind the dropper, and a strongly powered
+    # block fires the dropper beside it - that is the mechanism, and it is why moving the barrel
+    # "to avoid a collision" once stopped every payout at every set of odds. The dust cell
+    # `payout` lays under its dropper is therefore never reached; left standing it is an orphan,
+    # which is what `circuit.inspect` reported on the duel. It becomes the dropper's floor.
+    w.put(pay["in"][0], pay["in"][1], pay["in"][2], p["pal_shell"])
     return {"contract": f"press once; pays ONLY on a roll of {win} (1 in {g['outcomes']})",
             "inputs": [list(g["btn"])], "outputs": [list(pay["droppers"][0])],
             "rng_hopper": list(g["rnd"]["hopper"]), "win_level": win,
@@ -817,18 +838,25 @@ def _lucky_number(w: World, p: dict, ctx) -> dict:
     cmp_ = g["rnd"]["comparator"]
     foot = (cmp_[0] + g["dx"], cmp_[1], cmp_[2] + g["dz"])
     gate = circuits.window(foot, target, target + 1, facing=p["facing"])
-    amp = circuits.boost((gate["out"][0] + g["dx"], gate["out"][1], gate["out"][2] + g["dz"]),
-                         facing=p["facing"])
+    # **THE BOOST GOES AT `next`, NOT ONE STEP ALONG THE RUN.** One step along is the cell beside
+    # the gate's own SIDE input, which carries the HIGH boolean at a full 15 - so a consumer put
+    # there reads the signal the gate exists to reject and the exact-value bet silently becomes
+    # "roll at least this". `window` names the safe cell so nobody has to re-derive it.
+    amp = circuits.boost(gate["next"], facing=gate["face"])
     pay = circuits.payout((amp["out"][0] + g["dx"], amp["out"][1], amp["out"][2] + g["dz"]),
                           count=1, facing=p["facing"])
     _lay(w, p, (gate, amp, pay))
-    if not w.has(*pay["in"]):
-        w.put(pay["in"][0], pay["in"][1], pay["in"][2], "redstone_wire")
-    _link(w, p, ctx, amp["out"], pay["in"])
     d0 = pay["droppers"][0]
     bx, bz = d0[0] - g["dx"], d0[2] - g["dz"]
     if not w.has(bx, d0[1], bz):
         w.put(bx, d0[1], bz, "barrel", facing="up", open="false")
+    # **THE BARREL IS THE CONNECTOR, SO `payout`'s OWN INPUT DUST IS DEAD WEIGHT.** The boost
+    # drives the barrel, the barrel is a solid block behind the dropper, and a strongly powered
+    # block fires the dropper beside it - that is the mechanism, and it is why moving the barrel
+    # "to avoid a collision" once stopped every payout at every set of odds. The dust cell
+    # `payout` lays under its dropper is therefore never reached; left standing it is an orphan,
+    # which is what `circuit.inspect` reported on the duel. It becomes the dropper's floor.
+    w.put(pay["in"][0], pay["in"][1], pay["in"][2], p["pal_shell"])
     odds = len(levels)
     return {"contract": f"press once; pays ONLY on exactly {target} (1 in {odds})",
             "inputs": [list(g["btn"])], "outputs": [list(pay["droppers"][0])],
@@ -875,23 +903,50 @@ def _duel(w: World, p: dict, ctx) -> dict:
     _lay(w, p, (house,))
     if not w.has(*side):
         w.put(side[0], side[1], side[2], "redstone_wire")
+    # **ONE PULSE FIRES BOTH, AND THE HOUSE'S FEED IS A CORNER RATHER THAN A ROUTE.**
+    #
+    # It used to be a second `_link` all the way from the pulse, and it did not arrive: the last
+    # cell of that run lands on the PLAYER's own randomiser dropper, `_link` correctly refuses to
+    # overwrite a component, and what was left sat one diagonal short of the house's input. A
+    # diagonal is not a connection, so the house's dropper was never triggered, its hopper stayed
+    # empty, the gate's side read 0 - and `A >= 0` is true for every A, which is the machine
+    # paying on all nine combinations. That is the fault this game's own docstring says it fixed;
+    # it was fixed at the gate and reintroduced at the feed, and nothing could see it because the
+    # simulator has no entities and the test STATES both rolls rather than rolling them.
+    #
+    # The two inputs are one cell apart. Joining them where they already are is two cells of dust
+    # in building axes, with no route to go wrong.
+    # ...and it ENDS IN A REPEATER, because by the time the pulse reaches the player's own input
+    # the level is down to 2 and two more cells of dust is nothing at all. The repeater sits where
+    # `house["in"]` names, so its front is the house's dropper: a full 15 straight into it.
+    rin = g["rnd"]["in"]
+    step = 1 if (house["in"][0] - rin[0]) * sx + (house["in"][2] - rin[2]) * sz > 0 else -1
+    corner = (rin[0] + sx * step, rin[1], rin[2] + sz * step)
+    if not w.has(*corner):
+        w.put(corner[0], corner[1], corner[2], "redstone_wire")
     if not w.has(*house["in"]):
-        w.put(house["in"][0], house["in"][1], house["in"][2], "redstone_wire")
-    # ONE PULSE FIRES BOTH. Two buttons would be two games in one room.
-    _link(w, p, ctx, g["pulse"]["out"], house["in"])
+        w.put(house["in"][0], house["in"][1], house["in"][2], "repeater",
+              facing=p["facing"], delay="1", locked="false", powered="false")
+    for cell in (corner, house["in"]):
+        if not w.has(cell[0], cell[1] - 1, cell[2]):
+            w.put(cell[0], cell[1] - 1, cell[2], p["pal_shell"])
 
     amp = circuits.boost((gate["out"][0] + dx, gate["out"][1], gate["out"][2] + dz),
                          facing=p["facing"])
     pay = circuits.payout((amp["out"][0] + dx, amp["out"][1], amp["out"][2] + dz),
                           count=1, facing=p["facing"])
     _lay(w, p, (amp, pay))
-    if not w.has(*pay["in"]):
-        w.put(pay["in"][0], pay["in"][1], pay["in"][2], "redstone_wire")
-    _link(w, p, ctx, amp["out"], pay["in"])
     d0 = pay["droppers"][0]
     bx, bz = d0[0] - dx, d0[2] - dz
     if not w.has(bx, d0[1], bz):
         w.put(bx, d0[1], bz, "barrel", facing="up", open="false")
+    # **THE BARREL IS THE CONNECTOR, SO `payout`'s OWN INPUT DUST IS DEAD WEIGHT.** The boost
+    # drives the barrel, the barrel is a solid block behind the dropper, and a strongly powered
+    # block fires the dropper beside it - that is the mechanism, and it is why moving the barrel
+    # "to avoid a collision" once stopped every payout at every set of odds. The dust cell
+    # `payout` lays under its dropper is therefore never reached; left standing it is an orphan,
+    # which is what `circuit.inspect` reported on the duel. It becomes the dropper's floor.
+    w.put(pay["in"][0], pay["in"][1], pay["in"][2], p["pal_shell"])
     n = len(levels)
     wins = sum(1 for a in levels for b in levels if a >= b)
     return {"contract": f"press once; you win ties - {wins} in {n * n}",
@@ -902,12 +957,24 @@ def _duel(w: World, p: dict, ctx) -> dict:
             "reads": "duel", "unverified": [circuits.RANDOM_NOTE]}
 
 
-def _lay(w, mods_p, mods=None):
-    """Place a module's cells, never over something already standing."""
+def _lay(w, mods_p, mods=None, over: bool = False, through=()):
+    """Place a module's cells, never over something already standing.
+
+    `over=True` relaxes that to STRUCTURE ONLY - the same rule `_link` runs under. A machine laid
+    after the room it sits in has to be allowed through the room's own floor and trim, or its
+    cells are dropped one at a time and it ships with holes in it. It is still never allowed over
+    a component.
+
+    `through` names extra blocks it may cut, for the case `_structural` cannot cover: the wheel's
+    rim RAIL is an `oak_fence`, which is neither structure nor component, and it swallowed exactly
+    one cell of the pulse's run - leaving the delay leg beside it orphaned and the machine's own
+    monostable broken in the middle. A machine that crosses a railing needs a gap in the railing.
+    """
     p, mods = mods_p, mods
+    keep = (_structural(p) if over else set()) | set(through)
     for mod in mods:
         for pos, spec in mod["cells"].items():
-            if w.has(pos[0], pos[1], pos[2]):
+            if w.has(pos[0], pos[1], pos[2]) and w.name(pos[0], pos[1], pos[2]) not in keep:
                 continue
             name, props = _split(spec)
             w.put(pos[0], pos[1], pos[2], name, **props)
@@ -956,13 +1023,21 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     levels = circuits.RNG_MIXES[outcomes]["levels"]
     by = y - 1                                   # the bowl's floor, one course down
 
-    pulse = circuits.pulse((x - dx * 12, y - 1, z - dz * 12), length=2, facing=p["facing"])
+    # **THE PULSE IS SITED FROM THE BUTTON, NOT FROM A MAGIC TWELVE.** It used to be built here at
+    # `x - dx*12`, before the bowl's radius was known - and the button, which IS derived (`r + 2`
+    # off the hub), landed on top of it: the pulse's own first dust cell came out as the button's
+    # accent pad and its `in` cell was orphaned in mid-air. The machine still fired, because a
+    # floor button strongly powers the block under it and that block happened to be in the middle
+    # of the pulse - so it worked by accident, left a stray the inspection reported, and would
+    # have moved the moment the bowl changed size. Everything downstream of a derived radius must
+    # be measured FROM that radius. The whole approach is built after `r` is known, below.
     rnd = circuits.randomiser((x - dx * 2, by + 1, z - dz * 2), outputs=outcomes,
                               facing=p["facing"])
-    _lay(w, p, (pulse, rnd))
-    for e in (pulse["in"], rnd["in"]):
-        if not w.has(*e):
-            w.put(e[0], e[1], e[2], "redstone_wire")
+    _lay(w, p, (rnd,))
+    # **`rnd["in"]` IS NOT USED HERE, AND IT CANNOT BE.** It names the cell one step back along
+    # `facing` from the dropper - which on this machine is directly ABOVE the west gate's own
+    # comparator, and dust does not stand on a comparator. The dropper is fed from the free face
+    # instead; see the approach below.
 
     hop = rnd["hopper"]
     # **THE THREE GATES ARE ARRANGED SO THEY CANNOT TOUCH, and the arrangement is SEARCHED rather
@@ -971,10 +1046,14 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     # adjacent cells with a third never firing. Opposite faces plus one, all taps outward, is the
     # first assignment with no shared cell - `test_the_wheels_three_gates_never_touch` pins it by
     # rebuilding the search, so a change to `window`'s footprint fails here rather than in game.
-    rot = {"east": {"east": "east", "west": "west", "north": "north"},
-           "west": {"east": "west", "west": "east", "north": "south"},
-           "north": {"east": "north", "west": "south", "north": "west"},
-           "south": {"east": "south", "west": "north", "north": "east"}}[p["facing"]]
+    # `south` is in the table because it is the FREE face - the one quadrant no gate reaches - and
+    # the whole button approach is built along it. Derived from the same rotation as the gates, so
+    # it cannot drift out of step with them at any orientation.
+    rot = {"east": {"east": "east", "west": "west", "north": "north", "south": "south"},
+           "west": {"east": "west", "west": "east", "north": "south", "south": "north"},
+           "north": {"east": "north", "west": "south", "north": "west", "south": "east"},
+           "south": {"east": "south", "west": "north", "north": "east", "south": "west"}}[
+        p["facing"]]
     faces = [rot["east"], rot["west"], rot["north"]]
     # **CLEARANCE, NOT JUST NO OVERLAP.** The first search demanded only that the three gates share
     # no cell, and found an arrangement where gate 1's output sat ONE BLOCK from gate 4's dust:
@@ -998,7 +1077,10 @@ def _wheel(w: World, p: dict, ctx) -> dict:
                                low=lvl, high=lvl + 1, facing=face, side=sd)
         _lay(w, p, (gate,))
         gate_cells |= set(gate["cells"])
-        plan.append((face, colour, (gate["out"][0] + fx, gate["out"][1], gate["out"][2] + fz)))
+        # THE POCKET GOES AT `next`. Placed one step along the run it sat beside the gate's own
+        # SIDE cell - the HIGH boolean, a full 15 - and lit on every roll at or above its level,
+        # so all three pockets lit in turn and the wheel read as a thermometer, not a bet.
+        plan.append((face, colour, gate["next"]))
 
     for face, colour, lamp in plan:
         fx, fz = _STEP[face]
@@ -1047,25 +1129,57 @@ def _wheel(w: World, p: dict, ctx) -> dict:
             for d in range(-r - 1, r + 2):
                 w.put(hop[0] + i, by + 5, hop[2] + d, canopy[0] if i % 2 == 0 else canopy[1])
 
-    # **THE LINK MUST NOT RUN UNDER THE BUTTON.** Routed from the button itself, `connect`
-    # descended straight through the cell below it - so the pad turned into redstone dust and a
-    # floor button ended up standing on wire, which is not a placement the game allows. The wire
-    # starts one cell further out and the button powers it from the side.
-    btn = (hop[0] - dx * (r + 2), by + 1, hop[2] - dz * (r + 2))
-    w.put(btn[0], btn[1], btn[2], "stone_button", face="floor",
-          facing=p["facing"], powered="false")
-    tail = (btn[0] - dx, btn[1], btn[2] - dz)
-    if not w.has(*tail):
-        w.put(tail[0], tail[1], tail[2], "redstone_wire")
-    _link(w, p, ctx, tail, pulse["in"])
-    w.put(btn[0], btn[1] - 1, btn[2], p["pal_accent"])
-    if not w.has(tail[0], tail[1] - 1, tail[2]):
-        w.put(tail[0], tail[1] - 1, tail[2], p["pal_shell"])
-    _link(w, p, ctx, pulse["out"], rnd["in"])
+    # **THE APPROACH COMES IN ON THE ONE FACE THAT HAS NO GATE, IN A STRAIGHT LINE, WITH NO
+    # `connect` ANYWHERE IN IT.**
+    #
+    # Three gates radiate from the hub and each of the other three faces carries one, so any run
+    # that crosses them merges with the very dust line whose DECAY the gate is measuring - and a
+    # measuring line with 15 injected into it reports every roll as the highest. The old approach
+    # came in along the machine's own axis, straight over the west gate, and got away with it by a
+    # single cell of `climb` step block that happened to sit between the two dust runs. Shifting
+    # the button by one exposed it instantly: two pockets lit on one roll.
+    #
+    # `rot["south"]` is the free face by construction - `faces` above takes east, west and north -
+    # so the whole approach is one column in that direction, at the rim's own course, with the
+    # felt underneath it as its floor. Nothing here is routed; every cell is an offset.
+    ax, az = _STEP[rot["south"]]
+    drop = rnd["dropper"]                      # what the pulse has to reach: a rising edge on it
 
-    sgn = (btn[0] - dx, btn[1] + 1, btn[2] - dz)
+    def out_at(k):
+        return (drop[0] + ax * k, drop[1], drop[2] + az * k)
+
+    btn_k = r + 3                              # outside the rim, where a player stands
+    btn = out_at(btn_k)
+    pad = (btn[0], btn[1] - 1, btn[2])
+    w.put(pad[0], pad[1], pad[2], p["pal_accent"])
+    w.put(btn[0], btn[1], btn[2], "stone_button", face="floor",
+          facing=rot["south"], powered="false")
+    # A BUTTON EMITS TO ALL SIX NEIGHBOURS, so the cell beside it needs no connector at all.
+    feed = out_at(btn_k - 1)
+    w.put(feed[0], feed[1], feed[2], "redstone_wire")
+    pulse = circuits.pulse(out_at(btn_k - 2), length=2, facing=rot["north"])
+    # OVER the bowl's own trim: the approach is laid after the rim, so it has to be allowed to cut
+    # through it exactly as `_link` is. Skipping instead would drop the cells the rim happens to
+    # cover and leave a machine with a hole in the middle of it.
+    _lay(w, p, (pulse,), over=True, through=("oak_fence",))
+    keep = _structural(p) | {"oak_fence"}
+    # ...and the run stops SHORT OF THE PULSE. `pulse` occupies k = btn_k-2 down to btn_k-5 along
+    # this same column, so a loop that ran the whole way would overwrite its comparator with dust
+    # and turn the monostable back into the plain repeater this file already deleted once.
+    for k in range(1, btn_k - 5):               # the straight run, and the floor it stands on
+        c2 = out_at(k)
+        if not w.has(*c2) or w.name(*c2) in keep:
+            w.put(c2[0], c2[1], c2[2], "redstone_wire")
+        if not w.has(c2[0], c2[1] - 1, c2[2]):
+            w.put(c2[0], c2[1] - 1, c2[2], p["pal_shell"])
+    if not w.has(pad[0], pad[1] - 1, pad[2]):
+        w.put(pad[0], pad[1] - 1, pad[2], p["pal_shell"])
+
+    sgn = (btn[0] + ax, btn[1] + 1, btn[2] + az)
     w.put(sgn[0], sgn[1] - 1, sgn[2], p["pal_pillar"])
-    w.put(sgn[0], sgn[1], sgn[2], "oak_wall_sign", facing=p["facing"], waterlogged="false")
+    # A SIGN FACES THE PLAYER, AND THE PLAYER STANDS OUTSIDE THE BOWL. `p["facing"]` is the
+    # machine's axis and has nothing to do with where the approach ended up.
+    w.put(sgn[0], sgn[1], sgn[2], "oak_wall_sign", facing=rot["south"], waterlogged="false")
     w.sign(sgn[0], sgn[1], sgn[2],
            front=[str(p.get("title") or "WHEEL")[:15], "red green black", "1 in 3", "spin to win"])
     return {"contract": "press once; exactly one of three pockets lights (1 in 3)",

@@ -2,11 +2,11 @@ name: The Seance
 gen: hollowmanor
 params:
   land: hollow
-  facing: west
+  facing: north
   at:
-  - 97627
+  - 97586
   - 203
-  - 80831
+  - 80803
   kind: seance
   title: The Seance
   under: out/islandright.litematic

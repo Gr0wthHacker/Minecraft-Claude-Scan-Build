@@ -1,6 +1,6 @@
 {
   "origin": {
-    "x": 97605,
+    "x": 97609,
     "y": 202,
     "z": 80773
   },
@@ -16,13 +16,13 @@
   "facing": "west",
   "contract": "a clipped crown on a stem in a tub: the stem runs through every tier, so the whole shrub is one piece rather than discs hanging over a pot",
   "unverified": [],
-  "crown": "tiered",
-  "tub": "ring",
-  "leaf": "azalea_leaves",
+  "crown": "cone",
+  "tub": "pot",
+  "leaf": "spruce_leaves",
   "radius": 3,
   "stem": 1,
   "height": 7,
-  "seed": 128089259,
+  "seed": 128094207,
   "file": "Topiary 3.litematic",
   "name": "Topiary 3"
 }

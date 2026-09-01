@@ -2,11 +2,11 @@
   "origin": {
     "x": 97607,
     "y": 202,
-    "z": 80771
+    "z": 80774
   },
   "size": {
     "x": 7,
-    "y": 12,
+    "y": 13,
     "z": 7
   },
   "generated_by": "streetfurniture",
@@ -16,11 +16,11 @@
   "facing": "west",
   "contract": "a lit post between six and nine courses to its cap, with a moulded base of four three-cell runs and every lantern either standing on a full block or hanging under one",
   "unverified": [],
-  "height": 11,
-  "shaft": "fluted",
-  "crown": "lantern",
-  "arms": 2,
-  "seed": 128092879,
+  "height": 12,
+  "shaft": "banded",
+  "crown": "urn",
+  "arms": 1,
+  "seed": 128093152,
   "file": "Lamppost 2.litematic",
   "name": "Lamppost 2"
 }

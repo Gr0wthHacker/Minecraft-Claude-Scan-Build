@@ -6,9 +6,9 @@ params:
   facing: east
   booth: true
   at:
-  - 97614
+  - 97612
   - 203
-  - 80830
+  - 80798
   kind: wheel
   title: Fortune Wheel
   under: out/islandright.litematic

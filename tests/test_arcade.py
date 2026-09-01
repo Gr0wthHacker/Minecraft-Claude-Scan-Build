@@ -314,18 +314,36 @@ def test_every_lamp_a_kind_reports_is_actually_a_lamp(kind):
 
 
 @pytest.mark.parametrize("kind", sorted(arcade.BUILDERS))
-def test_the_circuit_inspection_finds_nothing_but_the_windows_own_side_tap(kind):
+def test_the_circuit_inspection_finds_nothing_at_all(kind):
     """Calibration, in the sense `tests/test_circuit_calibration.py` established: the only question
     that decides whether a checker gets used is whether it stays QUIET on a machine that works.
 
-    The one finding allowed is `circuits.window`'s own side-input repeater, whose back is
-    deliberately empty when `high == low + 1`. `casino/lucky_number` reports exactly the same, and
-    it is a property of that shared module rather than of anything here.
+    **THIS TEST USED TO EXEMPT "repeater reads nothing", AND THAT EXEMPTION WAS THE BUG.** Its own
+    words were that `circuits.window`'s side-input repeater has a back which is "deliberately empty
+    when high == low + 1" - nothing about it was deliberate. That repeater was never driven, so the
+    subtract was `15 - 0` for every level at or above `low` and the exact-value gate was a plain
+    threshold: The Vault opened on any page over each dial and the Assay Office paid for anything
+    heavier than the mark. Three shipped machines, and the check that would have named it was
+    configured not to see it.
+
+    Nothing is exempt now. A finding here is a finding.
     """
     c = build(kind)
     findings = inspect(model_of(c), c.world_origin)
-    unexpected = [f for f in findings if f[0] != "repeater reads nothing"]
-    assert not unexpected, f"{kind}: {unexpected}"
+    assert not findings, f"{kind}: {findings}"
+
+
+@pytest.mark.parametrize("kind", sorted(arcade.BUILDERS))
+@pytest.mark.parametrize("facing", FACINGS)
+def test_the_inspection_finds_nothing_at_any_orientation(kind, facing):
+    """A ROTATION TABLE IS WHERE THIS KIND OF FAULT HIDES, and the default facing never sees it:
+    `circuits.randomiser` once read `dy` where it meant `dz`, which is right for east and west by
+    coincidence and puts the comparator on top of its own hopper for north and south. Two of the
+    four `safe` dials and the whole `weigh` judge run through `circuits.window`, whose perpendicular
+    is derived the same way."""
+    c = build(kind, facing=facing)
+    findings = inspect(model_of(c), c.world_origin)
+    assert not findings, f"{kind}/{facing}: {findings}"
 
 
 # --------------------------------------------------------------------------- plinko

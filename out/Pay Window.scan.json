@@ -1,0 +1,147 @@
+{
+  "origin": {
+    "x": 97559,
+    "y": 202,
+    "z": 80374
+  },
+  "size": {
+    "x": 11,
+    "y": 7,
+    "z": 17
+  },
+  "generated_by": "arcade",
+  "kind": "prizecounter",
+  "footprint": [
+    17,
+    11
+  ],
+  "courses": [
+    -1,
+    5
+  ],
+  "land": "frontier",
+  "facing": "east",
+  "contract": "each barrel's lamp is lit while that barrel holds anything and dark when it is empty",
+  "unverified": [],
+  "budget": {
+    "redstone_lamp": 5
+  },
+  "width": 11,
+  "depth": 5,
+  "height": 6,
+  "lanes": 5,
+  "barrels": [
+    [
+      97563,
+      204,
+      80386
+    ],
+    [
+      97563,
+      204,
+      80384
+    ],
+    [
+      97563,
+      204,
+      80382
+    ],
+    [
+      97563,
+      204,
+      80380
+    ],
+    [
+      97563,
+      204,
+      80378
+    ]
+  ],
+  "lamps": [
+    [
+      97565,
+      204,
+      80386
+    ],
+    [
+      97565,
+      204,
+      80384
+    ],
+    [
+      97565,
+      204,
+      80382
+    ],
+    [
+      97565,
+      204,
+      80380
+    ],
+    [
+      97565,
+      204,
+      80378
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97563,
+      204,
+      80386
+    ],
+    [
+      97563,
+      204,
+      80384
+    ],
+    [
+      97563,
+      204,
+      80382
+    ],
+    [
+      97563,
+      204,
+      80380
+    ],
+    [
+      97563,
+      204,
+      80378
+    ]
+  ],
+  "outputs": [
+    [
+      97565,
+      204,
+      80386
+    ],
+    [
+      97565,
+      204,
+      80384
+    ],
+    [
+      97565,
+      204,
+      80382
+    ],
+    [
+      97565,
+      204,
+      80380
+    ],
+    [
+      97565,
+      204,
+      80378
+    ]
+  ],
+  "stock": {
+    "each barrel": "the prizes it hands out"
+  },
+  "file": "Pay Window.litematic",
+  "name": "Pay Window"
+}
