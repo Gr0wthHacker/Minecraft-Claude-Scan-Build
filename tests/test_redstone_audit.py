@@ -86,15 +86,19 @@ def test_a_machine_with_nothing_to_press_is_named_as_thin():
     assert not r.thin, r.thin
 
     # ...and the same machine with its input taken away, which is what "very simple" looks like
-    # from the aisle: a wall you cannot start.
-    stripped = audit_tool.Report("stripped", c.to_model(), side)
+    # from the aisle: a wall you cannot start. BOTH halves have to go: the blocks a player can
+    # press, and the `inputs` the design DECLARES - a plinko ball is neither a button nor a lever
+    # and the census has to count it, which is why the rule reads both.
+    stripped = audit_tool.Report("stripped", c.to_model(),
+                                 dict(side, inputs=[], outputs=[]))
     stripped.inputs = {k: 0 for k in stripped.inputs}
     assert any("nothing to press" in t for t in stripped.thin)
 
 
 def test_a_single_indicator_is_not_a_readout():
     c = _casino("high_roller")
-    r = audit_tool.Report("hr", c.to_model(), dict(c.meta, origin=list(c.world_origin)))
+    r = audit_tool.Report("hr", c.to_model(),
+                          dict(c.meta, origin=list(c.world_origin), outputs=[]))
     r.indicators = {k: 0 for k in r.indicators}
     r.indicators["lamp"] = 1
     assert any("indicator" in t for t in r.thin)

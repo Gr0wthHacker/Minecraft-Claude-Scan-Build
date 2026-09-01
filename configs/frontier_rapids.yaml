@@ -1,16 +1,17 @@
-name: The Saloon
-gen: frontiertown
+name: Frontier Rapids
+gen: coaster
 params:
   land: frontier
-  width: 17
-  depth: 12
+  rapids_span: 23
+  rapids_top: 12
+  pool: 4
   facing: east
   at:
-  - 97564
+  - 97592
   - 203
-  - 80447
-  kind: saloon
-  title: The Saloon
+  - 80438
+  kind: rapids
+  title: Frontier Rapids
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic

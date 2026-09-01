@@ -11,7 +11,8 @@
   },
   "generated_by": "mcbuild.layers",
   "kind": "casino-layer",
-  "note": "one complete build step; layers cannot collide, so nothing defers",
+  "slice": false,
+  "note": "the whole thing, nothing deferred",
   "file": "Park_Left Complete.litematic",
   "name": "Park_Left Complete"
 }

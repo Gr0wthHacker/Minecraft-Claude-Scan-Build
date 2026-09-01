@@ -4,9 +4,9 @@ params:
   land: frontier
   facing: east
   at:
-  - 97576
+  - 97598
   - 203
-  - 80447
+  - 80412
   kind: range
   title: Shooting Range
   under: out/islandleft.litematic

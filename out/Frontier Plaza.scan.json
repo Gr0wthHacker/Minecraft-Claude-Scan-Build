@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 89,
-    "y": 7,
+    "y": 6,
     "z": 99
   },
   "generated_by": "park",
@@ -18,10 +18,10 @@
   "width": 99,
   "depth": 89,
   "posts": 0,
-  "trees": 1,
+  "trees": 0,
   "beds": 0,
   "terrace": true,
-  "pool": true,
+  "pool": false,
   "file": "Frontier Plaza.litematic",
   "name": "Frontier Plaza"
 }

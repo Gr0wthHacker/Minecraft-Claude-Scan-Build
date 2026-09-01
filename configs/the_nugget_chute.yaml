@@ -7,7 +7,7 @@ params:
   at:
   - 97567
   - 203
-  - 80412
+  - 80428
   kind: plinko
   under: out/islandleft.litematic
 finish:

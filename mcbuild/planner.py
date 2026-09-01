@@ -342,13 +342,19 @@ THEMES = {
             # never sideways) and finds nothing left to do - the geometry is correct by
             # construction, not patched after the fact. `tests/test_flume.py` pins all of it,
             # including every facing and three sizes, so the corner bug cannot come back quietly.
-            {"name": "Log Flume", "gen": "coaster", "kind": "flume",
-             "size": [31, 24, 31], "orient": False,
-             "params": {"land": "frontier", "flume_span": 29, "flume_top": 20, "pool": 4,
+            # **A FLUME IS A LIFT HILL AND VANILLA HAS NO CHAIN LIFT.** Nothing carries a
+            # player UP a water channel, and the flume's own crest source sat at the top of a
+            # staircase descending BOTH ways - twenty courses of water running back down the lift
+            # at the rider. The headroom fault the user found (7 of 137 cells with under two clear
+            # courses) was the smaller half and a two-line fix; fixing it would have shipped a
+            # ride nobody can start. A real water slide's lift is a STAIRCASE, so this one has
+            # one: forecourt, quay, splash pool, slipway, a helical stair tower, a bridge, a start
+            # box, and sixty cells of descent back into the same pool. One source in the channel
+            # rather than 193, because every step down restarts water's seven-block budget.
+            {"name": "Frontier Rapids", "gen": "coaster", "kind": "rapids",
+             "size": [31, 18, 31], "orient": False,
+             "params": {"land": "frontier", "rapids_span": 23, "rapids_top": 12, "pool": 4,
                         "facing": "west"}},
-            # Three shops, not five. Every one of them now has a counter, a ceiling lamp
-            # and the workstations of the trade on its sign - so they are worth entering, and
-            # three good ones beat five that cost the zone its saloon.
             {"name": "The Mine Head", "gen": "frontiertown", "kind": "minehead",
              "size": [19, 32, 21], "orient": False,
              "params": {"land": "frontier", "facing": "east"}},

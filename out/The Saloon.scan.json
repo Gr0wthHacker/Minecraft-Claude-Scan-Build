@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": 97551,
+    "x": 97552,
     "y": 202,
-    "z": 80401
+    "z": 80430
   },
   "size": {
     "x": 17,
-    "y": 18,
+    "y": 16,
     "z": 19
   },
   "generated_by": "frontiertown",
@@ -17,12 +17,57 @@
   "unverified": [],
   "width": 17,
   "depth": 12,
-  "height": 17,
-  "front": "stepped",
+  "height": 15,
+  "front": "flat",
   "signs": 3,
   "tables": 3,
   "beds": 3,
   "stools": 5,
+  "table_button": [
+    97561,
+    204,
+    80446
+  ],
+  "table_pot": [
+    97561,
+    204,
+    80437
+  ],
+  "table_bell": [
+    97562,
+    203,
+    80438
+  ],
+  "table_gate": [
+    97561,
+    203,
+    80440
+  ],
+  "table_cells": 17,
+  "table_chairs": 2,
+  "player_hopper": [
+    97561,
+    203,
+    80444
+  ],
+  "house_hopper": [
+    97562,
+    203,
+    80443
+  ],
+  "table_stock": {
+    "the deal": [
+      "a 64-stackable item (e.g. cobblestone)",
+      "a 16-stackable item (e.g. an egg)",
+      "a non-stackable item (e.g. a sword)"
+    ],
+    "the house": [
+      "a 64-stackable item (e.g. cobblestone)",
+      "a 16-stackable item (e.g. an egg)",
+      "a non-stackable item (e.g. a sword)"
+    ]
+  },
+  "table_contract": "one button turns two cards out of the same three-outcome mix; the pot pays and the bell rings when yours is at least the house's - 6 in 9, ties to the player",
   "walk_cells": 451,
   "file": "The Saloon.litematic",
   "name": "The Saloon"

@@ -4,7 +4,7 @@ params:
   land: frontier
   facing: west
   at:
-  - 97610
+  - 97602
   - 203
   - 80432
   kind: weigh

@@ -177,13 +177,21 @@ def test_the_shipped_frontier_zone_holds_all_of_its_water():
            if n == "water" and pr.get("level", "0") == "0"]
     assert src, "the frontier zone has no water at all - has the flume been dropped?"
 
+    # **THE ENVELOPE COMES FROM WHATEVER WATER DESIGN THE ZONE ACTUALLY HOLDS.** Named as
+    # `Log Flume`, this went red the moment the flume was replaced by `Frontier Rapids` - not
+    # because water escaped, but because the test was asking a design that is no longer in the
+    # zone for its basin, so 226 perfectly contained cells had nothing declaring them. A test
+    # that names one design pins a roster; what it should pin is the property.
     envelope = set(p for p, (n, _pr) in cells.items() if n == "water")
-    _fl, fside = _design("Log Flume")
-    envelope |= {tuple(c) for c in fside.get("basin", [])}
-    _sl, sside = (None, {})
-    if os.path.exists(os.path.join(OUT, "Gold Sluice.scan.json")):
-        _sl, sside = _design("Gold Sluice")
-        envelope |= {tuple(c) for c in sside.get("basin", [])}
+    basins = 0
+    for name in ("Frontier Rapids", "Log Flume", "Gold Sluice"):
+        if not os.path.exists(os.path.join(OUT, f"{name}.scan.json")):
+            continue
+        _d, side = _design(name)
+        cellz = side.get("basin", [])
+        envelope |= {tuple(c) for c in cellz}
+        basins += bool(cellz)
+    assert basins, "no design in the frontier declares a water basin - what is holding the water?"
 
     out = fluids.escapes(plain, src, envelope)
     assert out == [], f"{len(out)} cell(s) of the zone's water end up somewhere no design wanted " \

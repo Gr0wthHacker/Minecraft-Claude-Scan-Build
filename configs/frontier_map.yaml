@@ -8,7 +8,7 @@ params:
   at:
   - 97638
   - 203
-  - 80408
+  - 80420
   kind: mapboard
   under: out/islandleft.litematic
 finish:
