@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": 97618,
+    "x": 97630,
     "y": 202,
-    "z": 80755
+    "z": 80752
   },
   "size": {
-    "x": 6,
-    "y": 8,
-    "z": 6
+    "x": 9,
+    "y": 10,
+    "z": 9
   },
   "generated_by": "wayfinding",
   "kind": "fingerpost",
@@ -21,9 +21,9 @@
       "sign_facing": "north",
       "placed": true,
       "sign_at": [
-        97622,
+        97634,
         206,
-        80755
+        80752
       ]
     },
     {
@@ -32,13 +32,35 @@
       "sign_facing": "west",
       "placed": true,
       "sign_at": [
-        97618,
+        97630,
         207,
-        80759
+        80756
+      ]
+    },
+    {
+      "direction": "east",
+      "dest": "Clock Tower",
+      "sign_facing": "east",
+      "placed": true,
+      "sign_at": [
+        97638,
+        208,
+        80756
+      ]
+    },
+    {
+      "direction": "south",
+      "dest": "The Plummet",
+      "sign_facing": "south",
+      "placed": true,
+      "sign_at": [
+        97634,
+        209,
+        80760
       ]
     }
   ],
-  "post_h": 6,
+  "post_h": 8,
   "file": "Hollow Post.litematic",
   "name": "Hollow Post"
 }

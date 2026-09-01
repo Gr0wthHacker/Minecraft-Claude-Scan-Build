@@ -8,10 +8,14 @@ params:
     dest: Midway
   - direction: west
     dest: Haunted Manor
+  - direction: east
+    dest: Clock Tower
+  - direction: south
+    dest: The Plummet
   at:
-  - 97622
+  - 97634
   - 203
-  - 80759
+  - 80756
   kind: fingerpost
   title: Hollow Post
   under: out/islandright.litematic

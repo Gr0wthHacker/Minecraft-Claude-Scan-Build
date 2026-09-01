@@ -339,10 +339,22 @@ def _teacups(w: World, p: dict, ctx) -> dict:
 
     # THE CANOPY: six posts at the platform's rim, a stepped cone roof collapsing to a centre
     # post - a tent, not a plate, which is what separates this from the wheel's flat crown.
+    # **A POST MAY NOT STAND ON THE TRACK.** At radius R_plat-1 four of the six landed on the
+    # loop's own rectangle at +-(R_plat-2); the loop is laid afterwards, so it overwrote the
+    # post's ground cell with rail and left the post standing in the course above it - a rider
+    # hits a log at speed. It was invisible in every render, because a post resting on a rail
+    # draws exactly like a post resting on the ground, and every check passed: legal states, one
+    # connected piece, a closed powered circuit with no dead rails. The same bug in the Ghost
+    # Train put a solid block over eleven of its fifty track cells, which is a suffocation
+    # tunnel. The posts stand INSIDE the loop, and the guard below is what stops the next
+    # radius change putting them back on it.
+    lr_guard = R_plat - 2
     n_post = 6
     for k in range(n_post):
         th = 2 * math.pi * k / n_post
-        pi, pb = round((R_plat - 1) * math.cos(th)), round((R_plat - 1) * math.sin(th))
+        pi, pb = round((lr_guard - 2) * math.cos(th)), round((lr_guard - 2) * math.sin(th))
+        if max(abs(pi), abs(pb)) >= lr_guard:
+            continue
         for h in range(6):
             w.put(*f.at(pi, pb, h), pal["post"])
     # A SOLID STEPPED CONE, not a stack of thin rings: `_disc(R)` at each step is a strict subset

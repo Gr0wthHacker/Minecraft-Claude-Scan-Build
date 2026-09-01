@@ -1,0 +1,19 @@
+name: Sign The Quiet Room
+gen: wayfinding
+params:
+  land: hollow
+  facing: east
+  name: The Quiet Room
+  does:
+  - make no sound
+  - sculk listens
+  at:
+  - 97570
+  - 203
+  - 80802
+  kind: marker
+  title: Sign The Quiet Room
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

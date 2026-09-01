@@ -1,0 +1,19 @@
+name: Sign Haunted Manor
+gen: wayfinding
+params:
+  land: hollow
+  facing: east
+  name: Haunted Manor
+  does:
+  - walk it through
+  - front to back
+  at:
+  - 97578
+  - 203
+  - 80802
+  kind: marker
+  title: Sign Haunted Manor
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

@@ -4,6 +4,10 @@ params:
   land: hollow
   zone: hollow
   title: Hollow Map
+  legend:
+  - MANOR west
+  - TOWER east
+  - RIDES south
   facing: west
   at:
   - 97602

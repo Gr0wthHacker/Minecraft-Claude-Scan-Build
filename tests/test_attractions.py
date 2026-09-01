@@ -377,3 +377,40 @@ def test_swings_every_seat_hangs_from_a_chain_reaching_the_crown():
     # a seat lost off its own chain silently drops the seat count without breaking connectivity.
     chains = sum(1 for (name, _p2) in w.cells.values() if name == "iron_chain")
     assert chains >= meta["seats"], "fewer chain cells than seats - at least one seat is unlinked"
+
+
+# ------------------------------------------------- nothing stands on, or over, a rider
+
+RIDE_KINDS = [("teacups", "midway"), ("runawaymine", "frontier"), ("ghosttrain", "hollow")]
+
+
+@pytest.mark.parametrize("kind,land", RIDE_KINDS)
+@pytest.mark.parametrize("facing", ["east", "north", "west", "south"])
+def test_no_rider_passes_under_or_into_a_solid_block(kind, land, facing):
+    """**A POST RESTING ON A RAIL DRAWS EXACTLY LIKE A POST RESTING ON THE GROUND.**
+
+    The teacups' six canopy posts were sited at a radius that put four of them on the loop's own
+    rectangle. The loop is laid afterwards, so it overwrote each post's ground cell with rail and
+    left the post standing in the course above - a rider hits a log at speed. Every check passed:
+    legal states, one connected piece, a closed powered circuit with no dead rails, and the
+    footprint measured correctly. The Ghost Train had the same bug worse, with a solid block over
+    eleven of its fifty track cells, which is a suffocation tunnel rather than a collision.
+
+    So this asks the one question none of those checks does: is the cell a rider OCCUPIES clear?
+    """
+    import numpy as np
+    c = A.build({"kind": kind, "land": land, "at": [0, 64, 0], "facing": facing})
+    cells = {}
+    ys, zs, xs = np.nonzero(c.ids)
+    for y, z, x in zip(ys, zs, xs):
+        cells[(int(x), int(y), int(z))] = c.get_name(int(x), int(y), int(z))
+    rail = [pos for pos, n in cells.items() if "rail" in n]
+    assert rail, f"{kind}: no track at all"
+    blocked = []
+    for (x, y, z) in rail:
+        over = cells.get((x, y + 1, z)) or "air"
+        if over != "air" and "rail" not in over:
+            blocked.append(((x, y, z), over))
+    assert not blocked, (
+        f"{kind} facing {facing}: {len(blocked)} track cells with something solid over the "
+        f"rider - e.g. {blocked[:3]}")

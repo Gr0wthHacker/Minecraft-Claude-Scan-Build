@@ -1,0 +1,20 @@
+{
+  "origin": {
+    "x": 97573,
+    "y": 202,
+    "z": 80801
+  },
+  "size": {
+    "x": 3,
+    "y": 5,
+    "z": 3
+  },
+  "generated_by": "wayfinding",
+  "kind": "marker",
+  "land": "hollow",
+  "facing": "east",
+  "contract": "a nameplate for one attraction, standing beside its door",
+  "name": "Sign The Plummet",
+  "signed": true,
+  "file": "Sign The Plummet.litematic"
+}

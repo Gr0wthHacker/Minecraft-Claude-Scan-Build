@@ -1,0 +1,19 @@
+name: Sign Clock Tower
+gen: wayfinding
+params:
+  land: hollow
+  facing: east
+  name: Clock Tower
+  does:
+  - climb the stair
+  - see the zone
+  at:
+  - 97578
+  - 203
+  - 80810
+  kind: marker
+  title: Sign Clock Tower
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false
