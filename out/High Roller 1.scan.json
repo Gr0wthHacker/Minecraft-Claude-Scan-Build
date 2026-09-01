@@ -1,11 +1,11 @@
 {
   "origin": {
-    "x": 97582,
+    "x": 97581,
     "y": 198,
     "z": 80620
   },
   "size": {
-    "x": 16,
+    "x": 17,
     "y": 11,
     "z": 10
   },
@@ -49,6 +49,8 @@
     "redstone_lamp": 4
   },
   "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "concealed": 67,
+  "visible_redstone": 0,
   "lamps": [
     [
       97594,
@@ -84,6 +86,44 @@
     ]
   },
   "reads": "bar",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "dropper",
+        "hopper"
+      ],
+      "light": [
+        "lantern",
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
   "file": "High Roller 1.litematic",
   "name": "High Roller 1"
 }

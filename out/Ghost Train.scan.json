@@ -7,53 +7,158 @@
   "size": {
     "x": 25,
     "y": 15,
-    "z": 20
+    "z": 22
   },
   "generated_by": "attractions",
   "kind": "ghosttrain",
   "land": "hollow",
   "facing": "north",
-  "contract": "a closed, powered minecart loop that enters one arch, crosses a dark interior past lit set-pieces - a barred mausoleum, two candle-lit tombs and four hung lanterns - and leaves through the other; boarded from a lit platform that is walkable from the zone's own paving",
+  "contract": "a closed, powered minecart circuit that boards OUTSIDE the facade, runs the frontage past the queue, enters the left arch at ground, climbs 5 courses up the west alley, crosses the whole back leg on a gallery looking down on the lit tomb, falls 5 courses down the east alley and leaves by the right arch. 58 cells, 4 corners, 5 courses of rise and the same of fall. VERIFIED: closed, every run powered at both ends, every corner flat on both sides, every elevated cell carried to the apron, two clear courses over every rail cell, and the platform walkable from the zone's own paving. NOT verified: cart speed - there is no cart-physics model here, so ride it once before anyone is told it completes the lap.",
   "unverified": [],
   "width": 21,
   "depth": 15,
   "height": 12,
-  "track": 54,
+  "track": 58,
   "corners": 4,
-  "powered": 12,
-  "lamps": 12,
+  "powered": 54,
+  "lamps": 16,
+  "rise": 5,
+  "fall": 5,
+  "gallery": 5,
+  "piers": 13,
+  "iron_ingots": 1.5,
+  "gold_ingots": 54,
+  "redstone_blocks": 12,
   "signed": true,
   "signs": 2,
   "boarding_at": [
     97626,
     203,
-    80814
+    80816
   ],
   "approach_at": [
     97626,
     203,
-    80833
+    80835
   ],
   "entry_at": [
     97619,
     203,
-    80817
+    80819
   ],
   "exit_at": [
     97633,
     203,
-    80817
+    80819
   ],
   "windows": 4,
   "tombs": 2,
   "chandeliers": 4,
   "webs": 8,
+  "beacons": 4,
   "tomb_bounds": [
     5,
     15,
     2,
     11
   ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ],
+      "rail": [
+        "powered_rail",
+        "rail"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 2181,
+      "materials": 18,
+      "dominant_material_share": 0.3709,
+      "light_blocks": 14,
+      "massing": {
+        "width": 25,
+        "height": 15,
+        "depth": 22,
+        "fill_ratio": 0.2644
+      },
+      "silhouette": {
+        "top": {
+          "area": 550,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 319,
+          "fill_ratio": 0.8507
+        },
+        "side": {
+          "area": 234,
+          "fill_ratio": 0.7091
+        }
+      },
+      "material_counts": {
+        "black_wool": 809,
+        "polished_blackstone_bricks": 476,
+        "deepslate_bricks": 469,
+        "blackstone": 104,
+        "cobbled_deepslate": 84,
+        "powered_rail": 54,
+        "polished_blackstone_brick_stairs": 42,
+        "polished_blackstone": 39,
+        "iron_chain": 32,
+        "dark_oak_fence": 20,
+        "soul_lantern": 14,
+        "redstone_block": 12
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "d2b17d20d2327efb419977442259057c428cf3a3c87ed259462f7b61d9e5d8fa",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Ghost Train.litematic",
   "name": "Ghost Train"
 }

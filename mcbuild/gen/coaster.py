@@ -73,6 +73,34 @@ _AXIS = {"north": ("north", "south"), "south": ("north", "south"),
          "east": ("east", "west"), "west": ("east", "west")}
 _LEAN = {"east": "west", "west": "east", "north": "south", "south": "north"}
 
+# What a rider passes through unharmed. Anything else within two courses over a rail cell is a
+# collision or a suffocation, and both are invisible in every render this repo owns - the same
+# set `attractions.py` checks its own three loop rides against (`_Circuit.verify`), imported from
+# here rather than kept twice: two copies of "what a rider can pass through" is how one of them
+# drifts. `_RIDER_HEAD` is how many of those courses a rider's body actually occupies.
+_RIDER_THROUGH = {"rail", "powered_rail", "detector_rail", "activator_rail", "air",
+                  "cave_air", "void_air", "torch", "wall_torch", "soul_torch", "redstone_wire"}
+_RIDER_HEAD = 2                 # courses over a rail cell a rider's body occupies
+
+
+def _rail_clearance(w, cells) -> list:
+    """**THE CHECK NOTHING ELSE MAKES**, run against the FINISHED world.
+
+    `attractions._Circuit.verify` states the reason and it applies here word for word: a
+    generator that can only be told it is wrong by a test suite is one that ships wrong to
+    anybody who calls it directly. This walks every cell the caller says carries a rail and
+    reports every solid thing within `_RIDER_HEAD` courses above it - a roof, a post, a wall,
+    anything a fixed-height structure built without knowing where the track ended up.
+    """
+    bad = []
+    for (x, y, z) in cells:
+        for k in range(1, _RIDER_HEAD + 1):
+            n = w.name(x, y + k, z)
+            if n is not None and n.split(":")[-1] not in _RIDER_THROUGH:
+                bad.append(((x, y + k, z), n))
+    return bad
+
+
 COASTER = {
     "under": None,
     "at": None,                 # world (x, y, z): the FRONT-LEFT floor corner
@@ -506,6 +534,26 @@ def _coaster_plan(p):
     ]
 
 
+def _roofable(w, pos):
+    """False if a solid block here would leave a rail cell UNDER it without its two clear
+    courses of headroom.
+
+    THE ROOF SPANS THE TRACK - deliberately, see the docstring below - but the lift hill is laid
+    before the station and can climb back through this same footprint at whatever height the
+    profile put it, not just at the platform's own floor. A fixed `ceil` roof does not know that:
+    it shipped an eave stair two courses over a climbing rail cell, which is a suffocating ceiling
+    on a cart travelling at speed. Checked in the SAME COLUMN, one and two courses down - a rider
+    occupies the cell a rail sits in and the one above it, so both must stay clear of whatever
+    this function is about to place.
+    """
+    x, y, z = pos
+    for dy in (1, 2):
+        below = (x, y - dy, z)
+        if w.has(*below) and "rail" in w.name(*below):
+            return False
+    return True
+
+
 def _station(w, f, pal, p, seed, i0, i1, dt):
     """The building you board in: a platform beside the track, a canopy over both, a back wall
     with windows, and its name over the door.
@@ -514,6 +562,13 @@ def _station(w, f, pal, p, seed, i0, i1, dt):
     what makes this read as a station is that the cart runs UNDER the roof, which means the far
     columns stand on the deck's own outer edge and the safety rail is suppressed for the length
     of the platform - you cannot board through a fence.
+
+    **AND THE ROOF MUST YIELD TO THE TRACK, NEVER COVER IT BLIND.** `_station` is built AFTER
+    the whole circuit, so the rail is already in `w` by the time the canopy and its eave go up -
+    `_roofable` is what reads that back rather than trusting the fixed `ceil` to clear whatever
+    the lift hill did at this (i, d). A skipped roof cell is a small hole in the canopy directly
+    over the climb, which is the same "left empty by the loop" rule the window openings already
+    follow, applied to a hole the geometry demanded rather than one the plan asked for.
     """
     a, b = pal["canopy"]
     ceil = 6
@@ -553,21 +608,31 @@ def _station(w, f, pal, p, seed, i0, i1, dt):
             n += 1
 
     # THE CANOPY: two colours alternating, which is what says fairground. One colour is a roof.
+    # SKIPPED wherever the climb has come back through underneath - see `_roofable`.
     for i in range(i0, i1 + 3):
         for d in range(dt - 2, dt + 8):
-            w.put(*f.at(i, d, ceil), a if (i + d) % 2 == 0 else b)
+            pos = f.at(i, d, ceil)
+            if not _roofable(w, pos):
+                continue
+            w.put(*pos, a if (i + d) % 2 == 0 else b)
             n += 1
     # ...and an eave of upside-down stairs all round it, so the roof has an edge rather than
     # stopping at a cliff. Every run here is the full frontage, so the min_run gate is moot and
-    # asserted rather than assumed.
+    # asserted rather than assumed - the clearance check is not: the reported bug, a boarding
+    # roof intersecting the track, was one of THESE two, not the field above.
     span_i = list(range(i0, i1 + 3))
     if len(span_i) >= int(p["min_run"]):
         for i in span_i:
-            w.put(*f.at(i, dt - 3, ceil), pal["stair"],
-                  facing=_LEAN[f.facing], half="top", shape="straight", waterlogged="false")
-            w.put(*f.at(i, dt + 8, ceil), pal["stair"],
-                  facing=_LEAN[f.back], half="top", shape="straight", waterlogged="false")
-            n += 2
+            front = f.at(i, dt - 3, ceil)
+            if _roofable(w, front):
+                w.put(*front, pal["stair"],
+                      facing=_LEAN[f.facing], half="top", shape="straight", waterlogged="false")
+                n += 1
+            back = f.at(i, dt + 8, ceil)
+            if _roofable(w, back):
+                w.put(*back, pal["stair"],
+                      facing=_LEAN[f.back], half="top", shape="straight", waterlogged="false")
+                n += 1
 
     # LANTERNS under the canopy. The roof above is a FULL block, which is what a hanging lantern
     # needs - a lamp under a slab reads as 'hanging from air' in the audit, and correctly so.
@@ -702,6 +767,16 @@ def _coaster(w: World, p: dict, ctx) -> dict:
         lamps += 1
 
     built, signed = _station(w, f, pal, p, seed, st_i0, st_i1, st_dt)
+
+    # THE CHECK NOTHING ELSE MAKES, run against the FINISHED world - after the station, which is
+    # the one thing here built with a fixed height that does not itself know where the track
+    # ended up. `_roofable` is what stops this ever firing on the station's own canopy; it is
+    # asserted here as well because a generator that can only be told it is wrong by a test suite
+    # is one that ships wrong to anybody who calls it directly.
+    bad = _rail_clearance(w, track_at)
+    if bad:
+        raise ValueError("coaster: %d track cell(s) have something in the rider: %s"
+                          % (len(bad), bad[:4]))
 
     # THE DROPS ARE MEASURED PER LEG, NOT AS CONTIGUOUS DESCENDING RUNS. A 31-course fall spread
     # evenly over 34 cells has three flat cells in it, and counting runs reported that honest,

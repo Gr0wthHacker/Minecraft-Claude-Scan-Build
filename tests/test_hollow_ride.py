@@ -125,13 +125,22 @@ def test_THE_DARK_RIDE_IS_ACTUALLY_LIT(land):
 
     Every light this build asks for is COUNTED, and the count returned - so a lantern that does
     not land shows up as a number rather than as a dark ride. Four grilles with a lantern behind
-    each, two tombs with a lit candle, four hung chandeliers, two platform posts: twelve, and the
-    world must actually contain twelve.
+    each, two tombs with a lit candle, four hung chandeliers, FOUR ROOF BEACONS and two platform
+    posts: sixteen, and the world must actually contain sixteen.
+
+    **IT WAS TWELVE, AND THE FOUR BEACONS ARE WHAT THE SECOND LEVEL COST.** The circuit used to
+    be a flat rectangle, so every lamp in the building sat at h=1 to h=3 and every one of them was
+    at a rider's eye. The ride climbs to a gallery at h=5 now and crosses the whole back leg up
+    there - which put the rider ABOVE every light in the room, looking at the dark top of a tomb,
+    and made the crest the darkest part of a dark ride. A lantern on a short post at each corner
+    of the tomb's lid is at the gallery's own eye height. This assertion moved with that decision
+    rather than being loosened to `>= 12`, because a bound with slack in it is how a lamp that
+    does not land gets back in one cell at a time.
     """
     w, _f, m = _ride(land)
     placed = [pos for pos, (n, _pr) in w.cells.items() if n.split(":")[-1] in LIGHTS]
-    want = m["windows"] + m["tombs"] + m["chandeliers"] + 2
-    assert m["lamps"] == want == 12, \
+    want = m["windows"] + m["tombs"] + m["chandeliers"] + m["beacons"] + 2
+    assert m["lamps"] == want == 16, \
         f"{land}: the build reports {m['lamps']} lights and its own parts want {want}"
     assert len(placed) == m["lamps"], \
         f"{land}: {m['lamps']} lights were counted and {len(placed)} are in the world"
@@ -144,6 +153,32 @@ def test_there_is_something_to_look_at_and_it_is_not_all_one_thing(land):
     assert m["windows"] == 4, "the mausoleum does not face the rider on all four legs"
     assert m["tombs"] == 2 and m["chandeliers"] == 4
     assert m["webs"] >= 6, f"{land}: only {m['webs']} cobwebs anchored"
+    assert m["beacons"] == 4, (
+        f"{land}: {m['beacons']} roof beacons - the gallery leg crosses the hall at h="
+        f"{m['gallery']}, above every ground-level lamp, so without them the crest is the "
+        f"darkest part of the ride and there is nothing to climb for")
+
+
+@pytest.mark.parametrize("land", LANDS)
+def test_THE_RIDE_IS_A_JOURNEY_AND_NOT_A_LAP(land):
+    """**THE FINDING THE WHOLE REBUILD IS FOR**, and it is the one thing about this ride that no
+    test in this repo ever asked. The shipped verdict was *"the hollow rollercoaster which is just
+    a circle feel pointless and weird filler as opposed to anything useful/interesting"*, and it
+    was exactly right: fifty cells on ONE course, in one arch and out the other, past a tomb seen
+    once from one side.
+
+    A ride goes somewhere. Here that means it leaves the ground, so the rail cells must occupy
+    more than one course, the climb must return to the station (a circuit that does not close in
+    height does not close at all), and the crest must be high enough to look DOWN on the set
+    pieces rather than level with them.
+    """
+    w, _f, m = _ride(land)
+    ys = {y for (_x, y, _z) in _rail_cells(w)}
+    assert len(ys) > 1, f"{land}: {m['track']} rail cells on one course is a lap, not a ride"
+    assert m["rise"] == m["fall"] == m["gallery"] >= 5, (
+        f"{land}: rise {m['rise']}, fall {m['fall']}, gallery {m['gallery']} - a closed circuit "
+        f"must climb and fall by the same amount and end where it started")
+    assert max(ys) - min(ys) == m["rise"]
 
 
 @pytest.mark.parametrize("facing", FACINGS)

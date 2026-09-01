@@ -22,6 +22,86 @@
   "arm": "fence",
   "length": 7,
   "seed": 128094534,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "dark_oak_trapdoor"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 129,
+      "materials": 6,
+      "dominant_material_share": 0.3798,
+      "light_blocks": 0,
+      "massing": {
+        "width": 8,
+        "height": 3,
+        "depth": 11,
+        "fill_ratio": 0.4886
+      },
+      "silhouette": {
+        "top": {
+          "area": 88,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 22,
+          "fill_ratio": 0.9167
+        },
+        "side": {
+          "area": 29,
+          "fill_ratio": 0.8788
+        }
+      },
+      "material_counts": {
+        "deepslate_bricks": 49,
+        "cobbled_deepslate": 27,
+        "polished_blackstone_bricks": 27,
+        "dark_oak_trapdoor": 13,
+        "polished_blackstone_brick_stairs": 11,
+        "dark_oak_fence": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "09d62aaa06d3bf9e20a74b15079f0fa32dfc8561446c180aad8f1e6858a2eadf",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Bench 1.litematic",
   "name": "Bench 1"
 }

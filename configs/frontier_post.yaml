@@ -2,16 +2,16 @@ name: Frontier Post
 gen: wayfinding
 params:
   land: frontier
-  facing: east
+  facing: west
   arms:
   - direction: south
     dest: Midway
   - direction: west
     dest: Mine Coaster
   at:
-  - 97636
+  - 97608
   - 203
-  - 80405
+  - 80419
   kind: fingerpost
   title: Frontier Post
   under: out/islandleft.litematic

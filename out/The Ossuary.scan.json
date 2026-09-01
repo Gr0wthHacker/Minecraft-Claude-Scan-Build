@@ -10,6 +10,8 @@
     "z": 25
   },
   "generated_by": "hollowmanor",
+  "concealed": 0,
+  "visible_redstone": 0,
   "kind": "ossuary",
   "land": "hollow",
   "facing": "south",
@@ -129,6 +131,116 @@
     204,
     80782
   ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "iron_door"
+      ],
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "redstone_lamp",
+        "soul_lantern"
+      ],
+      "redstone": [
+        "lever",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 2266,
+      "materials": 22,
+      "dominant_material_share": 0.3742,
+      "light_blocks": 6,
+      "massing": {
+        "width": 23,
+        "height": 10,
+        "depth": 25,
+        "fill_ratio": 0.3941
+      },
+      "silhouette": {
+        "top": {
+          "area": 575,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 162,
+          "fill_ratio": 0.7043
+        },
+        "side": {
+          "area": 194,
+          "fill_ratio": 0.776
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 848,
+        "cobbled_deepslate": 373,
+        "deepslate_bricks": 340,
+        "deepslate_tile_stairs": 306,
+        "deepslate_tiles": 220,
+        "black_wool": 58,
+        "cracked_polished_blackstone_bricks": 28,
+        "redstone_wire": 23,
+        "blackstone": 18,
+        "chiseled_polished_blackstone": 10,
+        "chiseled_deepslate": 4,
+        "deepslate_brick_wall": 4
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "47ec09d9426e2a2c5454d1bf12281e16d11b930c4cb53f23f1fe5ae017cd8926",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
   "file": "The Ossuary.litematic",
   "name": "The Ossuary"
 }

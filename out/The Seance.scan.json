@@ -10,6 +10,8 @@
     "z": 15
   },
   "generated_by": "hollowmanor",
+  "concealed": 8,
+  "visible_redstone": 0,
   "kind": "seance",
   "land": "hollow",
   "facing": "north",
@@ -62,6 +64,114 @@
       "a 16-stackable item (e.g. an egg)",
       "a non-stackable item (e.g. a sword)"
     ]
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "dropper",
+        "hopper"
+      ],
+      "light": [
+        "redstone_lamp",
+        "soul_lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1005,
+      "materials": 18,
+      "dominant_material_share": 0.2597,
+      "light_blocks": 8,
+      "massing": {
+        "width": 19,
+        "height": 14,
+        "depth": 15,
+        "fill_ratio": 0.2519
+      },
+      "silhouette": {
+        "top": {
+          "area": 285,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 157,
+          "fill_ratio": 0.5902
+        },
+        "side": {
+          "area": 123,
+          "fill_ratio": 0.5857
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 261,
+        "deepslate_tiles": 202,
+        "cobbled_deepslate": 195,
+        "deepslate_tile_stairs": 156,
+        "black_wool": 83,
+        "deepslate_bricks": 57,
+        "blackstone": 20,
+        "redstone_wire": 10,
+        "redstone_lamp": 4,
+        "soul_lantern": 4,
+        "chiseled_polished_blackstone": 3,
+        "dark_oak_wall_sign": 3
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "780f2a059b87e9c06815ef94a986a68cd27ad68679b6ae637f80e7d734bef0db",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
   },
   "file": "The Seance.litematic",
   "name": "The Seance"

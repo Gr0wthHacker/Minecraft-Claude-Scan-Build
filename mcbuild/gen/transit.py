@@ -112,11 +112,18 @@ PLOT_RADIUS = 49                    # measured: placed content is bedrock +/- 49
 # material families, because inside one family a ladder cannot exist by construction and this
 # repo has concluded three times over that the economy has no contrast by searching inside one.
 #
-#     midway    black_wool 21  <  stone_bricks 122  <  smooth_stone 159
+#     midway    blackstone 38  <  stone_bricks 122  <  smooth_stone 159
 #     frontier  spruce_log 41  <  spruce_planks 89  <  cobblestone 127
 #     hollow    black_wool 21  <  polished_blackstone_bricks 45  <  deepslate_bricks 71
+#
+# **`kerb` IS FLOOR, NOT TRIM - IT WAS WOOL FOR MIDWAY AND IT SHOULD NOT HAVE BEEN.** It is laid
+# in the SAME course as `deck` at every edge cell (`_deck`), at both termini, and along the
+# platform's back edge (`_station`) - a walkway strip, not a cornice. `arch` stays `black_wool`
+# for hollow: it is the underside soffit slung between piers, below the deck a rider never
+# stands on, which is the same "vertical, not ground" exemption `park.LANDS["hollow"]["wall"]`
+# already has. `blackstone` keeps midway's kerb as the dark line it always was, just in stone.
 SPAN = {
-    "midway": {"deck": "stone_bricks", "kerb": "black_wool",
+    "midway": {"deck": "stone_bricks", "kerb": "blackstone",
                "pier": "stone_bricks", "arch": "smooth_stone"},
     "frontier": {"deck": "cobblestone", "kerb": "spruce_log",
                  "pier": "spruce_log", "arch": "spruce_planks"},

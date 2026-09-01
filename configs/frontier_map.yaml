@@ -6,7 +6,7 @@ params:
   title: Frontier Map
   facing: west
   at:
-  - 97638
+  - 97602
   - 203
   - 80420
   kind: mapboard

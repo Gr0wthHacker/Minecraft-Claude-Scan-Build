@@ -10,6 +10,8 @@
     "z": 17
   },
   "generated_by": "hollowmanor",
+  "concealed": 0,
+  "visible_redstone": 0,
   "kind": "clocktower",
   "land": "hollow",
   "facing": "east",
@@ -183,6 +185,107 @@
     240,
     80804
   ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "dark_oak_trapdoor"
+      ],
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ],
+      "traversal": [
+        "ladder"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks",
+      "traversal": "mcbuild.walk / audit.check_climb"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 2470,
+      "materials": 19,
+      "dominant_material_share": 0.4178,
+      "light_blocks": 13,
+      "massing": {
+        "width": 17,
+        "height": 49,
+        "depth": 17,
+        "fill_ratio": 0.1744
+      },
+      "silhouette": {
+        "top": {
+          "area": 289,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 420,
+          "fill_ratio": 0.5042
+        },
+        "side": {
+          "area": 420,
+          "fill_ratio": 0.5042
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 1032,
+        "deepslate_bricks": 430,
+        "deepslate_tile_stairs": 230,
+        "cobbled_deepslate": 190,
+        "chiseled_polished_blackstone": 153,
+        "cracked_polished_blackstone_bricks": 102,
+        "white_wool": 80,
+        "deepslate_tiles": 69,
+        "dark_oak_planks": 63,
+        "glass_pane": 24,
+        "black_wool": 20,
+        "dark_oak_trapdoor": 20
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "b5e6607fcbf67c4802f1c59e858dcf6853f48f86794802205d85dfa41ab22e96",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "signage",
+        "traversal"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Clock Tower.litematic",
   "name": "Clock Tower"
 }

@@ -70,7 +70,14 @@ LANDS = {
         "ground": "stone_bricks",
         "path": "stone",
         "wall": "white_wool",
-        "trim": "black_wool",
+        # WOOL OFF THE GROUND. `trim` is not only wall cornices and crenellations - it is ALSO
+        # the plaza's floor grid, the path kerbs, the terrace and pool beds, and the planting
+        # kerbs, all of them the ground you actually walk on. `black_wool` (21) is a fine
+        # CORNICE colour and a bad thing to be standing on. `blackstone` (38, ok tier) keeps the
+        # same dark line - measured across families, not within one, which is the ladder rule
+        # `test_every_land_can_actually_draw_a_line` checks: 236 (wall) - 38 (trim) is 198 apart,
+        # nowhere near the 15-luminance floor below which a trim course stops reading as a line.
+        "trim": "blackstone",
         "post": "oak_log",
         "beam": "oak_planks",
         "stair": "stone_brick_stairs",
@@ -733,7 +740,12 @@ def _plaza(w: World, p: dict, ctx) -> dict:
             r = max(abs(i - cx), abs(d - cd))
             heart = r <= _AVENUE_HALF + 6
             if r == min(cx, cd) - 2:
-                blk = pal["accent"]
+                # THE OUTER RING IS FLOOR, NOT AN ACCENT. `pal["accent"]` is a wool the booth's
+                # target board and the game rooms' rugs are for - a colour that means something
+                # off the ground. On the ground it is the same "wool doing a floor's job" as the
+                # grid lines it circles, so it draws with the same stone `trim` rather than its
+                # own wool.
+                blk = pal["trim"]
             elif heart and (wx % 4 == 0 or wz % 4 == 0):
                 blk = pal["trim"]
             elif (not heart) and (wx % 8 == 0 or wz % 8 == 0):

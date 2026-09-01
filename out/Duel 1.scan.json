@@ -1,11 +1,11 @@
 {
   "origin": {
-    "x": 97580,
+    "x": 97579,
     "y": 197,
     "z": 80633
   },
   "size": {
-    "x": 17,
+    "x": 18,
     "y": 12,
     "z": 10
   },
@@ -32,6 +32,8 @@
   ],
   "budget": {},
   "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "concealed": 75,
+  "visible_redstone": 0,
   "rng_hopper": [
     97589,
     199,
@@ -55,6 +57,43 @@
     ]
   },
   "reads": "duel",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel",
+        "dropper",
+        "hopper"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
   "file": "Duel 1.litematic",
   "name": "Duel 1"
 }

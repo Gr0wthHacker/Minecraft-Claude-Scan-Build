@@ -21,7 +21,100 @@
   "trees": 0,
   "beds": 0,
   "terrace": true,
-  "pool": false,
+  "pool": true,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "lantern"
+      ]
+    },
+    "verifiers": {
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 8934,
+      "materials": 9,
+      "dominant_material_share": 0.3653,
+      "light_blocks": 6,
+      "massing": {
+        "width": 89,
+        "height": 6,
+        "depth": 99,
+        "fill_ratio": 0.169
+      },
+      "silhouette": {
+        "top": {
+          "area": 8811,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 117,
+          "fill_ratio": 0.2191
+        },
+        "side": {
+          "area": 134,
+          "fill_ratio": 0.2256
+        }
+      },
+      "material_counts": {
+        "cobblestone": 3264,
+        "stone": 3040,
+        "stone_bricks": 2529,
+        "spruce_slab": 28,
+        "water": 25,
+        "spruce_stairs": 24,
+        "spruce_log": 16,
+        "lantern": 6,
+        "lily_pad": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "fd9025c9a0f22a94c28bc22a3cd152f964bf622541374b0bd350433a79243829",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "fluid",
+        "hazard",
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Frontier Plaza.litematic",
   "name": "Frontier Plaza"
 }

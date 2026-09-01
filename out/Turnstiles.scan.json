@@ -16,6 +16,8 @@
   "contract": "a press opens that lane's door for about 13 redstone ticks and it closes by itself",
   "unverified": [],
   "budget": {},
+  "concealed": 65,
+  "visible_redstone": 0,
   "width": 9,
   "depth": 2,
   "height": 5,
@@ -76,6 +78,109 @@
       80587
     ]
   ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "iron_door"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 649,
+      "materials": 13,
+      "dominant_material_share": 0.4499,
+      "light_blocks": 1,
+      "massing": {
+        "width": 19,
+        "height": 9,
+        "depth": 11,
+        "fill_ratio": 0.345
+      },
+      "silhouette": {
+        "top": {
+          "area": 209,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 70,
+          "fill_ratio": 0.4094
+        },
+        "side": {
+          "area": 86,
+          "fill_ratio": 0.8687
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 292,
+        "stone": 187,
+        "redstone_wire": 42,
+        "blackstone": 34,
+        "white_wool": 34,
+        "repeater": 18,
+        "stone_brick_stairs": 18,
+        "oak_log": 12,
+        "iron_door": 4,
+        "redstone_wall_torch": 4,
+        "stone_button": 2,
+        "lantern": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "6fc84a32cf0a107ab2ea6e952a06014f952225f84308a1e3ce810deaa4d33b0e",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
   "file": "Turnstiles.litematic",
   "name": "Turnstiles"
 }

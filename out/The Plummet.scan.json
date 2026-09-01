@@ -3407,6 +3407,112 @@
     ]
   ],
   "pool_top": 202,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "dark_oak_fence_gate"
+      ],
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 3599,
+      "materials": 13,
+      "dominant_material_share": 0.4104,
+      "light_blocks": 10,
+      "massing": {
+        "width": 17,
+        "height": 73,
+        "depth": 20,
+        "fill_ratio": 0.145
+      },
+      "silhouette": {
+        "top": {
+          "area": 340,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 658,
+          "fill_ratio": 0.5302
+        },
+        "side": {
+          "area": 654,
+          "fill_ratio": 0.4479
+        }
+      },
+      "material_counts": {
+        "deepslate_bricks": 1477,
+        "black_wool": 926,
+        "blackstone": 402,
+        "glass_pane": 260,
+        "water": 147,
+        "cobbled_deepslate": 120,
+        "polished_blackstone_bricks": 119,
+        "polished_blackstone_brick_stairs": 89,
+        "dark_oak_fence": 45,
+        "soul_lantern": 10,
+        "dark_oak_wall_sign": 2,
+        "dark_oak_fence_gate": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "467b9bda2ba9b4dc10099e404db7663de739a5fbfa74a9090776e878a59af375",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "fluid",
+        "hazard",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "The Plummet.litematic",
   "name": "The Plummet"
 }

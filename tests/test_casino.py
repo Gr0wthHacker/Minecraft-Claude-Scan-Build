@@ -629,10 +629,33 @@ def test_every_material_in_the_casino_has_a_purpose():
         "redstone_wire", "repeater", "comparator", "dropper", "dispenser", "hopper", "barrel",
         "redstone_block", "redstone_torch", "redstone_wall_torch", "redstone_lamp", "note_block",
         "lantern", "oak_wall_sign", "stone_button", "oak_fence", "stone_brick_stairs",
+        # WOOL OFF THE GROUND (2026-09-01): `floor`, `trim` and `aisle` moved from wool to stone
+        # in `PALETTE` and every `LAND_SKIN`, so a re-slice of the casino carries these instead of
+        # the ones above wherever a room's floor, field or aisle used to be wool. Both sets are
+        # listed rather than swapped, because a checkout sliced before this change still ships the
+        # old names and this test must not fail on a file it did not cause.
+        "polished_blackstone_bricks", "diorite", "blackstone", "tuff",
+        "cracked_polished_blackstone_bricks", "red_nether_bricks", "spruce_planks",
     }
     got = collections.Counter(n for n, _ in layers._read("Casino Complete")[0].values())
     stray = {n: k for n, k in got.items() if n not in allowed}
     assert not stray, f"blocks with no stated purpose: {stray}"
+
+
+# WOOL IS A RUG, A PILASTER, AN AWNING, A TARGET BOARD - NEVER THE GROUND ITSELF. `floor` is the
+# room's border ring and the wheel's felt; `trim` is the room's field AND the hall's own grid
+# line (`_hall` reuses it as `line`); `tile` and `aisle` are the hall's checker and its aisle
+# stripe; `shell` is the hall's floor as well as its walls. `accent`, `carpet`, `canopy` and
+# `board` are deliberately NOT checked - a carpet is a rug laid ON the floor, an accent is now
+# only ever a pilaster cap, a canopy an awning and a board a readout, and all four are exactly
+# the "wool for other things" this economy is fine with.
+def test_no_land_stands_on_wool():
+    from mcbuild.gen import casino as K
+    for key in ("floor", "trim", "tile", "aisle", "shell"):
+        assert "_wool" not in K.PALETTE[key], f"PALETTE.{key} is {K.PALETTE[key]!r}"
+    for land, sk in K.LAND_SKIN.items():
+        for key in ("floor", "trim", "tile", "aisle", "shell"):
+            assert "_wool" not in sk[key], f"{land}.{key} is {sk[key]!r} - wool doing a floor's job"
 
 
 # --------------------------------------------------------------------------- the INPUT half

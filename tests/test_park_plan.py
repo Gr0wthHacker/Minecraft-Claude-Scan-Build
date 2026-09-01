@@ -76,12 +76,17 @@ def test_the_biggest_module_is_sited_first(zone):
     order = planner._site_order(planner.THEMES[zone])
 
     # THE GROUPS COME IN THE RIGHT ORDER: pinned first, free next, the ground last.
-    kinds = [m.get("anchor") if m.get("anchor") in ("cover", "edge", "centre") else "free"
+    # `origin` is pinned like an edge - the island's own bedrock is the one
+    # coordinate the server chooses and nothing can negotiate.
+    kinds = [m.get("anchor")
+             if m.get("anchor") in ("cover", "edge", "centre", "origin") else "free"
              for m in order]
-    assert kinds == sorted(kinds, key=lambda k: {"edge": 0, "centre": 0,
-                                                 "free": 1, "cover": 2}[k]),         f"{zone}: site groups out of order: {kinds}"
+    order_key = {"edge": 0, "centre": 0, "origin": 0, "free": 1, "cover": 2}
+    assert kinds == sorted(kinds, key=lambda k: order_key[k]), (
+        f"{zone}: site groups out of order: {kinds}")
 
-    free = [m for m in order if m.get("anchor") not in ("cover", "edge", "centre")]
+    free = [m for m in order
+            if m.get("anchor") not in ("cover", "edge", "centre", "origin")]
     areas = []
     for m in free:
         _fx, _fy, _fz, fw, _fh, fd = planner.measured_footprint(

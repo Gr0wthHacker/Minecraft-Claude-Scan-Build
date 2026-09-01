@@ -64,6 +64,7 @@ than left as a silently missing feature.
 """
 from __future__ import annotations
 
+from . import conceal
 from .canvas import Canvas
 from .vertical import Ctx, World
 from .park import LANDS, SIGN_WIDTH, _STEP, _Frame, _pad, _cornice, _trim_run
@@ -855,6 +856,10 @@ def build(cfg: dict, donors=None) -> Canvas:
     w = World()
     ctx = Ctx(p["under"]) if p.get("under") else None
     meta = BUILDERS[p["kind"]](w, p, ctx)
+
+    # **COVER THE WIRING**, one pass for every kind - see `gen/conceal.py`.
+    hidden = conceal.conceal(w, LANDS[p["land"]]["ground"],
+                             protect=[tuple(c) for c in meta.get("stand", ())])
 
     # THE EXPENSIVE PARTS ARE COUNTED, because they decide whether this can be built at all -
     # `casino.build`'s rule. A bandstand asked for note blocks is a bandstand you have to shop for.

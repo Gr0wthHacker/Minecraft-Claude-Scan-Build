@@ -1,11 +1,11 @@
 {
   "origin": {
-    "x": 97569,
+    "x": 97560,
     "y": 202,
     "z": 80360
   },
   "size": {
-    "x": 72,
+    "x": 79,
     "y": 1,
     "z": 84
   },
@@ -16,8 +16,76 @@
   "contract": "every attraction's door is joined to an avenue, and both avenues meet at the hub - so the whole network is one connected walk",
   "unverified": [],
   "routes": 14,
-  "cells": 1238,
+  "cells": 1262,
   "lamps": 0,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1138,
+      "materials": 2,
+      "dominant_material_share": 0.5141,
+      "light_blocks": 0,
+      "massing": {
+        "width": 79,
+        "height": 1,
+        "depth": 84,
+        "fill_ratio": 0.1715
+      },
+      "silhouette": {
+        "top": {
+          "area": 1138,
+          "fill_ratio": 0.1715
+        },
+        "front": {
+          "area": 79,
+          "fill_ratio": 1.0
+        },
+        "side": {
+          "area": 84,
+          "fill_ratio": 1.0
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 585,
+        "stone": 553
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "553bffa27b01d67ef6dbb0a9bd9732e4c65835cf716179e212678ae69cba16d5",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Frontier Paths.litematic",
   "name": "Frontier Paths"
 }

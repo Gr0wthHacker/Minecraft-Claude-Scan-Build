@@ -22,6 +22,102 @@
   "beds": 2,
   "terrace": true,
   "pool": true,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "soul_lantern"
+      ]
+    },
+    "verifiers": {
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 9049,
+      "materials": 15,
+      "dominant_material_share": 0.3607,
+      "light_blocks": 6,
+      "massing": {
+        "width": 89,
+        "height": 6,
+        "depth": 99,
+        "fill_ratio": 0.1712
+      },
+      "silhouette": {
+        "top": {
+          "area": 8811,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 141,
+          "fill_ratio": 0.264
+        },
+        "side": {
+          "area": 139,
+          "fill_ratio": 0.234
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 3264,
+        "cobbled_deepslate": 3040,
+        "deepslate_bricks": 2577,
+        "moss_block": 32,
+        "polished_blackstone_brick_slab": 28,
+        "water": 25,
+        "polished_blackstone_brick_stairs": 24,
+        "blackstone": 16,
+        "moss_carpet": 10,
+        "azalea": 7,
+        "fern": 7,
+        "short_grass": 6
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "ee13cc06ac54fa7d0dc948fc769cc3eb6a642bfc87925aa5ecd7ebd331f5f8a6",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "fluid",
+        "hazard",
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Hollow Court.litematic",
   "name": "Hollow Court"
 }

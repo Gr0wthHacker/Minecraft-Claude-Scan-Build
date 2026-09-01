@@ -65,6 +65,49 @@ def run_config(path: str, *, settings: Settings | None = None, overrides: dict |
         raise
     _polish(m, cfg)
     res = _finish(m, cfg, world_origin, gen_meta, verbose)
+    # Every generated sidecar records the mechanics that survived the finish chain.  It is derived
+    # from the finished model, not declared by the config, so cheapening/hollowing cannot leave a
+    # stale claim about a component that no longer exists.
+    from .mechanics import manifest as mechanics_manifest
+    from .design import assess as design_assess
+    from .journey import evaluate as journey_evaluate
+    gen_meta = {**gen_meta, "mechanics": mechanics_manifest(
+        m, generator=cfg.get("gen"), roles=cfg.get("roles"))}
+    brief = cfg.get("design")
+    design = design_assess(m, brief)
+    if design["brief"].get("journey"):
+        design["journey"] = journey_evaluate(m, design["brief"]["journey"], world_origin)
+        if design["brief"].get("enforce") and not design["journey"]["ok"]:
+            raise ValueError("design journey contract failed")
+    from .scenario import evaluate as scenario_evaluate
+    design["scenarios"] = scenario_evaluate(cfg.get("scenarios"), design, gen_meta["mechanics"])
+    if design["brief"].get("enforce") and not design["scenarios"]["ok"]:
+        raise ValueError("design scenario contract failed")
+    if design["brief"].get("visual_review"):
+        from .design import render_packet
+        review_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in name)
+        design["visual_packet"] = render_packet(m, os.path.join(st.out_dir, "design_reviews"), review_name)
+    from dataclasses import asdict
+    from .design_compiler import anchors as compile_anchors, capability_matrix, fingerprint, genome, source_digest, variation
+    declared_anchors = compile_anchors(cfg.get("anchors"))
+    genome_name = design["brief"].get("style")
+    generator_source = ""
+    if cfg.get("gen"):
+        import inspect
+        try:
+            generator_source = source_digest(inspect.getsourcefile(GENERATORS[cfg["gen"]].build))
+        except (KeyError, TypeError):
+            pass
+    system = {"fingerprint": fingerprint(cfg, generator_source=generator_source),
+              "generator_source_digest": generator_source, "anchors": [asdict(anchor) for anchor in declared_anchors]}
+    if genome_name:
+        profile = genome(genome_name)
+        system["genome"] = profile
+        if profile["facades"]:
+            system["variation"] = {"facade": variation(cfg.get("name", name), "facade", profile["facades"])}
+    system["capabilities"] = capability_matrix(mechanics=gen_meta["mechanics"], design=design,
+                                                  anchors_=declared_anchors)
+    gen_meta = {**gen_meta, "design": design, "design_system": system}
     _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, verbose)
     return m, res
 

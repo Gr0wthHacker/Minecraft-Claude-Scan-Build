@@ -33,6 +33,93 @@
     203,
     80782
   ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 525,
+      "materials": 8,
+      "dominant_material_share": 0.3219,
+      "light_blocks": 5,
+      "massing": {
+        "width": 13,
+        "height": 10,
+        "depth": 13,
+        "fill_ratio": 0.3107
+      },
+      "silhouette": {
+        "top": {
+          "area": 169,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 78,
+          "fill_ratio": 0.6
+        },
+        "side": {
+          "area": 76,
+          "fill_ratio": 0.5846
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 169,
+        "black_wool": 120,
+        "deepslate_bricks": 105,
+        "glass_pane": 90,
+        "polished_blackstone_brick_stairs": 18,
+        "blackstone": 16,
+        "soul_lantern": 5,
+        "dark_oak_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "2aa27dfde319a23a7f4469a4e8d045f0e08a1f4e800f72abc5b010148ae618eb",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Mirror Maze.litematic",
   "name": "Mirror Maze"
 }

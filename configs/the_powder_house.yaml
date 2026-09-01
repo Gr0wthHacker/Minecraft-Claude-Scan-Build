@@ -5,9 +5,9 @@ params:
   facing: east
   drift: 21
   at:
-  - 97572
+  - 97634
   - 203
-  - 80410
+  - 80412
   kind: powderhouse
   title: The Powder House
   under: out/islandleft.litematic

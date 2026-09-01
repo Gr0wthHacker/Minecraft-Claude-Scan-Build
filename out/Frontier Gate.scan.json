@@ -18,6 +18,91 @@
   "width": 7,
   "depth": 3,
   "height": 6,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 128,
+      "materials": 6,
+      "dominant_material_share": 0.3516,
+      "light_blocks": 2,
+      "massing": {
+        "width": 9,
+        "height": 9,
+        "depth": 5,
+        "fill_ratio": 0.316
+      },
+      "silhouette": {
+        "top": {
+          "area": 45,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 35,
+          "fill_ratio": 0.4321
+        },
+        "side": {
+          "area": 32,
+          "fill_ratio": 0.7111
+        }
+      },
+      "material_counts": {
+        "stone": 45,
+        "spruce_log": 36,
+        "stone_bricks": 23,
+        "spruce_planks": 21,
+        "lantern": 2,
+        "spruce_wall_sign": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "6e9a06c4403a6ef8a3380bc586bcf23650f5174fb7f8ca68ad783e432a335794",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Frontier Gate.litematic",
   "name": "Frontier Gate"
 }

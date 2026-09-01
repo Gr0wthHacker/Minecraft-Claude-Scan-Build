@@ -11,6 +11,8 @@
   },
   "generated_by": "frontiertown",
   "kind": "sluice",
+  "concealed": 7,
+  "visible_redstone": 0,
   "land": "frontier",
   "facing": "west",
   "contract": "a stepped launder of FLOWING water (`fluids.carries`) that cannot leak (`fluids.escapes` against its own declared basin), a hopper row in the tail floor feeding a barrel, and a comparator on that barrel that raises a gold block and rings a bell when anything lands in it - dark when the poke is empty, both proven with `circuit.Circuit`",
@@ -683,6 +685,121 @@
     "moving": 8,
     "stops_at": null,
     "carries": true
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel",
+        "hopper"
+      ],
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_wire",
+        "repeater",
+        "sticky_piston"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 733,
+      "materials": 18,
+      "dominant_material_share": 0.502,
+      "light_blocks": 4,
+      "massing": {
+        "width": 19,
+        "height": 9,
+        "depth": 19,
+        "fill_ratio": 0.2256
+      },
+      "silhouette": {
+        "top": {
+          "area": 361,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 130,
+          "fill_ratio": 0.7602
+        },
+        "side": {
+          "area": 69,
+          "fill_ratio": 0.4035
+        }
+      },
+      "material_counts": {
+        "cobblestone": 368,
+        "spruce_planks": 204,
+        "spruce_log": 81,
+        "stone_bricks": 50,
+        "spruce_slab": 6,
+        "lantern": 4,
+        "spruce_stairs": 4,
+        "hopper": 3,
+        "redstone_wire": 2,
+        "spruce_wall_sign": 2,
+        "water": 2,
+        "barrel": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "95e7df034b79ea5a16aa36ae0dee3faeda8441469db52d078ce5b31ef48fd4e8",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "fluid",
+        "hazard",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
   },
   "file": "Gold Sluice.litematic",
   "name": "Gold Sluice"

@@ -25,7 +25,8 @@ WHAT IS MODELLED, and it is enough for every machine a build here needs:
     plate           a source while pressed
     repeater        delay 1-4, one-way, LOCKED by a powered repeater/comparator on its side
     comparator      compare and subtract, rear vs the greater side, container fullness behind
-    observer        a 1-tick pulse when the block it faces changes
+    observer        a 1-redstone-tick pulse when an observed block update is supplied
+    powered rail    a directly powered rail energises its next eight connected powered rails
     piston          extends while powered; sticky retracts what it pushed
     lamp/door/      driven outputs, so a test can assert on the thing a player sees
     dispenser       fires on a RISING edge, which is why a held signal dispenses once
@@ -75,6 +76,13 @@ SOURCES = {"redstone_block"}
 OUTPUTS = {"redstone_lamp", "piston", "sticky_piston", "iron_door", "iron_trapdoor",
            "dispenser", "dropper", "note_block", "oak_door", "bell", "tnt"}
 
+# These are redstone sources whose strength depends on something outside the block model: a
+# projectile, minecart, vibration, viewer, daylight, or items on a weighted plate.  They are
+# inputs, not magic constants.  `set_signal()` makes that boundary explicit in a contract test.
+SIGNAL_INPUTS = {"target", "sculk_sensor", "daylight_detector", "trapped_chest",
+                 "detector_rail", "activator_rail", "light_weighted_pressure_plate",
+                 "heavy_weighted_pressure_plate"}
+
 
 def _short(n: str) -> str:
     return n.split(":")[-1].split("[")[0]
@@ -105,9 +113,12 @@ class Circuit:
         self.qc = qc
         self.cells: dict[tuple, Cell] = cells
         self.power: dict[tuple, int] = {}          # wire power
+        self.rail_power: set[tuple] = set()        # powered rails, direct source + eight links
         self.strong: dict[tuple, int] = {}         # blocks powered hard enough to feed wire
         self.weak: dict[tuple, int] = {}           # blocks powered enough to drive a component
         self.inputs: dict[tuple, bool] = {}        # levers/buttons/plates the caller drives
+        self.signals: dict[tuple, int] = {}         # external analogue sources, 0..15
+        self.container: dict[tuple, int] = {}       # comparator-readable inventory levels
         self.delayed: dict[tuple, list] = {}       # repeater/torch scheduled changes
         self.state: dict[tuple, bool] = {}         # powered-ness of stateful components
         self.pulses: dict[tuple, int] = {}         # button/observer countdowns
@@ -195,6 +206,34 @@ class Circuit:
         self.inputs[pos] = True
         self.pulses[pos] = ticks
 
+    def set_signal(self, pos, strength: int) -> None:
+        """Set an external analogue redstone source to a level from 0 through 15.
+
+        Entity and world events are deliberately not invented by the simulator.  A test states
+        that a cart reached a detector rail, an arrow hit a target, or a sculk sensor heard a
+        vibration, then this method supplies the signal the block emits into the real circuit.
+        """
+        cell = self.at(pos)
+        if cell is None or cell.name not in SIGNAL_INPUTS:
+            got = "air" if cell is None else cell.name
+            raise ValueError(f"{pos} is {got}, not an external redstone source")
+        self.signals[pos] = max(0, min(MAX_POWER, int(strength)))
+
+    def observe(self, changed: tuple) -> int:
+        """Notify observers whose detecting face looks at an updated block.
+
+        An observer faces the block it watches and emits its pulse from the opposite (red-dot)
+        face.  This is an event boundary, like `set_signal`: the caller must state the update
+        instead of the simulator pretending to know which entity or moving block caused it.
+        Returns the number of observers triggered, which makes a misplaced observer testable.
+        """
+        hit = 0
+        for pos, cell in self.cells.items():
+            if cell.name == "observer" and self._front(pos, cell) == changed:
+                self.pulses[pos] = 1
+                hit += 1
+        return hit
+
     # ------------------------------------------------------------------ the solve
 
     def _sources(self) -> dict:
@@ -226,9 +265,9 @@ class Circuit:
             n = c.name
             if n in SOURCES:
                 emit[pos] = MAX_POWER
-            elif n in ("lever", "stone_button", "oak_button", "polished_blackstone_button",
-                       "stone_pressure_plate", "oak_pressure_plate",
-                       "light_weighted_pressure_plate", "heavy_weighted_pressure_plate"):
+            elif n in SIGNAL_INPUTS and self.signals.get(pos, 0):
+                emit[pos] = self.signals[pos]
+            elif n == "lever" or n.endswith("_button") or n.endswith("_pressure_plate"):
                 if self.inputs.get(pos):
                     emit[pos] = MAX_POWER
                     # **A PRESSURE PLATE HAS NO `face` PROPERTY, AND THE DEFAULT WAS "wall".**
@@ -251,7 +290,13 @@ class Circuit:
                 att = self._attachment(pos, "floor" if n == "redstone_torch" else "wall",
                                        c.prop("facing", "north"))
                 attach[pos] = att
-                if self.state.get(pos, True):                 # a torch starts LIT
+                # **A TORCH'S OWN `lit` STATE IS ITS INITIAL STATE**, and defaulting every one of
+                # them to LIT is a two-tick glitch on every inverter stack in the park: an
+                # `and_gate`'s torches all start high, the gate is briefly true, and the thing it
+                # drives flicks. Measured, that opened the ticket barriers and the ossuary's vault
+                # for two ticks on chunk load - and a design that ships `lit=false` on a torch
+                # standing on a powered block is stating exactly what the game will do with it.
+                if self.state.get(pos, c.prop("lit", "true") != "false"):
                     emit[pos] = MAX_POWER
                     into[(pos[0], pos[1] + 1, pos[2])] = MAX_POWER
             elif n == "repeater":
@@ -263,7 +308,8 @@ class Circuit:
                     into[self._front(pos, c)] = out
             elif n == "observer":
                 if self.pulses.get(pos, 0) > 0:
-                    into[self._front(pos, c)] = MAX_POWER
+                    # The arrow/face points at the watched block; the red dot is on the back.
+                    into[self._back(pos, c)] = MAX_POWER
         return {"emit": emit, "into": into, "attach": attach}
 
     def _attachment(self, pos, face: str, facing: str):
@@ -374,12 +420,37 @@ class Circuit:
                 best = max(best, src["into"][nb])
         return best
 
+    def _solve_powered_rails(self, src: dict) -> None:
+        """Propagate power along a powered-rail run, at most eight rails past its source.
+
+        Powered rails are not dust: an adjacent powered rail does not provide a generic signal to
+        blocks beside it.  It only carries its own powered state along the connected rail run,
+        with a direct source plus eight further rails.  Keeping that state separate stops a rail
+        line from becoming an accidental redstone wire while still making its real braking rule
+        testable.
+        """
+        rails = {p for p, cell in self.cells.items() if cell.name == "powered_rail"}
+        seeds = {p for p in rails if self._block_power(p, src) > 0}
+        seen = set(seeds)
+        todo = collections.deque((p, 0) for p in seeds)
+        while todo:
+            pos, hops = todo.popleft()
+            if hops >= 8:
+                continue
+            for _direction, other in self.neighbours(pos):
+                if other in rails and other not in seen:
+                    seen.add(other)
+                    todo.append((other, hops + 1))
+        self.rail_power = seen
+
     _last_src: dict = {"emit": {}, "into": {}, "attach": {}}
 
     def powered(self, pos) -> bool:
         """Is this cell being driven right now — the assertion a test actually wants."""
         if self.name(pos) == "redstone_wire":
             return self.power.get(pos, 0) > 0
+        if self.name(pos) == "powered_rail":
+            return pos in self.rail_power
         return self._block_power(pos, self._last_src) > 0
 
     def level(self, pos) -> int:
@@ -401,6 +472,7 @@ class Circuit:
         self.tick_no += 1
         src = self._sources()
         self._solve_wire(src)
+        self._solve_powered_rails(src)
         self._last_src = src
 
         # --- what every delayed component WANTS to be, given this tick's network
@@ -427,8 +499,9 @@ class Circuit:
             delay = 1
             if c.name == "repeater":
                 delay = int(c.prop("delay", "1") or 1)
-            current = self.state.get(pos, True if c.name.endswith("torch") else
-                                     (0 if c.name == "comparator" else False))
+            current = self.state.get(
+                pos, (c.prop("lit", "true") != "false") if c.name.endswith("torch") else
+                (0 if c.name == "comparator" else False))
             if target == current:
                 self.delayed.pop(pos, None)
                 continue
@@ -446,7 +519,7 @@ class Circuit:
             self.pulses[pos] -= 1
             if self.pulses[pos] <= 0:
                 self.pulses.pop(pos)
-                if self.name(pos) in ("stone_button", "oak_button", "polished_blackstone_button"):
+                if self.name(pos).endswith("_button"):
                     self.inputs[pos] = False
 
         # --- outputs, and the RISING EDGE that makes a dispenser fire once rather than forever
@@ -558,8 +631,6 @@ class Circuit:
 
     # Container fullness is an INPUT, not something that fills itself: this simulator has no
     # entities, and pretending a hopper fills would certify a sorter that has never seen an item.
-    container: dict = {}
-
     def fill(self, pos, strength: int) -> None:
         """State what a comparator reads out of the container at `pos` (0-15)."""
         self.container = dict(self.container)
@@ -844,3 +915,140 @@ def has_redstone(model) -> bool:
     """Is this design worth inspecting at all."""
     names = {_short(n) for n in model.names}
     return bool(names & (EMITTERS | DRIVEN | SOURCES | {"redstone_wire"}))
+
+
+# ---------------------------------------------------------------------- what a player can SEE
+
+# THE COMPONENTS THAT MUST NEVER BE VISIBLE. Not "redstone" as a category: a lamp, a dropper's
+# face, a piston head, a bell and a button are all things the machine exists to SHOW, and a
+# hopper's mouth is where a player puts the ball in. What breaks the illusion is the WIRING - the
+# dust, the timing parts and the inverters lying on open ground - which is what Jack named:
+# "we shouldnt have open ended visible redstone to players it breaks the experience".
+HIDDEN = {"redstone_wire", "repeater", "comparator", "redstone_torch", "redstone_wall_torch"}
+
+
+def _cells_of(model, origin=(0, 0, 0)) -> dict:
+    if hasattr(model, "cells"):                     # already a Circuit
+        return {p: c.name for p, c in model.cells.items()}
+    import numpy as np
+    names, out = model.names, {}
+    ox, oy, oz = origin
+    for y, z, x in np.argwhere(model.ids > 0):
+        n = _short(names[model.ids[y, z, x]])
+        if n not in AIRY:
+            out[(int(x) + ox, int(y) + oy, int(z) + oz)] = n
+    return out
+
+
+# **CAN A PLAYER SEE PAST THIS BLOCK.** That is not the same question as `is_full_cube`, and both
+# corrections matter in a different direction:
+#
+#   SEE_THROUGH  glass is a full cube and you look straight through it, so a machine "hidden"
+#                behind a pane of it would pass a shape test. Transparent is transparent.
+#   FACE         a hopper, a chest, a bell, a lectern, a button, a lever, a plate, a sensor and
+#                the wiring parts themselves are not full cubes and you cannot see PAST one
+#                either - they are the machine's own face, filling their cell from any angle that
+#                would show you what is behind. Without this, the plinko board's input hoppers
+#                counted as windows onto the machine room they feed, a bell counted as a hole over
+#                the run that rings it, and the whole of a covered run read as visible through the
+#                one button that starts it. That is a rule nobody could build to, and building to
+#                it would mean walling a machine off from its own input.
+#
+# Everything else - fences, panes, bars, gates, slabs, stairs, trapdoors, doors, ladders, chains,
+# lanterns, signs, rails, carpets, plants - you see through, and it is treated as open. That is the
+# strict direction, and it is deliberate: a run under a bottom slab is VISIBLE here.
+SEE_THROUGH = {"glass", "tinted_glass", "ice", "frosted_ice", "barrier", "light", "slime_block",
+               "honey_block"} | {f"{c}_stained_glass" for c in
+                                 ("white", "orange", "magenta", "light_blue", "yellow", "lime",
+                                  "pink", "gray", "light_gray", "cyan", "purple", "blue", "brown",
+                                  "green", "red", "black")}
+# The machine's own face: not a full cube, and you cannot see past one either.
+FACE = {"hopper", "chest", "trapped_chest", "ender_chest", "cauldron", "water_cauldron",
+        "lava_cauldron", "powder_snow_cauldron", "composter", "lectern", "bell", "grindstone",
+        "stonecutter", "brewing_stand", "enchanting_table", "anvil", "chipped_anvil",
+        "damaged_anvil", "campfire", "soul_campfire", "sculk_sensor", "lever",
+        "redstone_wire", "repeater", "comparator", "redstone_torch", "redstone_wall_torch"}
+
+
+def see_past(name: str) -> bool:
+    """Can a player see the cell BEHIND this one, through this block."""
+    if name in SEE_THROUGH:
+        return True
+    if name in FACE or name.endswith("_button") or name.endswith("_pressure_plate"):
+        return False
+    return not blocks.is_full_cube(name)
+
+
+def outside(cells: dict, extra_opaque=()) -> set:
+    """Every cell a line of sight can reach from beyond the build.
+
+    A flood from one cell outside the bounding box, through everything a player can see past. A
+    pocket sealed inside a cabinet is therefore NOT outside, which is the whole point: a machine
+    room with a solid lid is hidden and one with a bottom slab over it is not.
+    """
+    if not cells:
+        return set()
+    xs = [p[0] for p in cells]
+    ys = [p[1] for p in cells]
+    zs = [p[2] for p in cells]
+    lo = (min(xs) - 1, min(ys) - 1, min(zs) - 1)
+    hi = (max(xs) + 1, max(ys) + 1, max(zs) + 1)
+    opaque = set(extra_opaque)
+
+    def blocked(p):
+        n = cells.get(p)
+        if n is None:
+            return False
+        return n in opaque or not see_past(n)
+
+    seen = {lo}
+    stack = [lo]
+    while stack:
+        x, y, z = stack.pop()
+        for dx, dy, dz in DIRS.values():
+            q = (x + dx, y + dy, z + dz)
+            if not (lo[0] <= q[0] <= hi[0] and lo[1] <= q[1] <= hi[1] and lo[2] <= q[2] <= hi[2]):
+                continue
+            if q in seen or blocked(q):
+                continue
+            seen.add(q)
+            stack.append(q)
+    return seen
+
+
+def visible_redstone(model, origin=(0, 0, 0), extra_opaque=()) -> list:
+    """Every wiring cell a player could look at. THE CONTRACT, not a heuristic.
+
+    **THE RULE: dust, repeaters, comparators and torches all live under a floor, behind a panel or
+    inside a casing.** What a player is allowed to see is the INPUT (a button, a lever, a plate, a
+    target, a lectern), the READOUT (a lamp, a bell, a door, a piston face, a dropper's mouth) and
+    the STRUCTURE. A machine whose guts lie on the grass reads as a construction site, however
+    well it works.
+
+    A component is visible when one of its six FACES is on the outside surface - that is, when a
+    neighbouring cell is one you can see into from beyond the build. Its own cell is not the test,
+    because a wiring cell is itself something you cannot see past: a covered run is not exposed by
+    the button that starts it, and a hopper is not a window onto the comparator that reads it.
+
+    Returns [(pos, name)], sorted. Empty is the only passing answer.
+    """
+    return visible_in(_cells_of(model, origin), extra_opaque)
+
+
+def visible_in(cells: dict, extra_opaque=()) -> list:
+    """`visible_redstone` over a plain {pos: name} map - what a generator has mid-build.
+
+    ONE SOURCE, so the pass that hides the wiring and the test that grades it cannot drift. That
+    is the same rule `proportions.measure` and `rubric.score` share, and it is the reason the
+    window bug survived: the simulator and the build agreed with each other.
+    """
+    air = outside(cells, extra_opaque)
+    out = []
+    for p, n in cells.items():
+        if n not in HIDDEN:
+            continue
+        for dx, dy, dz in DIRS.values():
+            if (p[0] + dx, p[1] + dy, p[2] + dz) in air:
+                out.append((p, n))
+                break
+    return sorted(out)

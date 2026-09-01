@@ -2,11 +2,11 @@ name: Food Court
 gen: spectacle
 params:
   land: midway
-  facing: west
+  facing: east
   at:
-  - 97601
+  - 97576
   - 203
-  - 80553
+  - 80623
   kind: foodcourt
   title: Food Court
   under: out/newisle.litematic

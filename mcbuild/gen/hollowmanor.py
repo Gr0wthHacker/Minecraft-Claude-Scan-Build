@@ -96,6 +96,7 @@ RESET, which is the half of a set piece a render cannot show and a block count c
 from __future__ import annotations
 
 from .. import blocks
+from . import conceal
 from .canvas import Canvas, hash01
 from .vertical import Ctx, World
 from .park import LANDS, SIGN_WIDTH, _STEP, _Frame, _sign
@@ -1344,8 +1345,26 @@ def _ossuary(w: World, p: dict, ctx) -> dict:
     # repeater ONE CELL PAST each corner - never on it, because a repeater standing on a bend
     # reads along its outgoing axis and takes the incoming leg on its SIDE, which LOCKS it rather
     # than feeding it. Two of the reaction game's routes died at their first corner that way.
-    _wire_run(w, pal, f, [(pulls[0], CD + 8), (lane, CD + 8), (lane, CD + 1), (vi[1], CD + 1)],
+    #
+    # **AND IT STOPS TWO CELLS SHORT OF THE DOORS.** Run all the way to `CD + 1` it ends as bare
+    # dust on the alcove floor, in the cell directly behind each iron door - which is exactly the
+    # cell a visitor is looking at the moment the vault opens, and the whole point of this machine
+    # is that it opens. A repeater into a solid block drives a door just as well and is a shelf.
+    _wire_run(w, pal, f, [(pulls[0], CD + 8), (lane, CD + 8), (lane, CD + 3), (vi[1], CD + 3)],
               MACH)
+    for i in vi:
+        rp = f.at(i, CD + 2, MACH)
+        # **DELAY 3, BECAUSE A TORCH GATE IS HIGH FOR TWO TICKS THE MOMENT IT IS BUILT.** Every
+        # torch in an `and_gate` starts lit and the inverters take a tick each to settle, so the
+        # vault flicked open on every chunk load - measured, two ticks of both doors and the vault
+        # lamp with all three levers down. A delay-3 repeater needs three consecutive ticks and
+        # swallows the glitch whole, while three levers held up hold the gate indefinitely. The
+        # safe carries the same fix for the same reason.
+        w.put(rp[0], rp[1], rp[2], "repeater", facing=f.facing, delay="3",
+              locked="false", powered="false")
+        if not w.has(rp[0], rp[1] - 1, rp[2]):
+            w.put(rp[0], rp[1] - 1, rp[2], kit["stone"])
+        w.put(*f.at(i, CD + 1, MACH), kit["stone"])            # the conductor the doors read
 
     # ---- the floor slab under the service void, laid ROUND the machine and never over it
     for i in range(1, W - 1):
@@ -2480,7 +2499,13 @@ def build(cfg: dict, donors=None) -> Canvas:
     ctx = Ctx(p["under"]) if p.get("under") else None
     meta = BUILDERS[p["kind"]](w, p, ctx)
 
+    # **COVER THE WIRING**, one pass for every kind - see `gen/conceal.py`.
+    hidden = conceal.conceal(w, LANDS[p["land"]]["ground"],
+                             protect=[tuple(c) for c in meta.get("stand", ())])
+
     return w.canvas({
+        "concealed": hidden["placed"],
+        "visible_redstone": len(hidden["left"]),
         "kind": f"hollow/{p['kind']}",
         "land": p["land"],
         "facing": p["facing"],

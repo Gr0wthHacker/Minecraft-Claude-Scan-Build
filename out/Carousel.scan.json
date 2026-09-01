@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97551,
+    "x": 97588,
     "y": 202,
-    "z": 80622
+    "z": 80557
   },
   "size": {
     "x": 32,
@@ -13,7 +13,7 @@
   "kind": "bigwheel/carousel",
   "ride": "minecart circuit",
   "land": "midway",
-  "facing": "east",
+  "facing": "west",
   "contract": "a raised disc ringed by rail with four gated steps, a banded column, a wedge-striped cone whose every ring carries its riser, twenty mounts in two rings - and A RIDE: a closed minecart circuit of 64 cells running between the two rings. Every direction change is a plain rail because a powered rail has no curved state; every straight run between corners carries a redstone_block at both ends, because an unpowered powered rail is a brake. 36 corners, 28 powered rails: about 13.5 iron and 28 gold.",
   "unverified": [
     "nobody has ridden it in game. The circuit's geometry, its power chain and its clearances are asserted here; whether a cart holds speed round a corner every other cell is reasoning until someone rides it."
@@ -24,7 +24,7 @@
   "top": 25,
   "mounts": 20,
   "colours": 10,
-  "shapes": 15,
+  "shapes": 16,
   "mount_arcs": [
     5.76,
     3.93
@@ -42,324 +42,324 @@
   "gold_ingots": 28,
   "rail_path": [
     [
-      97564,
+      97606,
       204,
-      80627
+      80578
     ],
     [
-      97563,
+      97607,
       204,
-      80627
+      80578
     ],
     [
-      97562,
+      97608,
       204,
-      80627
+      80578
     ],
     [
-      97561,
+      97609,
       204,
-      80627
+      80578
     ],
     [
-      97561,
+      97609,
       204,
-      80628
+      80577
     ],
     [
-      97560,
+      97610,
       204,
-      80628
+      80577
     ],
     [
-      97560,
+      97610,
       204,
-      80629
+      80576
     ],
     [
-      97559,
+      97611,
       204,
-      80629
+      80576
     ],
     [
-      97558,
+      97612,
       204,
-      80629
+      80576
     ],
     [
-      97558,
+      97612,
       204,
-      80630
+      80575
     ],
     [
-      97557,
+      97613,
       204,
-      80630
+      80575
     ],
     [
-      97557,
+      97613,
       204,
-      80631
+      80574
     ],
     [
-      97557,
+      97613,
       204,
-      80632
+      80573
     ],
     [
-      97556,
+      97614,
       204,
-      80632
+      80573
     ],
     [
-      97556,
+      97614,
       204,
-      80633
+      80572
     ],
     [
-      97556,
+      97614,
       204,
-      80634
+      80571
     ],
     [
-      97556,
+      97614,
       204,
-      80635
+      80570
     ],
     [
-      97556,
+      97614,
       204,
-      80636
+      80569
     ],
     [
-      97556,
+      97614,
       204,
-      80637
+      80568
     ],
     [
-      97556,
+      97614,
       204,
-      80638
+      80567
     ],
     [
-      97557,
+      97613,
       204,
-      80638
+      80567
     ],
     [
-      97557,
+      97613,
       204,
-      80639
+      80566
     ],
     [
-      97557,
+      97613,
       204,
-      80640
+      80565
     ],
     [
-      97558,
+      97612,
       204,
-      80640
+      80565
     ],
     [
-      97558,
+      97612,
       204,
-      80641
+      80564
     ],
     [
-      97559,
+      97611,
       204,
-      80641
+      80564
     ],
     [
-      97559,
+      97611,
       204,
-      80642
+      80563
     ],
     [
-      97560,
+      97610,
       204,
-      80642
+      80563
     ],
     [
-      97561,
+      97609,
       204,
-      80642
+      80563
     ],
     [
-      97561,
+      97609,
       204,
-      80643
+      80562
     ],
     [
-      97562,
+      97608,
       204,
-      80643
+      80562
     ],
     [
-      97563,
+      97607,
       204,
-      80643
+      80562
     ],
     [
-      97564,
+      97606,
       204,
-      80643
+      80562
     ],
     [
-      97565,
+      97605,
       204,
-      80643
+      80562
     ],
     [
-      97566,
+      97604,
       204,
-      80643
+      80562
     ],
     [
-      97567,
+      97603,
       204,
-      80643
+      80562
     ],
     [
-      97567,
+      97603,
       204,
-      80642
+      80563
     ],
     [
-      97568,
+      97602,
       204,
-      80642
+      80563
     ],
     [
-      97569,
+      97601,
       204,
-      80642
+      80563
     ],
     [
-      97569,
+      97601,
       204,
-      80641
+      80564
     ],
     [
-      97570,
+      97600,
       204,
-      80641
+      80564
     ],
     [
-      97570,
+      97600,
       204,
-      80640
+      80565
     ],
     [
-      97571,
+      97599,
       204,
-      80640
+      80565
     ],
     [
-      97571,
+      97599,
       204,
-      80639
+      80566
     ],
     [
-      97571,
+      97599,
       204,
-      80638
+      80567
     ],
     [
-      97572,
+      97598,
       204,
-      80638
+      80567
     ],
     [
-      97572,
+      97598,
       204,
-      80637
+      80568
     ],
     [
-      97572,
+      97598,
       204,
-      80636
+      80569
     ],
     [
-      97572,
+      97598,
       204,
-      80635
+      80570
     ],
     [
-      97572,
+      97598,
       204,
-      80634
+      80571
     ],
     [
-      97572,
+      97598,
       204,
-      80633
+      80572
     ],
     [
-      97572,
+      97598,
       204,
-      80632
+      80573
     ],
     [
-      97571,
+      97599,
       204,
-      80632
+      80573
     ],
     [
-      97571,
+      97599,
       204,
-      80631
+      80574
     ],
     [
-      97571,
+      97599,
       204,
-      80630
+      80575
     ],
     [
-      97570,
+      97600,
       204,
-      80630
+      80575
     ],
     [
-      97570,
+      97600,
       204,
-      80629
+      80576
     ],
     [
-      97569,
+      97601,
       204,
-      80629
+      80576
     ],
     [
-      97569,
+      97601,
       204,
-      80628
+      80577
     ],
     [
-      97568,
+      97602,
       204,
-      80628
+      80577
     ],
     [
-      97567,
+      97603,
       204,
-      80628
+      80577
     ],
     [
-      97567,
+      97603,
       204,
-      80627
+      80578
     ],
     [
-      97566,
+      97604,
       204,
-      80627
+      80578
     ],
     [
-      97565,
+      97605,
       204,
-      80627
+      80578
     ]
   ],
   "rail_corners": [
@@ -402,101 +402,203 @@
   ],
   "rail_power": [
     [
-      97564,
+      97606,
       203,
-      80627
+      80578
     ],
     [
-      97562,
+      97608,
       203,
-      80627
+      80578
     ],
     [
-      97559,
+      97611,
       203,
-      80629
+      80576
     ],
     [
-      97557,
+      97613,
       203,
-      80631
+      80574
     ],
     [
-      97556,
+      97614,
       203,
-      80633
+      80572
     ],
     [
-      97556,
+      97614,
       203,
-      80637
+      80568
     ],
     [
-      97557,
+      97613,
       203,
-      80639
+      80566
     ],
     [
-      97560,
+      97610,
       203,
-      80642
+      80563
     ],
     [
-      97562,
+      97608,
       203,
-      80643
+      80562
     ],
     [
-      97566,
+      97604,
       203,
-      80643
+      80562
     ],
     [
-      97568,
+      97602,
       203,
-      80642
+      80563
     ],
     [
-      97571,
+      97599,
       203,
-      80639
+      80566
     ],
     [
-      97572,
+      97598,
       203,
-      80637
+      80568
     ],
     [
-      97572,
+      97598,
       203,
-      80633
+      80572
     ],
     [
-      97571,
+      97599,
       203,
-      80631
+      80574
     ],
     [
-      97568,
+      97602,
       203,
-      80628
+      80577
     ],
     [
-      97566,
+      97604,
       203,
-      80627
+      80578
     ],
     [
-      97565,
+      97605,
       203,
-      80627
+      80578
     ]
   ],
   "board": [
-    97572,
+    97598,
     204,
-    80635
+    80570
   ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_fence_gate"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "rail": [
+        "powered_rail",
+        "rail"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 2912,
+      "materials": 23,
+      "dominant_material_share": 0.2109,
+      "light_blocks": 10,
+      "massing": {
+        "width": 32,
+        "height": 27,
+        "depth": 27,
+        "fill_ratio": 0.1248
+      },
+      "silhouette": {
+        "top": {
+          "area": 582,
+          "fill_ratio": 0.6736
+        },
+        "front": {
+          "area": 454,
+          "fill_ratio": 0.5255
+        },
+        "side": {
+          "area": 449,
+          "fill_ratio": 0.6159
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 614,
+        "red_wool": 542,
+        "white_wool": 536,
+        "blackstone": 257,
+        "oak_log": 254,
+        "yellow_wool": 176,
+        "stone": 172,
+        "stone_brick_stairs": 76,
+        "oak_fence": 55,
+        "rail": 36,
+        "powered_rail": 28,
+        "cyan_wool": 25
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "5985e110906c6a4c6928d8f4ae4053be67ca315fc6a20674e13cef9d9f5750f3",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Carousel.litematic",
   "name": "Carousel"
 }

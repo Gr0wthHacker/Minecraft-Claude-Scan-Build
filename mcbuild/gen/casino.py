@@ -40,17 +40,25 @@ from __future__ import annotations
 
 import math
 
-from . import circuits
+from . import circuits, conceal
 from .canvas import Canvas
 from .vertical import Ctx, World
 
 # DERIVED, NOT CHOSEN: `palette.affordable_like` run on the reference's own palette, gated on
 # cheap + witnessed on this server + not functional. Distance from the reference colour in
 # brackets. The board colours needed no substitution at all - they were already cheap.
+#
+# **`floor` AND `trim` ARE THE ROOM'S FLOOR, NOT A TRIM COURSE - WOOL DOES NOT BELONG THERE.**
+# `_room` puts `floor` at the border and `trim` in the field (`_hall` reuses `trim` as its own
+# grid line, also in the floor course), so both of these were wool a player stands on rather than
+# wool on a wall or a rug. `stone` and `polished_blackstone_bricks` keep the same DEFAULT ladder
+# `quartz_block -> white_wool` and `black_stained_glass -> black_wool` were standing in for,
+# just off the ground: 126 and 45, both cheap-or-ok, both nowhere near this server's currency.
 PALETTE = {
-    "floor": "white_wool",          # quartz_block         (24)
-    "trim": "black_wool",           # black_stained_glass  (10)
-    "accent": "yellow_wool",        # yellow_stained_glass (73 - hue, not distance)
+    "floor": "stone",               # was white_wool (quartz_block stand-in) - now the ground
+    "trim": "polished_blackstone_bricks",   # was black_wool (black_stained_glass stand-in)
+    "accent": "yellow_wool",        # yellow_stained_glass (73 - hue, not distance) - NOT ground;
+                                     # see `_button`/`_game_common`/`_wheel` for where it moved off
     "shell": "smooth_stone",
     "board": ["red_wool", "blue_wool", "green_wool", "pink_wool", "cyan_wool",
               "light_blue_wool", "orange_wool", "lime_wool"],
@@ -60,7 +68,10 @@ PALETTE = {
     "stair": "stone_brick_stairs",
     "pillar": "deepslate_bricks",   # 71 luminance against smooth stone's 159: the one real line
     "tile": "stone",                # 126 against smooth stone's 159: a quiet checker, not a stripe
-    "aisle": "red_wool",            # the way in, in the floor course so it cannot be orphaned
+    # THE AISLE IS A FLOOR MATERIAL, NOT A CARPET LAID ON ONE (`_hall`'s own docstring) - so it
+    # was never a place for wool either. red_nether_bricks reads warm-dark the way red_wool did,
+    # in the floor course, cheap tier, no colour left standing on the ground.
+    "aisle": "red_nether_bricks",   # was red_wool
     "canopy": ["yellow_wool", "white_wool"],   # the booth awning; a land's skin overrides this
 }
 
@@ -126,11 +137,21 @@ CASINO.update({f"pal_{k}": v for k, v in PALETTE.items()})
 # returns. Each skin below is field / shell / pillar with every adjacent pair at least 15 apart in
 # luminance, which is about where a trim course stops being a line:
 #
-#   midway     white_wool 236 · stone_bricks 122 · black_wool 21            steps 114, 101
+#   midway     diorite 188 · stone_bricks 122 · blackstone 38               steps  66,  84
 #   frontier   spruce_planks 89 · cobblestone 127 · spruce_log 41           steps  38,  86
-#   hollow     black_wool 21 · deepslate_bricks 71 · polished_blackstone 45 steps  50,  26
+#   hollow     tuff 108 · deepslate_bricks 71 · polished_blackstone 45      steps  37,  26
 #
 # `tests/test_casino.py` measures it rather than trusting this comment.
+#
+# **`floor` USED TO BE THE ONLY WOOL A PLAYER STOOD ON, AND IT WAS TWICE OVER.** It is the ROOM'S
+# OWN FLOOR (`_room`'s border ring, `_wheel`'s felt) - not a wall, not a rug - so `white_wool` and
+# `black_wool` here were ground. `diorite` and `tuff` keep the ladder above; the field (`trim`)
+# and the corner posts (`pillar`) move with it for midway, where both were ALSO wool doing the
+# same job - `_hall` reuses `pillar` as its own floor grid line. `aisle` is the same fix again:
+# `_hall`'s own docstring is explicit that it is "a floor material, not a carpet laid on one".
+# `carpet` and `accent` are NOT touched here - a rug on top of the floor and a game's own colour
+# identity are exactly the "wool for other things" this economy is fine with; see `_game_common`,
+# `_button` and `_wheel` for where the accent colour moved OFF the floor and onto the rug alone.
 #
 # `canopy` is the booth awning's two stripe tones - reused from `gen/park.py::LANDS` for midway
 # and frontier so a sideshow's tent matches every other striped canopy in its zone, EXCEPT on
@@ -143,9 +164,9 @@ CASINO.update({f"pal_{k}": v for k, v in PALETTE.items()})
 # quartz substitute.
 LAND_SKIN = {
     "midway": {
-        "floor": "white_wool", "shell": "stone_bricks", "pillar": "black_wool",
-        "trim": "black_wool", "accent": "yellow_wool", "stair": "stone_brick_stairs",
-        "tile": "stone", "carpet": "red_carpet", "aisle": "red_wool",
+        "floor": "diorite", "shell": "stone_bricks", "pillar": "blackstone",
+        "trim": "blackstone", "accent": "yellow_wool", "stair": "stone_brick_stairs",
+        "tile": "stone", "carpet": "red_carpet", "aisle": "red_nether_bricks",
         "canopy": ["red_wool", "white_wool"],
     },
     "frontier": {
@@ -155,10 +176,11 @@ LAND_SKIN = {
         "canopy": ["spruce_planks", "stripped_oak_log"],
     },
     "hollow": {
-        "floor": "black_wool", "shell": "deepslate_bricks",
+        "floor": "tuff", "shell": "deepslate_bricks",
         "pillar": "polished_blackstone_bricks", "trim": "polished_blackstone_bricks",
         "accent": "purple_wool", "stair": "polished_blackstone_brick_stairs",
-        "tile": "cobbled_deepslate", "carpet": "purple_carpet", "aisle": "purple_wool",
+        "tile": "cobbled_deepslate", "carpet": "purple_carpet",
+        "aisle": "cracked_polished_blackstone_bricks",
         "canopy": ["light_gray_wool", "white_wool"],
     },
 }
@@ -207,10 +229,12 @@ SIGN_COPY = {
 }
 
 
-# **EACH MECHANIC GETS ITS OWN COLOUR.** The circuits differ and a player cannot see a circuit;
-# what they see from the aisle is a row of doorways. One accent per game - the border course, the
-# aisle carpet and the pilasters - is what turns four verified mechanics into four rooms you can
-# tell apart at twenty blocks, which is the distance most of them are read from.
+# **EACH MECHANIC GETS ITS OWN COLOUR - CARRIED BY THE CARPET, NOT BY THE FLOOR IT SITS ON.** The
+# circuits differ and a player cannot see a circuit; what they see from the aisle is a row of
+# doorways, and the rug in each one is what says which room this is. `accent` used to ALSO become
+# the room's own border course (`_game_common`) and the button's floor pad (`_button`, `_wheel`) -
+# wool standing in as ground, twice over. Both now stay the land's own stone; only the carpet, a
+# genuine floor COVERING rather than the floor itself, still carries the colour.
 KIND_ACCENT = {
     "high_roller":    {"accent": "yellow_wool", "carpet": "yellow_carpet"},
     "double_or_none": {"accent": "red_wool", "carpet": "red_carpet"},
@@ -247,6 +271,10 @@ def build(cfg: dict, donors=None) -> Canvas:
     ctx = Ctx(p["under"]) if p.get("under") else None
     meta = BUILDERS[p["kind"]](w, p, ctx)
 
+    # **COVER THE WIRING.** One pass for every kind rather than a lid each: the rule is the same
+    # for all of them, and a per-kind lid is a per-kind way to forget one. See `gen/conceal.py`.
+    hidden = conceal.conceal(w, p["pal_shell"], protect=[tuple(c) for c in meta.get("stand", ())])
+
     # THE EXPENSIVE PARTS ARE COUNTED, because they decide whether this can be built at all. A
     # plan that says "a casino" rather than "120 lamps you do not own" is not a plan.
     budget = {}
@@ -263,6 +291,8 @@ def build(cfg: dict, donors=None) -> Canvas:
         "unverified": meta.get("unverified", []),
         "budget": budget,
         "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+        "concealed": hidden["placed"],
+        "visible_redstone": len(hidden["left"]),
         **{k: v for k, v in meta.items()
            if k not in ("contract", "inputs", "outputs", "unverified")},
     })
@@ -678,7 +708,10 @@ def _shell(w, p, x, y, z, dx, dz, sx, sz, width, depth):
 def _button(w, p, x, y, z, dx, dz, sx, sz, i):
     b = (x + sx * i - dx * 2, y + 1, z + sz * i - dz * 2)
     w.put(b[0], b[1], b[2], "stone_button", face="floor", facing=p["facing"], powered="false")
-    w.put(b[0], b[1] - 1, b[2], p["pal_accent"])
+    # THE PAD IS FLOOR, NOT AN ACCENT - it is the same course a player stands on, so it takes the
+    # land's own field material rather than the KIND's wool. The button itself is already visibly
+    # distinct; the pad does not need to be a coloured tile as well.
+    w.put(b[0], b[1] - 1, b[2], p["pal_trim"])
     return b
 
 
@@ -691,7 +724,10 @@ def _game_common(w, p, ctx, width):
     if p.get("room", True):
         skin = KIND_ACCENT.get(p["kind"])
         if skin:
-            p = {**p, "pal_floor": skin["accent"], "pal_carpet": skin["carpet"]}
+            # WOOL OFF THE GROUND: `pal_floor` used to become the KIND's own accent wool here,
+            # which is what made every game's border course a coloured wool tile. The carpet
+            # alone carries the game's identity now - the floor stays the land's own material.
+            p = {**p, "pal_carpet": skin["carpet"]}
         title = p.get("title") or p["kind"].replace("_", " ").upper()
         # BOOTH SWAPS THE SHELL, NOTHING ELSE. `_booth` and `_room` share `at(i, d, h)`, `width`,
         # `depth`, `title` and `lines`, so the button and the machine placed below need not know
@@ -742,7 +778,12 @@ def _high_roller(w: World, p: dict, ctx) -> dict:
     # eight-colour board list, which on a four-lamp bar means four arbitrary colours - and it is
     # where the stray three pink and three blue wool in the whole casino came from. A reading
     # instrument in four unrelated colours reads as confetti, not as a scale.
-    cap = KIND_ACCENT.get(p["kind"], {}).get("accent", p["pal_accent"])
+    #
+    # AND THE CAP IS FLOOR, NOT A DISPLAY COLOUR - it sits directly over the lamp, in the SAME
+    # course as the rest of the play floor, so it was wool standing in as ground exactly like the
+    # room's own border once did. It takes the land's field material now; the bar still reads by
+    # which lamps are LIT, not by what colour is painted over them.
+    cap = p["pal_trim"]
     for lamp in display["lamps"]:
         w.put(lamp[0], lamp[1] + 1, lamp[2], cap)
     return {"contract": f"press once; the bar shows the roll, {g['outcomes']} outcomes {levels}",
@@ -1013,9 +1054,10 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     x, y, z = (int(v) for v in p["at"])
     dx, dz = _STEP[p["facing"]]
     sx, sz = -dz, -dx
-    # THE WHEEL NEVER WENT THROUGH `_room`, so it never picked up its own accent and its button pad
-    # came out High Roller yellow - a colour that means "this is a bar game" on the one machine
-    # that is not one.
+    # THE WHEEL NEVER WENT THROUGH `_room`, so it never picked up its own accent - its canopy
+    # fallback used to come out High Roller yellow, a colour that means "this is a bar game" on
+    # the one machine that is not one. (The button pad no longer takes this colour at all; see
+    # the fix a few lines down - the ground stays stone whichever kind is asking.)
     skin = KIND_ACCENT.get("wheel")
     if skin:
         p = {**p, "pal_accent": skin["accent"]}
@@ -1151,7 +1193,11 @@ def _wheel(w: World, p: dict, ctx) -> dict:
     btn_k = r + 3                              # outside the rim, where a player stands
     btn = out_at(btn_k)
     pad = (btn[0], btn[1] - 1, btn[2])
-    w.put(pad[0], pad[1], pad[2], p["pal_accent"])
+    # THE PAD IS FLOOR, NOT THE WHEEL'S ACCENT - `_button`'s own fix, restated here because the
+    # wheel never goes through `_button` itself (its approach is radial, not the straight column
+    # `_button` assumes). `pal_accent` stays wool for the canopy fallback below; the ground does
+    # not.
+    w.put(pad[0], pad[1], pad[2], p["pal_trim"])
     w.put(btn[0], btn[1], btn[2], "stone_button", face="floor",
           facing=rot["south"], powered="false")
     # A BUTTON EMITS TO ALL SIX NEIGHBOURS, so the cell beside it needs no connector at all.
@@ -1395,7 +1441,7 @@ def _counter(w: World, p: dict, ctx) -> dict:
     x, y, z = (int(v) for v in p["at"])
     dx, dz = _STEP[p["facing"]]
     n = max(1, min(8, int(p["lanes"])))
-    outs = []
+    outs, bars = [], []
     for i in range(n):
         px, pz = x - dz * i, z - dx * i
         w.put(px, y, pz, p["pal_shell"])
@@ -1404,7 +1450,13 @@ def _counter(w: World, p: dict, ctx) -> dict:
               mode="compare", powered="false")
         w.put(px + dx * 2, y + 1, pz + dz * 2, "redstone_lamp", lit="false")
         outs.append([px + dx * 2, y + 1, pz + dz * 2])
-    return {"contract": f"{n} barrels, each with a fullness lamp", "inputs": [], "outputs": outs}
+        bars.append([px, y + 1, pz])
+    # **A BARREL YOU OPEN IS AN INPUT.** Recorded as one - `redstone_audit`'s own census already
+    # says so ("a prize counter is a barrel you open") - because a machine that declares no input
+    # is a machine nothing can drive, and this one was the only kind in the park that could not be
+    # played end to end for want of knowing where to put the prizes.
+    return {"contract": f"{n} barrels, each with a fullness lamp",
+            "barrels": bars, "inputs": bars, "outputs": outs}
 
 
 BUILDERS = {"high_roller": _high_roller, "double_or_none": _double_or_none,

@@ -1428,6 +1428,112 @@
     ]
   ],
   "pool_top": 202,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_fence_gate"
+      ],
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 5984,
+      "materials": 22,
+      "dominant_material_share": 0.2223,
+      "light_blocks": 56,
+      "massing": {
+        "width": 19,
+        "height": 85,
+        "depth": 77,
+        "fill_ratio": 0.0481
+      },
+      "silhouette": {
+        "top": {
+          "area": 1463,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 639,
+          "fill_ratio": 0.3957
+        },
+        "side": {
+          "area": 1654,
+          "fill_ratio": 0.2527
+        }
+      },
+      "material_counts": {
+        "oak_planks": 1330,
+        "blackstone": 1006,
+        "stone_bricks": 754,
+        "stone": 711,
+        "white_wool": 617,
+        "oak_log": 588,
+        "red_wool": 354,
+        "water": 175,
+        "oak_fence": 165,
+        "lantern": 56,
+        "lime_wool": 36,
+        "yellow_wool": 30
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "d38f822bbd49296fc7c900fec70bb8e5d1451bf6c0f115650919040ba583c447",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "fluid",
+        "hazard",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "The Big Wheel.litematic",
   "name": "The Big Wheel"
 }

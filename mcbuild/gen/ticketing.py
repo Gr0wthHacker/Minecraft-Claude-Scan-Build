@@ -113,7 +113,7 @@ powered by any of them, feed the hold, and latch the lane open.
 """
 from __future__ import annotations
 
-from . import park
+from . import conceal, park
 from .canvas import Canvas
 from .vertical import Ctx, World
 
@@ -227,7 +227,12 @@ def _torch_pair(w, f, pal, L):
     w.put(*f.at(L, -1, MACH_H), pal["trim"])                     # B: T1's support
     w.put(*f.at(L, -3, MACH_H), pal["trim"])                     # A: T0's support
     w.put(*f.at(L, -2, MACH_H), "redstone_wall_torch", facing=back, lit="true")   # T0, on A
-    w.put(*f.at(L, 0, MACH_H), "redstone_wall_torch", facing=back, lit="true")    # T1, on B
+    # **T1 SHIPS UNLIT, BECAUSE UNLIT IS WHAT IT IS AT REST.** B is powered by T0, so a torch on
+    # it is off - and shipped `lit=true` the game (and the simulator) start it high for the tick or
+    # two the stack takes to settle, which strongly powers the paving under the door and OPENS THE
+    # BARRIER ON EVERY CHUNK LOAD. Measured: two ticks of both doors, on a gate whose every block
+    # is legal, supported and affordable, and which every existing test passed.
+    w.put(*f.at(L, 0, MACH_H), "redstone_wall_torch", facing=back, lit="false")   # T1, on B
 
 
 def _hopper_slot(w, f, pal, Q, R):
@@ -677,6 +682,10 @@ def build(cfg: dict, donors=None) -> Canvas:
         if name == "air":
             del w.cells[pos]
 
+    # **COVER THE WIRING**, one pass for every kind - see `gen/conceal.py`.
+    hidden = conceal.conceal(w, park.LANDS[p["land"]]["ground"],
+                             protect=[tuple(c) for c in meta.get("stand", ())])
+
     budget = {}
     for pos, (name, _pr) in w.cells.items():
         if name in BUDGETED:
@@ -688,6 +697,8 @@ def build(cfg: dict, donors=None) -> Canvas:
         "contract": meta.get("contract", ""),
         "unverified": meta.get("unverified", []),
         "budget": budget,
+        "concealed": hidden["placed"],
+        "visible_redstone": len(hidden["left"]),
         **{k: v for k, v in meta.items()
            if k not in ("contract", "unverified", "kind", "budget")},
     })

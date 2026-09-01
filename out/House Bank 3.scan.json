@@ -2,12 +2,12 @@
   "origin": {
     "x": 97604,
     "y": 203,
-    "z": 80583
+    "z": 80582
   },
   "size": {
     "x": 3,
-    "y": 2,
-    "z": 6
+    "y": 3,
+    "z": 8
   },
   "generated_by": "casino",
   "kind": "casino/counter",
@@ -51,6 +51,36 @@
     "redstone_lamp": 6
   },
   "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "concealed": 14,
+  "visible_redstone": 0,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_lamp"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
   "file": "House Bank 3.litematic",
   "name": "House Bank 3"
 }

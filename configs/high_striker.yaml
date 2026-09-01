@@ -2,11 +2,11 @@ name: High Striker
 gen: arcade
 params:
   land: midway
-  facing: west
+  facing: south
   at:
-  - 97610
+  - 97576
   - 203
-  - 80636
+  - 80604
   kind: strength
   title: High Striker
   under: out/newisle.litematic

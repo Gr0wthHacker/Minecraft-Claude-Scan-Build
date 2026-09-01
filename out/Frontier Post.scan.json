@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97632,
+    "x": 97604,
     "y": 202,
-    "z": 80404
+    "z": 80418
   },
   "size": {
     "x": 6,
@@ -12,7 +12,7 @@
   "generated_by": "wayfinding",
   "kind": "fingerpost",
   "land": "frontier",
-  "facing": "east",
+  "facing": "west",
   "contract": "2-4 arms, each pointing the direction its own sign faces, each naming a real module, zone or transit station",
   "arms": [
     {
@@ -21,9 +21,9 @@
       "sign_facing": "south",
       "placed": true,
       "sign_at": [
-        97636,
+        97608,
         206,
-        80409
+        80423
       ]
     },
     {
@@ -32,13 +32,98 @@
       "sign_facing": "west",
       "placed": true,
       "sign_at": [
-        97632,
+        97604,
         207,
-        80405
+        80419
       ]
     }
   ],
   "post_h": 6,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 24,
+      "materials": 6,
+      "dominant_material_share": 0.375,
+      "light_blocks": 1,
+      "massing": {
+        "width": 6,
+        "height": 8,
+        "depth": 6,
+        "fill_ratio": 0.0833
+      },
+      "silhouette": {
+        "top": {
+          "area": 15,
+          "fill_ratio": 0.4167
+        },
+        "front": {
+          "area": 14,
+          "fill_ratio": 0.2917
+        },
+        "side": {
+          "area": 14,
+          "fill_ratio": 0.2917
+        }
+      },
+      "material_counts": {
+        "stone": 9,
+        "spruce_log": 6,
+        "spruce_fence": 4,
+        "spruce_wall_sign": 2,
+        "stone_bricks": 2,
+        "lantern": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "7c00e1ec54226e33b1fefa30e2ed6c8838e2b8a03df28a8abb909836cce72961",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Frontier Post.litematic",
   "name": "Frontier Post"
 }

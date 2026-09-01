@@ -1,12 +1,12 @@
 {
   "origin": {
     "x": 97561,
-    "y": 202,
+    "y": 200,
     "z": 80801
   },
   "size": {
     "x": 19,
-    "y": 7,
+    "y": 9,
     "z": 13
   },
   "generated_by": "arcade",
@@ -16,7 +16,7 @@
     19
   ],
   "courses": [
-    -1,
+    -3,
     5
   ],
   "land": "hollow",
@@ -28,51 +28,53 @@
   "budget": {
     "redstone_lamp": 3
   },
+  "concealed": 60,
+  "visible_redstone": 0,
   "width": 11,
   "depth": 17,
   "height": 6,
   "sensors": [
     [
       97575,
-      203,
+      201,
       80811
     ],
     [
       97572,
-      203,
+      201,
       80811
     ],
     [
       97569,
-      203,
+      201,
       80811
     ]
   ],
   "lamps": [
     [
       97575,
-      204,
+      202,
       80803
     ],
     [
       97572,
-      204,
+      202,
       80803
     ],
     [
       97569,
-      204,
+      202,
       80803
     ]
   ],
   "door": [
-    97564,
-    205,
-    80804
+    97563,
+    203,
+    80803
   ],
   "torch": [
-    97564,
-    205,
+    97563,
+    201,
     80803
   ],
   "trip": 4,
@@ -80,43 +82,149 @@
   "inputs": [
     [
       97575,
-      203,
+      201,
       80811
     ],
     [
       97572,
-      203,
+      201,
       80811
     ],
     [
       97569,
-      203,
+      201,
       80811
     ]
   ],
   "outputs": [
     [
-      97564,
-      205,
-      80804
+      97563,
+      203,
+      80803
     ],
     [
       97575,
-      204,
+      202,
       80803
     ],
     [
       97572,
-      204,
+      202,
       80803
     ],
     [
       97569,
-      204,
+      202,
       80803
     ]
   ],
   "stock": {},
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "iron_door"
+      ],
+      "light": [
+        "redstone_lamp",
+        "soul_lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater",
+        "sculk_sensor"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1142,
+      "materials": 14,
+      "dominant_material_share": 0.3669,
+      "light_blocks": 4,
+      "massing": {
+        "width": 19,
+        "height": 9,
+        "depth": 13,
+        "fill_ratio": 0.5137
+      },
+      "silhouette": {
+        "top": {
+          "area": 247,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 159,
+          "fill_ratio": 0.9298
+        },
+        "side": {
+          "area": 104,
+          "fill_ratio": 0.8889
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 419,
+        "black_wool": 299,
+        "deepslate_bricks": 249,
+        "cobbled_deepslate": 66,
+        "white_wool": 65,
+        "redstone_wire": 26,
+        "comparator": 3,
+        "redstone_lamp": 3,
+        "repeater": 3,
+        "sculk_sensor": 3,
+        "dark_oak_wall_sign": 2,
+        "iron_door": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "e2ddb6e0797879f70cc3c661dc1f380f51d3d16262709b7c465e862e1b31a3ba",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
   "file": "The Quiet Room.litematic",
   "name": "The Quiet Room"
 }

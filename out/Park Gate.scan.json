@@ -24,6 +24,99 @@
     7,
     9
   ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_fence_gate"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 558,
+      "materials": 9,
+      "dominant_material_share": 0.3405,
+      "light_blocks": 2,
+      "massing": {
+        "width": 10,
+        "height": 10,
+        "depth": 19,
+        "fill_ratio": 0.2937
+      },
+      "silhouette": {
+        "top": {
+          "area": 190,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 66,
+          "fill_ratio": 0.66
+        },
+        "side": {
+          "area": 148,
+          "fill_ratio": 0.7789
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 190,
+        "white_wool": 174,
+        "blackstone": 125,
+        "stone_brick_stairs": 30,
+        "oak_log": 24,
+        "stone_brick_slab": 6,
+        "oak_wall_sign": 4,
+        "oak_fence_gate": 3,
+        "lantern": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "009fcdb5079ea4612de8568cbe704beb738890a172a77c6a35753c8df602ec97",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Park Gate.litematic",
   "name": "Park Gate"
 }

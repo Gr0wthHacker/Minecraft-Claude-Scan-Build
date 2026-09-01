@@ -26,6 +26,8 @@
   "budget": {
     "redstone_lamp": 5
   },
+  "concealed": 9,
+  "visible_redstone": 0,
   "width": 11,
   "depth": 5,
   "height": 6,
@@ -141,6 +143,109 @@
   ],
   "stock": {
     "each barrel": "the prizes it hands out"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "redstone_lamp",
+        "soul_lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_lamp"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 458,
+      "materials": 12,
+      "dominant_material_share": 0.4389,
+      "light_blocks": 8,
+      "massing": {
+        "width": 11,
+        "height": 7,
+        "depth": 17,
+        "fill_ratio": 0.3499
+      },
+      "silhouette": {
+        "top": {
+          "area": 187,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 48,
+          "fill_ratio": 0.6234
+        },
+        "side": {
+          "area": 85,
+          "fill_ratio": 0.7143
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 201,
+        "dark_oak_planks": 90,
+        "blackstone": 52,
+        "black_wool": 45,
+        "deepslate_bricks": 37,
+        "polished_blackstone_brick_stairs": 9,
+        "barrel": 5,
+        "comparator": 5,
+        "redstone_lamp": 5,
+        "polished_blackstone_brick_slab": 4,
+        "soul_lantern": 3,
+        "dark_oak_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "4f67fb8312defd07945c7c65341a4c9937621a8cb038fbd9b38c8c36ee5b565c",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
   },
   "file": "The Reliquary.litematic",
   "name": "The Reliquary"

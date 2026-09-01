@@ -1,6 +1,6 @@
 {
   "origin": {
-    "x": 97637,
+    "x": 97601,
     "y": 202,
     "z": 80419
   },
@@ -18,6 +18,88 @@
   "height": 8,
   "zone": "frontier",
   "signed": true,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 92,
+      "materials": 8,
+      "dominant_material_share": 0.3587,
+      "light_blocks": 0,
+      "massing": {
+        "width": 3,
+        "height": 9,
+        "depth": 11,
+        "fill_ratio": 0.3098
+      },
+      "silhouette": {
+        "top": {
+          "area": 33,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 12,
+          "fill_ratio": 0.4444
+        },
+        "side": {
+          "area": 69,
+          "fill_ratio": 0.697
+        }
+      },
+      "material_counts": {
+        "cobblestone": 33,
+        "stone_bricks": 26,
+        "black_wool": 12,
+        "white_wool": 8,
+        "spruce_planks": 7,
+        "spruce_log": 4,
+        "orange_wool": 1,
+        "spruce_wall_sign": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "30d0cb5bd2cd853b66719053869ef35e1bb525ed7023122194c80f577d2ab9d6",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Frontier Map.litematic",
   "name": "Frontier Map"
 }

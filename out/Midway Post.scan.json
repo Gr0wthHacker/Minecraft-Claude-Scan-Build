@@ -1,6 +1,6 @@
 {
   "origin": {
-    "x": 97583,
+    "x": 97569,
     "y": 202,
     "z": 80626
   },
@@ -21,7 +21,7 @@
       "sign_facing": "north",
       "placed": true,
       "sign_at": [
-        97587,
+        97573,
         206,
         80626
       ]
@@ -32,7 +32,7 @@
       "sign_facing": "south",
       "placed": true,
       "sign_at": [
-        97587,
+        97573,
         207,
         80634
       ]
@@ -43,13 +43,98 @@
       "sign_facing": "west",
       "placed": true,
       "sign_at": [
-        97583,
+        97569,
         208,
         80630
       ]
     }
   ],
   "post_h": 7,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 29,
+      "materials": 6,
+      "dominant_material_share": 0.3103,
+      "light_blocks": 1,
+      "massing": {
+        "width": 6,
+        "height": 9,
+        "depth": 9,
+        "fill_ratio": 0.0597
+      },
+      "silhouette": {
+        "top": {
+          "area": 18,
+          "fill_ratio": 0.3333
+        },
+        "front": {
+          "area": 15,
+          "fill_ratio": 0.2778
+        },
+        "side": {
+          "area": 19,
+          "fill_ratio": 0.2346
+        }
+      },
+      "material_counts": {
+        "stone": 9,
+        "oak_log": 7,
+        "oak_fence": 6,
+        "blackstone": 3,
+        "oak_wall_sign": 3,
+        "lantern": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "4d9c33c0e8fd3a13cae5c05e2dbceacf7a6c16d9bf815b9f51482add0b8698a9",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Midway Post.litematic",
   "name": "Midway Post"
 }

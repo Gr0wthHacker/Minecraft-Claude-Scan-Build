@@ -20,6 +20,11 @@ expected"*, and the "very simple" half is not a circuit fault - it is a machine 
 button and one lamp, which from the player's side is a wall you press while nothing legible
 happens. So every design is also counted:
 
+    EXPOSED      wiring a player can SEE - dust, repeaters, comparators and torches with a face
+                 on the outside surface. Jack: *"we shouldnt have open ended visible redstone to
+                 players it breaks the experience"*. Zero is the only passing answer, and
+                 `gen/conceal.py` is the pass that gets there; this is where you find out which
+                 design did not run it.
     INPUTS       what a player can DO to it - a button, a lever, a plate, a target to shoot,
                  a lectern to turn, a sensor that hears them. Zero inputs is an ornament.
     INDICATORS   what a player can SEE it do - lamps, a bell, a note block, a payout dropper,
@@ -144,6 +149,12 @@ class Report:
         self.indicators = {k: sum(self.tally.get(n, 0) for n in v) for k, v in INDICATORS.items()}
         self.wiring = {k: sum(self.tally.get(n, 0) for n in v) for k, v in WIRING.items()}
         self.findings = circuit.inspect(model, self.origin) if self.has_redstone else []
+        # **WHAT A PLAYER CAN SEE OF THE PARTS THAT SHOULD BE BEHIND THE PANEL.** The third
+        # question, and until this line nothing in the pipeline asked it: `audit` grades a cell,
+        # `circuit.inspect` grades the wiring, the census grades what a player can DO - and a
+        # machine with its dust lying on the grass passes all three. Measured across the park's
+        # machines the first time it was asked: about 900 cells.
+        self.visible = circuit.visible_redstone(model, self.origin) if self.has_redstone else []
 
     @property
     def has_redstone(self) -> bool:
@@ -180,6 +191,11 @@ class Report:
         is all there is.
         """
         return len(self.side.get("inputs") or [])
+
+    @property
+    def exposed(self) -> collections.Counter:
+        """The visible wiring, by block, so the line reads as a diagnosis rather than a number."""
+        return collections.Counter(n for _p, n in self.visible)
 
     @property
     def thin(self) -> list:
@@ -255,6 +271,10 @@ def _row(r: Report) -> str:
     if r.declared and not r.n_inputs:
         lines.append(f"      touch   {r.declared} declared input(s) that are not a switch - "
                      f"a ball, a shovelful, a barrel")
+    if r.visible:
+        kinds = ", ".join(f"{n}x {k}" for k, n in r.exposed.most_common())
+        lines.append(f"      EXPOSED {len(r.visible)} wiring cell(s) a player can see: {kinds}"
+                     f" - e.g. {r.visible[0][0]}")
     if r.side.get("signed") is False:
         lines.append("      SIGNAGE a sign this design meant to place was refused")
     for t in r.thin:
@@ -298,6 +318,7 @@ def main(argv: list) -> int:
 
     faults = [r for r in reports if r.real]
     thin = [r for r in reports if r.thin]
+    exposed = [r for r in reports if r.visible]
     print(f"redstone audit: {len(reports)} design(s) with redstone in {folder}")
     if missing:
         print(f"  ({len(missing)} named design(s) not in the folder: {', '.join(missing[:4])})")
@@ -306,9 +327,12 @@ def main(argv: list) -> int:
               f"--all to see)")
     print(f"  {sum(len(r.real) for r in faults)} fault(s) across {len(faults)} design(s); "
           f"{len(thin)} thin")
+    print(f"  {sum(len(r.visible) for r in exposed)} visible wiring cell(s) across "
+          f"{len(exposed)} design(s)"
+          + ("" if exposed else " - nothing a player can see that they should not"))
     print()
     for r in reports:
-        if quiet and not r.real:
+        if quiet and not (r.real or r.visible):
             continue
         print(_row(r))
         print()
@@ -321,8 +345,14 @@ def main(argv: list) -> int:
     print("across every design counted")
     print("  press  " + (", ".join(f"{n}x {k}" for k, n in tot_in.most_common()) or "-"))
     print("  see    " + (", ".join(f"{n}x {k}" for k, n in tot_out.most_common()) or "-"))
-    # A NON-ZERO EXIT IS FOR CI, NOT FOR THE READER: a fault is a fault, thinness is a judgement.
-    return 1 if faults else 0
+    if exposed:
+        print()
+        print("  the worst offenders, by exposed cells")
+        for r in sorted(exposed, key=lambda x: -len(x.visible))[:8]:
+            print(f"    {len(r.visible):5d}  {r.name}")
+    # A NON-ZERO EXIT IS FOR CI, NOT FOR THE READER: a fault is a fault and open wiring is a fault;
+    # thinness is a judgement and stays out of the exit code.
+    return 1 if (faults or exposed) else 0
 
 
 if __name__ == "__main__":

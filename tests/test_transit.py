@@ -210,6 +210,18 @@ def test_every_land_can_actually_draw_a_line(land):
         assert gap >= 15, f"{land}: {key} is {gap:.0f} from the deck - that is not a line"
 
 
+@pytest.mark.parametrize("land", LANDS)
+def test_no_land_stands_on_wool(land):
+    """`deck` and `kerb` are laid in the SAME course - the walkway itself, at every edge cell, at
+    both termini and along a station's platform edge - so wool there is wool doing a floor's job.
+    `arch` is deliberately NOT checked: it is the underside soffit slung between piers, below the
+    deck a rider never stands on, the same "vertical, not ground" exemption `park.LANDS`'s own
+    `wall` key has."""
+    span = transit.SPAN[land]
+    for key in ("deck", "kerb"):
+        assert "_wool" not in span[key], f"{land}.{key} is {span[key]!r} - wool doing a floor's job"
+
+
 # --------------------------------------------------------------------------- the railway
 
 def _rail_cells(cells):

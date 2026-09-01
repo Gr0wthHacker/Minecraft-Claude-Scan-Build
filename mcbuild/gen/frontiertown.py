@@ -49,7 +49,7 @@ toward the building it grows out of.
 from __future__ import annotations
 
 from .. import blocks, circuit, fluids, walk
-from . import circuits
+from . import circuits, conceal
 from .arcade import _dirs, _ij, _lay, _line
 from .canvas import Canvas, hash01
 from .park import LANDS, SIGN_WIDTH, _Frame, _STEP, _hang_light, _sign
@@ -482,11 +482,25 @@ def _saloon_table(w: World, f, pal, ex, W, D, seed) -> dict:
     # both ways round, so it is reasoned rather than eyeballed. The seats go at the near edge in
     # the row BEYOND the layout, which is the side a player walks in on.
     chairs = 0
+    # **A CHAIR MAY NOT BE DRAWN UP AGAINST THE WIRING.** A stair is a shape you can see past, so a
+    # seat beside a dust cell is a window onto the machine under the table - the one cell of open
+    # redstone left in this whole zone once everything else was covered. The seat takes the far
+    # side of the layout instead, which is a place to sit either way.
+    wiring = {"redstone_wire", "repeater", "comparator", "redstone_torch", "redstone_wall_torch"}
+
+    def _clear(cell):
+        for dx, dy, dz in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+            if w.name(cell[0] + dx, cell[1] + dy, cell[2] + dz) in wiring:
+                return False
+        return True
+
     for ci in (gi, oi + 1):
-        seat = f.at(ci, hi_d + 1, 0)
-        if 1 <= ci <= W - 2 and hi_d + 1 <= D - 3 and not w.has(*seat):
-            _stair(w, f, ci, hi_d + 1, 0, pal["stair"], f.facing, "bottom")
-            chairs += 1
+        for sd in (hi_d + 1, lo_d - 1):
+            seat = f.at(ci, sd, 0)
+            if 1 <= ci <= W - 2 and 2 <= sd <= D - 3 and not w.has(*seat) and _clear(seat):
+                _stair(w, f, ci, sd, 0, pal["stair"], f.facing, "bottom")
+                chairs += 1
+                break
 
     return {"table_button": list(btn), "table_pot": list(pot), "table_bell": list(bell),
             "table_gate": list(gate["out"]), "table_cells": laid, "table_chairs": chairs,
@@ -2157,8 +2171,14 @@ def build(cfg: dict, donors=None) -> Canvas:
     ctx = Ctx(p["under"]) if p.get("under") else None
     meta = BUILDERS[p["kind"]](w, p, ctx)
 
+    # **COVER THE WIRING**, one pass for every kind - see `gen/conceal.py`.
+    hidden = conceal.conceal(w, LANDS[p["land"]]["ground"],
+                             protect=[tuple(c) for c in meta.get("stand", ())])
+
     return w.canvas({
         "kind": f"frontiertown/{p['kind']}",
+        "concealed": hidden["placed"],
+        "visible_redstone": len(hidden["left"]),
         "land": p["land"],
         "facing": p["facing"],
         "contract": meta.get("contract", ""),

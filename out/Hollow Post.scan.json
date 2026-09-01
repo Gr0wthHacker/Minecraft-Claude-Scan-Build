@@ -61,6 +61,91 @@
     }
   ],
   "post_h": 8,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 34,
+      "materials": 6,
+      "dominant_material_share": 0.2647,
+      "light_blocks": 1,
+      "massing": {
+        "width": 9,
+        "height": 10,
+        "depth": 9,
+        "fill_ratio": 0.042
+      },
+      "silhouette": {
+        "top": {
+          "area": 21,
+          "fill_ratio": 0.2593
+        },
+        "front": {
+          "area": 20,
+          "fill_ratio": 0.2222
+        },
+        "side": {
+          "area": 20,
+          "fill_ratio": 0.2222
+        }
+      },
+      "material_counts": {
+        "cobbled_deepslate": 9,
+        "blackstone": 8,
+        "dark_oak_fence": 8,
+        "dark_oak_wall_sign": 4,
+        "deepslate_bricks": 4,
+        "soul_lantern": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "c1fa339056d03c88520eb993d5333a4d05624b1f1d2d98b7db2f9a142e63bfc5",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Hollow Post.litematic",
   "name": "Hollow Post"
 }

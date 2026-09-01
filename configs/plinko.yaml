@@ -2,11 +2,11 @@ name: Plinko
 gen: arcade
 params:
   land: midway
-  facing: west
+  facing: east
   at:
-  - 97593
+  - 97586
   - 203
-  - 80621
+  - 80573
   kind: plinko
   title: Plinko
   under: out/newisle.litematic

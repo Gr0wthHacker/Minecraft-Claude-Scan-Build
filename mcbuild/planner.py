@@ -160,6 +160,13 @@ THEMES = {
         "reserve": [[97640, 80551, 97649, 80649]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            # **THE ARRIVAL COURT IS PINNED TO THE BEDROCK AND SITED FIRST.** `at` is the
+            # arrival cell itself, not a corner: the court is built radially around the one
+            # coordinate that cannot be negotiated. Its own dig list clears the starter pad and
+            # the tree; the starter chest is deliberately left standing and reported.
+            {"name": "Arrival Court", "gen": "arrival", "kind": "court",
+             "size": [33, 5, 33], "anchor": "origin", "orient": False,
+             "params": {"land": "midway", "facing": "east"}},
             # ------------------------------------------------- things to DO, and a reason to stay
             # The user: *"we want this to be a unique real experience that people want to stay
             # around for"*. A park keeps people because things HAPPEN in it and because there is
@@ -173,7 +180,7 @@ THEMES = {
              "size": [12, 7, 17], "orient": False,
              "params": {"land": "midway", "facing": "east"}},
             {"name": "Food Court", "gen": "spectacle", "kind": "foodcourt",
-             "size": [15, 6, 19], "orient": False,
+             "size": [15, 6, 19], "orient": False, "count": 1,
              "params": {"land": "midway", "facing": "east"}},
             {"name": "Plinko", "gen": "arcade", "kind": "plinko",
              "size": [17, 17, 18], "orient": False,
@@ -209,17 +216,6 @@ THEMES = {
              "size": [19, 9, 11], "orient": False,
              "anchor": "edge", "side": "west",
              "params": {"land": "midway", "facing": "east"}},
-            {"name": "Shop Street", "gen": "civic", "kind": "shopstreet",
-             "size": [16, 17, 23], "orient": False,
-             "params": {"land": "midway", "shops": 2, "facing": "east"}},
-            # **A FERRIS WHEEL IS A BACKDROP, SO IT IS PINNED TO AN EDGE.** Sited by `bays` it
-            # landed mid-plot with eight unusable columns behind it, and the 19x77 strip it casts
-            # then split the midway into three bands of which none was 33 wide - so the carousel,
-            # the swings AND the teacups all reported NO SITE in a plot only 43% used. Every ride
-            # in a fairground, denied by one ride's parking. On the east edge it frees the whole
-            # interior and it is where a landmark belongs anyway: you see it over the wall before
-            # you reach the gate. It faces WEST, into the park, because unlike a gate or an arch
-            # it is a thing you look at rather than walk through.
             {"name": "The Big Wheel", "gen": "bigwheel", "kind": "wheel",
              "size": [19, 85, 77], "orient": False,
              "anchor": "edge", "side": "east",
@@ -234,12 +230,10 @@ THEMES = {
             {"name": "Carousel", "gen": "bigwheel", "kind": "carousel",
              "size": [32, 27, 27], "orient": False,
              "params": {"land": "midway", "diameter": 25, "mounts": 12, "facing": "east"}},
-            {"name": "Hall of Fame", "gen": "civic", "kind": "hallofame",
-             "size": [18, 14, 21],
-             "params": {"land": "midway", "facing": "east"}},
             {"name": "The Monument", "gen": "monument", "kind": "monument",
-             "size": [33, 53, 33], "anchor": "centre", "orient": False,
-             "params": {"land": "midway", "facing": "east"}},
+             "size": [33, 53, 33], "orient": False,
+             "anchor": "edge", "side": "south",
+             "params": {"land": "midway", "facing": "north"}},
             {"name": "Park Gate", "gen": "park", "kind": "gate", "size": [15, 9, 7],
              "anchor": "edge", "side": "west",
              "params": {"land": "midway", "lanes": 3, "depth": 6, "facing": "west"}},
@@ -912,7 +906,9 @@ def _site_order(spec: dict) -> list:
     edge, free, cover = [], [], []
     for m in spec["modules"]:
         a = m.get("anchor")
-        (cover if a == "cover" else edge if a in ("edge", "centre") else free).append(m)
+        grp = (cover if a == "cover"
+               else edge if a in ("edge", "centre", "origin") else free)
+        grp.append(m)
 
     def area(m):
         _fx, _fy, _fz, fw, _fh, fd = measured_footprint(
@@ -1096,6 +1092,26 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             # it and everything else keeps clear. Left to the bay packer a monument lands wherever
             # there happened to be a slot, which for the one thing the whole zone is arranged
             # around is the same mistake as siting the gate in the middle of a field.
+            # **THE ONE COORDINATE THAT CANNOT BE NEGOTIATED IS THE ONE THE SERVER CHOOSES.**
+            # A player is put down at the island's bedrock, and on this plot the Monument was
+            # built straight across it: 2,105 of its blocks stood inside the volume an arrival
+            # needs, with zero standable cells within three blocks at street level. Every check
+            # passed - legal, supported, cheap, one connected piece, every door on the street -
+            # because nothing ever asked whether the cell a player ARRIVES in is a cell a player
+            # can STAND in. `origin` pins a module to the bedrock and claims its box, so the
+            # arrival court is sited first and everything else keeps out of it.
+            if mspec.get("anchor") == "origin" and pl_plot is not None and plane is not None:
+                bcx, bcz = pl_plot.cx, pl_plot.cz
+                bx, bz = bcx - fw // 2, bcz - fd // 2
+                taken.append((bx, plane + fy, bz, fw, fh, fd))
+                pl.modules.append({
+                    "name": mspec["name"], "gen": mspec["gen"], "kind": mspec["kind"],
+                    "at": [bcx, plane, bcz], "size": [fw, fh, fd], "roll": 0,
+                    "declared_size": list(mspec["size"]), "anchor_offset": [fx, fy, fz],
+                    "floor": floors[0]["name"], "arrival": True,
+                    "params": dict(mspec.get("params", {})), "world": world,
+                })
+                continue
             if mspec.get("anchor") == "centre" and pl_plot is not None and plane is not None:
                 x0, x1, z0, z1 = _owned_bounds(pl_plot, spec)
                 bx = x0 + ((x1 - x0 + 1) - fw) // 2

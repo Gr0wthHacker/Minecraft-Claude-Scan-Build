@@ -18,6 +18,88 @@
   "height": 8,
   "zone": "hollow",
   "signed": true,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 93,
+      "materials": 8,
+      "dominant_material_share": 0.3548,
+      "light_blocks": 0,
+      "massing": {
+        "width": 3,
+        "height": 9,
+        "depth": 11,
+        "fill_ratio": 0.3131
+      },
+      "silhouette": {
+        "top": {
+          "area": 33,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 13,
+          "fill_ratio": 0.4815
+        },
+        "side": {
+          "area": 69,
+          "fill_ratio": 0.697
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 33,
+        "deepslate_bricks": 26,
+        "black_wool": 11,
+        "spruce_planks": 8,
+        "white_wool": 8,
+        "blackstone": 4,
+        "dark_oak_wall_sign": 2,
+        "purple_wool": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "9f5f08c0bf91c265a09148d150d725a197b67430e8d08b1f338da78013110358",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Hollow Map.litematic",
   "name": "Hollow Map"
 }

@@ -16,9 +16,98 @@
   "contract": "a switchback line: one entrance, one exit at the far end, every leg open at the end it turns at, and a canopy over the back half",
   "unverified": [],
   "budget": {},
+  "concealed": 0,
+  "visible_redstone": 0,
   "width": 11,
   "depth": 9,
   "legs": 4,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 279,
+      "materials": 8,
+      "dominant_material_share": 0.5125,
+      "light_blocks": 4,
+      "massing": {
+        "width": 11,
+        "height": 6,
+        "depth": 13,
+        "fill_ratio": 0.3252
+      },
+      "silhouette": {
+        "top": {
+          "area": 143,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 31,
+          "fill_ratio": 0.4697
+        },
+        "side": {
+          "area": 45,
+          "fill_ratio": 0.5769
+        }
+      },
+      "material_counts": {
+        "stone": 143,
+        "oak_fence": 40,
+        "white_wool": 38,
+        "red_wool": 36,
+        "oak_log": 12,
+        "blackstone": 4,
+        "lantern": 4,
+        "oak_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "a55c333d4d49e8e3a0296aba0404104f524dd2680602bb784eb023d96610df3c",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Entry Queue.litematic",
   "name": "Entry Queue"
 }

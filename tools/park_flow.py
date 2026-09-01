@@ -1,17 +1,21 @@
 """The park's flow audit: can a visitor get everywhere on foot, and where do they have to choose?
 
-    python tools/park_flow.py                     the full report
+    python tools/park_flow.py                     the full report - ON FOOT, no railway
+    python tools/park_flow.py --rail               ...and again with the line, for comparison
     python tools/park_flow.py --gap 0              strict flood - no jump allowed across a seam
 
 WHY THIS EXISTS. `tests/test_park_plan.py` already proves each zone's own street network is one
 connected walk that reaches every door - but it proves that against the PLANNED routes, never
 against what actually got BUILT, and never across the void between islands. This reads the real
-shipped litematics off disk - `out/Park_Left Complete`, `Park_Centre Complete`,
-`Park_Right Complete`, `Park Line` - and floods a standable-cell graph over them, which is the
-same "flood-fill from real ground, seed region asserted large" discipline this project's own night
+shipped litematics off disk and floods a standable-cell graph over them, which is the same
+"flood-fill from real ground, seed region asserted large" discipline this project's own night
 pass and Nav model already use. It found a real seam the planned-route tests could never see,
-because the transit station's landing pad is a SEPARATE design from the zone's own paving and nothing
-had ever asked whether the two physically touch.
+because the transit station's landing pad is a SEPARATE design from the zone's own paving and
+nothing had ever asked whether the two physically touch.
+
+**AND IT ANSWERED THE WRONG QUESTION FOR ITS FIRST WHOLE LIFE.** It composited `Park Line` and
+omitted `Isthmus`, so its three-zones-all-reached result was a fact about a park you can only
+cross by train - the exact thing Jack then complained about. See `DESIGNS` below.
 
 WHAT COUNTS AS STANDABLE. A cell one course above a solid block, with the block itself and the one
 above THAT both clear - two courses of headroom, the same rule `Nav.standable` in the mod uses.
@@ -35,7 +39,21 @@ from collections import deque
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mcbuild import scan as scan_mod, planner                     # noqa: E402
 
-DESIGNS = ["Park_Left Complete", "Park_Centre Complete", "Park_Right Complete", "Park Line"]
+# THE RAILWAY IS NOT IN THIS LIST, AND THAT IS THE POINT.
+#
+# This audit shipped composited as [three zones + `Park Line`] and WITHOUT `Isthmus`, so every
+# "all doors reached" it ever printed was a claim about a park whose three islands are joined
+# only by a viaduct. Jack, on the shipped park: *"all land needs to be connected, the train is
+# just fast transport - not the only way to reach these areas"*. A connectivity audit that
+# includes the shortcut cannot answer that question at all.
+#
+# So the default composite is the WALKABLE park - the three zones, the causeway between them, and
+# the pieces sited on the midway - and `--rail` adds the line back for comparison. The difference
+# between the two runs is the railway's real contribution, which is what it should have been
+# measuring all along.
+DESIGNS = ["Park_Left Complete", "Park_Centre Complete", "Park_Right Complete",
+           "Isthmus", "Park Gate", "Park Notices", "Park Arrival"]
+RAIL = ["Park Line"]
 Y_BAND = (199, 213)
 
 ZONE_PLAN = {"frontier": "park_left", "midway": "park_centre", "hollow": "park_right"}
@@ -43,8 +61,13 @@ ZONE_Z = {"frontier": (80351, 80449), "midway": (80551, 80649), "hollow": (80751
 
 
 def load_world(designs=DESIGNS) -> dict:
+    """Composite the shipped litematics. A design that has not been generated yet is SKIPPED and
+    named, never fatal: this tool has to keep working the day somebody adds a module."""
     world = {}
     for name in designs:
+        if not os.path.exists(f"out/{name}.litematic"):
+            print(f"  (skipped, not shipped: {name})")
+            continue
         s = scan_mod.load(f"out/{name}.litematic")
         m = s.model
         ox, oy, oz = s.origin
@@ -141,10 +164,18 @@ def flood(stand: set, start: tuple, max_step: int = 1, gap: int = 1) -> set:
 
 
 def zone_of(z: int) -> str:
+    """Which piece of the park a Z row belongs to. The two void gaps get their own names rather
+    than being lumped in as "transit": with the causeway in the composite they are LAND now, and
+    calling the walk across them transit is the same conflation this tool's own DESIGNS list made.
+    """
     for zone, (lo, hi) in ZONE_Z.items():
         if lo - 5 <= z <= hi + 5:
             return zone
-    return "transit"
+    if 80450 <= z <= 80550:
+        return "causeway N"
+    if 80650 <= z <= 80750:
+        return "causeway S"
+    return "off-park"
 
 
 def entrance_seed(stand: set) -> tuple:
@@ -191,10 +222,18 @@ def module_targets():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--gap", type=int, default=1, help="widest jumpable gap in columns (0 = strict)")
+    ap.add_argument("--rail", action="store_true",
+                    help="add Park Line to the composite. OFF by default: the railway is a "
+                         "shortcut, and an audit that includes it cannot say whether the land "
+                         "is connected")
     args = ap.parse_args()
 
-    world = load_world()
-    print(f"world cells (4 shipped designs): {len(world)}")
+    designs = DESIGNS + (RAIL if args.rail else [])
+    print(f"composite: {', '.join(designs)}")
+    print("THE RAILWAY IS " + ("INCLUDED (--rail)" if args.rail
+                               else "EXCLUDED - this is the walk") + "\n")
+    world = load_world(designs)
+    print(f"world cells: {len(world)}")
     stand = standable(world)
     print(f"standable cells, Y {Y_BAND[0]}-{Y_BAND[1]}: {len(stand)}")
     assert len(stand) > 5000, "the seed region is suspiciously small - is out/ stale?"
@@ -210,7 +249,10 @@ def main():
             by_zone[zone_of(c[2])] += 1
         print(f"--- gap={gap} ---")
         print(f"reached from the gate: {len(reached)} / {len(stand)} standable cells")
-        print(f"  by zone: { {k: by_zone.get(k, 0) for k in ('midway','frontier','hollow','transit')} }")
+        order = ("frontier", "causeway N", "midway", "causeway S", "hollow", "off-park")
+        print(f"  by zone: { {k: by_zone.get(k, 0) for k in order} }")
+        for zone in ("frontier", "midway", "hollow"):
+            print(f"    {zone:9s} {'REACHED' if by_zone.get(zone) else 'NOT REACHED'}")
         print()
 
     # the seam itself, measured directly rather than inferred from the flood counts

@@ -4,9 +4,9 @@ params:
   land: midway
   facing: east
   at:
-  - 97573
+  - 97563
   - 203
-  - 80619
+  - 80648
   kind: fireworks
   title: Fireworks
   under: out/newisle.litematic

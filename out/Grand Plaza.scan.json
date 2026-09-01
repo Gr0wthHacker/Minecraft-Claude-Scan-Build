@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 89,
-    "y": 6,
+    "y": 7,
     "z": 99
   },
   "generated_by": "park",
@@ -18,10 +18,104 @@
   "width": 99,
   "depth": 89,
   "posts": 0,
-  "trees": 0,
-  "beds": 1,
+  "trees": 1,
+  "beds": 0,
   "terrace": true,
   "pool": true,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "lantern"
+      ]
+    },
+    "verifiers": {
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 8968,
+      "materials": 10,
+      "dominant_material_share": 0.3637,
+      "light_blocks": 6,
+      "massing": {
+        "width": 89,
+        "height": 7,
+        "depth": 99,
+        "fill_ratio": 0.1454
+      },
+      "silhouette": {
+        "top": {
+          "area": 8811,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 137,
+          "fill_ratio": 0.2199
+        },
+        "side": {
+          "area": 147,
+          "fill_ratio": 0.2121
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 3262,
+        "stone": 3036,
+        "blackstone": 2535,
+        "azalea_leaves": 31,
+        "stone_brick_slab": 28,
+        "water": 25,
+        "stone_brick_stairs": 24,
+        "oak_log": 19,
+        "lantern": 6,
+        "lily_pad": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "70b81c6b17095176b443c6411cf17b98354bbc9324afd80e6d0efe223601cdf0",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "fluid",
+        "hazard",
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Grand Plaza.litematic",
   "name": "Grand Plaza"
 }

@@ -2,11 +2,11 @@ name: The Monument
 gen: monument
 params:
   land: midway
-  facing: east
+  facing: north
   at:
-  - 97611
+  - 97579
   - 203
-  - 80616
+  - 80617
   kind: monument
   title: The Monument
   under: out/newisle.litematic

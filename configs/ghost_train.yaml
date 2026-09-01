@@ -6,7 +6,7 @@ params:
   at:
   - 97616
   - 203
-  - 80817
+  - 80819
   kind: ghosttrain
   title: Ghost Train
   under: out/islandright.litematic

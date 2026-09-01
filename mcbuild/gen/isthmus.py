@@ -29,18 +29,30 @@ and transit station titles - so only the zone names ("FRONTIER" / "MIDWAY" / "HO
 things for an isthmus archway to say; a creature's own plaque is not a registered destination and
 stays on the plain `_sign` this file already had, exactly as it did before.
 
-**DO NOT WRITE A NEW SCULPTURE. SITE AN OLD ONE - AND SITE FOUR DIFFERENT ONES.** This repo has
-eight failed mammal builds and three that read instantly behind it, and the line between them is
-not species, it is PLANAR/COLUMNAR against VOLUMETRIC - a spread wing, a neck, a splayed limb, a
-pattern on one convex dome all read; four legs standing on the ground never do, at any scale
-(see CLAUDE.md's ANIMALS section). `heron.py`, `bat.py`, `gecko.py` and `sloth.py` are four of
-the shapes that passed and none needs a world capture, so putting one here is a siting job
-exactly as asked, not a modelling one - see `_SITERS` for what each of them has to be given to
-stand up at all, and `GAPS` for why no two of them may be the same generator. `turtle.py`,
-`frog.py` and `axolotl.py` are left out on the standing grounds: all three take a `Ctx` world
-capture and probe a ground band that assumes the lowland's own Y, and patching a tested
-generator's internals to reuse it somewhere else is a bigger, riskier change than choosing one
-of the four that already stands on its own.
+**FOUR SCULPTURES, FOUR SHAPES, AND NOT ONE GENERATOR USED TWICE.** This repo has eight failed
+mammal builds and three that read instantly behind it, and the line between them is not
+species, it is PLANAR/COLUMNAR against VOLUMETRIC - a spread wing, a neck, a splayed limb, a
+pattern on one convex mass all read; four legs standing on the ground never do, at any scale
+(see CLAUDE.md's ANIMALS section). Everything on this causeway is chosen on that line.
+
+Two of the four are SITED - `heron.py` and `sloth.py`, tested generators of their own, pasted
+exactly the way `streetfurniture`'s bench and `wayfinding`'s archway are. Two are BESPOKE and
+were written for these two stops: `balloon.py` and `wyrm.py`, which replaced a sited bat and a
+sited gecko on Jack's own instruction - *"those are used assets, we want NEW things"*. See
+`_SITERS` for what each of the four has to be given to stand up at all, and `GAPS` for why no
+two may be the same generator.
+
+**AND THE TWO NEW ONES CARRY THEIR OWN GROUND, WHICH IS THE POINT OF WRITING THEM.** A heron
+wants a pedestal, a gecko a stele, a bat a gantry, a sloth a bough: every one of those is
+masonry THIS file has to lay on terraced ground before the creature exists at all, and every
+one of them is somewhere a pier can miss its footing - a gantry shipped with one leg and only a
+render caught it. A balloon brings its own basket and a wyrm its own milestone, so `_site_standing`
+is one paste and there is nothing left to get wrong.
+
+`turtle.py`, `frog.py` and `axolotl.py` remain out on the standing grounds: all three take a
+`Ctx` world capture and probe a ground band that assumes the lowland's own Y, and patching a
+tested generator's internals to reuse it somewhere else is a bigger, riskier change than either
+siting one that already stands on its own or writing one that does.
 
 **AND A SCULPTURE IS NOT TERRAIN, WHICH IS THE OTHER HALF OF SITING ONE.** Every lighting rule
 in this file is written for the SHAPE it lights, and the night sweep at the end had none - it
@@ -163,18 +175,25 @@ BASE_Y = 202               # the park's own floor course; flush ends must land e
 # chosen on CLAUDE.md's own measured line, PLANAR/COLUMNAR against VOLUMETRIC, not on taste:
 #
 #   heron   an upright column - stilt legs, an S-neck, a dagger bill, a layered planar wing
-#   gecko   a vertical plane  - splayed limbs and fanned toes flat on a face, read side-on
-#   bat     a horizontal sheet - a membrane one block thick on straight finger struts
 #   sloth   a body slung UNDER a line - four columnar limbs hooked over a branch
+#   balloon ONE convex dome carrying a pattern, on a column of rigging over a box
+#   wyrm    a free S-curve topped by a flared PLATE, off a coil at the ground
+#
+# THE BAT AND THE GECKO WERE REPLACED, and by two BESPOKE generators rather than by two more
+# borrowed ones. Jack: "get rid of the gecko and bat - those are used assets, we want NEW
+# things". Both replacements are written to the same measured line and neither is an animal
+# this repo had a body plan for; the balloon is not an animal at all, which a theme park's
+# landmarks are under no obligation to be and which nothing here had ever tried.
 #
 # Scales are MEASURED with a flood fill, never assumed, because every one of these generators
 # has its own fragility. `heron.py` is tuned for its full size and comes apart into a dozen
 # fragments below about scale 0.85 - "wants to be built big rather than survive being small" is
-# not a metaphor - and is one piece at 0.9. `bat.py` is one piece at 0.5, 0.55 and 0.7 and
-# sheds two two-cell wisps at 0.6, so 0.55 is what is used. `gecko.py` and `sloth.py` have no
-# scale parameter at all: their geometry is written at one size and they are each one piece
-# there. `_largest_component` is the second line of defence in every case, and any cell it
-# drops is reported rather than silently discarded.
+# not a metaphor - and is one piece at 0.9. `sloth.py` has no scale parameter at all: its
+# geometry is written at one size and it is one piece there, and the same is true of the two
+# bespoke pieces, which are written for exactly this siting and are asserted one-piece at BOTH
+# orientations they can be built at (`tests/test_causeway_sculptures.py`). `_largest_component`
+# is the second line of defence in every case, and any cell it drops is reported rather than
+# silently discarded.
 #
 # `dragonfly.py` was tried and dropped again, for the reason already recorded: its two wing
 # pairs are `birch_trapdoor`s placed with a deliberate gap from the body and from each other
@@ -198,14 +217,17 @@ GAPS = [
     {"z_lo": 80650, "z_hi": 80750, "land_a": "midway", "land_b": "hollow",
      "title": "THE HOLLOW REACH",
      "creatures": [
-         # a bat belongs in the hollow, and a membrane against a dark land is the one thing on
-         # this causeway that is pure outline.
-         {"kind": "bat", "t": 0.26, "side": 1, "scale": 0.7, "clear": 5,
-          "title": "GREAT BAT", "lines": ["a wing of skin", "over the gap", "to the hollow"]},
-         # lime wool on blackstone is the biggest hue flip either land can offer - the turtle's
-         # own rule, measured: a creature the colour of its ground is not a creature.
-         {"kind": "gecko", "t": 0.80, "side": -1,
-          "title": "ROCK GECKO", "lines": ["clings to stone", "head down,", "watching the road"[:15]]},
+         # THE FAIRGROUND END OF THE REACH GETS A FAIRGROUND OBJECT. A theme park's landmarks do
+         # not have to be creatures and this repo had never once tried one - a balloon is the
+         # ladybird's own winning category (one convex mass carrying a PATTERN) over a column of
+         # rigging, and it is the brightest thing on either span.
+         {"kind": "balloon", "t": 0.26, "side": 1,
+          "title": "THE AERONAUT", "lines": ["moored over two", "hundred blocks", "of open void"]},
+         # ...and the hollow end gets the dark one. Bone against blackstone is the biggest value
+         # flip this land can offer - the turtle's own rule, measured: a creature the colour of
+         # its ground is not a creature.
+         {"kind": "wyrm", "t": 0.80, "side": -1,
+          "title": "THE PALE WYRM", "lines": ["reared off a", "milestone at", "the hollow gate"]},
      ]},
 ]
 
@@ -533,9 +555,16 @@ def _plaque(w, cx, cz, plinth_top, pal, facing, title, lines):
 # - and not one line of any creature generator is touched.
 #
 # NO TWO OF THE FOUR SHARE A SILHOUETTE, which is the point and was the complaint: an upright
-# column (the heron), a vertical plane (the gecko on its stele), a horizontal sheet (the bat's
-# membrane) and a body slung under a bough (the sloth). Two standing birds off one generator, and
-# two ladybirds off another, was four sculptures showing two shapes.
+# column (the heron), a body slung under a bough (the sloth), a dome on a column of rigging (the
+# balloon) and a free S under a flared plate (the wyrm). Two standing birds off one generator,
+# and two ladybirds off another, was four sculptures showing two shapes.
+#
+# `_site_bat` AND `_site_gecko` ARE KEPT AND ARE NO LONGER SITED. Jack retired both from this
+# causeway as used assets, and the two bespoke pieces replaced them - but a gantry and a stele
+# are general answers to "this creature hangs" and "this creature clings", they are covered by
+# their own tests, and deleting them would narrow what this file can site rather than fixing
+# anything. Adding either one back to `GAPS` is a decision about REUSING AN ASSET, not a
+# maintenance job, and that decision is Jack's: it was made once already, the other way.
 
 BAND = "deepslate_bricks"     # THE ONE CHEAP BLOCK THAT CAN DRAW A LINE ON ANY OF THE THREE
                               # LANDS' OWN MASONRY. Measured, because `pal["trim"]` cannot: on the
@@ -637,6 +666,17 @@ def creature_canvas(spec: dict, place=None) -> Canvas:
     if kind == "sloth":
         from . import sloth as m
         return m.build({"seed": seed})
+    if kind == "balloon":
+        from . import balloon as m
+        return m.build_balloon({"seed": seed, "stand": list(place or [0, 0, 0])})
+    if kind == "wyrm":
+        from . import wyrm as m
+        # THE HEAD FACES THE WALKWAY, and that is a function of which side of the spine the stop
+        # was put on, not a constant. `side` +1 puts the stop east of the spine, so the walk is
+        # to its WEST and the head has to rear that way - the gecko's stele is turned by exactly
+        # the same argument. Written the other way round the wyrm faces the void.
+        return m.build_wyrm({"seed": seed, "face": -int(spec.get("side", 1)),
+                             "stand": list(place or [0, 0, 0])})
     raise ValueError(f"unknown creature kind {kind!r}; have {sorted(_SITERS)}")
 
 
@@ -767,8 +807,28 @@ def _site_sloth(w, cols, top, cx, cz, spec, pal, side, record):
                           record)
 
 
+def _site_standing(w, cols, top, cx, cz, spec, pal, side, record):
+    """A sculpture that CARRIES ITS OWN GROUND, planted on the plinth and nothing else.
+
+    THE TWO NEW PIECES ON THIS CAUSEWAY NEED NO STRUCTURE FROM THIS FILE, and that is a
+    deliberate difference from the four that came before it. A heron wants a pedestal, a gecko
+    a stele, a bat a gantry and a sloth a bough - every one of those is masonry `isthmus` has
+    to lay on terraced ground before the creature can exist at all, and every one of them is a
+    place a pier can miss its footing (a gantry shipped with one leg, and only a render caught
+    it). `balloon.py` brings its own basket and `wyrm.py` its own milestone, so the siting is
+    one paste at the plinth's own top course and there is nothing left to get wrong.
+
+    `keep_largest` stays on regardless. It is not expected to drop anything - both generators
+    are asserted one-piece at their own default scale, which is the scale sited here - but a
+    sited creature has no business handing this design a floating cell it did not build, and
+    anything it does drop is reported by the caller rather than silently discarded.
+    """
+    return _paste(w, creature_canvas(spec, [cx, top + 1, cz]), keep_largest=True, record=record)
+
+
 _SITERS = {"heron": _site_heron, "gecko": _site_gecko,
-           "bat": _site_bat, "sloth": _site_sloth}
+           "bat": _site_bat, "sloth": _site_sloth,
+           "balloon": _site_standing, "wyrm": _site_standing}
 
 
 # --- real furniture and real signage, sited rather than hand-rolled: `streetfurniture.py` and
@@ -844,9 +904,10 @@ def _site_archway(w, at, facing, land, entering):
 # five-block plinth the bat and the sloth each stood over a two-course disc of the
 # land's own trim with nothing on it - an empty plinth reads as a statue somebody has
 # taken away. Three is enough to carry the name plaque and no more.
-_PLINTH_HALF = {"heron": 5, "gecko": 5, "bat": 3, "sloth": 3}
-_CREATURE_ROOM = {"heron": 13, "gecko": 15, "bat": 18, "sloth": 16}
-_FLATTEN = {"heron": 8, "gecko": 18, "bat": 21, "sloth": 16}
+_PLINTH_HALF = {"heron": 5, "gecko": 5, "bat": 3, "sloth": 3, "balloon": 4, "wyrm": 5}
+_CREATURE_ROOM = {"heron": 13, "gecko": 15, "bat": 18, "sloth": 16,
+                  "balloon": 11, "wyrm": 13}
+_FLATTEN = {"heron": 8, "gecko": 18, "bat": 21, "sloth": 16, "balloon": 11, "wyrm": 11}
 # HOW FAR A STOP'S OWN STRUCTURE REACHES ALONG THE WALK, either side of its own centre.
 #
 # THIS EXISTS BECAUSE A GANTRY SHIPPED WITH ONE LEG. A span is 101 rows and a stele is 33 of
@@ -856,7 +917,11 @@ _FLATTEN = {"heron": 8, "gecko": 18, "bat": 21, "sloth": 16}
 # the lintel carries it. It was visible only in a render, from the one bearing the walkway
 # gives you. The centre is CLAMPED into the span now and the clamp is recorded, so a gap too
 # short for a stop still builds and says so rather than quietly losing half a structure.
-_CREATURE_ZHALF = {"heron": 7, "gecko": 18, "bat": 22, "sloth": 16}
+#
+# THE TWO SELF-CARRYING PIECES ARE THE SMALL NUMBERS HERE, and that is the point of them: a
+# stop's reach is set by the STRUCTURE this file has to build for a creature, not by the
+# creature. A stele is 33 rows of a 101-row span; a balloon's basket is five.
+_CREATURE_ZHALF = {"heron": 7, "gecko": 18, "bat": 22, "sloth": 16, "balloon": 9, "wyrm": 7}
 
 
 # ------------------------------------------------------------------------------------ one gap

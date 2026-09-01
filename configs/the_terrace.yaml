@@ -2,11 +2,11 @@ name: The Terrace
 gen: spectacle
 params:
   land: midway
-  facing: west
+  facing: east
   at:
-  - 97610
+  - 97581
   - 203
-  - 80619
+  - 80591
   kind: viewing
   title: The Terrace
   under: out/newisle.litematic

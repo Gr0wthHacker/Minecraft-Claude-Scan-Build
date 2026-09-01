@@ -2,11 +2,11 @@ name: Hall of Fame
 gen: civic
 params:
   land: midway
-  facing: east
+  facing: north
   at:
-  - 97591
+  - 97566
   - 203
-  - 80574
+  - 80600
   kind: hallofame
   title: Hall of Fame
   under: out/newisle.litematic

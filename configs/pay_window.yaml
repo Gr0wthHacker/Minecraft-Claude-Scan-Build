@@ -4,9 +4,9 @@ params:
   land: frontier
   facing: east
   at:
-  - 97566
+  - 97608
   - 203
-  - 80387
+  - 80412
   kind: prizecounter
   title: Pay Window
   under: out/islandleft.litematic

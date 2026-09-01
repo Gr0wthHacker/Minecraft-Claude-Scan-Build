@@ -11,6 +11,8 @@
   },
   "generated_by": "frontiertown",
   "kind": "minehead",
+  "concealed": 0,
+  "visible_redstone": 0,
   "land": "frontier",
   "facing": "west",
   "contract": "a timbered adit through a spoil bank, a braced A-frame headframe with a sheave wheel and a hanging cable, a tramway with loaded tubs on it - and a WALKTHROUGH under all of it: adit, ladder down a lined hoist shaft, lit drifts past worked ore faces, and an escape shaft up into a collar house, proven walkable end to end by `walk.connects` before it ships",
@@ -50,6 +52,117 @@
     80384
   ],
   "walk_cells": 388,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "spruce_trapdoor"
+      ],
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "rail": [
+        "rail"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ],
+      "traversal": [
+        "ladder"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks",
+      "traversal": "mcbuild.walk / audit.check_climb"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1912,
+      "materials": 24,
+      "dominant_material_share": 0.5649,
+      "light_blocks": 14,
+      "massing": {
+        "width": 19,
+        "height": 32,
+        "depth": 21,
+        "fill_ratio": 0.1497
+      },
+      "silhouette": {
+        "top": {
+          "area": 399,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 258,
+          "fill_ratio": 0.4243
+        },
+        "side": {
+          "area": 311,
+          "fill_ratio": 0.4628
+        }
+      },
+      "material_counts": {
+        "cobblestone": 1080,
+        "mossy_cobblestone": 343,
+        "spruce_log": 156,
+        "spruce_planks": 89,
+        "stripped_spruce_log": 67,
+        "spruce_stairs": 34,
+        "ladder": 22,
+        "stone_bricks": 20,
+        "spruce_slab": 18,
+        "lantern": 14,
+        "copper_ore": 12,
+        "lapis_ore": 10
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "8a93284e161b785843f4806d845edca450af50a9f9e8d6b262176731af157487",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "light",
+        "rail",
+        "signage",
+        "traversal"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "The Mine Head.litematic",
   "name": "The Mine Head"
 }

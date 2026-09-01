@@ -2,7 +2,7 @@
   "origin": {
     "x": 97579,
     "y": 202,
-    "z": 80584
+    "z": 80617
   },
   "size": {
     "x": 33,
@@ -12,7 +12,7 @@
   "generated_by": "monument",
   "kind": "monument",
   "land": "midway",
-  "facing": "east",
+  "facing": "north",
   "contract": "five tiers, each narrower and taller than the one below: a four-step base you can sit on, a panelled podium, a colonnade you can see through, a fluted taper with a gilded collar, and a planar winged figure at least 45 courses up - and an OBSERVATION TOWER anyone can find: a lit, signed portal on the flank facing the approach, a marked route to it across the apron, a spiral stair lit every four courses, a railed landing, a fenced bridge, and a railed gallery with a bell and a plaque naming the view - walkable from the door to the deck",
   "unverified": [],
   "height": 51,
@@ -28,9 +28,9 @@
   "posts": 7,
   "posts_skipped": 1,
   "door": [
-    97598,
+    97580,
     203,
-    80615
+    80630
   ],
   "portal_lanterns": 2,
   "forecourt": 9,
@@ -50,315 +50,315 @@
   "climb_treads": [
     [
       [
-        97596,
+        97581,
         203,
-        80614
+        80632
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97596,
+        97582,
         204,
-        80613
+        80632
       ],
-      "west"
+      "south"
     ],
     [
       [
-        97595,
+        97582,
         205,
-        80613
+        80633
       ],
-      "west"
+      "south"
     ],
     [
       [
-        97594,
+        97582,
         206,
-        80613
+        80634
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97594,
+        97581,
         207,
-        80614
+        80634
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97594,
+        97580,
         208,
-        80615
+        80634
       ],
-      "east"
+      "north"
     ],
     [
       [
-        97595,
+        97580,
         209,
-        80615
+        80633
       ],
-      "east"
+      "north"
     ],
     [
       [
-        97596,
+        97580,
         210,
-        80615
+        80632
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97596,
+        97581,
         211,
-        80614
+        80632
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97596,
+        97582,
         212,
-        80613
+        80632
       ],
-      "west"
+      "south"
     ],
     [
       [
-        97595,
+        97582,
         213,
-        80613
+        80633
       ],
-      "west"
+      "south"
     ],
     [
       [
-        97594,
+        97582,
         214,
-        80613
+        80634
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97594,
+        97581,
         215,
-        80614
+        80634
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97594,
+        97580,
         216,
-        80615
+        80634
       ],
-      "east"
+      "north"
     ],
     [
       [
-        97595,
+        97580,
         217,
-        80615
+        80633
       ],
-      "east"
+      "north"
     ],
     [
       [
-        97596,
+        97580,
         218,
-        80615
+        80632
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97596,
+        97581,
         219,
-        80614
+        80632
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97596,
+        97582,
         220,
-        80613
+        80632
       ],
-      "west"
+      "south"
     ],
     [
       [
-        97595,
+        97582,
         221,
-        80613
+        80633
       ],
-      "west"
+      "south"
     ],
     [
       [
-        97594,
+        97582,
         222,
-        80613
+        80634
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97594,
+        97581,
         223,
-        80614
+        80634
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97594,
+        97580,
         224,
-        80615
+        80634
       ],
-      "east"
+      "north"
     ],
     [
       [
-        97595,
+        97580,
         225,
-        80615
+        80633
       ],
-      "east"
+      "north"
     ],
     [
       [
-        97596,
+        97580,
         226,
-        80615
+        80632
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97596,
+        97581,
         227,
-        80614
+        80632
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97596,
+        97582,
         228,
-        80613
+        80632
       ],
-      "west"
+      "south"
     ],
     [
       [
-        97595,
+        97582,
         229,
-        80613
+        80633
       ],
-      "west"
+      "south"
     ],
     [
       [
-        97594,
+        97582,
         230,
-        80613
+        80634
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97594,
+        97581,
         231,
-        80614
+        80634
       ],
-      "south"
+      "west"
     ],
     [
       [
-        97594,
+        97580,
         232,
-        80615
+        80634
       ],
-      "east"
+      "north"
     ],
     [
       [
-        97595,
+        97580,
         233,
-        80615
+        80633
       ],
-      "east"
+      "north"
     ],
     [
       [
-        97596,
+        97580,
         234,
-        80615
+        80632
       ],
-      "north"
+      "east"
     ],
     [
       [
-        97596,
+        97581,
         235,
-        80614
+        80632
+      ],
+      "east"
+    ],
+    [
+      [
+        97582,
+        236,
+        80632
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        237,
+        80633
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        238,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97581,
+        239,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97580,
+        240,
+        80634
       ],
       "north"
     ],
     [
       [
-        97596,
-        236,
-        80613
-      ],
-      "west"
-    ],
-    [
-      [
-        97595,
-        237,
-        80613
-      ],
-      "west"
-    ],
-    [
-      [
-        97594,
-        238,
-        80613
-      ],
-      "south"
-    ],
-    [
-      [
-        97594,
-        239,
-        80614
-      ],
-      "south"
-    ],
-    [
-      [
-        97594,
-        240,
-        80615
-      ],
-      "east"
-    ],
-    [
-      [
-        97595,
+        97580,
         241,
-        80615
+        80633
       ],
-      "east"
+      "north"
     ]
   ],
   "climb_length": 39,
@@ -376,6 +376,97 @@
   ],
   "signs": 8,
   "signs_placed": 8,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "sculpture"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "sculpture": "connected, supported silhouette with deliberate material hierarchy"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 5840,
+      "materials": 14,
+      "dominant_material_share": 0.3397,
+      "light_blocks": 35,
+      "massing": {
+        "width": 33,
+        "height": 53,
+        "depth": 33,
+        "fill_ratio": 0.1012
+      },
+      "silhouette": {
+        "top": {
+          "area": 807,
+          "fill_ratio": 0.741
+        },
+        "front": {
+          "area": 789,
+          "fill_ratio": 0.4511
+        },
+        "side": {
+          "area": 585,
+          "fill_ratio": 0.3345
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 1984,
+        "blackstone": 1555,
+        "stone_brick_stairs": 665,
+        "stone": 610,
+        "white_wool": 509,
+        "oak_log": 198,
+        "stone_brick_slab": 135,
+        "yellow_wool": 70,
+        "oak_fence": 38,
+        "lantern": 35,
+        "stone_brick_wall": 31,
+        "oak_wall_sign": 8
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "c151ed4c2f83c55f9ce0d211c1eed7845dd57f52998a90cec6b3dfac95d6cb7a",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "The Monument.litematic",
   "name": "The Monument"
 }

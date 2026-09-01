@@ -18,6 +18,74 @@
   "routes": 22,
   "cells": 1271,
   "lamps": 0,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1044,
+      "materials": 2,
+      "dominant_material_share": 0.5546,
+      "light_blocks": 0,
+      "massing": {
+        "width": 60,
+        "height": 1,
+        "depth": 75,
+        "fill_ratio": 0.232
+      },
+      "silhouette": {
+        "top": {
+          "area": 1044,
+          "fill_ratio": 0.232
+        },
+        "front": {
+          "area": 60,
+          "fill_ratio": 1.0
+        },
+        "side": {
+          "area": 75,
+          "fill_ratio": 1.0
+        }
+      },
+      "material_counts": {
+        "deepslate_bricks": 579,
+        "cobbled_deepslate": 465
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "c4b629fcce9592db56a61e7985f24d75ad65e38574bf72e328dc193f0c1d1b03",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Hollow Paths.litematic",
   "name": "Hollow Paths"
 }

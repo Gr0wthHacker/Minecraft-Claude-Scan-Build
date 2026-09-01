@@ -7,32 +7,56 @@ twice already: the log flume that shipped 564 water SOURCE blocks and never carr
 the coaster whose first platform was walled off from its own track.
 
     swings           midway   architecture - a chairoplane tower, chains swung out, no mechanism
-    teacups          midway   RIDE - a rectangular minecart loop rings the stationary cups
+    teacups          midway   RIDE - a graded circuit that rises over the cups. DUPLICATES the
+                              carousel and no zone plans it; the recommendation is to retire it
     arcade           midway   architecture - an open pavilion
-    runawaymine      frontier RIDE - a minecart loop out of the station shed and back
+    runawaymine      frontier RIDE - out of the station shed, seven courses up on trestles past
+                              the headframe, over the spoil heaps, and down
     shootinggallery  frontier architecture - a false-fronted range
     riverboat        frontier RIDE-ADJACENT - moored on real still water, a walkable gangway
-    ghosttrain       hollow   RIDE - a minecart loop through a dark interior, in one door, out another
+    ghosttrain       hollow   RIDE - boards outside, runs the frontage, in one arch at ground, up
+                              to a gallery over the lit tomb, down, out the other arch
     mirrormaze       hollow   WALKTHROUGH - a real maze: one solved route, real branches, real dead ends
     chapel           hollow   architecture - a ruin, regular and ordered, never a jagged pile
+
+**A LAP IS NOT A RIDE, AND ALL THREE OF THESE WERE LAPS.** Every rail circuit here used to be a
+flat rectangle - 46 to 72 cells on ONE course, in one side and out the other, past scenery seen
+once from one height. The shipped park's verdict was *"the hollow rollercoaster which is just a
+circle feel pointless and weird filler"*, and the diagnosis under it is general: what makes a
+rail ride worth riding is a CHANGE OF HEIGHT (there are no drops, no crest and no view without
+one), a JOURNEY rather than a lap (out and back, through a building, over a thing), SOMETHING TO
+SEE timed to the ride, and a REAL STATION to board at. All four are buildable here and all four
+are now built; `_Circuit` is where the first of them lives.
 
 **THE RAIL RULES, from `railspiral.py`'s own hard-won notes, restated because getting any one of
 them wrong ships a schematic that passes every check here and does not connect in the world:**
 
     powered_rail CANNOT CURVE (blocks.json: no south_east/south_west/north_west/north_east for
-    it) - every direction change is a plain `rail`, and iron is the scarce metal on this server,
-    so every corner is a cost that gets counted.
+    it) - every direction change is a plain `rail`, and iron is the scarce metal on this server
+    while gold is farmable, so the PLAN SHAPE is an economic decision and every corner is counted.
     AN UNPOWERED powered_rail IS A BRAKE - a redstone_block sits in the bed roughly every 8 cells,
     counted per RUN BETWEEN CORNERS, because a corner does not carry the signal chain.
-    NEVER DESCEND INTO A CORNER - not used here at all: every circuit in this file is FLAT, which
-    sidesteps the grading rules `coaster.py` needs entirely and keeps a minecart loop's geometry
-    to what actually matters for these three rides - closed, powered, and reachable.
-    A CART AT REST LAUNCHES AWAY FROM AN ADJACENT SOLID BLOCK - moot here too: every circuit is a
+    NEVER DESCEND INTO A CORNER - this used to say "not used here at all: every circuit in this
+    file is FLAT", which was true and was the bug. Every circuit is GRADED now, so the rule is
+    live: `coaster._profile` freezes the height at every corner and at both its neighbours.
+    NOTHING MAY STAND ON, OR OVER, THE TRACK - two clear courses over every rail cell, checked
+    against the finished world at generation time by `_Circuit.verify` and at every facing by
+    `tests/test_attractions.py`. A post resting on a rail draws exactly like a post resting on
+    the ground, which is how the teacups shipped four of them and the Ghost Train eleven.
+    A CART AT REST LAUNCHES AWAY FROM AN ADJACENT SOLID BLOCK - moot here: every circuit is a
     CLOSED LOOP with no free end, so there is no terminus to stop at and nothing to launch from.
 
-`coaster.py` already solved closed-circuit corner detection, rail shaping and per-run power
-placement for exactly this kind of loop (`_corners`, `_shapes`, `_power`) - reused here rather
-than re-derived, which is the one-source rule this repo keeps re-learning the hard way.
+`coaster.py` already solved closed-circuit corner detection, the height profile, the feasibility
+check, rail shaping and per-run power for exactly this kind of circuit (`_corners`, `_profile`,
+`_feasible`, `_shapes`, `_power`, plus `_RIDER_THROUGH`) - all reused here rather than
+re-derived, which is the one-source rule this repo keeps re-learning the hard way.
+
+**WHAT A RIDE HERE DOES AND DOES NOT CLAIM.** There is no cart-physics model in this repo, so no
+contract in this file states a speed or promises a completed lap. What is verified is that the
+circuit is closed, that every straight run is powered at both ends, that every corner is flat on
+both sides, that every slope ascends toward its higher neighbour, that every elevated cell is
+carried to the apron, that two courses over every rail cell are clear, and that the platform is
+walkable from real ground. Each kind's own contract says exactly that, and says what is left.
 
 **GEOMETRY**, identical to every other park file because a facing bug is invisible in every
 render this repo owns:
@@ -51,7 +75,10 @@ import math
 
 from .. import blocks
 from .canvas import Canvas, hash01
-from .coaster import _corners as _loop_corners, _power as _loop_power, _shapes as _loop_shapes
+from .coaster import (_corners as _loop_corners, _feasible as _loop_feasible,
+                      _power as _loop_power, _profile as _loop_profile,
+                      _shapes as _loop_shapes, _trace as _loop_trace,
+                      _RIDER_HEAD, _RIDER_THROUGH)
 from .park import (LANDS, ROOM_H, SIGN_WIDTH, _Frame, _LEAN, _STEP,
                     _cornice, _crenellate, _hang_light, _pad, _sign, _trim_run, _walls)
 from .vertical import Ctx, World
@@ -204,40 +231,202 @@ def _chain_path(w, p0, p1, block="iron_chain"):
     return cells
 
 
-def _rect_loop_local(i0, i1, d0, d1):
-    """A closed rectangle perimeter in (i, d), no duplicated endpoint - the exact convention
-    `coaster._corners(pts, closed=True)` expects. Always starts on a true corner, which is what
-    lets `coaster._power`'s linear run-scan treat the cyclic seam correctly without ever wrapping
-    a run across it."""
-    pts = []
-    for d in range(d0, d1 + 1):
-        pts.append((i0, d))
-    for i in range(i0 + 1, i1 + 1):
-        pts.append((i, d1))
-    for d in range(d1 - 1, d0 - 1, -1):
-        pts.append((i1, d))
-    for i in range(i1 - 1, i0, -1):
-        pts.append((i, d0))
-    return pts
+class _Circuit:
+    """A CLOSED, GRADED minecart circuit: PLANNED first, RESERVED, and LAID last.
 
+    **A LOOP THAT STAYS ON ONE COURSE IS A CIRCLE, NOT A RIDE.** Every rail ride in this file used
+    to be a flat rectangle - you got in, went round once past nothing at one height, and arrived
+    where you started. The verdict on the shipped park was *"just a circle... pointless and weird
+    filler"* and it was correct: a ride is a JOURNEY, which means a climb, a crest, a fall and
+    something to look at from the cart on the way. `coaster.py` already solved every piece of that
+    - the corner rule, the height profile, the feasibility check, the shapes and the per-run power
+    - so this reuses all six rather than re-deriving them. One source, so the coaster and these
+    three cannot quietly disagree about what a corner is.
 
-def _lay_loop(w, f, pal, pts, h, power_every=8, deck=None):
-    """A CLOSED, FLAT minecart loop: rail on top, bed (or a redstone_block) underneath. Reuses
-    `coaster.py`'s own closed-circuit corner/shape/power logic rather than re-deriving it - one
-    source for what a corner is, so this file and the coaster cannot quietly disagree about it.
+    THE FOUR RAIL RULES, restated because each one ships a schematic that passes every check here
+    and does not work in the world:
 
-    FLAT ON PURPOSE: none of these three rides needs a grade, and skipping it sidesteps the whole
-    "never descend into a corner" class of bug - there is nothing to get wrong.
+        powered_rail CANNOT CURVE - `data/blocks.json` gives it north_south, east_west and the
+        four ascending states and NOTHING ELSE, so every direction change is a plain `rail` and
+        therefore IRON, the scarce metal on this server against gold which is farmable. Corners
+        are counted and the bill is reported.
+        AN UNPOWERED powered_rail IS A BRAKE - `_power` puts a `redstone_block` in the bed at
+        both ends of every run and every `power_every` along it, counted BETWEEN CORNERS, because
+        a plain rail does not carry the chain and a flat spacing leaves a dead rail past a turn.
+        NEVER DESCEND INTO A CORNER - a curve has no ascending state, so `_profile` freezes the
+        height at every corner AND at the cell on each side of it.
+        NOTHING MAY STAND ON, OR OVER, THE TRACK - and this is the one the other three do not
+        cover, because it is not about the rail at all. A post resting on a rail draws exactly
+        like a post resting on the ground; a wall over a rail draws exactly like a wall over the
+        floor. The teacups put four canopy posts on their own loop and the Ghost Train put solid
+        wool over eleven of its fifty track cells - a suffocation tunnel - and both passed legal
+        states, connectivity, closure, power and the bill of materials.
+
+    So the circuit is a RESERVATION before it is a build. `owns(i, d, h)` answers for the rail
+    cell, its bed, the `HEAD` courses over it that a rider's body occupies, and every pier column
+    that carries an elevated cell down to the apron; every structural loop in this file asks it
+    before placing, and `verify` re-asks it against the FINISHED world so a cell taken by
+    something written later is a generation-time error rather than a ride nobody can survive.
+
+    **WHAT IS AND IS NOT VERIFIED.** There is no cart-physics model in this repo, so nothing here
+    claims a speed, a completed lap or that a crest is crossed. What IS verified: the circuit is
+    CLOSED, every straight run is POWERED at both ends, every corner is FLAT on both sides, every
+    slope ascends toward its higher neighbour, every elevated cell is carried to the apron, and
+    every rider cell is clear. That distinction is stated in each kind's own contract.
     """
-    corners = _loop_corners(pts, True)
-    cells = [f.at(i, d, h) for (i, d) in pts]
-    shapes = _loop_shapes(cells, corners, True)
-    powered = _loop_power(len(pts), corners, power_every)
-    deckmat = deck or pal["path"]
-    for j, (x, y, z) in enumerate(cells):
-        w.put(x, y - 1, z, "redstone_block" if j in powered else deckmat)
-        w.put(x, y, z, "rail" if j in corners else "powered_rail", shape=shapes[j])
-    return {"cells": cells, "corners": corners, "powered": powered, "track": len(cells)}
+
+    # Courses over a rail cell a rider's body occupies. COASTER.PY'S number, imported rather than
+    # restated, for the same reason `_RIDER_THROUGH` is - see the note under this class.
+    HEAD = _RIDER_HEAD
+
+    def __init__(self, wps, power_every=8, pier_every=4, what="the circuit"):
+        full, marks = _loop_trace(wps)
+        if full[-1] != full[0]:
+            raise ValueError("%s: the waypoints must close on themselves" % what)
+        self.pts = full[:-1]
+        self.corners = _loop_corners(self.pts, True)
+        # `_profile` walks the OPEN list, so the seam corner is named in BOTH index spaces or the
+        # closing leg is free to keep descending straight into the turn it closes on.
+        seam = self.corners | ({len(full) - 1} if 0 in self.corners else set())
+        _loop_feasible(full, marks, wps, seam, what)
+        hs = _loop_profile(full, marks, wps, seam)
+        if hs[-1] != hs[0]:
+            raise ValueError("%s: the circuit does not close in height (%d -> %d)"
+                             % (what, hs[0], hs[-1]))
+        self.hs = hs[:-1]
+        self.n = len(self.pts)
+        self.what = what
+        self.powered = _loop_power(self.n, self.corners, max(1, int(power_every)))
+
+        # Where a pier stands. Only the columns that actually carry something, so the space
+        # between them stays available for the scenery the ride exists to run past.
+        every = max(2, int(pier_every))
+        self.pier_at = {j for j in range(self.n)
+                        if self.hs[j] >= 1 and (j % every == 0 or j in self.corners)}
+
+        self.rail, self.bed, self.head, self.piers = set(), set(), set(), set()
+        for j, (i, d) in enumerate(self.pts):
+            h = self.hs[j]
+            self.rail.add((i, d, h))
+            self.bed.add((i, d, h - 1))
+            for k in range(1, self.HEAD + 1):
+                self.head.add((i, d, h + k))
+            if j in self.pier_at:
+                for hh in range(h - 2, -2, -1):
+                    self.piers.add((i, d, hh))
+        self.owned = self.rail | self.bed | self.head | self.piers
+
+    # ---- what the ride is, in numbers a report can print
+
+    @property
+    def rise(self):
+        """Courses climbed and courses fallen over one lap. A ride with (0, 0) is a circle."""
+        up = down = 0
+        for a, b in zip(self.hs, self.hs[1:] + self.hs[:1]):
+            up += max(0, b - a)
+            down += max(0, a - b)
+        return up, down
+
+    @property
+    def top(self):
+        return max(self.hs)
+
+    def bill(self):
+        """The metal. A corner is a plain rail (6 iron makes 16) and a straight is powered
+        (6 gold makes 6), which is why the PLAN SHAPE is an economic decision here."""
+        c, straight = len(self.corners), self.n - len(self.corners)
+        return {"corners": c, "powered": straight,
+                "iron_ingots": round(c * 6 / 16.0, 1), "gold_ingots": straight,
+                "redstone_blocks": len(self.powered)}
+
+    def owns(self, i, d, h) -> bool:
+        return (i, d, h) in self.owned
+
+    def column_free(self, i, d, h0, h1) -> bool:
+        """THE WHOLE COLUMN, not its foot. A post whose foot is clear and whose head lands in a
+        leg passing overhead puts a log in the rider - `coaster._coaster`'s own lamp-post note,
+        and the failure the teacups shipped four times over."""
+        return all(not self.owns(i, d, h) for h in range(h0, h1 + 1))
+
+    # ---- laying it
+
+    def lay(self, w, f, pal, deck=None, pier=None):
+        """Beds, power, piers, then rails - in that order, and LAST of everything in a builder.
+
+        A rail cell that is already occupied is an ERROR, never a skip: a rail quietly dropped
+        for a fence post is a dead end that audits perfectly clean.
+        """
+        cells = [f.at(i, d, h) for (i, d), h in zip(self.pts, self.hs)]
+        shapes = _loop_shapes(cells, self.corners, True)
+        deckmat = deck or pal["path"]
+        piermat = pier or pal["post"]
+        piers = 0
+        for j, (i, d) in enumerate(self.pts):
+            h = self.hs[j]
+            w.put(*f.at(i, d, h - 1), "redstone_block" if j in self.powered else deckmat)
+            if j in self.pier_at:
+                for hh in range(h - 2, -2, -1):
+                    w.put(*f.at(i, d, hh), piermat)
+                piers += 1
+        for j, (i, d) in enumerate(self.pts):
+            pos = f.at(i, d, self.hs[j])
+            if w.has(*pos):
+                raise ValueError("%s: track cell %d at %s is occupied by %s"
+                                 % (self.what, j, (i, d), w.name(*pos)))
+            w.put(*pos, "rail" if j in self.corners else "powered_rail", shape=shapes[j])
+        # `bill()` is merged LAST and it owns `corners` and `powered` - as COUNTS. The index
+        # sets keep their own names, because a caller that reads `corners` expecting a number and
+        # gets a set (or the reverse) fails somewhere else entirely.
+        out = {"cells": cells, "corner_idx": self.corners, "powered_idx": self.powered,
+               "track": self.n, "piers": piers, "rise": self.rise[0], "fall": self.rise[1],
+               "track_top": self.top}
+        out.update(self.bill())
+        return out
+
+    def verify(self, w, f):
+        """**THE CHECK NOTHING ELSE MAKES**, run against the FINISHED world.
+
+        Two courses clear over every rail cell. `tests/test_attractions.py` asserts it at every
+        facing too, and it is asserted HERE as well because a generator that can only be told it
+        is wrong by a test suite is one that ships wrong to anybody who calls it directly.
+        """
+        bad = []
+        for j, (i, d) in enumerate(self.pts):
+            for k in range(1, self.HEAD + 1):
+                x, y, z = f.at(i, d, self.hs[j] + k)
+                n = w.name(x, y, z)
+                if n is not None and n.split(":")[-1] not in _RIDER_THROUGH:
+                    bad.append(((i, d, self.hs[j] + k), n))
+        if bad:
+            raise ValueError("%s: %d track cell(s) have something in the rider: %s"
+                             % (self.what, len(bad), bad[:4]))
+        return True
+
+
+# _RIDER_THROUGH - what a rider passes through unharmed - is `coaster.py`'s now, imported above:
+# both this file's loop rides and `coaster.py`'s own track check judge a rail cell's rider space
+# by the same set, so the two cannot drift apart the way two copies of "what can a rider pass
+# through" eventually do.
+
+
+def _rect_wps(i0, i1, d0, d1, lift=0, low=0, near_break=None):
+    """A rectangular circuit that CLIMBS one side, runs its far leg high, and falls down the
+    other - the smallest change that turns a lap into a ride, and the one two kinds here use.
+
+    The near leg (`d0`) is the station straight and stays at `low`; the far leg (`d1`) is the
+    crest. Both ends of a leg carry the same height, which is "never descend into a corner"
+    expressed as geometry rather than hoped for from `_profile`.
+
+    `near_break` names an `i` on the near leg to plant an extra COLINEAR waypoint at, so a caller
+    can hold a stretch of it flat for a platform without turning it into a corner.
+    """
+    if lift < 0:
+        raise ValueError("a circuit cannot lift by %d" % lift)
+    near = [(i0, d0, low)]
+    if near_break is not None and i0 < near_break < i1:
+        near.append((near_break, d0, low))
+    return near + [(i1, d0, low), (i1, d1, low + lift),
+                   (i0, d1, low + lift), (i0, d0, low)]
 
 
 # ---------------------------------------------------------------------------- 1. swings (midway)
@@ -325,38 +514,59 @@ def _swings(w: World, p: dict, ctx) -> dict:
 # ---------------------------------------------------------------------------- 2. teacups (midway)
 
 def _teacups(w: World, p: dict, ctx) -> dict:
-    """A RIDE. A conical canopy on posts over a ring of stationary teacups, and a real, closed,
-    powered minecart loop running round the OUTSIDE of the ring - board at the gate, ride the
-    loop, the cups themselves never move because nothing in vanilla can move them."""
+    """A RIDE - and, honestly, THE ONE KIND IN THIS FILE THAT DUPLICATES ANOTHER.
+
+    A cart going round under a canopy is the CAROUSEL (`bigwheel._carousel`), which does it
+    better: a true rasterised circle rather than a rectangle, two rings of mounts either side of
+    the rail, and a wedge-striped cone over it. This kind was the same idea with worse geometry,
+    and it is not in any zone's module list - the planner drops it. **The recommendation is to
+    retire it and keep the carousel**; it is graded here rather than deleted only so that nothing
+    in the repo still ships a flat lap, and because deleting a kind is not this pass's call.
+
+    What it is now: the loop still rings the cups, but the far leg RISES FOUR COURSES on piers,
+    so the back half of the lap runs over the cup ring and a rider looks DOWN into the cups
+    instead of past them. Board at the front gate, climb the right side, cross the hump, fall
+    down the left, arrive back at the gate. The cups themselves still never move, because nothing
+    in vanilla can move them - and the ride does not pretend otherwise.
+
+    **THE CANOPY HAD TO GO UP WITH THE TRACK.** Its cone started at h=6 and the raised leg tops
+    out at h=4, which leaves ONE clear course over the rider - a moving cart under a solid roof
+    two cells above the rail. The cone starts at h=8 now and the posts are eight courses; the
+    rule that forced it is `_Circuit.HEAD`, and it is checked against the finished world rather
+    than against this paragraph.
+    """
     f = _Frame(p)
     pal, ex = _pal(p)
     R_plat = 11
     n_cups = max(4, int(p["cups"]))
     r_cup = 6
+    lr = R_plat - 2                     # the loop's half-extent
+    LIFT = 4                            # courses the far leg rises
+    EAVE = 8                            # the cone's first course: HEAD + the crest, and no less
+
+    # ---- THE CIRCUIT IS PLANNED FIRST, so every post, cup and pier below can ask whether a cell
+    # belongs to the rider before it takes it. Four canopy posts once stood ON this loop's own
+    # rectangle: the loop was laid afterwards, overwrote each post's ground cell with rail and
+    # left the post standing in the course above - a rider hits a log at speed, and every check
+    # passed. `circ.owns` is why that cannot happen again by arithmetic.
+    circ = _Circuit(_rect_wps(-lr, lr, -lr, lr, lift=LIFT),
+                    int(p["power_every"]), pier_every=4, what="the teacups' circuit")
 
     footprint = [(a, b) for a in range(-R_plat - 4, R_plat + 5) for b in range(-R_plat - 4, R_plat + 5)]
     _ground(w, f, pal, footprint)
 
-    # THE CANOPY: six posts at the platform's rim, a stepped cone roof collapsing to a centre
-    # post - a tent, not a plate, which is what separates this from the wheel's flat crown.
-    # **A POST MAY NOT STAND ON THE TRACK.** At radius R_plat-1 four of the six landed on the
-    # loop's own rectangle at +-(R_plat-2); the loop is laid afterwards, so it overwrote the
-    # post's ground cell with rail and left the post standing in the course above it - a rider
-    # hits a log at speed. It was invisible in every render, because a post resting on a rail
-    # draws exactly like a post resting on the ground, and every check passed: legal states, one
-    # connected piece, a closed powered circuit with no dead rails. The same bug in the Ghost
-    # Train put a solid block over eleven of its fifty track cells, which is a suffocation
-    # tunnel. The posts stand INSIDE the loop, and the guard below is what stops the next
-    # radius change putting them back on it.
-    lr_guard = R_plat - 2
+    # THE CANOPY: six posts INSIDE the loop, a stepped cone roof collapsing to a centre post - a
+    # tent, not a plate, which is what separates this from the wheel's flat crown.
+    posts = 0
     n_post = 6
     for k in range(n_post):
         th = 2 * math.pi * k / n_post
-        pi, pb = round((lr_guard - 2) * math.cos(th)), round((lr_guard - 2) * math.sin(th))
-        if max(abs(pi), abs(pb)) >= lr_guard:
+        pi, pb = round((lr - 2) * math.cos(th)), round((lr - 2) * math.sin(th))
+        if max(abs(pi), abs(pb)) >= lr or not circ.column_free(pi, pb, -1, EAVE):
             continue
-        for h in range(6):
+        for h in range(EAVE):
             w.put(*f.at(pi, pb, h), pal["post"])
+        posts += 1
     # A SOLID STEPPED CONE, not a stack of thin rings: `_disc(R)` at each step is a strict subset
     # of the disc below it (radius shrinks by 2 a step), so every layer's footprint sits directly
     # over the one before it and the whole roof is ONE connected mass by construction. Thin
@@ -364,10 +574,12 @@ def _teacups(w: World, p: dict, ctx) -> dict:
     # separate floating rings - a filled cone reads as a tent roof just as well and cannot do that.
     ca, cb = pal["canopy"]
     for step, R in enumerate((R_plat - 1, R_plat - 3, R_plat - 5, R_plat - 7, R_plat - 9, 1)):
-        h = 6 + step
+        h = EAVE + step
         for (a, b) in _disc(max(R, 1)):
+            if circ.owns(a, b, h):
+                continue
             w.put(*f.at(a, b, h), ca if (a + b + step) % 2 == 0 else cb)
-    w.put(*f.at(0, 0, 6 + 6), pal["trim"])
+    w.put(*f.at(0, 0, EAVE + 6), pal["trim"])
 
     # THE CUPS: small drums, three-quarter walled with a boarding gap, a floor and a hub.
     cups = 0
@@ -376,21 +588,21 @@ def _teacups(w: World, p: dict, ctx) -> dict:
         ci, cb2 = round(r_cup * math.cos(th)), round(r_cup * math.sin(th))
         colour = BRIGHT[int(hash01(m, r_cup, f.x, f.z) * len(BRIGHT))]
         for (a, b) in _disc(2):
+            if circ.owns(ci + a, cb2 + b, -1):
+                continue
             w.put(*f.at(ci + a, cb2 + b, -1), pal["path"] if (a + b) % 2 else pal["ground"])
         for (a, b) in _annulus(2, 1.4):
             # leave a gap facing outward, away from centre, to board from the rim side
             if (a * math.cos(th) + b * math.sin(th)) > 0.5:
                 continue
+            if circ.owns(ci + a, cb2 + b, 0):
+                continue
             w.put(*f.at(ci + a, cb2 + b, 0), colour)
         w.put(*f.at(ci, cb2, 0), pal["fence"])          # the centre "wheel" to hold onto
         cups += 1
 
-    # THE TRACK: a rectangular minecart loop ringing the whole cup cluster, powered, flat, closed.
-    lr = R_plat - 2
-    loop_pts = _rect_loop_local(-lr, lr, -lr, lr)
-    loop = _lay_loop(w, f, pal, loop_pts, 0, int(p["power_every"]), deck=pal["path"])
-
-    # A GATED BOARDING PLATFORM at the front of the loop, a fence with one gate.
+    # A GATED BOARDING PLATFORM at the front of the loop, on the circuit's own LOW leg - the
+    # station straight, which is what `_rect_wps` keeps flat.
     gate_i = 0
     for i in range(-3, 4):
         w.put(*f.at(i, -lr - 1, 0), pal["path"])
@@ -407,13 +619,27 @@ def _teacups(w: World, p: dict, ctx) -> dict:
     signed = _sign(w, f, pal, -3, -lr - 2, 1, f.facing,
                    [title[:SIGN_WIDTH], "", "board the cart", ""])
 
-    return {"kind": "teacups", "diameter": R_plat * 2, "height": 11, "cups": cups,
-            "track": loop["track"], "corners": len(loop["corners"]),
-            "powered": len(loop["powered"]), "signed": bool(signed),
+    loop = circ.lay(w, f, pal, deck=pal["path"], pier=pal["post"])
+    circ.verify(w, f)
+
+    return {"kind": "teacups", "diameter": R_plat * 2, "height": EAVE + 7, "cups": cups,
+            "posts": posts, "track": loop["track"], "corners": loop["corners"],
+            "powered": loop["powered"], "piers": loop["piers"],
+            "rise": loop["rise"], "fall": loop["fall"], "lift": LIFT,
+            "iron_ingots": loop["iron_ingots"], "gold_ingots": loop["gold_ingots"],
+            "redstone_blocks": loop["redstone_blocks"], "signed": bool(signed),
             "boarding_at": list(f.at(gate_i, -lr - 2, 0)),
-            "contract": "a closed, powered minecart loop rings the stationary cups - a real "
-                        "ride you board and ride, since nothing in vanilla can spin the cups "
-                        "themselves"}
+            "duplicate_of": "carousel",
+            "contract": "a closed, powered minecart circuit ringing the stationary cups, whose "
+                        "far leg rises %d courses on piers so the back half of the lap looks "
+                        "DOWN into them. %d cells, %d corners, %d courses of rise and the same "
+                        "of fall. VERIFIED: closed, every run powered at both ends, every corner "
+                        "flat on both sides, every elevated cell carried to the apron, two clear "
+                        "courses over every rail cell, boardable on foot through the front gate. "
+                        "NOT verified: cart speed - there is no cart-physics model here. AND "
+                        "NOTE: this kind duplicates the carousel and no zone plans it; the "
+                        "recommendation is to retire it."
+                        % (LIFT, loop["track"], loop["corners"], loop["rise"])}
 
 
 # ---------------------------------------------------------------------------- 3. arcade (midway)
@@ -483,83 +709,143 @@ def _arcade(w: World, p: dict, ctx) -> dict:
 # ------------------------------------------------------------------ 4. runawaymine (frontier)
 
 def _runawaymine(w: World, p: dict, ctx) -> dict:
-    """A RIDE. A mine-train station under a timber shed, beside a real closed minecart loop that
-    runs out past the spoil heaps and the headframe and back - board it, ride it. A stationary
-    "ore cart" (a barrel, since this server has no minecart block on its 1.19 allowlist) sits on
-    a display spur, and a hoist chain hangs from the headframe to a bucket at the ground.
+    """A RIDE, AND A CLIMB OUT OF THE VALLEY. It was a flat rectangle beside a shed - forty-six
+    cells on one course, past a headframe that stood OUTSIDE the loop where a rider never got
+    near it.
+
+    What it is now, in the order you ride it:
+
+        1. board on the platform under the station shed, at ground
+        2. run the station straight, out under two timbered MINE PORTALS
+        3. CLIMB the east side seven courses on trestles - the ride leaves the ground
+        4. cross the whole back leg at h=7, over the spoil heaps and level with the HEADFRAME's
+           hoist beam, which now stands inside the loop where you pass it
+        5. FALL seven courses down the west side
+        6. arrive back at the platform
+
+    Sixty-two cells, four corners, seven courses of rise and seven of fall, in the footprint the
+    planner already reserved for it (26 x 23).
+
+    **THE HEADFRAME MOVED INSIDE THE LOOP AND THAT IS THE WHOLE POINT OF THE REBUILD.** A ride's
+    content is what you pass, and a hoist standing four cells beyond the far rail was scenery for
+    somebody on the ground rather than for the rider. Inside, at the middle of the circuit, the
+    crest runs level with its beam. Nothing about it may touch the track, which is asserted
+    against `circ.owns` per cell rather than against this paragraph - the shed's own far posts
+    used to be sited by arithmetic that put four of the teacups' posts straight onto the rail.
     """
     f = _Frame(p)
     pal, ex = _pal(p)
     mr = int(p["min_run"])
-    li0, li1, ld0, ld1 = 2, 16, 3, 12          # the loop, in local (i, d)
+    li0, li1, ld0, ld1 = 2, 20, 4, 17          # the circuit, in local (i, d)
+    LIFT = 7                                   # courses the far leg climbs
+    APEX = 11                                  # the headframe's beam, and the module's own top
 
-    footprint = [(i, d) for i in range(-4, li1 + 8) for d in range(-4, ld1 + 10)]
+    # ---- PLANNED FIRST. Everything below asks `circ` before it places.
+    circ = _Circuit(_rect_wps(li0, li1, ld0, ld1, lift=LIFT),
+                    int(p["power_every"]), pier_every=4, what="the Runaway Mine's circuit")
+
+    footprint = [(i, d) for i in range(-2, 24) for d in range(-2, 21)]
     _ground(w, f, pal, footprint, block=pal["ground"], alt=ex["rock"])
 
-    # THE STATION SHED: open-sided, posts and a roof, over a platform beside the loop's front edge.
-    plat_d = ld0 - 2
-    for i in range(li0 - 1, li1 + 2):
-        for d in range(plat_d - 1, ld0):
-            w.put(*f.at(i, d, 0), pal["ground"] if (i + d) % 2 else pal["path"])
-    for i in (li0 - 2, li1 + 2):
-        for d in (plat_d - 2, ld0 + 1):
-            for h in range(6):
-                w.put(*f.at(i, d, h), pal["post"])
-    for i in range(li0 - 3, li1 + 4):
-        for d in range(plat_d - 3, ld0 + 2):
-            w.put(*f.at(i, d, 6), pal["beam"])
-    _trim_run(w, f, pal, [(i, plat_d - 4, f.back) for i in range(li0 - 3, li1 + 4)], 6, mr,
-              half="top")
-    for i in range(li0, li1, 5):
-        _hang_light(w, f, pal, i, plat_d - 1, 5)
+    def free_put(i, d, h, name, **props):
+        if circ.owns(i, d, h):
+            return 0
+        w.put(*f.at(i, d, h), name, **props)
+        return 1
 
-    # THE LOOP: out from beside the platform, round the back, and back.
-    pts = _rect_loop_local(li0, li1, ld0, ld1)
-    loop = _lay_loop(w, f, pal, pts, 0, int(p["power_every"]), deck=ex["rock"])
+    # THE STATION SHED: open-sided, posts and a roof, over a platform beside the circuit's own
+    # LOW leg - the straight `_rect_wps` holds flat so that a boarder's feet are level with the
+    # cart. The roof SPANS THE TRACK, which is what makes it read as a station rather than a bus
+    # shelter, and it clears the rider by four courses.
+    plat_d = ld0 - 3                           # d = 1; the platform runs d=1..3
+    for i in range(li0, 15):
+        for d in range(plat_d, ld0):
+            free_put(i, d, 0, pal["ground"] if (i + d) % 2 else pal["path"])
+    for i in (li0 + 1, 13):
+        for d in (plat_d - 1, ld0 + 2):
+            for h in range(6):
+                free_put(i, d, h, pal["post"])
+    for i in range(li0, 15):
+        for d in range(plat_d - 2, ld0 + 3):
+            free_put(i, d, 6, pal["beam"])
+    _trim_run(w, f, pal, [(i, plat_d - 2, f.back) for i in range(li0, 15)], 6, mr, half="top")
+    for i in range(li0 + 2, 13, 5):
+        _hang_light(w, f, pal, i, plat_d, 5)
 
     # a fence between the platform and the near edge of the track, with a boarding gap
-    for i in range(li0, li1 + 1):
+    for i in range(li0, 15):
         if li0 + 3 <= i <= li0 + 5:
             continue
-        w.put(*f.at(i, ld0 - 1, 1), pal["fence"])
+        free_put(i, ld0 - 1, 1, pal["fence"])
 
     # A DISPLAY ORE CART: a barrel standing on the platform's own floor. Deliberately NOT on its
     # own rail spur - an unpowered, unconnected rail cell sitting there for decoration is exactly
-    # the "dead rail" this file's rail-circuit tests exist to catch, and the whole point of this
-    # kind is that the track is a real, verified circuit and nothing else pretends to be track.
-    w.put(*f.at(li0 - 1, plat_d - 1, 1), "barrel", facing="up", open="false")
+    # the "dead rail" this file's rail-circuit tests exist to catch.
+    free_put(li0, plat_d, 1, "barrel", facing="up", open="false")
 
-    # THE HEADFRAME: an A-frame hoist behind the loop - two raking legs to a beam, then a hoist
-    # chain down the centre to a bucket. `_chain_path` is used for the legs too, because it is
-    # the one helper here guaranteed to lay a 6-connected, axis-correct diagonal member.
-    hx0, hd0 = li1 + 4, ld1 + 2
-    apex_h = 11
-    for s in (-2, 2):
-        _chain_path(w, f.at(hx0 + s, hd0, 0), f.at(hx0, hd0, apex_h), pal["post"])
+    # TWO TIMBERED MINE PORTALS over the station straight, out past the shed. A post either side
+    # and a beam across at h=3 - which is ONE COURSE OVER the rider's head, and no closer: a
+    # portal at h=2 is a lintel in the face. This is the vocabulary the corpus says we are seven
+    # times short of, used for the thing it is actually for.
+    portals = 0
+    for pi in (16, 19):
+        if not (circ.column_free(pi, ld0 - 1, 0, 3) and circ.column_free(pi, ld0 + 1, 0, 3)):
+            continue
+        for h in range(3):
+            free_put(pi, ld0 - 1, h, pal["post"])
+            free_put(pi, ld0 + 1, h, pal["post"])
+        for d in (ld0 - 1, ld0, ld0 + 1):
+            free_put(pi, d, 3, pal["beam"])
+        portals += 1
+
+    # THE HEADFRAME, INSIDE the circuit at its centre: two raking legs to a beam, then a hoist
+    # chain down to a bucket. `_chain_path` is the one helper here guaranteed to lay a
+    # 6-connected, axis-correct diagonal member.
+    hx0, hd0 = (li0 + li1) // 2, (ld0 + ld1) // 2
+    _chain_path(w, f.at(hx0 - 2, hd0, 0), f.at(hx0, hd0, APEX), pal["post"])
+    _chain_path(w, f.at(hx0 + 2, hd0, 0), f.at(hx0, hd0, APEX), pal["post"])
     for i in range(-2, 3):
-        w.put(*f.at(hx0 + i, hd0, apex_h), pal["beam"])
-    _chain_path(w, f.at(hx0, hd0, apex_h - 1), f.at(hx0, hd0, 1), "iron_chain")
-    w.put(*f.at(hx0, hd0, 0), "barrel", facing="up", open="false")
+        free_put(hx0 + i, hd0, APEX, pal["beam"])
+    _chain_path(w, f.at(hx0, hd0, APEX - 1), f.at(hx0, hd0, 1), "iron_chain")
+    free_put(hx0, hd0, 0, "barrel", facing="up", open="false")
 
-    # SPOIL HEAPS: two small pyramids of aged rock, outside the loop.
-    for k, (hi, hd) in enumerate(((li1 + 6, ld0 - 1), (li1 + 6, ld1 - 3))):
+    # SPOIL HEAPS, INSIDE the loop under the crest, so the high leg runs over them.
+    heaps = 0
+    for (hi, hd) in ((li0 + 4, ld1 - 3), (li1 - 4, ld1 - 3)):
         for r in range(3, -1, -1):
             for (a, b) in _disc(r):
-                w.put(*f.at(hi + a, hd + b, 3 - r), ex["aged"])
+                free_put(hi + a, hd + b, 3 - r, ex["aged"])
+        heaps += 1
 
     # Hung off the shed's own corner POST (a full column), one cell further out than it - the
     # shed is open-sided by design, so nowhere along its open front has a wall to hang from.
     title = str(p.get("title") or "RUNAWAY MINE").upper()
-    signed = _sign(w, f, pal, li0 - 2, plat_d - 3, 2, f.facing,
+    signed = _sign(w, f, pal, li0 + 1, plat_d - 2, 2, f.facing,
                    [title[:SIGN_WIDTH], "", "board the cart", "hold the rail"])
 
-    return {"kind": "runawaymine", "width": li1 - li0 + 12, "depth": ld1 - ld0 + 14,
-            "height": apex_h + 1, "track": loop["track"], "corners": len(loop["corners"]),
-            "powered": len(loop["powered"]), "signed": bool(signed),
-            "platform_at": list(f.at(li0 + 1, plat_d - 1, 0)),
-            "boarding_at": list(f.at(li0 + 4, ld0 - 1, 1)),  # h=1: standing ON the h=0 platform floor
-            "contract": "a closed, powered minecart loop out past the headframe and back, "
-                        "boarded from a platform under the station roof"}
+    # ---- THE TRACK, LAID LAST, then VERIFIED against the finished world.
+    loop = circ.lay(w, f, pal, deck=ex["rock"], pier=pal["post"])
+    circ.verify(w, f)
+
+    return {"kind": "runawaymine", "width": 26, "depth": 23, "height": APEX + 1,
+            "track": loop["track"], "corners": loop["corners"], "powered": loop["powered"],
+            "piers": loop["piers"], "portals": portals, "heaps": heaps,
+            "rise": loop["rise"], "fall": loop["fall"], "crest": LIFT,
+            "iron_ingots": loop["iron_ingots"], "gold_ingots": loop["gold_ingots"],
+            "redstone_blocks": loop["redstone_blocks"], "signed": bool(signed),
+            "platform_at": list(f.at(li0 + 1, plat_d, 0)),
+            "boarding_at": list(f.at(li0 + 4, ld0 - 1, 1)),  # h=1: standing ON the h=0 platform
+            "contract": "a closed, powered minecart circuit that leaves a roofed station "
+                        "straight, runs out under two timbered mine portals, climbs %d courses "
+                        "on trestles up the east side, crosses the crest level with the "
+                        "headframe's hoist beam and over the spoil heaps, and falls %d courses "
+                        "back to the platform. %d cells, %d corners. VERIFIED: closed, every run "
+                        "powered at both ends, every corner flat on both sides, every elevated "
+                        "cell carried to the apron on piers, two clear courses over every rail "
+                        "cell, and the platform walkable from the ground it stands on. NOT "
+                        "verified: cart speed - there is no cart-physics model here, so ride it "
+                        "once before anyone is told it completes the lap."
+                        % (loop["rise"], loop["fall"], loop["track"], loop["corners"])}
 
 
 # --------------------------------------------------------------- 5. shootinggallery (frontier)
@@ -798,7 +1084,7 @@ def _web(w, f, i, d, h) -> bool:
     return True
 
 
-def _ghost_scenes(w, f, pal, ex, width, depth, height, i0, i1) -> dict:
+def _ghost_scenes(w, f, pal, ex, width, depth, height, i0, i1, circ=None) -> dict:
     """THE THING A DARK RIDE IS FOR, and this one shipped without any of it.
 
     **MEASURED ON THE BUILD BEFORE THIS: THE WHOLE ATTRACTION CONTAINED ZERO LIGHT SOURCES.**
@@ -815,26 +1101,34 @@ def _ghost_scenes(w, f, pal, ex, width, depth, height, i0, i1) -> dict:
     it is why `_lamp` returns a bool at all. Every light placed here is counted and the count is
     returned, so a lamp that does not land shows up as a number rather than as a dark ride.
 
-    What the rider passes, in order round the loop, is a MAUSOLEUM standing in the middle of the
-    hall: a closed tomb with a barred window on each of its four faces and a lantern burning
-    behind each grille, two raised tombs with a skull and a lit candle standing proud in the side
-    alleys, and four chained lanterns hung from the hall's own lid at the corners. Regularity and
-    openings, not damage - the void tower's rule, and the reason a lit grille reads at speed
-    where a heap of cobwebs does not.
+    What the rider passes, in order round the circuit: a MAUSOLEUM standing in the middle of the
+    hall, a closed tomb with a barred window on each of its four faces and a lantern burning
+    behind each grille; two raised tombs with a skull and a lit candle standing proud in the side
+    alleys; four chained lanterns hung from the hall's own lid at the corners; and - added with
+    the gallery - FOUR ROOF BEACONS standing on the tomb's lid.
 
-    **NOTHING HERE MAY STAND IN A TRACK COLUMN.** The loop is the perimeter `i0`/`i1` x
-    `0`/`depth-2`; the mausoleum is inset two cells from it on all four sides and every prop
-    outside it sits in the one-cell alley between, so no cell placed here is a rail cell or the
-    cell a rider's head occupies over one. `tests/test_attractions.py` asserts that against the
-    built rail set rather than against this comment.
+    **THE BEACONS EXIST BECAUSE THE RIDE GAINED A SECOND LEVEL.** Every light in this building
+    used to sit at h=1 to h=3, which is right for a track that never leaves the floor and wrong
+    the moment a leg crosses the hall at h=5: on the crest a rider is ABOVE every lamp in the
+    room, looking at the dark top of a tomb. A lantern on a short post at the lid's four corners
+    is at the gallery's own eye height, so the crest is the best-lit part of the ride rather than
+    the darkest - which is the whole reason to climb.
+
+    **NOTHING HERE MAY STAND IN A TRACK COLUMN.** The mausoleum is inset two cells from the
+    climbing alleys on all four sides and every prop outside it sits in the alley between - and
+    that is not trusted to arithmetic: `circ.owns` is consulted per cell, and `_Circuit.verify`
+    re-asks it against the finished world.
     """
     mi0, mi1 = i0 + 2, i1 - 2
     md0, md1 = 2, depth - 4
-    TOP = 3                                    # the tomb's wall head; a rider's eye is at h=1
-    out = {"lamps": 0, "webs": 0, "windows": 0, "tombs": 0, "chandeliers": 0,
+    TOP = 3                                    # the tomb's wall head; a ground rider's eye is h=1
+    out = {"lamps": 0, "webs": 0, "windows": 0, "tombs": 0, "chandeliers": 0, "beacons": 0,
            "bounds": [mi0, mi1, md0, md1]}
     if mi1 - mi0 < 4 or md1 - md0 < 4:
         return out                             # no room for a centrepiece; leave the hall empty
+
+    def free(i, d, h):
+        return circ is None or not circ.owns(i, d, h)
 
     # THE WINDOWS ARE DECIDED BEFORE THE WALL IS DRAWN, never cut out of it afterwards. `put`
     # overwrites and cannot remove, so an opening made after the ring exists has to repaint cells
@@ -848,13 +1142,14 @@ def _ghost_scenes(w, f, pal, ex, width, depth, height, i0, i1) -> dict:
         for d in range(md0, md1 + 1):
             if i in (mi0, mi1) or d in (md0, md1):
                 for h in range(TOP + 1):
-                    if (i, d, h) in win:
+                    if (i, d, h) in win or not free(i, d, h):
                         continue
                     x, y, z = f.at(i, d, h)
                     # weathered per CELL - hashed on the course, a course comes out all one
                     # material and the wall is horizontal stripes (the deck soffit's own bug)
                     w.put(x, y, z, ex["aged"] if hash01(x, y, z) < 0.18 else pal["wall"])
-            w.put(*f.at(i, d, TOP + 1), pal["trim"])          # the lid, and the tomb is closed
+            if free(i, d, TOP + 1):
+                w.put(*f.at(i, d, TOP + 1), pal["trim"])      # the lid, and the tomb is closed
 
     for (i, d, s) in lights:
         along_i = d in (md0, md1)
@@ -868,6 +1163,18 @@ def _ghost_scenes(w, f, pal, ex, width, depth, height, i0, i1) -> dict:
         if _lamp(w, *f.at(pi, pd, 1), pal["light"]):
             out["lamps"] += 1
         out["windows"] += 1
+
+    # THE ROOF BEACONS, at the GALLERY's own eye height. A post on the lid and a lantern on top
+    # of it: standing, not hanging - written `hanging=true` a lamp looks for a block ABOVE it,
+    # finds the hall's open air, and hangs from nothing.
+    for (bi, bd) in ((mi0 + 1, md0 + 1), (mi1 - 1, md0 + 1),
+                     (mi0 + 1, md1 - 1), (mi1 - 1, md1 - 1)):
+        if not free(bi, bd, TOP + 2) or not free(bi, bd, TOP + 3):
+            continue
+        w.put(*f.at(bi, bd, TOP + 2), pal["post"])
+        if _lamp(w, *f.at(bi, bd, TOP + 3), pal["light"]):
+            out["lamps"] += 1
+            out["beacons"] += 1
 
     # THE TOMBS, proud in the side alleys where a rider passes within one cell of them.
     for (ti, td) in ((mi0 - 1, md0 + 1), (mi1 + 1, md1 - 1)):
@@ -893,47 +1200,71 @@ def _ghost_scenes(w, f, pal, ex, width, depth, height, i0, i1) -> dict:
                          (1, depth - 2, height - 1), (width - 2, depth - 2, height - 1),
                          (mi0 - 1, md0 + 3, TOP), (mi1 + 1, md1 - 3, TOP),
                          (mi0 + 3, md0 - 1, TOP), (mi1 - 3, md1 + 1, TOP)):
-        out["webs"] += _web(w, f, bi, bd, bh)
+        if free(bi, bd, bh):
+            out["webs"] += _web(w, f, bi, bd, bh)
     return out
 
 
 def _ghosttrain(w: World, p: dict, ctx) -> dict:
-    """A RIDE. A dark-ride facade with a lit sign; track enters through one arch, loops through a
-    dark interior past a few lit set-pieces, and comes back out through a second arch, closed
-    and powered - the one attraction whose whole point IS the ride."""
+    """A RIDE, AND A JOURNEY RATHER THAN A LAP. **This is the ride the park was rejected over** -
+    *"the hollow rollercoaster which is just a circle feel pointless and weird filler"* - and it
+    was a flat rectangle inside a sealed box: fifty cells at one course, in one door and out the
+    other, past a tomb you saw once from one side.
+
+    What it is now, in the order you ride it:
+
+        1. board on the lit platform OUTSIDE the facade, at ground
+        2. run the FRONTAGE past the queue - the ride is visible from the street, which is the
+           thing the zone was told it lacked
+        3. IN through the left arch at ground, into the dark
+        4. CLIMB the west alley five courses, passing the mausoleum's west grille
+        5. cross the whole back leg on a GALLERY at h=5, looking DOWN on the lit tomb roof and
+           level with the hung lanterns
+        6. FALL five courses down the east alley, past the east grille and the candle-lit tombs
+        7. OUT through the right arch, and back along the frontage to the platform
+
+    So: a climb, a crest, a fall, and the same set pieces seen from two heights rather than one.
+    Ten courses of vertical over a 58-cell lap, four corners, in a footprint that did not grow.
+
+    **THE FRONT LEG MOVED OUT OF THE WALL AND THAT FIXED TWO THINGS AT ONCE.** It used to run in
+    the front wall's own plane, so the loop overwrote the wall's ground course and left the
+    course above solid - eleven track cells with a block on the rider's head - and the cure at
+    the time was to leave a slot at h=1. With two courses of headroom now required rather than
+    one, that slot would have had to be two courses of open wall the length of the frontage. Run
+    OUTSIDE at d=-2 instead, the arch is the only thing the track passes through, the facade is a
+    facade again, and the carts run past the people waiting for them.
+    """
     f = _Frame(p)
     pal, ex = _pal(p)
     width = max(17, int(p["width"] or 21))
-    depth = max(11, int(p["depth"] or 15))
+    depth = max(13, int(p["depth"] or 15))
     height = 12
     mr = int(p["min_run"])
     entry_i, exit_i = 3, width - 4
+    GALLERY = 5                                 # the crest, in courses over the hall floor
+
+    # ---- THE CIRCUIT IS PLANNED BEFORE ANYTHING IS BUILT, so every structural loop below can
+    # ask whether a cell belongs to the rider before it takes it. The two waypoints at d=1 are
+    # COLINEAR - they exist to hold the arch passage flat, because an ascending rail in a
+    # four-course opening is a rider's head in the lintel.
+    front_d = -2
+    back_d = depth - 2
+    wps = [(entry_i, front_d, 0), (entry_i, 1, 0), (entry_i, back_d, GALLERY),
+           (exit_i, back_d, GALLERY), (exit_i, 1, 0), (exit_i, front_d, 0),
+           (entry_i, front_d, 0)]
+    circ = _Circuit(wps, int(p["power_every"]), pier_every=3, what="the Ghost Train's circuit")
 
     _pad(w, f, pal, width, depth, margin=2)
 
     # THE WHOLE SHELL, ONE PASS: the facade IS the front wall of the perimeter, with two ARCHED
     # openings left EMPTY BY THE LOOP - building the ring first and cutting a hole afterwards
     # repaints cells that already exist, which the void tower's own crenellations paid for once.
-    # A second, separate wall pass over the same footprint would silently overwrite these arches
-    # with solid wall, which is exactly what shipped here before this was one call.
     holes = set()
     for base_i in (entry_i, exit_i):
         for i in (base_i - 1, base_i, base_i + 1):
             for h in range(4):
                 holes.add((i, 0, h))
         holes.add((base_i, 0, 4))                # the arch's point
-    # **THE LOOP'S FRONT LEG RUNS IN THE FRONT WALL'S OWN PLANE**, so `_lay_loop` overwrites that
-    # wall's ground course with rail and the course ABOVE it stays solid - eleven cells with a
-    # block on the rider's head, which is a suffocation tunnel and not a ride. Measured: 11 of
-    # the 50 track cells had their headroom blocked, and nothing looked wrong in any render,
-    # because a wall resting on a rail draws exactly like a wall resting on the ground.
-    #
-    # The course is left OPEN instead, which costs nothing and buys the one thing this zone was
-    # rejected for lacking: **you can see the ride from the platform.** A slot at h=1 is exactly
-    # a standing player's eye level, so carts crossing the frontage are visible from the queue
-    # rather than the building being a sealed box you are told contains a ride.
-    for i in range(entry_i, exit_i + 1):
-        holes.add((i, 0, 1))
     _walls(w, f, pal, width, depth, height, openings=holes, corner=pal["post"])
     for base_i in (entry_i, exit_i):
         for i in (base_i - 1, base_i + 1):
@@ -944,20 +1275,23 @@ def _ghosttrain(w: World, p: dict, ctx) -> dict:
     _crenellate(w, f, pal, width, depth, height + 1)
     _cornice(w, f, pal, width, depth, height, mr)
 
-    # THE LOOP: enters at `entry_i`, runs the depth, crosses the back, comes out at `exit_i`.
-    pts = _rect_loop_local(entry_i, exit_i, 0, depth - 2)
-    loop = _lay_loop(w, f, pal, pts, 0, int(p["power_every"]), deck=ex["rock"])
-
-    # THE SET PIECES - a mausoleum with lit grilles, tombs and chandeliers. See `_ghost_scenes`:
-    # the building measured ZERO light sources before this, inside and out.
-    scenes = _ghost_scenes(w, f, pal, ex, width, depth, height, entry_i, exit_i)
+    # THE SET PIECES - a mausoleum with lit grilles, tombs and chandeliers, plus the ROOF BEACON
+    # the gallery run needed: at h=5 a rider is above every ground-level lamp in the building, so
+    # a dark ride whose lights are all at h=1 goes dark for the whole crest.
+    scenes = _ghost_scenes(w, f, pal, ex, width, depth, height, entry_i, exit_i, circ)
     lamps = scenes["lamps"]
 
-    # A BOARDING PLATFORM in front of the facade, outside, lit and signed. THE FLOOR IS h=-1,
-    # matching `_pad` - built at h=0 it sat one course above its own margin and read as one
+    # A BOARDING PLATFORM in front of the facade, OUTSIDE the track, lit and signed. The floor is
+    # h=-1, matching `_pad`: built at h=0 it sat one course above its own margin and read as one
     # connected piece in every render while being, in world coordinates, floating beside it.
     for i in range(-2, width + 2):
-        w.put(*f.at(i, -3, -1), pal["path"] if i % 2 else pal["ground"])
+        for d in (-3, -4, -5):
+            w.put(*f.at(i, d, -1), pal["path"] if (i + d) % 2 else pal["ground"])
+    # a queue rail along the platform's outer edge, with the way through left open at the middle
+    for i in range(-2, width + 2):
+        if abs(i - width // 2) <= 2:
+            continue
+        w.put(*f.at(i, -5, 0), pal["fence"])
     for i in (-2, width + 1):
         # THE POST GOES IN BEFORE THE LAMP THAT STANDS ON IT. Asked for first, at h=2, the lamp
         # was refused for empty air - and then the post was driven through the cell it had just
@@ -977,20 +1311,37 @@ def _ghosttrain(w: World, p: dict, ctx) -> dict:
     boarded = _sign(w, f, pal, max(0, entry_i - 2), -1, 2, f.facing,
                     ["RIDE THE CART", "board here", "one at a time", ""])
 
+    # ---- THE TRACK, LAID LAST so nothing can quietly take one of its cells, and then VERIFIED
+    # against the finished world rather than against the arithmetic that placed everything else.
+    loop = circ.lay(w, f, pal, deck=ex["rock"], pier=pal["post"])
+    circ.verify(w, f)
+
     return {"kind": "ghosttrain", "width": width, "depth": depth, "height": height,
-            "track": loop["track"], "corners": len(loop["corners"]),
-            "powered": len(loop["powered"]), "lamps": lamps,
+            "track": loop["track"], "corners": loop["corners"],
+            "powered": loop["powered"], "lamps": lamps,
+            "rise": loop["rise"], "fall": loop["fall"], "gallery": GALLERY,
+            "piers": loop["piers"], "iron_ingots": loop["iron_ingots"],
+            "gold_ingots": loop["gold_ingots"], "redstone_blocks": loop["redstone_blocks"],
             "signed": bool(signed) and bool(boarded), "signs": int(signed) + int(boarded),
             "boarding_at": list(f.at(width // 2, -3, 0)),
             "approach_at": list(f.at(width // 2, depth + 1, 0)),
             "entry_at": list(f.at(entry_i, 0, 0)), "exit_at": list(f.at(exit_i, 0, 0)),
             "windows": scenes["windows"], "tombs": scenes["tombs"],
             "chandeliers": scenes["chandeliers"], "webs": scenes["webs"],
-            "tomb_bounds": scenes["bounds"],
-            "contract": "a closed, powered minecart loop that enters one arch, crosses a dark "
-                        "interior past lit set-pieces - a barred mausoleum, two candle-lit "
-                        "tombs and four hung lanterns - and leaves through the other; boarded "
-                        "from a lit platform that is walkable from the zone's own paving"}
+            "beacons": scenes["beacons"], "tomb_bounds": scenes["bounds"],
+            "contract": "a closed, powered minecart circuit that boards OUTSIDE the facade, runs "
+                        "the frontage past the queue, enters the left arch at ground, climbs %d "
+                        "courses up the west alley, crosses the whole back leg on a gallery "
+                        "looking down on the lit tomb, falls %d courses down the east alley and "
+                        "leaves by the right arch. %d cells, %d corners, %d courses of rise and "
+                        "the same of fall. VERIFIED: closed, every run powered at both ends, "
+                        "every corner flat on both sides, every elevated cell carried to the "
+                        "apron, two clear courses over every rail cell, and the platform "
+                        "walkable from the zone's own paving. NOT verified: cart speed - there "
+                        "is no cart-physics model here, so ride it once before anyone is told it "
+                        "completes the lap."
+                        % (loop["rise"], loop["fall"], loop["track"], loop["corners"],
+                           loop["rise"])}
 
 
 # --------------------------------------------------------------------- 8. mirrormaze (hollow)

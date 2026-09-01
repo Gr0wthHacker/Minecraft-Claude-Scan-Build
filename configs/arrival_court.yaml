@@ -1,0 +1,15 @@
+name: Arrival Court
+gen: arrival
+params:
+  land: midway
+  facing: east
+  at:
+  - 97600
+  - 203
+  - 80600
+  kind: court
+  title: Arrival Court
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

@@ -318,6 +318,21 @@ def test_every_land_can_actually_draw_a_line(land):
                         f"- that carries texture but no tone, and cannot draw a line")
 
 
+# WOOL IS A WALL, A CANOPY, AN ACCENT - NEVER THE GROUND. `ground` and `path` are what every
+# `_pad` and every plaza/terrace/pool floor is built from, and `trim` is the SAME key used for
+# wall cornices AND for the plaza's floor grid, the path kerbs, the terrace and pool beds, and
+# the planting kerbs (`_plaza`, `_plaza_terrace`, `_plaza_pool`, `_plaza_bed`, `_paths`) - so it
+# has to satisfy both jobs at once. `wall`, `accent` and `canopy` are deliberately NOT checked
+# here: they are vertical (a building's own wall, a target board, a striped awning) and wool is
+# exactly what this economy has for them.
+@pytest.mark.parametrize("land", LANDS)
+def test_no_land_stands_on_wool(land):
+    pal = park.LANDS[land]
+    for key in ("ground", "path", "trim"):
+        assert "_wool" not in pal[key], (
+            f"{land}.{key} is {pal[key]!r} - wool doing a floor's job")
+
+
 def test_an_unknown_kind_or_land_raises_rather_than_defaulting():
     """An unmatched name RAISES rather than quietly falling back to the only entry in the
     catalogue - the planner's own rule, for the same reason."""

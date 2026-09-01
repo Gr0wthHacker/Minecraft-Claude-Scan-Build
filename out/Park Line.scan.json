@@ -2977,6 +2977,106 @@
     97551,
     97649
   ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "dark_oak_fence_gate",
+        "oak_fence_gate",
+        "spruce_fence_gate"
+      ],
+      "rail": [
+        "powered_rail"
+      ],
+      "signage": [
+        "dark_oak_wall_sign",
+        "oak_wall_sign",
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 7116,
+      "materials": 35,
+      "dominant_material_share": 0.1747,
+      "light_blocks": 0,
+      "massing": {
+        "width": 10,
+        "height": 24,
+        "depth": 364,
+        "fill_ratio": 0.0815
+      },
+      "silhouette": {
+        "top": {
+          "area": 2408,
+          "fill_ratio": 0.6615
+        },
+        "front": {
+          "area": 100,
+          "fill_ratio": 0.4167
+        },
+        "side": {
+          "area": 2322,
+          "fill_ratio": 0.2658
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 1243,
+        "spruce_log": 774,
+        "polished_blackstone_bricks": 697,
+        "blackstone": 484,
+        "spruce_planks": 429,
+        "cobblestone": 424,
+        "powered_rail": 357,
+        "smooth_stone": 336,
+        "black_wool": 291,
+        "oak_log": 272,
+        "deepslate_bricks": 271,
+        "stone_brick_slab": 224
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "cdcff2e967c0ffdc3697860c5589c90f158ba7234ce0148ab01cdf0a9cfb2bd2",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Park Line.litematic",
   "name": "Park Line"
 }

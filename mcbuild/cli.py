@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 
@@ -260,6 +261,27 @@ def cmd_layers(a):
         print("shipped to", st.schem_dir)
 
 
+def cmd_parallel(a):
+    from . import parallel
+    if a.prepare:
+        print("wrote", parallel.prepare(a.prepare))
+    elif a.scope:
+        print(json.dumps(parallel.scope(a.scope[0], a.scope[1]), indent=2))
+    elif a.run:
+        print("generated", len(parallel.run_lane(a.run[0], a.run[1], render_sheet=a.render)), "artifact(s)")
+    elif a.validate:
+        result = parallel.validate(a.validate)
+        print(json.dumps(result, indent=2))
+    elif a.gate:
+        print(json.dumps(parallel.gate(a.gate), indent=2))
+    elif a.assemble:
+        print("wrote", parallel.assemble(a.assemble, out_dir=a.out_dir, name=a.name))
+    elif a.promote:
+        print("wrote", parallel.promote(a.promote, out_dir=a.out_dir, name=a.name))
+    elif a.dashboard:
+        print("wrote", parallel.dashboard(a.dashboard))
+
+
 def cmd_islands(a):
     from . import islands
     if a.add:
@@ -430,6 +452,20 @@ def main(argv=None):
     p.add_argument("--prefix", help="name prefix for the layers (default: the plan's name)")
     p.add_argument("--ship", action="store_true", help="copy them to the schematics folder")
     p.set_defaults(fn=cmd_layers)
+    p = sub.add_parser("parallel", help="agent-safe staged generation and deterministic assembly for an approved plan")
+    group = p.add_mutually_exclusive_group(required=True)
+    group.add_argument("--prepare", help="freeze an approved plan into isolated lane configs")
+    group.add_argument("--scope", nargs=2, metavar=("PLAN", "LANE"), help="print a worker's read/write ownership contract")
+    group.add_argument("--run", nargs=2, metavar=("PLAN", "LANE"), help="generate one frozen lane")
+    group.add_argument("--validate", help="check staging completeness and cross-lane collisions")
+    group.add_argument("--gate", help="show the promotable evidence and stated manual reviews")
+    group.add_argument("--assemble", help="publish a plan-ordered composite after validation")
+    group.add_argument("--promote", help="pass the acceptance gate and publish a composite")
+    group.add_argument("--dashboard", help="write a static review dashboard from staged evidence")
+    p.add_argument("--render", action="store_true", help="render individual staged artifacts during --run")
+    p.add_argument("--out-dir", default="out", help="destination directory for --assemble")
+    p.add_argument("--name", help="published composite name for --assemble")
+    p.set_defaults(fn=cmd_parallel)
     p = sub.add_parser("islands", help="the islands this tooling knows: centre from BEDROCK, never typed")
     p.add_argument("--add", help="name it")
     p.add_argument("--from", dest="from_", help="capture to discover the bedrock in")

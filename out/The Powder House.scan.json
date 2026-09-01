@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97551,
+    "x": 97613,
     "y": 202,
-    "z": 80399
+    "z": 80401
   },
   "size": {
     "x": 23,
@@ -11,6 +11,8 @@
   },
   "generated_by": "frontiertown",
   "kind": "powderhouse",
+  "concealed": 63,
+  "visible_redstone": 0,
   "land": "frontier",
   "facing": "east",
   "contract": "nothing fires unless the lever is ARMED and the button PRESSED; a press then walks a chase of 5 pistons down the drift, fires all 7 charges at the face and rings the bell - and the button releases itself, so a held press is one shot",
@@ -21,265 +23,366 @@
   "depth": 21,
   "height": 7,
   "lever": [
-    97571,
+    97633,
     204,
-    80409
+    80411
   ],
   "button": [
-    97571,
+    97633,
     204,
-    80406
+    80408
   ],
   "comparator": [
-    97568,
+    97630,
     203,
-    80405
+    80407
   ],
   "chase": [
     [
-      97562,
+      97624,
       204,
-      80404
+      80406
     ],
     [
-      97560,
+      97622,
       204,
-      80404
+      80406
     ],
     [
-      97558,
+      97620,
       204,
-      80404
+      80406
     ],
     [
-      97556,
+      97618,
       204,
-      80404
+      80406
     ],
     [
-      97554,
+      97616,
       204,
-      80404
+      80406
     ]
   ],
   "shots": [
     [
-      97553,
+      97615,
+      205,
+      80411
+    ],
+    [
+      97615,
+      205,
+      80410
+    ],
+    [
+      97615,
       205,
       80409
     ],
     [
-      97553,
+      97615,
       205,
       80408
     ],
     [
-      97553,
+      97615,
       205,
       80407
     ],
     [
-      97553,
-      205,
-      80406
-    ],
-    [
-      97553,
+      97615,
       205,
       80405
     ],
     [
-      97553,
+      97615,
       205,
-      80403
-    ],
-    [
-      97553,
-      205,
-      80402
+      80404
     ]
   ],
   "bell": [
-    97553,
+    97615,
     206,
-    80401
+    80403
   ],
   "feed": [
     [
-      97553,
+      97615,
+      206,
+      80411
+    ],
+    [
+      97615,
+      206,
+      80410
+    ],
+    [
+      97615,
       206,
       80409
     ],
     [
-      97553,
+      97615,
       206,
       80408
     ],
     [
-      97553,
+      97615,
       206,
       80407
     ],
     [
-      97553,
+      97615,
       206,
       80406
     ],
     [
-      97553,
+      97615,
       206,
       80405
     ],
     [
-      97553,
+      97615,
       206,
       80404
-    ],
-    [
-      97553,
-      206,
-      80403
-    ],
-    [
-      97553,
-      206,
-      80402
     ]
   ],
   "chain": [
     [
-      97563,
+      97625,
       205,
-      80404
+      80406
     ],
     [
-      97562,
+      97624,
       205,
-      80404
+      80406
     ],
     [
-      97561,
+      97623,
       205,
-      80404
+      80406
     ],
     [
-      97560,
+      97622,
       205,
-      80404
+      80406
     ],
     [
-      97559,
+      97621,
       205,
-      80404
+      80406
     ],
     [
-      97558,
+      97620,
       205,
-      80404
+      80406
     ],
     [
-      97557,
+      97619,
       205,
-      80404
+      80406
     ],
     [
-      97556,
+      97618,
       205,
-      80404
+      80406
     ],
     [
-      97555,
+      97617,
       205,
-      80404
+      80406
     ],
     [
-      97554,
+      97616,
       205,
-      80404
+      80406
     ]
   ],
   "face": 19,
   "inputs": [
     [
-      97571,
+      97633,
       204,
-      80409
+      80411
     ],
     [
-      97571,
+      97633,
       204,
-      80406
+      80408
     ]
   ],
   "outputs": [
     [
-      97562,
+      97624,
       204,
-      80404
+      80406
     ],
     [
-      97560,
+      97622,
       204,
-      80404
+      80406
     ],
     [
-      97558,
+      97620,
       204,
-      80404
+      80406
     ],
     [
-      97556,
+      97618,
       204,
-      80404
+      80406
     ],
     [
-      97554,
+      97616,
       204,
-      80404
+      80406
     ],
     [
-      97553,
+      97615,
+      205,
+      80411
+    ],
+    [
+      97615,
+      205,
+      80410
+    ],
+    [
+      97615,
       205,
       80409
     ],
     [
-      97553,
+      97615,
       205,
       80408
     ],
     [
-      97553,
+      97615,
       205,
       80407
     ],
     [
-      97553,
-      205,
-      80406
-    ],
-    [
-      97553,
+      97615,
       205,
       80405
     ],
     [
-      97553,
+      97615,
       205,
-      80403
+      80404
     ],
     [
-      97553,
-      205,
-      80402
-    ],
-    [
-      97553,
+      97615,
       206,
-      80401
+      80403
     ]
   ],
   "signs": 3,
   "walk_cells": 239,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "lever",
+        "piston",
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1111,
+      "materials": 17,
+      "dominant_material_share": 0.4122,
+      "light_blocks": 3,
+      "massing": {
+        "width": 23,
+        "height": 8,
+        "depth": 13,
+        "fill_ratio": 0.4645
+      },
+      "silhouette": {
+        "top": {
+          "area": 299,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 169,
+          "fill_ratio": 0.9185
+        },
+        "side": {
+          "area": 94,
+          "fill_ratio": 0.9038
+        }
+      },
+      "material_counts": {
+        "cobblestone": 458,
+        "spruce_planks": 286,
+        "spruce_log": 244,
+        "mossy_cobblestone": 33,
+        "redstone_wire": 25,
+        "stripped_spruce_log": 18,
+        "stone_bricks": 17,
+        "piston": 12,
+        "repeater": 5,
+        "lantern": 3,
+        "spruce_wall_sign": 3,
+        "orange_wool": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "e10eaae25d317e19f05130e61ba3450000a25566fd7b6c3bfdc71e35c2ebcdd1",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
   "file": "The Powder House.litematic",
   "name": "The Powder House"
 }

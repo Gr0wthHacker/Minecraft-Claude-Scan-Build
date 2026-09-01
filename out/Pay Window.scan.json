@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97559,
+    "x": 97601,
     "y": 202,
-    "z": 80374
+    "z": 80399
   },
   "size": {
     "x": 11,
@@ -26,121 +26,225 @@
   "budget": {
     "redstone_lamp": 5
   },
+  "concealed": 9,
+  "visible_redstone": 0,
   "width": 11,
   "depth": 5,
   "height": 6,
   "lanes": 5,
   "barrels": [
     [
-      97563,
+      97605,
       204,
-      80386
+      80411
     ],
     [
-      97563,
+      97605,
       204,
-      80384
+      80409
     ],
     [
-      97563,
+      97605,
       204,
-      80382
+      80407
     ],
     [
-      97563,
+      97605,
       204,
-      80380
+      80405
     ],
     [
-      97563,
+      97605,
       204,
-      80378
+      80403
     ]
   ],
   "lamps": [
     [
-      97565,
+      97607,
       204,
-      80386
+      80411
     ],
     [
-      97565,
+      97607,
       204,
-      80384
+      80409
     ],
     [
-      97565,
+      97607,
       204,
-      80382
+      80407
     ],
     [
-      97565,
+      97607,
       204,
-      80380
+      80405
     ],
     [
-      97565,
+      97607,
       204,
-      80378
+      80403
     ]
   ],
   "signed": true,
   "inputs": [
     [
-      97563,
+      97605,
       204,
-      80386
+      80411
     ],
     [
-      97563,
+      97605,
       204,
-      80384
+      80409
     ],
     [
-      97563,
+      97605,
       204,
-      80382
+      80407
     ],
     [
-      97563,
+      97605,
       204,
-      80380
+      80405
     ],
     [
-      97563,
+      97605,
       204,
-      80378
+      80403
     ]
   ],
   "outputs": [
     [
-      97565,
+      97607,
       204,
-      80386
+      80411
     ],
     [
-      97565,
+      97607,
       204,
-      80384
+      80409
     ],
     [
-      97565,
+      97607,
       204,
-      80382
+      80407
     ],
     [
-      97565,
+      97607,
       204,
-      80380
+      80405
     ],
     [
-      97565,
+      97607,
       204,
-      80378
+      80403
     ]
   ],
   "stock": {
     "each barrel": "the prizes it hands out"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern",
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_lamp"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 458,
+      "materials": 11,
+      "dominant_material_share": 0.4389,
+      "light_blocks": 8,
+      "massing": {
+        "width": 11,
+        "height": 7,
+        "depth": 17,
+        "fill_ratio": 0.3499
+      },
+      "silhouette": {
+        "top": {
+          "area": 187,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 48,
+          "fill_ratio": 0.6234
+        },
+        "side": {
+          "area": 85,
+          "fill_ratio": 0.7143
+        }
+      },
+      "material_counts": {
+        "cobblestone": 201,
+        "spruce_planks": 135,
+        "spruce_log": 52,
+        "stone_bricks": 37,
+        "spruce_stairs": 9,
+        "barrel": 5,
+        "comparator": 5,
+        "redstone_lamp": 5,
+        "spruce_slab": 4,
+        "lantern": 3,
+        "spruce_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "ecda4872d8198545e360230d58e198ae4e6abbc51264426c072b9fdc9ea6eb05",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
   },
   "file": "Pay Window.litematic",
   "name": "Pay Window"

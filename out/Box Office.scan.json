@@ -18,6 +18,8 @@
     "NOTHING HERE CARRIES A SIGNAL, so there is nothing to verify - which is the decision. Watching the chest itself cannot work: a comparator reads floor(1 + 14 * fullness) and a 27-slot chest moves 1/(64*27) per stackable item against the 1/14 needed, so the signal never changes. A 5-slot hopper of non-stackable tickets does step (~3 a ticket) and a delayed-copy detector for one is buildable - a comparator chain carries an analog level exactly and adds two ticks a stage, both measured here - but it was not built and asserted end to end, so it does not ship."
   ],
   "budget": {},
+  "concealed": 0,
+  "visible_redstone": 0,
   "width": 11,
   "depth": 9,
   "height": 6,
@@ -40,6 +42,100 @@
     ]
   ],
   "signed": true,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "chest"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 523,
+      "materials": 10,
+      "dominant_material_share": 0.3671,
+      "light_blocks": 2,
+      "massing": {
+        "width": 11,
+        "height": 8,
+        "depth": 13,
+        "fill_ratio": 0.4572
+      },
+      "silhouette": {
+        "top": {
+          "area": 143,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 78,
+          "fill_ratio": 0.8864
+        },
+        "side": {
+          "area": 92,
+          "fill_ratio": 0.8846
+        }
+      },
+      "material_counts": {
+        "white_wool": 192,
+        "stone_bricks": 143,
+        "red_wool": 72,
+        "blackstone": 56,
+        "stone_brick_stairs": 22,
+        "oak_log": 20,
+        "stone_brick_slab": 9,
+        "oak_wall_sign": 4,
+        "chest": 3,
+        "lantern": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "04279c8dc9f9aaba42851995a9098a6158ad4ce58f6cf6abc334e21015b2511f",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Box Office.litematic",
   "name": "Box Office"
 }

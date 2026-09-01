@@ -1,6 +1,6 @@
 {
   "origin": {
-    "x": 97591,
+    "x": 97569,
     "y": 202,
     "z": 80645
   },
@@ -18,6 +18,91 @@
   "width": 7,
   "depth": 3,
   "height": 6,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 128,
+      "materials": 6,
+      "dominant_material_share": 0.3516,
+      "light_blocks": 2,
+      "massing": {
+        "width": 9,
+        "height": 9,
+        "depth": 5,
+        "fill_ratio": 0.316
+      },
+      "silhouette": {
+        "top": {
+          "area": 45,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 35,
+          "fill_ratio": 0.4321
+        },
+        "side": {
+          "area": 32,
+          "fill_ratio": 0.7111
+        }
+      },
+      "material_counts": {
+        "cobbled_deepslate": 45,
+        "blackstone": 36,
+        "deepslate_bricks": 23,
+        "black_wool": 21,
+        "soul_lantern": 2,
+        "dark_oak_wall_sign": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "55a053d6494cb18592d04746907545176fbf53c2d83b71e529e45fc6ddfa63c3",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Hollow Arch.litematic",
   "name": "Hollow Arch"
 }

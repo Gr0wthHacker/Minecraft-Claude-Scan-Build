@@ -2,7 +2,7 @@
   "origin": {
     "x": 97552,
     "y": 202,
-    "z": 80430
+    "z": 80407
   },
   "size": {
     "x": 17,
@@ -11,6 +11,8 @@
   },
   "generated_by": "frontiertown",
   "kind": "saloon",
+  "concealed": 18,
+  "visible_redstone": 0,
   "land": "frontier",
   "facing": "east",
   "contract": "two storeys under a false front, a covered porch on posts with a railed balcony over it, a stair inside that actually reaches the first floor - and a room you can USE at the top and bottom of it: a served bar with stools, tables and chairs, and beds upstairs, which is what the sign over the door has been promising all along",
@@ -26,34 +28,34 @@
   "table_button": [
     97561,
     204,
-    80446
+    80423
   ],
   "table_pot": [
     97561,
     204,
-    80437
+    80414
   ],
   "table_bell": [
     97562,
     203,
-    80438
+    80415
   ],
   "table_gate": [
     97561,
     203,
-    80440
+    80417
   ],
   "table_cells": 17,
   "table_chairs": 2,
   "player_hopper": [
     97561,
     203,
-    80444
+    80421
   ],
   "house_hopper": [
     97562,
     203,
-    80443
+    80420
   ],
   "table_stock": {
     "the deal": [
@@ -69,6 +71,119 @@
   },
   "table_contract": "one button turns two cards out of the same three-outcome mix; the pot pays and the bell rings when yours is at least the house's - 6 in 9, ties to the player",
   "walk_cells": 451,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "spruce_door",
+        "spruce_fence_gate"
+      ],
+      "container": [
+        "barrel",
+        "dropper",
+        "hopper"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1674,
+      "materials": 29,
+      "dominant_material_share": 0.6033,
+      "light_blocks": 6,
+      "massing": {
+        "width": 17,
+        "height": 16,
+        "depth": 19,
+        "fill_ratio": 0.3239
+      },
+      "silhouette": {
+        "top": {
+          "area": 323,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 185,
+          "fill_ratio": 0.6801
+        },
+        "side": {
+          "area": 282,
+          "fill_ratio": 0.9276
+        }
+      },
+      "material_counts": {
+        "spruce_planks": 1010,
+        "cobblestone": 134,
+        "stripped_spruce_log": 108,
+        "spruce_stairs": 106,
+        "stone_bricks": 96,
+        "spruce_log": 64,
+        "glass_pane": 56,
+        "spruce_fence": 26,
+        "cracked_stone_bricks": 20,
+        "redstone_wire": 8,
+        "lantern": 6,
+        "red_bed": 6
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "8e2c44792b48a067dcd032f4224cbaa5cd792d48c9e7564b3870a088894e7585",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
   "file": "The Saloon.litematic",
   "name": "The Saloon"
 }

@@ -28,6 +28,8 @@
   "budget": {
     "redstone_lamp": 15
   },
+  "concealed": 56,
+  "visible_redstone": 0,
   "width": 13,
   "depth": 12,
   "height": 16,
@@ -195,6 +197,113 @@
   "stock": {
     "the dropper": "the prize a full-score shot on the far disc pays",
     "the player": "arrows, or anything that hits a target block"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "dropper"
+      ],
+      "light": [
+        "lantern",
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater",
+        "target"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1152,
+      "materials": 14,
+      "dominant_material_share": 0.3863,
+      "light_blocks": 17,
+      "massing": {
+        "width": 26,
+        "height": 13,
+        "depth": 15,
+        "fill_ratio": 0.2272
+      },
+      "silhouette": {
+        "top": {
+          "area": 390,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 215,
+          "fill_ratio": 0.6361
+        },
+        "side": {
+          "area": 173,
+          "fill_ratio": 0.8872
+        }
+      },
+      "material_counts": {
+        "cobblestone": 445,
+        "spruce_planks": 326,
+        "spruce_log": 268,
+        "stone_bricks": 51,
+        "redstone_wire": 21,
+        "redstone_lamp": 15,
+        "orange_wool": 11,
+        "comparator": 4,
+        "target": 3,
+        "lantern": 2,
+        "repeater": 2,
+        "spruce_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "215237aea14229edf36aed2e220156c4648e374b23bec9e4d0afb49a4106e9ba",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
   },
   "file": "Shooting Range.litematic",
   "name": "Shooting Range"

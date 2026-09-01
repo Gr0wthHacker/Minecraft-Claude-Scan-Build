@@ -88,7 +88,7 @@ void behind the back wall - exactly as the reference casino's does.
 """
 from __future__ import annotations
 
-from . import circuits
+from . import circuits, conceal
 from .canvas import Canvas
 from .park import LANDS, SIGN_WIDTH, _BACK, _STEP, _Frame, _hang_light, _pad, _sign
 from .vertical import Ctx, World
@@ -503,6 +503,38 @@ def _award(w: World, pal: dict, src, facing: str, count: int = 1) -> dict:
             "droppers": [list(x) for x in drops], "length": 6 + count}
 
 
+def _bell(w: World, pal: dict, near, facing: str) -> tuple | None:
+    """A bell BESIDE a lit dust cell, on its own block - never standing on the dust itself.
+
+    **A FLOOR BELL NEEDS A FLOOR, AND ALL THREE OF THEM WERE STANDING ON REDSTONE DUST.** The range,
+    the high striker and the scale each hung their bell in the cell directly above the wire that
+    rings it, with `attachment=floor` - a state the game will not place and a bell that pops the
+    moment anyone loads the chunk. Three games' only audible output, and every check in this
+    pipeline passed it: the state is legal, the block is cheap, the cell is supported by the
+    generous reading of what a support is, and no render shows a bell falling off.
+
+    A bell is rung by any redstone power reaching it, so BESIDE the dust on its own block rings
+    exactly as well and is a bell that stays put. The first free horizontal neighbour is taken, so
+    a caller does not have to know which way its own ladder ran.
+    """
+    for d in ("i+", "i-", "in", "out"):
+        dx, dz = _STEP[_dirs(facing)[d]]
+        cell = (near[0] + dx, near[1], near[2] + dz)
+        under = (cell[0], cell[1] - 1, cell[2])
+        if w.has(*cell):
+            continue
+        if not w.has(*under):
+            w.put(under[0], under[1], under[2], pal["ground"])
+        w.put(cell[0], cell[1], cell[2], "bell", attachment="floor",
+              facing=facing, powered="false")
+        return cell
+    # **LOUD, NOT NONE.** A bell with nowhere to stand is a game with no audible output, and this
+    # repo's own rule is that a thing which does nothing quietly is the worst outcome available.
+    # Every kind here has four free neighbours at its ringing cell; if one ever does not, the
+    # build should stop rather than ship a silent machine and a `None` in its own sidecar.
+    raise ValueError(f"no free cell beside {near} to stand a bell on")
+
+
 def _shell(w: World, f, pal: dict, width: int, depth: int, height: int,
            front_open: bool = True) -> None:
     """The ordinary fairground shell every kind wears: corner posts, a back wall, a roof beam.
@@ -564,15 +596,19 @@ def _plinko(w: World, p: dict, ctx) -> dict:
     D = _dirs(p["facing"])
     lanes = max(3, min(7, int(p["lanes"])) | 1)      # odd, so there is a middle
     board = max(8, min(20, int(p["board"])))
-    width = lanes * 3 + 1
+    width = lanes * 4 + 1
     mid = lanes // 2
     prizes = [min(3, 1 + abs(k - mid)) for k in range(lanes)]
     depth = 4 + 6 + max(prizes) + 2
     height = board + 3
-    # **THE CHANNELS ARE THREE APART, NOT TWO, AND THE REASON IS THE WIRING.** `_award`'s pulse is
-    # two cells across, so lanes two apart put one lane's perpendicular leg directly beside the
-    # next lane's main run - adjacent dust is ONE network, and the first build paid every channel
-    # on every ball while auditing perfectly clean. A wider divider is also a better board.
+    # **THE CHANNELS ARE FOUR APART, AND EVERY STEP OF THAT WAS PAID FOR.** At two, one lane's
+    # perpendicular pulse leg lay directly beside the next lane's main run - adjacent dust is ONE
+    # network, and the first build paid every channel on every ball while auditing perfectly clean.
+    # At three the dust no longer touched, but the column between two chains is a pulse
+    # comparator's own SIDE INPUT and it is live: a lid there bridges lane k's run into lane k+1's
+    # gate, so the wiring could not be covered without re-making the very fault that spacing was
+    # widened to fix. Four leaves a dead column between the chains, which can be capped, and a
+    # wider divider is a better board as well.
 
     _pad(w, f, pal, width, depth, margin=1)
 
@@ -602,8 +638,8 @@ def _plinko(w: World, p: dict, ctx) -> dict:
             w.put(*f.at(i, 1, h), pal["trim"])
             pegs += 1
 
-    lane_i = [1 + k * 3 for k in range(lanes)]
-    for i in range(0, width, 3):                     # the dividers between the channels
+    lane_i = [1 + k * 4 for k in range(lanes)]
+    for i in range(0, width, 4):                     # the dividers between the channels
         for h in range(0, 3):
             w.put(*f.at(i, 1, h), pal["post"])
 
@@ -706,9 +742,7 @@ def _range(w: World, p: dict, ctx) -> dict:
             # so it rings exactly when the signal got all the way up - a full-score shot and
             # nothing less. A `bell` is cheap here; `note_block` is expensive and makes this the
             # one sound the park can afford.
-            bell = (lad["top"][0], lad["top"][1] + 1, lad["top"][2])
-            w.put(bell[0], bell[1], bell[2], "bell", attachment="floor",
-                  facing=p["facing"], powered="false")
+            bell = _bell(w, pal, lad["top"], p["facing"])
             award = _award(w, pal, lad["top"], D["in"])
             drops = award["droppers"]
 
@@ -786,9 +820,7 @@ def _strength(w: World, p: dict, ctx) -> dict:
     # the machine - which is where every one of them would be if it climbed inward.
     lad = ladder(rd["out"], rungs, D["i+"], D["out"], block=pal["trim"])
     _lay(w, pal, (lad,))
-    bell = (lad["top"][0], lad["top"][1] + 1, lad["top"][2])
-    w.put(bell[0], bell[1], bell[2], "bell", attachment="floor",
-          facing=p["facing"], powered="false")
+    bell = _bell(w, pal, lad["top"], p["facing"])
     # THE AWARD RUNS INWARD, NOT ON UP THE FRONTAGE. Laid along the ladder's own axis it put the
     # pulse's comparator exactly on the TOP LAMP - and every test still passed, because
     # `Circuit.powered` answers for a coordinate and does not care what block is standing there.
@@ -1017,9 +1049,7 @@ def _weigh(w: World, p: dict, ctx) -> dict:
     award = _award(w, pal, amp["out"], D["in"])
     # A BELL RATHER THAN A LAMP: it costs nothing on this economy, it is heard from the aisle, and
     # a lamp here would be one more expensive block in a machine that already carries a ladder.
-    bell = (award["lit"][0], award["lit"][1] + 1, award["lit"][2])
-    w.put(bell[0], bell[1], bell[2], "bell", attachment="floor",
-          facing=p["facing"], powered="false")
+    bell = _bell(w, pal, award["lit"], p["facing"])
 
     _pit_floor(w, f, pal, -1, width, depth, depth + 14, -1)
     title = str(p.get("title") or "THE SCALE").upper()
@@ -1152,12 +1182,16 @@ def _safe(w: World, p: dict, ctx) -> dict:
     # starts lit and the inverters take a tick each to settle - so the door flicked open on every
     # chunk load. A delay-2 repeater needs THREE consecutive ticks to switch and swallows that
     # glitch whole, while a solved combination holds the gate indefinitely.
-    gx, gz = _STEP[D["in"]]
-    hold = f.at(gate_i, gate_d + 7, 1)
+    # **AND IT DRIVES THE DOOR THROUGH A SOLID BLOCK, NOT INTO ITS FACE.** A repeater in the cell
+    # behind an iron door is a repeater a player looks straight at the moment the door opens - and
+    # the door is the one thing this machine exists to open. A strongly powered block beside a door
+    # opens it exactly as well and is a wall.
+    hold = f.at(gate_i, gate_d + 6, 1)
     w.put(hold[0], hold[1], hold[2], "repeater", facing=D["in"], delay="2",
           locked="false", powered="false")
     w.put(hold[0], hold[1] - 1, hold[2], pal["ground"])
-    _line(w, pal, f, (gate_i, gate_d + 6), (gate_i, gate_d + 6), 1)
+    w.put(*f.at(gate_i, gate_d + 7, 1), pal["wall"])          # the conductor the repeater drives
+    _line(w, pal, f, (gate_i, gate_d + 5), (gate_i, gate_d + 5), 1)
     w.put(door[0], door[1], door[2], "iron_door", facing=p["facing"], half="lower",
           hinge="left", open="false", powered="false")
     w.put(door[0], door[1] + 1, door[2], "iron_door", facing=p["facing"], half="upper",
@@ -1233,36 +1267,48 @@ def _quiet(w: World, p: dict, ctx) -> dict:
     depth = n * 3 + 8
     height = 5
 
+    # **THE WALL STARTS AT THE STANDING COURSE.** Begun at h=1 the corridor stood open all round at
+    # ankle height and the room floated one course over its own pad - `_shell`'s own recorded
+    # lesson, made again here where no `_shell` is used.
     _pad(w, f, pal, width, depth, margin=1)
     for i in range(width):
-        for h in range(1, height):
+        for h in range(0, height):
             w.put(*f.at(i, depth - 1, h), pal["wall"])
     for d in range(depth):
-        for h in range(1, height):
+        for h in range(0, height):
             w.put(*f.at(0, d, h), pal["wall"])
             w.put(*f.at(width - 1, d, h), pal["wall"])
     for i in range(-1, width + 1):
         for d in range(-1, depth + 1):
             w.put(*f.at(i, d, height), pal["trim"])
     for i in range(1, width - 1):
-        for h in range(1, 4):
+        for h in range(0, height):
+            if i == width // 2 and h in (0, 1):
+                continue                                   # ...with a way in, left EMPTY
             w.put(*f.at(i, 0, h), pal["wall"])
-    for h in range(1, 4):                                  # ...with a way in
-        w.put(*f.at(width // 2, 0, h), "air")
     for i in range(1, width - 1):
         for d in range(1, depth - 1):
             # THE CHEQUER. Wool absorbs a vibration, so the wool cells are the quiet route and the
             # stone ones are not. Said on the sign as a hint, never as an instruction.
             w.put(*f.at(i, d, -1), "white_wool" if (i + d) % 2 == 0 else pal["path"])
 
+    # **THE MACHINE IS UNDER THE FLOOR, AND THE CHEQUER IS ITS CEILING.** It used to run at the
+    # standing course, straight across the corridor: three bands of dust and comparators laid over
+    # the very floor the game asks you to cross, which is Jack's whole complaint in one room.
+    # Under the chequer it is invisible and the corridor is clear end to end - and it is BETTER
+    # physics, because the wool a player is picking their way across is now the thing between
+    # their footsteps and the sensor, which is exactly what the sign hints at.
+    MACH, DECK = -2, -3
+    _pit_floor(w, f, pal, -1, width, -1, depth, DECK)
+
     sensors, alarms = [], []
     bus_i = width - 2
     for k in range(n):
         d = 3 + k * 3
-        s = f.at(1, d, 0)
+        s = f.at(1, d, MACH)
         w.put(s[0], s[1], s[2], "sculk_sensor", power="0",
               sculk_sensor_phase="inactive", waterlogged="false")
-        rd = read_out(f.at(2, d, 0), D["i+"])
+        rd = read_out(f.at(2, d, MACH), D["i+"])
         _lay(w, pal, (rd,))
         gate = circuits.threshold(rd["out"], trip, facing=D["i+"])
         _lay(w, pal, (gate,))
@@ -1271,31 +1317,58 @@ def _quiet(w: World, p: dict, ctx) -> dict:
         _lay(w, pal, (amp,))
         sensors.append(s)
         # EVERY SENSOR ONTO ONE BUS. An OR is merged dust and costs nothing at all.
-        _line(w, pal, f, (2 + trip + 2, d), (bus_i, d), 0)
-        _line(w, pal, f, (bus_i, d), (bus_i, depth - 3), 0)
+        _line(w, pal, f, (2 + trip + 2, d), (bus_i, d), MACH)
+        _line(w, pal, f, (bus_i, d), (bus_i, depth - 4), MACH)
 
-    # THE ALARM LAMPS, over the corridor, driven by the bus.
+    # THE ALARM LAMPS ARE SET INTO THE FLOOR, lit by the bus directly beneath them. A lamp is a
+    # full cube, so a floor is not weakened by one - and an alarm underfoot is read from anywhere
+    # in the corridor without hanging anything in the way of the walk.
     for k in range(n):
-        lamp = f.at(bus_i, 3 + k * 3, 1)
+        lamp = f.at(bus_i, 3 + k * 3, -1)
         w.put(lamp[0], lamp[1], lamp[2], "redstone_lamp", lit="false")
         alarms.append(lamp)
 
-    # THE INVERTER THAT HOLDS THE DOOR OPEN. The bus powers the support, the support kills the
-    # torch, the torch was the only thing keeping the door open.
-    sup = f.at(bus_i, depth - 3, 1)
-    w.put(sup[0], sup[1], sup[2], pal["trim"])
-    torch = f.at(bus_i, depth - 3, 2)
-    w.put(torch[0], torch[1], torch[2], "redstone_torch", lit="true")
-    door = f.at(bus_i - 1, depth - 3, 2)
+    # THE INVERTER THAT HOLDS THE DOOR OPEN, AND IT LIVES UNDER THE FLOOR.
+    #
+    # **THE DOOR WAS AT HEAD HEIGHT AND IT WAS HALF A DOOR.** Built at h=2 and h=3 with the wall
+    # loop running afterwards over h=3, the upper half was overwritten by wool the same tick it was
+    # placed - so the far end of the corridor held a lower door leaf, two courses above a player's
+    # feet, blocking nothing at all. The game's whole point is that the alarm shuts the way out,
+    # and the way out was never shut. A door is at h=0 and h=1, which is where a body is.
+    #
+    # **AND THE TORCH IS TWO COURSES AWAY FROM IT, NOT BESIDE IT.** A torch in the cell next to a
+    # door is a torch a player looks straight at when the door opens - which is precisely when
+    # they are looking. The inverter sits under the floor and drives the door through the SOLID
+    # BLOCK the door stands on: a strongly powered block beside a door opens it exactly as well as
+    # a wire does, and it is a floor.
+    # **THE BUS DRIVES A BLOCK AND THE TORCH HANGS OFF THE FAR SIDE OF IT.** Put the torch's own
+    # support directly under the bus's last cell and the cell the torch drives comes out ADJACENT
+    # to that same bus: the torch feeds its own input, the alarm latches on the moment the chunk
+    # loads, and the door is shut for ever with no vibration anywhere. Measured, it settled at a
+    # permanent 15 on a machine whose every block was legal, supported and affordable. Two cells of
+    # separation is the fix, and the block between them is what the bus points into.
+    into = f.at(bus_i, depth - 3, MACH)
+    w.put(into[0], into[1], into[2], pal["trim"])
+    torch = f.at(bus_i, depth - 2, MACH)
+    w.put(torch[0], torch[1], torch[2], "redstone_wall_torch", facing=D["in"], lit="true")
+    cond = f.at(bus_i, depth - 2, -1)          # the torch drives the block above it: the doorstep
+    w.put(cond[0], cond[1], cond[2], pal["trim"])
+    door = f.at(bus_i, depth - 2, 0)
     w.put(door[0], door[1], door[2], "iron_door", facing=p["facing"], half="lower",
           hinge="left", open="false", powered="false")
     w.put(door[0], door[1] + 1, door[2], "iron_door", facing=p["facing"], half="upper",
           hinge="left", open="false", powered="false")
-    for h in range(2, 5):
-        for i in range(1, bus_i):
-            if i == bus_i - 1 and h in (2, 3):
+    # THE CROSS WALL THE DOOR IS IN, and the way out beyond it. The doorway column is left EMPTY by
+    # the loop rather than punched afterwards: built the other way round, this door's upper half
+    # was overwritten by the wall the same tick it was placed, and the far end of the corridor held
+    # half a door two courses over a player's head, blocking nothing at all.
+    for i in range(1, width - 1):
+        for h in range(0, height):
+            if i == bus_i and h in (0, 1):
                 continue
-            w.put(*f.at(i, depth - 3, h - 1), pal["wall"])
+            w.put(*f.at(i, depth - 2, h), pal["wall"])
+    for h in (0, 1):
+        w.cells.pop(f.at(bus_i, depth - 1, h), None)         # ...and out through the far wall
 
     title = str(p.get("title") or "QUIET ROOM").upper()
     signed = _sign(w, f, pal, 1, -1, 3, f.facing, [title[:SIGN_WIDTH]])
@@ -1416,6 +1489,14 @@ def build(cfg: dict, donors=None) -> Canvas:
     ctx = Ctx(p["under"]) if p.get("under") else None
     meta = BUILDERS[p["kind"]](w, p, ctx)
 
+    # **COVER THE WIRING.** Every kind here lays its machine and then hands it to one pass, rather
+    # than each one growing its own lid: the rule is the same for all of them and a per-kind lid is
+    # a per-kind way to forget. `stand` is what the kind says a player must be able to occupy, and
+    # `conceal` will not cap one - so a component still visible afterwards is REPORTED and fails
+    # `tests/test_conceal.py` rather than being quietly accepted.
+    hidden = conceal.conceal(w, LANDS[p["land"]]["ground"],
+                             protect=[tuple(c) for c in meta.get("stand", ())])
+
     # THE EXPENSIVE PARTS ARE COUNTED, because they decide whether this can be built at all. A
     # lamp cannot be substituted by colour - a dark block that looks like a lamp is a display that
     # does not work - so it is priced rather than swapped.
@@ -1443,5 +1524,7 @@ def build(cfg: dict, donors=None) -> Canvas:
         "contract": meta.get("contract", ""),
         "unverified": meta.get("unverified", []),
         "budget": budget,
+        "concealed": hidden["placed"],
+        "visible_redstone": len(hidden["left"]),
         **{k: v for k, v in meta.items() if k not in ("contract", "unverified")},
     })

@@ -6,6 +6,8 @@ in this repo: a simulator that agrees with itself is what would certify a broken
 """
 from __future__ import annotations
 
+import pytest
+
 from mcbuild.circuit import Circuit
 
 
@@ -328,3 +330,67 @@ def test_an_empty_cell_is_not_an_input():
 
 # The counterpart - that an empty cell is STILL read for quasi-connectivity - is already pinned by
 # `test_quasi_connectivity_fires_a_piston_from_above` above, which is exactly this fixture.
+
+
+def test_an_observer_watches_its_front_and_pulses_out_of_its_back():
+    """The observer's arrow faces the watched block; its red-dot face is the output.
+
+    The old model documented observers but never accepted an observation event, then sent a
+    hypothetical pulse out of the watched face.  That certifies a circuit reflected through the
+    observer -- an especially nasty render-clean failure.
+    """
+    c = Circuit.from_cells({
+        (0, 0, 0): "observer[facing=east]",
+        (-1, 0, 0): "redstone_wire",
+        (-2, 0, 0): "redstone_lamp",
+    })
+    assert c.observe((1, 0, 0)) == 1
+    assert c.step()[(-2, 0, 0)]
+    assert not c.step()[(-2, 0, 0)], "an observer is a one-redstone-tick pulse"
+
+
+def test_an_observer_does_not_trigger_for_an_update_behind_it():
+    c = Circuit.from_cells({(0, 0, 0): "observer[facing=east]"})
+    assert c.observe((-1, 0, 0)) == 0
+    assert not c.step()
+
+
+def test_an_external_analogue_source_powers_the_real_circuit():
+    """A target is not a container: an arrow creates a signal that can drive dust directly."""
+    c = Circuit.from_cells({
+        (0, 0, 0): "target",
+        (1, 0, 0): "redstone_wire",
+        (2, 0, 0): "redstone_lamp",
+    })
+    c.set_signal((0, 0, 0), 7)
+    assert c.step()[(2, 0, 0)]
+    assert c.level((1, 0, 0)) == 7
+    c.set_signal((0, 0, 0), 0)
+    assert not c.step()[(2, 0, 0)]
+
+
+def test_a_signal_can_only_be_supplied_to_a_real_external_source():
+    c = Circuit.from_cells({(0, 0, 0): "redstone_lamp"})
+    with pytest.raises(ValueError, match="external redstone source"):
+        c.set_signal((0, 0, 0), 15)
+
+
+def test_powered_rail_carries_power_for_eight_rails_past_its_source():
+    """A run does not need a redstone block under every rail, but it does have a hard limit."""
+    cells = {(i, 0, 0): "powered_rail[shape=east_west]" for i in range(10)}
+    cells[(0, -1, 0)] = "redstone_block"
+    c = Circuit.from_cells(cells)
+    c.step()
+    assert all(c.powered((i, 0, 0)) for i in range(9))
+    assert not c.powered((9, 0, 0)), "the ninth rail past a source is an unpowered brake"
+
+
+def test_detector_rail_is_an_explicit_minecart_event_source():
+    """A cart event may energise its neighbouring powered rail without inventing a minecart."""
+    c = Circuit.from_cells({
+        (0, 0, 0): "detector_rail[shape=east_west]",
+        (1, 0, 0): "powered_rail[shape=east_west]",
+    })
+    c.set_signal((0, 0, 0), 15)
+    c.step()
+    assert c.powered((1, 0, 0))

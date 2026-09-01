@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97589,
+    "x": 97617,
     "y": 202,
-    "z": 80629
+    "z": 80613
   },
   "size": {
     "x": 3,
@@ -22,6 +22,85 @@
     "HAVE FUN",
     "MIND THE GAP"
   ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 53,
+      "materials": 5,
+      "dominant_material_share": 0.3962,
+      "light_blocks": 0,
+      "massing": {
+        "width": 3,
+        "height": 7,
+        "depth": 7,
+        "fill_ratio": 0.3605
+      },
+      "silhouette": {
+        "top": {
+          "area": 21,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 11,
+          "fill_ratio": 0.5238
+        },
+        "side": {
+          "area": 37,
+          "fill_ratio": 0.7551
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 21,
+        "oak_log": 12,
+        "white_wool": 12,
+        "blackstone": 6,
+        "oak_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "9f46acf4575948eed2b7ef3ff5ef2d6950930ee564c1ef0fab8002b3f3030029",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Park Notices.litematic",
   "name": "Park Notices"
 }

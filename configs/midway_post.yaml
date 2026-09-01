@@ -11,7 +11,7 @@ params:
   - direction: west
     dest: Park Gate
   at:
-  - 97587
+  - 97573
   - 203
   - 80630
   kind: fingerpost

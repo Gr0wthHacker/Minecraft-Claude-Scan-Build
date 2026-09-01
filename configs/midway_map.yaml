@@ -8,7 +8,7 @@ params:
   at:
   - 97618
   - 203
-  - 80616
+  - 80604
   kind: mapboard
   under: out/newisle.litematic
 finish:

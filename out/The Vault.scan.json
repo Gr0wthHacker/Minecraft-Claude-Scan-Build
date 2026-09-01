@@ -26,6 +26,8 @@
     "WHICH PAGE MAPS TO WHICH LEVEL is the game's own scaling of a book's page count onto 1..15. The combination is stated as levels; set the books' length so the numbers a player can reach include them."
   ],
   "budget": {},
+  "concealed": 406,
+  "visible_redstone": 0,
   "width": 25,
   "depth": 40,
   "height": 7,
@@ -96,6 +98,114 @@
   "stock": {
     "the vault barrels": "the prizes behind the door",
     "each lectern": "a book, so there are pages to turn"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "iron_door"
+      ],
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "soul_lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_wire",
+        "repeater"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 3270,
+      "materials": 15,
+      "dominant_material_share": 0.5101,
+      "light_blocks": 2,
+      "massing": {
+        "width": 42,
+        "height": 8,
+        "depth": 27,
+        "fill_ratio": 0.3604
+      },
+      "silhouette": {
+        "top": {
+          "area": 1134,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 229,
+          "fill_ratio": 0.6815
+        },
+        "side": {
+          "area": 205,
+          "fill_ratio": 0.9491
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 1668,
+        "dark_oak_planks": 1134,
+        "black_wool": 212,
+        "redstone_wire": 126,
+        "deepslate_bricks": 50,
+        "blackstone": 36,
+        "repeater": 19,
+        "comparator": 6,
+        "redstone_wall_torch": 4,
+        "smooth_stone": 4,
+        "lectern": 3,
+        "barrel": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "c7dd9f2539b21f0544aa4605ca412e3fa16576dfbb07da48e48f2c7070e7c4f0",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
   },
   "file": "The Vault.litematic",
   "name": "The Vault"

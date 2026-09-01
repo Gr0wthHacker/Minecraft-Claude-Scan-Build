@@ -2,11 +2,11 @@ name: Assay Office
 gen: arcade
 params:
   land: frontier
-  facing: west
+  facing: south
   at:
-  - 97602
+  - 97569
   - 203
-  - 80432
+  - 80379
   kind: weigh
   title: Assay Office
   under: out/islandleft.litematic

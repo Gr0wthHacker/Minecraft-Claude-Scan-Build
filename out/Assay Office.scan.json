@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": 97601,
+    "x": 97552,
     "y": 202,
-    "z": 80431
+    "z": 80351
   },
   "size": {
-    "x": 30,
-    "y": 10,
-    "z": 19
+    "x": 19,
+    "y": 11,
+    "z": 30
   },
   "generated_by": "arcade",
   "kind": "weigh",
@@ -17,10 +17,10 @@
   ],
   "courses": [
     -1,
-    8
+    9
   ],
   "land": "frontier",
-  "facing": "west",
+  "facing": "south",
   "contract": "the ladder shows the plate's reading as a height; the bell rings and the prize drops ONLY on exactly 6, once, and never on 5 or 7",
   "unverified": [
     "HOW MANY ITEMS MAKE A LEVEL is the game's own table - one per item on a gold plate, ten on an iron one. The simulator has no entities and cannot put anything down."
@@ -28,93 +28,202 @@
   "budget": {
     "redstone_lamp": 8
   },
+  "concealed": 70,
+  "visible_redstone": 0,
   "width": 17,
   "depth": 14,
   "height": 14,
   "rungs": 8,
   "target": 6,
   "plate": [
-    97604,
+    97563,
     204,
-    80438
+    80377
   ],
   "lamps": [
     [
-      97603,
+      97561,
       204,
-      80440
+      80378
     ],
     [
-      97603,
+      97560,
       205,
-      80441
+      80378
     ],
     [
-      97603,
+      97559,
       206,
-      80442
+      80378
     ],
     [
-      97603,
+      97558,
       207,
-      80443
+      80378
     ],
     [
-      97603,
+      97557,
       208,
-      80444
+      80378
     ],
     [
-      97603,
+      97556,
       209,
-      80445
+      80378
     ],
     [
-      97603,
+      97555,
       210,
-      80446
+      80378
     ],
     [
-      97603,
+      97554,
       211,
-      80447
+      80378
     ]
   ],
   "bell": [
-    97613,
+    97568,
     205,
-    80433
+    80368
   ],
   "droppers": [
     [
-      97617,
+      97568,
       205,
-      80433
+      80364
     ]
   ],
   "signed": true,
   "inputs": [
     [
-      97604,
+      97563,
       204,
-      80438
+      80377
     ]
   ],
   "outputs": [
     [
-      97613,
+      97568,
       205,
-      80433
+      80368
     ],
     [
-      97617,
+      97568,
       205,
-      80433
+      80364
     ]
   ],
   "stock": {
     "the dropper": "the prize an exact reading pays",
     "the player": "items to weigh - one level per item on a gold plate"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "dropper"
+      ],
+      "light": [
+        "lantern",
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "light_weighted_pressure_plate",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1298,
+      "materials": 13,
+      "dominant_material_share": 0.5077,
+      "light_blocks": 10,
+      "massing": {
+        "width": 19,
+        "height": 11,
+        "depth": 30,
+        "fill_ratio": 0.207
+      },
+      "silhouette": {
+        "top": {
+          "area": 570,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 148,
+          "fill_ratio": 0.7081
+        },
+        "side": {
+          "area": 146,
+          "fill_ratio": 0.4424
+        }
+      },
+      "material_counts": {
+        "cobblestone": 659,
+        "spruce_planks": 389,
+        "spruce_log": 164,
+        "stone_bricks": 38,
+        "redstone_wire": 24,
+        "redstone_lamp": 8,
+        "repeater": 5,
+        "comparator": 4,
+        "lantern": 2,
+        "spruce_wall_sign": 2,
+        "bell": 1,
+        "dropper": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "c18d28313fc18a4b09e36ab5b12eef9bcf4b734c48e54d8c8fc5897dce7c7418",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
   },
   "file": "Assay Office.litematic",
   "name": "Assay Office"

@@ -2,17 +2,17 @@
   "origin": {
     "x": 97552,
     "y": 202,
-    "z": 80412
+    "z": 80426
   },
   "size": {
     "x": 17,
     "y": 17,
-    "z": 18
+    "z": 23
   },
   "generated_by": "arcade",
   "kind": "plinko",
   "footprint": [
-    18,
+    23,
     17
   ],
   "courses": [
@@ -26,11 +26,13 @@
     "WHERE THE BALL LANDS is Minecraft's item physics, which this simulator has no entities to model. The board is real and the pegs are staggered; the distribution is the game's own and must be watched in world, exactly as the dropper randomiser's odds are."
   ],
   "budget": {},
-  "width": 16,
+  "concealed": 132,
+  "visible_redstone": 0,
+  "width": 21,
   "depth": 15,
   "height": 16,
   "lanes": 5,
-  "pegs": 56,
+  "pegs": 76,
   "prizes": [
     3,
     2,
@@ -42,27 +44,27 @@
     [
       97566,
       203,
-      80427
+      80446
     ],
     [
       97566,
       203,
-      80424
+      80442
     ],
     [
       97566,
       203,
-      80421
+      80438
     ],
     [
       97566,
       203,
-      80418
+      80434
     ],
     [
       97566,
       203,
-      80415
+      80430
     ]
   ],
   "droppers": [
@@ -70,65 +72,65 @@
       [
         97558,
         204,
-        80427
+        80446
       ],
       [
         97557,
         204,
-        80427
+        80446
       ],
       [
         97556,
         204,
-        80427
+        80446
       ]
     ],
     [
       [
         97558,
         204,
-        80424
+        80442
       ],
       [
         97557,
         204,
-        80424
+        80442
       ]
     ],
     [
       [
         97558,
         204,
-        80421
+        80438
       ]
     ],
     [
       [
         97558,
         204,
-        80418
+        80434
       ],
       [
         97557,
         204,
-        80418
+        80434
       ]
     ],
     [
       [
         97558,
         204,
-        80415
+        80430
       ],
       [
         97557,
         204,
-        80415
+        80430
       ],
       [
         97556,
         204,
-        80415
+        80430
       ]
     ]
   ],
@@ -137,89 +139,195 @@
     [
       97566,
       203,
-      80427
+      80446
     ],
     [
       97566,
       203,
-      80424
+      80442
     ],
     [
       97566,
       203,
-      80421
+      80438
     ],
     [
       97566,
       203,
-      80418
+      80434
     ],
     [
       97566,
       203,
-      80415
+      80430
     ]
   ],
   "outputs": [
     [
       97558,
       204,
-      80427
+      80446
     ],
     [
       97557,
       204,
-      80427
+      80446
     ],
     [
       97556,
       204,
-      80427
+      80446
     ],
     [
       97558,
       204,
-      80424
+      80442
     ],
     [
       97557,
       204,
-      80424
+      80442
     ],
     [
       97558,
       204,
-      80421
+      80438
     ],
     [
       97558,
       204,
-      80418
+      80434
     ],
     [
       97557,
       204,
-      80418
+      80434
     ],
     [
       97558,
       204,
-      80415
+      80430
     ],
     [
       97557,
       204,
-      80415
+      80430
     ],
     [
       97556,
       204,
-      80415
+      80430
     ]
   ],
   "stock": {
     "each lane's droppers": "the prize that channel pays",
     "the player": "a ball to drop - an egg, a snowball, any item"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel",
+        "dropper",
+        "hopper"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_wire",
+        "repeater"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1313,
+      "materials": 13,
+      "dominant_material_share": 0.3945,
+      "light_blocks": 2,
+      "massing": {
+        "width": 17,
+        "height": 17,
+        "depth": 23,
+        "fill_ratio": 0.1975
+      },
+      "silhouette": {
+        "top": {
+          "area": 391,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 85,
+          "fill_ratio": 0.2941
+        },
+        "side": {
+          "area": 360,
+          "fill_ratio": 0.9207
+        }
+      },
+      "material_counts": {
+        "cobblestone": 518,
+        "spruce_planks": 310,
+        "spruce_fence": 209,
+        "stone_bricks": 120,
+        "spruce_log": 70,
+        "redstone_wire": 41,
+        "dropper": 11,
+        "comparator": 10,
+        "repeater": 10,
+        "barrel": 5,
+        "hopper": 5,
+        "lantern": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "48a96833c4f5db46082a3d513ccf9173cb4daed7dd9a73a451e2fa9f323f3e62",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
   },
   "file": "The Nugget Chute.litematic",
   "name": "The Nugget Chute"

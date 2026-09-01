@@ -1,37 +1,148 @@
 {
   "origin": {
-    "x": 97601,
+    "x": 97614,
     "y": 202,
-    "z": 80401
+    "z": 80414
   },
   "size": {
-    "x": 30,
+    "x": 26,
     "y": 13,
-    "z": 26
+    "z": 23
   },
   "generated_by": "attractions",
   "kind": "runawaymine",
   "land": "frontier",
   "facing": "north",
-  "contract": "a closed, powered minecart loop out past the headframe and back, boarded from a platform under the station roof",
+  "contract": "a closed, powered minecart circuit that leaves a roofed station straight, runs out under two timbered mine portals, climbs 7 courses on trestles up the east side, crosses the crest level with the headframe's hoist beam and over the spoil heaps, and falls 7 courses back to the platform. 62 cells, 4 corners. VERIFIED: closed, every run powered at both ends, every corner flat on both sides, every elevated cell carried to the apron on piers, two clear courses over every rail cell, and the platform walkable from the ground it stands on. NOT verified: cart speed - there is no cart-physics model here, so ride it once before anyone is told it completes the lap.",
   "unverified": [],
   "width": 26,
   "depth": 23,
   "height": 12,
-  "track": 46,
+  "track": 62,
   "corners": 4,
-  "powered": 10,
+  "powered": 58,
+  "piers": 12,
+  "portals": 2,
+  "heaps": 2,
+  "rise": 7,
+  "fall": 7,
+  "crest": 7,
+  "iron_ingots": 1.5,
+  "gold_ingots": 58,
+  "redstone_blocks": 12,
   "signed": true,
   "platform_at": [
-    97608,
+    97619,
     203,
-    80405
+    80417
   ],
   "boarding_at": [
-    97611,
+    97622,
     204,
-    80407
+    80419
   ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "rail": [
+        "powered_rail",
+        "rail"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1091,
+      "materials": 15,
+      "dominant_material_share": 0.5811,
+      "light_blocks": 2,
+      "massing": {
+        "width": 26,
+        "height": 13,
+        "depth": 23,
+        "fill_ratio": 0.1403
+      },
+      "silhouette": {
+        "top": {
+          "area": 598,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 161,
+          "fill_ratio": 0.4763
+        },
+        "side": {
+          "area": 117,
+          "fill_ratio": 0.3913
+        }
+      },
+      "material_counts": {
+        "cobblestone": 634,
+        "spruce_log": 128,
+        "spruce_planks": 100,
+        "mossy_cobblestone": 96,
+        "powered_rail": 58,
+        "stone": 19,
+        "spruce_stairs": 13,
+        "redstone_block": 12,
+        "iron_chain": 10,
+        "spruce_fence": 10,
+        "rail": 4,
+        "barrel": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "cf508c84d7f5d10ee4d1a1652edf6c43e5459cf15cf36f4f97767601bf5e1c65",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Runaway Mine.litematic",
   "name": "Runaway Mine"
 }

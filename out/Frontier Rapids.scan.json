@@ -5273,6 +5273,107 @@
     "stops_at": null,
     "carries": true
   },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 2470,
+      "materials": 12,
+      "dominant_material_share": 0.3405,
+      "light_blocks": 12,
+      "massing": {
+        "width": 31,
+        "height": 18,
+        "depth": 28,
+        "fill_ratio": 0.1581
+      },
+      "silhouette": {
+        "top": {
+          "area": 693,
+          "fill_ratio": 0.7984
+        },
+        "front": {
+          "area": 336,
+          "fill_ratio": 0.6022
+        },
+        "side": {
+          "area": 327,
+          "fill_ratio": 0.6488
+        }
+      },
+      "material_counts": {
+        "cobblestone": 841,
+        "spruce_planks": 743,
+        "stone_bricks": 328,
+        "stone": 316,
+        "spruce_log": 144,
+        "water": 34,
+        "spruce_fence": 26,
+        "spruce_stairs": 16,
+        "lantern": 12,
+        "spruce_slab": 5,
+        "stripped_oak_log": 3,
+        "spruce_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "7c1fe789efe5bd2457f47756b7f3275f2b996f242aece7f8f41a54b58a71e854",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "fluid",
+        "hazard",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Frontier Rapids.litematic",
   "name": "Frontier Rapids"
 }

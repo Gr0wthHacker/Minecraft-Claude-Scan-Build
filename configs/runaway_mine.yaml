@@ -4,9 +4,9 @@ params:
   land: frontier
   facing: north
   at:
-  - 97605
+  - 97616
   - 203
-  - 80405
+  - 80416
   kind: runawaymine
   title: Runaway Mine
   under: out/islandleft.litematic

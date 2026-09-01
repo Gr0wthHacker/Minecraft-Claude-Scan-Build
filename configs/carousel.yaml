@@ -4,11 +4,11 @@ params:
   land: midway
   diameter: 25
   mounts: 12
-  facing: east
+  facing: west
   at:
-  - 97577
+  - 97593
   - 203
-  - 80648
+  - 80557
   kind: carousel
   title: Carousel
   under: out/newisle.litematic

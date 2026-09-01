@@ -1,18 +1,18 @@
 {
   "origin": {
-    "x": 97592,
+    "x": 97571,
     "y": 202,
-    "z": 80620
+    "z": 80552
   },
   "size": {
     "x": 17,
     "y": 17,
-    "z": 18
+    "z": 23
   },
   "generated_by": "arcade",
   "kind": "plinko",
   "footprint": [
-    18,
+    23,
     17
   ],
   "courses": [
@@ -20,17 +20,19 @@
     15
   ],
   "land": "midway",
-  "facing": "west",
+  "facing": "east",
   "contract": "5 channels; a ball read by channel k pays [3, 2, 1, 2, 3] prizes from that channel alone, exactly once per ball, and nothing from any other",
   "unverified": [
     "WHERE THE BALL LANDS is Minecraft's item physics, which this simulator has no entities to model. The board is real and the pegs are staggered; the distribution is the game's own and must be watched in world, exactly as the dropper randomiser's odds are."
   ],
   "budget": {},
-  "width": 16,
+  "concealed": 132,
+  "visible_redstone": 0,
+  "width": 21,
   "depth": 15,
   "height": 16,
   "lanes": 5,
-  "pegs": 56,
+  "pegs": 76,
   "prizes": [
     3,
     2,
@@ -40,186 +42,292 @@
   ],
   "hoppers": [
     [
-      97594,
+      97585,
       203,
-      80622
+      80572
     ],
     [
-      97594,
+      97585,
       203,
-      80625
+      80568
     ],
     [
-      97594,
+      97585,
       203,
-      80628
+      80564
     ],
     [
-      97594,
+      97585,
       203,
-      80631
+      80560
     ],
     [
-      97594,
+      97585,
       203,
-      80634
+      80556
     ]
   ],
   "droppers": [
     [
       [
-        97602,
+        97577,
         204,
-        80622
+        80572
       ],
       [
-        97603,
+        97576,
         204,
-        80622
+        80572
       ],
       [
-        97604,
+        97575,
         204,
-        80622
+        80572
       ]
     ],
     [
       [
-        97602,
+        97577,
         204,
-        80625
+        80568
       ],
       [
-        97603,
+        97576,
         204,
-        80625
+        80568
       ]
     ],
     [
       [
-        97602,
+        97577,
         204,
-        80628
+        80564
       ]
     ],
     [
       [
-        97602,
+        97577,
         204,
-        80631
+        80560
       ],
       [
-        97603,
+        97576,
         204,
-        80631
+        80560
       ]
     ],
     [
       [
-        97602,
+        97577,
         204,
-        80634
+        80556
       ],
       [
-        97603,
+        97576,
         204,
-        80634
+        80556
       ],
       [
-        97604,
+        97575,
         204,
-        80634
+        80556
       ]
     ]
   ],
   "signed": true,
   "inputs": [
     [
-      97594,
+      97585,
       203,
-      80622
+      80572
     ],
     [
-      97594,
+      97585,
       203,
-      80625
+      80568
     ],
     [
-      97594,
+      97585,
       203,
-      80628
+      80564
     ],
     [
-      97594,
+      97585,
       203,
-      80631
+      80560
     ],
     [
-      97594,
+      97585,
       203,
-      80634
+      80556
     ]
   ],
   "outputs": [
     [
-      97602,
+      97577,
       204,
-      80622
+      80572
     ],
     [
-      97603,
+      97576,
       204,
-      80622
+      80572
     ],
     [
-      97604,
+      97575,
       204,
-      80622
+      80572
     ],
     [
-      97602,
+      97577,
       204,
-      80625
+      80568
     ],
     [
-      97603,
+      97576,
       204,
-      80625
+      80568
     ],
     [
-      97602,
+      97577,
       204,
-      80628
+      80564
     ],
     [
-      97602,
+      97577,
       204,
-      80631
+      80560
     ],
     [
-      97603,
+      97576,
       204,
-      80631
+      80560
     ],
     [
-      97602,
+      97577,
       204,
-      80634
+      80556
     ],
     [
-      97603,
+      97576,
       204,
-      80634
+      80556
     ],
     [
-      97604,
+      97575,
       204,
-      80634
+      80556
     ]
   ],
   "stock": {
     "each lane's droppers": "the prize that channel pays",
     "the player": "a ball to drop - an egg, a snowball, any item"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel",
+        "dropper",
+        "hopper"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_wire",
+        "repeater"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1313,
+      "materials": 13,
+      "dominant_material_share": 0.3945,
+      "light_blocks": 2,
+      "massing": {
+        "width": 17,
+        "height": 17,
+        "depth": 23,
+        "fill_ratio": 0.1975
+      },
+      "silhouette": {
+        "top": {
+          "area": 391,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 85,
+          "fill_ratio": 0.2941
+        },
+        "side": {
+          "area": 360,
+          "fill_ratio": 0.9207
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 518,
+        "white_wool": 310,
+        "oak_fence": 209,
+        "blackstone": 120,
+        "oak_log": 70,
+        "redstone_wire": 41,
+        "dropper": 11,
+        "comparator": 10,
+        "repeater": 10,
+        "barrel": 5,
+        "hopper": 5,
+        "lantern": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "704d501964a9bebf101562a0ff3f92ee959053d32dc0b80016ada731eacafebb",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
   },
   "file": "Plinko.litematic",
   "name": "Plinko"

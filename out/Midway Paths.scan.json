@@ -7,7 +7,7 @@
   "size": {
     "x": 70,
     "y": 1,
-    "z": 87
+    "z": 88
   },
   "generated_by": "park",
   "kind": "paths",
@@ -15,9 +15,77 @@
   "facing": "east",
   "contract": "every attraction's door is joined to an avenue, and both avenues meet at the hub - so the whole network is one connected walk",
   "unverified": [],
-  "routes": 17,
-  "cells": 1359,
+  "routes": 15,
+  "cells": 1491,
   "lamps": 0,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1355,
+      "materials": 2,
+      "dominant_material_share": 0.5424,
+      "light_blocks": 0,
+      "massing": {
+        "width": 70,
+        "height": 1,
+        "depth": 88,
+        "fill_ratio": 0.22
+      },
+      "silhouette": {
+        "top": {
+          "area": 1355,
+          "fill_ratio": 0.22
+        },
+        "front": {
+          "area": 70,
+          "fill_ratio": 1.0
+        },
+        "side": {
+          "area": 88,
+          "fill_ratio": 1.0
+        }
+      },
+      "material_counts": {
+        "blackstone": 735,
+        "stone": 620
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "67b5fa2f93df709e1fc5772aea59385c8d883295fb4aeb3f4442ebebef9165e9",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Midway Paths.litematic",
   "name": "Midway Paths"
 }

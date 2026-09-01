@@ -23,7 +23,7 @@
   "trestles": 27,
   "fences": 259,
   "lamps": 6,
-  "station_blocks": 451,
+  "station_blocks": 450,
   "signs": 2,
   "top": 34,
   "span": 44,
@@ -32,6 +32,103 @@
     14,
     10
   ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "rail": [
+        "powered_rail",
+        "rail"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 4812,
+      "materials": 14,
+      "dominant_material_share": 0.3273,
+      "light_blocks": 9,
+      "massing": {
+        "width": 47,
+        "height": 36,
+        "depth": 47,
+        "fill_ratio": 0.0605
+      },
+      "silhouette": {
+        "top": {
+          "area": 1200,
+          "fill_ratio": 0.5432
+        },
+        "front": {
+          "area": 813,
+          "fill_ratio": 0.4805
+        },
+        "side": {
+          "area": 677,
+          "fill_ratio": 0.4001
+        }
+      },
+      "material_counts": {
+        "spruce_log": 1575,
+        "stone_bricks": 1113,
+        "spruce_planks": 549,
+        "stone": 488,
+        "cobblestone": 439,
+        "spruce_fence": 253,
+        "powered_rail": 154,
+        "stripped_oak_log": 95,
+        "spruce_slab": 64,
+        "spruce_stairs": 37,
+        "redstone_block": 28,
+        "lantern": 9
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "18cd0ba534e54b2c7ca5ac13ccb821a7c12375faa19aad33ed4da8f8b367cbf4",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
   "file": "Mine Coaster.litematic",
   "name": "Mine Coaster"
 }
