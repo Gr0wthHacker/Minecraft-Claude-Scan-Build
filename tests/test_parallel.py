@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from mcbuild import parallel, planner, scan
+from mcbuild import circulation, interfaces, parallel, planner, scan
 from mcbuild.gen.canvas import Canvas
 
 
@@ -16,10 +16,16 @@ def _approved_plan(tmp_path, monkeypatch):
     plan.approved = True
     plan.modules = [
         {"name": "Alpha Gate", "gen": "lamp", "kind": "lamp", "at": [0, 64, 0],
-         "size": [1, 1, 1], "params": {"land": "alpha"}},
+         "size": [1, 1, 1], "params": {"land": "alpha", "facing": "east"}},
         {"name": "Beta Path", "gen": "lamp", "kind": "lamp", "at": [10, 64, 0],
-         "size": [1, 1, 1], "params": {"land": "beta"}},
+         "size": [1, 1, 1], "params": {"land": "beta", "facing": "east"}},
     ]
+    # **A PARK PLAN MUST SATISFY ITS OWN INTERFACE CONTRACT BEFORE IT MAY BE FROZEN**, so even a
+    # two-lamp fixture standing in for a park has to declare anchors and streets. That is the
+    # point of the rule rather than an inconvenience of it: freezing configs is the moment agents
+    # start generating against them.
+    interfaces.annotate(plan.modules, 64)
+    plan.routes = circulation.build(plan.modules, (5, 0), (-40, 60, -40, 40))
     plan.save()
     return plan
 
@@ -75,16 +81,57 @@ def test_validate_rejects_cross_lane_collisions(tmp_path, monkeypatch):
 
 
 def test_assemble_publishes_one_deterministic_composite(tmp_path, monkeypatch):
+    """Assembly is about the STAGING being complete and single-writer, which is a different
+    question from whether the park is promotable - `decision["ok"]` answers the first and
+    `decision["promotable"]` the second. Conflating them is what would let a park promote on the
+    strength of its lanes having produced files."""
     _approved_plan(tmp_path, monkeypatch)
     parallel.prepare("Park Test")
     _stage(parallel.ROOT, "alpha", "Alpha Gate", (0, 64, 0))
     _stage(parallel.ROOT, "beta", "Beta Path", (10, 64, 0))
     decision = parallel.gate("Park Test")
-    assert decision["promotable"]
+    assert decision["ok"], decision
     assert "local audit" in decision["verified"]
-    path = parallel.promote("Park Test", out_dir=str(tmp_path / "published"), name="Park Complete")
+    path = parallel.assemble("Park Test", out_dir=str(tmp_path / "published"), name="Park Complete")
     published = scan.load(path)
     assert published.origin == (0, 64, 0)
     assert published.model.shape_xyz == (11, 1, 1)
     assert int((published.model.ids > 0).sum()) == 2
     assert published.meta["staged_modules"] == ["Alpha Gate", "Beta Path"]
+
+
+def test_prepare_refuses_a_park_plan_with_an_empty_anchor(tmp_path, monkeypatch):
+    """PARK_OVERHAUL.md: "A plan cannot be prepared or promoted when a public module has empty
+    anchors." Checked at PREPARE rather than at promotion, because freezing the configs is the
+    point of no return - after it, agents are generating against them."""
+    plan = _approved_plan(tmp_path, monkeypatch)
+    plan.modules[0]["interface"]["anchors"] = []
+    plan.save()
+    with pytest.raises(ValueError, match="interface contract"):
+        parallel.prepare("Park Test")
+
+
+def test_prepare_names_the_command_that_fixes_it(tmp_path, monkeypatch):
+    """A refusal a reviewer cannot act on is a refusal they route around."""
+    plan = _approved_plan(tmp_path, monkeypatch)
+    plan.routes = []
+    plan.save()
+    with pytest.raises(ValueError, match="--upgrade-interfaces"):
+        parallel.prepare("Park Test")
+
+
+def test_a_park_is_not_promotable_before_its_evidence_arrives(tmp_path, monkeypatch):
+    """"Promotion gates, not optional polish." A staged park whose lanes all produced exactly
+    what they were told to is still not a park anyone has walked, lit, or watched a ride in."""
+    _approved_plan(tmp_path, monkeypatch)
+    parallel.prepare("Park Test")
+    _stage(parallel.ROOT, "alpha", "Alpha Gate", (0, 64, 0))
+    _stage(parallel.ROOT, "beta", "Beta Path", (10, 64, 0))
+    decision = parallel.gate("Park Test")
+    assert not decision["promotable"]
+    # The four that need outside evidence are always among the blockers, whatever else this
+    # two-lamp fixture is missing - that is the property, and asserting the whole set instead
+    # would make the test about the fixture's signage.
+    assert {"mechanics", "safety", "night", "visual"} <= set(decision["park_gates"]["blocking"])
+    with pytest.raises(ValueError, match="park gates"):
+        parallel.promote("Park Test", out_dir=str(tmp_path / "published"))

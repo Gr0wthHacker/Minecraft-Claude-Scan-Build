@@ -234,6 +234,11 @@ def cmd_plan(a):
         for f in planner.emit(a.emit):
             print("wrote", f)
         return
+    if a.upgrade_interfaces:
+        pl = planner.upgrade_interfaces(a.upgrade_interfaces)
+        anchors = sum(len(m.get("interface", {}).get("anchors", [])) for m in pl.modules)
+        print(f"upgraded {pl.name}: {anchors} typed anchors, {len(pl.routes)} routes")
+        return
     if a.upgrade_park_contracts:
         pl = planner.upgrade_park_contracts(a.upgrade_park_contracts)
         print(f"upgraded {pl.name}: {len(pl.modules)} park module contract(s)")
@@ -250,6 +255,18 @@ def cmd_plan(a):
         c = pl.cost
         print(f"  cost: {c['blocks']} blocks, {c['materials']} materials, "
               f"{len(c['short'])} short")
+
+
+def cmd_parkgate(a):
+    """The eight promotion gates PARK_OVERHAUL.md states, over a planned land."""
+    from . import gates, planner
+    pl = planner.Plan.load(a.plan)
+    result = gates.run(dict(pl.__dict__), only=set(a.only.split(",")) if a.only else None)
+    print(gates.report(result))
+    if a.json:
+        pathlib.Path(a.json).write_text(json.dumps(result, indent=1), encoding="utf-8")
+        print("wrote", a.json)
+    return 0 if result["ok"] else 1
 
 
 def cmd_layers(a):
@@ -375,6 +392,77 @@ def cmd_floating(a):
     print(f"{n} free-floating cluster(s), {cells} cells; e.g. {samples}")
 
 
+def cmd_blueprint(a):
+    """Compile a JSON architectural brief before committing to costly block generation."""
+    from . import blueprint
+    with open(a.brief, encoding="utf-8") as fh:
+        spec = json.load(fh)
+    result = blueprint.compile(spec)
+    if a.out:
+        with open(a.out, "w", encoding="utf-8") as fh:
+            json.dump(result, fh, indent=2, sort_keys=True)
+            fh.write("\n")
+        print("wrote", a.out)
+    else:
+        print(json.dumps(result, indent=2, sort_keys=True))
+    if a.enforce and not result["quality"]["ok"]:
+        raise SystemExit("blueprint quality failed: " + "; ".join(result["quality"]["failures"]))
+
+
+def cmd_worldspec(a):
+    """Compile a bounded Skyblock world brief and report its composition gate."""
+    from . import composition, worldnav, worldspec
+    with open(a.brief, encoding="utf-8") as fh:
+        result = worldspec.compile(json.load(fh))
+    result["composition"] = composition.assess(result)
+    result["navigation"] = worldnav.audit(result)
+    if a.emit:
+        result["emitted_configs"] = worldspec.emit_configs(result, a.emit)
+    if a.out:
+        with open(a.out, "w", encoding="utf-8") as fh:
+            json.dump(result, fh, indent=2, sort_keys=True)
+            fh.write("\n")
+        print("wrote", a.out)
+    else:
+        print(json.dumps(result, indent=2, sort_keys=True))
+    if a.enforce and (not result["composition"]["ok"] or not result["navigation"]["ok"]):
+        failures = result["composition"]["failures"] + result["navigation"]["failures"]
+        raise SystemExit("world acceptance failed: " + "; ".join(failures))
+
+
+def cmd_worldvalidate(a):
+    from . import worldassembly
+    entry = [int(v) for v in a.entry]
+    destinations = [[int(v) for v in point.split(",")] for point in a.destination or []]
+    result = worldassembly.validate(a.artifacts, entry=entry, destinations=destinations)
+    print(json.dumps(result, indent=2))
+    if not result["ok"]: raise SystemExit(1)
+
+
+def cmd_worldbuild(a):
+    from . import design, visual_grade, worldexport, worldrender, worldspec
+    with open(a.brief, encoding="utf-8") as fh: plan = worldspec.compile(json.load(fh))
+    world = worldrender.infrastructure(plan)
+    paths = worldexport.export_chunks(world, a.out, prefix=a.name or plan["name"])
+    # Grade per chunk to keep sparse-world review proportional to actual placed content.
+    grades = []
+    for path in paths:
+        from . import schem
+        model = schem.load(path)
+        review_name = os.path.splitext(os.path.basename(path))[0]
+        grades.append({"artifact": path, **visual_grade.assess(model, required_lights=0),
+                       "review_packet": design.render_packet(model, os.path.join(a.out, "reviews"), review_name)})
+    print(json.dumps({"artifacts": paths, "grades": grades}, indent=2))
+
+
+def cmd_worldtickets(a):
+    from . import tickets, worldschema
+    with open(a.plan, encoding="utf-8") as fh: plan = json.load(fh)
+    errors = worldschema.validate(plan)
+    if errors: raise SystemExit("strict WorldSpec invalid: " + "; ".join(errors))
+    print("wrote", *tickets.write(plan, a.out), sep="\n")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="mcbuild", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -450,7 +538,13 @@ def main(argv=None):
                         "lay the grid at this course instead of searching for flat terrain")
     p.add_argument("--show"); p.add_argument("--approve"); p.add_argument("--emit")
     p.add_argument("--upgrade-park-contracts", help="add purpose/access contracts without changing a park layout")
+    p.add_argument("--upgrade-interfaces", help="add typed anchors and role-typed circulation to an existing park plan, without re-siting it")
     p.set_defaults(fn=cmd_plan)
+    p = sub.add_parser("parkgate", help="the eight promotion gates over a planned land: interface, route, capacity, mechanics, safety, wayfinding, night, visual")
+    p.add_argument("plan")
+    p.add_argument("--only", help="comma-separated gate names (default: all eight)")
+    p.add_argument("--json", help="write the full result here for a promotion record")
+    p.set_defaults(fn=cmd_parkgate)
     p = sub.add_parser("layers", help="re-slice a plan into complete build steps: floor, machines, walls, fittings")
     p.add_argument("plan")
     p.add_argument("--floor", type=int, required=True, help="Y of the walking surface")
@@ -471,6 +565,31 @@ def main(argv=None):
     p.add_argument("--out-dir", default="out", help="destination directory for --assemble")
     p.add_argument("--name", help="published composite name for --assemble")
     p.set_defaults(fn=cmd_parallel)
+    p = sub.add_parser("blueprint", help="compile a program-driven building brief (JSON) into architectural contracts")
+    p.add_argument("brief", help="JSON brief with name, program, width, and depth")
+    p.add_argument("--out", help="write the compiled blueprint JSON")
+    p.add_argument("--enforce", action="store_true", help="fail when architectural quality gates fail")
+    p.set_defaults(fn=cmd_blueprint)
+    p = sub.add_parser("worldspec", help="compile a bounded Skyblock world brief (JSON) into regions, plots, and routes")
+    p.add_argument("brief", help="JSON Skyblock site/world brief")
+    p.add_argument("--out", help="write the compiled world plan JSON")
+    p.add_argument("--emit", help="write strict per-module generator configs to this directory")
+    p.add_argument("--enforce", action="store_true", help="fail when composition gates fail")
+    p.set_defaults(fn=cmd_worldspec)
+    p = sub.add_parser("worldvalidate", help="block-accurate walk/collision audit across assembled Skyblock artifacts")
+    p.add_argument("artifacts", nargs="+", help="generated Litematica artifacts with .scan.json sidecars")
+    p.add_argument("--entry", nargs=3, required=True, metavar=("X", "Y", "Z"))
+    p.add_argument("--destination", action="append", help="world X,Y,Z; repeat for every required stop")
+    p.set_defaults(fn=cmd_worldvalidate)
+    p = sub.add_parser("worldbuild", help="render WorldSpec infrastructure into sparse Skyblock chunk artifacts")
+    p.add_argument("brief", help="JSON Skyblock WorldSpec")
+    p.add_argument("--out", required=True, help="output directory")
+    p.add_argument("--name", help="chunk artifact prefix")
+    p.set_defaults(fn=cmd_worldbuild)
+    p = sub.add_parser("worldtickets", help="write implementation tickets from a strict compiled WorldSpec")
+    p.add_argument("plan", help="compiled strict WorldSpec JSON")
+    p.add_argument("--out", required=True, help="ticket directory")
+    p.set_defaults(fn=cmd_worldtickets)
     p = sub.add_parser("islands", help="the islands this tooling knows: centre from BEDROCK, never typed")
     p.add_argument("--add", help="name it")
     p.add_argument("--from", dest="from_", help="capture to discover the bedrock in")

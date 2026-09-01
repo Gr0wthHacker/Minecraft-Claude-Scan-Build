@@ -52,6 +52,11 @@ PLANS = pathlib.Path("out/plans")
 # before anything is generated.
 MAX_FOOTPRINT = 99
 
+#: The furthest an interface anchor stands off its own face (`interfaces._LAYOUT`'s deepest
+#: standoff - a landmark's view approach). A module clear of a reserved band whose APPROACH is
+#: not is still a module the streets cannot reach.
+MAX_STANDOFF = 4
+
 THEMES = {
     "casino": {
         "blurb": "a redstone casino: four verified games over two floors, inside a 99x99 plot",
@@ -517,6 +522,14 @@ class Plan:
         self.approved_at = ""
         self.island = ""
         self.modules: list = []
+        # The land's own circulation, role-typed. Carried on the plan rather than only
+        # inside the paths module so a gate can read the network without re-deriving it -
+        # two derivations of one network is how a check and the thing it checks drift.
+        self.routes: list = []
+        # Gate evidence supplied from outside the planner: mechanics, safety, night, visual.
+        # Absent means "not measured", which those gates report as a failure rather than
+        # passing quietly.
+        self.evidence: dict = {}
         self.notes: list = []
         self.unverified: list = []
 
@@ -1153,17 +1166,31 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 along_z = side in ("west", "east")
                 lo, hi = (z0, z1 - fd + 1) if along_z else (x0, x1 - fw + 1)
                 start = bz if along_z else bx
-                placed = False
-                for off in range(0, (hi - lo) + 1, 2):
-                    for cand in ({start + off, start - off} if off else {start}):
-                        if not (lo <= cand <= hi):
-                            continue
-                        tx, tz = (bx, cand) if along_z else (cand, bz)
-                        if _clear(taken, tx, plane + fy, tz, esize):
-                            bx, bz, placed = tx, tz, True
+                # **AND WHEN THE WHOLE EDGE IS FULL IT STEPS INWARD RATHER THAN OVERLAPPING.**
+                # Reserving the backstage band pushed the Big Wheel eight cells in, onto the
+                # Arrival Court, which is pinned to bedrock and cannot move - and the branch
+                # shipped the collision with a note. A landmark a few cells off its edge is
+                # a landmark; one built through the arrival court is a bug in the world.
+                inward = {"west": (1, 0), "east": (-1, 0),
+                          "north": (0, 1), "south": (0, -1)}[side]
+                placed, moved = False, 0
+                for step in range(0, 13):
+                    sx, sz = bx + inward[0] * step, bz + inward[1] * step
+                    for off in range(0, (hi - lo) + 1, 2):
+                        for cand in ({start + off, start - off} if off else {start}):
+                            if not (lo <= cand <= hi):
+                                continue
+                            tx, tz = (sx, cand) if along_z else (cand, sz)
+                            if _clear(taken, tx, plane + fy, tz, esize):
+                                bx, bz, placed, moved = tx, tz, True, step
+                                break
+                        if placed:
                             break
                     if placed:
                         break
+                if placed and moved:
+                    pl.notes.append(f"{mspec['name']}: its {side} edge was full - stepped "
+                                    f"{moved} cells inward to clear what was already sited")
                 if not placed:
                     pl.notes.append(f"{mspec['name']}: its {side} edge is full - placed at the "
                                     f"centred position and OVERLAPPING something already sited")
@@ -1320,6 +1347,15 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
     if spec.get("orient") and plane is not None:
         _orient_to_streets(pl, plane, _owned_bounds(pl_plot, spec)
                            if pl_plot is not None else None)
+    # **THE INTERFACES ARE NAMED BEFORE THE STREETS ARE DRAWN, and that order is the whole
+    # reform.** The path pass used to run one spur to one front-of-building point, which is
+    # why 61 public anchors across the three lands stood on nothing: a building has more
+    # than one way in and the pass only ever knew about one of them. The anchors exist
+    # first now, and the streets are built to serve them.
+    if theme in {"midway", "frontier", "hollow"} and plane is not None:
+        from . import interfaces as _interfaces
+        _interfaces.annotate(pl.modules, plane,
+                             _owned_bounds(pl_plot, spec) if pl_plot is not None else None)
     if spec.get("paths") and plane is not None:
         _add_paths(pl, spec, plane, world, pl_plot)
     if spec.get("furniture") and plane is not None:
@@ -1401,7 +1437,14 @@ def _orient_to_streets(pl, plane, own=None):
     hx0, hz0, hx1, hz1 = _box_of(hub)
     cx, cz = (hx0 + hx1) // 2, (hz0 + hz1) // 2
     for m in pl.modules:
-        if m is hub or m.get("edge") or m["kind"] == "paths" or not m.get("bay"):
+        # **AN EDGE MODULE IS LEFT ALONE ONLY WHEN IT IS A THRESHOLD.** A gate faces out of
+        # the park by definition, which is the whole reason it is on the edge - but a
+        # LANDMARK on the edge is not a threshold, and left facing outward its frontage
+        # lands off the land the theme owns, where no street may go. The Hollow's Clock
+        # Tower - the thing its own spec calls "the forward visual pull" - was presenting
+        # its face to the reserved transit corridor for exactly this reason.
+        threshold = m["kind"] in ("arch", "gate")
+        if m is hub or (m.get("edge") and threshold) or m["kind"] == "paths" or not m.get("bay"):
             continue
         facing, _along_z = _street_axis(m, cx, cz)
         now = m["params"].get("facing")
@@ -1520,123 +1563,64 @@ def _box_of(m):
 
 
 def _add_paths(pl, spec, plane, world, pl_plot=None):
-    """Join every door to an avenue, and both avenues to the hub.
+    """Build the land's circulation from its declared interfaces, and record it on the plan.
 
-    **A CROSS, NOT A STAR.** Running a spoke from the hub to each of sixteen modules is sixteen
-    paths radiating out of one square, which reads as a spider rather than as a street. Both
-    avenues run through the hub on cardinal axes instead, so a spur from any door reaches one of
-    them by running PERPENDICULAR until it lands - a single straight segment, no corner, and
-    connected by construction.
+    **THE STREETS SERVE THE ANCHORS, NOT THE FRONT DOORS.** This used to run one 3-wide spur from
+    one front-of-building point per module, and measured against the interface schema that left
+    61 public anchors across the three lands standing on nothing - every ride exit, every
+    emergency exit, every flank queue mouth, every view approach. A building has more than one way
+    in; a pass that knows about one of them cannot satisfy rule 2.
+
+    `circulation.build` owns the geometry and `pathgraph` owns the rules over it. What stays here
+    is the bookkeeping only the planner can do: the obstacle list the plaza plants around, and
+    inserting the paths module ahead of the plaza so the streets are not painted over.
     """
+    from . import circulation
+
     hub = next((m for m in pl.modules if m.get("covers")), None)
     if hub is None:
         return
     hx0, hz0, hx1, hz1 = _box_of(hub)
     cx, cz = (hx0 + hx1) // 2, (hz0 + hz1) // 2
 
-    _own = _owned_bounds(pl_plot, spec) if pl_plot is not None else None
+    # **AGAINST THE LAND THE THEME OWNS, NOT THE PLOT.** Clamped to the plot the avenues ran
+    # straight into the reserved transit corridor and the railway and the park fought over 57
+    # cells while every building sat correctly clear. The reserve has to shrink everything that
+    # reads the plot's bounds.
+    own = _owned_bounds(pl_plot, spec) if pl_plot is not None else (hx0, hx1, hz0, hz1)
+
     others = [m for m in pl.modules if m is not hub and m["kind"] != "paths"]
     obstacles = [list(_box_of(m)) for m in others]
     # **THE PLAZA IS HANDED THE SAME OBSTACLE LIST.** Its planting beds, trees, terrace and pool
-    # are laid over the whole 80x80 footprint and it has no other way of knowing where anything
-    # stands - without this it plants a tree in a doorway and lays a bed across a spur. Measured
-    # over the three real zones: 0 collisions with it, 20-53 without.
+    # are laid over the whole footprint and it has no other way of knowing where anything stands -
+    # without this it plants a tree in a doorway and lays a bed across a spur. Measured over the
+    # three real zones: 0 collisions with it, 20-53 without.
     hub.setdefault("params", {})["obstacles"] = obstacles
-    # **AN EDGE MODULE IS JOINED ON ITS INSIDE FACE, NOT ITS FRONT.** A gate faces OUT of the
-    # park - that is what makes it a gate - so its front approach is a cell beyond the plot
-    # boundary, which the avenue cannot legally reach and the clamp correctly threw away. All
-    # three edge modules came back unreached for that reason, which read as a routing bug and is
-    # actually the geometry being right. You walk THROUGH a threshold, so the street meets it on
-    # the side the park is on.
-    def _link_point(m):
-        if not m.get("edge"):
-            return _front_of(m)
-        front, inside = _front_of(m), _inside_of(m)
-        # **AGAINST THE OWNED LAND, NOT THE PLOT.** The Clock Tower is pinned to the east edge of
-        # what the theme owns, which since the transit corridor is ten columns short of the plot
-        # boundary - so its front approach lands ON the plot and OUTSIDE the streets, and the
-        # avenue could never reach it. `contains` was the right question against the wrong land.
-        if _own is not None and (_own[0] <= front[0] <= _own[1]
-                                 and _own[2] <= front[1] <= _own[3]):
-            return front
-        return inside
-    links = [(m, _link_point(m)) for m in others]
-    fronts = [pt for _m, pt in links]
-    if not fronts:
-        return
 
-    # **BOTH AVENUES SPAN THE WHOLE PARK, AND THAT IS WHAT MAKES THE NETWORK CONNECTED.**
-    #
-    # Written the obvious way - an avenue from each EDGE module to the hub - the paving came out
-    # as three to five separate islands and missed six doors outright. Two reasons, one cause:
-    # an avenue that stops at the hub only covers the half of the axis its gate is on, so a spur
-    # from a door on the far side runs out to a coordinate where there is no avenue to land on;
-    # and a side zone has only ONE edge module, so one of the two axes never existed at all.
-    #
-    # Full-length axes fix both by construction. Every front lies within [x0,x1] x [z0,z1], so a
-    # perpendicular spur ALWAYS terminates on an avenue, and the two avenues cross at the hub.
-    xs = [f[0] for f in fronts] + [cx]
-    zs = [f[1] for f in fronts] + [cz]
-    # `_plot_bounds` returns (x0, x1, z0, z1) - both X values, THEN both Z values. Unpacked as
-    # (x0, z0, x1, z1) the axes scramble into each other and the two avenues span the diagonal of
-    # the world: 170,191 cells of paving, which is the only reason it was caught immediately.
-    # **THE AVENUES RUN TO THE EDGE OF THE LAND THE THEME OWNS, not of the plot.** Clamped to the
-    # plot they ran straight into the reserved transit corridor - so every zone reached X 97646
-    # with the railway's deck at 97644, and the line and the park fought over 57 cells while every
-    # building sat correctly clear. The reserve has to shrink all four things that read the plot's
-    # own bounds: the packer, the edge branch, the cover branch and the streets.
-    px0, px1, pz0, pz1 = (_owned_bounds(pl_plot, spec) if pl_plot is not None
-                          else (min(xs), max(xs), min(zs), max(zs)))
-    x0, x1 = max(min(xs), px0 + 2), min(max(xs), px1 - 2)
-    z0, z1 = max(min(zs), pz0 + 2), min(max(zs), pz1 - 2)
-    routes = [
-        {"a": [x0, cz], "b": [x1, cz], "width": 5, "lamps": True},
-        {"a": [cx, z0], "b": [cx, z1], "width": 5, "lamps": True},
-    ]
-
-    # THE SPURS: each door out to whichever avenue is nearer, perpendicular - a single straight
-    # run with no corner, which is only possible because the avenues span the full range.
-    for (m, (fx, fz)) in links:
-        # EVERY module gets a spur, edge ones included. They used to be skipped on the grounds
-        # that an edge module is centred on its own axis and the avenue already reaches it - true
-        # until the gate learned to SLIDE along its edge to avoid a collision, at which point it
-        # was no longer on the axis and quietly lost its path. A spur that is already on an
-        # avenue comes out zero-length and is filtered out, so this costs nothing when it is
-        # unnecessary and is the difference between a reachable gate and an ornament otherwise.
-        # **A SPUR RUNS TO THE DOOR, and the door may be on the very last column the theme owns.**
-        # Clamped to the AVENUE's bounds - which are inset two cells so an avenue does not run
-        # along the boundary itself - a spur stopped two short of the Gold Sluice's door and the
-        # building had no path to it. The avenues keep their margin; the spur does not need one,
-        # because the owned bounds already exclude the reserved corridor.
-        fx = min(max(fx, px0), px1)
-        fz = min(max(fz, pz0), pz1)
-        # ONE RULE, SHARED. `_street_axis` decides both which way a building turns and which
-        # avenue its spur runs to; asking the question twice in two places is how a shopfront
-        # ends up addressing one street while its path goes to the other.
-        if _street_axis(m, cx, cz)[1]:
-            routes.append({"a": [fx, fz], "b": [fx, cz], "width": 3})
-        else:
-            routes.append({"a": [fx, fz], "b": [cx, fz], "width": 3})
-
-    routes = [r for r in routes if r["a"] != r["b"]]
+    routes = circulation.build(pl.modules, (cx, cz), own)
     if not routes:
         return
+
     # **AND THE STREETS THEMSELVES ARE OBSTACLES TO THE PLANTING.** The plaza was handed the
     # buildings and told to keep clear of them, which it did - and then put a tree in the middle
-    # of a spur, because a spur is not a building and the avenue check only knows about the two
-    # main axes through the hub. A route is a box like anything else.
-    for r in routes:
-        (ax, az), (bx, bz) = r["a"], r["b"]
-        half = int(r.get("width", 3)) // 2 + 1
+    # of a spur. A route is a box like anything else.
+    for route in routes:
+        (ax, az), (bx, bz) = route["a"], route["b"]
+        half = int(route.get("width", 3)) // 2 + 1
         hub["params"]["obstacles"].append(
             [min(ax, bx) - half, min(az, bz) - half,
              max(ax, bx) + half, max(az, bz) + half])
+
+    # The plan carries its own circulation so the gates can read it without re-deriving the
+    # geometry - two derivations of one network is how a check and the thing it checks drift.
+    pl.routes = routes
+
     land = spec["modules"][0]["params"]["land"]
     # **INSERTED BEFORE THE PLAZA, NOT APPENDED AFTER IT.** `layers.slice_plan` resolves a
-    # contested cell first-writer-wins in plan order, and the paving and the plaza occupy the
-    # same course - appended last, every avenue would be overwritten by the plaza it crosses and
-    # the park would have invisible streets. Buildings still come first and still win, which is
-    # the order that is actually wanted: building over path over plaza.
+    # contested cell first-writer-wins in plan order, and the paving and the plaza occupy the same
+    # course - appended last, every avenue would be overwritten by the plaza it crosses and the
+    # park would have invisible streets. Buildings still come first and still win, which is the
+    # order actually wanted: building over path over plaza.
     pl.modules.insert(pl.modules.index(hub), {
         "name": spec.get("paths_name", "Park Paths"), "gen": "park", "kind": "paths",
         "at": [cx, plane, cz], "size": [1, 5, 1], "roll": 0,
@@ -1969,6 +1953,44 @@ def emit(name: str, out_dir: str = "configs") -> list:
         written.append(p)
         prev.append(m["name"])
     return written
+
+
+def upgrade_interfaces(name: str) -> Plan:
+    """Give an existing park plan its typed interfaces and its role-typed circulation.
+
+    **NOTHING IS RE-SITED.** An approved plan is a set of decisions about where things stand, and
+    re-running `make` would quietly move them; what a plan written before the interface schema is
+    missing is the CONTRACT, not the layout. So the anchors are derived from the boxes that are
+    already there and the streets are rebuilt to serve them.
+
+    A plan whose modules then fail a gate fails it honestly - that is the defect the schema exists
+    to surface, and hiding it behind a re-site would be answering a different question.
+    """
+    from . import circulation, interfaces as _interfaces, islands
+    plan = Plan.load(name)
+    if plan.theme not in {"midway", "frontier", "hollow"}:
+        raise ValueError(f"{name} is not a centre/left/right park plan")
+    spec = THEMES[plan.theme]
+    hub = next((m for m in plan.modules if m.get("covers") and m["kind"] == "plaza"), None)
+    if hub is None:
+        raise ValueError(f"{name} has no plaza to centre its streets on")
+    hx0, hz0, hx1, hz1 = _box_of(hub)
+    # The plan records the ISLAND it was sited on; the plot comes from that, not from a
+    # coordinate. `plot_of` takes a name.
+    plot = islands.plot_of(plan.island) if plan.island else None
+    if plot is None:
+        first = plan.modules[0]["at"]
+        plot = islands.plot_of(islands.at(first[0], first[2]) or "")
+    own = _owned_bounds(plot, spec) if plot is not None else (hx0, hx1, hz0, hz1)
+    plane = int(hub["at"][1])
+
+    _interfaces.annotate(plan.modules, plane, own)
+    plan.routes = circulation.build(plan.modules, ((hx0 + hx1) // 2, (hz0 + hz1) // 2), own)
+    for module in plan.modules:
+        if module["kind"] == "paths":
+            module.setdefault("params", {})["routes"] = plan.routes
+    plan.save()
+    return plan
 
 
 def upgrade_park_contracts(name: str) -> Plan:

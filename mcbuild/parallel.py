@@ -86,6 +86,17 @@ def prepare(plan_name: str) -> pathlib.Path:
     interface_failures = check_world_links(plan.modules, links)
     if interface_failures:
         raise ValueError(f"plan has invalid typed interface links: {interface_failures}")
+    # **A PARK PLAN WITH EMPTY ANCHORS IS NOT PREPARABLE.** PARK_OVERHAUL.md: "A plan cannot be
+    # prepared or promoted when a public module has empty anchors." Freezing configs is the point
+    # of no return - agents start generating against them - so the contract is checked HERE
+    # rather than at promotion, where the cost of the answer is a park already built.
+    if plan.theme in {"midway", "frontier", "hollow"}:
+        from . import gates
+        blocking = gates.run(dict(plan.__dict__), only={"interface", "route", "capacity"})
+        if not blocking["ok"]:
+            raise ValueError(
+                "plan fails its own interface contract:\n" + gates.report(blocking)
+                + "\n  run: python -m mcbuild plan --upgrade-interfaces " + plan_name)
     modules = []
     if len(written) != len(plan.modules):
         raise RuntimeError("emitter did not write exactly one config per planned module")
@@ -271,12 +282,23 @@ def gate(plan_name: str) -> dict:
             assessment = record.get("design", {})
             if assessment and not assessment.get("ok", True):
                 quality_warnings.append(record["name"])
+    # **THE EIGHT PROMOTION GATES, FOR A PARK PLAN.** Staging evidence answers "did the agents
+    # produce what they were told to"; it says nothing about whether the thing produced is a park
+    # a guest can use. PARK_OVERHAUL.md names eight gates and calls them "promotion gates, not
+    # optional polish", so a park plan is promotable only when both are satisfied - and the four
+    # that need outside evidence BLOCK until it is supplied rather than passing quietly.
+    park = None
+    plan = Plan.load(plan_name)
+    if plan.theme in {"midway", "frontier", "hollow"}:
+        from . import gates as park_gates
+        park = park_gates.run(dict(plan.__dict__))
     return {**status, "mechanics_families": sorted(families),
             "verified": ["frozen configs", "artifact hashes", "local audit", "cross-lane ownership"],
             "quality_warnings": quality_warnings,
+            "park_gates": park,
             "requires_plan_specific_review": [
                 "visitor routes and endpoints", "ride/entity behaviour", "visual composition and sightlines"],
-            "promotable": status["ok"]}
+            "promotable": status["ok"] and (park is None or park["ok"])}
 
 
 def _shift_tile(tag, dx: int, dy: int, dz: int):
@@ -358,6 +380,11 @@ def promote(plan_name: str, *, out_dir: str = "out", name: str | None = None) ->
     """Publish only after the parallel acceptance gate is clean."""
     result = gate(plan_name)
     if not result["promotable"]:
+        park = result.get("park_gates")
+        if park and not park["ok"]:
+            from . import gates as park_gates
+            raise ValueError("promotion refused by the park gates:\n"
+                             + park_gates.report(park))
         raise ValueError("parallel promotion refused; inspect `mcbuild parallel --validate`")
     return assemble(plan_name, out_dir=out_dir, name=name)
 

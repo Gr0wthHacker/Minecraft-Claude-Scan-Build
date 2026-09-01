@@ -1015,20 +1015,23 @@ def _walkthrough(w: World, p: dict, ctx) -> dict:
 
 
 def _paths(w: World, p: dict, ctx) -> dict:
-    """The streets: avenues between the gate, the hub and the arches, and a spur to every door.
+    """The streets: role-typed routes drawn at their declared capacity.
 
     **THE ROUTES ARE COMPUTED BY THE PLANNER, NOT HERE, AND THAT SPLIT IS THE POINT.** A path
     connects things, so the only place that can draw one is the place that knows where everything
-    ended up - and a generator is handed one module's `at` and nothing else. `planner._routes`
-    reads the sited plan and passes the network in; this draws it.
+    ended up - and a generator is handed one module's `at` and nothing else. `planner._add_paths`
+    reads the sited plan, hands it to `circulation.build`, and passes the network in; this draws
+    it.
 
     Without this the park was PACKED rather than COMPOSED: `bays` fills a grid, everything fit,
     nothing collided, and there was no street. A visitor arrived at a gate and faced a field with
     buildings scattered across it.
 
-    THE NETWORK IS A CROSS, WHICH IS WHAT MAKES THE SPURS SINGLE STRAIGHT RUNS. Both avenues pass
-    through the hub on cardinal axes, so a spur from any door reaches one of them by running
-    perpendicular until it lands on it - no L, no corner, and connected by construction.
+    **AND A ROLE IS DRAWN, NOT ONLY DECLARED.** A queue that looks exactly like a promenade is a
+    queue nobody recognises as one, and rule 6 asks for queues that are separated and service
+    routes that are hidden. So a queue gets a fenced kerb, an exit gets the land's own accent
+    down its middle so it reads as a way OUT rather than a way in, and a service road is laid in
+    the land's ground material with no kerb and no lamps - a back lane, not a street.
     """
     pal = LANDS[p["land"]]
     y = int(p["at"][1])
@@ -1040,13 +1043,16 @@ def _paths(w: World, p: dict, ctx) -> dict:
     def blocked(x, z):
         return any(x0 <= x <= x1 and z0 <= z <= z1 for (x0, z0, x1, z1) in obstacles)
 
-    laid, lamps = 0, 0
-    for r in routes:
-        ax, az = int(r["a"][0]), int(r["a"][1])
-        bx, bz = int(r["b"][0]), int(r["b"][1])
-        half = max(1, int(r.get("width", 3))) // 2
+    laid, lamps, rails = 0, 0, 0
+
+    def _leg(ax, az, bx, bz, route):
+        """One straight run. An L route is two of these; the corner belongs to both."""
+        nonlocal laid, lamps, rails
+        role = route.get("role", "secondary")
+        half = max(1, int(route.get("width", 3))) // 2
         along_x = abs(bx - ax) >= abs(bz - az)
         n = max(abs(bx - ax), abs(bz - az))
+        surface = pal["ground"] if role == "service" else pal["path"]
         for k in range(n + 1):
             cx = ax + (1 if bx > ax else -1) * min(k, abs(bx - ax)) if along_x else ax
             cz = az if along_x else az + (1 if bz > az else -1) * min(k, abs(bz - az))
@@ -1056,11 +1062,31 @@ def _paths(w: World, p: dict, ctx) -> dict:
                 # can SPLIT a route in two, and a network that is not connected is not a network.
                 # A building's own pad occupies the same course and wins in `layers.slice_plan`,
                 # so the overlap is invisible and the connectivity is guaranteed.
-                w.put(x, y - 1, z, pal["trim"] if abs(o) == half else pal["path"])
+                if role == "service":
+                    block = surface
+                elif abs(o) == half:
+                    block = pal["trim"]
+                elif role == "exit" and o == 0:
+                    block = pal["accent"]
+                else:
+                    block = surface
+                w.put(x, y - 1, z, block)
                 laid += 1
-            # LAMP POSTS ON THE KERB, and only on an avenue - a lit spur to every food stall is
-            # a lamp every four blocks, which reads as a fence rather than as a street.
-            if r.get("lamps") and k and k % int(r.get("lamp_every", 12)) == 0:
+            # **A QUEUE IS FENCED, WHICH IS WHAT MAKES IT A QUEUE.** Rule 6 asks for queues
+            # "separated"; a 3-wide strip of the same paving as the street beside it is not
+            # separated by anything a guest can see. The rail goes on the kerb, and it stops at
+            # anything already standing so it cannot fence off somebody's door.
+            if role == "queue":
+                for o in (-half, half):
+                    x, z = (cx, cz + o) if along_x else (cx + o, cz)
+                    if blocked(x, z):
+                        continue
+                    w.put(x, y, z, pal["fence"])
+                    rails += 1
+            # LAMP POSTS ON THE KERB, and only where the route asks for them - a lit spur to
+            # every food stall is a lamp every four blocks, which reads as a fence rather than
+            # as a street. A service road is never lit: it is meant to be missed.
+            if route.get("lamps") and k and k % int(route.get("lamp_every", 12)) == 0:
                 for o in (-half, half):
                     x, z = (cx, cz + o) if along_x else (cx + o, cz)
                     if blocked(x, z):
@@ -1071,9 +1097,27 @@ def _paths(w: World, p: dict, ctx) -> dict:
                     # standing, not hanging: there is no block above a post top to hang from
                     w.put(x, y + 4, z, pal["light"], hanging="false", waterlogged="false")
                     lamps += 1
+
+    for r in routes:
+        ax, az = int(r["a"][0]), int(r["a"][1])
+        bx, bz = int(r["b"][0]), int(r["b"][1])
+        if ax != bx and az != bz:
+            # AN L IS TWO LEGS. The circulation builder emits them for a frontage walk that has
+            # to travel along the avenue's own axis to get onto it, and drawing only the dominant
+            # axis - which is what a single-leg walk does - silently loses the second half and
+            # leaves the walk joined to nothing.
+            _leg(ax, az, bx, az, r)
+            _leg(bx, az, bx, bz, r)
+        else:
+            _leg(ax, az, bx, bz, r)
+
+    from collections import Counter
+    by_role = Counter(r.get("role", "secondary") for r in routes)
     return {"kind": "paths", "routes": len(routes), "cells": laid, "lamps": lamps,
-            "contract": "every attraction's door is joined to an avenue, and both avenues meet "
-                        "at the hub - so the whole network is one connected walk"}
+            "queue_rails": rails, "roles": dict(by_role),
+            "contract": "every declared public interface is joined to the network, queues are "
+                        "fenced and off the through-route, and the service road runs behind the "
+                        "buildings unlit"}
 
 
 BUILDERS = {
