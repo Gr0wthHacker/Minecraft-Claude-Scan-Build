@@ -17,11 +17,11 @@
   "unverified": [],
   "width": 99,
   "depth": 89,
-  "posts": 1,
-  "trees": 0,
+  "posts": 0,
+  "trees": 1,
   "beds": 0,
   "terrace": true,
-  "pool": false,
+  "pool": true,
   "file": "Frontier Plaza.litematic",
   "name": "Frontier Plaza"
 }

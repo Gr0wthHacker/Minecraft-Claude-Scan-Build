@@ -1,0 +1,147 @@
+{
+  "origin": {
+    "x": 97622,
+    "y": 202,
+    "z": 80551
+  },
+  "size": {
+    "x": 17,
+    "y": 7,
+    "z": 11
+  },
+  "generated_by": "arcade",
+  "kind": "prizecounter",
+  "footprint": [
+    17,
+    11
+  ],
+  "courses": [
+    -1,
+    5
+  ],
+  "land": "midway",
+  "facing": "south",
+  "contract": "each barrel's lamp is lit while that barrel holds anything and dark when it is empty",
+  "unverified": [],
+  "budget": {
+    "redstone_lamp": 5
+  },
+  "width": 11,
+  "depth": 5,
+  "height": 6,
+  "lanes": 5,
+  "barrels": [
+    [
+      97634,
+      204,
+      80555
+    ],
+    [
+      97632,
+      204,
+      80555
+    ],
+    [
+      97630,
+      204,
+      80555
+    ],
+    [
+      97628,
+      204,
+      80555
+    ],
+    [
+      97626,
+      204,
+      80555
+    ]
+  ],
+  "lamps": [
+    [
+      97634,
+      204,
+      80557
+    ],
+    [
+      97632,
+      204,
+      80557
+    ],
+    [
+      97630,
+      204,
+      80557
+    ],
+    [
+      97628,
+      204,
+      80557
+    ],
+    [
+      97626,
+      204,
+      80557
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97634,
+      204,
+      80555
+    ],
+    [
+      97632,
+      204,
+      80555
+    ],
+    [
+      97630,
+      204,
+      80555
+    ],
+    [
+      97628,
+      204,
+      80555
+    ],
+    [
+      97626,
+      204,
+      80555
+    ]
+  ],
+  "outputs": [
+    [
+      97634,
+      204,
+      80557
+    ],
+    [
+      97632,
+      204,
+      80557
+    ],
+    [
+      97630,
+      204,
+      80557
+    ],
+    [
+      97628,
+      204,
+      80557
+    ],
+    [
+      97626,
+      204,
+      80557
+    ]
+  ],
+  "stock": {
+    "each barrel": "the prizes it hands out"
+  },
+  "file": "Prize Counter.litematic",
+  "name": "Prize Counter"
+}

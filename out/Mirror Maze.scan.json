@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97559,
+    "x": 97622,
     "y": 202,
-    "z": 80822
+    "z": 80809
   },
   "size": {
     "x": 17,
@@ -12,7 +12,7 @@
   "generated_by": "attractions",
   "kind": "mirrormaze",
   "land": "hollow",
-  "facing": "east",
+  "facing": "west",
   "contract": "a real maze: one solved spanning-tree route from the marked entrance to the marked exit, with genuine dead-end branches off it, never a plain corridor with two doors",
   "unverified": [],
   "width": 15,
@@ -24,14 +24,14 @@
   "lamps": 5,
   "signed": true,
   "entry_at": [
-    97573,
+    97624,
     203,
-    80837
+    80812
   ],
   "exit_at": [
-    97561,
+    97636,
     203,
-    80825
+    80824
   ],
   "file": "Mirror Maze.litematic",
   "name": "Mirror Maze"

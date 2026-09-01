@@ -4,9 +4,9 @@ params:
   land: frontier
   facing: west
   at:
-  - 97621
+  - 97623
   - 203
-  - 80354
+  - 80381
   kind: minehead
   title: The Mine Head
   under: out/islandleft.litematic

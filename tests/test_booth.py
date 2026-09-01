@@ -326,7 +326,14 @@ def test_every_sideshow_in_a_park_zone_asks_for_a_booth():
     # twelve columns off the frontier. What the booth work is responsible for is that every
     # sideshow that EXISTS asks for a booth, which is asserted above; which sideshows exist is a
     # curation decision and belongs to the theme, not to this file.
-    assert len(sideshows) >= 3, f"only {len(sideshows)} sideshows across all three zones"
+    # **THE FLOOR IS ONE, AND THE DROP FROM FIVE WAS DELIBERATE.** The casino games are
+    # watch-a-randomiser machines - press a button, a dropper rolls, a threshold decides - and
+    # the park replaced most of them with games that take a PLAYER INPUT: a plinko board, a
+    # target range that scores by accuracy, a high striker, a combination vault, a sculk-sensor
+    # corridor. What this file is responsible for is that a sideshow which EXISTS wears a booth
+    # rather than casino black-and-white, which is asserted above. How many exist is a curation
+    # decision that belongs to the theme, and a count here only goes stale.
+    assert sideshows, "no casino sideshows in any park zone - did the zones get renamed?"
 
 
 

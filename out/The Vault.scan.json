@@ -1,0 +1,102 @@
+{
+  "origin": {
+    "x": 97558,
+    "y": 202,
+    "z": 80815
+  },
+  "size": {
+    "x": 42,
+    "y": 8,
+    "z": 27
+  },
+  "generated_by": "arcade",
+  "kind": "safe",
+  "footprint": [
+    27,
+    42
+  ],
+  "courses": [
+    -1,
+    6
+  ],
+  "land": "hollow",
+  "facing": "east",
+  "contract": "the door opens only when all three dials read [3, 5, 8]; any one of them wrong and it stays shut",
+  "unverified": [
+    "WHICH PAGE MAPS TO WHICH LEVEL is the game's own scaling of a book's page count onto 1..15. The combination is stated as levels; set the books' length so the numbers a player can reach include them."
+  ],
+  "budget": {},
+  "width": 25,
+  "depth": 40,
+  "height": 7,
+  "combo": [
+    3,
+    5,
+    8
+  ],
+  "dials": [
+    [
+      97596,
+      204,
+      80835
+    ],
+    [
+      97596,
+      204,
+      80829
+    ],
+    [
+      97596,
+      204,
+      80823
+    ]
+  ],
+  "door": [
+    97562,
+    204,
+    80821
+  ],
+  "vault": [
+    [
+      97560,
+      203,
+      80822
+    ],
+    [
+      97560,
+      203,
+      80820
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97596,
+      204,
+      80835
+    ],
+    [
+      97596,
+      204,
+      80829
+    ],
+    [
+      97596,
+      204,
+      80823
+    ]
+  ],
+  "outputs": [
+    [
+      97562,
+      204,
+      80821
+    ]
+  ],
+  "stock": {
+    "the vault barrels": "the prizes behind the door",
+    "each lectern": "a book, so there are pages to turn"
+  },
+  "file": "The Vault.litematic",
+  "name": "The Vault"
+}

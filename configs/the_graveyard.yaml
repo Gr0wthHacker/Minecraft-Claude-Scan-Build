@@ -4,9 +4,9 @@ params:
   land: hollow
   facing: west
   at:
-  - 97587
+  - 97612
   - 203
-  - 80816
+  - 80753
   kind: graveyard
   title: The Graveyard
   under: out/islandright.litematic

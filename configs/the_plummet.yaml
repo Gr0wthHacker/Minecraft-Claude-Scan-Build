@@ -4,7 +4,7 @@ params:
   land: hollow
   facing: north
   at:
-  - 97558
+  - 97602
   - 203
   - 80807
   kind: drop

@@ -247,6 +247,181 @@ def test_guest_services_lockers_never_collide_with_the_hatch(width):
         f"width={width}: the lockers sit inside the counter hatch's own column range"
 
 
+# ------------------------------------------------------------------ walking into the buildings
+
+# What a player can move through. Everything else placed counts as SOLID, which is the
+# conservative direction: a room that is walkable with a lantern treated as a wall really is one.
+_PASSABLE = ("_sign",)
+
+
+def _solid(w, pos):
+    v = w.cells.get(pos)
+    return bool(v) and not v[0].endswith(_PASSABLE)
+
+
+def _standable(w, pos):
+    x, y, z = pos
+    return (_solid(w, (x, y - 1, z)) and not _solid(w, pos) and not _solid(w, (x, y + 1, z)))
+
+
+def _walk(w, seed):
+    """Every standing position reachable from `seed`, one cell at a time, at most a course up or
+    down. `_reachable` above floods the BLOCKS and answers "is this one printable piece"; it
+    cannot tell a room from a solid box with a doorway drawn on it."""
+    seen = {seed}
+    q = deque([seed])
+    while q:
+        x, y, z = q.popleft()
+        for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            for dy in (0, 1, -1):
+                n = (x + dx, y + dy, z + dz)
+                if n not in seen and _standable(w, n):
+                    seen.add(n)
+                    q.append(n)
+    return seen
+
+
+@pytest.mark.parametrize("land", LANDS)
+@pytest.mark.parametrize("facing", FACINGS)
+def test_every_shop_can_be_walked_into_from_its_own_door(land, facing):
+    """**A SHOPFRONT IS NOT A SHOP.** The complaint that started this pass - "we dont need a
+    bakery" - was about a building whose interior was a counter and a lamp. Each shop is entered
+    at the column the generator itself records as its doorway, never one picked because it
+    worked, and the reached region is asserted LARGE before any claim about the interior is
+    trusted: a flood seeded in open air is trivially connected to nothing.
+    """
+    w, f, _pal, p, meta = _built("shopstreet", land, facing, shops=2)
+    depth = max(6, int(p["shop_depth"]))
+    for k, cols in enumerate(meta["doors"]):
+        assert cols, f"shop {k} has no doorway at all"
+        seed = f.at(cols[0], 0, 0)
+        assert _standable(w, seed), f"shop {k}'s own doorway is not standable"
+        reached = _walk(w, seed)
+        assert len(reached) > 100, f"only {len(reached)} standing cells - too small to trust"
+        inside = [f.at(i, d, 0) for i in range(meta["frontage"]) for d in range(1, depth - 2)
+                  if f.at(i, d, 0) in reached]
+        assert len(inside) >= 12, \
+            f"shop {k}: only {len(inside)} cells of floor behind the door can be stood on"
+
+
+@pytest.mark.parametrize("land", LANDS)
+@pytest.mark.parametrize("facing", FACINGS)
+def test_every_shop_has_its_trades_own_tool_on_the_counter(land, facing):
+    """A trade is a word on a sign until something in the room does it. Every shop names a real
+    workstation and every one of those is placed, legal, cheap and 1.19."""
+    w, _f, _pal, _p, meta = _built("shopstreet", land, facing, shops=2)
+    assert len(meta["tools"]) == 2 and all(meta["tools"])
+    placed = {n for n, _props in w.cells.values()}
+    for tool in meta["tools"]:
+        assert tool in placed, f"{tool} is named as a trade's tool and was never placed"
+        assert blocks.available(tool) and blocks.spendable(tool)
+        assert palette.tier(tool) != "expensive"
+
+
+def test_a_two_shop_street_is_two_shops_worth_entering():
+    """`_deal` hands out `options[0], options[1], ...` before it shuffles, so on a two-shop
+    street the head of the width table IS the street - and it used to be 5 and 6, which is a
+    three-cell room. It is also why the trade table's head matters: the shop that was cut by
+    name was the one at the top of it."""
+    _w, _f, _pal, _p, meta = _built("shopstreet", shops=2)
+    assert min(meta["widths"]) >= 9, f"a two-shop terrace of {meta['widths']} is two cupboards"
+    assert "BAKERY" not in {t for t, _tag, _tool in civic._TRADES}
+    assert meta["stock"] >= 4, "no stock on the floor of either shop"
+    assert meta["shelves"] >= 4, "no shelving in either shop"
+
+
+def test_stock_never_stands_where_you_cannot_walk_past_it():
+    """**Rule 10, measured on the build rather than argued from the widths.** Three cells of
+    clear, standable floor beside every barrel, checked against the same flood a visitor's feet
+    would take - not against a claim in the width table, which cannot know what else the shop
+    put on its floor."""
+    w, f, _pal, _p, meta = _built("shopstreet", shops=2)
+    reached = set()
+    for cols in meta["doors"]:
+        reached |= _walk(w, f.at(cols[0], 0, 0))
+    barrels = [(i, d) for i in range(-2, meta["frontage"] + 2) for d in range(0, meta["depth"])
+               if w.cells.get(f.at(i, d, 0), ("", {}))[0] == "barrel"]
+    assert len(barrels) == meta["stock"] >= 4, "no stock on the floor of either shop"
+    for (i, d) in barrels:
+        clear = [k for k in (1, 2, 3) if f.at(i + k, d, 0) in reached]
+        assert len(clear) == 3, \
+            f"the barrel at {(i, d)} has only {len(clear)} cells to stand in front of it"
+
+
+def test_a_shop_too_narrow_for_a_barrel_is_given_none():
+    """The other half of rule 10, and the half no width in the current table exercises: the guard
+    has to still be there for the day somebody deals a five-wide shop again. A five-wide shop is
+    a three-cell room, and a barrel down one flank of it is a corridor you cannot turn round in.
+    """
+    p = _cfg("shopstreet")
+    w = World()
+    f = civic._Frame(p)
+    spec = dict(width=5, storeys=1, roof="flat", jetty=False, awning="none", door="centre",
+                windows="pair", field="white_wool", accent="red_wool",
+                trade=civic._TRADES[0], shutters=False)
+    built = civic._one_shop(w, f, civic.LANDS["midway"], civic._Plaques(True), spec, 0, 8, 3)
+    assert built["stock"] == 0, "a five-wide shop was given barrels it has no room for"
+    assert built["tool"], "...and it still gets its trade's own tool, which takes no floor"
+
+
+# ------------------------------------------------------------------ the hall of fame
+
+@pytest.mark.parametrize("land", LANDS)
+@pytest.mark.parametrize("facing", FACINGS)
+def test_the_hall_of_fame_can_be_walked_into_and_reaches_every_fitting(land, facing):
+    """The building this replaced could not do anything a player could use. This one is only
+    worth having if a visitor can reach all of it: the podium's top step, the lecterns, and the
+    floor in front of the record wall."""
+    w, f, _pal, p, meta = _built("hallofame", land, facing)
+    width, depth, cx = meta["width"], meta["depth"], meta["width"] // 2
+    seed = f.at(meta["door"][0], 0, 0)
+    assert _standable(w, seed), "the hall's own doorway is not standable"
+    reached = _walk(w, seed)
+    assert len(reached) > 150, f"only {len(reached)} standing cells - too small to trust"
+    assert f.at(cx, 3, 2) in reached, "the winners' podium cannot be stood on"
+    assert f.at(cx, depth - 5, 0) in reached, "there is no standing room at the lecterns"
+    assert f.at(cx, depth - 3, 0) in reached, "the record wall cannot be walked up to"
+
+
+@pytest.mark.parametrize("land", LANDS)
+@pytest.mark.parametrize("facing", FACINGS)
+def test_the_rail_leaves_exactly_one_bay_open_as_the_door(land, facing):
+    """An open front with a rail across every bay is a fence; with none it is a shed with a hole
+    in it. The gap is left by the loop, never punched afterwards."""
+    w, f, _pal, _p, meta = _built("hallofame", land, facing)
+    assert meta["door"], "the colonnade has no opening at all"
+    for i in meta["door"]:
+        for h in (0, 1, 2):
+            assert f.at(i, 0, h) not in w.cells, f"the doorway is blocked at course {h}"
+    assert meta["rails"] >= 4, "the rest of the front is not railed, so nothing reads as a door"
+
+
+@pytest.mark.parametrize("land", LANDS)
+def test_the_hall_of_fame_is_made_of_things_a_player_uses(land):
+    """Every fitting in it works on a right-click with nothing wired to it - which is the reason
+    a bell is here and a note block is not, and the reason this can ship at all: nothing that
+    carries a signal leaves this repo unverified."""
+    w, _f, _pal, _p, meta = _built("hallofame", land)
+    names = [n for n, _props in w.cells.values()]
+    assert meta["lecterns"] >= 2 and names.count("lectern") == meta["lecterns"]
+    assert names.count("bell") == 1
+    assert meta["plaques"] >= 4, "the record wall has fewer than four named records on it"
+    assert meta["trophies"] >= 4
+    redstone = {"redstone_wire", "repeater", "comparator", "observer", "piston", "dispenser",
+                "dropper", "note_block", "redstone_torch", "redstone_block"}
+    assert not (redstone & set(names)), "this design carries a signal and nothing verifies it"
+
+
+def test_the_hall_of_fame_names_itself_and_says_how_it_works():
+    w, _f, _pal, _p, meta = _built("hallofame", title="HALL OF FAME")
+    text = " ".join(" ".join(list(t["front"]) + list(t["back"])).lower()
+                    for t in w.signs.values())
+    for want in ("hall of fame", "how it works", "the podium", "ring the bell"):
+        assert want in text, f"no sign in the hall says {want!r}"
+    assert meta["signs_placed"] == meta["signs"], \
+        "a sign was silently refused - `park._sign` places nothing when its wall has a hole in it"
+
+
 # ------------------------------------------------------------------ the shop street's shutters
 
 def test_shop_shutters_are_open_trapdoors_not_painted_wool():

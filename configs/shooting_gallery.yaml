@@ -4,9 +4,9 @@ params:
   land: frontier
   facing: east
   at:
-  - 97564
+  - 97560
   - 203
-  - 80416
+  - 80427
   kind: shootinggallery
   title: Shooting Gallery
   under: out/islandleft.litematic

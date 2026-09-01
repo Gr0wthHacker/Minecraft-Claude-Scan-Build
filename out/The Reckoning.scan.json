@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97601,
+    "x": 97556,
     "y": 197,
-    "z": 80790
+    "z": 80806
   },
   "size": {
     "x": 17,
@@ -15,16 +15,16 @@
   "contract": "press once; pays ONLY on exactly 2 (1 in 3)",
   "inputs": [
     [
-      97605,
+      97560,
       204,
-      80794
+      80810
     ]
   ],
   "outputs": [
     [
-      97616,
+      97571,
       199,
-      80792
+      80808
     ]
   ],
   "unverified": [
@@ -33,9 +33,9 @@
   "budget": {},
   "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
   "rng_hopper": [
-    97610,
+    97565,
     199,
-    80796
+    80812
   ],
   "win_level": 2,
   "stock": {

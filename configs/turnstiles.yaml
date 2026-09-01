@@ -6,7 +6,7 @@ params:
   at:
   - 97555
   - 203
-  - 80590
+  - 80592
   kind: turnstile
   title: Turnstiles
   under: out/newisle.litematic

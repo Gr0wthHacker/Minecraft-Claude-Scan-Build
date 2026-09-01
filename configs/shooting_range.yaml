@@ -1,0 +1,19 @@
+name: Shooting Range
+gen: arcade
+params:
+  land: frontier
+  facing: east
+  at:
+  - 97589
+  - 203
+  - 80448
+  kind: range
+  title: Shooting Range
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false
+expensive_allowance: 15
+expensive_reason: 15x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

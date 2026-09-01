@@ -2,12 +2,12 @@ name: Prospect Row
 gen: frontiertown
 params:
   land: frontier
-  shops: 5
+  shops: 3
   facing: east
   at:
-  - 97565
+  - 97568
   - 203
-  - 80397
+  - 80398
   kind: falsefront
   title: Prospect Row
   under: out/islandleft.litematic

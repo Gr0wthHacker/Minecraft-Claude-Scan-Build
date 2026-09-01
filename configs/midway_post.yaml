@@ -11,9 +11,9 @@ params:
   - direction: west
     dest: Park Gate
   at:
-  - 97617
+  - 97587
   - 203
-  - 80594
+  - 80630
   kind: fingerpost
   title: Midway Post
   under: out/newisle.litematic

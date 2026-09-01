@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97581,
+    "x": 97601,
     "y": 202,
-    "z": 80820
+    "z": 80771
   },
   "size": {
     "x": 3,
@@ -12,7 +12,7 @@
   "generated_by": "wayfinding",
   "kind": "mapboard",
   "land": "hollow",
-  "facing": "east",
+  "facing": "west",
   "contract": "a coloured three-zone layout at the entrance, with the zone you are standing in picked out - read as a plan, not a paragraph",
   "width": 9,
   "height": 8,

@@ -982,8 +982,11 @@ def _manor(w: World, p: dict, ctx) -> dict:
     if p.get("sign", True):
         signed += _sign(w, f, pal, bmid, -4, F0 + 3, f.facing,
                         [title[:SIGN_WIDTH], "", "", ""])
+        # WHAT YOU DO HERE, not just what it is called. "Haunted Manor" over a door tells a
+        # visitor nothing they could not see; "walk through it" is the whole difference between
+        # a building you pass and one you enter.
         signed += _sign(w, f, pal, bi0 + 1, -4, F0 + 2, f.facing,
-                        ["THE HOLLOW", "no callers", "after dusk", ""])
+                        ["WALK THROUGH", "in at the front", "out at the back", "mind the cellar"])
         # the hall, read walking in - hung on the partition's front face
         signed += _sign(w, f, pal, bmid - 3, D // 2 - 1, F0 + 2, f.facing,
                         ["THE HALL", "stair on your", "left", ""])
@@ -1351,9 +1354,16 @@ def _clocktower(w: World, p: dict, ctx) -> dict:
     for (i, d) in ((-1, -1), (S, -1), (-1, S), (S, S)):
         _lamp_post(w, f, kit, pal, i, d, 2)
 
-    # THE GALLERY IS LIT, or the one place worth climbing to is the darkest cell in the zone.
-    # Hung from the bell beam's own course, which is a full timber run and therefore real.
-    for (gi, gd) in ((2, 2), (S - 3, 2), (2, S - 3), (S - 3, S - 3)):
+    # THE GALLERY IS LIT, or the one place worth climbing to is the darkest cell in the zone -
+    # AND EVERY LANTERN HANGS FROM THE BEAM, not from a plank it brought with it. Placed at the
+    # chamber's four corners each one supplied its own block and the pair floated: three
+    # two-cell components in a design whose contract is that it is one piece. `_hang` guarantees
+    # a FULL block overhead and cannot guarantee that the block is attached to anything, which
+    # is the distinction a component count exists to catch and a render never shows.
+    for d in range(S):
+        if d != mid:
+            w.put(*f.at(mid, d, BELFRY - 1), kit["timber"])
+    for (gi, gd) in ((2, mid), (S - 3, mid), (mid, 2), (mid, S - 3)):
         _hang(w, f, pal, gi, gd, BELFRY - 2, kit["timber"])
 
     title = str(p.get("title") or "THE HOUR").upper()
@@ -1610,7 +1620,8 @@ def _graveyard(w: World, p: dict, ctx) -> dict:
     if p.get("sign", True):
         # ON THE LINTEL, NOT IN THE GATEWAY. `mi` at h=4 is the opening the wall loop left
         # empty, so a sign there has nothing behind it - the park's own four-sign bug.
-        signed += _sign(w, f, pal, mi, -1, 5, f.facing, [title[:SIGN_WIDTH], "", "", ""])
+        signed += _sign(w, f, pal, mi, -1, 5, f.facing,
+                        [title[:SIGN_WIDTH], "there is a way", "down, behind", "the monument"])
         if vault:
             # ON THE PIER, because the doorcase's opening has nothing behind it - the same
             # column-with-a-hole-in-it that shipped four floating signs in `gen/park.py`.

@@ -1,0 +1,15 @@
+name: The Vault
+gen: arcade
+params:
+  land: hollow
+  facing: east
+  at:
+  - 97598
+  - 203
+  - 80840
+  kind: safe
+  title: The Vault
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

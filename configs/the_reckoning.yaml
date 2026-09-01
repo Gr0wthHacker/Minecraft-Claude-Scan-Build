@@ -7,9 +7,9 @@ params:
   facing: east
   booth: true
   at:
-  - 97607
+  - 97562
   - 203
-  - 80796
+  - 80812
   kind: lucky_number
   title: The Reckoning
   under: out/islandright.litematic

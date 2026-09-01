@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97565,
+    "x": 97618,
     "y": 202,
-    "z": 80821
+    "z": 80755
   },
   "size": {
     "x": 6,
@@ -12,7 +12,7 @@
   "generated_by": "wayfinding",
   "kind": "fingerpost",
   "land": "hollow",
-  "facing": "east",
+  "facing": "west",
   "contract": "2-4 arms, each pointing the direction its own sign faces, each naming a real module, zone or transit station",
   "arms": [
     {
@@ -21,9 +21,9 @@
       "sign_facing": "north",
       "placed": true,
       "sign_at": [
-        97569,
+        97622,
         206,
-        80821
+        80755
       ]
     },
     {
@@ -32,9 +32,9 @@
       "sign_facing": "west",
       "placed": true,
       "sign_at": [
-        97565,
+        97618,
         207,
-        80825
+        80759
       ]
     }
   ],

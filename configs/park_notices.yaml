@@ -5,9 +5,9 @@ params:
   title: Park Notices
   facing: east
   at:
-  - 97617
+  - 97590
   - 203
-  - 80606
+  - 80634
   kind: noticeboard
   under: out/newisle.litematic
 finish:

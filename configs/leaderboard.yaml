@@ -1,0 +1,15 @@
+name: Leaderboard
+gen: spectacle
+params:
+  land: midway
+  facing: east
+  at:
+  - 97617
+  - 203
+  - 80597
+  kind: leaderboard
+  title: Leaderboard
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

@@ -4,11 +4,11 @@ params:
   land: hollow
   zone: hollow
   title: Hollow Map
-  facing: east
+  facing: west
   at:
-  - 97582
+  - 97602
   - 203
-  - 80829
+  - 80772
   kind: mapboard
   under: out/islandright.litematic
 finish:

@@ -795,8 +795,14 @@ def _approach(w, f, pal, say, c, td, steps):
 
     ring = [t for t in _band(STEP_R[0], PAD_R) if t[0] <= 0 and t[1] <= 0]
     ring.sort(key=lambda t: -math.atan2(t[1], t[0]))
+    # THE BED IS THE TRIM, NOT THE PATH. Laid in `pal["path"]` the route was only its dashes:
+    # the apron is already a checker of ground and path, so a path-coloured ribbon on it is
+    # invisible from above and the whole point of drawing it on the ground is lost. The trim is
+    # the dark end of the cheap value ladder in every land - 215 points of luminance across five
+    # cheap stops, measured across families rather than within one - so a trim ribbon with a
+    # gilded dash every third cell is the strongest line this economy can draw.
     for k, (di, dd) in enumerate(ring):
-        _put(w, f, c, di, dd, -1, pal["accent"] if k % 3 == 0 else pal["path"])
+        _put(w, f, c, di, dd, -1, pal["accent"] if k % 3 == 0 else pal["trim"])
 
     # THE FINGERPOST, at the foot of the front steps and ON the marked route, so the first thing
     # a visitor reads is that there is a tower and it is free.

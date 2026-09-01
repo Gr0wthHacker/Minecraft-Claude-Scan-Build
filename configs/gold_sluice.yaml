@@ -1,0 +1,15 @@
+name: Gold Sluice
+gen: frontiertown
+params:
+  land: frontier
+  facing: west
+  at:
+  - 97621
+  - 203
+  - 80353
+  kind: sluice
+  title: Gold Sluice
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

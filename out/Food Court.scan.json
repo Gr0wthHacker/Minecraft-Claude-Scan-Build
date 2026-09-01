@@ -1,0 +1,157 @@
+{
+  "origin": {
+    "x": 97600,
+    "y": 202,
+    "z": 80552
+  },
+  "size": {
+    "x": 15,
+    "y": 6,
+    "z": 19
+  },
+  "generated_by": "spectacle",
+  "kind": "foodcourt",
+  "footprint": [
+    19,
+    15
+  ],
+  "land": "midway",
+  "facing": "west",
+  "when": "9pm nightly",
+  "contract": "a served counter with 3 blocks of staff room behind it, 3 tables with 12 seats under cover, a bin at each end, and a lantern over every table",
+  "unverified": [],
+  "budget": {},
+  "width": 17,
+  "depth": 13,
+  "height": 5,
+  "stalls": 4,
+  "tables": 3,
+  "seats": 12,
+  "seat_cells": [
+    [
+      97603,
+      203,
+      80554
+    ],
+    [
+      97603,
+      203,
+      80556
+    ],
+    [
+      97602,
+      203,
+      80555
+    ],
+    [
+      97604,
+      203,
+      80555
+    ],
+    [
+      97603,
+      203,
+      80558
+    ],
+    [
+      97603,
+      203,
+      80560
+    ],
+    [
+      97602,
+      203,
+      80559
+    ],
+    [
+      97604,
+      203,
+      80559
+    ],
+    [
+      97603,
+      203,
+      80562
+    ],
+    [
+      97603,
+      203,
+      80564
+    ],
+    [
+      97602,
+      203,
+      80563
+    ],
+    [
+      97604,
+      203,
+      80563
+    ]
+  ],
+  "hearth": false,
+  "signs": 5,
+  "service": [
+    {
+      "pos": [
+        97612,
+        203,
+        80555
+      ],
+      "facing": "west",
+      "use": "barrel"
+    },
+    {
+      "pos": [
+        97612,
+        203,
+        80559
+      ],
+      "facing": "west",
+      "use": "smoker"
+    },
+    {
+      "pos": [
+        97612,
+        203,
+        80563
+      ],
+      "facing": "west",
+      "use": "barrel"
+    },
+    {
+      "pos": [
+        97612,
+        203,
+        80567
+      ],
+      "facing": "west",
+      "use": "smoker"
+    },
+    {
+      "pos": [
+        97601,
+        203,
+        80553
+      ],
+      "facing": null,
+      "use": "composter"
+    },
+    {
+      "pos": [
+        97601,
+        203,
+        80569
+      ],
+      "facing": null,
+      "use": "composter"
+    }
+  ],
+  "work_room": 3,
+  "stock": {
+    "barrels": "stock them with whatever the park sells",
+    "smokers": "coal or charcoal for fuel"
+  },
+  "file": "Food Court.litematic",
+  "name": "Food Court"
+}

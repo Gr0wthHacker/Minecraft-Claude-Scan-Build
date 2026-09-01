@@ -1053,8 +1053,12 @@ def _one_shop(w, f, pal, say, s, i0, depth, min_run):
     # ---- the nameplate. On a jettied shop the fascia has moved forward with the storey above it,
     # so the sign moves with it - a sign at a fixed offset would be hung on air.
     say(w, f, pal, mid, df - 1, _BAND, f.facing, [name[:SIGN_WIDTH], tag[:SIGN_WIDTH]])
+    # `door_cols` is stated AFTER `**s`, because the spec's own `door` is the word "left" /
+    # "centre" / "right" and it shadowed the columns the door was actually cut in - a caller
+    # asking this dict where the door is got a placement STYLE and no error.
     return {"i0": i0, "i1": i1, "top": top, "door": door, "windows": win,
-            "tool": tool, "stock": stock, "shelves": shelves, **s}
+            "tool": tool, "stock": stock, "shelves": shelves, **s,
+            "door_cols": tuple(door)}
 
 
 def _shopstreet(w: World, p: dict, ctx) -> dict:
@@ -1130,7 +1134,7 @@ def _shopstreet(w: World, p: dict, ctx) -> dict:
             "tools": [b["tool"] for b in built],
             "stock": sum(b["stock"] for b in built),
             "shelves": sum(b["shelves"] for b in built),
-            "doors": [tuple(b["door"]) for b in built],
+            "doors": [b["door_cols"] for b in built],
             "signs": say.want, "signs_placed": say.got,
             "contract": "shops on one shared frontage, no two of them the same building - width, "
                         "storeys, roof, awning, jetty, door, windows, field material and accent "

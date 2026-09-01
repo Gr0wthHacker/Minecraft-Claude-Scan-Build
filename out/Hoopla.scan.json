@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97562,
+    "x": 97622,
     "y": 198,
-    "z": 80593
+    "z": 80551
   },
   "size": {
     "x": 16,
@@ -11,35 +11,35 @@
   },
   "generated_by": "casino",
   "kind": "casino/high_roller",
-  "facing": "east",
+  "facing": "west",
   "contract": "press once; the bar shows the roll, 3 outcomes [1, 2, 4]",
   "inputs": [
     [
-      97566,
+      97633,
       204,
-      80597
+      80556
     ]
   ],
   "outputs": [
     [
-      97574,
+      97625,
       199,
-      80600
+      80553
     ],
     [
-      97574,
+      97625,
       199,
-      80599
+      80554
     ],
     [
-      97574,
+      97625,
       199,
-      80598
+      80555
     ],
     [
-      97574,
+      97625,
       199,
-      80597
+      80556
     ]
   ],
   "unverified": [
@@ -51,30 +51,30 @@
   "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
   "lamps": [
     [
-      97574,
+      97625,
       199,
-      80600
+      80553
     ],
     [
-      97574,
+      97625,
       199,
-      80599
+      80554
     ],
     [
-      97574,
+      97625,
       199,
-      80598
+      80555
     ],
     [
-      97574,
+      97625,
       199,
-      80597
+      80556
     ]
   ],
   "rng_hopper": [
-    97571,
+    97628,
     199,
-    80600
+    80553
   ],
   "stock": {
     "dropper": [

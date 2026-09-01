@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97610,
+    "x": 97604,
     "y": 202,
-    "z": 80787
+    "z": 80832
   },
   "size": {
     "x": 5,
@@ -16,31 +16,25 @@
   "facing": "west",
   "contract": "two to four arms pointing different ways, each a full block with its sign in the cell beyond it, so every sign has something to hang on",
   "unverified": [],
-  "arms": 3,
-  "cap": "lantern",
+  "arms": 2,
+  "cap": "finial",
   "ways": [
     {
-      "dir": "north",
-      "h": 5,
-      "to": "THE GATE",
-      "placed": true
-    },
-    {
-      "dir": "east",
+      "dir": "west",
       "h": 4,
-      "to": "HOLLOW",
+      "to": "THE LAKE",
       "placed": true
     },
     {
-      "dir": "south",
+      "dir": "north",
       "h": 3,
-      "to": "MIDWAY",
+      "to": "THE GATE",
       "placed": true
     }
   ],
-  "seed": 128096718,
-  "signs": 3,
-  "signs_placed": 3,
+  "seed": 128093391,
+  "signs": 2,
+  "signs_placed": 2,
   "file": "Signpost 4.litematic",
   "name": "Signpost 4"
 }

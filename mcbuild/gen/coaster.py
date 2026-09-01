@@ -764,6 +764,13 @@ def _cap(w, f, pal, pts, hs, j, wo):
     lanes, and the two wall lines) from the bed up past the wall top, so it meets the side walls
     face-to-face rather than diagonally: a cap only three wide leaves a diagonal gap at each
     shoulder, and diagonal is not a seal any more than it is a connection.
+
+    **IT IS NOT WHAT MAKES THE RIDE WATERTIGHT, AND SAYING SO WOULD BE A LIE THE NEXT PERSON
+    INHERITS.** `_shell` walls every open face of the envelope, the head included, so removing
+    this function changes nothing a simulator can see - which is exactly what
+    `test_the_leak_check_can_actually_fail` found when it tried to break containment by stubbing
+    it. What the cap buys is a deliberate five-wide masonry end where the trough stops, instead of
+    a wall shaped by wherever water happened to be able to reach.
     """
     ci, cd = pts[j]
     nxt = pts[j + 1] if j + 1 < len(pts) else pts[j - 1]

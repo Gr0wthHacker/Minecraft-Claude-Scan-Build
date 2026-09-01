@@ -4,9 +4,9 @@ params:
   land: hollow
   facing: west
   at:
-  - 97605
+  - 97609
   - 203
-  - 80758
+  - 80773
   kind: lamppost
   title: Lamppost 2
   under: out/islandright.litematic

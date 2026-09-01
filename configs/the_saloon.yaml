@@ -4,11 +4,11 @@ params:
   land: frontier
   width: 17
   depth: 12
-  facing: south
+  facing: east
   at:
-  - 97619
+  - 97563
   - 203
-  - 80374
+  - 80418
   kind: saloon
   title: The Saloon
   under: out/islandleft.litematic

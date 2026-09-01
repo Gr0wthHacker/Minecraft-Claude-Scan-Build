@@ -1,24 +1,24 @@
 {
   "origin": {
-    "x": 97602,
+    "x": 97551,
     "y": 202,
-    "z": 80362
+    "z": 80401
   },
   "size": {
-    "x": 19,
-    "y": 19,
-    "z": 17
+    "x": 17,
+    "y": 18,
+    "z": 19
   },
   "generated_by": "frontiertown",
   "kind": "saloon",
   "land": "frontier",
-  "facing": "south",
+  "facing": "east",
   "contract": "two storeys under a false front, a covered porch on posts with a railed balcony over it, a stair inside that actually reaches the first floor - and a room you can USE at the top and bottom of it: a served bar with stools, tables and chairs, and beds upstairs, which is what the sign over the door has been promising all along",
   "unverified": [],
   "width": 17,
   "depth": 12,
-  "height": 18,
-  "front": "triangular",
+  "height": 17,
+  "front": "stepped",
   "signs": 3,
   "tables": 3,
   "beds": 3,

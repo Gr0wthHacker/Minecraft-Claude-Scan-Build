@@ -9,9 +9,9 @@ params:
   - direction: west
     dest: Mine Coaster
   at:
-  - 97593
+  - 97636
   - 203
-  - 80438
+  - 80426
   kind: fingerpost
   title: Frontier Post
   under: out/islandleft.litematic

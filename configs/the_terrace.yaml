@@ -1,0 +1,15 @@
+name: The Terrace
+gen: spectacle
+params:
+  land: midway
+  facing: west
+  at:
+  - 97610
+  - 203
+  - 80619
+  kind: viewing
+  title: The Terrace
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

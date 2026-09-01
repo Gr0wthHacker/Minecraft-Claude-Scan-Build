@@ -1,0 +1,15 @@
+name: Hall of Fame
+gen: civic
+params:
+  land: midway
+  facing: east
+  at:
+  - 97591
+  - 203
+  - 80574
+  kind: hallofame
+  title: Hall of Fame
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

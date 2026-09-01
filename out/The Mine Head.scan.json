@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97619,
+    "x": 97621,
     "y": 192,
-    "z": 80352
+    "z": 80379
   },
   "size": {
     "x": 19,
@@ -23,31 +23,31 @@
   "tubs": 3,
   "signs": 4,
   "gallery": 78,
-  "veins": 37,
+  "veins": 44,
   "sets": 4,
   "lamps": 8,
   "hoist_shaft": 11,
   "escape_shaft": 11,
   "floor_h": -11,
   "adit_mouth": [
-    97620,
+    97622,
     203,
-    80362
+    80389
   ],
   "shaft_head": [
-    97634,
+    97636,
     203,
-    80362
+    80389
   ],
   "gallery_far": [
-    97628,
+    97630,
     193,
-    80366
+    80393
   ],
   "way_out": [
-    97623,
+    97625,
     203,
-    80357
+    80384
   ],
   "walk_cells": 388,
   "file": "The Mine Head.litematic",

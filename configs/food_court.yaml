@@ -1,0 +1,15 @@
+name: Food Court
+gen: spectacle
+params:
+  land: midway
+  facing: west
+  at:
+  - 97601
+  - 203
+  - 80553
+  kind: foodcourt
+  title: Food Court
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

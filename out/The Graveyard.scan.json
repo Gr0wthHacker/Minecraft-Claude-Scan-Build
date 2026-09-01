@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97586,
+    "x": 97611,
     "y": 196,
-    "z": 80815
+    "z": 80752
   },
   "size": {
     "x": 23,
@@ -17,34 +17,34 @@
   "unverified": [],
   "width": 25,
   "depth": 21,
-  "stones": 23,
+  "stones": 21,
   "shapes": {
-    "slab": 3,
+    "slab": 4,
     "broken": 5,
-    "obelisk": 3,
-    "lean": 4,
-    "cross": 6,
-    "round": 2
+    "lean": 3,
+    "cross": 1,
+    "obelisk": 5,
+    "round": 3
   },
-  "looks": 23,
+  "looks": 21,
   "signs": 2,
   "vault": true,
   "niches": 4,
   "vault_lamps": 2,
   "gate_at": [
-    97587,
+    97612,
     203,
-    80828
+    80765
   ],
   "vault_at": [
-    97606,
+    97631,
     197,
-    80828
+    80765
   ],
   "sarcophagus_at": [
-    97604,
+    97629,
     197,
-    80832
+    80769
   ],
   "file": "The Graveyard.litematic",
   "name": "The Graveyard"

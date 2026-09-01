@@ -1,0 +1,124 @@
+{
+  "origin": {
+    "x": 97609,
+    "y": 202,
+    "z": 80635
+  },
+  "size": {
+    "x": 11,
+    "y": 13,
+    "z": 15
+  },
+  "generated_by": "arcade",
+  "kind": "strength",
+  "footprint": [
+    15,
+    11
+  ],
+  "courses": [
+    -1,
+    11
+  ],
+  "land": "midway",
+  "facing": "west",
+  "contract": "a hit of strength L lights the bottom L of 8 lamps; only L >= 8 reaches the bell, and only that pays, once",
+  "unverified": [
+    "A TARGET'S OUTPUT IS AN INPUT YOU STATE - the simulator has no entities and cannot swing at it."
+  ],
+  "budget": {
+    "redstone_lamp": 8
+  },
+  "width": 13,
+  "depth": 5,
+  "height": 20,
+  "rungs": 8,
+  "target": [
+    97613,
+    205,
+    80638
+  ],
+  "bell": [
+    97613,
+    213,
+    80647
+  ],
+  "lamps": [
+    [
+      97612,
+      205,
+      80640
+    ],
+    [
+      97612,
+      206,
+      80641
+    ],
+    [
+      97612,
+      207,
+      80642
+    ],
+    [
+      97612,
+      208,
+      80643
+    ],
+    [
+      97612,
+      209,
+      80644
+    ],
+    [
+      97612,
+      210,
+      80645
+    ],
+    [
+      97612,
+      211,
+      80646
+    ],
+    [
+      97612,
+      212,
+      80647
+    ]
+  ],
+  "top": [
+    97613,
+    212,
+    80647
+  ],
+  "droppers": [
+    [
+      97619,
+      213,
+      80647
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97613,
+      205,
+      80638
+    ]
+  ],
+  "outputs": [
+    [
+      97613,
+      213,
+      80647
+    ],
+    [
+      97619,
+      213,
+      80647
+    ]
+  ],
+  "stock": {
+    "the dropper": "the prize a maximum hit pays"
+  },
+  "file": "High Striker.litematic",
+  "name": "High Striker"
+}

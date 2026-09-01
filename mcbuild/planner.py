@@ -156,17 +156,34 @@ THEMES = {
         "paths": True,
         "paths_name": "Midway Paths",
         "furniture": ["bench", "planter", "lamppost", "topiary", "bin", "signpost"],
-        "spacing": 1,
+        "spacing": 0,
         "reserve": [[97640, 80551, 97649, 80649]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
-            # ------------------------------------------------------------- wayfinding
-            # **THE FURTHEST ATTRACTION IS ~436 WALKING BLOCKS FROM THE GATE.** A park that size
-            # is not legible from inside it, and a flow audit found the four thematic gateways
-            # between zones leading to nothing a visitor could see. A board at the entrance and a
-            # post at the crossing are what turn a layout into a place you can find your way
-            # around; the destinations are validated against the live theme rosters at build
-            # time, so a renamed module fails here rather than in game.
+            # ------------------------------------------------- things to DO, and a reason to stay
+            # The user: *"we want this to be a unique real experience that people want to stay
+            # around for"*. A park keeps people because things HAPPEN in it and because there is
+            # somewhere pleasant to be between rides - so: a show on a timer, a terrace to watch
+            # it from, somewhere to eat, and games where what the PLAYER does decides the outcome
+            # rather than a randomiser they stand and watch.
+            {"name": "Fireworks", "gen": "spectacle", "kind": "fireworks",
+             "size": [17, 4, 24], "orient": False,
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "The Terrace", "gen": "spectacle", "kind": "viewing",
+             "size": [12, 7, 17], "orient": False,
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "Food Court", "gen": "spectacle", "kind": "foodcourt",
+             "size": [15, 6, 19], "orient": False,
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "Plinko", "gen": "arcade", "kind": "plinko",
+             "size": [17, 17, 18], "orient": False,
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "High Striker", "gen": "arcade", "kind": "strength",
+             "size": [11, 13, 15], "orient": False,
+             "params": {"land": "midway", "facing": "east"}},
+            {"name": "Prize Counter", "gen": "arcade", "kind": "prizecounter",
+             "size": [11, 7, 17], "orient": False,
+             "params": {"land": "midway", "facing": "east"}},
             {"name": "Midway Map", "gen": "wayfinding", "kind": "mapboard",
              "size": [3, 9, 11], "orient": False,
              "params": {"land": "midway", "zone": "midway", "title": "MIDWAY",
@@ -180,18 +197,6 @@ THEMES = {
                         "arms": [{"direction": "north", "dest": "Frontier"},
                                  {"direction": "south", "dest": "Hollow"},
                                  {"direction": "west", "dest": "Park Gate"}]}},
-            {"name": "Hall Of Mirrors", "gen": "attractions", "kind": "mirrormaze",
-             "size": [15, 5, 13], "orient": False,
-             "params": {"land": "midway", "facing": "east"}},
-            # ------------------------------------------------------- arrival, in order
-            # **PINNED TO THE WEST EDGE, BESIDE THE GATE, because the sequence IS the meaning.**
-            # Packed by area these went wherever there was room - a turnstile in the middle of the
-            # park is a turnstile you walk round - and the queue, being the smallest, was left
-            # over entirely. The edge branch slides them along the edge past each other, so what
-            # they form is an arrival strip: queue, window, barrier, and then you are in.
-            # You queue, you buy a ticket, the barrier eats it, you are in. The box office is
-            # the only place on the island that takes grass; everything downstream of the
-            # turnstile assumes you already paid.
             {"name": "Box Office", "gen": "ticketing", "kind": "boxoffice",
              "size": [11, 8, 13],
              "anchor": "edge", "side": "west",
@@ -204,22 +209,8 @@ THEMES = {
              "size": [19, 9, 11], "orient": False,
              "anchor": "edge", "side": "west",
              "params": {"land": "midway", "facing": "east"}},
-            {"name": "Lockers", "gen": "ticketing", "kind": "lockers",
-             "size": [11, 7, 10],
-             "params": {"land": "midway", "facing": "east"}},
-            # ------------------------------------------------------------------ the rides
-            # `_site_order` sorts by MEASURED area, so these can be written where they read
-            # best rather than in size order.
-            {"name": "The Arcade", "gen": "attractions", "kind": "arcade",
-             "size": [21, 7, 13],
-             "params": {"land": "midway", "facing": "east"}},
-            # LARGEST RESERVED FOOTPRINT FIRST - `bays` packs in list order and a big module
-            # listed late finds the grid full of kiosks.
-            #
-            # `orient: False` on the long thin ones: a 16x55 street would book 55x55 to hold a
-            # rotation it does not want, because its frontage IS its design. It can still flip.
             {"name": "Shop Street", "gen": "civic", "kind": "shopstreet",
-             "size": [16, 15, 14], "orient": False,
+             "size": [16, 17, 23], "orient": False,
              "params": {"land": "midway", "shops": 2, "facing": "east"}},
             # **A FERRIS WHEEL IS A BACKDROP, SO IT IS PINNED TO AN EDGE.** Sited by `bays` it
             # landed mid-plot with eight unusable columns behind it, and the 19x77 strip it casts
@@ -243,15 +234,11 @@ THEMES = {
             {"name": "Carousel", "gen": "bigwheel", "kind": "carousel",
              "size": [32, 27, 27], "orient": False,
              "params": {"land": "midway", "diameter": 25, "mounts": 12, "facing": "east"}},
-            {"name": "Hoopla", "gen": "casino", "kind": "high_roller",
-             "size": [9, 8, 8], "orient": False,
-             "params": {"land": "midway", "outcomes": 3, "pit": 2, "facing": "east",
-                        "booth": True}},
-            {"name": "Guest Services", "gen": "civic", "kind": "guestservices",
-             "size": [17, 22, 21],
+            {"name": "Hall of Fame", "gen": "civic", "kind": "hallofame",
+             "size": [18, 14, 21],
              "params": {"land": "midway", "facing": "east"}},
             {"name": "The Monument", "gen": "monument", "kind": "monument",
-             "size": [33, 49, 33], "anchor": "centre", "orient": False,
+             "size": [33, 53, 33], "anchor": "centre", "orient": False,
              "params": {"land": "midway", "facing": "east"}},
             {"name": "Park Gate", "gen": "park", "kind": "gate", "size": [15, 9, 7],
              "anchor": "edge", "side": "west",
@@ -286,10 +273,26 @@ THEMES = {
         "paths": True,
         "paths_name": "Frontier Paths",
         "furniture": ["bench", "planter", "lamppost", "signpost", "bin", "flagpole"],
-        "spacing": 1,
+        "spacing": 0,
         "reserve": [[97640, 80351, 97649, 80449]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            # A shooting range and an assay scale: both are things you do with your hands, and
+            # both belong to a mining town.
+            {"name": "Shooting Range", "gen": "arcade", "kind": "range",
+             "size": [26, 13, 15], "orient": False,
+             "params": {"land": "frontier", "facing": "east"}},
+            {"name": "Assay Office", "gen": "arcade", "kind": "weigh",
+             "size": [30, 10, 19], "orient": False,
+             "params": {"land": "frontier", "facing": "east"}},
+            # **A GAME YOU PLAY WITH YOUR HANDS.** Drop items into the head box; flowing
+            # water carries them thirteen cells down a stepped launder into a hopper row feeding
+            # a barrel, and a comparator on that barrel raises a gold block into a window and
+            # rings a bell. Both simulators agree, in both directions - it is dark when empty.
+            # It replaces the Riverboat, which was a hull you could walk onto and nothing else.
+            {"name": "Gold Sluice", "gen": "frontiertown", "kind": "sluice",
+             "size": [22, 9, 15], "orient": False,
+             "params": {"land": "frontier", "facing": "east"}},
             {"name": "Frontier Map", "gen": "wayfinding", "kind": "mapboard",
              "size": [3, 9, 11], "orient": False,
              "params": {"land": "frontier", "zone": "frontier", "title": "FRONTIER",
@@ -299,19 +302,9 @@ THEMES = {
              "params": {"land": "frontier", "facing": "east",
                         "arms": [{"direction": "south", "dest": "Midway"},
                                  {"direction": "west", "dest": "Mine Coaster"}]}},
-            {"name": "Ride Gate", "gen": "ticketing", "kind": "ridegate",
-             "size": [19, 9, 11], "orient": False,
-             "params": {"land": "frontier", "facing": "east"}},
             {"name": "Runaway Mine", "gen": "attractions", "kind": "runawaymine",
              "size": [26, 12, 23],
              "params": {"land": "frontier", "facing": "east"}},
-            {"name": "The Riverboat", "gen": "attractions", "kind": "riverboat",
-             "size": [9, 10, 27], "orient": False,
-             "params": {"land": "frontier", "facing": "east"}},
-            {"name": "Shooting Gallery", "gen": "attractions", "kind": "shootinggallery",
-             "size": [15, 8, 9], "orient": False,
-             "params": {"land": "frontier", "facing": "east"}},
-            # THE HEADLINE RIDE, and it is sited first because it is a third of the plot.
             {"name": "Mine Coaster", "gen": "coaster", "kind": "coaster",
              "size": [47, 38, 47], "orient": False, "anchor": "edge", "side": "north",
              "params": {"land": "frontier", "span": 44, "top": 34, "facing": "south"}},
@@ -336,22 +329,23 @@ THEMES = {
              "size": [31, 24, 31], "orient": False,
              "params": {"land": "frontier", "flume_span": 29, "flume_top": 20, "pool": 4,
                         "facing": "west"}},
+            # Three shops, not five. Every one of them now has a counter, a ceiling lamp
+            # and the workstations of the trade on its sign - so they are worth entering, and
+            # three good ones beat five that cost the zone its saloon.
             {"name": "Prospect Row", "gen": "frontiertown", "kind": "falsefront",
-             "size": [13, 14, 39], "orient": False,
-             "params": {"land": "frontier", "shops": 5, "facing": "east"}},
+             "size": [13, 14, 25], "orient": False,
+             "params": {"land": "frontier", "shops": 3, "facing": "east"}},
             {"name": "The Mine Head", "gen": "frontiertown", "kind": "minehead",
-             "size": [19, 22, 21], "orient": False,
+             "size": [19, 32, 21], "orient": False,
              "params": {"land": "frontier", "facing": "east"}},
+            # A saloon is a FRONTAGE with a bar behind it, so the square reservation books
+            # its own depth again in air. The frontier had four free 17x17 slots and no 19x19.
             {"name": "The Saloon", "gen": "frontiertown", "kind": "saloon",
-             "size": [17, 16, 19],
+             "size": [17, 16, 19], "orient": False,
              "params": {"land": "frontier", "width": 17, "depth": 12, "facing": "east"}},
             # orient False: a windmill's sails read from every side, so it does not need the
             # square reservation - and at 13x21 booking 23x23 was the difference between it
             # fitting and being refused.
-            {"name": "Tin Can Alley", "gen": "casino", "kind": "duel",
-             "size": [9, 8, 8], "orient": False,
-             "params": {"land": "frontier", "outcomes": 3, "pit": 2, "facing": "east",
-                        "booth": True}},
             {"name": "Frontier Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
              "anchor": "edge", "side": "south",
              "params": {"land": "frontier", "width": 7, "height": 6, "facing": "south"}},
@@ -378,10 +372,24 @@ THEMES = {
         "paths": True,
         "paths_name": "Hollow Paths",
         "furniture": ["bench", "lamppost", "topiary", "signpost", "bin", "planter"],
-        "spacing": 1,
+        "spacing": 0,
         "reserve": [[97640, 80751, 97649, 80849]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            {"name": "Mirror Maze", "gen": "attractions", "kind": "mirrormaze",
+             "size": [15, 5, 13], "orient": False,
+             "params": {"land": "hollow", "facing": "east"}},
+            # The hollow gets the two games that need a dark room: a combination vault, and a
+            # corridor of sculk sensors you have to cross without making a sound.
+            {"name": "The Vault", "gen": "arcade", "kind": "safe",
+             "size": [42, 8, 27], "orient": False,
+             "params": {"land": "hollow", "facing": "east"}},
+            {"name": "The Quiet Room", "gen": "arcade", "kind": "quiet",
+             "size": [19, 7, 13], "orient": False,
+             "params": {"land": "hollow", "facing": "east"}},
+            {"name": "The Seance", "gen": "hollowmanor", "kind": "seance",
+             "size": [15, 14, 19], "orient": False,
+             "params": {"land": "hollow", "facing": "east"}},
             {"name": "Hollow Map", "gen": "wayfinding", "kind": "mapboard",
              "size": [3, 9, 11], "orient": False,
              "params": {"land": "hollow", "zone": "hollow", "title": "HOLLOW",
@@ -394,14 +402,8 @@ THEMES = {
             {"name": "Ghost Train", "gen": "attractions", "kind": "ghosttrain",
              "size": [21, 12, 15],
              "params": {"land": "hollow", "facing": "east"}},
-            {"name": "The Chapel", "gen": "attractions", "kind": "chapel",
-             "size": [17, 17, 21],
-             "params": {"land": "hollow", "facing": "east"}},
             {"name": "Haunted Manor", "gen": "hollowmanor", "kind": "manor",
              "size": [35, 45, 42],
-             "params": {"land": "hollow", "facing": "east"}},
-            {"name": "The Graveyard", "gen": "hollowmanor", "kind": "graveyard",
-             "size": [19, 13, 23],
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "The Plummet", "gen": "bigwheel", "kind": "drop",
              "size": [20, 73, 17],
@@ -941,11 +943,14 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
     # `greenfield`, and when it does the containers are not treated as fixtures - but every one is
     # NAMED IN THE PLAN and listed for removal, because a container silently built over is the
     # exact loss this rule was written after.
-    # **A THEME MAY SET ITS OWN SPACING, and a park wants less of it than a casino.** The gap
-    # between two casino games is circulation; the gap between two fairground buildings is the
-    # AVENUE, which the path pass draws separately and which is five cells wide. Paying for it
-    # twice cost the frontier its shooting gallery and the hollow its clock tower and its crypt -
-    # three real landmarks, refused for padding nobody walks in.
+    # **A THEME MAY SET ITS OWN SPACING, and a park wants NONE of it.** The gap between two
+    # casino games is circulation; the gap between two fairground buildings is the AVENUE, which
+    # the path pass draws separately and which is five cells wide, plus a three-wide spur to every
+    # door. Paying for circulation twice cost the frontier its shooting gallery and the hollow its
+    # clock tower and its crypt, and at one cell it was still refusing a prize counter and a high
+    # striker at 64% used. Buildings on a fairground street stand shoulder to shoulder; the
+    # measured footprint already includes each module's own apron, so zero here is a party wall,
+    # not two buildings sharing a cell - which `_clear` still forbids.
     spacing = int(spec.get("spacing", spacing))
     taken: list = []
     # **INFRASTRUCTURE IS RESERVED BEFORE THE BUILDINGS ARE PACKED, or it has nowhere to land.**
@@ -1334,6 +1339,14 @@ def _orient_to_streets(pl, plane, own=None):
         # never legally reach it. The turn is declined for the same reason it is declined for a
         # collision: keeping its back to the street is the smaller fault.
         clash = False
+        # **AND THE TURNED BOX MUST STAY ON THE OWNED LAND.** Siting checks the reserve; the turn
+        # pass re-places the module with a freshly measured footprint and was only checking its
+        # NEIGHBOURS, so a module that had been sited clear of the transit corridor could be
+        # turned into it - which is how the Mine Head ended up two cells over the railway with
+        # every siting check correct.
+        if own is not None and not (own[0] <= turned[0] and turned[2] <= own[1]
+                                    and own[2] <= turned[1] and turned[3] <= own[3]):
+            continue
         if own is not None:
             _saved = m["params"]
             m["params"] = params
@@ -1378,6 +1391,9 @@ def _orient_to_streets(pl, plane, own=None):
                 if any(box[0] <= o[2] and o[0] <= box[2] and box[1] <= o[3] and o[1] <= box[3]
                        for o in (_box_of(x) for x in pl.modules
                                  if x is not m and x is not hub and x["kind"] != "paths")):
+                    continue
+                if not (own[0] <= bx and bx + cfw - 1 <= own[1]
+                        and own[2] <= bz and bz + cfd - 1 <= own[3]):
                     continue
                 probe = {**m, "params": params,
                          "at": [bx - cfx, plane, bz - cfz], "size": [cfw, cfh, cfd],
@@ -1494,8 +1510,13 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
         # was no longer on the axis and quietly lost its path. A spur that is already on an
         # avenue comes out zero-length and is filtered out, so this costs nothing when it is
         # unnecessary and is the difference between a reachable gate and an ornament otherwise.
-        fx = min(max(fx, x0), x1)
-        fz = min(max(fz, z0), z1)
+        # **A SPUR RUNS TO THE DOOR, and the door may be on the very last column the theme owns.**
+        # Clamped to the AVENUE's bounds - which are inset two cells so an avenue does not run
+        # along the boundary itself - a spur stopped two short of the Gold Sluice's door and the
+        # building had no path to it. The avenues keep their margin; the spur does not need one,
+        # because the owned bounds already exclude the reserved corridor.
+        fx = min(max(fx, px0), px1)
+        fz = min(max(fz, pz0), pz1)
         # ONE RULE, SHARED. `_street_axis` decides both which way a building turns and which
         # avenue its spur runs to; asking the question twice in two places is how a shopfront
         # ends up addressing one street while its path goes to the other.
@@ -1581,18 +1602,18 @@ def _add_furniture(pl, spec, plane, world, pl_plot=None):
     obstacles = [list(_box_of(m)) for m in pl.modules
                  if not m.get("covers") and m["kind"] != "paths"]
     placed: list = []
+    px0, px1, pz0, pz1 = (_owned_bounds(pl_plot, spec) if pl_plot is not None
+                          else (cx - 40, cx + 40, cz - 40, cz + 40))
 
     def _free(x0, z0, x1, z1):
-        if pl_plot is not None and not (pl_plot.contains(x0, z0)
-                                        and pl_plot.contains(x1, z1)):
+        if pl_plot is not None and not (px0 <= x0 and x1 <= px1
+                                        and pz0 <= z0 and z1 <= pz1):
             return False
         for (bx0, bz0, bx1, bz1) in obstacles + placed:
             if x0 <= bx1 and x1 >= bx0 and z0 <= bz1 and z1 >= bz0:
                 return False
         return True
 
-    px0, px1, pz0, pz1 = (_plot_bounds(pl_plot) if pl_plot is not None
-                          else (cx - 40, cx + 40, cz - 40, cz + 40))
     n = 0
     # Both avenues, walked from one end to the other, dressing alternate kerbs.
     runs = [("x", px0 + 6, px1 - 6, cz), ("z", pz0 + 6, pz1 - 6, cx)]

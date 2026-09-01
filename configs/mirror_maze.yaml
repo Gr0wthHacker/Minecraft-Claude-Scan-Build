@@ -1,0 +1,15 @@
+name: Mirror Maze
+gen: attractions
+params:
+  land: hollow
+  facing: west
+  at:
+  - 97624
+  - 203
+  - 80811
+  kind: mirrormaze
+  title: Mirror Maze
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

@@ -4,12 +4,12 @@ params:
   land: midway
   outcomes: 3
   pit: 2
-  facing: east
+  facing: west
   booth: true
   at:
-  - 97568
+  - 97631
   - 203
-  - 80600
+  - 80553
   kind: high_roller
   title: Hoopla
   under: out/newisle.litematic

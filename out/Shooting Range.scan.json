@@ -1,0 +1,201 @@
+{
+  "origin": {
+    "x": 97565,
+    "y": 202,
+    "z": 80435
+  },
+  "size": {
+    "x": 26,
+    "y": 13,
+    "z": 15
+  },
+  "generated_by": "arcade",
+  "kind": "range",
+  "footprint": [
+    15,
+    26
+  ],
+  "courses": [
+    -1,
+    11
+  ],
+  "land": "frontier",
+  "facing": "east",
+  "contract": "three discs; a hit of strength L on disc k lights the bottom L of that disc's 5 lamps and no other disc's, and only a hit of 5 or more on the FAR disc rings the bell and pays, once",
+  "unverified": [
+    "A TARGET'S OUTPUT IS AN INPUT YOU STATE. The simulator has no entities and cannot fire an arrow; that a bullseye really reads 15 and a rim hit really reads 1 is the game's own behaviour."
+  ],
+  "budget": {
+    "redstone_lamp": 15
+  },
+  "width": 13,
+  "depth": 12,
+  "height": 16,
+  "lanes": 3,
+  "score": 5,
+  "targets": [
+    [
+      97585,
+      206,
+      80446
+    ],
+    [
+      97582,
+      206,
+      80442
+    ],
+    [
+      97579,
+      206,
+      80438
+    ]
+  ],
+  "lamps": [
+    [
+      [
+        97583,
+        206,
+        80445
+      ],
+      [
+        97582,
+        207,
+        80445
+      ],
+      [
+        97581,
+        208,
+        80445
+      ],
+      [
+        97580,
+        209,
+        80445
+      ],
+      [
+        97579,
+        210,
+        80445
+      ]
+    ],
+    [
+      [
+        97580,
+        206,
+        80441
+      ],
+      [
+        97579,
+        207,
+        80441
+      ],
+      [
+        97578,
+        208,
+        80441
+      ],
+      [
+        97577,
+        209,
+        80441
+      ],
+      [
+        97576,
+        210,
+        80441
+      ]
+    ],
+    [
+      [
+        97577,
+        206,
+        80437
+      ],
+      [
+        97576,
+        207,
+        80437
+      ],
+      [
+        97575,
+        208,
+        80437
+      ],
+      [
+        97574,
+        209,
+        80437
+      ],
+      [
+        97573,
+        210,
+        80437
+      ]
+    ]
+  ],
+  "tops": [
+    [
+      97579,
+      210,
+      80446
+    ],
+    [
+      97576,
+      210,
+      80442
+    ],
+    [
+      97573,
+      210,
+      80438
+    ]
+  ],
+  "bell": [
+    97573,
+    211,
+    80438
+  ],
+  "droppers": [
+    [
+      97567,
+      211,
+      80438
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97585,
+      206,
+      80446
+    ],
+    [
+      97582,
+      206,
+      80442
+    ],
+    [
+      97579,
+      206,
+      80438
+    ]
+  ],
+  "outputs": [
+    [
+      97573,
+      211,
+      80438
+    ],
+    [
+      97567,
+      211,
+      80438
+    ]
+  ],
+  "stock": {
+    "the dropper": "the prize a full-score shot on the far disc pays",
+    "the player": "arrows, or anything that hits a target block"
+  },
+  "file": "Shooting Range.litematic",
+  "name": "Shooting Range"
+}

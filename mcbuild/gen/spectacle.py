@@ -66,12 +66,8 @@ from __future__ import annotations
 
 from .canvas import Canvas
 from .vertical import Ctx, World
-from .park import (
-    LANDS, SIGN_WIDTH, _STEP, _BACK, _Frame, _pad, _sign, _hang_light, _walls, _cornice,
-)
-from .streetfurniture import (
-    MIN_RUN, _Plaques, _seat, _stair, _slab, _i_dir, _d_dir, _fence_props,
-)
+from .park import LANDS, SIGN_WIDTH, _STEP, _Frame, _pad, _cornice, _trim_run
+from .streetfurniture import MIN_RUN, _Plaques, _stair, _slab, _i_dir, _fence_props
 
 # ---------------------------------------------------------------------------- safety
 
@@ -111,7 +107,7 @@ SPECTACLE = {
     # --- fireworks
     "battery": 7,               # how many dispensers fire in sequence
     "stagger": 2,               # repeater delay between shots, in redstone ticks (1-4)
-    "period": 4,                # the clock's own delay (1-4); the cycle is about 2*(period+1)
+    "period": 4,                # each of the clock's two repeaters (2-4); the cycle is ~4*period
     "clearance": 10,            # courses of open sky above every muzzle - see the docstring
     "stand": True,              # a two-row stand in front of the pad, for the casual watcher
 
@@ -135,9 +131,22 @@ DEFAULTS = SPECTACLE
 # Every block a player right-clicks to USE. Rule 10: about three blocks of working room in front
 # of one, or you cannot stand, open it and walk past. Recorded on the build so the test can check
 # the room actually exists rather than trusting a comment.
-_SERVICE = ("barrel", "smoker", "lectern", "composter", "cauldron", "campfire", "jukebox")
+_SERVICE = ("barrel", "smoker", "lectern", "composter", "cauldron", "campfire", "jukebox", "bell")
 
 _WORK_ROOM = 3
+
+
+def _serve(into, f, i, d, h, use, facing=None):
+    """Record a block a player uses, and REFUSE a name the work-room rule does not know.
+
+    The rule is only worth anything if every used block goes through it, and the way that stops
+    being true is a new fixture recorded under a name nothing checks - which reads as "no
+    serving blocks here" rather than as an error. `_SERVICE` is the list, and it is asserted.
+    """
+    if use not in _SERVICE:
+        raise ValueError(f"{use!r} is not in _SERVICE, so nothing would check its working room")
+    into.append({"pos": list(f.at(i, d, h)), "facing": facing, "use": use})
+    return into[-1]
 
 
 # ---------------------------------------------------------------------------- small helpers
@@ -180,11 +189,13 @@ def _hearth(w, f, pal, i, d, h):
     awning is the one place on a fairground somebody eventually applies flint and steel, and the
     check costs six lookups.
     """
+    block = "campfire"
+    assert block in _HOT, "a lit fixture must be declared, or the ring check means nothing"
     for (di, dd, dh) in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
         nb = w.name(*f.at(i + di, d + dd, h + dh))
         if nb and flammable(nb):
             return False
-    _put(w, f, i, d, h, "campfire", facing=f.facing, lit="true",
+    _put(w, f, i, d, h, block, facing=f.facing, lit="true",
          signal_fire="false", waterlogged="false")
     return True
 
@@ -248,9 +259,11 @@ def _clock_cells(w, f, pal, i, d, period):
     **THE LOOP CARRIES TWO REPEATERS, NOT ONE, AND THAT IS THE WHOLE DISPLAY.** A repeater's delay
     caps at 4, so a single-repeater loop cycles in about 2*(period+1) = 10 ticks - and a seven-gun
     cascade takes longer than that to run, so shot 0 of the next wave overtakes shot 6 of this one
-    and the sky reads as noise rather than as a sweep. Two repeaters double the loop to about
-    2*(2*period+1) = 18 ticks, which is room for the sequence AND a beat of dark between waves.
-    The extra length is folded into +d rather than +i so it cannot collide with the battery.
+    and the sky reads as noise rather than as a sweep. Two repeaters roughly double the loop -
+    2*(2*period + 3) by the model, 25 ticks MEASURED in simulation at the default - which is room
+    for the sequence AND a beat of dark between waves. The extra length is folded into +d rather
+    than +i so it cannot collide with the battery, and `test_the_sequence_fits_inside_the_cycle`
+    measures the real period off the trace rather than trusting the arithmetic in this paragraph.
 
     Returns the support cell (which is also the kill switch's target) and the loop's tap.
     """
@@ -309,16 +322,16 @@ def _fireworks(w: World, p: dict, ctx) -> dict:
     clear = max(4, int(p["clearance"]))
 
     # THE SEQUENCE MUST FIT INSIDE THE CYCLE, and this is the one number that decides whether the
-    # display reads at all. The clock's cycle is about 2*(period+1) redstone ticks; the sequence
-    # spans stagger*(n-1). Let the span exceed the cycle and shot 0 of the next round overtakes
-    # shot n-1 of this one - measured at stagger 2 with seven guns, the battery fired
-    # 5,4,4,4,4,3,3 in sixty ticks and the order on screen is noise rather than a cascade. So the
-    # stagger is CLAMPED to what the clock can carry rather than being taken on trust.
-    # The loop carries TWO repeaters and every stage costs its delay plus a tick to notice, so a
-    # cycle is about 2*(2*period + 3) - 22 ticks at the default, measured at 25 in simulation.
-    # A hop down the delay line costs `stagger + 1` for the same reason. The model is deliberately
-    # conservative (it under-states the cycle and over-states the span), and `test_spectacle`
-    # MEASURES both off the trace rather than trusting the arithmetic here.
+    # display reads at all. Let the cascade take longer than a cycle and shot 0 of the next wave
+    # overtakes shot n-1 of this one: measured on a single-repeater clock at stagger 2 with seven
+    # guns, the battery fired 5,4,4,4,4,3,3 in sixty ticks and the order on screen is noise rather
+    # than a sweep. So the stagger is CLAMPED to what the clock can carry rather than trusted.
+    #
+    # Every stage costs its delay PLUS a tick to notice, so a two-repeater loop cycles in about
+    # 2*(2*period + 3) - 22 at the default, 25 measured - and a hop down the delay line costs
+    # `stagger + 1`. The model is deliberately conservative (it under-states the cycle and
+    # over-states the span), and `test_the_sequence_fits_inside_the_cycle` measures both off the
+    # trace rather than trusting the arithmetic written here.
     cycle = 2 * (2 * period + 3)
     stagger = max(1, min(4, int(p["stagger"])))
     stagger = max(1, min(stagger, (cycle - 2) // max(1, n - 1) - 1))
@@ -411,6 +424,7 @@ def _fireworks(w: World, p: dict, ctx) -> dict:
         "launch": list(launch),
         "muzzles": [list(g) for g in guns],
         "seats": len(seats),
+        "seat_cells": [list(f.at(i, d, h)) for (i, d, h) in seats],
         "signs": plaque.got,
         # THE SIMULATOR HAS NO ENTITIES, so it cannot check that a dispenser was loaded. The one
         # thing it can do is say exactly what to put in - the casino's `stock` rule.
@@ -418,7 +432,7 @@ def _fireworks(w: World, p: dict, ctx) -> dict:
                   "battery total": f"{n * 576} rockets to fill it completely"},
         "contract": (f"lever off: nothing powered, nothing fires. lever on: {n} dispensers fire "
                      f"once each per cycle, in order, {stagger} tick(s) apart, repeating about "
-                     f"every {2 * (period + 1)} redstone ticks; lever off again stops it"),
+                     f"every {cycle} redstone ticks; lever off again stops it"),
         "unverified": ["how a firework LOOKS is a property of the rocket, not of the circuit: "
                        "load the dispensers with the star pattern you want",
                        "rocket flight time is set on the item and is not modelled here"],
@@ -437,8 +451,10 @@ def _bandstand(w: World, p: dict, ctx) -> dict:
     into `budget` when asked for.
 
     A note block only sounds with AIR ABOVE IT, and its instrument comes from the block BELOW -
-    which is derived by the game, exactly as a stair's shape is, so no `instrument` property is
-    written. Both are why the rank sits on the stage lip rather than under the roof.
+    derived by the game, exactly as a stair's shape is, so no `instrument` property is written.
+    The first is why the rank keeps off the post line: laid a course in front of it, three of the
+    note blocks had a column standing on them and made no sound at all, on a build that audits
+    clean and costs exactly the same.
 
     CONTRACT: a raised stage you can walk up onto, a bell hung from a beam within reach of it,
     seating that faces it, and a sign saying when the band plays. Nothing here carries a signal.
@@ -469,8 +485,12 @@ def _bandstand(w: World, p: dict, ctx) -> dict:
     # the cornice under the eaves - the vocabulary the corpus says we are seven times short of
     band = [(i, d, f.inward(i, d, width, depth)) for i in range(width) for d in range(depth)
             if (i in (0, width - 1) or d in (0, depth - 1)) and f.inward(i, d, width, depth)]
-    from .park import _trim_run
     _trim_run(w, f, pal, band, 4, int(p["min_run"]))
+    # THE NAMEPLATE NEEDS A FULL BLOCK BEHIND IT, AND A CORNICE STAIR IS NOT ONE. `park._sign`
+    # only asks whether the cell behind is OCCUPIED, so a sign hung on the eaves stair passed the
+    # check and would be refused by the game. Three cells of the cornice are overwritten with a
+    # solid fascia first - which is what a name board is anyway.
+    _fill(w, f, width // 2 - 1, width // 2 + 1, 0, 0, 4, pal["trim"])
 
     # --- the cupola, and the BELL under the beam rather than inside the cupola: a bell nobody
     # can reach is an ornament, and the stage floor is at h=1, so h=3 is a comfortable ring.
@@ -486,18 +506,23 @@ def _bandstand(w: World, p: dict, ctx) -> dict:
         hung.append(list(f.at(i, depth // 2, 3)))
 
     # --- the optional, EXPENSIVE extras. Air above a note block, or it makes no sound.
+    # THE RANK KEEPS OFF THE POST LINE. Laid at depth-2 it shared d with the back row of posts,
+    # so the note blocks at i=1, 5 and 9 had a column standing on them: they audit clean, they
+    # cost the same, and they make no sound whatever, which is the exact shape of failure this
+    # module exists to refuse.
+    d_rank = depth - 3
     notes = max(0, min(12, int(p["notes"])))
     rank = []
     for k in range(notes):
         i = 2 + k
-        if i > width - 3:
+        if i > width - 4:
             break
-        _put(w, f, i, depth - 2, 1, "note_block", powered="false")
-        rank.append(list(f.at(i, depth - 2, 1)))
+        _put(w, f, i, d_rank, 1, "note_block", powered="false")
+        rank.append(list(f.at(i, d_rank, 1)))
     box = None
     if p.get("jukebox"):
-        _put(w, f, width - 3, depth - 2, 1, "jukebox", has_record="false")
-        box = list(f.at(width - 3, depth - 2, 1))
+        _put(w, f, width - 3, d_rank, 1, "jukebox", has_record="false")
+        box = list(f.at(width - 3, d_rank, 1))
 
     # --- seating, facing the stage from outside it
     seats = _terrace(w, f, pal, 0, width - 1, -2, -1, 2, f.facing)
@@ -508,12 +533,17 @@ def _bandstand(w: World, p: dict, ctx) -> dict:
     plaque(w, f, pal, width // 2, -1, 4, f.facing,
            [title, str(p.get("when") or "")[:SIGN_WIDTH], "ring the bell", ""])
 
-    service = [{"pos": b, "facing": f.facing, "use": "bell"} for b in hung]
+    # A BELL IS RUNG FROM BELOW, not from in front, so it is recorded with no facing: the
+    # work-room rule then asks about the cell ABOVE it, which is the one that must stay solid for
+    # it to hang from - so the bell is deliberately NOT in `service`, and the jukebox, which you
+    # do walk up to, is.
+    service = []
     if box:
-        service.append({"pos": box, "facing": None, "use": "jukebox"})
+        _serve(service, f, width - 3, depth - 3, 1, "jukebox", f.facing)
     return {
         "kind": "bandstand_show", "width": width, "depth": depth, "height": 8,
         "bells": bells, "notes": len(rank), "jukebox": bool(box), "seats": len(seats),
+        "seat_cells": [list(f.at(i, d, h)) for (i, d, h) in seats],
         "signs": plaque.got, "service": service,
         "stock": ({"jukebox": "one music disc per tune; discs are not craftable"} if box else {}),
         "contract": ("a stage with a bell within reach of it and seating that faces it; the "
@@ -581,10 +611,10 @@ def _foodcourt(w: World, p: dict, ctx) -> dict:
         i = min(i, width - 3)
         if k % 2 == 0:
             _put(w, f, i, d_serve, 0, "barrel", facing=f.facing, open="false")
-            service.append({"pos": list(f.at(i, d_serve, 0)), "facing": f.facing, "use": "barrel"})
+            _serve(service, f, i, d_serve, 0, "barrel", f.facing)
         else:
             _put(w, f, i, d_serve, 0, "smoker", facing=f.facing, lit="true")
-            service.append({"pos": list(f.at(i, d_serve, 0)), "facing": f.facing, "use": "smoker"})
+            _serve(service, f, i, d_serve, 0, "smoker", f.facing)
         # THE MENU GOES OVER THE THING IT DESCRIBES, on the back wall, which is solid there.
         plaque(w, f, pal, i, d_serve, 2, f.facing,
                ["MENU", "hot food", "and a drink", "free refills"])
@@ -592,7 +622,7 @@ def _foodcourt(w: World, p: dict, ctx) -> dict:
     # one cook fire, and only where nothing next to it would burn
     hearth = _hearth(w, f, pal, 1, d_serve, 0)
     if hearth:
-        service.append({"pos": list(f.at(1, d_serve, 0)), "facing": f.facing, "use": "campfire"})
+        _serve(service, f, 1, d_serve, 0, "campfire", f.facing)
 
     # --- the counter: a full course with a slab lip, so it is chest height from the queue side
     for i in range(1, width - 1):
@@ -623,7 +653,7 @@ def _foodcourt(w: World, p: dict, ctx) -> dict:
         for d in range(0, d_counter):
             _put(w, f, i, d, 4, a if (i + d) % 2 == 0 else b)
 
-    seats = 0
+    seats = []
     for i in table_at:
         d = 2
         _put(w, f, i, d, 0, pal["post"])
@@ -632,26 +662,27 @@ def _foodcourt(w: World, p: dict, ctx) -> dict:
                                (0, -1, f.facing), (0, 1, f.back)):
             if 0 <= i + di < width and 0 <= d + dd < d_counter:
                 _stair(w, f, i + di, d + dd, 0, pal["stair"], back)
-                seats += 1
+                seats.append(list(f.at(i + di, d + dd, 0)))
         _lamp_under(w, f, pal, i, d, 3)
 
     # --- bins, which are also `_SERVICE`: you use them from ABOVE, so the cell over one stays free
     for i in (0, width - 1):
         _put(w, f, i, 0, 0, "composter", level="0")
-        service.append({"pos": list(f.at(i, 0, 0)), "facing": None, "use": "composter"})
+        _serve(service, f, i, 0, 0, "composter")
 
     _cornice(w, f, pal, width, depth, 4, int(p["min_run"]),
              skip=[(i, d) for i in range(width) for d in range(0, d_counter)])
 
     return {
         "kind": "foodcourt", "width": width, "depth": depth, "height": 5,
-        "stalls": len(slots), "tables": len(table_at), "seats": seats,
+        "stalls": len(slots), "tables": len(table_at), "seats": len(seats),
+        "seat_cells": seats,
         "hearth": bool(hearth), "signs": plaque.got, "service": service,
         "work_room": _WORK_ROOM,
         "stock": {"barrels": "stock them with whatever the park sells",
                   "smokers": "coal or charcoal for fuel"},
         "contract": (f"a served counter with {_WORK_ROOM} blocks of staff room behind it, "
-                     f"{len(table_at)} tables with {seats} seats under cover, a bin at each end, "
+                     f"{len(table_at)} tables with {len(seats)} seats under cover, a bin at each end, "
                      f"and a lantern over every table"),
         "unverified": [],
     }
@@ -690,15 +721,23 @@ def _viewing(w: World, p: dict, ctx) -> dict:
     _railing(w, f, pal, [(i, 0) for i in range(-1, width + 1)], 0)
 
     # --- the back wall, which is what a terrace has instead of a fifth tier
+    # ...AND IT IS BUILT FROM THE PAD UP, not from the top tier up. Started at the seating's own
+    # height it stands on the air over the back walkway, whose floor stops two courses lower - a
+    # wall floating a course clear of everything, which the audit passes (nothing is unsupported
+    # in Minecraft's sense) and a 6-connectivity count catches as a second component.
     back = depth - 1
-    for h in range(tiers - 1, tiers + 2):
+    for h in range(0, tiers + 2):
         _fill(w, f, 0, width - 1, back, back, h, pal["wall"] if h < tiers + 1 else pal["trim"])
     for i in (0, width - 1):
-        _column(w, f, i, back, tiers - 1, tiers + 1, pal["post"])
+        _column(w, f, i, back, 0, tiers + 1, pal["post"])
 
     # --- light, hung from the back wall's own cornice so nothing hangs from air
+    # THE LANTERNS STAND CLEAR OF THE SIGN'S OWN COLUMN. Hung at width//2 they occupied the cell
+    # the nameplate wants, `_Plaques` correctly refused to overwrite one, and the terrace shipped
+    # with NO SIGN AT ALL - silently, because a refused sign places nothing and looks like a
+    # design that never asked for one.
     lit = 0
-    for i in (1, width // 2, width - 2):
+    for i in (2, width - 3):
         _put(w, f, i, back - 1, tiers + 1, pal["trim"])
         lit += int(_lamp_under(w, f, pal, i, back - 1, tiers))
 
@@ -712,6 +751,7 @@ def _viewing(w: World, p: dict, ctx) -> dict:
     return {
         "kind": "viewing", "width": width, "depth": depth, "height": tiers + 2,
         "tiers": tiers, "seats": len(seats), "lit": lit, "signs": plaque.got,
+        "seat_cells": [list(f.at(i, d, h)) for (i, d, h) in seats],
         "eyes": eyes, "front_row": front, "sightline_to": aim,
         "contract": (f"{tiers} tiers, {len(seats)} seats, a rail below eye level, and a clear "
                      f"line from every seat to the launch point"),
@@ -763,15 +803,19 @@ def _leaderboard(w: World, p: dict, ctx) -> dict:
     for k in range(boards):
         i = 1 + 2 * k
         _put(w, f, i, back - 1, 0, "lectern", facing=f.facing, has_book="false", powered="false")
-        stands.append({"pos": list(f.at(i, back - 1, 0)), "facing": f.facing, "use": "lectern"})
+        _serve(stands, f, i, back - 1, 0, "lectern", f.facing)
         plaque(w, f, pal, i, back - 1, 2, f.facing, [names[k % len(names)][:SIGN_WIDTH],
                                                      "best time", "sign the book", ""])
 
+    # THE LANTERNS KEEP OFF THE HEADER'S COLUMN. Hung at width//2 the header sign found a LANTERN
+    # behind it - `park._sign` asks only whether the cell is occupied, so it placed happily and
+    # the game would refuse it. A sign needs a full block behind, and that is now asserted.
     lit = 0
-    for i in (1, width // 2, width - 2):
+    for i in (1, width - 2):
         _put(w, f, i, back - 1, 5, pal["trim"])
         lit += int(_lamp_under(w, f, pal, i, back - 1, 4))
 
+    _put(w, f, width // 2, back - 1, 4, pal["trim"])
     title = str(p.get("title") or "HALL OF FAME").upper()[:SIGN_WIDTH]
     plaque(w, f, pal, width // 2, back - 2, 4, f.facing, [title, "", "beat these", ""])
     _cornice(w, f, pal, width, depth, 5, int(p["min_run"]))
@@ -819,8 +863,19 @@ def build(cfg: dict, donors=None) -> Canvas:
         if name in ("note_block", "jukebox", "redstone_lamp", "glowstone", "sea_lantern"):
             budget[name] = budget.get(name, 0) + 1
 
+    # THE MEASURED FOOTPRINT, not the nominal one. `width`/`depth` name the STRUCTURE; what a
+    # planner has to reserve is the whole thing including its pad margin and, on the firework
+    # pad, the stand out in front of it - which is four cells of ground the nominal numbers do
+    # not mention. The planner packs what it is told, so it is told what was actually built.
+    xs = [q[0] for q in w.cells]
+    zs = [q[2] for q in w.cells]
+    span_x = max(xs) - min(xs) + 1
+    span_z = max(zs) - min(zs) + 1
+    frontage, into = (span_z, span_x) if p["facing"] in ("east", "west") else (span_x, span_z)
+
     return w.canvas({
         "kind": f"spectacle/{p['kind']}",
+        "footprint": [frontage, into],
         "land": p["land"],
         "facing": p["facing"],
         "when": p.get("when"),

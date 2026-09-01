@@ -2,11 +2,11 @@ name: Ride Gate
 gen: ticketing
 params:
   land: frontier
-  facing: west
+  facing: north
   at:
-  - 97615
+  - 97552
   - 203
-  - 80434
+  - 80444
   kind: ridegate
   title: Ride Gate
   under: out/islandleft.litematic

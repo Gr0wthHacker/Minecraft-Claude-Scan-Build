@@ -1,0 +1,15 @@
+name: Plinko
+gen: arcade
+params:
+  land: midway
+  facing: west
+  at:
+  - 97593
+  - 203
+  - 80621
+  kind: plinko
+  title: Plinko
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

@@ -1,0 +1,35 @@
+{
+  "origin": {
+    "x": 97579,
+    "y": 202,
+    "z": 80557
+  },
+  "size": {
+    "x": 18,
+    "y": 14,
+    "z": 21
+  },
+  "generated_by": "civic",
+  "kind": "hallofame",
+  "land": "midway",
+  "facing": "east",
+  "contract": "an open-fronted hall whose every fitting is something a visitor DOES: a railed colonnade with one bay left open as the door, a back wall of trophies under named record plaques, lecterns to write a record down, a three-step winners' podium you can stand on and a bell you can ring - and not one block in it carries a signal",
+  "unverified": [],
+  "width": 15,
+  "depth": 11,
+  "height": 12,
+  "hipped": true,
+  "door": [
+    6,
+    7
+  ],
+  "rails": 8,
+  "piers": 5,
+  "trophies": 4,
+  "plaques": 4,
+  "lecterns": 3,
+  "signs": 7,
+  "signs_placed": 7,
+  "file": "Hall of Fame.litematic",
+  "name": "Hall of Fame"
+}

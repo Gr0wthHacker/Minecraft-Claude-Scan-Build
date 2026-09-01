@@ -1,0 +1,19 @@
+name: Assay Office
+gen: arcade
+params:
+  land: frontier
+  facing: west
+  at:
+  - 97610
+  - 203
+  - 80432
+  kind: weigh
+  title: Assay Office
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false
+expensive_allowance: 8
+expensive_reason: 8x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

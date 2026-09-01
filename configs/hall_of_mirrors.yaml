@@ -2,11 +2,11 @@ name: Hall Of Mirrors
 gen: attractions
 params:
   land: midway
-  facing: east
+  facing: west
   at:
-  - 97577
+  - 97603
   - 203
-  - 80575
+  - 80624
   kind: mirrormaze
   title: Hall Of Mirrors
   under: out/newisle.litematic

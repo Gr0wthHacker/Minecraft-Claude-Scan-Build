@@ -25,7 +25,7 @@ from collections import deque
 import numpy as np
 import pytest
 
-from mcbuild import blocks, nbt, nightlight, palette, schem
+from mcbuild import blocks, fluids, nbt, nightlight, palette, schem
 from mcbuild.gen import isthmus, park
 
 CONFIG = "configs/isthmus.yaml"
@@ -481,6 +481,151 @@ def test_drifts_are_patches_not_confetti():
             lonely += 1
     assert lonely / len(plant_cells) < 0.25, \
         f"{lonely}/{len(plant_cells)} drift plants have no neighbour - that is confetti"
+
+
+# --------------------------------------------------------------------------- the five stops
+
+def test_the_pool_is_a_real_enclosed_still_pool(built):
+    """`fluids.unenclosed` is THE check for still water - a solid bed under every water cell
+    and a solid side wherever it borders anything that is not more water. The frontier's own
+    flume shipped ten open-sided cells once already and a player found it in a render, not a
+    test; this is the test."""
+    _c, _m, cells = built
+    prob = fluids.unenclosed(cells)
+    assert prob == [], f"{len(prob)} open-sided or unbedded water cells, first {prob[:3]}"
+
+
+def test_every_gap_actually_has_a_pool(built):
+    _c, _m, _cells = built
+    for gap in _c.meta["gaps_built"]:
+        assert gap["pool"] > 0, f"{gap['title']} has no pool water at all"
+        assert gap["pool_water"], f"{gap['title']}'s pool meta records no water cells"
+
+
+def test_every_gap_actually_has_a_garden(built):
+    _c, _m, _cells = built
+    for gap in _c.meta["gaps_built"]:
+        assert gap["garden"] > 20, f"{gap['title']}'s garden roundel is too small to read: " \
+                                   f"{gap['garden']} cells"
+
+
+def test_every_span_carries_two_sited_creatures(built):
+    _c, _m, _cells = built
+    for gap in _c.meta["gaps_built"]:
+        assert len(gap["creatures"]) == 2, f"{gap['title']} does not have two creatures"
+        for cr in gap["creatures"]:
+            assert cr["cells"] > 50, f"{cr['kind']} on {gap['title']} is implausibly small"
+            assert cr["named"], f"{cr['kind']} on {gap['title']} has no name plaque"
+
+
+def test_the_two_spans_use_different_creatures():
+    """Jack's own second requirement: the spans differ because they lead somewhere different.
+    Re-using the identical pair on both would make the "two sections of one park" claim false
+    in the one place a visitor would actually notice it - checked at the CONFIG level, which is
+    what actually decides it, rather than re-deriving the same fact from a built model."""
+    a_specs = {(s["kind"], s.get("variant")) for s in isthmus.GAPS[0]["creatures"]}
+    b_specs = {(s["kind"], s.get("variant")) for s in isthmus.GAPS[1]["creatures"]}
+    assert a_specs, "the frontier reach has no creatures configured at all"
+    assert a_specs != b_specs, "both spans site the exact same (kind, variant) pairs"
+
+
+@pytest.mark.parametrize("i", [0, 1])
+def test_a_sited_creature_is_one_piece_standing_on_its_own_plinth(i):
+    """A CREATURE ARRIVES AS A SEPARATE, ALREADY-TESTED GENERATOR'S OUTPUT, and this is the
+    check that its own internal fragility (heron.py falls apart into a dozen pieces below
+    about scale 0.85 - measured, not assumed) has actually been avoided by the scale chosen
+    here, not merely masked by `_largest_component` quietly discarding most of the bird."""
+    c = isthmus.build({"kind": "reach", "gaps": isthmus.GAPS[i]})
+    cells = _cells(c.to_model(), c.world_origin)
+    # the whole reach - causeway, plinths and both creatures - is ONE component
+    assert _components(cells) == [len(cells)], \
+        f"{isthmus.GAPS[i]['title']} did not ship as one connected piece"
+    gap = c.meta["gaps_built"][0]
+    assert len(gap["creatures"]) == 2
+    for cr in gap["creatures"]:
+        cx, top, cz = cr["at"]
+        # the plinth's own lamp corner is a real, solid cell directly under where the
+        # creature's feet were told to land - proof the creature is not floating clear of the
+        # ground it was sited on
+        assert (cx, top, cz) in cells or (cx, top + 1, cz) in cells, \
+            f"{cr['kind']} on {isthmus.GAPS[i]['title']} has nothing at its own anchor"
+        assert cr["cells"] > 50, f"{cr['kind']} pasted implausibly few cells: {cr['cells']}"
+
+
+def test_nothing_a_stop_placed_blocks_the_spine(built):
+    """THE SPINE MUST STAY WALKABLE THROUGH EVERY BULGE. A pool, a garden or a creature earns
+    its own room to the SIDE of the walkway (`_room_for`'s whole point) - none of them may
+    place water, moss, plants or a creature's own body on the paved centreline itself.
+
+    The spine's own half-width VARIES by row (`_spine_half_at` widens it near the two flush
+    ends to match the gateways), so the check has to ask the same function the generator does
+    rather than testing every row against the single widest case - dx=4 is legitimately
+    shoulder, not spine, everywhere except the few rows right at each gateway.
+    """
+    _c, _m, cells = built
+    off_spine_only = {"moss_block", "moss_carpet", "fern", "azalea", "flowering_azalea",
+                      "short_grass", "water"}
+    half_at_z = {}
+    for gap in isthmus.GAPS:
+        span = gap["z_hi"] - gap["z_lo"]
+        for z in range(gap["z_lo"], gap["z_hi"] + 1):
+            t = (z - gap["z_lo"]) / float(span)
+            half_at_z[z] = isthmus._spine_half_at(isthmus.ISTHMUS, t)
+    checked = 0
+    for (x, _y, z), state in cells.items():
+        half = half_at_z.get(z)
+        if half is None or abs(x - isthmus.X_SPINE) > half:
+            continue
+        checked += 1
+        base = _base(state)
+        assert base not in off_spine_only, \
+            f"{state} at {(x, _y, z)} sits on the spine (row half={half})"
+    assert checked > 1000, "the spine window matched almost nothing - the test proves little"
+
+
+def test_the_gateways_get_the_full_nine_columns(built):
+    """`midway`'s Frontier/Hollow Arches and the frontier's/hollow's own gates all stand square
+    on X 97591..97599. If the paving does not cover that at the exact flush row, the gateway
+    narrows into a track the moment it leaves the plot it belongs to."""
+    _c, _m, cells = built
+    for gap in isthmus.GAPS:
+        for z in (gap["z_lo"], gap["z_hi"]):
+            covered = sum(1 for x in range(97591, 97600) if (x, 202, z) in cells)
+            assert covered == 9, \
+                f"{gap['title']} z={z}: only {covered}/9 gateway columns are paved"
+
+
+def test_the_land_blend_is_gradual_across_the_whole_span():
+    """`_land_at` must be CERTAIN exactly at the two ends (t=0 is the near plot's own colour,
+    t=1 the far plot's) and an increasingly likely MIX everywhere between - not a hard swap
+    exactly at the midpoint, which is what the old near-midpoint-only dither did, and not a
+    coin-flip right at the flush join either, which is what a naive linear dither would give
+    if it were not pinned to certainty at the two exact endpoints."""
+    seed = 7
+    assert isthmus._land_at("A", "B", 0.0, seed) == "A"
+    assert isthmus._land_at("A", "B", 1.0, seed) == "B"
+    # early but not AT the end: mostly A, with the odd B creeping in as t grows - a hard swap
+    # would give either all-A or all-B here, never a mix
+    early = [isthmus._land_at("A", "B", k / 400.0, seed) for k in range(1, 40)]
+    assert "A" in early and "B" in early, "no mix at all just past the near end"
+    assert early.count("A") > early.count("B"), "the near end should still read mostly A"
+    late = [isthmus._land_at("A", "B", 0.9 + k / 400.0, seed) for k in range(0, 39)]
+    assert "B" in late, "no B at all just before the far end"
+    assert late.count("B") > late.count("A"), "the far end should already read mostly B"
+    mid_a = sum(1 for k in range(200)
+                for t in [0.3 + k / 1000.0] if isthmus._land_at("A", "B", t, seed) == "A")
+    mid_b = 200 - mid_a
+    assert mid_a > 10 and mid_b > 10, \
+        f"the middle third is not a MIX: {mid_a} A against {mid_b} B"
+
+
+def test_delight_converges_to_zero_and_is_recorded(built):
+    """The whole reason `_delight` exists: a sited creature's own surface was never measured
+    by any rule this design wrote for the terrain, so it has to be swept for afterward. Its
+    count is recorded, and it must be nonzero - a delight pass that always fixes 0 cells on a
+    design carrying two large sited creatures is not exercising anything."""
+    c, _m, _cells = built
+    assert c.meta.get("delight", 0) > 0
 
 
 # --------------------------------------------------------------------------- the config

@@ -872,78 +872,77 @@ def _sluice(w: World, p: dict, ctx) -> dict:
 
     Everything else in this zone that looks like a machine is scenery with a sign on it. This one
     is a real item conveyor: a stepped launder carrying FLOWING water (not a trough of sources -
-    `fluids.py` exists because that shipped once and carried nobody), a row of hoppers under the
-    tail taking whatever the current brings them, a barrel to collect it, and a comparator reading
-    that barrel to raise a gold block into the window and ring the bell. Both halves are proven
-    before it ships: `fluids.carries` for the wash, `circuit.Circuit` for the strike.
+    `fluids.py` exists because that shipped once and carried nobody), a row of hoppers in the tail
+    floor taking whatever the current brings them, a barrel to collect it, and a comparator on
+    that barrel raising a gold block into the window and ringing a bell. Every half is proven
+    before it ships: `fluids.carries` and `fluids.escapes` for the wash, `circuit.Circuit` for the
+    strike - and the strike is checked DARK as well as lit.
 
-    **THE WATER IS THE INTERACTION, WHICH IS WHY IT HAS TO FLOW.** A player drops something in the
-    head box and watches it travel; a launder of source blocks is a puddle you throw things into.
-    And the same water that carries an item off the plot if it escapes: the trough is walled and
-    bedded by construction and checked with `fluids.escapes` against its own declared envelope,
-    the check the log flume shipped without and drained itself through.
+    **THE SIDES ARE A CONSTANT HEIGHT AND THE FLOOR IS WHAT FALLS.** Built three courses over its
+    own floor - the obvious way - the wall drops with every step, and water arriving from the cell
+    above rides a course high, stops falling once the cell beneath it is wet, and runs straight
+    over the top of the next, lower wall. It leaked at four sizes out of five and NOT at the one
+    size it had been built at, which is exactly how a size-dependent geometry bug survives a
+    hand-check. A real launder is carried on a trestle with plank sides of one height; that shape
+    is both the correct one and the one that cannot spill, and the tests sweep sizes and facings
+    so it cannot come back quietly.
     """
     f = _Frame(p)
-    pal, ex = _pal(p)
+    pal, _ex = _pal(p)
     W = max(11, int(p["width"]))
-    D = max(11, int(p["depth"]))
+    D = max(11, min(28, int(p["depth"])))
     ci = W // 2
-    mr = int(p["min_run"])
-    seed = f.x * 277 + f.z
     pi, mi = _axis_dirs(f)
-    TOP = 5                                  # the head box's floor; the tail lands at TOP - runs
-
-    _pad(w, f, pal, -1, W, -1, D)
-
+    TOP, WALL = 5, 7                         # the head box's floor, and the plank sides' top
     d0, d1 = 1, D - 2
+    span = max(1, d1 - d0)
+    tail = d1
+
     def bed(d):
-        """The launder falls one course every three cells - a step, not a ramp.
+        """The launder falls evenly from the head box to the tail, whatever the run's length.
 
-        A LEVEL LAUNDER IS A PUDDLE. Water reaches exactly seven cells from a source on the flat
-        and then stops, and so does anything floating on it; a fall restarts that budget, so the
-        steps are what make the whole run carry rather than the first seven cells of it.
+        A LEVEL LAUNDER IS A PUDDLE: water reaches exactly seven cells from a source on the flat
+        and anything floating on it stops there too. Spreading the fall over the WHOLE run rather
+        than one course every three cells is what keeps a long launder from ending in a dead flat
+        tail - the shape that reported two dry cells at depth 25 and washed perfectly at 13.
         """
-        return max(1, TOP - (d - d0) // 3)
+        return TOP - round((d - d0) * (TOP - 1) / span)
 
-    # THE TRESTLE UNDER IT, and the launder floor on top. Both are solid columns from the pad up,
-    # so every water cell has a real bed and the whole thing is one piece by construction rather
-    # than a deck standing on hope.
+    _pad(w, f, pal, -1, W, -1, D + 5)
+
+    # THE TRESTLE AND THE LAUNDER FLOOR, as solid columns from the pad up - so every water cell
+    # has a real bed and the whole thing is one piece by construction.
     for d in range(d0, d1 + 1):
         for i in range(ci - 2, ci + 3):
             for h in range(0, bed(d) + 1):
-                if i in (ci - 2, ci + 2) or h == bed(d) or (d - d0) % 3 == 0:
-                    w.put(*f.at(i, d, h), pal["post"] if i in (ci - 2, ci + 2) and h < bed(d)
-                          else pal["beam"])
-    # THE RIFFLES: a bar across the floor every third cell, which is what a sluice IS - and they
-    # are SLABS, so they hold a step without damming the run.
+                if i in (ci - 2, ci + 2) and h < bed(d):
+                    w.put(*f.at(i, d, h), pal["post"])
+                elif h == bed(d) or (d - d0) % 3 == 0:
+                    w.put(*f.at(i, d, h), pal["beam"])
+
+    # THE RIFFLES, NEVER ACROSS THE CENTRE LANE. Drawn the full width they sat in the water course
+    # and DAMMED it - four of nine cells dry, the run stopping at the first bar, and a design that
+    # still audited clean and still looked exactly like a sluice.
     riffles = 0
     for d in range(d0 + 2, d1, 3):
-        # **NEVER ACROSS THE CENTRE LANE.** Drawn the full width they sat in the water course and
-        # DAMMED it - four of nine cells dry, the run stopping at the first bar, and a design that
-        # still audited clean and still looked exactly like a sluice. The bars flank the run; the
-        # lane down the middle is what carries. Waterlogged, so the trough still reads as full.
         for i in (ci - 1, ci + 1):
             w.put(*f.at(i, d, bed(d) + 1), pal["slab"], type="bottom", waterlogged="true")
             riffles += 1
 
-    # THE SIDES, two courses over the floor, and the end walls. The head box is capped at the back
-    # so the water cannot run out the top of the run, and the tail wall is what makes the items
-    # settle over the hoppers instead of sailing off the end.
+    # THE PLANK SIDES, one height end to end, and the end walls that close the run.
     for d in range(d0, d1 + 1):
         for i in (ci - 2, ci + 2):
-            for h in range(bed(d), bed(d) + 3):
-                w.put(*f.at(i, d, h), pal["wall"])
-    for i in range(ci - 2, ci + 3):
-        for h in range(bed(d0), bed(d0) + 3):
-            w.put(*f.at(i, d0 - 1, h), pal["wall"])
-        for h in range(bed(d1), bed(d1) + 3):
-            w.put(*f.at(i, d1 + 1, h), pal["wall"])
+            for h in range(bed(d), WALL + 1):
+                w.put(*f.at(i, d, h), pal["wall"] if h < WALL else pal["trim"])
+    for (d, base) in ((d0 - 1, bed(d0)), (d1 + 1, bed(d1))):
+        for i in range(ci - 2, ci + 3):
+            for h in range(base, WALL + 1):
+                w.put(*f.at(i, d, h), pal["wall"] if h < WALL else pal["trim"])
 
     # **THE HOPPERS ARE THE LAUNDER'S OWN FLOOR AT THE TAIL.** An item riding the current sits in
     # the water cell above the floor, which is exactly the cell a hopper collects from - so the
-    # tail row IS the collector and there is no chute to get wrong. They feed the middle one, and
-    # that one feeds down into the poke.
-    tail = d1
+    # tail row IS the collector and there is no chute to get wrong. The outer two feed the middle
+    # one, and that one feeds down into the poke.
     for i in (ci - 1, ci + 1):
         w.put(*f.at(i, tail, bed(tail)), "hopper",
               facing=(mi if i > ci else pi), enabled="true")
@@ -951,8 +950,8 @@ def _sluice(w: World, p: dict, ctx) -> dict:
     barrel = (ci, tail, bed(tail) - 1)
     w.put(*f.at(*barrel), "barrel", facing="up", open="false")
 
-    # THE WATER. Sources at the head and every few cells down the run; the falls between steps do
-    # the rest. Nothing is a source at the tail, or the items would sit still on top of the poke.
+    # THE WATER. A source at the head and every few cells down the run; the falls do the rest.
+    # Never at the tail, or the items sit still on top of the poke instead of dropping into it.
     water, sources, path = 0, [], []
     for d in range(d0, d1 + 1):
         cell = f.at(ci, d, bed(d) + 1)
@@ -963,25 +962,44 @@ def _sluice(w: World, p: dict, ctx) -> dict:
         else:
             path.append(cell)
 
-    # ---- the strike detector. Comparator reads the poke; a repeater carries it to the piston
-    # that lifts a gold block into the window, and to the bell beside it.
+    # ---- the assay hut: the strike detector, BEHIND the tail wall and out of the launder.
+    # Run down the middle of the trestle instead - which is where it started - it was embedded in
+    # the ride own structure and the piston pushed its gold block up into the water lane. Behind
+    # the end wall it is a shed with a window in it, which is what it should have been.
     ph = bed(tail) - 1
-    cmp_ = (ci, tail - 1, ph)
-    w.put(*f.at(*cmp_), "comparator", facing=f.facing, mode="compare", powered="false")
-    for d in (tail - 2, tail - 3):
-        w.put(*f.at(ci, d, ph), "redstone_wire")
-    bell = (ci + 1, tail - 2, ph)
+    cmp_ = (ci, tail + 1, ph)
+    w.put(*f.at(*cmp_), "comparator", facing=f.back, mode="compare", powered="false")
+    # **A REPEATER, BECAUSE ONE NUGGET IN THE POKE READS AS LEVEL 1.** A comparator on a container
+    # outputs how FULL it is, so a single item gives a signal that dies after one cell of dust -
+    # and the machine fired for a half-full barrel and did nothing for a real find, which is the
+    # wrong way round for a detector whose whole job is to notice the first one. The analog value
+    # is worth nothing here (this is a yes/no), so the repeater restoring it to 15 costs nothing
+    # and is what makes the strike honest at every level.
+    w.put(*f.at(ci, tail + 2, ph), "redstone_wire")
+    w.put(*f.at(ci, tail + 3, ph), "repeater", facing=f.back, delay="1",
+          locked="false", powered="false")
+    w.put(*f.at(ci, tail + 4, ph), "redstone_wire")
+    bell = (ci + 1, tail + 4, ph)
     w.put(*f.at(*bell), "bell", facing=pi, attachment="floor", powered="false")
-    piston = (ci, tail - 4, ph)
+    piston = (ci, tail + 5, ph)
     w.put(*f.at(*piston), "sticky_piston", facing="up", extended="false")
-    w.put(*f.at(ci, tail - 4, ph + 1), "raw_gold_block")
-    for (bi, bd) in ((ci - 1, tail - 4), (ci + 1, tail - 4), (ci, tail - 5)):
-        for h in range(ph, ph + 3):
+    w.put(*f.at(ci, tail + 5, ph + 1), "raw_gold_block")
+    for (bi, bd) in ((ci - 1, tail + 5), (ci + 1, tail + 5), (ci, tail + 6)):
+        for h in range(ph, ph + 4):
             if not w.has(*f.at(bi, bd, h)):
                 w.put(*f.at(bi, bd, h), pal["trim"])
-    _pane(w, f, ci, tail - 4, ph + 2, "i")
+    for (bi, bd) in ((ci - 1, tail + 4), (ci + 1, tail + 4),
+                     (ci - 1, tail + 3), (ci + 1, tail + 3)):
+        for h in range(ph + 1, ph + 4):
+            if not w.has(*f.at(bi, bd, h)):
+                w.put(*f.at(bi, bd, h), pal["post"])
+    for bd in (tail + 2, tail + 3, tail + 4):
+        w.put(*f.at(ci - 1, bd, ph), pal["trim"])
+    _pane(w, f, ci, tail + 5, ph + 2, "i")
+    w.put(*f.at(ci, tail + 5, ph + 3), pal["trim"])
+    _hang_light(w, f, pal, ci, tail + 3, ph + 3)
 
-    # ---- the deck you stand on to work it, and a flight up to the head box
+    # ---- the deck you work it from, and a flight up to the head box
     for i in (ci - 3, ci + 3):
         for d in range(d0, d1 + 1):
             w.put(*f.at(i, d, 0), pal["beam"])
@@ -995,33 +1013,29 @@ def _sluice(w: World, p: dict, ctx) -> dict:
     signed = 0
     title = str(p.get("title") or "GOLD SLUICE").upper()
     if p.get("sign", True):
-        signed += _sign(w, f, pal, ci, d1 + 2, bed(d1) + 1, f.back,
-                        [title[:SIGN_WIDTH], "drop it in the", "head box - the", "poke keeps it"])
+        signed += _sign(w, f, pal, ci, tail + 4, ph + 2, f.facing,
+                        [title[:SIGN_WIDTH], "gold rings the", "bell and lifts", "the block"])
         signed += _sign(w, f, pal, ci, d0 - 2, bed(d0) + 1, f.facing,
-                        ["HEAD BOX", "throw dirt here", "hoppers below", "ring the bell"])
+                        ["HEAD BOX", "drop it in here", "the poke keeps", "what it finds"])
 
-    # ---- and now prove both halves, because a sluice that looks like one is worth nothing
+    # ---- and now prove all of it, because a sluice that looks like one is worth nothing
     cells = {pos: name for pos, (name, _pr) in w.cells.items()}
     flow = fluids.carries(cells, path, sources)
     if not flow["carries"]:
         raise ValueError(
             f"the sluice does not wash: {flow['dry']} dry and {flow['still']} still of "
             f"{flow['cells']} cells, stops at {flow['stops_at']}")
-    # THE LAUNDER'S WHOLE INTERIOR, floor to wall top - not just the water course. Water crossing
-    # from the cell above a step arrives a course or two high before it falls, and an envelope
-    # drawn at the water line alone reports the ride's own cascade as a leak. What matters is
-    # that nothing gets OUT of the trough, and the wall top is where the trough stops.
     envelope = {f.at(i, d, hh) for d in range(d0, d1 + 1) for i in range(ci - 1, ci + 2)
-                for hh in range(bed(d) + 1, bed(d) + 4)}
+                for hh in range(bed(d) + 1, WALL + 1)}
     out = fluids.escapes(cells, sources, envelope)
     if out:
         raise ValueError(f"the sluice leaks: {len(out)} cell(s) outside the launder, "
                          f"first at {out[0]}")
 
     # **THE STRIKE, SIMULATED, BOTH WAYS ROUND.** An empty poke must leave the window dark - a
-    # detector that is always on is a decoration with a redstone cost - and a stocked one must
-    # fire the piston AND the bell. `fill` is how a container's contents enter this simulator:
-    # it has no entities and pretending a barrel fills itself would certify a machine that has
+    # detector that is always on is a decoration with a redstone bill - and a stocked one must
+    # fire the piston AND the bell. `fill` is how a container contents enter this simulator: it
+    # has no entities, and pretending a barrel fills itself would certify a machine that has
     # never seen an item.
     spec = {pos: (name if not pr else
                   name + "[" + ",".join(f"{k}={v}" for k, v in sorted(pr.items())) + "]")
@@ -1029,7 +1043,7 @@ def _sluice(w: World, p: dict, ctx) -> dict:
     idle = circuit.Circuit.from_cells(spec)
     idle.run(12)
     if idle.powered(f.at(*piston)) or idle.powered(f.at(*bell)):
-        raise ValueError("the sluice's strike detector is live with an empty poke")
+        raise ValueError("the sluice strike detector is live with an empty poke")
     live = circuit.Circuit.from_cells(spec)
     live.fill(f.at(*barrel), 3)
     live.run(12)
@@ -1037,21 +1051,24 @@ def _sluice(w: World, p: dict, ctx) -> dict:
         if not live.powered(f.at(*pos)):
             raise ValueError(f"a stocked poke does not fire {what} at {f.at(*pos)}")
 
-    return {"kind": "sluice", "width": W, "depth": D, "height": TOP + 3,
+    return {"kind": "sluice", "width": W, "depth": D + 7, "height": WALL + 2,
             "riffles": riffles, "water": water, "run": len(path) + len(sources),
             "signs": signed,
             "barrel": list(f.at(*barrel)), "bell": list(f.at(*bell)),
             "piston": list(f.at(*piston)), "comparator": list(f.at(*cmp_)),
+            "basin": [list(c) for c in sorted(envelope)],
+            "head_box": list(f.at(ci, d0, bed(d0) + 2)),
             "flow": {k: v for k, v in flow.items() if k != "levels"},
             "contract": "a stepped launder of FLOWING water (`fluids.carries`) that cannot leak "
-                        "(`fluids.escapes` against its own envelope), a hopper row in the tail "
-                        "floor feeding a barrel, and a comparator on that barrel that raises a "
-                        "gold block and rings a bell when anything lands in it "
-                        "(`circuit.Circuit`)",
+                        "(`fluids.escapes` against its own declared basin), a hopper row in the "
+                        "tail floor feeding a barrel, and a comparator on that barrel that "
+                        "raises a gold block and rings a bell when anything lands in it - dark "
+                        "when the poke is empty, both proven with `circuit.Circuit`",
             "unverified": ["nothing here simulates an ITEM. The water is proven to flow and the "
-                           "detector is proven to fire on a stocked poke; that an entity riding "
-                           "the current reaches the hoppers is the game's business, not this "
-                           "simulator's. Throw a stack in before anyone is told it pays."]}
+                           "detector is proven to fire on a stocked poke and to stay dark on an "
+                           "empty one; that an entity riding the current reaches the hoppers is "
+                           "the game business, not this simulator. Throw a stack in before "
+                           "anyone is told it pays."]}
 
 
 # ---------------------------------------------------------------- the workings under the mine

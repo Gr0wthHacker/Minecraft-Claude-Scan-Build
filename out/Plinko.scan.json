@@ -1,0 +1,226 @@
+{
+  "origin": {
+    "x": 97592,
+    "y": 202,
+    "z": 80620
+  },
+  "size": {
+    "x": 17,
+    "y": 17,
+    "z": 18
+  },
+  "generated_by": "arcade",
+  "kind": "plinko",
+  "footprint": [
+    18,
+    17
+  ],
+  "courses": [
+    -1,
+    15
+  ],
+  "land": "midway",
+  "facing": "west",
+  "contract": "5 channels; a ball read by channel k pays [3, 2, 1, 2, 3] prizes from that channel alone, exactly once per ball, and nothing from any other",
+  "unverified": [
+    "WHERE THE BALL LANDS is Minecraft's item physics, which this simulator has no entities to model. The board is real and the pegs are staggered; the distribution is the game's own and must be watched in world, exactly as the dropper randomiser's odds are."
+  ],
+  "budget": {},
+  "width": 16,
+  "depth": 15,
+  "height": 16,
+  "lanes": 5,
+  "pegs": 56,
+  "prizes": [
+    3,
+    2,
+    1,
+    2,
+    3
+  ],
+  "hoppers": [
+    [
+      97594,
+      203,
+      80622
+    ],
+    [
+      97594,
+      203,
+      80625
+    ],
+    [
+      97594,
+      203,
+      80628
+    ],
+    [
+      97594,
+      203,
+      80631
+    ],
+    [
+      97594,
+      203,
+      80634
+    ]
+  ],
+  "droppers": [
+    [
+      [
+        97602,
+        204,
+        80622
+      ],
+      [
+        97603,
+        204,
+        80622
+      ],
+      [
+        97604,
+        204,
+        80622
+      ]
+    ],
+    [
+      [
+        97602,
+        204,
+        80625
+      ],
+      [
+        97603,
+        204,
+        80625
+      ]
+    ],
+    [
+      [
+        97602,
+        204,
+        80628
+      ]
+    ],
+    [
+      [
+        97602,
+        204,
+        80631
+      ],
+      [
+        97603,
+        204,
+        80631
+      ]
+    ],
+    [
+      [
+        97602,
+        204,
+        80634
+      ],
+      [
+        97603,
+        204,
+        80634
+      ],
+      [
+        97604,
+        204,
+        80634
+      ]
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97594,
+      203,
+      80622
+    ],
+    [
+      97594,
+      203,
+      80625
+    ],
+    [
+      97594,
+      203,
+      80628
+    ],
+    [
+      97594,
+      203,
+      80631
+    ],
+    [
+      97594,
+      203,
+      80634
+    ]
+  ],
+  "outputs": [
+    [
+      97602,
+      204,
+      80622
+    ],
+    [
+      97603,
+      204,
+      80622
+    ],
+    [
+      97604,
+      204,
+      80622
+    ],
+    [
+      97602,
+      204,
+      80625
+    ],
+    [
+      97603,
+      204,
+      80625
+    ],
+    [
+      97602,
+      204,
+      80628
+    ],
+    [
+      97602,
+      204,
+      80631
+    ],
+    [
+      97603,
+      204,
+      80631
+    ],
+    [
+      97602,
+      204,
+      80634
+    ],
+    [
+      97603,
+      204,
+      80634
+    ],
+    [
+      97604,
+      204,
+      80634
+    ]
+  ],
+  "stock": {
+    "each lane's droppers": "the prize that channel pays",
+    "the player": "a ball to drop - an egg, a snowball, any item"
+  },
+  "file": "Plinko.litematic",
+  "name": "Plinko"
+}

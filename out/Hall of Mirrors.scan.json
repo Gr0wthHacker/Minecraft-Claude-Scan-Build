@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97563,
+    "x": 97601,
     "y": 202,
-    "z": 80559
+    "z": 80622
   },
   "size": {
     "x": 17,
@@ -12,7 +12,7 @@
   "generated_by": "attractions",
   "kind": "mirrormaze",
   "land": "midway",
-  "facing": "east",
+  "facing": "west",
   "contract": "a real maze: one solved spanning-tree route from the marked entrance to the marked exit, with genuine dead-end branches off it, never a plain corridor with two doors",
   "unverified": [],
   "width": 15,
@@ -24,14 +24,14 @@
   "lamps": 5,
   "signed": true,
   "entry_at": [
-    97577,
+    97603,
     203,
-    80574
+    80625
   ],
   "exit_at": [
-    97565,
+    97615,
     203,
-    80562
+    80637
   ],
   "file": "Hall Of Mirrors.litematic",
   "name": "Hall Of Mirrors"
