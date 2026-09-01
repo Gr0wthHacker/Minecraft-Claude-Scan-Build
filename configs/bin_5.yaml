@@ -4,9 +4,9 @@ params:
   land: hollow
   facing: west
   at:
-  - 97604
+  - 97610
   - 203
-  - 80773
+  - 80803
   kind: bin
   title: Bin 5
   under: out/islandright.litematic

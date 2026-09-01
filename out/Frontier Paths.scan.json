@@ -15,8 +15,8 @@
   "facing": "east",
   "contract": "every attraction's door is joined to an avenue, and both avenues meet at the hub - so the whole network is one connected walk",
   "unverified": [],
-  "routes": 12,
-  "cells": 1065,
+  "routes": 13,
+  "cells": 1086,
   "lamps": 0,
   "file": "Frontier Paths.litematic",
   "name": "Frontier Paths"

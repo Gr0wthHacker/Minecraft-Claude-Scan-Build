@@ -6,7 +6,7 @@ params:
   at:
   - 97584
   - 203
-  - 80821
+  - 80836
   kind: bench
   title: Bench 7
   under: out/islandright.litematic

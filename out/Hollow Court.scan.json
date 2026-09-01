@@ -2,12 +2,12 @@
   "origin": {
     "x": 97551,
     "y": 201,
-    "z": 80752
+    "z": 80751
   },
   "size": {
     "x": 88,
-    "y": 9,
-    "z": 96
+    "y": 10,
+    "z": 99
   },
   "generated_by": "park",
   "kind": "plaza",
@@ -15,11 +15,11 @@
   "facing": "east",
   "contract": "the ground between attractions: a paved grid that changes near the heart, planting beds and trees rooted in moss, a sunken seating court, and a bedded pool - never a flat slab, and never dirt or grass",
   "unverified": [],
-  "width": 96,
+  "width": 99,
   "depth": 88,
   "posts": 1,
-  "trees": 2,
-  "beds": 2,
+  "trees": 3,
+  "beds": 3,
   "terrace": true,
   "pool": true,
   "file": "Hollow Court.litematic",

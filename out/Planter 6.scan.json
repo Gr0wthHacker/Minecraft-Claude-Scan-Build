@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": 97576,
+    "x": 97578,
     "y": 202,
-    "z": 80799
+    "z": 80814
   },
   "size": {
     "x": 7,
-    "y": 3,
+    "y": 4,
     "z": 7
   },
   "generated_by": "streetfurniture",
@@ -18,12 +18,12 @@
   "unverified": [],
   "plan": "stepped",
   "rim": "slab",
-  "planting": "azalea",
+  "planting": "mound",
   "leaf": "spruce_leaves",
   "width": 5,
   "depth": 5,
   "cells": 9,
-  "seed": 128061064,
+  "seed": 128064903,
   "file": "Planter 6.litematic",
   "name": "Planter 6"
 }

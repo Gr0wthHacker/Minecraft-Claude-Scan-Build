@@ -5,26 +5,26 @@
     "z": 80431
   },
   "size": {
-    "x": 17,
+    "x": 10,
     "y": 12,
-    "z": 10
+    "z": 16
   },
   "generated_by": "casino",
   "kind": "casino/duel",
-  "facing": "west",
+  "facing": "north",
   "contract": "press once; you win ties - 6 in 9",
   "inputs": [
     [
-      97633,
+      97626,
       204,
-      80436
+      80442
     ]
   ],
   "outputs": [
     [
-      97621,
+      97623,
       199,
-      80433
+      80431
     ]
   ],
   "unverified": [
@@ -33,14 +33,14 @@
   "budget": {},
   "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
   "rng_hopper": [
-    97628,
+    97623,
     199,
-    80433
+    80437
   ],
   "house_hopper": [
-    97627,
+    97624,
     199,
-    80434
+    80437
   ],
   "stock": {
     "dropper": [

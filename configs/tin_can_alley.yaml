@@ -4,12 +4,12 @@ params:
   land: frontier
   outcomes: 3
   pit: 2
-  facing: west
+  facing: north
   booth: true
   at:
-  - 97631
+  - 97623
   - 203
-  - 80433
+  - 80440
   kind: duel
   title: Tin Can Alley
   under: out/islandleft.litematic

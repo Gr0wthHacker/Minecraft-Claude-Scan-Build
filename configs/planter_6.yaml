@@ -4,9 +4,9 @@ params:
   land: hollow
   facing: east
   at:
-  - 97581
+  - 97583
   - 203
-  - 80804
+  - 80819
   kind: planter
   title: Planter 6
   under: out/islandright.litematic

@@ -15,8 +15,8 @@
   "facing": "east",
   "contract": "every attraction's door is joined to an avenue, and both avenues meet at the hub - so the whole network is one connected walk",
   "unverified": [],
-  "routes": 17,
-  "cells": 1259,
+  "routes": 14,
+  "cells": 1190,
   "lamps": 0,
   "file": "Midway Paths.litematic",
   "name": "Midway Paths"

@@ -244,8 +244,12 @@ THEMES = {
              "anchor": "edge", "side": "south",
              "params": {"land": "hollow", "width": 7, "height": 6, "facing": "south"}},
             {"name": "Grand Plaza", "gen": "park", "kind": "plaza", "anchor": "cover",
-             "size": [88, 5, 96],  # w along X, d along Z - the params below are the FRAME's
-             "params": {"land": "midway", "width": 96, "depth": 88, "facing": "east"}},
+             # **`width` IS THE FRONTAGE AND ON AN EAST-FACING MODULE THAT IS Z.** Written 88x96 the
+            # plaza came out 96 wide across X and paved ten columns of the transit corridor, while
+            # the carousel in the south-west corner stood on bare void because Z was three short.
+            # 99 along Z covers the plot end to end; 88 across X stops at the railway.
+            "size": [88, 5, 99],
+             "params": {"land": "midway", "width": 99, "depth": 88, "facing": "east"}},
         ],
     },
 
@@ -318,8 +322,12 @@ THEMES = {
              "anchor": "edge", "side": "south",
              "params": {"land": "frontier", "width": 7, "height": 6, "facing": "south"}},
             {"name": "Frontier Plaza", "gen": "park", "kind": "plaza", "anchor": "cover",
-             "size": [88, 5, 96],  # w along X, d along Z - the params below are the FRAME's
-             "params": {"land": "frontier", "width": 96, "depth": 88, "facing": "east"}},
+             # **`width` IS THE FRONTAGE AND ON AN EAST-FACING MODULE THAT IS Z.** Written 88x96 the
+            # plaza came out 96 wide across X and paved ten columns of the transit corridor, while
+            # the carousel in the south-west corner stood on bare void because Z was three short.
+            # 99 along Z covers the plot end to end; 88 across X stops at the railway.
+            "size": [88, 5, 99],
+             "params": {"land": "frontier", "width": 99, "depth": 88, "facing": "east"}},
         ],
     },
 
@@ -367,8 +375,12 @@ THEMES = {
              "anchor": "edge", "side": "north",
              "params": {"land": "hollow", "width": 7, "height": 6, "facing": "north"}},
             {"name": "Hollow Court", "gen": "park", "kind": "plaza", "anchor": "cover",
-             "size": [88, 5, 96],  # w along X, d along Z - the params below are the FRAME's
-             "params": {"land": "hollow", "width": 96, "depth": 88, "facing": "east"}},
+             # **`width` IS THE FRONTAGE AND ON AN EAST-FACING MODULE THAT IS Z.** Written 88x96 the
+            # plaza came out 96 wide across X and paved ten columns of the transit corridor, while
+            # the carousel in the south-west corner stood on bare void because Z was three short.
+            # 99 along Z covers the plot end to end; 88 across X stops at the railway.
+            "size": [88, 5, 99],
+             "params": {"land": "hollow", "width": 99, "depth": 88, "facing": "east"}},
         ],
     },
 }
@@ -1160,7 +1172,8 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 "world": world,
             })
     if spec.get("orient") and plane is not None:
-        _orient_to_streets(pl, plane)
+        _orient_to_streets(pl, plane, _owned_bounds(pl_plot, spec)
+                           if pl_plot is not None else None)
     if spec.get("paths") and plane is not None:
         _add_paths(pl, spec, plane, world, pl_plot)
     if spec.get("furniture") and plane is not None:
@@ -1218,7 +1231,7 @@ def _street_axis(m, cx, cz):
     return ("west" if dx > 0 else "east"), False
 
 
-def _orient_to_streets(pl, plane):
+def _orient_to_streets(pl, plane, own=None):
     """Turn every building to address the street it is joined to.
 
     **HALF OF THEM PRESENTED THEIR BACKS.** `facing` was a theme constant, so a booth sited north
@@ -1262,7 +1275,19 @@ def _orient_to_streets(pl, plane):
         # written yet. A building that keeps its back to the street is a much smaller fault than
         # one built through its neighbour.
         turned = (bx, bz, bx + fw - 1, bz + fd - 1)
+        # **A DOOR MAY NOT OPEN ONTO LAND THE THEME DOES NOT OWN.** Turned to address the nearer
+        # avenue, a booth on the eastern edge of the owned strip ended up with its front on the
+        # transit corridor's first column - a shopfront facing a railway, and a spur that could
+        # never legally reach it. The turn is declined for the same reason it is declined for a
+        # collision: keeping its back to the street is the smaller fault.
         clash = False
+        if own is not None:
+            _saved = m["params"]
+            m["params"] = params
+            _fx, _fz = _front_of(m)
+            m["params"] = _saved
+            if not (own[0] <= _fx <= own[1] and own[2] <= _fz <= own[3]):
+                continue
         for other in pl.modules:
             if other is m or other is hub or other["kind"] == "paths":
                 continue
@@ -1276,6 +1301,38 @@ def _orient_to_streets(pl, plane):
         m["at"] = [bx - fx, plane, bz - fz]
         m["anchor_offset"] = [fx, fy, fz]
         m["size"] = [fw, fh, fd]
+
+    # **AND A SECOND PASS FOR THE DOORS THAT STILL POINT NOWHERE.** Declining a turn keeps a
+    # module's ORIGINAL facing, which on the eastern edge of the owned strip is the theme's
+    # default `east` - straight at the transit corridor. A booth whose door opens onto a railway
+    # has no path to it and never will, so this is a repair rather than a preference: try every
+    # facing and take the first whose front lands on owned land without walking into a neighbour.
+    if own is not None:
+        for m in pl.modules:
+            if m is hub or m.get("edge") or m["kind"] == "paths" or not m.get("bay"):
+                continue
+            fx0, fz0 = _front_of(m)
+            if own[0] <= fx0 <= own[1] and own[2] <= fz0 <= own[3]:
+                continue
+            bx, bz = m["bay"][0], m["bay"][1]
+            for cand in ("east", "north", "west", "south"):
+                if cand == m["params"].get("facing"):
+                    continue
+                params = {**m.get("params", {}), "facing": cand}
+                cfx, cfy, cfz, cfw, cfh, cfd = measured_footprint(
+                    m["gen"], m["kind"], params, m.get("declared_size", m["size"]))
+                box = (bx, bz, bx + cfw - 1, bz + cfd - 1)
+                if any(box[0] <= o[2] and o[0] <= box[2] and box[1] <= o[3] and o[1] <= box[3]
+                       for o in (_box_of(x) for x in pl.modules
+                                 if x is not m and x is not hub and x["kind"] != "paths")):
+                    continue
+                probe = {**m, "params": params,
+                         "at": [bx - cfx, plane, bz - cfz], "size": [cfw, cfh, cfd],
+                         "anchor_offset": [cfx, cfy, cfz]}
+                pfx, pfz = _front_of(probe)
+                if own[0] <= pfx <= own[1] and own[2] <= pfz <= own[3]:
+                    m.update(probe)
+                    break
 
 
 def _inside_of(m):

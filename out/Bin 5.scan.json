@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": 97604,
+    "x": 97610,
     "y": 202,
-    "z": 80773
+    "z": 80803
   },
   "size": {
     "x": 3,
-    "y": 5,
+    "y": 4,
     "z": 3
   },
   "generated_by": "streetfurniture",
@@ -17,9 +17,9 @@
   "contract": "a bin between two and three courses tall with a rim on top of it, standing on its own paved cell",
   "unverified": [],
   "style": "composter",
-  "height": 4,
+  "height": 3,
   "banded": false,
-  "seed": 128086694,
+  "seed": 128096846,
   "file": "Bin 5.litematic",
   "name": "Bin 5"
 }

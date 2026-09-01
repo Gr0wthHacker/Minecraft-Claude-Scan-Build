@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": 97603,
+    "x": 97609,
     "y": 202,
-    "z": 80757
+    "z": 80787
   },
   "size": {
     "x": 5,
-    "y": 11,
+    "y": 10,
     "z": 5
   },
   "generated_by": "streetfurniture",
@@ -16,31 +16,25 @@
   "facing": "west",
   "contract": "two to four arms pointing different ways, each a full block with its sign in the cell beyond it, so every sign has something to hang on",
   "unverified": [],
-  "arms": 3,
+  "arms": 2,
   "cap": "finial",
   "ways": [
     {
-      "dir": "north",
-      "h": 5,
-      "to": "CAROUSEL",
-      "placed": true
-    },
-    {
-      "dir": "east",
-      "h": 4,
-      "to": "THE GATE",
-      "placed": true
-    },
-    {
       "dir": "south",
+      "h": 4,
+      "to": "MARKET ROW",
+      "placed": true
+    },
+    {
+      "dir": "west",
       "h": 3,
-      "to": "THE LAKE",
+      "to": "BANDSTAND",
       "placed": true
     }
   ],
-  "seed": 128085329,
-  "signs": 3,
-  "signs_placed": 3,
+  "seed": 128095481,
+  "signs": 2,
+  "signs_placed": 2,
   "file": "Signpost 4.litematic",
   "name": "Signpost 4"
 }
