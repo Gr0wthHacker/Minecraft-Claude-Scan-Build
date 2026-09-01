@@ -107,7 +107,8 @@ def run_config(path: str, *, settings: Settings | None = None, overrides: dict |
             system["variation"] = {"facade": variation(cfg.get("name", name), "facade", profile["facades"])}
     system["capabilities"] = capability_matrix(mechanics=gen_meta["mechanics"], design=design,
                                                   anchors_=declared_anchors)
-    gen_meta = {**gen_meta, "design": design, "design_system": system}
+    gen_meta = {**gen_meta, "design": design, "design_system": system,
+                **({"park_contract": cfg["park_contract"]} if cfg.get("park_contract") else {})}
     _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, verbose)
     return m, res
 

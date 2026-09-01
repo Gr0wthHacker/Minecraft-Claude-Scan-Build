@@ -79,7 +79,9 @@ def test_the_signs_follow_their_blocks():
     from mcbuild import schem
     for n in NAMES:
         mo = schem.load(f"out/{n}.litematic")
-        cells, _ = layers._read(n)
+        # `_read` returns cells, signs AND the design's dig list - a litematic cannot express
+        # removal, so the prep work rides in the sidecar, and the slice used to drop it.
+        cells, _signs, _dig = layers._read(n)
         for t in mo.tile_entities:
             v = t.value
             # every tile entity must sit on a real block of this same layer
@@ -162,3 +164,32 @@ def test_no_module_config_defers_to_another():
             continue
         assert not (cfg.get("finish") or {}).get("defer_to"), (
             f"{os.path.basename(f)} defers - the module will ship with holes in it")
+
+
+def test_the_slice_carries_every_module_s_DIG_LIST():
+    """**A LITEMATIC CANNOT EXPRESS REMOVAL, SO THE PREP WORK LIVES IN THE SIDECAR - AND THE SLICE
+    WAS DROPPING IT.**
+
+    `layers.py` had no notion of `dig` at all. The Arrival Court declares 324 cells of starter pad
+    and tree that have to come out before a printer can lay its floor, and the shipped
+    `Park_Centre Complete` reported `dig 0`. `/cscan dig` would have shown nothing, and the first
+    anybody would have known is a printer refusing to place on a grass block.
+
+    A LAYER carries none, deliberately: breaking a block is not part of any one course, it is prep
+    for the build, and it belongs to the design you actually place.
+    """
+    import json
+    import os
+    whole = os.path.join("out", f"{WHOLE}.scan.json")
+    if not os.path.exists(whole):
+        pytest.skip(f"{WHOLE} has not been sliced")
+    with open(whole, encoding="utf-8") as fh:
+        raw = json.load(fh)
+    parts = []
+    for n in NAMES:
+        p = os.path.join("out", f"{n}.scan.json")
+        if os.path.exists(p):
+            with open(p, encoding="utf-8") as fh:
+                parts.append(len(json.load(fh).get("dig") or []))
+    assert all(c == 0 for c in parts), f"a LAYER carries a dig list: {parts}"
+    assert "dig" in raw, "the whole design's sidecar has no dig key at all"

@@ -234,6 +234,10 @@ def cmd_plan(a):
         for f in planner.emit(a.emit):
             print("wrote", f)
         return
+    if a.upgrade_park_contracts:
+        pl = planner.upgrade_park_contracts(a.upgrade_park_contracts)
+        print(f"upgraded {pl.name}: {len(pl.modules)} park module contract(s)")
+        return
     if a.show:
         print(planner.Plan.load(a.show).report())
         return
@@ -445,6 +449,7 @@ def main(argv=None):
                    help="Y of the gaming floor on a plot with NO GROUND (a fresh skyblock island): "
                         "lay the grid at this course instead of searching for flat terrain")
     p.add_argument("--show"); p.add_argument("--approve"); p.add_argument("--emit")
+    p.add_argument("--upgrade-park-contracts", help="add purpose/access contracts without changing a park layout")
     p.set_defaults(fn=cmd_plan)
     p = sub.add_parser("layers", help="re-slice a plan into complete build steps: floor, machines, walls, fittings")
     p.add_argument("plan")

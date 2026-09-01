@@ -1324,6 +1324,11 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
         _add_paths(pl, spec, plane, world, pl_plot)
     if spec.get("furniture") and plane is not None:
         _add_furniture(pl, spec, plane, world, pl_plot)
+    # The path pass has always inferred public approaches. Make purpose and access an explicit
+    # contract for every park module before it is emitted to agents or sidecars.
+    if theme in {"midway", "frontier", "hollow"}:
+        from .park_contracts import annotate as _annotate_park_contracts
+        _annotate_park_contracts(pl.modules, _front_of, _inside_of)
     return pl
 
 
@@ -1931,6 +1936,14 @@ def emit(name: str, out_dir: str = "configs") -> list:
                        "title": m["name"], "under": m.get("world")},
             "finish": {"verify_against": m.get("world")},
         }
+        contract = m.get("park_contract")
+        if contract:
+            cfg["park_contract"] = contract
+            cfg["design"] = {
+                "purpose": contract["purpose"], "hierarchy": contract["hierarchy"],
+                "style": contract.get("land"),
+                "narrative": f"{m['name']} serves the {contract.get('land', 'park')} visitor journey.",
+            }
         cfg["origin_lock"] = False
         exp = measured_expensive(m["gen"], m["kind"], dict(m.get("params", {})))
         if exp:
@@ -1956,3 +1969,14 @@ def emit(name: str, out_dir: str = "configs") -> list:
         written.append(p)
         prev.append(m["name"])
     return written
+
+
+def upgrade_park_contracts(name: str) -> Plan:
+    """Add public-purpose/access metadata to an existing park plan without re-siting anything."""
+    plan = Plan.load(name)
+    if plan.theme not in {"midway", "frontier", "hollow"}:
+        raise ValueError(f"{name} is not a center/left/right park plan")
+    from .park_contracts import annotate
+    annotate(plan.modules, _front_of, _inside_of)
+    plan.save()
+    return plan

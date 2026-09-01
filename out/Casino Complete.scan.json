@@ -11,6 +11,7 @@
   },
   "generated_by": "mcbuild.layers",
   "kind": "casino-layer",
+  "dig": [],
   "slice": false,
   "note": "the whole thing, nothing deferred",
   "file": "Casino Complete.litematic",

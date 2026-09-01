@@ -52,3 +52,15 @@ frozen manifest with ownership, cache fingerprints, and missing capability cover
 `mcbuild.golden.compare(reference, candidate)` measures changed pixels between approved review
 images. It deliberately reports a change rather than calling it a failure: reviewers approve a
 new creative direction, while unexpected broad deltas trigger investigation before promotion.
+
+## Park public contracts
+
+`midway`, `frontier`, and `hollow` planner outputs now annotate every module with a
+`park_contract`: purpose, visual hierarchy, land, whether it needs a public path, and world-space
+access candidates. Planner emission carries it into each generated config and sidecar. This fixes
+the old implicit-path problem: a route can no longer be treated as decoration while a ride, shop,
+gate, or building has no named public approach. Isthmus remains outside this park-module contract.
+
+Use `python -m mcbuild plan --upgrade-park-contracts park_centre` (and the left/right plans) to
+migrate an already-approved layout without moving its modules. `park_contracts.inaccessible()`
+then checks that every required public approach lands on generated paving.
