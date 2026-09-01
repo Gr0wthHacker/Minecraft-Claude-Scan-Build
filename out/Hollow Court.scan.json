@@ -100,7 +100,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "ee13cc06ac54fa7d0dc948fc769cc3eb6a642bfc87925aa5ecd7ebd331f5f8a6",
+    "fingerprint": "e4dbc705f4c21aed13d768f2a282958cf360c5cc71f0329fdabaa6cf09a46bbe",
+    "generator_source_digest": "7cf43e2c1c3f9699e50b0fafbe9aef44b44ed40c5f758089e943808deca02eb7",
     "anchors": [],
     "capabilities": {
       "purpose": false,

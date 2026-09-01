@@ -129,7 +129,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "c1fa339056d03c88520eb993d5333a4d05624b1f1d2d98b7db2f9a142e63bfc5",
+    "fingerprint": "dd3c20f29012f8c593a8b8aa4747e3de1d043af1950afe3787807ecd0cd2500f",
+    "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
     "anchors": [],
     "capabilities": {
       "purpose": false,

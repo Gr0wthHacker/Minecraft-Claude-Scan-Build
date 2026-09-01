@@ -40,8 +40,8 @@
     80601
   ],
   "bell": [
-    97565,
-    213,
+    97564,
+    212,
     80601
   ],
   "lamps": [
@@ -108,8 +108,8 @@
   ],
   "outputs": [
     [
-      97565,
-      213,
+      97564,
+      212,
       80601
     ],
     [
@@ -160,15 +160,15 @@
   "design": {
     "brief": {},
     "metrics": {
-      "blocks": 256,
+      "blocks": 257,
       "materials": 12,
-      "dominant_material_share": 0.5977,
+      "dominant_material_share": 0.5992,
       "light_blocks": 8,
       "massing": {
         "width": 15,
         "height": 13,
         "depth": 12,
-        "fill_ratio": 0.1094
+        "fill_ratio": 0.1098
       },
       "silhouette": {
         "top": {
@@ -176,8 +176,8 @@
           "fill_ratio": 0.6722
         },
         "front": {
-          "area": 91,
-          "fill_ratio": 0.4667
+          "area": 92,
+          "fill_ratio": 0.4718
         },
         "side": {
           "area": 59,
@@ -185,7 +185,7 @@
         }
       },
       "material_counts": {
-        "stone_bricks": 153,
+        "stone_bricks": 154,
         "blackstone": 42,
         "oak_log": 18,
         "redstone_wire": 14,
@@ -208,7 +208,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "795fbfb43f054601925b57b29c06f32b0772b5855fe3f84ea034f822c8a9066c",
+    "fingerprint": "ed21c8c7491cbcb34aba596637a963b01b62a6010d2bf03adac0e2761e906acd",
+    "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
     "anchors": [],
     "capabilities": {
       "purpose": false,

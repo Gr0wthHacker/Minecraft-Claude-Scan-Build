@@ -28,7 +28,7 @@
   "budget": {
     "redstone_lamp": 8
   },
-  "concealed": 70,
+  "concealed": 69,
   "visible_redstone": 0,
   "width": 17,
   "depth": 14,
@@ -83,8 +83,8 @@
     ]
   ],
   "bell": [
-    97568,
-    205,
+    97567,
+    204,
     80368
   ],
   "droppers": [
@@ -104,8 +104,8 @@
   ],
   "outputs": [
     [
-      97568,
-      205,
+      97567,
+      204,
       80368
     ],
     [
@@ -206,7 +206,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "c18d28313fc18a4b09e36ab5b12eef9bcf4b734c48e54d8c8fc5897dce7c7418",
+    "fingerprint": "d7fc6f371674a33b7641a67e54a360f57ef5a0b421f5fdb57747abfcd4fdfcc8",
+    "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
     "anchors": [],
     "capabilities": {
       "purpose": false,

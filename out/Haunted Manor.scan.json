@@ -459,7 +459,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "a0f7d953a9d23bac91342326476ad110c93e439706b0cabea374f42b30b80341",
+    "fingerprint": "4d1a2320a3f1cae1301c612bd39d6b6c64a9c6ef08ee0097a5e5fcd9825400af",
+    "generator_source_digest": "78432afd2c7f6c1b4c0c207ee2d8627157b89361046036feb47bea0b3a0e0fe4",
     "anchors": [],
     "capabilities": {
       "purpose": false,

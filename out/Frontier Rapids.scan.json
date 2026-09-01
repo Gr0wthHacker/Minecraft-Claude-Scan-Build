@@ -5355,7 +5355,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "7c1fe789efe5bd2457f47756b7f3275f2b996f242aece7f8f41a54b58a71e854",
+    "fingerprint": "c786a6d0392d118759710f413a8f35bbdb5dadcd026b1a8183b2ec094dfbb7d7",
+    "generator_source_digest": "b5a793c6a14d253b887a35c78ac11b0a02517dd0b9c7fc37eb61955e2192accf",
     "anchors": [],
     "capabilities": {
       "purpose": false,

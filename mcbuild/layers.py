@@ -70,7 +70,15 @@ def _which(name: str, y: int, floor_y: int) -> str:
 
 
 def _read(design: str, out_dir: str = "out"):
-    """Every cell of a design as {(x, y, z): (name, props)}, plus its sign text."""
+    """Every cell of a design as {(x, y, z): (name, props)}, its sign text, and its DIG list.
+
+    **A LITEMATIC CANNOT EXPRESS REMOVAL, SO THE PREP WORK LIVES IN THE SIDECAR - AND THE SLICE
+    WAS DROPPING IT.** `layers.py` had no notion of `dig` at all, so every module's "break this
+    first" list vanished the moment the plan was sliced: the Arrival Court declares 324 cells of
+    starter pad and tree that have to come out before a printer can lay its floor, and the
+    shipped `Park_Centre Complete` reported `dig 0`. `/cscan dig` would have shown nothing and
+    the first anybody knew of it would be a printer refusing to place on a grass block.
+    """
     mo = schem.load(os.path.join(out_dir, f"{design}.litematic"))
     sc = scan_mod.load(os.path.join(out_dir, f"{design}.scan.json"))
     ox, oy, oz = sc.origin
@@ -100,7 +108,11 @@ def _read(design: str, out_dir: str = "out"):
             signs[pos] = front
         except Exception:                                        # noqa: BLE001
             continue
-    return cells, signs
+    # `Scan` does not surface `dig` as an attribute, so read the sidecar's own JSON.
+    import json as _json
+    with open(os.path.join(out_dir, f"{design}.scan.json"), encoding="utf-8") as fh:
+        _raw = _json.load(fh)
+    return cells, signs, [tuple(int(v) for v in c) for c in (_raw.get("dig") or [])]
 
 
 def slice_plan(plan_name: str, floor_y: int, out_dir: str = "out",
@@ -118,9 +130,15 @@ def slice_plan(plan_name: str, floor_y: int, out_dir: str = "out",
     # between them. Doing it here means the modules stay whole and one place decides.
     cells: dict = {}
     signs: dict = {}
+    dig: list = []
+    seen_dig: set = set()
     contested = 0
     for m in pl.modules:
-        c, s = _read(m["name"], out_dir)
+        c, s, d = _read(m["name"], out_dir)
+        for cell in d:
+            if cell not in seen_dig:
+                seen_dig.add(cell)
+                dig.append(list(cell))
         for pos, v in c.items():
             if pos in cells:
                 if cells[pos] != v:
@@ -140,17 +158,20 @@ def slice_plan(plan_name: str, floor_y: int, out_dir: str = "out",
     # "let me see everything in totality" - one file, nothing deferred, nothing hidden, which is
     # what you load when you want to look at the casino rather than build it.
     whole = f"{prefix} Complete"
-    written.append((whole, _write_layer(whole, cells, signs, out_dir, whole=True)))
+    written.append((whole, _write_layer(whole, cells, signs, out_dir, whole=True, dig=dig)))
     for layer in LAYERS:
         got = buckets.get(layer)
         if not got:
             continue
         name = f"{prefix} {LAYERS.index(layer) + 1} {layer}"
+        # A LAYER CARRIES NO DIG LIST. Breaking a block is not part of any one course;
+        # it is prep for the build, and it belongs to the design you actually place.
         written.append((name, _write_layer(name, got, signs, out_dir)))
     return written
 
 
-def _write_layer(name: str, cells: dict, signs: dict, out_dir: str, whole: bool = False) -> int:
+def _write_layer(name: str, cells: dict, signs: dict, out_dir: str, whole: bool = False,
+                 dig=None) -> int:
     xs = [p[0] for p in cells]
     ys = [p[1] for p in cells]
     zs = [p[2] for p in cells]
@@ -177,6 +198,7 @@ def _write_layer(name: str, cells: dict, signs: dict, out_dir: str, whole: bool 
         # 301 such faults over the layers alone, every one of them a cut rather than a defect. It
         # is rule 2 (verify in CONTEXT, never in isolation) applied to this project's own slicing:
         # the context for a layer is the whole.
+        "dig": list(dig or []),
         "slice": not whole,
         "note": ("the whole thing, nothing deferred" if whole else
                  "one build step; a SLICE of the whole, so its circuits are cut at the seam"),

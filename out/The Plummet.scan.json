@@ -3493,7 +3493,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "467b9bda2ba9b4dc10099e404db7663de739a5fbfa74a9090776e878a59af375",
+    "fingerprint": "74a2e4b8e2090bfa1d3c58410ebf64472f08c94abeb5d7c67aac3efcd92fa156",
+    "generator_source_digest": "ad657c6e01f8485954dc722802d4a8b48931ec012b68046e8dea86e329765b2d",
     "anchors": [],
     "capabilities": {
       "purpose": false,

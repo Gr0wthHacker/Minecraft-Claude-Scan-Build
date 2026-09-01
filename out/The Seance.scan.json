@@ -154,7 +154,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "780f2a059b87e9c06815ef94a986a68cd27ad68679b6ae637f80e7d734bef0db",
+    "fingerprint": "547457c9aa1fddf52774abff0d9e5a53ffc6b60995cb7946d736f112d8652a78",
+    "generator_source_digest": "78432afd2c7f6c1b4c0c207ee2d8627157b89361046036feb47bea0b3a0e0fe4",
     "anchors": [],
     "capabilities": {
       "purpose": false,

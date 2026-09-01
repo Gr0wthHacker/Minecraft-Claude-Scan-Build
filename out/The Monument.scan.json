@@ -450,7 +450,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "c151ed4c2f83c55f9ce0d211c1eed7845dd57f52998a90cec6b3dfac95d6cb7a",
+    "fingerprint": "5d459e3a046621b0dd45358c983403a7bd58c511de5076819fdeb98be1c15166",
+    "generator_source_digest": "628e3673dc621476fc2cf4cc81006890798c0898b79607ca40cf1f2f58f5ac12",
     "anchors": [],
     "capabilities": {
       "purpose": false,

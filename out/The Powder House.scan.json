@@ -365,7 +365,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "e10eaae25d317e19f05130e61ba3450000a25566fd7b6c3bfdc71e35c2ebcdd1",
+    "fingerprint": "ad45e1f9310b834b7ce39670262b0b04e615d978cb28965008938cd6a80c59e6",
+    "generator_source_digest": "73f071a42a113b02f1bd2b3cf5caf31c5998401474b891a676aea41708a2a95c",
     "anchors": [],
     "capabilities": {
       "purpose": false,

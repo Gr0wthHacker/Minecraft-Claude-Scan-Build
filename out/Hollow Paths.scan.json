@@ -72,7 +72,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "c4b629fcce9592db56a61e7985f24d75ad65e38574bf72e328dc193f0c1d1b03",
+    "fingerprint": "85c4a4f91fa4ec226e3843d9bdb1499d22e9aee798a19b7418744462a6a73d7f",
+    "generator_source_digest": "7cf43e2c1c3f9699e50b0fafbe9aef44b44ed40c5f758089e943808deca02eb7",
     "anchors": [],
     "capabilities": {
       "purpose": false,

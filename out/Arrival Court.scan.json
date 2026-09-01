@@ -1807,7 +1807,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "86951c0e623fdc7a97d9647b6406f6818f1c598dcf08ba50d0f0ddb40de7c8d7",
+    "fingerprint": "42d34a58ca8da988d8d3581f6ff08351302814642e6632a9e0f6f516991e6f61",
+    "generator_source_digest": "636b27e6b90a973bd5dfa8901986c9f8a24af234450ee52bacf4dae6e6156199",
     "anchors": [],
     "capabilities": {
       "purpose": false,
