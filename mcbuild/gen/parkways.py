@@ -269,13 +269,16 @@ def build(cfg: dict, donors=None) -> Canvas:
     rail_u = {int(x) for x in (p.get("rail_stations") or [])}
     rail_cells = {(x, (ru - u0) + d)
                   for ru in rail_u for d in range(-rail_half, rail_half + 1)
-                  for x in range(svc_v - p["service_half"], rim_v + 2)}
+                  for x in range(svc_v - p["service_half"], rim_v + 1)}
     for ru in sorted(rail_u):
         z = ru - u0
         if not (0 <= z < sz):
             continue
         pal, _b, _t = land_at(ru)
-        for x in range(svc_v - p["service_half"], rim_v + 2):
+        # IT STOPS AT THE RIM AND NOT ONE CELL PAST IT. V171-199 is the protected reserve and the
+        # rule holds for a station walk as much as for a lot; what is past the rim is the reserve's
+        # own lawn, which is walkable, so the route loses nothing by ending here.
+        for x in range(svc_v - p["service_half"], rim_v + 1):
             for d in range(-rail_half, rail_half + 1):
                 lay(x, z + d, pal, pal, 0.0, rail_half, abs(d), x)
 
