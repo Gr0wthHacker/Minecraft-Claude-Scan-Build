@@ -1,0 +1,12 @@
+{
+  "file": "Park Ways.litematic",
+  "name": "Park Ways",
+  "kind": "parkways",
+  "origin": {
+    "x": 97551,
+    "y": 202,
+    "z": 80351
+  },
+  "anchor_status": "PREVIEW placement; rebase before building",
+  "generated_by": "configs/park_ways.yaml"
+}
