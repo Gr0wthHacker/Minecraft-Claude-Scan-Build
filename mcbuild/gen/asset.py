@@ -45,7 +45,22 @@ SAFE = {
 }
 
 ASSET = {"source": None, "downscale": None, "threshold": 0.42, "min_component": 6,
-         "repalette": True, "keep": None, "map": None}
+         "repalette": True, "keep": None, "map": None,
+         #: 0/90/180/270 clockwise about Y. AN OUTSIDE BUILD ARRIVES FACING WHEREVER ITS AUTHOR
+         #: LEFT IT, and this park's lots all front one way - so without this the only control
+         #: over which side a visitor sees is which corner of the lot you drop it in, which is no
+         #: control at all. The bone skull's face points along +U as loaded, and the reach it
+         #: stands in is walked along U: a visitor got the PROFILE, which on a skull is thin and
+         #: reads as flat. It is not flat; it was edge-on.
+         "rotate": 0}
+
+#: A FACING MIRRORS, IT DOES NOT COPY - and a rotation is the same trap one turn further on. Our
+#: renderer draws every one of these identically, so a stair turned the wrong way is invisible
+#: here and wrong in game for ever, which is why `tests/test_asset_rotate.py` asserts the table
+#: rather than anybody eyeballing a picture.
+_CW = {"north": "east", "east": "south", "south": "west", "west": "north"}
+#: an axis pillar (log, bone_block, basalt) swaps x and z on an odd quarter turn; y is unmoved
+_AXIS_CW = {"x": "z", "z": "x", "y": "y"}
 
 
 def build(cfg: dict, donors=None) -> Canvas:
@@ -56,6 +71,9 @@ def build(cfg: dict, donors=None) -> Canvas:
     if not path.exists():
         raise ValueError(f"asset source not found: {path}")
     model = schem.load(str(path))
+    turns = (int(p.get("rotate") or 0) // 90) % 4
+    if turns:
+        model = _rotate(model, turns)
     factor = p.get("downscale")
     if factor and int(factor) > 1:
         model = downscale_op(model, int(factor), threshold=float(p["threshold"]),
@@ -93,6 +111,59 @@ def build(cfg: dict, donors=None) -> Canvas:
                    "contract": "an outside build placed as an asset, resized and re-paletted to "
                                "what this server can actually spend - never imitated"}
     return canvas
+
+
+def _rotate(model, turns: int):
+    """Turn a model `turns` quarter-turns clockwise about Y, STATES AND ALL.
+
+    The array is the easy half: `np.rot90` over the (z, x) plane. The half that goes wrong
+    silently is the block states - a stair, a wall sign, a trapdoor, a lantern, an axis pillar all
+    carry a direction, and rotating the cells while leaving the states behind gives a build whose
+    every stair leans the wrong way. This repo has paid for that lesson twice: once on the frog's
+    mirrored toes, and once on the railway, where our renderer drew a wrong rail orientation
+    identically to a right one.
+    """
+    import numpy as np
+    ids = model.ids
+    for _ in range(turns):
+        ids = np.rot90(ids, k=-1, axes=(2, 1))       # (y, z, x): turn the z/x plane clockwise
+    pal = [model.palette[0]]
+    for entry in model.palette[1:]:
+        pal.append(_turn_state(entry, turns))
+    return schem.Model(np.ascontiguousarray(ids), pal)
+
+
+def _turn_state(entry, turns: int):
+    """One palette entry, its direction properties advanced `turns` quarter-turns clockwise."""
+    import copy
+    props = entry.value.get("Properties")
+    if props is None:
+        return entry
+    out = copy.deepcopy(entry)
+    op = out.value["Properties"].value
+    for key, tag in list(op.items()):
+        val = tag.value
+        if key in ("facing", "rotation") and val in _CW:
+            for _ in range(turns):
+                val = _CW[val]
+            tag.value = val
+        elif key == "axis" and val in _AXIS_CW:
+            if turns % 2:
+                tag.value = _AXIS_CW[val]
+        elif key in ("north", "south", "east", "west"):
+            pass                                      # handled below, as a set
+    # a multi-face block (fence, wall, vine, glass pane, glow lichen) carries one flag per side,
+    # and those have to move TOGETHER or the connection ends up on the wrong face
+    sides = [k for k in ("north", "east", "south", "west") if k in op]
+    if sides:
+        was = {k: op[k].value for k in sides}
+        for k in sides:
+            src = k
+            for _ in range(turns):
+                src = {v: kk for kk, v in _CW.items()}[src]
+            if src in was:
+                op[k].value = was[src]
+    return out
 
 
 def _spendable(name: str) -> bool:

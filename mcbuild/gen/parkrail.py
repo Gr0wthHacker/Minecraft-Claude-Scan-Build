@@ -44,7 +44,7 @@ thing in this project whose wrongness is invisible in every render, every audit 
 materials - so a mechanism that has to be right is a mechanism that has to be simulated, and one
 that is right BY CONSTRUCTION is worth more than one that is right by simulation. Two running
 lines, one direction each, joined only at the two ends, cannot present two carts to each other on
-the same rails at all. It costs five extra columns of corridor and four iron rails.
+the same rails at all. It costs SEVEN extra columns of corridor and four iron rails.
 
 **THE TWO ENDS ARE TURNBACK CURVES, AND THAT IS WHAT THE CORNERS BUY.** Jack: *"if needed we can
 add turns curves etc, just not excessive, we can invest iron for aesthetic clear value purpose."*
@@ -313,7 +313,6 @@ def _section(p: dict) -> dict:
         "centre": centre,
         "inner_a": island[0], "inner_b": island[-1],
         "stair_v": tuple(park_edge - side * k for k in range(kc - h, kc + h + 1)),
-        "gable_v": (park_edge - side * (kc - h - 1), park_edge - side * (kc + h + 1)),
         "gate_k": gk,
         "gate_cols": tuple(park_edge - side * k
                            for k in list(range(gk)) + list(range(w - gk, w))),

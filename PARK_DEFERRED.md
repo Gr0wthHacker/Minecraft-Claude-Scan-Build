@@ -21,7 +21,8 @@ modules fail at 90 degrees**, so most of these are not free turns and each needs
 
 | module | what is wrong | what it needs |
 |---|---|---|
-| Wyrm's Crossing | the skull's facing is off. It is the Prism Reach's set piece at V24 U385 and the thing a visitor walks past between two lands, so it should present its FACE to the spine rather than an ear. Its plaza declares `facing: east`. | decide the face direction from the spine's sightline, then re-check the 58x44 lot at that facing |
+| ~~Wyrm's Crossing~~ | ~~the skull faces the wrong way~~ | **DONE** — `rotate: 180` on the asset, so the face meets the Midway approach. Only 0 and 180 fit: at 90 the module is 54 across against a 45-column reach. `tests/test_asset_rotate.py` pins it. |
+| *(nothing else yet)* | | |
 
 ## How to run the pass
 

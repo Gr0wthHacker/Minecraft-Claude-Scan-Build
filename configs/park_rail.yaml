@@ -1,7 +1,10 @@
 # THE PARK LINE: the theme park's railway, in the corridor between the park's edge and the void.
 #
 # Jack: "start building our railway in the marked area, it needs to be impressive with 3 stations,
-# functional, and gorgeous."
+# functional, and gorgeous." ...and then, on the first one: "we can use more space, and we need to
+# figure out a way to make sure carts dont collide, and make sure redstone automatically makes them
+# stop at each station, i think also they look decent but are a little asymettric with the hanging
+# facade which is a bit strange."
 #
 # THE CORRIDOR IS ASSUMED, NOT MARKED - and the first assumption was BACKWARDS. There is no marks
 # file on disk, so this originally took V0-7 on the reading that V0 faces the void. It does not:
@@ -10,46 +13,78 @@
 # the shipped ground layer it shared 90 cells with it across 27 lamp posts - and NOTHING SAW IT,
 # because each design audits clean on its own and cross-design overlap is a different question.
 #
-# The void is at the HIGH edge. Off the shipped `Park Ways`, exactly two V bands hold nothing above
-# the lawn for the full 600: V7-17 (the spine's own paving, obviously not it) and V154-156 (the
-# service lane, 3 wide). Everything else carries paving, lamps or moss. The rim band V171-199 is
-# 29 columns of lawn and scattered moss carpet with the rim fence at V170 in front of it, and
-# PARK_600X200_AUDIT calls it "protected rim, terrain, support roots, view/void reserve".
+# THE VOID IS AT THE HIGH EDGE, AND IT IS THE ONLY DIRECTION THERE IS ANY ROOM IN. V170 is the rim
+# edge and everything below it is the park; PARK_600X200_AUDIT calls V171-199 "protected rim,
+# terrain, support roots, view/void reserve". So the line grows OUTWARD and never inward:
 #
-# SO THE LINE RUNS ON THE RIM, WHICH IS WHAT A PARK RAILWAY DOES - a perimeter berm route with the
-# park on one side and open void on the other, spending 8 of those 30 reserve columns and leaving
-# V180-199 untouched. `bounds`, `track_v`, `gate_v` and `park_side` are the only numbers that move
-# if the marked area turns out to be somewhere else.
+#     V170          rim edge                        - not this design's, and never touched
+#     V171          reserve lawn                    - where the park's own station walks land
+#     V172 - V186   THE LINE, fifteen columns       - was eight
+#     V187 - V199   reserve, thirteen columns       - left clear at the far end
 #
-# WHAT IT STILL OWES: the stair at each station lands on the reserve lawn at V171, and the rim
-# fence at V170 stands between that and the service band. Three gates through it, at U85, U300 and
-# U515, belong to `parkways` and are not in this design.
+# `bounds` and `park_side` are the only two numbers that move if the marked area turns out to be
+# somewhere else; every column of the cross-section is derived from them in `_section`.
+#
+# THE FIFTEEN BUY THREE THINGS AT ONCE, and they are the three Jack asked for.
+#
+#   COLLISION.  Two running lines, one direction each, joined at both ends by turnback curves into
+#               ONE CLOSED CIRCUIT. Two carts cannot be presented to each other on the same rails
+#               at all - it is a property of the track's SHAPE rather than of a circuit that has to
+#               keep working, which is worth more here than any amount of block signalling. A cart
+#               set going calls at all six platform bays and comes back to where it started.
+#   SYMMETRY.   An odd section has a real centre column, and the island platform sits on it between
+#               the two tracks. The old eight-column deck had its centre line on V175.5, so every
+#               hanging thing on it was half a block off the axis of the structure it hung from:
+#               10,232 of 22,362 cells had no mirror. It is now 6 of 13,070 above the deck, and all
+#               six are the approach bells, which belong at their own track's arrival end.
+#   ACCESS.     A flight down from the island's own three centre columns, so the promenade keeps
+#               two clear columns past the stairwell on each side.
 #
 # WHAT IS IN IT
 #   viaduct     a deck twelve courses over the lawn on a pier every 15, a segmental arch between
 #               every pair, an arch ring in a darker stone than the spandrel it carries, a cornice
 #               under the deck, a cross-rib at every crown, and a portal frame every four bays
-#   arcade      ...and a gate cut through every pier, so the ground under the viaduct is a second
-#               six-hundred-block walk rather than forty separate rooms
-#   track       one straight, dead-level line the length of the corridor - and because it never
-#               turns, it costs ZERO iron: every rail on it is a powered (gold) rail
-#   power       a redstone_block in the bed every 8, so no rail on the line is a brake by accident
-#   brake       ...except at each station, where a lever-held dead zone stops a coasting cart, so
-#               the line can actually be BOARDED. Both states are verified by simulation.
-#   stations    one per land, at that land's own centre, in that land's own materials: platform,
-#               back wall, canopy, departure board, name signs, signal lever, and a flight down to
-#               the lawn taken out of the platform's own back two columns
-#   light       flush ochre froglights in the deck kerb and in the lintel of every pier gate (no
-#               metal, cannot be knocked off, and nobody can walk into one), plus a lantern under
-#               every other arch crown, under every portal beam, and along each station canopy
+#   arcade      ...and TWO passages cut through every pier, one off each face with the pier's own
+#               core between them, so the ground under the viaduct is a second six-hundred-block
+#               walk rather than forty separate rooms - and it still has a lane at a station,
+#               where the raised apron takes the park-side one
+#   track       two dead-level lines and two turnback curves: 1,206 cells, of which FOUR are iron
+#               (the corners - a powered rail has no curve shape) and six more are the detector
+#               rails at the platforms. 1.5 + 6 = 7.5 ingots for the whole railway.
+#   power       a redstone_block in the bed every 8, dealt per RUN between breaks, so no rail is a
+#               brake by accident - verified by simulation, never by counting
+#   brake       ...except at the six platform bays, which have no source at all: an arriving cart
+#               brakes on them and stops BY ITSELF. A momentary button on the platform edge lights
+#               the bay for as long as it is held and the bay goes dead again on its own. The old
+#               line used a LEVER, and a lever left up is a station that never stops a cart again.
+#   bell        a detector rail at each bay's approach with a bell standing beside it - a detector
+#               rail powers what is next to it, so there is NO WIRE ANYWHERE on this design
+#   stations    one per land, at that land's own centre, in that land's own materials: an island
+#               platform, a pitched canopy with an eave over each track, a pylon carrying the name
+#               on both faces and a departure board on both approaches, two release buttons, two
+#               bells, and a flight down to the arcade
+#   light       flush ochre froglights in the platform-edge kerbs, in every portal beam, in every
+#               other arch crown and in the lintel of every pier passage - no metal, nothing to
+#               knock off, nothing to walk into - and the iron spent only where a light has to
+#               HANG: the six station canopies and the three station doors
 #
-# WHAT IT DOES NOT HAVE, so nobody goes looking: each station carries ONE name sign and one
-# departure board rather than a name at both ends. The flight takes twelve of the platform's
-# twenty-seven columns out of the back wall, and the wall that is left is not long enough to hang
-# a second name on without putting it next to the board - which is a sign, not a second name.
+# WHAT IT DOES NOT HAVE, so nobody goes looking:
+#   * NO BLOCK SIGNALLING. The circuit is one-way, so the collision a block system exists to stop
+#     cannot happen; what is left is a cart catching up with one standing at a platform, and both
+#     are stationary in a dead bay when it does. A holding signal would be six latches and a lot of
+#     dust under the deck to prevent a nudge.
+#   * NO STOP BLOCK, because a closed circuit has no terminus. The rule is not relaxed - it is
+#     inapplicable, and a stronger property replaces it: every rail has exactly two rail
+#     neighbours and the whole ring is one cycle.
+#   * A STATIONARY CART MID-LINE STILL NEEDS A NUDGE. A powered rail only starts a stopped cart
+#     when there is a solid block at one end of it, which a through platform cannot have; you press
+#     the button, press forward, and the boost takes over. That is true of every through station in
+#     this game and it was true of the lever-held version too.
 #
 # IT CLAIMS NOTHING AT Y0. The lawn under it belongs to `Park Ways`; every cell here is at Y1 or
-# above, so the two designs share the corridor without contesting one cell of it.
+# above, so the two designs share the corridor without contesting one cell of it. The 52 cells it
+# shares with the ground layer are all moss CARPET on the reserve lawn, at Y1, under a pier base or
+# a station apron - the same kind, and a lower rate per column, as the eight-column line's 38.
 name: Park Rail
 gen: parkrail
 params:
@@ -60,8 +95,8 @@ params:
     - {name: frontier, u0: 0, u1: 169}
     - {name: midway, u0: 215, u1: 384}
     - {name: prismworks, u0: 430, u1: 599}
-  # THE PARK IS TOWARD LOWER V HERE, so the promenade, the platforms, the back walls and
-  # every station stair mirror to the inner face. See `_sides` in gen/parkrail.py.
+  # THE PARK IS TOWARD LOWER V HERE, so every column of the section is measured away from
+  # V172. See `_sides` and `_section` - this one number mirrors the whole cross-section.
   park_side: -1
   # TWELVE COURSES OVER THE LAWN, and the number is the ARCH's rather than the deck's. At eight
   # the opening was wider than it was tall and the elevation read as a lintel with the corners
@@ -85,6 +120,11 @@ params:
   power_every: 8
   light_every: 12
   arch_light_every: 2
+  # HALF THE DEAD ZONE AT A PLATFORM, IN RAILS, so the bay is 7 cells. Long enough that an
+  # unpowered powered rail brings a cart to a halt well inside it, short enough that the
+  # release button's own eight-rail reach lights the whole of it from either end, and short
+  # enough that a cart accelerating from rest is back on self-powered track before a wooden
+  # button pops out. It MUST stay under 8 and the generator raises if it is not.
   bay_half: 3
   track_inset: 3
   station_half: 13
@@ -104,11 +144,11 @@ params:
   # beside the station instead of at it.
   stations:
     - {at_u: 77, land: frontier, title: FRONTIER HALT, stair: 1,
-       board: [FRONTIER HALT, "> MIDWAY 215", "> PRISMWORKS 430", HOLD LEVER TO GO]}
+       board: [FRONTIER HALT, "> MIDWAY 279", "> PRISMWORKS 505", PRESS TO DEPART]}
     - {at_u: 279, land: midway, title: MIDWAY CENTRAL, stair: -1,
-       board: [MIDWAY CENTRAL, "< FRONTIER 85", "> PRISMWORKS 430", HOLD LEVER TO GO]}
+       board: [MIDWAY CENTRAL, "< FRONTIER 77", "> PRISMWORKS 505", PRESS TO DEPART]}
     - {at_u: 505, land: prismworks, title: PRISMWORKS END, stair: 1,
-       board: [PRISMWORKS END, "< MIDWAY 300", "< FRONTIER 85", HOLD LEVER TO GO]}
+       board: [PRISMWORKS END, "< MIDWAY 279", "< FRONTIER 77", PRESS TO DEPART]}
   seed: 0
 roles: [ride, path, bridge]
 design:
