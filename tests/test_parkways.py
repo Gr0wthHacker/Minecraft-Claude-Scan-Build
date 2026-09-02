@@ -308,3 +308,110 @@ def test_the_lawn_covers_the_whole_envelope(ground, params):
     """No void anywhere, and a path only reads as a path if there is something it is NOT."""
     _lawn, c = ground
     assert (c.ids[0] > 0).all(), "there is bare void in the ground layer"
+
+
+def _masts(c) -> set:
+    """Every lamp shaft, as (V, U). Read at y3 - the one course every land's lamp has a mast in.
+
+    NEVER FROM A PICTURE. `render3d` draws a lightning rod, a fence, a wall and iron bars all as
+    full cubes, and it has hidden six separate faults on this park already.
+    """
+    names = {i: e.value["Name"].value.split(":")[-1] for i, e in enumerate(c.palette)}
+    ids = {i for i, n in names.items()
+           if n in {"lightning_rod", "dark_oak_fence", "polished_blackstone_brick_wall"}}
+    zs, xs = np.nonzero(np.isin(c.ids[3], list(ids)))
+    return {(int(x), int(z)) for x, z in zip(xs, zs)}
+
+
+def _crossings(params):
+    """(centre V, street half-width, U) for every avenue crossing of the spine and promenade."""
+    out = []
+    for land in params["lands"]:
+        for av in land.get("avenues") or ():
+            for cv, half in ((params["spine_v"], params["spine_half"]),
+                             (params["promenade_v"], params["promenade_half"])):
+                out.append((cv, half, int(av["at"])))
+    return out
+
+
+def test_a_crossing_is_lit_four_square_or_not_at_all(ground, params):
+    """Jack: "lots of lamp placements around intersections are still weird, non symmetric."
+
+    Measured against the build he was looking at, EVERY crossing in the park was asymmetric and
+    five of the six avenue/spine junctions carried no lamp at all. The cause is not tuning: a
+    rhythm walked down a line as `(z + phase) % every == 0` cannot know a crossing is there, so a
+    junction gets nought, one, two or four lamps at whatever offset the counter happens to be at -
+    and one phase serves six hundred blocks and twelve junctions at once.
+
+    A crossing is lit BY THE CROSSING now: four lamps where the two streets' own verge lines meet,
+    pushed out by one offset shared by all four. This asserts the property that buys - four, or
+    none, and mirrored about both axes.
+    """
+    _lawn, c = ground
+    pts = _masts(c)
+    for cv, half, u in _crossings(params):
+        near = sorted((v - cv, z - u) for v, z in pts
+                      if abs(z - u) <= 14 and abs(v - cv) <= half + 3)
+        # 4 at a crossing, 2 at a T where the street stops - and 0 where neither will stand.
+        assert len(near) in (0, 2, 4), f"crossing V{cv}/U{u} has {len(near)} lamps"
+        # THE SYMMETRY YOU SEE IS ACROSS THE STREET, and it holds at a T as well as a crossing.
+        assert near == sorted((-dv, du) for dv, du in near),             f"crossing V{cv}/U{u} is not mirrored across the street: {near}"
+        if len(near) == 4:
+            assert near == sorted((dv, -du) for dv, du in near),                 f"crossing V{cv}/U{u} is not mirrored along the street: {near}"
+
+
+def test_every_crossing_the_street_reaches_actually_gets_its_four(ground, params):
+    """The rule above is satisfied by a park with no junction lamps anywhere, which is exactly the
+    state it was written to fix. This pins that every crossing the crossing street actually
+    reaches is really lit.
+
+    A crossing where the street STOPS is excluded, and that is not a let-off: the promenade dies
+    at three ride columns, and Frontier's second avenue meets it four blocks before the first of
+    them. Four corners there would stand past the end of the promenade on the Mine Coaster's own
+    ground - which is what they did, and it cost the largest lot in the park fourteen of depth.
+    """
+    _lawn, c = ground
+    pts = _masts(c)
+    gaps = params.get("promenade_gaps") or []
+    prom_v, prom_h = params["promenade_v"], params["promenade_half"]
+
+    def open_sides(cv, half, u):
+        if cv != prom_v:
+            return 2                         # the spine runs the whole 600
+        return sum(not any(a <= uu <= b for a, b in gaps)
+                   for uu in (u - half - 2, u + half + 2))
+
+    unlit = [(cv, u, open_sides(cv, half, u)) for cv, half, u in _crossings(params)
+             if len([1 for v, z in pts if abs(z - u) <= 14 and abs(v - cv) <= half + 3])
+             != 2 * open_sides(cv, half, u)]
+    assert not unlit, f"crossings the street reaches but nothing lights: {unlit}"
+
+
+def test_the_two_verges_of_a_street_carry_the_same_lamps(ground, params):
+    """A street read walking down it is symmetric ACROSS, and that is the symmetry you actually
+    see. Both verges are driven from one run, so their U positions must be identical."""
+    _lawn, c = ground
+    pts = _masts(c)
+    for cv, half in ((params["spine_v"], params["spine_half"]),
+                     (params["promenade_v"], params["promenade_half"])):
+        west = sorted(z for v, z in pts if v == cv - (half + 2))
+        east = sorted(z for v, z in pts if v == cv + (half + 2))
+        assert west == east, (f"the verges of the street at V{cv} do not match: "
+                              f"{len(west)} west, {len(east)} east")
+
+
+def test_no_lamp_stands_off_a_verge_line(ground, params):
+    """Six masts once stood on V113 and V115, two lines that exist nowhere else in the park -
+    avenue posts NUDGED off their own rhythm by a junction lamp four blocks away in the same
+    column. A run drops rather than nudges near a crossing; this is what says so."""
+    _lawn, c = ground
+    lines = {params["spine_v"] - params["spine_half"] - 2,
+             params["spine_v"] + params["spine_half"] + 2,
+             params["promenade_v"] - params["promenade_half"] - 2,
+             params["promenade_v"] + params["promenade_half"] + 2}
+    # ...plus the avenue rhythm's own depths, which are a step of lamp_every from its start
+    every = params.get("lamp_every", parkways.PARKWAYS["lamp_every"])
+    start = params["spine_v"] + params["plaza_half"] + 6
+    lines |= set(range(start, params["rim_v"], every))
+    off = sorted({v for v, _z in _masts(c)} - lines)
+    assert not off, f"masts standing off every verge line: V{off}"
