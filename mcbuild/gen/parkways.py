@@ -261,25 +261,33 @@ def build(cfg: dict, donors=None) -> Canvas:
         return True
 
     def lamp_midway(x: int, z: int, pal: dict, across: str) -> bool:
-        """A PROMENADE STANDARD: a striped plinth, a stone wall column, the light on top of it.
+        """A TIMBER CROSSBEAM LAMP, to Jack's reference photograph.
 
-        The iron-bar version needed a slab capital so the lantern was not standing on bars, and
-        that slab was the problem - Jack: "swap the center for stone wall or something so it
-        connects to the slab properly, and the lamp wont sit on a slab like that." A WALL DOES
-        WHAT BARS COULD NOT: it carries a standing lantern directly (`canSupportCenter` on its
-        solid centre column, the same rule the Prism mast uses), so the capital disappears and
-        the lamp is plinth, column, light.
+        A stone plinth, a slim dark-oak fence shaft, a stone collar where the beam crosses it, a
+        five-wide timber beam capped with a slab, and a lantern hung under each end.
 
-        It stays a different object from the Prism mast, which is what three lands need: this is
-        pale `stone_brick_wall` over a red-and-white base in the Midway's own paving colours,
-        with a plain warm lantern; that one is black, caged in iron, with a rod above it.
+        THE BEAM IS THE ONLY FULL BLOCK ABOVE THE PLINTH, and it has to be: a hanging lantern
+        needs a solid face above it, which is what broke the last two attempts at an arm - a
+        chain under an open trapdoor, then a fence that connected to its neighbours and read as
+        railing. A beam is a beam, and it holds its lights.
         """
+        beam = _around(across)          # the two directions the crossbeam runs
         c.put(x, 0, z, blk("smooth_stone"))
-        c.put(x, 1, z, blk(pal["inlay"]))          # the land's own red
-        c.put(x, 2, z, blk(pal["accent"]))         # ...and its white, so the base is striped
-        for y in (3, 4, 5):
-            c.put(x, y, z, blk("stone_brick_wall"))
-        c.put(x, 6, z, c.raw_state(pal["light"], hanging="false"))
+        c.put(x, 1, z, blk("chiseled_stone_bricks"))
+        for y in (2, 3, 4):
+            c.put(x, y, z, blk("dark_oak_fence"))
+        c.put(x, 5, z, blk("chiseled_stone_bricks"))
+        c.put(x, 6, z, blk("dark_oak_planks"))
+        c.put(x, 7, z, c.raw_state("dark_oak_slab", type="bottom"))
+        for side, facing in beam:
+            for step in (1, 2):
+                ax, az = _step(x, z, side * step, across)
+                if not (0 <= ax < sx and 0 <= az < sz):
+                    continue
+                c.put(ax, 6, az, blk("dark_oak_planks"))
+                c.put(ax, 7, az, c.raw_state("dark_oak_slab", type="bottom"))
+                if step == 2:
+                    c.put(ax, 5, az, c.raw_state(pal["light"], hanging="true"))
         return True
 
     def lamp_prismworks(x: int, z: int, pal: dict, across: str) -> bool:
