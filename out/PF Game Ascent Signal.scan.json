@@ -1,0 +1,300 @@
+{
+  "origin": {
+    "x": 97533,
+    "y": 204,
+    "z": 80862
+  },
+  "size": {
+    "x": 16,
+    "y": 7,
+    "z": 5
+  },
+  "generated_by": "park_games",
+  "kind": "starter",
+  "building": "PF Prism Ascent",
+  "land": "prismworks",
+  "facing": "south",
+  "footprint": [
+    16,
+    5
+  ],
+  "courses": [
+    0,
+    6
+  ],
+  "budget": {
+    "redstone_lamp": 5
+  },
+  "refused": [],
+  "contract": "one press walks a light along 5 lamps in order and rings the bell at the end; the bell does not ring before the last lamp has lit",
+  "unverified": [],
+  "width": 16,
+  "depth": 5,
+  "height": 7,
+  "stages": 5,
+  "button": [
+    97547,
+    207,
+    80864
+  ],
+  "bell": [
+    97535,
+    205,
+    80865
+  ],
+  "lamps": [
+    [
+      97544,
+      205,
+      80864
+    ],
+    [
+      97542,
+      205,
+      80864
+    ],
+    [
+      97540,
+      205,
+      80864
+    ],
+    [
+      97538,
+      205,
+      80864
+    ],
+    [
+      97536,
+      205,
+      80864
+    ]
+  ],
+  "signed": true,
+  "leaks": [],
+  "inputs": [
+    [
+      97547,
+      207,
+      80864
+    ]
+  ],
+  "outputs": [
+    [
+      97544,
+      205,
+      80864
+    ],
+    [
+      97542,
+      205,
+      80864
+    ],
+    [
+      97540,
+      205,
+      80864
+    ],
+    [
+      97538,
+      205,
+      80864
+    ],
+    [
+      97536,
+      205,
+      80864
+    ],
+    [
+      97535,
+      205,
+      80865
+    ]
+  ],
+  "stock": {},
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "warped_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "prismworks",
+      "narrative": "The launch signal at the foot of the spire: press READY and a light walks the board, and the bell at the end is the call to go up.\n"
+    },
+    "metrics": {
+      "blocks": 300,
+      "materials": 10,
+      "dominant_material_share": 0.44,
+      "light_blocks": 5,
+      "massing": {
+        "width": 16,
+        "height": 7,
+        "depth": 5,
+        "fill_ratio": 0.5357
+      },
+      "silhouette": {
+        "top": {
+          "area": 80,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 112,
+          "fill_ratio": 1.0
+        },
+        "side": {
+          "area": 21,
+          "fill_ratio": 0.6
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.7767,
+          0.11,
+          0.1133
+        ],
+        "top_silhouette_perimeter": 42,
+        "surface_faces_per_block": 1.5733
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 132,
+        "smooth_basalt": 79,
+        "chiseled_deepslate": 64,
+        "redstone_wire": 9,
+        "repeater": 6,
+        "redstone_lamp": 5,
+        "warped_wall_sign": 2,
+        "bell": 1,
+        "cyan_wool": 1,
+        "stone_button": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "f2f571db0edb71b40668c41f34ac9e2a1befdcf2b40104536e832b073139ac64",
+    "generator_source_digest": "a0e564b0232adbe64ab3cd6148f51f1d12f745b99584da5356aad3da89843d6f",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 71.854401,
+    "blocks": 300,
+    "blocks_per_second": 4.18
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "ride"
+    ],
+    "blocks": 300,
+    "mechanic_families": [
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: chiseled_deepslate",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: redstone_lamp",
+    "not in the provisional skyblock-1.19 list: smooth_basalt",
+    "not in the provisional skyblock-1.19 list: warped_wall_sign"
+  ],
+  "file": "PF Game Ascent Signal.litematic",
+  "name": "PF Game Ascent Signal"
+}

@@ -13,13 +13,13 @@ a redstone build is the one thing in this project whose wrongness is invisible i
 every audit and every bill of materials.
 
     aim        THE TARGET WALL      shoot the disc; the counter lights by how central you were
-    pair       THE DOUBLE           two buttons, two people, one prize - press together
-    mark       THE MARK             load the scale to EXACTLY the number on the sign
+                                    (`discs: 3` makes it an ARRAY of independent lanes)
     striker    THE STRIKER          hit it; the column climbs; a maximum rings the bell
-    counter    THE PRIZE COUNTER    prize windows that show what is actually in stock
-    pattern    THE ARRAY            three levers; exactly one of eight patterns aligns it
-    sequence   THE VAULT            three keys, IN ORDER, and the strongroom opens
+    mark       THE MARK             load the scale to EXACTLY the number on the sign
+    pair       THE DOUBLE           two buttons, two people, one prize - press together
+    pattern    THE VAULT            n levers; exactly one of 2^n settings opens it (`door: true`)
     starter    THE SIGNAL           a countdown that runs down the board and rings you away
+    counter    THE PRIZE COUNTER    prize windows that show what is actually in stock
 
 **A CABINET, NOT A PIT.** Everything in `gen/arcade.py` hides its machine in a pit `pit` courses
 under its own pad, because a fairground booth brings its own ground and can dig as deep as it
@@ -45,8 +45,7 @@ THE RULES THIS RUNS UNDER, each of which has already cost this project a rebuild
 * **NOTHING HERE DISPENSES A PRIZE.** The casino pins a hazard where a stuck item reads a winning
   level against an edge that never falls and the house pays until the bank is empty. A game whose
   output is a lamp and a bell cannot lose money by accident, and the park already has a counter to
-  redeem at. `counter` is that counter, and its droppers are not wired to anything a player can
-  reach - the stock lamps are.
+  redeem at. `counter` is that counter, and what its redstone does is tell the truth about stock.
 * **A GAME NOBODY CAN WORK OUT HOW TO PLAY IS AN EMPTY STRUCTURE**, which is the complaint this
   file answers. Every kind signs itself with what to do and what happens, fifteen characters a
   line, and `_sign` REFUSES a cell with no block behind it - so the sign is checked, never hoped
@@ -60,14 +59,24 @@ THE RULES THIS RUNS UNDER, each of which has already cost this project a rebuild
   time and accumulates in the hopper, so the second roll reads two items rather than one and the
   fourth reads nothing at all. minecraft.wiki's own randomizer closes that loop - the container the
   comparator reads feeds back into the dropper - and closing it here would be editing a module this
-  ticket does not own. It is written up in the report instead. Until it is closed, the Midway's
-  games are games of SKILL and no sign in this park states odds it cannot keep.
+  ticket does not own. It is written up in the report instead. Until it is closed, these games are
+  games of SKILL and no sign in this park states odds it cannot keep.
+* **NO LOCK THAT COUNTS THE ORDER**, which is what a "resonance vault" wants to be. It needs one
+  memory cell per key, and `circuits.latch` DOES NOT HOLD: driven with the repo's own harness, its
+  output drops the tick the set pulse ends, against a contract that says the opposite. Its own test
+  asserts only that the latch "has state at all" - a bound looser than the bug, exactly the failure
+  this project already records about `circuits.pulse`. A cross-coupled pair of torches does hold
+  and was verified while writing this; wiring three of them plus two AND gates through one console
+  then needs five signals routed past each other, and every arrangement tried put two of them in
+  one cell, which is one signal, which is a vault that opens on the wrong key. The Vault ships as a
+  COMBINATION instead - a lock with no state, which cannot deadlock either - and the working latch
+  topology is in the report.
 * **THE PRISM ASCENT'S SPIRE CARRIES NO SIGNAL.** Its shaft is 79 courses of hollow core divided by
   solid diaphragms at Y232, Y250, Y264 and Y274, and its outer face is broken by four fin blades.
   A dust staircase needs one block of horizontal run per course and there is nowhere to spend 79 of
-  them; a torch ladder alternates on and off by construction, so half the tower is lit at rest. The
-  launch chamber at its foot gets a real countdown; what the spire itself would need is openings in
-  its own shell, which is a change to `prismworks_builds.py`.
+  them; a torch ladder alternates on and off by construction, so half the tower would be lit at
+  rest. The calibration court at its foot gets a real countdown; what the spire itself would need
+  is openings in its own shell, which is a change to `prismworks_builds.py`.
 
 GEOMETRY is `gen/park.py`'s `_Frame`, unchanged, so a console sits in a room exactly as a stall
 sits on a street:
@@ -79,9 +88,9 @@ sits on a street:
 from __future__ import annotations
 
 from . import circuits
-from .arcade import _SIDE, _dirs, _ij, _lay, _line, _run, and_gate, ladder, read_out
+from .arcade import _dirs, _ij, _lay, _line, _run, and_gate, ladder, read_out
 from .canvas import Canvas
-from .park import LANDS, SIGN_WIDTH, _BACK, _STEP, _Frame, _sign
+from .park import LANDS, SIGN_WIDTH, _STEP, _Frame, _sign
 from .vertical import Ctx, World
 
 # ---------------------------------------------------------------------------- palettes
@@ -89,8 +98,8 @@ from .vertical import Ctx, World
 # **NOT `LANDS` VERBATIM, AND FOR TWO MEASURED REASONS.** The frontier's `ground` there is
 # `cobblestone`, which this ticket bars outright; and there is no `prismworks` entry at all,
 # because the land was written after `park.py` and keeps its palette in `prismworks_builds.PRISM`.
-# The keys are exactly the ones `arcade._structural`, `_line`, `_button`, `_sign` and `_hang_light`
-# read, so a console can be handed to any of those helpers whatever land it stands in.
+# The keys are exactly the ones `arcade._structural`, `_line`, `_run` and `park._sign` read, so a
+# console can be handed to any of those helpers whatever land it stands in.
 
 _PRISM = {
     "ground": "chiseled_deepslate",             # 54 - the land's own interior floor
@@ -129,20 +138,27 @@ GAME = {
     "title": None,
     "building": "",             # which module this fits out, for the sidecar
     "deck": 1,                  # how many courses of plinth under the machine course
+    "height": None,             # board height; a low room needs a low console
     "score": 6,                 # aim/striker: how many lamps, and the level that rings the bell
+    "discs": 1,                 # aim: how many independent target lanes
     "mark": 4,                  # mark: the exact reading that wins
     "band": 1,                  # mark: how wide the winning window is
     "lanes": 4,                 # counter: how many prize windows
     "stages": 5,                # starter: how many countdown lamps
-    "pattern": (True, False, True),   # pattern: the one lever setting that aligns the array
+    "pattern": (True, False, True),   # pattern: the one lever setting that opens it
+    "door": False,              # pattern: an iron door in the console's face, not just a lamp
     "sign": True,
 }
 DEFAULTS = GAME
 
+# What must never show on the outside of a cabinet. A lamp, a barrel, a button, a bell and a door
+# are things the game exists to SHOW; a wire is a thing a player can break by accident.
+MACHINE = ("redstone_wire", "repeater", "comparator", "redstone_torch", "redstone_wall_torch")
+
 
 # ---------------------------------------------------------------------------- the console
 #
-# One shape, eight games. A console is furniture: a player cannot walk through it, which is exactly
+# One shape, seven games. A console is furniture: a player cannot walk through it, which is exactly
 # why the machine inside it is safe, and it needs no ceiling because the building already has one.
 
 
@@ -160,25 +176,43 @@ def _plinth(w: World, f, pal: dict, width: int, depth: int, deck: int) -> None:
                 w.put(*f.at(i, d, h), pal["ground"])
 
 
-def _ring(w: World, f, pal: dict, width: int, depth: int, h: int) -> None:
+def _ring(w: World, f, pal: dict, width: int, depth: int, h: int) -> list:
     """The machine course's own wall, and the reason it is a RING rather than a fill.
 
     Filling every unused cell of the machine course would put a solid block against every component
     in it - and a repeater or comparator aimed at a solid block STRONGLY powers it, which then
     passes 15 to any dust touching its far side. That is a short across the machine, invisible in
     every render. A hollow box has no far side to short to.
+
+    **IT SKIPS WHAT IS ALREADY THERE, AND THAT IS NOT POLITENESS.** Written to `put`
+    unconditionally it walled straight over the target wall's own lamp row, which sits on the
+    console's back edge because that is the face a player is looking at: the game shipped with a
+    disc, a bar of dust, a bell and NOT ONE LAMP, at 172 blocks, zero placement problems, one
+    connected piece and a clean circuit inspection. Nothing but reading the bill of materials
+    would have caught it.
+
+    Returns the perimeter cells holding a live component - a wire showing on the outside of the
+    cabinet is a leak, and the tests assert there are none.
     """
+    leaks = []
     for i in range(width):
         for d in range(depth):
-            if i in (0, width - 1) or d in (0, depth - 1):
-                w.put(*f.at(i, d, h), pal["wall"])
+            if not (i in (0, width - 1) or d in (0, depth - 1)):
+                continue
+            pos = f.at(i, d, h)
+            if w.has(*pos):
+                if w.name(*pos) in MACHINE:
+                    leaks.append(list(pos))
+                continue
+            w.put(pos[0], pos[1], pos[2], pal["wall"])
+    return leaks
 
 
 def _lid(w: World, f, pal: dict, width: int, depth: int, h: int, open_at=()) -> None:
-    """The counter top, laid LAST so it never covers a lamp or a prize hatch already placed.
+    """The counter top, laid LAST so it never covers a lamp, a control or a door already placed.
 
     `open_at` is what a caller has to say out loud: a scale you cannot drop anything on is a scale
-    with a lid over it, and `w.has` cannot see that because the cell it would fill is genuinely
+    with a lid over it, and `w.has` cannot see that, because the cell it would fill is genuinely
     empty - the plate is a course BELOW.
     """
     skip = {tuple(c) for c in open_at}
@@ -204,14 +238,14 @@ def _board(w: World, f, pal: dict, width: int, depth: int, height: int) -> None:
 
 
 def _lamp_row(w: World, f, run, side_d: int, h: int) -> list:
-    """A lamp in FRONT of every cell of a dust run, standing on the console's own top.
+    """A lamp in FRONT of every cell of a dust run, on the same course.
 
     **THE LAMP GOES BESIDE THE DUST, NEVER ON TOP OF IT.** Above it, it is a full block resting on
     redstone - a placement the game refuses and a display that pops the first time the chunk loads.
-    Beside it, on the same course, it is simply adjacent and it is what the player is looking at.
+    Beside it, it is simply adjacent, and it is what the player is looking at.
     """
     out = []
-    for (i, d) in run:
+    for (i, _d) in run:
         pos = f.at(i, side_d, h)
         w.put(pos[0], pos[1], pos[2], "redstone_lamp", lit="false")
         out.append(pos)
@@ -224,14 +258,14 @@ def _bell(w: World, f, pal: dict, i: int, d: int, h: int, facing: str) -> tuple:
     A `bell` with `attachment=floor` needs a real floor: hung in the cell directly over the wire
     that rings it, three arcade games shipped a bell the game will not place at all.
     """
-    pos = f.at(i, d, h)
     if not w.has(*f.at(i, d, h - 1)):
         w.put(*f.at(i, d, h - 1), pal["wall"])
+    pos = f.at(i, d, h)
     w.put(pos[0], pos[1], pos[2], "bell", attachment="floor", facing=facing, powered="false")
     return pos
 
 
-def _press(w: World, f, pal: dict, i: int, d: int, h: int, facing: str, block: str = "") -> tuple:
+def _press(w: World, f, pal: dict, i: int, d: int, h: int, facing: str) -> tuple:
     """A button on the counter top, on a pad of the land's accent so it reads as the thing to press.
 
     A FLOOR BUTTON STRONGLY POWERS THE BLOCK BENEATH IT, and dust in the cell under that block is
@@ -240,18 +274,54 @@ def _press(w: World, f, pal: dict, i: int, d: int, h: int, facing: str, block: s
     stays sealed a course below.
     """
     pad = f.at(i, d, h - 1)
-    w.put(pad[0], pad[1], pad[2], block or pal["accent"])
+    w.put(pad[0], pad[1], pad[2], pal["accent"])
     pos = f.at(i, d, h)
     w.put(pos[0], pos[1], pos[2], "stone_button", face="floor", facing=facing, powered="false")
     return pos
 
 
 def _lever(w: World, f, pal: dict, i: int, d: int, h: int, facing: str) -> tuple:
-    """A lever on the counter top. Same route as a button and it HOLDS, which is what a lock needs."""
+    """A lever on the counter top. Same route as a button, and it HOLDS - which is what a lock
+    needs and what nothing else in this file has."""
     pad = f.at(i, d, h - 1)
     w.put(pad[0], pad[1], pad[2], pal["accent"])
     pos = f.at(i, d, h)
     w.put(pos[0], pos[1], pos[2], "lever", face="floor", facing=facing, powered="false")
+    return pos
+
+
+def _and(w: World, f, pal: dict, D: dict, gi: int, gd: int, h: int, n: int) -> dict:
+    """`arcade.and_gate`, laid so its inputs arrive down PARALLEL LANES two cells apart.
+
+    **THE ORIENTATION IS THE WHOLE DIFFICULTY, AND GETTING IT WRONG COST FOUR LAYOUTS.** The gate's
+    feeds all sit one step BEHIND it along its own `facing`, so with `facing` pointing along the
+    frontage every input has to be routed in from the same side, past the gate's own body - and two
+    L-routes into a strip that narrow cannot be laid without sharing a cell, which is one signal,
+    which is a gate that fires on one input. Turned so that `facing` runs INTO the console and
+    `side` runs along the frontage, the feeds come out as `n` lanes at i = gi, gi+2, gi+4 ... on one
+    d, each fed by a straight run down its own lane, with the odd lanes between them left empty
+    exactly as `and_gate` requires. There is no routing left to get wrong.
+    """
+    gate = and_gate(f.at(gi, gd, h), D["in"], D["i+"], inputs=n)
+    _lay(w, pal, (gate,), floor=pal["wall"])
+    lanes = [_ij(f, feed)[0] for feed in gate["feeds"]]
+    return {**gate, "lanes": lanes, "feed_d": _ij(f, gate["feeds"][0])[1]}
+
+
+def _guard(w: World, f, pal: dict, D: dict, i: int, d: int, h: int) -> tuple:
+    """A delay-2 repeater on a torch gate's output, and it is not decoration.
+
+    **A TORCH GATE IS TRUE FOR TWO TICKS THE MOMENT IT IS BUILT.** Every torch in it starts LIT, so
+    before the inverters settle the output is high - measured at exactly two ticks - and it happens
+    again on every chunk load. A delay-2 repeater needs three consecutive ticks to switch, so it
+    swallows the startup glitch whole and passes a real win untouched. Without it every gate game
+    in this file rings its own bell as the chunk loads, with nobody in the room.
+    """
+    pos = f.at(i, d, h)
+    w.put(pos[0], pos[1], pos[2], "repeater", facing=D["in"], delay="2",
+          locked="false", powered="false")
+    if not w.has(*f.at(i, d, h - 1)):
+        w.put(*f.at(i, d, h - 1), pal["wall"])
     return pos
 
 
@@ -277,10 +347,13 @@ def _aim(w: World, p: dict, ctx) -> dict:
     near the centre a projectile landed, so aim arrives as a NUMBER. Everything the park had before
     this was a button.
 
-    That number never leaves the cell it is made in: the comparator behind the disc opens straight
+    That number never leaves the cell it is made in: the comparator beside the disc opens straight
     onto the bar, and the bar IS the decay. Dust loses one per block, so a hit of L lights L lamps,
     and the LAST lamp lights only when L reached the end of the run - which is the threshold, for
     free, with no gate to build and nothing to tune. The bell hangs beside that last cell.
+
+    `discs` makes it an ARRAY: several discs on one board, each with its own bar and its own bell,
+    and each answering only for itself.
     """
     f = _Frame(p)
     pal = PALETTES[p["land"]]
@@ -288,46 +361,62 @@ def _aim(w: World, p: dict, ctx) -> dict:
     deck = max(1, int(p["deck"]))
     my = deck                                     # the machine course
     score = max(3, min(12, int(p["score"])))
-    width = score + 6
+    # **NOT `lanes`.** That key already means "how many prize windows" to `counter`, and the shared
+    # DEFAULTS table gives it a value - so a single-disc target wall silently built itself four
+    # discs wide the moment the two kinds shared a name.
+    discs = max(1, min(4, int(p.get("discs", 1))))
+    stride = score + 4
+    width = discs * stride + 2
     depth = 3
-    height = my + 5
+    height = int(p.get("height") or my + 4)
 
     _plinth(w, f, pal, width, depth, deck)
     _board(w, f, pal, width, depth, height)
 
-    # THE DISC, set into the board at the machine course so the reading, the bar and the bell are
-    # all on one plane. Two courses up it would be a better shot and the analog value would have to
-    # climb to reach its own display, which is the one thing it cannot do.
-    tgt = f.at(1, depth, my)
-    w.put(tgt[0], tgt[1], tgt[2], "target", power="0")
-    rd = read_out(f.at(2, depth, my), D["i+"])
-    _lay(w, pal, (rd,), floor=pal["wall"])
+    targets, lamps, bells = [], [], []
+    for lane in range(discs):
+        base = 1 + lane * stride
+        # THE DISC, set into the board at the machine course so the reading, the bar and the bell
+        # are all on one plane. Two courses up it would be a better shot and the analog value would
+        # have to climb to reach its own display, which is the one thing it cannot do.
+        tgt = f.at(base, depth, my)
+        w.put(tgt[0], tgt[1], tgt[2], "target", power="0")
+        rd = read_out(f.at(base + 1, depth, my), D["i+"])
+        _lay(w, pal, (rd,), floor=pal["wall"])
 
-    run = []
-    for k in range(score):
-        i = 3 + k
-        cell = f.at(i, depth, my)
-        w.put(cell[0], cell[1], cell[2], "redstone_wire")
-        run.append((i, depth))
-    lamps = _lamp_row(w, f, run, depth - 1, my)
+        run = []
+        for k in range(score):
+            i = base + 2 + k
+            cell = f.at(i, depth, my)
+            w.put(cell[0], cell[1], cell[2], "redstone_wire")
+            run.append((i, depth))
+        lamps.append(_lamp_row(w, f, run, depth - 1, my))
+        # **A LANE HAS TO END IN A DEAD COLUMN.** Two bars laid `score + 2` apart put one lane's
+        # last dust cell next to the next lane's disc, and adjacent dust is ONE network: every disc
+        # would have answered for every bar - the plinko board's own recorded failure, and it
+        # audits perfectly clean. `stride` leaves the bell's cell and one clear column between.
+        bells.append(_bell(w, f, pal, base + 2 + score, depth, my, p["facing"]))
+        targets.append(tgt)
 
-    last_i = 3 + score - 1
-    bell = _bell(w, f, pal, last_i + 1, depth, my, p["facing"])
-
-    _ring(w, f, pal, width, depth, my)
+    leaks = _ring(w, f, pal, width, depth, my)
     _lid(w, f, pal, width, depth, my + 1)
     title = str(p.get("title") or "TARGET WALL").upper()
+    what = "SHOOT THE DISC" if discs == 1 else f"SHOOT ALL {discs}"
     signed = _signs(w, f, pal, p, width, depth, height, title,
-                    ["SHOOT THE DISC", "centre scores", f"all {score} lamps", "rings the bell"])
+                    [what, "centre scores", f"all {score} lamps", "rings the bell"])
 
     return {"kind": "aim", "width": width, "depth": depth + 1, "height": height + 1,
-            "score": score, "target": list(tgt), "bell": list(bell),
-            "lamps": [list(x) for x in lamps], "comparator": list(rd["cells"] and next(iter(rd["cells"]))),
-            "signed": signed,
-            "inputs": [list(tgt)], "outputs": [list(bell)] + [list(x) for x in lamps],
+            "score": score, "discs": discs,
+            "targets": [list(t) for t in targets], "target": list(targets[0]),
+            "bells": [list(b) for b in bells], "bell": list(bells[0]),
+            "lamps": [[list(x) for x in row] for row in lamps],
+            "signed": signed, "leaks": leaks,
+            "inputs": [list(t) for t in targets],
+            "outputs": [list(b) for b in bells] + [list(x) for row in lamps for x in row],
             "stock": {},
-            "contract": (f"a hit of strength L lights the first min(L, {score}) lamps; only "
-                         f"L >= {score} lights the last one and rings the bell"),
+            "contract": (f"{discs} disc(s); a hit of strength L on a disc lights the first "
+                         f"min(L, {score}) lamps of THAT disc's bar and no other's, and only "
+                         f"L >= {score} lights its last lamp and rings its bell"),
             "unverified": ["A TARGET'S OUTPUT IS AN INPUT YOU STATE. The simulator has no entities "
                            "and cannot fire an arrow at it; that a bullseye really reads 15 and a "
                            "rim hit really reads 1 is the game's own behaviour."]}
@@ -351,7 +440,7 @@ def _striker(w: World, p: dict, ctx) -> dict:
     # one cell of run per course is what a redstone staircase IS.
     width = rungs + 6
     depth = 3
-    height = my + 3
+    height = int(p.get("height") or my + 3)
 
     _plinth(w, f, pal, width, depth, deck)
     _board(w, f, pal, width, depth, height)
@@ -368,16 +457,17 @@ def _striker(w: World, p: dict, ctx) -> dict:
     bi, bd, bh = _ij(f, top)
     bell = _bell(w, f, pal, bi + 1, bd, bh, p["facing"])
 
-    _ring(w, f, pal, width, depth, my)
+    leaks = _ring(w, f, pal, width, depth, my)
     _lid(w, f, pal, width, depth, my + 1)
     title = str(p.get("title") or "THE STRIKER").upper()
     signed = _signs(w, f, pal, p, width, depth, height, title,
-                    ["HIT THE DISC", "harder climbs", f"light all {rungs}", "to ring the bell"])
+                    ["HIT THE DISC", "harder climbs", f"all {rungs} = bell", "nothing less"])
 
     return {"kind": "striker", "width": width, "depth": depth + 1,
             "height": height + rungs + 1, "rungs": rungs,
             "target": list(tgt), "bell": list(bell),
-            "lamps": [list(x) for x in lad["lamps"]], "top": list(top), "signed": signed,
+            "lamps": [list(x) for x in lad["lamps"]], "top": list(top),
+            "signed": signed, "leaks": leaks,
             "inputs": [list(tgt)], "outputs": [list(bell)] + [list(x) for x in lad["lamps"]],
             "stock": {},
             "contract": (f"a hit of strength L lights the bottom min(L, {rungs}) lamps of the "
@@ -420,12 +510,13 @@ def _mark(w: World, p: dict, ctx) -> dict:
     # them, and zero placement problems reported.
     depth = 8
     width = mark + band + 6
-    height = my + 4
+    height = int(p.get("height") or my + 4)
 
     _plinth(w, f, pal, width, depth, deck)
     _board(w, f, pal, width, depth, height)
 
     plate = f.at(1, 1, my)
+    # A WEIGHTED PLATE HAS `power`, NOT `powered` - it is analog, and the state audit says so.
     w.put(plate[0], plate[1], plate[2], "light_weighted_pressure_plate", power="0")
 
     win = circuits.window(f.at(2, 1, my), mark, mark + band, facing=D["i+"], side=-1)
@@ -441,289 +532,209 @@ def _mark(w: World, p: dict, ctx) -> dict:
     lamp = f.at(ni, nd, nh + 1)
     w.put(lamp[0], lamp[1], lamp[2], "redstone_lamp", lit="false")
 
-    _ring(w, f, pal, width, depth, my)
+    leaks = _ring(w, f, pal, width, depth, my)
     bell = _bell(w, f, pal, ni + 1, nd, nh, p["facing"])
     _lid(w, f, pal, width, depth, my + 1, open_at=[(1, 1)])
     title = str(p.get("title") or "THE MARK").upper()
     high = mark + band - 1
-    rule = f"exactly {mark}" if band == 1 else f"{mark} to {high}"
+    # **THE NUMBER IS THE GAME, SO IT MUST SURVIVE THE FIFTEEN-CHARACTER CUT.** "stop at exactly
+    # 4" is sixteen characters and clips to "stop at exactly" - a precision game whose sign does not
+    # say what to stop at, and it only shows up in a screenshot after the build has been placed.
+    rule = f"the mark is {mark}" if band == 1 else f"{mark} to {high} wins"
     signed = _signs(w, f, pal, p, width, depth, height, title,
-                    ["LOAD THE SCALE", f"stop at {rule}", "over is a loss", "lamp = you won"])
+                    ["LOAD THE SCALE", rule, "over is a loss", "lamp = you won"])
 
     return {"kind": "mark", "width": width, "depth": depth + 1, "height": height + 1,
             "mark": mark, "band": band, "plate": list(plate), "lamp": list(lamp),
-            "bell": list(bell), "signed": signed,
+            "bell": list(bell), "signed": signed, "leaks": leaks,
             "inputs": [list(plate)], "outputs": [list(lamp), list(bell)], "stock": {},
-            "contract": (f"the lamp and the bell come on only while the scale reads {mark} to "
-                         f"{high}; below is dark and OVER is dark again"),
+            "contract": ("the lamp and the bell come on only while the scale reads "
+                         + (f"exactly {mark}" if band == 1 else f"{mark} to {high}")
+                         + "; below is dark and OVER is dark again"),
             "unverified": ["A PLATE'S LEVEL IS AN INPUT YOU STATE. The simulator has no entities "
                            "and cannot put an item on a scale; that N items really read N is the "
                            "game's own behaviour."]}
 
 
 def _pair(w: World, p: dict, ctx) -> dict:
-    """THE DOUBLE. Two buttons a room apart, and the prize only lights when both are down at once.
+    """THE DOUBLE. Two buttons, one at each end of the counter, and the prize needs BOTH at once.
 
-    **THE ONLY GAME IN THE PARK THAT NEEDS TWO PEOPLE**, and it is the cheapest one here: an
-    `arcade.and_gate` is one torch per input and one more to invert the merge, because redstone has
-    no AND and a comparator cannot be one - COMPARE passes the back when back >= side, which is a
-    threshold, and SUBTRACT is a difference. De Morgan does the rest.
+    **THE ONLY GAME IN THE PARK THAT NEEDS TWO PEOPLE.** Redstone has no AND and a comparator cannot
+    be one - COMPARE passes the back when back >= side, which is a threshold, and SUBTRACT is a
+    difference - so it is `arcade.and_gate`: one torch per input to invert it, one merged line, and
+    one more torch to invert the merge. De Morgan, in nine blocks.
 
-    Each button is stretched by `circuits.pulse` so a press is a fixed window rather than however
-    long a finger stayed down; miss the window and the gate sees one input and does nothing.
+    A stone button holds for about a second, so "together" means within a second - a window a pair
+    of hands can hit and one pair cannot, because the far button is eight cells away.
     """
     f = _Frame(p)
     pal = PALETTES[p["land"]]
     D = _dirs(p["facing"])
     deck = max(1, int(p["deck"]))
     my = deck
+    spread = 8
     width = 15
-    depth = 5
-    height = my + 5
+    depth = 13
+    height = int(p.get("height") or my + 4)
 
     _plinth(w, f, pal, width, depth, deck)
     _board(w, f, pal, width, depth, height)
 
-    # THE GATE, on its own lane at the back of the console, its two feeds two apart - which is what
-    # `and_gate`'s geometry is for, and why the odd rows between them must stay empty: a cell
-    # powered there powers BOTH inverters and the gate silently becomes an OR.
-    gate = and_gate(f.at(6, 1, my), D["i+"], D["in"])
-    _lay(w, pal, (gate,), floor=pal["wall"])
+    gate = _and(w, f, pal, D, 3, 3, my, 2)
+    near, far = gate["lanes"]                     # i = 3 and i = 5
+    fd = gate["feed_d"]                           # d = 2
 
-    presses, pulses = [], []
-    for k, i in enumerate((1, width - 2)):
-        btn = _press(w, f, pal, i, 2, my + 2, p["facing"])
-        presses.append(btn)
-        # The button's block is at my+1; the dust it powers is the cell under it, at the machine
-        # course, which is where the pulse takes its input from.
-        seat = f.at(i, 2, my)
-        w.put(seat[0], seat[1], seat[2], "redstone_wire")
-        pul = circuits.pulse(f.at(i, 3, my), length=3,
-                             facing=D["in"] if k == 0 else D["in"], side=1 if k == 0 else -1)
-        _lay(w, pal, (pul,), floor=pal["wall"])
-        pulses.append(pul)
-        pi, pd, _ = _ij(f, pul["out"])
-        feed = gate["feeds"][k]
-        fi, fd, _ = _ij(f, feed)
-        _run(w, pal, f, [(pi, pd), (pi, fd), (fi, fd)], my)
+    # THE NEAR BUTTON sits over its own lane and drops straight onto the feed.
+    b0 = _press(w, f, pal, near, 1, my + 2, p["facing"])
+    _line(w, pal, f, (near, 1), (near, fd), my)
+    # THE FAR ONE is eight cells away and comes home along the FRONT lane, which is the one lane
+    # nothing else uses. It stops on its own feed lane, so the empty column between the two feeds -
+    # the column `and_gate` needs kept clear or it becomes an OR - is never written.
+    b1 = _press(w, f, pal, near + spread, 1, my + 2, p["facing"])
+    _line(w, pal, f, (near + spread, 1), (far, 1), my)
+    _line(w, pal, f, (far, 1), (far, fd), my)
 
     oi, od, _ = _ij(f, gate["out"])
-    lamp = f.at(oi, od, my + 1)
+    guard = _guard(w, f, pal, D, oi, od + 1, my)
+    lit = f.at(oi, od + 2, my)
+    w.put(lit[0], lit[1], lit[2], "redstone_wire")
+    lamp = f.at(oi, od + 2, my + 1)
     w.put(lamp[0], lamp[1], lamp[2], "redstone_lamp", lit="false")
-    bell = _bell(w, f, pal, oi + 1, od, my, p["facing"])
 
-    _ring(w, f, pal, width, depth, my)
+    leaks = _ring(w, f, pal, width, depth, my)
+    bell = _bell(w, f, pal, oi + 1, od + 2, my, p["facing"])
     _lid(w, f, pal, width, depth, my + 1)
     title = str(p.get("title") or "THE DOUBLE").upper()
     signed = _signs(w, f, pal, p, width, depth, height, title,
                     ["TWO PLAYERS", "one at each end", "press TOGETHER", "one alone: no"])
 
     return {"kind": "pair", "width": width, "depth": depth + 1, "height": height + 1,
-            "buttons": [list(b) for b in presses], "lamp": list(lamp), "bell": list(bell),
-            "signed": signed,
-            "inputs": [list(b) for b in presses], "outputs": [list(lamp), list(bell)], "stock": {},
-            "contract": "the lamp and the bell come on only when BOTH buttons are pressed together; "
-                        "either one alone does nothing at all",
+            "buttons": [list(b0), list(b1)], "spread": spread,
+            "lamp": list(lamp), "bell": list(bell), "guard": list(guard),
+            "signed": signed, "leaks": leaks,
+            "inputs": [list(b0), list(b1)], "outputs": [list(lamp), list(bell)], "stock": {},
+            "contract": "the lamp and the bell come on only while BOTH buttons are down together; "
+                        "either one alone does nothing, and nothing fires when the machine is "
+                        "first built",
             "unverified": []}
 
 
 def _pattern(w: World, p: dict, ctx) -> dict:
-    """THE ARRAY. Three levers, eight settings, and exactly one of them aligns it.
+    """THE COMBINATION. `n` levers, one setting out of two-to-the-`n`, and only that one opens it.
 
-    **A COMBINATION, WHICH IS A DIFFERENT PUZZLE FROM A SEQUENCE.** Nothing is remembered here: the
-    array is aligned while the levers are right and falls out of alignment the moment one moves, so
-    it can be worked out by trying, it can be left set for the next visitor, and it cannot deadlock.
-    That is the free route-choice contract the park's own mechanics note asks for - a wrong choice
-    returns you safely to a previous branch.
+    **A COMBINATION IS A DIFFERENT PUZZLE FROM A SEQUENCE, and it is the one that cannot deadlock.**
+    Nothing is remembered: the lock is open while the levers are right and shut the instant one
+    moves, so it can be worked out by trying, left set for the next visitor, and never stranded in a
+    state nobody can clear. That is the bounded-reset contract the park's own mechanics note asks of
+    every puzzle, satisfied by having no state at all.
 
-    A lever that must be DOWN is inverted by a torch before it reaches the gate, so the pattern is
-    not "all three on" - which would be a machine you cannot get wrong.
+    A lever that must be DOWN is inverted by a torch on the way in, so the answer is never "all of
+    them up" - which is a lock with one obvious key. The inverter is three cells of the lane it
+    already owns: dust, a support the dust weakly powers, and a torch attached to that support whose
+    own cell is the feed's neighbour. Every lane is two apart from its neighbour, which is what
+    `and_gate` requires and what makes each one a straight run with nothing to cross.
+
+    `door` turns the result into an iron door in the console's own face.
     """
     f = _Frame(p)
     pal = PALETTES[p["land"]]
     D = _dirs(p["facing"])
     deck = max(1, int(p["deck"]))
     my = deck
-    want = tuple(bool(v) for v in p["pattern"])[:3]
-    want = want + (True,) * (3 - len(want))
-    width = 21
-    depth = 7
-    height = my + 5
+    want = [bool(v) for v in p["pattern"]]
+    want = (want + [True, True])[:max(2, min(4, len(want) or 3))]
+    n = len(want)
+    # THE LANE IS SIX DEEP: seat, dust, support, torch, feed, and the gate behind it. A straight
+    # lever skips the middle three and runs dust the whole way, so both cases fit one geometry.
+    gd = 7
+    gi = 3
+    width = gi + 2 * n + 6
+    # **THE CONSOLE HAS TO BE DEEPER THAN THE GATE'S TAIL, PLUS THE GUARD, PLUS THE OUTPUT, PLUS THE
+    # RING.** Cut two cells short, `_ring` put a wall block straight over the guard repeater and the
+    # output dust landed in the back board: the lock was silent at every one of the eight settings,
+    # with zero placement problems and one connected piece. The gate's own out sits at gd+6.
+    depth = gd + 10
+    height = int(p.get("height") or my + 4)
 
     _plinth(w, f, pal, width, depth, deck)
     _board(w, f, pal, width, depth, height)
 
-    gate = and_gate(f.at(2, 1, my), D["i+"], D["in"], inputs=3)
-    _lay(w, pal, (gate,), floor=pal["wall"])
+    gate = _and(w, f, pal, D, gi, gd, my, n)
+    fd = gate["feed_d"]                                # gd - 1
 
     levers = []
-    for k in range(3):
-        i = 4 + k * 5
-        lev = _lever(w, f, pal, i, 5, my + 2, p["facing"])
-        levers.append(lev)
-        seat = f.at(i, 5, my)
-        w.put(seat[0], seat[1], seat[2], "redstone_wire")
-        src = (i, 5)
-        if not want[k]:
-            # AN INVERTED INPUT IS A TORCH, and the torch must stand on a block the lever's own
-            # line powers - never on the line itself. Dust one step along, then a support, then the
-            # torch on top of it, and the torch's output is the cell above.
-            sup = f.at(i, 4, my)
-            w.put(sup[0], sup[1], sup[2], pal["wall"])
-            tor = f.at(i, 4, my + 1)
-            w.put(tor[0], tor[1], tor[2], "redstone_torch", lit="true")
-            # the torch drives the block above it; a dust cell beside the torch reads it directly.
-            out = f.at(i, 3, my + 1)
-            w.put(out[0], out[1], out[2], "redstone_wire")
-            w.put(*f.at(i, 3, my), pal["wall"])
-            _run(w, pal, f, [(i, 3)], my + 1)
-            src = None
-            # drop back to the machine course beside the torch, clear of the lever's own dust
-            step = f.at(i, 2, my + 1)
-            w.put(step[0], step[1], step[2], "redstone_wire")
-            w.put(*f.at(i, 2, my), pal["wall"])
-            src = (i, 2)
-            fi, fd, _ = _ij(f, gate["feeds"][k])
-            _run(w, pal, f, [(i, 3), (i, 2)], my + 1)
-            _line(w, pal, f, (i, 2), (i, 2), my + 1)
-            # ...and across to the gate, one course up, then down onto the feed.
-            _run(w, pal, f, [(i, 2), (fi + 1, 2), (fi + 1, fd)], my + 1)
-            _line(w, pal, f, (fi + 1, fd), (fi, fd), my + 1)
-            continue
-        fi, fd, _ = _ij(f, gate["feeds"][k])
-        _run(w, pal, f, [src, (i, fd), (fi, fd)], my)
+    for k, up in enumerate(want):
+        i = gate["lanes"][k]
+        levers.append(_lever(w, f, pal, i, 1, my + 2, p["facing"]))
+        if up:
+            _line(w, pal, f, (i, 1), (i, fd), my)
+        else:
+            # DUST, THEN A SUPPORT, THEN A TORCH ON IT. The torch is off while the lever's own line
+            # powers the support and on when it does not, so the feed reads the lever INVERTED, and
+            # the torch's own cell is already the feed's neighbour - no run at all.
+            _line(w, pal, f, (i, 1), (i, fd - 3), my)
+            w.put(*f.at(i, fd - 2, my), pal["wall"])
+            tor = f.at(i, fd - 1, my)
+            w.put(tor[0], tor[1], tor[2], "redstone_wall_torch", facing=D["in"], lit="true")
 
     oi, od, _ = _ij(f, gate["out"])
+    guard = _guard(w, f, pal, D, oi, od + 1, my)
+    lit = f.at(oi, od + 2, my)
+    w.put(lit[0], lit[1], lit[2], "redstone_wire")
+
+    # THE ANSWER RUNS TO THE FRONT. Nothing analog is being carried - the gate has already decided -
+    # so a boolean may travel as far as it likes, and it has to: the gate's output is at the BACK
+    # of the console and the door is the thing a customer looks at.
+    di = width - 5                       # the door's own lane, clear of every lever and the gate
+    _run(w, pal, f, [(oi, od + 2), (di, od + 2), (di, 1)], my)
+
     lamps = []
-    for k in range(3):
-        cell = f.at(oi, od, my + 1) if k == 0 else f.at(oi - k, od, my + 1)
+    for k in (2, 3):
+        cell = f.at(oi + k, od + 2, my + 1)
         w.put(cell[0], cell[1], cell[2], "redstone_lamp", lit="false")
         lamps.append(cell)
-        if k:
-            _line(w, pal, f, (oi, od), (oi - k, od), my)
-    bell = _bell(w, f, pal, oi + 1, od, my, p["facing"])
 
-    _ring(w, f, pal, width, depth, my)
-    _lid(w, f, pal, width, depth, my + 1)
-    title = str(p.get("title") or "THE ARRAY").upper()
-    setting = " ".join("UP" if v else "DOWN" for v in want)
-    signed = _signs(w, f, pal, p, width, depth, height, title,
-                    ["THREE LEVERS", "one setting only", "aligns the array", "lamps = aligned"])
+    leaks = _ring(w, f, pal, width, depth, my)
 
-    return {"kind": "pattern", "width": width, "depth": depth + 1, "height": height + 1,
-            "levers": [list(x) for x in levers], "want": list(want),
-            "lamps": [list(x) for x in lamps], "bell": list(bell), "signed": signed,
-            "inputs": [list(x) for x in levers],
-            "outputs": [list(x) for x in lamps] + [list(bell)], "stock": {},
-            "answer": setting,
-            "contract": (f"exactly one of the eight lever settings ({setting}) lights the array and "
-                         f"rings the bell; the other seven do nothing"),
-            "unverified": []}
-
-
-def _sequence(w: World, p: dict, ctx) -> dict:
-    """THE VAULT. Three keys, and they only count IN ORDER.
-
-    **THE ONE MECHANIC IN THIS REPO THAT REMEMBERS ANYTHING.** Every other game is combinational -
-    it answers about the instant it is asked. A lock has to hold what you have already done, which
-    is what `circuits.latch` is: two repeaters locking each other, the mechanism every memory cell
-    in the game is built from.
-
-    Key 1 sets the first latch on its own. Key 2 is an AND of its own button and latch 1, key 3 an
-    AND of its own button and latch 2, so pressing three before one does nothing at all - the order
-    is enforced by the machine and not by a sign. The third latch drives the strongroom door and a
-    lever on the counter resets all three, which is the bounded reset the park's mechanics contract
-    asks of every tier-3 system: no state a visitor can get stuck in.
-    """
-    f = _Frame(p)
-    pal = PALETTES[p["land"]]
-    D = _dirs(p["facing"])
-    deck = max(1, int(p["deck"]))
-    my = deck
-    width = 27
-    depth = 9
-    height = my + 5
-
-    _plinth(w, f, pal, width, depth, deck)
-    _board(w, f, pal, width, depth, height)
-
-    latches, gates, buttons = [], [], []
-    for k in range(3):
-        i = 3 + k * 8
-        btn = _press(w, f, pal, i, 7, my + 2, p["facing"])
-        buttons.append(btn)
-        seat = f.at(i, 7, my)
-        w.put(seat[0], seat[1], seat[2], "redstone_wire")
-        pul = circuits.pulse(f.at(i, 6, my), length=3, facing=D["in"], side=1)
-        _lay(w, pal, (pul,), floor=pal["wall"])
-        pi, pd, _ = _ij(f, pul["out"])
-
-        lat = circuits.latch(f.at(i, 2, my), facing=D["in"])
-        _lay(w, pal, (lat,), floor=pal["wall"])
-        latches.append(lat)
-        si, sd, _ = _ij(f, lat["set"])
-
-        if k == 0:
-            _run(w, pal, f, [(pi, pd), (pi, sd), (si, sd)], my)
-        else:
-            # KEY k COUNTS ONLY WHILE KEY k-1 IS ALREADY HELD, which is the whole of the order rule.
-            ag = and_gate(f.at(i + 3, 4, my), D["in"], D["i+"])
-            _lay(w, pal, (ag,), floor=pal["wall"])
-            gates.append(ag)
-            ai, ad, _ = _ij(f, ag["feeds"][0])
-            bi2, bd2, _ = _ij(f, ag["feeds"][1])
-            _run(w, pal, f, [(pi, pd), (ai, pd), (ai, ad)], my)
-            oi_prev, od_prev, _ = _ij(f, latches[k - 1]["out"])
-            _run(w, pal, f, [(oi_prev, od_prev), (oi_prev, bd2), (bi2, bd2)], my)
-            gi, gd, _ = _ij(f, ag["out"])
-            _run(w, pal, f, [(gi, gd), (gi, sd), (si, sd)], my)
-
-    # THE RESET, and it is not decoration: a lock with no way back is a lock that strands the next
-    # visitor with a door that will not open and no way to make it.
-    reset = _lever(w, f, pal, width - 2, 7, my + 2, p["facing"])
-    rseat = f.at(width - 2, 7, my)
-    w.put(rseat[0], rseat[1], rseat[2], "redstone_wire")
-    for k, lat in enumerate(latches):
-        ri, rd, _ = _ij(f, lat["reset"])
-        _run(w, pal, f, [(width - 2, 7), (width - 2, rd), (ri, rd)], my)
-
-    oi, od, _ = _ij(f, latches[-1]["out"])
-    lamps = []
-    for k in range(2):
-        cell = f.at(oi - k, od, my + 1)
-        w.put(cell[0], cell[1], cell[2], "redstone_lamp", lit="false")
-        lamps.append(cell)
-        if k:
-            _line(w, pal, f, (oi, od), (oi - k, od), my)
-    bell = _bell(w, f, pal, oi + 1, od, my, p["facing"])
-
-    # THE DOOR. An iron door is two blocks and it is the one output in this file a player walks
-    # THROUGH rather than looks at, which is what makes a strongroom a strongroom.
-    door_i = oi - 3
     door = []
-    for h in (0, 1):
-        cell = f.at(door_i, od, my + h)
-        w.put(cell[0], cell[1], cell[2], "iron_door", facing=D["out"],
-              half="lower" if h == 0 else "upper", hinge="left", open="false", powered="false")
-        door.append(cell)
-    _line(w, pal, f, (oi, od), (door_i + 1, od), my)
+    if p.get("door"):
+        # **AN IRON DOOR IN THE VAULT'S OWN FACE, AND IT IS A HATCH RATHER THAN A WALK-THROUGH.**
+        # The first version put it two cells from the back board, which is INSIDE the cabinet: an
+        # iron door opening onto a redstone machine, described in its own contract as the one output
+        # a player walks through. What a console can honestly offer is its FRONT - the door stands
+        # in the ring the customer is looking at and swings when the combination is right. A
+        # strongroom you can walk INTO is a room, and a room is a change to the building.
+        # Placed AFTER `_ring`, or the ring walls it up again.
+        for h in (0, 1):
+            cell = f.at(di, 0, my + h)
+            w.put(cell[0], cell[1], cell[2], "iron_door", facing=f.facing,
+                  half="lower" if h == 0 else "upper", hinge="left",
+                  open="false", powered="false")
+            door.append(cell)
 
-    _ring(w, f, pal, width, depth, my)
+    # **THE BELL GOES ON THE FAR SIDE OF THE OUTPUT, NEVER ON THE RUN.** Placed one step ALONG the
+    # frontage it landed on the first cell of the route to the door - and a bell conducts nothing,
+    # so the gate read 15, the two cells either side of the bell read 15 and 0, and the lock was
+    # dead at every setting on a build with zero placement problems and one connected piece. It is
+    # the same cell the lamps and the door are fed through; there is only one of it.
+    bell = _bell(w, f, pal, oi - 1, od + 2, my, p["facing"])
     _lid(w, f, pal, width, depth, my + 1)
-    title = str(p.get("title") or "THE VAULT").upper()
+    title = str(p.get("title") or "THE COMBINATION").upper()
     signed = _signs(w, f, pal, p, width, depth, height, title,
-                    ["THREE KEYS", "left to right", "wrong order: no", "lever = reset"])
+                    [f"{n} LEVERS", "ONE setting", "opens it", "any other: no"])
 
-    return {"kind": "sequence", "width": width, "depth": depth + 1, "height": height + 1,
-            "buttons": [list(b) for b in buttons], "reset": list(reset),
-            "lamps": [list(x) for x in lamps], "bell": list(bell),
-            "door": [list(x) for x in door], "signed": signed,
-            "inputs": [list(b) for b in buttons] + [list(reset)],
-            "outputs": [list(x) for x in door] + [list(x) for x in lamps] + [list(bell)],
-            "stock": {},
-            "contract": "the door opens only after all three keys are pressed IN ORDER; a key "
-                        "pressed out of turn does nothing, the state HOLDS between presses, and "
-                        "the lever puts every latch back",
+    setting = " ".join("UP" if v else "DOWN" for v in want)
+    return {"kind": "pattern", "width": width, "depth": depth + 1, "height": height + 1,
+            "levers": [list(x) for x in levers], "want": list(want), "n": n,
+            "lamps": [list(x) for x in lamps], "bell": list(bell), "guard": list(guard),
+            "door": [list(x) for x in door], "signed": signed, "leaks": leaks,
+            "inputs": [list(x) for x in levers],
+            "outputs": [list(x) for x in lamps] + [list(bell)] + [list(x) for x in door],
+            "stock": {}, "answer": setting,
+            "contract": (f"exactly one of the {2 ** n} lever settings ({setting}) lights the lock"
+                         + (" and opens the door" if door else "")
+                         + f"; the other {2 ** n - 1} do nothing, and nothing opens when the "
+                           f"machine is first built"),
             "unverified": []}
 
 
@@ -746,7 +757,7 @@ def _starter(w: World, p: dict, ctx) -> dict:
     stages = max(3, min(8, int(p["stages"])))
     width = stages * 2 + 6
     depth = 4
-    height = my + 5
+    height = int(p.get("height") or my + 4)
 
     _plinth(w, f, pal, width, depth, deck)
     _board(w, f, pal, width, depth, height)
@@ -754,7 +765,10 @@ def _starter(w: World, p: dict, ctx) -> dict:
     btn = _press(w, f, pal, 1, 2, my + 2, p["facing"])
     seat = f.at(1, 2, my)
     w.put(seat[0], seat[1], seat[2], "redstone_wire")
-    pul = circuits.pulse(f.at(1, 1, my), length=4, facing=D["i+"], side=1)
+    # **THE PULSE'S DELAY LEG IS PERPENDICULAR AND IT HAS A SIDE.** On `side=1` it landed on the
+    # console's own front ring - three cells of live dust showing on the outside of the cabinet,
+    # which `_ring` reports as a leak. It runs inward instead.
+    pul = circuits.pulse(f.at(1, 1, my), length=4, facing=D["i+"], side=-1)
     _lay(w, pal, (pul,), floor=pal["wall"])
     pi, pd, _ = _ij(f, pul["out"])
     _run(w, pal, f, [(pi, pd), (2, pd), (2, 1)], my)
@@ -770,10 +784,9 @@ def _starter(w: World, p: dict, ctx) -> dict:
         w.put(lamp[0], lamp[1], lamp[2], "redstone_lamp", lit="false")
         lamps.append(lamp)
 
-    last = (4 + (stages - 1) * 2, 1)
-    bell = _bell(w, f, pal, last[0] + 1, last[1], my, p["facing"])
-
-    _ring(w, f, pal, width, depth, my)
+    last_i = 4 + (stages - 1) * 2
+    leaks = _ring(w, f, pal, width, depth, my)
+    bell = _bell(w, f, pal, last_i + 1, 1, my, p["facing"])
     _lid(w, f, pal, width, depth, my + 1)
     title = str(p.get("title") or "THE SIGNAL").upper()
     signed = _signs(w, f, pal, p, width, depth, height, title,
@@ -781,7 +794,7 @@ def _starter(w: World, p: dict, ctx) -> dict:
 
     return {"kind": "starter", "width": width, "depth": depth + 1, "height": height + 1,
             "stages": stages, "button": list(btn), "bell": list(bell),
-            "lamps": [list(x) for x in lamps], "signed": signed,
+            "lamps": [list(x) for x in lamps], "signed": signed, "leaks": leaks,
             "inputs": [list(btn)], "outputs": [list(x) for x in lamps] + [list(bell)], "stock": {},
             "contract": (f"one press walks a light along {stages} lamps in order and rings the bell "
                          f"at the end; the bell does not ring before the last lamp has lit"),
@@ -791,14 +804,14 @@ def _starter(w: World, p: dict, ctx) -> dict:
 def _counter(w: World, p: dict, ctx) -> dict:
     """THE PRIZE COUNTER. Where what you won is redeemed, and where you can see what is left.
 
-    **NOT A GAME, AND THAT IS THE POINT.** Nothing in this file dispenses a prize, because a
-    machine that pays on a held reading is how a house loses money by accident - the casino pins
-    that hazard and does not fix it. The prizes live in barrels a person hands out, and the one
-    thing the redstone does is tell the truth about them: a comparator reads each barrel and lights
-    that window's lamp exactly when there is something in it.
+    **NOT A GAME, AND THAT IS THE POINT.** Nothing in this file dispenses a prize, because a machine
+    that pays on a held reading is how a house loses money by accident - the casino pins that hazard
+    and does not fix it. The prizes live in barrels a person hands out, and the one thing the
+    redstone does is tell the truth about them: a comparator reads each barrel and lights that
+    window's lamp exactly when there is something in it.
 
     An EMPTY window is dark. That is the whole contract, and it is worth having: a counter with
-    nothing behind it is the thing every fairground prize wall in the game actually is.
+    nothing behind it is what every fairground prize wall in the game actually is.
     """
     f = _Frame(p)
     pal = PALETTES[p["land"]]
@@ -806,38 +819,40 @@ def _counter(w: World, p: dict, ctx) -> dict:
     deck = max(1, int(p["deck"]))
     my = deck
     lanes = max(2, min(6, int(p["lanes"])))
-    width = lanes * 3 + 3
-    depth = 3
-    height = my + 5
+    width = lanes * 3 + 4
+    depth = 4
+    height = int(p.get("height") or my + 4)
 
     _plinth(w, f, pal, width, depth, deck)
     _board(w, f, pal, width, depth, height)
 
     barrels, lamps = [], []
     for k in range(lanes):
-        i = 2 + k * 3
-        bar = f.at(i, depth, my)
-        w.put(bar[0], bar[1], bar[2], "barrel", facing="up", open="false")
-        rd = read_out(f.at(i, depth, my + 1), D["i+"])
-        # A COMPARATOR READS WHAT IS BEHIND IT, and a barrel's fullness is read from any side. Set
-        # it directly over the barrel and aim it along the frontage, so the reading never travels.
-        w.put(*f.at(i, depth, my + 1), "comparator", facing=D["i+"], mode="compare",
-              powered="false")
-        dust = f.at(i + 1, depth, my + 1)
-        w.put(dust[0], dust[1], dust[2], "redstone_wire")
-        w.put(*f.at(i + 1, depth, my), pal["wall"])
-        lamp = f.at(i + 1, depth - 1, my + 1)
-        w.put(lamp[0], lamp[1], lamp[2], "redstone_lamp", lit="false")
+        i = 1 + k * 3
+        # **A COMPARATOR READS WHAT IS BEHIND IT, WHICH MEANS BESIDE IT, NOT ABOVE IT.** The first
+        # build put each comparator directly over its barrel, which reads whatever is BEHIND the
+        # comparator on its own course - air - so every window was dark however the barrel was
+        # stocked, and every block in it was legal, supported and correctly wired. The barrel is set
+        # into the counter's FRONT face where a customer can see it opened, and the comparator sits
+        # directly behind it on the same course.
+        bar = f.at(i, 0, my)
+        w.put(bar[0], bar[1], bar[2], "barrel", facing=f.facing, open="false")
         barrels.append(bar)
+        w.put(*f.at(i, 1, my), "comparator", facing=D["in"], mode="compare", powered="false")
+        dust = f.at(i, 2, my)
+        w.put(dust[0], dust[1], dust[2], "redstone_wire")
+        # THE LAMP IS IN THE COUNTER TOP OVER ITS OWN DUST, so a lit window is read from where a
+        # customer stands rather than from behind the counter.
+        lamp = f.at(i, 2, my + 1)
+        w.put(lamp[0], lamp[1], lamp[2], "redstone_lamp", lit="false")
         lamps.append(lamp)
 
-    bell = _bell(w, f, pal, width - 2, 1, my + 1, p["facing"])
     call = _press(w, f, pal, width - 2, 2, my + 2, p["facing"])
-    seat = f.at(width - 2, 2, my + 1)
+    seat = f.at(width - 2, 2, my)
     w.put(seat[0], seat[1], seat[2], "redstone_wire")
-    w.put(*f.at(width - 2, 2, my), pal["wall"])
 
-    _ring(w, f, pal, width, depth, my)
+    leaks = _ring(w, f, pal, width, depth, my)
+    bell = _bell(w, f, pal, width - 2, 1, my, p["facing"])
     _lid(w, f, pal, width, depth, my + 1)
     title = str(p.get("title") or "PRIZE COUNTER").upper()
     signed = _signs(w, f, pal, p, width, depth, height, title,
@@ -846,7 +861,7 @@ def _counter(w: World, p: dict, ctx) -> dict:
     return {"kind": "counter", "width": width, "depth": depth + 1, "height": height + 1,
             "lanes": lanes, "barrels": [list(x) for x in barrels],
             "lamps": [list(x) for x in lamps], "bell": list(bell), "button": list(call),
-            "signed": signed,
+            "signed": signed, "leaks": leaks,
             "inputs": [list(x) for x in barrels] + [list(call)],
             "outputs": [list(x) for x in lamps] + [list(bell)],
             "stock": {"each barrel": "the prize that window redeems"},
@@ -863,7 +878,6 @@ BUILDERS = {
     "mark": _mark,
     "pair": _pair,
     "pattern": _pattern,
-    "sequence": _sequence,
     "starter": _starter,
     "counter": _counter,
 }

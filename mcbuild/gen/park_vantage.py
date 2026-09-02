@@ -115,60 +115,64 @@ def _pal(land: str) -> dict:
         raise ValueError(f"unknown land {land!r}; have {sorted(WAYS_LANDS)}")
     w = WAYS_LANDS[land]
     base = {
-        # inherited, so the tower is tied to the paving at its own feet
-        "plinth": w["border"],       # the dark base course every land's paving already uses
-        "field":  w["core"],
-        "grain":  w["accent"],
-        "trim":   w["inlay"],
+        # INHERITED FROM THE GROUND, so the tower is tied to the paving at its own feet: the base
+        # course is the land's own kerb material and the light is the land's own light.
+        "plinth": w["border"],
+        "thresh": w["core"],         # the land's own paving - the door threshold and the bridge
         "post":   w["post"],
         "light":  w["light"],
         "seat":   w["seat"],
         "glow":   w["glow"],
         "grille": "iron_bars",
     }
-    base.update(_EXTRA[land])
+    base.update(_WALLS[land])
     return base
 
 
-#: The tower vocabulary, per land. Every entry is cheap or ok tier, 1.19-legal and spendable;
-#: `test_park_vantage` re-derives all three off `mcbuild.blocks` and `mcbuild.palette` rather than
-#: trusting this table. The pairs quoted are the value ladder each land draws its lines with,
-#: measured ACROSS families - a family is one material shown four ways and cannot carry a ladder.
-_EXTRA = {
-    # spruce and dark oak on a stone base: L45 plinth, L122 masonry, L89 timber, L46 roof
+#: THE WALL VOCABULARY IS NOT THE PAVING VOCABULARY, and that is the one place this file departs
+#: from `parkways.LANDS` on purpose. `core` is what a land's STREET is made of - `smooth_stone`
+#: for the Midway, `polished_deepslate` for Prismworks - and both are `ok` tier. A four-thousand
+#: cell tower built out of a paving material would be `ok` in bulk, which is the material policy
+#: every other build in this park keeps (cheap in bulk, `ok` only as trim). So the bulk here is
+#: each land's own BUILDING material, the same one `frontier_builds`, `midway_builds` and
+#: `prismworks_builds` already stand on that ground: spruce and dark oak over stone brick, stone
+#: brick and white wool, polished blackstone and smooth basalt.
+#:
+#: Every entry is 1.19-legal and spendable and the bulk is cheap; `test_park_vantage` re-derives
+#: all of that off `mcbuild.blocks` and `mcbuild.palette` rather than trusting this table.
+_WALLS = {
+    # L45 plinth, L122 masonry, L89 timber pier, L46 roof - the timber-framed watch tower
     "frontier": {
+        "field": "stone_bricks", "grain": "cracked_stone_bricks", "band": "chiseled_stone_bricks",
+        "trim": "spruce_planks", "column": "spruce_log", "board": "spruce_planks",
         "stair": "stone_brick_stairs", "slab": "stone_brick_slab", "wall": "stone_brick_wall",
-        "band": "chiseled_stone_bricks", "beam": "stripped_spruce_log", "column": "spruce_log",
-        "board": "spruce_planks", "wood_stair": "spruce_stairs", "wood_slab": "spruce_slab",
         "roof": "dark_oak_stairs", "roof_slab": "dark_oak_slab", "roof_field": "dark_oak_planks",
-        "shutter": "spruce_trapdoor", "sign_face": "spruce_planks",
-        "crown_light": "lantern",
+        "accent": "dark_oak_planks", "crown_light": "lantern",
     },
-    # stone brick and white wool: L122 field, L236 frame, L65 band - the brightest land
+    # L122 field, L236 frame, L65 band - the brightest land, so the pilaster is the white one
     "midway": {
+        "field": "stone_bricks", "grain": "cracked_stone_bricks", "band": "chiseled_stone_bricks",
+        "trim": "white_wool", "column": "white_wool", "board": "oak_planks",
         "stair": "stone_brick_stairs", "slab": "stone_brick_slab", "wall": "stone_brick_wall",
-        "band": "chiseled_stone_bricks", "beam": "stripped_oak_log", "column": "white_wool",
-        "board": "oak_planks", "wood_stair": "oak_stairs", "wood_slab": "oak_slab",
         "roof": "oak_stairs", "roof_slab": "oak_slab", "roof_field": "red_wool",
-        "shutter": "oak_trapdoor", "sign_face": "oak_planks",
-        "crown_light": "lantern",
+        "accent": "red_wool", "crown_light": "lantern",
     },
-    # polished blackstone and smooth basalt: L22 recess, L45 field, L73 pier, L145 high signal
+    # L22 recess, L45 field, L73 pier, L145 high signal - cold and mechanical, lit cold
     "prismworks": {
+        "field": "polished_blackstone_bricks", "grain": "cracked_polished_blackstone_bricks",
+        "band": "smooth_basalt", "trim": "smooth_basalt", "column": "smooth_basalt",
+        "board": "chiseled_deepslate",
         "stair": "polished_blackstone_brick_stairs", "slab": "polished_blackstone_brick_slab",
-        "wall": "polished_blackstone_brick_wall", "band": "smooth_basalt",
-        "beam": "smooth_basalt", "column": "smooth_basalt",
-        "board": "chiseled_deepslate", "wood_stair": "polished_blackstone_brick_stairs",
-        "wood_slab": "polished_blackstone_brick_slab",
+        "wall": "polished_blackstone_brick_wall",
         "roof": "blackstone_stairs", "roof_slab": "blackstone_slab", "roof_field": "black_wool",
-        "shutter": "warped_trapdoor", "sign_face": "chiseled_deepslate",
-        "crown_light": "soul_lantern",
+        "accent": "light_blue_wool", "crown_light": "soul_lantern",
+        # PRISMWORKS IS THE ONE LAND WHOSE PLINTH IS NOT ITS GROUND'S BORDER. Measured,
+        # `deepslate_tiles` is 55 of luminance against this field's 47 - eight apart, which is
+        # not a line, and a base course that cannot be seen is not a base course. `black_wool`
+        # is the land's own recess at 22, and 25 clear of the field.
+        "plinth": "black_wool",
     },
 }
-
-#: The land's own accent, used once per tower for the crown band and the loggia sill so the three
-#: read as three different buildings from the spine rather than one building three times.
-_ACCENT = {"frontier": "spruce_planks", "midway": "red_wool", "prismworks": "light_blue_wool"}
 
 
 PARK_VANTAGE = {
@@ -180,6 +184,11 @@ PARK_VANTAGE = {
     "rise": 12,                  # courses per storey, and the number of treads in a flight
     "storeys": 3,                # flights; the crown deck's walking surface is rise * storeys
     "door": "west",              # the face the ground door opens on: north | south | east | west
+    #: WHICH WALL THE FIRST FLIGHT CLIMBS. It decides, storey by storey, which of the two long
+    #: walls a flight is against - and therefore which face is free to be opened as a loggia,
+    #: because a stair needs its stringer and an arcade cut through one is an island. See
+    #: `_check_loggia`, which refuses the combination rather than shipping it.
+    "stair_from": "west",        # west | east
     "loggia": None,              # [{level, face}] - a storey whose whole face is an open arcade
     "crown": "pavilion",         # gallery | cabin | pavilion
     "look": "west",              # the direction the crown frames, recorded in the sidecar
@@ -268,7 +277,7 @@ def _tower(L: _Lot, p: dict, pal: dict, sv: int, su: int) -> dict:
     rise, storeys = int(p["rise"]), int(p["storeys"])
     top = rise * storeys                       # the crown deck's walking surface
     land = p["land"]
-    accent = _ACCENT[land]
+    accent = pal["accent"]
     vi0, vi1 = 1, sv - 2                       # interior, one cell in from the shell
     ui0, ui1 = 1, su - 2
     if rise > (ui1 - ui0 + 1):
@@ -283,9 +292,10 @@ def _tower(L: _Lot, p: dict, pal: dict, sv: int, su: int) -> dict:
     # 1. the flights, first, because every floor is cut around them --------------------
     flights = []
     for k in range(storeys):
-        band = (vi0, vi0 + 2) if k % 2 == 0 else (vi1 - 2, vi1)
-        step = 1 if k % 2 == 0 else -1                # +u climbing south, -u climbing north
-        u_from = ui0 if k % 2 == 0 else ui1
+        west = _band_is_west(k, p)
+        band = (vi0, vi0 + 2) if west else (vi1 - 2, vi1)
+        step = 1 if west else -1                      # +u climbing south, -u climbing north
+        u_from = ui0 if west else ui1
         flights.append(_flight(L, pal, band, u_from, step, k * rise, rise))
 
     # 2. the shell ---------------------------------------------------------------------
@@ -295,16 +305,72 @@ def _tower(L: _Lot, p: dict, pal: dict, sv: int, su: int) -> dict:
     for k in range(1, storeys + 1):
         y = k * rise - 1                              # the floor BLOCK; you stand at y + 1
         crown = (k == storeys)
-        _floor(L, pal, vi0, ui0, vi1, ui1, y, pal["board"] if not crown else pal["field"])
+        _floor(L, pal, vi0, ui0, vi1, ui1, y, pal["board"] if not crown else pal["thresh"])
         if not crown:
-            _storey_fit(L, p, pal, sv, su, vi0, ui0, vi1, ui1, y, k, accent,
+            _storey_fit(L, p, pal, sv, su, vi0, ui0, vi1, ui1, y, k, rise, top, accent,
                         k in loggia_levels)
 
-    # 4. the crown ---------------------------------------------------------------------
+    # 4. the climb's own light ----------------------------------------------------------
+    _stair_lights(L, pal, sv, su, flights)
+
+    # 5. the crown ---------------------------------------------------------------------
     crown_cells = _crown(L, p, pal, sv, su, vi0, ui0, vi1, ui1, top, accent)
 
     return {"flights": flights, "top_surface": top, "crown": p["crown"],
             "crown_cells": crown_cells}
+
+
+def _stair_lights(L: _Lot, pal: dict, sv: int, su: int, flights: list) -> int:
+    """The land's own emitter SET INTO the wall beside the flight, every sixth tread.
+
+    A sixty-five course stairwell lit only by a lantern on each landing is a dark hole with two
+    lit ends, and dark on this server is not a mood - it is where things spawn. The emitter is a
+    full block and the wall is already solid behind every tread (that is the stringer), so it
+    costs no structure and hangs from nothing: it is simply a course of the wall that gives
+    light. A cell that is not solid is skipped rather than filled, so a window is never bricked
+    up to make room for a lamp."""
+    n = 0
+    for f in flights:
+        west = f["band"][0] <= 1
+        v = 0 if west else sv - 1
+        du = 1 if f["u_to"] > f["u_from"] else -1
+        for i in range(0, abs(f["u_to"] - f["u_from"]) + 1, 6):
+            u, y = f["u_from"] + du * i, f["from"] + i + 1
+            if L.has(v, u, y):
+                n += bool(L.lamp(v, u, y, pal["glow"]))
+    return n
+
+
+def _band_is_west(k: int, p: dict) -> bool:
+    """Which wall storey `k`'s flight climbs. Alternating, from whichever wall the config names."""
+    first = p.get("stair_from", "west")
+    if first not in ("west", "east"):
+        raise ValueError(f"stair_from must be west or east, got {first!r}")
+    return (k % 2 == 0) == (first == "west")
+
+
+def _check_loggia(p: dict) -> None:
+    """AN ARCADE MAY NOT BE CUT THROUGH A STAIR'S OWN STRINGER, and this refuses rather than
+    silently patching it.
+
+    A flight's outer column touches the shell and is held on by it. Open that wall at a course
+    where a tread meets it and the tread comes away as an island with nothing to place it
+    against; leave one block of masonry in the opening instead and it is a step a visitor climbs
+    onto and walks off the tower. Both were built and measured. The only answer is to put the
+    loggia on a wall that storey's flight is not against - and since the flights alternate,
+    `stair_from` is the dial that makes any face available at any level."""
+    for g in (p.get("loggia") or ()):
+        level, face = int(g["level"]), g["face"]
+        if face not in ("west", "east"):
+            continue                            # north and south are met only at a flight's ends
+        west = _band_is_west(level, p)
+        if (face == "west") == west:
+            other = "east" if west else "west"
+            raise ValueError(
+                f"the loggia at level {level} faces {face}, and that storey's flight climbs the "
+                f"{face} wall - the arcade would cut its own stringer. Put it on the {other} "
+                f"face, on the north or south, at an odd level, or set stair_from to "
+                f"{'east' if p.get('stair_from', 'west') == 'west' else 'west'}")
 
 
 def _flight(L: _Lot, pal: dict, band: tuple[int, int], u_from: int, step: int,
@@ -371,8 +437,14 @@ def _shell(L: _Lot, p: dict, pal: dict, sv: int, su: int, top: int, accent: str,
                 continue                       # the way in
             if _is_loggia(v, u, sv, su, y, rise, loggias) and not pier and (v, u) not in corner:
                 continue                       # the arcade's open bay
-            k = _window_course(y, rise, storeys, top)
-            if slot and k is not None:
+            k, base, h = _window_course(y, rise, storeys, top)
+            # A WINDOW IS ALL OR NOTHING. Where a tread meets this wall cell the masonry has to
+            # stay - a stair needs a stringer - and patching just that ONE course of an otherwise
+            # open slot is worse than both: it leaves a solid block in the middle of an opening,
+            # which is a step a visitor climbs onto and walks off the tower. Measured both ways;
+            # the whole slot closes.
+            if slot and k is not None and not any(
+                    _abuts_tread(L, v, u, sv, su, base + 1 + i) for i in range(h + 1)):
                 if k == 0:
                     # A GUARD AT THE SILL, NEVER AN OPEN ONE. A one-course step is a legal step,
                     # so an opening that begins at the sill is a window a visitor can climb into
@@ -384,7 +456,34 @@ def _shell(L: _Lot, p: dict, pal: dict, sv: int, su: int, top: int, accent: str,
                 continue                       # ...and the two courses over it are the view
             L.put(v, u, y, _face_block(pal, accent, v, u, y, rise, storeys, top,
                                        pier, (v, u) in corner, seed))
+    _portal(L, pal, sv, su, door, door_cells)
     _corbel(L, pal, sv, su, top)
+
+
+def _portal(L: _Lot, pal: dict, sv: int, su: int, door: str, door_cells: set) -> None:
+    """A jamb, a lintel and two lights, so the way in reads as a way in.
+
+    A three-cell hole in a blank field is not a door at any distance - what tells you a building
+    can be entered is the FRAME round the hole, which is the same rule the whole park is built on:
+    regularity and openings, never damage."""
+    dv, du = _FACES[door]
+    for (v, u) in door_cells:
+        L.put(v, u, 2, pal["band"])            # the lintel, one course over the opening
+    jam = []
+    if dv:
+        us = sorted(u for _, u in door_cells)
+        jam = [(next(iter(door_cells))[0], us[0] - 1), (next(iter(door_cells))[0], us[-1] + 1)]
+    else:
+        vs = sorted(v for v, _ in door_cells)
+        jam = [(vs[0] - 1, next(iter(door_cells))[1]), (vs[-1] + 1, next(iter(door_cells))[1])]
+    for (v, u) in jam:
+        for y in (0, 1, 2):
+            L.put(v, u, y, pal["column"])
+        # THE DOOR'S LIGHT IS SET INTO THE JAMB, NOT HUNG BESIDE IT. A lantern outside the wall
+        # would stand in the lawn the park's own ground owns, and one hung inside would want a
+        # ceiling this storey does not have for another eleven courses. The land's own emitter is
+        # a full block, so it can simply be a course of the jamb.
+        L.lamp(v, u, 1, pal["glow"])
 
 
 def _face_block(pal: dict, accent: str, v: int, u: int, y: int, rise: int, storeys: int,
@@ -402,6 +501,43 @@ def _face_block(pal: dict, accent: str, v: int, u: int, y: int, rise: int, store
     if pier:
         return pal["trim"]
     return pal["grain"] if hash01(v, u * 7 + y, 17, seed) < 0.14 else pal["field"]
+
+
+def _abuts_tread(L: _Lot, v: int, u: int, sv: int, su: int, y: int) -> bool:
+    """Is the interior cell against this wall cell a tread at exactly this course?
+
+    **A STAIR NEEDS A STRINGER.** The flights are three wide and their outer column touches the
+    shell, which is the only thing holding them on: open a window at the course a tread meets the
+    wall and that tread's three cells come away as an island joined to the rest of the tower by
+    nothing but a diagonal. The connectivity check found sixteen such islands the first time this
+    ran, and a printer would have had nothing to place any of them against."""
+    if v == 0:
+        inner = (1, u)
+    elif v == sv - 1:
+        inner = (sv - 2, u)
+    elif u == 0:
+        inner = (v, 1)
+    else:
+        inner = (v, su - 2)
+    return L.tread_near(inner[0], inner[1], y, 0)
+
+
+def _window_course(y: int, rise: int, storeys: int, top: int):
+    """(role, the storey's surface, the opening's height) - role 0 is the sill guard, 1 an open
+    course, and None means this course is plain masonry.
+
+    A window belongs to a STOREY, so it is measured off that storey's own walking surface: sill
+    guard at S+1, open from S+2 up."""
+    h = max(2, min(4, rise - 5))               # the opening's own height, under the string course
+    for k in range(storeys):
+        s = k * rise
+        if s + 1 + h > top - 2:
+            break                              # no room under the deck for a full window
+        if y == s + 1:
+            return 0, s, h
+        if s + 2 <= y <= s + 1 + h:
+            return 1, s, h
+    return None, 0, h
 
 
 def _is_loggia(v: int, u: int, sv: int, su: int, y: int, rise: int, loggias: set) -> bool:
@@ -456,20 +592,27 @@ def _corbel(L: _Lot, pal: dict, sv: int, su: int, top: int) -> None:
 
 
 def _storey_fit(L: _Lot, p: dict, pal: dict, sv: int, su: int, vi0: int, ui0: int,
-                vi1: int, ui1: int, y: int, level: int, accent: str, is_loggia: bool) -> None:
-    """What makes a storey a ROOM: a light, a bench, a window sill, and a loggia balustrade.
+                vi1: int, ui1: int, y: int, level: int, rise: int, top: int, accent: str,
+                is_loggia: bool) -> None:
+    """What makes a storey a ROOM: a light, a bench, and a loggia balustrade.
 
-    A tower with a floor at every twelve courses and nothing on any of them is a fire escape.
+    A tower with a floor every twelve courses and nothing on any of them is a fire escape.
+
+    **EVERY FITTING IS PLACED AGAINST SOMETHING, AND CHECKED.** A hanging lantern wants a block
+    over it and a bench wants a floor under it, and this storey has neither everywhere: the well
+    is a hole in the floor by construction and the storey above it may be a hole in the ceiling
+    for the same reason. Placed blind, both come out as single free-floating cells - which is
+    exactly what the connectivity check found the first time this ran.
     """
     s = y + 1                                  # the walking surface of this storey
-    # a lantern hung from the storey above, at the two corners the stair does not use
+    ceiling = min((level + 1) * rise - 1, top - 1)   # the floor of the storey above
     for (v, u) in ((vi0, ui1), (vi1, ui0)):
-        if not L.has(v, u, s) and not L.tread_near(v, u, s + 1, 1):
-            L.lamp(v, u, s + 2, pal["light"], hanging="true", waterlogged="false")
-    # a bench facing the window, on the side the flight is not on
+        if L.has(v, u, ceiling) and not L.has(v, u, ceiling - 1):
+            L.lamp(v, u, ceiling - 1, pal["light"], hanging="true", waterlogged="false")
+    # a bench facing the window, on the side the flight is not on - and only over real floor
     bv = vi1 - 1 if level % 2 == 0 else vi0 + 1
     for u in (ui0 + 2, ui0 + 3):
-        if not L.has(bv, u, s) and not L.tread_near(bv, u, s, 2):
+        if L.has(bv, u, y) and not L.has(bv, u, s):
             L.put(bv, u, s, pal["seat"], facing="west" if level % 2 == 0 else "east",
                   half="bottom", shape="straight", waterlogged="false")
     if not is_loggia:
@@ -479,15 +622,18 @@ def _storey_fit(L: _Lot, p: dict, pal: dict, sv: int, su: int, vi0: int, ui0: in
     for g in (p.get("loggia") or ()):
         if int(g["level"]) != level:
             continue
-        face = g["face"]
-        cells = _face_line(sv, su, face)
+        cells = _face_line(sv, su, g["face"])
         for (v, u) in cells:
             if L.has(v, u, s):
                 L.clear(v, u, s)
             L.put(v, u, s, pal["wall"], up="true", north="none", south="none",
                   east="none", west="none", waterlogged="false")
+        # A COLONNETTE, THREE COURSES - never one full block in the balustrade line. A single
+        # block there is a step: a visitor climbs onto it out of a `wall` run they cannot climb,
+        # and walks off the tower. The flood found exactly that, which is what it is for.
         for (v, u) in cells[2::5]:
-            L.put(v, u, s, accent)             # the sill's own colour, on a rhythm
+            for dy in (0, 1, 2):
+                L.put(v, u, s + dy, accent)
 
 
 def _face_line(sv: int, su: int, face: str) -> list:
@@ -566,27 +712,27 @@ def _crown_cabin(L, pal, sv, su, vi0, ui0, vi1, ui1, s, accent) -> int:
                 corner = v in (v0, v1) and u in (u0, u1)
                 n += bool(L.put(v, u, y, pal["column"] if corner else pal["board"],
                                 **({"axis": "y"} if corner and "log" in pal["column"] else {})))
-    # a hipped roof of stairs, two courses, leaning into its own ridge
+    # A HIPPED ROOF, AND IT IS SOLID BEHIND ITS STAIRS. Two concentric rings a course apart touch
+    # only DIAGONALLY, so a roof built as rings is an island with nothing to place it against -
+    # which is exactly what the connectivity check reported: 179 cells of dark oak floating over
+    # a cabin that audited clean. The stair edge is what is seen; the plate behind it is what
+    # holds it on.
     for i, y in enumerate((s + 4, s + 5)):
-        for v in range(v0 - 1 + i, v1 + 2 - i):
-            for u in range(u0 - 1 + i, u1 + 2 - i):
-                edge = v in (v0 - 1 + i, v1 + 1 - i) or u in (u0 - 1 + i, u1 + 1 - i)
-                if not edge:
-                    continue
-                if v == v0 - 1 + i:
-                    f = "east"
-                elif v == v1 + 1 - i:
-                    f = "west"
-                elif u == u0 - 1 + i:
-                    f = "south"
+        a0, a1 = v0 - 1 + i, v1 + 1 - i
+        b0, b1 = u0 - 1 + i, u1 + 1 - i
+        for v in range(a0, a1 + 1):
+            for u in range(b0, b1 + 1):
+                if v in (a0, a1) or u in (b0, b1):
+                    f = ("east" if v == a0 else "west" if v == a1 else
+                         "south" if u == b0 else "north")
+                    n += bool(L.put(v, u, y, pal["roof"], facing=f, half="bottom",
+                                    shape="straight", waterlogged="false"))
                 else:
-                    f = "north"
-                n += bool(L.put(v, u, y, pal["roof"], facing=f, half="bottom",
-                                shape="straight", waterlogged="false"))
-    for v in range(v0, v1 + 1):
+                    n += bool(L.put(v, u, y, pal["roof_field"]))
+    for v in range(v0 + 1, v1):
         for u in range(u0 + 1, u1):
             n += bool(L.put(v, u, s + 6, pal["roof_slab"], type="bottom", waterlogged="false"))
-    n += bool(L.lamp(vi0 + 3, (ui0 + ui1) // 2, s + 3, pal["glow"]))
+    n += bool(L.lamp(vi0 + 3, (ui0 + ui1) // 2, s - 1, pal["glow"]))
     return n
 
 
@@ -668,7 +814,7 @@ def _bridge(L: _Lot, p: dict, pal: dict, sv: int, su: int) -> dict:
     for i in range(reach):
         u = su + i                              # beyond the shaft, inside the lot
         for v in range(v0, v1 + 1):
-            n += bool(L.put(v, u, y, pal["band"]))
+            n += bool(L.put(v, u, y, pal["thresh"]))
         for v in (v0, v1):
             n += bool(L.put(v, u, y + 1, pal["wall"], up="true", north="none", south="none",
                             east="none", west="none", waterlogged="false"))
@@ -697,6 +843,7 @@ def build(cfg: dict, donors=None) -> Canvas:
     if sv > dv or su > du:
         raise ValueError("a vantage's shaft must fit inside its lot")
     _refuse_reserves(v, u, dv, du)
+    _check_loggia(p)
     pal = _pal(p["land"])
     rise, storeys = int(p["rise"]), int(p["storeys"])
     top = rise * storeys

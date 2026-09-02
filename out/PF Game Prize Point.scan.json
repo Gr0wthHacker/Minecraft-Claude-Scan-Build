@@ -1,0 +1,321 @@
+{
+  "origin": {
+    "x": 97586,
+    "y": 204,
+    "z": 80656
+  },
+  "size": {
+    "x": 5,
+    "y": 4,
+    "z": 13
+  },
+  "generated_by": "park_games",
+  "kind": "counter",
+  "building": "PF Prize Point",
+  "land": "midway",
+  "facing": "west",
+  "footprint": [
+    13,
+    5
+  ],
+  "courses": [
+    0,
+    3
+  ],
+  "budget": {
+    "redstone_lamp": 3
+  },
+  "refused": [],
+  "contract": "each window's lamp is lit exactly while its own barrel holds something and dark when that barrel is empty, and no window answers for another; the call button rings the counter bell",
+  "unverified": [
+    "WHAT IS IN A BARREL IS AN INPUT YOU STATE. The simulator has no entities and cannot stock or empty one."
+  ],
+  "width": 13,
+  "depth": 5,
+  "height": 4,
+  "lanes": 3,
+  "barrels": [
+    [
+      97586,
+      205,
+      80657
+    ],
+    [
+      97586,
+      205,
+      80660
+    ],
+    [
+      97586,
+      205,
+      80663
+    ]
+  ],
+  "lamps": [
+    [
+      97588,
+      206,
+      80657
+    ],
+    [
+      97588,
+      206,
+      80660
+    ],
+    [
+      97588,
+      206,
+      80663
+    ]
+  ],
+  "bell": [
+    97587,
+    205,
+    80667
+  ],
+  "button": [
+    97588,
+    207,
+    80667
+  ],
+  "signed": true,
+  "leaks": [],
+  "inputs": [
+    [
+      97586,
+      205,
+      80657
+    ],
+    [
+      97586,
+      205,
+      80660
+    ],
+    [
+      97586,
+      205,
+      80663
+    ],
+    [
+      97588,
+      207,
+      80667
+    ]
+  ],
+  "outputs": [
+    [
+      97588,
+      206,
+      80657
+    ],
+    [
+      97588,
+      206,
+      80660
+    ],
+    [
+      97588,
+      206,
+      80663
+    ],
+    [
+      97587,
+      205,
+      80667
+    ]
+  ],
+  "stock": {
+    "each barrel": "the prize that window redeems"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_lamp",
+        "redstone_wire",
+        "stone_button"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "The midway's redemption counter: three prize windows whose lamps tell the truth about what is actually behind them, and a bell to call the attendant.\n"
+    },
+    "metrics": {
+      "blocks": 197,
+      "materials": 11,
+      "dominant_material_share": 0.335,
+      "light_blocks": 3,
+      "massing": {
+        "width": 5,
+        "height": 4,
+        "depth": 13,
+        "fill_ratio": 0.7577
+      },
+      "silhouette": {
+        "top": {
+          "area": 65,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 18,
+          "fill_ratio": 0.9
+        },
+        "side": {
+          "area": 52,
+          "fill_ratio": 1.0
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.5888,
+          0.3299,
+          0.0812
+        ],
+        "top_silhouette_perimeter": 36,
+        "surface_faces_per_block": 1.665
+      },
+      "material_counts": {
+        "white_wool": 66,
+        "polished_blackstone_bricks": 61,
+        "stone_bricks": 52,
+        "redstone_wire": 4,
+        "barrel": 3,
+        "comparator": 3,
+        "redstone_lamp": 3,
+        "oak_wall_sign": 2,
+        "bell": 1,
+        "stone_button": 1,
+        "yellow_wool": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "2a3f89837e4929bec083d9807036bf88c713198c7c7828a306b486e924202bb4",
+    "generator_source_digest": "128e45445da1be3c5e39b8593cfce204dfee077a0b48c8f8abc377582df71f65",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 87.847403,
+    "blocks": 197,
+    "blocks_per_second": 2.24
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "ride"
+    ],
+    "blocks": 197,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: redstone_lamp"
+  ],
+  "file": "PF Game Prize Point.litematic",
+  "name": "PF Game Prize Point"
+}

@@ -1,0 +1,335 @@
+{
+  "origin": {
+    "x": 97583,
+    "y": 204,
+    "z": 80357
+  },
+  "size": {
+    "x": 14,
+    "y": 9,
+    "z": 4
+  },
+  "generated_by": "park_games",
+  "kind": "striker",
+  "building": "PF Mining Square",
+  "land": "frontier",
+  "facing": "south",
+  "footprint": [
+    14,
+    4
+  ],
+  "courses": [
+    0,
+    8
+  ],
+  "budget": {
+    "redstone_lamp": 8
+  },
+  "refused": [],
+  "contract": "a hit of strength L lights the bottom min(L, 8) lamps of the column; only L >= 8 reaches the top and rings the bell",
+  "unverified": [
+    "A TARGET'S OUTPUT IS AN INPUT YOU STATE - the simulator has no entities and cannot swing at it."
+  ],
+  "width": 14,
+  "depth": 4,
+  "height": 13,
+  "rungs": 8,
+  "target": [
+    97595,
+    205,
+    80357
+  ],
+  "bell": [
+    97585,
+    212,
+    80357
+  ],
+  "lamps": [
+    [
+      97593,
+      205,
+      80358
+    ],
+    [
+      97592,
+      206,
+      80358
+    ],
+    [
+      97591,
+      207,
+      80358
+    ],
+    [
+      97590,
+      208,
+      80358
+    ],
+    [
+      97589,
+      209,
+      80358
+    ],
+    [
+      97588,
+      210,
+      80358
+    ],
+    [
+      97587,
+      211,
+      80358
+    ],
+    [
+      97586,
+      212,
+      80358
+    ]
+  ],
+  "top": [
+    97586,
+    212,
+    80357
+  ],
+  "signed": true,
+  "leaks": [],
+  "inputs": [
+    [
+      97595,
+      205,
+      80357
+    ]
+  ],
+  "outputs": [
+    [
+      97585,
+      212,
+      80357
+    ],
+    [
+      97593,
+      205,
+      80358
+    ],
+    [
+      97592,
+      206,
+      80358
+    ],
+    [
+      97591,
+      207,
+      80358
+    ],
+    [
+      97590,
+      208,
+      80358
+    ],
+    [
+      97589,
+      209,
+      80358
+    ],
+    [
+      97588,
+      210,
+      80358
+    ],
+    [
+      97587,
+      211,
+      80358
+    ],
+    [
+      97586,
+      212,
+      80358
+    ]
+  ],
+  "stock": {},
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_lamp",
+        "redstone_wire",
+        "target"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The strength game in the open square: a disc at knee height and an eight-lamp column climbing the board beside it, with the bell at the top.\n"
+    },
+    "metrics": {
+      "blocks": 206,
+      "materials": 9,
+      "dominant_material_share": 0.3689,
+      "light_blocks": 8,
+      "massing": {
+        "width": 14,
+        "height": 9,
+        "depth": 4,
+        "fill_ratio": 0.4087
+      },
+      "silhouette": {
+        "top": {
+          "area": 56,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 79,
+          "fill_ratio": 0.627
+        },
+        "side": {
+          "area": 24,
+          "fill_ratio": 0.6667
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.7573,
+          0.1845,
+          0.0583
+        ],
+        "top_silhouette_perimeter": 36,
+        "surface_faces_per_block": 1.8738
+      },
+      "material_counts": {
+        "spruce_planks": 76,
+        "polished_blackstone_bricks": 68,
+        "stone_bricks": 41,
+        "redstone_lamp": 8,
+        "redstone_wire": 8,
+        "spruce_wall_sign": 2,
+        "bell": 1,
+        "comparator": 1,
+        "target": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "7f685db8567a7add66b55902459da488a889c624b705cb0317e9c455315c95c7",
+    "generator_source_digest": "a0e564b0232adbe64ab3cd6148f51f1d12f745b99584da5356aad3da89843d6f",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 85.726353,
+    "blocks": 206,
+    "blocks_per_second": 2.4
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "ride"
+    ],
+    "blocks": 206,
+    "mechanic_families": [
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: redstone_lamp",
+    "not in the provisional skyblock-1.19 list: target"
+  ],
+  "file": "PF Game Powder Striker.litematic",
+  "name": "PF Game Powder Striker"
+}

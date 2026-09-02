@@ -147,7 +147,10 @@ PAL = {
         "wood": "oak",
     },
     "prismworks": {
-        "plinth": "blackstone",                   # 38 (ok) - a LINE, never a field
+        # `blackstone` 38 IS SEVEN LUMINANCE OFF THE PIER'S 45 - the same family, and a
+        # ladder cannot exist inside one family. Across families the rung is real:
+        # black_wool 21 -> polished_blackstone_bricks 45 -> smooth_basalt 73.
+        "plinth": "black_wool",                   # 21 - the dark base course
         "pier": "polished_blackstone_bricks",     # 45 - the wall
         "band": "smooth_basalt",                  # 73 - the vertical rhythm
         "worn": "cracked_polished_blackstone_bricks",
@@ -277,11 +280,18 @@ def _sign(w, f, pal, i, d, h, facing, lines, back=()):
     fdv, fdu = _STEP[facing]
     x, y, z = f.world(i, d, h)
     if not w.has(x - fdv, y, z - fdu):
+        # A REFUSED SIGN IS SILENT, and silence is the failure. Every refusal is recorded and the
+        # build reports the count, so a name board that quietly is not there shows up as a number
+        # rather than as a photograph taken after somebody placed the design.
+        getattr(w, "refused_signs", []).append((x, y, z, facing, list(lines)[:1]))
         return False
-    front = [str(s)[:SIGN_WIDTH] for s in list(lines)[:4]]
+    # NOT TRUNCATED. Trimming here makes the build-time width check dead code and turns a config
+    # typo into a name that clips mid-word - which only shows in a screenshot taken after somebody
+    # has placed the design, the most expensive place in this pipeline to find one.
+    front = [str(s) for s in list(lines)[:4]]
     front += [""] * (4 - len(front))
     w.put(x, y, z, f"{pal['wood']}_wall_sign", facing=facing, waterlogged="false")
-    w.sign(x, y, z, front=front, back=[str(s)[:SIGN_WIDTH] for s in list(back)[:4]],
+    w.sign(x, y, z, front=front, back=[str(s) for s in list(back)[:4]],
            colour="white", glowing=True)
     return True
 
@@ -328,7 +338,12 @@ MARQUEE = {
     # fascia, so a marquee whose front stands at V20 reads its front sign at V19 and its back
     # sign at V23 - both lawn, and neither one course into the lot the building already owns.
     "depth": 3,
-    "height": 5,          # the head beam's course. Clear opening is h=0..height-1
+    # SIX, BECAUSE A LAMP MAST IS SIX. `Park Ways` puts a mast every 22 cells along each verge
+    # lamp line and the tallest cell of one is its slab cap at Y208 - h=5. A marquee's opening
+    # may cross a mast, and often must: the spur it straddles and the mast beside it are on the
+    # same line. So the head beam goes ABOVE the tallest thing the ground layer builds, and the
+    # opening is six clear courses rather than five.
+    "height": 6,          # the head beam's course. Clear opening is h=0..height-1
     "board": 2,           # courses of fascia over the head
     "wing": 0,            # extra outer piers, each `pier` wide, with `span`-wide bays between
     "crown": True,        # the cornice course and the two crown lamps
@@ -391,6 +406,19 @@ def _marquee(w, f, pal, p) -> dict:
         outer = a if abs(a) > abs(b) else b
         for h in range(1, height - 1):
             _put(w, f, pal, outer, 0, h, "post", axis="y")
+        # THE BRACKET UNDER THE BEAM, CUT INTO THE PIER RATHER THAN HUNG OFF IT. A corbel that
+        # projects into the opening is the obvious way to give an arch a head, and on this park it
+        # is the one place it cannot go: the opening straddles a spur, the ground layer's lamp mast
+        # stands on the same line, and its slab cap reaches exactly the course a corbel wants. An
+        # upside-down stair course inside the pier's OWN footprint adds the same shadow line and
+        # occupies no cell the piece did not already own. Detail blocks are 7-30x under-used in
+        # this repo against outside builds; this is where they earn their keep.
+        for i in range(a, b + 1):
+            _put(w, f, pal, i, 0, height - 1, pal["pier_stair"], facing=_LEAN[f.facing],
+                 half="top", shape="straight", waterlogged="false")
+            if depth > 1:
+                _put(w, f, pal, i, depth - 1, height - 1, pal["pier_stair"],
+                     facing=_LEAN[f.back], half="top", shape="straight", waterlogged="false")
 
     # -- the head beam, and the fascia the name is written on --------------------------------
     for i in range(i_lo, i_hi + 1):
@@ -429,12 +457,15 @@ def _marquee(w, f, pal, p) -> dict:
     # -- the name ----------------------------------------------------------------------------
     title = str(q.get("title") or "").upper()
     lines = [title] + [str(s) for s in (q.get("lines") or [])]
+    # A ONE-COURSE PIECE HAS ONE FACE. Four of the park's attractions front onto a walk with a
+    # spur exactly one course deep, so their marquee is one course deep too - and a back sign on
+    # such a piece has the BUILDING behind it, not its own fascia: it is refused, silently, which
+    # is this project's most-repeated failure shape. It is simply not drawn.
+    faces = [(-1, f.facing)] + ([(depth, f.back)] if depth >= 2 else [])
     signs = 0
-    for d, facing in ((0, f.facing), (depth - 1, f.back)):
+    for sign_d, facing in faces:
         # the sign hangs in the cell in FRONT of the fascia, so its support is the fascia itself
-        off = -1 if d == 0 else 1
-        i0 = 0 if span % 2 else 0
-        if _sign(w, f, pal, i0, d + off, height + 1, facing, lines):
+        if _sign(w, f, pal, 0, sign_d, height + 1, facing, lines):
             signs += 1
     return {"kind": "marquee", "title": title, "signs": signs, "lamps": lamps,
             "span": span, "piers": len(piers), "frontage": (i_lo, i_hi),
@@ -714,18 +745,23 @@ def _bandstand(w, f, pal, q) -> dict:
     posts = [(r + int(round(r * c)), r + int(round(r * s)))
              for c, s in ((1, 0), (0.7, 0.7), (0, 1), (-0.7, 0.7),
                           (-1, 0), (-0.7, -0.7), (0, -1), (0.7, -0.7))]
+    # A POST STARTS AT h=1, NOT h=2. The deck's upper course is only laid inside r-1 and a post
+    # stands ON the rim at r, so a post beginning at 2 has its own plinth two courses below it and
+    # nothing between - eight free-floating clusters that every other check passed.
     for (i, d) in posts:
-        for h in range(2, tall):
+        for h in range(1, tall):
             _put(w, f, pal, i, d, h, "post", axis="y")
         _put(w, f, pal, i, d, 2, pal["balustrade"], up="true", north="none", south="none",
              east="none", west="none", waterlogged="false")
-    # THE STRIPED CANOPY, stepping in to a point. Alternating by (i+d) gives a chequer; alternating
-    # by the RING gives concentric bands, which is what a fairground canopy actually is.
+    # THE STRIPED CANOPY IS A STEPPED CONE, NOT A STACK OF RINGS. Drawn as rings, each course sits
+    # diagonally inside the one below it and the whole roof comes apart: a rasterised ring at
+    # radius 2 and one at radius 1 share no face. Each course is a full disc, coloured by its own
+    # step, so the stripes read from above AND in elevation - and every course rests on the last.
     for k in range(r + 1):
         rad = r - k
         for i in range(n):
             for d in range(n):
-                if inside(i, d, rad) and not inside(i, d, rad - 1):
+                if inside(i, d, rad):
                     _put(w, f, pal, i, d, tall + k, "canopy_a" if k % 2 == 0 else "canopy_b")
     _put(w, f, pal, r, r, tall + r + 1, "accent2")
     _put(w, f, pal, r, r, tall + r + 2, "glow")
@@ -733,9 +769,12 @@ def _bandstand(w, f, pal, q) -> dict:
     for (i, d) in ((r - 2, r), (r + 2, r), (r, r - 2), (r, r + 2)):
         _put(w, f, pal, i, d, tall - 1, pal["light"], hanging="true", waterlogged="false")
         _put(w, f, pal, i, d, tall, "beam", axis="y")
+    # THE BOARD FIRST, THEN THE SIGN ON IT. Written the other way round the sign is placed against
+    # a cell that does not exist yet, `_sign` correctly refuses it, and the bandstand ships
+    # nameless with nothing anywhere saying so.
+    _put(w, f, pal, r, -1, 2, "board")
     _sign(w, f, pal, r, -2, 2, f.facing, [str(q.get("title") or "BANDSTAND")] +
           [str(s) for s in (q.get("lines") or [])])
-    _put(w, f, pal, r, -1, 2, "board")
     return {"kind": "sight/bandstand", "height": tall + r + 2, "footprint": [n, n]}
 
 
@@ -784,9 +823,12 @@ def _pylon(w, f, pal, q) -> dict:
     _put(w, f, pal, 0, -2, 2, "pier")
     _sign(w, f, pal, 0, -3, 2, f.facing, [str(q.get("title") or "PYLON")] +
           [str(s) for s in (q.get("lines") or [])])
-    for (i, d) in ((-2, -2), (2, -2), (-2, 2), (2, 2)):
-        _put(w, f, pal, i, d, 3, pal["light"], hanging="true", waterlogged="false")
-        _put(w, f, pal, i, d, 4, "band")
+    # THE FOOT LAMPS HANG OFF THE LOWEST SIGNAL BRACKET, NOT OFF THE CORNERS. At the corners they
+    # are two cells clear of a mast whose radius is one, so each lamp and its own cap came out as
+    # a free-floating pair - eight of them, in a design with no placement problem and a clean bill
+    # of materials. A bracket at (+-2, 0) touches the mast; a corner at (+-2, +-2) does not.
+    for (i, d) in ((-2, 0), (2, 0), (0, -2), (0, 2)):
+        _put(w, f, pal, i, d, 2, pal["light"], hanging="true", waterlogged="false")
     return {"kind": "sight/pylon", "height": top + 4, "footprint": [7, 7]}
 
 
@@ -802,21 +844,20 @@ def _ore_cart(w, f, pal, q) -> dict:
             _put(w, f, pal, i, d, 0, "plinth" if i else "beam", **({} if i else {"axis": _axis_of(f, "i")}))
         _put(w, f, pal, 0, d, 1, "rail", shape="north_south" if f.du else "east_west",
              waterlogged="false")
-    # the cart: a box with a lip, at the far end
+    # THE CART IS A RIM AND A HEAP, NOT A BOX. A dark crate on a dark sleeper bed reads as a
+    # crate; what says ORE CART is the pale lip round the top and the load standing proud of it,
+    # because those are the two things the eye can separate from the body at any distance.
     d0 = length - 3
-    for i in (-1, 1):
+    for i in (-1, 0, 1):
         for d in range(d0, d0 + 3):
             for h in (2, 3):
-                _put(w, f, pal, i, d, h, "roof")
-    for i in (-1, 0, 1):
-        for h in (2, 3):
-            _put(w, f, pal, i, d0, h, "roof")
-            _put(w, f, pal, i, d0 + 2, h, "roof")
-    for i in (-1, 0, 1):
-        for d in range(d0, d0 + 3):
-            _put(w, f, pal, i, d, 2, "worn" if (i or d != d0 + 1) else "worn")
-    for i in (-1, 0, 1):
-        _put(w, f, pal, i, d0 + 1, 4, "band")
+                if i or d in (d0, d0 + 2):
+                    _put(w, f, pal, i, d, h, "roof")
+            if i or d != d0 + 1:
+                _put(w, f, pal, i, d, 4, "band")           # the rim
+    _put(w, f, pal, 0, d0 + 1, 2, "worn")
+    _put(w, f, pal, 0, d0 + 1, 3, "worn")
+    _put(w, f, pal, 0, d0 + 1, 4, "worn")                  # the load, heaped over the rim
     # the spoil heap beside it
     for (i, d, h) in ((2, d0, 0), (2, d0 + 1, 0), (3, d0 + 1, 0), (2, d0 + 2, 0),
                       (2, d0 + 1, 1)):
@@ -851,17 +892,23 @@ def _bunting(w, f, pal, q) -> dict:
         _put(w, f, pal, 0, d, height + 1, pal["pier_slab"], type="bottom", waterlogged="false")
         _put(w, f, pal, 0, d, height - 1, pal["light"], hanging="true", waterlogged="false")
         masts += 1
-    # THE LINE ITSELF SAGS. A dead-level string is a beam; one course of droop over each bay is
-    # what tells the eye it is a rope with flags on it.
+    # THE LINE ITSELF SAGS, AND THE STEP IN THE SAG HAS TO BE FILLED. A dead-level string is a
+    # beam; one course of droop over each bay is what tells the eye it is a rope with flags on it.
+    # But two cells one course apart and one cell along share only an EDGE, so drawn as a bare
+    # step the whole sagging run comes away from its own masts - eight cells of fence and bunting
+    # hanging in mid air, in a design that audits clean and reports no placement problem at all.
     for k in range(span):
+        prev = 0
         for j in range(1, step):
             d = k * step + j
             sag = 1 if step // 4 <= j <= step - step // 4 else 0
             h = height - sag
-            _put(w, f, pal, 0, d, h, pal["fence"], waterlogged="false")
+            for hh in range(h, height - min(sag, prev) + 1):
+                _put(w, f, pal, 0, d, hh, pal["fence"], waterlogged="false")
             if j % 2 == 0:
                 _put(w, f, pal, 0, d, h - 1, pal["shutter"], facing=f.facing, half="top",
                      open="false", powered="false", waterlogged="false")
+            prev = sag
     return {"kind": "sight/bunting", "height": height + 1, "footprint": [1, span * step + 1],
             "masts": masts}
 
@@ -879,23 +926,36 @@ def _lens(w, f, pal, q) -> dict:
     for h in range(1, 3):
         for i in (-r - 1, r + 1):
             _put(w, f, pal, i, 0, h, "band")
-    ring = []
-    for k in range(0, 360, 15):
-        i = int(round(r * math.cos(math.radians(k))))
-        h = int(round(r * math.sin(math.radians(k)))) + r + 3
-        if (i, h) not in ring:
-            ring.append((i, h))
-    for (i, h) in ring:
-        _put(w, f, pal, i, 0, h, "pier")
-    for (i, h) in ring:
-        if abs(i) <= r - 1 and h >= r + 3:
-            _put(w, f, pal, i, 0, h - 1, "accent")
+    # A RASTERISED RING MUST BE 4-CONNECTED OR IT IS NOT A RING. Stepped round by angle, the
+    # circle comes out as a set of cells that touch only at their CORNERS - it draws perfectly and
+    # it is five separate pieces of masonry hanging in the air. Walking the columns and filling the
+    # vertical run between each pair gives an arc every cell of which shares a face with the next.
+    ring = set()
+    prev = None
+    for i in range(-r, r + 1):
+        j = int(round(math.sqrt(max(0.0, r * r - i * i))))
+        span = range(min(j, prev), max(j, prev) + 1) if prev is not None else (j,)
+        for jj in span:
+            ring.add((i, jj))
+            ring.add((i, -jj))
+        prev = j
+    for (i, j) in sorted(ring):
+        _put(w, f, pal, i, 0, j + r + 3, "pier")
+    # THE SPOKE, AND IT IS STRUCTURE RATHER THAN DECORATION. A glowing core at the ring's centre
+    # is three cells clear of the ring itself, so on its own it is one floating block; the bar it
+    # sits on is what carries it, and it is also what makes a ring read as a LENS rather than as
+    # a hoop.
+    for i in range(-(r - 1), r):
+        _put(w, f, pal, i, 0, r + 3, "accent")
     _put(w, f, pal, 0, 0, r + 3, "glow")
     for s in (-1, 1):
         _put(w, f, pal, s * (r + 1), 0, 3, "pier")
         _put(w, f, pal, s * (r + 1), 0, 4, pal["light"], hanging="false", waterlogged="false")
+    # THE PLAQUE READS OUT THE WAY THE PIECE FACES, and its support is the cell BEHIND it - which
+    # is at d=+1, deeper into the piece. Faced the other way it hangs on the empty cell in front
+    # of the plinth and is refused.
     _put(w, f, pal, 0, 1, 1, "band")
-    _sign(w, f, pal, 0, 0, 1, f.back, [str(q.get("title") or "ARRAY LENS")] +
+    _sign(w, f, pal, 0, 0, 1, f.facing, [str(q.get("title") or "ARRAY LENS")] +
           [str(s) for s in (q.get("lines") or [])])
     return {"kind": "sight/lens", "height": 2 * r + 4, "footprint": [2 * r + 3, 3]}
 
@@ -1036,6 +1096,7 @@ def build(cfg: dict, donors=None) -> Canvas:
     anchor = tuple(int(a) for a in p["anchor"])
 
     w = World()
+    w.refused_signs = []
     built = []
     for k, spec in enumerate(pieces):
         q = {**PIECE, "seed": int(p.get("seed", 0)) + k, **spec}
@@ -1077,6 +1138,7 @@ def build(cfg: dict, donors=None) -> Canvas:
         "pieces": built,
         "piece_count": len(built),
         "signs": len(w.signs),
+        "refused_signs": list(w.refused_signs),
         "contract": "everything in front of and between the park's attractions: a name board on "
                     "every one, queues at the rides, entrance and exit thresholds, and sight "
                     "pieces in the measured empty bands - none of it below the build plane, and "

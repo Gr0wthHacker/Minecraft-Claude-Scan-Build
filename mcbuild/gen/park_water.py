@@ -32,9 +32,15 @@ repo because a log flume self-checked with `fluids.carries` - which asks whether
 wet - and drained 199,959 cells to Y-1908 while every render, every audit, the bill of materials
 and the generator's own check passed it. So containment here is not argued from the geometry being
 right; `_seal` walks EVERY water cell after the shape is drawn and places a wall wherever a
-horizontal neighbour or the cell below is not already solid. A leak is then impossible by
-construction rather than by reasoning, and `tests/test_park_water.py` re-derives it from the
-finished model in the composite anyway, which is the only evidence worth having.
+horizontal neighbour or the cell below is not already solid.
+
+ON THE SHAPE AS SHIPPED IT PLACES NOTHING, and that is worth saying plainly rather than letting
+the count read as work done: the depth is a DISTANCE TRANSFORM from the shore, so a cell one from
+land is exactly one deep, and every deeper course is therefore surrounded by its own bed. The
+sealing pass is not decoration on top of that - it is what makes the property hold if anyone ever
+changes the depth rule, and `seal_cells` in the sidecar is how you find out that they did.
+`tests/test_park_water.py` re-derives the whole thing from the finished model in the composite
+anyway, which is the only evidence worth having.
 
 **WATER FREEZES.** Block light must be >= 10 in every water cell or it turns to ice; the court
 hall's pool froze on its first build - 29 ice blocks - and `freeze_guard` exists because of it. A
@@ -51,19 +57,28 @@ changes the model, so the answer has to be recomputed against the model that now
 ------------------------------------------------------------------------------------------------
 WHAT MAKES IT A CONGREGATION POINT RATHER THAN A PUDDLE
 
-  * **A REAL SHORELINE.** The outline is a blob - an ellipse with three harmonics on its radius -
-    so no run of it is straight, and the depth is a distance transform from that shore, so
-    shallows happen at the edge by construction rather than being drawn. Three depths: a 1-deep
-    shelf you can see the bed through, a 2-deep body, a 3-deep core.
+  * **A REAL SHORELINE.** TWO EDGE CURVES, NOT A RADIUS. An ellipse was the first attempt and it
+    cannot do this job: a QUAY's water edge is a straight built line and a beach's is not, and
+    fitted to the straight run the ellipse stopped touching the quay two columns either side of
+    centre while forcing it out left a rectangular notch and a pond cut off from the lake. So the
+    near shore is a curve in U that the terrace pins flat across its own frontage and that flares
+    away into shingle on both sides of it, and the far shore is three harmonics with no straight
+    run in it at all; the two close on each other before either reaches a threshold path, so the
+    lake ends in water rather than at a cut edge. The depth is a distance transform from that
+    shore, so the shallows happen at the edge by construction: a 1-deep shelf you can see the bed
+    through, a 2-deep body, a 3-deep core.
   * **THE STRAND IS THE SHORE, AND IT IS NOT SAND.** `sand`, `gravel`, `clay` and every form of
     dirt are currency on this server (and sand and gravel FALL, over a basin hung in void). The
     shore is a shingle instead - `stone`, `andesite` and `mossy_stone_bricks` dithered by distance
     from the water into the park's own moss lawn, so the lawn BECOMES the beach over four courses
     rather than stopping at a line. It is the Lowland Stair's gradient rule on a horizontal plane.
-  * **SOMEWHERE TO STAND AND LOOK, AT THE SCALE OF A CROWD.** The Look-Out Terrace is 31 wide by
-    10 deep on the spine side: a raised stone deck one course up, a balustrade along its water
-    edge broken by three flights down, and a quay at lawn level where the water meets built stone.
-    It is six courses from the spine's own verge, so it is the first thing the spine shows you.
+  * **SOMEWHERE TO STAND AND LOOK, AT THE SCALE OF A CROWD.** The Look-Out Terrace is 25 wide by
+    13 deep on the spine side, and it is a STEPPED BANK rather than a slab: a deck two courses up
+    with a balustrade and lamps, a walk one course up, and a quay at lawn level where the water
+    meets built stone - three levels, three flights, 275 cells of standing room. Flat it rendered
+    as a dark line at the lake's edge and nothing else, which is a path beside water rather than
+    somewhere a crowd gathers. It is six courses from the spine's own verge, so it is the first
+    thing the spine shows you.
   * **A CROSSING, BECAUSE THE REACH IS A ROUTE.** Nothing but the spine crosses this reach. The
     Boardwalk runs the whole 39 columns from the U173 bank to the U211 bank - landing one cell
     clear of both threshold paths, never on them - on piles, one course above the water, with a
@@ -71,15 +86,22 @@ WHAT MAKES IT A CONGREGATION POINT RATHER THAN A PUDDLE
     lake surface at Y202, so it is one body of water with a bridge over it, not two ponds.
   * **THE HERON IS FISHING.** It already stands here. The lake is built AROUND it: a shoal carries
     its two feet, and a shallow creek is cut through the shoal between its legs, so a wading bird
-    stands in the water it wades in. Its own cells are never touched - `_refuse` raises on any
-    cell the world already holds that is not lawn.
+    stands in the water it wades in. Its own cells are never touched - `put` raises on any cell
+    the world already holds that is not lawn.
+
+**AND THERE IS A SECOND, SMALLER PIECE OF WATER**, `configs/pf_water_wyrm_garden.yaml`, from this
+same generator with `terrace` and `boardwalk` switched off. Its site was decided by measurement
+and the measurement is most of the design: the Wyrm's Crossing reach's public floor is 2,583
+columns of which 195 are open - 92% of it is the Crossing itself - so there is no lake to be built
+there. What is free is the 1,394-column strip behind it, and behind a landmark is not a
+congregation point, so that piece is a quiet water garden with nothing built beside it at all.
 
 ------------------------------------------------------------------------------------------------
 RULES THIS FILE IS BUILT ON, each of which cost this repo a rebuild somewhere else
 
   * **NOTHING MAY TOUCH A STREET.** Zero of the park's nineteen placed modules touches another,
     and that single property is the difference between this park and the one Jack threw away. So
-    the world is READ, not assumed: `_refuse` walks every cell this design wants and raises naming
+    the world is READ, not assumed: `put` walks every cell this design wants and raises naming
     the cell if the world holds anything but `moss_block` or `moss_carpet` there. A paving cell,
     a lamp mast, a bench or a heron leg is an ERROR, never a silent skip - `parkrail`'s rule that
     a structural cell is never optional, applied to a whole design.
@@ -147,13 +169,26 @@ PARK_WATER = {
     "heron_feet": [[45, 198], [52, 198]],       # V, U - never water, never planted, never touched
     "heron_clear": [41, 193, 56, 205],          # v0, u0, v1, u1 - no planting inside it
 
+    # ---- what this piece of water HAS ---------------------------------------------------------
+    # A water garden is not a small lake with the same parts made smaller: nothing is built
+    # against it, so it has no quay to pin a straight shore to and no crossing to carry. Both are
+    # switches rather than a second generator, because the shore, the depth, the seal, the shingle
+    # and the light solver are the same problem at either size and a copy of them would drift.
+    "terrace": True,
+    "boardwalk": True,
+    "pool_v0": 0,               # with no terrace, the V the near shore is measured from
+
     # ---- the terrace ------------------------------------------------------------------------
-    "terrace_v": 27, "terrace_deep": 7,         # deck V27..V33, one course above the lawn
-    "terrace_u0": 183, "terrace_u1": 201,
-    "quay_deep": 4,                             # quay V34..V37 at lawn level
-    "stair_u": [186, 192, 198],                 # the three flights down through the balustrade
-    "lamp_u": [184, 189, 195, 200],
-    "bench_u": [[187, 190], [193, 196]],        # runs of seats, in the bays between the flights
+    # THREE LEVELS, NOT ONE. A single course of paving beside the water is a path; what the brief
+    # asks for is somewhere a CROWD stands and looks, and what makes that read from the far bank
+    # is a stepped bank - a deck two courses up, a walk one course up, and a quay at the water.
+    # Flat, it rendered as a dark line at the lake's edge and nothing else.
+    "terrace_v": 27,                            # V27-31 deck . V32-34 walk . V35-37 quay
+    "upper_deep": 5, "mid_deep": 3, "quay_deep": 3,
+    "terrace_u0": 180, "terrace_u1": 204,
+    "stair_u": [185, 192, 199],                 # the three flights down through the balustrade
+    "lamp_u": [182, 187, 194, 202],
+    "bench_u": [[183, 184], [188, 191], [195, 198], [201, 203]],
 
     # ---- the boardwalk ----------------------------------------------------------------------
     "walk_v": 84, "walk_wide": 3,               # deck V84..V86
@@ -233,6 +268,7 @@ def _shore(p: dict, u0: int, u1: int, quay: int) -> dict:
     """
     tu0, tu1 = int(p["terrace_u0"]), int(p["terrace_u1"])
     reach, flare = float(p["far_reach"]), float(p["flare"])
+    pinned = bool(p.get("terrace", True))
     out = {}
     for u in range(u0, u1 + 1):
         t = (u - u0) / max(1, u1 - u0)
@@ -240,12 +276,17 @@ def _shore(p: dict, u0: int, u1: int, quay: int) -> dict:
         far = quay + reach * e + e * (3.4 * math.sin(u * 0.37 + 1.2)
                                       + 2.1 * math.sin(u * 0.83 + 2.9)
                                       + 1.3 * math.sin(u * 1.61 + 0.3))
-        if tu0 <= u <= tu1:
+        if pinned and tu0 <= u <= tu1:
             near = float(quay)
-        else:
+        elif pinned:
             d = (tu0 - u) if u < tu0 else (u - tu1)
             near = (quay + flare * d + 0.05 * d * d
                     + 1.4 * math.sin(u * 0.55 + 1.1) + 0.9 * math.sin(u * 0.29 + 2.4))
+        else:
+            # NO QUAY, NO STRAIGHT RUN. With nothing built against it the near shore is a curve
+            # like the far one, closing on it at both ends of the pool.
+            near = (quay + 0.5 * reach * (1 - e)
+                    + e * (2.4 * math.sin(u * 0.41 + 2.6) + 1.5 * math.sin(u * 0.94 + 0.7)))
         out[u] = (max(float(quay), near), far)
     return out
 
@@ -350,7 +391,8 @@ def build(cfg: dict, donors=None) -> Canvas:
         return world.solid(wx(x), wy(y), wz(z))
 
     # ------------------------------------------------------------------ 1. the plan
-    quay_face = int(p["terrace_v"]) + int(p["terrace_deep"]) + int(p["quay_deep"])
+    quay_face = (int(p["terrace_v"]) + int(p["upper_deep"])
+                 + int(p["mid_deep"]) + int(p["quay_deep"])) if p.get("terrace", True)         else int(p["pool_v0"])
     edges = _shore(p, u0, u1, quay_face)
     lake = np.zeros((nv, nu), bool)
     shoal = np.zeros((nv, nu), bool)
@@ -383,6 +425,33 @@ def build(cfg: dict, donors=None) -> Canvas:
     lake[:, -1] = False
     lake[0, :] = False
     lake[-1, :] = False
+
+    # A PUDDLE IS NOT A LAKE. The shoal and the shore curves can pinch a column or two off the
+    # body between them, and a one-cell pool walled on four sides is a bucket of water in a field
+    # - enclosed, so no leak check ever complains, and plainly wrong to look at. They are dropped
+    # back to shore rather than left to be explained.
+    puddles = 0
+    lab = np.zeros((nv, nu), np.int32)
+    n_lab = 0
+    for x in range(nv):
+        for z in range(nu):
+            if not lake[x, z] or lab[x, z]:
+                continue
+            n_lab += 1
+            comp, q2 = [], deque([(x, z)])
+            lab[x, z] = n_lab
+            while q2:
+                a, b = q2.popleft()
+                comp.append((a, b))
+                for da, db in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    e, f = a + da, b + db
+                    if 0 <= e < nv and 0 <= f < nu and lake[e, f] and not lab[e, f]:
+                        lab[e, f] = n_lab
+                        q2.append((e, f))
+            if len(comp) < 12:
+                for a, b in comp:
+                    lake[a, b] = False
+                puddles += len(comp)
 
     dist = _distance_to_land(lake)
     depth = np.zeros((nv, nu), np.int8)
@@ -440,53 +509,65 @@ def build(cfg: dict, donors=None) -> Canvas:
                 strand += 1
 
     # ------------------------------------------------------------------ 5. the Look-Out Terrace
+    lamps = benches = deck = 0
     tv0 = int(p["terrace_v"])
-    tv1 = tv0 + int(p["terrace_deep"]) - 1                       # deck, one course up
-    qv0, qv1 = tv1 + 1, tv1 + int(p["quay_deep"])                # quay, at lawn level
+    up1 = tv0 + int(p["upper_deep"]) - 1                 # V27-31, two courses over the lawn
+    mid0, mid1 = up1 + 1, up1 + int(p["mid_deep"])       # V32-34, one course over the lawn
+    qv0, qv1 = mid1 + 1, mid1 + int(p["quay_deep"])      # V35-37, AT the lawn, meeting the water
     tu0, tu1 = int(p["terrace_u0"]), int(p["terrace_u1"])
     stair_u = set(int(q) for q in p["stair_u"])
-    deck = 0
 
     def _reach(u: int) -> float:
         """Frontier stone brick into Midway smooth stone, dithered across the reach - the same
         transition `parkways` runs through every reach, so the terrace belongs to both lands."""
         return min(1.0, max(0.0, (u - 169) / 46.0))
 
-    for u in range(tu0, tu1 + 1):
+    def _face(v: int, u: int, x: int, z: int, edge: bool) -> str:
+        if edge:
+            return "polished_blackstone_bricks"
+        band = (v - tv0) % 3 == 1
+        core = "smooth_stone" if hash01(x, z, seed + 9) < _reach(u) else "stone_bricks"
+        return "cracked_stone_bricks" if band and hash01(x, z, seed + 11) < 0.4 else core
+
+    for u in range(tu0, tu1 + 1) if p.get("terrace", True) else ():
         z = u - u0
-        t = _reach(u)
-        for v in range(tv0, tv1 + 1):
+        end = u in (tu0, tu1)
+        # the upper deck: SOLID two courses, so it reads as a bank from the far side of the water
+        for v in range(tv0, up1 + 1):
             x = v - v0
-            edge = v in (tv0, tv1) or u in (tu0, tu1)
-            if edge:
-                name = "polished_blackstone_bricks"
-            else:
-                band = (v - tv0) % 3 == 1
-                core = "smooth_stone" if hash01(x, z, seed + 9) < t else "stone_bricks"
-                name = "cracked_stone_bricks" if band and hash01(x, z, seed + 11) < 0.4 else core
-            if put(x, GY + 1, z, name):
+            put(x, GY + 1, z, _face(v, u, x, z, v in (tv0, up1) or end))
+            if put(x, GY + 2, z, _face(v, u, x, z, v in (tv0, up1) or end)):
                 deck += 1
-        # the approach: a stair skirt on the lawn side, ascending EAST onto the deck (+V is +x)
-        put(tv0 - 1 - v0, GY + 1, z, "stone_brick_stairs",
-            facing="east", half="bottom", shape="straight")
-        # the quay, at the water's own level, in front of the retaining course
+        for v in range(mid0, mid1 + 1):
+            x = v - v0
+            if put(x, GY + 1, z, _face(v, u, x, z, v == mid1 or end)):
+                deck += 1
         for v in range(qv0, qv1 + 1):
             x = v - v0
             if lake[x, z]:
                 continue
-            name = "polished_blackstone_bricks" if v == qv1 else "stone_bricks"
-            put(x, GY, z, name)
+            if put(x, GY, z, "polished_blackstone_bricks" if v == qv1 else _face(v, u, x, z, end)):
+                deck += 1
+        # THE APPROACH IS A FLIGHT OF TWO, because the deck is two courses up. One stair leaves a
+        # full block to climb at the top of a ramp, which is a wall with a step in front of it.
+        put(tv0 - 2 - v0, GY + 1, z, "stone_brick_stairs",
+            facing="east", half="bottom", shape="straight")
+        put(tv0 - 1 - v0, GY + 1, z, _face(tv0 - 1, u, tv0 - 1 - v0, z, True))
+        put(tv0 - 1 - v0, GY + 2, z, "stone_brick_stairs",
+            facing="east", half="bottom", shape="straight")
 
-    # the balustrade, and the three flights down through it
-    for u in range(tu0, tu1 + 1):
+    # the balustrade along the deck's water edge, and the three flights down through it
+    for u in range(tu0, tu1 + 1) if p.get("terrace", True) else ():
         z = u - u0
-        gap = any(abs(u - s) <= 1 for s in stair_u)
-        if gap:
-            # a flight down to the quay: ascending WEST, toward the deck, per the stair convention
+        if any(abs(u - s) <= 1 for s in stair_u):
+            # down to the walk, then down to the quay: each ascends WEST, toward the higher level,
+            # per the stair convention this repo pinned in `test_stairhead`
+            put(mid0 - v0, GY + 2, z, "stone_brick_stairs",
+                facing="west", half="bottom", shape="straight")
             put(qv0 - v0, GY + 1, z, "stone_brick_stairs",
                 facing="west", half="bottom", shape="straight")
         else:
-            put(tv1 - v0, GY + 2, z, "stone_brick_wall", up="true",
+            put(up1 - v0, GY + 3, z, "stone_brick_wall", up="true",
                 north="none", south="none", east="none", west="none", waterlogged="false")
 
     # benches looking at the water, and lamps on the park's own idiom
@@ -495,25 +576,24 @@ def build(cfg: dict, donors=None) -> Canvas:
     # rule keeping seats clear of the flights, the two rhythms cancelled: of ten benches EIGHT
     # were suppressed and the terrace shipped with two. A run of seats is a decision about where
     # people sit, so it is stated.
-    lamps = benches = 0
-    for a, b in p["bench_u"]:
+    for a, b in p["bench_u"] if p.get("terrace", True) else ():
         for u in range(int(a), int(b) + 1):
             z = u - u0
             if any(abs(u - s) <= 1 for s in stair_u):
                 continue
             # A SEAT'S BACKREST IS ITS TALL SIDE, so a bench facing WEST seats you looking EAST,
             # at the lake. Asserted rather than eyeballed: our renderer draws both alike.
-            if put(tv0 + 2 - v0, GY + 2, z, "oak_stairs",
+            if put(tv0 + 3 - v0, GY + 3, z, "oak_stairs",
                    facing="west", half="bottom", shape="straight"):
                 benches += 1
-            put(tv0 + 1 - v0, GY + 2, z, "oak_trapdoor", facing="east", half="top",
+            put(tv0 + 2 - v0, GY + 3, z, "oak_trapdoor", facing="east", half="top",
                 open="false", powered="false", waterlogged="false")
-    for u in p["lamp_u"]:
+    for u in p["lamp_u"] if p.get("terrace", True) else ():
         z = int(u) - u0
-        x = tv0 + 5 - v0
-        put(x, GY + 2, z, "chiseled_stone_bricks")
-        put(x, GY + 3, z, "lightning_rod", facing="up", powered="false")
-        if put(x, GY + 4, z, "lantern", hanging="false", waterlogged="false"):
+        x = tv0 + 1 - v0
+        put(x, GY + 3, z, "chiseled_stone_bricks")
+        put(x, GY + 4, z, "lightning_rod", facing="up", powered="false")
+        if put(x, GY + 5, z, "lantern", hanging="false", waterlogged="false"):
             lamps += 1
 
     # ------------------------------------------------------------------ 6. the Boardwalk
@@ -523,7 +603,8 @@ def build(cfg: dict, donors=None) -> Canvas:
     for v in range(int(p["bay_v"]), wv0):
         for u in range(int(p["bay_u0"]), int(p["bay_u1"]) + 1):
             bay.add((v, u))
-    walk = {(v, u) for v in range(wv0, wv1 + 1) for u in range(u0, u1 + 1)} | bay
+    walk = ({(v, u) for v in range(wv0, wv1 + 1) for u in range(u0, u1 + 1)} | bay
+            if p.get("boardwalk", True) else set())
     piers = 0
     for v, u in sorted(walk):
         x, z = v - v0, u - u0
@@ -556,13 +637,13 @@ def build(cfg: dict, donors=None) -> Canvas:
             if put(x, GY - k, z, "spruce_log", axis="y"):
                 piers += 1
     # benches in the bay, looking back down the lake at the terrace
-    for u in range(int(p["bay_u0"]) + 1, int(p["bay_u1"])):
+    for u in range(int(p["bay_u0"]) + 1, int(p["bay_u1"])) if p.get("boardwalk", True) else ():
         z = u - u0
         if (u - int(p["bay_u0"])) % 2:
             put(int(p["bay_v"]) + 1 - v0, GY + 2, z, "oak_stairs",
                 facing="east", half="bottom", shape="straight")
     # the two landings: a half step up off the lawn onto the deck, ascending toward the water
-    for v in range(wv0, wv1 + 1):
+    for v in range(wv0, wv1 + 1) if p.get("boardwalk", True) else ():
         x = v - v0
         put(x, GY + 1, 0, "oak_stairs", facing="south", half="bottom", shape="straight")
         put(x, GY + 1, nu - 1, "oak_stairs", facing="north", half="bottom", shape="straight")
@@ -595,7 +676,7 @@ def build(cfg: dict, donors=None) -> Canvas:
             dw = int(to_water[x, z])
             if dw > 9:
                 continue
-            odds = 0.22 if dw <= 3 else 0.10
+            odds = 0.34 if dw <= 3 else (0.20 if dw <= 6 else 0.10)
             h = hash01(x, z, seed + 23)
             if h > odds:
                 continue
@@ -646,7 +727,12 @@ def build(cfg: dict, donors=None) -> Canvas:
         raise ValueError(f"park_water: {len(refused)} cell(s) the world already holds and this "
                          f"design must not take - " + "; ".join(refused[:6]))
 
-    water_cells = int(sum(1 for x in range(nv) for z in range(nu) for k in range(int(depth[x, z]))))
+    # COUNTED OFF THE CANVAS, NOT OFF THE PLAN. Piles, weed and the deep light mounds all take
+    # cells the depth map called water, and a sidecar that reports what was intended rather than
+    # what stands is the same lie in miniature as a generator grading its own water.
+    _wname = [q.value["Name"].value.split(":")[-1] for q in c.palette]
+    water_cells = int(sum(1 for y in range(ny) for z in range(nu) for x in range(nv)
+                          if c.ids[y, z, x] and _wname[c.ids[y, z, x]] == "water"))
     c.meta = {
         "kind": "park_water",
         "land": "reach",
@@ -657,7 +743,7 @@ def build(cfg: dict, donors=None) -> Canvas:
         "water_cells": water_cells,
         "surface_cells": int(lake.sum()),
         "shallow": int((depth == 1).sum()), "mid": int((depth == 2).sum()),
-        "deep": int((depth == 3).sum()),
+        "deep": int((depth == 3).sum()), "puddles_dropped": puddles,
         "seal_cells": sealed, "strand_cells": strand, "deck_cells": deck,
         "piers": piers, "lamps": lamps, "benches": benches,
         "glow": glow, "glow_rounds": rounds,

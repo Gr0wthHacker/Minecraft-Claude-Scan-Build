@@ -1,0 +1,327 @@
+{
+  "origin": {
+    "x": 97558,
+    "y": 204,
+    "z": 80653
+  },
+  "size": {
+    "x": 12,
+    "y": 6,
+    "z": 4
+  },
+  "generated_by": "park_games",
+  "kind": "aim",
+  "building": "PF Skill Arcade",
+  "land": "midway",
+  "facing": "south",
+  "footprint": [
+    12,
+    4
+  ],
+  "courses": [
+    0,
+    5
+  ],
+  "budget": {
+    "redstone_lamp": 6
+  },
+  "refused": [],
+  "contract": "1 disc(s); a hit of strength L on a disc lights the first min(L, 6) lamps of THAT disc's bar and no other's, and only L >= 6 lights its last lamp and rings its bell",
+  "unverified": [
+    "A TARGET'S OUTPUT IS AN INPUT YOU STATE. The simulator has no entities and cannot fire an arrow at it; that a bullseye really reads 15 and a rim hit really reads 1 is the game's own behaviour."
+  ],
+  "width": 12,
+  "depth": 4,
+  "height": 6,
+  "score": 6,
+  "lanes": 1,
+  "targets": [
+    [
+      97568,
+      205,
+      80653
+    ]
+  ],
+  "target": [
+    97568,
+    205,
+    80653
+  ],
+  "bells": [
+    [
+      97560,
+      205,
+      80653
+    ]
+  ],
+  "bell": [
+    97560,
+    205,
+    80653
+  ],
+  "lamps": [
+    [
+      [
+        97566,
+        205,
+        80654
+      ],
+      [
+        97565,
+        205,
+        80654
+      ],
+      [
+        97564,
+        205,
+        80654
+      ],
+      [
+        97563,
+        205,
+        80654
+      ],
+      [
+        97562,
+        205,
+        80654
+      ],
+      [
+        97561,
+        205,
+        80654
+      ]
+    ]
+  ],
+  "signed": true,
+  "leaks": [],
+  "inputs": [
+    [
+      97568,
+      205,
+      80653
+    ]
+  ],
+  "outputs": [
+    [
+      97560,
+      205,
+      80653
+    ],
+    [
+      97566,
+      205,
+      80654
+    ],
+    [
+      97565,
+      205,
+      80654
+    ],
+    [
+      97564,
+      205,
+      80654
+    ],
+    [
+      97563,
+      205,
+      80654
+    ],
+    [
+      97562,
+      205,
+      80654
+    ],
+    [
+      97561,
+      205,
+      80654
+    ]
+  ],
+  "stock": {},
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_lamp",
+        "redstone_wire",
+        "target"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Bay one of the arcade hall: a disc on the back board, a six-lamp counter beside it and a bell on the last lamp. Aim is the input and the counter is the score.\n"
+    },
+    "metrics": {
+      "blocks": 172,
+      "materials": 9,
+      "dominant_material_share": 0.4128,
+      "light_blocks": 6,
+      "massing": {
+        "width": 12,
+        "height": 6,
+        "depth": 4,
+        "fill_ratio": 0.5972
+      },
+      "silhouette": {
+        "top": {
+          "area": 48,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 72,
+          "fill_ratio": 1.0
+        },
+        "side": {
+          "area": 16,
+          "fill_ratio": 0.6667
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.5,
+          0.3488,
+          0.1512
+        ],
+        "top_silhouette_perimeter": 32,
+        "surface_faces_per_block": 1.8605
+      },
+      "material_counts": {
+        "white_wool": 71,
+        "polished_blackstone_bricks": 48,
+        "stone_bricks": 36,
+        "redstone_lamp": 6,
+        "redstone_wire": 6,
+        "oak_wall_sign": 2,
+        "bell": 1,
+        "comparator": 1,
+        "target": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "c4c30616b2c4ab90c24194f27bb351be49fb6f8021c88c770c8d4ebe2bc4f4ed",
+    "generator_source_digest": "128e45445da1be3c5e39b8593cfce204dfee077a0b48c8f8abc377582df71f65",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 78.046259,
+    "blocks": 172,
+    "blocks_per_second": 2.2
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "ride"
+    ],
+    "blocks": 172,
+    "mechanic_families": [
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: redstone_lamp",
+    "not in the provisional skyblock-1.19 list: target"
+  ],
+  "file": "PF Game Target Wall.litematic",
+  "name": "PF Game Target Wall"
+}

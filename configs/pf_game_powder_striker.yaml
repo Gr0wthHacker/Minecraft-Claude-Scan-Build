@@ -1,0 +1,34 @@
+# PF GAME POWDER STRIKER - fitted into PF Mining Square.
+#
+# A CONSOLE, NOT A BOOTH: the machine sits in a cabinet on the room's own floor and writes
+# only into air, so it shares no cell with the building it stands in. `refused` in the
+# sidecar is the count of cells the capture would not give up - it must be zero, or the
+# machine is missing a piece and does nothing.
+name: PF Game Powder Striker
+gen: park_games
+params:
+  kind: striker
+  land: frontier
+  facing: south
+  at: [97596, 204, 80360]
+  building: PF Mining Square
+  under: out/Park Complete.litematic
+  score: 8
+  title: 'POWDER STRIKER'
+roles: [ride]
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: frontier
+  narrative: >
+    The strength game in the open square: a disc at knee height and an eight-lamp column climbing the board beside it, with the bell at the top.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+origin_lock: false
+expensive_allowance: 8
+expensive_reason: >
+  8x redstone_lamp - a light cannot be substituted by colour (the nearest cheap match is a lamp that does not light), and the lamp IS the score this game shows, so the cost is declared rather than hidden

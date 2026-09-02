@@ -1,0 +1,475 @@
+{
+  "origin": {
+    "x": 97519,
+    "y": 203,
+    "z": 80308
+  },
+  "size": {
+    "x": 134,
+    "y": 21,
+    "z": 161
+  },
+  "generated_by": "park_frontage",
+  "kind": "park_frontage",
+  "land": "frontier",
+  "pieces": [
+    {
+      "kind": "marquee",
+      "title": "TRAILHEAD GATE",
+      "signs": 2,
+      "lamps": 4,
+      "span": 5,
+      "piers": 4,
+      "frontage": [
+        -11,
+        11
+      ],
+      "height": 10,
+      "at": [
+        20,
+        19
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Trailhead Gate"
+    },
+    {
+      "kind": "marquee",
+      "title": "BOOMTOWN",
+      "signs": 2,
+      "lamps": 4,
+      "span": 7,
+      "piers": 2,
+      "frontage": [
+        -5,
+        5
+      ],
+      "height": 10,
+      "at": [
+        20,
+        70
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Boomtown Spine"
+    },
+    {
+      "kind": "marquee",
+      "title": "MINE COASTER",
+      "signs": 2,
+      "lamps": 4,
+      "span": 5,
+      "piers": 4,
+      "frontage": [
+        -11,
+        11
+      ],
+      "height": 10,
+      "at": [
+        20,
+        134
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Mine Coaster"
+    },
+    {
+      "kind": "marquee",
+      "title": "PROSPECTING",
+      "signs": 2,
+      "lamps": 0,
+      "span": 0,
+      "piers": 2,
+      "frontage": [
+        -5,
+        5
+      ],
+      "height": 10,
+      "at": [
+        70,
+        20
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Prospecting Porch"
+    },
+    {
+      "kind": "marquee",
+      "title": "MINING SQUARE",
+      "signs": 1,
+      "lamps": 0,
+      "span": 0,
+      "piers": 2,
+      "frontage": [
+        -5,
+        5
+      ],
+      "height": 10,
+      "at": [
+        80,
+        66
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Mining Square"
+    },
+    {
+      "kind": "marquee",
+      "title": "ASSAY OFFICE",
+      "signs": 2,
+      "lamps": 0,
+      "span": 0,
+      "piers": 2,
+      "frontage": [
+        -5,
+        5
+      ],
+      "height": 10,
+      "at": [
+        129,
+        62
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Assay and Prize Office"
+    },
+    {
+      "kind": "portal/entrance",
+      "title": "RIDE ENTRANCE",
+      "signs": 1,
+      "lamps": 2,
+      "height": 6,
+      "at": [
+        21,
+        116
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Mine Coaster entrance"
+    },
+    {
+      "kind": "portal/exit",
+      "title": "RIDE EXIT",
+      "signs": 1,
+      "lamps": 0,
+      "height": 6,
+      "at": [
+        21,
+        152
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Mine Coaster exit"
+    },
+    {
+      "kind": "queue",
+      "width": 7,
+      "depth": 30,
+      "legs": 9,
+      "lamps": 9,
+      "turns": [
+        [
+          6,
+          3
+        ],
+        [
+          0,
+          6
+        ],
+        [
+          6,
+          9
+        ],
+        [
+          0,
+          12
+        ],
+        [
+          6,
+          15
+        ],
+        [
+          0,
+          18
+        ],
+        [
+          6,
+          21
+        ],
+        [
+          0,
+          24
+        ],
+        [
+          6,
+          27
+        ]
+      ],
+      "contract": "a switchback line on open lawn: one entrance at the near end, one exit at the far end, every leg open at the end it turns at, a canopy over the back, and no floor of its own",
+      "entrance": {
+        "kind": "portal/entrance",
+        "title": "COASTER LINE",
+        "signs": 1,
+        "lamps": 2,
+        "height": 6
+      },
+      "exit": {
+        "kind": "portal/exit",
+        "title": "WAY OUT",
+        "signs": 1,
+        "lamps": 0,
+        "height": 6
+      },
+      "at": [
+        27,
+        161
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Mine Coaster queue"
+    },
+    {
+      "kind": "sight/water_tower",
+      "height": 20,
+      "footprint": [
+        8,
+        8
+      ],
+      "at": [
+        72,
+        161
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Ridge Water Tower"
+    },
+    {
+      "kind": "sight/ore_cart",
+      "height": 5,
+      "footprint": [
+        7,
+        5
+      ],
+      "at": [
+        92,
+        165
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Ore Road"
+    },
+    {
+      "kind": "sight/ore_cart",
+      "height": 5,
+      "footprint": [
+        7,
+        7
+      ],
+      "at": [
+        117,
+        155
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Trail Ore Cart"
+    },
+    {
+      "kind": "portal/exit",
+      "title": "STAFF ONLY",
+      "signs": 1,
+      "lamps": 0,
+      "height": 6,
+      "at": [
+        151,
+        136
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Works Yard staff gate"
+    }
+  ],
+  "piece_count": 13,
+  "signs": 19,
+  "refused_signs": [],
+  "contract": "everything in front of and between the park's attractions: a name board on every one, queues at the rides, entrance and exit thresholds, and sight pieces in the measured empty bands - none of it below the build plane, and nothing over a paved column below head height",
+  "unverified": [
+    "not placed in game: every judgement here is off the shipped litematics and the repo's own renderer, which draws a fence, a wall and an end rod as full cubes"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "rail": [
+        "rail"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The Frontier's frontage: a name board over every attraction's own spur, entrance and exit thresholds flanking the Mine Coaster's approach, a switchback queue down the coaster's east flank, a water tower and two ore-cart props in the land's empty bands, and a staff gate on the works yard. Nothing below the build plane, nothing in a walkway, no street furniture.\n"
+    },
+    "metrics": {
+      "blocks": 2406,
+      "materials": 18,
+      "dominant_material_share": 0.1509,
+      "light_blocks": 31,
+      "massing": {
+        "width": 134,
+        "height": 21,
+        "depth": 161,
+        "fill_ratio": 0.0053
+      },
+      "silhouette": {
+        "top": {
+          "area": 607,
+          "fill_ratio": 0.0281
+        },
+        "front": {
+          "area": 344,
+          "fill_ratio": 0.1222
+        },
+        "side": {
+          "area": 689,
+          "fill_ratio": 0.2038
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.6683,
+          0.276,
+          0.0557
+        ],
+        "top_silhouette_perimeter": 1054,
+        "surface_faces_per_block": 2.2535
+      },
+      "material_counts": {
+        "spruce_planks": 363,
+        "stone_bricks": 295,
+        "stripped_spruce_log": 258,
+        "red_wool": 197,
+        "dark_oak_stairs": 196,
+        "spruce_log": 178,
+        "polished_blackstone_bricks": 163,
+        "dark_oak_planks": 159,
+        "spruce_fence": 150,
+        "smooth_stone": 145,
+        "stone_brick_stairs": 133,
+        "cracked_stone_bricks": 60
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "10cb354aedfb4b08151ae90c2356d7f26174cbd18fba1dc6e57f20670a3d163e",
+    "generator_source_digest": "cdc3979fd61e2932d288e594316947fd861196b38cf51e1445f5bb59fe622cd9",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 114.668592,
+    "blocks": 2406,
+    "blocks_per_second": 20.98
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 2406,
+    "mechanic_families": [
+      "light",
+      "rail",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: dark_oak_planks",
+    "not in the provisional skyblock-1.19 list: dark_oak_stairs",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Front Frontier.litematic",
+  "name": "PF Front Frontier"
+}

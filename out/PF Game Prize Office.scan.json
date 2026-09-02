@@ -1,0 +1,341 @@
+{
+  "origin": {
+    "x": 97640,
+    "y": 204,
+    "z": 80356
+  },
+  "size": {
+    "x": 5,
+    "y": 6,
+    "z": 16
+  },
+  "generated_by": "park_games",
+  "kind": "counter",
+  "building": "PF Assay and Prize Office",
+  "land": "frontier",
+  "facing": "west",
+  "footprint": [
+    16,
+    5
+  ],
+  "courses": [
+    0,
+    5
+  ],
+  "budget": {
+    "redstone_lamp": 4
+  },
+  "refused": [],
+  "contract": "each window's lamp is lit exactly while its own barrel holds something and dark when that barrel is empty, and no window answers for another; the call button rings the counter bell",
+  "unverified": [
+    "WHAT IS IN A BARREL IS AN INPUT YOU STATE. The simulator has no entities and cannot stock or empty one."
+  ],
+  "width": 16,
+  "depth": 5,
+  "height": 6,
+  "lanes": 4,
+  "barrels": [
+    [
+      97640,
+      205,
+      80357
+    ],
+    [
+      97640,
+      205,
+      80360
+    ],
+    [
+      97640,
+      205,
+      80363
+    ],
+    [
+      97640,
+      205,
+      80366
+    ]
+  ],
+  "lamps": [
+    [
+      97642,
+      206,
+      80357
+    ],
+    [
+      97642,
+      206,
+      80360
+    ],
+    [
+      97642,
+      206,
+      80363
+    ],
+    [
+      97642,
+      206,
+      80366
+    ]
+  ],
+  "bell": [
+    97641,
+    205,
+    80370
+  ],
+  "button": [
+    97642,
+    207,
+    80370
+  ],
+  "signed": true,
+  "leaks": [],
+  "inputs": [
+    [
+      97640,
+      205,
+      80357
+    ],
+    [
+      97640,
+      205,
+      80360
+    ],
+    [
+      97640,
+      205,
+      80363
+    ],
+    [
+      97640,
+      205,
+      80366
+    ],
+    [
+      97642,
+      207,
+      80370
+    ]
+  ],
+  "outputs": [
+    [
+      97642,
+      206,
+      80357
+    ],
+    [
+      97642,
+      206,
+      80360
+    ],
+    [
+      97642,
+      206,
+      80363
+    ],
+    [
+      97642,
+      206,
+      80366
+    ],
+    [
+      97641,
+      205,
+      80370
+    ]
+  ],
+  "stock": {
+    "each barrel": "the prize that window redeems"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_lamp",
+        "redstone_wire",
+        "stone_button"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "Four prize windows set into the counter's front, each with a lamp in the counter top that is lit exactly when that window has something in it, and a call bell.\n"
+    },
+    "metrics": {
+      "blocks": 273,
+      "materials": 11,
+      "dominant_material_share": 0.4103,
+      "light_blocks": 4,
+      "massing": {
+        "width": 5,
+        "height": 6,
+        "depth": 16,
+        "fill_ratio": 0.5687
+      },
+      "silhouette": {
+        "top": {
+          "area": 80,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 20,
+          "fill_ratio": 0.6667
+        },
+        "side": {
+          "area": 96,
+          "fill_ratio": 1.0
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.5201,
+          0.3553,
+          0.1245
+        ],
+        "top_silhouette_perimeter": 42,
+        "surface_faces_per_block": 1.7216
+      },
+      "material_counts": {
+        "spruce_planks": 112,
+        "polished_blackstone_bricks": 75,
+        "stone_bricks": 64,
+        "redstone_wire": 5,
+        "barrel": 4,
+        "comparator": 4,
+        "redstone_lamp": 4,
+        "spruce_wall_sign": 2,
+        "bell": 1,
+        "orange_wool": 1,
+        "stone_button": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "03ed95eb8943b89cd7ffc1ee2d65349efdcd9470b9c2512b17f4cc24d9172926",
+    "generator_source_digest": "9846802db8f7ecf0550a5d9b43ea42da37f92ca337158fa844ad1edc583b2a01",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 103.62666,
+    "blocks": 273,
+    "blocks_per_second": 2.63
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "ride"
+    ],
+    "blocks": 273,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: redstone_lamp"
+  ],
+  "file": "PF Game Prize Office.litematic",
+  "name": "PF Game Prize Office"
+}

@@ -139,10 +139,10 @@ params:
       mode: exit
       title: STAFF ONLY
       lines: ["works yard", "", "no admittance"]
-roles: [dressing]
+roles: [construction]
 design:
-  purpose: dressing
-  hierarchy: secondary
+  purpose: path
+  hierarchy: supporting
   style: frontier
   narrative: >
     The Frontier's frontage: a name board over every attraction's own spur, entrance and exit

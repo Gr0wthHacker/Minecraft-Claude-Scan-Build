@@ -18,6 +18,7 @@ class _Wrap:
 
 
 from . import frontier_builds, midway_builds, prismworks_builds  # noqa: E402
+from . import park_water  # noqa: E402
 
 
 GENERATORS = {
@@ -29,6 +30,8 @@ GENERATORS = {
     "frontier_builds": frontier_builds,
     "midwaybuild": midway_builds,
     "prismworks_builds": prismworks_builds,
+    # the lake and the water garden - see mcbuild/gen/park_water.py
+    "park_water": park_water,
     "compose": _Compose(),
     "setpiece": setpiece,
     "prismworks": _Wrap(prismworks.build, prismworks.PRISMWORKS),

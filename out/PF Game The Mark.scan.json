@@ -1,0 +1,261 @@
+{
+  "origin": {
+    "x": 97559,
+    "y": 204,
+    "z": 80660
+  },
+  "size": {
+    "x": 11,
+    "y": 7,
+    "z": 9
+  },
+  "generated_by": "park_games",
+  "kind": "mark",
+  "building": "PF Skill Arcade",
+  "land": "midway",
+  "facing": "south",
+  "footprint": [
+    11,
+    9
+  ],
+  "courses": [
+    0,
+    6
+  ],
+  "budget": {
+    "redstone_lamp": 1
+  },
+  "refused": [],
+  "contract": "the lamp and the bell come on only while the scale reads 4 to 4; below is dark and OVER is dark again",
+  "unverified": [
+    "A PLATE'S LEVEL IS AN INPUT YOU STATE. The simulator has no entities and cannot put an item on a scale; that N items really read N is the game's own behaviour."
+  ],
+  "width": 11,
+  "depth": 9,
+  "height": 7,
+  "mark": 4,
+  "band": 1,
+  "plate": [
+    97568,
+    206,
+    80667
+  ],
+  "lamp": [
+    97564,
+    207,
+    80663
+  ],
+  "bell": [
+    97563,
+    206,
+    80663
+  ],
+  "signed": true,
+  "leaks": [],
+  "inputs": [
+    [
+      97568,
+      206,
+      80667
+    ]
+  ],
+  "outputs": [
+    [
+      97564,
+      207,
+      80663
+    ],
+    [
+      97563,
+      206,
+      80663
+    ]
+  ],
+  "stock": {},
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "light_weighted_pressure_plate",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Bay two: a scale in the counter top that pays for stopping at exactly four, and goes dark again if you put a fifth on it.\n"
+    },
+    "metrics": {
+      "blocks": 389,
+      "materials": 10,
+      "dominant_material_share": 0.4524,
+      "light_blocks": 1,
+      "massing": {
+        "width": 11,
+        "height": 7,
+        "depth": 9,
+        "fill_ratio": 0.5613
+      },
+      "silhouette": {
+        "top": {
+          "area": 99,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 77,
+          "fill_ratio": 1.0
+        },
+        "side": {
+          "area": 40,
+          "fill_ratio": 0.6349
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.6581,
+          0.2802,
+          0.0617
+        ],
+        "top_silhouette_perimeter": 40,
+        "surface_faces_per_block": 1.4499
+      },
+      "material_counts": {
+        "stone_bricks": 176,
+        "white_wool": 100,
+        "polished_blackstone_bricks": 97,
+        "redstone_wire": 8,
+        "oak_wall_sign": 2,
+        "repeater": 2,
+        "bell": 1,
+        "comparator": 1,
+        "light_weighted_pressure_plate": 1,
+        "redstone_lamp": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "512c27087cad60c297df809e91e03e2b86f79016ef4843bd254fb7e7405916f8",
+    "generator_source_digest": "128e45445da1be3c5e39b8593cfce204dfee077a0b48c8f8abc377582df71f65",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 80.090279,
+    "blocks": 389,
+    "blocks_per_second": 4.86
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "ride"
+    ],
+    "blocks": 389,
+    "mechanic_families": [
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: light_weighted_pressure_plate",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: redstone_lamp"
+  ],
+  "file": "PF Game The Mark.litematic",
+  "name": "PF Game The Mark"
+}

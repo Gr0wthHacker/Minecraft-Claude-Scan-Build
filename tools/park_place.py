@@ -82,6 +82,38 @@ def plane_of(model, role: str = "") -> int:
     return next((int(y) for y, n in enumerate(per) if n >= 0.60 * cols), 0)
 
 
+#: DESIGNS THAT ARE NOT LOT MODULES. A lake, a water garden, a set of frontage pieces or a summit
+#: is not something `PLACEMENT` has a lot for - it sits in the space BETWEEN lots, or hangs off a
+#: module that already stands. Each carries its own world origin in its own sidecar, so it is
+#: placed from that rather than from a table, and the only thing this list decides is whether it
+#: is placed at all.
+#: ...and only the ones whose STREAM HAS LANDED. Four generators are written in parallel and a
+#: half-finished design on disk is indistinguishable from a finished one - it loads, it audits, it
+#: has an origin. Placing one would put a stream's working state into the shipped park and, worse,
+#: make the next `--ship` look like a regression when it changed. A name goes in here when its
+#: agent reports, not when its file appears.
+EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden"}
+
+
+def extras() -> list:
+    """(name, V, U, model, y offset) for every landed design that carries its own origin."""
+    out = []
+    for f in sorted((ROOT / "out").glob("PF *.litematic")):
+        side = f.with_suffix(".scan.json")
+        if not side.exists():
+            continue
+        meta = json.loads(side.read_text(encoding="utf-8"))
+        o = meta.get("origin") or {}
+        if not o or meta.get("kind") in (None, "park"):
+            continue
+        # a lot module is placed from PLACEMENT and must not also be placed from here
+        if f.stem[3:] in PLACEMENT or f.stem not in EXTRAS_READY:
+            continue
+        out.append((f.stem, int(o["x"]) - ANCHOR[0], int(o["z"]) - ANCHOR[2],
+                    schem.load(str(f)), -(int(o["y"]) - ANCHOR[1] - 1)))
+    return out
+
+
 def lots() -> dict:
     spec = json.loads((ROOT / "park_final.world.json").read_text(encoding="utf-8"))
     return ({m["name"]: m.get("footprint") for m in spec["modules"]},
@@ -119,6 +151,7 @@ def modules(report=False) -> list:
                     print(f"  cropped {name}: {before - int(m.solid().sum())} cells "
                           f"outside its {deep}x{wide} lot")
         out.append((name, int(v), int(u), m, plane_of(m, roles.get(name, ""))))
+    out.extend(extras())
     return out
 
 

@@ -1,0 +1,52 @@
+# THE PARK'S FRONT DOOR - spawn, forecourt, queue, and the gate you pay grass at.
+#
+# The compound is U270..U330 and not one cell wider, and that is a MEASUREMENT off
+# `out/Park Ways.litematic` rather than a choice: V0-V5 is lawn across exactly that run, and
+# U251-269 and U332-350 are the round plazas at the U260 and U341 avenues - streets. The apron's
+# own lamp masts stand at U269, U300 and U332; the one at U300 is on the axis and is NOT moved,
+# it stands inside the ceremonial portico as the gate's own lamp. Every cell `Park Ways` owns is
+# refused by the generator and counted in `ground_layer_refused`.
+#
+# THE SPAWN is V1/U300 = world X97501 Y203 Z80600, yaw -90 (facing +V, world east), looking down
+# the park's axis: the barred ceremonial arch three cells ahead, the carousel and the Sky Lift
+# beyond it, and the railway viaduct at V172-186 behind those.
+#
+# THE PRICE is 23 grass blocks and it is arithmetic, not taste: a comparator reads a five-slot
+# hopper as floor(14*n/320)+1, so 22 blocks reads 1 and 23 reads 2. The gate is a threshold at
+# level 2. `park_entrance.price_blocks` is the one place that is written down.
+name: PF Entry Gate
+gen: park_entrance
+params:
+  kind: gate
+  land: midway
+  at: [0, 270]          # V0, U270
+  size: [6, 61]         # V0..V5 by U270..U330
+  axis: 30              # U300 - the park's own centre line
+  lanes: [22, 38]       # the two turnstile lanes, U292 and U308
+  arch: [26, 34]        # the ceremonial portico, U296..U304, barred at V5
+  towers: [6, 54]       # U276 and U324
+  spawn: [1, 30]        # V1, U300
+  price_level: 2        # -> 23 grass blocks
+  wall_h: 5
+  canopy_y: 4
+  ways: out/Park Ways.litematic
+  title: THE MIDWAY
+roles: [gate]
+design:
+  purpose: gate
+  hierarchy: landmark
+  style: midway
+  narrative: >
+    The arrival compound at the centre island's void edge: a sea wall over the drop, a forecourt
+    with the spawn on the park's own axis, a stanchion queue under a lit oak canopy, and a
+    61-wide gate building whose ceremonial arch is barred so the park can be seen and not
+    entered. Two turnstile lanes carry iron doors that open when 23 grass blocks - this server's
+    currency - go into the till beside them. With the doors shut the compound is sealed: the
+    void closes it in front, flank walls close it sideways, and the gate closes it behind.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+origin_lock: false

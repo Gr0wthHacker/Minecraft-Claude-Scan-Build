@@ -1,0 +1,90 @@
+# PF VANTAGE MIDWAY BELVEDERE - the Midway's high point, over the shoulder of the Circus.
+#
+# 15 x 15 at V139 / U228, in the exit-and-observation band directly behind the Midway Circus.
+# Three flights of twelve treads; the deck's walking surface is 36 courses over the lawn at
+# world Y239.
+#
+# ------------------------------------------------------------------------------------------
+# THE SITE WAS MEASURED. Every column of V139-153 / U228-242 is free lawn, and the Circus ring
+# road's outer edge is at V138 - so the tower's west door opens straight onto the roundabout's
+# own paving without a single cell of the design touching it. That is the whole reason for this
+# lot rather than the much larger free ground behind the Sky Lift: a vantage a visitor has to
+# cross a lawn to find is a vantage nobody finds.
+#
+# ------------------------------------------------------------------------------------------
+# WHAT YOU SEE FROM IT
+#
+# The deck looks WEST over the Circus. The Aeronaut balloon is moored on the island fifteen
+# blocks in front of it and the deck is level with its envelope rather than over it, which is
+# the height a moored balloon is worth looking at from; past it are the Arrival Court and the
+# Snack Window, the Midway's spine plaza, and the whole west half of the park. Turn north and
+# the Sky Lift's wheel stands 76 courses up at U265-336, forty courses higher than the deck and
+# close enough to fill the view.
+#
+# 36 courses is deliberately the LOWEST of the three vantages. The Midway is the park's bright
+# middle and its two skyline objects - the wheel and the balloon - are the things a visitor is
+# meant to look AT; a tower here that competed with either would be the third loud thing in a
+# view that already has two.
+#
+# ------------------------------------------------------------------------------------------
+# THE CLIMB
+#
+#   ground   in through the west door off the Circus ring, under a lit jamb
+#   S1  y12  a room, a bench, a lantern, barred window slots on all four faces
+#   S2  y24  THE LOGGIA: the whole west face open onto the Circus and the balloon
+#   S3  y36  the deck: an open pavilion - eight posts, a red-and-oak striped canopy, and no
+#            walls at all, which is what a fairground belvedere is
+name: PF Vantage Midway Belvedere
+gen: park_vantage
+params:
+  kind: tower
+  land: midway
+  at: [139, 228]
+  size: [15, 15]
+  rise: 12
+  storeys: 3
+  door: west            # onto the Circus ring road at V138
+  stair_from: east      # so the level-2 flight is on the EAST wall and the WEST face is free
+                        # to be opened as a loggia - see _check_loggia
+  crown: pavilion
+  look: west
+  loggia:
+    - {level: 2, face: west}
+  seed: 3
+roles: [building]
+anchors:
+  - {name: street_front, kind: visual_front, position: [0, 1, 7], facing: west, width: 3}
+  - {name: entry, kind: entry, position: [0, 1, 7], facing: west, width: 3}
+  - {name: summit, kind: deck, position: [7, 36, 7], facing: up, width: 13}
+design:
+  purpose: landmark
+  hierarchy: supporting
+  style: midway
+  focal_face: west
+  narrative: >
+    A stone-brick belvedere with white pilasters at every fourth cell, four courses of barred
+    window at every storey, a red crown band, an open loggia on the west face looking onto the
+    Circus, and a deck thirty-six courses over the lawn under an open striped canopy carried on
+    eight posts.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [climb the stair, stop at the loggia, stand under the canopy]
+  outcome: >
+    The Midway's only high place, and the one spot in the park level with the Aeronaut balloon's
+    envelope: the Circus reads as a composition from here rather than as a road, and the Sky
+    Lift's wheel fills the northern view.
+  reset: >
+    Nothing is consumed and no state is held. The stair is walkable in both directions.
+  service_access: >
+    None is needed and none is claimed: there is no plant and no mechanism in this geometry.
+  bypass: >
+    Entered from the Circus ring and walked past entirely without entering.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false
