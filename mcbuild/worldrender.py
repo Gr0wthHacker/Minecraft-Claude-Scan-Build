@@ -32,21 +32,32 @@ from .world import SparseWorld
 #: Per-land infrastructure palette. Cheap tier only, and each land's own stone/timber - the
 #: transition a walker sees at U 170, 215, 385 and 430 is these tables changing, nothing more.
 PALETTES = {
-    "frontier": {"deck": "minecraft:stone_slab", "kerb": "minecraft:cobblestone",
-                 "platform": "minecraft:cobblestone", "rim": "minecraft:stone_bricks",
-                 "post": "minecraft:spruce_fence", "light": "minecraft:lantern"},
-    "frontier_reach": {"deck": "minecraft:stone_slab", "kerb": "minecraft:cobblestone",
-                       "platform": "minecraft:stone_bricks", "rim": "minecraft:stone_bricks",
-                       "post": "minecraft:spruce_fence", "light": "minecraft:lantern"},
-    "midway": {"deck": "minecraft:smooth_stone_slab", "kerb": "minecraft:stone_bricks",
-               "platform": "minecraft:stone", "rim": "minecraft:stone_bricks",
-               "post": "minecraft:oak_fence", "light": "minecraft:lantern"},
-    "prism_reach": {"deck": "minecraft:stone_slab", "kerb": "minecraft:deepslate_bricks",
-                    "platform": "minecraft:stone_bricks", "rim": "minecraft:deepslate_bricks",
-                    "post": "minecraft:cobblestone_wall", "light": "minecraft:soul_lantern"},
-    "prismworks": {"deck": "minecraft:stone_slab", "kerb": "minecraft:deepslate_bricks",
-                   "platform": "minecraft:stone_bricks", "rim": "minecraft:deepslate_bricks",
-                   "post": "minecraft:cobblestone_wall", "light": "minecraft:soul_lantern"},
+    # NO COBBLESTONE ANYWHERE. It was the single most-used block in the park (44,027 cells, 17.7%)
+    # and 9,002 of those were this table - a raw quarry block used as the finished walking surface
+    # and edge of a theme park. Jack's call: deepslate, smooth stone, brick.
+    #
+    # PLATFORM IS UNDER THE DECK AND NOBODY SEES IT, so it is cheap `stone_bricks` in every land
+    # and the ok-tier budget is spent on the surfaces that are actually looked at.
+    "frontier": {"deck": "minecraft:stone_brick_slab", "kerb": "minecraft:polished_blackstone_bricks",
+                 "platform": "minecraft:stone_bricks", "rim": "minecraft:deepslate_bricks",
+                 "batter": "minecraft:cracked_stone_bricks", "post": "minecraft:spruce_fence",
+                 "light": "minecraft:lantern"},
+    "frontier_reach": {"deck": "minecraft:stone_brick_slab", "kerb": "minecraft:polished_blackstone_bricks",
+                       "platform": "minecraft:stone_bricks", "rim": "minecraft:deepslate_bricks",
+                       "batter": "minecraft:cracked_stone_bricks", "post": "minecraft:spruce_fence",
+                       "light": "minecraft:lantern"},
+    "midway": {"deck": "minecraft:smooth_stone_slab", "kerb": "minecraft:polished_blackstone_bricks",
+               "platform": "minecraft:stone_bricks", "rim": "minecraft:smooth_stone",
+               "batter": "minecraft:stone_bricks", "post": "minecraft:oak_fence",
+               "light": "minecraft:lantern"},
+    "prism_reach": {"deck": "minecraft:polished_deepslate_slab", "kerb": "minecraft:stone_bricks",
+                    "platform": "minecraft:stone_bricks", "rim": "minecraft:deepslate_tiles",
+                    "batter": "minecraft:polished_blackstone_bricks",
+                    "post": "minecraft:polished_blackstone_brick_wall", "light": "minecraft:soul_lantern"},
+    "prismworks": {"deck": "minecraft:polished_deepslate_slab", "kerb": "minecraft:stone_bricks",
+                   "platform": "minecraft:stone_bricks", "rim": "minecraft:deepslate_tiles",
+                   "batter": "minecraft:polished_blackstone_bricks",
+                   "post": "minecraft:polished_blackstone_brick_wall", "light": "minecraft:soul_lantern"},
 }
 DEFAULT = PALETTES["midway"]
 
@@ -58,6 +69,17 @@ LIGHT_EVERY = 9
 #: safety, sightline protection". Only its inner face is built; the rest is reserve.
 RIM_FROM = 170
 RIM_EVERY = 4
+#: how far the batter falls away toward the void, and how often it steps down
+RIM_BAND, RIM_STEP, RIM_BUTTRESS = 29, 4, 12
+#: A REACH IS A CAUSEWAY, so its shoulder starts far further in than a land's does. A land uses
+#: its depth for programme and only its last thirty for edge; a reach carries one way through and
+#: one identity beat, and everything outboard of those is structure falling away to the void -
+#: which is what `isthmus.py` already builds on the island. Measured before this: the two reaches
+#: were 35% and 20% covered with eighty blocks of dead depth between the setpiece and the rim.
+REACH_RIM_FROM = 96
+REACHES = {"frontier_reach", "prism_reach"}
+#: the park's own outer public edge, inboard of the V12 spine
+EDGE_FROM, EDGE_TO = 4, 9
 
 
 def _region_of(plan: dict, z: int) -> str:
@@ -144,15 +166,44 @@ def infrastructure(plan: dict) -> SparseWorld:
                         world.put(ex, y + 1, ez, pal["post"])
                         world.put(ex, y + 2, ez, pal["light"])
 
-    # RIM: the inner face of the protected band. Void safety and a retaining edge, at an
-    # interval - a solid 600-block wall would be a wall around the park, which is not what
-    # "support, terrain, void safety, sightline protection" asks for.
+    # THE PROTECTED RIM IS A BAND, NOT A LINE. V170-199 is "support, terrain, void safety,
+    # sightline protection" - thirty of every land's two hundred depth, and it was a single course
+    # at V170, so fifteen percent of the park was measured as empty in every land. What belongs
+    # there is not buildings: it is the edge the park stands on. A stepped batter falls away from
+    # the inner face toward the void, buttressed at an interval, with a coping and a rail on the
+    # face a guest can actually see. That is terrain and structure, and it leaves the void view.
     x0, z0, x1, z1 = plan["site"]["bounds"]
-    if x1 >= RIM_FROM:
-        for z in range(z0, z1 + 1):
-            pal = palette.get(_region_of(plan, z), DEFAULT)
-            world.put(RIM_FROM, plane, z, pal["rim"])
-            world.put(RIM_FROM, plane - 1, z, pal["platform"])
-            if z % RIM_EVERY == 0:
-                world.put(RIM_FROM, plane + 1, z, pal["post"])
+    for z in range(z0, z1 + 1):
+        region = _region_of(plan, z)
+        pal = palette.get(region, DEFAULT)
+        rim_from = REACH_RIM_FROM if region in REACHES else RIM_FROM
+        world.put(rim_from, plane, z, pal["rim"])
+        world.put(rim_from, plane - 1, z, pal["platform"])
+        if z % RIM_EVERY == 0:
+            world.put(rim_from, plane + 1, z, pal["post"])
+        # the batter: each step out toward the void drops a course, so the rim reads as the edge
+        # of something built rather than as a wall standing on nothing.
+        for step in range(1, x1 - rim_from + 1):
+            x = rim_from + step
+            if x > x1:
+                break
+            drop = step // RIM_STEP
+            world.put(x, plane - drop, z, pal["batter"])
+            # buttresses at an interval, carried down far enough to read as support from below
+            if z % RIM_BUTTRESS == 0 and step % 3 == 0:
+                for y in range(plane - drop - 1, plane - drop - 4, -1):
+                    world.put(x, y, z, pal["rim"])
+
+    # AND THE OUTER THRESHOLD EDGE. V0-9 was empty in every land too: the spine runs at V12 and
+    # nothing lay between it and the park's own public boundary, so the park had no front edge at
+    # all. A coping course and a rail is what a threshold looks like from outside it.
+    for z in range(z0, z1 + 1):
+        pal = palette.get(_region_of(plan, z), DEFAULT)
+        for x in range(EDGE_FROM, EDGE_TO + 1):
+            world.put(x, plane - 1, z, pal["platform"])
+            world.put(x, plane, z, pal["deck"] if x >= EDGE_TO - 2 else pal["batter"])
+        world.put(EDGE_FROM, plane + 1, z, pal["kerb"])
+        if z % RIM_EVERY == 0:
+            world.put(EDGE_FROM, plane + 2, z, pal["post"])
+
     return world

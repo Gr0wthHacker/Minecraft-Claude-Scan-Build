@@ -30,10 +30,16 @@ def test_the_shared_infrastructure_spends_its_declared_programme():
     """PARK_VISUAL_AND_BUDGET_SPEC gives 42,000 blocks to "shared paths, retaining edges,
     service, lighting, safety". A deck-only render was 17,501 - a floating ribbon with no edge,
     nothing under it and no light, which is exactly the "objects on void" that line exists to
-    prevent."""
+    prevent.
+
+    The ceiling is a FLOOR now, by Jack's call that over budget is fine when it is meaningful.
+    The rim went from one course at V170 to the band the plan actually reserves (V170-199 is
+    "support, terrain, void safety"), the park gained its own outer edge at V0-9, and the two
+    reaches got the wide structural shoulder a causeway has - which took the five lands from
+    39/35/48/20/32% covered to 67/85/73/78/63%. Thin is still the failure this pins."""
     world = worldrender.infrastructure(_park_plan())
     total = sum(len(chunk) for chunk in world.chunks.values())
-    assert 36_000 <= total <= 48_000, total
+    assert total >= 36_000, total
 
 
 def test_every_infrastructure_block_is_cheap_1_19_and_not_currency():
@@ -98,3 +104,37 @@ def test_the_protected_rim_is_a_retaining_edge_not_a_wall_round_the_park():
     assert world.get(worldrender.RIM_FROM, plane, 300) != "minecraft:air"
     for x in (worldrender.RIM_FROM + 6, 185, 198):
         assert world.get(x, plane, 300) == "minecraft:air", x
+
+
+def test_the_infrastructure_uses_no_cobblestone_and_no_raw_rubble():
+    """Cobblestone was the single most-used block in the park - 44,027 cells, 17.7% - and 9,002
+    of them were this table: a raw quarry block used as the finished walking surface and edge of
+    a theme park. Jack's call is deepslate, smooth stone and brick. A finished surface is the
+    point; this is not a tier question, since cobblestone is perfectly cheap."""
+    RAW = {"cobblestone", "mossy_cobblestone", "cobbled_deepslate", "gravel", "dirt",
+           "coarse_dirt", "andesite", "diorite", "granite"}
+    world = worldrender.infrastructure(_park_plan())
+    used = {state.split("[")[0].replace("minecraft:", "") for _pos, state in _cells(world)}
+    assert not (used & RAW), sorted(used & RAW)
+
+
+def test_every_land_is_programmed_to_its_full_depth():
+    """"Make sure all areas are properly filled/used." A land is 200 deep, and V0-9 and V170-199
+    were empty in every one of them - a quarter of the envelope measured as unused, because the
+    spine starts at V12 and the rim was a single course. A reach was worse: 80 blocks of dead
+    depth between its set piece and its edge."""
+    import json
+    from pathlib import Path
+    from mcbuild import scan
+    plan = _park_plan()
+    world = worldrender.infrastructure(plan)
+    cols = {(x, z) for (x, _y, z), _s in _cells(world)}
+    for region in plan["regions"]:
+        x0, z0, x1, z1 = region["bounds"]
+        for v in range(x0, x1 + 1, 10):
+            band = any(v <= x < v + 10 and z0 <= z <= z1 for x, z in cols)
+            reach = region["name"] in worldrender.REACHES
+            # a land's own programme fills its middle; infrastructure must cover the edges
+            edge = v < 20 or v >= worldrender.RIM_FROM or (reach and v >= worldrender.REACH_RIM_FROM)
+            if edge:
+                assert band, f"{region['name']} V{v}-{v+9} has no infrastructure at all"

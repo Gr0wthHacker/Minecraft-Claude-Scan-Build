@@ -330,12 +330,12 @@ THEMES = {
             {"name": "Mine Coaster", "gen": "coaster", "kind": "coaster",
              "size": [47, 38, 47], "orient": False, "anchor": "edge", "side": "north",
              "district": "Mining Square",
-             # **NO RIDGE IN A PACKED ZONE.** `coaster` grows the Mine Ridge by default now - the
-             # ledger's F4 setpiece is terrain the ride threads, and at the shipped standalone
-             # scale that is 45,000 blocks of quarry. This module is a 47x53 bay in a street grid
-             # with a spine and frontage walks either side of it, and the terrain promptly stood
-             # in 36 of them: `evidence.safety` reported the headroom blocked on a guest route,
-             # which is exactly the right complaint. A quarry needs its own lot, not a bay.
+             # **NO RIDGE IN A PACKED ZONE**, stated rather than inherited from the default.
+             # `coaster` can grow the ledger's Mine Ridge - 45,000 blocks of quarry the ride
+             # threads - and this module is a 47x53 bay in a street grid with a spine and
+             # frontage walks either side of it. Grown here the terrain stood in 36 of them and
+             # `evidence.safety` reported the headroom blocked on a guest route, which is
+             # exactly the right complaint. A quarry needs its own lot, not a bay.
              "params": {"land": "frontier", "span": 44, "top": 34, "facing": "south",
                         "ridge": False}},
             # **THE LOG FLUME IS BACK - `fluids.carries` returns True for it now.**

@@ -137,7 +137,13 @@ COASTER = {
     "top": 45,                  # the lift hill's crest, in courses over the station
 
     # --- the mine ridge (see the block comment above `_ridge_field`) -----
-    "ridge": True,              # the terrain the ride is a route THROUGH
+    # **OFF BY DEFAULT, AND THAT IS NOT TIMIDITY.** A ridge is a SETPIECE decision: the F4 lot is
+    # 111 by 71 of its own and the ledger buys 45,000 blocks of quarry to put in it. Every other
+    # caller of this generator is a 47x53 bay in a street grid - `planner.py`'s frontier zone, and
+    # every park plan already emitted - and terrain grown in one of those stands in the guest
+    # route beside it: `evidence.safety` reported 36 blocked cells on park_left the moment the
+    # default was True, which is exactly the right complaint. The shipped setpiece opts IN.
+    "ridge": False,             # the terrain the ride is a route THROUGH
     "ridge_crust": 3,           # courses of solid skin over the hollow interior
     "ridge_scale": 0.82,        # multiplies every lobe radius - THE ONE BUDGET DIAL
     "terrace": 5,               # the bench height the mass is quantised to
@@ -816,12 +822,12 @@ def _ridge_mat(pal, i, d, h, top, seed):
     r = hash01(i, d, h, seed)
     if h >= top:                                # the walking surface of a bench
         if r < 0.16:
-            return "gravel"
+            return "gravel"   # a real scree apron, kept small
         if r < 0.27:
             return "moss_block"
         if r < 0.33:
             return "mossy_cobblestone"
-        return "stone" if h > 24 else "cobblestone"
+        return "stone" if h > 24 else "cracked_stone_bricks"
     # ORE SEAMS: restricted, and on a seam rather than scattered - one course of one band, so it
     # reads as a stratum and not as measles. `black_wool` is the coal colour the ledger asks for
     # in wool; `coal_ore` is the same tone and cheap, so both, sparsely.
@@ -830,9 +836,9 @@ def _ridge_mat(pal, i, d, h, top, seed):
     if h % 17 == 9 and r < 0.05:
         return "brown_wool"
     if h < 7:
-        return "mossy_cobblestone" if r < 0.35 else "cobblestone"
+        return "mossy_stone_bricks" if r < 0.35 else "cracked_stone_bricks"
     if h < 20:
-        return "cobblestone" if r < 0.55 else "stone"
+        return "cracked_stone_bricks" if r < 0.55 else "stone"
     if h < 42:
         return "stone" if r < 0.72 else "andesite"
     if h < 66:
@@ -906,7 +912,7 @@ def _ridge(w, f, pal, p, seed, si, sd, m, t, pts, hs, keep_out):
     # horizontal bench, which at arm's length is a staircase of grey cubes. A stair at the FOOT of
     # each riser, leaning into it, is scree at the bottom of a cut face - the one detail that gives
     # a quarry bench a profile - and it is the same operation `shell.py` performs on a wall.
-    stair = "cobblestone_stairs"
+    stair = "stone_brick_stairs"
     for (i, d), top in field.items():
         for (a, b) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
             low = field.get((i + a, d + b))

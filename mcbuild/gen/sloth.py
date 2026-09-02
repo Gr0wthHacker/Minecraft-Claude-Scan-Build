@@ -11,11 +11,11 @@ Cheap: brown / light-grey / white / black wool, spruce logs + fences, moss.
 
 TWO BUILDS LIVE HERE. The above is the PROTOTYPE (`configs/sloth.yaml`, 684
 blocks) - a validated anatomy study, and what the causeway pastes. `hero: true`
-(`configs/sloth_hero.yaml`, ~4,000 blocks) is the Sky Lift M4/M9 setpiece: it
-brings its own lift truss and cables, its twelve claws wrap them, and its face
-is built on the head's underside because that is the only side a guest ever
-sees. See the HERO SCALE section at the bottom for why that is a second
-composition rather than a scale factor.
+(`configs/sloth_hero.yaml`, ~5,300 blocks) is the Sky Lift M4/M9 setpiece: it
+brings its own lift gantry and cables, its twelve claws wrap them, its coat
+hangs in layered tufts, and its face is built on the head's underside because
+that is the only side a guest ever sees. See the HERO SCALE section at the
+bottom for why that is a second composition rather than a scale factor.
 """
 from __future__ import annotations
 
@@ -157,7 +157,16 @@ def build(cfg: dict, donors=None) -> Canvas:
 # spacing merge into a single mitten - the ladybird's spot-spacing lesson - and
 # they also stop being countable, which the release contract needs them to be.
 
-HERO_DEFAULTS = {"size": [48, 30, 24], "seed": 0, "hero": True}
+# 46 x 23 IS THE LOT, not a budget. The Sky Lift is beside it and the ledger's
+# envelope (40-48 long, 24-30 high, 18-24 deep) is the ceiling on the other two
+# axes; a canvas of 46 x 30 x 24 fills the plan exactly and leaves the height
+# short of its own limit, which is where the detail goes.
+#
+# THE BLOCK BAND IS A FLOOR, NOT A CEILING. The failure this variant exists to
+# fix is an underbuilt prototype, so blocks above 3,500 are welcome - but only
+# where they buy anatomy, the gantry, or a silhouette somebody can see. Solid
+# interior mass nobody will ever look at is padding and is not spent here.
+HERO_DEFAULTS = {"size": [46, 30, 24], "seed": 0, "hero": True}
 
 # Forward-and-mostly-DOWN. A face on the front of the head is a face nobody on
 # the ground ever sees; tilt it much further and it disappears on the approach.
@@ -194,6 +203,14 @@ def _diagonal(c, x0, y0, x1, y1, z, blk):
     for i in range(n + 1):
         t = i / max(1, n)
         c.put(round(x0 + (x1 - x0) * t), round(y0 + (y1 - y0) * t), z, blk)
+
+
+def _diagonal_xz(c, x0, z0, x1, z1, y, blk):
+    """A brace lying in the PLAN, which is the plane a guest under it sees."""
+    n = max(abs(x1 - x0), abs(z1 - z0))
+    for i in range(n + 1):
+        t = i / max(1, n)
+        c.put(round(x0 + (x1 - x0) * t), y, round(z0 + (z1 - z0) * t), blk)
 
 
 def _face_hit(c, origin, n, uv, span=9.0, step=0.3):
@@ -253,12 +270,12 @@ def _hero(cfg: dict, donors=None) -> Canvas:
     fz = ((1, 2), (SZ - 3, SZ - 2))                  # truss side frames, 2 chords wide
     rz = (5, SZ - 6)                                 # the two hanger cables
     y_hi = (top - 1, top)                            # top chord
-    y_lo = (top - 5, top - 4)                        # bottom chord
-    y_cab = (top - 9, top - 8)                       # the cables
+    y_lo = (top - 6, top - 5)                        # bottom chord
+    y_cab = (top - 10, top - 9)                      # the cables
     # THE STATIONS DODGE THE CLAW COLUMNS. A hanger post drops through the cable
     # at its own x, and a claw wraps the crown at its own x; put the two at the
     # same x and the claw silently overwrites the post that holds the cable up.
-    stations = list(range(3, SX - 2, 8))
+    stations = list(range(4, SX - 2, 8))
 
     # ---- 1. the body: a hammock sagging between the four grips -------------
     # SHORT AND SLIM, not a loaf. The first hero build gave it r=5.7 over 30
@@ -267,25 +284,25 @@ def _hero(cfg: dict, donors=None) -> Canvas:
     # sticks at the corners. What makes a hanging sloth legible is the AIR - a
     # compact body slung low, with four limbs running clear of it up to the
     # cables. The body pays for that in blocks and the truss makes them back.
-    bx0, bx1 = 11.0, 36.0
+    bx0, bx1 = 8.0, 34.5
     steps = 34
     pts, radii = [], []
     for i in range(steps + 1):
         t = i / steps
         s = math.sin(math.pi * t)
         pts.append((bx0 + (bx1 - bx0) * t, 13.4 - 5.2 * s, cz))
-        radii.append(2.9 + 1.4 * (s ** 0.5))
+        radii.append(3.2 + 1.7 * (s ** 0.5))
     _sweep(c, pts, radii, S["fur"])
     # A quadruped is widest at the shoulder and the haunch with a waist between.
     # One spindle fixes the profile and leaves the PLAN a lozenge.
-    c.sphere(31.0, 10.0, cz, 4.6, S["fur"], squash=0.92)
-    c.sphere(16.0, 9.4, cz, 4.5, S["fur"], squash=0.92)
+    c.sphere(29.0, 10.0, cz, 5.0, S["fur"], squash=0.92)
+    c.sphere(13.5, 9.6, cz, 4.9, S["fur"], squash=0.92)
 
     # ---- 2. the head ------------------------------------------------------
-    hx, hy = 39.5, 13.0
-    c.sphere(hx, hy, cz, 5.0, S["fur"], squash=0.95)
-    mx, my = hx + 1.9, hy - 2.2
-    c.sphere(mx, my, cz, 3.4, S["fur"], squash=0.95)               # muzzle
+    hx, hy = 37.5, 13.0
+    c.sphere(hx, hy, cz, 5.4, S["fur"], squash=0.95)
+    mx, my = hx + 2.0, hy - 2.4
+    c.sphere(mx, my, cz, 3.6, S["fur"], squash=0.95)               # muzzle
 
     # ---- 3. the lift truss, and the cables slung under it -----------------
     for pair in fz:
@@ -297,23 +314,47 @@ def _hero(cfg: dict, donors=None) -> Canvas:
             for a, b in zip(stations, stations[1:]):
                 _diagonal(c, a, y_lo[1] + 1, (a + b) // 2, y_hi[0] - 1, z, S["post"])
                 _diagonal(c, (a + b) // 2, y_hi[0] - 1, b, y_lo[1] + 1, z, S["post"])
+    # THE SOFFIT OF A LIFT GANTRY IS A LATTICE, AND THE SOFFIT IS THE ONLY PART
+    # OF IT A GUEST EVER SEES. Six lonely cross-beams over a sculpture is the
+    # ledger's own rejection condition inverted - "the creature is less detailed
+    # than the lift it adorns" cuts both ways, and a bare rail is a prop. What
+    # goes in is what a real gantry has and what reads in PLAN: transverse
+    # braces at every bay, a plan X-brace across each bay on both chord courses,
+    # two longitudinal purlins over the cable lines, and a centre catwalk.
     for x in stations:                               # transverse braces, frame to frame
         _beam(c, x, x, y_lo[0], y_lo[0], fz[0][0], fz[1][1], S["brace"])
+    for a, b in zip(stations, stations[1:]):         # ...and an X across each bay,
+        _diagonal_xz(c, a, fz[0][1], b, fz[1][0], y_lo[0], S["brace"])
+        _diagonal_xz(c, a, fz[1][0], b, fz[0][1], y_lo[0], S["brace"])
+        _diagonal_xz(c, a, fz[0][1], b, fz[1][0], y_lo[1], S["brace"])   # on both
+        _diagonal_xz(c, a, fz[1][0], b, fz[0][1], y_lo[1], S["brace"])   # chord courses
+    for z in (int(cz) - 1, int(cz)):                 # the gantry's own centre catwalk
+        _beam(c, stations[0], stations[-1], y_lo[0], y_lo[0], z, z, S["chord"])
     for z in rz:
+        _beam(c, stations[0], stations[-1], y_lo[0], y_lo[0], z, z, S["chord"])   # purlin
         _beam(c, 2, SX - 3, y_cab[0], y_cab[1], z, z, S["cable"])
-        for x in stations:                           # each cable hung off the brace above
+        for x in stations:                           # each cable hung off the purlin above
             _beam(c, x, x, y_cab[1] + 1, y_lo[0] - 1, z, z, S["hanger"])
+            for s in (-1, 1):                        # ...with a knee gusset either side
+                # STEPPED, NOT DIAGONAL. Written as a diagonal every gusset came
+                # off as a three-cell stray: `_diagonal` steps one cell in x and
+                # one in y at a time, and two cells meeting at a corner touch
+                # only diagonally. 24 of them, in a build that still reported a
+                # 4,347-block main mass and looked entirely correct.
+                c.put(x + s, y_lo[0] - 1, z, S["hanger"])
+                c.put(x + 2 * s, y_lo[0] - 1, z, S["hanger"])
 
     # ---- 4. four long limbs, splayed out to the cables --------------------
     limbs = []
-    for gx in (31, 16):                              # arms forward, legs aft
+    for gx in (29, 13):                              # arms forward, legs aft
         for side, cable in ((-1, rz[0]), (1, rz[1])):
             inward = 1 if side < 0 else -1
             zin = cable + inward                     # the inboard side of the cable
-            _sweep(c, [(gx, 8.0, cz + side * 2.6),
-                       (gx, 12.8, cz + side * 4.6),
+            _sweep(c, [(gx, 7.6, cz + side * 2.4),
+                       (gx, 11.4, cz + side * 4.0),
+                       (gx, 14.8, cz + side * 5.4),
                        (gx, 17.8, float(zin))],
-                   [2.9, 2.3, 1.7], S["fur"], replace=False)
+                   [3.4, 2.9, 2.4, 1.9], S["fur"], replace=False)
             _beam(c, gx - 2, gx + 2, y_cab[0] - 3, y_cab[0] - 1,
                   min(zin, zin + inward), max(zin, zin + inward), S["fur"])   # broad hand
             limbs.append((gx, side, cable, zin))
@@ -355,12 +396,49 @@ def _hero(cfg: dict, donors=None) -> Canvas:
                 if c.get(x, y, z) != S["fur"] or c.solid(x, y - 1, z):
                     continue
                 k = 0.6 * h(x // 3, y // 3, z // 3, 11) + 0.4 * h(x // 2, y // 2, z // 2, 23)
-                if k < 0.29:
-                    c.put(x, y, z, S["moss"]); shag += 1
-                elif k < 0.46:
-                    c.put(x, y, z, S["fur2"]); shag += 1
-                if k < 0.13 and x < 35:              # a hanging tuft, never over the face
-                    c.put(x, y - 1, z, S["moss"] if k < 0.07 else S["fur2"]); shag += 1
+                # THE HEAD KEEPS ITS BROWN. The mask is the only pale thing on
+                # this animal that has to be read at distance, and a skull
+                # mottled grey and green gives it nothing to be read against -
+                # the first dense coat greyed the crown and the face went from
+                # a mask on a sloth to a smudge on a lump.
+                if x < hx - 4.5:
+                    if k < 0.22:
+                        c.put(x, y, z, S["moss"]); shag += 1
+                    elif k < 0.36:
+                        c.put(x, y, z, S["fur2"]); shag += 1
+                # LAYERED TUFTS, which is what "shaggy" means at this scale. One
+                # cell recoloured on the underside is a speckle; what breaks the
+                # silhouette into fur is hanks two and three deep, and it is the
+                # cheapest real detail on the animal because every cell of it is
+                # on the surface a guest looks up at.
+                if x >= hx - 3.0:
+                    continue                         # never a curtain over the face
+                hang = 4 if k < 0.08 else 3 if k < 0.17 else 2 if k < 0.28 else 1 if k < 0.42 else 0
+                for d in range(1, hang + 1):
+                    # A tuft stops short of the canvas floor rather than being
+                    # silently truncated by it: `put` drops an out-of-bounds
+                    # cell without a word, so a coat tuned against the ceiling
+                    # is a coat tuned against a clipping plane.
+                    if y - d < 2 or c.solid(x, y - d, z):
+                        break
+                    c.put(x, y - d, z, S["moss"] if (k + 0.07 * d) < 0.26 else S["fur2"])
+                    shag += 1
+    # ...AND A FRINGE ON THE FLANKS, which is the PLAN's share of the same coat.
+    # A guest under the lift reads this animal mostly in plan, so a silhouette
+    # whose sides are a smooth swept tube is a smooth swept tube however shaggy
+    # its belly is. One cell out, on the drifts only, never into a cable lane.
+    for y in range(4, y_cab[0] - 4):
+        for z in range(rz[0] + 2, rz[1] - 1):
+            for x in range(SX):
+                if c.get(x, y, z) not in (S["fur"], S["fur2"], S["moss"]) or x >= hx - 3.0:
+                    continue
+                for s in (-1, 1):
+                    zz = z + s
+                    if not (rz[0] + 1 < zz < rz[1] - 1) or c.solid(x, y, zz):
+                        continue
+                    if h(x // 3, y // 3, zz // 2, 41) < 0.24:
+                        c.put(x, y, zz, S["fur2"] if h(x, y, zz, 7) < 0.4 else S["moss"])
+                        shag += 1
     for x in stations:                               # lichen under the truss braces
         for z in (fz[0][1] + 3, int(cz), fz[1][0] - 3):
             if c.solid(x, y_lo[0], z) and not c.solid(x, y_lo[0] - 1, z):
@@ -392,27 +470,32 @@ def _hero(cfg: dict, donors=None) -> Canvas:
     for ai in range(-12, 13):                        # the big pale mask
         for bi in range(-10, 11):
             a, b = ai * 0.5, bi * 0.5
-            e = (a / 5.4) ** 2 + (b / 4.6) ** 2
+            e = (a / 5.7) ** 2 + (b / 4.9) ** 2
             if e <= 1.0:
                 paint(a, b, S["pale"], "mask")
             elif e <= 1.5:
                 paint(a, b, S["fur2"])               # pale fur fringing the mask
+    # TWO EYES, NOT ONE VISOR. At radius 1.35 and 2.7 apart the discs left
+    # under three cells of mask between them, and with the nose and the smile
+    # under them the whole middle of the face read as one black mass from
+    # directly below - the view this animal exists for. Smaller and further
+    # apart, with white between, is what makes them a PAIR.
     for s in (-1, 1):                                # eyes, then the stripe off each
         for ai in range(-3, 4):
             for bi in range(-3, 4):
-                a, b = s * 2.7 + ai * 0.5, 1.2 + bi * 0.5
-                if (a - s * 2.7) ** 2 + (b - 1.2) ** 2 <= 1.35 ** 2:
+                a, b = s * 3.1 + ai * 0.5, 1.3 + bi * 0.5
+                if (a - s * 3.1) ** 2 + (b - 1.3) ** 2 <= 1.05 ** 2:
                     paint(a, b, S["dark"], "eyes")
-        for k in range(1, 7):
-            paint(s * (2.9 + 0.45 * k), 1.4 - 0.5 * k, S["dark"], "stripes")
+        for k in range(1, 5):
+            paint(s * (3.4 + 0.5 * k), 1.4 - 0.55 * k, S["dark"], "stripes")
     for ai in range(-2, 3):                          # snub nose
         for bi in range(-1, 2):
-            a, b = ai * 0.5, -0.3 + bi * 0.5
-            if (a / 1.2) ** 2 + ((b + 0.3) / 0.9) ** 2 <= 1.0:
+            a, b = ai * 0.5, -0.2 + bi * 0.5
+            if (a / 1.0) ** 2 + ((b + 0.2) / 0.7) ** 2 <= 1.0:
                 paint(a, b, S["dark"], "nose")
-    for ai in range(-7, 8):                          # smile: the ends turn up
-        a = ai * 0.45
-        paint(a, -2.2 + 0.105 * a * a, S["dark"], "smile")
+    for ai in range(-6, 7):                          # smile: the ends turn up
+        a = ai * 0.5
+        paint(a, -2.4 + 0.11 * a * a, S["dark"], "smile")
 
     c.meta = {
         "kind": "sloth", "variant": "hero", "profile_view": "side", "facing": [1, 0],

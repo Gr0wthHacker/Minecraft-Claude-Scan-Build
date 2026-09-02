@@ -31,7 +31,7 @@ def main() -> int:
     lots = {m["name"]: m for m in spec["modules"]}
     ARTIFACTS.mkdir(parents=True, exist_ok=True)
     only = set(sys.argv[1:])
-    rows, tiers = [], Counter()
+    rows, tiers, planes = [], Counter(), {}
     for path in configs:
         import yaml
         cfg = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -40,6 +40,15 @@ def main() -> int:
             continue
         module = lots[name]
         started = time.perf_counter()
+        plane_course = 0
+        if cfg.get("gen") == "compose":
+            from mcbuild.gen import GENERATORS
+            try:
+                plane_course = int(GENERATORS["compose"].build(cfg.get("params") or {}, None)
+                                   .meta.get("plane_course", 0))
+            except Exception:
+                plane_course = 0
+        planes[name] = plane_course
         try:
             model, _res = pipeline.run_config(
                 str(path), settings=pipeline.Settings(out_dir=str(ARTIFACTS)),
@@ -83,6 +92,7 @@ def main() -> int:
         if row["pct"] < 70: note.append("THIN - under 70% of its programme line")
         print(f"{row['module']:<24}{row['blocks']:>8}{row['budget']:>8}{row['pct']:>4}%  "
               f"{str(row['size']):<16}{str(row['lot']):<10}{row['seconds']:>6}  {'; '.join(note)}")
+    (ARTIFACTS.parent / "planes.json").write_text(json.dumps(planes, indent=1), encoding="utf-8")
     total = sum(tiers.values()) or 1
     print(f"\nmodules built {built:,} of a declared {sum(r.get('budget', 0) for r in rows):,}")
     print("material policy (78-86% cheap / 10-16% ok / 2-5% expensive):")

@@ -45,6 +45,11 @@ def place(compiled: dict) -> tuple[list[dict], list[str]]:
     """Write each built module at its plan position. Returns (placed, missing)."""
     PLACED.mkdir(parents=True, exist_ok=True)
     plane = int(compiled["site"]["build_plane"])
+    # A lot with a basement is not a lot that starts at the deck. `parkbuild` records which
+    # course of each module's own canvas is its build plane; placing without it puts every
+    # below-plane reservation into the air.
+    planes_file = ARTIFACTS.parent / "planes.json"
+    planes = json.loads(planes_file.read_text(encoding="utf-8")) if planes_file.exists() else {}
     placed, missing = [], []
     for module in compiled["modules"]:
         source = ARTIFACTS / f"{module['name']}.litematic"
@@ -54,7 +59,7 @@ def place(compiled: dict) -> tuple[list[dict], list[str]]:
         x, z = module["at"]
         # A module's own y=0 is its build plane. Everything in this lattice is local to the
         # WorldSpec anchor, which is provisional - see the module docstring.
-        origin = (int(x), plane, int(z))
+        origin = (int(x), plane - int(planes.get(module["name"], 0)), int(z))
         target = PLACED / f"{module['name']}.litematic"
         scan.save_pair(str(target), model,
                        {"origin": {"x": origin[0], "y": origin[1], "z": origin[2]},

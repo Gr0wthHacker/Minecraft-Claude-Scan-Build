@@ -12,6 +12,13 @@ casing at all, and thirty-four one-block landings hung off single-cell braces. E
 in this repo passed it, because every check here asks whether a block is legal, supported,
 affordable and connected - and a thin build is all four.
 
+The Spire is now 46,157 blocks in a 69x144x69 box, over the locked band by 15% and kept
+there deliberately: the park's standing instruction is that over budget is acceptable when
+the blocks are doing real work, and what came OUT on the way here was 10,786 blocks of
+stacked podium floor - a seven-course tier with its own full plate and wall ring over a
+machine base that already had both. That was padding at any budget. Nothing that carries a
+player, a sightline or a load was thinned.
+
 Three rules govern the rebuild, and they are the spec's own "functional truth" clause said
 as geometry:
 
@@ -25,7 +32,17 @@ as geometry:
 * **Water is enclosed before it is placed.** `fluids.escapes` and `fluids.unenclosed` run
   over the finished canvas inside the generator and RAISE. The log flume drained 199,959
   cells to Y-1908 because only the ride path was ever checked; the bubble shaft here is a
-  ninety-course column of source water and is exactly the same shape of risk.
+  hundred-and-twenty-course column of source water and is exactly the same shape of risk -
+  cutting a boarding hole in its casing drained 53,817 cells on the first attempt at this.
+
+AND IT HAS TO READ AT THREE DISTANCES, which is a separate bar from any of that. The
+landmark density table asks for an unmistakable silhouette at 50+, visible structural
+rhythm at 15-35, and craft detail at 1-12. Two things here exist only because the renders
+said so and no measurement could have: the ribs are TWO-TONE (built black all through, the
+skin came out as one opaque dark mass and the bubble core, the masts and every lit landing
+were behind it), and every third ring beam is a coloured prism rail, which is what gives
+the middle distance its layers. The crown is sized to the tower it caps for the same
+reason - a fixed nine-block crown on a fifty-three-wide Spire is not one dominant gesture.
 
 ACT ORDER. `PRISMWORKS_PARKOUR_BRIEF.md`'s altitude table numbers the acts bottom-up while
 its own guest sequence is a one-way DESCENT from the launch deck, so the two cannot both be
@@ -42,15 +59,22 @@ import math
 from .. import fluids
 from .canvas import Canvas
 
+#: Defaults matching `park_final.world.json`'s own Prism Ascent module, so a bare
+#: `build({"kind": "ascent"})` is the Spire the park actually sites rather than a smaller
+#: variant that lands under the locked density band. (PRISMWORKS_GENERATOR.md still describes a
+#: "nominal 88 block lift"; the WorldSpec has always overridden it, and now the config does too.)
 PRISMWORKS = {
     "kind": "ascent",
-    "height": 88,
-    "radius": 16,
+    "height": 130,
+    "radius": 26,
     "seed": 0,
 }
 
 CORE = "stone"
-FRAME = "cobblestone"
+FRAME = "polished_blackstone_bricks"  # the machine land's own dark stone, CHEAP tier.
+                               # It was `cobblestone`, which was
+                               # 11,873 cells of the Spire alone and the single ugliest surface
+                               # in the park - a quarry pile standing in for a machine base.
 DRESS = "stone_bricks"
 DECK = "smooth_stone"          # `ok` tier: collars, kerbs, balconies and the court carry the
                                # okay-accent band the material policy wants at 10-16%.
@@ -471,19 +495,19 @@ def _ascent(p):
     # seven-course podium tier with its own plate and wall ring over a base that already had
     # both - and that is padding whatever the budget says.
     rings = list(range(L["spire_lo"] + 3, YW - 1, 6))
-    mid = (L["spire_lo"] + YW) // 2
     w_prev = _cage_half(L["spire_lo"], L, R)
     for y in range(L["spire_lo"], YW + 1):
         w = _cage_half(y, L, R)
         wt = max(1, int(round(1 + 3 * (YW - y) / max(1, YW - L["spire_lo"]))))   # rib taper
-        deep = True                             # the blade is two cells the whole way up
         for sgn in (-1, 1):
-            # four cardinal ribs: tapered external blades, and the only thing a landing bracket
+            # Four cardinal ribs: tapered external blades, and the only thing a landing bracket
             # ever has to reach on the cardinal faces.
+            #
             # TWO-TONE, because the palette says black wool is a RECESS and not a skin. Built
             # black all through, the ribs plus the louvres plus the bracing came out as one
             # opaque dark mass forty blocks away: no visible bubble core, no masts, and the lit
-            # landings the whole silhouette is supposed to be a spiral of were behind it.
+            # landings the whole silhouette is supposed to be a spiral of were behind it. The
+            # OUTER cell of each blade is stone, the inner one is the recess.
             a = cx + sgn * w - (1 if sgn > 0 else 0)
             b = cz + sgn * w - (1 if sgn > 0 else 0)
             ao = a + 1 if sgn > 0 else a
@@ -1002,9 +1026,17 @@ def _vault(p):
         for x in range(f0, f1 + 1):
             if x % 3 == 1 or z % 3 == 1:
                 c.put(x, roof, z, c.state(DECK))
-    # buttresses, so a 10-course shell reads as built rather than extruded
+    # A BUTTRESS INSIDE THE WALL IS NOT A BUTTRESS. Built flush with the shell these read as
+    # nothing at all from fifteen blocks: ten courses of stone brick with no relief anywhere,
+    # which is precisely the "visible structural rhythm" the landmark density table asks for and
+    # the one thing the first vault render did not have. They PROJECT a cell now, and the plinth
+    # and cornice project with them, so the box has a base, a top and a beat along its length.
+    _ring(c, f0 - 1, f1 + 1, f0 - 1, f1 + 1, 1, FRAME, 1)                    # plinth
+    _ring(c, f0 - 1, f1 + 1, f0 - 1, f1 + 1, 2, DECK, 1)
+    _ring(c, f0 - 1, f1 + 1, f0 - 1, f1 + 1, roof - 2, FRAME, 1)             # cornice
+    _ring(c, f0 - 1, f1 + 1, f0 - 1, f1 + 1, roof - 1, DRESS, 1)
     for k in range(f0 + 4, f1 - 3, 6):
-        for a, b in ((k, f0), (k, f1 - 2), (f0, k), (f1 - 2, k)):
+        for a, b in ((k, f0 - 1), (k, f1 - 1), (f0 - 1, k), (f1 - 1, k)):
             _fill(c, a, a + 2, 1, roof - 2, b, b + 2, FRAME)
     # clerestory: the room's own daylight, and the thing that stops the roof reading as a lid
     _walls(c, cx - 8, cx + 8, roof + 1, roof + 4, cz - 8, cz + 8, DRESS, t=2)
@@ -1032,16 +1064,16 @@ def _vault(p):
 
     vestibule(f0, s0, cz)
     vestibule(s1, f1, cz)
+    # THE DOOR PIERCES THE PLINTH TOO. A projecting plinth is a wall in front of a doorway;
+    # carving only the shell leaves a threshold you step into rather than through.
     for y in range(1, 4):
         for zz in (cz - 1, cz, cz + 1):
-            c.put(f0, y, zz, 0)
-            c.put(f0 + 1, y, zz, 0)
-            c.put(f1, y, zz, 0)
-            c.put(f1 - 1, y, zz, 0)
+            for xx in (f0 - 1, f0, f0 + 1, f1 - 1, f1, f1 + 1):
+                c.put(xx, y, zz, 0)
     # service door, on the third face, into the ring and nowhere else
     for y in range(1, 4):
-        c.put(cx, y, f1, 0)
-        c.put(cx, y, f1 - 1, 0)
+        for zz in (f1 - 1, f1, f1 + 1):
+            c.put(cx, y, zz, 0)
 
     # ------------------------------------------------------- the three stations
     # Individually testable, physically separated, and every one of them can see the shared

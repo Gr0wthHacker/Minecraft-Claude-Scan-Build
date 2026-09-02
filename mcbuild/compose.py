@@ -67,7 +67,14 @@ def merge(parts, *, meta: dict | None = None) -> Canvas:
             # tile may never be attached to a block another part placed.
             if owner.get(pos) == index and out.solid(*pos):
                 out.tiles[pos] = dict(tile)
-    out.meta = {**(meta or {}), "parts": len(parts), "contested_cells": contested}
+    # WHICH CANVAS COURSE IS THE BUILD PLANE. A part declared at offset y=0 is the one standing
+    # on the deck; the merge shifts everything so the lowest corner is the origin, so a lot with
+    # a basement comes out with its deck partway up its own canvas. Without this recorded, every
+    # module that reserves ground BELOW the plane gets placed with its basement at deck level and
+    # its whole mass pushed into the air - which is exactly what "the rollercoaster was floating
+    # very high" looks like from the ground.
+    out.meta = {**(meta or {}), "parts": len(parts), "contested_cells": contested,
+                "plane_course": -oy}
     return out
 
 
