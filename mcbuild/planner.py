@@ -263,9 +263,7 @@ THEMES = {
         # The JOURNEY belongs in the deep adventure band beneath it, and the difference is the
         # whole point of having bands: a station under a town and a cavern under a station are
         # not the same kind of place, and stacking both at one depth would say they were.
-        "floors": [{"name": "Ground", "y": 0},
-                   {"name": "Undermine", "y": -24},
-                   {"name": "Mine Works", "y": -60}],
+        "floors": [{"name": "Ground", "y": 0}],
         "modules": [
             {
                 "name": "The Water Tower",
@@ -325,16 +323,10 @@ THEMES = {
             # ...and it is the ride that goes down there. A mine cart escape whose whole story
             # is getting OUT of a mine belongs in one; on the surface it was a shed with track
             # in it, taking 598 cells of the town's own street frontage to be so.
-            {"name": "Mine Cart Escape", "gen": "attractions", "kind": "runawaymine",
-             "size": [26, 12, 23], "district": "Mining Square", "floor": 1,
-             "params": {"land": "frontier", "facing": "east"}},
             # **THE JOURNEY SECTION 6 ASKS FOR, AND IT IS A WALK RATHER THAN A RIDE.** Worked ore
             # near the surface, a broken trestle over a cavern, the flooded lower works, and one
             # crystal reveal at the deepest point - four rooms that each do exactly one thing,
             # threaded on a corridor that reaches every one of them by construction.
-            {"name": "The Mine Works", "gen": "undercroft", "kind": "mine",
-             "size": [75, 8, 15], "orient": False, "floor": 2, "district": "Mining Square",
-             "params": {"land": "frontier", "kind": "mine", "facing": "east"}},
             {"name": "Mine Coaster", "gen": "coaster", "kind": "coaster",
              "size": [47, 38, 47], "orient": False, "anchor": "edge", "side": "north",
              "district": "Mining Square",
@@ -367,14 +359,8 @@ THEMES = {
             # rather than 193, because every step down restarts water's seven-block budget.
             # The headframe is the mine district's own entrance and its vertical landmark, so
             # it belongs to Mining Square rather than standing wherever a bay was free.
-            {"name": "The Mine Head", "gen": "frontiertown", "kind": "minehead",
-             "size": [19, 32, 21], "orient": False, "district": "Mining Square",
-             "params": {"land": "frontier", "facing": "east"}},
             # A saloon is a FRONTAGE with a bar behind it, so the square reservation books
             # its own depth again in air. The frontier had four free 17x17 slots and no 19x19.
-            {"name": "The Saloon", "gen": "frontiertown", "kind": "saloon",
-             "size": [17, 16, 19], "orient": False, "district": "Boomtown Main Street",
-             "params": {"land": "frontier", "width": 17, "depth": 12, "facing": "east"}},
             # orient False: a windmill's sails read from every side, so it does not need the
             # square reservation - and at 13x21 booking 23x23 was the difference between it
             # fitting and being refused.
@@ -412,9 +398,7 @@ THEMES = {
         # kept losing. PARK_VERTICAL_MASTERPLAN.md section 7 already says where the room is:
         # "public streets lead to a much older world below: crypts, forgotten rail tunnels, and
         # a final founder's vault."
-        "floors": [{"name": "Ground", "y": 0},
-                   {"name": "Undercrypt", "y": -20},
-                   {"name": "Deep Crypt", "y": -56}],
+        "floors": [{"name": "Ground", "y": 0}],
         "modules": [
             {
                 "name": "The Mausoleum",
@@ -496,19 +480,9 @@ THEMES = {
              "params": {"land": "hollow", "facing": "east",
                         "arms": [{"direction": "north", "dest": "Ghost Train"},
                                  {"direction": "south", "dest": "The Reliquary"}]}},
-            {"name": "Ghost Train", "gen": "attractions", "kind": "ghosttrain",
-             "size": [21, 12, 15],
-             "params": {"land": "hollow", "facing": "east"}},
             # It grew SEVEN COURSES DOWNWARD, not outward: every set piece hides its wiring
             # under the floorboard it fires through, so the footprint is unchanged and the height
             # is not.
-            {"name": "Haunted Manor", "gen": "hollowmanor", "kind": "manor",
-             "size": [35, 52, 42], "district": "Manor Quarter",
-             "params": {"land": "hollow", "facing": "east"}},
-            {"name": "Clock Tower", "gen": "hollowmanor", "kind": "clocktower",
-             "size": [17, 49, 17], "anchor": "edge", "side": "east",
-             "district": "Tower Quarter",
-             "params": {"land": "hollow", "facing": "east"}},
             {"name": "Hollow Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
              "anchor": "edge", "side": "north",
              "params": {"land": "hollow", "width": 7, "height": 6, "facing": "north"}},
