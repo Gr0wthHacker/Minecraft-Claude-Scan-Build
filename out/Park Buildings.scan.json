@@ -1,0 +1,34 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 190,
+    "z": 80300
+  },
+  "kind": "park",
+  "name": "Park Buildings",
+  "generated_by": "tools/park_place.py",
+  "anchor_status": "PREVIEW placement; rebase before building",
+  "contains": [
+    "Arrival Court",
+    "Assay and Prize Office",
+    "Boomtown Spine",
+    "Carousel Court",
+    "Forge Deck",
+    "Foundry Gate",
+    "Mine Coaster",
+    "Mining Square",
+    "Prism Array",
+    "Prism Ascent",
+    "Prize Point",
+    "Prospecting Porch",
+    "Resonance Vault",
+    "Service Gallery",
+    "Skill Arcade",
+    "Sky Lift",
+    "Snack Window",
+    "Trailhead Gate",
+    "Works Yard",
+    "Wyrm's Crossing"
+  ],
+  "file": "Park Buildings.litematic"
+}
