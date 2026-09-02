@@ -18,7 +18,5 @@ deep_cut:
 full_out: out/island_full.litematic
 regen: []
 progress:
-- Park Ways
-- Park Rail
-- Park Buildings
+- Park Complete
 learn: true

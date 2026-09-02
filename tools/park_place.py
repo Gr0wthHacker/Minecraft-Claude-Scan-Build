@@ -39,13 +39,16 @@ from tools.park_lots import PLACEMENT  # noqa: E402
 
 ARTIFACTS = ROOT / "out" / "park_final" / "artifacts"
 #: superseded by `Park Ways` - see the module docstring
-SKIP = {"Frontier Line", "Frontier Reach Line", "Midway Line", "Prism Reach Line",
-        "Prismworks Line",
-        #: ALREADY IN THE GROUND LAYER. `configs/park_ways.yaml` composes the bird itself at
-        #: offset [26, 1, 176] inside its own reserved garden, so placing this module too puts
-        #: TWO herons on the Claim Line reach - and its 49-deep apron is what overlapped Arrival
-        #: Court by 67 cells and Snack Window by one.
-        "Signal Heron"}
+#: JACK KEPT THREE. "the ferris wheel itself, the merry go round itself, and the roller coaster
+#: are worthy saves from that buildings bunch, everything else should be rebuilt to properly fit
+#: themes, available spaces, etc, without the chaos that exists currently."
+#:
+#: So this is a KEEP list rather than a skip list, and the difference matters: a skip list grows
+#: quietly wrong as modules are added, while a keep list can only ever place what somebody named.
+#: `Carousel Court` and `Sky Lift` are now their ride and nothing else - part 0 of a compose of
+#: seventeen and twenty-seven - because the courts around them were the chaos.
+KEEP = {"Sky Lift", "Carousel Court", "Mine Coaster"}
+
 #: V0 -> X, U0 -> Z, and the floor course. Derived by tools/park_anchor.py from the island
 #: registry; stated here only so a shipped sidecar can carry it.
 ANCHOR = (97500, 202, 80300)
@@ -89,7 +92,7 @@ def modules(report=False) -> list:
     out = []
     box, roles = lots()
     for name, (v, u) in sorted(PLACEMENT.items()):
-        if name in SKIP:
+        if name not in KEEP:
             continue
         f = ARTIFACTS / f"{name}.litematic"
         if not f.exists():
@@ -165,6 +168,57 @@ def against_ground(model, origin) -> int:
     return hit
 
 
+
+def complete(items):
+    """GROUND + RAILWAY + BUILDINGS AS ONE DESIGN, because three placements hide each other.
+
+    Jack: "the land disappears when i try to place the buildings, i need to be able to see all."
+    Three schematics whose bounding boxes overlap are three placements Litematica draws on top of
+    one another, and the one you are looking at is whichever won - which is the same complaint the
+    casino produced ("stop with the defer crap so i can actually see everything in totality") and
+    the same answer: ship the whole thing as one artifact and keep the pieces for building in
+    stages.
+
+    PRECEDENCE IS BUILDINGS > RAILWAY > GROUND, and it is REPORTED rather than applied quietly.
+    The ground is laid under a building on purpose - a floor that stops at the wall leaves a hole
+    the moment anything moves - so the building has to win the cells they share or the picture
+    shows paving drawn through a wall.
+    """
+    import numpy as np
+    from collections import Counter
+    ways = schem.load(str(ROOT / "out" / "Park Ways.litematic"))
+    rail = schem.load(str(ROOT / "out" / "Park Rail.litematic"))
+    model, origin = merge(items)
+
+    height = 220
+    sz, sx = ways.ids.shape[1], ways.ids.shape[2]
+    ids = np.zeros((height, sz, sx), np.int32)
+    pal, index = [nbt.block_state("minecraft:air")], {}
+    contested = Counter()
+
+    def lay(m, ov, oy, ou, tag):
+        names = {i: e.value["Name"].value for i, e in enumerate(m.palette)}
+        props = {i: e.value.get("Properties") for i, e in enumerate(m.palette)}
+        for y, z, x in zip(*m.solid().nonzero()):
+            Y, Z, X = int(y) + oy, int(z) + ou, int(x) + ov
+            if not (0 <= Y < height and 0 <= Z < sz and 0 <= X < sx):
+                continue
+            if ids[Y, Z, X]:
+                contested[tag] += 1
+                continue
+            key = int(m.ids[y, z, x])
+            state = (names[key], str(props[key]))
+            slot = index.get(state)
+            if slot is None:
+                slot = index[state] = len(pal); pal.append(m.palette[key])
+            ids[Y, Z, X] = slot
+
+    lay(model, origin[0], origin[1] - min(0, origin[1]), origin[2], "buildings")
+    lay(rail, 172, 0 - min(0, origin[1]), 0, "railway")
+    lay(ways, 0, 0 - min(0, origin[1]), 0, "ground")
+    return schem.Model(ids, pal), (0, min(0, origin[1]), 0), contested
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--ship", action="store_true")
@@ -200,6 +254,23 @@ def main() -> int:
         shutil.copy2(out, dest / out.name)
         (dest / "Park Buildings.scan.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
         print(f"\nshipped -> {dest / out.name}")
+
+        whole, worigin, contested = complete(items)
+        wout = ROOT / "out" / "Park Complete.litematic"
+        wmeta = {"origin": {"x": ANCHOR[0] + worigin[0], "y": ANCHOR[1] + worigin[1],
+                            "z": ANCHOR[2] + worigin[2]},
+                 "kind": "park", "name": "Park Complete",
+                 "generated_by": "tools/park_place.py",
+                 "anchor_status": "PREVIEW placement; rebase before building",
+                 "contains": ["Park Ways", "Park Rail"] + [i[0] for i in items]}
+        scan.save_pair(str(wout), whole, wmeta, name="Park Complete")
+        shutil.copy2(wout, dest / wout.name)
+        (dest / "Park Complete.scan.json").write_text(json.dumps(wmeta, indent=2), encoding="utf-8")
+        wy, wz, wx = whole.ids.shape
+        print("")
+        print(f"Park Complete   {wx}x{wy}x{wz}  {int(whole.solid().sum()):,} blocks")
+        print(f"   contested cells yielded to the winner: {dict(contested)}")
+        print(f"shipped -> {dest / wout.name}")
     return 0
 
 

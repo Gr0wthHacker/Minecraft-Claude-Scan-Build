@@ -1,17 +1,19 @@
 {
   "origin": {
-    "x": 97524,
+    "x": 97500,
     "y": 190,
-    "z": 80399
+    "z": 80300
   },
   "kind": "park",
-  "name": "Park Buildings",
+  "name": "Park Complete",
   "generated_by": "tools/park_place.py",
   "anchor_status": "PREVIEW placement; rebase before building",
   "contains": [
+    "Park Ways",
+    "Park Rail",
     "Carousel Court",
     "Mine Coaster",
     "Sky Lift"
   ],
-  "file": "Park Buildings.litematic"
+  "file": "Park Complete.litematic"
 }
