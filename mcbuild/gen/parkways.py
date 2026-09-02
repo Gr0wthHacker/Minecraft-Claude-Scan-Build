@@ -797,6 +797,8 @@ def build(cfg: dict, donors=None) -> Canvas:
     for land in lands:
         wpal = LANDS[land["name"]]
         for wk in (land.get("walks") or []):
+            if not wk.get("lit", True):
+                continue                     # a column with no slack has no room for a verge post
             wv, wh = int(wk["v"]) - v0, int(wk.get("half", 1))
             wz0, wz1 = int(wk["u0"]) - u0, int(wk["u1"]) - u0
             for side in (-1, 1):

@@ -1207,12 +1207,12 @@
       "generator": "compose",
       "role": "sculpture",
       "footprint": [
-        52,
-        45
+        20,
+        38
       ],
       "at": [
-        82,
-        170
+        34,
+        174
       ],
       "access_points": [
         [
@@ -1410,7 +1410,8 @@
             ]
           }
         ]
-      }
+      },
+      "resized_note": "52 x 45 reached U218 - four columns into the Midway, overlapping Arrival Court by 152 cells, and crossing both midway walk 1 and the U213 threshold. THE BIRD MEASURES 14 x 32. The garden is sized to the sculpture plus a viewing margin, which is what it was always meant to be, and it now sits inside the Claim Line reach it is sited on."
     },
     {
       "name": "Boomtown Spine",
@@ -1785,12 +1786,12 @@
       "generator": "compose",
       "role": "path",
       "footprint": [
-        56,
+        41,
         46
       ],
       "at": [
-        75,
-        40
+        80,
+        47
       ],
       "access_points": [
         [
@@ -2221,7 +2222,8 @@
             ]
           }
         ]
-      }
+      },
+      "resized_note": "56 deep ran V78-133: through the back promenade and 184 cells into the Assay office, including the cell that is Assay's own front door. Frontier B owes 53 + 56 = 109 into a 97-deep column. At 41 the column reads Boomtown V24-76 (53) + a 3-wide walk V77-79 + Mining Square V80-120 (41) = EXACTLY 97, and its front door then addresses a real street instead of the back of Boomtown Spine. It is an open square, not a building."
     },
     {
       "name": "Mine Coaster",
@@ -2883,11 +2885,11 @@
       "generator": "compose",
       "role": "service",
       "footprint": [
-        18,
+        13,
         36
       ],
       "at": [
-        152,
+        157,
         125
       ],
       "access_points": [
@@ -3064,7 +3066,8 @@
             ]
           }
         ]
-      }
+      },
+      "resized_note": "18 deep from V157 reached V174 - across the rim edge and four courses into the protected reserve V170-199. The service band is EXACTLY 18 (V152-169) and the service lane takes V154-156, so 13 is all there is behind it: a lane inside the band and an 18-deep yard behind the lane cannot both exist. It gains 5 of width instead, which the band has."
     },
     {
       "name": "Claim Line",
@@ -8121,11 +8124,11 @@
       "generator": "compose",
       "role": "service",
       "footprint": [
-        18,
+        13,
         41
       ],
       "at": [
-        152,
+        157,
         550
       ],
       "access_points": [
@@ -8375,7 +8378,8 @@
             ]
           }
         ]
-      }
+      },
+      "resized_note": "Same arithmetic as the Works Yard, same resolution."
     },
     {
       "name": "Frontier Line",

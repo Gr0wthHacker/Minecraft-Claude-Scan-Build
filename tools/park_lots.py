@@ -148,7 +148,7 @@ PLACEMENT = {
     "Prospecting Porch":      (69, 0),
     # --- Frontier -------------------------------------------------- col B  U47-93 (47 usable)
     "Boomtown Spine":         (24, 47),
-    "Mining Square":          (78, 47),      # 42 deep available against a declared 56
+    "Mining Square":          (80, 47),      # behind the new V77-79 cross walk; 41 declared
     "Assay and Prize Office": (130, 47),
     # --- Frontier -------------------------------------------------- col C  U99-169 (71 usable)
     "Mine Coaster":           (24, 99),

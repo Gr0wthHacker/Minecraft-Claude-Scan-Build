@@ -48,6 +48,8 @@ def verges(p: dict) -> dict[int, str]:
     # Resonance Vault.
     for land in p.get("lands") or ():
         for wk in land.get("walks") or ():
+            if not wk.get("lit", True):
+                continue
             wv, wh = int(wk["v"]), int(wk.get("half", 1))
             out.setdefault(wv - wh - 1, f"{land['name']} walk verge")
             out.setdefault(wv + wh + 1, f"{land['name']} walk verge")

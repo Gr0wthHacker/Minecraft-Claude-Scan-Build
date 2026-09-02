@@ -132,6 +132,24 @@ params:
             u0: 0
             u1: 169
             avenues: [{at: 43, half: 2}, {at: 96, half: 1}]
+            # FRONTIER B RESOLVES BY ARITHMETIC AND THIS WALK IS THE WHOLE OF IT. The column owed
+            # Boomtown Spine 53 plus a Mining Square declared 56 into 97 - so the square ran
+            # through the back promenade and 184 cells into the Assay office, over the cell that
+            # is Assay's own front door, and Boomtown's back wall stood against the square's front
+            # door. With the square at 41 the column reads 53 + this 3-wide walk + 41 = exactly
+            # 97, and every door in it addresses a street.
+            # A WALK MUST TOUCH THE STREETS AT BOTH ENDS OR IT IS NOT A WALK. At U47-92 it
+            # stopped one cell short of the U43 avenue and two short of U96, and the park's
+            # paving came apart into two pieces - 142 cells of walkway with no way on to it.
+            # It runs avenue to avenue.
+            #
+            # AND IT CARRIES NO LAMPS. This column is spoken for to the block - 53 + 3 + 41 is
+            # exactly its 97 - so the single cell either side of the walk is the last course of
+            # Boomtown Spine and the first of Mining Square. A mast on either takes a course off
+            # a build that has none to give, which is the same margin the Mine Coaster lost to
+            # one junction corner. The spine plaza at U43 and the avenue at U96 both stand within
+            # sight of it.
+            walks: [{v: 78, half: 1, u0: 43, u1: 96, lit: false}]
 
           # MIDWAY   A U215-255 (41) | av U257-263 | B U265-336 (72) | av U338-344 | C U346-384
           #   A  Arrival Court 48x41 V24-71 . Snack Window 27x41 V77-103

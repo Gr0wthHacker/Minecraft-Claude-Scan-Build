@@ -29,12 +29,17 @@ from tools.park_lots import (NOT_A_LOT, PLACEMENT, load_modules, params_from_con
 #: All four are programme conflicts rather than grid faults, and all four have the same character:
 #: a module declaring a footprint the 200-deep envelope cannot give it once its own streets are
 #: drawn. See PARK_GRID_PLAN.md for the arithmetic and the recommended re-spec of each.
-KNOWN_SHORT = {
-    "Mining Square":   (13, 0),   # 43 deep against a declared 56 - and it is an open SQUARE
-    "Works Yard":      (5, 0),    # 13 deep against 18: the service band is 18 and holds a lane
-    "Service Gallery": (5, 0),    # ditto
-    "Signal Heron":    (0, 7),    # 38 wide against 45 - the BIRD measures 14 x 32
-}
+#: EMPTY, AND IT IS MEANT TO BE. All four shortfalls were programme conflicts rather than grid
+#: faults, and each was resolved in `park_final.world.json` by measurement:
+#:   Mining Square  56 -> 41 deep, behind a new V77-79 walk. Frontier B then reads 53 + 3 + 41 =
+#:                  exactly 97, and its front door addresses a street instead of Boomtown's back.
+#:   Works Yard     18 -> 13 deep. The service band IS 18 and the lane takes three of it, so a
+#:   Service Gallery              lane inside the band and an 18-deep yard behind it cannot both
+#:                  exist; both gain width, which the band has.
+#:   Signal Heron   52x45 -> 20x38. It reached four columns into the Midway and overlapped
+#:                  Arrival Court by 152 cells. THE BIRD MEASURES 14 x 32.
+#: An entry here is a debt, so it should be added only with the arithmetic that justifies it.
+KNOWN_SHORT: dict = {}
 
 
 @pytest.fixture(scope="module")
