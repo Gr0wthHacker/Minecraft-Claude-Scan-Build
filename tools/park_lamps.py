@@ -43,6 +43,14 @@ def verges(p: dict) -> dict[int, str]:
     pv, ph = p["promenade_v"], p["promenade_half"]
     out[pv - ph - 2] = "promenade front verge"
     out[pv + ph + 2] = "promenade back verge"
+    # ...and the cross walks, which are streets and are lit like streets. They were completely
+    # dark, and they are the entire access for the Snack Window, the Prize Point and the
+    # Resonance Vault.
+    for land in p.get("lands") or ():
+        for wk in land.get("walks") or ():
+            wv, wh = int(wk["v"]), int(wk.get("half", 1))
+            out.setdefault(wv - wh - 1, f"{land['name']} walk verge")
+            out.setdefault(wv + wh + 1, f"{land['name']} walk verge")
     return out
 
 

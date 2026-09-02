@@ -67,6 +67,15 @@ PARKWAYS = {
     #: GRASS with a post every six along the rim - no route at all, and the lane it eventually
     #: reaches is back-of-house. A station has to be entered from the park's own street.
     "rail_stations": None,
+    #: [{v, u}] - an attraction's front door. A 3-wide apron carries it across its verge to the
+    #: street it addresses, and stops the moment it reaches paving, so a spur is exactly as long
+    #: as the gap and never one cell more.
+    #:
+    #: NO SPUR EXISTED ANYWHERE. The public lots begin at V24 and the spine's paving ends at V18,
+    #: so V19-23 is designed verge and TEN attraction doors opened onto five courses of grass -
+    #: walkable, because moss is walkable, and not a path. "Clear pathways" was Jack's own first
+    #: instruction for this layer. Fifteen spurs are 165 cells.
+    "spurs": None,
     #: THE BACK PROMENADE SITS ON THE SEAM, NOT IN THE MIDDLE OF THE PUBLIC FLOOR. At V110 it cut
     #: every 104-deep column into 81 and 12, so nothing over 81 deep had anywhere to stand - and
     #: five of the park's builds are deeper than that. On the public/exit seam at V124 it leaves
@@ -262,6 +271,26 @@ def build(cfg: dict, donors=None) -> Canvas:
     # into the void has no edge. One border course and a post rhythm is what says "the ground
     # stops here" without building a wall around the park.
     rim_v = p["rim_v"] - v0
+    # THE SPURS: every door carried across its verge to the street it addresses.
+    #
+    # DRAWN BEFORE THE LAMPS, AND THAT IS WHAT FIXES THE MASTS STANDING IN DOORWAYS. Three stood
+    # at (20, 69), (20, 300) and (20, 496) - exactly on the spine's east verge at the mouth of
+    # Boomtown Spine, Carousel Court and the Prism Array. Nothing had to be special-cased: a lamp
+    # already refuses to stand on paving, so the spur simply has to exist first.
+    spur_half = 1
+    for sp in (p.get("spurs") or []):
+        z = int(sp["u"]) - u0
+        if not (0 <= z < sz):
+            continue
+        pal, _b, _t = land_at(int(sp["u"]))
+        # walk back toward the street until paving is met - the gap decides the length, not a
+        # number in a table that goes stale the moment a verge is retuned
+        for x in range(int(sp["v"]) - v0 - 1, max(-1, int(sp["v"]) - v0 - 12), -1):
+            if x < 0 or (x, z) in paved:
+                break
+            for d in range(-spur_half, spur_half + 1):
+                lay(x, z + d, pal, pal, 0.0, spur_half, abs(d), x)
+
     # THE STATION WALKS, and the gap in the rim they need. Drawn BEFORE the rim so the rim knows
     # to leave them alone: a post every six along a boundary is right everywhere except the one
     # cell somebody has to walk through, and a gate you have to jump is not a gate.
@@ -761,6 +790,27 @@ def build(cfg: dict, donors=None) -> Canvas:
             pc = next(iter(prom_v)) - v0
             run(pc + side * (prom_half + 2), spans_prom, p["lamp_every"] + 6,
                 (pc - prom_half - 2, pc + prom_half + 2))
+    # THE CROSS WALKS WERE COMPLETELY UNLIT, and they are the entire street access for three
+    # attractions - the Snack Window, the Prize Point and the Resonance Vault. Measured, not one
+    # mast stood within two cells of any of the three. They are streets and they are lit like
+    # streets, from their own verges, spaced from their own ends.
+    for land in lands:
+        wpal = LANDS[land["name"]]
+        for wk in (land.get("walks") or []):
+            wv, wh = int(wk["v"]) - v0, int(wk.get("half", 1))
+            wz0, wz1 = int(wk["u0"]) - u0, int(wk["u1"]) - u0
+            for side in (-1, 1):
+                # ONE CELL OF VERGE, NOT TWO - the rule an avenue already follows, for the reason
+                # this park keeps re-teaching. At two the walk's mast stood on V71 and Arrival
+                # Court, whose lot is V24-71, measured a course short. A walk runs between two
+                # lots and the single cell between it and each of them is all the verge there is.
+                vline = wv + side * (wh + 1)
+                # A WALK IS SHORT AND NARROW AND TAKES A CLOSER RHYTHM. At the spine's own 22 a
+                # forty-block walk gets ONE post a side, which is a lamp rather than a lit street.
+                for z in spaced(wz0, wz1, [], max(8, p["lamp_every"] - 8)):
+                    if 0 <= z < sz and not near_junction(vline, z):
+                        place_lamp(vline, z, wpal, "x")
+
     if len(prom_v) != 1:
         for z in range(sz):
             u = z + u0

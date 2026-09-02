@@ -79,6 +79,31 @@ params:
         # blocks of grass and a fence between them and the park. `configs/park_rail.yaml` puts
         # each station's portal on exactly these three columns.
         rail_stations: [96, 260, 524]
+
+        # EVERY DOOR IN THE PARK, CARRIED ACROSS ITS VERGE TO THE STREET. Measured against the
+        # shipped ground: the public lots begin at V24 and the spine's paving ends at V18, so ten
+        # attraction fronts opened onto five courses of grass and there was no paved connection
+        # from any street to any building in the park. Each is drawn back only as far as the
+        # paving it meets, so the gap decides the length.
+        #
+        # The V is the module's own front course and the U its entry column, both off
+        # PARK_ATTRACTIONS_PLAN.md's measured table. Works Yard and the Service Gallery are
+        # already adjacent to the service lane and need none.
+        spurs:
+          - {v: 24, u: 19}      # Trailhead Gate
+          - {v: 24, u: 70}      # Boomtown Spine
+          - {v: 24, u: 134}     # Mine Coaster
+          - {v: 24, u: 235}     # Arrival Court
+          - {v: 24, u: 301}     # Carousel Court
+          - {v: 24, u: 362}     # Skill Arcade
+          - {v: 24, u: 407}     # Wyrm's Crossing
+          - {v: 24, u: 448}     # Foundry Gate
+          - {v: 24, u: 496}     # Prism Array
+          - {v: 24, u: 563}     # Prism Ascent
+          - {v: 77, u: 235}     # Snack Window, onto midway walk 1
+          - {v: 80, u: 362}     # Prize Point, onto midway walk 2
+          - {v: 82, u: 491}     # Resonance Vault, onto the prism walk
+          - {v: 130, u: 560}    # Forge Deck, onto the back promenade
         plaza_shape: round            # a junction is round; the corners go back to the lawn
         plaza_half: 11                # r11 on the spine (23 across). The promenade's own
                                       # junctions draw NOTHING - see parkways.py; a square two cells

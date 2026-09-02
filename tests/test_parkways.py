@@ -119,6 +119,12 @@ def test_a_lamp_stands_on_one_line_and_never_wanders_across_it(ground, params):
     # while an avenue was spaced by a plain step - the moment the runs were cut at their own
     # crossings it called every correctly-placed avenue lamp a stray.
     lines |= set(parkways.avenue_stations(params))
+    # ...and the cross walks, which are streets and lit like streets - they were completely dark,
+    # and they are the entire street access for three attractions.
+    for land in params["lands"]:
+        for wk in land.get("walks") or ():
+            wv, wh = int(wk["v"]), int(wk.get("half", 1))
+            lines |= {wv - wh - 1, wv + wh + 1}
     off = sorted({v for v, _ in _mast_cells(c)} - lines)
     assert not off, f"lamps standing off every named verge and rhythm line: {off}"
 
@@ -416,7 +422,11 @@ def test_the_two_verges_of_a_street_carry_the_same_lamps(ground, params):
     # A THRESHOLD IS THE ONE THING THAT BREAKS THIS, AND LEGITIMATELY. It leaves the spine at
     # the spine's own centre line and runs south to the service lane, so it meets ONE verge and
     # there is no northern quadrant to mirror. Its columns are excluded and nothing else is.
+    # A SPUR IS ON ONE SIDE OF ITS STREET, so the two verges legitimately differ at its column:
+    # the spine's east verge is paved there and its west verge is not, and the run on the paved
+    # side steps aside. Excluded exactly like a threshold, and for the same reason.
     ths = {int(th["at"]) for th in (params.get("thresholds") or [])}
+    ths |= {int(sp["u"]) for sp in (params.get("spurs") or [])}
     for cv, half in ((params["spine_v"], params["spine_half"]),
                      (params["promenade_v"], params["promenade_half"])):
         def side(sign):
@@ -438,5 +448,11 @@ def test_no_lamp_stands_off_a_verge_line(ground, params):
              params["promenade_v"] + params["promenade_half"] + 2}
     # ...plus the avenue rhythm's own depths, which are a step of lamp_every from its start
     lines |= set(parkways.avenue_stations(params))   # ONE SOURCE: the build's own arithmetic
+    # ...and the cross walks, which are streets and lit like streets - they were completely dark,
+    # and they are the entire street access for three attractions.
+    for land in params["lands"]:
+        for wk in land.get("walks") or ():
+            wv, wh = int(wk["v"]), int(wk.get("half", 1))
+            lines |= {wv - wh - 1, wv + wh + 1}
     off = sorted({v for v, _z in _masts(c)} - lines)
     assert not off, f"masts standing off every verge line: V{off}"
