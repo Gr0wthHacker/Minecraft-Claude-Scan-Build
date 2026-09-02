@@ -1,6 +1,15 @@
 """Generator registry. Each module exposes DEFAULTS and build(cfg, donors)->Canvas."""
-from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge, hamlet, campanile, harborlight, turtle, rootreach, lowglow, falls, thicket, enrich, parkour, frog, railspiral, casino, park, coaster, bigwheel, civic, frontiertown, hollowmanor, monument, streetfurniture, attractions, transit, ticketing, wayfinding, isthmus, spectacle, arcade, arrival, balloon, wyrm, undercroft, setpiece
+from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge, hamlet, campanile, harborlight, turtle, rootreach, lowglow, falls, thicket, enrich, parkour, frog, railspiral, casino, park, coaster, bigwheel, civic, frontiertown, hollowmanor, monument, streetfurniture, attractions, transit, ticketing, wayfinding, isthmus, spectacle, arcade, arrival, balloon, wyrm, undercroft, setpiece, prismworks
 from .canvas import Canvas, hash01
+
+class _Compose:
+    """Lazy adapter: mcbuild.compose imports the registry, so bind it at call time."""
+    DEFAULTS = {"parts": None}
+
+    def build(self, cfg, donors=None):
+        from ..compose import build as compose_build
+        return compose_build(cfg, donors)
+
 
 class _Wrap:
     """Adapt a plain build function to the generator-module protocol."""
@@ -9,7 +18,9 @@ class _Wrap:
 
 
 GENERATORS = {
+    "compose": _Compose(),
     "setpiece": setpiece,
+    "prismworks": _Wrap(prismworks.build, prismworks.PRISMWORKS),
     "undercroft": undercroft,
     "arcade": arcade,
     "balloon": balloon,

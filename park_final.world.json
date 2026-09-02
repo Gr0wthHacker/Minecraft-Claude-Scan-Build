@@ -1,0 +1,3868 @@
+{
+  "format": 1,
+  "name": "Skyblock Park Final Free-First Build",
+  "seed": 17,
+  "server_profile": "skyblock-1.19",
+  "style_packs": [
+    "frontier",
+    "midway",
+    "natural"
+  ],
+  "site": {
+    "mode": "skyblock",
+    "anchor": [
+      97500,
+      203,
+      80349
+    ],
+    "build_plane": 203,
+    "bounds": [
+      0,
+      0,
+      199,
+      599
+    ],
+    "entry_points": [
+      [
+        12,
+        215
+      ]
+    ],
+    "protected": []
+  },
+  "regions": [
+    {
+      "name": "frontier",
+      "bounds": [
+        0,
+        0,
+        199,
+        169
+      ]
+    },
+    {
+      "name": "frontier_reach",
+      "bounds": [
+        0,
+        170,
+        199,
+        214
+      ]
+    },
+    {
+      "name": "midway",
+      "bounds": [
+        0,
+        215,
+        199,
+        384
+      ]
+    },
+    {
+      "name": "prism_reach",
+      "bounds": [
+        0,
+        385,
+        199,
+        429
+      ]
+    },
+    {
+      "name": "prismworks",
+      "bounds": [
+        0,
+        430,
+        199,
+        599
+      ]
+    }
+  ],
+  "plots": [
+    {
+      "name": "trailhead_gate",
+      "region": "frontier",
+      "bounds": [
+        18,
+        5,
+        50,
+        35
+      ],
+      "zone": "landmark",
+      "style": "frontier"
+    },
+    {
+      "name": "signal_heron",
+      "region": "frontier",
+      "bounds": [
+        55,
+        5,
+        80,
+        35
+      ],
+      "zone": "sculpture",
+      "style": "frontier"
+    },
+    {
+      "name": "boomtown_spine",
+      "region": "frontier",
+      "bounds": [
+        18,
+        40,
+        70,
+        85
+      ],
+      "zone": "building",
+      "style": "frontier"
+    },
+    {
+      "name": "mining_square",
+      "region": "frontier",
+      "bounds": [
+        75,
+        40,
+        130,
+        85
+      ],
+      "zone": "path",
+      "style": "frontier"
+    },
+    {
+      "name": "prospecting_porch",
+      "region": "frontier",
+      "bounds": [
+        85,
+        5,
+        127,
+        38
+      ],
+      "zone": "ride",
+      "style": "frontier"
+    },
+    {
+      "name": "mine_coaster",
+      "region": "frontier",
+      "bounds": [
+        30,
+        90,
+        140,
+        160
+      ],
+      "zone": "ride",
+      "style": "frontier"
+    },
+    {
+      "name": "assay_and_prize_office",
+      "region": "frontier",
+      "bounds": [
+        132,
+        40,
+        151,
+        85
+      ],
+      "zone": "building",
+      "style": "frontier"
+    },
+    {
+      "name": "works_yard",
+      "region": "frontier",
+      "bounds": [
+        152,
+        125,
+        169,
+        160
+      ],
+      "zone": "service",
+      "style": "frontier"
+    },
+    {
+      "name": "arrival_court",
+      "region": "midway",
+      "bounds": [
+        18,
+        220,
+        65,
+        260
+      ],
+      "zone": "arrival",
+      "style": "midway"
+    },
+    {
+      "name": "welcome_court",
+      "region": "midway",
+      "bounds": [
+        70,
+        220,
+        120,
+        260
+      ],
+      "zone": "path",
+      "style": "midway"
+    },
+    {
+      "name": "snack_window",
+      "region": "midway",
+      "bounds": [
+        125,
+        220,
+        151,
+        260
+      ],
+      "zone": "service",
+      "style": "midway"
+    },
+    {
+      "name": "carousel_court",
+      "region": "midway",
+      "bounds": [
+        18,
+        270,
+        85,
+        340
+      ],
+      "zone": "ride",
+      "style": "midway"
+    },
+    {
+      "name": "sky_lift",
+      "region": "midway",
+      "bounds": [
+        90,
+        270,
+        151,
+        345
+      ],
+      "zone": "landmark",
+      "style": "midway"
+    },
+    {
+      "name": "skill_arcade",
+      "region": "midway",
+      "bounds": [
+        20,
+        348,
+        70,
+        380
+      ],
+      "zone": "ride",
+      "style": "midway"
+    },
+    {
+      "name": "prize_point",
+      "region": "midway",
+      "bounds": [
+        75,
+        348,
+        94,
+        370
+      ],
+      "zone": "building",
+      "style": "midway"
+    },
+    {
+      "name": "wyrm_s_crossing",
+      "region": "prism_reach",
+      "bounds": [
+        18,
+        390,
+        80,
+        425
+      ],
+      "zone": "path",
+      "style": "prism"
+    },
+    {
+      "name": "foundry_gate",
+      "region": "prismworks",
+      "bounds": [
+        18,
+        435,
+        70,
+        470
+      ],
+      "zone": "arrival",
+      "style": "prismworks"
+    },
+    {
+      "name": "prism_array",
+      "region": "prismworks",
+      "bounds": [
+        75,
+        435,
+        127,
+        485
+      ],
+      "zone": "ride",
+      "style": "prismworks"
+    },
+    {
+      "name": "resonance_vault",
+      "region": "prismworks",
+      "bounds": [
+        75,
+        486,
+        127,
+        526
+      ],
+      "zone": "ride",
+      "style": "prismworks"
+    },
+    {
+      "name": "prism_ascent",
+      "region": "prismworks",
+      "bounds": [
+        24,
+        528,
+        116,
+        599
+      ],
+      "zone": "landmark",
+      "style": "prismworks"
+    },
+    {
+      "name": "forge_deck",
+      "region": "prismworks",
+      "bounds": [
+        128,
+        495,
+        151,
+        560
+      ],
+      "zone": "path",
+      "style": "prismworks"
+    },
+    {
+      "name": "service_gallery",
+      "region": "prismworks",
+      "bounds": [
+        152,
+        550,
+        169,
+        590
+      ],
+      "zone": "service",
+      "style": "prismworks"
+    },
+    {
+      "name": "sky_lift_sloth",
+      "region": "midway",
+      "bounds": [
+        96,
+        348,
+        141,
+        370
+      ],
+      "zone": "sculpture",
+      "style": "midway"
+    },
+    {
+      "name": "claim_line",
+      "region": "frontier_reach",
+      "bounds": [
+        5,
+        172,
+        80,
+        212
+      ],
+      "zone": "path",
+      "style": "frontier"
+    }
+  ],
+  "routes": [
+    {
+      "name": "park_spine",
+      "kind": "path",
+      "width": 5,
+      "points": [
+        [
+          12,
+          2
+        ],
+        [
+          12,
+          597
+        ]
+      ]
+    },
+    {
+      "name": "frontier_loop",
+      "kind": "path",
+      "width": 5,
+      "points": [
+        [
+          12,
+          20
+        ],
+        [
+          45,
+          20
+        ],
+        [
+          45,
+          130
+        ],
+        [
+          12,
+          130
+        ]
+      ]
+    },
+    {
+      "name": "midway_loop",
+      "kind": "path",
+      "width": 7,
+      "points": [
+        [
+          12,
+          240
+        ],
+        [
+          55,
+          240
+        ],
+        [
+          55,
+          360
+        ],
+        [
+          12,
+          360
+        ]
+      ]
+    },
+    {
+      "name": "prism_loop",
+      "kind": "path",
+      "width": 7,
+      "points": [
+        [
+          12,
+          450
+        ],
+        [
+          65,
+          450
+        ],
+        [
+          65,
+          570
+        ],
+        [
+          12,
+          570
+        ]
+      ]
+    },
+    {
+      "name": "service_spine",
+      "kind": "service",
+      "width": 3,
+      "points": [
+        [
+          160,
+          1
+        ],
+        [
+          160,
+          598
+        ]
+      ]
+    },
+    {
+      "name": "public_program_loop",
+      "kind": "path",
+      "width": 5,
+      "points": [
+        [
+          12,
+          20
+        ],
+        [
+          150,
+          20
+        ],
+        [
+          150,
+          62
+        ],
+        [
+          12,
+          62
+        ],
+        [
+          12,
+          105
+        ],
+        [
+          150,
+          105
+        ],
+        [
+          150,
+          142
+        ],
+        [
+          12,
+          142
+        ],
+        [
+          12,
+          240
+        ],
+        [
+          150,
+          240
+        ],
+        [
+          150,
+          305
+        ],
+        [
+          12,
+          305
+        ],
+        [
+          12,
+          357
+        ],
+        [
+          150,
+          357
+        ],
+        [
+          12,
+          450
+        ],
+        [
+          150,
+          450
+        ],
+        [
+          150,
+          515
+        ],
+        [
+          12,
+          515
+        ],
+        [
+          12,
+          570
+        ],
+        [
+          150,
+          570
+        ]
+      ]
+    },
+    {
+      "name": "access_trailhead_gate",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          20
+        ],
+        [
+          18,
+          20
+        ]
+      ]
+    },
+    {
+      "name": "access_signal_heron",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          20
+        ],
+        [
+          18,
+          20
+        ]
+      ]
+    },
+    {
+      "name": "access_boomtown_spine",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          63
+        ],
+        [
+          18,
+          63
+        ]
+      ]
+    },
+    {
+      "name": "access_mining_square",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          63
+        ],
+        [
+          18,
+          63
+        ]
+      ]
+    },
+    {
+      "name": "access_prospecting_porch",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          20
+        ],
+        [
+          18,
+          20
+        ]
+      ]
+    },
+    {
+      "name": "access_mine_coaster",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          125
+        ],
+        [
+          18,
+          125
+        ]
+      ]
+    },
+    {
+      "name": "access_assay_and_prize_office",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          63
+        ],
+        [
+          18,
+          63
+        ]
+      ]
+    },
+    {
+      "name": "access_works_yard",
+      "kind": "service",
+      "width": 3,
+      "points": [
+        [
+          160,
+          143
+        ],
+        [
+          152,
+          143
+        ]
+      ]
+    },
+    {
+      "name": "access_arrival_court",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          240
+        ],
+        [
+          18,
+          240
+        ]
+      ]
+    },
+    {
+      "name": "access_welcome_court",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          240
+        ],
+        [
+          18,
+          240
+        ]
+      ]
+    },
+    {
+      "name": "access_snack_window",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          240
+        ],
+        [
+          18,
+          240
+        ]
+      ]
+    },
+    {
+      "name": "access_carousel_court",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          305
+        ],
+        [
+          18,
+          305
+        ]
+      ]
+    },
+    {
+      "name": "access_sky_lift",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          320
+        ],
+        [
+          18,
+          320
+        ]
+      ]
+    },
+    {
+      "name": "access_skill_arcade",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          360
+        ],
+        [
+          20,
+          360
+        ]
+      ]
+    },
+    {
+      "name": "access_prize_point",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          358
+        ],
+        [
+          18,
+          358
+        ]
+      ]
+    },
+    {
+      "name": "access_wyrm_s_crossing",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          408
+        ],
+        [
+          18,
+          408
+        ]
+      ]
+    },
+    {
+      "name": "access_foundry_gate",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          453
+        ],
+        [
+          18,
+          453
+        ]
+      ]
+    },
+    {
+      "name": "access_prism_array",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          460
+        ],
+        [
+          75,
+          460
+        ]
+      ]
+    },
+    {
+      "name": "access_resonance_vault",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          506
+        ],
+        [
+          75,
+          506
+        ]
+      ]
+    },
+    {
+      "name": "access_prism_ascent",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          560
+        ],
+        [
+          24,
+          560
+        ]
+      ]
+    },
+    {
+      "name": "access_forge_deck",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          520
+        ],
+        [
+          128,
+          520
+        ]
+      ]
+    },
+    {
+      "name": "access_service_gallery",
+      "kind": "service",
+      "width": 3,
+      "points": [
+        [
+          160,
+          570
+        ],
+        [
+          152,
+          570
+        ]
+      ]
+    },
+    {
+      "name": "access_claim_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          190
+        ],
+        [
+          18,
+          190
+        ]
+      ]
+    },
+    {
+      "name": "access_sky_lift_sloth",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          358
+        ],
+        [
+          18,
+          358
+        ]
+      ]
+    }
+  ],
+  "view_corridors": [],
+  "modules": [
+    {
+      "name": "Trailhead Gate",
+      "plot": "trailhead_gate",
+      "generator": "frontiertown",
+      "role": "landmark",
+      "footprint": [
+        33,
+        31
+      ],
+      "at": [
+        18,
+        5
+      ],
+      "access_points": [
+        [
+          18,
+          20
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            15
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            15
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            23
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            32,
+            1,
+            28
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 6000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier"
+    },
+    {
+      "name": "Signal Heron",
+      "plot": "signal_heron",
+      "generator": "heron",
+      "role": "sculpture",
+      "footprint": [
+        26,
+        31
+      ],
+      "at": [
+        55,
+        5
+      ],
+      "access_points": [
+        [
+          18,
+          20
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            15
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "support_root",
+          "kind": "support",
+          "position": [
+            13,
+            0,
+            15
+          ],
+          "facing": "down",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Trailhead Gate"
+      ],
+      "budget": {
+        "blocks": 7000
+      },
+      "scenarios": [
+        "visual_review"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier"
+    },
+    {
+      "name": "Boomtown Spine",
+      "plot": "boomtown_spine",
+      "generator": "frontiertown",
+      "role": "building",
+      "footprint": [
+        53,
+        46
+      ],
+      "at": [
+        18,
+        40
+      ],
+      "access_points": [
+        [
+          18,
+          63
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            23
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            23
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            31
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            52,
+            1,
+            43
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Trailhead Gate"
+      ],
+      "budget": {
+        "blocks": 8000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier"
+    },
+    {
+      "name": "Mining Square",
+      "plot": "mining_square",
+      "generator": "park",
+      "role": "path",
+      "footprint": [
+        56,
+        46
+      ],
+      "at": [
+        75,
+        40
+      ],
+      "access_points": [
+        [
+          18,
+          63
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            23
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            23
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            31
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            55,
+            1,
+            43
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Boomtown Spine"
+      ],
+      "budget": {
+        "blocks": 4000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier"
+    },
+    {
+      "name": "Mine Coaster",
+      "plot": "mine_coaster",
+      "generator": "coaster",
+      "role": "ride",
+      "footprint": [
+        111,
+        71
+      ],
+      "at": [
+        30,
+        90
+      ],
+      "access_points": [
+        [
+          18,
+          125
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            35
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            43
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            110,
+            1,
+            68
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            27
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            55,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            47
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Mining Square"
+      ],
+      "budget": {
+        "blocks": 30000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics",
+        "safety"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier"
+    },
+    {
+      "name": "Prospecting Porch",
+      "plot": "prospecting_porch",
+      "generator": "arcade",
+      "role": "ride",
+      "footprint": [
+        43,
+        34
+      ],
+      "at": [
+        85,
+        5
+      ],
+      "access_points": [
+        [
+          18,
+          20
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            17
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            17
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            25
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            42,
+            1,
+            31
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            9
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            21,
+            1,
+            17
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            29
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Mining Square"
+      ],
+      "budget": {
+        "blocks": 6000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier"
+    },
+    {
+      "name": "Assay and Prize Office",
+      "plot": "assay_and_prize_office",
+      "generator": "frontiertown",
+      "role": "building",
+      "footprint": [
+        20,
+        46
+      ],
+      "at": [
+        132,
+        40
+      ],
+      "access_points": [
+        [
+          18,
+          63
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            23
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            23
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            31
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            19,
+            1,
+            43
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Prospecting Porch"
+      ],
+      "budget": {
+        "blocks": 3000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier"
+    },
+    {
+      "name": "Works Yard",
+      "plot": "works_yard",
+      "generator": "frontiertown",
+      "role": "service",
+      "footprint": [
+        18,
+        36
+      ],
+      "at": [
+        152,
+        125
+      ],
+      "access_points": [
+        [
+          152,
+          143
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            18
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            18
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            26
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            17,
+            1,
+            33
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Mine Coaster"
+      ],
+      "budget": {
+        "blocks": 2000
+      },
+      "scenarios": [
+        "service_access"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier"
+    },
+    {
+      "name": "Claim Line",
+      "plot": "claim_line",
+      "generator": "compose",
+      "role": "path",
+      "footprint": [
+        76,
+        41
+      ],
+      "at": [
+        5,
+        172
+      ],
+      "access_points": [
+        [
+          18,
+          190
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            75,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Trailhead Gate"
+      ],
+      "budget": {
+        "blocks": 8000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 40,
+              "depth": 70
+            },
+            "offset": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 19,
+              "depth": 15,
+              "height": 18
+            },
+            "offset": [
+              1,
+              0,
+              10
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "land": "midway",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 19,
+              "depth": 15,
+              "height": 18
+            },
+            "offset": [
+              54,
+              0,
+              10
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "trestlebridge",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              24,
+              0,
+              4
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              28,
+              0,
+              26
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Arrival Court",
+      "plot": "arrival_court",
+      "generator": "arrival",
+      "role": "arrival",
+      "footprint": [
+        48,
+        41
+      ],
+      "at": [
+        18,
+        220
+      ],
+      "access_points": [
+        [
+          18,
+          240
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            47,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 7000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway"
+    },
+    {
+      "name": "Welcome Court",
+      "plot": "welcome_court",
+      "generator": "park",
+      "role": "path",
+      "footprint": [
+        51,
+        41
+      ],
+      "at": [
+        70,
+        220
+      ],
+      "access_points": [
+        [
+          18,
+          240
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            50,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Arrival Court"
+      ],
+      "budget": {
+        "blocks": 5000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway"
+    },
+    {
+      "name": "Snack Window",
+      "plot": "snack_window",
+      "generator": "frontiertown",
+      "role": "building",
+      "footprint": [
+        27,
+        41
+      ],
+      "at": [
+        125,
+        220
+      ],
+      "access_points": [
+        [
+          18,
+          240
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            26,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Welcome Court"
+      ],
+      "budget": {
+        "blocks": 2000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway"
+    },
+    {
+      "name": "Carousel Court",
+      "plot": "carousel_court",
+      "generator": "bigwheel",
+      "role": "ride",
+      "footprint": [
+        68,
+        71
+      ],
+      "at": [
+        18,
+        270
+      ],
+      "access_points": [
+        [
+          18,
+          305
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            35
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            43
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            67,
+            1,
+            68
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            27
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            34,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            47
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Welcome Court"
+      ],
+      "budget": {
+        "blocks": 9000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics",
+        "safety"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway"
+    },
+    {
+      "name": "Sky Lift",
+      "plot": "sky_lift",
+      "generator": "bigwheel",
+      "role": "ride",
+      "footprint": [
+        62,
+        71
+      ],
+      "at": [
+        90,
+        270
+      ],
+      "access_points": [
+        [
+          18,
+          320
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            35
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            43
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            65,
+            1,
+            68
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            27
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            33,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            47
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Welcome Court"
+      ],
+      "budget": {
+        "blocks": 14000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics",
+        "safety"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway"
+    },
+    {
+      "name": "Sky Lift Sloth",
+      "plot": "sky_lift_sloth",
+      "generator": "sloth",
+      "role": "sculpture",
+      "footprint": [
+        46,
+        23
+      ],
+      "at": [
+        96,
+        348
+      ],
+      "access_points": [
+        [
+          18,
+          358
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            11
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "support_root",
+          "kind": "support",
+          "position": [
+            23,
+            0,
+            11
+          ],
+          "facing": "down",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Sky Lift"
+      ],
+      "budget": {
+        "blocks": 4500
+      },
+      "scenarios": [
+        "visual_review"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway"
+    },
+    {
+      "name": "Skill Arcade",
+      "plot": "skill_arcade",
+      "generator": "arcade",
+      "role": "ride",
+      "footprint": [
+        51,
+        33
+      ],
+      "at": [
+        20,
+        348
+      ],
+      "access_points": [
+        [
+          20,
+          360
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            16
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            16
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            24
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            50,
+            1,
+            30
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            8
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            25,
+            1,
+            16
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Welcome Court"
+      ],
+      "budget": {
+        "blocks": 6000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway"
+    },
+    {
+      "name": "Prize Point",
+      "plot": "prize_point",
+      "generator": "arcade",
+      "role": "building",
+      "footprint": [
+        20,
+        23
+      ],
+      "at": [
+        75,
+        348
+      ],
+      "access_points": [
+        [
+          18,
+          358
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            11
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            11
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            19
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            19,
+            1,
+            20
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Skill Arcade"
+      ],
+      "budget": {
+        "blocks": 2500
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway"
+    },
+    {
+      "name": "Wyrm's Crossing",
+      "plot": "wyrm_s_crossing",
+      "generator": "compose",
+      "role": "path",
+      "footprint": [
+        63,
+        36
+      ],
+      "at": [
+        18,
+        390
+      ],
+      "access_points": [
+        [
+          18,
+          408
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            18
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            18
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            26
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            62,
+            1,
+            33
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Prize Point"
+      ],
+      "budget": {
+        "blocks": 10000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prism",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 34,
+              "depth": 50
+            },
+            "offset": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "wyrm",
+            "params": {
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "scale": 1.0
+            },
+            "offset": [
+              16,
+              0,
+              1
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 17,
+              "height": 14
+            },
+            "offset": [
+              46,
+              0,
+              8
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Foundry Gate",
+      "plot": "foundry_gate",
+      "generator": "compose",
+      "role": "arrival",
+      "footprint": [
+        53,
+        36
+      ],
+      "at": [
+        18,
+        435
+      ],
+      "access_points": [
+        [
+          18,
+          453
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            18
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            18
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            26
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            52,
+            1,
+            33
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Wyrm's Crossing"
+      ],
+      "budget": {
+        "blocks": 8000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 34,
+              "depth": 50
+            },
+            "offset": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 35,
+              "depth": 25,
+              "height": 26
+            },
+            "offset": [
+              1,
+              0,
+              8
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              22
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              36,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              36,
+              0,
+              22
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              32,
+              0,
+              12
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              20,
+              0,
+              12
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Prism Array",
+      "plot": "prism_array",
+      "generator": "prismworks",
+      "role": "ride",
+      "footprint": [
+        53,
+        51
+      ],
+      "at": [
+        75,
+        435
+      ],
+      "access_points": [
+        [
+          75,
+          460
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            25
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            25
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            33
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            52,
+            1,
+            48
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            17
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            26,
+            1,
+            25
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            37
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Foundry Gate"
+      ],
+      "budget": {
+        "blocks": 9000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "kind": "array"
+      }
+    },
+    {
+      "name": "Resonance Vault",
+      "plot": "resonance_vault",
+      "generator": "prismworks",
+      "role": "ride",
+      "footprint": [
+        53,
+        41
+      ],
+      "at": [
+        75,
+        486
+      ],
+      "access_points": [
+        [
+          75,
+          506
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            52,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            12
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            26,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            32
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Foundry Gate"
+      ],
+      "budget": {
+        "blocks": 9000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "kind": "vault"
+      }
+    },
+    {
+      "name": "Prism Ascent",
+      "plot": "prism_ascent",
+      "generator": "prismworks",
+      "role": "ride",
+      "footprint": [
+        93,
+        72
+      ],
+      "at": [
+        24,
+        528
+      ],
+      "access_points": [
+        [
+          24,
+          560
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            36
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            36
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            44
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            92,
+            1,
+            69
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            46,
+            1,
+            36
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            48
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Foundry Gate"
+      ],
+      "budget": {
+        "blocks": 36000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics",
+        "safety"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "kind": "ascent",
+        "height": 130,
+        "radius": 26
+      }
+    },
+    {
+      "name": "Forge Deck",
+      "plot": "forge_deck",
+      "generator": "compose",
+      "role": "path",
+      "footprint": [
+        24,
+        66
+      ],
+      "at": [
+        128,
+        495
+      ],
+      "access_points": [
+        [
+          128,
+          520
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            33
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            33
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            41
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            23,
+            1,
+            63
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Prism Ascent"
+      ],
+      "budget": {
+        "blocks": 10000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 62,
+              "depth": 22
+            },
+            "offset": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              1
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              17
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              33
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              50
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              2,
+              0,
+              10
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              2,
+              0,
+              26
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              2,
+              0,
+              42
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              2,
+              0,
+              53
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              9,
+              0,
+              53
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 19,
+              "depth": 15,
+              "height": 18
+            },
+            "offset": [
+              3,
+              0,
+              44
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Service Gallery",
+      "plot": "service_gallery",
+      "generator": "compose",
+      "role": "service",
+      "footprint": [
+        18,
+        41
+      ],
+      "at": [
+        152,
+        550
+      ],
+      "access_points": [
+        [
+          152,
+          570
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            17,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Prism Ascent",
+        "Resonance Vault"
+      ],
+      "budget": {
+        "blocks": 6000
+      },
+      "scenarios": [
+        "service_access"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "parts": [
+          {
+            "gen": "undercroft",
+            "params": {
+              "land": "frontier",
+              "kind": "crypt",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "south",
+              "width": 5,
+              "height": 5,
+              "chambers": [
+                [
+                  "Bubble Sources",
+                  11,
+                  11,
+                  "water"
+                ],
+                [
+                  "Catch Racks",
+                  9,
+                  9,
+                  "niches"
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "undercroft",
+            "params": {
+              "land": "frontier",
+              "kind": "crypt",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "south",
+              "width": 5,
+              "height": 5,
+              "chambers": [
+                [
+                  "Reset Control",
+                  11,
+                  11,
+                  "puzzle"
+                ],
+                [
+                  "Chest Recovery",
+                  9,
+                  9,
+                  "reward"
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              -9,
+              0
+            ]
+          },
+          {
+            "gen": "undercroft",
+            "params": {
+              "land": "frontier",
+              "kind": "crypt",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "south",
+              "width": 5,
+              "height": 5,
+              "chambers": [
+                [
+                  "Checkpoint Wiring",
+                  11,
+                  11,
+                  "scene"
+                ],
+                [
+                  "Storage",
+                  9,
+                  9,
+                  "niches"
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              -18,
+              0
+            ]
+          },
+          {
+            "gen": "undercroft",
+            "params": {
+              "land": "frontier",
+              "kind": "crypt",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "south",
+              "width": 5,
+              "height": 5,
+              "chambers": [
+                [
+                  "Catch Sump",
+                  11,
+                  11,
+                  "water"
+                ],
+                [
+                  "Spares",
+                  9,
+                  9,
+                  "niches"
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              -27,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 38,
+              "depth": 16
+            },
+            "offset": [
+              0,
+              8,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              2,
+              8,
+              4
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "build_notes": {
+    "coordinate_mapping": "local x is plan V depth; local z is plan U length",
+    "anchor_status": "provisional; rebase against current capture before paste",
+    "target_block_budget": 265000,
+    "budget_policy": "78-86% cheap structure/detail; 10-16% okay accents; 2-5% declared functional expensive; no decorative terracotta/concrete/quartz/glass bulk",
+    "visual_spec": "PARK_VISUAL_AND_BUDGET_SPEC.md",
+    "gated_systems": [
+      "runtime minecart/projectile policy",
+      "grass-payment adapter acceptance",
+      "Prism Ascent live physics",
+      "Vault and Wyrm state machines"
+    ],
+    "module_count": 24
+  }
+}
