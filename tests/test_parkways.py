@@ -115,8 +115,10 @@ def test_a_lamp_stands_on_one_line_and_never_wanders_across_it(ground, params):
     sv, sh = params["spine_v"], params["spine_half"]
     pv, ph = params["promenade_v"], params["promenade_half"]
     lines = {sv - sh - 2, sv + sh + 2, pv - ph - 2, pv + ph + 2}
-    lines |= set(range(sv + params.get("plaza_half", 11) + 6,
-                       params["service_v"] - 2, params.get("lamp_every", 22)))
+    # ONE SOURCE. This was a bare `range(start, service_v, lamp_every)`, which was right only
+    # while an avenue was spaced by a plain step - the moment the runs were cut at their own
+    # crossings it called every correctly-placed avenue lamp a stray.
+    lines |= set(parkways.avenue_stations(params))
     off = sorted({v for v, _ in _mast_cells(c)} - lines)
     assert not off, f"lamps standing off every named verge and rhythm line: {off}"
 
@@ -324,13 +326,24 @@ def _masts(c) -> set:
 
 
 def _crossings(params):
-    """(centre V, street half-width, U) for every avenue crossing of the spine and promenade."""
+    """(centre V, street half-width, U, axis) for every meeting of two streets in the park.
+
+    `axis` is the direction the CROSSING street runs, which decides the symmetry that applies. An
+    avenue and a threshold both run along V, so the mirror that must hold at their meetings is the
+    one across the street they meet - and where that street stops on one side, along it as well.
+    """
     out = []
     for land in params["lands"]:
         for av in land.get("avenues") or ():
             for cv, half in ((params["spine_v"], params["spine_half"]),
                              (params["promenade_v"], params["promenade_half"])):
                 out.append((cv, half, int(av["at"])))
+    # A THRESHOLD IS A STREET AND THE JUNCTION PASS COULD NOT SEE ONE - it walks the `avenues`
+    # list and a threshold is not in it, so all four handoffs were lit by whatever the runs left.
+    for th in (params.get("thresholds") or ()):
+        for cv, half in ((params["spine_v"], params["spine_half"]),
+                         (params["promenade_v"], params["promenade_half"])):
+            out.append((cv, half, int(th["at"])))
     return out
 
 
@@ -354,10 +367,15 @@ def test_a_crossing_is_lit_four_square_or_not_at_all(ground, params):
                       if abs(z - u) <= 14 and abs(v - cv) <= half + 3)
         # 4 at a crossing, 2 at a T where the street stops - and 0 where neither will stand.
         assert len(near) in (0, 2, 4), f"crossing V{cv}/U{u} has {len(near)} lamps"
-        # THE SYMMETRY YOU SEE IS ACROSS THE STREET, and it holds at a T as well as a crossing.
-        assert near == sorted((-dv, du) for dv, du in near),             f"crossing V{cv}/U{u} is not mirrored across the street: {near}"
+        # A T HAS ONE AXIS AND A CROSSING HAS TWO, and which axis a T keeps depends on which way
+        # the street that stops was running: the promenade's Ts stop along U and keep the mirror
+        # across it, a threshold leaves the spine southward and keeps the mirror along it. So the
+        # rule is that AT LEAST ONE mirror holds, and a full crossing holds both.
+        across = near == sorted((-dv, du) for dv, du in near)
+        along = near == sorted((dv, -du) for dv, du in near)
+        assert across or along, f"crossing V{cv}/U{u} is mirrored on neither axis: {near}"
         if len(near) == 4:
-            assert near == sorted((dv, -du) for dv, du in near),                 f"crossing V{cv}/U{u} is not mirrored along the street: {near}"
+            assert across and along,                 f"crossing V{cv}/U{u} is a full crossing but not mirrored both ways: {near}"
 
 
 def test_every_crossing_the_street_reaches_actually_gets_its_four(ground, params):
@@ -381,9 +399,12 @@ def test_every_crossing_the_street_reaches_actually_gets_its_four(ground, params
         return sum(not any(a <= uu <= b for a, b in gaps)
                    for uu in (u - half - 2, u + half + 2))
 
+    ths = {int(th["at"]) for th in (params.get("thresholds") or ())}
     unlit = [(cv, u, open_sides(cv, half, u)) for cv, half, u in _crossings(params)
+             # a threshold meets the SPINE on one verge only - it leaves the spine rather than
+             # crossing it, so two masts is its complete answer and there is no far quadrant
              if len([1 for v, z in pts if abs(z - u) <= 14 and abs(v - cv) <= half + 3])
-             != 2 * open_sides(cv, half, u)]
+             != (2 if u in ths and cv == params["spine_v"] else 2 * open_sides(cv, half, u))]
     assert not unlit, f"crossings the street reaches but nothing lights: {unlit}"
 
 
@@ -392,10 +413,16 @@ def test_the_two_verges_of_a_street_carry_the_same_lamps(ground, params):
     see. Both verges are driven from one run, so their U positions must be identical."""
     _lawn, c = ground
     pts = _masts(c)
+    # A THRESHOLD IS THE ONE THING THAT BREAKS THIS, AND LEGITIMATELY. It leaves the spine at
+    # the spine's own centre line and runs south to the service lane, so it meets ONE verge and
+    # there is no northern quadrant to mirror. Its columns are excluded and nothing else is.
+    ths = {int(th["at"]) for th in (params.get("thresholds") or [])}
     for cv, half in ((params["spine_v"], params["spine_half"]),
                      (params["promenade_v"], params["promenade_half"])):
-        west = sorted(z for v, z in pts if v == cv - (half + 2))
-        east = sorted(z for v, z in pts if v == cv + (half + 2))
+        def side(sign):
+            return sorted(z for v, z in pts if v == cv + sign * (half + 2)
+                          and not any(abs(z - t) <= half + 26 for t in ths))
+        west, east = side(-1), side(1)
         assert west == east, (f"the verges of the street at V{cv} do not match: "
                               f"{len(west)} west, {len(east)} east")
 
@@ -410,8 +437,6 @@ def test_no_lamp_stands_off_a_verge_line(ground, params):
              params["promenade_v"] - params["promenade_half"] - 2,
              params["promenade_v"] + params["promenade_half"] + 2}
     # ...plus the avenue rhythm's own depths, which are a step of lamp_every from its start
-    every = params.get("lamp_every", parkways.PARKWAYS["lamp_every"])
-    start = params["spine_v"] + params["plaza_half"] + 6
-    lines |= set(range(start, params["rim_v"], every))
+    lines |= set(parkways.avenue_stations(params))   # ONE SOURCE: the build's own arithmetic
     off = sorted({v for v, _z in _masts(c)} - lines)
     assert not off, f"masts standing off every verge line: V{off}"

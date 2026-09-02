@@ -50,9 +50,12 @@ def main():
     p = params_from_config()
     pts, c = masts(p)
     lines = verges(p)
-    step = p.get("lamp_every", 22)
-    start = p["spine_v"] + p.get("plaza_half", 11) + 6
-    rhythm = list(range(start, p["service_v"] - 2, step))
+    # THE AVENUE STATIONS COME FROM THE GENERATOR'S OWN SPACING, not from a rhythm retyped here.
+    # They used to be `range(start, service_v, lamp_every)`, which was true only while an avenue
+    # was spaced by a bare step - and the moment the runs were cut at their crossings this file
+    # called every correctly-placed avenue lamp "OFF EVERY LINE". A measurement and the code it
+    # measures must share one source or they simply disagree, confidently.
+    rhythm = parkways.avenue_stations(p)
     print(f"{len(pts)} lamp masts\n")
     print(f"{'V line':>7} {'n':>4}  what")
     for v, n in sorted(Counter(x for x, _ in pts).items()):

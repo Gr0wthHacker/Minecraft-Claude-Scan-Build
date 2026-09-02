@@ -317,7 +317,11 @@ def build(cfg: dict, donors=None) -> Canvas:
             return "border"
         if ring % 4 == 0:
             return "accent"
-        return "inlay" if (dx + dz) % 6 == 0 else "core"
+        # A DIAGONAL INLAY IS ROTATIONALLY SYMMETRIC AND NOT MIRROR SYMMETRIC. `(dx + dz) % 6`
+        # draws parallel diagonals running one way across the whole disc, so the plaza's two
+        # halves do not match across either axis - 30 to 34 cells out on every square in the
+        # park. On the absolute offsets it is a chevron, which is symmetric about both.
+        return "inlay" if (abs(dx) + abs(dz)) % 6 == 0 else "core"
 
     def square(centre_x: int, z: int, pal: dict, hh: int):
         for dx in range(-hh, hh + 1):
@@ -368,7 +372,8 @@ def build(cfg: dict, donors=None) -> Canvas:
                     continue
                 rr = int(round(d))
                 key = "border" if rr in (r_in, r_out) else \
-                      ("accent" if rr % 3 == 0 else ("inlay" if (dx + dz) % 5 == 0 else "core"))
+                      ("accent" if rr % 3 == 0 else
+                       ("inlay" if (abs(dx) + abs(dz)) % 5 == 0 else "core"))
                 c.put(x, 1, zz, 0)
                 c.put(x, 0, zz, blk(pal[key]))
                 paved.add((x, zz))
@@ -498,6 +503,15 @@ def build(cfg: dict, donors=None) -> Canvas:
     #: station than its own - which is exactly how thirteen of them ended up stacked on one line.
     WINDOW_SHORT = tuple(s for k in range(0, p["lamp_every"] // 2 - 2, 2) for s in ((k,) if not k else (k, -k)))
 
+    #: TWELVE, NOT EIGHT. Eight is the anti-bunching minimum - the closest two street lamps ever
+    #: get - and anything allowed to sit at exactly that distance from a junction lamp reads as a
+    #: fifth corner rather than as the first post of a run.
+    JUNCTION_CLEAR = 12
+    junction_at: list = []
+
+    def near_junction(x: int, z: int) -> bool:
+        return any(abs(px - x) + abs(pz - z) < JUNCTION_CLEAR for px, pz in junction_at)
+
     def place_lamp(x: int, z: int, pal: dict, across: str, window=WINDOW_LONG) -> bool:
         """One lamp, nudged ALONG its own verge line until it clears paving - or dropped.
 
@@ -512,6 +526,13 @@ def build(cfg: dict, donors=None) -> Canvas:
             # landed one and two blocks apart - a pair of posts side by side, which reads worse
             # than the gap it was avoiding. Eight is about the closest two street lamps ever get.
             if any(abs(px - sx_) + abs(pz - sz_) < 8 for px, pz in lamp_at):
+                continue
+            # AND THE NUDGE MUST RESPECT A CROSSING TOO. Blocking the intended cell but not the
+            # ones it can be walked to is no guard at all: the promenade run near the Midway's
+            # second avenue was pushed to eight blocks off that junction's own mast, which reads
+            # as a fifth corner and broke the symmetry of the one junction that was already
+            # right. Junction lamps themselves pass, or none of them could ever be laid.
+            if window != (0,) and near_junction(sx_, sz_):
                 continue
             if lamp(sx_, sz_, pal, across):
                 lamps += 1
@@ -543,7 +564,7 @@ def build(cfg: dict, donors=None) -> Canvas:
     # offset is PROBED rather than computed, because the thing it has to clear is a round plaza
     # and the arithmetic for "where does a disc of radius r stop covering the line at depth d"
     # is exactly the sort of thing that is right until someone changes the plaza shape.
-    def junction(cv: int, halfw: int, cz: int, pal: dict, u_ok=None) -> int:
+    def junction(cv: int, halfw: int, cz: int, pal: dict, u_ok=None, v_sides=(-1, 1)) -> int:
         dv = halfw + 2                       # the street's own verge line, both sides
         for du in range(halfw + 2, halfw + 26):
             # A CROSSING'S CORNERS MUST BE ON THE STREET THAT CROSSES. The promenade stops dead
@@ -560,12 +581,20 @@ def build(cfg: dict, donors=None) -> Canvas:
             sides = [su for su in (-1, 1) if u_ok is None or u_ok(cz + su * du + u0)]
             if not sides:
                 return 0
-            pts = [(cv + sv * dv, cz + su * du) for sv in (-1, 1) for su in sides]
+            pts = [(cv + sv * dv, cz + su * du) for sv in v_sides for su in sides]
             if not all(0 <= x < sx and 0 <= z_ < sz and (x, z_) not in paved
                        and not is_reserved(x, z_) for x, z_ in pts):
                 continue
+            # AND A JUNCTION THAT WOULD CROWD ANOTHER IS NOT ONE. The Circus sits 25 blocks from
+            # the Midway's second avenue and its ring reaches within 8 of that avenue's own
+            # promenade junction - so lighting both put two quartets a walking-pace apart and
+            # broke the symmetry of the one that was already right. The bigger feature is offered
+            # first (avenues, then thresholds, then roundabouts) and a later one stands down.
+            if any(near_junction(x, z_) for x, z_ in pts):
+                return 0
             if not all(place_lamp(x, z_, pal, "x", (0,)) for x, z_ in pts):
                 return 0                     # a partial set is worse than none: see below
+            junction_at.extend(pts)
             return du
         return 0
 
@@ -578,25 +607,35 @@ def build(cfg: dict, donors=None) -> Canvas:
         if prom_open(u):
             junction(prom_at(u) - v0, prom_half, z, pal, prom_open)
 
-    #: THE JUNCTION LAMPS, SNAPSHOT BEFORE ANY RHYTHM RUNS. Every run afterwards is tested
-    #: against these and DROPS rather than nudges, which is one rule instead of two guesses at
-    #: how far a crossing reaches. The distance is the anti-bunching distance itself, because the
-    #: thing being prevented is precisely a rhythm lamp being shoved off its line by a junction
-    #: lamp - the avenue post that should stand on V117 and the promenade's own corner lamp on
-    #: V121 share a column and are four apart, so the post moved to V113 and V115, two lines that
-    #: exist nowhere else in the park.
-    junction_at = list(lamp_at)
+    # A THRESHOLD IS A STREET, AND THE JUNCTION PASS COULD NOT SEE ONE. It walks the `avenues`
+    # list, and the four reach handoffs at U171/213/386/428 are not in it - so four real 3-wide
+    # streets, each running from the spine to the service lane, crossed both the spine's verge and
+    # the promenade with whatever the runs happened to leave: one mast at -3, a pair at -14/+8,
+    # nothing at all at U171. Not one matched pair among the eight.
+    #
+    # A THRESHOLD LEAVES THE SPINE; IT DOES NOT CROSS IT. It starts at the spine's own centre
+    # line, so there is no northern quadrant to mirror and its spine junction is a PAIR on the
+    # south verge rather than a quartet - written as a crossing it would have asked for two masts
+    # in the middle of the spine's own paving.
+    for th in (p.get("thresholds") or []):
+        tu = int(th["at"])
+        z = tu - u0
+        if not (0 <= z < sz):
+            continue
+        tpal = land_at(tu)[0]
+        junction(spine_v, p["spine_half"], z, tpal, v_sides=(1,))
+        if prom_open(tu):
+            junction(prom_at(tu) - v0, prom_half, z, tpal, prom_open)
 
-    def near_junction(x: int, z: int) -> bool:
-        return any(abs(px - x) + abs(pz - z) < 8 for px, pz in junction_at)
+    # ...and so is the circus. Its ring road meets the promenade on both sides and the east half
+    # of it was dark - two masts, both west, because the runs alternate and nothing knew a
+    # roundabout was there either.
+    for rb in (p.get("roundabouts") or []):
+        ru = int(rb["u"])
+        z = ru - u0
+        if 0 <= z < sz:
+            junction(int(rb["v"]) - v0, prom_half, z, land_at(ru)[0], prom_open)
 
-    # A LAMP LINES A PATH; A SQUARE IS LIT FROM ITS OWN FLOOR. Jack: "the lamps congregate around
-    # the squares when in reality they should mostly be lining pathways and in squares we can
-    # embed a small amount of frog lights, visually it makes more sense and is more consistent
-    # with actual places." Right - the plaza-corner lamps and the pair at every avenue mouth put
-    # eight posts around each junction and left the runs between them thin, which is the opposite
-    # of how a real street is lit. Posts now do nothing but line the three walked routes at an
-    # even rhythm, and a square is lit flush from underfoot.
     # A RUN IS SPACED BETWEEN ITS CROSSINGS, NOT ON A PHASE THAT SERVES SIX HUNDRED BLOCKS.
     # With the corners right, what was still asymmetric was the NEXT lamp along: `(z + phase) %
     # every == 0` has no idea a junction is there, so standing at a crossing the next post was
@@ -608,17 +647,25 @@ def build(cfg: dict, donors=None) -> Canvas:
     # than a few blocks off `lamp_every` and the first post after a crossing is the same distance
     # on both sides of it by construction. The domain's own ends act as anchors too, so a run
     # that starts at a land boundary is spaced from it rather than from wherever the phase fell.
-    def run(vline: int, spans, every: int) -> None:
-        anchors = sorted(pz for px, pz in junction_at if px == vline)
+    def spaced(z0: int, z1: int, anchors, every: int) -> list:
+        """The stations along one run of street, cut at its own crossings.
 
-        def put(z: int) -> None:
-            if 0 <= z < sz and not near_junction(vline, z):
-                place_lamp(vline, z, land_at(z + u0)[0], "x")
-
-        for z0, z1 in spans:
-            js = [a for a in anchors if z0 <= a <= z1]
-            stops = [z0 - 1, *js, z1 + 1]
-            for a, b in zip(stops, stops[1:]):
+        ONE RULE FOR EVERY STREET IN THE PARK. The spine and the promenade run along U and an
+        avenue runs along V, and they were spaced by two different pieces of arithmetic - which
+        is how the avenues ended up alternating east/west down their length and then losing a
+        station to the anti-bunching guard, leaving V95 and V139 both on the WEST flank with 44
+        blocks and nothing at all on the east. Worse, it fired on three of the six avenues and
+        not the other three, so no two of them lit the same way.
+        """
+        out = []
+        # AN ANCHOR OUTSIDE THE RUN STILL ANCHORS IT. An avenue begins at the spine's verge and
+        # the lamps only start eleven blocks further down, past the plaza - so the crossing that
+        # ought to pin the first setback sits BEFORE the run and was being dropped, leaving the
+        # avenue's first post wherever an even fill from the plaza rim happened to land.
+        js = sorted(set(anchors))
+        stops = sorted({min([z0 - 1] + js), max([z1 + 1] + js)} | set(js))
+        jset = set(js)
+        for a, b in zip(stops, stops[1:]):
                 # THE SETBACK FROM A CROSSING IS FIXED; ONLY THE MIDDLE STRETCHES. Filling the
                 # whole piece evenly still left the first post 26 one way and 27 the other,
                 # because the runs either side of a junction are different lengths - a rounding
@@ -626,7 +673,14 @@ def build(cfg: dict, donors=None) -> Canvas:
                 # looking both ways. Pinned, the first lamp is `lamp_every` from the junction on
                 # every approach in the park and the slack is spent mid-run where nobody stands
                 # comparing.
-                ja, jb = a in js, b in js
+                ja, jb = a in jset, b in jset
+                if ja and jb and b - a < every:
+                    # NOT A RUN AT ALL. Two anchors closer together than one step are the two
+                    # masts of a SINGLE junction, and the midpoint between them is the middle of
+                    # that crossing. It put a lamp on the spine's west verge exactly opposite the
+                    # mouth of every threshold - facing a pair on the east verge, on a street
+                    # that does not continue north, which is the asymmetry read from the crossing.
+                    continue
                 if ja and jb and b - a < 3 * every:
                     # TOO SHORT FOR TWO SETBACKS, so it gets ONE lamp equidistant from both
                     # crossings - which is still symmetric, and is what the pinned setback
@@ -634,19 +688,32 @@ def build(cfg: dict, donors=None) -> Canvas:
                     # against a rhythm of 28: pinned from both ends the two posts landed three
                     # apart, the anti-bunching guard dropped whichever came second, and the run
                     # came out as an 8-9-8 clump - denser than the rhythm it was meant to keep.
-                    put((a + b) // 2)
+                    out.append((a + b) // 2)
                     continue
                 lo = a + every if ja else a + 1
                 hi = b - every if jb else b - 1
                 if hi < lo:
                     continue
                 if ja:
-                    put(lo)
+                    out.append(lo)
                 if jb and hi != lo:
-                    put(hi)
+                    out.append(hi)
                 n = max(0, int(round((hi - lo) / every)) - 1)
                 for i in range(n):
-                    put(lo + int(round((hi - lo) * (i + 1) / (n + 1))))
+                    out.append(lo + int(round((hi - lo) * (i + 1) / (n + 1))))
+        return [z for z in sorted(set(out)) if z0 <= z <= z1]
+
+    def run(vline: int, spans, every: int, mates=()) -> None:
+        # A STREET'S TWO VERGES ARE SPACED FROM THE SAME CROSSINGS. A threshold leaves the spine
+        # southward, so it lights the south verge only - and spacing each verge from its own
+        # lamps then pinned one run and not the other, and the two rows came apart. The anchors
+        # are the crossings of the STREET, whichever verge happens to carry their masts.
+        lines = set(mates) | {vline}
+        anchors = [pz for px, pz in junction_at if px in lines]
+        for z0, z1 in spans:
+            for z in spaced(z0, z1, anchors, every):
+                if 0 <= z < sz and not near_junction(vline, z):
+                    place_lamp(vline, z, land_at(z + u0)[0], "x")
 
     prom_v = {prom_at(z + u0) for z in range(sz) if prom_open(z + u0)}
     spans_prom, open_run = [], None
@@ -656,15 +723,17 @@ def build(cfg: dict, donors=None) -> Canvas:
             open_run = z
         elif not opened and open_run is not None:
             spans_prom.append((open_run, z - 1)); open_run = None
+    sp_lines = (spine_v - p["spine_half"] - 2, spine_v + p["spine_half"] + 2)
     for side in (-1, 1):
-        run(spine_v + side * (p["spine_half"] + 2), [(0, sz - 1)], p["lamp_every"])
+        run(spine_v + side * (p["spine_half"] + 2), [(0, sz - 1)], p["lamp_every"], sp_lines)
         # A CURVED PROMENADE HAS NO ONE VERGE LINE, so it keeps the old per-cell rhythm. It is
         # switched off in the shipped park (a swerve has to ramp somewhere and every place the
         # ramp could go is spoken for), and this is the branch that says so rather than silently
         # spacing a curve against a line it does not have.
         if len(prom_v) == 1:
-            run(next(iter(prom_v)) - v0 + side * (prom_half + 2), spans_prom,
-                p["lamp_every"] + 6)
+            pc = next(iter(prom_v)) - v0
+            run(pc + side * (prom_half + 2), spans_prom, p["lamp_every"] + 6,
+                (pc - prom_half - 2, pc + prom_half + 2))
     if len(prom_v) != 1:
         for z in range(sz):
             u = z + u0
@@ -683,10 +752,22 @@ def build(cfg: dict, donors=None) -> Canvas:
         # lamps trip the anti-bunching guard and the avenue's next post is NUDGED - which put six
         # of them on V113 and V115, two lines that exist nowhere else in the park. A lamp dropped
         # beside a lit crossing is invisible; a lamp four blocks off its own rhythm is not.
-        for x in range(spine_v + ph + 6, deep - 2, p["lamp_every"]):
+        # THE SPINE'S ANCHOR IS ITS VERGE, NOT ITS CENTRE. An avenue crosses the promenade, so
+        # that junction is pinned from the middle; it LEAVES the spine, so the setback is
+        # measured from the edge the walk actually starts at.
+        anchors = ([spine_v + p["spine_half"] + 2]
+                   + ([prom_at(u) - v0] if prom_open(u) else []))
+        stations = spaced(spine_v + ph + 6, deep - 2, anchors, p["lamp_every"])
+        for k, x in enumerate(stations):
+            # ALTERNATE BY POSITION IN THE RUN, NOT BY THE COORDINATE. Keyed on `x // every` the
+            # side flips with the coordinate, so a station dropped anywhere leaves two neighbours
+            # on the same flank - V95 and V139 both west, 44 apart, with nothing on the east side
+            # of the avenue's back half. It fired on three of the six avenues and not the other
+            # three, so no two of them lit the same way. Keyed on the INDEX the alternation
+            # survives whatever the spacing does.
             # (the short window: an avenue lamp may not wander into the next station's stretch)
-            for side in (-1, 1):
-                if ((x // p["lamp_every"]) + (0 if side < 0 else 1)) % 2 == 0                         and not near_junction(x, z + side * (ah + 1)):
+            for side in ((-1,) if k % 2 == 0 else (1,)):
+                if not near_junction(x, z + side * (ah + 1)):
                     # ONE CELL OF VERGE, NOT TWO. A lamp two cells out from an avenue's
                     # border stands INSIDE the building lot behind it, and measured against the
                     # inventory that cost four blocks of usable width on every column - enough,
@@ -718,6 +799,41 @@ def build(cfg: dict, donors=None) -> Canvas:
               "contract": "lawn, a path hierarchy of core/inlay/border/verge, furniture, and a "
                           "dithered transition through every reach - the ground layer, only"}
     return c
+
+
+def avenue_stations(params: dict) -> list:
+    """The V depths an avenue's lamps stand at, for whoever needs to CHECK them.
+
+    ONE SOURCE. `tools/park_lamps.py` had this as `range(start, service_v, lamp_every)`, which was
+    right only while an avenue was spaced by a bare step; the moment the runs were cut at their
+    crossings the tool called every correctly-placed avenue lamp "OFF EVERY LINE". This is the
+    same arithmetic the build uses, run without building anything.
+    """
+    p = {**PARKWAYS, **params}
+    sv, sh, ph = p["spine_v"], p["spine_half"], p["plaza_half"]
+    every = p["lamp_every"]
+    deep = p["service_v"] + p["service_half"] + 1
+    anchors = [sv + sh + 2, p["promenade_v"]]
+    z0, z1 = sv + ph + 6, deep - 2
+    js = sorted(set(anchors))
+    stops = sorted({min([z0 - 1] + js), max([z1 + 1] + js)} | set(js))
+    jset, out = set(js), []
+    for a, b in zip(stops, stops[1:]):
+        ja, jb = a in jset, b in jset
+        if ja and jb and b - a < 3 * every:
+            out.append((a + b) // 2); continue
+        lo = a + every if ja else a + 1
+        hi = b - every if jb else b - 1
+        if hi < lo:
+            continue
+        if ja:
+            out.append(lo)
+        if jb and hi != lo:
+            out.append(hi)
+        n = max(0, int(round((hi - lo) / every)) - 1)
+        for i in range(n):
+            out.append(lo + int(round((hi - lo) * (i + 1) / (n + 1))))
+    return [z for z in sorted(set(out)) if z0 <= z <= z1]
 
 
 DEFAULTS = PARKWAYS

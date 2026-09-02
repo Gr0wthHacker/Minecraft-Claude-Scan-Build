@@ -353,6 +353,9 @@ def lamp_audit(paved, lamps):
             total += 2
             pair = bool(w and e and abs(w[-1]) == e[0])
             matched += 2 if pair else 0
+            # A crossing that only has street on one side cannot have a matching pair along it;
+            # what it must have is the SAME answer on both of its two verge lines, which the
+            # per-line report below shows by V121 and V129 reading identically.
             print(f"{label:40} V{vl:<4}  {str(w[-1]) if w else '-':9} "
                   f"{str(e[0]) if e else '-':9} {'PAIRED' if pair else ''}")
     print(f"\n  {matched} of {total} quadrants have a mirror partner on their own line")
@@ -360,13 +363,19 @@ def lamp_audit(paved, lamps):
     print("\nTHE RULE, and every coordinate it produces: one mast per quadrant at the crossing of")
     print("the two streets' own verge lines, pushed out by ONE setback shared by all of them -")
     print("so a junction is symmetric about both its axes or it carries no lamp at all.\n")
+    print("A T-JUNCTION IS NOT A FAILED CROSSING. Where the back promenade is gapped, the corner")
+    print("on the far side would stand PAST THE END OF THE STREET, in a deep ride's own lot - so")
+    print("only the sides the crossing street actually reaches are proposed. What has to hold")
+    print("everywhere is the symmetry you can see, which is ACROSS the street.\n")
     todo = 0
     for label, lines, ju, minoff in junctions():
         k = minoff
         while k < minoff + 26 and any(
                 paved[vl, ju + k] or paved[vl, ju - k] for vl in lines):
             k += 1
-        cells = [(vl, ju + s * k) for vl in lines for s in (-1, 1)]
+        sides = [s for s in (-1, 1)
+                 if "promenade" not in label or prom_open(ju + s * k)]
+        cells = [(vl, ju + s * k) for vl in lines for s in sides]
         state = ["already" if c in lampset else ("PAVED" if paved[c] else "free") for c in cells]
         todo += sum(s == "free" for s in state)
         print(f"  {label:42} setback {k:2}  " +
