@@ -13,7 +13,7 @@
     "anchor": [
       97500,
       203,
-      80349
+      80300
     ],
     "build_plane": 203,
     "bounds": [
@@ -28,7 +28,8 @@
         215
       ]
     ],
-    "protected": []
+    "protected": [],
+    "anchor_note": "Derived by tools/park_anchor.py from the island registry, NOT typed. The three plots expand to 200x200 about their own bedrock and their union is X97500..97699 Z80300..80899 - exactly 200x600, so the anchor is forced and there is no slack on any edge. The previous value [97500, 203, 80349] put U599 forty-nine blocks past the last plot."
   },
   "regions": [
     {

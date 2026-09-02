@@ -3,9 +3,9 @@
   "name": "Park Ways",
   "kind": "parkways",
   "origin": {
-    "x": 97551,
+    "x": 97500,
     "y": 202,
-    "z": 80351
+    "z": 80300
   },
   "anchor_status": "PREVIEW placement; rebase before building",
   "generated_by": "configs/park_ways.yaml"
