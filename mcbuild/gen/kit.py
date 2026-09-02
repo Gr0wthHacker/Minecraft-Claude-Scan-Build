@@ -225,6 +225,13 @@ def gable(s: Sym, half: int, depth: int, height: int, pal, pitch: int = 1) -> in
     lean = "west" if s.facing == "east" else "east"
     if s.axis == "x":
         lean = "north" if s.facing == "south" else "south"
+    #
+    # **A ROOF THAT STEPS IN AND UP AT THE SAME TIME IS DIAGONAL-ONLY.** Each course sits one cell
+    # nearer the ridge AND one course higher than the last, so the two touch at a corner and
+    # nowhere else: every gable this kit made came apart into one loose ring per course, and the
+    # mausoleum that first used it shipped in thirteen pieces. Each step lays a RISER in the
+    # previous course's own column, which is also what a real rafter does where it meets the
+    # course below. Same rule as the water tower's splayed leg.
     rows = 0
     for step in range(half + 1):
         h = height + step * pitch
@@ -232,6 +239,11 @@ def gable(s: Sym, half: int, depth: int, height: int, pal, pitch: int = 1) -> in
         if u < 0:
             break
         for v in range(-1, depth + 1):
+            if step:
+                for lift in range(pitch):
+                    s.put(u + 1, v, h - pitch + 1 + lift, pal["roof_stair"],
+                          facing=_toward_centre(s, u + 1), half="bottom",
+                          shape="straight", waterlogged="false")
             s.put(u, v, h, pal["roof_stair"], facing=_toward_centre(s, u), half="bottom",
                   shape="straight", waterlogged="false")
             if u == 0:

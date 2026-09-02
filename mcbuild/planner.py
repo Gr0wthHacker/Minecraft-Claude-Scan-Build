@@ -416,6 +416,15 @@ THEMES = {
                    {"name": "Undercrypt", "y": -20},
                    {"name": "Deep Crypt", "y": -56}],
         "modules": [
+            {
+                "name": "The Mausoleum",
+                "gen": "setpiece",
+                "kind": "mausoleum",
+                "size": [18, 17, 29],
+                "orient": False,
+                "district": "Crypt Market",
+                "params": {"land": "hollow", "facing": "east"},
+            },
             # ---------------------------------------------------------- the Crypt Market
             #
             # **ELEVEN SMALL MODULES ARE NOT ELEVEN ATTRACTIONS.** PARK_HOLLOW.md: "Keep five

@@ -18,6 +18,7 @@ from __future__ import annotations
 import math
 
 from .canvas import Canvas, hash01
+from . import kit
 from .kit import Sym
 from .park import LANDS
 from .vertical import Ctx, World
@@ -286,7 +287,148 @@ def _bigtop(s: Sym, pal, p) -> dict:
     return {"radius": int(radius), "gores": gores, "height": peak + 1}
 
 
-BUILDERS = {"watertower": _watertower, "bigtop": _bigtop}
+# ------------------------------------------------------------------ the hollow's mausoleum
+
+def _mausoleum(s: Sym, pal, p) -> dict:
+    """A crypt front: a stepped plinth, a four-column portico, a pediment, a barred gate, and a
+    scatter of headstones leaning in the ground around it.
+
+    **THIS IS THE ONE SET PIECE THAT IS ARCHITECTURE**, so it is built from the kit's own pieces
+    rather than from a shape - plinth, walls, eaves, gable - and that is the point of it. The
+    other two are a barrel and a cone; if the kit only worked for those it would be a circle
+    library with a docstring about buildings.
+    """
+    half, depth, height = 5, 9, 6
+    plinth_courses = 2
+
+    # **A TOMB IN THIS LAND'S OWN PALETTE IS A BLACK BLOB.** Built from `wall`/`trim`/`post` as
+    # the hollow declares them - black wool 21, blackstone 38, polished blackstone 45, deepslate
+    # 71 - the whole thing rendered as one dark mass with no order, no columns and no roof line
+    # visible at all. `bone_block` is 225, cheap, spendable and on the 1.19 server, so the ladder
+    # is 225 / 71 / 45: steps of 154 and 26 against the ~15 below which a line stops reading. It
+    # is also what a mausoleum is made of, and the block the causeway's wyrm is built from, so
+    # the two read as one hand.
+    pal = {**pal, "wall": "bone_block", "wall_alt": "light_gray_wool", "post": "bone_block",
+           "trim": pal["trim"], "roof_stair": pal["stair"], "roof_slab": pal["slab"]}
+
+    kit.plinth(s, half, depth, pal, courses=plinth_courses)
+    base = plinth_courses
+    # **THE PLINTH MUST BE SOLID UNDER WHAT STANDS ON IT.** `kit.plinth` fills its second course
+    # as a RING one cell proud, which is right for a moulding and leaves nothing under the wall
+    # itself - so the whole shell shipped as a 216-cell fragment floating a course over its own
+    # base, and the portico columns (which stand a further cell forward, at v=-2) as another 37.
+    for course in range(plinth_courses):
+        for u in range(-half - 1, half + 2):
+            for v in range(-2, depth + 1):
+                s.put(u, v, course, pal["trim"])
+    for course in range(plinth_courses):
+        # A stepped base: each course draws in, so the tomb rises out of the ground rather than
+        # standing on it. One course is a line; two that step are a plinth.
+        for u in range(-half - 2 + course, half + 3 - course):
+            for v in range(-2 + course, depth + 2 - course):
+                if abs(u) <= half + 1 - course and -1 + course <= v <= depth - course:
+                    continue
+                s.put(u, v, course, pal["trim"])
+
+    body = _Local(s, base)
+    kit.walls(body, half, depth, height, pal, door=3)
+
+    # ---- THE PORTICO. Four columns standing clear of the front wall, which is what turns a shed
+    # with a door into a tomb. The doorway sits between the middle pair by construction.
+    for u in (half, 2):
+        for h in range(height):
+            body.put(u, -2, h, pal["post"])
+        body.put(u, -2, height, pal["trim"])
+    for u in range(-half, half + 1):                      # the entablature the columns carry
+        body.put(u, -2, height, pal["trim"])
+
+    # **THE KIT'S `height` IS THE COURSE THE PIECE OCCUPIES, NOT THE ONE ABOVE IT.** `walls` fills
+    # 0..height-1, so the eave belongs AT `height` and the roof directly on top of it. Called a
+    # course higher each, the whole 286-cell roof shipped floating over a one-course gap - which
+    # renders exactly like a roof and is a hole you can see daylight through in game.
+    kit.eaves(body, half, depth, height, pal)
+    kit.gable(body, half, depth, height + 1, pal)
+
+    # ---- the gate. Iron bars, not a door: you look THROUGH into the dark, which is the whole
+    # effect, and a set piece has nothing to open.
+    along = ("north", "south") if s.axis == "z" else ("east", "west")
+    for u in range(-1, 2):
+        for h in range(3):
+            body.put(u, 0, h, "iron_bars",
+                     **{along[0]: "true", along[1]: "true", "waterlogged": "false"})
+    body.put(1, -2, 2, pal["light"], hanging="false", waterlogged="false")
+
+    # ---- the burial ground. Without it the nine headstones are nine separate two-cell pieces
+    # standing near a tomb - legal, grounded, and nine things a printer builds in nine trips. The
+    # plot is also what says the stones belong to the building.
+    ground_u, ground_v0, ground_v1 = half + 13, -4, depth + 5
+    for u in range(-ground_u, ground_u + 1):
+        for v in range(ground_v0, ground_v1 + 1):
+            s.put(u, v, -1, pal["path"])
+    # A RAILING ROUND THE PLOT, open at the front. It encloses the graveyard, which is what makes
+    # a scatter of stones read as a burial ground rather than as rubble, and fences are the second
+    # of the three details the download corpus measured this project thirty times short on.
+    for u in range(-ground_u, ground_u + 1):
+        for v in (ground_v0, ground_v1):
+            if v == ground_v0 and abs(u) <= half + 1:
+                continue                                   # the way in
+            s.put(u, v, 0, pal["fence"], waterlogged="false")
+    for v in range(ground_v0, ground_v1 + 1):
+        s.put(ground_u, v, 0, pal["fence"], waterlogged="false")
+
+    # ---- headstones. **VARIED HEIGHT AND A LEAN, OR IT IS A FENCE.** Rows of identical
+    # two-cell stubs read as a palisade; a graveyard is legible because no two stones are the
+    # same height and some of them have gone over.
+    stones = 0
+    # Six, not nine, and standing clear of the plinth. Crowded against the base they read as a
+    # palisade round the tomb rather than as a graveyard it stands in - the same 'a third of a
+    # line is a dashed scribble' problem from the other side: too MANY, too close, too even.
+    # Kept BEHIND the portico's own line (v >= 2) so the approach to the gate is clear - scattered
+    # across the front they stood between a visitor and the one thing the set piece is about.
+    # Pale, because the burial ground is the land's own dark path and a dark stone on it is
+    # invisible; `stone` at 126 against cobbled deepslate is the cheapest step that reads.
+    for k in range(6):
+        u = half + 5 + int(hash01(k, 0, 0, 3.0) * 7)      # inside the ground, by construction
+        v = 2 + int(hash01(0, k, 0, 7.0) * (depth + 1))
+        tall = 2 + int(hash01(k, k, 0, 11.0) * 2)
+        for h in range(tall):
+            s.put(u, v, h, "stone")
+        if hash01(k, 1, 0, 5.0) < 0.4:                    # a stone that has gone over
+            s.put(u, v, tall, "stone_slab", type="bottom", waterlogged="false")
+        else:
+            s.put(u, v, tall, "stone_stairs", facing=s.facing, half="top",
+                  shape="straight", waterlogged="false")
+        stones += 2
+
+    return {"height": base + height + 2 + half, "headstones": stones, "columns": 4}
+
+
+class _Local:
+    """The same drawing surface, lifted. The kit's pieces all start at h=0, and a tomb standing
+    on a plinth needs them to start at the top of it - so rather than teaching every piece an
+    offset, the offset is applied here, once, where it cannot be forgotten at one call site."""
+
+    def __init__(self, surface: Sym, lift: int):
+        self._s, self._lift = surface, lift
+
+    def __getattr__(self, attr):
+        return getattr(self._s, attr)
+
+    def put(self, u, v, h, name, **props):
+        self._s.put(u, v, h + self._lift, name, **props)
+
+    def one(self, u, v, h, name, **props):
+        self._s.one(u, v, h + self._lift, name, **props)
+
+    def sign(self, u, v, h, lines, back=()):
+        self._s.sign(u, v, h + self._lift, lines, back)
+
+    def has(self, u, v, h):
+        return self._s.has(u, v, h + self._lift)
+
+
+BUILDERS = {"watertower": _watertower, "bigtop": _bigtop,
+            "mausoleum": _mausoleum}
 
 
 def build(cfg: dict, donors=None) -> Canvas:

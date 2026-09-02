@@ -12,7 +12,9 @@ import pytest
 from mcbuild.gen import setpiece
 
 KINDS = sorted(setpiece.BUILDERS)
-LAND = {"watertower": "frontier", "bigtop": "midway"}
+LAND = {"watertower": "frontier", "bigtop": "midway", "mausoleum": "hollow"}
+assert set(LAND) == set(setpiece.BUILDERS), (
+    "a set piece with no land here is one every test below silently skips over")
 
 
 def _model(kind, land=None, facing="east"):
