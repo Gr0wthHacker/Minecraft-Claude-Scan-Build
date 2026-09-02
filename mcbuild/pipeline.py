@@ -9,6 +9,8 @@ Example configs live in ../configs/.
 from __future__ import annotations
 
 import os
+import shutil
+import time
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -41,13 +43,40 @@ def _load_donors(paths: list[str], schem_dir: str) -> list[schem.Model]:
 
 def run_config(path: str, *, settings: Settings | None = None, overrides: dict | None = None,
                ship: bool = False, render_sheet: bool = True, verbose: bool = True) -> tuple[schem.Model, audit_mod.Result]:
+    started = time.perf_counter()
     with open(path, encoding="utf-8") as fh:
         cfg = yaml.safe_load(fh) or {}
     for k, v in (overrides or {}).items():
         _deep_set(cfg, k, v)
+    # Blueprint adoption is deliberately non-invasive: it adds a verified architectural contract
+    # to legacy configs without changing their bespoke geometry until that generator is migrated.
+    from .blueprint_adapter import apply as apply_blueprint
+    cfg, blueprint_plan = apply_blueprint(cfg)
     st = settings or Settings()
     st.schem_dir = cfg.get("schem_dir", st.schem_dir)
     name = cfg.get("name") or os.path.splitext(os.path.basename(path))[0]
+    # Optional content-addressed reuse: it is opt-in because a user may deliberately be comparing
+    # a generator change, but when enabled it prevents expensive identical regeneration.
+    cache_root = cfg.get("cache_dir")
+    cache_key = None
+    if cache_root and not ship:
+        from .cache import artifact_paths, key as cache_key_for
+        from .design_compiler import source_digest
+        import inspect
+        source = ""
+        if cfg.get("gen") in GENERATORS:
+            source = source_digest(inspect.getsourcefile(GENERATORS[cfg["gen"]].build))
+        cache_key = cache_key_for(cfg, source_digest=source)
+        cached_lit, cached_side = artifact_paths(cache_root, cache_key)
+        if cached_lit.exists():
+            os.makedirs(st.out_dir, exist_ok=True)
+            out_lit = os.path.join(st.out_dir, f"{name}.litematic")
+            shutil.copy2(cached_lit, out_lit)
+            if cached_side.exists(): shutil.copy2(cached_side, out_lit.replace(".litematic", ".scan.json"))
+            m = schem.load(out_lit)
+            res = audit_mod.audit(m, ground=False)
+            if verbose: print(f"{name}: reused cache {cache_key[:12]}")
+            return m, res
     donors = _load_donors(cfg.get("donors", []), st.schem_dir)
 
     try:
@@ -108,8 +137,55 @@ def run_config(path: str, *, settings: Settings | None = None, overrides: dict |
     system["capabilities"] = capability_matrix(mechanics=gen_meta["mechanics"], design=design,
                                                   anchors_=declared_anchors)
     gen_meta = {**gen_meta, "design": design, "design_system": system,
+                **({"blueprint": blueprint_plan} if blueprint_plan else {}),
                 **({"park_contract": cfg["park_contract"]} if cfg.get("park_contract") else {})}
+    from .efficiency import assess as assess_efficiency
+    efficiency = assess_efficiency(m, time.perf_counter() - started, cfg.get("efficiency"))
+    gen_meta["efficiency"] = efficiency
+    if cfg.get("efficiency", {}).get("enforce") and not efficiency["ok"]:
+        raise ValueError("efficiency budget failed: " + "; ".join(efficiency["failures"]))
+    from .generator_contract import assess as assess_contract
+    from .fun_contract import assess as assess_fun_contract
+    from .animal_quality import assess as assess_animal_quality
+    from .server_profile import advise_model, current as server_profile, validate_model
+    contract = assess_contract(cfg, m, mechanics=gen_meta["mechanics"], design=design)
+    fun_contract = assess_fun_contract(cfg.get("fun_contract"))
+    animal_spec = cfg.get("animal_contract")
+    if animal_spec:
+        animal_spec = {**animal_spec, "_visual_review": bool(brief.get("visual_review"))}
+    animal_quality = assess_animal_quality(m, generator=cfg.get("gen"), meta=gen_meta,
+                                           spec=animal_spec)
+    compatibility = validate_model(m)
+    # A name a curated capture list happens not to contain is not evidence the server cannot
+    # place it - so it is REPORTED, with the list it failed against named, rather than refusing
+    # a build. See mcbuild/server_profile.py and CLAUDE.md rule 12.
+    unlisted = advise_model(m)
+    gen_meta["generator_contract"] = contract
+    gen_meta["fun_contract"] = fun_contract
+    gen_meta["animal_quality"] = animal_quality
+    gen_meta["server_profile"] = server_profile()
+    gen_meta["server_compatibility"] = compatibility
+    gen_meta["server_unlisted"] = unlisted
+    if unlisted and verbose:
+        print(f"{name}: {len(unlisted)} block(s) not in the provisional 1.19 list - "
+              f"{', '.join(u.rsplit(': ', 1)[-1] for u in unlisted[:8])}"
+              f"{' ...' if len(unlisted) > 8 else ''}")
+    if cfg.get("world_contract") and (not contract["ok"] or compatibility):
+        raise ValueError("world contract failed: " + "; ".join(contract["failures"] + compatibility))
+    if cfg.get("fun_contract", {}).get("enforce") and not fun_contract["ok"]:
+        raise ValueError("fun contract failed: " + "; ".join(fun_contract["failures"]))
+    if cfg.get("animal_contract", {}).get("enforce") and not animal_quality["ok"]:
+        raise ValueError("animal quality failed: " + "; ".join(animal_quality["failures"]))
     _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, verbose)
+    if cache_root and cache_key:
+        from .cache import artifact_paths
+        cached_lit, cached_side = artifact_paths(cache_root, cache_key)
+        cached_lit.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(os.path.join(st.out_dir, f"{name}.litematic"), cached_lit)
+        side = os.path.join(st.out_dir, f"{name}.scan.json")
+        if os.path.exists(side): shutil.copy2(side, cached_side)
+    if verbose:
+        print(f"performance: {time.perf_counter() - started:.3f}s, {int(m.solid().sum())} blocks")
     return m, res
 
 

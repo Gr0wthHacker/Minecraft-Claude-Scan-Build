@@ -6,7 +6,7 @@
   "style_packs": [
     "frontier",
     "midway",
-    "natural"
+    "prismworks"
   ],
   "site": {
     "mode": "skyblock",
@@ -268,7 +268,7 @@
         425
       ],
       "zone": "path",
-      "style": "prism"
+      "style": "prismworks"
     },
     {
       "name": "foundry_gate",
@@ -2637,7 +2637,7 @@
         "interior",
         "night"
       ],
-      "style": "prism",
+      "style": "prismworks",
       "params": {
         "parts": [
           {

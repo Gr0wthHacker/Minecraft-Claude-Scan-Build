@@ -33,6 +33,9 @@ GENOMES = {
                "materials": ["painted_structure", "light_trim", "accent_colour"], "light_density": "bright-nodes"},
     "natural": {"facades": [], "height_ratio": [0.15, 0.9],
                 "materials": ["strata", "soil", "vegetation", "water"], "light_density": "trail-nodes"},
+    "prismworks": {"facades": ["stepped", "bracketed"], "height_ratio": [0.8, 2.4],
+                   "materials": ["structural_stone", "black_recess", "signal_wool"],
+                   "light_density": "signal-nodes"},
 }
 
 

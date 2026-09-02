@@ -20,7 +20,7 @@ GREYBOX_PROGRAM = {"ride": "ride_station", "arrival": "hotel_lobby", "building":
 #: two vocabularies are not the same list, so a land the blueprint compiler has never heard of
 #: maps to the genome that describes it - Prismworks is the visual spec's own "high-detail
 #: vertical machine landmark", which is `industrial`.
-GREYBOX_STYLE = {"prismworks": "industrial", "prism": "industrial"}
+GREYBOX_STYLE: dict[str, str] = {}
 
 
 def greybox_brief(module: dict) -> dict | None:
