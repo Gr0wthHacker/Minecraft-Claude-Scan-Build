@@ -87,6 +87,8 @@ def build(cfg: dict, donors=None) -> Canvas:
     reserved = [(f["v0"] - v0, f["u0"] - u0, f["v1"] - v0, f["u1"] - u0)
                 for f in (p.get("feature_lots") or [])]
 
+    paved: set[tuple[int, int]] = set()
+
     def is_reserved(x: int, z: int) -> bool:
         return any(a <= x <= c and b <= z <= d for a, b, c, d in reserved)
 
@@ -133,6 +135,7 @@ def build(cfg: dict, donors=None) -> Canvas:
         name = paving(pal_a, pal_b, t, key, x, z)
         c.put(x, 1, z, 0)            # the lawn trim never survives under paving
         c.put(x, 0, z, blk(name))
+        paved.add((x, z))
 
     spine_v = p["spine_v"] - v0
     for z in range(sz):
@@ -177,6 +180,7 @@ def build(cfg: dict, donors=None) -> Canvas:
                 c.put(x, 1, z, 0)
                 c.put(x, 0, z, blk(paving(pal_a, pal_b, t, "border" if abs(d) == p["service_half"]
                                           else "accent", x, z)))
+                paved.add((x, z))
 
     # THE RIM'S INNER FACE. V170-199 is protected reserve, and a park whose lawn simply runs out
     # into the void has no edge. One border course and a post rhythm is what says "the ground
@@ -226,6 +230,7 @@ def build(cfg: dict, donors=None) -> Canvas:
                     key = "core"
                 c.put(x, 1, zz, 0)
                 c.put(x, 0, zz, blk(pal[key]))
+                paved.add((x, zz))
 
     # ------------------------------------------------------------------ 4. furniture
     def _hang(x: int, y: int, z: int, light: str, drop: int = 1) -> None:
@@ -255,8 +260,6 @@ def build(cfg: dict, donors=None) -> Canvas:
         if 0 <= ax < sx and 0 <= az < sz:
             c.put(ax, 5, az, blk("spruce_fence"))
             c.put(ax, 4, az, c.raw_state(pal["light"], hanging="true"))
-            c.put(ax, 6, az, c.raw_state("spruce_trapdoor", facing=facing, half="top",
-                                         open="false"))
         c.put(x, 6, z, c.raw_state(pal["light"], hanging="false"))
         return True
 
@@ -277,8 +280,6 @@ def build(cfg: dict, donors=None) -> Canvas:
                 continue
             c.put(ax, 6, az, blk("oak_fence"))
             c.put(ax, 5, az, c.raw_state(pal["light"], hanging="true"))
-            c.put(ax, 7, az, c.raw_state("oak_stairs", facing=facing, half="top",
-                                         shape="straight"))
         c.put(x, 7, z, c.raw_state("oak_slab", type="top"))
         return True
 
@@ -318,11 +319,19 @@ def build(cfg: dict, donors=None) -> Canvas:
     LAMPS = {"frontier": lamp_frontier, "midway": lamp_midway, "prismworks": lamp_prismworks}
 
     def lamp(x: int, z: int, pal: dict, across: str) -> bool:
-        if not (0 <= x < sx and 0 <= z < sz) or is_reserved(x, z):
-            return False
+        """A LAMP STANDS ON LAWN, NEVER ON A PATH. Jack: "several areas have lamp posts on walk
+        ways and in weird places" - the verge is two cells outboard of the spine's own border,
+        but where an avenue, a plaza, the mid-block walk or the service lane crosses that line
+        the cell is paving, and a post was going down in the middle of it. The mast's cell and
+        both arm cells are checked; an arm may reach OVER a path, a post may not stand in one."""
+        if not (0 <= x < sx and 0 <= z < sz) or is_reserved(x, z) or (x, z) in paved:
+            return False   # counted by the caller: a refusal is a lamp that would have stood
+                           # in a walkway, and the count is how the guard is checked at all -
+                           # after the fact a lamp's own FOOTING has replaced the lawn under it,
+                           # so nothing downstream can tell where it was placed from.
         return LAMPS[pal["land"]](x, z, pal, across)
 
-    lamps = seats = 0
+    lamps = seats = refused = 0
     for z in range(sz):
         pal, _b, _t = land_at(z + u0)
         for side in (-1, 1):
@@ -335,22 +344,41 @@ def build(cfg: dict, donors=None) -> Canvas:
             # lantern is light 15, so the darkest point between two is about 5 - and the avenue
             # reads as an avenue rather than as a corridor of poles.
             if (z + (0 if side < 0 else p["lamp_every"] // 2)) % p["lamp_every"] == 0:
-                lamps += 1 if lamp(x, z, pal, "x") else 0
-            elif z % p["seat_every"] == p["seat_every"] // 2 and not is_reserved(x, z):
-                # a bench faces the path it is beside, which is the whole reason it is there
-                c.put(x, 1, z, c.raw_state(pal["seat"], facing="east" if side < 0 else "west",
-                                           half="bottom", shape="straight"))
-                seats += 1
+                # A REFUSAL LEAVES A HOLE IN THE RHYTHM, so a lamp that lands on paving is
+                # NUDGED along the verge until it finds lawn rather than dropped: 41 of them
+                # were being dropped outright, which is a dark gap wherever a path crosses.
+                for shift in (0, 1, -1, 2, -2, 3, -3, 4, -4):
+                    if lamp(x, z + shift, pal, "x"):
+                        lamps += 1
+                        break
+                else:
+                    refused += 1
+            elif z % p["seat_every"] == p["seat_every"] // 2:
+                for shift in (0, 1, -1, 2, -2):
+                    zz = z + shift
+                    if (0 <= zz < sz and not is_reserved(x, zz) and (x, zz) not in paved):
+                        # a bench faces the path it is beside, which is why it is there at all
+                        c.put(x, 1, zz, c.raw_state(pal["seat"],
+                                                    facing="east" if side < 0 else "west",
+                                                    half="bottom", shape="straight"))
+                        seats += 1
+                        break
     for u, pal in avenues:
         z = u - u0
         for i, x in enumerate(range(spine_v + half + 4, deep, p["lamp_every"])):
             for side in ((-1,) if i % 2 == 0 else (1,)):
                 zz = z + side * (p["avenue_half"] + 2)
                 if 0 <= zz < sz:
-                    lamps += 1 if lamp(x, zz, pal, "z") else 0
+                    for shift in (0, 1, -1, 2, -2, 3, -3, 4, -4):
+                        if lamp(x + shift, zz, pal, "z"):
+                            lamps += 1
+                            break
+                    else:
+                        refused += 1
 
     c.meta = {"kind": "parkways", "lands": [land["name"] for land in lands],
               "avenues": len(avenues), "lamps": lamps, "seats": seats,
+              "lamps_refused_on_paving": refused,
               "feature_lots": [f["name"] for f in (p.get("feature_lots") or [])],
               "contract": "lawn, a path hierarchy of core/inlay/border/verge, furniture, and a "
                           "dithered transition through every reach - the ground layer, only"}
