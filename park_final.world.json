@@ -369,6 +369,36 @@
   ],
   "routes": [
     {
+      "name": "park_floor",
+      "kind": "path",
+      "width": 151,
+      "points": [
+        [
+          75,
+          76
+        ],
+        [
+          75,
+          523
+        ]
+      ]
+    },
+    {
+      "name": "park_backstage",
+      "kind": "service",
+      "width": 17,
+      "points": [
+        [
+          160,
+          9
+        ],
+        [
+          160,
+          590
+        ]
+      ]
+    },
+    {
       "name": "park_spine",
       "kind": "path",
       "width": 5,
@@ -464,93 +494,6 @@
         [
           160,
           598
-        ]
-      ]
-    },
-    {
-      "name": "public_program_loop",
-      "kind": "path",
-      "width": 5,
-      "points": [
-        [
-          12,
-          20
-        ],
-        [
-          150,
-          20
-        ],
-        [
-          150,
-          62
-        ],
-        [
-          12,
-          62
-        ],
-        [
-          12,
-          105
-        ],
-        [
-          150,
-          105
-        ],
-        [
-          150,
-          142
-        ],
-        [
-          12,
-          142
-        ],
-        [
-          12,
-          240
-        ],
-        [
-          150,
-          240
-        ],
-        [
-          150,
-          305
-        ],
-        [
-          12,
-          305
-        ],
-        [
-          12,
-          357
-        ],
-        [
-          150,
-          357
-        ],
-        [
-          12,
-          450
-        ],
-        [
-          150,
-          450
-        ],
-        [
-          150,
-          515
-        ],
-        [
-          12,
-          515
-        ],
-        [
-          12,
-          570
-        ],
-        [
-          150,
-          570
         ]
       ]
     },
@@ -5731,55 +5674,6 @@
               8,
               -4,
               0
-            ]
-          },
-          {
-            "gen": "park",
-            "params": {
-              "kind": "tower",
-              "at": [
-                30,
-                0,
-                46
-              ],
-              "facing": "west",
-              "land": "midway",
-              "tiers": 12,
-              "title": "LAUNCH GALLERY",
-              "lines": [
-                "Step out here",
-                "Hold the rail",
-                "One at a time"
-              ]
-            },
-            "offset": [
-              28,
-              -1,
-              44
-            ]
-          },
-          {
-            "gen": "park",
-            "params": {
-              "kind": "tower",
-              "at": [
-                30,
-                0,
-                8
-              ],
-              "facing": "west",
-              "land": "midway",
-              "tiers": 6,
-              "title": "LANDING",
-              "lines": [
-                "Landing deck",
-                "Keep moving"
-              ]
-            },
-            "offset": [
-              28,
-              -1,
-              6
             ]
           },
           {

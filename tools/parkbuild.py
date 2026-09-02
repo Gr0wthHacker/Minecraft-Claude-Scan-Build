@@ -40,14 +40,31 @@ def main() -> int:
             continue
         module = lots[name]
         started = time.perf_counter()
+        # WHERE THIS MODULE'S OWN GROUND IS. A compose knows (its parts declare offsets); a
+        # single generator does not, and the Mine Coaster builds a RIDGE whose ground plane is
+        # thirteen courses up its own canvas with nothing but a few trestle legs below. Placed at
+        # the deck it hung thirteen blocks in the air with 4,650 of its 4,662 columns touching
+        # nothing - which is exactly what "the rollercoaster is still floating in mid air" is.
+        #
+        # A SCULPTURE IS EXEMPT, because a hanging creature legitimately has no ground: the Sloth
+        # measures its densest course 23 up, and lowering it by that would bury it in the deck.
+        # ONE RULE FOR EVERY MODULE: its ground course is the lowest course covering most of
+        # its own columns, and that course lands ON the deck. Taking it from a compose's declared
+        # offsets instead put every lot whose plaza sits at -1 a course UNDER the paved floor,
+        # and a lot floor one below the street is a step down into every building in the park.
+        #
+        # A SCULPTURE IS EXEMPT, because a hanging creature legitimately has no ground: the Sloth
+        # measures its densest course 23 up, and lowering it by that would bury it in the deck.
         plane_course = 0
-        if cfg.get("gen") == "compose":
-            from mcbuild.gen import GENERATORS
-            try:
-                plane_course = int(GENERATORS["compose"].build(cfg.get("params") or {}, None)
-                                   .meta.get("plane_course", 0))
-            except Exception:
-                plane_course = 0
+        # ...but a set piece COMPOSED on its own apron does have ground - that apron -
+        # so only a bare hanging creature is exempt.
+        if module.get("role") != "sculpture" or cfg.get("gen") == "compose":
+            probe = ARTIFACTS / f"{name}.litematic"
+            if probe.exists():
+                pm = schem.load(str(probe)).solid()
+                ncols = len({(x, z) for _y, z, x in zip(*pm.nonzero())})
+                per = pm.sum(axis=(1, 2))
+                plane_course = next((y for y, n in enumerate(per) if n >= 0.60 * ncols), 0)
         planes[name] = plane_course
         try:
             model, _res = pipeline.run_config(

@@ -108,13 +108,48 @@ def _perpendicular(courses, index) -> list[tuple[int, int]]:
     return out or [(0, 1)]
 
 
+#: The park's own ground: threshold, public floor and observation band, paved edge to edge.
+DECK_FROM, DECK_TO = 0, 151
+#: ...and the concealed service band behind it, paved so staff have a floor too.
+SERVICE_FROM, SERVICE_TO = 152, 169
+
+
 def infrastructure(plan: dict) -> SparseWorld:
-    """Render platform, decks, kerbs, rails, rim and lighting from a compiled WorldSpec."""
+    """Render the park's GROUND, then the routes, kerbs, rim and lighting over it.
+
+    **A PARK HAS CONTINUOUS GROUND AND THE STREETS ARE WHATEVER IS NOT A BUILDING.** Rendering
+    only route ribbons left 17,726 void columns in the public floor bands - guests walking off
+    the edge of a path into nothing - and forced every route to be a drawn line, which is how a
+    "programme loop" ended up sweeping the full depth straight through all twenty-four buildings.
+    Paving the whole floor removes both faults at once: there is nowhere to fall, and a street is
+    the space between lots rather than a line somebody drew across them.
+
+    The deck goes down FIRST so a building placed on it always wins its own cells.
+    """
     world = SparseWorld(chunk_size=int(plan.get("world_rules", {}).get("chunk_size", 16)))
     plane = int(plan["site"]["build_plane"])
     palette = {name: PALETTES.get(name, DEFAULT) for name in
                [r["name"] for r in plan.get("regions", [])] or ["midway"]}
     deck_cells: set[tuple[int, int]] = set()
+
+    #: an open floor needs its own lighting, not the lamp posts that happened to line a route.
+    #: A lantern is light 15 and a mob spawns at 0, so a 14 grid leaves 8 at the worst midpoint -
+    #: real margin, and the posts read as a rhythm across the paving rather than as a fence.
+    LAMP_GRID = 14
+    x0b, z0b, x1b, z1b = plan["site"]["bounds"]
+    for z in range(z0b, z1b + 1):
+        pal = palette.get(_region_of(plan, z), DEFAULT)
+        for x in range(max(x0b, DECK_FROM), min(x1b, DECK_TO) + 1):
+            world.put(x, plane, z, pal["deck"])
+            world.put(x, plane - 1, z, pal["platform"])
+        for x in range(max(x0b, SERVICE_FROM), min(x1b, SERVICE_TO) + 1):
+            world.put(x, plane, z, pal["batter"])
+            world.put(x, plane - 1, z, pal["platform"])
+        if z % LAMP_GRID == 0:
+            for x in range(max(x0b, DECK_FROM) + LAMP_GRID // 2, min(x1b, DECK_TO), LAMP_GRID):
+                world.put(x, plane + 1, z, pal["post"])
+                world.put(x, plane + 2, z, pal["post"])
+                world.put(x, plane + 3, z, pal["light"])
 
     for route in plan.get("routes", []):
         service = route.get("kind") == "service"
