@@ -103,7 +103,10 @@ def module_type(module: dict) -> str:
     what a module is FOR, a type says what interfaces it owes.
     """
     gen, kind = module.get("gen"), module.get("kind")
-    if kind == "paths":
+    # **A STAIR IS CIRCULATION, NOT A DESTINATION.** Typed by the fallback it came out a shop,
+    # owed a shopfront and a service counter, and stood in a band that admits neither - which is
+    # three failures for a flight of steps whose whole job is to be walked down.
+    if kind in {"paths", "stairwell"}:
         return "path"
     if kind == "plaza":
         return "terrain"
@@ -119,7 +122,9 @@ def module_type(module: dict) -> str:
         return "arrival"
     if gen in {"coaster", "bigwheel"} or kind in {"ghosttrain", "runawaymine", "carousel", "drop"}:
         return "ride"
-    if kind in {"mirrormaze", "manor", "ossuary", "seance", "walkthrough"}:
+    # An undercroft journey is a WALKTHROUGH: a guest walks it, chamber to chamber, and what it
+    # owes is an approach, an entry, an exit and a way in for maintenance - not a shopfront.
+    if gen == "undercroft" or kind in {"mirrormaze", "manor", "ossuary", "seance", "walkthrough"}:
         return "walkthrough"
     if kind in {"foodcourt", "saloon", "shopstreet", "market", "guestservices",
                 "gamesrow", "sluice", "minehead", "powderhouse"}:
@@ -264,7 +269,14 @@ def anchors_for(module: dict, plane: int | None = None, owned=None) -> list[dict
     # wrong the moment one did not: the Frontier's mine ride is 24 courses down and its queue
     # mouth was reported at street level, so the route gate saw a ride nobody could reach as
     # perfectly served. `plane` is the fallback for a module with no elevation of its own.
-    y = (module["at"][1] if module.get("at") else plane) + 1
+    #
+    # **AND THE BUILD PLANE IS THE COURSE YOU STAND ON, NOT THE COURSE UNDER YOUR FEET.**
+    # `tools/parkship.py` states it: "The build PLANE is the course you stand on; the FLOOR is the
+    # course the floor blocks occupy, one under it." An anchor a course above that was consistent
+    # with everything that only ever compared anchors to other anchors, and wrong the moment
+    # anything compared one to a BLOCK - the safety pass read a guest's feet as their head and
+    # reported 671 route cells across the three lands as obstructed by their own paving.
+    y = module["at"][1] if module.get("at") else plane
     wanted = list(REQUIRED.get(kind_type, ())) + list(OPTIONAL.get(kind_type, ()))
     out = []
     for name in wanted:

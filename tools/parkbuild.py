@@ -18,11 +18,18 @@ sys.path.insert(0, str(ROOT))
 
 from mcbuild import palette, pipeline, schem  # noqa: E402
 
+#: WORLDSPEC ARTIFACTS GET THEIR OWN FOLDER, and that is a correctness rule rather than tidiness.
+#: `out/` still holds the previous park's designs under names this plan reuses - `Arrival Court`,
+#: `Mine Coaster`, `Carousel`. Placing by name out of `out/` silently mixed a build from
+#: yesterday's retired programme into today's assembly, and nothing about the result said so.
+ARTIFACTS = ROOT / "out" / "park_final" / "artifacts"
+
 
 def main() -> int:
     configs = sorted((ROOT / "out" / "park_final" / "configs").glob("*.yaml"))
     spec = json.loads((ROOT / "park_final.world.json").read_text(encoding="utf-8"))
     lots = {m["name"]: m for m in spec["modules"]}
+    ARTIFACTS.mkdir(parents=True, exist_ok=True)
     only = set(sys.argv[1:])
     rows, tiers = [], Counter()
     for path in configs:
@@ -34,7 +41,9 @@ def main() -> int:
         module = lots[name]
         started = time.perf_counter()
         try:
-            model, _res = pipeline.run_config(str(path), render_sheet=False, verbose=False)
+            model, _res = pipeline.run_config(
+                str(path), settings=pipeline.Settings(out_dir=str(ARTIFACTS)),
+                render_sheet=False, verbose=False)
         except Exception as exc:
             rows.append({"module": name, "error": f"{type(exc).__name__}: {exc}"})
             continue
@@ -66,8 +75,12 @@ def main() -> int:
         built += row["blocks"]
         fits = row["size"][0] <= row["lot"][0] and row["size"][2] <= row["lot"][1]
         note = [] if fits else ["overflows lot"]
-        if row["pct"] < 70: note.append("under budget")
-        if row["pct"] > 125: note.append("over budget")
+        # A LOT'S BUDGET IS A FLOOR, NOT A CEILING. Jack's call: over budget is fine as long as
+        # it is really good looking and meaningful - so a lot that spends more than its
+        # programme line is not a finding, and a thin one is. What over-spend still has to
+        # answer for is padding, and no block count can see padding; that is what the visual
+        # packet and the three readable distances are for.
+        if row["pct"] < 70: note.append("THIN - under 70% of its programme line")
         print(f"{row['module']:<24}{row['blocks']:>8}{row['budget']:>8}{row['pct']:>4}%  "
               f"{str(row['size']):<16}{str(row['lot']):<10}{row['seconds']:>6}  {'; '.join(note)}")
     total = sum(tiers.values()) or 1

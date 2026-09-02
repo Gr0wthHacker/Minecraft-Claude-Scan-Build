@@ -675,7 +675,14 @@ def creature_canvas(spec: dict, place=None) -> Canvas:
         # was put on, not a constant. `side` +1 puts the stop east of the spine, so the walk is
         # to its WEST and the head has to rear that way - the gecko's stele is turned by exactly
         # the same argument. Written the other way round the wyrm faces the void.
-        return m.build_wyrm({"seed": seed, "face": -int(spec.get("side", 1)),
+        #
+        # `form: serpent` IS NOT A DEFAULT AND MUST NOT BECOME ONE. `wyrm.py` now builds the
+        # locked W1 threshold - a 60x17 ribcage you walk through, rooted into a bridge rim -
+        # and that is not a thing that can stand on a causeway plinth beside a walkway: pasted
+        # here it runs straight off the span and into the park's own cells. The causeway keeps
+        # the retired ornament until its stop is re-programmed, which is Jack's call.
+        return m.build_wyrm({"seed": seed, "form": "serpent",
+                             "face": -int(spec.get("side", 1)),
                              "stand": list(place or [0, 0, 0])})
     raise ValueError(f"unknown creature kind {kind!r}; have {sorted(_SITERS)}")
 

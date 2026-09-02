@@ -26,6 +26,8 @@ def test_design_assessment_records_real_massing_material_and_light_evidence():
     assert result["ok"]
     assert result["metrics"]["massing"] == {"width": 3, "height": 2, "depth": 1, "fill_ratio": 0.6667}
     assert result["metrics"]["light_blocks"] == 1
+    assert result["metrics"]["composition"]["base_middle_crown_mass"] == [0.75, 0.25, 0.0]
+    assert result["metrics"]["composition"]["top_silhouette_perimeter"] == 8
 
 
 def test_only_explicit_enforcement_turns_a_quality_target_into_a_failure():

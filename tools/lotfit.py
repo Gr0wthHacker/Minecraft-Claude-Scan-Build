@@ -105,7 +105,8 @@ def main() -> int:
         if row["not_1_19"]: bad.append("NOT-1.19 " + ",".join(row["not_1_19"]))
         if row["components"] != 1: bad.append(f"{row['components']} components")
         if not row["fits"]: bad.append("overflows lot")
-        if row["budget_pct"] < 70: bad.append("UNDER budget"); short += 1
+        # the budget is a floor: thin is the failure, generous is not
+        if row["budget_pct"] < 70: bad.append("THIN"); short += 1
         print(f"{row['module']:<24}{row['generator']:<13}{row['blocks']:>8}{row['budget']:>8}"
               f"{row['budget_pct']:>4}%  {str(row['size_xyz']):<16}{str(row['footprint']):<10}"
               f"{'y' if row['fits'] else 'N':<5}{row['components']:>4}  {'; '.join(bad)}")

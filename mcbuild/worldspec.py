@@ -213,6 +213,13 @@ def emit_configs(plan: dict, directory: str | Path) -> list[str]:
                "roles": MECHANICS_ROLE.get(role, ["building"]), "world_contract": True,
                "depends_on": module.get("depends_on", []), "anchors": anchors,
                "blueprint": blueprint,
+               # A WORLDSPEC MODULE IS BUILT IN ITS OWN LOCAL SPACE. The repo-wide `origin_lock`
+               # pins every island design to one world origin so regeneration cannot move it;
+               # applied here it refuses any module whose natural origin is not past that lock,
+               # which for a module-local build is every one of them. Placement happens in
+               # tools/parkassemble.py, from the plan, and never by writing a world coordinate
+               # into a module's sidecar - see PARK_BUILD_EXECUTION.md on the provisional anchor.
+               "origin_lock": False,
                "design": {"purpose": module.get("role", "building"),
                           **({"style": module["style"]} if module.get("style") else {})}}
         safe = "".join(c.lower() if c.isalnum() else "_" for c in module["name"]).strip("_")

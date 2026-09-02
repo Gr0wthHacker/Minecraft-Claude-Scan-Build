@@ -52,9 +52,25 @@ PUBLIC_INSET = WALK_WIDTH // 2
 AVENUE_INSET = SPINE_WIDTH // 2
 
 
+#: How often a route of each role carries a lamp. **ONLY THE SPINES WERE LIT, AND THE NIGHT PASS
+#: SAID SO**: 2,830 public route cells across the three lands stood at block light 0, which is a
+#: mob on a guest path. The masterplan asks for "warm reliable lighting" on public paths and
+#: "high-legibility lighting" at ride entries and exits, so an exit and a queue are lit tighter
+#: than a street - and a service road is never lit, because it is meant to be missed.
+# **MEASURED, NOT CHOSEN.** At 12/8 the night pass still found 158 walkable route cells across
+#: the two side lands at block light 0 - a lantern reaches 15 but a post on the verge of one route
+#: is often blocked by the building it stands against, so the effective spacing is wider than the
+#: nominal one. These are the numbers that take every land to zero.
+LAMP_EVERY = {"main_spine": 8, "secondary": 5, "exit": 4, "queue": 4, "shaft": 4}
+
+
 def _leg(a, b, width, role, **extra):
-    return {"a": [int(a[0]), int(a[1])], "b": [int(b[0]), int(b[1])],
-            "width": int(width), "role": role, **extra}
+    out = {"a": [int(a[0]), int(a[1])], "b": [int(b[0]), int(b[1])],
+           "width": int(width), "role": role, **extra}
+    if role in LAMP_EVERY and "lamps" not in out:
+        out["lamps"] = True
+        out.setdefault("lamp_every", LAMP_EVERY[role])
+    return out
 
 
 def _faces(module) -> dict:
@@ -182,16 +198,17 @@ def _shafts(modules, plane, walkable) -> list[dict]:
         if approach is None:
             continue
         x, y, z = approach["at"]
-        if abs(y - (plane + 1)) <= OFF_PLANE:
+        if abs(y - plane) <= OFF_PLANE:
             continue
         # **THE SHAFT STANDS IN THE MODULE'S OWN APPROACH COLUMN.** Placed at the nearest
         # street cell instead, its foot lands wherever that column happens to be underground -
         # which is rock - and the landing it is supposed to reach is somewhere else. A lift
         # goes straight down to the door it serves.
-        out.append({"a": [int(x), int(plane + 1), int(z)],
-                    "b": [int(x), int(y), int(z)],
-                    "width": WALK_WIDTH, "role": "shaft", "vertical": "stairs",
-                    "name": f"{module.get('name', '?')} shaft"})
+        shaft = _leg((x, z), (x, z), WALK_WIDTH, "shaft", vertical="stairs",
+                     name=f"{module.get('name', '?')} shaft")
+        shaft["a"] = [int(x), int(plane), int(z)]
+        shaft["b"] = [int(x), int(y), int(z)]
+        out.append(shaft)
         # **AND THE SHAFT HEAD HAS TO BE ON THE STREET, or the whole underground level is an
         # island.** The shaft stands in the module's own column, which on the surface is not
         # anywhere the town paved - so the plan-view network came out in two pieces, correctly:
@@ -245,7 +262,7 @@ def build(modules: list[dict], centre: tuple[int, int], owned: tuple[int, int, i
         return (min(max(point[0], ox0 + margin), ox1 - margin),
                 min(max(point[1], oz0 + margin), oz1 - margin))
 
-    street = None if plane is None else plane + 1
+    street = plane
     for module in modules:
         if module.get("covers") or I.module_type(module) in {"path", "terrain", "service"}:
             continue
@@ -289,14 +306,59 @@ def build(modules: list[dict], centre: tuple[int, int], owned: tuple[int, int, i
             if land != elbow:
                 routes.append(_leg(elbow, land, WALK_WIDTH, "secondary", name=f"{name} {face} approach"))
 
+    from . import pathgraph
+    # **AND THE SERVICE DOORS GET A SECOND LOOK, NOW THAT THE STREETS EXIST.** `interfaces` places
+    # a backstage door on the rear face and can only move it for a reason it can see from the
+    # module alone - being off the land. Whether that face is under a guest path is not knowable
+    # until the guest paths are drawn, which is here: measured with only the first pass, 13 of 31
+    # service doors across the three lands opened straight onto a street, and 10 of those had a
+    # perfectly good flank going spare.
+    #
+    # The anchor MOVES rather than the road bending to it, because a door is a decision about a
+    # building and a road that reaches a bad door is still a road down a guest path.
+    _reface_service_doors(modules, owned, pathgraph.footprint(routes))
+
     # **DRAWN LAST, AND HANDED WHAT THE PUBLIC NETWORK HAS ALREADY CLAIMED.** The backstage
     # yields; it does not cross. That is the only version of "hidden service routes" that is a
     # fact about the geometry rather than a label on it.
-    from . import pathgraph
     if plane is not None:
         routes.extend(_shafts(modules, plane, pathgraph.public(routes)))
     routes.extend(_service_network(modules, owned, pathgraph.footprint(routes)))
     return [r for r in routes if r["a"] != r["b"]]
+
+
+def _reface_service_doors(modules, owned, public_cells) -> int:
+    """Move a backstage door off a guest path, when the building has a flank going spare.
+
+    Only ever to a face that is on the land AND clear of the street - and if no face is, the door
+    stays where it is and `unserviced_doors` reports it. A door nudged onto a worse face to make
+    a count go down would be buying quiet, which is the thing this project keeps refusing to do.
+    """
+    moved = 0
+    for module in modules:
+        if module.get("covers") or I.module_type(module) in {"path", "terrain", "service"}:
+            continue
+        facing = module.get("params", {}).get("facing", "east")
+        for anchor in module.get("interface", {}).get("anchors", []):
+            if I.resolve(anchor["name"]) not in _SERVICE:
+                continue
+            x, _y, z = anchor["at"]
+            if (x, z) not in public_cells:
+                continue
+            layout = I._LAYOUT.get(I.module_type(module), {}).get(anchor["name"])
+            if not layout:
+                continue
+            _relative, along, distance = layout
+            for alternative in ("left", "right", "back", "front"):
+                face = I._resolve_face(facing, alternative)
+                nx, nz = I._face_point(module, face, along, distance)
+                on_land = not owned or (owned[0] <= nx <= owned[1] and owned[2] <= nz <= owned[3])
+                if on_land and (nx, nz) not in public_cells:
+                    anchor["at"] = [int(nx), anchor["at"][1], int(nz)]
+                    anchor["face"] = face
+                    moved += 1
+                    break
+    return moved
 
 
 def _service_network(modules, owned, public_cells) -> list[dict]:

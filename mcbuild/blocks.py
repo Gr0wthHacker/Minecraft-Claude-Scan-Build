@@ -119,6 +119,11 @@ def server_authoritative() -> bool:
     return bool(_server().get("authoritative"))
 
 
+def server_block_names() -> set[str]:
+    """Declared server registry names; empty means compatibility cannot honestly be enforced."""
+    return set(_server().get("blocks", ()))
+
+
 def available(name: str) -> bool:
     """Can this actually be placed on the server.
 

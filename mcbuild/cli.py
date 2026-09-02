@@ -17,7 +17,7 @@ import os
 import pathlib
 import sys
 
-from . import audit as audit_mod, coop, learn as learn_mod, palette, render, scan as scan_mod, schem
+from . import audit as audit_mod, coop, learn as learn_mod, palette, reference, render, scan as scan_mod, schem
 from .ops import cheapen as cheapen_op, downscale as downscale_op, from_image, hollow as hollow_op
 from .pipeline import Settings, run_config
 
@@ -33,6 +33,25 @@ def cmd_info(a):
     m = schem.load(a.file)
     r = audit_mod.audit(m, ground=not a.no_ground)
     print(r.report())
+
+
+def cmd_reference(a):
+    """Inspect external litematic scale without materialising its voxel field."""
+    summary = reference.inspect_litematic(a.file)
+    payload = {
+        "path": summary.path,
+        "bytes_on_disk": summary.bytes_on_disk,
+        "regions": [
+            {"name": region.name, "size": region.size,
+             "envelope_volume": region.envelope_volume,
+             "palette_states": region.palette_states,
+             "entities": region.entities, "tile_entities": region.tile_entities}
+            for region in summary.regions
+        ],
+        "envelope_volume": summary.envelope_volume,
+        "note": "Metadata only: packed block states are intentionally not loaded.",
+    }
+    print(json.dumps(payload, indent=2))
 
 
 def cmd_audit(a):
@@ -258,6 +277,36 @@ def cmd_plan(a):
               f"{len(c['short'])} short")
 
 
+def cmd_parkevidence(a):
+    """Measure the four gates that are about the BUILT world, and record it on the plan."""
+    from . import evidence, gates, planner
+    pl = planner.Plan.load(a.plan)
+    if pl.theme not in {"midway", "frontier", "hollow"}:
+        print(f"{a.plan} is a {pl.theme!r} plan, not one of the three park lands")
+        return 2
+    only = set(a.only.split(",")) if a.only else None
+    measured = evidence.measure(dict(pl.__dict__), only=only, out_dir=a.out_dir)
+    # **A VERDICT ALREADY RECORDED IS NOT OVERWRITTEN BY A RE-MEASURE.** The visual gate's answer
+    # is a human's and re-running the renderer must not quietly discard it.
+    keep = ((pl.evidence or {}).get("visual") or {}).get("verdict")
+    if keep and "visual" in measured:
+        measured["visual"]["verdict"] = keep
+        measured["visual"]["failures"] = []
+        measured["visual"]["ok"] = True
+    pl.evidence = {**(pl.evidence or {}), **measured}
+    pl.save()
+    for name in sorted(measured):
+        block = measured[name]
+        mark = "pass" if block["ok"] else "FAIL"
+        print(f"  {name:<10} {mark}")
+        for failure in block["failures"][:6]:
+            print(f"      x {failure}")
+        for warning in block["warnings"][:3]:
+            print(f"      ! {warning}")
+    print(gates.report(gates.run(dict(pl.__dict__))))
+    return 0
+
+
 def cmd_parkgate(a):
     """The eight promotion gates PARK_OVERHAUL.md states, over a planned land."""
     from . import gates, planner
@@ -471,12 +520,31 @@ def cmd_worldtickets(a):
     print("wrote", *tickets.write(plan, a.out), sep="\n")
 
 
+def cmd_worldflow(a):
+    from . import worldflow
+    with open(a.brief, encoding="utf-8") as fh: raw = json.load(fh)
+    result = worldflow.prepare(raw, a.out)
+    print(json.dumps({key: value for key, value in result.items() if key != "plan"}, indent=2))
+
+
+def cmd_greybox(a):
+    from . import audit, benchmark, greybox, schem
+    with open(a.brief, encoding="utf-8") as fh: brief = json.load(fh)
+    (model, plan), perf = benchmark.measure(greybox.build, brief)
+    report = audit.audit(model, ground=False)
+    schem.save(a.out, model, name=plan["name"] + " Greybox")
+    print(json.dumps({"out": a.out, "performance": perf, "blocks": int(model.solid().sum()),
+                      "audit_ok": report.ok, "anchors": plan["anchors"], "quality": plan["quality"]}, indent=2))
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="mcbuild", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("info"); p.add_argument("file"); p.add_argument("--no-ground", action="store_true"); p.set_defaults(fn=cmd_info)
+    p = sub.add_parser("reference", help="inspect external Litematica metadata without dense voxel loading")
+    p.add_argument("file"); p.set_defaults(fn=cmd_reference)
     p = sub.add_parser("audit"); p.add_argument("file"); p.add_argument("--symmetry", action="store_true")
     p.add_argument("--symmetry-from", type=int, default=0); p.add_argument("--no-ground", action="store_true")
     p.add_argument("--ground-block", help="block the schematic is pasted onto, e.g. moss_block"); p.set_defaults(fn=cmd_audit)
@@ -548,6 +616,12 @@ def main(argv=None):
     p.add_argument("--upgrade-park-contracts", help="add purpose/access contracts without changing a park layout")
     p.add_argument("--upgrade-interfaces", help="add typed anchors and role-typed circulation to an existing park plan, without re-siting it")
     p.set_defaults(fn=cmd_plan)
+    p = sub.add_parser("parkevidence", help="measure the four gates that are about the BUILT "
+                       "world - mechanics, safety, night, visual - and record it on the plan")
+    p.add_argument("plan")
+    p.add_argument("--only", help="comma-separated producer names (default: all four)")
+    p.add_argument("--out-dir", default="out", help="where the generated litematics are")
+    p.set_defaults(fn=cmd_parkevidence)
     p = sub.add_parser("parkgate", help="the eight promotion gates over a planned land: interface, route, capacity, mechanics, safety, wayfinding, night, visual")
     p.add_argument("plan")
     p.add_argument("--only", help="comma-separated gate names (default: all eight)")
@@ -598,6 +672,14 @@ def main(argv=None):
     p.add_argument("plan", help="compiled strict WorldSpec JSON")
     p.add_argument("--out", required=True, help="ticket directory")
     p.set_defaults(fn=cmd_worldtickets)
+    p = sub.add_parser("worldflow", help="strict WorldSpec → greyboxes, infrastructure, configs, tickets, and gates")
+    p.add_argument("brief", help="strict WorldSpec JSON")
+    p.add_argument("--out", required=True, help="workflow artifact directory")
+    p.set_defaults(fn=cmd_worldflow)
+    p = sub.add_parser("greybox", help="fast blueprint massing preview before full-detail generation")
+    p.add_argument("brief", help="JSON building blueprint")
+    p.add_argument("--out", required=True, help="greybox Litematica output")
+    p.set_defaults(fn=cmd_greybox)
     p = sub.add_parser("islands", help="the islands this tooling knows: centre from BEDROCK, never typed")
     p.add_argument("--add", help="name it")
     p.add_argument("--from", dest="from_", help="capture to discover the bedrock in")

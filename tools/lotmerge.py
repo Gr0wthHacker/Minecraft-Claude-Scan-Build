@@ -39,6 +39,12 @@ def main() -> int:
                 module["params"] = entry["params"]
             else:
                 module["params"] = entry
+            # PARAMS THAT DECLARE `parts` ARE A COMPOSITION, whatever the fragment said about a
+            # generator. A fragment that supplies parts and forgets to re-point the generator
+            # leaves the lot on its old single-generator, which then raises "needs params.at"
+            # and looks like the composition was never written.
+            if isinstance(module.get("params"), dict) and module["params"].get("parts"):
+                module["generator"] = "compose"
             applied.append(name)
     if unknown:
         print("fragment names no such module:", *unknown, sep="\n  "); return 1

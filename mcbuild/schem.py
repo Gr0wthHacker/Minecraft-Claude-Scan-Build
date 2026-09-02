@@ -16,7 +16,8 @@ from . import nbt
 from .nbt import Tag, TAG_COMPOUND, TAG_LIST, TAG_LONG_ARRAY, TAG_INT, TAG_LONG, TAG_STRING
 
 AIR_NAMES = {"minecraft:air", "minecraft:cave_air", "minecraft:void_air"}
-DEFAULT_DATA_VERSION = 3955          # 1.21
+# The production target is the 1.19 Skyblock server, not the locally installed newer client.
+DEFAULT_DATA_VERSION = 3120          # Minecraft Java 1.19
 
 
 def bits_for(n: int) -> int:

@@ -390,11 +390,28 @@ def test_the_mine_coasters_track_can_be_reached_on_foot():
     rails = [p for p, n in plain.items()
              if n in ("rail", "powered_rail", "detector_rail", "activator_rail")]
     assert rails, "the coaster has no track"
-    y0 = side["origin"]["y"]
-    seeds = [p for p in plain if p[1] == y0 + 1 and walk.stands(plain, (p[0], p[1] + 1, p[2]))]
-    assert seeds, "no standable ground at all - a seed here would be vacuous"
+    # **THE MODEL'S FLOOR IS NOT THE GROUND, and this test used to assume it was.** It seeded at
+    # `origin.y + 1`, which held while the lowest thing in the box was the apron - and stopped
+    # holding the day the Mine Ridge grew SUPPORT ROOTS hanging fourteen courses under it. Every
+    # seed then landed inside solid rock below the apron, the list came out empty, and the test
+    # failed on its own vacuity guard rather than on anything about the ride. Scanning for the
+    # lowest course that actually HAS standable ground is the question it always meant to ask -
+    # the same "the topmost/lowest solid cell is not the ground" correction this repo has now
+    # made in three other places.
+    standable = [p for p in plain if walk.stands(plain, (p[0], p[1] + 1, p[2]))]
+    assert standable, "no standable ground at all - a seed here would be vacuous"
+    # ...and the ground that matters is the STATION's, which is the course the LOWEST rail sits
+    # on. The lowest standable cell is a root tip hanging in the void and the modal one is a
+    # quarry bench five courses above its neighbour, and neither is anywhere a guest boards.
+    floor = min(r[1] for r in rails)
+    seeds = sorted(p for p in standable if floor - 1 <= p[1] <= floor)
+    assert seeds, "no standable ground beside the lowest track - a seed here would be vacuous"
+    # SAMPLED ACROSS THE WHOLE COURSE, not the first sixty of it. That course is now thousands of
+    # cells wide - the ridge's own foot is on it - and the first sixty in iteration order are
+    # sixty cells of one corner of a quarry bench, which reach nothing and prove nothing.
+    seeds = seeds[::max(1, len(seeds) // 120)]
     reach = set()
-    for g in seeds[:60]:
+    for g in seeds[:160]:
         reach |= walk.reachable(plain, (g[0], g[1] + 1, g[2]))
         if any(r in reach for r in rails):
             break

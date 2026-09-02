@@ -73,11 +73,16 @@ LANDS = {
         # WOOL OFF THE GROUND. `trim` is not only wall cornices and crenellations - it is ALSO
         # the plaza's floor grid, the path kerbs, the terrace and pool beds, and the planting
         # kerbs, all of them the ground you actually walk on. `black_wool` (21) is a fine
-        # CORNICE colour and a bad thing to be standing on. `blackstone` (38, ok tier) keeps the
+        # CORNICE colour and a bad thing to be standing on. `polished_blackstone_bricks` (45, CHEAP) keeps the
         # same dark line - measured across families, not within one, which is the ladder rule
-        # `test_every_land_can_actually_draw_a_line` checks: 236 (wall) - 38 (trim) is 198 apart,
+        # `test_every_land_can_actually_draw_a_line` checks: 236 (wall) - 45 (trim) is 191 apart,
         # nowhere near the 15-luminance floor below which a trim course stops reading as a line.
-        "trim": "blackstone",
+        # It WAS `blackstone` (38, ok tier), and the two are 12.9 RGB and 7.3 luminance apart -
+        # a difference nobody can see. But this trim is the plaza floor grid, the kerbs and the
+        # cornices, so it is thousands of cells: on the Midway alone it was 7,884 of 7,965 `ok`
+        # blocks and took the land to 16.8% against the material policy's 10-16% band. One word
+        # for five percentage points, and the line looks identical.
+        "trim": "polished_blackstone_bricks",
         "post": "oak_log",
         "beam": "oak_planks",
         "stair": "stone_brick_stairs",
@@ -1043,6 +1048,14 @@ def _paths(w: World, p: dict, ctx) -> dict:
     def blocked(x, z):
         return any(x0 <= x <= x1 and z0 <= z <= z1 for (x0, z0, x1, z1) in obstacles)
 
+    # **A LAMP ON ONE STREET'S KERB CAN STAND IN THE CROSSING STREET'S WALKWAY.** The kerb
+    # is the right place for a post and every route knows its own; what no route knows is
+    # that another one crosses it there. Measured on the three lands, 39 posts stood in the
+    # middle of a street they did not belong to. The walkable interior of the WHOLE network
+    # is computed once and nothing is ever stood in it.
+    from .. import pathgraph as _pg
+    _walkway = _pg.interior(_pg.normalise(routes))
+
     laid, lamps, rails = 0, 0, 0
 
     def _leg(ax, az, bx, bz, route, y):
@@ -1086,11 +1099,34 @@ def _paths(w: World, p: dict, ctx) -> dict:
             # LAMP POSTS ON THE KERB, and only where the route asks for them - a lit spur to
             # every food stall is a lamp every four blocks, which reads as a fence rather than
             # as a street. A service road is never lit: it is meant to be missed.
-            if route.get("lamps") and k and k % int(route.get("lamp_every", 12)) == 0:
-                for o in (-half, half):
+            # **A ROUTE SHORTER THAN ITS OWN INTERVAL GETS ONE LAMP, NOT NONE.** Written as
+            # `k and k % every == 0`, a nine-cell frontage walk with a twelve-cell interval
+            # never reached its first lamp - so every short route in the park was unlit and
+            # the night pass found 1,562 route cells at block light 0. Most of a park is
+            # short routes.
+            every = max(1, int(route.get("lamp_every", 12)))
+            due = (k and k % every == 0) or (n < every and k == n // 2)
+            if route.get("lamps") and due:
+                # **THE POST STANDS ON THE VERGE, NOT ON THE CARRIAGEWAY.** On the kerb it
+                # is inside the route's own width, so a crossing street walks into it - and
+                # skipping every such cell instead left most of the park unlit, because a
+                # frontage walk and its join run adjacent and cover each other's kerbs. One
+                # cell beyond the edge is what a real street does: it lights the walk
+                # without standing in it.
+                # **VERGE FIRST, THEN THE KERB, THEN NOTHING.** A walk squeezed between two
+                # buildings has no verge at all on either side, and skipping there left the
+                # tightest streets - the ones a guest most wants lit - the darkest. The kerb
+                # is the route's outer column, which is not its walkable middle, so a post
+                # there lights the walk without standing in it.
+                spots = [o for o in (-half - 1, half + 1)] + [o for o in (-half, half)]
+                placed_here = 0
+                for o in spots:
+                    if placed_here >= 2:
+                        break
                     x, z = (cx, cz + o) if along_x else (cx + o, cz)
-                    if blocked(x, z):
+                    if blocked(x, z) or (x, z) in _walkway or w.has(x, y, z):
                         continue
+                    placed_here += 1
                     for h in range(3):
                         w.put(x, y + h, z, pal["post"])
                     w.put(x, y + 3, z, pal["trim"])

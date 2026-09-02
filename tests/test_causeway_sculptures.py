@@ -26,8 +26,13 @@ import pytest
 from mcbuild import blocks, morph, nbt, nightlight, palette
 from mcbuild.gen import balloon, isthmus, wyrm
 
+# THE CAUSEWAY'S WYRM IS THE RETIRED SERPENT, NOT THE DEFAULT FORM, and this file has to say so
+# explicitly. `wyrm.py` now defaults to the locked W1 threshold - a ribcage you walk through, with
+# no coil, no hood and no eyes - so a maker that took the default would be testing a shape this
+# causeway never sites. `tests/test_wyrm.py` owns that one. Spelt the same way `isthmus.py`
+# spells it, so the two cannot drift into testing and siting different animals.
 MAKERS = {"balloon": lambda **kw: balloon.build_balloon(kw),
-          "wyrm": lambda **kw: wyrm.build_wyrm(kw)}
+          "wyrm": lambda **kw: wyrm.build_wyrm({"form": "serpent", **kw})}
 
 
 def _cells(c):
@@ -159,7 +164,7 @@ def test_the_head_stands_PROUD_of_the_hood(face):
     along the face axis, by enough to read as a head in front of a hood rather than a bump on
     one - and 'forward' is a signed direction, so this is checked at both faces or a sign error
     passes half the time."""
-    c = wyrm.build_wyrm({"face": face})
+    c = wyrm.build_wyrm({"form": "serpent", "face": face})
     cells = _cells(c)
     # THE HOOD'S RIM AND THE BODY'S BANDS ARE THE SAME BLOCK, so "every black_wool cell" is not
     # the hood - it is the hood plus the tail, and the tail is at the far end of the animal.
@@ -178,7 +183,7 @@ def test_it_has_TWO_eyes_and_they_are_a_pair(face):
     midline: one side found a block, the other found air. No error anywhere. The probe now
     SEARCHES for a row wide enough to carry a pair, which is the only version of this that can
     survive somebody moving the head."""
-    c = wyrm.build_wyrm({"face": face})
+    c = wyrm.build_wyrm({"form": "serpent", "face": face})
     cells = _cells(c)
     eyes = [k for k, n in cells.items() if n == "red_wool"]
     assert len(eyes) == 2, f"the wyrm has {len(eyes)} eyes"
@@ -193,7 +198,7 @@ def test_the_hood_is_a_PLANE_with_a_dark_rim():
     because it is FLAT - two courses thick against eleven wide - with a dark rim drawing its
     edge. A pale plate against a pale sky is a shape with no outline, which on a causeway with
     nothing behind it but open air is the whole ball game."""
-    c = wyrm.build_wyrm({"face": 1})
+    c = wyrm.build_wyrm({"form": "serpent", "face": 1})
     f = c.meta["features_built"]
     assert f["hood"] > 100, f"the hood is only {f['hood']} cells - too small to read"
     assert 0.1 < f["hood_rim"] / f["hood"] < 0.45, \
@@ -208,7 +213,7 @@ def test_the_coil_stays_at_the_BASE_and_the_rise_carries_the_outline():
     round a column reads through COLOUR AND DEPTH and its OUTLINE is a bumpy column, and on
     this causeway there is nothing behind a sculpture but sky. So the coil is short and low and
     the free rise is what is spent on the outline; this fails if that trade is ever reversed."""
-    c = wyrm.build_wyrm({"face": 1})
+    c = wyrm.build_wyrm({"form": "serpent", "face": 1})
     f = c.meta["features_built"]
     assert f["rise"] > f["coil_stations"], \
         "the coil has more of the animal in it than the free rise - that build was rejected"

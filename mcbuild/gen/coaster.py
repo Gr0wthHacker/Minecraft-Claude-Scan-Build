@@ -53,10 +53,31 @@ GEOMETRY, stated once because getting it wrong is invisible in every render - th
 own path, and every elevated course is carried down to it on trestles. Nothing floats, and that
 is a property of the build rather than a hope: the apron is a continuous band, the deck is a
 continuous line, and the trestles join them.
+
+**...AND THE COASTER BRINGS ITS OWN RIDGE.** `PARK_VISUAL_AND_BUDGET_SPEC.md` does not describe a
+track, it describes *Mine Ridge and Coaster*: 36,000-44,000 blocks of "layered quarry/mine ridge
+with cut faces, timber gantries, tunnel mouths, visible lift/crest, and one service glimpse", and
+the ride shipped at 4,812 - a track on stilts over a paved yard, with the word mine in its title
+and no mine anywhere. The block comment over `_ridge_field` is where that half lives; the rule it
+turns on is the ledger's own, and it cuts BOTH ways:
+
+    the coaster is readable as a route through terrain;
+    terrain never becomes a generic mountain or hides the ride entirely.
+
+So the ridge crowns UNDER the crest - the lift and the crest ride above it on trestles, which is
+what a mine coaster over a working quarry looks like - the buried stretches are mostly open
+CUTTINGS rather than bores, and the tunnels are chopped short so there are mouths to see. The
+budget band is a FLOOR rather than a ceiling: padding comes out whatever it says, and interior
+fill nobody can see is padding, which is why the mass is a crust.
+
+**The one thing that costs is stated rather than hidden: the crust leaves ~129,000 cells of
+sealed, unlit air inside the massif.** Sealed cavities still spawn and still count against the mob
+cap - CLAUDE.md already records the same for the lowland massif's buried seams - and filling it
+solid is four times the ledger's budget. It is in the build's `unverified` list, not smoothed over.
 """
 from __future__ import annotations
 
-from .. import fluids, walk
+from .. import blocks, fluids, walk
 from .canvas import Canvas, hash01
 from .park import LANDS, SIGN_WIDTH, _BACK, _Frame, _STEP, _sign
 from .vertical import Ctx, World
@@ -111,8 +132,16 @@ COASTER = {
     "seed": 7,
 
     # --- coaster ---------------------------------------------------------
-    "span": 58,                 # the circuit's outer (i, d) extent; >= 55 is the brief
+    "span": 58,                 # the circuit's extent along d - THE CLIMB AXIS, the long one
+    "span_i": None,             # ...and along the frontage. None means square, as it always was.
     "top": 45,                  # the lift hill's crest, in courses over the station
+
+    # --- the mine ridge (see the block comment above `_ridge_field`) -----
+    "ridge": True,              # the terrain the ride is a route THROUGH
+    "ridge_crust": 3,           # courses of solid skin over the hollow interior
+    "ridge_scale": 0.82,        # multiplies every lobe radius - THE ONE BUDGET DIAL
+    "terrace": 5,               # the bench height the mass is quantised to
+    "queue_rows": 20,           # 3-wide rows of queue. THE BUILD CARD ASKS FOR 14-24 PLAYERS.
     "margin": 4,                # the circuit's inset from the frame origin
     "power_every": 8,           # a redstone_block in the bed this often, PER RUN between corners
     "trestle_every": 6,         # a trestle at least this often under elevated deck
@@ -488,50 +517,525 @@ def _coaster_plan(p):
         make the 55x55 circuit its own message claims (that needs 54) and does not correspond to
         any of the arithmetic above.
 
-    The fractions below are chosen to reproduce the ride this module already shipped: at the
-    default 4/58/45 the waypoints come out IDENTICAL to the constants they replace, cell for cell.
+    **AND THE CIRCUIT IS A RECTANGLE, NOT A SQUARE.** It was square - one `span` for both axes -
+    and that is a decision the PLOT does not allow. `PARK_FULL_BUILD_SPEC.md` gives F4 as
+    V30-140 / U90-160, which is 111 by 71, while the vertical bands ask for a crest at B+72
+    through B+100. A lift hill of eighty courses needs eighty-odd cells to climb in and a square
+    circuit big enough to hold that is 84 on BOTH axes: 13 blocks over the short side of its own
+    plot. So the climb axis (`span`, along d) and the frontage (`span_i`, along i) are separate
+    numbers, and `span_i` defaults to `span` so every existing caller keeps the square it had.
+
+    **EVERY DROP IS DERIVED FROM ITS OWN LEG'S FREE CELLS**, not from a fraction of the whole.
+    A leg's usable length is its cell count less the two the corner rule freezes at each end
+    (`_frozen`), so the drop a leg can absorb is a property of that leg. Written as fractions of
+    the circuit they were right for one aspect ratio and wrong for every other, which is the same
+    failure the constants they replaced had, one level up.
     """
     m = int(p["margin"])
-    s = int(p["span"])
+    sd = int(p["span"])                                   # the CLIMB axis, into the plot
+    si = int(p.get("span_i") or p["span"])                # the frontage axis
     t = int(p["top"])
-    span = s - m
-    if span < 20:
-        raise ValueError(f"coaster span - margin is {span}; a circuit under 20 has no room for "
-                         f"the 17-cell station, let alone a lift hill")
+    dd = sd - m                                           # climb extent available
+    di = si - m                                           # frontage extent available
+    if dd < 20 or di < 20:
+        raise ValueError(f"coaster circuit is {di} x {dd} inside its margin; under 20 on either "
+                         f"axis has no room for the station, let alone a lift hill")
     if t < 4:
         raise ValueError(f"coaster top is {t}; a lift hill under 4 courses is not a lift hill")
 
-    crest = span // 3               # the crest run along i          58/4  -> 18
-    jog = span // 4 + 1             # the crest jog back along d     58/4  -> 14
-    far = (span * 3) // 5           # how far the rise carries       58/4  -> 32
-    settle = (span * 3) // 10       # the return leg's settle        58/4  -> 16
+    settle = max(15, di // 4)       # the return leg's flat run - THE STATION STANDS ON IT
+    crest = max(4, di // 3)         # the crest run along i
+    jog = max(3, dd // 6)           # the crest jog back along d
+    far = jog + max(2, min(14, (dd - jog) // 3))
 
     # The flat approach is whatever the lift does not need. It is the one length that may shrink
     # to nothing useful, so it is clamped and then checked rather than assumed.
-    approach = min(6, span - t - 2)
+    approach = min(6, dd - t - 3)
     if approach < 1:
-        raise ValueError(f"a lift of {t} courses needs at least {t + 3} of span - margin to climb "
-                         f"in; this circuit has {span}. Raise span or lower top.")
+        raise ValueError(f"a lift of {t} courses needs at least {t + 4} of span - margin to climb "
+                         f"in; this circuit has {dd}. Raise span or lower top.")
 
-    drop1 = min(max(t // 2, t - 14), span - crest - 3)      # 45/58 -> 31
-    rise = min(10, far - jog - 1, drop1)                    # 45/58 -> 10, and never above the crest
+    def free(cells):
+        # A CORNER FREEZES THREE CELLS OF THE LEG IT ENDS, NOT TWO: the corner itself, the cell
+        # before it, and - because the corner also freezes its neighbour on the NEXT leg - the
+        # first cell of that one. Counted as two, every drop this function proposed was one course
+        # larger than its leg could spend and `_profile` raised on all three shipped sizes.
+        return max(0, cells - 3)
+
+    drop1 = min(max(1, t - 6), free(di - crest))
+    rise = max(0, min(8, free(far - jog), drop1))
     apex = t - drop1 + rise
-    drop2 = min(18, span - far - 2, apex)                   # 45/58 -> 18, and never below the apron
-    if drop1 < 1 or rise < 0 or drop2 < 1:
-        raise ValueError(f"a circuit of span {span} cannot hold a first drop, a rise and a second "
-                         f"drop (got {drop1}/{rise}/{drop2}); raise span")
+    drop2 = min(apex, free(dd - far))
+    # WHAT THE SECOND DROP LEAVES, THE RETURN LEG HAS TO SPEND. Left out, the circuit arrived at
+    # the station's own corner still in the air and `_profile` raised from the middle of an index
+    # walk - the error this whole function exists to turn into a sentence.
+    if apex - drop2 > free(di - settle):
+        drop2 = apex - free(di - settle)
+    if drop1 < 1 or drop2 < 1 or apex - drop2 < 0:
+        raise ValueError(f"a circuit of {di} x {dd} cannot hold a first drop, a rise and a second "
+                         f"drop for a lift of {t} (got {drop1}/{rise}/{drop2}); raise span")
     return [
-        (m,              m,          0),                  # station straight begins
+        (m,              m,            0),                # station straight begins
         (m,              m + approach, 0),                # flat approach (colinear)
-        (m,              s,          t),                  # CORNER - the lift hill's crest
-        (m + crest,      s,          t),                  # CORNER - the crest run
-        (m + crest,      s - jog,    t),                  # CORNER - the crest jog
-        (s,              s - jog,    t - drop1),          # CORNER - FIRST DROP
-        (s,              s - far,    apex),               # a rise back up (colinear)
-        (s,              m,          apex - drop2),       # CORNER - SECOND DROP
-        (m + settle,     m,          0),                  # the return leg settles (colinear)
-        (m,              m,          0),                  # CORNER - closes on the station
+        (m,              sd,           t),                # CORNER - the lift hill's crest
+        (m + crest,      sd,           t),                # CORNER - the crest run
+        (m + crest,      sd - jog,     t),                # CORNER - the crest jog
+        (si,             sd - jog,     t - drop1),        # CORNER - FIRST DROP
+        (si,             sd - far,     apex),             # a rise back up (colinear)
+        (si,             m,            apex - drop2),     # CORNER - SECOND DROP
+        (m + settle,     m,            0),                # the return leg settles (colinear)
+        (m,              m,            0),                # CORNER - closes on the station
     ]
+
+
+def _station_run(p):
+    """Where the station platform sits along the frontage: the return leg's own FLAT run.
+
+    ONE SOURCE, because `_coaster_plan`, `_station` and the ridge's keep-out all need it and
+    three copies of `m + 16` is how a platform ends up beside a descending rail. It was 16 flat,
+    and `settle` - the length of track that is actually level at d=m - is a fraction of the
+    frontage: at span 44 that is 10, so six cells of platform stood beside a rail climbing away
+    from it, at h=0 against a rail at h=6.
+    """
+    m = int(p["margin"])
+    di = int(p.get("span_i") or p["span"]) - m
+    return m, m + max(15, di // 4), m
+
+
+# --------------------------------------------------------------------------- the mine ridge
+#
+# **THE RIDE IS A ROUTE THROUGH TERRAIN, AND THE TERRAIN WAS NOT BUILT.** `PARK_VISUAL_AND_BUDGET_
+# SPEC.md` locks this setpiece at 36,000-44,000 blocks "including terrain, trestles, station shell,
+# tunnels, and support roots" and the module shipped 4,812 - a track on stilts over a paved yard,
+# with the word "mine" in its title and no mine anywhere. The missing 30,000 is the ridge.
+#
+# Its governing rule is the one line of the ledger that is not a number: *the coaster is readable
+# as a route through terrain; terrain never becomes a generic mountain or hides the ride entirely.*
+# Three things follow, and they are what the code below is for rather than decoration:
+#
+#   * **THE TERRAIN IS CUT DOWN TO THE TRACK, NOT BORED THROUGH IT.** Most of the buried track runs
+#     in an open CUTTING - the terrain is capped two courses under the rail and rises away from it
+#     - so the ride is visible from outside along most of its length and the cut face is the
+#     quarry. Only short stretches are TUNNELS, so there are mouths to see rather than one long
+#     hole that swallows the ride.
+#   * **THE MASS IS A CRUST, AND THE CRUST'S FLOOR IS ITS LOWEST NEIGHBOUR.** A solid mountain is
+#     four times the budget and reads identically from every place a guest can stand. Filling each
+#     column from `min(own, lowest neighbour) - crust` up to its own top gives a thin skin on a
+#     bench and a SOLID FACE at every riser and every cut - which is exactly where a quarry reads -
+#     and it makes the whole mass one 6-connected piece by construction: for any two neighbours the
+#     ranges `[bottom, top]` overlap, because each bottom is at or under the other's top.
+#   * **TERRACES, NOT A CONE.** The height is quantised to benches and the lobe boundary is noised
+#     on its RADIUS rather than per cell - `thicket.py`'s rule, and the reason that generator's
+#     first build came out as 191 blobs of one and two cells.
+#
+# Nothing here spends CURRENCY. Dirt, coarse dirt, podzol, rooted dirt, grass and mud are all money
+# on this server (`blocks.spendable`), and the ledger's palette line names "dirt/coarse dirt/moss"
+# - so the dirt half of it is refused and the mass is stone, cobble, gravel and moss instead.
+
+# **THE RIDGE IS WIDER THAN IT IS TALL, AND THE FIRST ONE WAS NOT.** Written with the massif
+# peaking OVER the lift hill it rendered as a vertical curtain - a knife-edged slab three times
+# taller than it was deep, with the whole ride buried inside it. That is precisely the failure the
+# ledger names: *terrain never becomes a generic mountain or hides the ride entirely.* A 76-course
+# lift in a 97 by 69 plot cannot be topped by believable landform at all, so it is not: the
+# terrain peaks around half the lift's height and the LIFT AND CREST RIDE ABOVE IT on trestles,
+# which is what a mine coaster over a working quarry actually looks like and what makes the crest
+# visible from outside. The lower half of the circuit threads the benches; the top half is sky.
+_RIDGE_LOBES = (
+    # (ci, cd, ri, rd, peak) - centre and radii as fractions of (span_i, span), peak of `top`
+    # A TUNNEL HAPPENS WHERE THE TRACK IS LOW AND THE ROCK IS HIGH, so the two lobes that carry
+    # the tunnels are the ones the LOW track passes through - the foot of the lift and the run-out
+    # of the second drop - and not the massif under the crest, where the track is already in the
+    # sky. Balanced the other way round the ride was buried at the top and open at the bottom,
+    # which is the wrong half of a mine coaster to hide.
+    (0.50, 0.74, 0.60, 0.31, 0.72),     # THE MASSIF, under the crest run and the first drop
+    (0.17, 0.36, 0.46, 0.26, 0.50),     # the shoulder the lift hill climbs out of
+    (0.86, 0.24, 0.40, 0.24, 0.40),     # the foothill the second drop runs out through
+)
+_RIDGE_FALLOFF = 2.4    # >2 gives a flat-topped bench and a steep flank: a quarry, not a cone
+_RIDGE_PAD = 3          # how far past the circuit the ridge may reach
+_RIDGE_SECTORS = 24     # angular buckets the lobe radius is noised in - see `thicket.py`
+_CUT_HALF = 2           # cells either side of a cutting that are cut flat with the rail
+_CUT_FLARE = 3          # courses the cut face steps back up per cell beyond that
+_CUT_REACH = 5          # how far the cut's flare is drawn before terrain resumes
+_BORE_HALF = 2          # cells either side of a tunnel bore
+_BORE_UP = 4            # courses of bore over the rail. RIDER HEADROOM IS 2 OF THEM.
+_TUNNEL_RUN = 8         # a tunnel is at most this long, so the ride comes back into daylight
+_TUNNEL_GAP = 9         # ...and at least this much cutting separates two of them
+
+
+def _ridge_field(p, si, sd, m, t, seed, keep_out):
+    """H(i, d) over the ridge's box: the top course of terrain, terraced, or absent.
+
+    `keep_out` is the set of (i, d) the ridge may never stand on - the station, its two platforms,
+    the queue and the apron in front of them. A mountain that grows over the boarding platform is
+    not a siting mistake this can recover from later, because the platform is placed first and
+    `w.has` would simply leave a hole in the hillside where the station used to be visible.
+    """
+    import math
+    terrace = max(2, int(p["terrace"]))
+    scale = float(p.get("ridge_scale") or 1.0)
+    field = {}
+    for i in range(m - _RIDGE_PAD, si + _RIDGE_PAD + 1):
+        for d in range(m - _RIDGE_PAD, sd + _RIDGE_PAD + 1):
+            if (i, d) in keep_out:
+                continue
+            best = 0.0
+            for k, (ci, cd, ri, rd, peak) in enumerate(_RIDGE_LOBES):
+                u = (i - ci * si) / max(1.0, ri * si * scale)
+                v = (d - cd * sd) / max(1.0, rd * sd * scale)
+                r = math.hypot(u, v)
+                if r >= 1.6:
+                    continue
+                # THE NOISE IS ON THE RADIUS, IN ANGULAR SECTORS, so the boundary lobes and the
+                # interior stays solid. Per cell it is confetti - the deck soffit's own failure.
+                sec = int((math.atan2(v, u) / math.tau + 0.5) * _RIDGE_SECTORS) % _RIDGE_SECTORS
+                r /= 1.0 + 0.20 * (hash01(sec, k, seed, 31) - 0.5)
+                if r >= 1.0:
+                    continue
+                best = max(best, peak * t * (1.0 - r ** _RIDGE_FALLOFF))
+            if best < 1.0:
+                continue
+            # A little jitter in 3x3 patches so a bench edge is not a perfect ellipse, THEN the
+            # bench quantisation - jittered afterwards it would break the terraces it exists to
+            # roughen.
+            best += (hash01(i // 3, d // 3, seed, 37) - 0.5) * terrace * 0.7
+            h = int(best // terrace) * terrace
+            if h >= 1:
+                field[(i, d)] = h
+    return field
+
+
+def _ridge_carve(p, pts, hs, field):
+    """Cap the terrain along the open cuttings, and return the bore volume of the tunnels.
+
+    **THE TUNNELS ARE CHOSEN FROM WHERE THE TRACK IS ACTUALLY BURIED**, not from a fraction of the
+    circuit: a run of track whose terrain stands well over the rider is the only place a tunnel is
+    a tunnel rather than a shed. Those runs are then CHOPPED - `_TUNNEL_RUN` bored, `_TUNNEL_GAP`
+    cut open - because one 40-cell bore is the failure the ledger names by name, and because every
+    chop is another pair of mouths.
+    """
+    buried = [j for j, (i, d) in enumerate(pts)
+              if field.get((i, d), -99) >= hs[j] + _BORE_UP + 1]
+    inb = set(buried)
+    tunnels, run = [], []
+    for j, (i, d) in enumerate(pts):
+        if j in inb:
+            run.append(j)
+        elif run:
+            tunnels.extend(_chop(run))
+            run = []
+    if run:
+        tunnels.extend(_chop(run))
+    tun = set()
+    for a, b in tunnels:
+        tun |= set(range(a, b))
+
+    cap, bore = {}, set()
+    for j, (i, d) in enumerate(pts):
+        h = hs[j]
+        # THE RAIL'S OWN ENVELOPE IS ALWAYS BORED, tunnel or not. The cap below is what opens a
+        # cutting to the sky; this is what guarantees the rider's two courses whatever the cap
+        # rounded to, and `_rail_clearance` is the assertion that it worked.
+        for k in range(-1, _BORE_UP + 1):
+            # **THE TUNNEL KEEPS ITS FLOOR.** Bored to the full width at the deck's own course,
+            # the lined tube's lowest ring is one cell clear of the deck's outer edge - so a
+            # tunnel driven through the hollow middle of the massif came out as a lined tube
+            # joined to nothing at all, and five of its cells shipped as ordinary stone brick
+            # floating inside a mountain. Bored only as wide as the deck at that course, the
+            # lining lays the rest of the floor and the tube meets the deck it carries.
+            lim = 1 if k == -1 else _BORE_HALF
+            for oi in range(-lim, lim + 1):
+                for od in range(-lim, lim + 1):
+                    bore.add((i + oi, d + od, h + k))
+        if j in tun:
+            continue
+        for oi in range(-_CUT_REACH, _CUT_REACH + 1):
+            for od in range(-_CUT_REACH, _CUT_REACH + 1):
+                step = max(abs(oi), abs(od))
+                lid = h - 2 + max(0, step - _CUT_HALF) * _CUT_FLARE
+                key = (i + oi, d + od)
+                if key in field:
+                    cap[key] = min(cap.get(key, 10 ** 6), lid)
+    for key, lid in cap.items():
+        if field[key] > lid:
+            if lid < 1:
+                del field[key]
+            else:
+                field[key] = lid
+    return tunnels, tun, bore
+
+
+def _chop(run):
+    """A buried run -> the (start, stop) index ranges that stay roofed."""
+    out, k = [], 0
+    while k + _TUNNEL_RUN <= len(run):
+        out.append((run[k], run[k + _TUNNEL_RUN - 1] + 1))
+        k += _TUNNEL_RUN + _TUNNEL_GAP
+    return out
+
+
+def _anchor(field, pts, reach=3):
+    """Drop every part of the terrain that does not stand on the ride's own apron.
+
+    **THE ANGULAR NOISE MAKES ISLANDS, AND AN ISLAND IS A STRAY.** A lobe boundary noised per
+    sector is a good boundary and it still throws off the occasional one-column pebble, and the
+    cutting cap cuts real lumps off the massif's skirt; both come out as a small mound standing in
+    the void with nothing joining it to anything. 21 of them shipped as perfectly ordinary stone.
+
+    The physical condition is simply whether the piece touches ground the ride already laid, so
+    that is the test: a 4-connected component of the height field survives if any of its columns
+    lies within the apron's own reach of a track cell. `_ridge` then lays a base course under the
+    survivors, and the two together make the whole mass one piece by construction.
+    """
+    apron = {(i + oi, d + od) for (i, d) in pts
+             for oi in range(-reach, reach + 1) for od in range(-reach, reach + 1)}
+    seen = set()
+    for start in list(field):
+        if start in seen:
+            continue
+        stack, group, held = [start], [], False
+        seen.add(start)
+        while stack:
+            (i, d) = stack.pop()
+            group.append((i, d))
+            held = held or (i, d) in apron
+            for (a, b) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                t = (i + a, d + b)
+                if t in field and t not in seen:
+                    seen.add(t)
+                    stack.append(t)
+        if not held:
+            for key in group:
+                del field[key]
+
+
+def _ridge_mat(pal, i, d, h, top, seed):
+    """The material of one ridge cell. LAYERED BY HEIGHT, which is what the ledger asks for and
+    what a quarry face actually shows: cobble and moss at the foot, stone through the middle,
+    a paler bench near the crown, with sparse ore seams as the only colour."""
+    r = hash01(i, d, h, seed)
+    if h >= top:                                # the walking surface of a bench
+        if r < 0.16:
+            return "gravel"
+        if r < 0.27:
+            return "moss_block"
+        if r < 0.33:
+            return "mossy_cobblestone"
+        return "stone" if h > 24 else "cobblestone"
+    # ORE SEAMS: restricted, and on a seam rather than scattered - one course of one band, so it
+    # reads as a stratum and not as measles. `black_wool` is the coal colour the ledger asks for
+    # in wool; `coal_ore` is the same tone and cheap, so both, sparsely.
+    if h % 11 == 4 and r < 0.10:
+        return "black_wool" if r < 0.045 else "coal_ore"
+    if h % 17 == 9 and r < 0.05:
+        return "brown_wool"
+    if h < 7:
+        return "mossy_cobblestone" if r < 0.35 else "cobblestone"
+    if h < 20:
+        return "cobblestone" if r < 0.55 else "stone"
+    if h < 42:
+        return "stone" if r < 0.72 else "andesite"
+    if h < 66:
+        return "stone" if r < 0.70 else "tuff"
+    return "stone" if r < 0.62 else "gravel"
+
+
+def _ridge(w, f, pal, p, seed, si, sd, m, t, pts, hs, keep_out):
+    """Build the mass. Returns (cells, tunnel ranges, mouth count, the height field)."""
+    field = _ridge_field(p, si, sd, m, t, seed, keep_out)
+    tunnels, tun, bore = _ridge_carve(p, pts, hs, field)
+    _anchor(field, pts)
+    crust = max(1, int(p["ridge_crust"]))
+    n = 0
+    placed = set()
+    # THE BASE COURSE, over the WHOLE footprint. Without it only the boundary columns reach down
+    # to the apron - the crust's floor is its lowest neighbour, so an interior column of a bench
+    # floats forty courses over nothing but its own neighbours - and any component of the field
+    # that happens not to touch the ride is a hollow dome standing on air. One course of ground
+    # under every column is what makes the mass sit ON something, which is also what terrain is.
+    for (i, d) in field:
+        pos = f.at(i, d, -1)
+        if not w.has(*pos):
+            w.put(*pos, pal["ground"])
+            n += 1
+    # **A TUNNEL IS DRIVEN THROUGH SOLID ROCK, so the rock around it has to BE there.** The crust
+    # is a skin near the top of each column and a tunnel sits well under it, so a bore through the
+    # middle of the massif produced a lined tube hanging inside the hollow - and where its roof
+    # was thin, a four-cell line of stone brick joined to nothing at all. Any column the bore
+    # passes through is filled from just under the bore up to its own surface.
+    bore_floor = {}
+    for (i, d, h) in bore:
+        key = (i, d)
+        if h < bore_floor.get(key, 10 ** 6):
+            bore_floor[key] = h
+    for (i, d), top in field.items():
+        low = min(top, min(field.get((i + a, d + b), -1)
+                           for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1))))
+        floor = min(low - crust, bore_floor.get((i, d), low - crust) - 1)
+        for h in range(max(-1, floor), top + 1):
+            if (i, d, h) in bore:
+                continue
+            pos = f.at(i, d, h)
+            if w.has(*pos):
+                continue
+            w.put(*pos, _ridge_mat(pal, i, d, h, top, seed))
+            placed.add((i, d, h))
+            n += 1
+
+    # SUPPORT ROOTS. The build card gives this lot B-16 at the bottom and the ride only ever used
+    # B-1; a ridge standing on a paving slab has no story about what holds it up. Sparse columns
+    # under the heavy part of the massif, carried down off the apron course they already touch.
+    for (i, d), top in field.items():
+        if top < t * 0.35 or hash01(i, d, seed, 41) > 0.13:
+            continue
+        # A ROOT HANGS FROM SOMETHING. The crust's floor is its lowest neighbour less the crust,
+        # so most columns of a bench have no block at -1 at all - and a root started at -2 under
+        # one of those is a stalactite of stone with nothing over it. 1,340 of them, every one
+        # audited clean and rendered as a perfectly good block.
+        if not w.has(*f.at(i, d, -1)):
+            continue
+        for h in range(-2, -2 - (3 + int(hash01(i, d, seed, 43) * 11)), -1):
+            pos = f.at(i, d, h)
+            if w.has(*pos):
+                break
+            w.put(*pos, "stone" if hash01(i, d, h, seed) < 0.6 else "cobbled_deepslate")
+            n += 1
+
+    # BENCH LEDGES. The distance the ledger calls "craft detail, 1-12 blocks" is the one a stepped
+    # height field has nothing at all to say at: every riser is a hard vertical face meeting a hard
+    # horizontal bench, which at arm's length is a staircase of grey cubes. A stair at the FOOT of
+    # each riser, leaning into it, is scree at the bottom of a cut face - the one detail that gives
+    # a quarry bench a profile - and it is the same operation `shell.py` performs on a wall.
+    stair = "cobblestone_stairs"
+    for (i, d), top in field.items():
+        for (a, b) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            low = field.get((i + a, d + b))
+            if low is None or top - low < 2 or (i + a, d + b, low + 1) in bore:
+                continue
+            if hash01(i + a, d + b, seed, 47) > 0.72:
+                continue
+            pos = f.at(i + a, d + b, low + 1)
+            if w.has(*pos) or not w.has(*f.at(i + a, d + b, low)):
+                continue
+            hi_x, _hy, hi_z = f.at(i, d, 0)
+            lo_x, _ly, lo_z = f.at(i + a, d + b, 0)
+            key = (max(-1, min(1, hi_x - lo_x)), max(-1, min(1, hi_z - lo_z)))
+            if key not in _DIRS:
+                continue
+            # A STAIR'S TALL SIDE IS ITS `facing`, and our renderer draws a wrong one identically
+            # to a right one - `test_stairhead` settled that and it is asserted here too.
+            w.put(*pos, stair, facing=_DIRS[key], half="bottom",
+                  shape="straight", waterlogged="false")
+            n += 1
+
+    # TUNNEL LINING. The crust leaves the massif hollow, so a bore through the middle of it opens
+    # into that hollow - which reads, from inside the tunnel, as a hole in the world. Every bored
+    # cell whose neighbour is INSIDE the terrain and empty gets that neighbour walled.
+    for (i, d, h) in bore:
+        if h < -1:
+            continue
+        for (a, b, c) in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, 1, 0), (0, -1, 0)):
+            key = (i + a, d + b)
+            nb = (i + a, d + b, h + c)
+            if nb in bore or nb in placed or field.get(key, -99) < nb[2]:
+                continue
+            pos = f.at(*nb)
+            if w.has(*pos):
+                continue
+            w.put(*pos, "stone_bricks" if (h + i + d) % 7 else "mossy_stone_bricks")
+            placed.add(nb)
+            n += 1
+    return n, tunnels, field, bore
+
+
+def _plant(w, f, mat, i, d, h, reach=14):
+    """Carry a post DOWN from `h` until it touches something. Returns the cells added.
+
+    **A PORTAL STANDS IN ITS OWN BORE, WHICH IS A HOLE.** The bore clears the rail's envelope two
+    cells either side, and that is exactly where a portal's jambs go - so a frame built at the
+    mouth of a tunnel hangs in the void the tunnel cut for it. Fifteen cells of perfectly ordinary
+    spruce log, one connected blob, joined to nothing. The same is true of a gantry post standing
+    over the low side of a cutting.
+    """
+    n = 0
+    y = h
+    for _k in range(reach):
+        y -= 1
+        pos = f.at(i, d, y)
+        if w.has(*pos):
+            break
+        w.put(*pos, mat)
+        n += 1
+        if _touches(w, pos):
+            break
+    return n
+
+
+def _portal(w, f, pal, i, d, h, along):
+    """A timbered mine portal: two jambs, a lintel and a stone surround, one step OUT of the bore.
+
+    Placed at the cell where a tunnel run begins or ends, on the axis the track leaves in - so the
+    frame stands square across the mouth rather than skew across it, which at a corner would be a
+    frame with the tunnel behind one of its jambs.
+    """
+    # `along` NAMES THE AXIS THE FRAME SPANS, which is the one the track does NOT run on.
+    # Written the other way round - the obvious way - every jamb landed two cells further
+    # along the rail it was meant to stand beside: a portal with its own tunnel behind one
+    # of its posts, and eleven track cells with a spruce log in the rider.
+    pi, pd = (1, 0) if along == "i" else (0, 1)
+    n = 0
+    for s in (-1, 1):
+        ji, jd = i + pi * s * _BORE_HALF, d + pd * s * _BORE_HALF
+        for k in range(-1, _BORE_UP):
+            pos = f.at(ji, jd, h + k)
+            if not w.has(*pos):
+                w.put(*pos, "spruce_log", axis="y")
+                n += 1
+        n += _plant(w, f, "spruce_log", ji, jd, h - 1)
+    for o in range(-_BORE_HALF, _BORE_HALF + 1):
+        pos = f.at(i + pi * o, d + pd * o, h + _BORE_UP)
+        if not w.has(*pos):
+            w.put(*pos, "dark_oak_log", axis="x" if pi else "z")
+            n += 1
+    for o in range(-_BORE_HALF - 1, _BORE_HALF + 2):
+        pos = f.at(i + pi * o, d + pd * o, h + _BORE_UP + 1)
+        if not w.has(*pos):
+            w.put(*pos, pal["trim"])
+            n += 1
+    return n
+
+
+def _gantry(w, f, pal, i, d, h, along, field):
+    """A timber gantry across an open cutting: two posts off the cut face and a beam over the ride.
+
+    THE BEAM CLEARS THE RIDER BY ITS OWN CONSTRUCTION - it sits at `_BORE_UP` over the rail, two
+    courses above the two a rider occupies. `_rail_clearance` still asserts it, because a beam
+    height written as a constant beside a rider height written as another constant is one edit
+    away from being wrong.
+    """
+    pi, pd = (1, 0) if along == "i" else (0, 1)
+    n = 0
+    for s in (-1, 1):
+        oi, od = pi * s * (_CUT_HALF + 1), pd * s * (_CUT_HALF + 1)
+        for k in range(-1, _BORE_UP):
+            pos = f.at(i + oi, d + od, h + k)
+            if w.has(*pos):
+                continue
+            w.put(*pos, "spruce_log", axis="y")
+            n += 1
+        n += _plant(w, f, "spruce_log", i + oi, d + od, h - 1)
+    for o in range(-_CUT_HALF - 1, _CUT_HALF + 2):
+        pos = f.at(i + pi * o, d + pd * o, h + _BORE_UP)
+        if w.has(*pos):
+            continue
+        w.put(*pos, "dark_oak_log", axis="x" if pi else "z")
+        n += 1
+    for s in (-1, 1):
+        pos = f.at(i + pi * s * (_CUT_HALF + 1), d + pd * s * (_CUT_HALF + 1), h + _BORE_UP - 1)
+        if not w.has(*pos):
+            w.put(*pos, pal["fence"])
+            n += 1
+    return n
 
 
 def _roofable(w, pos):
@@ -555,13 +1059,19 @@ def _roofable(w, pos):
 
 
 def _station(w, f, pal, p, seed, i0, i1, dt):
-    """The building you board in: a platform beside the track, a canopy over both, a back wall
-    with windows, and its name over the door.
+    """The building you board in - and the one you get OUT in, which is not the same side.
+
+    **BOARD AND UNLOAD ARE SEPARATE SIDES OF THE STATION.** `PARK_FULL_BUILD_SPEC.md`'s F4 card
+    asks for it in one line and the reason is the whole of what makes a station work: a queue
+    feeding onto the same platform edge riders are climbing off produces a crowd that cannot move
+    in either direction, and a park has no way to fix that afterwards without rebuilding the
+    platform. So the track has a platform on BOTH flanks - `d > dt` boards, `d < dt` unloads -
+    each with its own operator stand within reach of the track and its own way out (`_service`).
 
     THE ROOF SPANS THE TRACK. A station whose canopy stops at the platform edge is a bus shelter;
     what makes this read as a station is that the cart runs UNDER the roof, which means the far
-    columns stand on the deck's own outer edge and the safety rail is suppressed for the length
-    of the platform - you cannot board through a fence.
+    columns stand past the deck's outer edge and the safety rail is suppressed for the length of
+    the platform - you cannot board through a fence.
 
     **AND THE ROOF MUST YIELD TO THE TRACK, NEVER COVER IT BLIND.** `_station` is built AFTER
     the whole circuit, so the rail is already in `w` by the time the canopy and its eave go up -
@@ -573,13 +1083,22 @@ def _station(w, f, pal, p, seed, i0, i1, dt):
     a, b = pal["canopy"]
     ceil = 6
     n = 0
+    board = list(range(dt + 1, dt + 6))         # the queue's side
+    unload = list(range(dt - 5, dt))            # the exit's side
 
-    # PLATFORM. One course up from the apron, which puts a boarder's feet level with the cart.
+    # THE TWO PLATFORMS. One course up from the apron, which puts a rider's feet level with the
+    # cart. Different floor tones, because a guest asked to tell two identical grey strips apart
+    # is a guest standing in the unload lane.
     for i in range(i0 + 2, i1 + 1):
-        for d in range(dt + 1, dt + 6):
+        for d in board:
             w.put(*f.at(i, d, 0),
                   pal["trim"] if d == dt + 1 else
                   (pal["ground"] if (i + d) % 2 else pal["path"]))
+            n += 1
+        for d in unload:
+            w.put(*f.at(i, d, 0),
+                  pal["trim"] if d == dt - 1 else
+                  ("gravel" if (i + d) % 2 else pal["path"]))
             n += 1
 
     # BACK AND SIDE WALLS, with window openings LEFT EMPTY BY THE LOOP. Building the ring first
@@ -589,28 +1108,47 @@ def _station(w, f, pal, p, seed, i0, i1, dt):
     for i in range(i0 + 3, i1, 4):
         holes.add((i, dt + 6, 2))
         holes.add((i, dt + 6, 3))
+        holes.add((i, dt - 6, 2))
+        holes.add((i, dt - 6, 3))
+    # **THE GUEST EXIT, AND IT WAS NOT THERE.** Giving the station a second platform gave it a
+    # second wall, and with end walls running the full depth the shed came out SEALED - a station
+    # with a queue outside it, an unload platform inside it and no way through either. Nothing in
+    # the audit, the BOM or any render said so; the walk test did, on the first run.
+    for i in range(i0 + 4, i0 + 7):
+        for h in range(1, _RIDER_HEAD + 2):
+            holes.add((i, dt - 6, h))
     for i in range(i0 + 1, i1 + 2):
-        for h in range(1, ceil):
-            if (i, dt + 6, h) in holes:
-                continue
-            w.put(*f.at(i, dt + 6, h), pal["post"] if i in (i0 + 1, i1 + 1) else pal["wall"])
-            n += 1
-    for i in (i0 + 1, i1 + 1):
-        for d in range(dt + 1, dt + 6):
+        for wall_d in (dt + 6, dt - 6):
             for h in range(1, ceil):
+                if (i, wall_d, h) in holes:
+                    continue
+                w.put(*f.at(i, wall_d, h), pal["post"] if i in (i0 + 1, i1 + 1) else pal["wall"])
+                n += 1
+    # THE END WALLS run the whole depth of the shed now, both platforms inside it. The
+    # cart-removal path is cut back out of the far one by `_service`, deliberately and in one
+    # place, rather than by teaching this loop about a corridor it would then have to be told
+    # about twice.
+    for i in (i0 + 1, i1 + 1):
+        for d in range(dt - 5, dt + 6):
+            for h in range(1, ceil):
+                # THE CART GOES THROUGH THIS WALL, so the wall has a hole where the track is.
+                # It did not before, because the end walls used to stop at the boarding side and
+                # never reached `dt` at all; run the full depth of the shed they cross the rail,
+                # and four track cells shipped with a plank at head height inside them.
+                if d == dt and h <= _RIDER_HEAD + 1:
+                    continue
+                # ...and THE QUEUE COMES THROUGH THE FAR ONE. The switchback stands beyond the
+                # station along the frontage, so its doorway is in the end wall and not in the
+                # back one - a door cut in the back wall would open onto the ridge.
+                if i == i1 + 1 and dt + 1 <= d <= dt + 4 and h <= _RIDER_HEAD + 1:
+                    continue
                 w.put(*f.at(i, d, h), pal["wall"])
                 n += 1
-
-    # THE FAR COLUMNS, on the deck's outer edge, carrying the canopy over the track.
-    for i in range(i0 + 1, i1 + 2, 6):
-        for h in range(0, ceil):
-            w.put(*f.at(i, dt - 1, h), pal["post"])
-            n += 1
 
     # THE CANOPY: two colours alternating, which is what says fairground. One colour is a roof.
     # SKIPPED wherever the climb has come back through underneath - see `_roofable`.
     for i in range(i0, i1 + 3):
-        for d in range(dt - 2, dt + 8):
+        for d in range(dt - 7, dt + 8):
             pos = f.at(i, d, ceil)
             if not _roofable(w, pos):
                 continue
@@ -623,7 +1161,7 @@ def _station(w, f, pal, p, seed, i0, i1, dt):
     span_i = list(range(i0, i1 + 3))
     if len(span_i) >= int(p["min_run"]):
         for i in span_i:
-            front = f.at(i, dt - 3, ceil)
+            front = f.at(i, dt - 8, ceil)
             if _roofable(w, front):
                 w.put(*front, pal["stair"],
                       facing=_LEAN[f.facing], half="top", shape="straight", waterlogged="false")
@@ -634,11 +1172,16 @@ def _station(w, f, pal, p, seed, i0, i1, dt):
                       facing=_LEAN[f.back], half="top", shape="straight", waterlogged="false")
                 n += 1
 
-    # LANTERNS under the canopy. The roof above is a FULL block, which is what a hanging lantern
-    # needs - a lamp under a slab reads as 'hanging from air' in the audit, and correctly so.
+    # LANTERNS under the canopy, over BOTH platforms. The roof above is a FULL block, which is
+    # what a hanging lantern needs - a lamp under a slab reads as 'hanging from air' in the audit,
+    # and correctly so - so the cell over it is TESTED rather than assumed: `_roofable` leaves
+    # real holes in this canopy wherever the lift hill climbs back through it.
     for i in range(i0 + 3, i1, 5):
-        w.put(*f.at(i, dt + 3, ceil - 1), pal["light"], hanging="true", waterlogged="false")
-        n += 1
+        for d in (dt + 3, dt - 3):
+            if not w.has(*f.at(i, d, ceil)):
+                continue
+            w.put(*f.at(i, d, ceil - 1), pal["light"], hanging="true", waterlogged="false")
+            n += 1
 
     title = str(p.get("title") or "COASTER").upper()[:SIGN_WIDTH]
     mid = (i0 + i1) // 2
@@ -646,10 +1189,224 @@ def _station(w, f, pal, p, seed, i0, i1, dt):
     # Outside, over the entrance - a shop sign, read from the midway.
     signed += _sign(w, f, pal, mid, dt + 7, 4, f.back,
                     [title, "", "ride the line", ""])
-    # Inside, on the back wall, facing whoever is standing on the platform.
-    signed += _sign(w, f, pal, mid, dt + 5, 3, f.facing,
-                    ["STATION", "mind the gap", "one lap", "stay seated"])
+    # AND THE TWO SIDES SAY WHICH THEY ARE. A separated board and unload that nothing labels is a
+    # station where half the guests walk round it the wrong way.
+    signed += _sign(w, f, pal, mid - 3, dt + 5, 3, f.facing,
+                    ["BOARD HERE", "mind the gap", "one lap", "stay seated"])
+    signed += _sign(w, f, pal, mid + 3, dt - 5, 3, f.back,
+                    ["UNLOAD", "step out here", "exit to square", ""])
     return n, signed
+
+
+def _queue(w, f, pal, p, seed, i0, i1, dt):
+    """The switchback you wait in: 3 wide, `queue_rows` rows, covered only at its head.
+
+    **CAPACITY IS ROWS, AND A ROW IS THREE CELLS ACROSS.** The F4 card asks for 14-24 players and
+    a number with no definition beside it is a number the next person reads differently, so it is
+    stated here and reported in the sidecar: one 3-wide row holds one waiting party, `queue_rows`
+    of them is the capacity. Covered ONLY at the head - the card says covered where it improves
+    the station silhouette and explicitly NOT boxed indoors, so the head lane gets a canopy on
+    posts and the rest is open rail on the apron.
+    """
+    rows = max(6, int(p["queue_rows"]))
+    lanes = 2
+    per = (rows + lanes - 1) // lanes
+    base_i = i1 + 3
+    occupied, n = set(), 0
+    # LANE 0 runs out along i from the station's own end and LANE 1 runs back beside it, so the
+    # queue's exit is at the station rather than at the far end of a paddock.
+    for lane in range(lanes):
+        d0 = dt + 1 + lane * 4
+        for k in range(per):
+            for d in range(d0, d0 + 3):
+                occupied.add((base_i + k, d))
+    # ...joined at the far end, or the two lanes are two queues.
+    for d in range(dt + 1, dt + 8):
+        occupied.add((base_i + per - 1, d))
+    for (i, d) in occupied:
+        pos = f.at(i, d, 0)
+        if not w.has(*pos):
+            w.put(*pos, pal["path"] if (i + d) % 2 else pal["ground"])
+            n += 1
+        under = f.at(i, d, -1)
+        if not w.has(*under):
+            w.put(*under, pal["ground"])
+            n += 1
+    # THE RAILS. A queue with no edge is a paved rectangle, and the fence is the only thing that
+    # makes a switchback read as one from outside it.
+    for (i, d) in sorted(occupied):
+        for (oi, od) in ((0, -1), (0, 1), (-1, 0), (1, 0)):
+            key = (i + oi, d + od)
+            if key in occupied:
+                continue
+            pos = f.at(key[0], key[1], 0)
+            if w.has(*pos):
+                continue
+            under = f.at(key[0], key[1], -1)
+            if not w.has(*under):
+                w.put(*under, pal["ground"])
+                n += 1
+            w.put(*pos, pal["fence"])
+            n += 1
+    # COVERED AT THE HEAD ONLY - the four rows nearest the station, on posts.
+    #
+    # **AND THE POSTS STAND OUTSIDE THE LANE.** Put on the lane's own cells they were four columns
+    # of spruce log in the middle of a queue that this design's own sidecar calls three wide - a
+    # 3-wide queue with a post in it is a 1-wide queue, and nothing in the audit, the block count
+    # or any render says so because a post is a perfectly ordinary block. They go in the gap
+    # BETWEEN the two lanes, which is the one cell here that nobody walks on.
+    head = [(i, d) for (i, d) in occupied if i <= base_i + 3 and d <= dt + 3]
+    post_d = dt + 4
+    for (i, d) in head + [(i, post_d) for i in range(base_i, base_i + 4)]:
+        pos = f.at(i, d, 4)
+        if not w.has(*pos):
+            w.put(*pos, pal["canopy"][0] if (i + d) % 2 else pal["canopy"][1])
+            n += 1
+    for i in (base_i, base_i + 3):
+        for h in range(1, 4):
+            pos = f.at(i, post_d, h)
+            if w.has(*pos):
+                continue
+            w.put(*pos, pal["post"])
+            n += 1
+    # **THE SIGN GETS ITS OWN POST, BECAUSE EVERYTHING ELSE HERE IS A FENCE OR A HOLE.** A wall
+    # sign needs a full block behind it and a queue is by construction a floor with fences round
+    # it; hung on the station's own end wall it would face down the boarding lane rather than the
+    # entrance. `_sign` returns False when it refuses, which is the only reason this was noticed -
+    # the sign simply did not exist, and a queue with no sign renders exactly like one with a sign.
+    post_i, post_d = base_i + per, dt + 8
+    for h in range(-1, 3):
+        pos = f.at(post_i, post_d, h)
+        if not w.has(*pos):
+            w.put(*pos, pal["post"] if h >= 0 else pal["ground"])
+            n += 1
+    signed = _sign(w, f, pal, post_i, post_d - 1, 2, f.facing,
+                   ["QUEUE", "3 wide", "%d rows" % rows, "board at the end"])
+    return n, sorted(occupied), rows, signed, len(head)
+
+
+def _service(w, f, pal, p, seed, i0, i1, dt):
+    """The two things the F4 card asks for that nothing here had: an OPERATOR REACH beside each
+    platform, and a CART-REMOVAL PATH off the unload side.
+
+    **NEITHER IS A MECHANISM AND NEITHER PRETENDS TO BE.** This repo's cardinal sin is shipping a
+    machine that looks like it works - `chase` and `vault` were cut from the casino for exactly
+    that - so there is no dispatch lever, no button and no wiring here. The operator stand is a
+    place a person can physically stand within arm's reach of the track, raised a course, with a
+    light and a rail; the removal path is a 3-wide corridor at platform level with two clear
+    courses over it, running from the unload edge out through a gap in the end wall onto a works
+    apron. Both are geometry, and geometry is what a test can hold to account.
+    """
+    n = 0
+    stands, path = [], []
+    for (si_, sd_) in ((i0 + 2, dt + 5), (i1 - 2, dt - 5)):
+        for oi in range(0, 2):
+            pos = f.at(si_ + oi, sd_, 1)
+            if not w.has(*pos):
+                w.put(*pos, pal["beam"])
+                n += 1
+        for oi in range(0, 2):
+            pos = f.at(si_ + oi, sd_, 2)
+            if not w.has(*pos):
+                w.put(*pos, pal["fence"])
+                n += 1
+        lamp = f.at(si_ + 1, sd_, 3)
+        if not w.has(*lamp):
+            w.put(*lamp, pal["light"], hanging="false", waterlogged="false")
+            n += 1
+        stands.append(f.at(si_, sd_, 2))
+
+    # THE CART-REMOVAL PATH. `_station`'s end-wall loop lays a continuous wall and this cuts the
+    # doorway back out of it - the one place in this module that deletes, and it is deliberate:
+    # a wall loop that knew about the corridor would have to be told about it in two places, which
+    # is how the doorway ends up behind the wall in one of them.
+    for i in range(i1 + 1, i1 + 7):
+        for d in range(dt - 4, dt - 1):
+            w.put(*f.at(i, d, -1), pal["path"])
+            n += 1
+            for h in range(0, 3):
+                pos = f.at(i, d, h)
+                if pos in w.cells:
+                    del w.cells[pos]
+                    n -= 1
+            path.append((i, d))
+    # ...railed on both flanks so it reads as a service lane rather than as spare paving.
+    for i in range(i1 + 2, i1 + 7):
+        for d in (dt - 5, dt - 1):
+            under = f.at(i, d, -1)
+            if not w.has(*under):
+                w.put(*under, pal["path"])
+                n += 1
+            pos = f.at(i, d, 0)
+            if not w.has(*pos):
+                w.put(*pos, pal["fence"])
+                n += 1
+    # THE WORKS SIGN GETS A POST TOO, and for the same reason the queue's does: everything at the
+    # end of this lane is a fence or a hole, and `_sign` refused it silently - the works glimpse
+    # the F9 card asks for shipped with nothing naming it. `_sign` returning False is the only
+    # reason that was ever visible.
+    post_i, post_d = i1 + 7, dt - 2
+    for h in range(-1, 3):
+        pos = f.at(post_i, post_d, h)
+        if not w.has(*pos):
+            w.put(*pos, pal["post"] if h >= 0 else pal["path"])
+            n += 1
+    signed = _sign(w, f, pal, post_i, post_d - 1, 2, f.facing,
+                   ["WORKS", "staff only", "cart removal", ""])
+    return n, stands, path, signed
+
+
+def _recovery(w, f, pal, p, seed, pts, hs, field):
+    """A STUCK CART HAS TO BE REACHABLE, and on an eighty-course lift that means a stair.
+
+    The card asks for accessible stuck-cart recovery on every track cell, and the honest reading
+    of that on a ride this tall is a maintenance route to the top: a railed catwalk alongside the
+    highest flat stretch - which is where a cart actually stalls - and a switchback of steps down
+    the ridge's own cut face to the terrain under it. Returns the catwalk's standing cell so the
+    caller can record it, because a recovery point nobody can name is one nobody checks.
+    """
+    top_h = max(hs)
+    flat = [j for j, h in enumerate(hs) if h == top_h]
+    if not flat:
+        return 0, None
+    i, d = pts[flat[len(flat) // 2]]
+    n = 0
+    # THE CATWALK IS AT THE DECK'S COURSE, not the rail's, so no part of it is ever in the rider.
+    # `_rail_clearance` is what asserts that rather than this sentence.
+    for k in (-1, 0, 1):
+        for od in (2, 3):
+            pos = f.at(i + k, d + od, top_h - 1)
+            if not w.has(*pos):
+                w.put(*pos, pal["beam"])
+                n += 1
+        rail = f.at(i + k, d + 4, top_h)
+        if not w.has(*rail):
+            w.put(*rail, pal["fence"])
+            n += 1
+    lamp = f.at(i, d + 3, top_h)
+    if not w.has(*lamp):
+        w.put(*lamp, pal["light"], hanging="false", waterlogged="false")
+        n += 1
+    # THE STAIR DOWN, a switchback against the terrain: two cells a course, reversing every six,
+    # until it meets the ridge under it or runs out of height.
+    hh, ii, dd = top_h - 1, i + 1, d + 3
+    while hh > 0:
+        hh -= 1
+        ii += 1 if ((top_h - hh) // 6) % 2 == 0 else -1
+        for od in (0, 1):
+            # **A TREAD IS TWO COURSES DEEP, OR THE STAIR IS NOT A STAIR.** One block per course
+            # stepping one cell sideways is a DIAGONAL chain: 128 cells of it shipped as a
+            # perfectly good-looking flight that no player could climb and no connectivity check
+            # would have passed. Carrying each tread down onto the level of the next one makes
+            # the two share a face, which is what 6-connectivity means and what a step is.
+            for k in (0, -1):
+                pos = f.at(ii, dd + od, hh + k)
+                if not w.has(*pos):
+                    w.put(*pos, pal["beam"] if od == 0 else pal["trim"])
+                    n += 1
+        if field.get((ii, dd), -99) >= hh:
+            break
+    return n, f.at(i, d + 3, top_h)
 
 
 def _coaster(w: World, p: dict, ctx) -> dict:
@@ -676,23 +1433,41 @@ def _coaster(w: World, p: dict, ctx) -> dict:
     powered = _power(n, corners, p["power_every"])
 
     m, s, top = int(p["margin"]), int(p["span"]), int(p["top"])
-    st_i0, st_i1, st_dt = m, m + 16, m
+    si = int(p.get("span_i") or p["span"])
+    st_i0, st_i1, st_dt = _station_run(p)
+    # THE KEEP-OUT. Everything a guest uses on foot - both platforms, the shed, the queue's
+    # switchback and the works lane - and the ridge may not stand on any of it. A mountain grown
+    # over the boarding platform is not a mistake this can recover from downstream, because the
+    # platform is placed first and all `w.has` would leave is a hole in the hillside.
     station_zone = set()
-    for i in range(st_i0 - 2, st_i1 + 4):
-        for d in range(st_dt - 3, st_dt + 9):
+    for i in range(st_i0 - 3, st_i1 + 3 + int(p["queue_rows"]) + 4):
+        for d in range(st_dt - 9, st_dt + 14):
             station_zone.add((i, d))
 
     _apron(w, f, pal, pts, seed)
-    _pad(w, f, pal, st_i0 - 2, st_i1 + 3, st_dt - 3, st_dt + 8, seed)
+    _pad(w, f, pal, st_i0 - 2, st_i1 + 3, st_dt - 8, st_dt + 8, seed)
 
     # THE DECK. The bed under the rail, plus one cell either side - a walkway level with the
     # track, which is what the safety rail stands on and what the trestles carry.
+    # **THE TRACK LINE IS THE PALEST THING ON THE RIDE, AND THAT IS THE POINT.** CLAUDE.md's own
+    # park review names this the first thing to fix here: *"Mine Coaster needs its track to read as
+    # ONE continuous element distinct from its posts"* - at 1/4 scale it was an indistinct brown
+    # lattice, because deck, trestle and safety rail were all the same timber. The elevated deck's
+    # outer edge takes the LIGHTER of the land's own two canopy tones, measured rather than chosen
+    # (frontier `stripped_oak_log` 148 against `spruce_log` 40), so the route draws itself as a
+    # bright ribbon across a dark structure from any distance.
+    pale = max(pal["canopy"], key=lambda b: sum(blocks.color(b, "side")))
     side_of = [_sides(pts, j, True) for j in range(n)]
     track_at = {cells[j] for j in range(n)}
     for j, (i, d) in enumerate(pts):
-        w.put(*f.at(i, d, hs[j] - 1), pal["beam"])
+        lit = hs[j] >= int(p["fence_from"])
+        # THE WHOLE THREE-WIDE DECK IS PALE, not only its edge. Edged alone, the mid-tone bed and
+        # the dark posts either side of it averaged back into the same brown at any distance - the
+        # exact "indistinct brown lattice" the park review recorded. Bed and both edges in one
+        # tone make the route a single ribbon that a scaffold cannot be confused with.
+        w.put(*f.at(i, d, hs[j] - 1), pale if lit else pal["beam"])
         for (oi, od) in side_of[j]:
-            w.put(*f.at(i + oi, d + od, hs[j] - 1), pal["trim"])
+            w.put(*f.at(i + oi, d + od, hs[j] - 1), pale if lit else pal["trim"])
 
     # TRESTLES, and always one at a corner: the elbow is where the deck is widest and where a
     # missing leg would be most obvious.
@@ -767,6 +1542,59 @@ def _coaster(w: World, p: dict, ctx) -> dict:
         lamps += 1
 
     built, signed = _station(w, f, pal, p, seed, st_i0, st_i1, st_dt)
+    q_built, queue_cells, queue_rows, q_signed, covered = _queue(
+        w, f, pal, p, seed, st_i0, st_i1, st_dt)
+    s_built, stands, removal, s_signed = _service(w, f, pal, p, seed, st_i0, st_i1, st_dt)
+    signed += q_signed + s_signed
+    built += q_built + s_built
+
+    # --------------------------------------------------------------- THE RIDGE, LAST OF ALL
+    # It is built after every part of the ride because it is the one thing here that has to yield
+    # to all of them: `w.has` is what keeps it out of the deck, the trestles, the station and the
+    # queue, and `_ridge_carve`'s cap and bore are what keep it out of the RIDER. Built first it
+    # would have had to be told where each of those ended up, which is the same "a fixed height
+    # that does not know where the track went" bug `_roofable` exists for, at ten times the scale.
+    ridge_cells, tunnels, field, bore = 0, [], {}, set()
+    mouths = 0
+    path_at = set(pts)
+    if p.get("ridge", True):
+        ridge_cells, tunnels, field, bore = _ridge(
+            w, f, pal, p, seed, si, s, m, top, pts, hs, station_zone)
+        # A MOUTH IS NEVER BUILT ON A CORNER. `along` is read off one neighbour, and at a corner
+        # the two neighbours are on different axes - so the frame came out square across the leg
+        # it was NOT on and planted a jamb in the middle of the rail. Two track cells with a
+        # spruce log at head height, and the only thing that caught it was the clearance check.
+        for (a, b) in tunnels:
+            for j, out in ((a, -1), (b - 1, 1)):
+                if j in corners:
+                    continue
+                i, d = pts[j]
+                nb = pts[(j + out) % n]
+                along = "i" if nb[1] != d else "d"
+                step = (0, 1) if along == "d" else (1, 0)
+                if any((i + step[0] * s * _BORE_HALF, d + step[1] * s * _BORE_HALF) in path_at
+                       for s in (-1, 1)):
+                    continue
+                mouths += 1 if _portal(w, f, pal, i, d, hs[j], along) else 0
+        # GANTRIES over the open cuttings, and only there: a timber arch across a bore is a beam
+        # inside a mountain. `every` is counted along the track so they land in a rhythm rather
+        # than wherever the terrain happens to be deep.
+        tun = {j for (a, b) in tunnels for j in range(a, b)}
+        for j, (i, d) in enumerate(pts):
+            if j in tun or j in corners or j % max(4, int(p["gantry_every"]) * 2) or hs[j] < 6:
+                continue
+            if field.get((i + _CUT_HALF + 1, d), -99) < hs[j] and \
+                    field.get((i, d + _CUT_HALF + 1), -99) < hs[j]:
+                continue
+            nb = pts[(j + 1) % n]
+            along = "i" if nb[1] != d else "d"
+            step = (0, 1) if along == "d" else (1, 0)
+            if any((i + step[0] * s * (_CUT_HALF + 1), d + step[1] * s * (_CUT_HALF + 1))
+                   in path_at for s in (-1, 1)):
+                continue
+            _gantry(w, f, pal, i, d, hs[j], along, field)
+
+    rec_cells, recovery_at = _recovery(w, f, pal, p, seed, pts, hs, field)
 
     # THE CHECK NOTHING ELSE MAKES, run against the FINISHED world - after the station, which is
     # the one thing here built with a fixed height that does not itself know where the track
@@ -783,20 +1611,50 @@ def _coaster(w: World, p: dict, ctx) -> dict:
     # smooth grade as four little drops of eight.
     drops = sorted((a[2] - b[2] for a, b in zip(wps, wps[1:]) if b[2] < a[2]), reverse=True)
 
+    # ONE PIECE, ASSERTED. A ridge is a mass with holes cut in it and a stair walked down its own
+    # cut face; both are exactly the operations that produce a stray, and a stray reads as a
+    # perfectly good block in every render this repo owns. `_floating` reports rather than prunes,
+    # for the reason its own docstring gives.
+    stray = _floating(w)
+    if stray:
+        raise ValueError("coaster: %d cell(s) are not joined to the mass, e.g. %s"
+                         % (len(stray), sorted(stray)[:4]))
+
     return {
         "kind": "coaster",
         "track": n, "corners": len(corners), "powered": len(powered),
         "trestles": trestles, "fences": fences, "lamps": lamps,
         "station_blocks": built, "signs": signed,
-        "top": top, "span": s, "drops": drops[:4],
-        "contract": "a closed circuit: it leaves the station, climbs the lift hill, takes two "
-                    "drops and six flat corners, and returns to the same platform. Every corner "
-                    "is a plain rail and flat on both sides; every powered run carries a "
-                    "redstone_block at both ends and every %d cells; every elevated course "
-                    "stands on trestles carried to the apron." % int(p["power_every"]),
+        "top": top, "span": s, "span_i": si, "drops": drops[:4],
+        "ridge_blocks": ridge_cells, "ridge_top": (max(field.values()) if field else 0),
+        "tunnels": len(tunnels), "tunnel_mouths": mouths,
+        "queue_rows": queue_rows, "queue_cells": len(queue_cells),
+        "queue_covered": covered,
+        "board_side": "d>%d" % st_dt, "unload_side": "d<%d" % st_dt,
+        "operator_stands": [list(c) for c in stands],
+        "cart_removal_cells": len(removal),
+        "recovery_at": list(recovery_at) if recovery_at else None,
+        "recovery_blocks": rec_cells,
+        "contract": "a closed circuit through a mine ridge: it leaves the station, climbs the "
+                    "lift hill, takes two drops and six flat corners, and returns to the same "
+                    "platform. Board and unload are opposite flanks of one platform, each with "
+                    "an operator stand within reach of the track; the queue is 3 wide and %d "
+                    "rows. Every corner is a plain rail and flat on both sides; every powered "
+                    "run carries a redstone_block at both ends and every %d cells; every "
+                    "elevated course stands on trestles carried to the apron; every track cell "
+                    "has two clear courses over it, in the open cuttings and inside the %d "
+                    "tunnels alike." % (queue_rows, int(p["power_every"]), len(tunnels)),
         "unverified": ["the ride has not been run in game - a cart's SPEED over this grade and "
                        "power spacing is reasoning, not evidence. Ride it once before anyone is "
-                       "told it completes the lap."],
+                       "told it completes the lap.",
+                       "the stuck-cart recovery point is a reachable catwalk and a stair, not a "
+                       "tested recovery procedure.",
+                       "THE RIDGE IS A CRUST, so its interior is about 129,000 cells of sealed, "
+                       "unlit air. Sealed cavities still spawn hostile mobs and still count "
+                       "against the mob cap, exactly as CLAUDE.md already records for the "
+                       "lowland massif's buried seams. Filling it solid is four times the "
+                       "ledger's budget, so this is stated rather than fixed - a light pass "
+                       "cannot reach it from outside and a night sweep will not see it."],
     }
 
 

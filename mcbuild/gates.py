@@ -70,7 +70,7 @@ def route(plan: dict) -> dict:
     walk = P.walkable(routes)
     hub = next((m for m in modules if m.get("covers") and m["kind"] == "plaza"), None)
     plane = int(hub["at"][1]) if hub else None
-    levels = P.levels(routes, plane + 1) if plane is not None else None
+    levels = P.levels(routes, plane) if plane is not None else None
     failures = [f"{u['module']}.{u['anchor']} at {u['at']}: {u['reason']}"
                 for u in I.unattached(modules, walk, levels)]
     groups = P.components(walk)
@@ -250,7 +250,12 @@ def _needs_evidence(name: str, plan: dict, what: str) -> dict:
     failures = list(supplied.get("failures") or [])
     if not supplied.get("ok", False) and not failures:
         failures.append(f"{name} evidence reports not ok and names no failure")
-    return _result(name, failures, supplied.get("warnings"), **supplied)
+    # **THE PRODUCER'S OWN VERDICT KEYS ARE NOT EVIDENCE ABOUT ITSELF.** Splatted whole, an
+    # evidence block's `ok`/`failures`/`warnings` collide with this function's own three
+    # arguments and the call raises - which is a gate that cannot read the measurement it exists
+    # to read. What travels into the report is everything the producer MEASURED.
+    measured = {k: v for k, v in supplied.items() if k not in {"ok", "failures", "warnings"}}
+    return _result(name, failures, supplied.get("warnings"), **measured)
 
 
 def mechanics(plan: dict) -> dict:

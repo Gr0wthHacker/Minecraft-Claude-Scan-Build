@@ -34,6 +34,12 @@ STAIRWELL = {
     "kerb": "stone_brick_slab",   # a lip around the opening at deck level
     "rail": "stone_brick_wall",   # railing around the opening; null for none
     "lanterns": 3,
+    # **A LANTERN EVERY N COURSES INSIDE THE SHAFT ITSELF.** The three above are on the KERB at
+    # the head; the shaft below them was unlit for its whole depth, which for a park stair
+    # sixty-one courses deep is a ladder down a dark hole. 0 keeps every design written before
+    # this bit-identical - the shallow stairwells on the island have a lit room at each end and
+    # do not need it.
+    "shaft_lamp_every": 0,
     "apron": 0,                # cells of foyer paving beyond the kerb at deck level; 0 for none
     "apron_carpet": 0.42,      # share of apron cells carpeted - laid flat so it never trips the walk
     "apron_posts": 4,          # fence-and-lantern posts around the apron
@@ -139,6 +145,15 @@ def _case(ctx, w: World, dig, cx: int, cz: int, yb: int, yt: int, r: int, p):
                 if w.has(x, y, z) or (ctx is not None and ctx.name_at(x, y, z) not in AIRY):
                     continue
                 w.put(x, y, z, p["casing"])
+    every = int(p.get("shaft_lamp_every") or 0)
+    if not every:
+        return
+    # Set INTO the casing on one wall, so the light is in the shaft rather than on a post in the
+    # middle of the tread a guest is walking down.
+    for y in range(yb + 2, yt - 1, every):
+        x, z = cx + r + 1, cz
+        if w.name(x, y, z) == p["casing"]:
+            w.put(x, y, z, "lantern", hanging="false", waterlogged="false")
 
 
 def _is_doorway(dx: int, dz: int, y: int, yb: int, p) -> bool:

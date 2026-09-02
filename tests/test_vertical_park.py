@@ -35,8 +35,12 @@ def test_an_anchor_stands_on_its_own_modules_course():
     below = _module("attractions", "runawaymine", (0, PLANE - 24, 0), (26, 12, 23))
     above = _module("attractions", "runawaymine", (0, PLANE, 0), (26, 12, 23))
     I.annotate([below, above], PLANE)
-    assert below["interface"]["anchors"][0]["at"][1] == PLANE - 23
-    assert above["interface"]["anchors"][0]["at"][1] == PLANE + 1
+    # **AND THE BUILD PLANE IS THE COURSE YOU STAND ON.** `tools/parkship.py` states it: the
+    # FLOOR is the course the floor blocks occupy, one under it. An anchor a course higher was
+    # consistent with everything that only compared anchors to anchors, and wrong the moment
+    # anything compared one to a BLOCK.
+    assert below["interface"]["anchors"][0]["at"][1] == PLANE - 24
+    assert above["interface"]["anchors"][0]["at"][1] == PLANE
 
 
 def test_a_plan_view_hit_is_not_an_attachment():
@@ -46,7 +50,7 @@ def test_a_plan_view_hit_is_not_an_attachment():
     I.annotate([below], PLANE)
     paving = {(a["at"][0], a["at"][2]) for a in below["interface"]["anchors"]}
     assert not I.unattached([below], paving), "the plan-view check is what it always was"
-    levels = {cell: {PLANE + 1} for cell in paving}
+    levels = {cell: {PLANE} for cell in paving}
     stranded = I.unattached([below], paving, levels)
     assert stranded, "an anchor 24 courses under the paving read as served"
     assert all("elevation" in u["reason"] for u in stranded)
@@ -72,12 +76,12 @@ def test_an_off_plane_module_gets_a_shaft_and_a_landing():
     shafts = [r for r in routes if r["role"] == "shaft"]
     assert len(shafts) == 1, [r.get("name") for r in shafts]
     shaft = shafts[0]
-    assert shaft["a"][1] == PLANE + 1 and shaft["b"][1] == PLANE - 23
+    assert shaft["a"][1] == PLANE and shaft["b"][1] == PLANE - 24
     assert (shaft["a"][0], shaft["a"][2]) == (shaft["b"][0], shaft["b"][2]), \
         "a shaft that moves horizontally is a ramp, and has to say so"
     landings = [r for r in routes if "landing" in (r.get("name") or "")]
     assert landings, "the underground module got no circulation of its own"
-    assert all(len(r["a"]) == 3 and r["a"][1] == PLANE - 23 for r in landings)
+    assert all(len(r["a"]) == 3 and r["a"][1] == PLANE - 24 for r in landings)
 
 
 def test_a_shaft_spans_the_courses_between_its_ends():
@@ -110,7 +114,7 @@ def test_every_public_anchor_is_reachable_in_elevation_too(planned, zone):
     plan = planned[zone]
     routes = P.normalise(plan.routes)
     hub = next(m for m in plan.modules if m.get("covers") and m["kind"] == "plaza")
-    levels = P.levels(routes, int(hub["at"][1]) + 1)
+    levels = P.levels(routes, int(hub["at"][1]))
     stranded = I.unattached(plan.modules, P.walkable(routes), levels)
     assert not stranded, f"{zone}: {stranded[:2]}"
 

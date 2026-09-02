@@ -106,6 +106,23 @@ def public(routes: list[dict]) -> set:
     return footprint(routes, {r for r, (_w, through, _c) in ROLES.items() if through})
 
 
+def interior(routes: list[dict], roles=None) -> set:
+    """A route's walkable middle - its footprint minus the kerb.
+
+    **THE KERB IS WHERE FURNITURE GOES**, and the drawing knows it: the outer column of every
+    route is laid in trim, and lamp posts stand on it. Measured across the full width, a correctly
+    lit avenue reads as 144 route cells obstructed by its own lamps - which is the street working.
+    A guest walks the middle.
+    """
+    out = set()
+    for route in routes:
+        if roles is not None and route.get("role") not in roles:
+            continue
+        narrow = dict(route, width=max(1, int(route.get("width", 3)) - 2))
+        out |= cells(narrow)
+    return out
+
+
 def walkable(routes: list[dict]) -> set:
     """Every cell a guest may legitimately stand on - the through-route network plus queues.
 
