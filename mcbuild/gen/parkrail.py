@@ -681,27 +681,28 @@ def _head(d: _Deck, p: dict, pal: dict, title: str, step: int, foot: int,
     # flight's own bottom tread is at `foot` - so laid unconditionally it repaved the last tread
     # and the stair came out eleven steps for a twelve-course rise, which is a flight you walk up
     # to a wall. Nothing in the audit sees that: eleven treads are as legal as twelve.
-    for u in range(foot - hh, foot + hh + 1):
+    # THE APRON REACHES THE DOOR, because the door STANDS ON IT. Ended one row short, the
+    # portal's two jambs began a course above bare lawn and both came away as fourteen-cell
+    # strays - they had been held on only by the kerb course, which was removed for sealing the
+    # arcade. A thing that carries something else has to reach under it.
+    door = foot + step * (hh + 1)
+    lo_u, hi_u = min(foot - hh, door), max(foot + hh, door)
+    for u in range(lo_u, hi_u + 1):
         for k in range(hv + 1):
             v = park_edge - side * k
             if d.has(v, gy, u):
                 continue
-            key = "band" if (u - foot) % 4 == 0 or k == hv else "deck"
+            # the apron's own edge is drawn HERE, as the end rows of the paving itself
+            key = ("kerb" if u in (lo_u, hi_u)
+                   else "band" if (u - foot) % 4 == 0 or k == hv else "deck")
             d.put(v, gy, u, pal[key])
 
-    # -- a kerb along the open edge, so the apron reads as a platform and not as spilt paving ----
-    for u in (foot - hh, foot + hh):
-        for k in range(hv + 1):
-            v = park_edge - side * k
-            if not d.has(v, gy + 1, u):
-                d.put(v, gy + 1, u, pal["kerb"])
 
     # -- the portal you walk in through: jambs, a lintel, and a light on each jamb ---------------
     #
     # A LINTEL IS WHAT MAKES AN OPENING READ AS A DOOR. The void tower settled this - regularity
     # and openings, not damage - and the arcade already has forty identical arches, so the one you
     # are meant to walk through has to say so with something the others do not have.
-    door = foot + step * (hh + 1)
     head = gy + 4
     for v in (park_edge, inner):
         for y in range(gy + 1, head):

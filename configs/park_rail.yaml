@@ -91,12 +91,18 @@ params:
   # ONE STATION PER LAND, AT THAT LAND'S OWN CENTRE, so a guest steps off the platform, down the
   # flight, and is on the grand spine. The stair end alternates so the three do not read as one
   # station stamped three times.
+  # EACH STATION IS PLACED SO ITS PORTAL LANDS ON A PARK STREET. The portal is at
+  # `at_u + stair * (station_half + head_half + 1)` - so at_u is derived from the avenue it
+  # serves, not from the land's midpoint. Frontier's avenue U96 with stair +1 gives 96 - 19 = 77;
+  # the Midway's U260 with stair -1 gives 279; Prismworks' U524 with stair +1 gives 505. Move
+  # `rail_stations` in `configs/park_ways.yaml` and these three follow it, or the walk arrives
+  # beside the station instead of at it.
   stations:
-    - {at_u: 85, land: frontier, title: FRONTIER HALT, stair: 1,
+    - {at_u: 77, land: frontier, title: FRONTIER HALT, stair: 1,
        board: [FRONTIER HALT, "> MIDWAY 215", "> PRISMWORKS 430", HOLD LEVER TO GO]}
-    - {at_u: 300, land: midway, title: MIDWAY CENTRAL, stair: -1,
+    - {at_u: 279, land: midway, title: MIDWAY CENTRAL, stair: -1,
        board: [MIDWAY CENTRAL, "< FRONTIER 85", "> PRISMWORKS 430", HOLD LEVER TO GO]}
-    - {at_u: 515, land: prismworks, title: PRISMWORKS END, stair: 1,
+    - {at_u: 505, land: prismworks, title: PRISMWORKS END, stair: 1,
        board: [PRISMWORKS END, "< MIDWAY 300", "< FRONTIER 85", HOLD LEVER TO GO]}
   seed: 0
 roles: [ride, path, bridge]

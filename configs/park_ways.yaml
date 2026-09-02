@@ -73,6 +73,12 @@ params:
         service_v: 155                # V154-156, at the FRONT of the service band
         service_half: 1               # 3 wide - a staff lane, not a street
         rim_v: 170
+        # THE THREE STATION WALKS. Each is the head of an avenue carried on through the service
+        # band and the rim to the railway's own platform stair - so a guest walks OFF the park's
+        # street into the station rather than being put down on the reserve lawn with fourteen
+        # blocks of grass and a fence between them and the park. `configs/park_rail.yaml` puts
+        # each station's portal on exactly these three columns.
+        rail_stations: [96, 260, 524]
         plaza_shape: round            # a junction is round; the corners go back to the lawn
         plaza_half: 11                # r11 on the spine (23 across). The promenade's own
                                       # junctions draw NOTHING - see parkways.py; a square two cells

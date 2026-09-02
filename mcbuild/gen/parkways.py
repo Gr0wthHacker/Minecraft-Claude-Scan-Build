@@ -60,6 +60,13 @@ PARKWAYS = {
     "service_v": 155,              # the concealed service lane, at the FRONT of the service band
     "service_half": 1,             # 3 wide - a staff lane, not a street
     "rim_v": 170,                  # the protected rim's inner face
+    #: [U] - a 3-wide walk from the service lane THROUGH the rim to a railway station, and a gap
+    #: in the rim edge for it. Jack: "the access to the railways stairs are on the wrong side for
+    #: us to actually access." He is right and it was worse than a side: the flight lands on the
+    #: reserve lawn at V171, and between there and the service lane are FOURTEEN BLOCKS OF BARE
+    #: GRASS with a post every six along the rim - no route at all, and the lane it eventually
+    #: reaches is back-of-house. A station has to be entered from the park's own street.
+    "rail_stations": None,
     #: THE BACK PROMENADE SITS ON THE SEAM, NOT IN THE MIDDLE OF THE PUBLIC FLOOR. At V110 it cut
     #: every 104-deep column into 81 and 12, so nothing over 81 deep had anywhere to stand - and
     #: five of the park's builds are deeper than that. On the public/exit seam at V124 it leaves
@@ -255,9 +262,26 @@ def build(cfg: dict, donors=None) -> Canvas:
     # into the void has no edge. One border course and a post rhythm is what says "the ground
     # stops here" without building a wall around the park.
     rim_v = p["rim_v"] - v0
+    # THE STATION WALKS, and the gap in the rim they need. Drawn BEFORE the rim so the rim knows
+    # to leave them alone: a post every six along a boundary is right everywhere except the one
+    # cell somebody has to walk through, and a gate you have to jump is not a gate.
+    rail_half = 1
+    rail_u = {int(x) for x in (p.get("rail_stations") or [])}
+    rail_cells = {(x, (ru - u0) + d)
+                  for ru in rail_u for d in range(-rail_half, rail_half + 1)
+                  for x in range(svc_v - p["service_half"], rim_v + 2)}
+    for ru in sorted(rail_u):
+        z = ru - u0
+        if not (0 <= z < sz):
+            continue
+        pal, _b, _t = land_at(ru)
+        for x in range(svc_v - p["service_half"], rim_v + 2):
+            for d in range(-rail_half, rail_half + 1):
+                lay(x, z + d, pal, pal, 0.0, rail_half, abs(d), x)
+
     for z in range(sz):
         pal, _b, _t = land_at(z + u0)
-        if 0 <= rim_v < sx and not is_reserved(rim_v, z):
+        if 0 <= rim_v < sx and not is_reserved(rim_v, z) and (rim_v, z) not in rail_cells:
             c.put(rim_v, 1, z, 0)
             c.put(rim_v, 0, z, blk(pal["border"]))
             if z % 6 == 0:

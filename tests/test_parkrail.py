@@ -529,3 +529,98 @@ def test_the_arch_springs_from_the_pier_and_crowns_under_the_deck():
     assert prof[span // 2] == yc, "the crown has to be at mid-span"
     assert all(b - a <= 2 for a, b in zip(prof, prof[1:span // 2 + 1])), \
         "a step of three is a staircase, not a curve"
+
+
+def test_you_can_walk_from_the_park_onto_every_platform():
+    """Jack: "the access to the railways stairs are on the wrong side for us to actually access."
+
+    He was right, and it was worse than a side. The flight lands on the reserve lawn at V171 and
+    between there and the service lane are FOURTEEN BLOCKS OF BARE GRASS, with the rim's posts
+    every six along the way - no route at all, and the lane it eventually reaches is back-of-house.
+    Each station's portal now sits on the column of a walk carried through the rim from an avenue,
+    so a guest steps off the park's own street into the station.
+
+    **THIS IS A COMPOSITE WALK AND IT HAS TO BE.** Neither design can answer it alone: the railway
+    audits clean with no way to reach it, and the ground layer audits clean with nothing to reach.
+    Cross-design access is a different question from a per-design audit, exactly as cross-design
+    overlap is - and this project has been bitten by that twice.
+    """
+    from collections import deque
+    from pathlib import Path
+    from mcbuild import schem
+
+    root = Path(__file__).resolve().parents[1]
+    ways, rail = root / "out" / "Park Ways.litematic", root / "out" / "Park Rail.litematic"
+    if not (ways.exists() and rail.exists()):
+        pytest.skip("the shipped park is not built here")
+    w, r = schem.load(str(ways)), schem.load(str(rail))
+    ws, rs = w.solid(), r.solid()
+    v0 = _params()["bounds"][0]
+    SX, SZ, H = ws.shape[2], ws.shape[1], max(ws.shape[0], rs.shape[0])
+
+    def solid(v, y, u):
+        if not (0 <= v < SX and 0 <= u < SZ and 0 <= y < H):
+            return True
+        if v0 <= v < v0 + rs.shape[2] and y < rs.shape[0] and rs[y, u, v - v0]:
+            return True
+        return bool(y < ws.shape[0] and ws[y, u, v])
+
+    def stand(v, y, u):                       # feet at y, head clear, floor under
+        return solid(v, y - 1, u) and not solid(v, y, u) and not solid(v, y + 1, u)
+
+    for st in _meta_stations():
+        start = next(((20, y, st["portal_u"]) for y in range(1, 8)
+                      if stand(20, y, st["portal_u"])), None)
+        assert start, f"{st['title']}: nowhere to stand on the spine verge at its own avenue"
+        # BOUNDED, AND IT STOPS THE MOMENT IT ARRIVES. An unbounded flood over this park is a
+        # hundred and twenty thousand standable cells per station and minutes of wall clock; the
+        # question is only whether a route EXISTS, so the search is corridor-shaped - within
+        # sixteen columns of the station's own walk - and returns on the first cell of deck.
+        deck_y = int(_params()["deck_y"]) + 1
+        seen, q, found = {start}, deque([start]), False
+        while q and not found:
+            v, y, u = q.popleft()
+            for dv, du in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                for dy in (0, 1, -1):         # a step up or down of one, never a fall
+                    n = (v + dv, y + dy, u + du)
+                    if n in seen or not (0 <= n[0] < SX and 0 <= n[2] < SZ):
+                        continue
+                    if abs(n[2] - st["portal_u"]) > 16 and n[1] < deck_y:
+                        continue
+                    if not stand(*n):
+                        continue
+                    if n[1] >= deck_y:
+                        found = True
+                        break
+                    seen.add(n)
+                    q.append(n)
+                if found:
+                    break
+        assert found, f"{st['title']}: the platform cannot be reached on foot from the spine"
+
+
+def _meta_stations():
+    """Each station's title and the U its PORTAL stands on - derived, never retyped."""
+    p = _params()
+    half, hh = int(p["station_half"]), int(p.get("head_half", 5))
+    out = []
+    for s in p["stations"]:
+        step = 1 if int(s.get("stair", 1)) >= 0 else -1
+        out.append({"title": s["title"], "portal_u": int(s["at_u"]) + step * (half + hh + 1)})
+    return out
+
+
+def test_every_portal_stands_on_a_walk_the_ground_layer_draws():
+    """The two configs have to agree about three numbers and nothing enforces it but this.
+
+    Move `rail_stations` in `configs/park_ways.yaml` without moving the stations and the walk
+    arrives BESIDE the station - which looks entirely correct in every render, because a walk to
+    nowhere and a walk to a door are the same paving.
+    """
+    import yaml
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    ways = yaml.safe_load((root / "configs" / "park_ways.yaml").read_text(encoding="utf-8"))
+    walks = set(ways["params"]["parts"][0]["params"]["rail_stations"])
+    portals = {s["portal_u"] for s in _meta_stations()}
+    assert portals == walks, f"portals at {sorted(portals)} against walks at {sorted(walks)}"
