@@ -330,7 +330,8 @@ def _local(p):
     from mcbuild.gen.parkrail import _sides, PARKRAIL
     v0 = p["bounds"][0]
     side, park_edge, _void = _sides({**PARKRAIL, **p})
-    stair = tuple(sorted((park_edge - side - v0, park_edge - v0)))
+    w = max(2, int(p.get("stair_w", PARKRAIL.get("stair_w", 2))))
+    stair = tuple(sorted(park_edge - side * k - v0 for k in range(w)))
     return stair, int(p["track_v"]) - v0, park_edge - v0
 
 
@@ -475,10 +476,20 @@ def test_every_pier_carries_a_gate_that_reaches_the_park_face(model, meta):
             # legitimately refills the two columns nearest the park, so the gate under a platform
             # is one cell wide rather than three. What must be true everywhere is that SOMETHING
             # is open - and that the walk it belongs to actually runs, which is the next test.
+            # A WALK NEEDS HEADROOM OVER ITS OWN FLOOR, NOT AN EMPTY COLUMN. Outside a station
+            # the arcade's floor is the lawn one course below this design, so ground_y is the
+            # cell you stand in and an empty column is the right test. At a station the forecourt
+            # is a RAISED apron - which is what Jack asked the entries for - so the floor is
+            # ground_y and you stand on top of it. Demanding an empty column reads a platform as
+            # a wall, so what is asserted is the property that actually matters: somewhere in the
+            # gate band there is a column with two clear courses above whatever its floor is.
+            def _clear_above(v, floor):
+                return all((v, y, u) not in named
+                           for y in range(floor + 1, floor + int(p["gate_h"])))
             open_here = [v for v in range(gate_lo, gate_hi + 1)
-                         if all((v, y, u) not in named
-                                for y in range(ground_y, ground_y + int(p["gate_h"])))]
-            assert open_here, f"the pier at u={u} is not cut through at all"
+                         if ((v, ground_y, u) not in named and _clear_above(v, ground_y - 1))
+                         or ((v, ground_y, u) in named and _clear_above(v, ground_y))]
+            assert open_here, f"the pier at u={u} is not walkable through at all"
             assert (void_x, ground_y, u) in named, "...and the rest of the pier still stands"
 
 

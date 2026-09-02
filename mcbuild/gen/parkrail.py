@@ -148,6 +148,11 @@ PARKRAIL = {
     "track_inset": 3,              # cells of deck beyond each terminus, for the stop block
     "stations": None,              # [{at_u, land, title, board, stair}]
     "station_half": 13,            # platform half-length; the platform is 2*half + 1
+    # THE ENTRY, and it is the difference between a station and a fire escape. Jack, on the first
+    # three: "the railway needs clear entry ways (stairs); and proper lead up platforms etc."
+    "stair_w": 3,                  # V columns of flight - two is a service stair, not a way in
+    "head_half": 5,                # the forecourt at the foot, half-length along U
+    "head_v": 4,                   # ...and how far it reaches into the arcade from the park face
     "canopy_h": 5,                 # courses from the deck walk up to the canopy soffit
     "band_blend": 30,              # cells over which one land's masonry dithers into the next
     "seed": 0,
@@ -645,6 +650,85 @@ def _bed_block(d: _Deck, pal_at, pick, track_v: int, u: int) -> int:
 # ---------------------------------------------------------------------------- a station
 
 
+def _head(d: _Deck, p: dict, pal: dict, title: str, step: int, foot: int,
+          stair_v: tuple) -> int:
+    """THE LEAD-UP AT THE FOOT OF A FLIGHT, under the viaduct.
+
+    Jack: "the railway needs clear entry ways (stairs); and proper lead up platforms etc." What
+    was there was a two-wide flight ending on the lawn in the gap between two piers - correct,
+    walkable, and indistinguishable from a maintenance ladder. **A WAY IN HAS TO BE VISIBLE FROM
+    THE PLACE YOU ARE STANDING BEFORE YOU KNOW THE STATION IS THERE**, which on this line is the
+    arcade under the deck, six hundred blocks of it, every bay identical by design.
+
+    So the foot gets a room: a raised apron across the arcade's walkable width, a kerb round it so
+    it reads as a platform rather than as paving, a portal frame with a lintel across the bay you
+    walk in through, lanterns on the jambs and the station's name at head height on the pier. The
+    flight itself is `stair_w` wide and lands INTO the apron rather than onto grass.
+
+    IT IS BUILT INSIDE THE CORRIDOR AND NOWHERE ELSE. The park face is the corridor's own first
+    column, so there is no room to spread outward; the apron reaches INWARD under the deck, which
+    is where the pier gates already open and therefore where a visitor already is.
+    """
+    side, park_edge, _void = _sides(p)
+    gy = d.ground_y
+    hh = max(2, int(p.get("head_half", 5)))
+    hv = max(2, int(p.get("head_v", 4)))
+    inner = park_edge - side * hv                  # how far the apron reaches into the arcade
+    lanterns = 0
+
+    # -- the apron: one course of the land's own paving, banded on the flight's own rhythm -------
+    # **THE APRON MAY NOT WRITE OVER THE FLIGHT IT SERVES.** It reaches to `foot + hh`, and the
+    # flight's own bottom tread is at `foot` - so laid unconditionally it repaved the last tread
+    # and the stair came out eleven steps for a twelve-course rise, which is a flight you walk up
+    # to a wall. Nothing in the audit sees that: eleven treads are as legal as twelve.
+    for u in range(foot - hh, foot + hh + 1):
+        for k in range(hv + 1):
+            v = park_edge - side * k
+            if d.has(v, gy, u):
+                continue
+            key = "band" if (u - foot) % 4 == 0 or k == hv else "deck"
+            d.put(v, gy, u, pal[key])
+
+    # -- a kerb along the open edge, so the apron reads as a platform and not as spilt paving ----
+    for u in (foot - hh, foot + hh):
+        for k in range(hv + 1):
+            v = park_edge - side * k
+            if not d.has(v, gy + 1, u):
+                d.put(v, gy + 1, u, pal["kerb"])
+
+    # -- the portal you walk in through: jambs, a lintel, and a light on each jamb ---------------
+    #
+    # A LINTEL IS WHAT MAKES AN OPENING READ AS A DOOR. The void tower settled this - regularity
+    # and openings, not damage - and the arcade already has forty identical arches, so the one you
+    # are meant to walk through has to say so with something the others do not have.
+    door = foot + step * (hh + 1)
+    head = gy + 4
+    for v in (park_edge, inner):
+        for y in range(gy + 1, head):
+            d.put(v, y, door, pal["post"])
+    for k in range(hv + 1):
+        d.put(park_edge - side * k, head, door, pal["beam"])
+    # A LANTERN ON A JAMB HAS NOTHING TO STAND ON. Placed beside the doorway at head height it
+    # was floating in the opening - five of them, and the audit said so on the first build. They
+    # hang from the LINTEL, which is the one solid thing over an opening by definition.
+    for k in (1, hv - 1):
+        if d.put(park_edge - side * k, head - 1, door, pal["light"],
+                 hanging="true", waterlogged="false"):
+            lanterns += 1
+
+    # -- the name, at head height on the jamb, read walking UP the arcade toward the station -----
+    # A wall sign hangs off the block behind it, so this sits one cell out from the jamb facing
+    # away from it - which is the direction a visitor is coming from.
+    d.sign(park_edge, head - 1, door + step, _u_dir(step), pal["wood"],
+           [title, "PARK LINE", "PLATFORM ABOVE", ""])
+
+    # -- and the flight's own bottom step flares into the apron ---------------------------------
+    for v in stair_v:
+        if not d.has(v, gy, foot + step):
+            d.put(v, gy, foot + step, pal["band"])
+    return lanterns
+
+
 def _station(d: _Deck, p: dict, s: dict, pal_at, canopy_y: int) -> dict:
     """One station: platform, back wall, canopy, departure board, signal lever, and a stair down.
 
@@ -676,7 +760,8 @@ def _station(d: _Deck, p: dict, s: dict, pal_at, canopy_y: int) -> dict:
     step = 1 if int(s["stair"]) >= 0 else -1
     ascend = _u_dir(-step)                          # a flight ascends TOWARD the platform
     rise = walk_y - d.ground_y
-    stair_v = (park_edge - side, park_edge)
+    stair_w = max(2, int(p.get("stair_w", 2)))
+    stair_v = tuple(park_edge - side * k for k in range(stair_w))
     stair = {ac + step * (half - rise + 1 + k): deck_y - k for k in range(rise)}
     if half < rise:
         raise ValueError("a parkrail station platform is shorter than its own flight")
@@ -745,7 +830,7 @@ def _station(d: _Deck, p: dict, s: dict, pal_at, canopy_y: int) -> dict:
             for fill in range(d.ground_y, y):       # the stringer: a flight stands on masonry
                 d.put(v, fill, u, pal["pier"])
         if y < deck_y:                              # a balustrade round the opening, never across
-            d.put(park_edge - 2 * side, walk_y, u, pal["parapet"])   # its head, or you cannot get on to it
+            d.put(park_edge - stair_w * side, walk_y, u, pal["parapet"])   # its head, or you cannot get on to it
     # AND THE FOOT NEEDS A DOOR. The bottom tread lands under the viaduct, and a pier may be
     # standing exactly where a visitor has to walk in from the lawn; two courses of headroom
     # through the abutment is an opening in a wall, which is what an arcade is made of anyway.
@@ -754,6 +839,7 @@ def _station(d: _Deck, p: dict, s: dict, pal_at, canopy_y: int) -> dict:
         for v in stair_v:
             for y in range(d.ground_y, d.ground_y + 3):
                 d.clear(v, y, foot + step * k)
+    lanterns += _head(d, p, pal, s["title"], step, foot, stair_v)
 
     # -- the name, on the wall where it is read from the deck ------------------------------------
     titled = 0

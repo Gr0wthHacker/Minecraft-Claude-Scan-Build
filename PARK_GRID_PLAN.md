@@ -524,10 +524,14 @@ provisional allowlist CLAUDE.md already records as incomplete; `blocks.available
 | `the_paving_is_ONE_CONNECTED_WALK` | a walkway with no way off it — invisible to the model's own component count |
 | `the_lawn_covers_the_whole_envelope` | void |
 
-**Test suite:** 26 failures before this work and 26 after — all pre-existing, in `test_park.py`,
-`test_park_plan.py`, `test_vertical_park.py`, `test_wayfinding.py`, `test_frontier.py` and
-`test_evidence.py`, none of which import `parkways`. Confirmed by stashing this work and re-running
-them. **0 introduced.** 4,517 pass, 34 skip.
+**Test suite: 26 failures before this work and 26 after. 0 introduced.** 4,518 pass, 34 skip.
+
+All 26 are pre-existing and in files that never import `parkways`: `test_park.py` (12),
+`test_evidence.py` (6), `test_park_plan.py` (2), `test_vertical_park.py` (2), `test_frontier.py`,
+`test_wayfinding.py`, `test_designs.py`. Confirmed two ways — by stashing this work and re-running
+the affected files (identical 18 failures), and because `test_designs.py::test_all_configs` aborts
+inside `wayfinding.py` on `'Haunted Manor' names no real module` long before it ever reaches
+`park_ways.yaml`. Do not fix them here; they belong to work in flight elsewhere.
 
 ---
 

@@ -11,11 +11,6 @@
   "generated_by": "configs/park_rail.yaml",
   "dig": [
     [
-      97675,
-      203,
-      80330
-    ],
-    [
       97673,
       203,
       80390
@@ -26,14 +21,19 @@
       80391
     ],
     [
+      97674,
+      203,
+      80392
+    ],
+    [
+      97674,
+      203,
+      80401
+    ],
+    [
       97678,
       203,
       80420
-    ],
-    [
-      97675,
-      203,
-      80435
     ],
     [
       97676,
@@ -51,19 +51,9 @@
       80452
     ],
     [
-      97675,
-      203,
-      80481
-    ],
-    [
       97679,
       203,
       80481
-    ],
-    [
-      97675,
-      203,
-      80497
     ],
     [
       97676,
@@ -99,6 +89,11 @@
       97672,
       203,
       80588
+    ],
+    [
+      97674,
+      203,
+      80593
     ],
     [
       97672,
@@ -156,14 +151,19 @@
       80822
     ],
     [
+      97675,
+      203,
+      80828
+    ],
+    [
+      97672,
+      203,
+      80830
+    ],
+    [
       97676,
       203,
       80841
-    ],
-    [
-      97675,
-      203,
-      80855
     ],
     [
       97677,
@@ -174,11 +174,6 @@
       97678,
       203,
       80870
-    ],
-    [
-      97675,
-      203,
-      80871
     ],
     [
       97676,
@@ -201,5 +196,5 @@
       80887
     ]
   ],
-  "dig_note": "moss carpet scattered on the rim lawn by `Park Ways` where the viaduct's piers land. A printer places into air, so these must come out first."
+  "dig_note": "moss carpet scattered on the rim lawn by `Park Ways` where the viaduct's piers and the station aprons land. A printer places into air, so these come out first."
 }

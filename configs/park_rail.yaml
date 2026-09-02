@@ -74,7 +74,10 @@ params:
   pier_u: 3
   spring_y: 4
   crown_gap: 2
-  gate_v: [172, 174]
+  # ONE COLUMN WIDER THAN THE FLIGHT. The stair's stringer is solid masonry from the lawn up
+  # to each tread, so a gate exactly as wide as the flight is a gate a station fills in -
+  # and the arcade, which is a six-hundred-block walk, is severed at all three of them.
+  gate_v: [172, 175]
   gate_h: 4
   portal_every: 4
   power_every: 8
