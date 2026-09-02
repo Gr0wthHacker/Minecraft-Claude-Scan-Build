@@ -242,45 +242,34 @@ def build(cfg: dict, donors=None) -> Canvas:
         c.put(x, y - drop, z, c.raw_state(light, hanging="true"))
 
     def lamp_frontier(x: int, z: int, pal: dict, across: str) -> bool:
-        """A SLIM timber lamp: a low stone footing, a fence mast, one arm, one hung lantern.
+        """TWO STACKED LIGHTNING RODS AND A LANTERN ON TOP. Jack's own design, and it is right.
 
-        The first version was a `spruce_log` mast with `spruce_planks` for the bracket - Jack:
-        "these lamps are thick as hell and terrible", and he is right: those are FULL BLOCKS, so
-        the post was a metre-square pillar. A fence is a post. The Prism lamp read well for
-        exactly this reason - its shaft is a WALL - so the rule is now the same everywhere: the
-        only full block in a lamp is the footing it stands on.
+        The fence version was still wrong: a fence CONNECTS to its neighbours, so a mast with an
+        arm came out as a piece of railing with a light on it rather than as a post, and the arm
+        read as a broken fence. A lightning rod is the slimmest vertical block in the game, it
+        connects to nothing, and it needs no bracket - so the lamp is a rod, a rod, a light.
+        Nothing to hinge, nothing to hang, nothing to misread.
         """
         c.put(x, 0, z, blk("stone_bricks"))
-        c.put(x, 1, z, blk("stone_brick_slab"))
-        for y in (2, 3, 4, 5):
-            c.put(x, y, z, blk("spruce_fence"))
-        # one arm over the path, and the lantern hangs off its end. A fence carries a lantern.
-        side, facing = _around(across)[0]
-        ax, az = _step(x, z, side, across)
-        if 0 <= ax < sx and 0 <= az < sz:
-            c.put(ax, 5, az, blk("spruce_fence"))
-            c.put(ax, 4, az, c.raw_state(pal["light"], hanging="true"))
-        c.put(x, 6, z, c.raw_state(pal["light"], hanging="false"))
+        c.put(x, 1, z, c.raw_state("stone_brick_slab", type="bottom"))
+        for y in (2, 3):
+            c.put(x, y, z, c.raw_state("lightning_rod", facing="up", powered="false"))
+        c.put(x, 4, z, c.raw_state(pal["light"], hanging="false"))
         return True
 
     def lamp_midway(x: int, z: int, pal: dict, across: str) -> bool:
-        """A SLIM fairground standard: a stone pedestal, a fence mast, two arms, two lanterns.
+        """The same post, one course taller, on the Midway's own pedestal.
 
-        Four arms and a plank canopy made this the thickest object in the park. The Midway is
-        still the ornamental land, so it keeps a pedestal and a pair of lights - but on a fence
-        mast, with slab and stair for the cap rather than a roof of full blocks.
+        The Midway is the bright land so its standard is a little grander - a stone plinth with
+        a slab collar and a third rod - but it is the same slim primitive. A fairground lamp that
+        is a metre thick is not grander, it is just in the way.
         """
         c.put(x, 0, z, blk("smooth_stone"))
-        c.put(x, 1, z, c.raw_state("stone_brick_slab", type="bottom"))
-        for y in (2, 3, 4, 5, 6):
-            c.put(x, y, z, blk("oak_fence"))
-        for side, facing in _around(across):
-            ax, az = _step(x, z, side, across)
-            if not (0 <= ax < sx and 0 <= az < sz):
-                continue
-            c.put(ax, 6, az, blk("oak_fence"))
-            c.put(ax, 5, az, c.raw_state(pal["light"], hanging="true"))
-        c.put(x, 7, z, c.raw_state("oak_slab", type="top"))
+        c.put(x, 1, z, blk("chiseled_stone_bricks"))
+        c.put(x, 2, z, c.raw_state("stone_brick_slab", type="bottom"))
+        for y in (3, 4, 5):
+            c.put(x, y, z, c.raw_state("lightning_rod", facing="up", powered="false"))
+        c.put(x, 6, z, c.raw_state(pal["light"], hanging="false"))
         return True
 
     def lamp_prismworks(x: int, z: int, pal: dict, across: str) -> bool:
