@@ -261,33 +261,32 @@ def build(cfg: dict, donors=None) -> Canvas:
         return True
 
     def lamp_midway(x: int, z: int, pal: dict, across: str) -> bool:
-        """A TIMBER CROSSBEAM LAMP, to Jack's reference photograph.
+        """A TIMBER CROSSBEAM LAMP: stone plinth, fence shaft, a SLAB beam, a chain, a lantern.
 
-        A stone plinth, a slim dark-oak fence shaft, a stone collar where the beam crosses it, a
-        five-wide timber beam capped with a slab, and a lantern hung under each end.
+        Jack: "you made it with 5 solid oak blocks, and slabs on top of them, we only need the
+        slabs with 1 chain where the oak connects to the lamp." Right - the beam is the slab
+        course and nothing under it. A doubled beam is twice the timber for a silhouette a slab
+        already gives, and it made the head heavy.
 
-        THE BEAM IS THE ONLY FULL BLOCK ABOVE THE PLINTH, and it has to be: a hanging lantern
-        needs a solid face above it, which is what broke the last two attempts at an arm - a
-        chain under an open trapdoor, then a fence that connected to its neighbours and read as
-        railing. A beam is a beam, and it holds its lights.
+        A BOTTOM SLAB'S BOTTOM FACE IS SOLID, which is why the chain can hang from it and why the
+        beam is `type=bottom`: a top slab would leave the chain hanging off the ceiling of its own
+        cell with a gap under the beam. Then one chain, then the lantern - the same rule that
+        broke the trapdoor version, applied in the one direction it works.
         """
-        beam = _around(across)          # the two directions the crossbeam runs
         c.put(x, 0, z, blk("smooth_stone"))
         c.put(x, 1, z, blk("chiseled_stone_bricks"))
-        for y in (2, 3, 4):
+        for y in (2, 3, 4, 5):
             c.put(x, y, z, blk("dark_oak_fence"))
-        c.put(x, 5, z, blk("chiseled_stone_bricks"))
-        c.put(x, 6, z, blk("dark_oak_planks"))
-        c.put(x, 7, z, c.raw_state("dark_oak_slab", type="bottom"))
-        for side, facing in beam:
+        c.put(x, 6, z, c.raw_state("dark_oak_slab", type="bottom"))
+        for side, _facing in _around(across):
             for step in (1, 2):
                 ax, az = _step(x, z, side * step, across)
                 if not (0 <= ax < sx and 0 <= az < sz):
                     continue
-                c.put(ax, 6, az, blk("dark_oak_planks"))
-                c.put(ax, 7, az, c.raw_state("dark_oak_slab", type="bottom"))
+                c.put(ax, 6, az, c.raw_state("dark_oak_slab", type="bottom"))
                 if step == 2:
-                    c.put(ax, 5, az, c.raw_state(pal["light"], hanging="true"))
+                    c.put(ax, 5, az, c.raw_state("iron_chain", axis="y"))
+                    c.put(ax, 4, az, c.raw_state(pal["light"], hanging="true"))
         return True
 
     def lamp_prismworks(x: int, z: int, pal: dict, across: str) -> bool:
