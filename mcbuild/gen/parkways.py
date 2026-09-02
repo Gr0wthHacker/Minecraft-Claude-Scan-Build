@@ -261,24 +261,25 @@ def build(cfg: dict, donors=None) -> Canvas:
         return True
 
     def lamp_midway(x: int, z: int, pal: dict, across: str) -> bool:
-        """A WROUGHT-IRON FAIRGROUND STANDARD: a striped plinth, an iron column, a capital.
+        """A PROMENADE STANDARD: a striped plinth, a stone wall column, the light on top of it.
 
-        The three lands need three lamps, and this one was borrowing the Frontier's rods. The
-        Midway is the bright social land, so its standard is the one from a promenade: a banded
-        red-and-white base in the land's own paving colours, a slender iron column, and a small
-        capital carrying the light. Slim - the shaft is `iron_bars` - but a different object.
+        The iron-bar version needed a slab capital so the lantern was not standing on bars, and
+        that slab was the problem - Jack: "swap the center for stone wall or something so it
+        connects to the slab properly, and the lamp wont sit on a slab like that." A WALL DOES
+        WHAT BARS COULD NOT: it carries a standing lantern directly (`canSupportCenter` on its
+        solid centre column, the same rule the Prism mast uses), so the capital disappears and
+        the lamp is plinth, column, light.
 
-        The capital is a TOP slab so the lantern sits on its surface rather than half a block
-        above it, and so that a lantern is not asked to stand on bars, which is what put 104
-        placement problems in the Prism lamp the first time round.
+        It stays a different object from the Prism mast, which is what three lands need: this is
+        pale `stone_brick_wall` over a red-and-white base in the Midway's own paving colours,
+        with a plain warm lantern; that one is black, caged in iron, with a rod above it.
         """
         c.put(x, 0, z, blk("smooth_stone"))
         c.put(x, 1, z, blk(pal["inlay"]))          # the land's own red
         c.put(x, 2, z, blk(pal["accent"]))         # ...and its white, so the base is striped
         for y in (3, 4, 5):
-            c.put(x, y, z, blk("iron_bars"))
-        c.put(x, 6, z, c.raw_state("stone_brick_slab", type="top"))
-        c.put(x, 7, z, c.raw_state(pal["light"], hanging="false"))
+            c.put(x, y, z, blk("stone_brick_wall"))
+        c.put(x, 6, z, c.raw_state(pal["light"], hanging="false"))
         return True
 
     def lamp_prismworks(x: int, z: int, pal: dict, across: str) -> bool:
