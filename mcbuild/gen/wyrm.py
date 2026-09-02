@@ -548,13 +548,19 @@ def build_wyrm(cfg: dict, donors=None) -> Canvas:
     for dy in (6, 7, 8, 9):                      # the cranium, up to the brow
         _course(dy, hw, z0, z1, S["bone"])
     for dy in (7, 8, 9, 10, 11):                 # ...hollow, so the break shows dark inside
-        for dx in range(-2, 3):
+        # WIDE ENOUGH TO BACK THE SOCKETS. At |dx| <= 2 the hollow stopped short of the socket
+        # columns at |dx| 2-3, so a socket cut three deep still showed LIT BONE at the back of
+        # it and read as a dimple, not a hole. A recess is only dark if there is dark behind it.
+        for dx in range(-4, 5):
             for zz in range(z0 + 2, z1):
                 c.put(cx + dx, base + dy, zz, S["void"])
 
     # THE BROW, proud of the sockets and casting into them. The same idiom as the shelf, one
-    # course forward of the face, and the second half of what makes a socket read at all.
+    # course forward of the face, and the second half of what makes a socket read at all. TWO
+    # courses now: at one it was a lip, and the reference's brow is a heavy ridge whose whole job
+    # is to put the sockets under it in shadow.
     _course(10, hw, zf, z1, S["pale"], round_ends=False)
+    _course(11, hw - 1, zf, z1, S["bone"], round_ends=False)
 
     # the crown, falling away over the last three courses exactly as the reference's does
     _course(11, hw, z0, z1, S["bone"])
@@ -568,25 +574,37 @@ def build_wyrm(cfg: dict, donors=None) -> Canvas:
     # spot-spacing rule underneath it: two features closer than their own width become one.
     sockets = 0
     for s in (-1, 1):
+        # FOUR COURSES, NOT THREE, and cut to |dx| = 4 - the cranium is only nine wide, so a
+        # socket at off 5 is outside the head and `put` silently returns False. Read row by row
+        # the face was `....#########....` at every socket course: the eyes were not shallow,
+        # they were NOT THERE. Measure the face, do not tune the offsets by eye.
+        # A SOCKET IS A HOLE IN A FACE, so the face has to survive around it. The cranium is
+        # nine wide (x4..12 about cx=8): bone at the outer column, two cells of socket, three of
+        # nasal bridge. Cut wider than that and there is no face left - at |dx| 2-4 the rows came
+        # out `.......###.......`, a three-wide pillar with sky either side, which reads as a
+        # column and not as a skull. Read the face row by row after changing this.
         for dy in (7, 8, 9):
-            for off in (2, 3, 4):
-                if abs(dy - 8) == 1 and off == 4:
-                    continue                     # the corners: a socket is not a square
+            for off in (2, 3):
                 x = cx + s * off
-                for zz in (z0, z0 + 1):
+                for zz in (z0, z0 + 1, z0 + 2):
                     sockets += 1 if c.put(x, base + dy, zz, 0) else 0
-                c.put(x, base + dy, z0 + 2, S["void"])
+                c.put(x, base + dy, z0 + 3, S["void"])
 
-    # THE NASAL APERTURE, an inverted triangle between and below the sockets - wide at the top,
-    # one cell at the bottom. Small, dark, and the third thing after the sockets and the brow
-    # that a stranger actually reads as a skull rather than as a dome.
-    # ONE CELL WIDE, AND THAT IS THE POINT. Drawn three wide it TOUCHED the sockets either side
-    # of it and the three recesses merged into a single dark mask - the sunglasses failure a
-    # third time, from a new direction. The bone columns at |dx| = 1 are the nasal bridge and
-    # they have to survive, or there are not two eyes there any more.
-    for dy in (6, 7):
-        c.put(cx, base + dy, z0, 0)
-        c.put(cx, base + dy, z0 + 1, S["void"])
+    # THE NASAL APERTURE, an inverted triangle BELOW the sockets - two cells wide at the top,
+    # one at the bottom. Small, dark, and the third thing after the sockets and the brow that a
+    # stranger actually reads as a skull rather than as a dome.
+    #
+    # IT MAY NOT SHARE A COURSE WITH THE SOCKETS. Drawn at dy 6-7 against sockets at 7-9 it met
+    # them on row 7, and a one-cell bone bridge in the shadow of a two-deep recess is not
+    # something an eye separates: the three recesses read as a single dark bar across the face,
+    # and the actual sockets read as nothing at all. Strictly below, with TWO bone columns at
+    # |dx| = 1,2 holding the bridge, and there are two eyes up there again. This is the frog's
+    # sunglasses failure and the ladybird's spot-spacing rule: two features closer than their
+    # own width become one feature.
+    for dy, half in ((5, 1), (4, 0)):
+        for dx in range(-half, half + 1):
+            c.put(cx + dx, base + dy, z0, 0)
+            c.put(cx + dx, base + dy, z0 + 1, S["void"])
 
     # THE BREAK: the back of the braincase is gone, ragged, showing the dark hollow. Taken off
     # the BACK rather than off a flank, so the head is still a mirror of itself and there is
@@ -596,7 +614,9 @@ def build_wyrm(cfg: dict, donors=None) -> Canvas:
     skull_open = 0
     for dy in range(8, 14):
         for dx in range(-hw, hw + 1):
-            for zz in range(z1 - 2, z1 + 1):
+            # only the back two courses, and never so high that the hole shows over the crown
+            # from the approach: read head-on, a break above the brow line reads as the eyes.
+            for zz in range(z1 - 1, z1 + 1):
                 if c.get(cx + dx, base + dy, zz) in (S["bone"], S["void"], S["pale"]):
                     if zz > z1 - 2 + 1.6 * hash01(seed, abs(dx), dy) - 0.6:
                         c.put(cx + dx, base + dy, zz, 0)

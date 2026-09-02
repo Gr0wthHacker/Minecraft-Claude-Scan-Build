@@ -76,7 +76,7 @@ RIM_BAND, RIM_STEP, RIM_BUTTRESS = 29, 4, 12
 #: one identity beat, and everything outboard of those is structure falling away to the void -
 #: which is what `isthmus.py` already builds on the island. Measured before this: the two reaches
 #: were 35% and 20% covered with eighty blocks of dead depth between the setpiece and the rim.
-REACH_RIM_FROM = 96
+REACH_RIM_FROM = 82
 REACHES = {"frontier_reach", "prism_reach"}
 #: the park's own outer public edge, inboard of the V12 spine
 EDGE_FROM, EDGE_TO = 4, 9
