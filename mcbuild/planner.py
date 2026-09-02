@@ -165,37 +165,25 @@ THEMES = {
         "reserve": [[97640, 80551, 97649, 80649]],
         "floors": [{"name": "Ground", "y": 0}],
         "modules": [
+            {
+                "name": "The Big Top",
+                "gen": "setpiece",
+                "kind": "bigtop",
+                "size": [29, 19, 29],
+                "orient": False,
+                "district": "Fairground",
+                "params": {"land": "midway", "facing": "east", "radius": 11},
+            },
             # **THE ARRIVAL COURT IS PINNED TO THE BEDROCK AND SITED FIRST.** `at` is the
             # arrival cell itself, not a corner: the court is built radially around the one
             # coordinate that cannot be negotiated. Its own dig list clears the starter pad and
             # the tree; the starter chest is deliberately left standing and reported.
-            {"name": "Arrival Court", "gen": "arrival", "kind": "court",
-             "size": [33, 5, 33], "anchor": "origin", "orient": False,
-             "params": {"land": "midway", "facing": "east"}},
             # ------------------------------------------------- things to DO, and a reason to stay
             # The user: *"we want this to be a unique real experience that people want to stay
             # around for"*. A park keeps people because things HAPPEN in it and because there is
             # somewhere pleasant to be between rides - so: a show on a timer, a terrace to watch
             # it from, somewhere to eat, and games where what the PLAYER does decides the outcome
             # rather than a randomiser they stand and watch.
-            {"name": "Fireworks", "gen": "spectacle", "kind": "fireworks",
-             "size": [17, 4, 24], "orient": False,
-             "params": {"land": "midway", "facing": "east"}},
-            {"name": "The Terrace", "gen": "spectacle", "kind": "viewing",
-             "size": [12, 7, 17], "orient": False,
-             "params": {"land": "midway", "facing": "east"}},
-            {"name": "Food Court", "gen": "spectacle", "kind": "foodcourt",
-             "size": [15, 6, 19], "orient": False, "count": 1,
-             "params": {"land": "midway", "facing": "east"}},
-            {"name": "Plinko", "gen": "arcade", "kind": "plinko",
-             "size": [17, 17, 18], "orient": False,
-             "params": {"land": "midway", "facing": "east"}},
-            {"name": "High Striker", "gen": "arcade", "kind": "strength",
-             "size": [11, 13, 15], "orient": False,
-             "params": {"land": "midway", "facing": "east"}},
-            {"name": "Prize Counter", "gen": "arcade", "kind": "prizecounter",
-             "size": [11, 7, 17], "orient": False,
-             "params": {"land": "midway", "facing": "east"}},
             {"name": "Midway Map", "gen": "wayfinding", "kind": "mapboard",
              "size": [3, 9, 11], "orient": False,
              "params": {"land": "midway", "zone": "midway", "title": "MIDWAY",
@@ -209,18 +197,6 @@ THEMES = {
                         "arms": [{"direction": "north", "dest": "Frontier"},
                                  {"direction": "south", "dest": "Hollow"},
                                  {"direction": "west", "dest": "Park Gate"}]}},
-            {"name": "Box Office", "gen": "ticketing", "kind": "boxoffice",
-             "size": [11, 8, 13],
-             "anchor": "edge", "side": "west",
-             "params": {"land": "midway", "facing": "east"}},
-            {"name": "Entry Queue", "gen": "ticketing", "kind": "queue",
-             "size": [11, 6, 13],
-             "anchor": "edge", "side": "west",
-             "params": {"land": "midway", "facing": "east"}},
-            {"name": "Turnstiles", "gen": "ticketing", "kind": "turnstile",
-             "size": [19, 9, 11], "orient": False,
-             "anchor": "edge", "side": "west",
-             "params": {"land": "midway", "facing": "east"}},
             {"name": "The Big Wheel", "gen": "bigwheel", "kind": "wheel",
              "size": [19, 85, 77], "orient": False,
              "anchor": "edge", "side": "east",
@@ -235,10 +211,6 @@ THEMES = {
             {"name": "Carousel", "gen": "bigwheel", "kind": "carousel",
              "size": [32, 27, 27], "orient": False,
              "params": {"land": "midway", "diameter": 25, "mounts": 12, "facing": "east"}},
-            {"name": "The Monument", "gen": "monument", "kind": "monument",
-             "size": [33, 53, 33], "orient": False,
-             "anchor": "edge", "side": "south",
-             "params": {"land": "midway", "facing": "north"}},
             {"name": "Park Gate", "gen": "park", "kind": "gate", "size": [15, 9, 7],
              "anchor": "edge", "side": "west",
              "params": {"land": "midway", "lanes": 3, "depth": 6, "facing": "west"}},
@@ -286,17 +258,29 @@ THEMES = {
         # the Undermine floor stands 24 courses down, and `_clear` has always compared boxes in
         # three dimensions - so it costs the surface nothing. This is the difference between a
         # flat fairground with tunnels and a park whose mine is actually beneath it.
+        # **AND A THIRD FLOOR, BECAUSE THE MINE IS NOT THE MINE WORKS.** The Undermine at -24
+        # is the hidden core - the station a guest boards at, which section 3 puts at B-48..B-8.
+        # The JOURNEY belongs in the deep adventure band beneath it, and the difference is the
+        # whole point of having bands: a station under a town and a cavern under a station are
+        # not the same kind of place, and stacking both at one depth would say they were.
         "floors": [{"name": "Ground", "y": 0},
-                   {"name": "Undermine", "y": -24}],
+                   {"name": "Undermine", "y": -24},
+                   {"name": "Mine Works", "y": -60}],
         "modules": [
+            {
+                "name": "The Water Tower",
+                "gen": "setpiece",
+                "kind": "watertower",
+                "size": [15, 25, 11],
+                "orient": False,
+                "district": "Mining Square",
+                "params": {"land": "frontier", "facing": "east"},
+            },
             # **A LEVER TO ARM AND A BUTTON TO FIRE.** A two-block SUBTRACT interlock rather
             # than a machine pit - every pit in this repo has cost a floating floor - then a
             # five-piston fuse thumps the length of the drift, seven charges go at the face and a
             # bell rings. `drift` is a NEW key on purpose: the shared FRONTIER["depth"] is the
             # saloon's 12, and reading that built a drift with room for two fuse stages of five.
-            {"name": "The Powder House", "gen": "frontiertown", "kind": "powderhouse",
-             "size": [23, 8, 13], "orient": False,
-             "params": {"land": "frontier", "facing": "east", "drift": 21}},
             # ------------------------------------------------------- Prospecting Row
             #
             # PARK_FRONTIER.md asks for "Gold Sluice, Shooting Range, Nugget Chute under one
@@ -307,14 +291,8 @@ THEMES = {
             #
             # Reuse, not new code: a plinko board is a gravel-washing chute in a mining town, and
             # DROP is a fourth verb beside press, shoot and weigh.
-            {"name": "The Nugget Chute", "gen": "arcade", "kind": "plinko",
-             "size": [17, 17, 18], "orient": False, "district": "Prospecting Row",
-             "params": {"land": "frontier", "facing": "east", "title": "NUGGET CHUTE"}},
             # A shooting range and an assay scale: both are things you do with your hands, and
             # both belong to a mining town.
-            {"name": "Shooting Range", "gen": "arcade", "kind": "range",
-             "size": [26, 13, 15], "orient": False, "district": "Prospecting Row",
-             "params": {"land": "frontier", "facing": "east"}},
             # **THE ASSAY OFFICE AND THE PAY WINDOW ARE ONE COUNTER, ON MAIN STREET.**
             # PARK_FRONTIER.md: "Pay Window + Assay Office: Merge into Assay & Prize Office
             # between games and Main Street", and its Main Street holds "Saloon, Assay & Prize
@@ -326,20 +304,11 @@ THEMES = {
             # They share Main Street's district rather than owning one of their own: a
             # two-building district competes with the Saloon for the same street and leaves it
             # NO SITE, which is what happened when they had their own.
-            {"name": "Assay Office", "gen": "arcade", "kind": "weigh",
-             "size": [30, 10, 19], "orient": False, "district": "Boomtown Main Street",
-             "params": {"land": "frontier", "facing": "east"}},
-            {"name": "Prize Office", "gen": "arcade", "kind": "prizecounter",
-             "size": [11, 7, 17], "orient": False, "district": "Boomtown Main Street",
-             "params": {"land": "frontier", "facing": "east"}},
             # **A GAME YOU PLAY WITH YOUR HANDS.** Drop items into the head box; flowing
             # water carries them thirteen cells down a stepped launder into a hopper row feeding
             # a barrel, and a comparator on that barrel raises a gold block into a window and
             # rings a bell. Both simulators agree, in both directions - it is dark when empty.
             # It replaces the Riverboat, which was a hull you could walk onto and nothing else.
-            {"name": "Gold Sluice", "gen": "frontiertown", "kind": "sluice",
-             "size": [22, 9, 15], "orient": False, "district": "Prospecting Row",
-             "params": {"land": "frontier", "facing": "east"}},
             {"name": "Frontier Map", "gen": "wayfinding", "kind": "mapboard",
              "size": [3, 9, 11], "orient": False,
              "params": {"land": "frontier", "zone": "frontier", "title": "FRONTIER",
@@ -359,6 +328,13 @@ THEMES = {
             {"name": "Mine Cart Escape", "gen": "attractions", "kind": "runawaymine",
              "size": [26, 12, 23], "district": "Mining Square", "floor": 1,
              "params": {"land": "frontier", "facing": "east"}},
+            # **THE JOURNEY SECTION 6 ASKS FOR, AND IT IS A WALK RATHER THAN A RIDE.** Worked ore
+            # near the surface, a broken trestle over a cavern, the flooded lower works, and one
+            # crystal reveal at the deepest point - four rooms that each do exactly one thing,
+            # threaded on a corridor that reaches every one of them by construction.
+            {"name": "The Mine Works", "gen": "undercroft", "kind": "mine",
+             "size": [75, 8, 15], "orient": False, "floor": 2, "district": "Mining Square",
+             "params": {"land": "frontier", "kind": "mine", "facing": "east"}},
             {"name": "Mine Coaster", "gen": "coaster", "kind": "coaster",
              "size": [47, 38, 47], "orient": False, "anchor": "edge", "side": "north",
              "district": "Mining Square",
@@ -389,10 +365,6 @@ THEMES = {
             # one: forecourt, quay, splash pool, slipway, a helical stair tower, a bridge, a start
             # box, and sixty cells of descent back into the same pool. One source in the channel
             # rather than 193, because every step down restarts water's seven-block budget.
-            {"name": "Frontier Rapids", "gen": "coaster", "kind": "rapids",
-             "size": [31, 18, 31], "orient": False,
-             "params": {"land": "frontier", "rapids_span": 23, "rapids_top": 12, "pool": 4,
-                        "facing": "west"}},
             # The headframe is the mine district's own entrance and its vertical landmark, so
             # it belongs to Mining Square rather than standing wherever a bay was free.
             {"name": "The Mine Head", "gen": "frontiertown", "kind": "minehead",
@@ -441,7 +413,8 @@ THEMES = {
         # "public streets lead to a much older world below: crypts, forgotten rail tunnels, and
         # a final founder's vault."
         "floors": [{"name": "Ground", "y": 0},
-                   {"name": "Undercrypt", "y": -20}],
+                   {"name": "Undercrypt", "y": -20},
+                   {"name": "Deep Crypt", "y": -56}],
         "modules": [
             # ---------------------------------------------------------- the Crypt Market
             #
@@ -461,14 +434,11 @@ THEMES = {
             # ...and the Ossuary is the piece that belongs down there. A tomb you walk INTO,
             # on the surface, is a shed with levers in it; twenty courses under the market it is
             # the crypt the market is named after, and it hands the Plummet back its site.
-            {"name": "The Ossuary", "gen": "hollowmanor", "kind": "ossuary",
-             "size": [25, 10, 23], "district": "Crypt Market", "floor": 1,
-             "params": {"land": "hollow", "facing": "east"}},
+            # **THE UNDERCRYPT SECTION 7 ASKS FOR.** Catacombs, the ossuary branch, the train's
+            # own show chamber, a drowned crypt and the founder's vault - and it surfaces
+            # somewhere else, which is what makes it a journey rather than a cul-de-sac.
             # ...and this is where an Ossuary or Vault win gets spent. A game with no payout is a
             # machine, not a game.
-            {"name": "The Reliquary", "gen": "arcade", "kind": "prizecounter",
-             "size": [11, 7, 17], "orient": False, "district": "Crypt Market",
-             "params": {"land": "hollow", "facing": "east"}},
             # A 4x4 grid rather than 7x6: measured, 13x13 against 17x19. It keeps its
             # spanning-tree branches and its single solved route, so it is a shorter walk rather
             # than a simpler one.
@@ -477,25 +447,13 @@ THEMES = {
              "params": {"land": "hollow", "facing": "east", "maze_w": 4, "maze_d": 4}},
             # The two games that need a dark room: a combination vault, and a corridor of sculk
             # sensors you have to cross without making a sound.
-            {"name": "The Vault", "gen": "arcade", "kind": "safe",
-             "size": [42, 8, 27], "orient": False, "district": "Crypt Market",
-             "params": {"land": "hollow", "facing": "east"}},
-            {"name": "The Quiet Room", "gen": "arcade", "kind": "quiet",
-             "size": [19, 7, 13], "orient": False, "district": "Crypt Market",
-             "params": {"land": "hollow", "facing": "east"}},
             # **THE MARKET NEEDS SOMEWHERE TO SIT DOWN.** Section 7 of the vertical masterplan
             # asks the Crypt Market to be "discovery/recovery" and names a Mourning Parlour for
             # the recovery half. Every other land already had a recovery node and the Hollow had
             # none, so a guest who had walked the manor, dropped the tower and solved the crypt
             # had nowhere in the land to stop.
-            {"name": "The Mourning Parlour", "gen": "spectacle", "kind": "foodcourt",
-             "size": [15, 6, 19], "orient": False, "district": "Crypt Market",
-             "params": {"land": "hollow", "facing": "east"}},
 
             # ---------------------------------------------------------- the Manor Quarter
-            {"name": "The Seance", "gen": "hollowmanor", "kind": "seance",
-             "size": [15, 14, 19], "orient": False, "district": "Manor Quarter",
-             "params": {"land": "hollow", "facing": "east"}},
 
             # ---------------------------------------------------------- wayfinding
             #
@@ -537,9 +495,6 @@ THEMES = {
             # is not.
             {"name": "Haunted Manor", "gen": "hollowmanor", "kind": "manor",
              "size": [35, 52, 42], "district": "Manor Quarter",
-             "params": {"land": "hollow", "facing": "east"}},
-            {"name": "The Plummet", "gen": "bigwheel", "kind": "drop",
-             "size": [20, 73, 17], "district": "Tower Quarter",
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "Clock Tower", "gen": "hollowmanor", "kind": "clocktower",
              "size": [17, 49, 17], "anchor": "edge", "side": "east",
@@ -1944,7 +1899,12 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
     # are laid over the whole footprint and it has no other way of knowing where anything stands -
     # without this it plants a tree in a doorway and lays a bed across a spur. Measured over the
     # three real zones: 0 collisions with it, 20-53 without.
-    hub.setdefault("params", {})["obstacles"] = obstacles
+    # **A COPY, NOT THE SAME LIST.** The route boxes are appended to the plaza's obstacles so
+    # it does not plant a tree in a spur - and handed the SAME list object, the paths module
+    # got them too, which made every route an obstacle to itself. Not one lamp post was ever
+    # placed in any zone: the lamp loop ran, found its own kerb "blocked", and skipped, and
+    # the night pass then measured 2,943 route cells at block light 0.
+    hub.setdefault("params", {})["obstacles"] = list(obstacles)
 
     routes = circulation.build(pl.modules, (cx, cz), own, plane)
     if not routes:
@@ -1969,6 +1929,7 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
     # The plan carries its own circulation so the gates can read it without re-deriving the
     # geometry - two derivations of one network is how a check and the thing it checks drift.
     pl.routes = routes
+    _add_stairwells(pl, spec, plane, world)
 
     land = spec["modules"][0]["params"]["land"]
     # **INSERTED BEFORE THE PLAZA, NOT APPENDED AFTER IT.** `layers.slice_plan` resolves a
@@ -1984,6 +1945,43 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
         "params": {"land": land, "facing": "east", "routes": routes, "obstacles": obstacles},
         "world": world,
     })
+
+
+def _add_stairwells(pl, spec, plane, world) -> None:
+    """Build the stair that every declared shaft promises.
+
+    **A SHAFT IS A CONTRACT AND SOMETHING HAS TO HONOUR IT.** `circulation` declares a vertical
+    connection wherever a module stands off the build plane, and for a while nothing built one:
+    the safety pass walked the Frontier's shaft course by course and found twelve cells of solid
+    rock between the town and the mine landing it was supposed to reach. A route nobody digs is
+    the decorative doorway rule 2 forbids, pointing downwards.
+
+    `gen/stairwell.py` already does exactly this job - a cased shaft with a slab spiral in it,
+    punched through the floor, kerbed and railed at the head so the hole reads as a stair rather
+    than as a place to fall down - so this is a siting, not a new generator.
+    """
+    land = spec["modules"][0]["params"]["land"]
+    for route in pl.routes:
+        if route.get("role") != "shaft":
+            continue
+        (x, top, z), (_bx, bottom, _bz) = route["a"], route["b"]
+        name = (route.get("name") or "Shaft").replace(" shaft", " Stair")
+        pl.modules.append({
+            "name": name, "gen": "stairwell", "kind": "stairwell",
+            # `at` is the shaft's own column and the module is measured from it, so the module
+            # box is the hole - which is what keeps anything else out of it.
+            "at": [x, int(min(top, bottom)), z],
+            "size": [7, int(abs(top - bottom)) + 1, 7],
+            "declared_size": [7, int(abs(top - bottom)) + 1, 7],
+            "anchor_offset": [-3, 0, -3],
+            "floor": pl.modules[0]["floor"], "shaft": True,
+            "params": {"land": land, "facing": "east",
+                       "center": [int(x), int(z)], "radius": 1,
+                       "y_bottom": int(min(top, bottom)), "y_top": int(max(top, bottom)),
+                       "shaft_lamp_every": 5,
+                       "under": world},
+            "world": world,
+        })
 
 
 def _add_furniture(pl, spec, plane, world, pl_plot=None):
@@ -2053,9 +2051,15 @@ def _add_furniture(pl, spec, plane, world, pl_plot=None):
     # The routes are already computed and sitting on the paths module; read them.
     lanes = {}
     for r in (paths["params"].get("routes") or []):
-        if not r.get("lamps"):          # the two full-length avenues are the lamped ones
+        # **THE AVENUES, NOT EVERY LIT ROUTE.** `lamps` used to mean "one of the two full-
+        # length avenues" and now means "carries lighting", which is every public route -
+        # so a bench-dressing pass keyed on it started walking frontage walks and shafts.
+        # The role is what a spine IS; the lamp is a consequence of being one.
+        if r.get("role") != "main_spine":
             continue
-        (ax, az), (bx, bz) = r["a"], r["b"]
+        a, b = r["a"], r["b"]
+        (ax, az) = (a[0], a[2]) if len(a) > 2 else (a[0], a[1])
+        (bx, bz) = (b[0], b[2]) if len(b) > 2 else (b[0], b[1])
         if az == bz:
             lanes["x"] = (min(ax, bx), max(ax, bx), az)
         elif ax == bx:
