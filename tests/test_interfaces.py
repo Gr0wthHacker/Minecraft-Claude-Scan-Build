@@ -157,3 +157,39 @@ def test_a_bench_owes_nothing():
     I.annotate([bench])
     assert bench["interface"]["anchors"] == []
     assert not I.missing_anchors([bench])
+
+
+def test_a_service_door_moves_to_a_flank_when_its_rear_is_off_the_land():
+    """**A SERVICE DOOR ON A FACE THAT IS OFF THE LAND CAN NEVER HAVE A YARD.** The layout puts
+    the backstage on the rear by construction, which is right until the rear IS the boundary: the
+    Midway's admission sequence is pinned to its west edge facing east, so five of its rear doors
+    opened onto the neighbour's ground and no backstage road could legally reach them.
+
+    A shopfront's direction is a decision and stays where it is put; a service door only has to
+    be somewhere a road can get to."""
+    # Hard against the western boundary, facing east: its rear is off the land.
+    shop = _module("frontiertown", "saloon", at=(0, 64, 50), size=(11, 6, 9), facing="east")
+    I.annotate([shop], owned=(0, 100, 0, 100))
+    door = next(a for a in shop["interface"]["anchors"] if a["name"] == "service_access")
+    x, _y, z = door["at"]
+    assert 0 <= x <= 100 and 0 <= z <= 100, "the service door is still off the land"
+    assert door["face"] != "west", "it stayed on the rear face that cannot be reached"
+
+
+def test_a_service_door_stays_on_the_rear_when_the_rear_is_reachable():
+    """The fallback is for a door that CANNOT exist where it belongs, not a licence to put the
+    backstage wherever. A module with land behind it keeps its rear door."""
+    shop = _module("frontiertown", "saloon", at=(50, 64, 50), size=(11, 6, 9), facing="east")
+    I.annotate([shop], owned=(0, 100, 0, 100))
+    door = next(a for a in shop["interface"]["anchors"] if a["name"] == "service_access")
+    assert door["face"] == "west"
+
+
+def test_a_shopfront_never_moves_to_a_flank():
+    """The asymmetry is the point: where a customer entrance faces is a design decision, and
+    silently turning it to suit the plot is how a building ends up addressing nothing."""
+    shop = _module("frontiertown", "saloon", at=(0, 64, 50), size=(11, 6, 9), facing="east")
+    I.annotate([shop], owned=(0, 100, 0, 100))
+    for name in ("frontage", "customer_entry", "queue_entry", "collection_or_exit"):
+        anchor = next(a for a in shop["interface"]["anchors"] if a["name"] == name)
+        assert anchor["face"] == "east", f"{name} was moved off the shopfront"

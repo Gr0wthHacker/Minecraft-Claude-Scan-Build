@@ -8275,12 +8275,56 @@ hidden:
 | | |
 |---|---|
 | `mechanics` `safety` `night` `visual` | no evidence supplied on any land - they BLOCK, by design |
-| 13 of 31 service doors | no backstage behind them - 8 of those are the Midway's admission sequence pinned to its west boundary. The fix is siting room, not path drawing |
+| 10 of 31 service doors | no backstage behind them. The fix is siting room, not path drawing |
 | Midway | still one band: the masterplan's own answer for it is a machine gallery under the food court, and it is not built |
 | Frontier, Hollow | one shaft each - the Mine Cart Escape 24 courses under its headframe, the Ossuary 20 under its market. Both lands' programs needed 65-76% of their plot as raw footprint before a street was drawn, and going down is what made them fit |
-| `out/plans/park_*.json` | carry the OLD module lists; the rebuilt programs need a re-plan and an approval, which is Jack's call and not a silent one |
-| `mcbuild layers` | **`_which` puts everything below `floor_y` into "Machines"**, which was right while the only thing under a park's floor WAS its wiring. An Undermine module is a room, not a basement, so slicing a rebuilt zone today would hand a printer a Machines layer containing a whole ride. Nothing is broken yet - no rebuilt zone has been sliced - and the fix is that a layer slice is per BAND rather than per plan, which is its own piece of work: `_read` reads cells out of a litematic and has no idea which module owns them. |
+| the crossroads | the Midway's and the Frontier's own crossing is boxed in - by the Arrival Court on one, by the coaster, the headframe and the range on the other - so neither has a sign within reach of it. `anchor: junction` takes the nearest free bay and on those two plots that is not near enough. The warning is truthful and the fix is a smaller program at the centre, not a wider threshold |
 
 The masterplan's section 6 and 7 journeys - the mine's ore chamber, flooded works and crystal
 reveal, the Hollow's catacombs, train show chambers and founder's vault - are the largest remaining
 piece of work and they are generator work, not planner work.
+
+### Finalised, after the first pass (2026-09-01)
+
+Three things were left open and all three are closed.
+
+**THE LAYER SLICE IS PER BAND NOW.** `_which` put everything below `floor_y` into "Machines",
+which was right while the only thing under a park's floor WAS its wiring - and a vertical park has
+ROOMS down there. Sliced against one global floor the Frontier's mine ride came out as the
+mechanism's basement: a printer would have been handed a Machines layer containing a station, its
+walls and its track. Each cell is judged against the floor of the MODULE it came from, which is
+the plan's floor shifted by that module's lift, recorded at the moment the cell is claimed because
+first-writer-wins runs across modules and the loser's floor is not the one the cell was built to.
+The plane comes off the plaza - the one module that IS the ground - because deriving it from the
+modules' average or their lowest cell would move it every time a ride went underground, which is
+the very thing it has to measure the lift against.
+
+**A SERVICE DOOR ON A FACE THAT IS OFF THE LAND CAN NEVER HAVE A YARD.** The interface layout puts
+the backstage on the REAR by construction, which is right until the rear is the plot boundary: the
+Midway's whole admission sequence is pinned to its west edge facing east, so five of its rear doors
+opened onto the neighbour's ground and no backstage road could legally reach them. A service door
+now takes the first flank that is actually on the land - and a SHOPFRONT never does, which is the
+asymmetry that matters: where a customer entrance faces is a design decision, and silently turning
+it to suit the plot is how a building ends up addressing nothing. 13 yardless doors to 10; the rest
+are the packing problem, and their fix is siting room.
+
+**AND THE WAYFINDING GATE CARRIED THE SAME TWO-DIMENSIONAL BUG IT WAS WRITTEN TO CATCH.**
+`_junctions` unpacked a route endpoint as `point[0], point[1]`, which for a three-element endpoint
+is x and **Y** - so the moment a land grew an underground landing, every junction it reported was a
+coordinate pair that exists nowhere, no sign was ever within reach of one, and both side lands
+warned that all of their decision points were unserved. It also missed the one junction that
+matters: the point where the two main spines CROSS is a decision point by construction and is an
+endpoint of nothing, being the middle of both.
+
+`anchor: junction` was the third attempt at the siting. `anchor: centre` claims its box in the
+FIRST siting group, so a 9x9 fingerpost took the middle of the Hollow before its rides were placed
+and cost it the Ghost Train and the Plummet. A preference keeps the module in its ordinary place in
+the size order and takes the free bay nearest the crossing, so on a full plot it degrades to where
+it used to be rather than starving anything.
+
+**The three plans are re-planned and approved**, and the pre-overhaul ones are kept beside them as
+`out/plans/park_*.json.pre-overhaul`. What changed in them: the Hollow lost its nine per-facade
+nameplates and gained two decision-point fingerposts and a Mourning Parlour; the Frontier's Pay
+Window became the Prize Office on Main Street and the Runaway Mine became the Mine Cart Escape,
+underground. All three site fully - no NO SITE anywhere - and pass every gate that can be derived
+offline.

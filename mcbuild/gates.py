@@ -188,20 +188,57 @@ def wayfinding(plan: dict) -> dict:
 SIGN_REACH = 12
 
 
-def _junctions(routes) -> list:
-    """Where the public network branches - a cell on three or more distinct routes' centre lines.
+def _horizontal(point) -> tuple:
+    """The (x, z) of a route endpoint, which may be `[x, z]` or `[x, y, z]`.
 
-    Measured on the ROUTE graph rather than on the paved cells, because every cell in the middle
-    of a 5-wide avenue has four paved neighbours and would otherwise read as a junction.
+    **THIS GATE CARRIED THE SAME TWO-DIMENSIONAL BUG IT WAS WRITTEN TO CATCH.** Unpacked as
+    `point[0], point[1]`, a three-element endpoint hands back x and Y - so the moment a land grew
+    an underground landing, every junction it reported was a coordinate pair that exists nowhere,
+    no sign was ever within reach of one, and both side lands warned that all of their decision
+    points were unserved. The reading has to be by position, exactly as `pathgraph.cells` does it.
+    """
+    return (int(point[0]), int(point[2])) if len(point) > 2 else (int(point[0]), int(point[1]))
+
+
+def _junctions(routes) -> list:
+    """Where the public network branches - the places a guest has to choose.
+
+    Two things count, and the second one is the one that matters most. A cell shared by three or
+    more routes' ENDPOINTS is a branch; and the point where the two main spines CROSS is the
+    land's own crossroads, which is a decision point by construction and is an endpoint of
+    nothing - it is the middle of both of them. Measured on the route graph rather than on the
+    paved cells, because every cell in the middle of a 5-wide avenue has four paved neighbours
+    and would otherwise read as a junction.
     """
     from collections import Counter
     ends = Counter()
+    spines = []
     for r in routes:
         if r.get("role") not in {"main_spine", "secondary", "exit"}:
             continue
-        for point in (r["a"], r["b"]):
-            ends[(int(point[0]), int(point[1]))] += 1
-    return [point for point, count in ends.items() if count >= 3]
+        a, b = _horizontal(r["a"]), _horizontal(r["b"])
+        ends[a] += 1
+        ends[b] += 1
+        if r.get("role") == "main_spine":
+            spines.append((a, b))
+    out = [point for point, count in ends.items() if count >= 3]
+    for i, (a1, b1) in enumerate(spines):
+        for a2, b2 in spines[i + 1:]:
+            cross = _crossing(a1, b1, a2, b2)
+            if cross and cross not in out:
+                out.append(cross)
+    return out
+
+
+def _crossing(a1, b1, a2, b2):
+    """Where two axis-aligned segments cross, or None."""
+    for (p0, p1), (q0, q1) in ((((a1, b1)), (a2, b2)), ((a2, b2), (a1, b1))):
+        if p0[0] == p1[0] and q0[1] == q1[1]:          # one vertical, one horizontal
+            x, z = p0[0], q0[1]
+            if (min(p0[1], p1[1]) <= z <= max(p0[1], p1[1])
+                    and min(q0[0], q1[0]) <= x <= max(q0[0], q1[0])):
+                return (x, z)
+    return None
 
 
 # ------------------------------------------------------------------ the evidence gates

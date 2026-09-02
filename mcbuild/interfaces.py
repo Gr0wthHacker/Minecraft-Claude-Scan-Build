@@ -228,6 +228,15 @@ def _resolve_face(facing: str, relative: str) -> str:
     return _BACK[_LEFT[facing]]
 
 
+#: Anchors that belong to the backstage. Their FACE is a consequence rather than a decision, so
+#: they may move to a flank when the rear is off the land - a shopfront may not.
+_SERVICE_FACES = {"service_access", "staff_exit"}
+
+
+def _on(x: int, z: int, owned) -> bool:
+    return bool(owned) and owned[0] <= x <= owned[1] and owned[2] <= z <= owned[3]
+
+
 def anchors_for(module: dict, plane: int | None = None, owned=None) -> list[dict]:
     """Every named anchor this module owes, as world-space points on the walking course.
 
@@ -264,6 +273,20 @@ def anchors_for(module: dict, plane: int | None = None, owned=None) -> list[dict
         relative, along, distance = layout[name]
         face = _resolve_face(facing, relative)
         x, z = _face_point(module, face, along, distance)
+        # **A SERVICE DOOR ON A FACE THAT IS OFF THE LAND CAN NEVER HAVE A YARD.** The layout puts
+        # the backstage on the REAR by construction, which is right until the rear is the plot
+        # boundary: the Midway's whole admission sequence is pinned to its west edge facing east,
+        # so five of its rear doors opened onto the neighbour's ground and no backstage road could
+        # legally reach them. A shopfront's direction is a decision and stays where it is put; a
+        # service door only has to be somewhere a road can get to, so it takes the first flank
+        # that is actually on the land.
+        if owned and name in _SERVICE_FACES and not _on(x, z, owned):
+            for alternative in ("left", "right", "front"):
+                other = _resolve_face(facing, alternative)
+                ox, oz = _face_point(module, other, along, distance)
+                if _on(ox, oz, owned):
+                    face, x, z = other, ox, oz
+                    break
         off_land = (name in HANDOFF and bool(owned)
                     and not (owned[0] <= x <= owned[1] and owned[2] <= z <= owned[3]))
         out.append({"name": name, "at": [int(x), int(y), int(z)], "face": face,

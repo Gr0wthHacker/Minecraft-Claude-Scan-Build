@@ -115,6 +115,19 @@ def _read(design: str, out_dir: str = "out"):
     return cells, signs, [tuple(int(v) for v in c) for c in (_raw.get("dig") or [])]
 
 
+def _plan_plane(pl) -> int | None:
+    """The course this plan's own build plane sits on, read off the module that IS the ground.
+
+    A plaza covers a land and never moves off the plane, so it is the one module whose height
+    answers "what is level zero here". Deriving it from the modules' average or their lowest cell
+    would move it every time a ride went underground - which is the very thing it has to measure
+    the lift against. A plan with no plaza has one level and says so with `None`.
+    """
+    hub = next((m for m in getattr(pl, "modules", ())
+                if m.get("covers") and m.get("kind") == "plaza"), None)
+    return int(hub["at"][1]) if hub else None
+
+
 def slice_plan(plan_name: str, floor_y: int, out_dir: str = "out",
                prefix: str | None = None) -> list:
     """Write one complete design per layer. Returns [(name, cells)] in BUILD order."""
@@ -128,13 +141,27 @@ def slice_plan(plan_name: str, floor_y: int, out_dir: str = "out",
     # WRITER WINS, in plan order, which is the same precedence `defer_to` used to enforce by
     # deleting cells from the loser: a room owns its own floor and the hall lays only the ground
     # between them. Doing it here means the modules stay whole and one place decides.
+    # **A SLICE IS PER BAND, NOT PER PLAN.** `_which` puts everything below `floor_y` into
+    # Machines, which was right while the only thing under a park's floor WAS its wiring. A
+    # vertical park has ROOMS down there - the Frontier's mine ride stands 24 courses under its
+    # own headframe - and sliced against one global floor the whole ride came out as the
+    # mechanism's basement: a printer would be handed a Machines layer containing a station, its
+    # walls and its track.
+    #
+    # So each cell is judged against the floor of the MODULE it came from, which is the plan's
+    # own floor shifted by that module's lift off the build plane. Recorded at the moment a cell
+    # is claimed, because first-writer-wins runs across modules and the loser's floor is not the
+    # one the cell was built to.
+    plane = _plan_plane(pl)
     cells: dict = {}
+    floors: dict = {}
     signs: dict = {}
     dig: list = []
     seen_dig: set = set()
     contested = 0
     for m in pl.modules:
         c, s, d = _read(m["name"], out_dir)
+        here = floor_y if plane is None else floor_y + (int(m["at"][1]) - plane)
         for cell in d:
             if cell not in seen_dig:
                 seen_dig.add(cell)
@@ -145,13 +172,17 @@ def slice_plan(plan_name: str, floor_y: int, out_dir: str = "out",
                     contested += 1
                 continue                      # first writer keeps it
             cells[pos] = v
+            floors[pos] = here
         signs.update(s)
     if contested:
         print(f"  {contested} contested cells resolved by plan order (the hall under the rooms)")
+    levels = sorted({v for v in floors.values()})
+    if len(levels) > 1:
+        print(f"  {len(levels)} build levels: " + ", ".join(f"Y{v}" for v in levels))
 
     buckets: dict = collections.defaultdict(dict)
     for pos, (name, props) in cells.items():
-        buckets[_which(name, pos[1], floor_y)][pos] = (name, props)
+        buckets[_which(name, pos[1], floors.get(pos, floor_y))][pos] = (name, props)
 
     written = []
     # **THE WHOLE THING, AS ONE DESIGN.** The layers are the build steps; this is the answer to

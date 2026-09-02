@@ -600,3 +600,37 @@ def test_plaza_landscaping_never_stands_inside_a_real_building_when_wired(zone):
     hits = [(x, z) for (x, z) in raised_wired
             if any(x0 <= x <= x1 and z0 <= z <= z1 for (x0, z0, x1, z1) in boxes)]
     assert not hits, f"{zone}: obstacle-wired plaza still stands inside a building at {hits[:5]}"
+
+
+def test_a_junction_anchor_takes_the_crossroads_when_there_is_room():
+    """**A FINGERPOST BELONGS AT THE CROSSROADS AND MUST NOT COST A RIDE TO GET THERE.**
+
+    `anchor: centre` was tried and is the wrong tool: it claims its box in the FIRST siting
+    group, so a 9x9 post took the middle of the Hollow before its rides were placed and cost it
+    the Ghost Train and the Plummet. `junction` is a PREFERENCE - the module keeps its ordinary
+    place in the size order and takes the free bay nearest the crossing, so on a full plot it
+    degrades to where it used to be rather than starving anything.
+    """
+    from mcbuild import islands
+    plot = islands.plot_of("newisle")
+    if plot is None:
+        pytest.skip("no registered island to measure a plot from")
+    spec = planner.THEMES["midway"]
+    box = planner._centre_box(plot, spec)
+    x0, x1, z0, z1 = planner._owned_bounds(plot, spec)
+    assert box == ((x0 + x1) // 2, (z0 + z1) // 2, (x0 + x1) // 2, (z0 + z1) // 2)
+
+    # ...and a bay ON the crossing sorts ahead of one far from it.
+    size = [9, 9, 9]
+    near = planner._box_gap(box[0] - 4, box[1] - 4, size, box)
+    far = planner._box_gap(x0, z0, size, box)
+    assert near < far
+
+
+@pytest.mark.parametrize("zone", ZONES)
+def test_a_junction_anchored_module_never_starves_a_ride(zone):
+    """The property the `centre` attempt broke: nothing may report NO SITE because a signpost
+    wanted the middle of the plot."""
+    pl = _planned(zone)
+    starved = [n for n in pl.notes if "NO SITE" in n]
+    assert not starved, f"{zone}: {starved}"

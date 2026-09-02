@@ -193,3 +193,44 @@ def test_the_slice_carries_every_module_s_DIG_LIST():
                 parts.append(len(json.load(fh).get("dig") or []))
     assert all(c == 0 for c in parts), f"a LAYER carries a dig list: {parts}"
     assert "dig" in raw, "the whole design's sidecar has no dig key at all"
+
+
+# ------------------------------------------------------------------ vertical parks
+
+def test_a_room_under_the_town_is_not_the_basement():
+    """**A SLICE IS PER BAND, NOT PER PLAN.** `_which` puts everything below `floor_y` into
+    Machines, which was right while the only thing under a park's floor WAS its wiring. The
+    Frontier's mine ride stands 24 courses under its own headframe, and sliced against one global
+    floor its walls, its station and its track all came out as the mechanism's basement - a
+    printer would be handed a Machines layer containing a whole ride.
+
+    Judged against its OWN floor, an underground room's walls are walls.
+    """
+    assert layers._which("stone_bricks", 209, 203) == "Walls"
+    assert layers._which("stone_bricks", 209, 179) == "Walls"
+    # ...and the same cell, judged against the surface floor it does not belong to, is not.
+    assert layers._which("stone_bricks", 185, 203) == "Machines"
+    assert layers._which("stone_bricks", 185, 179) == "Walls"
+    assert layers._which("stone_bricks", 179, 179) == "Floor"
+
+
+def test_a_machine_is_still_a_machine_on_any_level():
+    """The rule that machines win over height has to survive the per-band shift, or an
+    underground ride's wiring would be filed as its walls."""
+    for floor in (203, 179):
+        assert layers._which("redstone_wire", floor + 6, floor) == "Machines"
+        assert layers._which("hopper", floor - 2, floor) == "Machines"
+
+
+def test_the_plan_plane_comes_from_the_module_that_is_the_ground():
+    """Derived from the modules' average or their lowest cell it would move every time a ride
+    went underground - which is the very thing it has to measure the lift against."""
+    class _Plan:
+        modules = [{"name": "Ride", "kind": "coaster", "at": [0, 203, 0]},
+                   {"name": "Mine", "kind": "runawaymine", "at": [0, 179, 0]},
+                   {"name": "Plaza", "kind": "plaza", "covers": True, "at": [0, 203, 0]}]
+    assert layers._plan_plane(_Plan()) == 203
+
+    class _NoGround:
+        modules = [{"name": "Ride", "kind": "coaster", "at": [0, 203, 0]}]
+    assert layers._plan_plane(_NoGround()) is None

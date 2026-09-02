@@ -204,7 +204,7 @@ THEMES = {
              "size": [3, 7, 7], "orient": False,
              "params": {"land": "midway", "title": "PARK RULES", "facing": "east"}},
             {"name": "Midway Post", "gen": "wayfinding", "kind": "fingerpost",
-             "size": [9, 9, 9], "orient": False,
+             "size": [9, 9, 9], "orient": False, "anchor": "junction",
              "params": {"land": "midway", "facing": "east",
                         "arms": [{"direction": "north", "dest": "Frontier"},
                                  {"direction": "south", "dest": "Hollow"},
@@ -345,7 +345,7 @@ THEMES = {
              "params": {"land": "frontier", "zone": "frontier", "title": "FRONTIER",
                         "facing": "east"}},
             {"name": "Frontier Post", "gen": "wayfinding", "kind": "fingerpost",
-             "size": [9, 9, 9], "orient": False,
+             "size": [9, 9, 9], "orient": False, "anchor": "junction",
              "params": {"land": "frontier", "facing": "east",
                         "arms": [{"direction": "south", "dest": "Midway"},
                                  {"direction": "west", "dest": "Mine Coaster"}]}},
@@ -511,7 +511,7 @@ THEMES = {
                         "legend": ["MANOR west", "TOWER east", "MARKET south"],
                         "facing": "east"}},
             {"name": "Hollow Post", "gen": "wayfinding", "kind": "fingerpost",
-             "size": [9, 9, 9], "orient": False,
+             "size": [9, 9, 9], "orient": False, "anchor": "junction",
              "params": {"land": "hollow", "facing": "east",
                         "arms": [{"direction": "north", "dest": "Midway"},
                                  {"direction": "west", "dest": "Haunted Manor"},
@@ -862,6 +862,27 @@ def _district_spread(members) -> int:
                max(b[3] for b in boxes) - min(b[1] for b in boxes)) + 1
 
 
+def _centre_box(pl_plot, spec):
+    """The single cell where a land's two spines cross - its own crossroads.
+
+    **A FINGERPOST BELONGS AT THE CROSSROADS AND MUST NOT COST A RIDE TO GET THERE.** Rule 7 makes
+    wayfinding part of the path graph and the land specs put it at the decision points rather
+    than on every facade; sited by `bays` it lands wherever a slot was free, which is a signpost
+    in a field, and both side lands had every decision point unserved while carrying a post each.
+
+    `anchor: centre` was tried and is the wrong tool: it claims its box in the FIRST siting group,
+    so a 9x9 post took the middle of the Hollow before its rides were placed and cost it the
+    Ghost Train and the Plummet. This is a PREFERENCE instead - the module keeps its ordinary
+    place in the size order and simply takes the free bay nearest the crossing, which for a
+    signpost is exactly the right answer and for a full plot degrades to where it used to be.
+    """
+    if pl_plot is None:
+        return None
+    x0, x1, z0, z1 = _owned_bounds(pl_plot, spec)
+    cx, cz = (x0 + x1) // 2, (z0 + z1) // 2
+    return (cx, cz, cx, cz)
+
+
 def _district_box(modules, district):
     """The bounding box of everything already sited in a named district, or None.
 
@@ -1080,6 +1101,8 @@ def _site_order(spec: dict) -> list:
     edge, free, cover = [], [], []
     for m in spec["modules"]:
         a = m.get("anchor")
+        # `junction` is a PREFERENCE, not a pin, so it stays in the free group and keeps its
+        # place in the size order - which is the whole reason it cannot starve anything.
         grp = (cover if a == "cover"
                else edge if a in ("edge", "centre", "origin") else free)
         grp.append(m)
@@ -1415,6 +1438,8 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 # ordinary rule rather than reporting NO SITE. Grouping is a preference, and a
                 # sited module beats a tidy one.
                 _here = _district_box(pl.modules, mspec.get("district"))
+                if mspec.get("anchor") == "junction":
+                    _here = _centre_box(pl_plot, spec)
                 if _here is not None:
                     _bays = sorted(bays(pl_plot, size, spacing=1),
                                    key=lambda t: (_box_gap(t[0], t[1], size, _here),
@@ -1496,6 +1521,8 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 # sorted purely by contact and cheerfully hugged whichever wall was nearest.
                 # Proximity to the district comes first, then contact, then the centre.
                 _here = _district_box(pl.modules, mspec.get("district"))
+                if mspec.get("anchor") == "junction":
+                    _here = _centre_box(pl_plot, spec)
                 if _here is not None:
                     cands.sort(key=lambda t: (_box_gap(t[0], t[1], size, _here),
                                               -_contact(t[0], t[1], size, taken, _b),
