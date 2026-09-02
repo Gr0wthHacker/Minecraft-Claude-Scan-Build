@@ -1,20 +1,20 @@
 {
   "origin": {
-    "x": 97583,
+    "x": 97577,
     "y": 200,
-    "z": 80800
+    "z": 80801
   },
   "size": {
-    "x": 19,
+    "x": 15,
     "y": 14,
-    "z": 15
+    "z": 19
   },
   "generated_by": "hollowmanor",
   "concealed": 8,
   "visible_redstone": 0,
   "kind": "seance",
   "land": "hollow",
-  "facing": "north",
+  "facing": "east",
   "contract": "press the pull once and the meter answers: a roll of 1, 2 or 4 at equal odds lights exactly the first 1, 2 or 4 of four lamps, and nothing is lit at rest",
   "unverified": [
     "the odds come from the ITEM MIX, not the wiring: a dropper ejects a uniformly random one of its occupied slots. The mix is recorded in `stock` and MUST be loaded exactly - the simulator has no entities and cannot check it for you."
@@ -25,37 +25,37 @@
   "lamps": 4,
   "inputs": [
     [
-      97589,
+      97586,
       203,
-      80805
+      80813
     ]
   ],
   "outputs": [
     [
-      97592,
+      97582,
+      201,
+      80810
+    ],
+    [
+      97582,
       201,
       80809
     ],
     [
-      97593,
+      97582,
       201,
-      80809
+      80808
     ],
     [
-      97594,
+      97582,
       201,
-      80809
-    ],
-    [
-      97595,
-      201,
-      80809
+      80807
     ]
   ],
   "rng_hopper": [
-    97590,
+    97581,
     201,
-    80810
+    80812
   ],
   "lanterns": 4,
   "stock": {
@@ -104,16 +104,21 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Seance serves the hollow visitor journey."
+    },
     "metrics": {
       "blocks": 1005,
       "materials": 18,
-      "dominant_material_share": 0.2597,
+      "dominant_material_share": 0.2706,
       "light_blocks": 8,
       "massing": {
-        "width": 19,
+        "width": 15,
         "height": 14,
-        "depth": 15,
+        "depth": 19,
         "fill_ratio": 0.2519
       },
       "silhouette": {
@@ -122,21 +127,21 @@
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 157,
-          "fill_ratio": 0.5902
-        },
-        "side": {
           "area": 123,
           "fill_ratio": 0.5857
+        },
+        "side": {
+          "area": 157,
+          "fill_ratio": 0.5902
         }
       },
       "material_counts": {
-        "polished_blackstone_bricks": 261,
-        "deepslate_tiles": 202,
-        "cobbled_deepslate": 195,
+        "polished_blackstone_bricks": 272,
+        "deepslate_tiles": 203,
+        "cobbled_deepslate": 185,
         "deepslate_tile_stairs": 156,
-        "black_wool": 83,
-        "deepslate_bricks": 57,
+        "black_wool": 82,
+        "deepslate_bricks": 56,
         "blackstone": 20,
         "redstone_wire": 10,
         "redstone_lamp": 4,
@@ -154,12 +159,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "547457c9aa1fddf52774abff0d9e5a53ffc6b60995cb7946d736f112d8652a78",
+    "fingerprint": "3075c843a55698f74fb822fdf6af24e89b01232ed1b9d34fedf780fe9152c4b7",
     "generator_source_digest": "78432afd2c7f6c1b4c0c207ee2d8627157b89361046036feb47bea0b3a0e0fe4",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -174,6 +199,51 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97593,
+        204,
+        80810
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1005,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: chiseled_polished_blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: deepslate_tile_stairs",
+    "unsupported on skyblock-1.19: deepslate_tiles",
+    "unsupported on skyblock-1.19: dropper",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: redstone_lamp"
+  ],
   "file": "The Seance.litematic",
   "name": "The Seance"
 }

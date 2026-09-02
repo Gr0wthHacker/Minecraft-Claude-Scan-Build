@@ -45,7 +45,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "Entry Queue serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 279,
       "materials": 8,
@@ -91,12 +96,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "fb6641bffc6f2fcf22a6ac0098dfe5c2ae4260c73401103320286573a0bc8eb0",
+    "fingerprint": "669e4b5b26549200acdd23571366e1a122a0b4f993af11ad438f53ecdc484282",
     "generator_source_digest": "627eace157c64c64c1860ff4d05c35aa4e7f15394fa471826c6a93746f593b6b",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -109,6 +135,45 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "arrival",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97563,
+        204,
+        80614
+      ],
+      [
+        97549,
+        204,
+        80614
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 279,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone"
+  ],
   "file": "Entry Queue.litematic",
   "name": "Entry Queue"
 }

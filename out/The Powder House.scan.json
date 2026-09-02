@@ -1,20 +1,20 @@
 {
   "origin": {
-    "x": 97613,
+    "x": 97626,
     "y": 202,
-    "z": 80401
+    "z": 80391
   },
   "size": {
-    "x": 23,
+    "x": 13,
     "y": 8,
-    "z": 13
+    "z": 23
   },
   "generated_by": "frontiertown",
   "kind": "powderhouse",
   "concealed": 63,
   "visible_redstone": 0,
   "land": "frontier",
-  "facing": "east",
+  "facing": "north",
   "contract": "nothing fires unless the lever is ARMED and the button PRESSED; a press then walks a chase of 5 pistons down the drift, fires all 7 charges at the face and rings the bell - and the button releases itself, so a held press is one shot",
   "unverified": [
     "A PISTON HEAD IS MOTION AND THIS SIMULATOR HAS NONE - it answers whether each piston is POWERED, never what the head looks like coming out of the wall beside you."
@@ -23,261 +23,261 @@
   "depth": 21,
   "height": 7,
   "lever": [
-    97633,
+    97628,
     204,
-    80411
+    80393
   ],
   "button": [
-    97633,
+    97631,
     204,
-    80408
+    80393
   ],
   "comparator": [
-    97630,
+    97632,
     203,
-    80407
+    80396
   ],
   "chase": [
     [
-      97624,
+      97633,
+      204,
+      80402
+    ],
+    [
+      97633,
+      204,
+      80404
+    ],
+    [
+      97633,
       204,
       80406
     ],
     [
-      97622,
+      97633,
       204,
-      80406
+      80408
     ],
     [
-      97620,
+      97633,
       204,
-      80406
-    ],
-    [
-      97618,
-      204,
-      80406
-    ],
-    [
-      97616,
-      204,
-      80406
+      80410
     ]
   ],
   "shots": [
     [
-      97615,
+      97628,
       205,
       80411
     ],
     [
-      97615,
+      97629,
       205,
-      80410
+      80411
     ],
     [
-      97615,
+      97630,
       205,
-      80409
+      80411
     ],
     [
-      97615,
+      97631,
       205,
-      80408
+      80411
     ],
     [
-      97615,
+      97632,
       205,
-      80407
+      80411
     ],
     [
-      97615,
+      97634,
       205,
-      80405
+      80411
     ],
     [
-      97615,
+      97635,
       205,
-      80404
+      80411
     ]
   ],
   "bell": [
-    97615,
+    97636,
     206,
-    80403
+    80411
   ],
   "feed": [
     [
-      97615,
+      97628,
       206,
       80411
     ],
     [
-      97615,
+      97629,
       206,
-      80410
+      80411
     ],
     [
-      97615,
+      97630,
       206,
-      80409
+      80411
     ],
     [
-      97615,
+      97631,
       206,
-      80408
+      80411
     ],
     [
-      97615,
+      97632,
       206,
-      80407
+      80411
     ],
     [
-      97615,
+      97633,
       206,
-      80406
+      80411
     ],
     [
-      97615,
+      97634,
       206,
-      80405
+      80411
     ],
     [
-      97615,
+      97635,
       206,
-      80404
+      80411
     ]
   ],
   "chain": [
     [
-      97625,
+      97633,
+      205,
+      80401
+    ],
+    [
+      97633,
+      205,
+      80402
+    ],
+    [
+      97633,
+      205,
+      80403
+    ],
+    [
+      97633,
+      205,
+      80404
+    ],
+    [
+      97633,
+      205,
+      80405
+    ],
+    [
+      97633,
       205,
       80406
     ],
     [
-      97624,
+      97633,
       205,
-      80406
+      80407
     ],
     [
-      97623,
+      97633,
       205,
-      80406
+      80408
     ],
     [
-      97622,
+      97633,
       205,
-      80406
+      80409
     ],
     [
-      97621,
+      97633,
       205,
-      80406
-    ],
-    [
-      97620,
-      205,
-      80406
-    ],
-    [
-      97619,
-      205,
-      80406
-    ],
-    [
-      97618,
-      205,
-      80406
-    ],
-    [
-      97617,
-      205,
-      80406
-    ],
-    [
-      97616,
-      205,
-      80406
+      80410
     ]
   ],
   "face": 19,
   "inputs": [
     [
-      97633,
+      97628,
       204,
-      80411
+      80393
     ],
     [
-      97633,
+      97631,
       204,
-      80408
+      80393
     ]
   ],
   "outputs": [
     [
-      97624,
+      97633,
+      204,
+      80402
+    ],
+    [
+      97633,
+      204,
+      80404
+    ],
+    [
+      97633,
       204,
       80406
     ],
     [
-      97622,
+      97633,
       204,
-      80406
+      80408
     ],
     [
-      97620,
+      97633,
       204,
-      80406
+      80410
     ],
     [
-      97618,
-      204,
-      80406
-    ],
-    [
-      97616,
-      204,
-      80406
-    ],
-    [
-      97615,
+      97628,
       205,
       80411
     ],
     [
-      97615,
+      97629,
       205,
-      80410
+      80411
     ],
     [
-      97615,
+      97630,
       205,
-      80409
+      80411
     ],
     [
-      97615,
+      97631,
       205,
-      80408
+      80411
     ],
     [
-      97615,
+      97632,
       205,
-      80407
+      80411
     ],
     [
-      97615,
+      97634,
       205,
-      80405
+      80411
     ],
     [
-      97615,
+      97635,
       205,
-      80404
+      80411
     ],
     [
-      97615,
+      97636,
       206,
-      80403
+      80411
     ]
   ],
   "signs": 3,
@@ -315,16 +315,21 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The Powder House serves the frontier visitor journey."
+    },
     "metrics": {
       "blocks": 1111,
       "materials": 17,
       "dominant_material_share": 0.4122,
       "light_blocks": 3,
       "massing": {
-        "width": 23,
+        "width": 13,
         "height": 8,
-        "depth": 13,
+        "depth": 23,
         "fill_ratio": 0.4645
       },
       "silhouette": {
@@ -333,12 +338,12 @@
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 169,
-          "fill_ratio": 0.9185
-        },
-        "side": {
           "area": 94,
           "fill_ratio": 0.9038
+        },
+        "side": {
+          "area": 169,
+          "fill_ratio": 0.9185
         }
       },
       "material_counts": {
@@ -365,12 +370,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "ad45e1f9310b834b7ce39670262b0b04e615d978cb28965008938cd6a80c59e6",
+    "fingerprint": "cf861eae5d1d52772b54009f1e2b931edab895fe5863eb8548022f6f85d9dd80",
     "generator_source_digest": "73f071a42a113b02f1bd2b3cf5caf31c5998401474b891a676aea41708a2a95c",
     "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -384,6 +410,41 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97632,
+        204,
+        80389
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1111,
+    "mechanic_families": [
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: bell"
+  ],
   "file": "The Powder House.litematic",
   "name": "The Powder House"
 }

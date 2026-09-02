@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97603,
+    "x": 97595,
     "y": 202,
-    "z": 80808
+    "z": 80828
   },
   "size": {
     "x": 11,
@@ -34,111 +34,111 @@
   "lanes": 5,
   "barrels": [
     [
-      97609,
+      97601,
       204,
-      80812
+      80832
     ],
     [
-      97609,
+      97601,
       204,
-      80814
+      80834
     ],
     [
-      97609,
+      97601,
       204,
-      80816
+      80836
     ],
     [
-      97609,
+      97601,
       204,
-      80818
+      80838
     ],
     [
-      97609,
+      97601,
       204,
-      80820
+      80840
     ]
   ],
   "lamps": [
     [
-      97607,
+      97599,
       204,
-      80812
+      80832
     ],
     [
-      97607,
+      97599,
       204,
-      80814
+      80834
     ],
     [
-      97607,
+      97599,
       204,
-      80816
+      80836
     ],
     [
-      97607,
+      97599,
       204,
-      80818
+      80838
     ],
     [
-      97607,
+      97599,
       204,
-      80820
+      80840
     ]
   ],
   "signed": true,
   "inputs": [
     [
-      97609,
+      97601,
       204,
-      80812
+      80832
     ],
     [
-      97609,
+      97601,
       204,
-      80814
+      80834
     ],
     [
-      97609,
+      97601,
       204,
-      80816
+      80836
     ],
     [
-      97609,
+      97601,
       204,
-      80818
+      80838
     ],
     [
-      97609,
+      97601,
       204,
-      80820
+      80840
     ]
   ],
   "outputs": [
     [
-      97607,
+      97599,
       204,
-      80812
+      80832
     ],
     [
-      97607,
+      97599,
       204,
-      80814
+      80834
     ],
     [
-      97607,
+      97599,
       204,
-      80816
+      80836
     ],
     [
-      97607,
+      97599,
       204,
-      80818
+      80838
     ],
     [
-      97607,
+      97599,
       204,
-      80820
+      80840
     ]
   ],
   "stock": {
@@ -178,7 +178,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Reliquary serves the hollow visitor journey."
+    },
     "metrics": {
       "blocks": 458,
       "materials": 12,
@@ -228,12 +233,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "4f7cf9a9e0edee0acf93f8f05de26f92b882dbf87d2d4ba0bbdbe2397c8fea2e",
+    "fingerprint": "c68b7a4a246a437c194879ef7f4c22369ee07b077acd9efad71551f422671343",
     "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "gable"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -248,6 +273,49 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97593,
+        204,
+        80836
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 458,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: dark_oak_planks",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_slab",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_stairs",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: redstone_lamp"
+  ],
   "file": "The Reliquary.litematic",
   "name": "The Reliquary"
 }

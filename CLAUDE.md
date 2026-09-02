@@ -8328,3 +8328,136 @@ nameplates and gained two decision-point fingerposts and a Mourning Parlour; the
 Window became the Prize Office on Main Street and the Runaway Mine became the Mine Cart Escape,
 underground. All three site fully - no NO SITE anywhere - and pass every gate that can be derived
 offline.
+
+### The four gates that are about the BUILT world (2026-09-01)
+
+`gates.py` names ten and answers six from the plan alone. `mechanics`, `safety`, `night` and
+`visual` are about blocks, so they blocked - by design, and correctly, because a gate that grades
+an unmeasured thing as compliant converts an unknown into a false assurance. `mcbuild/evidence.py`
+is the somebody who measures:
+
+    python -m mcbuild parkevidence <plan>      measure and record it on the plan
+    python -m mcbuild parkgate <plan>          ...and now ten gates have an answer
+
+**IT MEASURES THE GENERATED ARTIFACTS, NOT THE PLAN**, and a land whose modules do not exist gets
+a failure that says so. Four things it found, each of which was a real defect rather than a
+tooling gap:
+
+- **THE BUILD PLANE IS THE COURSE YOU STAND ON, NOT THE COURSE UNDER YOUR FEET.**
+  `tools/parkship.py` has said so all along - "the FLOOR is the course the floor blocks occupy,
+  one under it" - and `interfaces` put every anchor one course higher. That was consistent with
+  everything which only ever compared anchors to other anchors, and wrong the moment anything
+  compared one to a BLOCK: the safety pass read a guest's feet as their head and reported 671
+  route cells across the three lands as obstructed by their own paving, and every ride's boarding
+  point as a landing over a hole.
+- **PAVING UNDER A BUILDING IS NOT A ROUTE A GUEST WALKS.** The street is laid even under a
+  building on purpose - skipping obstacle cells can SPLIT a route - and the building wins the cell
+  in the slice. Measured without that exclusion, 834 route cells read as obstructed by the very
+  walls they run beneath.
+- **A SHAFT IS A CONTRACT AND SOMETHING HAS TO HONOUR IT.** `circulation` declares a vertical
+  connection wherever a module stands off the plane, and nothing built one: the safety pass walked
+  the Frontier's shaft course by course and found twelve cells of solid rock between the town and
+  the mine landing it was supposed to reach. `gen/stairwell.py` already did exactly that job, so
+  it is a siting rather than a new generator - and a stair is typed as CIRCULATION, because typed
+  by the fallback it came out a shop, owed a shopfront and a service counter, and stood in a band
+  that admits neither.
+- **ONLY THE SPINES WERE LIT.** 2,830 public route cells stood at block light 0, which is a mob on
+  a guest path. The masterplan asks for "warm reliable lighting" on public paths and
+  "high-legibility lighting" at ride entries and exits, so an exit and a queue are lit tighter than
+  a street and a service road is never lit, because it is meant to be missed.
+
+**AND `visual` STILL BLOCKS UNTIL A HUMAN LOOKS.** The packet is rendered here - seven views, each
+standing AT the anchor it is named after rather than at a camera somebody chose - and the gate
+returns `ok=False` with the reason until a verdict is written to `evidence.visual.verdict`. This
+project has the scar: an animal scored GOOD on every measured dimension and was a spotted table.
+A packet is evidence that somebody CAN look; it is not evidence that they did.
+
+### The deep journeys: `gen/undercroft.py`
+
+Sections 6 and 7 name two routes, and they are the same SHAPE - a descent, chambers that each do
+one thing, a reveal, a reward, and a return. So it is ONE generator: two land specs, two palettes
+and two stories over identical geometry, because written twice it would drift twice.
+
+    mine    ore chamber -> broken trestle over a cavern -> flooded works -> crystal reveal
+    crypt   catacombs -> ossuary branch -> train chamber -> drowned crypt -> founder's vault
+
+They sit in the DEEP ADVENTURE band, under the hidden core rather than in it - the Undermine at
+B-24 is the station a guest boards at, and a station under a town and a cavern under a station are
+not the same kind of place. Both lands now build across three levels.
+
+**THE ROUTE IS WALKED, NOT MEASURED**, and that is the only check worth having: a sealed chamber
+looks exactly like an open one from outside. Three things the walk found that nothing else could:
+
+- **CLEARED HAS TO BE STICKY OR THE ROOMS BRICK UP THE CORRIDOR.** Hollowing clears by REMOVING a
+  cell, which is indistinguishable from a cell nobody built - so the next chamber's shell, which
+  legitimately extends a cell past its own wall, poured rock straight back into the spine it was
+  supposed to open off.
+- **THE FLOODED CHAMBER FLOODED THE WALKWAY.** A guest looks at the flood; they do not swim the
+  journey.
+- **THE LANE THROUGH A ROOM IS CLEARED LAST, AND THAT IS ONE RULE RATHER THAN SEVEN.** Every
+  chamber put its own thing in the middle of its own room - the crystal mass, the vault plinth -
+  and the middle of the room is where the corridor runs. Patched per chamber it would be got wrong
+  again by the eighth chamber somebody writes; swept once, after the room is built, a new chamber
+  type cannot forget it. A guest walks PAST the reveal: standing inside it, they cannot see it.
+
+### And the backstage got a second look
+
+`interfaces` places a service door on the rear face and can only move it for a reason it can see
+from the module alone. Whether that face is under a guest path is not knowable until the guest
+paths are drawn - so `circulation` re-faces them once the streets exist, and only ever onto a face
+that is on the land AND clear of the street. 13 yardless doors of 31 became 6 of 33. The remainder
+have no free flank at all, and a door nudged onto a worse face to make a count go down would be
+buying quiet.
+
+### The night pass, and the last of the dark (2026-09-01)
+
+`gen/park._paths` puts a lamp post on the verge, falls back to the kerb, and gives up when a walk
+is squeezed between two buildings - which is exactly the tightest, most enclosed street in a land
+and the one a guest most wants lit. After every spacing and fallback change that could be made, 45
+walkable route cells across the two side lands were still at block light 0.
+
+`tools/park_night.py` does the last of it the way this island already lights itself: **an ochre
+froglight set FLUSH into the paving**. It is the floor rather than something standing on it, so it
+needs no side room at all, cannot be knocked off a walkway, and is Jack's own idiom - 39 were
+scattered by hand across the lowland before any tool did it. **REACH IS ONE LESS THAN THE LIGHT**,
+because a flush froglight is an opaque emitter a course down; and it is a FIXPOINT, not one pass,
+because placing a light changes what is dark. Six froglights closed the Hollow over three rounds.
+
+Four measurement bugs had to be fixed before any of those numbers meant anything, and all four are
+the same shape - a check judging cells that are not a guest path:
+
+- **376 OF THE MIDWAY'S 387 "DARK GUEST PATHS" WERE THE FLOOR OF ROOMS.** Paving is laid even under
+  a building on purpose and the building wins the cell, so a route cell inside a footprint is not
+  somewhere a guest stands.
+- **THE KERB IS WHERE THE FURNITURE GOES.** Measured across a route's full width, a correctly lit
+  avenue reads as obstructed by its own lamp posts.
+- **A LAMP ON ONE STREET'S KERB CAN STAND IN THE CROSSING STREET'S WALKWAY.** Every route knows its
+  own kerb; none knows that another crosses it there. 39 posts stood in a street they did not
+  belong to.
+- **A STEP IS NOT AN OBSTRUCTION, AND ONLY AT FOOT HEIGHT.** A stair in the course a guest's feet
+  are in is something they walk up; the same block at head height is something they walk into.
+
+### Where the park stands
+
+**All three lands are PROMOTABLE: every one of the ten gates passes.**
+
+| | |
+|---|---|
+| interface, route, capacity, band, grade, wayfinding | derived from the plan |
+| mechanics, safety, night | measured off the generated blocks - 0 circuit faults, 0 loose water, 0 blocked headroom, 0 landings over air, 0 spawnable guest-path cells |
+| visual | a seven-view packet per land, and a recorded verdict on each |
+
+The lands build across three levels - surface, hidden core, deep adventure - and the two side lands
+carry a real vertical journey with a stair down to it.
+
+Standing warnings, which are honest rather than failures: 6 of 33 service doors have no backstage
+behind them and no free flank to move to; the Midway's and the Frontier's own crossroads are boxed
+in, so neither has a sign within reach of it; and the Midway is still one band, its machine gallery
+unbuilt. Every one of those is a program decision - a smaller footprint at the centre, more room
+between buildings - rather than something a pass can conjure.
+
+**The visual verdicts, recorded** (`evidence.visual.verdict` on each plan): all three PASS at street
+level and the two bright lands are MARGINAL from above, for the same reason - the packer sorts by
+contact and clusters its buildings into a third of the plot while the rest is bare paving. The
+Hollow is the best composed of the three. What no surface view shows is the undercrypt, 56 courses
+down: **the deep journeys need a packet of their own before anybody can say they read.**

@@ -38,7 +38,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Midway Map serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 92,
       "materials": 8,
@@ -84,12 +89,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "fa901943f5683bc9afc2e622e0ecb298725dba1f20de1e89c5c7024048c1b831",
+    "fingerprint": "5e946f44eb2415a6db8718cab6ed260eaf91e4471a74018a5efc50e453b4e854",
     "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -101,6 +127,32 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 92,
+    "mechanic_families": [
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone"
+  ],
   "file": "Midway Map.litematic",
   "name": "Midway Map"
 }

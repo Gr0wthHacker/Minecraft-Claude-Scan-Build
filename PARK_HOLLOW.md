@@ -1,4 +1,8 @@
-# The Hollow / Park Right Rebuild Specification
+# RETIRED — The Hollow / Park Right Rebuild Specification
+
+> This theme is superseded by [PARK_REPROGRAM_PLAN.md](PARK_REPROGRAM_PLAN.md).
+> Do not generate, extend, or promote Hollow assets. The right-hand land is now
+> Prismworks: The Skyfoundry.
 
 ## Land promise
 

@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97601,
+    "x": 97597,
     "y": 202,
-    "z": 80759
+    "z": 80807
   },
   "size": {
     "x": 3,
@@ -38,7 +38,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "Hollow Map serves the hollow visitor journey."
+    },
     "metrics": {
       "blocks": 93,
       "materials": 8,
@@ -84,12 +89,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "a480773f7c164cf1e4dc13bc7428dcd474d5929433416d0f8585406bc5f0f5bc",
+    "fingerprint": "5db23b74edaee30ad4425449669cc5f0f1372d4106ac601a9c3a68631519283f",
     "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -101,6 +126,36 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 93,
+    "mechanic_families": [
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: purple_wool"
+  ],
   "file": "Hollow Map.litematic",
   "name": "Hollow Map"
 }

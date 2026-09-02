@@ -1464,7 +1464,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "The Big Wheel serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 5984,
       "materials": 22,
@@ -1514,12 +1519,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "df72789e111472546396aeb5134d4854a88318a058bb3865d238dccf90749af6",
+    "fingerprint": "b6d6ee76011b5cc7f6e1c59f28a9b8fdb12d22a42432ecaf5e918fc718b6c83c",
     "generator_source_digest": "ad657c6e01f8485954dc722802d4a8b48931ec012b68046e8dea86e329765b2d",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -1535,6 +1561,51 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97619,
+        204,
+        80600
+      ],
+      [
+        97641,
+        204,
+        80600
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 5984,
+    "mechanic_families": [
+      "access",
+      "fluid",
+      "hazard",
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: magenta_wool",
+    "unsupported on skyblock-1.19: oak_fence_gate",
+    "unsupported on skyblock-1.19: purple_wool"
+  ],
   "file": "The Big Wheel.litematic",
   "name": "The Big Wheel"
 }

@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": 97609,
+    "x": 97605,
     "y": 202,
-    "z": 80773
+    "z": 80758
   },
   "size": {
     "x": 7,
-    "y": 8,
+    "y": 10,
     "z": 7
   },
   "generated_by": "streetfurniture",
@@ -16,13 +16,142 @@
   "facing": "west",
   "contract": "a clipped crown on a stem in a tub: the stem runs through every tier, so the whole shrub is one piece rather than discs hanging over a pot",
   "unverified": [],
-  "crown": "cone",
+  "crown": "sphere",
   "tub": "pot",
   "leaf": "spruce_leaves",
-  "radius": 3,
-  "stem": 1,
-  "height": 7,
-  "seed": 128094207,
+  "radius": 2,
+  "stem": 3,
+  "height": 9,
+  "seed": 128087894,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "filler",
+      "style": "hollow",
+      "narrative": "Topiary 3 serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 134,
+      "materials": 8,
+      "dominant_material_share": 0.2985,
+      "light_blocks": 0,
+      "massing": {
+        "width": 7,
+        "height": 10,
+        "depth": 7,
+        "fill_ratio": 0.2735
+      },
+      "silhouette": {
+        "top": {
+          "area": 49,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 32,
+          "fill_ratio": 0.4571
+        },
+        "side": {
+          "area": 32,
+          "fill_ratio": 0.4571
+        }
+      },
+      "material_counts": {
+        "deepslate_bricks": 40,
+        "spruce_leaves": 32,
+        "polished_blackstone_brick_slab": 16,
+        "cobbled_deepslate": 13,
+        "polished_blackstone_bricks": 12,
+        "moss_block": 10,
+        "purple_wool": 8,
+        "blackstone": 3
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "c5216285ba4e793815f6c67100f3c99813fa610ebea4229392096adfd447b663",
+    "generator_source_digest": "4ca1d8c8dee9fddadd6b19f800dd5fe9e788e5b35c677dd1b04087b19b0e91b3",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "filler",
+    "land": "hollow",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 134,
+    "mechanic_families": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_slab",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: purple_wool"
+  ],
   "file": "Topiary 3.litematic",
   "name": "Topiary 3"
 }

@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97558,
+    "x": 97552,
     "y": 202,
-    "z": 80815
+    "z": 80822
   },
   "size": {
     "x": 42,
@@ -38,61 +38,61 @@
   ],
   "dials": [
     [
-      97596,
+      97590,
       204,
-      80835
+      80842
     ],
     [
-      97596,
+      97590,
       204,
-      80829
+      80836
     ],
     [
-      97596,
+      97590,
       204,
-      80823
+      80830
     ]
   ],
   "door": [
-    97562,
+    97556,
     204,
-    80821
+    80828
   ],
   "vault": [
     [
-      97560,
+      97554,
       203,
-      80822
+      80829
     ],
     [
-      97560,
+      97554,
       203,
-      80820
+      80827
     ]
   ],
   "signed": true,
   "inputs": [
     [
-      97596,
+      97590,
       204,
-      80835
+      80842
     ],
     [
-      97596,
+      97590,
       204,
-      80829
+      80836
     ],
     [
-      97596,
+      97590,
       204,
-      80823
+      80830
     ]
   ],
   "outputs": [
     [
-      97562,
+      97556,
       204,
-      80821
+      80828
     ]
   ],
   "stock": {
@@ -137,7 +137,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Vault serves the hollow visitor journey."
+    },
     "metrics": {
       "blocks": 3270,
       "materials": 15,
@@ -187,12 +192,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "213fee0e6bbf5e61a58064fc7aa92238150b661d82ad55ffa622623c1a989597",
+    "fingerprint": "7db34fa02fc7379c8cfba52026e013b32a4cfe812d5d049dba949bd06131e5f3",
     "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -208,6 +233,48 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97595,
+        204,
+        80835
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 3270,
+    "mechanic_families": [
+      "access",
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: dark_oak_planks",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: iron_door",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks"
+  ],
   "file": "The Vault.litematic",
   "name": "The Vault"
 }

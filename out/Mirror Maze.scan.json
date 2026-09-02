@@ -57,7 +57,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "hollow",
+      "narrative": "Mirror Maze serves the hollow visitor journey."
+    },
     "metrics": {
       "blocks": 525,
       "materials": 8,
@@ -103,12 +108,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "75a118fe8dbe923d557c8a6be773a587d2b0de75113779220ae63212da320f71",
+    "fingerprint": "c5c73a08a6969db175d5087f45cfda0d55f153a659c31c1e2a147777f0feead5",
     "generator_source_digest": "662989f1252b380bad4c60655a86e154e6c876b6c5212831f64f7b3e9709de42",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -121,6 +146,44 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "landmark",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97599,
+        204,
+        80779
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 525,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_stairs",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks"
+  ],
   "file": "Mirror Maze.litematic",
   "name": "Mirror Maze"
 }

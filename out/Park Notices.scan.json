@@ -42,7 +42,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Park Notices serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 53,
       "materials": 5,
@@ -85,12 +90,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "60c1f9db8e9f1ec5d728776cbb72d23580b6b1b8cf1d302996ba06baf4cb9c54",
+    "fingerprint": "a4ddddc21ba8cd8f50927b55be0c4e078dc15212554ddd48bef7ee500c23d760",
     "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -102,6 +128,32 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 53,
+    "mechanic_families": [
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone"
+  ],
   "file": "Park Notices.litematic",
   "name": "Park Notices"
 }

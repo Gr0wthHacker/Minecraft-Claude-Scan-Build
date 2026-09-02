@@ -2,12 +2,12 @@
   "origin": {
     "x": 97552,
     "y": 202,
-    "z": 80351
+    "z": 80430
   },
   "size": {
-    "x": 19,
+    "x": 30,
     "y": 11,
-    "z": 30
+    "z": 19
   },
   "generated_by": "arcade",
   "kind": "weigh",
@@ -20,7 +20,7 @@
     9
   ],
   "land": "frontier",
-  "facing": "south",
+  "facing": "east",
   "contract": "the ladder shows the plate's reading as a height; the bell rings and the prize drops ONLY on exactly 6, once, and never on 5 or 7",
   "unverified": [
     "HOW MANY ITEMS MAKE A LEVEL is the game's own table - one per item on a gold plate, ten on an iron one. The simulator has no entities and cannot put anything down."
@@ -36,82 +36,82 @@
   "rungs": 8,
   "target": 6,
   "plate": [
-    97563,
+    97578,
     204,
-    80377
+    80441
   ],
   "lamps": [
     [
-      97561,
+      97579,
       204,
-      80378
+      80439
     ],
     [
-      97560,
+      97579,
       205,
-      80378
+      80438
     ],
     [
-      97559,
+      97579,
       206,
-      80378
+      80437
     ],
     [
-      97558,
+      97579,
       207,
-      80378
+      80436
     ],
     [
-      97557,
+      97579,
       208,
-      80378
+      80435
     ],
     [
-      97556,
+      97579,
       209,
-      80378
+      80434
     ],
     [
-      97555,
+      97579,
       210,
-      80378
+      80433
     ],
     [
-      97554,
+      97579,
       211,
-      80378
+      80432
     ]
   ],
   "bell": [
-    97567,
+    97569,
     204,
-    80368
+    80445
   ],
   "droppers": [
     [
-      97568,
+      97565,
       205,
-      80364
+      80446
     ]
   ],
   "signed": true,
   "inputs": [
     [
-      97563,
+      97578,
       204,
-      80377
+      80441
     ]
   ],
   "outputs": [
     [
-      97567,
+      97569,
       204,
-      80368
+      80445
     ],
     [
-      97568,
+      97565,
       205,
-      80364
+      80446
     ]
   ],
   "stock": {
@@ -156,16 +156,21 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "Assay Office serves the frontier visitor journey."
+    },
     "metrics": {
       "blocks": 1298,
       "materials": 13,
       "dominant_material_share": 0.5077,
       "light_blocks": 10,
       "massing": {
-        "width": 19,
+        "width": 30,
         "height": 11,
-        "depth": 30,
+        "depth": 19,
         "fill_ratio": 0.207
       },
       "silhouette": {
@@ -174,12 +179,12 @@
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 148,
-          "fill_ratio": 0.7081
-        },
-        "side": {
           "area": 146,
           "fill_ratio": 0.4424
+        },
+        "side": {
+          "area": 148,
+          "fill_ratio": 0.7081
         }
       },
       "material_counts": {
@@ -206,12 +211,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "d7fc6f371674a33b7641a67e54a360f57ef5a0b421f5fdb57747abfcd4fdfcc8",
+    "fingerprint": "cb046d773c24a3dddc3f9cf55600e58735a7558591518a898209efb2ba099337",
     "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
     "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -226,6 +252,45 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97583,
+        204,
+        80439
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1298,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: bell",
+    "unsupported on skyblock-1.19: dropper",
+    "unsupported on skyblock-1.19: light_weighted_pressure_plate",
+    "unsupported on skyblock-1.19: redstone_lamp"
+  ],
   "file": "Assay Office.litematic",
   "name": "Assay Office"
 }

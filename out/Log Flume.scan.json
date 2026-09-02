@@ -2874,6 +2874,158 @@
     "stops_at": null,
     "carries": true
   },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 3129,
+      "materials": 12,
+      "dominant_material_share": 0.2931,
+      "light_blocks": 4,
+      "massing": {
+        "width": 32,
+        "height": 25,
+        "depth": 34,
+        "fill_ratio": 0.115
+      },
+      "silhouette": {
+        "top": {
+          "area": 847,
+          "fill_ratio": 0.7785
+        },
+        "front": {
+          "area": 484,
+          "fill_ratio": 0.605
+        },
+        "side": {
+          "area": 396,
+          "fill_ratio": 0.4659
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.6286,
+          0.2119,
+          0.1595
+        ],
+        "top_silhouette_perimeter": 281,
+        "surface_faces_per_block": 2.1655
+      },
+      "material_counts": {
+        "cobblestone": 917,
+        "stone_bricks": 623,
+        "spruce_log": 460,
+        "spruce_planks": 410,
+        "stone": 322,
+        "glass_pane": 218,
+        "water": 137,
+        "stripped_oak_log": 21,
+        "spruce_slab": 9,
+        "spruce_stairs": 6,
+        "lantern": 4,
+        "spruce_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "b0740130b5e0099984288e724960637d81a4fdf91886c5179441d6cc4f92dd08",
+    "generator_source_digest": "1353c3fc59585522827e606394df4ac8ebc541411dfe2e3fc92300f927d12ec0",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "fluid",
+        "hazard",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 0.253386,
+    "blocks": 3129,
+    "blocks_per_second": 12348.73
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 3129,
+    "mechanic_families": [
+      "fluid",
+      "hazard",
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
   "file": "Log Flume.litematic",
   "name": "Log Flume"
 }

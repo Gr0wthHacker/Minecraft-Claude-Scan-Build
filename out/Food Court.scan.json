@@ -180,7 +180,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "shop",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Food Court serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 707,
       "materials": 12,
@@ -230,12 +235,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "98c807bc2e87ce0a88f80db5f33e38a35814de52789a624eea3b802e4d65689c",
+    "fingerprint": "654c25d8d963d1f22e7a724fa5ac3faddc4fb8649cfda0315d2e300e3481ff6e",
     "generator_source_digest": "40d540514d223304885b929bb573e25179bfd6f730bc9c6fd3c7716bec77b0b5",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -249,6 +275,42 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "shop",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97579,
+        204,
+        80615
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 707,
+    "mechanic_families": [
+      "container",
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: smoker"
+  ],
   "file": "Food Court.litematic",
   "name": "Food Court"
 }

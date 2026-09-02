@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": 97552,
+    "x": 97556,
     "y": 202,
-    "z": 80407
+    "z": 80401
   },
   "size": {
     "x": 17,
-    "y": 16,
+    "y": 18,
     "z": 19
   },
   "generated_by": "frontiertown",
@@ -19,43 +19,43 @@
   "unverified": [],
   "width": 17,
   "depth": 12,
-  "height": 15,
-  "front": "flat",
+  "height": 17,
+  "front": "bracketed",
   "signs": 3,
   "tables": 3,
   "beds": 3,
   "stools": 5,
   "table_button": [
-    97561,
+    97565,
     204,
-    80423
+    80417
   ],
   "table_pot": [
-    97561,
+    97565,
     204,
-    80414
+    80408
   ],
   "table_bell": [
-    97562,
+    97566,
     203,
-    80415
+    80409
   ],
   "table_gate": [
-    97561,
+    97565,
     203,
-    80417
+    80411
   ],
   "table_cells": 17,
   "table_chairs": 2,
   "player_hopper": [
-    97561,
+    97565,
     203,
-    80421
+    80415
   ],
   "house_hopper": [
-    97562,
+    97566,
     203,
-    80420
+    80414
   ],
   "table_stock": {
     "the deal": [
@@ -114,17 +114,22 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "shop",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The Saloon serves the frontier visitor journey."
+    },
     "metrics": {
-      "blocks": 1674,
+      "blocks": 1697,
       "materials": 29,
-      "dominant_material_share": 0.6033,
+      "dominant_material_share": 0.6034,
       "light_blocks": 6,
       "massing": {
         "width": 17,
-        "height": 16,
+        "height": 18,
         "depth": 19,
-        "fill_ratio": 0.3239
+        "fill_ratio": 0.2919
       },
       "silhouette": {
         "top": {
@@ -132,24 +137,24 @@
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 185,
-          "fill_ratio": 0.6801
+          "area": 189,
+          "fill_ratio": 0.6176
         },
         "side": {
-          "area": 282,
-          "fill_ratio": 0.9276
+          "area": 301,
+          "fill_ratio": 0.8801
         }
       },
       "material_counts": {
-        "spruce_planks": 1010,
+        "spruce_planks": 1024,
         "cobblestone": 134,
-        "stripped_spruce_log": 108,
+        "stripped_spruce_log": 117,
         "spruce_stairs": 106,
-        "stone_bricks": 96,
+        "stone_bricks": 97,
         "spruce_log": 64,
         "glass_pane": 56,
         "spruce_fence": 26,
-        "cracked_stone_bricks": 20,
+        "cracked_stone_bricks": 19,
         "redstone_wire": 8,
         "lantern": 6,
         "red_bed": 6
@@ -164,12 +169,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "f62029805b1a1c4b85b955ea6d6047a4e33dbf7c853dd2980c8988cd6bfb2a6e",
+    "fingerprint": "f3bff71cc390d4fc53db84c1203a7d2c1de1203096de021ec81d85794254074d",
     "generator_source_digest": "73f071a42a113b02f1bd2b3cf5caf31c5998401474b891a676aea41708a2a95c",
     "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -185,6 +211,48 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "shop",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97574,
+        204,
+        80410
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1697,
+    "mechanic_families": [
+      "access",
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: bell",
+    "unsupported on skyblock-1.19: brewing_stand",
+    "unsupported on skyblock-1.19: dropper",
+    "unsupported on skyblock-1.19: red_bed",
+    "unsupported on skyblock-1.19: spruce_door",
+    "unsupported on skyblock-1.19: spruce_fence_gate"
+  ],
   "file": "The Saloon.litematic",
   "name": "The Saloon"
 }

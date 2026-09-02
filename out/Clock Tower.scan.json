@@ -14,7 +14,7 @@
   "visible_redstone": 0,
   "kind": "clocktower",
   "land": "hollow",
-  "facing": "east",
+  "facing": "north",
   "contract": "a square tower of four stages - string courses, glazed slits, a clock face on every side, a louvred belfry with a bell and a crenellated crown - and A CLIMB THROUGH IT: a spiral stair off the door, one course per tread, to a lit gallery you can see the zone out of, and a ladder on to the crown deck",
   "unverified": [],
   "side": 9,
@@ -25,19 +25,19 @@
   "stair_lamps": 4,
   "tread_cells": [
     [
-      97634,
+      97631,
       204,
-      80800
+      80797
     ],
     [
-      97634,
+      97632,
       205,
-      80799
+      80797
     ],
     [
-      97634,
+      97633,
       206,
-      80798
+      80797
     ],
     [
       97634,
@@ -45,59 +45,59 @@
       80797
     ],
     [
-      97633,
+      97634,
       208,
-      80797
-    ],
-    [
-      97632,
-      209,
-      80797
-    ],
-    [
-      97631,
-      210,
-      80797
-    ],
-    [
-      97630,
-      211,
-      80797
-    ],
-    [
-      97629,
-      212,
-      80797
-    ],
-    [
-      97628,
-      213,
-      80797
-    ],
-    [
-      97628,
-      214,
       80798
     ],
     [
-      97628,
-      215,
+      97634,
+      209,
       80799
     ],
     [
-      97628,
-      216,
+      97634,
+      210,
       80800
     ],
     [
-      97628,
-      217,
+      97634,
+      211,
       80801
     ],
     [
-      97628,
-      218,
+      97634,
+      212,
       80802
+    ],
+    [
+      97634,
+      213,
+      80803
+    ],
+    [
+      97633,
+      214,
+      80803
+    ],
+    [
+      97632,
+      215,
+      80803
+    ],
+    [
+      97631,
+      216,
+      80803
+    ],
+    [
+      97630,
+      217,
+      80803
+    ],
+    [
+      97629,
+      218,
+      80803
     ],
     [
       97628,
@@ -105,59 +105,59 @@
       80803
     ],
     [
-      97629,
+      97628,
       220,
-      80803
-    ],
-    [
-      97630,
-      221,
-      80803
-    ],
-    [
-      97631,
-      222,
-      80803
-    ],
-    [
-      97632,
-      223,
-      80803
-    ],
-    [
-      97633,
-      224,
-      80803
-    ],
-    [
-      97634,
-      225,
-      80803
-    ],
-    [
-      97634,
-      226,
       80802
     ],
     [
-      97634,
-      227,
+      97628,
+      221,
       80801
     ],
     [
-      97634,
-      228,
+      97628,
+      222,
       80800
     ],
     [
-      97634,
-      229,
+      97628,
+      223,
       80799
     ],
     [
-      97634,
-      230,
+      97628,
+      224,
       80798
+    ],
+    [
+      97628,
+      225,
+      80797
+    ],
+    [
+      97629,
+      226,
+      80797
+    ],
+    [
+      97630,
+      227,
+      80797
+    ],
+    [
+      97631,
+      228,
+      80797
+    ],
+    [
+      97632,
+      229,
+      80797
+    ],
+    [
+      97633,
+      230,
+      80797
     ],
     [
       97634,
@@ -165,25 +165,25 @@
       80797
     ],
     [
-      97633,
+      97634,
       232,
-      80797
+      80798
     ]
   ],
   "climb_from": [
-    97635,
+    97631,
     205,
-    80800
+    80796
   ],
   "gallery_at": [
-    97632,
+    97631,
     234,
-    80800
+    80799
   ],
   "deck_at": [
-    97629,
+    97627,
     240,
-    80804
+    80802
   ],
   "mechanics": {
     "minecraft": "java-1.19",
@@ -217,11 +217,16 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "Clock Tower serves the hollow visitor journey."
+    },
     "metrics": {
       "blocks": 2470,
       "materials": 19,
-      "dominant_material_share": 0.4178,
+      "dominant_material_share": 0.4174,
       "light_blocks": 13,
       "massing": {
         "width": 17,
@@ -244,12 +249,12 @@
         }
       },
       "material_counts": {
-        "polished_blackstone_bricks": 1032,
+        "polished_blackstone_bricks": 1031,
         "deepslate_bricks": 430,
         "deepslate_tile_stairs": 230,
         "cobbled_deepslate": 190,
         "chiseled_polished_blackstone": 153,
-        "cracked_polished_blackstone_bricks": 102,
+        "cracked_polished_blackstone_bricks": 103,
         "white_wool": 80,
         "deepslate_tiles": 69,
         "dark_oak_planks": 63,
@@ -267,12 +272,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "1a8679b29d9237a33bd8ecd8ad5d75f1df6860c92a3e03e6f1a3f9234ae7b529",
+    "fingerprint": "1d21b6a17205f22212f92ec148956278b61c6b14fac565ed778ee34056c57cee",
     "generator_source_digest": "78432afd2c7f6c1b4c0c207ee2d8627157b89361046036feb47bea0b3a0e0fe4",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "gable"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -287,6 +312,59 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97631,
+        204,
+        80790
+      ],
+      [
+        97631,
+        204,
+        80810
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 2470,
+    "mechanic_families": [
+      "access",
+      "light",
+      "signage",
+      "traversal"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: bell",
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: chiseled_polished_blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: cracked_polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: dark_oak_planks",
+    "unsupported on skyblock-1.19: dark_oak_trapdoor",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: deepslate_tile_stairs",
+    "unsupported on skyblock-1.19: deepslate_tiles",
+    "unsupported on skyblock-1.19: iron_bars",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks"
+  ],
   "file": "Clock Tower.litematic",
   "name": "Clock Tower"
 }

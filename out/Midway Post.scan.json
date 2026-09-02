@@ -74,7 +74,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Midway Post serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 29,
       "materials": 6,
@@ -118,12 +123,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "2a47d29f688d6926c327fa90d7b83927adf03e52d653e542233b428b28c4e376",
+    "fingerprint": "b3062b95b7b66264fb68f188482d384753e2d3b8ea4f6c0ee28112008b5c0832",
     "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -136,6 +162,33 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 29,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone"
+  ],
   "file": "Midway Post.litematic",
   "name": "Midway Post"
 }

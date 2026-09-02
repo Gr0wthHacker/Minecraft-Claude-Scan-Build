@@ -2,7 +2,7 @@
   "origin": {
     "x": 97622,
     "y": 202,
-    "z": 80551
+    "z": 80639
   },
   "size": {
     "x": 17,
@@ -20,7 +20,7 @@
     5
   ],
   "land": "midway",
-  "facing": "south",
+  "facing": "north",
   "contract": "each barrel's lamp is lit while that barrel holds anything and dark when it is empty",
   "unverified": [],
   "budget": {
@@ -34,111 +34,111 @@
   "lanes": 5,
   "barrels": [
     [
-      97634,
+      97626,
       204,
-      80555
-    ],
-    [
-      97632,
-      204,
-      80555
-    ],
-    [
-      97630,
-      204,
-      80555
+      80645
     ],
     [
       97628,
       204,
-      80555
+      80645
     ],
     [
-      97626,
+      97630,
       204,
-      80555
+      80645
+    ],
+    [
+      97632,
+      204,
+      80645
+    ],
+    [
+      97634,
+      204,
+      80645
     ]
   ],
   "lamps": [
     [
-      97634,
+      97626,
       204,
-      80557
-    ],
-    [
-      97632,
-      204,
-      80557
-    ],
-    [
-      97630,
-      204,
-      80557
+      80643
     ],
     [
       97628,
       204,
-      80557
+      80643
     ],
     [
-      97626,
+      97630,
       204,
-      80557
+      80643
+    ],
+    [
+      97632,
+      204,
+      80643
+    ],
+    [
+      97634,
+      204,
+      80643
     ]
   ],
   "signed": true,
   "inputs": [
     [
-      97634,
+      97626,
       204,
-      80555
-    ],
-    [
-      97632,
-      204,
-      80555
-    ],
-    [
-      97630,
-      204,
-      80555
+      80645
     ],
     [
       97628,
       204,
-      80555
+      80645
     ],
     [
-      97626,
+      97630,
       204,
-      80555
+      80645
+    ],
+    [
+      97632,
+      204,
+      80645
+    ],
+    [
+      97634,
+      204,
+      80645
     ]
   ],
   "outputs": [
     [
-      97634,
+      97626,
       204,
-      80557
-    ],
-    [
-      97632,
-      204,
-      80557
-    ],
-    [
-      97630,
-      204,
-      80557
+      80643
     ],
     [
       97628,
       204,
-      80557
+      80643
     ],
     [
-      97626,
+      97630,
       204,
-      80557
+      80643
+    ],
+    [
+      97632,
+      204,
+      80643
+    ],
+    [
+      97634,
+      204,
+      80643
     ]
   ],
   "stock": {
@@ -178,7 +178,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Prize Counter serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 458,
       "materials": 12,
@@ -228,12 +233,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "5bf3220e4f34927bfa7b5eb75af4c04e1013cfaf02b3226cf38f45c2c8d05da5",
+    "fingerprint": "1cde81f104cb66f7ca76455218fd25d5a69a318ebc8546700f0b5affababbbd5",
     "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -248,6 +274,43 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97630,
+        204,
+        80637
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 458,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: redstone_lamp"
+  ],
   "file": "Prize Counter.litematic",
   "name": "Prize Counter"
 }

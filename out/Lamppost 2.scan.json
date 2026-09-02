@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": 97607,
+    "x": 97603,
     "y": 202,
-    "z": 80774
+    "z": 80756
   },
   "size": {
     "x": 7,
-    "y": 13,
+    "y": 11,
     "z": 7
   },
   "generated_by": "streetfurniture",
@@ -16,11 +16,153 @@
   "facing": "west",
   "contract": "a lit post between six and nine courses to its cap, with a moulded base of four three-cell runs and every lantern either standing on a full block or hanging under one",
   "unverified": [],
-  "height": 12,
-  "shaft": "banded",
+  "height": 10,
+  "shaft": "fluted",
   "crown": "urn",
   "arms": 1,
-  "seed": 128093152,
+  "seed": 128086566,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "filler",
+      "style": "hollow",
+      "narrative": "Lamppost 2 serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 89,
+      "materials": 9,
+      "dominant_material_share": 0.3933,
+      "light_blocks": 2,
+      "massing": {
+        "width": 7,
+        "height": 11,
+        "depth": 7,
+        "fill_ratio": 0.1651
+      },
+      "silhouette": {
+        "top": {
+          "area": 49,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 25,
+          "fill_ratio": 0.3247
+        },
+        "side": {
+          "area": 23,
+          "fill_ratio": 0.2987
+        }
+      },
+      "material_counts": {
+        "deepslate_bricks": 35,
+        "cobbled_deepslate": 13,
+        "polished_blackstone_brick_stairs": 12,
+        "polished_blackstone_bricks": 12,
+        "polished_blackstone_brick_slab": 8,
+        "blackstone": 3,
+        "dark_oak_fence": 3,
+        "soul_lantern": 2,
+        "purple_wool": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "967210b8a0440718ec770f8ff212bdd66bc29258f06f57b28ced6bf8151d4505",
+    "generator_source_digest": "4ca1d8c8dee9fddadd6b19f800dd5fe9e788e5b35c677dd1b04087b19b0e91b3",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "filler",
+    "land": "hollow",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 89,
+    "mechanic_families": [
+      "light"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: dark_oak_fence",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_slab",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_stairs",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: purple_wool"
+  ],
   "file": "Lamppost 2.litematic",
   "name": "Lamppost 2"
 }

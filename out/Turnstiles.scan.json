@@ -112,7 +112,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "Turnstiles serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 649,
       "materials": 13,
@@ -162,12 +167,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "135febc065ecdc5bb748f5fab1dd64539c1dae81d42526cba526937834710250",
+    "fingerprint": "e4547226af52f4b05cd9f3031b69ee4cffbaa99c6a79aeaf8c7ad427b5af45cc",
     "generator_source_digest": "627eace157c64c64c1860ff4d05c35aa4e7f15394fa471826c6a93746f593b6b",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -182,6 +208,48 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "arrival",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97571,
+        204,
+        80588
+      ],
+      [
+        97549,
+        204,
+        80588
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 649,
+    "mechanic_families": [
+      "access",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: iron_door"
+  ],
   "file": "Turnstiles.litematic",
   "name": "Turnstiles"
 }

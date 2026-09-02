@@ -736,7 +736,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "landmark",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "The Terrace serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 556,
       "materials": 8,
@@ -782,12 +787,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "e83de236fe61b562cc8f362ad5681713cf3a7737415e17e97a114d123d9c2aa8",
+    "fingerprint": "56ca8ffd403ef0fd230da54e1bbce9cbeb4270aeabf84701f3fbfc0fa5780634",
     "generator_source_digest": "40d540514d223304885b929bb573e25179bfd6f730bc9c6fd3c7716bec77b0b5",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -800,6 +826,40 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "landmark",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97584,
+        204,
+        80584
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 556,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone"
+  ],
   "file": "The Terrace.litematic",
   "name": "The Terrace"
 }

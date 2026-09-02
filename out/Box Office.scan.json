@@ -70,7 +70,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "Box Office serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 523,
       "materials": 10,
@@ -118,12 +123,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "fd5d410c8ec8890461efddf7353a1471867d23cfe78baf455b7d101e437b01ca",
+    "fingerprint": "255ad4bf23c7621ce3b9cc13fd0c181f4d51deaa47147c0eed356d146202598d",
     "generator_source_digest": "627eace157c64c64c1860ff4d05c35aa4e7f15394fa471826c6a93746f593b6b",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -137,6 +163,46 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "arrival",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97563,
+        204,
+        80600
+      ],
+      [
+        97549,
+        204,
+        80600
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 523,
+    "mechanic_families": [
+      "container",
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone"
+  ],
   "file": "Box Office.litematic",
   "name": "Box Office"
 }

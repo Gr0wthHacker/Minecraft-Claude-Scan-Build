@@ -21,23 +21,15 @@
   "trees": 0,
   "beds": 0,
   "terrace": true,
-  "pool": true,
+  "pool": false,
   "mechanics": {
     "minecraft": "java-1.19",
     "families": {
-      "fluid": [
-        "water"
-      ],
-      "hazard": [
-        "water"
-      ],
       "light": [
         "lantern"
       ]
     },
     "verifiers": {
-      "fluid": "mcbuild.fluids",
-      "hazard": "mcbuild.audit + generator safety contracts",
       "light": "mcbuild.nightlight"
     },
     "roles": [
@@ -50,17 +42,22 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "terrain",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "Frontier Plaza serves the frontier visitor journey."
+    },
     "metrics": {
-      "blocks": 8934,
-      "materials": 9,
-      "dominant_material_share": 0.3653,
-      "light_blocks": 6,
+      "blocks": 8879,
+      "materials": 7,
+      "dominant_material_share": 0.3667,
+      "light_blocks": 4,
       "massing": {
         "width": 89,
         "height": 6,
         "depth": 99,
-        "fill_ratio": 0.169
+        "fill_ratio": 0.168
       },
       "silhouette": {
         "top": {
@@ -68,24 +65,22 @@
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 117,
-          "fill_ratio": 0.2191
+          "area": 111,
+          "fill_ratio": 0.2079
         },
         "side": {
-          "area": 134,
-          "fill_ratio": 0.2256
+          "area": 121,
+          "fill_ratio": 0.2037
         }
       },
       "material_counts": {
-        "cobblestone": 3264,
-        "stone": 3040,
-        "stone_bricks": 2529,
+        "cobblestone": 3256,
+        "stone": 3052,
+        "stone_bricks": 2503,
         "spruce_slab": 28,
-        "water": 25,
         "spruce_stairs": 24,
-        "spruce_log": 16,
-        "lantern": 6,
-        "lily_pad": 2
+        "spruce_log": 12,
+        "lantern": 4
       }
     },
     "checks": [],
@@ -97,25 +92,68 @@
     }
   },
   "design_system": {
-    "fingerprint": "8e22078a005ea88c4a15b79a07bc1190e3543bdbf54dfed1288dd0372a4b50a4",
-    "generator_source_digest": "7cf43e2c1c3f9699e50b0fafbe9aef44b44ed40c5f758089e943808deca02eb7",
+    "fingerprint": "a5186a468552db2231804f7f020b1273d0f1c8e4996c751597942ef339d2cc8a",
+    "generator_source_digest": "6ae0a771d0ec58869f44d0c0b698d8dce8edb12711f6ec3463b97785d17a0147",
     "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
       "anchors": false,
       "mechanics": [
-        "fluid",
-        "hazard",
         "light"
       ],
       "redstone_declared": false,
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "terrain",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 8879,
+    "mechanic_families": [
+      "light"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [],
   "file": "Frontier Plaza.litematic",
   "name": "Frontier Plaza"
 }

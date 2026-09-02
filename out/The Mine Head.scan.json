@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97621,
+    "x": 97581,
     "y": 192,
-    "z": 80379
+    "z": 80401
   },
   "size": {
     "x": 19,
@@ -14,7 +14,7 @@
   "concealed": 0,
   "visible_redstone": 0,
   "land": "frontier",
-  "facing": "west",
+  "facing": "east",
   "contract": "a timbered adit through a spoil bank, a braced A-frame headframe with a sheave wheel and a hanging cable, a tramway with loaded tubs on it - and a WALKTHROUGH under all of it: adit, ladder down a lined hoist shaft, lit drifts past worked ore faces, and an escape shaft up into a collar house, proven walkable end to end by `walk.connects` before it ships",
   "unverified": [],
   "width": 17,
@@ -25,31 +25,31 @@
   "tubs": 3,
   "signs": 4,
   "gallery": 78,
-  "veins": 44,
+  "veins": 48,
   "sets": 4,
   "lamps": 8,
   "hoist_shaft": 11,
   "escape_shaft": 11,
   "floor_h": -11,
   "adit_mouth": [
-    97622,
+    97598,
     203,
-    80389
+    80411
   ],
   "shaft_head": [
-    97636,
+    97584,
     203,
-    80389
+    80411
   ],
   "gallery_far": [
-    97630,
+    97590,
     193,
-    80393
+    80407
   ],
   "way_out": [
-    97625,
+    97595,
     203,
-    80384
+    80416
   ],
   "walk_cells": 388,
   "mechanics": {
@@ -92,17 +92,22 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "shop",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The Mine Head serves the frontier visitor journey."
+    },
     "metrics": {
-      "blocks": 1912,
+      "blocks": 1913,
       "materials": 24,
-      "dominant_material_share": 0.5649,
+      "dominant_material_share": 0.5625,
       "light_blocks": 14,
       "massing": {
         "width": 19,
         "height": 32,
         "depth": 21,
-        "fill_ratio": 0.1497
+        "fill_ratio": 0.1498
       },
       "silhouette": {
         "top": {
@@ -110,27 +115,27 @@
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 258,
-          "fill_ratio": 0.4243
+          "area": 256,
+          "fill_ratio": 0.4211
         },
         "side": {
-          "area": 311,
-          "fill_ratio": 0.4628
+          "area": 310,
+          "fill_ratio": 0.4613
         }
       },
       "material_counts": {
-        "cobblestone": 1080,
-        "mossy_cobblestone": 343,
+        "cobblestone": 1076,
+        "mossy_cobblestone": 340,
         "spruce_log": 156,
         "spruce_planks": 89,
         "stripped_spruce_log": 67,
         "spruce_stairs": 34,
         "ladder": 22,
-        "stone_bricks": 20,
+        "stone_bricks": 21,
         "spruce_slab": 18,
         "lantern": 14,
         "copper_ore": 12,
-        "lapis_ore": 10
+        "coal_ore": 9
       }
     },
     "checks": [],
@@ -142,12 +147,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "0af3240ba71c0e8106b1dda2d153f317796f619e294d6522120a52579ec2bb66",
+    "fingerprint": "321ae53fb39d020b7b49ba01fbf6be3b1023309582333119751d8035388f02a2",
     "generator_source_digest": "73f071a42a113b02f1bd2b3cf5caf31c5998401474b891a676aea41708a2a95c",
     "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -164,6 +190,50 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "shop",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97601,
+        204,
+        80411
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1913,
+    "mechanic_families": [
+      "access",
+      "container",
+      "light",
+      "rail",
+      "signage",
+      "traversal"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: coal_ore",
+    "unsupported on skyblock-1.19: copper_ore",
+    "unsupported on skyblock-1.19: gold_ore",
+    "unsupported on skyblock-1.19: iron_ore",
+    "unsupported on skyblock-1.19: lapis_ore",
+    "unsupported on skyblock-1.19: redstone_ore",
+    "unsupported on skyblock-1.19: spruce_wood"
+  ],
   "file": "The Mine Head.litematic",
   "name": "The Mine Head"
 }

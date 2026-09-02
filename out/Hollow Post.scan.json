@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97630,
+    "x": 97606,
     "y": 202,
-    "z": 80752
+    "z": 80826
   },
   "size": {
     "x": 9,
@@ -21,9 +21,9 @@
       "sign_facing": "north",
       "placed": true,
       "sign_at": [
-        97634,
+        97610,
         206,
-        80752
+        80826
       ]
     },
     {
@@ -32,9 +32,9 @@
       "sign_facing": "west",
       "placed": true,
       "sign_at": [
-        97630,
+        97606,
         207,
-        80756
+        80830
       ]
     },
     {
@@ -43,9 +43,9 @@
       "sign_facing": "east",
       "placed": true,
       "sign_at": [
-        97638,
+        97614,
         208,
-        80756
+        80830
       ]
     },
     {
@@ -54,9 +54,9 @@
       "sign_facing": "south",
       "placed": true,
       "sign_at": [
-        97634,
+        97610,
         209,
-        80760
+        80834
       ]
     }
   ],
@@ -85,7 +85,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "Hollow Post serves the hollow visitor journey."
+    },
     "metrics": {
       "blocks": 34,
       "materials": 6,
@@ -129,12 +134,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "dd3c20f29012f8c593a8b8aa4747e3de1d043af1950afe3787807ecd0cd2500f",
+    "fingerprint": "0b385018cf3b3832c38880c6ecef261da7b3f9b6382fcde07e0d055ff53ba585",
     "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -147,6 +172,37 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 34,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: dark_oak_fence",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks"
+  ],
   "file": "Hollow Post.litematic",
   "name": "Hollow Post"
 }

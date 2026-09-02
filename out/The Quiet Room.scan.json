@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97561,
+    "x": 97601,
     "y": 200,
-    "z": 80801
+    "z": 80787
   },
   "size": {
     "x": 19,
@@ -35,87 +35,87 @@
   "height": 6,
   "sensors": [
     [
-      97575,
+      97615,
       201,
-      80811
+      80797
     ],
     [
-      97572,
+      97612,
       201,
-      80811
+      80797
     ],
     [
-      97569,
+      97609,
       201,
-      80811
+      80797
     ]
   ],
   "lamps": [
     [
-      97575,
+      97615,
       202,
-      80803
+      80789
     ],
     [
-      97572,
+      97612,
       202,
-      80803
+      80789
     ],
     [
-      97569,
+      97609,
       202,
-      80803
+      80789
     ]
   ],
   "door": [
-    97563,
+    97603,
     203,
-    80803
+    80789
   ],
   "torch": [
-    97563,
+    97603,
     201,
-    80803
+    80789
   ],
   "trip": 4,
   "signed": true,
   "inputs": [
     [
-      97575,
+      97615,
       201,
-      80811
+      80797
     ],
     [
-      97572,
+      97612,
       201,
-      80811
+      80797
     ],
     [
-      97569,
+      97609,
       201,
-      80811
+      80797
     ]
   ],
   "outputs": [
     [
-      97563,
+      97603,
       203,
-      80803
+      80789
     ],
     [
-      97575,
+      97615,
       202,
-      80803
+      80789
     ],
     [
-      97572,
+      97612,
       202,
-      80803
+      80789
     ],
     [
-      97569,
+      97609,
       202,
-      80803
+      80789
     ]
   ],
   "stock": {},
@@ -156,7 +156,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Quiet Room serves the hollow visitor journey."
+    },
     "metrics": {
       "blocks": 1142,
       "materials": 14,
@@ -206,12 +211,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "557ec33a3927aecb870271469ce8f036a57ae78f73b0ae42e4729e31c5d0670a",
+    "fingerprint": "33b783085503cbfc374725089526349a3faec65ab2f64d114ca5bc1d2a67a478",
     "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -226,6 +251,47 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97621,
+        204,
+        80793
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1142,
+    "mechanic_families": [
+      "access",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: iron_door",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: redstone_lamp"
+  ],
   "file": "The Quiet Room.litematic",
   "name": "The Quiet Room"
 }

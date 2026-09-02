@@ -19,7 +19,7 @@
   "depth": 89,
   "posts": 0,
   "trees": 0,
-  "beds": 2,
+  "beds": 0,
   "terrace": true,
   "pool": true,
   "mechanics": {
@@ -50,17 +50,22 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "terrain",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "Hollow Court serves the hollow visitor journey."
+    },
     "metrics": {
-      "blocks": 9049,
-      "materials": 15,
-      "dominant_material_share": 0.3607,
+      "blocks": 8934,
+      "materials": 9,
+      "dominant_material_share": 0.3653,
       "light_blocks": 6,
       "massing": {
         "width": 89,
         "height": 6,
         "depth": 99,
-        "fill_ratio": 0.1712
+        "fill_ratio": 0.169
       },
       "silhouette": {
         "top": {
@@ -68,27 +73,24 @@
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 141,
-          "fill_ratio": 0.264
+          "area": 117,
+          "fill_ratio": 0.2191
         },
         "side": {
-          "area": 139,
-          "fill_ratio": 0.234
+          "area": 134,
+          "fill_ratio": 0.2256
         }
       },
       "material_counts": {
         "polished_blackstone_bricks": 3264,
         "cobbled_deepslate": 3040,
-        "deepslate_bricks": 2577,
-        "moss_block": 32,
+        "deepslate_bricks": 2529,
         "polished_blackstone_brick_slab": 28,
         "water": 25,
         "polished_blackstone_brick_stairs": 24,
         "blackstone": 16,
-        "moss_carpet": 10,
-        "azalea": 7,
-        "fern": 7,
-        "short_grass": 6
+        "soul_lantern": 6,
+        "lily_pad": 2
       }
     },
     "checks": [],
@@ -100,12 +102,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "e4dbc705f4c21aed13d768f2a282958cf360c5cc71f0329fdabaa6cf09a46bbe",
-    "generator_source_digest": "7cf43e2c1c3f9699e50b0fafbe9aef44b44ed40c5f758089e943808deca02eb7",
+    "fingerprint": "3b556bcd63bef710471dfa3fcac27c7aaa6af4bc755f7f4bac091a2b092c5ba6",
+    "generator_source_digest": "6ae0a771d0ec58869f44d0c0b698d8dce8edb12711f6ec3463b97785d17a0147",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -119,6 +141,39 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "terrain",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 8934,
+    "mechanic_families": [
+      "fluid",
+      "hazard",
+      "light"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_slab",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_stairs",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks"
+  ],
   "file": "Hollow Court.litematic",
   "name": "Hollow Court"
 }

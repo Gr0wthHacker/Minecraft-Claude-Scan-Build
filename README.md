@@ -33,6 +33,9 @@ python -m mcbuild downscale "C:/.../schematics/Some Statue.litematic" --factor 2
 python -m mcbuild info  file.litematic
 python -m mcbuild audit file.litematic          # exit 1 if anything is wrong
 
+# analyze a very large external reference without allocating its full voxel volume
+python -m mcbuild reference "C:/.../schematics/City.litematic"
+
 # look at it
 python -m mcbuild render file.litematic --views face,side,top
 python -m mcbuild render file.litematic --ascii face   # block map: ground truth for faces

@@ -530,7 +530,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "Carousel serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 2912,
       "materials": 23,
@@ -580,12 +585,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "09e021449d4807b3bd6e3b6a21d134699b7878e40fa3a42aea4d2b8f2d4c25c4",
+    "fingerprint": "70e8fa216d8745620ca69cfc5ca4971cfee8313a04a4e52098c9ff38e1799428",
     "generator_source_digest": "ad657c6e01f8485954dc722802d4a8b48931ec012b68046e8dea86e329765b2d",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -600,6 +626,45 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97586,
+        204,
+        80570
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 2912,
+    "mechanic_families": [
+      "access",
+      "light",
+      "rail",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: oak_fence_gate",
+    "unsupported on skyblock-1.19: purple_wool",
+    "unsupported on skyblock-1.19: redstone_block"
+  ],
   "file": "Carousel.litematic",
   "name": "Carousel"
 }

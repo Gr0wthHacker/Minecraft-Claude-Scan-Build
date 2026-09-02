@@ -42,7 +42,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "Frontier Arch serves the frontier visitor journey."
+    },
     "metrics": {
       "blocks": 128,
       "materials": 6,
@@ -86,12 +91,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "fb0f6189b6742f10d7e3b8b696b5579fe9d39c8c9bb072caaaeacd89cb5d4db2",
-    "generator_source_digest": "7cf43e2c1c3f9699e50b0fafbe9aef44b44ed40c5f758089e943808deca02eb7",
+    "fingerprint": "86e38778ca0970ef404380b579f075c02fb259d0c2a103b187986228df5a0a54",
+    "generator_source_digest": "6ae0a771d0ec58869f44d0c0b698d8dce8edb12711f6ec3463b97785d17a0147",
     "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -104,6 +130,43 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "arrival",
+    "hierarchy": "landmark",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97595,
+        204,
+        80549
+      ],
+      [
+        97595,
+        204,
+        80557
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 128,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [],
   "file": "Frontier Arch.litematic",
   "name": "Frontier Arch"
 }

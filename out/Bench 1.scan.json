@@ -1,27 +1,27 @@
 {
   "origin": {
-    "x": 97611,
+    "x": 97634,
     "y": 202,
-    "z": 80763
+    "z": 80819
   },
   "size": {
-    "x": 8,
-    "y": 3,
-    "z": 11
+    "x": 9,
+    "y": 4,
+    "z": 4
   },
   "generated_by": "streetfurniture",
   "kind": "streetfurniture/bench",
   "piece": "bench",
   "land": "hollow",
-  "facing": "west",
+  "facing": "north",
   "contract": "a seat you can sit on: stair seats at floor level with a back behind them and an arm rest at each end, all of it standing on its own pad",
   "unverified": [],
-  "shape": "corner",
-  "seats": 11,
-  "back": "slat",
-  "arm": "fence",
-  "length": 7,
-  "seed": 128094534,
+  "shape": "straight",
+  "seats": 5,
+  "back": "solid",
+  "arm": "slat",
+  "length": 5,
+  "seed": 128129227,
   "mechanics": {
     "minecraft": "java-1.19",
     "families": {
@@ -42,39 +42,45 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "filler",
+      "style": "hollow",
+      "narrative": "Bench 1 serves the hollow visitor journey."
+    },
     "metrics": {
-      "blocks": 129,
-      "materials": 6,
-      "dominant_material_share": 0.3798,
+      "blocks": 66,
+      "materials": 7,
+      "dominant_material_share": 0.4697,
       "light_blocks": 0,
       "massing": {
-        "width": 8,
-        "height": 3,
-        "depth": 11,
-        "fill_ratio": 0.4886
+        "width": 9,
+        "height": 4,
+        "depth": 4,
+        "fill_ratio": 0.4583
       },
       "silhouette": {
         "top": {
-          "area": 88,
+          "area": 36,
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 22,
-          "fill_ratio": 0.9167
+          "area": 30,
+          "fill_ratio": 0.8333
         },
         "side": {
-          "area": 29,
-          "fill_ratio": 0.8788
+          "area": 9,
+          "fill_ratio": 0.5625
         }
       },
       "material_counts": {
-        "deepslate_bricks": 49,
-        "cobbled_deepslate": 27,
-        "polished_blackstone_bricks": 27,
-        "dark_oak_trapdoor": 13,
-        "polished_blackstone_brick_stairs": 11,
-        "dark_oak_fence": 2
+        "deepslate_bricks": 31,
+        "black_wool": 7,
+        "cobbled_deepslate": 7,
+        "polished_blackstone_brick_slab": 7,
+        "polished_blackstone_bricks": 7,
+        "polished_blackstone_brick_stairs": 5,
+        "dark_oak_trapdoor": 2
       }
     },
     "checks": [],
@@ -86,12 +92,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "4a2c69fc12e55c6055c5e00a146907d19afe822040a9324534786c42a86ec348",
+    "fingerprint": "82c3cf64c89e4ca86f844760b3ba154dcad70772eba2ef666e902b1357549507",
     "generator_source_digest": "4ca1d8c8dee9fddadd6b19f800dd5fe9e788e5b35c677dd1b04087b19b0e91b3",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "gable"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -103,6 +129,37 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "filler",
+    "land": "hollow",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 66,
+    "mechanic_families": [
+      "access"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: dark_oak_trapdoor",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_slab",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_stairs",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks"
+  ],
   "file": "Bench 1.litematic",
   "name": "Bench 1"
 }

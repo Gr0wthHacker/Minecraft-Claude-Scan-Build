@@ -158,7 +158,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "High Striker serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 257,
       "materials": 12,
@@ -208,12 +213,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "ed21c8c7491cbcb34aba596637a963b01b62a6010d2bf03adac0e2761e906acd",
+    "fingerprint": "2721499ec41fe058150abe9215e8ba90e9484101e42adea9dd011f39ab8bdaf0",
     "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -228,6 +254,46 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97570,
+        204,
+        80607
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 257,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: bell",
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: dropper",
+    "unsupported on skyblock-1.19: redstone_lamp",
+    "unsupported on skyblock-1.19: target"
+  ],
   "file": "High Striker.litematic",
   "name": "High Striker"
 }

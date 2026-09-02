@@ -1,27 +1,40 @@
 {
   "origin": {
-    "x": 97561,
+    "x": 97552,
     "y": 202,
-    "z": 80557
+    "z": 80552
   },
   "size": {
-    "x": 70,
-    "y": 1,
-    "z": 88
+    "x": 87,
+    "y": 6,
+    "z": 97
   },
   "generated_by": "park",
   "kind": "paths",
   "land": "midway",
   "facing": "east",
-  "contract": "every attraction's door is joined to an avenue, and both avenues meet at the hub - so the whole network is one connected walk",
+  "contract": "every declared public interface is joined to the network, queues are fenced and off the through-route, and the service road runs behind the buildings unlit",
   "unverified": [],
-  "routes": 15,
-  "cells": 1491,
-  "lamps": 0,
+  "routes": 68,
+  "cells": 4533,
+  "lamps": 76,
+  "queue_rails": 0,
+  "roles": {
+    "main_spine": 2,
+    "secondary": 34,
+    "exit": 2,
+    "service": 30
+  },
   "mechanics": {
     "minecraft": "java-1.19",
-    "families": {},
-    "verifiers": {},
+    "families": {
+      "light": [
+        "lantern"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight"
+    },
     "roles": [
       "construction",
       "landscape"
@@ -32,35 +45,44 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Midway Paths serves the midway visitor journey."
+    },
     "metrics": {
-      "blocks": 1355,
-      "materials": 2,
-      "dominant_material_share": 0.5424,
-      "light_blocks": 0,
+      "blocks": 4173,
+      "materials": 6,
+      "dominant_material_share": 0.4088,
+      "light_blocks": 76,
       "massing": {
-        "width": 70,
-        "height": 1,
-        "depth": 88,
-        "fill_ratio": 0.22
+        "width": 87,
+        "height": 6,
+        "depth": 97,
+        "fill_ratio": 0.0824
       },
       "silhouette": {
         "top": {
-          "area": 1355,
-          "fill_ratio": 0.22
+          "area": 3831,
+          "fill_ratio": 0.454
         },
         "front": {
-          "area": 70,
-          "fill_ratio": 1.0
+          "area": 182,
+          "fill_ratio": 0.3487
         },
         "side": {
-          "area": 88,
-          "fill_ratio": 1.0
+          "area": 292,
+          "fill_ratio": 0.5017
         }
       },
       "material_counts": {
-        "blackstone": 735,
-        "stone": 620
+        "stone_bricks": 1706,
+        "blackstone": 1292,
+        "stone": 869,
+        "oak_log": 228,
+        "lantern": 76,
+        "yellow_wool": 2
       }
     },
     "checks": [],
@@ -72,21 +94,70 @@
     }
   },
   "design_system": {
-    "fingerprint": "2d7aeb74108a2a4a573f2f089906019c3ee824aae1f437da49bea702ba109142",
-    "generator_source_digest": "7cf43e2c1c3f9699e50b0fafbe9aef44b44ed40c5f758089e943808deca02eb7",
+    "fingerprint": "36ca877eaabc675cfb6b0f1b55c03843b0ed2accceb9e8908c3f3885a8f35e50",
+    "generator_source_digest": "6ae0a771d0ec58869f44d0c0b698d8dce8edb12711f6ec3463b97785d17a0147",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
       "anchors": false,
-      "mechanics": [],
+      "mechanics": [
+        "light"
+      ],
       "redstone_declared": false,
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "path",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 4173,
+    "mechanic_families": [
+      "light"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone"
+  ],
   "file": "Midway Paths.litematic",
   "name": "Midway Paths"
 }

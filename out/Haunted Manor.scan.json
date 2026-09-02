@@ -409,7 +409,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "Haunted Manor serves the hollow visitor journey."
+    },
     "metrics": {
       "blocks": 11184,
       "materials": 34,
@@ -459,12 +464,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "4d1a2320a3f1cae1301c612bd39d6b6c64a9c6ef08ee0097a5e5fcd9825400af",
+    "fingerprint": "6b41db9022fd9043808924db4fdae9faded82f00c30370283b458677ffff19b2",
     "generator_source_digest": "78432afd2c7f6c1b4c0c207ee2d8627157b89361046036feb47bea0b3a0e0fe4",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "gable"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -482,6 +507,63 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97594,
+        204,
+        80778
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 11184,
+    "mechanic_families": [
+      "access",
+      "container",
+      "hazard",
+      "light",
+      "redstone",
+      "signage",
+      "traversal"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: chiseled_polished_blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: cobweb",
+    "unsupported on skyblock-1.19: cracked_polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: dark_oak_door",
+    "unsupported on skyblock-1.19: dark_oak_fence",
+    "unsupported on skyblock-1.19: dark_oak_planks",
+    "unsupported on skyblock-1.19: dark_oak_trapdoor",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: deepslate_tile_slab",
+    "unsupported on skyblock-1.19: deepslate_tile_stairs",
+    "unsupported on skyblock-1.19: deepslate_tiles",
+    "unsupported on skyblock-1.19: iron_bars",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: redstone_lamp",
+    "unsupported on skyblock-1.19: skeleton_skull",
+    "unsupported on skyblock-1.19: stone_pressure_plate"
+  ],
   "file": "Haunted Manor.litematic",
   "name": "Haunted Manor"
 }

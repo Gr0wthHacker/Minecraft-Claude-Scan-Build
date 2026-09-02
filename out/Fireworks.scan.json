@@ -406,7 +406,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "landmark",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "Fireworks serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 669,
       "materials": 11,
@@ -455,12 +460,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "9386af1e941d43a6ffc10d104ad6a13fac093c5f74dc5c5cf08824f9879443ca",
+    "fingerprint": "049f0f2cfeb1294d381cb68d899af65c2fd8e1d7c22c290897a4a1c0a8d1acaf",
     "generator_source_digest": "40d540514d223304885b929bb573e25179bfd6f730bc9c6fd3c7716bec77b0b5",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -474,6 +500,41 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "landmark",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97570,
+        204,
+        80637
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 669,
+    "mechanic_families": [
+      "container",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone"
+  ],
   "file": "Fireworks.litematic",
   "name": "Fireworks"
 }

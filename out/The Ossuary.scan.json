@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97614,
-    "y": 202,
-    "z": 80762
+    "x": 97588,
+    "y": 182,
+    "z": 80788
   },
   "size": {
     "x": 23,
@@ -24,54 +24,54 @@
   "height": 4,
   "levers": [
     [
-      97630,
-      205,
-      80776
+      97604,
+      185,
+      80802
     ],
     [
-      97628,
-      205,
-      80776
+      97602,
+      185,
+      80802
     ],
     [
-      97626,
-      205,
-      80776
+      97600,
+      185,
+      80802
     ]
   ],
   "pull_lamps": [
     [
-      97630,
-      206,
-      80776
+      97604,
+      186,
+      80802
     ],
     [
-      97628,
-      206,
-      80776
+      97602,
+      186,
+      80802
     ],
     [
-      97626,
-      206,
-      80776
+      97600,
+      186,
+      80802
     ]
   ],
   "vault_lamp": [
-    97621,
-    204,
-    80774
+    97595,
+    184,
+    80800
   ],
   "lamps": 4,
   "doors": [
     [
-      97621,
-      205,
-      80775
+      97595,
+      185,
+      80801
     ],
     [
-      97620,
-      205,
-      80775
+      97594,
+      185,
+      80801
     ]
   ],
   "prizes": 2,
@@ -79,57 +79,57 @@
   "signs": 3,
   "inputs": [
     [
-      97630,
-      205,
-      80776
+      97604,
+      185,
+      80802
     ],
     [
-      97628,
-      205,
-      80776
+      97602,
+      185,
+      80802
     ],
     [
-      97626,
-      205,
-      80776
+      97600,
+      185,
+      80802
     ]
   ],
   "outputs": [
     [
-      97621,
-      205,
-      80775
+      97595,
+      185,
+      80801
     ],
     [
-      97620,
-      205,
-      80775
+      97594,
+      185,
+      80801
     ],
     [
-      97630,
-      206,
-      80776
+      97604,
+      186,
+      80802
     ],
     [
-      97628,
-      206,
-      80776
+      97602,
+      186,
+      80802
     ],
     [
-      97626,
-      206,
-      80776
+      97600,
+      186,
+      80802
     ],
     [
-      97621,
-      204,
-      80774
+      97595,
+      184,
+      80800
     ]
   ],
   "entry_at": [
-    97625,
-    204,
-    80782
+    97599,
+    184,
+    80808
   ],
   "mechanics": {
     "minecraft": "java-1.19",
@@ -171,11 +171,16 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Ossuary serves the hollow visitor journey."
+    },
     "metrics": {
       "blocks": 2266,
       "materials": 22,
-      "dominant_material_share": 0.3742,
+      "dominant_material_share": 0.3826,
       "light_blocks": 6,
       "massing": {
         "width": 23,
@@ -198,14 +203,14 @@
         }
       },
       "material_counts": {
-        "polished_blackstone_bricks": 848,
-        "cobbled_deepslate": 373,
-        "deepslate_bricks": 340,
+        "polished_blackstone_bricks": 867,
+        "cobbled_deepslate": 364,
+        "deepslate_bricks": 342,
         "deepslate_tile_stairs": 306,
-        "deepslate_tiles": 220,
-        "black_wool": 58,
-        "cracked_polished_blackstone_bricks": 28,
+        "deepslate_tiles": 218,
+        "black_wool": 57,
         "redstone_wire": 23,
+        "cracked_polished_blackstone_bricks": 19,
         "blackstone": 18,
         "chiseled_polished_blackstone": 10,
         "chiseled_deepslate": 4,
@@ -221,12 +226,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "9bd64fd98311af2a32303e614853eb6a40d6bd0ea6664f8a67d35e9988d6dd98",
+    "fingerprint": "2c9beacecf8d576ff231984f0aa22887bc1156effa46f1f71aadcfdb360c4b86",
     "generator_source_digest": "78432afd2c7f6c1b4c0c207ee2d8627157b89361046036feb47bea0b3a0e0fe4",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -242,6 +267,56 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97599,
+        184,
+        80814
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 2266,
+    "mechanic_families": [
+      "access",
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: chiseled_deepslate",
+    "unsupported on skyblock-1.19: chiseled_polished_blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: cracked_polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_brick_wall",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: deepslate_tile_slab",
+    "unsupported on skyblock-1.19: deepslate_tile_stairs",
+    "unsupported on skyblock-1.19: deepslate_tiles",
+    "unsupported on skyblock-1.19: iron_door",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: redstone_lamp"
+  ],
   "file": "The Ossuary.litematic",
   "name": "The Ossuary"
 }

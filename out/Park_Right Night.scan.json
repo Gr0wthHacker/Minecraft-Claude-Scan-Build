@@ -1,0 +1,13 @@
+{
+  "kind": "park/night",
+  "land": "hollow",
+  "lights": 6,
+  "contract": "every walkable guest-path cell in the land is above block light 0, lit by froglights set flush in the paving so nothing stands in a walk",
+  "origin": {
+    "x": 97580,
+    "y": 182,
+    "z": 80759
+  },
+  "file": "Park_Right Night.litematic",
+  "name": "Park_Right Night"
+}

@@ -2,17 +2,17 @@
   "origin": {
     "x": 97614,
     "y": 202,
-    "z": 80814
+    "z": 80762
   },
   "size": {
-    "x": 25,
+    "x": 22,
     "y": 15,
-    "z": 22
+    "z": 25
   },
   "generated_by": "attractions",
   "kind": "ghosttrain",
   "land": "hollow",
-  "facing": "north",
+  "facing": "east",
   "contract": "a closed, powered minecart circuit that boards OUTSIDE the facade, runs the frontage past the queue, enters the left arch at ground, climbs 5 courses up the west alley, crosses the whole back leg on a gallery looking down on the lit tomb, falls 5 courses down the east alley and leaves by the right arch. 58 cells, 4 corners, 5 courses of rise and the same of fall. VERIFIED: closed, every run powered at both ends, every corner flat on both sides, every elevated cell carried to the apron, two clear courses over every rail cell, and the platform walkable from the zone's own paving. NOT verified: cart speed - there is no cart-physics model here, so ride it once before anyone is told it completes the lap.",
   "unverified": [],
   "width": 21,
@@ -32,24 +32,24 @@
   "signed": true,
   "signs": 2,
   "boarding_at": [
-    97626,
-    203,
-    80816
-  ],
-  "approach_at": [
-    97626,
-    203,
-    80835
-  ],
-  "entry_at": [
-    97619,
-    203,
-    80819
-  ],
-  "exit_at": [
     97633,
     203,
-    80819
+    80774
+  ],
+  "approach_at": [
+    97614,
+    203,
+    80774
+  ],
+  "entry_at": [
+    97630,
+    203,
+    80781
+  ],
+  "exit_at": [
+    97630,
+    203,
+    80767
   ],
   "windows": 4,
   "tombs": 2,
@@ -91,16 +91,21 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "hollow",
+      "narrative": "Ghost Train serves the hollow visitor journey."
+    },
     "metrics": {
       "blocks": 2181,
       "materials": 18,
-      "dominant_material_share": 0.3709,
+      "dominant_material_share": 0.3741,
       "light_blocks": 14,
       "massing": {
-        "width": 25,
+        "width": 22,
         "height": 15,
-        "depth": 22,
+        "depth": 25,
         "fill_ratio": 0.2644
       },
       "silhouette": {
@@ -109,24 +114,24 @@
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 319,
-          "fill_ratio": 0.8507
-        },
-        "side": {
           "area": 234,
           "fill_ratio": 0.7091
+        },
+        "side": {
+          "area": 319,
+          "fill_ratio": 0.8507
         }
       },
       "material_counts": {
-        "black_wool": 809,
+        "black_wool": 816,
         "polished_blackstone_bricks": 476,
         "deepslate_bricks": 469,
         "blackstone": 104,
         "cobbled_deepslate": 84,
         "powered_rail": 54,
         "polished_blackstone_brick_stairs": 42,
-        "polished_blackstone": 39,
         "iron_chain": 32,
+        "polished_blackstone": 32,
         "dark_oak_fence": 20,
         "soul_lantern": 14,
         "redstone_block": 12
@@ -141,12 +146,32 @@
     }
   },
   "design_system": {
-    "fingerprint": "5a192591cd8a6415df709519a6ec6e5e217c2925110be728866145ee1c1d21a7",
+    "fingerprint": "cc22cd973ecf3774c60f739cf27cac4e63431e1a4d9bc018278a5ac4fc4d322a",
     "generator_source_digest": "662989f1252b380bad4c60655a86e154e6c876b6c5212831f64f7b3e9709de42",
     "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -160,6 +185,52 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "landmark",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97637,
+        204,
+        80774
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 2181,
+    "mechanic_families": [
+      "light",
+      "rail",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: cobweb",
+    "unsupported on skyblock-1.19: dark_oak_fence",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: iron_bars",
+    "unsupported on skyblock-1.19: polished_blackstone",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_stairs",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: redstone_block",
+    "unsupported on skyblock-1.19: skeleton_skull"
+  ],
   "file": "Ghost Train.litematic",
   "name": "Ghost Train"
 }

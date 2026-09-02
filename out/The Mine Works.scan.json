@@ -1,0 +1,216 @@
+{
+  "origin": {
+    "x": 97562,
+    "y": 142,
+    "z": 80352
+  },
+  "size": {
+    "x": 75,
+    "y": 8,
+    "z": 15
+  },
+  "generated_by": "undercroft",
+  "kind": "undercroft/mine",
+  "land": "frontier",
+  "facing": "east",
+  "chambers": [
+    {
+      "name": "Ore Chamber",
+      "holds": "ore",
+      "at": [
+        97571,
+        143,
+        80359
+      ]
+    },
+    {
+      "name": "Broken Trestle",
+      "holds": "chasm",
+      "at": [
+        97590,
+        143,
+        80359
+      ]
+    },
+    {
+      "name": "Flooded Works",
+      "holds": "water",
+      "at": [
+        97610,
+        143,
+        80359
+      ]
+    },
+    {
+      "name": "Crystal Reveal",
+      "holds": "crystal",
+      "at": [
+        97629,
+        143,
+        80359
+      ]
+    }
+  ],
+  "spine_length": 74,
+  "lights": 8,
+  "dig": [],
+  "contract": "one continuous spine with a doorway into every chamber, each chamber doing exactly one thing, lit end to end so nothing spawns behind you",
+  "unverified": [
+    "NOTHING HERE IS A RIDE. The chambers are the rooms a ride or a walkthrough happens IN; what moves through them is the module that owns the journey, and its own mechanics are its own contract."
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "lantern"
+      ]
+    },
+    "verifiers": {
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The Mine Works serves the frontier visitor journey."
+    },
+    "metrics": {
+      "blocks": 3064,
+      "materials": 9,
+      "dominant_material_share": 0.6188,
+      "light_blocks": 8,
+      "massing": {
+        "width": 75,
+        "height": 8,
+        "depth": 15,
+        "fill_ratio": 0.3404
+      },
+      "silhouette": {
+        "top": {
+          "area": 851,
+          "fill_ratio": 0.7564
+        },
+        "front": {
+          "area": 570,
+          "fill_ratio": 0.95
+        },
+        "side": {
+          "area": 120,
+          "fill_ratio": 1.0
+        }
+      },
+      "material_counts": {
+        "cobblestone": 1896,
+        "gravel": 545,
+        "andesite": 456,
+        "spruce_log": 64,
+        "spruce_planks": 33,
+        "raw_iron_block": 22,
+        "stone_bricks": 22,
+        "water": 18,
+        "lantern": 8
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "93a2221ef22bc591bf2156d3aba5f292e681246043f661105ee8379cd4e5166a",
+    "generator_source_digest": "a655d457a21fd82cc007a6bd3782b1347047f905d16334e019eedb5eda205fcf",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "fluid",
+        "hazard",
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97638,
+        144,
+        80359
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 3064,
+    "mechanic_families": [
+      "fluid",
+      "hazard",
+      "light"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: raw_iron_block"
+  ],
+  "file": "The Mine Works.litematic",
+  "name": "The Mine Works"
+}

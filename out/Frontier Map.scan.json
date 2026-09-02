@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97601,
+    "x": 97569,
     "y": 202,
-    "z": 80419
+    "z": 80383
   },
   "size": {
     "x": 3,
@@ -12,7 +12,7 @@
   "generated_by": "wayfinding",
   "kind": "mapboard",
   "land": "frontier",
-  "facing": "west",
+  "facing": "east",
   "contract": "a coloured three-zone layout at the entrance, with the zone you are standing in picked out - read as a plan, not a paragraph",
   "width": 9,
   "height": 8,
@@ -38,7 +38,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "Frontier Map serves the frontier visitor journey."
+    },
     "metrics": {
       "blocks": 92,
       "materials": 8,
@@ -84,12 +89,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "b247b174bf23530841618bcb285b04eb2783e8c666b3e73e743e4d6a326b4fef",
+    "fingerprint": "a748f53ff9a1beb26b8cc88023f3c35d9cba4a152a83832d1e7d4bc7f754e287",
     "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
     "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -101,6 +127,30 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 92,
+    "mechanic_families": [
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [],
   "file": "Frontier Map.litematic",
   "name": "Frontier Map"
 }

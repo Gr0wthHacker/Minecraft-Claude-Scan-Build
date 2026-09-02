@@ -1,37 +1,67 @@
 {
   "origin": {
     "x": 97572,
-    "y": 202,
-    "z": 80351
+    "y": 189,
+    "z": 80352
   },
   "size": {
-    "x": 47,
-    "y": 36,
-    "z": 47
+    "x": 69,
+    "y": 94,
+    "z": 97
   },
   "generated_by": "coaster",
   "kind": "coaster",
   "land": "frontier",
   "facing": "south",
-  "contract": "a closed circuit: it leaves the station, climbs the lift hill, takes two drops and six flat corners, and returns to the same platform. Every corner is a plain rail and flat on both sides; every powered run carries a redstone_block at both ends and every 8 cells; every elevated course stands on trestles carried to the apron.",
+  "contract": "a closed circuit through a mine ridge: it leaves the station, climbs the lift hill, takes two drops and six flat corners, and returns to the same platform. Board and unload are opposite flanks of one platform, each with an operator stand within reach of the track; the queue is 3 wide and 20 rows. Every corner is a plain rail and flat on both sides; every powered run carries a redstone_block at both ends and every 8 cells; every elevated course stands on trestles carried to the apron; every track cell has two clear courses over it, in the open cuttings and inside the 4 tunnels alike.",
   "unverified": [
-    "the ride has not been run in game - a cart's SPEED over this grade and power spacing is reasoning, not evidence. Ride it once before anyone is told it completes the lap."
+    "the ride has not been run in game - a cart's SPEED over this grade and power spacing is reasoning, not evidence. Ride it once before anyone is told it completes the lap.",
+    "the stuck-cart recovery point is a reachable catwalk and a stair, not a tested recovery procedure.",
+    "THE RIDGE IS A CRUST, so its interior is about 129,000 cells of sealed, unlit air. Sealed cavities still spawn hostile mobs and still count against the mob cap, exactly as CLAUDE.md already records for the lowland massif's buried seams. Filling it solid is four times the ledger's budget, so this is stated rather than fixed - a light pass cannot reach it from outside and a night sweep will not see it."
   ],
-  "track": 160,
+  "track": 292,
   "corners": 6,
-  "powered": 28,
-  "trestles": 27,
-  "fences": 259,
+  "powered": 44,
+  "trestles": 30,
+  "fences": 420,
   "lamps": 6,
-  "station_blocks": 450,
-  "signs": 2,
-  "top": 34,
-  "span": 44,
+  "station_blocks": 889,
+  "signs": 5,
+  "top": 76,
+  "span": 88,
+  "span_i": 66,
   "drops": [
-    20,
-    14,
-    10
+    45,
+    39
   ],
+  "ridge_blocks": 45667,
+  "ridge_top": 55,
+  "tunnels": 4,
+  "tunnel_mouths": 8,
+  "queue_rows": 20,
+  "queue_cells": 61,
+  "queue_covered": 12,
+  "board_side": "d>4",
+  "unload_side": "d<4",
+  "operator_stands": [
+    [
+      97635,
+      205,
+      80435
+    ],
+    [
+      97624,
+      205,
+      80445
+    ]
+  ],
+  "cart_removal_cells": 18,
+  "recovery_at": [
+    97620,
+    279,
+    80353
+  ],
+  "recovery_blocks": 227,
   "mechanics": {
     "minecraft": "java-1.19",
     "families": {
@@ -61,45 +91,59 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "Mine Coaster serves the frontier visitor journey."
+    },
     "metrics": {
-      "blocks": 4812,
-      "materials": 14,
-      "dominant_material_share": 0.3273,
-      "light_blocks": 9,
+      "blocks": 56635,
+      "materials": 26,
+      "dominant_material_share": 0.4259,
+      "light_blocks": 15,
       "massing": {
-        "width": 47,
-        "height": 36,
-        "depth": 47,
-        "fill_ratio": 0.0605
+        "width": 69,
+        "height": 94,
+        "depth": 97,
+        "fill_ratio": 0.09
       },
       "silhouette": {
         "top": {
-          "area": 1200,
-          "fill_ratio": 0.5432
+          "area": 6122,
+          "fill_ratio": 0.9147
         },
         "front": {
-          "area": 813,
-          "fill_ratio": 0.4805
+          "area": 4587,
+          "fill_ratio": 0.7072
         },
         "side": {
-          "area": 677,
-          "fill_ratio": 0.4001
+          "area": 4870,
+          "fill_ratio": 0.5341
         }
       },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.4149,
+          0.5268,
+          0.0583
+        ],
+        "top_silhouette_perimeter": 668,
+        "surface_faces_per_block": 1.5455
+      },
       "material_counts": {
-        "spruce_log": 1575,
-        "stone_bricks": 1113,
-        "spruce_planks": 549,
-        "stone": 488,
-        "cobblestone": 439,
-        "spruce_fence": 253,
-        "powered_rail": 154,
-        "stripped_oak_log": 95,
-        "spruce_slab": 64,
-        "spruce_stairs": 37,
-        "redstone_block": 28,
-        "lantern": 9
+        "stone": 24119,
+        "cobblestone": 11800,
+        "andesite": 4494,
+        "spruce_log": 4115,
+        "stone_bricks": 2319,
+        "tuff": 1408,
+        "cobbled_deepslate": 1340,
+        "mossy_cobblestone": 1263,
+        "cobblestone_stairs": 1221,
+        "spruce_planks": 999,
+        "gravel": 831,
+        "stripped_oak_log": 740
       }
     },
     "checks": [],
@@ -111,12 +155,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "d0ea83ddb2d8cda0f207be2cd21b6f6023ebca2818f42bda4e6a6ebb72caa48f",
-    "generator_source_digest": "b5a793c6a14d253b887a35c78ac11b0a02517dd0b9c7fc37eb61955e2192accf",
+    "fingerprint": "79c74ed9277d4e691ab81e59b9529032266d9fc6ac783f5e7d8434016375a8fb",
+    "generator_source_digest": "1353c3fc59585522827e606394df4ac8ebc541411dfe2e3fc92300f927d12ec0",
     "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "gable"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -130,6 +195,69 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "landmark",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97609,
+        204,
+        80433
+      ],
+      [
+        97628,
+        204,
+        80447
+      ]
+    ]
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 4.891201,
+    "blocks": 56635,
+    "blocks_per_second": 11578.96
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 56635,
+    "mechanic_families": [
+      "light",
+      "rail",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: coal_ore",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: cobblestone_stairs",
+    "not in the provisional skyblock-1.19 list: dark_oak_log",
+    "not in the provisional skyblock-1.19 list: redstone_block",
+    "not in the provisional skyblock-1.19 list: tuff"
+  ],
   "file": "Mine Coaster.litematic",
   "name": "Mine Coaster"
 }

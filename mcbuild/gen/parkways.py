@@ -53,19 +53,42 @@ PARKWAYS = {
     "feature_lots": None,          # [{name, v0, u0, v1, u1}]
     "spine_v": 14,                 # centre line of the grand spine
     "spine_half": 6,               # 13 wide overall
-    "avenue_half": 4,              # 9 wide
-    "avenue_every": 42,            # roughly one cross avenue per this much U inside a land
-    "midwalk_v": 62,               # a mid-block walk, so a lot is not 84 deep
-    "midwalk_half": 2,             # 5 wide
-    "service_v": 158,              # the concealed service lane behind the observation band
-    "service_half": 2,
+    "avenue_half": 4,              # 9 wide, unless a land's own avenue names its own half
+    "avenue_every": 42,            # FALLBACK ONLY: a uniform division, when a land names none
+    "midwalk_v": None,             # FALLBACK ONLY: one mid-block walk at one depth in every land
+    "midwalk_half": 2,
+    "service_v": 155,              # the concealed service lane, at the FRONT of the service band
+    "service_half": 1,             # 3 wide - a staff lane, not a street
     "rim_v": 170,                  # the protected rim's inner face
-    "promenade_v": 110,            # the back promenade the avenues run to
-    "promenade_half": 5,           # 11 wide
-    "avenue_to": 132,              # how deep into the land an avenue runs
+    #: THE BACK PROMENADE SITS ON THE SEAM, NOT IN THE MIDDLE OF THE PUBLIC FLOOR. At V110 it cut
+    #: every 104-deep column into 81 and 12, so nothing over 81 deep had anywhere to stand - and
+    #: five of the park's builds are deeper than that. On the public/exit seam at V124 it leaves
+    #: the public floor 97 deep in one piece and the exit band its full programmed 24.
+    "promenade_v": 124,
+    "promenade_half": 3,           # 7 wide: spine 13 > avenue 9 > promenade 7, a real hierarchy
+    #: A STRAIGHT ROAD AT ONE DEPTH CANNOT SERVE COLUMNS OF DIFFERENT DEPTHS. Control points
+    #: [[u, v], ...] in world U; the centre is linearly interpolated between them, so the
+    #: promenade swerves BEHIND a deep ride instead of being drawn through it.
+    "promenade_curve": None,
+    #: ...and where even a swerve has nowhere to go, the promenade simply stops. [[u0, u1], ...].
+    #: The loop is closed by the avenues either side; you walk AROUND that block, not through it.
+    "promenade_gaps": None,
     "lamp_every": 22,
     "seat_every": 18,
     "plaza_half": 13,
+    #: A JUNCTION IS ROUND. A square plaza around a radial thing wastes its four corners and
+    #: fights its shape; a disc gives those corners back to the lot as lawn. "round" | "square".
+    #: A rasterised disc reads as a disc from r>=9 and as an octagon below it - see PARK_GRID_PLAN.
+    "plaza_shape": "round",
+    #: [{v, u, r, ring}] - an annular ring road with a lawn island inside it, for a centrepiece
+    #: that is genuinely radial. The island is reserved ground exactly as a feature lot is.
+    "roundabouts": None,
+    #: A LAND BOUNDARY NEEDS A STREET. Measured, the Frontier's coaster column, the whole Claim
+    #: Line reach and the Midway's arrival column came out as ONE 20,097-cell lot spanning two
+    #: territories, because nothing at all crosses a reach except the spine. `[{at, half}]` -
+    #: a cross path at a reach's own edge, laid in the dithered palette of the seam it stands on.
+    #: PARK_FINAL_ARCHITECTED_PLAN calls these the "5-wide paved handoffs" (M8).
+    "thresholds": None,
     "seed": 0,
 }
 
@@ -89,8 +112,16 @@ def build(cfg: dict, donors=None) -> Canvas:
 
     paved: set[tuple[int, int]] = set()
 
+    # A ROUNDABOUT'S ISLAND IS A FEATURE LOT THAT HAPPENS TO BE ROUND. Reserved by the same rule,
+    # so no path, plaza, lamp or bench can land on it - and so the ring road cannot pave its own
+    # middle, which is the whole difference between a roundabout and a disc.
+    islands = [(int(rb["v"]) - v0, int(rb["u"]) - u0, int(rb["r"]) - int(rb.get("ring", 5)))
+               for rb in (p.get("roundabouts") or [])]
+
     def is_reserved(x: int, z: int) -> bool:
-        return any(a <= x <= c and b <= z <= d for a, b, c, d in reserved)
+        if any(a <= x <= c and b <= z <= d for a, b, c, d in reserved):
+            return True
+        return any((x - ix) ** 2 + (z - iz) ** 2 < (r - 0.5) ** 2 for ix, iz, r in islands)
 
     def blk(name: str) -> int:
         if name not in state:
@@ -147,25 +178,63 @@ def build(cfg: dict, donors=None) -> Canvas:
     # route runs one way into open lawn and stops, so there is no loop and no block of ground with
     # a street on both sides - which is where buildings go. A second promenade at the back of the
     # public floor turns the ladder into a network.
-    prom_v = p["promenade_v"] - v0
+    #
+    # ITS DEPTH IS A FUNCTION OF U, NOT A CONSTANT. Measured against the build inventory, no
+    # single depth works: the Mine Coaster wants 111 deep of uninterrupted column and the exit
+    # band wants its full 24, and a straight line cannot give both. The curve swerves behind the
+    # deep ride; a gap says there is nowhere to swerve to and you walk round that block instead.
+    curve = p.get("promenade_curve")
+    gaps = [tuple(g) for g in (p.get("promenade_gaps") or [])]
+
+    def prom_at(u: int) -> int:
+        """The promenade's centre V at a world U, interpolated between control points."""
+        if not curve:
+            return p["promenade_v"]
+        pts = sorted((int(a), int(b)) for a, b in curve)
+        if u <= pts[0][0]:
+            return pts[0][1]
+        for (ua, va), (ub, vb) in zip(pts, pts[1:]):
+            if ua <= u <= ub:
+                return va if ub == ua else int(round(va + (vb - va) * (u - ua) / (ub - ua)))
+        return pts[-1][1]
+
+    def prom_open(u: int) -> bool:
+        return not any(a <= u <= b for a, b in gaps)
+
+    prom_half = p["promenade_half"]
     for z in range(sz):
-        pal_a, pal_b, t = land_at(z + u0)
-        for d in range(-p["promenade_half"], p["promenade_half"] + 1):
-            lay(prom_v + d, z, pal_a, pal_b, t, p["promenade_half"], abs(d), z)
+        u = z + u0
+        if not prom_open(u):
+            continue
+        pal_a, pal_b, t = land_at(u)
+        cv = prom_at(u) - v0
+        for d in range(-prom_half, prom_half + 1):
+            lay(cv + d, z, pal_a, pal_b, t, prom_half, abs(d), z)
 
     # A LOT 84 DEEP IS NOT A LOT. Audited, the blocks between the spine and the promenade came
     # out 84 x 33-79, and a building is twenty to fifty deep - so every block was one enormous
     # field with a street only at its two ends, which is how things end up packed against each
-    # other in the middle. A mid-block walk halves them into two bands a building actually fits.
-    mid_v = p["midwalk_v"] - v0
+    # other in the middle.
+    #
+    # BUT ONE WALK AT ONE DEPTH IN EVERY LAND IS THE SAME MISTAKE UPSIDE DOWN. At V62 it cut the
+    # Mine Coaster's column, the Prism Ascent's and the Carousel/Sky Lift stack - the three
+    # deepest things the park owns - clean in half. A cross walk belongs where a COLUMN's own
+    # stack of builds meets, so it is declared per land as {v, u0, u1}, and a column carrying one
+    # deep ride gets none at all.
     for land in lands:
-        for u in range(land["u0"], land["u1"] + 1):
-            z = u - u0
-            if not (0 <= z < sz):
-                continue
-            pal = LANDS[land["name"]]
-            for d in range(-p["midwalk_half"], p["midwalk_half"] + 1):
-                lay(mid_v + d, z, pal, pal, 0.0, p["midwalk_half"], abs(d), z)
+        pal = LANDS[land["name"]]
+        walks = land.get("walks")
+        if walks is None and p.get("midwalk_v") is not None:
+            walks = [{"v": p["midwalk_v"], "u0": land["u0"], "u1": land["u1"]}]
+        for w in (walks or []):
+            wh = int(w.get("half", p["midwalk_half"]))
+            wv = int(w["v"]) - v0
+            for u in range(max(land["u0"], int(w["u0"])), min(land["u1"], int(w["u1"])) + 1):
+                z = u - u0
+                if not (0 <= z < sz):
+                    continue
+                for d in range(-wh, wh + 1):
+                    lay(wv + d, z, pal, pal, 0.0, wh, abs(d), z)
 
     # THE SERVICE LANE, behind the observation band. The audit found V116-199 as ONE unbroken
     # lawn 84 x 600 - two fifths of the envelope with no route in it at all - and the concealed
@@ -195,39 +264,111 @@ def build(cfg: dict, donors=None) -> Canvas:
                 c.put(rim_v, 1, z, blk(pal["post"]))
                 c.put(rim_v, 2, z, blk(pal["post"]))
 
-    avenues: list[tuple[int, dict]] = []
+    # AN AVENUE IS A SEAM BETWEEN LOTS, NOT A TICK ON A RULER. Divided uniformly - four per land
+    # every 42 - the avenues fell wherever the arithmetic put them and chopped the lawn into 34x31
+    # tiles: a car park. The park's largest build is 111x71. So a land NAMES its own avenues, at
+    # the boundaries between the columns its own programme needs, and `avenue_every` survives only
+    # as the fallback for a land that has not been programmed yet.
+    avenues: list[tuple[int, dict, int, int]] = []       # (u, palette, half, plaza half)
     for land in lands:
-        span = land["u1"] - land["u0"] + 1
-        count = max(2, span // p["avenue_every"])
-        for i in range(count):
-            avenues.append((land["u0"] + int(span * (i + 0.5) / count), LANDS[land["name"]]))
+        pal = LANDS[land["name"]]
+        declared = land.get("avenues")
+        if declared:
+            for a in declared:
+                avenues.append((int(a["at"]), pal, int(a.get("half", p["avenue_half"])),
+                                int(a.get("plaza", p["plaza_half"]))))
+        else:
+            span = land["u1"] - land["u0"] + 1
+            count = max(2, span // p["avenue_every"])
+            for i in range(count):
+                avenues.append((land["u0"] + int(span * (i + 0.5) / count), pal,
+                                p["avenue_half"], p["plaza_half"]))
     deep = min(sx, svc_v + p["service_half"] + 1)
-    for u, pal in avenues:
+
+    # THE HANDOFFS. A cross path at each reach's own edge, in the dithered seam palette so it
+    # reads as belonging to neither land - which is what a threshold is.
+    for th in (p.get("thresholds") or []):
+        z = int(th["at"]) - u0
+        th_half = int(th.get("half", 1))
+        pal_a, pal_b, t = land_at(int(th["at"]))
+        for x in range(spine_v, deep):
+            for d in range(-th_half, th_half + 1):
+                lay(x, z + d, pal_a, pal_b, t, th_half, abs(d), x)
+
+    for u, pal, ah, _ph in avenues:
         z = u - u0
         for x in range(spine_v, deep):
-            for d in range(-p["avenue_half"], p["avenue_half"] + 1):
-                lay(x, z + d, pal, pal, 0.0, p["avenue_half"], abs(d), x)
+            for d in range(-ah, ah + 1):
+                lay(x, z + d, pal, pal, 0.0, ah, abs(d), x)
 
     # ------------------------------------------------------------------ 3. plazas
-    # a plaza at BOTH ends of every avenue: one on the arrival spine, one on the back promenade
-    half = p["plaza_half"]
-    for u, pal in avenues:
-        z = u - u0
-        for centre, hh in ((spine_v, half), (prom_v, half - 4)):
-          for dx in range(-hh, hh + 1):
+    round_plaza = str(p.get("plaza_shape", "round")).lower() == "round"
+
+    def plaza_key(dx: int, dz: int, hh: int):
+        """The pattern in a plaza, and None for a cell outside a round one."""
+        if round_plaza:
+            d = (dx * dx + dz * dz) ** 0.5
+            if d > hh + 0.5:
+                return None
+            ring = int(round(d))
+        else:
+            ring = max(abs(dx), abs(dz))
+        if ring >= hh:
+            return "border"
+        if ring % 4 == 0:
+            return "accent"
+        return "inlay" if (dx + dz) % 6 == 0 else "core"
+
+    def square(centre_x: int, z: int, pal: dict, hh: int):
+        for dx in range(-hh, hh + 1):
             for dz in range(-hh, hh + 1):
-                x, zz = centre + dx, z + dz
+                x, zz = centre_x + dx, z + dz
                 if not (0 <= x < sx and 0 <= zz < sz) or is_reserved(x, zz):
                     continue
-                ring = max(abs(dx), abs(dz))
-                if ring == hh:
-                    key = "border"
-                elif ring % 4 == 0:
-                    key = "accent"
-                elif (dx + dz) % 6 == 0:
-                    key = "inlay"
-                else:
-                    key = "core"
+                key = plaza_key(dx, dz, hh)
+                if key is None:
+                    continue
+                c.put(x, 1, zz, 0)
+                c.put(x, 0, zz, blk(pal[key]))
+                paved.add((x, zz))
+
+    # a plaza at BOTH ends of every avenue: one on the arrival spine, one on the back promenade
+    plaza_at: list[tuple[int, int, dict, int]] = []
+    for u, pal, _ah, ph in avenues:
+        z = u - u0
+        square(spine_v, z, pal, ph)
+        plaza_at.append((spine_v, z, pal, ph))
+        # THE PROMENADE'S JUNCTION IS THE AVENUE CROSSING ITSELF, AND NOTHING IS DRAWN FOR IT.
+        # A widened head there was worth 5 froglights and cost real lots: at r9 it reached four
+        # courses into the band on either side, and at r5 it still spilled three cells past the
+        # last avenue into the column beyond - which on this park is always a GAPPED column, i.e.
+        # the Mine Coaster, the Sky Lift and the Resonance Vault, the three builds with no slack
+        # anywhere. Measured, that alone put all three of them fourteen to thirty-one courses
+        # short. A square two cells wider than its own street was never a square anyway; the
+        # crossing is lit from underfoot like every other junction, and takes no ground at all.
+        if prom_open(u):
+            plaza_at.append((prom_at(u) - v0, z, pal, prom_half))
+
+    # ------------------------------------------------------------------ 3b. roundabouts
+    # A RING ROAD ROUND A GREEN ISLAND, where the centrepiece is genuinely radial. The island is
+    # left as lawn and reserved, so no path, lamp or bench can land on it - the same guard a
+    # feature lot gets, because it is one.
+    for rb in (p.get("roundabouts") or []):
+        cx, cz = int(rb["v"]) - v0, int(rb["u"]) - u0
+        r_out, ring = int(rb["r"]), int(rb.get("ring", 5))
+        r_in = r_out - ring
+        pal = LANDS[rb["land"]] if rb.get("land") in LANDS else land_at(cz + u0)[0]
+        for dx in range(-r_out, r_out + 1):
+            for dz in range(-r_out, r_out + 1):
+                x, zz = cx + dx, cz + dz
+                if not (0 <= x < sx and 0 <= zz < sz) or is_reserved(x, zz):
+                    continue
+                d = (dx * dx + dz * dz) ** 0.5
+                if not (r_in - 0.5 <= d <= r_out + 0.5):
+                    continue
+                rr = int(round(d))
+                key = "border" if rr in (r_in, r_out) else \
+                      ("accent" if rr % 3 == 0 else ("inlay" if (dx + dz) % 5 == 0 else "core"))
                 c.put(x, 1, zz, 0)
                 c.put(x, 0, zz, blk(pal[key]))
                 paved.add((x, zz))
@@ -339,14 +480,31 @@ def build(cfg: dict, donors=None) -> Canvas:
 
     lamps = glows = refused = 0
     lamp_at: list[tuple[int, int]] = []
+    per_line: dict[int, int] = {}
 
-    def place_lamp(x: int, z: int, pal: dict, across: str,
-                   window=(0, 1, -1, 2, -2, 3, -3, 5, -5, 8, -8, 11, -11, 14, -14)) -> bool:
-        """One lamp, nudged along the verge until it clears paving.
+    #: A LAMP MAY MOVE ALONG ITS OWN LINE AND NEVER ACROSS IT. Jack, on the shipped version:
+    #: "still lots of issues with lamp placements, awkward, weird" - and counted off the block
+    #: list the masts stood on FOURTEEN different V lines, with thirteen piled on one of them and
+    #: ten on another. A street lamp sits on one line per verge; that is the whole of what makes a
+    #: row of them read as a row. The nudge below runs along the street's own direction only, so
+    #: the line a lamp is on is decided by the caller and cannot be changed by the search.
+    #:
+    #: SPINE AND PROMENADE need a long window because a plaza swallows their verge for its whole
+    #: 23-block length; at a three-block nudge the spine's east verge came out with a 110-block
+    #: hole, which is an accident rather than restraint.
+    WINDOW_LONG = (0, 2, -2, 4, -4, 6, -6, 8, -8, 10, -10, 12, -12, 14, -14)
+    #: AN AVENUE'S WINDOW IS CAPPED AT HALF ITS OWN RHYTHM. Its lamps step down the avenue at
+    #: `lamp_every`, so a nudge longer than half that step lands a lamp nearer its NEIGHBOUR'S
+    #: station than its own - which is exactly how thirteen of them ended up stacked on one line.
+    WINDOW_SHORT = tuple(s for k in range(0, p["lamp_every"] // 2 - 2, 2) for s in ((k,) if not k else (k, -k)))
 
-        THE WINDOW HAS TO CLEAR A PLAZA. A plaza is 27 across, so it swallows a verge for its
-        whole length; at a three-block nudge 33 lamps were refused outright and the spine's east
-        verge came out with a 110-block hole. A gap that size is an accident, not restraint."""
+    def place_lamp(x: int, z: int, pal: dict, across: str, window=WINDOW_LONG) -> bool:
+        """One lamp, nudged ALONG its own verge line until it clears paving - or dropped.
+
+        A MISSING LAMP IS INVISIBLE; A LAMP THIRTEEN BLOCKS OFF ITS LINE IS NOT. Past the window
+        it is refused rather than relocated, and the refusal is counted, because after the fact a
+        lamp's own FOOTING has replaced the lawn under it and nothing downstream can tell where
+        it was placed from."""
         nonlocal lamps, refused
         for shift in window:
             sx_, sz_ = (x, z + shift) if across == "x" else (x + shift, z)
@@ -358,6 +516,7 @@ def build(cfg: dict, donors=None) -> Canvas:
             if lamp(sx_, sz_, pal, across):
                 lamps += 1
                 lamp_at.append((sx_, sz_))
+                per_line[sx_ + v0] = per_line.get(sx_ + v0, 0) + 1
                 return True
         refused += 1
         return False
@@ -370,36 +529,49 @@ def build(cfg: dict, donors=None) -> Canvas:
     # of how a real street is lit. Posts now do nothing but line the three walked routes at an
     # even rhythm, and a square is lit flush from underfoot.
     for z in range(sz):
-        pal, _b, _t = land_at(z + u0)
-        for centre, halfw, every in ((spine_v, p["spine_half"], p["lamp_every"]),
-                                     (prom_v, p["promenade_half"], p["lamp_every"] + 6)):
+        u = z + u0
+        pal, _b, _t = land_at(u)
+        rows = [(spine_v, p["spine_half"], p["lamp_every"])]
+        if prom_open(u):
+            rows.append((prom_at(u) - v0, prom_half, p["lamp_every"] + 6))
+        for centre, halfw, every in rows:
             for side in (-1, 1):
                 if (z + (0 if side < 0 else every // 2)) % every == 0:
                     place_lamp(centre + side * (halfw + 2), z, pal, "x")
 
-    for u, pal in avenues:
+    for u, pal, ah, ph in avenues:
         z = u - u0
-        for x in range(spine_v + half + 6, deep - 2, p["lamp_every"]):
+        for x in range(spine_v + ph + 6, deep - 2, p["lamp_every"]):
+            # (the short window: an avenue lamp may not wander into the next station's stretch)
             for side in (-1, 1):
                 if ((x // p["lamp_every"]) + (0 if side < 0 else 1)) % 2 == 0:
-                    place_lamp(x, z + side * (p["avenue_half"] + 2), pal, "z")
+                    # ONE CELL OF VERGE, NOT TWO. A lamp two cells out from an avenue's
+                    # border stands INSIDE the building lot behind it, and measured against the
+                    # inventory that cost four blocks of usable width on every column - enough,
+                    # on its own, to put the Mine Coaster's 71-wide lot one block short. The
+                    # spine and the promenade have designed verges (V19-23, V120/V130) and keep
+                    # their two; an avenue runs between two lots and gets one.
+                    place_lamp(x, z + side * (ah + 1), pal, "z", WINDOW_SHORT)
 
     # ...and the squares themselves: a FEW froglights set flush in the paving. Flush, because a
     # froglight IS the floor - an opaque emitter a course down - so it reaches one less than its
     # own light and takes no room at all. Five to a plaza, on the pattern rather than scattered.
-    for u, pal in avenues:
-        z = u - u0
-        for centre, hh in ((spine_v, half), (prom_v, half - 4)):
-            for dx, dz in ((0, 0), (-(hh - 4), -(hh - 4)), (hh - 4, -(hh - 4)),
-                           (-(hh - 4), hh - 4), (hh - 4, hh - 4)):
-                px, pz = centre + dx, z + dz
-                if 0 <= px < sx and 0 <= pz < sz and not is_reserved(px, pz) and (px, pz) in paved:
-                    c.put(px, 0, pz, blk(pal["glow"]))
-                    glows += 1
+    for centre, z, pal, hh in plaza_at:
+        step = max(3, hh - 5)
+        for dx, dz in ((0, 0), (-step, -step), (step, -step), (-step, step), (step, step)):
+            px, pz = centre + dx, z + dz
+            if 0 <= px < sx and 0 <= pz < sz and not is_reserved(px, pz) and (px, pz) in paved:
+                c.put(px, 0, pz, blk(pal["glow"]))
+                glows += 1
 
     c.meta = {"kind": "parkways", "lands": [land["name"] for land in lands],
               "avenues": len(avenues), "lamps": lamps, "square_glows": glows,
               "lamps_refused_on_paving": refused,
+              # THE LINES THE MASTS ACTUALLY STAND ON, so the thing Jack looked at and called
+              # "awkward, weird" is a number in the sidecar rather than something you must
+              # count off a block list. `render3d` draws a rod, a fence, a wall and iron bars
+              # all as full cubes, so a picture cannot answer this.
+              "lamps_per_line": dict(sorted(per_line.items())),
               "feature_lots": [f["name"] for f in (p.get("feature_lots") or [])],
               "contract": "lawn, a path hierarchy of core/inlay/border/verge, furniture, and a "
                           "dithered transition through every reach - the ground layer, only"}

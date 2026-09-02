@@ -52,7 +52,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "Park Gate serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 558,
       "materials": 9,
@@ -99,12 +104,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "24b398491e305ae8a3449362f7e57ebcae66961d3fc4ff4c899aea8bc59ec89b",
-    "generator_source_digest": "7cf43e2c1c3f9699e50b0fafbe9aef44b44ed40c5f758089e943808deca02eb7",
+    "fingerprint": "dc2a46805c5fcfe40163b0354b450e940ea01cb7955f8ce46926b5703b6c3d4e",
+    "generator_source_digest": "6ae0a771d0ec58869f44d0c0b698d8dce8edb12711f6ec3463b97785d17a0147",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -118,6 +144,47 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "arrival",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97549,
+        204,
+        80572
+      ],
+      [
+        97562,
+        204,
+        80572
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 558,
+    "mechanic_families": [
+      "access",
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: oak_fence_gate"
+  ],
   "file": "Park Gate.litematic",
   "name": "Park Gate"
 }

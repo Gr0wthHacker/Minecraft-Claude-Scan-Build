@@ -1,0 +1,389 @@
+{
+  "kind": "prismworks/ascent",
+  "route": [
+    [
+      43,
+      120,
+      41,
+      "ledge",
+      "I"
+    ],
+    [
+      40,
+      118,
+      43,
+      "ledge",
+      "I"
+    ],
+    [
+      36,
+      116,
+      45,
+      "ledge",
+      "I"
+    ],
+    [
+      33,
+      114,
+      45,
+      "gate",
+      "I"
+    ],
+    [
+      29,
+      112,
+      45,
+      "ledge",
+      "I"
+    ],
+    [
+      26,
+      110,
+      43,
+      "ledge",
+      "I"
+    ],
+    [
+      24,
+      108,
+      40,
+      "ledge",
+      "I"
+    ],
+    [
+      21,
+      106,
+      37,
+      "ledge",
+      "I"
+    ],
+    [
+      21,
+      104,
+      33,
+      "gate",
+      "I"
+    ],
+    [
+      22,
+      102,
+      30,
+      "ledge",
+      "I"
+    ],
+    [
+      25,
+      96,
+      31,
+      "rest",
+      "I"
+    ],
+    [
+      22,
+      90,
+      26,
+      "ledge",
+      "II"
+    ],
+    [
+      24,
+      88,
+      23,
+      "ledge",
+      "II"
+    ],
+    [
+      27,
+      86,
+      21,
+      "ledge",
+      "II"
+    ],
+    [
+      30,
+      84,
+      18,
+      "transfer",
+      "II"
+    ],
+    [
+      34,
+      82,
+      18,
+      "ledge",
+      "II"
+    ],
+    [
+      38,
+      80,
+      18,
+      "ledge",
+      "II"
+    ],
+    [
+      42,
+      78,
+      19,
+      "ledge",
+      "II"
+    ],
+    [
+      45,
+      76,
+      21,
+      "transfer",
+      "II"
+    ],
+    [
+      48,
+      74,
+      24,
+      "gate",
+      "II"
+    ],
+    [
+      48,
+      62,
+      24,
+      "plunge",
+      "II"
+    ],
+    [
+      46,
+      62,
+      25,
+      "rest",
+      "II"
+    ],
+    [
+      52,
+      56,
+      25,
+      "ledge",
+      "III"
+    ],
+    [
+      53,
+      54,
+      29,
+      "ledge",
+      "III"
+    ],
+    [
+      54,
+      52,
+      32,
+      "ledge",
+      "III"
+    ],
+    [
+      55,
+      50,
+      36,
+      "ledge",
+      "III"
+    ],
+    [
+      54,
+      48,
+      39,
+      "gate",
+      "III"
+    ],
+    [
+      53,
+      46,
+      43,
+      "ledge",
+      "III"
+    ],
+    [
+      52,
+      44,
+      47,
+      "ledge",
+      "III"
+    ],
+    [
+      49,
+      42,
+      50,
+      "ledge",
+      "III"
+    ],
+    [
+      11,
+      12,
+      34,
+      "plunge",
+      "III"
+    ]
+  ],
+  "acts": [
+    {
+      "name": "I",
+      "note": "readable ledges and gates",
+      "from_y": 122,
+      "to_y": 96,
+      "moves": 10,
+      "catch_ring_y": 96,
+      "catch_ring_half": [
+        9,
+        15
+      ]
+    },
+    {
+      "name": "II",
+      "note": "lateral transfers, frame crossings, and the major plunge",
+      "from_y": 92,
+      "to_y": 62,
+      "moves": 10,
+      "catch_ring_y": 62,
+      "catch_ring_half": [
+        14,
+        20
+      ]
+    },
+    {
+      "name": "III",
+      "note": "high-contrast finale into an enclosed catch",
+      "from_y": 58,
+      "to_y": 42,
+      "moves": 8,
+      "catch_ring_y": null,
+      "ends_on": "calibration court"
+    }
+  ],
+  "facing": "west",
+  "practice": [
+    [
+      55,
+      13,
+      17
+    ],
+    [
+      59,
+      14,
+      25
+    ],
+    [
+      61,
+      15,
+      34
+    ],
+    [
+      59,
+      13,
+      43
+    ],
+    [
+      55,
+      14,
+      51
+    ],
+    [
+      48,
+      15,
+      57
+    ],
+    [
+      39,
+      13,
+      61
+    ],
+    [
+      29,
+      14,
+      61
+    ]
+  ],
+  "observer_decks": [
+    [
+      61,
+      25,
+      34
+    ],
+    [
+      9,
+      43,
+      34
+    ],
+    [
+      56,
+      61,
+      34
+    ]
+  ],
+  "masts": [
+    [
+      27,
+      12,
+      27
+    ],
+    [
+      41,
+      12,
+      27
+    ],
+    [
+      27,
+      12,
+      41
+    ],
+    [
+      41,
+      12,
+      41
+    ]
+  ],
+  "levels": {
+    "found": 0,
+    "base_lo": 1,
+    "base_hi": 8,
+    "mezz": 5,
+    "terrace": 9,
+    "set_hi": 11,
+    "court": 12,
+    "spire_lo": 13,
+    "water_top": 124,
+    "crown_lo": 127,
+    "crown_hi": 141
+  },
+  "water": {
+    "water": 2093,
+    "escapes": 0,
+    "unenclosed": 0
+  },
+  "signs": 6,
+  "pruned": 0,
+  "jump_band": [
+    3.0,
+    4.5
+  ],
+  "requires_in_game": [
+    "bubble_ascent",
+    "parkour_catches",
+    "checkpoint_behavior",
+    "timed_run_payment"
+  ],
+  "interfaces": [
+    "queue_entry",
+    "bubble_entry",
+    "launch_deck",
+    "ride_exit",
+    "service_access",
+    "observer"
+  ],
+  "expensive_functional": {
+    "redstone_lamp": "checkpoint state panel, one per act boundary"
+  },
+  "size": {
+    "x": 69,
+    "y": 144,
+    "z": 69
+  },
+  "generated_by": "prismworks",
+  "note": "review sidecar: Prismworks modules carry no world origin, the WorldSpec sites them",
+  "file": "Prism Ascent.litematic",
+  "name": "Prism Ascent"
+}

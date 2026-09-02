@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97552,
+    "x": 97619,
     "y": 202,
-    "z": 80426
+    "z": 80368
   },
   "size": {
     "x": 17,
@@ -42,181 +42,181 @@
   ],
   "hoppers": [
     [
-      97566,
+      97633,
       203,
-      80446
+      80388
     ],
     [
-      97566,
+      97633,
       203,
-      80442
+      80384
     ],
     [
-      97566,
+      97633,
       203,
-      80438
+      80380
     ],
     [
-      97566,
+      97633,
       203,
-      80434
+      80376
     ],
     [
-      97566,
+      97633,
       203,
-      80430
+      80372
     ]
   ],
   "droppers": [
     [
       [
-        97558,
+        97625,
         204,
-        80446
+        80388
       ],
       [
-        97557,
+        97624,
         204,
-        80446
+        80388
       ],
       [
-        97556,
+        97623,
         204,
-        80446
+        80388
       ]
     ],
     [
       [
-        97558,
+        97625,
         204,
-        80442
+        80384
       ],
       [
-        97557,
+        97624,
         204,
-        80442
+        80384
       ]
     ],
     [
       [
-        97558,
+        97625,
         204,
-        80438
+        80380
       ]
     ],
     [
       [
-        97558,
+        97625,
         204,
-        80434
+        80376
       ],
       [
-        97557,
+        97624,
         204,
-        80434
+        80376
       ]
     ],
     [
       [
-        97558,
+        97625,
         204,
-        80430
+        80372
       ],
       [
-        97557,
+        97624,
         204,
-        80430
+        80372
       ],
       [
-        97556,
+        97623,
         204,
-        80430
+        80372
       ]
     ]
   ],
   "signed": true,
   "inputs": [
     [
-      97566,
+      97633,
       203,
-      80446
+      80388
     ],
     [
-      97566,
+      97633,
       203,
-      80442
+      80384
     ],
     [
-      97566,
+      97633,
       203,
-      80438
+      80380
     ],
     [
-      97566,
+      97633,
       203,
-      80434
+      80376
     ],
     [
-      97566,
+      97633,
       203,
-      80430
+      80372
     ]
   ],
   "outputs": [
     [
-      97558,
+      97625,
       204,
-      80446
+      80388
     ],
     [
-      97557,
+      97624,
       204,
-      80446
+      80388
     ],
     [
-      97556,
+      97623,
       204,
-      80446
+      80388
     ],
     [
-      97558,
+      97625,
       204,
-      80442
+      80384
     ],
     [
-      97557,
+      97624,
       204,
-      80442
+      80384
     ],
     [
-      97558,
+      97625,
       204,
-      80438
+      80380
     ],
     [
-      97558,
+      97625,
       204,
-      80434
+      80376
     ],
     [
-      97557,
+      97624,
       204,
-      80434
+      80376
     ],
     [
-      97558,
+      97625,
       204,
-      80430
+      80372
     ],
     [
-      97557,
+      97624,
       204,
-      80430
+      80372
     ],
     [
-      97556,
+      97623,
       204,
-      80430
+      80372
     ]
   ],
   "stock": {
@@ -260,7 +260,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The Nugget Chute serves the frontier visitor journey."
+    },
     "metrics": {
       "blocks": 1313,
       "materials": 13,
@@ -310,12 +315,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "1718f908fba7e3cf9611bc12f55cf82fb88596bc9da4b0bdafc77081642eb387",
+    "fingerprint": "7921c2b381773c7e46fc534d181355ac9d41c973e4b745b4aadaf6f20f34b50a",
     "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
     "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -330,6 +356,42 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97637,
+        204,
+        80379
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1313,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: dropper"
+  ],
   "file": "The Nugget Chute.litematic",
   "name": "The Nugget Chute"
 }

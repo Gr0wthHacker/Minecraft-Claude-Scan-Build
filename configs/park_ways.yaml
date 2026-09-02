@@ -8,23 +8,40 @@
 # initial sculptures."
 #
 # So this design contains the GROUND AND NOTHING ELSE, plus the two set pieces. No buildings are
-# in it and none will be until this is placed, looked at and agreed. Each land is then worked one
-# side at a time, with every building sited and oriented against these streets.
+# in it and none will be until this is placed, looked at and agreed.
 #
-# WHAT IS IN IT
-#   lawn        moss over the whole envelope - so there is no void anywhere, and a path has
-#               something to read against. `grass_block` and `podzol` are CURRENCY here.
-#   spine       13 wide, the full 600, at the arrival edge
-#   promenade   11 wide at the back of the public floor, so the avenues join something and the
-#               blocks between the two are ground with a street on both sides - where buildings go
-#   avenues     9 wide, four per land, spine to promenade
-#   plazas      at both ends of every avenue, patterned
-#   furniture   lamp posts on both verges, benches between them, facing the path
-#   transition  each reach dithers one land's paving into the next across its whole length, so a
-#               walker never crosses an edge - the Lowland Stair's own gradient rule
+# ------------------------------------------------------------------------------------------
+# THE STREET SCHEDULE IS DERIVED FROM THE BUILD INVENTORY, NOT FROM A RULER.
 #
-# THE SET PIECES are the Signal Heron on the Frontier's own arrival plaza and the Aeronaut balloon
-# over the Midway's centre - the two shapes this repo has measured as reading best (a columnar
+# The first version divided every land into four avenues every 42 U with one mid-block walk at one
+# depth. Measured with `python tools/park_lots.py`, that left 34 lots whose largest was 34 x 32 -
+# and `park_final.world.json` owes this park a 111 x 71 Mine Coaster, a 93 x 72 Prism Ascent and a
+# 68 x 71 Carousel Court. TWENTY OF ITS TWENTY-FOUR BUILDS HAD NOWHERE TO STAND. A grid laid to a
+# ruler is a car park; the avenues below sit on the seams between the COLUMNS each land's own
+# programme needs, and a column carrying one deep ride gets no cross walk and no promenade at all.
+#
+# DEPTH PROGRAMME (PARK_FINAL_ARCHITECTED_PLAN.md), and what occupies it:
+#   V   0-  5   arrival apron, lawn, against the connector edge
+#   V   6- 18   SPINE, 13 wide, all 600 - and its plazas, r11, fit inside V1-23
+#   V  19- 23   spine verge - lamps at V20, benches
+#   V  24-120   public floor LOTS               (97 deep)
+#   V 121       promenade verge - lamps at V121
+#   V 122-127   BACK PROMENADE, 5 wide          (absent over three ride columns - see below)
+#   V 128-129   promenade verge - lamps at V129
+#   V 130-153   exit / observation LOTS         (24 deep - the full programmed band)
+#   V 154-156   SERVICE LANE, 3 wide
+#   V 157-169   service LOTS                    (13 deep)
+#   V 170       rim edge
+#   V 171-199   protected rim and void reserve  - NOTHING is placed in here
+#
+# EVERY STREET CARRIES ITS OWN VERGE AND THE VERGE IS NOT LOT GROUND. A lamp post two cells out
+# from an avenue's border stands inside the building lot behind it; measured, that cost four
+# blocks of usable width on every column - on its own enough to put the Mine Coaster's lot a block
+# under its 71. The bands above are the LOT bands; what lies between them is street reserve, and
+# the column widths named per land below are usable width AFTER verge.
+#
+# THE SET PIECES are the Signal Heron on the Claim Line reach and the Aeronaut balloon on the
+# island of the Midway Circus - the two shapes this repo has measured as reading best (a columnar
 # bird and one convex mass carrying a pattern).
 name: Park Ways
 gen: compose
@@ -34,24 +51,112 @@ params:
       offset: [0, 0, 0]
       params:
         bounds: [0, 0, 199, 599]
+
+        # ---------------------------------------------------------------- depth
+        spine_v: 12
+        spine_half: 6                 # V6-18
+        # THE SPINE SITS FORWARD SO ITS PLAZAS FIT THE THRESHOLD BAND. At V14 an r13 plaza reached
+        # V1-27 and bit four courses off the front of every column it stood between - and three of
+        # those columns are spoken for to the block (Frontier A stacks 96 into 96, the Midway's
+        # ride column 130 into 130). At V12 with r11 the plaza is V1-23: entirely inside the
+        # programmed threshold band, and not one lot loses a cell to it.
+        promenade_v: 125              # V122-128, on the public floor / exit band seam
+        promenade_half: 2             # 5 wide, and that last block is load-bearing: at 7 the exit
+                                      # band lots come out 23 deep against a Forge Deck programmed
+                                      # at exactly the band's own 24.
+        # WHERE THERE IS NOWHERE TO SWERVE TO, THE PROMENADE STOPS. Three columns carry a single
+        # build deeper than any promenade can clear - the Mine Coaster (111), the Carousel over the
+        # Sky Lift (130) and the Prism Array over the Resonance Vault (109). Drawing a street
+        # through them is what put "buildings on top of each other" in the first place. You walk
+        # AROUND those three blocks, on the avenues either side; the loop still closes.
+        promenade_gaps: [[98, 169], [264, 337], [470, 522]]
+        service_v: 155                # V154-156, at the FRONT of the service band
+        service_half: 1               # 3 wide - a staff lane, not a street
+        rim_v: 170
+        plaza_shape: round            # a junction is round; the corners go back to the lawn
+        plaza_half: 11                # r11 on the spine (23 across). The promenade's own
+                                      # junctions draw NOTHING - see parkways.py; a square two cells
+                                      # wider than its street was never a square, and it spilled
+                                      # into all three of the columns with no slack anywhere.
+
+        # ---------------------------------------------------------------- the handoffs
+        # A cross path at each reach's own edge. Without them the Frontier's coaster column, the
+        # whole Claim Line reach and the Midway's arrival column measured as ONE 20,097-cell lot
+        # spanning two territories: nothing at all crossed a reach except the spine.
+        # PARK_FINAL_ARCHITECTED_PLAN calls these the paved handoffs (M8).
+        thresholds: [{at: 171, half: 1}, {at: 213, half: 1},
+                     {at: 386, half: 1}, {at: 428, half: 1}]
+
+        # ---------------------------------------------------------------- the lands
+        # Each `avenues` entry is a COLUMN SEAM. The widths quoted are USABLE, after verge.
         lands:
-          - {name: frontier, u0: 0, u1: 169}
-          - {name: midway, u0: 215, u1: 384}
-          - {name: prismworks, u0: 430, u1: 599}
-        # A SET PIECE GETS ITS OWN LOT. Both sculptures were placed by a hand-typed offset and
-        # both landed in the middle of a walkway. These rectangles are kept clear of every path,
-        # plaza, lamp and bench, so the layout routes around them instead of through them.
+          # FRONTIER   A U0-39 (40) | av U41-45 | B U47-93 (47) | av U95-97 | C U99-169 (71)
+          #   A  Trailhead Gate 45x39 V24-68 . Prospecting Porch 51x40 V69-119   (96 into 96)
+          #   B  Boomtown Spine 53x46 V24-76 . Mining Square V78-119 . Assay+Prize 20x46 V131-150
+          #   C  Mine Coaster 111x71 V24-134 - one build, no walk, no promenade
+          # The second avenue is 3 wide on purpose: at 5 the arithmetic comes out exactly one
+          # block short and the Mine Coaster loses its 71st column. It is the alley behind
+          # Boomtown, and the coaster's real approach is the Mining Square in front of it.
+          - name: frontier
+            u0: 0
+            u1: 169
+            avenues: [{at: 43, half: 2}, {at: 96, half: 1}]
+
+          # MIDWAY   A U215-255 (41) | av U257-263 | B U265-336 (72) | av U338-344 | C U346-384
+          #   A  Arrival Court 48x41 V24-71 . Snack Window 27x41 V77-103
+          #   B  Carousel Court 68x71 V24-91 over Sky Lift 62x71 V92-153 - 130 deep, no promenade
+          #   C  Skill Arcade 51x33 V24-74 . Prize Point 20x33 V80-99
+          - name: midway
+            u0: 215
+            u1: 384
+            avenues: [{at: 260, half: 3}, {at: 341, half: 3}]
+            # A CROSS WALK MUST REACH THE STREETS EITHER SIDE OF ITS COLUMN. Measured as a
+            # connectivity check on the paving, the Prismworks walk came out as 153 cells
+            # reaching NEITHER avenue - a 51-block walkway between the Prism Array and the
+            # Resonance Vault with no way off it - because a column's usable width stops one
+            # cell short of the avenue on each side, at its lamp line. Every walk now overlaps
+            # the paving it joins, so the network cannot be broken by a verge.
+            walks: [{v: 74, half: 1, u0: 214, u1: 257},
+                    {v: 77, half: 1, u0: 344, u1: 384}]
+
+          # PRISMWORKS  A U430-465 (36) | av U467-469 | B U471-521 (51) | av U523-525 | C U527-599
+          #   A  Foundry Gate 53x36 V24-76
+          #   B  Prism Array 53x51 V24-76 over Resonance Vault 53x41 V82-134 - no promenade
+          #   C  Prism Ascent 93x72 V24-116, with Forge Deck 24x66 in the exit band behind it
+          # Both avenues are 3 wide because this land's own programme is 159 of its 170 columns.
+          - name: prismworks
+            u0: 430
+            u1: 599
+            avenues: [{at: 468, half: 1}, {at: 524, half: 1}]
+            walks: [{v: 79, half: 1, u0: 469, u1: 523}]
+
+        # ---------------------------------------------------------------- the circus
+        # A SQUARE LOT AROUND A RADIAL THING WASTES ITS FOUR CORNERS. The Midway's centrepiece is
+        # a moored balloon - the one genuinely radial object in the park - so the back promenade
+        # opens into a ring road around a green island carrying it. r13 outer / r8 inner: a
+        # rasterised ring reads as a ring from about r9 and as an octagon below it, and the 5-wide
+        # band is what carries the curve for the eye. The island is 15 across, which is exactly
+        # the balloon. It stands on the PROMENADE and not on the spine because the Midway's spine
+        # has a 41-wide and a 72-wide column hard against it, both spoken for to the block, and a
+        # 27-across circus would take four courses off the front of each.
+        roundabouts:
+          - {v: 125, u: 235, r: 13, ring: 5, land: midway}
+
+        # A SET PIECE GETS ITS OWN LOT. Both sculptures were once placed by a hand-typed offset
+        # and both landed in the middle of a walkway. These rectangles are kept clear of every
+        # path, plaza, lamp and bench; the Circus island is reserved by the same rule.
+        # THE HERON GARDEN WAS 55 x 51 FOR A BIRD MEASURING 14 x 32 - and it sat squarely on the
+        # Mine Coaster's column, which is the largest lot in the park. It is on the Claim Line
+        # reach now, which is where PARK_FINAL_ARCHITECTED_PLAN.md says the Signal Heron stands.
         feature_lots:
-          - {name: heron garden, v0: 18, u0: 118, v1: 72, u1: 168}
-          - {name: balloon green, v0: 54, u0: 272, v1: 84, u1: 302}
-    # the bird stands where the Frontier's second avenue meets the back promenade, so it is seen
-    # down the length of that avenue from the spine and again across the promenade
+          - {name: heron garden, v0: 34, u0: 174, v1: 60, u1: 210}
+    # the bird stands on the Claim Line reach, seen down the spine from both lands
     - gen: heron
-      offset: [22, 1, 122]
+      offset: [26, 1, 176]
       params: {variant: heron, at: [0, 0, 0], scale: 1.0, seed: 0}
-    # ...and the balloon is moored over the Midway's centre plaza, the brightest thing on the walk
+    # ...and the balloon is moored on the island of the Midway Circus, on the back promenade
     - gen: balloon
-      offset: [59, 1, 277]
+      offset: [115, 1, 225]
       params: {}
 roles: [path]
 design:
@@ -59,9 +164,10 @@ design:
   hierarchy: landmark
   style: midway
   narrative: >
-    The park's ground layer across all three territories - lawn, a spine, a back promenade,
-    avenues, plazas, lighting and seating, with each reach grading one land's paving into the
-    next - plus the first two set pieces. Buildings come afterwards, one side at a time.
+    The park's ground layer across all three territories - lawn, a spine, a back promenade sized
+    and routed to the build inventory, per-land avenues on the column seams, threshold handoffs at
+    the reaches, plazas, a circus, lighting and seating, with each reach grading one land's paving
+    into the next - plus the first two set pieces. Buildings come afterwards, one side at a time.
 finish:
   cheapen: false
   hollow: false

@@ -1,0 +1,115 @@
+# THE PARK LINE: the theme park's railway, in the corridor between the park's edge and the void.
+#
+# Jack: "start building our railway in the marked area, it needs to be impressive with 3 stations,
+# functional, and gorgeous."
+#
+# THE CORRIDOR IS ASSUMED, NOT MARKED - and the first assumption was BACKWARDS. There is no marks
+# file on disk, so this originally took V0-7 on the reading that V0 faces the void. It does not:
+# `configs/park_ways.yaml` puts the arrival apron at V0-5 and the grand spine at V6-18, with its
+# r11 plazas reaching V1, so a viaduct there stands in the park's own front door. Measured against
+# the shipped ground layer it shared 90 cells with it across 27 lamp posts - and NOTHING SAW IT,
+# because each design audits clean on its own and cross-design overlap is a different question.
+#
+# The void is at the HIGH edge. Off the shipped `Park Ways`, exactly two V bands hold nothing above
+# the lawn for the full 600: V7-17 (the spine's own paving, obviously not it) and V154-156 (the
+# service lane, 3 wide). Everything else carries paving, lamps or moss. The rim band V171-199 is
+# 29 columns of lawn and scattered moss carpet with the rim fence at V170 in front of it, and
+# PARK_600X200_AUDIT calls it "protected rim, terrain, support roots, view/void reserve".
+#
+# SO THE LINE RUNS ON THE RIM, WHICH IS WHAT A PARK RAILWAY DOES - a perimeter berm route with the
+# park on one side and open void on the other, spending 8 of those 30 reserve columns and leaving
+# V180-199 untouched. `bounds`, `track_v`, `gate_v` and `park_side` are the only numbers that move
+# if the marked area turns out to be somewhere else.
+#
+# WHAT IT STILL OWES: the stair at each station lands on the reserve lawn at V171, and the rim
+# fence at V170 stands between that and the service band. Three gates through it, at U85, U300 and
+# U515, belong to `parkways` and are not in this design.
+#
+# WHAT IS IN IT
+#   viaduct     a deck twelve courses over the lawn on a pier every 15, a segmental arch between
+#               every pair, an arch ring in a darker stone than the spandrel it carries, a cornice
+#               under the deck, a cross-rib at every crown, and a portal frame every four bays
+#   arcade      ...and a gate cut through every pier, so the ground under the viaduct is a second
+#               six-hundred-block walk rather than forty separate rooms
+#   track       one straight, dead-level line the length of the corridor - and because it never
+#               turns, it costs ZERO iron: every rail on it is a powered (gold) rail
+#   power       a redstone_block in the bed every 8, so no rail on the line is a brake by accident
+#   brake       ...except at each station, where a lever-held dead zone stops a coasting cart, so
+#               the line can actually be BOARDED. Both states are verified by simulation.
+#   stations    one per land, at that land's own centre, in that land's own materials: platform,
+#               back wall, canopy, departure board, name signs, signal lever, and a flight down to
+#               the lawn taken out of the platform's own back two columns
+#   light       flush ochre froglights in the deck kerb and in the lintel of every pier gate (no
+#               metal, cannot be knocked off, and nobody can walk into one), plus a lantern under
+#               every other arch crown, under every portal beam, and along each station canopy
+#
+# WHAT IT DOES NOT HAVE, so nobody goes looking: each station carries ONE name sign and one
+# departure board rather than a name at both ends. The flight takes twelve of the platform's
+# twenty-seven columns out of the back wall, and the wall that is left is not long enough to hang
+# a second name on without putting it next to the board - which is a sign, not a second name.
+#
+# IT CLAIMS NOTHING AT Y0. The lawn under it belongs to `Park Ways`; every cell here is at Y1 or
+# above, so the two designs share the corridor without contesting one cell of it.
+name: Park Rail
+gen: parkrail
+params:
+  bounds: [172, 0, 179, 599]
+  # the same three lands, on the same U spans, as the ground layer - so the viaduct's masonry
+  # changes material exactly where the paving under it does, and across the same reaches
+  lands:
+    - {name: frontier, u0: 0, u1: 169}
+    - {name: midway, u0: 215, u1: 384}
+    - {name: prismworks, u0: 430, u1: 599}
+  track_v: 177
+  # THE PARK IS TOWARD LOWER V HERE, so the promenade, the platforms, the back walls and
+  # every station stair mirror to the inner face. See `_sides` in gen/parkrail.py.
+  park_side: -1
+  # TWELVE COURSES OVER THE LAWN, and the number is the ARCH's rather than the deck's. At eight
+  # the opening was wider than it was tall and the elevation read as a lintel with the corners
+  # chamfered off - forty grey brackets, not forty arches. A span of twelve with a rise of six is
+  # the shallowest thing a voxel grid draws as a curve.
+  deck_y: 12
+  ground_y: 1
+  bay: 15
+  pier_u: 3
+  spring_y: 4
+  crown_gap: 2
+  gate_v: [172, 174]
+  gate_h: 4
+  portal_every: 4
+  power_every: 8
+  light_every: 12
+  arch_light_every: 2
+  brake_half: 8
+  track_inset: 3
+  station_half: 13
+  canopy_h: 5
+  band_blend: 30
+  # ONE STATION PER LAND, AT THAT LAND'S OWN CENTRE, so a guest steps off the platform, down the
+  # flight, and is on the grand spine. The stair end alternates so the three do not read as one
+  # station stamped three times.
+  stations:
+    - {at_u: 85, land: frontier, title: FRONTIER HALT, stair: 1,
+       board: [FRONTIER HALT, "> MIDWAY 215", "> PRISMWORKS 430", HOLD LEVER TO GO]}
+    - {at_u: 300, land: midway, title: MIDWAY CENTRAL, stair: -1,
+       board: [MIDWAY CENTRAL, "< FRONTIER 85", "> PRISMWORKS 430", HOLD LEVER TO GO]}
+    - {at_u: 515, land: prismworks, title: PRISMWORKS END, stair: 1,
+       board: [PRISMWORKS END, "< MIDWAY 300", "< FRONTIER 85", HOLD LEVER TO GO]}
+  seed: 0
+roles: [ride, path, bridge]
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: midway
+  narrative: >
+    The park's railway: one straight powered line the length of the outer corridor, carried on an
+    arcaded viaduct eight courses over the lawn, with three stations - one per land, in that land's
+    own materials - each holding a lever-braked stretch of track so a cart can be stopped and
+    boarded. The track hugs the void edge and the promenade and platforms sit on the park side, so
+    a rider looks out and a walker boards from behind.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+origin_lock: false

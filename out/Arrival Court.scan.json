@@ -1757,7 +1757,12 @@
     }
   },
   "design": {
-    "brief": {},
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "Arrival Court serves the midway visitor journey."
+    },
     "metrics": {
       "blocks": 712,
       "materials": 15,
@@ -1807,12 +1812,33 @@
     }
   },
   "design_system": {
-    "fingerprint": "42d34a58ca8da988d8d3581f6ff08351302814642e6632a9e0f6f516991e6f61",
+    "fingerprint": "5cbce2e3bc12b4bde2f89ea4b70b9f3e5cb582b6b22cf5a0854da9a4d093f1a4",
     "generator_source_digest": "636b27e6b90a973bd5dfa8901986c9f8a24af234450ee52bacf4dae6e6156199",
     "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
     "capabilities": {
-      "purpose": false,
-      "style": false,
+      "purpose": true,
+      "style": true,
       "palette_roles": false,
       "visual_review": false,
       "journey": false,
@@ -1825,6 +1851,43 @@
       "scenario": false
     }
   },
+  "park_contract": {
+    "purpose": "arrival",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97618,
+        204,
+        80600
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 712,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: chiseled_stone_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: smooth_basalt"
+  ],
   "file": "Arrival Court.litematic",
   "name": "Arrival Court"
 }
