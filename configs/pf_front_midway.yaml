@@ -1,0 +1,169 @@
+# PF FRONT MIDWAY - the grammar that turns the Midway's buildings into attractions.
+#
+# Two jobs here that the other two lands do not have:
+#
+# THE PARK'S BIGGEST MEASURED HOLE IS IN THIS LAND. Built columns per 20-wide U band across the
+# public floor run near 2,000 next to troughs near 250, and that alternation IS what reads as
+# "clusters then empty space". U320-339 is one of the four worst - 295 built columns against
+# 1,581 free - and it is 22 x 69 of unbroken lawn immediately east of the Carousel, in full view
+# from the spine. It gets the two largest things in this design.
+#
+# AND IT HOUSES THE HOMELESS SET PIECE. `out/park_final/artifacts/Sky Lift Sloth.litematic` is
+# 5,300 blocks - a brown-wool sloth slung under a 46 x 22 spruce lattice - which used to hang
+# from the Sky Lift's arch. The Sky Lift is now the wheel alone, so the best-reading kind of
+# object this repo has measured (*a body slung UNDER a line*) has had nowhere to be. The arbour
+# below is its home: eight masonry-and-timber piers carrying the lattice it already owns, with
+# the sloth six courses up and seven clear courses to walk under it.
+#
+# THE SITES ARE MEASURED. Every `at` was placed against a free-lawn mask built from the shipped
+# `Park Ways` and `Park Complete`; a cell is available only where the ground layer paved nothing,
+# put no lamp or bench, and no module stands.
+name: PF Front Midway
+gen: park_frontage
+params:
+  land: midway
+  anchor: [97500, 203, 80300]
+  seed: 42
+  pieces:
+    # ---------------------------------------------------------------- marquees, on the spurs
+    # A SPAN OF 7 RATHER THAN 5, HERE AND ON THE CAROUSEL, IS ARITHMETIC AND NOT TASTE. `Park
+    # Ways` puts a lamp mast every 22 cells along the verge lamp line, and at span 5 the Midway's
+    # piers land on the masts at U238 and U298. The opening may cross a mast - it is empty air and
+    # the head beam clears it by two courses - but a PIER may not.
+    - kind: marquee
+      name: Arrival Court
+      at: [20, 235]
+      span: 7
+      height: 6
+      board: 3
+      title: WELCOME COURT
+      lines: ["the midway", "rides and games"]
+    - kind: marquee
+      name: Carousel Court
+      at: [20, 301]
+      span: 7
+      title: THE CAROUSEL
+      lines: ["walk on ride", "all ages"]
+    - kind: marquee
+      name: Skill Arcade
+      at: [20, 362]
+      span: 5
+      title: SKILL ARCADE
+      lines: ["five games", "prizes next door"]
+    # THREE MODULES HERE FRONT ONTO A CROSS WALK RATHER THAN A SPUR, so there is no path to arch
+    # over and the same piece is built solid - a fascia on its own piers, standing beside the
+    # door. `Park Ways` leaves exactly one free course in front of each, so `depth: 1`.
+    - kind: marquee
+      name: Snack Window
+      at: [76, 235]
+      style: board
+      width: 11
+      depth: 1
+      title: SNACK WINDOW
+      lines: ["food and drink", "seats behind"]
+    - kind: marquee
+      name: Prize Point
+      at: [79, 362]
+      style: board
+      width: 11
+      depth: 1
+      title: PRIZE POINT
+      lines: ["redeem tickets", "from the arcade"]
+
+    # ---------------------------------------------------------------- the Sky Lift's approach
+    # THE WHEEL IS THE ONE MIDWAY RIDE THAT GENUINELY QUEUES - it loads a car at a time - so it
+    # is the one that gets a line. The Carousel is a walk-on and gets thresholds instead, which is
+    # a real distinction a visitor can read from the shape of what is in front of them.
+    - kind: marquee
+      name: Sky Lift
+      at: [74, 300]
+      span: 3
+      depth: 2
+      title: THE SKY LIFT
+      lines: ["big wheel", "queue behind"]
+    - kind: queue
+      name: Sky Lift queue
+      at: [79, 296]
+      width: 9
+      depth: 10
+      leg_every: 3
+      title: WHEEL LINE
+      lines: ["one car at a", "time - please", "wait here"]
+
+    # ---------------------------------------------------------------- walk-on thresholds
+    - kind: portal
+      name: Carousel entrance
+      at: [21, 291]
+      mode: entrance
+      title: RIDE ENTRANCE
+      lines: ["carousel", "", "step up"]
+    - kind: portal
+      name: Carousel exit
+      at: [21, 311]
+      mode: exit
+      title: RIDE EXIT
+      lines: ["", "", "mind the step"]
+    - kind: portal
+      name: Skill Arcade entrance
+      at: [21, 350]
+      mode: entrance
+      title: GAMES IN HERE
+      lines: ["five games", "", "prizes east"]
+    - kind: portal
+      name: Skill Arcade exit
+      at: [21, 374]
+      mode: exit
+      title: WAY OUT
+      lines: ["", "", "to the spine"]
+
+    # ---------------------------------------------------------------- the U320-339 trough
+    # 22 x 69 OF UNBROKEN LAWN, the largest hole in the park, and everything below stands in it.
+    # THE PIERS GO UNDER CELLS THAT EXIST: the lattice the sloth hangs from is a grid whose two
+    # long rails run at its own U1-2 and U21-22, and everything between them is open air, so a
+    # pier anywhere else would carry nothing and read as a post beside a sculpture.
+    - kind: pergola
+      name: Sloth Arbour piers
+      at: [24, 312]
+      size: [46, 24]
+      top: 28
+      pier_v: [0, 15, 30, 44]
+      pier_u: [1, 21]
+    - kind: stamp
+      name: Sky Lift Sloth
+      at: [24, 312]
+      source: out/park_final/artifacts/Sky Lift Sloth.litematic
+      lift: 6
+    - kind: sight
+      name: The Bandstand
+      motif: bandstand
+      at: [72, 316]
+      radius: 4
+      height: 6
+      title: BANDSTAND
+      lines: ["music at the", "top of the hour"]
+    - kind: sight
+      name: Arcade Bunting
+      motif: bunting
+      at: [24, 380]
+      span: 3
+      step: 8
+      height: 6
+roles: [dressing]
+design:
+  purpose: dressing
+  hierarchy: secondary
+  style: midway
+  narrative: >
+    The Midway's frontage: name gantries over the Welcome Court, Carousel and Arcade spurs,
+    boards on the two counters that front a cross walk, a queue for the wheel with its own
+    entrance and way out, walk-on thresholds at the Carousel and Arcade, and - filling the
+    largest measured hole in the park - a timber arbour carrying the homeless Sky Lift Sloth,
+    a bandstand beside it and a bunting run down the arcade's flank.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

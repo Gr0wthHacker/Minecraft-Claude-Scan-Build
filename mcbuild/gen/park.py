@@ -136,6 +136,43 @@ LANDS = {
         "accent": "purple_wool",
         "wood": "dark_oak",
     },
+    # PRISMWORKS, AND ITS ABSENCE WAS A REAL FAULT. This table is the RETIRED three-island park's
+    # (frontier / hollow / midway), and the 600x200 park's third land is Prismworks - so every
+    # module built through `park.py` in Prismworks or in the Prism Reach fell back to `hollow`
+    # and came out in the retired park's palette. That is why the Wyrm's Crossing plaza is
+    # `cobbled_deepslate` and why 3,279 cobblestone reached a park whose owner had banned it, and
+    # it is very likely what Jack meant by "I also thought this area was now prism - which had a
+    # different purpose/feel". A land that does not exist in the table does not fail loudly; it
+    # silently becomes another land.
+    #
+    # The materials are the ones `parkways.LANDS["prismworks"]` already paves the ground with, so
+    # a building and the street it stands on read as one hand. The value ladder is measured
+    # ACROSS families, which is the only place this economy has one:
+    #     black_wool 21 -> polished_blackstone_bricks 45 -> deepslate_bricks 71 -> smooth_basalt
+    # and the accent is the land's own signal cyan rather than a mood colour: Prismworks is the
+    # machine land and its light is a SIGNAL.
+    "prismworks": {
+        "ground": "polished_blackstone_bricks",
+        "path": "smooth_basalt",
+        "wall": "deepslate_tiles",
+        "trim": "deepslate_bricks",
+        "post": "polished_deepslate",
+        "beam": "polished_blackstone_bricks",
+        "stair": "polished_deepslate_stairs",
+        "slab": "polished_deepslate_slab",
+        "fence": "polished_blackstone_brick_wall",
+        "gate": "warped_fence_gate",
+        # THE ONE COLD LIGHT, and the reason this land reads apart from the other two at night.
+        "light": "soul_lantern",
+        "canopy": ["deepslate_tiles", "cyan_wool"],
+        "accent": "cyan_wool",
+        # `wood` IS A FAMILY PREFIX AND THE NETHER WOODS DO NOT SHARE IT. Written "warped" this
+        # asked for `warped_log`, and the registry says there is no such block - a warped tree has
+        # a STEM. I typed it from memory, which is the one thing rule 11 in CLAUDE.md exists to
+        # stop, and it produced 34 illegal states in the composite. `dark_oak` is real, it is
+        # already this land's beam, and it is the dark end of the ladder.
+        "wood": "dark_oak",
+    },
 }
 
 PARK = {
@@ -463,6 +500,11 @@ _CANOPY = {
     "midway": ["oak_leaves", "azalea_leaves", "flowering_azalea_leaves"],
     "frontier": ["spruce_leaves", "oak_leaves"],
     "hollow": ["dark_oak_leaves", "spruce_leaves"],
+    # THE MACHINE LAND PLANTS NOTHING SOFT, and this is a LEAF list - every entry must take
+    # `persistent` and `waterlogged`. `warped_wart_block` is a nether block that takes neither,
+    # and asking for it produced a state error on every cell of it. Spruce is the darkest leaf
+    # this economy has and dark oak is the same family as the land's own beam.
+    "prismworks": ["spruce_leaves", "dark_oak_leaves"],
 }
 
 

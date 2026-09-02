@@ -44,6 +44,18 @@ SAFE = {
     "short_grass": "moss_carpet", "tall_grass": "moss_carpet",
 }
 
+#: SWAPPED WHATEVER THE ECONOMY SAYS. `SAFE` is only ever consulted for a block that is expensive
+#: or unspendable, so a material that is cheap AND spendable passes straight through - and
+#: cobblestone is both. Jack banned it outright ("use deep slates etc as necessary, smooth stones,
+#: bricks"), and it arrives with any outside build that uses it, which is how 26 cobblestone walls
+#: reached a park whose owner had ruled them out. A ban has to be its own gate or it is not a ban.
+BANNED = {
+    "cobblestone": "stone_bricks", "mossy_cobblestone": "mossy_stone_bricks",
+    "cobblestone_wall": "stone_brick_wall", "mossy_cobblestone_wall": "mossy_stone_brick_wall",
+    "cobblestone_stairs": "stone_brick_stairs", "cobblestone_slab": "stone_brick_slab",
+    "cobbled_deepslate": "polished_deepslate",
+}
+
 ASSET = {"source": None, "downscale": None, "threshold": 0.42, "min_component": 6,
          "repalette": True, "keep": None, "map": None,
          #: 0/90/180/270 clockwise about Y. AN OUTSIDE BUILD ARRIVES FACING WHEREVER ITS AUTHOR
@@ -89,6 +101,10 @@ def build(cfg: dict, donors=None) -> Canvas:
         name = entry.split("[")[0].replace("minecraft:", "")
         if not p["repalette"] or name in keep:
             remap[index] = canvas.reg._add(model.palette[index]); continue
+        banned = BANNED.get(name)
+        if banned:
+            swapped[name] = banned
+            remap[index] = canvas.state(banned); continue
         if palette.tier(name) == "expensive" or not _spendable(name):
             better = ({**SAFE, **(p.get("map") or {})}).get(name)
             if better is None:

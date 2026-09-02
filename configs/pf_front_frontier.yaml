@@ -1,0 +1,161 @@
+# PF FRONT FRONTIER - the grammar that turns the Frontier's buildings into attractions.
+#
+# Jack, on the placed park: "they are visually great - but all serve no actual defined purpose -
+# it feels more like multiple villages or towns than a theme park or amusement destination."
+#
+# Nothing here is a building. Everything here is what stands IN FRONT OF and BETWEEN them: a name
+# board over every attraction's own approach, a queue line at the ride, entrance and exit
+# thresholds that read as thresholds, and sight pieces in the land's measured empty bands.
+#
+# THE SITES ARE MEASURED, NOT CHOSEN. Every `at` below was placed against a free-lawn mask built
+# from the shipped `Park Ways` and `Park Complete`: a cell is available only if the ground layer
+# paved nothing there, put no lamp or bench there, and no module stands there.
+#   marquees   V20-22, the verge band, straddling the 3-wide SPUR the ground layer already lays
+#              from the street to that attraction's front door - which is what an entrance arch
+#              IS, and it costs no walkable ground: every cell over the paving is 5 courses up
+#   queue      V26-63 x U160-167, the 9-wide strip of open lawn down the Mine Coaster's east
+#              flank. 106 x 10 of nothing, on the largest lot in the park
+#   sights     the same strip further back, and the empty U0-19 lawn under the Prospecting Porch
+name: PF Front Frontier
+gen: park_frontage
+params:
+  land: frontier
+  anchor: [97500, 203, 80300]
+  seed: 41
+  pieces:
+    # ---------------------------------------------------------------- marquees, on the spurs
+    # THE PARK'S WESTERN THRESHOLD, so it is the land's grand one: a triple-bay gantry, seventeen
+    # cells of frontage. It is the first thing anyone arriving down the spine reads.
+    - kind: marquee
+      name: Trailhead Gate
+      at: [20, 19]
+      span: 5
+      wing: 1
+      title: TRAILHEAD GATE
+      lines: ["frontier land", "trails and mine"]
+    - kind: marquee
+      name: Boomtown Spine
+      at: [20, 70]
+      span: 7
+      title: BOOMTOWN
+      lines: ["store - saloon", "telegraph"]
+    - kind: marquee
+      name: Mine Coaster
+      at: [20, 134]
+      span: 5
+      wing: 1
+      title: MINE COASTER
+      lines: ["the big one", "queue east"]
+    # THE POSTS AND THE PORCH HAVE NO SPUR, so there is no path to arch over and the same piece
+    # is built solid and stands beside the door instead. `style: board`.
+    - kind: marquee
+      name: Prospecting Porch
+      at: [70, 20]
+      style: board
+      width: 11
+      depth: 2
+      title: PROSPECTING
+      lines: ["shooting range", "gold sluice"]
+    - kind: marquee
+      name: Mining Square
+      at: [80, 66]
+      style: board
+      width: 11
+      depth: 1
+      title: MINING SQUARE
+      lines: ["coaster queue", "and ride exit"]
+    - kind: marquee
+      name: Assay and Prize Office
+      at: [129, 62]
+      style: board
+      width: 11
+      depth: 2
+      title: ASSAY OFFICE
+      lines: ["weigh in here", "claim prizes"]
+
+    # ---------------------------------------------------------------- the ride's own thresholds
+    # A SHOP DOOR IS A HOLE IN A WALL; A RIDE THRESHOLD IS A FRAME YOU PASS THROUGH WITH NOTHING
+    # EITHER SIDE OF IT. Entrance and exit flank the coaster's spur so the two halves of a ride
+    # are told apart before anybody reads a word - the entrance carries the land's accent across
+    # its head and a lamp each side, the exit carries neither.
+    - kind: portal
+      name: Mine Coaster entrance
+      at: [21, 116]
+      mode: entrance
+      title: RIDE ENTRANCE
+      lines: ["queue this way", "", "east flank"]
+    - kind: portal
+      name: Mine Coaster exit
+      at: [21, 152]
+      mode: exit
+      title: RIDE EXIT
+      lines: ["", "", "no re-entry"]
+
+    # ---------------------------------------------------------------- the queue
+    # 106 x 10 OF OPEN LAWN DOWN THE COASTER'S EAST FLANK is the largest empty strip in the
+    # Frontier, and a queue is the one thing that belongs beside a ride rather than in front of
+    # it. It has NO FLOOR: the lawn is the floor, so it can never be mistaken for a second street.
+    - kind: queue
+      name: Mine Coaster queue
+      at: [27, 161]
+      width: 7
+      depth: 30
+      leg_every: 3
+      title: COASTER LINE
+      lines: ["about 10 min", "", "keep left"]
+
+    # ---------------------------------------------------------------- sight pieces
+    # THE MEASURED TROUGHS ARE THE PRIORITY, and 95.5% of everywhere a guest can stand in this
+    # park is in the bottom ten courses - so a sight piece three blocks tall does not carry
+    # twenty blocks of walking. The tower is twenty.
+    - kind: sight
+      name: Ridge Water Tower
+      motif: water_tower
+      at: [72, 161]
+      height: 12
+      title: WATER No.2
+    - kind: sight
+      name: Ore Road
+      motif: ore_cart
+      at: [92, 165]
+      length: 5
+      title: ORE ROAD
+      lines: ["ran to the head", "of the workings"]
+    - kind: sight
+      name: Trail Ore Cart
+      motif: ore_cart
+      at: [117, 155]
+      length: 7
+      title: SPOIL TIP
+      lines: ["mine waste", "keep clear"]
+
+    # ---------------------------------------------------------------- back of house
+    # A THEME PARK DOES NOT MARQUEE ITS SERVICE YARD; IT MARKS IT. An exit-mode portal with no
+    # accent and no lamp is the right shape for a door guests are meant to walk past.
+    - kind: portal
+      name: Works Yard staff gate
+      at: [151, 136]
+      facing: west
+      mode: exit
+      title: STAFF ONLY
+      lines: ["works yard", "", "no admittance"]
+roles: [dressing]
+design:
+  purpose: dressing
+  hierarchy: secondary
+  style: frontier
+  narrative: >
+    The Frontier's frontage: a name board over every attraction's own spur, entrance and exit
+    thresholds flanking the Mine Coaster's approach, a switchback queue down the coaster's east
+    flank, a water tower and two ore-cart props in the land's empty bands, and a staff gate on
+    the works yard. Nothing below the build plane, nothing in a walkway, no street furniture.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  # The lawn's own scatter. `Park Ways` lays moss carpet across every lot at the course this
+  # design builds on; it is what a builder clears with one swing before placing.
+  verify_replaceable: [moss_carpet]
+origin_lock: false

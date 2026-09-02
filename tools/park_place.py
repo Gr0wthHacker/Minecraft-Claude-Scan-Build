@@ -224,7 +224,12 @@ def complete(items):
             ids[Y, Z, X] = slot
 
     lay(model, origin[0], origin[1] - min(0, origin[1]), origin[2], "buildings")
-    lay(rail, 172, 0 - min(0, origin[1]), 0, "railway")
+    # THE RAIL'S OWN CORRIDOR START, read from its config rather than typed - it moved from
+    # V172-179 to V172-186 the day the line went to two tracks, and a hard-coded offset here
+    # would have laid the whole railway seven columns out with nothing to say so.
+    import yaml as _yaml
+    _rv = _yaml.safe_load((ROOT / "configs" / "park_rail.yaml").read_text(encoding="utf-8"))
+    lay(rail, int(_rv["params"]["bounds"][0]), 0 - min(0, origin[1]), 0, "railway")
     lay(ways, 0, 0 - min(0, origin[1]), 0, "ground")
     return schem.Model(ids, pal), (0, min(0, origin[1]), 0), contested
 
