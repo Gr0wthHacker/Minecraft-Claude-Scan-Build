@@ -7057,8 +7057,8 @@
       "generator": "compose",
       "role": "path",
       "footprint": [
-        63,
-        36
+        58,
+        44
       ],
       "at": [
         18,
@@ -7227,7 +7227,8 @@
             ]
           }
         ]
-      }
+      },
+      "resized_note": "the bone skull is the 54x66x40 reference at FULL resolution rather than halved - a skull halved turns every curve into a two-block step, which is exactly what read as flat"
     },
     {
       "name": "Foundry Gate",

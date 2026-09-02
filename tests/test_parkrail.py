@@ -556,27 +556,41 @@ def test_the_two_bells_of_a_station_are_a_HALF_TURN_of_each_other(named, meta, m
             "the pair must be a half-turn about the platform centre"
 
 
-def test_the_canopy_covers_the_island_and_leans_over_BOTH_tracks(named, meta):
+def test_the_canopy_is_a_PITCHED_roof_and_it_is_symmetric_about_the_island_s_own_axis(
+        named, meta):
     """The specific thing that read as lopsided, and the specific fix.
 
     A canopy over an island platform is symmetric or it is nothing: posts on both platform edges,
-    a slab roof across the whole island, an eave leaning out over EACH track, a ridge on the axis,
+    a roof across the whole island, an eave leaning out over EACH track, a ridge beam on the axis,
     and the hanging lanterns in mirrored pairs. `render3d` draws a fence and a chain as full cubes,
     so every one of these is counted off the block list.
+
+    **AND IT IS PITCHED.** The first version was one flat plate of slabs, which in the round is one
+    plane, one tone and no shadow anywhere - a lid. Two courses of rise over four columns each side
+    is a shallow gable; what is asserted is the PROFILE, because a roof that rises on one side and
+    not the other is the same fault the whole design was rebuilt to remove.
     """
     p = _params()
     sec, v0 = _sec(p), p["bounds"][0]
     half = int(p["station_half"])
     canopy_y = int(p["deck_y"]) + 1 + int(p["canopy_h"])
+    cols = [sec["edge_a"]] + list(sec["island"]) + [sec["edge_b"]]
+    mid = (len(cols) - 1) // 2
     for s in meta["station_detail"]:
         ac = s["at_u"]
         for u in range(ac - half, ac + half + 1):
-            roof = [v for v in [sec["edge_a"]] + list(sec["island"]) + [sec["edge_b"]]
-                    if (v - v0, canopy_y, u) in named]
-            assert len(roof) == sec["w"] - 6, f"{s['title']}: the roof is not the island's width"
+            top = []
+            for v in cols:
+                hits = [dy for dy in (0, 1, 2) if (v - v0, canopy_y + dy, u) in named]
+                assert hits, f"{s['title']}: a hole in the roof at v={v}, u={u}"
+                top.append(max(hits))
+            assert top == top[::-1], f"{s['title']} at u={u}: the roof profile is lopsided: {top}"
+            assert top[mid] == 2, "the ridge beam sits on the axis"
+            assert top[0] == top[-1] == 0, "the eaves are the lowest course"
+            for a, b in zip(top[:mid], top[1:mid + 1]):
+                assert b >= a, f"{s['title']}: the pitch has to rise toward the ridge: {top}"
             for track in (sec["track_a"], sec["track_b"]):
-                assert (track - v0, canopy_y, u) in named, \
-                    f"{s['title']}: no eave over {track} at u={u}"
+                assert (track - v0, canopy_y, u) in named,                     f"{s['title']}: no eave over {track} at u={u}"
         chains = [q for q, n in named.items()
                   if n == "iron_chain" and abs(q[2] - ac) <= half]
         assert chains and len(chains) % 2 == 0, f"{s['title']}: lanterns hang in pairs or not at all"
@@ -661,7 +675,11 @@ def test_every_tread_of_every_flight_ascends_toward_the_platform(model, meta, na
         ascend = "north" if s["at_u"] < lo else "south"
         seen = {}
         for (x, y, z), n in named.items():
-            if lo <= z <= hi and n.endswith("_stairs") and x in stair_x:
+            # ONLY THE FLIGHT'S OWN TREADS. The canopy's pitch puts riser STAIRS in the same
+            # three columns twenty courses higher, and they lean across the roof rather than along
+            # the flight - so a test that took every stair in the column would fail a correct
+            # build and, read the other way, would pass a flight whose treads had gone missing.
+            if lo <= z <= hi and n.endswith("_stairs") and x in stair_x and y <= deck_y:
                 pr = _props(model, x, y, z)
                 assert pr["half"] == "bottom", f"{s['title']} tread at {(x, y, z)} is upside down"
                 assert pr["facing"] == ascend, \
@@ -682,15 +700,19 @@ def test_a_flight_you_cannot_walk_down_is_not_a_flight(meta, named):
     ceiling - a stairwell is a HOLE, and a buried flight audits as one clean solid."""
     p = _params()
     v0 = p["bounds"][0]
-    walk_y = int(p["deck_y"]) + 1
+    deck_y = int(p["deck_y"])
+    walk_y = deck_y + 1
     stair_x = {v - v0 for v in _sec(p)["stair_v"]}
     for s in meta["station_detail"]:
         for z in range(s["stair_from_u"], s["stair_to_u"] + 1):
             for x in stair_x:
                 # THE TOPMOST STAIR IN THE COLUMN IS THE TREAD. Everything under it is the
                 # stringer the flight stands on - masonry, and meant to be there.
+                # ...and the TREAD is the flight's own topmost stair, never the canopy's riser
+                # twenty courses over it: taking the column's maximum picked the roof, and the
+                # window this test then checks came out EMPTY, so it asserted nothing at all.
                 tread = max(y for (xx, y, zz), n in named.items()
-                            if (xx, zz) == (x, z) and n.endswith("_stairs"))
+                            if (xx, zz) == (x, z) and n.endswith("_stairs") and y <= deck_y)
                 for y in range(tread + 1, walk_y + 2):
                     assert (x, y, z) not in named, \
                         f"{s['title']}: the flight is buried at {(x, y, z)}"

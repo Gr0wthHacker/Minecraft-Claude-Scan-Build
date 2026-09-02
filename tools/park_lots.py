@@ -168,7 +168,10 @@ PLACEMENT = {
     "Prize Point":            (80, 346),
     # "Sky Lift Sloth" hangs from the Sky Lift's own arch. It has no ground lot and needs none.
     # --- Wyrm's Crossing reach ------------------------------------- U389-426 (38 usable)
-    "Wyrm's Crossing":        (24, 389),
+    # AT THE REACH'S OWN START. The full-resolution skull is 40 wide and the Prism Reach is
+    # U385-429, forty-five columns - at U389 a 44-wide module runs to U432, three columns into
+    # Prismworks. There is no slack: it starts where the reach does.
+    "Wyrm's Crossing":        (24, 385),
     # --- Prismworks ------------------------------------------------ col A  U430-465 (36)
     "Foundry Gate":           (24, 430),
     # --- Prismworks ------------------------------------------------ col B  U471-521 (51)

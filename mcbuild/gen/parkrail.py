@@ -572,7 +572,7 @@ def build(cfg: dict, donors=None) -> Canvas:
     deck_y, ground_y = int(p["deck_y"]), int(p["ground_y"])
     walk_y = deck_y + 1
     canopy_y = walk_y + int(p["canopy_h"])
-    c = Canvas(sx, canopy_y + 3, sz)
+    c = Canvas(sx, canopy_y + 4, sz)
     d = _Deck(c, p)
     pal_at, land_name = _land_table(p)
     side = sec["side"]
@@ -1005,9 +1005,9 @@ def _station(d: _Deck, p: dict, s: dict, sec: dict, canopy_y: int, dead_half: in
     isl, centre = sec["island"], sec["centre"]
     inner_a, inner_b = sec["inner_a"], sec["inner_b"]
     stair_v = sec["stair_v"]
-    gable_a, gable_b = sec["gable_v"]
     cols = [edge_a] + list(isl) + [edge_b]
-    lanterns = 0
+    mid = (len(cols) - 1) // 2                       # the roof's own axis, and the island's
+    lanterns = screens = 0
 
     # THE FLIGHT FIRST, as a SET of cells, because everything else has to keep out of it. Written
     # the other way round - roof, pylon, then carve - the carve has to guess which of its own
@@ -1032,8 +1032,42 @@ def _station(d: _Deck, p: dict, s: dict, sec: dict, canopy_y: int, dead_half: in
             for v in (edge_a, edge_b):
                 for y in range(walk_y, canopy_y):
                     d.put(v, y, u, pal["post"])
-        for v in cols:
-            d.put(v, canopy_y, u, pal["roof"], type="bottom")
+        # **A ROOF IS PITCHED OR IT IS A LID**, and a lid is exactly what the first flat plate of
+        # slabs read as in the round: one plane, one tone, no shadow anywhere on it. Two courses
+        # of rise over four columns each side, mirrored about the axis - eave, eave, mid, mid,
+        # RIDGE, mid, mid, eave, eave - which is a shallow gable rather than a staircase, and it
+        # is the ridge that catches the light and gives the canopy a line down its own length.
+        end = u in (ac - half, ac + half)
+        for i, v in enumerate(cols):
+            j = abs(i - mid)
+            inward = _v_dir(-side) if i < mid else _v_dir(side)
+            if j == 0:
+                d.put(v, canopy_y + 2, u, pal["band"])    # the ridge beam, ON THE AXIS
+                continue
+            # **A STEPPED ROOF ONLY HOLDS TOGETHER IF THE STEPS OVERLAP.** A slab at (v, y) and a
+            # slab at (v+1, y+1) share no face - they are DIAGONAL - so a plain staircase of
+            # courses comes out as one detached ribbon per course. Built that way this canopy
+            # shipped as 27 separate components with a clean audit and zero placement problems,
+            # which is the ear-tip failure in a roof. The riser column therefore carries a cell in
+            # BOTH courses: a stair leaning up toward the ridge, with the flat above it.
+            if j in (1, 3):
+                d.put(v, canopy_y + (1 if j == 1 else 0), u, pal["eave"], facing=inward,
+                      half="bottom",
+                      shape="straight")
+            if j == 1 and end:
+                # THE GABLE, and it is where the land's `screen` earns its keep - an OPEN trapdoor
+                # is the vertical slab this game never shipped. It stands beside the ridge beam,
+                # which is a full block in its own course, so the support a trapdoor and a pane of
+                # bars both want is there by construction. A run of them between two posts is not.
+                if pal["screen"] == "iron_bars":
+                    ok = d.put(v, canopy_y + 2, u, "iron_bars")
+                else:
+                    ok = d.put(v, canopy_y + 2, u, pal["screen"], facing=_u_dir(1), half="bottom",
+                               open="true", powered="false", waterlogged="false")
+                screens += 1 if ok else 0
+            else:
+                d.put(v, canopy_y + (2 if j == 1 else 1 if j <= 3 else 0), u,
+                      pal["roof"], type="bottom")
         # the eave leans OUT over its own track, which is what makes a canopy read as shelter
         # rather than as a lid: a stair's TALL side IS its `facing`, so an eave sheltering a track
         # has its tall side toward the roof it grows from and steps down over the rails.
@@ -1041,7 +1075,6 @@ def _station(d: _Deck, p: dict, s: dict, sec: dict, canopy_y: int, dead_half: in
               shape="straight")
         d.put(track_b, canopy_y, u, pal["eave"], facing=_v_dir(side), half="bottom",
               shape="straight")
-        d.put(centre, canopy_y + 1, u, pal["band"])       # a ridge ON THE AXIS, read from afar
         if (u - ac) % 5 == 2 and u not in stair:
             # a bench PAIR, backs to the island's own centre, each half looking out over its track
             for v, f in ((inner_a, _v_dir(-side)), (inner_b, _v_dir(side))):
@@ -1051,23 +1084,6 @@ def _station(d: _Deck, p: dict, s: dict, sec: dict, canopy_y: int, dead_half: in
                 d.put(v, canopy_y - 1, u, "iron_chain", axis="y")
                 if d.put(v, canopy_y - 2, u, pal["light"], hanging="true", waterlogged="false"):
                     lanterns += 1
-
-    # -- a gable at each end: post, screen, ridge, screen, post, over the roof --------------------
-    # It is what stops the canopy reading as a flat lid from along the promenade, and it is where
-    # the land's `screen` earns its keep - an OPEN trapdoor is the vertical slab this game never
-    # shipped. Every screen cell has masonry on one side of it along V, which is the support a
-    # trapdoor and a pane of bars both want; a run of them between two posts would not.
-    screens = 0
-    for u in (ac - half, ac + half):
-        for v in (sec["island"][1], sec["island"][-2]):
-            d.put(v, canopy_y + 1, u, pal["band"])
-        for v in (gable_a, gable_b):
-            if pal["screen"] == "iron_bars":
-                ok = d.put(v, canopy_y + 1, u, "iron_bars")
-            else:
-                ok = d.put(v, canopy_y + 1, u, pal["screen"], facing=_u_dir(1), half="bottom",
-                           open="true", powered="false", waterlogged="false")
-            screens += 1 if ok else 0
 
     # -- the flight: treads, the masonry they stand on, and the hole they descend through --------
     treads = 0
