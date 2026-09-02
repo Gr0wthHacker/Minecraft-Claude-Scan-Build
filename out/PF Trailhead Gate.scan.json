@@ -1,0 +1,655 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80300
+  },
+  "size": {
+    "x": 45,
+    "y": 30,
+    "z": 39
+  },
+  "generated_by": "frontier_builds",
+  "kind": "frontier_trailhead",
+  "lot": [
+    45,
+    39
+  ],
+  "at": [
+    24,
+    0
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "doors": [
+    {
+      "kind": "door",
+      "axis": "u",
+      "v": [
+        1,
+        1
+      ],
+      "u": [
+        2,
+        3
+      ],
+      "y": [
+        1,
+        3
+      ],
+      "lintel_y": 4,
+      "jambs": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          4
+        ]
+      ],
+      "span": [
+        2,
+        3
+      ],
+      "step": {
+        "facing": "east",
+        "v": [
+          0,
+          0
+        ],
+        "u": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "kind": "door",
+      "axis": "u",
+      "v": [
+        34,
+        34
+      ],
+      "u": [
+        31,
+        32
+      ],
+      "y": [
+        1,
+        3
+      ],
+      "lintel_y": 4,
+      "jambs": [
+        [
+          34,
+          30
+        ],
+        [
+          34,
+          33
+        ]
+      ],
+      "span": [
+        31,
+        32
+      ],
+      "step": {
+        "facing": "east",
+        "v": [
+          33,
+          33
+        ],
+        "u": [
+          31,
+          32
+        ]
+      }
+    }
+  ],
+  "signs": [
+    {
+      "at": [
+        0,
+        10,
+        19
+      ],
+      "facing": "west",
+      "lines": [
+        "FRONTIER"
+      ]
+    },
+    {
+      "at": [
+        8,
+        10,
+        19
+      ],
+      "facing": "east",
+      "lines": [
+        "FRONTIER"
+      ]
+    },
+    {
+      "at": [
+        0,
+        5,
+        3
+      ],
+      "facing": "west",
+      "lines": [
+        "TRAIL OFFICE",
+        "maps and lost",
+        "property"
+      ]
+    },
+    {
+      "at": [
+        25,
+        8,
+        34
+      ],
+      "facing": "north",
+      "lines": [
+        "TO THE MINE"
+      ]
+    },
+    {
+      "at": [
+        25,
+        8,
+        38
+      ],
+      "facing": "south",
+      "lines": [
+        "TO THE MINE"
+      ]
+    },
+    {
+      "at": [
+        33,
+        5,
+        32
+      ],
+      "facing": "west",
+      "lines": [
+        "TRAIL STORE"
+      ]
+    }
+  ],
+  "roofs": [
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        1,
+        7
+      ],
+      "u": [
+        6,
+        13
+      ],
+      "y0": 16,
+      "y1": 18,
+      "mid": 9.5,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        1,
+        7
+      ],
+      "u": [
+        25,
+        32
+      ],
+      "y0": 16,
+      "y1": 18,
+      "mid": 28.5,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        1,
+        12
+      ],
+      "u": [
+        0,
+        7
+      ],
+      "y0": 8,
+      "y1": 10,
+      "mid": 3.5,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "lean",
+      "v": [
+        1,
+        12
+      ],
+      "u": [
+        32,
+        38
+      ],
+      "y0": 6,
+      "y1": 9,
+      "up": "south"
+    },
+    {
+      "style": "cap",
+      "v": [
+        36,
+        42
+      ],
+      "u": [
+        0,
+        6
+      ],
+      "y0": 13,
+      "y1": 15,
+      "cv": 39,
+      "cu": 3,
+      "diagonal": true
+    },
+    {
+      "style": "gable",
+      "axis": "v",
+      "v": [
+        33,
+        44
+      ],
+      "u": [
+        27,
+        38
+      ],
+      "y0": 7,
+      "y1": 11,
+      "mid": 38.5,
+      "up": "east",
+      "dn": "west"
+    }
+  ],
+  "stairs": 517,
+  "refused": 0,
+  "parts": {
+    "portal": {
+      "span": [
+        16,
+        22
+      ],
+      "piers": [
+        [
+          13,
+          15
+        ],
+        [
+          23,
+          25
+        ]
+      ],
+      "title": "FRONTIER",
+      "axis": "u",
+      "clear_h": 7
+    },
+    "tower_n": {
+      "v": [
+        1,
+        7
+      ],
+      "u": [
+        7,
+        12
+      ],
+      "top": 15,
+      "ridge_y": 18
+    },
+    "tower_s": {
+      "v": [
+        1,
+        7
+      ],
+      "u": [
+        26,
+        31
+      ],
+      "top": 15,
+      "ridge_y": 18
+    },
+    "office": {
+      "v": [
+        1,
+        12
+      ],
+      "u": [
+        1,
+        6
+      ],
+      "wall_top": 7,
+      "ridge_y": 10,
+      "title": "TRAIL OFFICE",
+      "openings": [
+        {
+          "kind": "door",
+          "axis": "u",
+          "v": [
+            1,
+            1
+          ],
+          "u": [
+            2,
+            3
+          ],
+          "y": [
+            1,
+            3
+          ],
+          "lintel_y": 4,
+          "jambs": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              4
+            ]
+          ],
+          "span": [
+            2,
+            3
+          ],
+          "step": {
+            "facing": "east",
+            "v": [
+              0,
+              0
+            ],
+            "u": [
+              2,
+              3
+            ]
+          }
+        }
+      ]
+    },
+    "porch": {
+      "v": [
+        1,
+        12
+      ],
+      "u": [
+        32,
+        38
+      ],
+      "lamps": 0
+    },
+    "exit": {
+      "span": [
+        24,
+        26
+      ],
+      "piers": [
+        [
+          21,
+          23
+        ],
+        [
+          27,
+          29
+        ]
+      ],
+      "title": "TO THE MINE",
+      "axis": "v",
+      "clear_h": 5
+    },
+    "water_tower": {
+      "at": [
+        39,
+        3
+      ],
+      "top": 15
+    },
+    "store": {
+      "v": [
+        34,
+        43
+      ],
+      "u": [
+        27,
+        38
+      ],
+      "wall_top": 6,
+      "ridge_y": 11,
+      "title": "TRAIL STORE",
+      "openings": [
+        {
+          "kind": "door",
+          "axis": "u",
+          "v": [
+            34,
+            34
+          ],
+          "u": [
+            31,
+            32
+          ],
+          "y": [
+            1,
+            3
+          ],
+          "lintel_y": 4,
+          "jambs": [
+            [
+              34,
+              30
+            ],
+            [
+              34,
+              33
+            ]
+          ],
+          "span": [
+            31,
+            32
+          ],
+          "step": {
+            "facing": "east",
+            "v": [
+              33,
+              33
+            ],
+            "u": [
+              31,
+              32
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "contract": "one connected frontier build filling no cell outside its 45x39 lot, every opening framed with two whole jambs and a lintel between their tops, every stair leaning the way it climbs, every sign on a wall that is there, and no street furniture - the ground layer already draws all of it",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "A gold-rush trailhead: a timber-headed stone portal between two gate towers, the trail office on one side and a covered waiting porch on the other, a stockade round a forecourt, a water tower over the back wall, and a second arch out to the mine avenue.\n"
+    },
+    "metrics": {
+      "blocks": 4057,
+      "materials": 22,
+      "dominant_material_share": 0.2704,
+      "light_blocks": 8,
+      "massing": {
+        "width": 45,
+        "height": 19,
+        "depth": 39,
+        "fill_ratio": 0.1217
+      },
+      "silhouette": {
+        "top": {
+          "area": 634,
+          "fill_ratio": 0.3613
+        },
+        "front": {
+          "area": 476,
+          "fill_ratio": 0.3526
+        },
+        "side": {
+          "area": 536,
+          "fill_ratio": 0.4581
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.8011,
+          0.1989,
+          0.0
+        ],
+        "top_silhouette_perimeter": 564,
+        "surface_faces_per_block": 1.6199
+      },
+      "material_counts": {
+        "stone_bricks": 1097,
+        "spruce_planks": 563,
+        "dark_oak_stairs": 484,
+        "polished_blackstone_bricks": 316,
+        "smooth_stone": 308,
+        "stripped_spruce_log": 262,
+        "cracked_stone_bricks": 231,
+        "spruce_log": 179,
+        "mossy_stone_bricks": 153,
+        "spruce_fence": 120,
+        "chiseled_stone_bricks": 64,
+        "white_wool": 58
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "011a1378acb24cfdeb397fa5994cccc5e298b62cdd7d485a648fbe9443c04298",
+    "generator_source_digest": "6ce00b9b336f6417cc5df74138c9d392870fc1d8827fea95c0463a0b391f1d81",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 56.837561,
+    "blocks": 4057,
+    "blocks_per_second": 71.38
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "building"
+    ],
+    "blocks": 4057,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: dark_oak_planks",
+    "not in the provisional skyblock-1.19 list: dark_oak_slab",
+    "not in the provisional skyblock-1.19 list: dark_oak_stairs",
+    "not in the provisional skyblock-1.19 list: iron_bars",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Trailhead Gate.litematic",
+  "name": "PF Trailhead Gate"
+}

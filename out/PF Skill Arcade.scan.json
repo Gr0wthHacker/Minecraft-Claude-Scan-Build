@@ -1,0 +1,216 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80646
+  },
+  "size": {
+    "x": 51,
+    "y": 26,
+    "z": 33
+  },
+  "generated_by": "midwaybuild",
+  "kind": "midway_build",
+  "build": "skill_arcade",
+  "name": "PF Skill Arcade",
+  "lot": [
+    24,
+    346,
+    74,
+    378
+  ],
+  "facing": "west",
+  "signs": 3,
+  "lamps": 14,
+  "bays": 3,
+  "openings": 177,
+  "floor": 1242,
+  "roof": 1288,
+  "trusses": 175,
+  "contract": "one connected building inside lot V24-74 U346-378, fronting west, with a real doorway, a lit interior, a named sign, and no street furniture",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_door",
+        "oak_trapdoor"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "target"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "A single gabled hall on the spine with a 7-wide gateway, three game bays down its north side - high striker, target wall, ring toss - a central aisle to queue in, a glazed spectator side opposite with stepped seating and a rail, roof trusses carrying the lanterns, and a service door at the back onto midway walk 2. No wagers and no chance payouts: each bay states its action, its result and its reset on its own sign.\n"
+    },
+    "metrics": {
+      "blocks": 5157,
+      "materials": 22,
+      "dominant_material_share": 0.1871,
+      "light_blocks": 14,
+      "massing": {
+        "width": 48,
+        "height": 20,
+        "depth": 29,
+        "fill_ratio": 0.1852
+      },
+      "silhouette": {
+        "top": {
+          "area": 1386,
+          "fill_ratio": 0.8235
+        },
+        "front": {
+          "area": 926,
+          "fill_ratio": 0.6983
+        },
+        "side": {
+          "area": 455,
+          "fill_ratio": 0.5303
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.5538,
+          0.3826,
+          0.0636
+        ],
+        "top_silhouette_perimeter": 281,
+        "surface_faces_per_block": 2.2021
+      },
+      "material_counts": {
+        "stone_bricks": 965,
+        "stone_brick_slab": 859,
+        "stone_brick_stairs": 855,
+        "stone": 546,
+        "smooth_stone": 445,
+        "white_wool": 357,
+        "red_wool": 269,
+        "stripped_oak_log": 262,
+        "polished_blackstone_bricks": 190,
+        "chiseled_stone_bricks": 106,
+        "cracked_stone_bricks": 97,
+        "smooth_stone_slab": 34
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "a26fe6fdf13eaa6a7a35a074ed21c72207ba8dc334a3515811c86467d0c87c6e",
+    "generator_source_digest": "ac1b88ebc5dbab59cf2f20fc1d8552ba13b8adc2790faab1b2c88f75674d3cd8",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 60.906121,
+    "blocks": 5157,
+    "blocks_per_second": 84.67
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "building"
+    ],
+    "blocks": 5157,
+    "mechanic_families": [
+      "access",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: oak_door",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: target"
+  ],
+  "file": "PF Skill Arcade.litematic"
+}

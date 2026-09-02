@@ -1,0 +1,54 @@
+# PF FORGE DECK - the exit and observation gallery, V130 / U527, 24 x 66 in the exit band.
+#
+# TWENTY-FOUR DEEP BY SIXTY-SIX LONG IS A HORIZONTAL, so it is built as one rather than as a
+# building that happens to be wide: an arcaded undercroft on a five-block pier rhythm carrying a
+# raised deck, a balustrade the whole length, and a canopy over the rear half on paired posts.
+# It looks back at the Prism Ascent across the promenade, which is the reason this band exists -
+# PARK_GRID_PLAN programmes V130-153 for "exit, reward, and route-integrated observation".
+#
+# ITS OWN FRONT ROW IS A STEP AND NOTHING ELSE. Three of the back promenade's lamps throw an arm
+# into V130 at world Y209; the three flights up from the promenade start at that row and are one
+# course tall there, so the row is used and the arm's cells stay empty.
+name: PF Forge Deck
+gen: prismworks_builds
+params:
+  kind: deck
+  at: [130, 527]
+  size: [24, 66]
+  height: 18
+  keep_clear: [[0, 1, 6], [0, 29, 6], [0, 51, 6]]
+  seed: 5
+roles: [path, building]
+anchors:
+  - {name: public_entry, kind: entry, position: [0, 1, 33], facing: west, width: 5}
+  - {name: public_exit, kind: exit, position: [0, 1, 33], facing: west, width: 5}
+  - {name: viewing_deck, kind: deck, position: [11, 5, 33], facing: west, width: 62}
+  - {name: service_access, kind: maintenance, position: [22, 1, 62], facing: east, width: 3}
+design:
+  purpose: path
+  hierarchy: supporting
+  style: prismworks
+  focal_face: west
+  narrative: >
+    A raised observation gallery: an arcaded undercroft of piers and corbelled arch heads carrying
+    a deck five courses up, a balustrade of walls and slabs broken by lit posts every five bays, a
+    louvred canopy over the rear half, and three flights straight up from the back promenade.
+fun_contract:
+  enforce: true
+  class: route
+  player_verbs: [climb from the promenade, walk the deck, watch the ascent, shelter under the canopy]
+  outcome: >
+    The deck stands five courses over the promenade and looks straight back down the U563 axis at
+    the Prism Ascent, so the ride's crown and its fins are the view from the whole length of it.
+  spatial_job: >
+    The exit and observation band for Prismworks column C: it takes the Ascent's returning traffic
+    off the promenade, gives it somewhere to stand and watch from, and hands it back to the street
+    at three separate points so the flight heads never queue into each other.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

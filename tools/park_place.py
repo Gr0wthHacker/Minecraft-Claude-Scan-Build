@@ -92,9 +92,13 @@ def modules(report=False) -> list:
     out = []
     box, roles = lots()
     for name, (v, u) in sorted(PLACEMENT.items()):
-        if name not in KEEP:
+        if name not in KEEP and not (ROOT / "out" / f"PF {name}.litematic").exists():
             continue
-        f = ARTIFACTS / f"{name}.litematic"
+        # A `PF ` BUILD SUPERSEDES THE RETIRED ARTIFACT OF THE SAME NAME. The three lands were
+        # rebuilt from scratch into `out/PF <name>.litematic`; `out/park_final/artifacts` still
+        # holds the previous attempt, and only the three rides Jack kept are taken from there.
+        pf = ROOT / "out" / f"PF {name}.litematic"
+        f = pf if pf.exists() else ARTIFACTS / f"{name}.litematic"
         if not f.exists():
             continue
         m = schem.load(str(f))

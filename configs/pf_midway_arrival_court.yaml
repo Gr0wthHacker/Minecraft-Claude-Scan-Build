@@ -1,0 +1,61 @@
+# PF ARRIVAL COURT - the park's front door, and the first thing anybody sees.
+#
+# `Park Ways` and `Park Rail` are shipped; the Sky Lift and the Carousel Court stand. This is one
+# of the four buildings the Midway was still missing, and it is the one that matters most: a new
+# player arrives on the spine at V6-18 and this is what is in front of them.
+#
+# THE LOT IS 48 x 41 AT V24, U215 and not one cell may leave it - `tools/park_lots.py --verify`
+# derives it from the shipped ground layer, and anything outside is cropped at placement, which
+# means a part that silently does not exist. The generator's canvas IS the lot, so a cell past it
+# raises rather than shipping.
+#
+# THE ENVELOPE IS V25-68 x U218-252, one cell inside the lot on every side, because every skirt
+# and every cornice in this module PROJECTS one cell. That margin also clears the two things the
+# lot already contains: the ground layer's lamp arms at V70-71 (U228 and U243) and at V42
+# (U254-255), which are three to five courses above the lawn and which a wall drawn through would
+# swallow whole. `blocked` names them so wanting one is an error rather than an overlap.
+#
+# WHAT IS IN IT, in the order a visitor meets it (PARK_MIDWAY.md's own sequence):
+#   the gate         a 35-wide screen wall, a 7-wide gateway, a frontispiece and pediment over it
+#   the ticket hall  box office and guest services flanking the gate, map and rules on the flanks
+#   the court        23 x 27 of OPEN paved court, arcaded down both sides - the centre stays clear
+#   the turnstiles   a rear loggia and a screen of five fence gates, opening east onto midway walk 1
+#
+# Two fifths of the footprint is roofless on purpose. A 44 x 35 building that fills its own
+# footprint is a block; the court is what makes it a place.
+name: PF Arrival Court
+gen: midwaybuild
+params:
+  kind: arrival_court
+  lot: [24, 215, 71, 255]
+  # the world corner of (V24, the first course above the lawn, U215). `Park Complete` is anchored
+  # at 97500 190 80300 and its lawn course is Y202, so a building's floor course is Y203.
+  at: [97524, 203, 80515]
+  height: 26
+  # the ground layer's own lamp arms, measured off out/Park Complete.litematic
+  blocked:
+    - [70, 3, 228, 71, 6, 228]
+    - [70, 3, 243, 71, 6, 243]
+    - [42, 3, 254, 42, 6, 255]
+  seed: 0
+roles: [building]
+design:
+  purpose: arrival
+  hierarchy: landmark
+  style: midway
+  narrative: >
+    The Midway's admission sequence in one building: a gateway on the spine, a ticket hall with
+    the box office and guest services either side of it, an open arcaded court, and a turnstile
+    screen that hands a visitor east into the land. No food, no prizes and no street furniture -
+    the ground layer draws the street and the centre of the court stays empty.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  ground_block: moss_block
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  # the lawn's decorative moss carpet is broken where the building stands on it; nothing else here
+  # replaces anything, and `overlap 0` is what says so.
+  verify_replaceable: [moss_carpet]
+origin_lock: false

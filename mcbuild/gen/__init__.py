@@ -17,10 +17,18 @@ class _Wrap:
         self.build = fn; self.DEFAULTS = defaults
 
 
+from . import frontier_builds, midway_builds, prismworks_builds  # noqa: E402
+
+
 GENERATORS = {
     "asset": asset,
     "parkways": parkways,
     "parkrail": parkrail,
+    # the park's three lands, one generator module each - written by a stream
+    # per land, on lots that are geometrically disjoint.
+    "frontier_builds": frontier_builds,
+    "midwaybuild": midway_builds,
+    "prismworks_builds": prismworks_builds,
     "compose": _Compose(),
     "setpiece": setpiece,
     "prismworks": _Wrap(prismworks.build, prismworks.PRISMWORKS),

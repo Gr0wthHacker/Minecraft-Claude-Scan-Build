@@ -1,0 +1,359 @@
+{
+  "origin": {
+    "x": 97580,
+    "y": 203,
+    "z": 80347
+  },
+  "size": {
+    "x": 41,
+    "y": 30,
+    "z": 46
+  },
+  "generated_by": "frontier_builds",
+  "kind": "frontier_square",
+  "lot": [
+    41,
+    46
+  ],
+  "at": [
+    80,
+    47
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "doors": [],
+  "signs": [
+    {
+      "at": [
+        8,
+        8,
+        40
+      ],
+      "facing": "north",
+      "lines": [
+        "COASTER QUEUE"
+      ]
+    },
+    {
+      "at": [
+        8,
+        8,
+        45
+      ],
+      "facing": "south",
+      "lines": [
+        "COASTER QUEUE"
+      ]
+    },
+    {
+      "at": [
+        31,
+        8,
+        40
+      ],
+      "facing": "north",
+      "lines": [
+        "RIDE EXIT"
+      ]
+    },
+    {
+      "at": [
+        31,
+        8,
+        45
+      ],
+      "facing": "south",
+      "lines": [
+        "RIDE EXIT"
+      ]
+    },
+    {
+      "at": [
+        17,
+        4,
+        3
+      ],
+      "facing": "south",
+      "lines": [
+        "MINE COASTER",
+        "queue north",
+        "exit south"
+      ]
+    },
+    {
+      "at": [
+        23,
+        4,
+        3
+      ],
+      "facing": "south",
+      "lines": [
+        "MINING SQUARE",
+        "boomtown west",
+        "works east"
+      ]
+    }
+  ],
+  "roofs": [
+    {
+      "style": "cap",
+      "v": [
+        15,
+        25
+      ],
+      "u": [
+        2,
+        4
+      ],
+      "y0": 7,
+      "y1": 7,
+      "cv": 20.0,
+      "cu": 3.0
+    }
+  ],
+  "stairs": 47,
+  "refused": 0,
+  "parts": {
+    "lights": 16,
+    "queue": {
+      "span": [
+        7,
+        10
+      ],
+      "piers": [
+        [
+          5,
+          6
+        ],
+        [
+          11,
+          12
+        ]
+      ],
+      "title": "COASTER QUEUE",
+      "axis": "v",
+      "clear_h": 5
+    },
+    "exit": {
+      "span": [
+        30,
+        33
+      ],
+      "piers": [
+        [
+          28,
+          29
+        ],
+        [
+          34,
+          35
+        ]
+      ],
+      "title": "RIDE EXIT",
+      "axis": "v",
+      "clear_h": 5
+    },
+    "board": {
+      "v": [
+        15,
+        25
+      ],
+      "u": 2
+    },
+    "marker": {
+      "at": [
+        20,
+        23
+      ],
+      "points": "east, to the Mine Coaster"
+    },
+    "approach_steps": 7
+  },
+  "contract": "one connected frontier build filling no cell outside its 41x46 lot, every opening framed with two whole jambs and a lintel between their tops, every stair leaning the way it climbs, every sign on a wall that is there, and no street furniture - the ground layer already draws all of it",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "spruce_trapdoor"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "rail": [
+        "rail"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The mine district's decision point: a bordered stone square with an inlaid cross and flush lights, a show board facing the walk, a claim marker on a stub of rail pointing east, and the coaster's queue and exit arches twenty courses apart on the flank toward the ride.\n"
+    },
+    "metrics": {
+      "blocks": 2217,
+      "materials": 22,
+      "dominant_material_share": 0.415,
+      "light_blocks": 8,
+      "massing": {
+        "width": 38,
+        "height": 10,
+        "depth": 45,
+        "fill_ratio": 0.1296
+      },
+      "silhouette": {
+        "top": {
+          "area": 1672,
+          "fill_ratio": 0.8865
+        },
+        "front": {
+          "area": 225,
+          "fill_ratio": 0.1829
+        },
+        "side": {
+          "area": 137,
+          "fill_ratio": 0.0993
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "top_silhouette_perimeter": 334,
+        "surface_faces_per_block": 2.0776
+      },
+      "material_counts": {
+        "stone_bricks": 920,
+        "spruce_planks": 478,
+        "polished_blackstone_bricks": 329,
+        "stone_brick_slab": 121,
+        "stone_brick_wall": 66,
+        "stripped_spruce_log": 47,
+        "white_wool": 41,
+        "smooth_stone": 32,
+        "spruce_slab": 32,
+        "cracked_stone_bricks": 27,
+        "dark_oak_stairs": 24,
+        "ochre_froglight": 16
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "8f8fb76a15dfd09c31a3212262a51f06ad73b5626fee8afd0065166f777c0146",
+    "generator_source_digest": "6ce00b9b336f6417cc5df74138c9d392870fc1d8827fea95c0463a0b391f1d81",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 52.641667,
+    "blocks": 2217,
+    "blocks_per_second": 42.11
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "path"
+    ],
+    "blocks": 2217,
+    "mechanic_families": [
+      "access",
+      "light",
+      "rail",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: dark_oak_planks",
+    "not in the provisional skyblock-1.19 list: dark_oak_stairs",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Mining Square.litematic",
+  "name": "PF Mining Square"
+}

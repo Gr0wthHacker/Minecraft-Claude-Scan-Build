@@ -11,9 +11,25 @@
   "contains": [
     "Park Ways",
     "Park Rail",
+    "Arrival Court",
+    "Assay and Prize Office",
+    "Boomtown Spine",
     "Carousel Court",
+    "Forge Deck",
+    "Foundry Gate",
     "Mine Coaster",
-    "Sky Lift"
+    "Mining Square",
+    "Prism Array",
+    "Prism Ascent",
+    "Prize Point",
+    "Prospecting Porch",
+    "Resonance Vault",
+    "Service Gallery",
+    "Skill Arcade",
+    "Sky Lift",
+    "Snack Window",
+    "Trailhead Gate",
+    "Works Yard"
   ],
   "file": "Park Complete.litematic"
 }

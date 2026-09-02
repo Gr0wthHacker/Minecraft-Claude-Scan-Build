@@ -1,0 +1,215 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80515
+  },
+  "size": {
+    "x": 48,
+    "y": 26,
+    "z": 41
+  },
+  "generated_by": "midwaybuild",
+  "kind": "midway_build",
+  "build": "arrival_court",
+  "name": "PF Arrival Court",
+  "lot": [
+    24,
+    215,
+    71,
+    255
+  ],
+  "facing": "west",
+  "signs": 5,
+  "lamps": 22,
+  "gates": 5,
+  "openings": 282,
+  "roof": 630,
+  "floor": 1540,
+  "ceiling": 429,
+  "contract": "one connected building inside lot V24-71 U215-255, fronting west, with a real doorway, a lit interior, a named sign, and no street furniture",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_fence_gate",
+        "oak_trapdoor"
+      ],
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "The Midway's admission sequence in one building: a gateway on the spine, a ticket hall with the box office and guest services either side of it, an open arcaded court, and a turnstile screen that hands a visitor east into the land. No food, no prizes and no street furniture - the ground layer draws the street and the centre of the court stays empty.\n"
+    },
+    "metrics": {
+      "blocks": 5984,
+      "materials": 21,
+      "dominant_material_share": 0.2136,
+      "light_blocks": 22,
+      "massing": {
+        "width": 46,
+        "height": 22,
+        "depth": 37,
+        "fill_ratio": 0.1598
+      },
+      "silhouette": {
+        "top": {
+          "area": 1696,
+          "fill_ratio": 0.8618
+        },
+        "front": {
+          "area": 536,
+          "fill_ratio": 0.4295
+        },
+        "side": {
+          "area": 653,
+          "fill_ratio": 0.6126
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.6845,
+          0.3128,
+          0.0027
+        ],
+        "top_silhouette_perimeter": 297,
+        "surface_faces_per_block": 2.0829
+      },
+      "material_counts": {
+        "stone_brick_stairs": 1278,
+        "stone_bricks": 1057,
+        "stone": 704,
+        "oak_planks": 602,
+        "white_wool": 504,
+        "smooth_stone": 432,
+        "stone_brick_slab": 313,
+        "stripped_oak_log": 233,
+        "polished_blackstone_bricks": 232,
+        "red_wool": 200,
+        "chiseled_stone_bricks": 147,
+        "cracked_stone_bricks": 120
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "897e158902c9b47a9267cf6269f4c1a1a6b9932803d2d23edc813ad2776f88de",
+    "generator_source_digest": "ac1b88ebc5dbab59cf2f20fc1d8552ba13b8adc2790faab1b2c88f75674d3cd8",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 53.3639,
+    "blocks": 5984,
+    "blocks_per_second": 112.14
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "building"
+    ],
+    "blocks": 5984,
+    "mechanic_families": [
+      "access",
+      "container",
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: oak_fence_gate",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Arrival Court.litematic"
+}

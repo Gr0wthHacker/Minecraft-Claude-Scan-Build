@@ -1,0 +1,65 @@
+# PF PRISM ARRAY - the exhibit hall, on the spine at V24 / U471, in the lot's 53 x 51.
+#
+# THE OPEN COUNTERPART TO THE VAULT BEHIND IT. Prismworks' two hall lots stack in one column, and
+# two closed blocks one behind the other read as a wall. So this one is a colonnaded loggia, tall
+# screened bays on every side and a raised clerestory over the middle - and the Resonance Vault at
+# V82 is the shut one. The contrast is the composition; neither building is interesting alone.
+#
+# THE ARRAY IS A GRID, NOT A SCATTER. Twelve prism columns on an eight-block rhythm, each one a
+# signal band under a froglight cap with a slab collar and four stair feet. At this scale a
+# scatter reads as confetti and a rhythm reads as intent - the same finding as the thicket's
+# drifts and the deck soffit's coffer grid, from the other side.
+#
+# The entry is on `Park Ways`' spur at V19-23 / U495-497, so the portal is centred on U496.
+# `keep_clear` names five lamp-arm cells at world Y209 that reach into this lot from the two
+# avenues and the column's own cross walk.
+name: PF Prism Array
+gen: prismworks_builds
+params:
+  kind: array
+  at: [24, 471]
+  size: [53, 51]
+  height: 28
+  keep_clear: [[38, 0, 6], [52, 12, 6], [52, 25, 6], [52, 38, 6], [18, 50, 6]]
+  seed: 3
+roles: [ride, building]
+anchors:
+  - {name: queue_entry, kind: queue, position: [0, 1, 25], facing: west, width: 5}
+  - {name: boarding, kind: entry, position: [4, 1, 25], facing: west, width: 5}
+  - {name: ride_exit, kind: ride_exit, position: [3, 1, 25], facing: west, width: 5}
+  - {name: service_access, kind: maintenance, position: [45, 1, 44], facing: east, width: 3}
+  - {name: street_front, kind: visual_front, position: [0, 1, 25], facing: west, width: 45}
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: prismworks
+  focal_face: west
+  narrative: >
+    A lit hall you walk into: a six-bay loggia across the street front, screened bays on all four
+    sides under a proud string course and a corbelled cornice, and a clerestory raised over the
+    middle carrying its own parapet and a ring of hung lamps. Under it a grid of twelve prism
+    columns, each banded cyan and capped with a froglight, standing on a world-aligned floor.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [walk the loggia, enter the hall, follow the lit columns, read the array]
+  outcome: >
+    The twelve columns and the clerestory lamps light the hall from two heights, so the array
+    reads as a machine you are standing inside rather than a room with lamps in it.
+  reset: >
+    Nothing is consumed and no state is held by this geometry - the hall is re-enterable at any
+    time, by any number of people, from either end of the loggia.
+  service_access: >
+    The hall's rear wall at V69 stands clear of the Resonance Vault's lot and is reached along the
+    U523 avenue; the loggia's own bays are open at both ends for plant access.
+  bypass: >
+    The loggia runs the full width of the front and is open at both ends, so the building can be
+    passed without entering it, and the U468 and U523 avenues both clear it entirely.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

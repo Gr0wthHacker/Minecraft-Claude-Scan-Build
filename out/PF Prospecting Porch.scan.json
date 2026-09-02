@@ -1,0 +1,561 @@
+{
+  "origin": {
+    "x": 97569,
+    "y": 203,
+    "z": 80300
+  },
+  "size": {
+    "x": 51,
+    "y": 30,
+    "z": 40
+  },
+  "generated_by": "frontier_builds",
+  "kind": "frontier_porch",
+  "lot": [
+    51,
+    40
+  ],
+  "at": [
+    69,
+    0
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "doors": [
+    {
+      "kind": "entry",
+      "axis": "v",
+      "v": [
+        17,
+        18
+      ],
+      "u": [
+        39,
+        39
+      ],
+      "y": [
+        1,
+        1
+      ],
+      "lintel_y": 5,
+      "jambs": [
+        [
+          16,
+          39
+        ],
+        [
+          19,
+          39
+        ]
+      ],
+      "span": [
+        17,
+        18
+      ]
+    },
+    {
+      "kind": "door",
+      "axis": "v",
+      "v": [
+        13,
+        15
+      ],
+      "u": [
+        32,
+        32
+      ],
+      "y": [
+        1,
+        3
+      ],
+      "lintel_y": 4,
+      "jambs": [
+        [
+          12,
+          32
+        ],
+        [
+          16,
+          32
+        ]
+      ],
+      "span": [
+        13,
+        15
+      ],
+      "step": {
+        "facing": "north",
+        "v": [
+          13,
+          15
+        ],
+        "u": [
+          33,
+          33
+        ]
+      }
+    },
+    {
+      "kind": "door",
+      "axis": "v",
+      "v": [
+        13,
+        15
+      ],
+      "u": [
+        32,
+        32
+      ],
+      "y": [
+        1,
+        3
+      ],
+      "lintel_y": 4,
+      "jambs": [
+        [
+          12,
+          32
+        ],
+        [
+          16,
+          32
+        ]
+      ],
+      "span": [
+        13,
+        15
+      ],
+      "step": {
+        "facing": "north",
+        "v": [
+          13,
+          15
+        ],
+        "u": [
+          33,
+          33
+        ]
+      }
+    }
+  ],
+  "signs": [
+    {
+      "at": [
+        14,
+        5,
+        33
+      ],
+      "facing": "south",
+      "lines": [
+        "SHOOTING RANGE",
+        "five shots",
+        "prizes at the",
+        "assay office"
+      ]
+    },
+    {
+      "at": [
+        36,
+        5,
+        33
+      ],
+      "facing": "south",
+      "lines": [
+        "GOLD SLUICE",
+        "wash your own",
+        "pay dirt"
+      ]
+    }
+  ],
+  "roofs": [
+    {
+      "style": "lean",
+      "v": [
+        4,
+        46
+      ],
+      "u": [
+        33,
+        39
+      ],
+      "y0": 6,
+      "y1": 9,
+      "up": "north"
+    },
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        6,
+        22
+      ],
+      "u": [
+        19,
+        33
+      ],
+      "y0": 8,
+      "y1": 14,
+      "mid": 26.0,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        28,
+        44
+      ],
+      "u": [
+        19,
+        33
+      ],
+      "y0": 8,
+      "y1": 14,
+      "mid": 26.0,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "cap",
+      "v": [
+        14,
+        22
+      ],
+      "u": [
+        4,
+        12
+      ],
+      "y0": 7,
+      "y1": 8,
+      "cv": 18.0,
+      "cu": 8.0
+    }
+  ],
+  "stairs": 854,
+  "refused": 0,
+  "parts": {
+    "veranda": {
+      "v": [
+        4,
+        46
+      ],
+      "u": [
+        33,
+        39
+      ],
+      "lamps": 2
+    },
+    "range": {
+      "v": [
+        6,
+        22
+      ],
+      "u": [
+        20,
+        32
+      ],
+      "wall_top": 7,
+      "ridge_y": 14,
+      "title": "SHOOTING RANGE",
+      "openings": [
+        {
+          "kind": "door",
+          "axis": "v",
+          "v": [
+            13,
+            15
+          ],
+          "u": [
+            32,
+            32
+          ],
+          "y": [
+            1,
+            3
+          ],
+          "lintel_y": 4,
+          "jambs": [
+            [
+              12,
+              32
+            ],
+            [
+              16,
+              32
+            ]
+          ],
+          "span": [
+            13,
+            15
+          ],
+          "step": {
+            "facing": "north",
+            "v": [
+              13,
+              15
+            ],
+            "u": [
+              33,
+              33
+            ]
+          }
+        }
+      ]
+    },
+    "sluice": {
+      "v": [
+        28,
+        44
+      ],
+      "u": [
+        20,
+        32
+      ],
+      "wall_top": 7,
+      "ridge_y": 14,
+      "title": "GOLD SLUICE",
+      "openings": [
+        {
+          "kind": "door",
+          "axis": "v",
+          "v": [
+            13,
+            15
+          ],
+          "u": [
+            32,
+            32
+          ],
+          "y": [
+            1,
+            3
+          ],
+          "lintel_y": 4,
+          "jambs": [
+            [
+              12,
+              32
+            ],
+            [
+              16,
+              32
+            ]
+          ],
+          "span": [
+            13,
+            15
+          ],
+          "step": {
+            "facing": "north",
+            "v": [
+              13,
+              15
+            ],
+            "u": [
+              33,
+              33
+            ]
+          }
+        }
+      ]
+    },
+    "ore_bin": {
+      "v": [
+        14,
+        22
+      ],
+      "u": [
+        4,
+        12
+      ]
+    }
+  },
+  "contract": "one connected frontier build filling no cell outside its 51x40 lot, every opening framed with two whole jambs and a lintel between their tops, every stair leaning the way it climbs, every sign on a wall that is there, and no street furniture - the ground layer already draws all of it",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "spruce_trapdoor"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "A prospecting row: a shooting gallery and a gold sluice in two timber bays, an ore bin on a covered walk behind them, and one long veranda down the avenue flank that both bays open onto.\n"
+    },
+    "metrics": {
+      "blocks": 3274,
+      "materials": 24,
+      "dominant_material_share": 0.288,
+      "light_blocks": 2,
+      "massing": {
+        "width": 43,
+        "height": 15,
+        "depth": 36,
+        "fill_ratio": 0.141
+      },
+      "silhouette": {
+        "top": {
+          "area": 895,
+          "fill_ratio": 0.4387
+        },
+        "front": {
+          "area": 576,
+          "fill_ratio": 0.3765
+        },
+        "side": {
+          "area": 280,
+          "fill_ratio": 0.2333
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.887,
+          0.113,
+          0.0
+        ],
+        "top_silhouette_perimeter": 349,
+        "surface_faces_per_block": 2.2938
+      },
+      "material_counts": {
+        "spruce_planks": 943,
+        "dark_oak_stairs": 833,
+        "stone_bricks": 227,
+        "polished_blackstone_bricks": 207,
+        "stripped_spruce_log": 186,
+        "dark_oak_planks": 169,
+        "spruce_log": 167,
+        "smooth_stone": 107,
+        "glass_pane": 100,
+        "dark_oak_slab": 79,
+        "spruce_slab": 64,
+        "cracked_stone_bricks": 30
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "a4f43dda1ba7269564ef115bafe1b615f2b56ecf0b975092576a9cbeaa9ea752",
+    "generator_source_digest": "6ce00b9b336f6417cc5df74138c9d392870fc1d8827fea95c0463a0b391f1d81",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 52.748822,
+    "blocks": 3274,
+    "blocks_per_second": 62.07
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "ride"
+    ],
+    "blocks": 3274,
+    "mechanic_families": [
+      "access",
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: dark_oak_planks",
+    "not in the provisional skyblock-1.19 list: dark_oak_slab",
+    "not in the provisional skyblock-1.19 list: dark_oak_stairs",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Prospecting Porch.litematic",
+  "name": "PF Prospecting Porch"
+}

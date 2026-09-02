@@ -1,0 +1,39 @@
+# PF MINING SQUARE - the choice point. AN OPEN SQUARE, NOT A BUILDING.
+#
+# 41 x 46 at V80 U47. Its role in `park_final.world.json` is `path`, and the grid re-specced it
+# from 56 x 46 to 41 for a measured reason: at 56 it ran through the back promenade and 184 cells
+# into the Assay office, including the cell that is Assay's own front door. At 41, column B reads
+# Boomtown 53 + the V77-79 walk + this 41 = EXACTLY 97, and its front addresses a real street.
+#
+# PAVING IT IS THE ASSIGNMENT, not furniture added to somebody else's ground: a square with no
+# floor is a lawn. It stands one course proud of the moss, so it carries its own kerb and a
+# seven-wide flight up onto it on the face the cross walk delivers a guest to.
+#
+# THE QUEUE AND THE EXIT ARE TWENTY COURSES APART ON THE EAST FLANK, which faces the U95-97 alley
+# and, past it, the Mine Coaster's own column. `PARK_FULL_BUILD_SPEC` F3 requires the coaster
+# queue entrance to be visibly separated from its exit; two arches on one face is what the old
+# module got wrong.
+name: PF Mining Square
+gen: frontier_builds
+params:
+  kind: square
+  lot: [41, 46]
+  at: [80, 47]
+  seed: 51
+roles: [path]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: frontier
+  narrative: >
+    The mine district's decision point: a bordered stone square with an inlaid cross and flush
+    lights, a show board facing the walk, a claim marker on a stub of rail pointing east, and the
+    coaster's queue and exit arches twenty courses apart on the flank toward the ride.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false
