@@ -1,5 +1,5 @@
 """Generator registry. Each module exposes DEFAULTS and build(cfg, donors)->Canvas."""
-from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge, hamlet, campanile, harborlight, turtle, rootreach, lowglow, falls, thicket, enrich, parkour, frog, railspiral, casino, park, coaster, bigwheel, civic, frontiertown, hollowmanor, monument, streetfurniture, attractions, transit, ticketing, wayfinding, isthmus, spectacle, arcade, arrival, balloon, wyrm
+from . import tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge, hamlet, campanile, harborlight, turtle, rootreach, lowglow, falls, thicket, enrich, parkour, frog, railspiral, casino, park, coaster, bigwheel, civic, frontiertown, hollowmanor, monument, streetfurniture, attractions, transit, ticketing, wayfinding, isthmus, spectacle, arcade, arrival, balloon, wyrm, undercroft, setpiece
 from .canvas import Canvas, hash01
 
 class _Wrap:
@@ -9,6 +9,8 @@ class _Wrap:
 
 
 GENERATORS = {
+    "setpiece": setpiece,
+    "undercroft": undercroft,
     "arcade": arcade,
     "balloon": balloon,
     "wyrm": wyrm,
