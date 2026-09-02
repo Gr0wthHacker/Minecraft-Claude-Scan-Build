@@ -1,0 +1,64 @@
+# STEP ONE OF THE PARK, AND ON ITS OWN: the pathway layout across all three territories.
+#
+# Jack, after placing the previous attempt: "the street is all massive amounts of the same stone,
+# no patterns, no actual pathways ... tons of stuff is jumbled together in the center, buildings
+# on top of each other ... take a step back and do this truly step by step, start with a large
+# pathway theme park layout across all 3 territories using different materials and with graduated
+# connections that lead to the new materials, clear pathways, lamp posts, seats, and lets put the
+# initial sculptures."
+#
+# So this design contains the GROUND AND NOTHING ELSE, plus the two set pieces. No buildings are
+# in it and none will be until this is placed, looked at and agreed. Each land is then worked one
+# side at a time, with every building sited and oriented against these streets.
+#
+# WHAT IS IN IT
+#   lawn        moss over the whole envelope - so there is no void anywhere, and a path has
+#               something to read against. `grass_block` and `podzol` are CURRENCY here.
+#   spine       13 wide, the full 600, at the arrival edge
+#   promenade   11 wide at the back of the public floor, so the avenues join something and the
+#               blocks between the two are ground with a street on both sides - where buildings go
+#   avenues     9 wide, four per land, spine to promenade
+#   plazas      at both ends of every avenue, patterned
+#   furniture   lamp posts on both verges, benches between them, facing the path
+#   transition  each reach dithers one land's paving into the next across its whole length, so a
+#               walker never crosses an edge - the Lowland Stair's own gradient rule
+#
+# THE SET PIECES are the Signal Heron on the Frontier's own arrival plaza and the Aeronaut balloon
+# over the Midway's centre - the two shapes this repo has measured as reading best (a columnar
+# bird and one convex mass carrying a pattern).
+name: Park Ways
+gen: compose
+params:
+  parts:
+    - gen: parkways
+      offset: [0, 0, 0]
+      params:
+        bounds: [0, 0, 199, 599]
+        lands:
+          - {name: frontier, u0: 0, u1: 169}
+          - {name: midway, u0: 215, u1: 384}
+          - {name: prismworks, u0: 430, u1: 599}
+    # the bird stands where the Frontier's second avenue meets the back promenade, so it is seen
+    # down the length of that avenue from the spine and again across the promenade
+    - gen: heron
+      offset: [86, 1, 105]
+      params: {variant: heron, at: [0, 0, 0], scale: 1.0, seed: 0}
+    # ...and the balloon is moored over the Midway's centre plaza, the brightest thing on the walk
+    - gen: balloon
+      offset: [100, 1, 289]
+      params: {}
+roles: [path]
+design:
+  purpose: path
+  hierarchy: landmark
+  style: midway
+  narrative: >
+    The park's ground layer across all three territories - lawn, a spine, a back promenade,
+    avenues, plazas, lighting and seating, with each reach grading one land's paving into the
+    next - plus the first two set pieces. Buildings come afterwards, one side at a time.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+origin_lock: false
