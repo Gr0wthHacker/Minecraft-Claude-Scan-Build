@@ -53,14 +53,13 @@
 name: Park Rail
 gen: parkrail
 params:
-  bounds: [172, 0, 179, 599]
+  bounds: [172, 0, 186, 599]
   # the same three lands, on the same U spans, as the ground layer - so the viaduct's masonry
   # changes material exactly where the paving under it does, and across the same reaches
   lands:
     - {name: frontier, u0: 0, u1: 169}
     - {name: midway, u0: 215, u1: 384}
     - {name: prismworks, u0: 430, u1: 599}
-  track_v: 177
   # THE PARK IS TOWARD LOWER V HERE, so the promenade, the platforms, the back walls and
   # every station stair mirror to the inner face. See `_sides` in gen/parkrail.py.
   park_side: -1
@@ -74,18 +73,24 @@ params:
   pier_u: 3
   spring_y: 4
   crown_gap: 2
-  # ONE COLUMN WIDER THAN THE FLIGHT. The stair's stringer is solid masonry from the lawn up
-  # to each tread, so a gate exactly as wide as the flight is a gate a station fills in -
-  # and the arcade, which is a six-hundred-block walk, is severed at all three of them.
-  gate_v: [172, 175]
+  # TWO PASSAGES PER PIER, ONE OFF EACH FACE, five columns each with a five-column core
+  # between them. A single wide cut off the park face is the biggest asymmetry this section can
+  # have (measured: 441 more cells on the void half of the deck than on the park half) and it
+  # leaves the arcade nowhere to go at a station, where the raised apron takes the park-side
+  # lane. The core is what the flight's stringer stands in, so it may not be narrower than the
+  # flight: 2 * gate_k + stair_w <= 15.
+  gate_k: 5
   gate_h: 4
   portal_every: 4
   power_every: 8
   light_every: 12
   arch_light_every: 2
-  brake_half: 8
+  bay_half: 3
   track_inset: 3
   station_half: 13
+  stair_w: 3
+  head_half: 5
+  head_v: 8
   canopy_h: 5
   band_blend: 30
   # ONE STATION PER LAND, AT THAT LAND'S OWN CENTRE, so a guest steps off the platform, down the

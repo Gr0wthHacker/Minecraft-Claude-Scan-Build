@@ -47,7 +47,13 @@ ARTIFACTS = ROOT / "out" / "park_final" / "artifacts"
 #: quietly wrong as modules are added, while a keep list can only ever place what somebody named.
 #: `Carousel Court` and `Sky Lift` are now their ride and nothing else - part 0 of a compose of
 #: seventeen and twenty-seven - because the courts around them were the chaos.
-KEEP = {"Sky Lift", "Carousel Court", "Mine Coaster"}
+KEEP = {"Sky Lift", "Carousel Court", "Mine Coaster",
+        #: AND THE WYRM, which is a SET PIECE rather than one of the "hollow buildings" Jack
+        #: threw away - a pale hooded serpent on dark masonry, `gen/wyrm.py`'s own shape, and the
+        #: only thing programmed for the Prism Reach. It was being dropped because the keep list
+        #: named rides and nothing else, and that alone is why U377-429 measures as FIFTY-THREE
+        #: COLUMNS OF NOTHING. A void that size is not restraint, it is a module nobody placed.
+        "Wyrm's Crossing"}
 
 #: V0 -> X, U0 -> Z, and the floor course. Derived by tools/park_anchor.py from the island
 #: registry; stated here only so a shipped sidecar can carry it.

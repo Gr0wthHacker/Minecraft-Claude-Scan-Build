@@ -1,25 +1,63 @@
-"""THE PARK LINE: a viaduct railway down the park's outer edge, and three stations on it.
+"""THE PARK LINE: a double-track circuit down the park's outer edge, and three island stations.
 
 **IT IS A RIDE, NOT A UTILITY.** The corridor it runs in is the one strip of the 200x600 envelope
 with the park on one side and open void on the other, so the whole point of the thing is the view
-off the outer edge - which is why the track hugs the VOID face (V2) and the four-wide promenade
-and every station platform sit on the PARK face (V3-V6). A rider looks out; a walker boards from
-behind. Get that round the other way and the best sightline in the park is spent on a hedge.
+off the outer edge.
 
-    V0   outer parapet - a wall course, the void side
-    V1   kerb, dark - the track's outer edge, and where the flush deck lights sit
-    V2   THE TRACK - bed at `deck_y`, rail one course up
-    V3   platform edge, dark - you board from here; the signal pedestal stands on it
-    V4   |
-    V5   | the promenade, four wide, and the station platform where a station stands
-    V6   |
-    V7   inner parapet - and at a station, the station's back wall
+**AND IT IS SYMMETRIC, BECAUSE THAT IS WHAT WAS WRONG WITH IT.** Jack, on the first line: *"they
+look decent but are a little asymettric with the hanging facade which is a bit strange."* Measured
+off the block list rather than off a render - `render3d` draws a fence, a wall and a chain as full
+cubes and has hidden six separate faults on this park - the old section was eight columns deep with
+the track at V177, which puts the deck's own centre line on V175.5. **Every hanging thing on it was
+therefore half a block off the axis of the structure it hung from**: the canopy was a six-column
+roof on an eight-column deck with an eave on ONE side and two bare columns on the other, and the
+portal frames spanned all eight columns and hung a single lantern at V175. 10,232 of the old
+design's 22,362 cells had no mirror image across its own corridor.
 
-**WHAT MAKES 600 BLOCKS OF SPAN READ AS ARCHITECTURE IS REGULARITY AND OPENINGS, NOT LENGTH** -
-the void tower's rule, and a viaduct is its purest case. So the deck stands eight courses over the
-lawn on a pier every `bay`, with a segmental arch springing between them, an arch RING in a
-darker stone than the spandrel it carries, a cross-rib at every crown, and a portal frame every
-`portal_every` bays. Nothing about it is damage or irregularity; all of it repeats.
+The cure is not to move the lantern. It is that **a viaduct with one track has no axis to be
+symmetric about**, so the section is now odd-width with a real centre column, two running lines
+mirrored about it, and an ISLAND platform between them:
+
+    k0   parapet, the park face
+    k1   kerb
+    k2   TRACK A          - the UP line, running toward +U
+    k3   platform edge, dark - the boarding edge, and where the signal plinth stands
+    k4   |
+    k5   |
+    k6   |
+    k7   | THE ISLAND: the promenade for six hundred blocks, the platform where a station
+    k8   |              stands, and the three centre columns carry the flight down
+    k9   |
+    k10  |
+    k11  platform edge, dark
+    k12  TRACK B          - the DOWN line, running toward -U
+    k13  kerb
+    k14  parapet, the void face
+
+`k` counts AWAY FROM THE PARK, so the section mirrors whichever side the park is on; `park_side`
+is the only thing that decides it and `_section` is the one place the columns are named.
+
+**WHY TWO TRACKS AND NOT A BLOCK SYSTEM.** One track the length of the corridor with three stations
+on it is a line on which two carts can meet head-on, and the only cure for that is redstone: a
+detector rail holding a cart out of a section until the section ahead is clear. Redstone is the
+thing in this project whose wrongness is invisible in every render, every audit and every bill of
+materials - so a mechanism that has to be right is a mechanism that has to be simulated, and one
+that is right BY CONSTRUCTION is worth more than one that is right by simulation. Two running
+lines, one direction each, joined only at the two ends, cannot present two carts to each other on
+the same rails at all. It costs five extra columns of corridor and four iron rails.
+
+**THE TWO ENDS ARE TURNBACK CURVES, AND THAT IS WHAT THE CORNERS BUY.** Jack: *"if needed we can
+add turns curves etc, just not excessive, we can invest iron for aesthetic clear value purpose."*
+Four corners - two at each end - join the up line to the down line, so the whole railway is ONE
+CLOSED CIRCUIT: a cart set going calls at all six platform bays and comes back to where it started
+without anyone lifting it off the track. Before this it was an out-and-back on a single line with a
+buffer at each end. Four corners is the cheapest possible purchase of that:
+
+    rail          6 iron -> 16 rails    0.375 iron each   - iron is the SCARCE metal here
+    powered_rail  6 gold ->  6 rails    1.0   gold each   - and gold is farmable
+
+so the four turnback rails are **1.5 iron ingots** and every other running rail on the line is
+gold. The six detector rails at the platforms are 1 iron each. Nothing else in the track is iron.
 
 THE RAIL RULES, and every one of them is CORRECTNESS rather than taste. Read off `blocks.json`
 rather than remembered, and asserted in `tests/test_parkrail.py` because **our renderer draws a
@@ -29,44 +67,61 @@ wrong rail orientation identically to a right one**:
     rail          shape = ...those six, PLUS south_east, south_west, north_west, north_east
 
   * **A POWERED RAIL CANNOT CURVE**, so every direction change costs a plain - and therefore IRON -
-    rail. On this server iron is the scarce metal and gold is farmable, so the cheap rail is the
-    gold one: powered rail on the straights, iron only at corners. This line lies along one axis
-    and needs no corner at all, so its metal is entirely gold and its iron cost is ZERO.
+    rail. The budget is four, and they are the two turnbacks.
   * **NEVER DESCEND INTO A CORNER.** A curve has no ascending shape, so a corner and both of its
     neighbours must share one height, or the game re-derives the turn as a slope and the line dead
-    ends. This line is dead level, so the rule costs it nothing - and `shapes_for` is shared with
+    ends. This circuit is dead level, so the rule costs it nothing - and `shapes_for` is shared with
     `railspiral` and `transit` so that one implementation enforces it for all three.
   * **AN UNPOWERED POWERED_RAIL IS A BRAKE.** The bed cell under the track becomes a
-    `redstone_block` every `power_every`, and the runs are counted BETWEEN CORNERS because a plain
-    rail does not propagate the chain. Nothing about the emitted model looks wrong when this is
-    missed: `shape` and `powered` are DERIVED by the game, so the schematic, the audit and the
-    bill of materials all pass while the line does not run. It is verified by SIMULATION in
-    `mcbuild.circuit`, which models the eight-rail propagation directly.
+    `redstone_block` every `power_every`, and the sources are dealt **per RUN between breaks** -
+    a corner is a plain rail and a detector rail is a plain rail, and neither propagates the chain.
+    A flat spacing leaves a dead rail past every one of them, and a dead rail is a cart stopped in
+    mid-air. Nothing about the emitted model looks wrong when this is missed: `shape` and `powered`
+    are DERIVED by the game, so the schematic, the audit and the bill of materials all pass while
+    the line does not run. It is verified by SIMULATION in `mcbuild.circuit`.
   * **A TRACK CELL IS NEVER OPTIONAL.** A cell that cannot be placed is an error naming the cell,
     never a silent skip: a broken line still audits as one clean solid.
-  * **A TERMINUS NEEDS A STOP BLOCK.** A stationary cart on a powered rail launches AWAY from the
-    adjacent solid block; with neither end blocked the line only runs whichever way you shoved it.
+  * **A CLOSED CIRCUIT HAS NO TERMINUS, so it needs no stop block.** The rule that a terminus needs
+    one at both ends is not relaxed here, it is inapplicable - and the stronger property replaces
+    it: `test_the_line_is_one_closed_circuit` asserts every rail has exactly two rail neighbours
+    and that the whole ring is one cycle, which is a thing a line with a missing cell cannot be.
 
-**AND THE BRAKE IS WHAT MAKES IT A RAILWAY RATHER THAN A LOOP OF TRACK.** A continuously powered
-line cannot be boarded - the cart never stops. Each station therefore holds a DEAD ZONE of
-`brake_half * 2 + 1` powered rails with no source of their own, and a lever on a pedestal at the
-platform edge whose block is adjacent to the track: lever off, the zone is unpowered and a cart
-coasting in stops on the platform; lever on, the pedestal drives the zone and its eight-rail
-propagation exactly bridges the gap to the sources outside it. Both states are asserted by
-simulation, because "it looked right" is how every dead circuit in this repo shipped.
+**THE BRAKE IS WHAT MAKES IT A RAILWAY RATHER THAN A LOOP OF TRACK, AND IT IS AUTOMATIC NOW.** A
+continuously powered line cannot be boarded - the cart never stops. Each of the six platform bays
+therefore holds a stretch of powered rail with **no source of its own**, so an arriving cart brakes
+on it and stops ON THE PLATFORM whatever anybody does. That is the whole of the auto-stop, and it
+needs no redstone at all: an unpowered powered rail halves a cart's speed every tick.
 
-The geometry of the quiet band is arithmetic and it is the fiddly part: sources are suppressed
-across `[c - 2h, c + 2h]` and FORCED at `c - 2h - 1` and `c + 2h + 1`, so with the lever off the
-nearest source is nine hops from the nearest brake rail (dead), and with it on the zone plus those
-two sources cover every cell between them (live). Move `brake_half` and the arithmetic moves with
-it; `_sources` is the one place it is written.
+What the old design got wrong was the RELEASE. It was a LEVER, and a lever is a state: left up, the
+bay is live and no cart ever stops there again - the one failure a station must not have. It is a
+momentary **button** on a plinth at the platform edge now. The button strongly powers the plinth,
+the plinth is horizontally adjacent to the rail, and a powered rail carries its own state eight
+rails each way - which is why `bay_half` must stay under eight, so ONE button lights the whole bay
+from wherever in it the cart came to rest. When the button pops out the bay is dead again, by
+itself, ready for the next cart. **The default is stop, and there is no way to leave it running.**
+
+The geometry of the quiet band is arithmetic and it is the fiddly part. A bay `bay_half` cells each
+side of its centre must go dead, and a source reaches eight rails, so sources are suppressed across
+`[c - h - 8, c + h + 8]` and FORCED at `c - h - 9` and `c + h + 9`. Those two shoulders then cover
+every quiet cell except the `2h+1` in the middle, which is exactly the bay. Move `bay_half` and the
+arithmetic moves with it; `_sources` is the one place it is written. (The old file wrote the same
+band as `[c - 2h, c + 2h]`, which gives `4h - 15` dead cells - equal to `2h + 1` only at `h = 8`.
+It was correct for the one value it had and silently wrong for every other, which is what a comment
+saying "move it and the arithmetic moves with it" is supposed to prevent.)
+
+**AND EVERY PLATFORM RINGS.** A `detector_rail` at each bay's own approach end - one per track, so
+they mirror - stands beside a `bell` on the platform edge. A detector rail powers what is next to
+it, so there is no wire anywhere: a cart entering the platform rings the bell. It is the one thing
+on the line that tells a walker on the promenade that a train is coming, and it costs one iron
+ingot and no dust.
 """
 from __future__ import annotations
 
 import math
 
+from .. import blocks as _blocks
 from .canvas import Canvas, hash01
-from .railspiral import runs_of, shapes_for
+from .railspiral import shapes_for
 
 SIGN_WIDTH = 15                     # a sign line clips mid-word past this
 
@@ -124,35 +179,47 @@ SPAN = {
 
 #: The one light that costs no metal. A flush froglight IS the floor - an opaque emitter a course
 #: down, so it reaches 14 rather than 15 - which is this island's own idiom and, on a walkway a
-#: hundred blocks long over open void, the only lamp nobody can knock off.
+#: hundred blocks long over open void, the only lamp nobody can knock off. A LANTERN IS AN IRON
+#: INGOT AND A CHAIN IS ANOTHER, so the viaduct's own rhythm of light - one in every portal beam,
+#: one in every other arch crown, one in every pier lintel - is froglight set into the masonry, and
+#: the iron is spent only where a light has to HANG: the six station canopies and the three station
+#: doors, which are the three places a visitor stands still.
 FLUSH_LIGHT = "ochre_froglight"
 
 PARKRAIL = {
-    "bounds": [0, 0, 7, 599],     # v0, u0, v1, u1 - THE CORRIDOR, and nothing may leave it
+    # THE CORRIDOR, and nothing may leave it. v0, u0, v1, u1. The width must be ODD and at least
+    # 13: an even-width deck has no centre column, and a viaduct with no centre column has no axis
+    # for its canopy, its portals and its hanging lights to be symmetric about - which is the whole
+    # complaint this section was rebuilt to answer.
+    "bounds": [0, 0, 14, 599],
     "lands": None,                 # [{name, u0, u1}] in U order; the gaps between them are reaches
-    "track_v": 2,                  # V of the rail; V1 and V3 are its kerbs
     "park_side": 1,                # +1: the park is toward higher V. -1 for the rim corridor.
-    "deck_y": 12,                  # the deck FLOOR course. You stand, and the rail sits, at +1
+    "deck_y": 12,                  # the deck FLOOR course. You stand, and the rails sit, at +1
     "ground_y": 1,                 # the first course above the park's lawn - see the module note
     "bay": 15,                     # pier to pier
     "pier_u": 3,                   # pier thickness along U
     "spring_y": 4,                 # the arch springing course
     "crown_gap": 2,                # courses of masonry between the arch crown and the deck
-    "gate_v": [5, 7],              # the V band cut through every pier at ground level
+    "gate_k": 5,                   # columns cut off EACH face of every pier - two passages
     "gate_h": 4,                   # ...and how many courses tall
     "portal_every": 4,             # a portal frame every this many bays
     "power_every": 8,              # a redstone_block in the bed this often, per RUN
-    "light_every": 12,             # a froglight flush in a kerb this often
-    "arch_light_every": 2,         # a lantern under the crown every this many bays
-    "brake_half": 8,               # half the station dead zone, in rails
-    "track_inset": 3,              # cells of deck beyond each terminus, for the stop block
+    "light_every": 12,             # a froglight flush in each platform-edge kerb this often
+    "arch_light_every": 2,         # a froglight in the crown rib every this many bays
+    # HALF THE DEAD ZONE AT A PLATFORM, IN RAILS - so the bay is 2*bay_half + 1 cells long and a
+    # cart brakes to a stop inside it. It MUST stay under 8, because the release button powers one
+    # rail and a powered rail carries its own state at most eight rails each way: at 8 or more the
+    # button would light only part of its own bay and a cart could be left stranded in the far half
+    # of the platform it is trying to leave.
+    "bay_half": 3,
+    "track_inset": 3,              # cells of deck beyond each turnback, for the end walls
     "stations": None,              # [{at_u, land, title, board, stair}]
     "station_half": 13,            # platform half-length; the platform is 2*half + 1
     # THE ENTRY, and it is the difference between a station and a fire escape. Jack, on the first
     # three: "the railway needs clear entry ways (stairs); and proper lead up platforms etc."
     "stair_w": 3,                  # V columns of flight - two is a service stair, not a way in
     "head_half": 5,                # the forecourt at the foot, half-length along U
-    "head_v": 4,                   # ...and how far it reaches into the arcade from the park face
+    "head_v": 8,                   # ...and how far it reaches into the arcade from the park face
     "canopy_h": 5,                 # courses from the deck walk up to the canopy soffit
     "band_blend": 30,              # cells over which one land's masonry dithers into the next
     "seed": 0,
@@ -180,24 +247,78 @@ def _v_dir(sign: int) -> str:
 
 
 def _sides(p: dict) -> tuple:
-    """(side, park_edge, void_edge) - WHICH WAY THE PARK IS, from the track.
+    """(side, park_edge, void_edge) - WHICH WAY THE PARK IS, from the corridor.
 
-    The cross-section in this module's docstring is written with the void at the LOW V edge,
-    because the first corridor it was given ran along V0-7. In the 200-deep envelope the void is
-    at the HIGH edge: V0 is the arrival apron against the connector and V170-199 is the rim and
-    void reserve. A viaduct that gets this the wrong way round puts the promenade, the platforms
-    and every station stair on the void side, so a visitor boards facing nothing and descends into
-    the reserve - and NOTHING IN AN AUDIT CAN SEE IT, because a mirrored viaduct is one connected
-    piece with no placement problem and the same bill of materials.
+    In the 200-deep envelope the void is at the HIGH edge: V0 is the arrival apron against the
+    connector and V170-199 is the rim and void reserve. A viaduct that gets this the wrong way
+    round puts the island, the platforms and every station stair against the void and a visitor
+    descends into the reserve - and NOTHING IN AN AUDIT CAN SEE IT, because a mirrored viaduct is
+    one connected piece with no placement problem and the same bill of materials.
 
-    So the side is a parameter, `park_side`: +1 when the park lies toward higher V (the original
-    corridor), -1 when it lies toward lower V (the rim corridor). Everything that is genuinely
-    one-sided - the promenade, the platform, the back wall, the flight, the signs, the eave - is
-    written against it; everything symmetric about the track is left alone.
+    So the side is a parameter, `park_side`: +1 when the park lies toward higher V, -1 when it lies
+    toward lower V (the rim corridor). Every column is then named as an offset AWAY from the park
+    (`_section`), so the whole cross-section mirrors with one number.
     """
     v0, _u0, v1, _u1 = p["bounds"]
     side = 1 if int(p.get("park_side", 1)) >= 0 else -1
     return (side, v1, v0) if side > 0 else (side, v0, v1)
+
+
+def _section(p: dict) -> dict:
+    """THE CROSS-SECTION, NAMED ONCE. Every column of the deck, derived from the corridor alone.
+
+    `k` counts away from the park face, so `at(k) = park_edge - side * k` and the whole section
+    mirrors when `park_side` does. The width must be ODD: the centre column is the axis the canopy,
+    the portal lights, the ridge and the flight are all built about, and an even-width deck has
+    none - which is exactly why the first version of this line had every hanging fixture half a
+    block off the structure it hung from.
+    """
+    v0, u0, v1, u1 = p["bounds"]
+    w = v1 - v0 + 1
+    side, park_edge, void_edge = _sides(p)
+    if w < 13 or w % 2 == 0:
+        raise ValueError(
+            f"parkrail needs an ODD corridor at least 13 deep for two tracks and an island "
+            f"between them; got {w}")
+    stair_w = max(3, int(p.get("stair_w", 3)))
+    if stair_w % 2 == 0:
+        raise ValueError("stair_w must be odd, or the flight cannot sit on the island's own axis")
+    island = [park_edge - side * k for k in range(4, w - 4)]
+    if len(island) < stair_w + 2:
+        raise ValueError(
+            f"the island is {len(island)} wide and the flight is {stair_w}: the promenade could "
+            f"not get past its own stairwell")
+    kc = (w - 1) // 2
+    centre = park_edge - side * kc
+    h = (stair_w - 1) // 2
+    # THE ARCADE'S TWO PASSAGES, one off each face, with the pier's own core between them. `gate_k`
+    # is how many columns each passage takes; the core is what is left, and it must be wide enough
+    # to carry the flight's stringer, which lands on the island's own centre columns.
+    gk = max(2, int(p.get("gate_k", 5)))
+    if 2 * gk + stair_w > w:
+        raise ValueError(
+            f"gate_k {gk} twice over leaves a pier core narrower than the {stair_w}-wide flight "
+            f"that has to stand in it")
+    return {
+        "side": side, "w": w, "v0": v0, "v1": v1,
+        "park": park_edge - side * 0,
+        "kerb_a": park_edge - side * 1,
+        "track_a": park_edge - side * 2,
+        "edge_a": park_edge - side * 3,
+        "island": island,
+        "edge_b": park_edge - side * (w - 4),
+        "track_b": park_edge - side * (w - 3),
+        "kerb_b": park_edge - side * (w - 2),
+        "void": void_edge,
+        "centre": centre,
+        "inner_a": island[0], "inner_b": island[-1],
+        "stair_v": tuple(park_edge - side * k for k in range(kc - h, kc + h + 1)),
+        "gable_v": (park_edge - side * (kc - h - 1), park_edge - side * (kc + h + 1)),
+        "gate_k": gk,
+        "gate_cols": tuple(park_edge - side * k
+                           for k in list(range(gk)) + list(range(w - gk, w))),
+        "gate_lamps": (park_edge - side * (gk // 2), park_edge - side * (w - 1 - gk // 2)),
+    }
 
 
 def _span(a: int, b: int, step: int):
@@ -209,58 +330,118 @@ def _span(a: int, b: int, step: int):
 
 
 def plan(params: dict) -> list:
-    """THE track for a config: the one entry point the build and the tests both go through.
+    """THE CIRCUIT for a config: the one entry point the build and the tests both go through.
 
     Written twice they drift - `railspiral`'s own tests once called `route` without a ground table,
     got a terminus the design does not have, and reported a missing stop block on a line that has
     one. Same rule `proportions.measure` and `rubric.score` already follow.
 
     Returns [(x, y, z, is_corner)] in CANVAS coordinates, which is `railspiral`'s own cell shape,
-    so `shapes_for`, `runs_of` and `power_cells` all apply to it unchanged.
+    so `shapes_for` applies to it unchanged. The list is a CLOSED RING in travel order, and it
+    starts on a straight so that the wrap between the last cell and the first needs no special
+    case in `shapes_for` (both are straights on the same leg, and `_loop_shapes` supplies the wrap
+    for the four corners that do need it).
     """
     p = {**PARKRAIL, **(params or {})}
     v0, u0, v1, u1 = p["bounds"]
+    sec = _section(p)
     inset = int(p["track_inset"])
-    x = int(p["track_v"]) - v0
     y = int(p["deck_y"]) + 1
-    n = (u1 - u0 + 1) - 2 * inset
-    if n < 4:
-        raise ValueError("parkrail needs a corridor long enough for at least 4 track cells")
-    if not (0 <= x <= v1 - v0):
-        raise ValueError(f"track_v {p['track_v']} is outside the corridor {p['bounds']}")
-    return [(x, y, inset + a, False) for a in range(n)]
+    xa, xb = sec["track_a"] - v0, sec["track_b"] - v0
+    za, zb = inset, (u1 - u0) - inset
+    if zb - za < 8:
+        raise ValueError("parkrail needs a corridor long enough for a circuit")
+    if xa > xb:
+        xa, xb = xb, xa
+    lo, hi = min(za, zb), max(za, zb)
+    cells = []
+    # the UP line, on the park side, running toward +U
+    for z in range(lo + 1, hi):
+        cells.append((xa, y, z, False))
+    cells.append((xa, y, hi, True))                       # turnback corner, far end
+    for x in range(xa + 1, xb):
+        cells.append((x, y, hi, False))
+    cells.append((xb, y, hi, True))
+    # the DOWN line, on the void side, running toward -U
+    for z in range(hi - 1, lo, -1):
+        cells.append((xb, y, z, False))
+    cells.append((xb, y, lo, True))                       # turnback corner, near end
+    for x in range(xb - 1, xa, -1):
+        cells.append((x, y, lo, False))
+    cells.append((xa, y, lo, True))
+    return cells
 
 
-def _sources(n: int, every: int, brakes: list, half: int) -> tuple:
+def _loop_shapes(cells: list) -> list:
+    """`shapes_for`, closed. A ring's first and last cells are neighbours and the shared
+    implementation cannot know that, so it is handed one cell of context at each end and the
+    padding is thrown away. Written without this, the two turnback corners at the ring's seam come
+    out as straights - a shape the game would derive as a dead end, and one our renderer draws
+    exactly like a corner."""
+    ring = [cells[-1]] + list(cells) + [cells[0]]
+    return shapes_for(ring)[1:-1]
+
+
+def _runs(n: int, breaks) -> list:
+    """Index ranges of consecutive POWERED cells. A corner is a plain rail and a detector rail is a
+    plain rail; neither propagates the powered chain, so power is dealt per run - a flat spacing
+    leaves a dead rail past every one of them."""
+    breaks = set(breaks)
+    out, start = [], None
+    for i in range(n):
+        if i in breaks:
+            if start is not None:
+                out.append((start, i))
+            start = None
+        elif start is None:
+            start = i
+    if start is not None:
+        out.append((start, n))
+    return out
+
+
+def _sources(n: int, every: int, bays: list, half: int, breaks=()) -> tuple:
     """(source indices, quiet indices) for the track's BED.
 
     A source is a `redstone_block` under a powered rail. Everything about this function is the
-    brake: a station needs a stretch of track that is DEAD when its lever is off, and a powered
-    rail carries its own state eight rails past a source, so "dead" is a statement about a
-    twenty-five-cell neighbourhood rather than about one cell.
+    brake: a platform needs a stretch of track that is DEAD, and a powered rail carries its own
+    state eight rails past a source, so "dead" is a statement about a neighbourhood rather than
+    about one cell.
+
+    THE BAND IS `[c - half - 8, c + half + 8]` AND THE SHOULDERS ARE FORCED AT `c +/- (half + 9)`.
+    Each shoulder then covers the eight quiet cells nearest it, which leaves exactly the `2*half+1`
+    in the middle dead - the bay, centred on the platform, for any `half`. The previous version
+    wrote the band as `[c - 2h, c + 2h]`, which leaves `4h - 15` dead: right for h=8 and quietly
+    wrong for every other value, under a docstring promising it moved with the parameter.
+
+    `breaks` are cells that are not powered rails at all, and they bound the runs sources are
+    dealt within - a source cannot reach past one.
     """
+    breaks = set(breaks)
     quiet, forced = set(), set()
-    for c in brakes:
-        for i in range(c - 2 * half, c + 2 * half + 1):
-            if 0 <= i < n:
+    for c in bays:
+        for i in range(c - half - 8, c + half + 9):
+            if 0 <= i < n and i not in breaks:
                 quiet.add(i)
-        for i in (c - 2 * half - 1, c + 2 * half + 1):
-            if 0 <= i < n:
+        for i in (c - half - 9, c + half + 9):
+            if 0 <= i < n and i not in breaks:
                 forced.add(i)
-    picks = set(forced)
-    for i in (0, n - 1):
-        if i not in quiet:
-            picks.add(i)
-    last = None
-    for i in range(n):
-        if i in quiet:
-            continue
-        if i in picks:
-            last = i
-            continue
-        if last is None or i - last >= max(1, every):
-            picks.add(i)
-            last = i
+    picks = set()
+    for a, b in _runs(n, breaks):
+        picks |= {i for i in forced if a <= i < b}
+        for i in (a, b - 1):
+            if i not in quiet:
+                picks.add(i)
+        last = None
+        for i in range(a, b):
+            if i in quiet:
+                continue
+            if i in picks:
+                last = i
+                continue
+            if last is None or i - last >= max(1, every):
+                picks.add(i)
+                last = i
     return picks, quiet
 
 
@@ -307,7 +488,10 @@ class _Deck:
         self.c.put(v - self.v0, y, u - self.u0, 0)
 
     def name_at(self, v: int, y: int, u: int) -> str:
-        return self.c.get_name(v - self.v0, y, u - self.u0)
+        return self.c.get_name(v - self.v0, y, u - self.u0).split(":")[-1]
+
+    def raw_at(self, v: int, y: int, u: int) -> int:
+        return self.c.get(v - self.v0, y, u - self.u0)
 
     def sign(self, v: int, y: int, u: int, facing: str, wood: str, lines) -> bool:
         """A wall sign in the cell IN FRONT of its wall, its text facing away from its support.
@@ -383,8 +567,7 @@ def build(cfg: dict, donors=None) -> Canvas:
     p = {**PARKRAIL, **cfg}
     v0, u0, v1, u1 = p["bounds"]
     sx, sz = v1 - v0 + 1, u1 - u0 + 1
-    if sx < 8:
-        raise ValueError("parkrail needs a corridor at least 8 cells deep")
+    sec = _section(p)
     seed = int(p["seed"])
     deck_y, ground_y = int(p["deck_y"]), int(p["ground_y"])
     walk_y = deck_y + 1
@@ -392,8 +575,9 @@ def build(cfg: dict, donors=None) -> Canvas:
     c = Canvas(sx, canopy_y + 3, sz)
     d = _Deck(c, p)
     pal_at, land_name = _land_table(p)
-    track_v = int(p["track_v"])
-    side, park_edge, void_edge = _sides(p)
+    side = sec["side"]
+    track_a, track_b = sec["track_a"], sec["track_b"]
+    centre = sec["centre"]
 
     def pick(pal_a, pal_b, t, key, v, u):
         """One material, dithered across a reach. A hard line is two viaducts butted together."""
@@ -421,9 +605,10 @@ def build(cfg: dict, donors=None) -> Canvas:
     bay, pier_u = int(p["bay"]), int(p["pier_u"])
     span_w = bay - pier_u
     spring_y, crown_y = int(p["spring_y"]), deck_y - 1 - int(p["crown_gap"])
-    gate_lo, gate_hi = (int(v) for v in p["gate_v"])
     gate_h = int(p["gate_h"])
+    gate_cols, gate_lamps = sec["gate_cols"], sec["gate_lamps"]
     piers = gates = 0
+    lights = 0
     for b0 in range(u0, u1 + 1, bay):
         piers += 1
         for u in range(b0, min(b0 + pier_u, u1 + 1)):
@@ -446,21 +631,28 @@ def build(cfg: dict, donors=None) -> Canvas:
             #
             # AND THE CUT HAS TO REACH THE PARK FACE. Taken out of the pier's middle it is a
             # tunnel with a solid wall at each end of it: perfectly walkable once you are inside,
-            # and there is nowhere on six hundred blocks that you can get inside. It runs to V7,
-            # so every pier is a doorway off the lawn as well as a link along the arcade.
-            if gate_hi >= gate_lo:
-                mid = (gate_lo + gate_hi) // 2
-                for v in range(gate_lo, gate_hi + 1):
-                    for y in range(ground_y, ground_y + gate_h):
-                        d.clear(v, y, u)
-                    a, bb, t = pal_at(u)
-                    # THE LINTEL IS THE LAMP. The arch lanterns hang two courses under the deck,
-                    # eleven above a head walking the arcade, so the passage came out a dark
-                    # tunnel with a lit ceiling. A froglight in the lintel costs no metal, cannot
-                    # be knocked off, and is the only fixture in a doorway that nobody can walk
-                    # into - which is the same argument the flush deck lights already make.
-                    d.put(v, ground_y + gate_h, u,
-                          FLUSH_LIGHT if v == mid else pick(a, bb, t, "band", v, u))
+            # and there is nowhere on six hundred blocks that you can get inside.
+            #
+            # **SO IT IS TWO PASSAGES AND A CORE, NOT ONE OPENING.** One band cut from the park
+            # face is the obvious answer and it is the single biggest asymmetry a viaduct of this
+            # section can have: measured, one 10-wide cut through 40 piers left 441 more cells on
+            # the void half of the deck than on the park half and put every pier's remaining leg
+            # on one side. A band off EACH face, with the pier's own core standing between them,
+            # reaches the park face just as well, gives the arcade a second lane at the piers
+            # where the station aprons take the first one, and mirrors exactly.
+            for v in gate_cols:
+                for y in range(ground_y, ground_y + gate_h):
+                    d.clear(v, y, u)
+                a, bb, t = pal_at(u)
+                # THE LINTEL IS THE LAMP. The arcade's own crown lights are eleven courses over
+                # a head walking it, so the passage came out a dark tunnel with a lit ceiling.
+                # A froglight in the lintel costs no metal, cannot be knocked off, and is the
+                # only fixture in a doorway that nobody can walk into. One per passage, which is
+                # a mirrored pair.
+                hit = v in gate_lamps
+                d.put(v, ground_y + gate_h, u,
+                      FLUSH_LIGHT if hit else pick(a, bb, t, "band", v, u))
+                lights += 1 if hit else 0
         gates += 1
         # the arch between this pier and the next: a RING on each visible face, the spandrel it
         # carries above it, and a cross-rib at the crown that ties the two faces into a vault
@@ -483,77 +675,112 @@ def build(cfg: dict, donors=None) -> Canvas:
                 for v in range(v0 + 1, v1):
                     d.put(v, crown_y, u, pick(a, bb, t, "ring", v, u))
 
+    # ...and a froglight in the crown rib of every other arch, ON THE CENTRE COLUMN, so the arcade
+    # below is lit and the elevation has a rhythm read from the lawn as well as from the deck. It
+    # replaces the lantern-on-a-chain the first line hung here: a lantern is an iron ingot and a
+    # chain is another, and this one is set into masonry that is already being placed.
+    for k, b0 in enumerate(range(u0, u1 + 1, bay)):
+        if k % max(1, int(p["arch_light_every"])):
+            continue
+        u = b0 + pier_u + span_w // 2
+        if u > u1 or u in platform_u:
+            continue
+        if d.has(centre, crown_y, u) and d.put(centre, crown_y, u, FLUSH_LIGHT):
+            lights += 1
+
     # ------------------------------------------------------------------ 2. the deck
     #
-    # Eight cells across, six hundred long, and every column of it says which of the four things
-    # it is: parapet, kerb, track bed, promenade.
     # A DECK OF ONE MATERIAL FOR SIX HUNDRED BLOCKS IS A FLOOR, NOT A WALK. That is exactly the
     # complaint the ground layer was rebuilt to answer - "massive amounts of the same stone, no
-    # patterns" - and a promenade four wide and six hundred long is the easiest place in the park
+    # patterns" - and a promenade seven wide and six hundred long is the easiest place in the park
     # to make it again. Two rhythms, both derived from something real rather than drawn on: a
     # transverse rung in the land's own band over EVERY PIER, so the walk shows you the structure
-    # under it, and a dotted kerb inlay along the promenade's middle.
-    lights = 0
+    # under it, and a dotted kerb inlay down the island, MIRRORED about the centre column.
+    kerbs = {v0, v1, sec["kerb_a"], sec["kerb_b"], sec["edge_a"], sec["edge_b"]}
+    inlay = {sec["island"][1], sec["island"][-2]}
     pier_cols = {u for b0 in range(u0, u1 + 1, bay) for u in range(b0, b0 + pier_u)}
+    cells = plan(p)
+    cross_u = {cells[0][2] + u0 - 1 + 0 for _ in (0,)}          # placeholder, filled below
+    cross_u = {z + u0 for (_x, _y, z, corner) in cells if corner}
     for u in range(u0, u1 + 1):
         a, bb, t = pal_at(u)
         for v in range(v0, v1 + 1):
-            if v in (v0, v1, track_v - 1, track_v + 1):
+            if v in kerbs:
                 key = "kerb"
-            elif v == track_v:
+            elif v in (track_a, track_b):
                 key = "deck"
             elif u in pier_cols:
                 key = "band"
-            elif v == track_v + 2 * side and (u - u0) % 4 == 0:
+            elif v in inlay and (u - u0) % 4 == 0:
                 key = "kerb"
             else:
                 key = "deck"
             d.put(v, deck_y, u, pick(a, bb, t, key, v, u))
         # THE LIGHT IS THE DECK, NOT A FIXTURE ON IT. A flush froglight costs no metal, cannot be
-        # knocked off a walkway eight courses over the lawn, and leaves the deck clear to walk.
-        if (u - u0) % max(1, int(p["light_every"])) == 0:
-            v = track_v - 1 if ((u - u0) // int(p["light_every"])) % 2 == 0 else track_v + 1
-            if u not in platform_u:
-                d.put(v, deck_y, u, FLUSH_LIGHT)
-                lights += 1
+        # knocked off a walkway twelve courses over the lawn, and leaves the deck clear to walk.
+        # A PAIR, one in each platform-edge kerb, because a single one on a symmetric section is
+        # the very fault this line was rebuilt to fix.
+        if (u - u0) % max(1, int(p["light_every"])) == 0 and u not in platform_u \
+                and u not in cross_u:
+            for v in (sec["edge_a"], sec["edge_b"]):
+                if d.put(v, deck_y, u, FLUSH_LIGHT):
+                    lights += 1
 
     # ------------------------------------------------------------------ 3. the track
-    cells = plan(p)
-    shapes = shapes_for(cells)
-    brakes = [next(i for i, cell in enumerate(cells) if cell[2] == s["at_u"] - u0)
-              for s in stations if any(cell[2] == s["at_u"] - u0 for cell in cells)]
-    picks, quiet = _sources(len(cells), int(p["power_every"]), brakes, int(p["brake_half"]))
-    for i, (x, y, z, _corner) in enumerate(cells):
+    shapes = _loop_shapes(cells)
+    index = {(x, z): i for i, (x, y, z, _c) in enumerate(cells)}
+    corners = [i for i, cell in enumerate(cells) if cell[3]]
+    dead_half = int(p["bay_half"])
+    if dead_half >= 8:
+        raise ValueError(
+            "bay_half must stay under 8: a powered rail carries its own state eight rails past a "
+            "source, so a longer bay could not be lit end to end by its own release button")
+
+    # THE SIX PLATFORM BAYS AND THE SIX APPROACH DETECTORS, one of each per track per station, so
+    # they mirror. The detector sits `dead_half + 10` cells back along the direction of travel:
+    # that is exactly far enough that the powered run RESTARTING after it begins on the forced
+    # shoulder at `c - (dead_half + 9)`, so the detector costs the bay nothing and the dead zone
+    # stays centred on the platform. Move it one cell nearer and the run's own start source lands
+    # inside the band, lights half the bay, and the cart stops off-centre - which no render, no
+    # audit and no bill of materials could see.
+    bays, detectors, bay_meta = [], [], []
+    for s in stations:
+        for (tv, adir) in ((track_a, 1), (track_b, -1)):
+            zc = s["at_u"] - u0
+            i = index.get((tv - v0, zc))
+            if i is None:
+                raise ValueError(f"station {s['title']} at u={s['at_u']} is off the running line")
+            j = index.get((tv - v0, zc - adir * (dead_half + 10)))
+            if j is None:
+                raise ValueError(f"station {s['title']} has no room for its approach detector")
+            bays.append(i)
+            detectors.append(j)
+            bay_meta.append({"title": s["title"], "track": "a" if tv == track_a else "b",
+                             "at_u": s["at_u"], "detector_u": cells[j][2] + u0})
+
+    breaks = set(corners) | set(detectors)
+    picks, quiet = _sources(len(cells), int(p["power_every"]), bays, dead_half, breaks)
+    for i, (x, y, z, corner) in enumerate(cells):
         # THE BED FIRST, and the bed IS the railway: an unpowered powered rail is a brake, so a
-        # `redstone_block` here is not decoration. Nothing is consulted before writing either the
-        # bed or the rail - not a dither, not a station, not the deck that was laid a moment ago.
-        # A TRACK CELL IS NOT OPTIONAL.
-        if not c.put(x, y - 1, z, c.state("redstone_block") if i in picks
-                     else _bed_block(d, pal_at, pick, track_v, z + u0)):
+        # `redstone_block` here is not decoration. A source is NEVER wasted on a break - a plain
+        # rail does not propagate the chain, so a block under one powers exactly itself.
+        if i in picks and i not in breaks:
+            bed = c.state("redstone_block")
+        else:
+            bed = _bed_block(d, pal_at, pick, x + v0, z + u0)
+        if not c.put(x, y - 1, z, bed):
             raise ValueError(f"parkrail: track bed cell {i} fell outside the corridor")
-        if not c.put(x, y, z, c.raw_state("powered_rail", shape=shapes[i],
-                                          powered="true", waterlogged="false")):
+        if corner:
+            rail = c.raw_state("rail", shape=shapes[i], waterlogged="false")
+        elif i in detectors:
+            rail = c.raw_state("detector_rail", shape=shapes[i], powered="false",
+                               waterlogged="false")
+        else:
+            rail = c.raw_state("powered_rail", shape=shapes[i], powered="true",
+                               waterlogged="false")
+        # A TRACK CELL IS NOT OPTIONAL: an error naming the cell, never a silent skip.
+        if not c.put(x, y, z, rail):
             raise ValueError(f"parkrail: track cell {i} fell outside the corridor")
-    # A TERMINUS NEEDS A STOP BLOCK, at BOTH ends, or the line only runs whichever way you shove
-    # the cart - and the whole point of three stations is that a visitor can come back.
-    stops = 0
-    for z in (cells[0][2] - 1, cells[-1][2] + 1):
-        u = z + u0
-        a, bb, t = pal_at(u)
-        if d.put(track_v, walk_y, u, pick(a, bb, t, "band", track_v, u)):
-            stops += 1
-        # ...and a BUFFER round it, so the end of the line reads as an end rather than as a cell
-        # somebody forgot to lay track in. Two courses across the three cells of the track's own
-        # width, and a screen wall across the whole deck at the corridor's last column.
-        for v in (track_v - 1, track_v + 1):
-            d.put(v, walk_y, u, pick(a, bb, t, "band", v, u))
-        for v in range(track_v - 1, track_v + 2):
-            d.put(v, walk_y + 1, u, pick(a, bb, t, "kerb", v, u))
-    for u in (u0, u1):
-        a, bb, t = pal_at(u)
-        for v in range(v0, v1 + 1):
-            d.put(v, walk_y, u, pick(a, bb, t, "band", v, u))
-            d.put(v, walk_y + 1, u, pick(a, bb, t, "parapet", v, u))
 
     # ------------------------------------------------------------------ 4. parapets and portals
     #
@@ -564,8 +791,6 @@ def build(cfg: dict, donors=None) -> Canvas:
     for u in range(u0, u1 + 1):
         a, bb, t = pal_at(u)
         for v in (v0, v1):
-            if v == v1 and u in platform_u:
-                continue                            # a station's own back wall stands here
             # A NEWEL OVER EVERY PIER. A wall course is a railing; six hundred blocks of one is a
             # line. What turns it into a balustrade is a post where the structure under it says
             # there should be one, which is the same argument the deck's own transverse rungs make
@@ -575,14 +800,23 @@ def build(cfg: dict, donors=None) -> Canvas:
                 d.put(v, walk_y + 1, u, pick(a, bb, t, "parapet", v, u))
             else:
                 d.put(v, walk_y, u, pick(a, bb, t, "parapet", v, u))
-        # A PROMENADE SIX HUNDRED BLOCKS LONG NEEDS SOMEWHERE TO SIT, and a seat here faces the
-        # VOID: a stair's TALL side is its `facing`, so a bench with its back to the park wall
-        # faces east and a visitor on it looks out over the track and the edge. Written the other
-        # way round every bench on the park's own verges once had its backrest to the street.
-        if (u - u0) % 24 == 12 and u not in platform_u and u not in pier_cols:
-            if d.put(park_edge - side, walk_y, u, pal_at(u)[0]["eave"],
-                     facing=_v_dir(side), half="bottom", shape="straight"):
-                seats += 1
+        # A PROMENADE SIX HUNDRED BLOCKS LONG NEEDS SOMEWHERE TO SIT, AND IT SITS IN PAIRS. A
+        # bench's backrest is its `facing` - a stair's TALL side IS its facing - so the pair backs
+        # on to the island's own centre and each half looks out over its own track and its own
+        # edge. Written as one bench on one side, which is what the first line had, the promenade
+        # is lopsided every twenty-four blocks for six hundred blocks.
+        if (u - u0) % 24 == 12 and u not in platform_u and u not in pier_cols and u not in cross_u:
+            for v, f in ((sec["inner_a"], _v_dir(-side)), (sec["inner_b"], _v_dir(side))):
+                if d.put(v, walk_y, u, pal_at(u)[0]["eave"], facing=f, half="bottom",
+                         shape="straight"):
+                    seats += 1
+
+    # the corridor's two end walls, across the full width, behind the turnbacks
+    for u in (u0, u1):
+        a, bb, t = pal_at(u)
+        for v in range(v0, v1 + 1):
+            d.put(v, walk_y, u, pick(a, bb, t, "band", v, u))
+            d.put(v, walk_y + 1, u, pick(a, bb, t, "parapet", v, u))
 
     portals = lanterns = 0
     for k, b0 in enumerate(range(u0, u1 + 1, bay)):
@@ -596,62 +830,69 @@ def build(cfg: dict, donors=None) -> Canvas:
                 d.put(v, y, u, pick(a, bb, t, "post", v, u))
         for v in range(v0, v1 + 1):
             d.put(v, canopy_y, u, beam)
-        # a lantern on a chain under the beam, over the promenade rather than over the track
-        d.put(track_v + 2 * side, canopy_y - 1, u, "iron_chain", axis="y")
-        if d.put(track_v + 2 * side, canopy_y - 2, u, pal_at(u)[0]["light"], hanging="true",
-                 waterlogged="false"):
-            lanterns += 1
+        # THE LIGHT IS IN THE BEAM AND ON THE AXIS. A lantern on a chain here was one iron ingot
+        # and one chain per portal, hung one cell off the deck's own centre line because the deck
+        # had no centre line. Set into the beam's middle block it is free, it cannot be knocked
+        # off, and it is exactly on the axis the portal is symmetric about.
+        if d.put(centre, canopy_y, u, FLUSH_LIGHT):
+            lights += 1
         portals += 1
-
-    # ...and a lantern under the crown of every other arch, so the arcade below is lit and the
-    # elevation has a rhythm of lights read from the lawn as well as from the deck.
-    for k, b0 in enumerate(range(u0, u1 + 1, bay)):
-        if k % max(1, int(p["arch_light_every"])):
-            continue
-        u = b0 + pier_u + span_w // 2
-        if u > u1 or u in platform_u:
-            continue
-        pal = pal_at(u)[0]
-        d.put(track_v + 2 * side, deck_y - 1, u, "iron_chain", axis="y")
-        if d.put(track_v + 2 * side, deck_y - 2, u, pal["light"], hanging="true",
-                 waterlogged="false"):
-            lanterns += 1
 
     # ------------------------------------------------------------------ 5. the stations
     built = []
     for s in stations:
-        built.append(_station(d, p, s, pal_at, canopy_y))
+        built.append(_station(d, p, s, sec, canopy_y, dead_half))
         lanterns += built[-1]["lanterns"]
 
     c.meta = {
         "kind": "parkrail",
         "bounds": list(p["bounds"]),
-        "track_v": track_v, "rail_y": walk_y, "deck_y": deck_y,
-        "track_cells": len(cells), "corners": sum(1 for cell in cells if cell[3]),
-        "power_sources": len(picks), "brake_zones": len(brakes), "quiet_cells": len(quiet),
-        "stop_blocks": stops, "piers": piers, "pier_gates": gates, "portals": portals,
+        "park_side": side,
+        "track_a": track_a, "track_b": track_b, "centre_v": centre,
+        "island": [sec["island"][0], sec["island"][-1]],
+        "rail_y": walk_y, "deck_y": deck_y,
+        "track_cells": len(cells), "corners": len(corners),
+        "iron_rails": len(corners) + len(detectors),
+        "detector_rails": len(detectors),
+        "power_sources": len(picks - breaks), "brake_zones": len(bays), "quiet_cells": len(quiet),
+        "bay_half": dead_half,
+        "closed_circuit": True,
+        "piers": piers, "pier_gates": gates, "portals": portals,
         "flush_lights": lights, "lanterns": lanterns, "deck_seats": seats,
         "stations": [{"title": s["title"], "land": s["land"], "at_u": s["at_u"]} for s in stations],
         "station_detail": built,
-        "runs": [list(r) for r in runs_of(cells)],
-        "contract": "one straight level powered line the length of the corridor, three stations "
-                    "with a lever-held brake each, a stop block at both termini, on an arcaded "
-                    "viaduct - and not one cell outside V%d-%d" % (v0, v1),
+        "bay_detail": bay_meta,
+        "runs": [list(r) for r in _runs(len(cells), breaks)],
+        "contract": "TWO one-way running lines the length of the corridor, joined at both ends by "
+                    "turnback curves into ONE CLOSED CIRCUIT, so two carts can never meet head-on; "
+                    "three island stations, each with a dead bay on each track that stops an "
+                    "arriving cart by itself and a momentary button that releases it; a detector "
+                    "rail and a bell at each bay's approach - and not one cell outside V%d-%d"
+                    % (v0, v1),
     }
     return c
 
 
-def _bed_block(d: _Deck, pal_at, pick, track_v: int, u: int) -> int:
-    """The bed under an unpowered track cell: the deck's own material, never a hole."""
+def _bed_block(d: _Deck, pal_at, pick, v: int, u: int) -> int:
+    """The bed under a track cell: the deck that is already there, or the deck's own material.
+
+    THE DECK IS LAID FIRST AND THE TURNBACK CROSSES IT. At the two ends the track runs ACROSS the
+    corridor, over the island's own paving, and rewriting those cells with the track's material
+    would draw a stripe of plain deck through the platform-edge kerb and the inlay. Whatever is
+    there is kept whenever it is a full block, which is what a rail needs and what the deck always
+    lays; only a cell with nothing under it falls back to the material.
+    """
+    cur = d.name_at(v, d.deck_y, u)
+    if cur not in ("OOB", "air") and _blocks.is_full_cube(cur):
+        return d.raw_at(v, d.deck_y, u)
     a, bb, t = pal_at(u)
-    return d.blk(pick(a, bb, t, "deck", track_v, u))
+    return d.blk(pick(a, bb, t, "deck", v, u))
 
 
 # ---------------------------------------------------------------------------- a station
 
 
-def _head(d: _Deck, p: dict, pal: dict, title: str, step: int, foot: int,
-          stair_v: tuple) -> int:
+def _head(d: _Deck, p: dict, sec: dict, pal: dict, title: str, step: int, foot: int) -> int:
     """THE LEAD-UP AT THE FOOT OF A FLIGHT, under the viaduct.
 
     Jack: "the railway needs clear entry ways (stairs); and proper lead up platforms etc." What
@@ -662,17 +903,20 @@ def _head(d: _Deck, p: dict, pal: dict, title: str, step: int, foot: int,
 
     So the foot gets a room: a raised apron across the arcade's walkable width, a kerb round it so
     it reads as a platform rather than as paving, a portal frame with a lintel across the bay you
-    walk in through, lanterns on the jambs and the station's name at head height on the pier. The
-    flight itself is `stair_w` wide and lands INTO the apron rather than onto grass.
+    walk in through, lanterns on the jambs and the station's name at head height on the pier.
 
-    IT IS BUILT INSIDE THE CORRIDOR AND NOWHERE ELSE. The park face is the corridor's own first
-    column, so there is no room to spread outward; the apron reaches INWARD under the deck, which
-    is where the pier gates already open and therefore where a visitor already is.
+    **THE APRON MAY NOT REACH THE WHOLE WIDTH.** It is a raised course, so anything it covers is a
+    step up rather than a walk-through, and the arcade is a six-hundred-block walk that has to get
+    past it. `head_v` therefore stops short of the pier gate's far column, and the lane that is
+    left is the one the arcade uses at a station - asserted, because a severed arcade is invisible
+    in every render and the flood that was supposed to catch it was reading absolute V against a
+    model-indexed map and passing on every design ever put through it.
     """
-    side, park_edge, _void = _sides(p)
+    side = sec["side"]
+    park_edge = sec["park"]
     gy = d.ground_y
     hh = max(2, int(p.get("head_half", 5)))
-    hv = max(2, int(p.get("head_v", 4)))
+    hv = max(2, int(p.get("head_v", 8)))
     inner = park_edge - side * hv                  # how far the apron reaches into the arcade
     lanterns = 0
 
@@ -697,7 +941,6 @@ def _head(d: _Deck, p: dict, pal: dict, title: str, step: int, foot: int,
                    else "band" if (u - foot) % 4 == 0 or k == hv else "deck")
             d.put(v, gy, u, pal[key])
 
-
     # -- the portal you walk in through: jambs, a lintel, and a light on each jamb ---------------
     #
     # A LINTEL IS WHAT MAKES AN OPENING READ AS A DOOR. The void tower settled this - regularity
@@ -711,7 +954,8 @@ def _head(d: _Deck, p: dict, pal: dict, title: str, step: int, foot: int,
         d.put(park_edge - side * k, head, door, pal["beam"])
     # A LANTERN ON A JAMB HAS NOTHING TO STAND ON. Placed beside the doorway at head height it
     # was floating in the opening - five of them, and the audit said so on the first build. They
-    # hang from the LINTEL, which is the one solid thing over an opening by definition.
+    # hang from the LINTEL, which is the one solid thing over an opening by definition. A PAIR,
+    # mirrored about the doorway's own middle.
     for k in (1, hv - 1):
         if d.put(park_edge - side * k, head - 1, door, pal["light"],
                  hanging="true", waterlogged="false"):
@@ -724,101 +968,106 @@ def _head(d: _Deck, p: dict, pal: dict, title: str, step: int, foot: int,
            [title, "PARK LINE", "PLATFORM ABOVE", ""])
 
     # -- and the flight's own bottom step flares into the apron ---------------------------------
-    for v in stair_v:
+    for v in sec["stair_v"]:
         if not d.has(v, gy, foot + step):
             d.put(v, gy, foot + step, pal["band"])
     return lanterns
 
 
-def _station(d: _Deck, p: dict, s: dict, pal_at, canopy_y: int) -> dict:
-    """One station: platform, back wall, canopy, departure board, signal lever, and a stair down.
+def _station(d: _Deck, p: dict, s: dict, sec: dict, canopy_y: int, dead_half: int) -> dict:
+    """One station: an ISLAND platform between the two running lines, and a flight down from it.
 
     THE THREE STATIONS ARE THREE PLACES, NOT ONE STATION PAINTED THREE COLOURS. Each takes its own
     land's masonry, its own post, its own roof material and its own light - the same argument
     `parkways` makes for its lamps, which is that a land is told apart by what its street furniture
     is MADE of as much as by its paving, and a station is the object a visitor stands inside.
 
-    **THE STAIR IS INSIDE THE STATION'S OWN FOOTPRINT AND THAT IS THE WHOLE SITING DECISION.** The
-    corridor is eight cells deep and the promenade is four of them; a flight cut through the open
-    deck would pinch that walk to one cell for the length of the flight, every time. Taken out of
-    the platform's own back two columns instead, the deck outside the station is untouched, the
-    canopy already roofs the flight, and it lands under the viaduct facing the park - which is the
-    side a visitor arrives from.
+    **AND IT IS AN ISLAND, WHICH IS WHAT MAKES IT SYMMETRIC.** The first version put the platform
+    on one side of a single track and hung a canopy over it with an eave on one edge only - a roof
+    whose mass was entirely to one side of a deck that had no centre column to be on the wrong side
+    of. Between two running lines there is only one place a platform can be, and everything on it
+    is built as a mirrored pair about the centre: posts on both edges, an eave over both tracks, a
+    ridge on the axis, lanterns in pairs, a bench pair, a name sign on each face of one pylon, and
+    a departure board read from each approach.
+
+    **THE STAIR IS THE ISLAND'S OWN THREE CENTRE COLUMNS AND THAT IS THE WHOLE SITING DECISION.**
+    A flight cut anywhere else would pinch the promenade to one cell for its own length; taken out
+    of the middle, two columns of walk survive on each side of it, the canopy already roofs it, and
+    it lands under the viaduct in the arcade a visitor is already walking.
     """
     pal = SPAN[s["land"]]
-    v1 = d.v1
     deck_y, walk_y = d.deck_y, d.walk_y
     half = int(p["station_half"])
     ac = int(s["at_u"])
-    track_v = int(p["track_v"])
+    side = sec["side"]
+    track_a, track_b = sec["track_a"], sec["track_b"]
+    edge_a, edge_b = sec["edge_a"], sec["edge_b"]
+    isl, centre = sec["island"], sec["centre"]
+    inner_a, inner_b = sec["inner_a"], sec["inner_b"]
+    stair_v = sec["stair_v"]
+    gable_a, gable_b = sec["gable_v"]
+    cols = [edge_a] + list(isl) + [edge_b]
     lanterns = 0
 
     # THE FLIGHT FIRST, as a SET of cells, because everything else has to keep out of it. Written
-    # the other way round - wall, canopy, then carve - the carve has to guess which of its own
-    # courses were somebody else's, and a station whose back wall crosses its own stairwell is
+    # the other way round - roof, pylon, then carve - the carve has to guess which of its own
+    # courses were somebody else's, and a station whose pylon crosses its own stairwell is
     # invisible in every render.
-    side, park_edge, _void_edge = _sides(p)
     step = 1 if int(s["stair"]) >= 0 else -1
     ascend = _u_dir(-step)                          # a flight ascends TOWARD the platform
     rise = walk_y - d.ground_y
-    stair_w = max(2, int(p.get("stair_w", 2)))
-    stair_v = tuple(park_edge - side * k for k in range(stair_w))
     stair = {ac + step * (half - rise + 1 + k): deck_y - k for k in range(rise)}
     if half < rise:
         raise ValueError("a parkrail station platform is shorter than its own flight")
 
     # -- the platform floor: the land's own deck with a banded inlay, so it reads as a room -----
     for u in range(ac - half, ac + half + 1):
-        for v in _span(track_v + side, park_edge, side):
-            key = "kerb" if v == track_v + side else ("band" if (u - ac) % 4 == 0 else "deck")
+        for v in cols:
+            key = "kerb" if v in (edge_a, edge_b) else ("band" if (u - ac) % 4 == 0 else "deck")
             d.put(v, deck_y, u, pal[key])
 
-    # -- the back wall, in the cell the parapet would otherwise have -----------------------------
-    wall_top = canopy_y - 1
+    # -- the canopy: slim posts on BOTH platform edges, a slab roof, an eave over EACH track -----
     for u in range(ac - half, ac + half + 1):
-        if u in stair:
-            continue                                # the flight comes down through this column
-        for y in range(walk_y, wall_top + 1):
-            # A STATION IS A BUILDING, AND A BUILDING IS MADE OF ITS LAND'S OWN MATERIAL. Built out
-            # of the viaduct's masonry all three came out as the same grey blockhouse with three
-            # different roofs on it - which is `parkways`' own argument about its lamps, and the
-            # reason `wall` is a key of its own rather than a reuse of `pier`.
-            key = "band" if y in (walk_y, wall_top) or (u - ac) % 5 == 0 else "wall"
-            if y == walk_y + 1 and (u - ac) % 5 == 0 and abs(u - ac) < half:
-                # A SLIT, SO THE WALL IS NOT A BLANK SLAB - and an OPEN trapdoor is the vertical
-                # slab this game never shipped, which is why it is worth reaching for here rather
-                # than another full block. It hinges on the masonry beside it along the wall, which
-                # is solid by construction: the wall runs the platform's whole length.
-                if pal["screen"] == "iron_bars":
-                    d.put(park_edge, y, u, "iron_bars")
-                else:
-                    d.put(park_edge, y, u, pal["screen"], facing=_u_dir(1), half="bottom",
-                          open="true", powered="false", waterlogged="false")
-                continue
-            d.put(park_edge, y, u, pal[key])
-
-    # -- the canopy: slim posts at the platform edge, a slab roof, a stair eave over the track ---
-    for u in range(ac - half, ac + half + 1):
-        if (u - ac) % 5 == 0:
-            for y in range(walk_y, canopy_y):
-                d.put(track_v + side, y, u, pal["post"])
-        for v in _span(track_v + side, park_edge, side):
+        if (u - ac) % 5 == 0 and u != ac:
+            for v in (edge_a, edge_b):
+                for y in range(walk_y, canopy_y):
+                    d.put(v, y, u, pal["post"])
+        for v in cols:
             d.put(v, canopy_y, u, pal["roof"], type="bottom")
-        # the eave leans OUT over the track, which is what makes a canopy read as shelter rather
-        # than as a lid: a stair's TALL side IS its `facing`, so an eave shading the track faces
-        # AWAY from the platform.
-        d.put(track_v, canopy_y, u, pal["eave"], facing=_v_dir(side), half="bottom",
+        # the eave leans OUT over its own track, which is what makes a canopy read as shelter
+        # rather than as a lid: a stair's TALL side IS its `facing`, so an eave sheltering a track
+        # has its tall side toward the roof it grows from and steps down over the rails.
+        d.put(track_a, canopy_y, u, pal["eave"], facing=_v_dir(-side), half="bottom",
               shape="straight")
-        d.put(park_edge, canopy_y + 1, u, pal["band"])     # a ridge band along the back, read from afar
+        d.put(track_b, canopy_y, u, pal["eave"], facing=_v_dir(side), half="bottom",
+              shape="straight")
+        d.put(centre, canopy_y + 1, u, pal["band"])       # a ridge ON THE AXIS, read from afar
         if (u - ac) % 5 == 2 and u not in stair:
-            # a seat with its back to the station wall, looking out across the track
-            d.put(park_edge - side, walk_y, u, pal["eave"], facing=_v_dir(side), half="bottom",
-                  shape="straight")
-        if (u - ac) % 6 == 3:
-            d.put(track_v + 2 * side, canopy_y - 1, u, "iron_chain", axis="y")
-            if d.put(track_v + 2 * side, canopy_y - 2, u, pal["light"], hanging="true",
-                     waterlogged="false"):
-                lanterns += 1
+            # a bench PAIR, backs to the island's own centre, each half looking out over its track
+            for v, f in ((inner_a, _v_dir(-side)), (inner_b, _v_dir(side))):
+                d.put(v, walk_y, u, pal["eave"], facing=f, half="bottom", shape="straight")
+        if (u - ac) % 7 == 3:
+            for v in (inner_a, inner_b):
+                d.put(v, canopy_y - 1, u, "iron_chain", axis="y")
+                if d.put(v, canopy_y - 2, u, pal["light"], hanging="true", waterlogged="false"):
+                    lanterns += 1
+
+    # -- a gable at each end: post, screen, ridge, screen, post, over the roof --------------------
+    # It is what stops the canopy reading as a flat lid from along the promenade, and it is where
+    # the land's `screen` earns its keep - an OPEN trapdoor is the vertical slab this game never
+    # shipped. Every screen cell has masonry on one side of it along V, which is the support a
+    # trapdoor and a pane of bars both want; a run of them between two posts would not.
+    screens = 0
+    for u in (ac - half, ac + half):
+        for v in (sec["island"][1], sec["island"][-2]):
+            d.put(v, canopy_y + 1, u, pal["band"])
+        for v in (gable_a, gable_b):
+            if pal["screen"] == "iron_bars":
+                ok = d.put(v, canopy_y + 1, u, "iron_bars")
+            else:
+                ok = d.put(v, canopy_y + 1, u, pal["screen"], facing=_u_dir(1), half="bottom",
+                           open="true", powered="false", waterlogged="false")
+            screens += 1 if ok else 0
 
     # -- the flight: treads, the masonry they stand on, and the hole they descend through --------
     treads = 0
@@ -830,8 +1079,6 @@ def _station(d: _Deck, p: dict, s: dict, pal_at, canopy_y: int) -> dict:
                 treads += 1
             for fill in range(d.ground_y, y):       # the stringer: a flight stands on masonry
                 d.put(v, fill, u, pal["pier"])
-        if y < deck_y:                              # a balustrade round the opening, never across
-            d.put(park_edge - stair_w * side, walk_y, u, pal["parapet"])   # its head, or you cannot get on to it
     # AND THE FOOT NEEDS A DOOR. The bottom tread lands under the viaduct, and a pier may be
     # standing exactly where a visitor has to walk in from the lawn; two courses of headroom
     # through the abutment is an opening in a wall, which is what an arcade is made of anyway.
@@ -840,41 +1087,60 @@ def _station(d: _Deck, p: dict, s: dict, pal_at, canopy_y: int) -> dict:
         for v in stair_v:
             for y in range(d.ground_y, d.ground_y + 3):
                 d.clear(v, y, foot + step * k)
-    lanterns += _head(d, p, pal, s["title"], step, foot, stair_v)
+    lanterns += _head(d, p, sec, pal, s["title"], step, foot)
 
-    # -- the name, on the wall where it is read from the deck ------------------------------------
-    titled = 0
-    #: A NAME SIGN HAS TO BE ON A WALL THAT EXISTS. The flight takes the back wall out of eight of
-    #: the platform's twenty-one columns, so a sign placed by a hand-typed offset is refused
-    #: silently at one end of every station whose stair runs that way - which is what happened, and
-    #: it cost one of the two names on all three. Walk inward from both ends until the wall is
-    #: there, and count what was actually placed.
-    for end in (-1, 1):
-        for k in range(2, half):
-            u = ac + end * (half - k)
-            if u in stair:
-                continue
-            if abs(u - ac) >= 4 and d.sign(park_edge - side, wall_top - 1, u, _v_dir(-side),
-                                            pal["wood"], [s["title"]]):
-                titled += 1
-            break
-
-    # -- the departure board ---------------------------------------------------------------------
-    board = list(s["board"] or [s["title"], "PARK LINE", "ALL STATIONS", ""])
-    boarded = d.sign(park_edge - side, walk_y + 1, ac, _v_dir(-side), pal["wood"], board)
-
-    # -- the signal pedestal: THIS is the brake, and it is the reason a cart can be boarded ------
+    # -- the pylon on the axis, and the four signs it carries ------------------------------------
     #
-    # The pedestal stands on the platform edge, so its block is horizontally adjacent to the rail;
-    # a lever on top strongly powers it, and a strongly powered block beside a powered rail
-    # energises it. Lever down, the station's dead zone is dead and a coasting cart stops here.
-    d.put(track_v + side, walk_y, ac, pal["band"])
-    lever = d.put(track_v + side, walk_y + 1, ac, "lever",
-                  face="floor", facing=_u_dir(1), powered="false")
+    # AN ISLAND PLATFORM HAS NO BACK WALL TO HANG A NAME ON, which is the one thing the old
+    # single-sided station had going for it. What replaces it is better: one pylon on the centre
+    # column at the platform's own middle, carrying the station's name on BOTH faces - so it reads
+    # from a cart on either line - and the departure board on both approaches. Four signs, in two
+    # mirrored pairs, on a thing that is symmetric by construction.
+    for v in stair_v:
+        for y in range(walk_y, walk_y + 3):
+            d.put(v, y, ac, pal["band"] if y == walk_y + 2 else pal["wall"])
+    titled = 0
+    for v, f in ((sec["island"][1], _v_dir(side)), (sec["island"][-2], _v_dir(-side))):
+        if d.sign(v, walk_y + 1, ac, f, pal["wood"], [s["title"]]):
+            titled += 1
+    board = list(s["board"] or [s["title"], "PARK LINE", "ALL STATIONS", ""])
+    boarded = 0
+    for du in (-1, 1):
+        if d.sign(centre, walk_y + 1, ac + du, _u_dir(du), pal["wood"], board):
+            boarded += 1
+
+    # -- the release plinths: THIS is what lets a stopped cart go, and there are two -------------
+    #
+    # The plinth stands on the platform edge, so its block is horizontally adjacent to its own
+    # rail; the button on top strongly powers it, and a strongly powered block beside a powered
+    # rail energises that rail and the eight each side of it - which is the whole bay. Button out,
+    # the bay is dead and an arriving cart stops here whatever anybody has done. **A LEVER WOULD BE
+    # A STATE**: left up, this station never stops a cart again, and nothing on the platform would
+    # say so. A button cannot be left anywhere.
+    buttons = 0
+    for v in (edge_a, edge_b):
+        d.put(v, walk_y, ac, pal["band"])
+        if d.put(v, walk_y + 1, ac, f"{pal['wood']}_button", face="floor",
+                 facing=_u_dir(1), powered="false"):
+            buttons += 1
+
+    # -- the approach detector and its bell, one per track, mirrored -----------------------------
+    #
+    # A detector rail powers what stands next to it, so a bell on the platform edge beside one
+    # rings when a cart runs over it and there is NO WIRE ANYWHERE. It is the only thing on six
+    # hundred blocks of promenade that tells a walker a train is coming.
+    bells = 0
+    for tv, ev, adir in ((track_a, edge_a, 1), (track_b, edge_b, -1)):
+        du = ac - adir * (dead_half + 10)
+        if d.put(ev, walk_y, du, "bell", attachment="floor",
+                 facing=_v_dir(-side) if ev == edge_a else _v_dir(side), powered="false"):
+            bells += 1
 
     return {"title": s["title"], "land": s["land"], "at_u": ac,
             "platform": 2 * half + 1, "treads": treads, "lanterns": lanterns,
             "stair_from_u": min(stair), "stair_to_u": max(stair),
-            "lever": bool(lever), "board": bool(boarded), "name_signs": titled}
+            "buttons": buttons, "bells": bells, "screens": screens,
+            "board": boarded, "name_signs": titled}
+
 
 DEFAULTS = PARKRAIL
