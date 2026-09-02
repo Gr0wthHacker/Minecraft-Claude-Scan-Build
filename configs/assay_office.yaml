@@ -2,16 +2,30 @@ name: Assay Office
 gen: arcade
 params:
   land: frontier
-  facing: south
+  facing: east
   at:
-  - 97569
+  - 97580
   - 203
-  - 80379
+  - 80447
   kind: weigh
   title: Assay Office
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic
+park_contract:
+  purpose: ride
+  hierarchy: supporting
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97583
+    - 204
+    - 80439
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: frontier
+  narrative: Assay Office serves the frontier visitor journey.
 origin_lock: false
 expensive_allowance: 8
 expensive_reason: 8x redstone_lamp - a light cannot be substituted by colour (the

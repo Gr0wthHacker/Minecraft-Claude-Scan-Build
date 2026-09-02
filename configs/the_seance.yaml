@@ -2,16 +2,30 @@ name: The Seance
 gen: hollowmanor
 params:
   land: hollow
-  facing: north
+  facing: east
   at:
-  - 97586
+  - 97588
   - 203
-  - 80803
+  - 80816
   kind: seance
   title: The Seance
   under: out/islandright.litematic
 finish:
   verify_against: out/islandright.litematic
+park_contract:
+  purpose: building
+  hierarchy: supporting
+  land: hollow
+  requires_path: true
+  access_candidates:
+  - - 97593
+    - 204
+    - 80810
+design:
+  purpose: building
+  hierarchy: supporting
+  style: hollow
+  narrative: The Seance serves the hollow visitor journey.
 origin_lock: false
 expensive_allowance: 4
 expensive_reason: 4x redstone_lamp - a light cannot be substituted by colour (the

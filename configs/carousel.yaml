@@ -14,4 +14,18 @@ params:
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic
+park_contract:
+  purpose: ride
+  hierarchy: landmark
+  land: midway
+  requires_path: true
+  access_candidates:
+  - - 97586
+    - 204
+    - 80570
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: midway
+  narrative: Carousel serves the midway visitor journey.
 origin_lock: false

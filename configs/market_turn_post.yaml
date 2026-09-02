@@ -1,19 +1,19 @@
-name: Hollow Map
+name: Market Turn Post
 gen: wayfinding
 params:
   land: hollow
-  zone: hollow
-  title: Hollow Map
-  legend:
-  - MANOR west
-  - TOWER east
-  - MARKET south
-  facing: west
+  facing: east
+  arms:
+  - direction: north
+    dest: Ghost Train
+  - direction: south
+    dest: The Reliquary
   at:
-  - 97598
+  - 97594
   - 203
-  - 80808
-  kind: mapboard
+  - 80810
+  kind: fingerpost
+  title: Market Turn Post
   under: out/islandright.litematic
 finish:
   verify_against: out/islandright.litematic
@@ -26,5 +26,5 @@ design:
   purpose: service
   hierarchy: supporting
   style: hollow
-  narrative: Hollow Map serves the hollow visitor journey.
+  narrative: Market Turn Post serves the hollow visitor journey.
 origin_lock: false

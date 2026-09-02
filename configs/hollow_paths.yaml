@@ -5,161 +5,874 @@ params:
   facing: east
   routes:
   - a:
-    - 97581
+    - 97553
     - 80800
     b:
     - 97637
     - 80800
     width: 5
+    role: main_spine
     lamps: true
+    name: east-west spine
   - a:
     - 97595
-    - 80756
+    - 80753
     b:
     - 97595
-    - 80828
+    - 80847
     width: 5
+    role: main_spine
     lamps: true
+    name: north-south spine
+  - a:
+    - 97630
+    - 80789
+    b:
+    - 97632
+    - 80789
+    width: 3
+    role: secondary
+    name: Clock Tower north frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97631
+    - 80789
+    b:
+    - 97595
+    - 80789
+    width: 3
+    role: secondary
+    name: Clock Tower north join
+    lamps: true
+    lamp_every: 5
   - a:
     - 97594
-    - 80778
+    - 80757
     b:
-    - 97595
-    - 80778
+    - 97596
+    - 80757
     width: 3
+    role: secondary
+    name: Hollow Gate south frontage
+    lamps: true
+    lamp_every: 5
   - a:
-    - 97601
-    - 80828
+    - 97594
+    - 80769
     b:
-    - 97595
-    - 80828
+    - 97594
+    - 80779
     width: 3
+    role: secondary
+    name: Haunted Manor east frontage
+    lamps: true
+    lamp_every: 5
   - a:
-    - 97625
+    - 97594
+    - 80774
+    b:
+    - 97594
+    - 80800
+    width: 3
+    role: secondary
+    name: Haunted Manor east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97556
+    - 80786
+    b:
+    - 97556
     - 80788
-    b:
-    - 97625
-    - 80800
     width: 3
+    role: exit
+    name: Haunted Manor west frontage
+    lamps: true
+    lamp_every: 4
   - a:
-    - 97626
-    - 80812
-    b:
-    - 97626
-    - 80800
-    width: 3
-  - a:
-    - 97611
-    - 80809
-    b:
-    - 97611
-    - 80800
-    width: 3
-  - a:
-    - 97592
-    - 80798
-    b:
-    - 97595
-    - 80798
-    width: 3
-  - a:
-    - 97581
-    - 80807
-    b:
-    - 97581
-    - 80800
-    width: 3
-  - a:
-    - 97601
-    - 80816
-    b:
-    - 97595
-    - 80816
-    width: 3
-  - a:
-    - 97599
-    - 80779
-    b:
-    - 97595
-    - 80779
-    width: 3
-  - a:
-    - 97628
-    - 80756
-    b:
-    - 97595
-    - 80756
-    width: 3
-  - a:
-    - 97599
-    - 80764
-    b:
-    - 97595
-    - 80764
-    width: 3
-  - a:
-    - 97638
+    - 97556
     - 80787
     b:
-    - 97638
+    - 97556
     - 80800
     width: 3
+    role: secondary
+    name: Haunted Manor west join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97593
+    - 80805
+    b:
+    - 97593
+    - 80811
+    width: 3
+    role: secondary
+    name: The Seance east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97593
+    - 80808
+    b:
+    - 97593
+    - 80800
+    width: 3
+    role: secondary
+    name: The Seance east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97575
+    - 80813
+    b:
+    - 97575
+    - 80815
+    width: 3
+    role: exit
+    name: The Seance west frontage
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97575
+    - 80814
+    b:
+    - 97575
+    - 80800
+    width: 3
+    role: secondary
+    name: The Seance west join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97561
+    - 147
+    - 80752
+    b:
+    - 97563
+    - 147
+    - 80752
+    width: 3
+    role: secondary
+    name: The Undercrypt x landing
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97562
+    - 147
+    - 80752
+    b:
+    - 97559
+    - 147
+    - 80846
+    width: 3
+    role: secondary
+    name: The Undercrypt landing join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97555
+    - 147
+    - 80845
+    b:
+    - 97560
+    - 147
+    - 80845
+    width: 3
+    role: secondary
+    name: The Undercrypt x landing
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97557
+    - 147
+    - 80845
+    b:
+    - 97559
+    - 147
+    - 80846
+    width: 3
+    role: secondary
+    name: The Undercrypt landing join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97595
+    - 80825
+    b:
+    - 97595
+    - 80843
+    width: 3
+    role: secondary
+    name: The Vault east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97595
+    - 80834
+    b:
+    - 97595
+    - 80800
+    width: 3
+    role: secondary
+    name: The Vault east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97602
+    - 183
+    - 80786
+    b:
+    - 97604
+    - 183
+    - 80786
+    width: 3
+    role: secondary
+    name: The Ossuary x landing
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97603
+    - 183
+    - 80786
+    b:
+    - 97599
+    - 183
+    - 80815
+    width: 3
+    role: secondary
+    name: The Ossuary landing join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97594
+    - 183
+    - 80814
+    b:
+    - 97600
+    - 183
+    - 80814
+    width: 3
+    role: secondary
+    name: The Ossuary x landing
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97597
+    - 183
+    - 80814
+    b:
+    - 97599
+    - 183
+    - 80815
+    width: 3
+    role: secondary
+    name: The Ossuary landing join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97577
+    - 80803
+    b:
+    - 97577
+    - 80816
+    width: 3
+    role: secondary
+    name: The Mourning Parlour east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97577
+    - 80809
+    b:
+    - 97577
+    - 80800
+    width: 3
+    role: secondary
+    name: The Mourning Parlour east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97621
+    - 80788
+    b:
+    - 97621
+    - 80797
+    width: 3
+    role: secondary
+    name: The Quiet Room east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97621
+    - 80792
+    b:
+    - 97621
+    - 80800
+    width: 3
+    role: secondary
+    name: The Quiet Room east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97593
+    - 80829
+    b:
+    - 97593
+    - 80841
+    width: 3
+    role: secondary
+    name: The Reliquary west frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97593
+    - 80835
+    b:
+    - 97593
+    - 80800
+    width: 3
+    role: secondary
+    name: The Reliquary west join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97615
+    - 80780
+    b:
+    - 97615
+    - 80782
+    width: 3
+    role: exit
+    name: Mirror Maze east frontage
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97615
+    - 80781
+    b:
+    - 97615
+    - 80800
+    width: 3
+    role: secondary
+    name: Mirror Maze east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97598
+    - 80776
+    b:
+    - 97598
+    - 80780
+    width: 3
+    role: secondary
+    name: Mirror Maze west frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97598
+    - 80778
+    b:
+    - 97598
+    - 80800
+    width: 3
+    role: secondary
+    name: Mirror Maze west join
+    lamps: true
+    lamp_every: 5
   - a:
     - 97637
-    - 80790
+    - 80766
+    b:
+    - 97637
+    - 80782
+    width: 3
+    role: secondary
+    name: Ghost Train east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97637
+    - 80774
     b:
     - 97637
     - 80800
     width: 3
+    role: secondary
+    name: Ghost Train east join
+    lamps: true
+    lamp_every: 5
   - a:
-    - 97633
-    - 80790
+    - 97623
+    - 80760
     b:
-    - 97633
-    - 80800
-    width: 3
-  - a:
-    - 97629
-    - 80790
-    b:
-    - 97629
-    - 80800
-    width: 3
-  - a:
-    - 97638
-    - 80807
-    b:
-    - 97638
-    - 80800
-    width: 3
-  - a:
-    - 97637
-    - 80810
-    b:
-    - 97637
-    - 80800
-    width: 3
-  - a:
-    - 97633
-    - 80810
-    b:
-    - 97633
-    - 80800
-    width: 3
-  - a:
-    - 97629
-    - 80810
-    b:
-    - 97629
-    - 80800
-    width: 3
-  - a:
     - 97625
+    - 80760
+    width: 3
+    role: exit
+    name: Ghost Train north frontage
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97624
+    - 80760
+    b:
+    - 97595
+    - 80760
+    width: 3
+    role: secondary
+    name: Ghost Train north join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97603
+    - 80798
+    b:
+    - 97615
+    - 80798
+    width: 3
+    role: secondary
+    name: The Plummet north frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97609
+    - 80798
+    b:
+    - 97595
+    - 80798
+    width: 3
+    role: secondary
+    name: The Plummet north join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97599
     - 80810
     b:
-    - 97625
+    - 97599
+    - 80812
+    width: 3
+    role: exit
+    name: The Plummet west frontage
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97599
+    - 80811
+    b:
+    - 97599
     - 80800
     width: 3
+    role: secondary
+    name: The Plummet west join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97604
+    - 80829
+    b:
+    - 97604
+    - 80831
+    width: 3
+    role: secondary
+    name: Hollow Post west frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97604
+    - 80830
+    b:
+    - 97604
+    - 80800
+    width: 3
+    role: secondary
+    name: Hollow Post west join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97595
+    - 80811
+    b:
+    - 97595
+    - 80813
+    width: 3
+    role: secondary
+    name: Hollow Map west frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97595
+    - 80812
+    b:
+    - 97595
+    - 80800
+    width: 3
+    role: secondary
+    name: Hollow Map west join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97594
+    - 80825
+    b:
+    - 97594
+    - 80827
+    width: 3
+    role: secondary
+    name: Manor Turn Post west frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97594
+    - 80826
+    b:
+    - 97594
+    - 80800
+    width: 3
+    role: secondary
+    name: Manor Turn Post west join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97597
+    - 80809
+    b:
+    - 97597
+    - 80811
+    width: 3
+    role: secondary
+    name: Market Turn Post east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97597
+    - 80810
+    b:
+    - 97597
+    - 80800
+    width: 3
+    role: secondary
+    name: Market Turn Post east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97559
+    - 203
+    - 80846
+    b:
+    - 97559
+    - 147
+    - 80846
+    width: 3
+    role: shaft
+    vertical: stairs
+    name: The Undercrypt shaft
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97599
+    - 203
+    - 80815
+    b:
+    - 97599
+    - 183
+    - 80815
+    width: 3
+    role: shaft
+    vertical: stairs
+    name: The Ossuary shaft
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97553
+    - 80753
+    b:
+    - 97557
+    - 80753
+    width: 3
+    role: service
+    name: service road north
+  - a:
+    - 97564
+    - 80753
+    b:
+    - 97592
+    - 80753
+    width: 3
+    role: service
+    name: service road north
+  - a:
+    - 97598
+    - 80753
+    b:
+    - 97637
+    - 80753
+    width: 3
+    role: service
+    name: service road north
+  - a:
+    - 97553
+    - 80847
+    b:
+    - 97554
+    - 80847
+    width: 3
+    role: service
+    name: service road south
+  - a:
+    - 97561
+    - 80847
+    b:
+    - 97592
+    - 80847
+    width: 3
+    role: service
+    name: service road south
+  - a:
+    - 97598
+    - 80847
+    b:
+    - 97637
+    - 80847
+    width: 3
+    role: service
+    name: service road south
+  - a:
+    - 97553
+    - 80753
+    b:
+    - 97553
+    - 80797
+    width: 3
+    role: service
+    name: service road west
+  - a:
+    - 97553
+    - 80803
+    b:
+    - 97553
+    - 80847
+    width: 3
+    role: service
+    name: service road west
+  - a:
+    - 97637
+    - 80753
+    b:
+    - 97637
+    - 80765
+    width: 3
+    role: service
+    name: service road east
+  - a:
+    - 97637
+    - 80803
+    b:
+    - 97637
+    - 80847
+    width: 3
+    role: service
+    name: service road east
+  - a:
+    - 97575
+    - 80756
+    b:
+    - 97592
+    - 80756
+    width: 3
+    role: service
+    name: Haunted Manor service yard
+  - a:
+    - 97575
+    - 80756
+    b:
+    - 97561
+    - 80756
+    width: 3
+    role: service
+    name: Haunted Manor service yard
+  - a:
+    - 97575
+    - 80756
+    b:
+    - 97575
+    - 80753
+    width: 3
+    role: service
+    name: Haunted Manor service link
+  - a:
+    - 97584
+    - 80821
+    b:
+    - 97591
+    - 80821
+    width: 3
+    role: service
+    name: The Seance service yard
+  - a:
+    - 97584
+    - 80821
+    b:
+    - 97577
+    - 80821
+    width: 3
+    role: service
+    name: The Seance service yard
+  - a:
+    - 97584
+    - 80821
+    b:
+    - 97584
+    - 80847
+    width: 3
+    role: service
+    name: The Seance service link
+  - a:
+    - 97572
+    - 80820
+    b:
+    - 97591
+    - 80820
+    width: 3
+    role: service
+    name: The Vault service yard
+  - a:
+    - 97572
+    - 80820
+    b:
+    - 97561
+    - 80820
+    width: 3
+    role: service
+    name: The Vault service yard
+  - a:
+    - 97572
+    - 80820
+    b:
+    - 97572
+    - 80847
+    width: 3
+    role: service
+    name: The Vault service link
+  - a:
+    - 97568
+    - 80821
+    b:
+    - 97575
+    - 80821
+    width: 3
+    role: service
+    name: The Mourning Parlour service yard
+  - a:
+    - 97568
+    - 80821
+    b:
+    - 97561
+    - 80821
+    width: 3
+    role: service
+    name: The Mourning Parlour service yard
+  - a:
+    - 97568
+    - 80821
+    b:
+    - 97568
+    - 80847
+    width: 3
+    role: service
+    name: The Mourning Parlour service link
+  - a:
+    - 97610
+    - 80785
+    b:
+    - 97613
+    - 80785
+    width: 3
+    role: service
+    name: The Quiet Room service yard
+  - a:
+    - 97610
+    - 80785
+    b:
+    - 97605
+    - 80785
+    width: 3
+    role: service
+    name: The Quiet Room service yard
+  - a:
+    - 97607
+    - 80836
+    b:
+    - 97607
+    - 80844
+    width: 3
+    role: service
+    name: The Reliquary service yard
+  - a:
+    - 97607
+    - 80836
+    b:
+    - 97607
+    - 80828
+    width: 3
+    role: service
+    name: The Reliquary service yard
+  - a:
+    - 97607
+    - 80836
+    b:
+    - 97637
+    - 80836
+    width: 3
+    role: service
+    name: The Reliquary service link
+  - a:
+    - 97612
+    - 80774
+    b:
+    - 97612
+    - 80786
+    width: 3
+    role: service
+    name: Ghost Train service yard
+  - a:
+    - 97612
+    - 80774
+    b:
+    - 97612
+    - 80762
+    width: 3
+    role: service
+    name: Ghost Train service yard
+  - a:
+    - 97609
+    - 80822
+    b:
+    - 97617
+    - 80822
+    width: 3
+    role: service
+    name: The Plummet service yard
+  - a:
+    - 97609
+    - 80822
+    b:
+    - 97606
+    - 80822
+    width: 3
+    role: service
+    name: The Plummet service yard
+  - a:
+    - 97609
+    - 80822
+    b:
+    - 97609
+    - 80847
+    width: 3
+    role: service
+    name: The Plummet service link
   obstacles:
   - - 97623
     - 80792
@@ -173,170 +886,62 @@ params:
     - 80758
     - 97592
     - 80799
-  - - 97558
-    - 80815
-    - 97599
-    - 80841
-  - - 97614
-    - 80762
-    - 97636
-    - 80786
-  - - 97614
-    - 80814
-    - 97638
-    - 80835
-  - - 97603
+  - - 97577
+    - 80801
+    - 97591
+    - 80819
+  - - 97551
+    - 80754
+    - 97567
+    - 80843
+  - - 97552
+    - 80822
+    - 97593
+    - 80848
+  - - 97588
     - 80788
-    - 97619
-    - 80807
-  - - 97583
-    - 80800
-    - 97601
-    - 80814
+    - 97610
+    - 80812
   - - 97561
     - 80801
-    - 97579
-    - 80813
-  - - 97603
-    - 80808
-    - 97613
-    - 80824
+    - 97575
+    - 80819
+  - - 97601
+    - 80787
+    - 97619
+    - 80799
+  - - 97595
+    - 80828
+    - 97605
+    - 80844
   - - 97601
     - 80773
     - 97613
     - 80785
-  - - 97630
-    - 80752
-    - 97638
-    - 80760
-  - - 97601
-    - 80759
-    - 97603
-    - 80769
-  - - 97637
-    - 80789
-    - 97639
-    - 80791
-  - - 97633
-    - 80789
-    - 97635
-    - 80791
-  - - 97629
-    - 80789
-    - 97631
-    - 80791
-  - - 97625
-    - 80789
-    - 97627
-    - 80791
-  - - 97637
-    - 80809
-    - 97639
-    - 80811
-  - - 97633
-    - 80809
-    - 97635
-    - 80811
-  - - 97629
-    - 80809
-    - 97631
-    - 80811
-  - - 97625
-    - 80809
-    - 97627
-    - 80811
-  - - 97621
-    - 80809
-    - 97623
-    - 80811
-  - - 97578
-    - 80797
-    - 97640
-    - 80803
-  - - 97592
-    - 80753
-    - 97598
-    - 80831
-  - - 97592
-    - 80776
-    - 97597
-    - 80780
-  - - 97593
-    - 80826
-    - 97603
-    - 80830
-  - - 97623
-    - 80786
-    - 97627
-    - 80802
-  - - 97624
-    - 80798
-    - 97628
-    - 80814
-  - - 97609
-    - 80798
-    - 97613
-    - 80811
-  - - 97590
-    - 80796
-    - 97597
-    - 80800
-  - - 97579
-    - 80798
-    - 97583
-    - 80809
-  - - 97593
-    - 80814
-    - 97603
-    - 80818
-  - - 97593
-    - 80777
-    - 97601
-    - 80781
-  - - 97593
-    - 80754
-    - 97630
-    - 80758
-  - - 97593
+  - - 97614
     - 80762
-    - 97601
-    - 80766
-  - - 97636
-    - 80785
-    - 97640
-    - 80802
-  - - 97635
-    - 80788
-    - 97639
-    - 80802
-  - - 97631
-    - 80788
     - 97635
-    - 80802
-  - - 97627
-    - 80788
-    - 97631
-    - 80802
-  - - 97636
-    - 80798
-    - 97640
-    - 80809
-  - - 97635
-    - 80798
-    - 97639
-    - 80812
-  - - 97631
-    - 80798
-    - 97635
-    - 80812
-  - - 97627
-    - 80798
-    - 97631
-    - 80812
-  - - 97623
-    - 80798
-    - 97627
-    - 80812
+    - 80786
+  - - 97601
+    - 80801
+    - 97617
+    - 80820
+  - - 97606
+    - 80826
+    - 97614
+    - 80834
+  - - 97597
+    - 80807
+    - 97599
+    - 80817
+  - - 97596
+    - 80825
+    - 97604
+    - 80827
+  - - 97593
+    - 80806
+    - 97595
+    - 80814
   at:
   - 97595
   - 203
@@ -346,4 +951,14 @@ params:
   under: out/islandright.litematic
 finish:
   verify_against: out/islandright.litematic
+park_contract:
+  purpose: path
+  hierarchy: supporting
+  land: hollow
+  requires_path: false
+design:
+  purpose: path
+  hierarchy: supporting
+  style: hollow
+  narrative: Hollow Paths serves the hollow visitor journey.
 origin_lock: false

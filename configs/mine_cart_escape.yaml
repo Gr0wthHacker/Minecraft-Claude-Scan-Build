@@ -1,17 +1,14 @@
-name: Frontier Rapids
-gen: coaster
+name: Mine Cart Escape
+gen: attractions
 params:
   land: frontier
-  rapids_span: 23
-  rapids_top: 12
-  pool: 4
-  facing: west
+  facing: east
   at:
-  - 97608
-  - 203
-  - 80419
-  kind: rapids
-  title: Frontier Rapids
+  - 97634
+  - 179
+  - 80383
+  kind: runawaymine
+  title: Mine Cart Escape
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic
@@ -21,12 +18,12 @@ park_contract:
   land: frontier
   requires_path: true
   access_candidates:
-  - - 97599
-    - 204
-    - 80428
+  - - 97638
+    - 180
+    - 80372
 design:
   purpose: ride
   hierarchy: landmark
   style: frontier
-  narrative: Frontier Rapids serves the frontier visitor journey.
+  narrative: Mine Cart Escape serves the frontier visitor journey.
 origin_lock: false

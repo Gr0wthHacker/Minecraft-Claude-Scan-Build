@@ -1,29 +1,29 @@
-name: The Vault
-gen: arcade
+name: The Mourning Parlour
+gen: spectacle
 params:
   land: hollow
   facing: east
   at:
-  - 97592
+  - 97574
   - 203
-  - 80847
-  kind: safe
-  title: The Vault
+  - 80818
+  kind: foodcourt
+  title: The Mourning Parlour
   under: out/islandright.litematic
 finish:
   verify_against: out/islandright.litematic
 park_contract:
-  purpose: ride
+  purpose: shop
   hierarchy: supporting
   land: hollow
   requires_path: true
   access_candidates:
-  - - 97595
+  - - 97577
     - 204
-    - 80835
+    - 80810
 design:
-  purpose: ride
+  purpose: shop
   hierarchy: supporting
   style: hollow
-  narrative: The Vault serves the hollow visitor journey.
+  narrative: The Mourning Parlour serves the hollow visitor journey.
 origin_lock: false

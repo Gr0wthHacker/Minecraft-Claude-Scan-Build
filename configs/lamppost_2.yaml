@@ -4,12 +4,22 @@ params:
   land: hollow
   facing: west
   at:
-  - 97609
+  - 97605
   - 203
-  - 80776
+  - 80758
   kind: lamppost
   title: Lamppost 2
   under: out/islandright.litematic
 finish:
   verify_against: out/islandright.litematic
+park_contract:
+  purpose: service
+  hierarchy: filler
+  land: hollow
+  requires_path: false
+design:
+  purpose: service
+  hierarchy: filler
+  style: hollow
+  narrative: Lamppost 2 serves the hollow visitor journey.
 origin_lock: false

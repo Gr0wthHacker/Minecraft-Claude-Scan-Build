@@ -1,33 +1,33 @@
-name: The Quiet Room
-gen: arcade
+name: The Undercrypt
+gen: undercroft
 params:
   land: hollow
-  facing: east
+  kind: crypt
+  facing: south
   at:
-  - 97618
-  - 203
-  - 80798
-  kind: quiet
-  title: The Quiet Room
+  - 97559
+  - 147
+  - 80754
+  title: The Undercrypt
   under: out/islandright.litematic
 finish:
   verify_against: out/islandright.litematic
 park_contract:
-  purpose: ride
+  purpose: building
   hierarchy: supporting
   land: hollow
   requires_path: true
   access_candidates:
-  - - 97621
-    - 204
-    - 80793
+  - - 97559
+    - 148
+    - 80845
 design:
-  purpose: ride
+  purpose: building
   hierarchy: supporting
   style: hollow
-  narrative: The Quiet Room serves the hollow visitor journey.
+  narrative: The Undercrypt serves the hollow visitor journey.
 origin_lock: false
-expensive_allowance: 3
-expensive_reason: 3x redstone_lamp - a light cannot be substituted by colour (the
+expensive_allowance: 2
+expensive_reason: 2x amethyst_block - a light cannot be substituted by colour (the
   nearest cheap match is a lamp that does not light), so this cost is declared rather
   than hidden

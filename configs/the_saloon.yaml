@@ -6,12 +6,26 @@ params:
   depth: 12
   facing: east
   at:
-  - 97564
+  - 97568
   - 203
-  - 80424
+  - 80418
   kind: saloon
   title: The Saloon
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic
+park_contract:
+  purpose: shop
+  hierarchy: supporting
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97574
+    - 204
+    - 80410
+design:
+  purpose: shop
+  hierarchy: supporting
+  style: frontier
+  narrative: The Saloon serves the frontier visitor journey.
 origin_lock: false

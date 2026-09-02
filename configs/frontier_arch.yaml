@@ -14,4 +14,21 @@ params:
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic
+park_contract:
+  purpose: arrival
+  hierarchy: landmark
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97595
+    - 204
+    - 80549
+  - - 97595
+    - 204
+    - 80557
+design:
+  purpose: arrival
+  hierarchy: landmark
+  style: frontier
+  narrative: Frontier Arch serves the frontier visitor journey.
 origin_lock: false

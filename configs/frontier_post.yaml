@@ -2,19 +2,29 @@ name: Frontier Post
 gen: wayfinding
 params:
   land: frontier
-  facing: west
+  facing: east
   arms:
   - direction: south
     dest: Midway
   - direction: west
     dest: Mine Coaster
   at:
-  - 97608
+  - 97566
   - 203
-  - 80419
+  - 80391
   kind: fingerpost
   title: Frontier Post
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic
+park_contract:
+  purpose: service
+  hierarchy: supporting
+  land: frontier
+  requires_path: false
+design:
+  purpose: service
+  hierarchy: supporting
+  style: frontier
+  narrative: Frontier Post serves the frontier visitor journey.
 origin_lock: false

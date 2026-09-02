@@ -1,29 +1,29 @@
-name: Gold Sluice
-gen: frontiertown
+name: The Mine Works
+gen: undercroft
 params:
   land: frontier
+  kind: mine
   facing: east
   at:
-  - 97570
-  - 203
-  - 80369
-  kind: sluice
-  title: Gold Sluice
+  - 97562
+  - 143
+  - 80359
+  title: The Mine Works
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic
 park_contract:
-  purpose: shop
+  purpose: building
   hierarchy: supporting
   land: frontier
   requires_path: true
   access_candidates:
-  - - 97573
-    - 204
-    - 80361
+  - - 97638
+    - 144
+    - 80359
 design:
-  purpose: shop
+  purpose: building
   hierarchy: supporting
   style: frontier
-  narrative: Gold Sluice serves the frontier visitor journey.
+  narrative: The Mine Works serves the frontier visitor journey.
 origin_lock: false

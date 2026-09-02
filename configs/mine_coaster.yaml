@@ -1,17 +1,56 @@
 name: Mine Coaster
 gen: coaster
+# THE LOCKED MINE RIDGE SCALE. `PARK_VISUAL_AND_BUDGET_SPEC.md`'s setpiece ledger gives this
+# 36,000-44,000 blocks "including terrain, trestles, station shell, tunnels, and support roots"
+# and 111 by 71 of plan; `PARK_FULL_BUILD_SPEC.md`'s F4 card gives it B-16 to B+100 with the
+# crest between B+72 and B+100. It shipped at 4,812 - a track on stilts over a paved yard.
+#
+# THE CIRCUIT IS RECTANGULAR BECAUSE THE CLIMB IS. A lift of 76 courses needs 76-odd cells to
+# climb in, and `span` is the axis it climbs along; `span_i` is the frontage and is the short
+# side. Square, the same lift would need an 80 by 80 circuit - nine over the short side of its
+# own plot, and thirteen over it on the ledger's 71.
+#
+# **THE LEDGER'S BAND IS A FLOOR, NOT A CEILING** - underbuilt is the failure, and padding comes
+# out whatever the budget says. The built size is 56,600 blocks in 97 by 69 of plan and 94 courses
+# (B-14 to B+79). Every one of them carries a rider, a support story, a cut face, a tunnel mouth
+# or a sightline: `ridge_crust` is 3 because a thicker skin is interior fill nobody sees, and
+# `ridge_scale` 1.2 is what fills the LOT with quarry rather than leaving the ride on a lawn.
+# The footprint also fits the legacy 99x99 islandleft plot (X 97551..97649 / Z 80351..80449),
+# which is the one hard constraint here.
 params:
   land: frontier
-  span: 44
-  top: 34
+  span: 88
+  span_i: 66
+  top: 76
+  ridge: true
+  ridge_scale: 1.2
+  ridge_crust: 3
+  trestle_every: 8
   facing: south
   at:
-  - 97619
+  - 97641
   - 203
-  - 80398
+  - 80444
   kind: coaster
   title: Mine Coaster
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic
+park_contract:
+  purpose: ride
+  hierarchy: landmark
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97609
+    - 204
+    - 80433
+  - - 97628
+    - 204
+    - 80447
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: frontier
+  narrative: Mine Coaster serves the frontier visitor journey.
 origin_lock: false

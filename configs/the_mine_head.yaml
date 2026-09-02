@@ -2,14 +2,28 @@ name: The Mine Head
 gen: frontiertown
 params:
   land: frontier
-  facing: west
+  facing: east
   at:
-  - 97623
+  - 97597
   - 203
-  - 80381
+  - 80419
   kind: minehead
   title: The Mine Head
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic
+park_contract:
+  purpose: shop
+  hierarchy: supporting
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97601
+    - 204
+    - 80411
+design:
+  purpose: shop
+  hierarchy: supporting
+  style: frontier
+  narrative: The Mine Head serves the frontier visitor journey.
 origin_lock: false

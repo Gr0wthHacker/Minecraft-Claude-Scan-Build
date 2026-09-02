@@ -1,31 +1,31 @@
-name: Prize Counter
+name: Prize Office
 gen: arcade
 params:
-  land: midway
-  facing: north
+  land: frontier
+  facing: east
   at:
-  - 97625
+  - 97590
   - 203
-  - 80642
+  - 80441
   kind: prizecounter
-  title: Prize Counter
-  under: out/newisle.litematic
+  title: Prize Office
+  under: out/islandleft.litematic
 finish:
-  verify_against: out/newisle.litematic
+  verify_against: out/islandleft.litematic
 park_contract:
   purpose: ride
   hierarchy: supporting
-  land: midway
+  land: frontier
   requires_path: true
   access_candidates:
-  - - 97630
+  - - 97595
     - 204
-    - 80637
+    - 80436
 design:
   purpose: ride
   hierarchy: supporting
-  style: midway
-  narrative: Prize Counter serves the midway visitor journey.
+  style: frontier
+  narrative: Prize Office serves the frontier visitor journey.
 origin_lock: false
 expensive_allowance: 5
 expensive_reason: 5x redstone_lamp - a light cannot be substituted by colour (the

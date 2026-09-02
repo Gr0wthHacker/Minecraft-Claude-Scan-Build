@@ -14,4 +14,21 @@ params:
   under: out/islandleft.litematic
 finish:
   verify_against: out/islandleft.litematic
+park_contract:
+  purpose: arrival
+  hierarchy: landmark
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97595
+    - 204
+    - 80451
+  - - 97595
+    - 204
+    - 80443
+design:
+  purpose: arrival
+  hierarchy: landmark
+  style: frontier
+  narrative: Frontier Gate serves the frontier visitor journey.
 origin_lock: false

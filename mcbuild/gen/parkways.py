@@ -29,13 +29,17 @@ from .canvas import Canvas, hash01
 LANDS = {
     "frontier": {"core": "stone_bricks", "inlay": "spruce_planks",
                  "border": "polished_blackstone_bricks", "accent": "cracked_stone_bricks",
-                 "post": "spruce_fence", "light": "lantern", "seat": "spruce_stairs"},
+                 "post": "spruce_fence", "light": "lantern", "seat": "spruce_stairs",
+                 "plinth": "stone_brick_slab", "foot": "stone_bricks", "arm": "spruce_trapdoor"},
     "midway": {"core": "smooth_stone", "inlay": "red_wool",
                "border": "polished_blackstone_bricks", "accent": "white_wool",
-               "post": "oak_fence", "light": "lantern", "seat": "oak_stairs"},
+               "post": "oak_fence", "light": "lantern", "seat": "oak_stairs",
+               "plinth": "stone_brick_slab", "foot": "smooth_stone", "arm": "oak_trapdoor"},
     "prismworks": {"core": "polished_deepslate", "inlay": "cyan_wool",
                    "border": "deepslate_tiles", "accent": "light_blue_wool",
-                   "post": "cobblestone_wall", "light": "soul_lantern", "seat": "spruce_stairs"},
+                   "post": "polished_blackstone_brick_wall", "light": "soul_lantern",
+                   "seat": "spruce_stairs", "plinth": "polished_deepslate_slab",
+                   "foot": "polished_deepslate", "arm": "dark_oak_trapdoor"},
 }
 LAWN, LAWN_TRIM = "moss_block", "moss_carpet"
 
@@ -46,6 +50,11 @@ PARKWAYS = {
     "spine_half": 6,               # 13 wide overall
     "avenue_half": 4,              # 9 wide
     "avenue_every": 42,            # roughly one cross avenue per this much U inside a land
+    "midwalk_v": 62,               # a mid-block walk, so a lot is not 84 deep
+    "midwalk_half": 2,             # 5 wide
+    "service_v": 158,              # the concealed service lane behind the observation band
+    "service_half": 2,
+    "rim_v": 170,                  # the protected rim's inner face
     "promenade_v": 110,            # the back promenade the avenues run to
     "promenade_half": 5,           # 11 wide
     "avenue_to": 132,              # how deep into the land an avenue runs
@@ -130,13 +139,54 @@ def build(cfg: dict, donors=None) -> Canvas:
         for d in range(-p["promenade_half"], p["promenade_half"] + 1):
             lay(prom_v + d, z, pal_a, pal_b, t, p["promenade_half"], abs(d), z)
 
+    # A LOT 84 DEEP IS NOT A LOT. Audited, the blocks between the spine and the promenade came
+    # out 84 x 33-79, and a building is twenty to fifty deep - so every block was one enormous
+    # field with a street only at its two ends, which is how things end up packed against each
+    # other in the middle. A mid-block walk halves them into two bands a building actually fits.
+    mid_v = p["midwalk_v"] - v0
+    for land in lands:
+        for u in range(land["u0"], land["u1"] + 1):
+            z = u - u0
+            if not (0 <= z < sz):
+                continue
+            pal = LANDS[land["name"]]
+            for d in range(-p["midwalk_half"], p["midwalk_half"] + 1):
+                lay(mid_v + d, z, pal, pal, 0.0, p["midwalk_half"], abs(d), z)
+
+    # THE SERVICE LANE, behind the observation band. The audit found V116-199 as ONE unbroken
+    # lawn 84 x 600 - two fifths of the envelope with no route in it at all - and the concealed
+    # service band is where staff reach the back of everything. Plainer paving on purpose: it is
+    # meant to be missed, so it carries the border material and no inlay, and no lamps.
+    svc_v = p["service_v"] - v0
+    for z in range(sz):
+        pal_a, pal_b, t = land_at(z + u0)
+        for d in range(-p["service_half"], p["service_half"] + 1):
+            x = svc_v + d
+            if 0 <= x < sx:
+                c.put(x, 1, z, 0)
+                c.put(x, 0, z, blk(paving(pal_a, pal_b, t, "border" if abs(d) == p["service_half"]
+                                          else "accent", x, z)))
+
+    # THE RIM'S INNER FACE. V170-199 is protected reserve, and a park whose lawn simply runs out
+    # into the void has no edge. One border course and a post rhythm is what says "the ground
+    # stops here" without building a wall around the park.
+    rim_v = p["rim_v"] - v0
+    for z in range(sz):
+        pal, _b, _t = land_at(z + u0)
+        if 0 <= rim_v < sx:
+            c.put(rim_v, 1, z, 0)
+            c.put(rim_v, 0, z, blk(pal["border"]))
+            if z % 6 == 0:
+                c.put(rim_v, 1, z, blk(pal["post"]))
+                c.put(rim_v, 2, z, blk(pal["post"]))
+
     avenues: list[tuple[int, dict]] = []
     for land in lands:
         span = land["u1"] - land["u0"] + 1
         count = max(2, span // p["avenue_every"])
         for i in range(count):
             avenues.append((land["u0"] + int(span * (i + 0.5) / count), LANDS[land["name"]]))
-    deep = min(sx, prom_v + p["promenade_half"] + 1)
+    deep = min(sx, svc_v + p["service_half"] + 1)
     for u, pal in avenues:
         z = u - u0
         for x in range(spine_v, deep):
@@ -167,6 +217,39 @@ def build(cfg: dict, donors=None) -> Canvas:
                 c.put(x, 0, zz, blk(pal[key]))
 
     # ------------------------------------------------------------------ 4. furniture
+    def lamp(x: int, z: int, pal: dict, across: str) -> bool:
+        """A LAMP POST, not a stack of wall blocks.
+
+        Jack: "the poles are just stacked stone walls, very lazy lamp posts." They were: four
+        courses of one block with a lantern on top. A lamp post has a plinth it stands on, a
+        shaft, a CROSSARM, and lights hanging off the arm - and the arm is what makes it read as
+        a lamp rather than as a bollard. The corpus measured this repo placing trapdoors at zero
+        per thousand cells against outside builders' 1.07; an open trapdoor is the thin bracket
+        Minecraft never shipped, and this is exactly what it is for.
+        """
+        if not (0 <= x < sx and 0 <= z < sz):
+            return False
+        c.put(x, 0, z, blk(pal["foot"]))              # a foot set into the paving
+        c.put(x, 1, z, blk(pal["plinth"]))            # ...and a plinth to stand on
+        for y in (2, 3, 4):
+            c.put(x, y, z, blk(pal["post"]))
+        left, right = ("west", "east") if across == "x" else ("north", "south")
+        for side, facing in ((-1, left), (1, right)):
+            ax, az = (x + side, z) if across == "x" else (x, z + side)
+            if not (0 <= ax < sx and 0 <= az < sz):
+                continue
+            # THE ARM IS A SOLID BRACKET, because the light has to hang from something. A chain
+            # under an OPEN TRAPDOOR is 652 placement problems: a trapdoor lying against a post
+            # is not a ceiling, and nothing can hang off it. So the arm is a block, the lantern
+            # hangs beneath it, and the trapdoor is what it is good at - a thin plate on the
+            # bracket's own face, which is the detail that stops this being a stick.
+            c.put(ax, 5, az, blk(pal["foot"]))
+            c.put(ax, 4, az, c.raw_state(pal["light"], hanging="true"))
+            c.put(ax, 6, az, c.raw_state(pal["arm"], facing=facing, half="bottom", open="false"))
+        c.put(x, 5, z, blk(pal["post"]))
+        c.put(x, 6, z, blk(pal["light"]))             # a finial light on the head
+        return True
+
     lamps = seats = 0
     for z in range(sz):
         pal, _b, _t = land_at(z + u0)
@@ -175,10 +258,7 @@ def build(cfg: dict, donors=None) -> Canvas:
             if not (0 <= x < sx):
                 continue
             if z % p["lamp_every"] == 0:
-                for y in (1, 2, 3, 4):
-                    c.put(x, y, z, blk(pal["post"]))
-                c.put(x, 5, z, blk(pal["light"]))
-                lamps += 1
+                lamps += 1 if lamp(x, z, pal, "x") else 0
             elif z % p["seat_every"] == p["seat_every"] // 2:
                 # a bench faces the path it is beside, which is the whole reason it is there
                 c.put(x, 1, z, c.raw_state(pal["seat"], facing="east" if side < 0 else "west",
@@ -190,10 +270,7 @@ def build(cfg: dict, donors=None) -> Canvas:
             for side in (-1, 1):
                 zz = z + side * (p["avenue_half"] + 2)
                 if 0 <= zz < sz:
-                    for y in (1, 2, 3, 4):
-                        c.put(x, y, zz, blk(pal["post"]))
-                    c.put(x, 5, zz, blk(pal["light"]))
-                    lamps += 1
+                    lamps += 1 if lamp(x, zz, pal, "z") else 0
 
     c.meta = {"kind": "parkways", "lands": [land["name"] for land in lands],
               "avenues": len(avenues), "lamps": lamps, "seats": seats,

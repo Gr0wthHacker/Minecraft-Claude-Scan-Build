@@ -12,6 +12,20 @@ params:
   under: out/newisle.litematic
 finish:
   verify_against: out/newisle.litematic
+park_contract:
+  purpose: ride
+  hierarchy: supporting
+  land: midway
+  requires_path: true
+  access_candidates:
+  - - 97570
+    - 204
+    - 80607
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: midway
+  narrative: High Striker serves the midway visitor journey.
 origin_lock: false
 expensive_allowance: 8
 expensive_reason: 8x redstone_lamp - a light cannot be substituted by colour (the

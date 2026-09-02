@@ -13,12 +13,22 @@ params:
   - direction: south
     dest: The Plummet
   at:
-  - 97634
+  - 97610
   - 203
-  - 80756
+  - 80830
   kind: fingerpost
   title: Hollow Post
   under: out/islandright.litematic
 finish:
   verify_against: out/islandright.litematic
+park_contract:
+  purpose: service
+  hierarchy: supporting
+  land: hollow
+  requires_path: false
+design:
+  purpose: service
+  hierarchy: supporting
+  style: hollow
+  narrative: Hollow Post serves the hollow visitor journey.
 origin_lock: false

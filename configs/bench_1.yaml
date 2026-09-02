@@ -2,14 +2,24 @@ name: Bench 1
 gen: streetfurniture
 params:
   land: hollow
-  facing: west
+  facing: north
   at:
-  - 97611
+  - 97635
   - 203
-  - 80764
+  - 80819
   kind: bench
   title: Bench 1
   under: out/islandright.litematic
 finish:
   verify_against: out/islandright.litematic
+park_contract:
+  purpose: service
+  hierarchy: filler
+  land: hollow
+  requires_path: false
+design:
+  purpose: service
+  hierarchy: filler
+  style: hollow
+  narrative: Bench 1 serves the hollow visitor journey.
 origin_lock: false
