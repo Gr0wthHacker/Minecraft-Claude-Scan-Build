@@ -63,7 +63,7 @@ PARKWAYS = {
     "promenade_v": 110,            # the back promenade the avenues run to
     "promenade_half": 5,           # 11 wide
     "avenue_to": 132,              # how deep into the land an avenue runs
-    "lamp_every": 14,
+    "lamp_every": 22,
     "seat_every": 18,
     "plaza_half": 13,
     "seed": 0,
@@ -237,62 +237,49 @@ def build(cfg: dict, donors=None) -> Canvas:
         c.put(x, y - drop, z, c.raw_state(light, hanging="true"))
 
     def lamp_frontier(x: int, z: int, pal: dict, across: str) -> bool:
-        """A WORKING STREET LAMP: stone footing, timber mast, one bracket, one hung lantern.
+        """A SLIM timber lamp: a low stone footing, a fence mast, one arm, one hung lantern.
 
-        The Frontier is timber and dusty stone, so its lamp is the one a mining town bolts to a
-        boardwalk - a squat stone base against cart wheels, a log mast, and a single arm out over
-        the path with the lantern swinging off a chain. Asymmetric on purpose: a one-armed lamp
-        reads as a working object, and a symmetrical one reads as ornament.
+        The first version was a `spruce_log` mast with `spruce_planks` for the bracket - Jack:
+        "these lamps are thick as hell and terrible", and he is right: those are FULL BLOCKS, so
+        the post was a metre-square pillar. A fence is a post. The Prism lamp read well for
+        exactly this reason - its shaft is a WALL - so the rule is now the same everywhere: the
+        only full block in a lamp is the footing it stands on.
         """
         c.put(x, 0, z, blk("stone_bricks"))
-        c.put(x, 1, z, blk("stone_bricks"))
-        c.put(x, 2, z, blk("chiseled_stone_bricks"))
-        for side, facing in _around(across):
-            ax, az = _step(x, z, side, across)
-            if 0 <= ax < sx and 0 <= az < sz:
-                c.put(ax, 1, az, c.raw_state("stone_brick_stairs", facing=facing,
-                                             half="bottom", shape="straight"))
-        for y in (3, 4, 5, 6):
-            c.put(x, y, z, c.raw_state("spruce_log", axis="y"))
-        # the bracket reaches out over the path, and the lantern hangs off its end
+        c.put(x, 1, z, blk("stone_brick_slab"))
+        for y in (2, 3, 4, 5):
+            c.put(x, y, z, blk("spruce_fence"))
+        # one arm over the path, and the lantern hangs off its end. A fence carries a lantern.
         side, facing = _around(across)[0]
-        a1x, a1z = _step(x, z, side, across)
-        a2x, a2z = _step(x, z, side * 2, across)
-        for ax, az in ((a1x, a1z), (a2x, a2z)):
-            if 0 <= ax < sx and 0 <= az < sz:
-                c.put(ax, 6, az, blk("spruce_planks"))
-        if 0 <= a2x < sx and 0 <= a2z < sz:
-            _hang(a2x, 5, a2z, pal["light"], drop=2)
-        if 0 <= a1x < sx and 0 <= a1z < sz:
-            c.put(a1x, 7, a1z, c.raw_state("spruce_trapdoor", facing=facing, half="bottom",
-                                           open="false"))
-        c.put(x, 7, z, c.raw_state("spruce_stairs", facing=facing, half="top", shape="straight"))
+        ax, az = _step(x, z, side, across)
+        if 0 <= ax < sx and 0 <= az < sz:
+            c.put(ax, 5, az, blk("spruce_fence"))
+            c.put(ax, 4, az, c.raw_state(pal["light"], hanging="true"))
+            c.put(ax, 6, az, c.raw_state("spruce_trapdoor", facing=facing, half="top",
+                                         open="false"))
+        c.put(x, 6, z, c.raw_state(pal["light"], hanging="false"))
         return True
 
     def lamp_midway(x: int, z: int, pal: dict, across: str) -> bool:
-        """A FAIRGROUND STANDARD: four lanterns under a little canopy roof.
+        """A SLIM fairground standard: a stone pedestal, a fence mast, two arms, two lanterns.
 
-        The Midway is the bright social land, so its lamp is ornament and is meant to be - a
-        stone pedestal with an iron grille, an oak mast, and a four-armed head carrying a light
-        on every side under a shingled cap, so it lights a crowd rather than a lane.
+        Four arms and a plank canopy made this the thickest object in the park. The Midway is
+        still the ornamental land, so it keeps a pedestal and a pair of lights - but on a fence
+        mast, with slab and stair for the cap rather than a roof of full blocks.
         """
         c.put(x, 0, z, blk("smooth_stone"))
-        c.put(x, 1, z, blk("stone_bricks"))
-        c.put(x, 2, z, blk("iron_bars"))
-        c.put(x, 3, z, blk("chiseled_stone_bricks"))
-        for y in (4, 5, 6):
-            c.put(x, y, z, c.raw_state("oak_log", axis="y"))
-        for side, facing in (( -1, "west"), (1, "east"), (-1, "north"), (1, "south")):
-            axis = "x" if facing in ("west", "east") else "z"
-            ax, az = _step(x, z, side, axis)
+        c.put(x, 1, z, c.raw_state("stone_brick_slab", type="bottom"))
+        for y in (2, 3, 4, 5, 6):
+            c.put(x, y, z, blk("oak_fence"))
+        for side, facing in _around(across):
+            ax, az = _step(x, z, side, across)
             if not (0 <= ax < sx and 0 <= az < sz):
                 continue
-            c.put(ax, 6, az, blk("oak_planks"))                       # the arm
-            _hang(ax, 5, az, pal["light"], drop=1)                    # ...and its light
-            c.put(ax, 7, az, c.raw_state("oak_stairs", facing=facing, half="bottom",
-                                         shape="straight"))           # the canopy skirt
-        c.put(x, 7, z, blk("oak_planks"))
-        c.put(x, 8, z, c.raw_state("oak_slab", type="bottom"))
+            c.put(ax, 6, az, blk("oak_fence"))
+            c.put(ax, 5, az, c.raw_state(pal["light"], hanging="true"))
+            c.put(ax, 7, az, c.raw_state("oak_stairs", facing=facing, half="top",
+                                         shape="straight"))
+        c.put(x, 7, z, c.raw_state("oak_slab", type="top"))
         return True
 
     def lamp_prismworks(x: int, z: int, pal: dict, across: str) -> bool:
@@ -342,7 +329,12 @@ def build(cfg: dict, donors=None) -> Canvas:
             x = spine_v + side * (p["spine_half"] + 2)
             if not (0 <= x < sx):
                 continue
-            if z % p["lamp_every"] == 0:
+            # ONE VERGE AT A TIME, ALTERNATING. Jack: "theres too many overall lamps, we dont
+            # need hundreds to cover an area." A lamp on both verges every fourteen blocks is a
+            # picket fence: 326 of them. Staggered at 22 the walk is still lit end to end - a
+            # lantern is light 15, so the darkest point between two is about 5 - and the avenue
+            # reads as an avenue rather than as a corridor of poles.
+            if (z + (0 if side < 0 else p["lamp_every"] // 2)) % p["lamp_every"] == 0:
                 lamps += 1 if lamp(x, z, pal, "x") else 0
             elif z % p["seat_every"] == p["seat_every"] // 2 and not is_reserved(x, z):
                 # a bench faces the path it is beside, which is the whole reason it is there
@@ -351,8 +343,8 @@ def build(cfg: dict, donors=None) -> Canvas:
                 seats += 1
     for u, pal in avenues:
         z = u - u0
-        for x in range(spine_v + half + 4, deep, p["lamp_every"]):
-            for side in (-1, 1):
+        for i, x in enumerate(range(spine_v + half + 4, deep, p["lamp_every"])):
+            for side in ((-1,) if i % 2 == 0 else (1,)):
                 zz = z + side * (p["avenue_half"] + 2)
                 if 0 <= zz < sz:
                     lamps += 1 if lamp(x, zz, pal, "z") else 0
