@@ -358,13 +358,73 @@
       "name": "claim_line",
       "region": "frontier_reach",
       "bounds": [
-        5,
+        6,
         172,
         80,
         212
       ],
       "zone": "path",
       "style": "frontier"
+    },
+    {
+      "name": "line_frontier",
+      "region": "frontier",
+      "bounds": [
+        0,
+        0,
+        5,
+        169
+      ],
+      "zone": "path",
+      "style": "frontier"
+    },
+    {
+      "name": "line_frontier_reach",
+      "region": "frontier_reach",
+      "bounds": [
+        0,
+        170,
+        5,
+        214
+      ],
+      "zone": "path",
+      "style": "frontier"
+    },
+    {
+      "name": "line_midway",
+      "region": "midway",
+      "bounds": [
+        0,
+        215,
+        5,
+        384
+      ],
+      "zone": "path",
+      "style": "midway"
+    },
+    {
+      "name": "line_prism_reach",
+      "region": "prism_reach",
+      "bounds": [
+        0,
+        385,
+        5,
+        429
+      ],
+      "zone": "path",
+      "style": "prismworks"
+    },
+    {
+      "name": "line_prismworks",
+      "region": "prismworks",
+      "bounds": [
+        0,
+        430,
+        5,
+        599
+      ],
+      "zone": "path",
+      "style": "prismworks"
     }
   ],
   "routes": [
@@ -414,75 +474,6 @@
       ]
     },
     {
-      "name": "frontier_loop",
-      "kind": "path",
-      "width": 5,
-      "points": [
-        [
-          12,
-          20
-        ],
-        [
-          45,
-          20
-        ],
-        [
-          45,
-          130
-        ],
-        [
-          12,
-          130
-        ]
-      ]
-    },
-    {
-      "name": "midway_loop",
-      "kind": "path",
-      "width": 7,
-      "points": [
-        [
-          12,
-          240
-        ],
-        [
-          55,
-          240
-        ],
-        [
-          55,
-          360
-        ],
-        [
-          12,
-          360
-        ]
-      ]
-    },
-    {
-      "name": "prism_loop",
-      "kind": "path",
-      "width": 7,
-      "points": [
-        [
-          12,
-          450
-        ],
-        [
-          65,
-          450
-        ],
-        [
-          65,
-          570
-        ],
-        [
-          12,
-          570
-        ]
-      ]
-    },
-    {
       "name": "service_spine",
       "kind": "service",
       "width": 3,
@@ -503,7 +494,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           19
         ],
         [
@@ -518,7 +509,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          79,
           192
         ],
         [
@@ -533,7 +524,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           63
         ],
         [
@@ -548,7 +539,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           63
         ],
         [
@@ -563,7 +554,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          82,
           20
         ],
         [
@@ -578,7 +569,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           125
         ],
         [
@@ -593,7 +584,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           63
         ],
         [
@@ -608,7 +599,7 @@
       "width": 3,
       "points": [
         [
-          160,
+          149,
           143
         ],
         [
@@ -623,7 +614,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           240
         ],
         [
@@ -638,7 +629,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           240
         ],
         [
@@ -653,7 +644,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           240
         ],
         [
@@ -668,7 +659,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           305
         ],
         [
@@ -683,7 +674,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           320
         ],
         [
@@ -698,7 +689,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          17,
           360
         ],
         [
@@ -713,7 +704,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           358
         ],
         [
@@ -728,7 +719,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           408
         ],
         [
@@ -743,7 +734,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           453
         ],
         [
@@ -758,7 +749,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          72,
           460
         ],
         [
@@ -773,7 +764,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          72,
           506
         ],
         [
@@ -788,7 +779,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          21,
           560
         ],
         [
@@ -803,12 +794,12 @@
       "width": 3,
       "points": [
         [
-          12,
-          520
+          125,
+          528
         ],
         [
           128,
-          520
+          528
         ]
       ]
     },
@@ -818,7 +809,7 @@
       "width": 3,
       "points": [
         [
-          160,
+          149,
           570
         ],
         [
@@ -833,7 +824,7 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           190
         ],
         [
@@ -848,12 +839,87 @@
       "width": 3,
       "points": [
         [
-          12,
+          15,
           358
         ],
         [
           18,
           358
+        ]
+      ]
+    },
+    {
+      "name": "access_frontier_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          85
+        ],
+        [
+          5,
+          85
+        ]
+      ]
+    },
+    {
+      "name": "access_frontier_reach_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          192
+        ],
+        [
+          5,
+          192
+        ]
+      ]
+    },
+    {
+      "name": "access_midway_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          300
+        ],
+        [
+          5,
+          300
+        ]
+      ]
+    },
+    {
+      "name": "access_prism_reach_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          407
+        ],
+        [
+          5,
+          407
+        ]
+      ]
+    },
+    {
+      "name": "access_prismworks_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          515
+        ],
+        [
+          5,
+          515
         ]
       ]
     }
@@ -3005,11 +3071,11 @@
       "generator": "compose",
       "role": "path",
       "footprint": [
-        76,
+        75,
         41
       ],
       "at": [
-        5,
+        6,
         172
       ],
       "access_points": [
@@ -3056,7 +3122,7 @@
           "name": "service_access",
           "kind": "maintenance",
           "position": [
-            75,
+            74,
             1,
             38
           ],
@@ -7078,27 +7144,22 @@
               ],
               "facing": "east",
               "width": 34,
-              "depth": 62
+              "depth": 60
             },
             "offset": [
               0,
-              0,
+              -1,
               0
             ]
           },
           {
-            "gen": "wyrm",
+            "gen": "asset",
             "params": {
-              "at": [
-                0,
-                0,
-                0
-              ],
-              "scale": 1.0,
-              "facing": "east"
+              "source": "reference/bone_ruins_skull.litematic",
+              "downscale": 2
             },
             "offset": [
-              1,
+              16,
               0,
               6
             ]
@@ -7118,9 +7179,47 @@
               "height": 14
             },
             "offset": [
-              40,
+              1,
               0,
               8
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 17,
+              "height": 14
+            },
+            "offset": [
+              50,
+              0,
+              8
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              46,
+              0,
+              24
             ]
           }
         ]
@@ -7741,7 +7840,7 @@
       "access_points": [
         [
           128,
-          520
+          528
         ]
       ],
       "anchors": [
@@ -8276,12 +8375,482 @@
           }
         ]
       }
+    },
+    {
+      "name": "Frontier Line",
+      "plot": "line_frontier",
+      "generator": "transit",
+      "role": "path",
+      "footprint": [
+        6,
+        170
+      ],
+      "at": [
+        0,
+        0
+      ],
+      "access_points": [
+        [
+          5,
+          85
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 2800
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "kind": "line",
+        "land": "frontier",
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "axis": "z",
+        "forward": 1,
+        "length": 168,
+        "title": "FRONTIER LINE"
+      },
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            5,
+            6,
+            85
+          ],
+          "facing": "east",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            5,
+            1,
+            85
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            5,
+            1,
+            93
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            0,
+            1,
+            167
+          ],
+          "facing": "west",
+          "width": 1
+        }
+      ]
+    },
+    {
+      "name": "Frontier Reach Line",
+      "plot": "line_frontier_reach",
+      "generator": "transit",
+      "role": "path",
+      "footprint": [
+        6,
+        45
+      ],
+      "at": [
+        0,
+        170
+      ],
+      "access_points": [
+        [
+          5,
+          192
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 800
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "kind": "line",
+        "land": "frontier",
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "axis": "z",
+        "forward": 1,
+        "length": 43,
+        "title": "FRONTIER REACH LINE"
+      },
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            5,
+            6,
+            22
+          ],
+          "facing": "east",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            5,
+            1,
+            22
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            5,
+            1,
+            30
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            0,
+            1,
+            42
+          ],
+          "facing": "west",
+          "width": 1
+        }
+      ]
+    },
+    {
+      "name": "Midway Line",
+      "plot": "line_midway",
+      "generator": "transit",
+      "role": "path",
+      "footprint": [
+        6,
+        170
+      ],
+      "at": [
+        0,
+        215
+      ],
+      "access_points": [
+        [
+          5,
+          300
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 2800
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway",
+      "params": {
+        "kind": "line",
+        "land": "midway",
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "axis": "z",
+        "forward": 1,
+        "length": 168,
+        "title": "MIDWAY LINE"
+      },
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            5,
+            6,
+            85
+          ],
+          "facing": "east",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            5,
+            1,
+            85
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            5,
+            1,
+            93
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            0,
+            1,
+            167
+          ],
+          "facing": "west",
+          "width": 1
+        }
+      ]
+    },
+    {
+      "name": "Prism Reach Line",
+      "plot": "line_prism_reach",
+      "generator": "transit",
+      "role": "path",
+      "footprint": [
+        6,
+        45
+      ],
+      "at": [
+        0,
+        385
+      ],
+      "access_points": [
+        [
+          5,
+          407
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 800
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "kind": "line",
+        "land": "hollow",
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "axis": "z",
+        "forward": 1,
+        "length": 43,
+        "title": "PRISM REACH LINE"
+      },
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            5,
+            6,
+            22
+          ],
+          "facing": "east",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            5,
+            1,
+            22
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            5,
+            1,
+            30
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            0,
+            1,
+            42
+          ],
+          "facing": "west",
+          "width": 1
+        }
+      ]
+    },
+    {
+      "name": "Prismworks Line",
+      "plot": "line_prismworks",
+      "generator": "transit",
+      "role": "path",
+      "footprint": [
+        6,
+        170
+      ],
+      "at": [
+        0,
+        430
+      ],
+      "access_points": [
+        [
+          5,
+          515
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 2800
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "kind": "line",
+        "land": "hollow",
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "axis": "z",
+        "forward": 1,
+        "length": 168,
+        "title": "PRISMWORKS LINE"
+      },
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            5,
+            6,
+            85
+          ],
+          "facing": "east",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            5,
+            1,
+            85
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            5,
+            1,
+            93
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            0,
+            1,
+            167
+          ],
+          "facing": "west",
+          "width": 1
+        }
+      ]
     }
   ],
   "build_notes": {
     "coordinate_mapping": "local x is plan V depth; local z is plan U length",
     "anchor_status": "provisional; rebase against current capture before paste",
-    "target_block_budget": 265000,
+    "target_block_budget": 275000,
     "budget_policy": "78-86% cheap structure/detail; 10-16% okay accents; 2-5% declared functional expensive; no decorative terracotta/concrete/quartz/glass bulk",
     "visual_spec": "PARK_VISUAL_AND_BUDGET_SPEC.md",
     "gated_systems": [
@@ -8290,6 +8859,8 @@
       "Prism Ascent live physics",
       "Vault and Wyrm state machines"
     ],
-    "module_count": 24
+    "module_count": 24,
+    "reserve_blocks": 11000,
+    "budget_note": "265,000 was the visual spec's programme. The transit railway is five segments the spec never costed - Jack: 'our transportation railway which made sense is completely gone' - so the target carries them rather than a reserve meant for review-led detail paying for them."
   }
 }

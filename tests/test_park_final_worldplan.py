@@ -27,6 +27,12 @@ PROGRAMME = {
     # Prismworks P1-P7
     "Foundry Gate", "Prism Array", "Resonance Vault", "Prism Ascent", "Forge Deck",
     "Service Gallery",
+    # The transit railway, restored. Jack: "our transportation railway which made sense is
+    # completely gone" - and it was: `Park Line` belonged to the retired three-island programme
+    # and this WorldSpec had no transit module at all, so a 600-block park offered only walking.
+    # One segment per region, on the park's outer edge, because the observation band is fully let
+    # and the service band is backstage by contract.
+    "Frontier Line", "Frontier Reach Line", "Midway Line", "Prism Reach Line", "Prismworks Line",
 }
 
 
@@ -64,6 +70,9 @@ def test_module_budgets_spend_the_declared_programme():
     raw = _raw()
     lots = sum(m["budget"]["blocks"] for m in raw["modules"])
     assert lots == raw["build_notes"]["target_block_budget"] - 42_000 - 11_000
+    # the railway is programme the visual spec never costed, so the target carries it rather than
+    # the reserve - which exists for review-led detail - quietly paying for a whole ride system
+    assert raw["build_notes"]["target_block_budget"] > 265_000
 
 
 def test_every_public_module_declares_typed_anchors():
@@ -107,8 +116,48 @@ def test_the_reaches_are_transitions_and_carry_no_second_park():
     region = {p["name"]: p["region"] for p in raw["plots"]}
     for name in ("frontier_reach", "prism_reach"):
         modules = [m for m in raw["modules"] if region[m["plot"]] == name]
-        roles = [m["role"] for m in modules]
-        assert roles.count("path") == 1, f"{name} has {roles.count('path')} ways through"
-        beats = [r for r in roles if r != "path"]
+        # the causeway, and the railway that now runs the length of the park past it
+        ways = [m for m in modules if m["role"] == "path"]
+        assert len(ways) == 2, f"{name} has {len(ways)} ways through"
+        assert sum(1 for m in ways if m["generator"] == "transit") == 1, name
+        beats = [m["role"] for m in modules if m["role"] != "path"]
         assert len(beats) <= 1, f"{name} carries {len(beats)} identity beats"
         assert set(beats) <= {"sculpture"}, f"{name} carries a {beats} - that is a mini-park"
+
+
+def test_the_park_declares_its_own_continuous_ground():
+    """"Big gaps that lead to void because nothing has been placed."
+
+    The park was route ribbons and lot islands over 17,726 void columns, and because every street
+    was a DRAWN LINE, one of them - a "programme loop" sweeping the full 200 depth at ten U-lines
+    - crossed all twenty-four buildings. A park has continuous ground and the streets are whatever
+    is not a building. The floor is declared here, not merely rendered, or every check keeps
+    measuring ribbons: composition was reporting "no route approach" for plots standing in the
+    middle of a paved floor."""
+    raw = _raw()
+    floor = next((r for r in raw["routes"] if r["name"] == "park_floor"), None)
+    assert floor, "the park has no declared ground"
+    assert floor["width"] >= 128, floor["width"]
+    assert not any(r["name"] == "public_program_loop" for r in raw["routes"])
+
+
+def test_no_public_route_is_drawn_through_a_building():
+    """Every one of the twenty-four modules had a route running through its own footprint. That is
+    what a building blocking a walkway IS, and nothing checked it: the clash test compared modules
+    to modules and never to routes."""
+    from mcbuild import worldspec
+    plan = worldspec.compile(_raw())
+    floor = {"park_floor", "park_backstage"}
+    cells = {}
+    for route in plan["routes"]:
+        if route["name"] in floor or route["kind"] == "service":
+            continue          # the ground is under everything by design; backstage is not a guest way
+        for cell in route.get("footprint", route.get("cells", [])):
+            cells.setdefault(tuple(cell), set()).add(route["name"])
+    for module in plan["modules"]:
+        if module["role"] == "path":
+            continue          # a causeway IS the way through it; a route crossing one is the point
+        x0, z0 = module["at"]; w, d = module["footprint"]
+        through = {r for c, rs in cells.items()
+                   if x0 + 2 <= c[0] < x0 + w - 2 and z0 + 2 <= c[1] < z0 + d - 2 for r in rs}
+        assert not through, f"{module['name']} has {sorted(through)} drawn through it"
