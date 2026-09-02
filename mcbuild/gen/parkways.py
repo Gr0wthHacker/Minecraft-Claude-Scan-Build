@@ -27,15 +27,15 @@ from .canvas import Canvas, hash01
 #: Per-land paving. `core` is what you walk on, `inlay`/`accent` are the pattern in it, `border`
 #: draws its edge. Three lands that a walker can tell apart with their eyes shut.
 LANDS = {
-    "frontier": {"land": "frontier", "core": "stone_bricks", "inlay": "spruce_planks",
+    "frontier": {"land": "frontier", "glow": "ochre_froglight", "core": "stone_bricks", "inlay": "spruce_planks",
                  "border": "polished_blackstone_bricks", "accent": "cracked_stone_bricks",
                  "post": "spruce_fence", "light": "lantern", "seat": "spruce_stairs",
                  "plinth": "stone_brick_slab", "foot": "stone_bricks", "arm": "spruce_trapdoor"},
-    "midway": {"land": "midway", "core": "smooth_stone", "inlay": "red_wool",
+    "midway": {"land": "midway", "glow": "ochre_froglight", "core": "smooth_stone", "inlay": "red_wool",
                "border": "polished_blackstone_bricks", "accent": "white_wool",
                "post": "oak_fence", "light": "lantern", "seat": "oak_stairs",
                "plinth": "stone_brick_slab", "foot": "smooth_stone", "arm": "oak_trapdoor"},
-    "prismworks": {"land": "prismworks", "core": "polished_deepslate", "inlay": "cyan_wool",
+    "prismworks": {"land": "prismworks", "glow": "pearlescent_froglight", "core": "polished_deepslate", "inlay": "cyan_wool",
                    "border": "deepslate_tiles", "accent": "light_blue_wool",
                    "post": "polished_blackstone_brick_wall", "light": "soul_lantern",
                    "seat": "spruce_stairs", "plinth": "polished_deepslate_slab",
@@ -337,73 +337,68 @@ def build(cfg: dict, donors=None) -> Canvas:
                            # so nothing downstream can tell where it was placed from.
         return LAMPS[pal["land"]](x, z, pal, across)
 
-    lamps = seats = refused = 0
+    lamps = glows = refused = 0
+    lamp_at: list[tuple[int, int]] = []
 
     def place_lamp(x: int, z: int, pal: dict, across: str,
                    window=(0, 1, -1, 2, -2, 3, -3, 5, -5, 8, -8, 11, -11, 14, -14)) -> bool:
-        """Place one lamp, nudging along the verge until it clears paving.
+        """One lamp, nudged along the verge until it clears paving.
 
         THE WINDOW HAS TO CLEAR A PLAZA. A plaza is 27 across, so it swallows a verge for its
-        whole length; at a three-block nudge 33 lamps were refused outright and the east verge
-        of the spine came out with a 110-block gap in its rhythm. A gap that size is an accident,
-        not restraint."""
+        whole length; at a three-block nudge 33 lamps were refused outright and the spine's east
+        verge came out with a 110-block hole. A gap that size is an accident, not restraint."""
         nonlocal lamps, refused
         for shift in window:
             sx_, sz_ = (x, z + shift) if across == "x" else (x + shift, z)
+            # A NUDGE MUST NOT BUNCH. Two lamps pushed off the same plaza from opposite verges
+            # landed one and two blocks apart - a pair of posts side by side, which reads worse
+            # than the gap it was avoiding. Eight is about the closest two street lamps ever get.
+            if any(abs(px - sx_) + abs(pz - sz_) < 8 for px, pz in lamp_at):
+                continue
             if lamp(sx_, sz_, pal, across):
                 lamps += 1
+                lamp_at.append((sx_, sz_))
                 return True
         refused += 1
         return False
 
-    def bench(x: int, z: int, pal: dict, side: int) -> None:
-        nonlocal seats
-        for shift in (0, 1, -1, 2, -2):
-            zz = z + shift
-            if 0 <= zz < sz and not is_reserved(x, zz) and (x, zz) not in paved:
-                # a stair's TALL side IS its `facing` (test_stairhead's convention), so a bench on
-                # the west verge - looking east at the path - faces WEST: its back goes to the
-                # lawn. Written the other way round, every bench had its backrest to the street.
-                c.put(x, 1, zz, c.raw_state(pal["seat"], facing="west" if side < 0 else "east",
-                                            half="bottom", shape="straight"))
-                seats += 1
-                return
-
-    # LIGHTING IS AESTHETIC HERE, NOT FUNCTIONAL. Jack: "mobs cannot spawn they are disabled on
-    # our island so lighting can have shadow areas, but we need to be very intentional about
-    # everything." So this stopped chasing coverage: propagated, chasing zero dark cells wanted
-    # 765 lamps and still left a fifth of the walk unlit, because what binds is the distance
-    # ACROSS a thirteen-wide path, not the spacing along it. With nothing to spawn, that is a
-    # question about rhythm instead - and the answer is far fewer lamps, in the three places a
-    # lamp MEANS something: a rhythm down the two promenades, and a marker where an avenue meets
-    # them. The mid-block walk and the service lane get none: a service lane is meant to be
-    # missed, and a walk between two lit streets does not need its own row of posts.
+    # A LAMP LINES A PATH; A SQUARE IS LIT FROM ITS OWN FLOOR. Jack: "the lamps congregate around
+    # the squares when in reality they should mostly be lining pathways and in squares we can
+    # embed a small amount of frog lights, visually it makes more sense and is more consistent
+    # with actual places." Right - the plaza-corner lamps and the pair at every avenue mouth put
+    # eight posts around each junction and left the runs between them thin, which is the opposite
+    # of how a real street is lit. Posts now do nothing but line the three walked routes at an
+    # even rhythm, and a square is lit flush from underfoot.
     for z in range(sz):
         pal, _b, _t = land_at(z + u0)
-        for side in (-1, 1):
-            x = spine_v + side * (p["spine_half"] + 2)
-            if (z + (0 if side < 0 else p["lamp_every"] // 2)) % p["lamp_every"] == 0:
-                place_lamp(x, z, pal, "x")
-            elif z % p["seat_every"] == p["seat_every"] // 2:
-                bench(x, z, pal, side)
-        for side in (-1, 1):
-            x = prom_v + side * (p["promenade_half"] + 2)
-            every = p["lamp_every"] + 10
-            if (z + (0 if side < 0 else every // 2)) % every == 0:
-                place_lamp(x, z, pal, "x")
-            elif z % (p["seat_every"] * 2) == p["seat_every"]:
-                bench(x, z, pal, side)
+        for centre, halfw, every in ((spine_v, p["spine_half"], p["lamp_every"]),
+                                     (prom_v, p["promenade_half"], p["lamp_every"] + 6)):
+            for side in (-1, 1):
+                if (z + (0 if side < 0 else every // 2)) % every == 0:
+                    place_lamp(centre + side * (halfw + 2), z, pal, "x")
 
-    # ...and one pair at each avenue's mouth, which is where a walker makes a decision.
     for u, pal in avenues:
         z = u - u0
-        for side in (-1, 1):
-            zz = z + side * (p["avenue_half"] + 2)
-            place_lamp(spine_v + half + 3, zz, pal, "z")
-            place_lamp(prom_v + (half - 4) + 3, zz, pal, "z")
+        for x in range(spine_v + half + 6, deep - 2, p["lamp_every"]):
+            for side in (-1, 1):
+                if ((x // p["lamp_every"]) + (0 if side < 0 else 1)) % 2 == 0:
+                    place_lamp(x, z + side * (p["avenue_half"] + 2), pal, "z")
+
+    # ...and the squares themselves: a FEW froglights set flush in the paving. Flush, because a
+    # froglight IS the floor - an opaque emitter a course down - so it reaches one less than its
+    # own light and takes no room at all. Five to a plaza, on the pattern rather than scattered.
+    for u, pal in avenues:
+        z = u - u0
+        for centre, hh in ((spine_v, half), (prom_v, half - 4)):
+            for dx, dz in ((0, 0), (-(hh - 4), -(hh - 4)), (hh - 4, -(hh - 4)),
+                           (-(hh - 4), hh - 4), (hh - 4, hh - 4)):
+                px, pz = centre + dx, z + dz
+                if 0 <= px < sx and 0 <= pz < sz and not is_reserved(px, pz) and (px, pz) in paved:
+                    c.put(px, 0, pz, blk(pal["glow"]))
+                    glows += 1
 
     c.meta = {"kind": "parkways", "lands": [land["name"] for land in lands],
-              "avenues": len(avenues), "lamps": lamps, "seats": seats,
+              "avenues": len(avenues), "lamps": lamps, "square_glows": glows,
               "lamps_refused_on_paving": refused,
               "feature_lots": [f["name"] for f in (p.get("feature_lots") or [])],
               "contract": "lawn, a path hierarchy of core/inlay/border/verge, furniture, and a "
