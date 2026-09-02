@@ -38,14 +38,20 @@ params:
           - {name: frontier, u0: 0, u1: 169}
           - {name: midway, u0: 215, u1: 384}
           - {name: prismworks, u0: 430, u1: 599}
+        # A SET PIECE GETS ITS OWN LOT. Both sculptures were placed by a hand-typed offset and
+        # both landed in the middle of a walkway. These rectangles are kept clear of every path,
+        # plaza, lamp and bench, so the layout routes around them instead of through them.
+        feature_lots:
+          - {name: heron garden, v0: 18, u0: 118, v1: 72, u1: 168}
+          - {name: balloon green, v0: 54, u0: 272, v1: 84, u1: 302}
     # the bird stands where the Frontier's second avenue meets the back promenade, so it is seen
     # down the length of that avenue from the spine and again across the promenade
     - gen: heron
-      offset: [86, 1, 105]
+      offset: [22, 1, 122]
       params: {variant: heron, at: [0, 0, 0], scale: 1.0, seed: 0}
     # ...and the balloon is moored over the Midway's centre plaza, the brightest thing on the walk
     - gen: balloon
-      offset: [100, 1, 289]
+      offset: [59, 1, 277]
       params: {}
 roles: [path]
 design:

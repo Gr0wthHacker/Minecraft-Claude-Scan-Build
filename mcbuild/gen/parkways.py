@@ -27,15 +27,15 @@ from .canvas import Canvas, hash01
 #: Per-land paving. `core` is what you walk on, `inlay`/`accent` are the pattern in it, `border`
 #: draws its edge. Three lands that a walker can tell apart with their eyes shut.
 LANDS = {
-    "frontier": {"core": "stone_bricks", "inlay": "spruce_planks",
+    "frontier": {"land": "frontier", "core": "stone_bricks", "inlay": "spruce_planks",
                  "border": "polished_blackstone_bricks", "accent": "cracked_stone_bricks",
                  "post": "spruce_fence", "light": "lantern", "seat": "spruce_stairs",
                  "plinth": "stone_brick_slab", "foot": "stone_bricks", "arm": "spruce_trapdoor"},
-    "midway": {"core": "smooth_stone", "inlay": "red_wool",
+    "midway": {"land": "midway", "core": "smooth_stone", "inlay": "red_wool",
                "border": "polished_blackstone_bricks", "accent": "white_wool",
                "post": "oak_fence", "light": "lantern", "seat": "oak_stairs",
                "plinth": "stone_brick_slab", "foot": "smooth_stone", "arm": "oak_trapdoor"},
-    "prismworks": {"core": "polished_deepslate", "inlay": "cyan_wool",
+    "prismworks": {"land": "prismworks", "core": "polished_deepslate", "inlay": "cyan_wool",
                    "border": "deepslate_tiles", "accent": "light_blue_wool",
                    "post": "polished_blackstone_brick_wall", "light": "soul_lantern",
                    "seat": "spruce_stairs", "plinth": "polished_deepslate_slab",
@@ -46,6 +46,11 @@ LAWN, LAWN_TRIM = "moss_block", "moss_carpet"
 PARKWAYS = {
     "bounds": [0, 0, 199, 599],   # V0..V199 by U0..U599 - the whole envelope
     "lands": None,                 # [{name, u0, u1}] in U order; the gaps between them are reaches
+    #: A SET PIECE GETS A LOT, IT DOES NOT GET WHAT IS LEFT. Jack: "the air balloon is in the
+    #: dead center of one of the walkways ... same with the bird" - because both were placed by a
+    #: hand-typed offset that nothing checked against the paths. A reserved rectangle is kept
+    #: clear of every path, plaza, lamp and bench, so a sculpture cannot land in a walkway.
+    "feature_lots": None,          # [{name, v0, u0, v1, u1}]
     "spine_v": 14,                 # centre line of the grand spine
     "spine_half": 6,               # 13 wide overall
     "avenue_half": 4,              # 9 wide
@@ -75,9 +80,15 @@ def build(cfg: dict, donors=None) -> Canvas:
         if land["name"] not in LANDS:
             raise ValueError(f"unknown land {land['name']!r}; have {sorted(LANDS)}")
     sx, sz = v1 - v0 + 1, u1 - u0 + 1
-    c = Canvas(sx, 8, sz)
+    c = Canvas(sx, 12, sz)
     seed = int(p["seed"])
     state: dict[str, int] = {}
+
+    reserved = [(f["v0"] - v0, f["u0"] - u0, f["v1"] - v0, f["u1"] - u0)
+                for f in (p.get("feature_lots") or [])]
+
+    def is_reserved(x: int, z: int) -> bool:
+        return any(a <= x <= c and b <= z <= d for a, b, c, d in reserved)
 
     def blk(name: str) -> int:
         if name not in state:
@@ -111,7 +122,7 @@ def build(cfg: dict, donors=None) -> Canvas:
     # ------------------------------------------------------------------ 2. paths
     def lay(x: int, z: int, pal_a: dict, pal_b: dict, t: float, half: int, off: int, banding: int):
         """One cell of a path: border at the edge, an inlay band inside it, core in the middle."""
-        if not (0 <= x < sx and 0 <= z < sz):
+        if not (0 <= x < sx and 0 <= z < sz) or is_reserved(x, z):
             return
         if off >= half:
             key = "border"
@@ -162,7 +173,7 @@ def build(cfg: dict, donors=None) -> Canvas:
         pal_a, pal_b, t = land_at(z + u0)
         for d in range(-p["service_half"], p["service_half"] + 1):
             x = svc_v + d
-            if 0 <= x < sx:
+            if 0 <= x < sx and not is_reserved(x, z):
                 c.put(x, 1, z, 0)
                 c.put(x, 0, z, blk(paving(pal_a, pal_b, t, "border" if abs(d) == p["service_half"]
                                           else "accent", x, z)))
@@ -173,7 +184,7 @@ def build(cfg: dict, donors=None) -> Canvas:
     rim_v = p["rim_v"] - v0
     for z in range(sz):
         pal, _b, _t = land_at(z + u0)
-        if 0 <= rim_v < sx:
+        if 0 <= rim_v < sx and not is_reserved(rim_v, z):
             c.put(rim_v, 1, z, 0)
             c.put(rim_v, 0, z, blk(pal["border"]))
             if z % 6 == 0:
@@ -202,7 +213,7 @@ def build(cfg: dict, donors=None) -> Canvas:
           for dx in range(-hh, hh + 1):
             for dz in range(-hh, hh + 1):
                 x, zz = centre + dx, z + dz
-                if not (0 <= x < sx and 0 <= zz < sz):
+                if not (0 <= x < sx and 0 <= zz < sz) or is_reserved(x, zz):
                     continue
                 ring = max(abs(dx), abs(dz))
                 if ring == hh:
@@ -217,38 +228,112 @@ def build(cfg: dict, donors=None) -> Canvas:
                 c.put(x, 0, zz, blk(pal[key]))
 
     # ------------------------------------------------------------------ 4. furniture
-    def lamp(x: int, z: int, pal: dict, across: str) -> bool:
-        """A LAMP POST, not a stack of wall blocks.
+    def _hang(x: int, y: int, z: int, light: str, drop: int = 1) -> None:
+        """A light on a chain under a bracket. The bracket above must already be solid: a chain
+        hangs from a block or from another chain, and an OPEN TRAPDOOR is neither - hanging them
+        off one was 652 placement problems, one per chain."""
+        for d in range(drop):
+            c.put(x, y - d, z, c.raw_state("iron_chain", axis="y"))
+        c.put(x, y - drop, z, c.raw_state(light, hanging="true"))
 
-        Jack: "the poles are just stacked stone walls, very lazy lamp posts." They were: four
-        courses of one block with a lantern on top. A lamp post has a plinth it stands on, a
-        shaft, a CROSSARM, and lights hanging off the arm - and the arm is what makes it read as
-        a lamp rather than as a bollard. The corpus measured this repo placing trapdoors at zero
-        per thousand cells against outside builders' 1.07; an open trapdoor is the thin bracket
-        Minecraft never shipped, and this is exactly what it is for.
+    def lamp_frontier(x: int, z: int, pal: dict, across: str) -> bool:
+        """A WORKING STREET LAMP: stone footing, timber mast, one bracket, one hung lantern.
+
+        The Frontier is timber and dusty stone, so its lamp is the one a mining town bolts to a
+        boardwalk - a squat stone base against cart wheels, a log mast, and a single arm out over
+        the path with the lantern swinging off a chain. Asymmetric on purpose: a one-armed lamp
+        reads as a working object, and a symmetrical one reads as ornament.
         """
-        if not (0 <= x < sx and 0 <= z < sz):
-            return False
-        c.put(x, 0, z, blk(pal["foot"]))              # a foot set into the paving
-        c.put(x, 1, z, blk(pal["plinth"]))            # ...and a plinth to stand on
-        for y in (2, 3, 4):
-            c.put(x, y, z, blk(pal["post"]))
-        left, right = ("west", "east") if across == "x" else ("north", "south")
-        for side, facing in ((-1, left), (1, right)):
-            ax, az = (x + side, z) if across == "x" else (x, z + side)
+        c.put(x, 0, z, blk("stone_bricks"))
+        c.put(x, 1, z, blk("stone_bricks"))
+        c.put(x, 2, z, blk("chiseled_stone_bricks"))
+        for side, facing in _around(across):
+            ax, az = _step(x, z, side, across)
+            if 0 <= ax < sx and 0 <= az < sz:
+                c.put(ax, 1, az, c.raw_state("stone_brick_stairs", facing=facing,
+                                             half="bottom", shape="straight"))
+        for y in (3, 4, 5, 6):
+            c.put(x, y, z, c.raw_state("spruce_log", axis="y"))
+        # the bracket reaches out over the path, and the lantern hangs off its end
+        side, facing = _around(across)[0]
+        a1x, a1z = _step(x, z, side, across)
+        a2x, a2z = _step(x, z, side * 2, across)
+        for ax, az in ((a1x, a1z), (a2x, a2z)):
+            if 0 <= ax < sx and 0 <= az < sz:
+                c.put(ax, 6, az, blk("spruce_planks"))
+        if 0 <= a2x < sx and 0 <= a2z < sz:
+            _hang(a2x, 5, a2z, pal["light"], drop=2)
+        if 0 <= a1x < sx and 0 <= a1z < sz:
+            c.put(a1x, 7, a1z, c.raw_state("spruce_trapdoor", facing=facing, half="bottom",
+                                           open="false"))
+        c.put(x, 7, z, c.raw_state("spruce_stairs", facing=facing, half="top", shape="straight"))
+        return True
+
+    def lamp_midway(x: int, z: int, pal: dict, across: str) -> bool:
+        """A FAIRGROUND STANDARD: four lanterns under a little canopy roof.
+
+        The Midway is the bright social land, so its lamp is ornament and is meant to be - a
+        stone pedestal with an iron grille, an oak mast, and a four-armed head carrying a light
+        on every side under a shingled cap, so it lights a crowd rather than a lane.
+        """
+        c.put(x, 0, z, blk("smooth_stone"))
+        c.put(x, 1, z, blk("stone_bricks"))
+        c.put(x, 2, z, blk("iron_bars"))
+        c.put(x, 3, z, blk("chiseled_stone_bricks"))
+        for y in (4, 5, 6):
+            c.put(x, y, z, c.raw_state("oak_log", axis="y"))
+        for side, facing in (( -1, "west"), (1, "east"), (-1, "north"), (1, "south")):
+            axis = "x" if facing in ("west", "east") else "z"
+            ax, az = _step(x, z, side, axis)
             if not (0 <= ax < sx and 0 <= az < sz):
                 continue
-            # THE ARM IS A SOLID BRACKET, because the light has to hang from something. A chain
-            # under an OPEN TRAPDOOR is 652 placement problems: a trapdoor lying against a post
-            # is not a ceiling, and nothing can hang off it. So the arm is a block, the lantern
-            # hangs beneath it, and the trapdoor is what it is good at - a thin plate on the
-            # bracket's own face, which is the detail that stops this being a stick.
-            c.put(ax, 5, az, blk(pal["foot"]))
-            c.put(ax, 4, az, c.raw_state(pal["light"], hanging="true"))
-            c.put(ax, 6, az, c.raw_state(pal["arm"], facing=facing, half="bottom", open="false"))
-        c.put(x, 5, z, blk(pal["post"]))
-        c.put(x, 6, z, blk(pal["light"]))             # a finial light on the head
+            c.put(ax, 6, az, blk("oak_planks"))                       # the arm
+            _hang(ax, 5, az, pal["light"], drop=1)                    # ...and its light
+            c.put(ax, 7, az, c.raw_state("oak_stairs", facing=facing, half="bottom",
+                                         shape="straight"))           # the canopy skirt
+        c.put(x, 7, z, blk("oak_planks"))
+        c.put(x, 8, z, c.raw_state("oak_slab", type="bottom"))
         return True
+
+    def lamp_prismworks(x: int, z: int, pal: dict, across: str) -> bool:
+        """A SIGNAL MAST: slim, dark, one cold light in a cage.
+
+        Prismworks is the machine land and its light is a SIGNAL, not a mood - so the lamp is the
+        thinnest thing on the park: a deepslate pad, a wall shaft (a wall renders as a slender
+        post, not a block), and a single soul lantern caged in iron at head height with a rod
+        above it. Nothing hangs, nothing is timber, and it reads as equipment.
+        """
+        c.put(x, 0, z, blk("polished_deepslate"))
+        c.put(x, 1, z, blk("deepslate_tiles"))
+        for y in (2, 3, 4, 5):
+            c.put(x, y, z, blk("polished_blackstone_brick_wall"))
+        # A LANTERN CANNOT STAND ON IRON BARS - 104 placement problems, one per Prism lamp. The
+        # collar under the light is a solid block; the bars are a cage BESIDE it, which is what
+        # bars are for and what makes a cold light read as caged equipment.
+        c.put(x, 6, z, blk("deepslate_tiles"))
+        c.put(x, 7, z, blk(pal["light"]))
+        for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            if 0 <= x + dx < sx and 0 <= z + dz < sz:
+                c.put(x + dx, 7, z + dz, blk("iron_bars"))
+        c.put(x, 8, z, c.raw_state("end_rod", facing="up"))
+        return True
+
+    def _around(across: str):
+        return [(-1, "west"), (1, "east")] if across == "x" else [(-1, "north"), (1, "south")]
+
+    def _step(x: int, z: int, side: int, across: str):
+        return (x + side, z) if across == "x" else (x, z + side)
+
+    #: ONE LAMP PER LAND, NEVER ONE LAMP EVERYWHERE. Jack: "we cant copy and paste same lamp post
+    #: across every single land, it needs to change based on the area." A land is told apart by
+    #: what its street furniture is made of and shaped like as much as by its paving, and a lamp
+    #: is the object a walker passes most often.
+    LAMPS = {"frontier": lamp_frontier, "midway": lamp_midway, "prismworks": lamp_prismworks}
+
+    def lamp(x: int, z: int, pal: dict, across: str) -> bool:
+        if not (0 <= x < sx and 0 <= z < sz) or is_reserved(x, z):
+            return False
+        return LAMPS[pal["land"]](x, z, pal, across)
 
     lamps = seats = 0
     for z in range(sz):
@@ -259,7 +344,7 @@ def build(cfg: dict, donors=None) -> Canvas:
                 continue
             if z % p["lamp_every"] == 0:
                 lamps += 1 if lamp(x, z, pal, "x") else 0
-            elif z % p["seat_every"] == p["seat_every"] // 2:
+            elif z % p["seat_every"] == p["seat_every"] // 2 and not is_reserved(x, z):
                 # a bench faces the path it is beside, which is the whole reason it is there
                 c.put(x, 1, z, c.raw_state(pal["seat"], facing="east" if side < 0 else "west",
                                            half="bottom", shape="straight"))
@@ -274,6 +359,7 @@ def build(cfg: dict, donors=None) -> Canvas:
 
     c.meta = {"kind": "parkways", "lands": [land["name"] for land in lands],
               "avenues": len(avenues), "lamps": lamps, "seats": seats,
+              "feature_lots": [f["name"] for f in (p.get("feature_lots") or [])],
               "contract": "lawn, a path hierarchy of core/inlay/border/verge, furniture, and a "
                           "dithered transition through every reach - the ground layer, only"}
     return c
