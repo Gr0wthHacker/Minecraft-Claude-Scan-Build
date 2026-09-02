@@ -92,7 +92,10 @@ def plane_of(model, role: str = "") -> int:
 #: has an origin. Placing one would put a stream's working state into the shipped park and, worse,
 #: make the next `--ship` look like a regression when it changed. A name goes in here when its
 #: agent reports, not when its file appears.
-EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden"}
+EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
+                "PF Vantage Prism Summit", "PF Vantage Frontier Lookout",
+                "PF Vantage Midway Belvedere",
+                "PF Front Frontier", "PF Front Midway", "PF Front Prismworks"}
 
 
 def extras() -> list:

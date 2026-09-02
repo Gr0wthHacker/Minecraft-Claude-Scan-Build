@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 10,
-    "y": 7,
+    "y": 6,
     "z": 9
   },
   "generated_by": "park_games",
@@ -20,19 +20,19 @@
   ],
   "courses": [
     0,
-    6
+    5
   ],
   "budget": {
     "redstone_lamp": 1
   },
   "refused": [],
-  "contract": "the lamp and the bell come on only while the scale reads 3 to 3; below is dark and OVER is dark again",
+  "contract": "the lamp and the bell come on only while the scale reads exactly 3; below is dark and OVER is dark again",
   "unverified": [
     "A PLATE'S LEVEL IS AN INPUT YOU STATE. The simulator has no entities and cannot put an item on a scale; that N items really read N is the game's own behaviour."
   ],
   "width": 10,
   "depth": 9,
-  "height": 7,
+  "height": 6,
   "mark": 3,
   "band": 1,
   "plate": [
@@ -111,15 +111,15 @@
       "narrative": "The washing bench in the porch's west shed: load the pan to exactly three and the lamp comes on; a fourth loses it.\n"
     },
     "metrics": {
-      "blocks": 355,
+      "blocks": 345,
       "materials": 10,
-      "dominant_material_share": 0.4507,
+      "dominant_material_share": 0.4638,
       "light_blocks": 1,
       "massing": {
         "width": 10,
-        "height": 7,
+        "height": 6,
         "depth": 9,
-        "fill_ratio": 0.5635
+        "fill_ratio": 0.6389
       },
       "silhouette": {
         "top": {
@@ -127,27 +127,27 @@
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 70,
+          "area": 60,
           "fill_ratio": 1.0
         },
         "side": {
-          "area": 40,
-          "fill_ratio": 0.6349
+          "area": 39,
+          "fill_ratio": 0.7222
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.6592,
-          0.2789,
-          0.062
+          0.5217,
+          0.4145,
+          0.0638
         ],
         "top_silhouette_perimeter": 38,
-        "surface_faces_per_block": 1.4648
+        "surface_faces_per_block": 1.4435
       },
       "material_counts": {
         "stone_bricks": 160,
-        "spruce_planks": 92,
         "polished_blackstone_bricks": 88,
+        "spruce_planks": 82,
         "redstone_wire": 7,
         "repeater": 2,
         "spruce_wall_sign": 2,
@@ -166,8 +166,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "432794cd197ceaf9a6ea8e5dc534b96dc0d35039f8f8bd5dafb86c1021119616",
-    "generator_source_digest": "a0e564b0232adbe64ab3cd6148f51f1d12f745b99584da5356aad3da89843d6f",
+    "fingerprint": "7d3c1dd35ee825e697d4f8e05f51db10aef64721c687083d0ee2a91ea90b7f02",
+    "generator_source_digest": "db15f9980fcfc17e03710422b01f058018a82a10067ea4c3eac1d21e161b67bc",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -209,9 +209,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 79.273313,
-    "blocks": 355,
-    "blocks_per_second": 4.48
+    "seconds": 79.367826,
+    "blocks": 345,
+    "blocks_per_second": 4.35
   },
   "generator_contract": {
     "ok": false,
@@ -225,7 +225,7 @@
     "roles": [
       "ride"
     ],
-    "blocks": 355,
+    "blocks": 345,
     "mechanic_families": [
       "light",
       "redstone",

@@ -27,8 +27,6 @@ params:
   towers: [6, 54]       # U276 and U324
   spawn: [1, 30]        # V1, U300
   price_level: 2        # -> 23 grass blocks
-  wall_h: 5
-  canopy_y: 4
   ways: out/Park Ways.litematic
   title: THE MIDWAY
 roles: [gate]

@@ -34,7 +34,7 @@
   "depth": 4,
   "height": 6,
   "score": 6,
-  "lanes": 1,
+  "discs": 1,
   "targets": [
     [
       97568,
@@ -232,8 +232,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "c4c30616b2c4ab90c24194f27bb351be49fb6f8021c88c770c8d4ebe2bc4f4ed",
-    "generator_source_digest": "128e45445da1be3c5e39b8593cfce204dfee077a0b48c8f8abc377582df71f65",
+    "fingerprint": "db8df4635594f7ff41f215651da936d54876b2b138401d13beb8d557ed0e4c84",
+    "generator_source_digest": "db15f9980fcfc17e03710422b01f058018a82a10067ea4c3eac1d21e161b67bc",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -275,9 +275,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 78.046259,
+    "seconds": 107.854763,
     "blocks": 172,
-    "blocks_per_second": 2.2
+    "blocks_per_second": 1.59
   },
   "generator_contract": {
     "ok": false,

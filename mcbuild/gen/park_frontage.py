@@ -70,6 +70,12 @@ from .vertical import World
 
 SIGN_WIDTH = 15          # a sign line clips mid-word past this; asserted, never hoped for
 
+#: A LANTERN HANGS FROM A FULL BLOCK (rule 6: a lamp under a slab cap reads as hanging from air,
+#: and a lantern cannot stand on iron bars), and never in a course a player occupies. Every
+#: `hanging="true"` in this file is written with the block above it placed first, and every one is
+#: at h >= 3 - a player stands in h=0 and h=1, so a fixture in the walking courses is something to
+#: walk into.
+#:
 #: Courses of clear air a walker is owed under anything that crosses a path. Two is a player;
 #: three is a player who does not flinch. Every cell of this design standing over a cell the
 #: ground layer paved must be at or above this, and the test measures it rather than trusting it.
@@ -265,10 +271,6 @@ def _put(w, f, pal, i, d, h, key, **props):
     w.put(x, y, z, name, **_state(name, props))
 
 
-def _has(w, f, i, d, h) -> bool:
-    return w.has(*f.world(i, d, h))
-
-
 def _sign(w, f, pal, i, d, h, facing, lines, back=()):
     """A wall sign in the cell IN FRONT of its wall, its text facing away from its support.
 
@@ -294,16 +296,6 @@ def _sign(w, f, pal, i, d, h, facing, lines, back=()):
     w.sign(x, y, z, front=front, back=[str(s) for s in list(back)[:4]],
            colour="white", glowing=True)
     return True
-
-
-def _hang(w, f, pal, i, d, h):
-    """A lantern hangs from a FULL block, so the cell above it is filled first (rule 6).
-
-    The lowland's own note: a lamp under a slab cap reads as 'hanging from air' in the audit,
-    because a slab is not a full block.
-    """
-    _put(w, f, pal, i, d, h + 1, "beam")
-    _put(w, f, pal, i, d, h, pal["light"], hanging="true", waterlogged="false")
 
 
 def _hash01(*args) -> float:

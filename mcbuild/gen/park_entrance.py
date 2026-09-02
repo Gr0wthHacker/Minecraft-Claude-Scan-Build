@@ -175,8 +175,6 @@ PARK_ENTRANCE = {
     "towers": [6, 54],         # local u of the two tower centres
     "spawn": [1, 30],          # local [v, u] of the spawn cell - V1, U300
     "price_level": 2,          # the comparator level the gate opens at -> 23 grass blocks
-    "wall_h": 5,               # courses of the gate building's main wall
-    "canopy_y": 4,             # the queue canopy's soffit course
     "ways": WAYS,
     "title": "THE MIDWAY",
 }
@@ -355,17 +353,21 @@ def _sea_wall(L: _Lot, pal: dict, du: int) -> dict:
 
 
 def _flanks(L: _Lot, pal: dict, du: int) -> dict:
-    """The two walls that close the forecourt sideways. V0..V2, three courses tall.
+    """The two walls that close the forecourt sideways: V0..V2, up OVER the canopy.
 
-    Three and not two: two is unjumpable from the flat, and the queue's own canopy posts stand
-    against them. The gate building closes V3..V5 on its own.
+    THEY HAVE TO REACH THE CANOPY'S OWN COURSE. Built three high they close the ground and leave
+    the roof open at both ends, and a walker who ever gets on to that roof steps straight over
+    them - a two-course drop is not a wall. Making them tall is cheap; the flood is what settles
+    whether it was necessary.
     """
     n = 0
     for u in (0, du - 1):
         for v in range(0, 3):
-            for y in range(0, 3):
-                n += bool(L.put(v, u, y, pal["pier"] if y else pal["plinth"]))
-            n += bool(L.put(v, u, 3, pal["trim_slab"], type="bottom", waterlogged="false"))
+            for y in range(0, CANOPY + 2):
+                mat = pal["plinth"] if y in (0, CANOPY + 1) else pal["pier"]
+                n += bool(L.put(v, u, y, mat))
+            n += bool(L.put(v, u, CANOPY + 2, pal["trim_slab"], type="bottom",
+                            waterlogged="false"))
     return {"cells": n}
 
 
@@ -373,46 +375,58 @@ def _queue(L: _Lot, p: dict, pal: dict, du: int) -> dict:
     """Stanchion rails and a lit canopy, in the two courses of forecourt there are.
 
     THE QUEUE WEAVES, IT DOES NOT SWITCH BACK. A switchback needs four bands and the apron has
-    two, so the rails alternate: a stub off the sea wall closes V1, a stub off the gate closes V2
-    three cells later, and a walker is put through both bands the length of the compound. That is
-    what a stanchion line does at small scale and it is what reads as a queue.
+    two, so a walker is put through both: the gate's own PILASTERS close V2 on the six-grid, and a
+    rail stub closes V1 three cells later. That is what a stanchion line does at small scale, it
+    is what reads as a queue, and it costs no block that is not already architecture.
 
-    The rails stop clear of the two lane approaches and of the portico, so the last stretch to a
-    door is open - a queue you cannot leave at the front is a trap, not a queue.
+    **THE TWO MUST NEVER LAND ON THE SAME COLUMN.** A pilaster and a rail together close both
+    bands and cut the forecourt in half, which is a queue nobody can walk - so the rails sit at
+    `u % 6 == 3` and the pilasters at `u % 6 == 0`, and the containment flood is what would catch
+    it if they ever met.
+
+    The rails stop clear of the two lane approaches, the portico and the towers, so the last
+    stretch to a door is open - a queue you cannot leave at the front is a trap, not a queue.
     """
-    lanes, arch = p["lanes"], p["arch"]
-    keep_clear = set()
-    for lane in lanes:
-        keep_clear.update(range(lane - 2, lane + 3))
-    keep_clear.update(range(arch[0] - 1, arch[1] + 2))
+    keep = _keep_clear(p)
+    # THE CANOPY KEEPS LESS CLEAR THAN THE RAILS DO, and that distinction is the difference
+    # between a canopy and four bus shelters. A roof five courses up over a lane approach is
+    # exactly where a queue wants one; a RAIL there is what would stop you reaching the door.
+    roof_keep = set(range(p["arch"][0] - 1, p["arch"][1] + 2))
+    for cu in p["towers"]:
+        roof_keep.update(range(cu - 4, cu + 5))
+    # The weave: a pilaster already closes V2 at every sixth column, so a rail closes V1 three
+    # cells later and V2 again two cells after that. Never on a pilaster column - that would close
+    # both bands and cut the forecourt in half, which is a queue nobody can walk.
     rails = 0
-    for u in range(4, du - 4):
-        if u in keep_clear:
+    for u in range(3, du - 3):
+        if u in keep or _is_pier(u):
             continue
-        if u % 6 == 0:
-            rails += bool(L.put(1, u, 0, pal["post"], **_fence_props(True)))
-        elif u % 6 == 3:
-            rails += bool(L.put(2, u, 0, pal["post"], **_fence_props(True)))
+        band = 1 if u % 6 == 3 else (2 if u % 6 == 1 else None)
+        if band is None:
+            continue
+        rails += bool(L.put(band, u, 0, pal["post"], **_fence_props(True)))
 
     # THE CANOPY. Posts stand ON the sea wall, never in the queue: a post in the walked band is
     # an obstacle the rails already provide. The beam spans V0..V3 so it lands on the gate
-    # building at the far end, and the roof is two courses of slab over the walked bands.
-    cy = int(p["canopy_y"])
+    # building at the far end, and the roof is a course of slab over both walked bands.
     posts = beams = roof = 0
-    for u in range(3, du - 3, 6):
-        if u in keep_clear:
+    for u in range(6, du - 5, 6):
+        if u in roof_keep:
             continue
-        for y in range(2, cy):
+        for y in range(2, CANOPY):
             posts += bool(L.put(0, u, y, pal["post"], **_fence_props(False)))
         for v in range(0, 4):
-            beams += bool(L.put(v, u, cy, pal["beam"]))
-        L.lamp(1, u, cy - 1, pal["light"], hanging="true", waterlogged="false")
-        L.lamp(2, u, cy - 1, pal["light"], hanging="true", waterlogged="false")
-    for u in range(3, du - 3):
-        if u in keep_clear or u % 6 == 3:
+            beams += bool(L.put(v, u, CANOPY, pal["beam"]))
+        L.lamp(1, u, CANOPY - 1, pal["light"], hanging="true", waterlogged="false")
+        L.lamp(2, u, CANOPY - 1, pal["light"], hanging="true", waterlogged="false")
+    for u in range(4, du - 4):
+        if u in roof_keep or u % 6 == 0:
             continue
         for v in (1, 2):
-            roof += bool(L.put(v, u, cy, pal["roof"], type="bottom", waterlogged="false"))
+            roof += bool(L.put(v, u, CANOPY, pal["roof"], type="bottom", waterlogged="false"))
+        # the eave, so the canopy has an edge rather than stopping in mid-air
+        roof += bool(L.put(0, u, CANOPY, pal["eave"], facing=V_IN, half="bottom",
+                           shape="straight", waterlogged="false"))
     return {"rails": rails, "posts": posts, "beams": beams, "roof": roof}
 
 
@@ -429,99 +443,125 @@ def _fence_props(along_u: bool) -> dict:
 
 
 # --------------------------------------------------------------------------- the gate building
+#
+# THE COURSE SCHEDULE, written once. Every band is a LINE across the whole 61 rather than a
+# scatter - the deck soffit's lesson, which shipped 215 grid runs of which 184 were one or two
+# cells. A number that appears in two of these functions is a number that drifts, so they are
+# module constants and the tests read them from here.
+
+DADO = 2            # y0..y2: the solid front face a fare slot and a door are cut into
+PANEL = (3, 6)      # the RECESSED bay panel - V3 is left OPEN here and V4 carries the field
+STRING = 7          # the string course, red, the whole width
+UPPER = (8, 11)     # the upper wall
+CORNICE = 12        # ...and its cornice, which PROJECTS into V2
+PARAPET = 13
+MERLON = 14
+PORTICO_TOP = 9     # the ceremonial opening runs y0..y9 at V3-V4
+GRILLE_TOP = 5      # ...and is barred y0..y5 at V5, with a tympanum of stone over it
+ATTIC = (15, 19)    # the raised block over the portico that breaks the roof line
+TOWER_TOP = 23      # the towers' own crown course
+CANOPY = 5          # the queue canopy's soffit
+
+
+def _keep_clear(p: dict) -> set:
+    """Where the forecourt must stay open: the lane approaches, the portico, the tower feet."""
+    keep = set()
+    for lane in p["lanes"]:
+        keep.update(range(lane - 2, lane + 3))
+    keep.update(range(p["arch"][0] - 1, p["arch"][1] + 2))
+    for cu in p["towers"]:
+        keep.update(range(cu - 3, cu + 4))     # the tower's own base, at V2
+    return keep
+
+
+def _is_pier(u: int) -> bool:
+    return u % 6 == 0
+
+
+def _course(pal: dict, u: int, y: int, pier: bool) -> str:
+    """What material a cell of the wall takes. ONE function, so a band cannot come out two-toned
+    the way the deck soffit's weathering did when it was hashed on the course instead of the
+    cell."""
+    if y in (0, CORNICE, MERLON):
+        return pal["plinth"]
+    if y == STRING:
+        return pal["band"]
+    if y == PARAPET:
+        return pal["trim"]
+    if y <= DADO:
+        return pal["pier"] if pier else pal["trim"]
+    return pal["pier"] if pier else pal["field"]
+
 
 def _building(L: _Lot, p: dict, pal: dict, du: int) -> dict:
-    """V3..V5: solid the whole 61 but for two door portals and one barred portico.
+    """V3..V5, the whole 61, solid but for two door portals and one barred portico.
 
-    The elevation, and every band of it is a LINE rather than a scatter - the deck soffit's
-    lesson, which shipped 215 grid runs of which 184 were one or two cells:
+    **A THREE-DEEP WALL FILLED SOLID IS A SLAB, AND IT RENDERED AS ONE.** The first build was
+    exactly that - one plane of field with a pier tone every six and a red line across it - and
+    from every bearing it read as a long low wall rather than as a gate. What makes voxels read as
+    architecture is relief and openings, so the bays are RECESSED: at a bay column V3 is left open
+    from `PANEL[0]` to `PANEL[1]` and the field stands at V4, which buys a cell of real shadow the
+    whole length of the front.
 
-        y0        plinth, blackstone, the whole width
-        y1..y4    the field, with a smooth-stone pier every six
-        y5        the string course, red
-        y6..y8    the upper wall
-        y9        the cornice, projecting into V2 on a course of upside-down stairs
-        y10       the parapet
-        y11       crenellations, one on two
+    **THE DADO UNDER IT IS NOT DECORATION.** The machine lives at V4 in those very columns, so a
+    recess reaching the floor would put a comparator and a redstone torch on show from the queue.
+    Solid to `DADO`, and the only opening cut in it is the fare slot.
+
+    The piers then PROJECT, one cell into V2, so the front is a colonnade rather than a plane. A
+    pilaster is also what closes V2 on the six-grid, which is half of what marshals the queue.
     """
-    wall_h = int(p["wall_h"])
-    lanes, arch, towers = p["lanes"], p["arch"], p["towers"]
-    open_u = set()
-    for lane in lanes:
-        open_u.add(lane)
+    lanes, arch = p["lanes"], p["arch"]
+    open_u = set(lanes)
     portico = set(range(arch[0], arch[1] + 1))
-
     n = 0
-    for u in range(du):
-        for v in (3, 4, 5):
-            # the plinth
-            n += bool(L.put(v, u, 0, pal["plinth"]) if u not in open_u | portico else 0)
-            for y in range(1, wall_h + 1):
-                if u in open_u and y <= 2:
-                    continue                      # the turnstile portal, two courses tall
-                if u in portico and v in (3, 4) and y <= 6:
-                    continue                      # the portico, open to its own arch head
-                if u in portico and v == 5 and y <= 5:
-                    continue                      # ...and the grille goes here
-                mat = pal["pier"] if (u % 6 == 0 or u in (0, du - 1)) else pal["field"]
-                n += bool(L.put(v, u, y, mat))
-    # the plinth under the portals and the portico is the threshold you walk on, so it is left to
-    # the lawn; the plinth course either side of a portal is a pier foot instead.
-    for u in sorted(open_u | portico):
-        for v in (3, 4, 5):
-            if u in portico and v in (3, 4):
-                continue
-            if u in open_u:
-                continue
-            n += bool(L.put(v, u, 0, pal["plinth"]))
 
-    # ---- the string course, the upper wall, the cornice, the parapet
     for u in range(du):
-        n += bool(L.put(3, u, wall_h + 1, pal["band"]))
-        n += bool(L.put(4, u, wall_h + 1, pal["trim"]))
-        n += bool(L.put(5, u, wall_h + 1, pal["band"]))
-        for y in range(wall_h + 2, wall_h + 5):
+        pier = _is_pier(u)
+        in_portico = u in portico
+        in_lane = u in open_u
+        for y in range(0, MERLON + 1):
             for v in (3, 4, 5):
-                mat = pal["pier"] if u % 6 == 0 else pal["field"]
-                n += bool(L.put(v, u, y, mat))
-    cor = wall_h + 5
-    for u in range(du):
-        for v in (3, 4, 5):
-            n += bool(L.put(v, u, cor, pal["plinth"]))
+                if in_lane and y <= 1:
+                    continue                              # the turnstile portal
+                if in_portico and v in (3, 4) and y <= PORTICO_TOP:
+                    continue                              # the ceremonial opening
+                if in_portico and v == 5 and y <= PORTICO_TOP:
+                    continue                              # ...and its grille and tympanum
+                if (not pier) and v == 3 and PANEL[0] <= y <= PANEL[1] and not in_portico:
+                    continue                              # the recessed bay panel
+                n += bool(L.put(v, u, y, _course(pal, u, y, pier)))
+        # the pilaster: the pier's own projection into the forecourt, plinth to string course
+        if pier and not in_portico:
+            for y in range(0, STRING + 1):
+                n += bool(L.put(2, u, y, _course(pal, u, y, True)))
+            n += bool(L.put(2, u, STRING + 1, pal["trim_slab"], type="bottom",
+                            waterlogged="false"))
+            L.lamp(2, u, STRING - 2, pal["light"], hanging="false", waterlogged="false")
         # THE CORNICE PROJECTS, and an upside-down stair is what makes it a cornice rather than a
         # painted line. Its tall side is its `facing`, so it leans back INTO the wall it grows
-        # from - the rule `gen/enrich.py` states and `tests/test_park_entrance.py` asserts,
-        # because this repo's renderer draws both directions identically.
-        n += bool(L.put(2, u, cor, pal["trim_stair"], facing=V_IN, half="top",
+        # from - the rule `gen/enrich.py` states, asserted rather than eyeballed because this
+        # repo's renderer draws both directions identically.
+        n += bool(L.put(2, u, CORNICE, pal["trim_stair"], facing=V_IN, half="top",
                         shape="straight", waterlogged="false"))
-    for u in range(du):
-        for v in (3, 4, 5):
-            n += bool(L.put(v, u, cor + 1, pal["trim"]))
-        if u % 2 == 0:
-            for v in (3, 5):
-                n += bool(L.put(v, u, cor + 2, pal["plinth"]))
-    return {"cells": n, "cornice_y": cor}
+    return {"cells": n, "cornice_y": CORNICE, "panel": list(PANEL)}
 
 
 def _portal(L: _Lot, p: dict, pal: dict, lane: int) -> dict:
     """One turnstile lane: the reveal, the iron door, and the arch over it.
 
     The door is in the MIDDLE band, V4, so it is recessed a course from the front and a course
-    from the back: a gate you walk INTO rather than past, and the reveal is what carries the
-    till slot and the lane's own lantern.
+    from the back: a gate you walk INTO rather than past, and the reveal is what carries the fare
+    slot and the lane's own lanterns.
     """
     n = 0
-    # jambs - the two cells either side of the door, both courses, because one of them is what
-    # the machine's torch strongly powers.
-    for du_ in (-1, 1):
-        for y in (0, 1):
+    for du_ in (-1, 1):                       # the jambs, both courses - one of them is what the
+        for y in (0, 1):                      # machine's torch strongly powers
             n += bool(L.put(4, lane + du_, y, pal["pier"]))
-    # the arch head over the portal
-    n += bool(L.put(3, lane, 2, pal["chisel"]))
-    n += bool(L.put(4, lane, 2, pal["chisel"]))
-    n += bool(L.put(5, lane, 2, pal["chisel"]))
+    for v in (3, 4, 5):                       # the arch head over the portal
+        n += bool(L.put(v, lane, 2, pal["chisel"]))
     for du_ in (-1, 1):
-        n += bool(L.put(3, lane + du_, 2, pal["trim_stair"], facing=U_PLUS if du_ < 0 else U_MINUS,
+        n += bool(L.put(3, lane + du_, 2, pal["trim_stair"],
+                        facing=U_PLUS if du_ < 0 else U_MINUS,
                         half="bottom", shape="straight", waterlogged="false"))
     # THE DOOR. `facing` is the way it opens - into the park - and both halves ship SHUT and
     # UNPOWERED, which is the state the machine puts them in at rest.
@@ -534,72 +574,100 @@ def _portal(L: _Lot, p: dict, pal: dict, lane: int) -> dict:
 
 
 def _portico(L: _Lot, p: dict, pal: dict) -> dict:
-    """The ceremonial arch: nine wide, open at V3-V4, and BARRED at V5.
+    """The ceremonial arch: nine wide, ten tall, open at V3-V4, and BARRED at V5.
 
     **YOU SEE THE PARK AND YOU CANNOT WALK INTO IT.** That is the whole idea, and it is what makes
-    a paywall an experience rather than an obstruction: the vista down the axis - the carousel,
-    the wheel and the railway beyond - is framed by an arch and closed by a grille you can look
-    straight through. The park's own apron lamp stands inside it, on the axis, because `Park Ways`
-    put it there and this design does not move other people's furniture.
+    a paywall an experience rather than an obstruction: the vista down the axis - the carousel, the
+    wheel and the railway beyond - is framed by an arch and closed by a grille you look straight
+    through. The park's own apron lamp stands inside it, on the axis, because `Park Ways` put it
+    there and this design does not move other people's furniture.
+
+    The grille stops at `GRILLE_TOP` and stone carries the rest. Barred to the crown it is ninety
+    iron bars - about thirty-four ingots - for four courses nobody looks through, and iron is the
+    scarce metal on this island.
     """
     a0, a1 = p["arch"]
+    ax = int(p["axis"])
     n = 0
     for u in range(a0, a1 + 1):
-        for y in range(0, 6):
+        for y in range(0, GRILLE_TOP + 1):
             n += bool(L.put(5, u, y, pal["grille"], north="true", south="true",
                             east="false", west="false", waterlogged="false"))
-    # the arch head, a flat course with a stepped soffit either side
+        for y in range(GRILLE_TOP + 1, PORTICO_TOP + 1):
+            n += bool(L.put(5, u, y, pal["field"]))       # the tympanum behind the arch
+    # the arch head: a chiselled soffit, and a springer either side leaning into the opening
     for u in range(a0, a1 + 1):
-        for v in (3, 4):
-            n += bool(L.put(v, u, 7, pal["chisel"]))
+        for v in (3, 4, 5):
+            n += bool(L.put(v, u, PORTICO_TOP + 1, pal["chisel"]))
     for v in (3, 4):
-        n += bool(L.put(v, a0 - 1, 6, pal["trim_stair"], facing=U_PLUS, half="bottom",
+        n += bool(L.put(v, a0 - 1, PORTICO_TOP, pal["trim_stair"], facing=U_PLUS, half="bottom",
                         shape="straight", waterlogged="false"))
-        n += bool(L.put(v, a1 + 1, 6, pal["trim_stair"], facing=U_MINUS, half="bottom",
+        n += bool(L.put(v, a1 + 1, PORTICO_TOP, pal["trim_stair"], facing=U_MINUS, half="bottom",
                         shape="straight", waterlogged="false"))
-    # the roundel over the arch - a red field ringed in chiselled stone, on the axis
-    ax = int(p["axis"])
+    # THE ATTIC: a raised block over the arch, so the roof line has a middle as well as two ends.
+    # A parapet that runs level for sixty-one cells is a wall however tall it is.
+    for u in range(a0 - 2, a1 + 3):
+        for v in (3, 4, 5):
+            for y in range(ATTIC[0], ATTIC[1] + 1):
+                if y in (ATTIC[0], ATTIC[1]):
+                    mat = pal["plinth"]
+                elif u in (a0 - 2, a1 + 2):
+                    mat = pal["pier"]
+                else:
+                    mat = pal["field"]
+                n += bool(L.put(v, u, y, mat))
+        if (u - ax) % 2 == 0:
+            n += bool(L.put(3, u, ATTIC[1] + 1, pal["plinth"]))
+            n += bool(L.put(5, u, ATTIC[1] + 1, pal["plinth"]))
+    # the roundel, on the attic and on the axis: a red field ringed in chiselled stone
     for du_ in range(-2, 3):
-        n += bool(L.put(3, ax + du_, 9, pal["band"]))
+        n += bool(L.put(3, ax + du_, ATTIC[0] + 2, pal["band"]))
     for du_ in (-3, 3):
-        n += bool(L.put(3, ax + du_, 9, pal["chisel"]))
-    for du_ in (-2, 2):
-        n += bool(L.put(3, ax + du_, 8, pal["chisel"]))
-        n += bool(L.put(3, ax + du_, 10, pal["chisel"]))
-    for du_ in (-1, 0, 1):
-        n += bool(L.put(3, ax + du_, 8, pal["band"]))
-        n += bool(L.put(3, ax + du_, 10, pal["band"]))
+        n += bool(L.put(3, ax + du_, ATTIC[0] + 2, pal["chisel"]))
+    for du_ in (-2, -1, 0, 1, 2):
+        mat = pal["chisel"] if abs(du_) == 2 else pal["band"]
+        n += bool(L.put(3, ax + du_, ATTIC[0] + 1, mat))
+        n += bool(L.put(3, ax + du_, ATTIC[0] + 3, mat))
     for u in range(a0, a1 + 1, 2):
-        L.lamp(3, u, 6, pal["light"], hanging="true", waterlogged="false")
+        L.lamp(3, u, PORTICO_TOP, pal["light"], hanging="true", waterlogged="false")
     return {"cells": n}
 
 
 def _towers(L: _Lot, p: dict, pal: dict) -> dict:
-    """Two towers, so the gate has a silhouette rather than a wall line.
+    """Two towers, so the gate has a SILHOUETTE rather than a roof line.
 
-    They rise out of the building's own bays, four wide, to twice its height, and they are
+    The first pair were four wide and five courses over the cornice, and they read as chimneys. A
+    tower is a mass that goes to the GROUND: these are seven wide, they project into V2 with the
+    pilasters, they carry a lit belfry stage with an opening on the front face, and they are
     crenellated - the one crown treatment this repo has measured as reading from the ground.
     """
-    cor = int(p["wall_h"]) + 5
-    top = cor + 7
     n = 0
+    belfry = (TOWER_TOP - 7, TOWER_TOP - 5)
     for cu in p["towers"]:
-        for u in range(cu - 1, cu + 3):
-            for v in (3, 4, 5):
-                for y in range(cor + 2, top):
-                    mat = pal["pier"] if (u in (cu - 1, cu + 2)) else pal["field"]
+        for u in range(cu - 3, cu + 4):
+            edge = u in (cu - 3, cu + 3)
+            for v in (2, 3, 4, 5):
+                for y in range(0, TOWER_TOP):
+                    if v == 2 and y > TOWER_TOP - 4:
+                        continue                          # the shaft sets back above the belfry
+                    if (not edge) and v == 3 and belfry[0] <= y <= belfry[1]:
+                        continue                          # the belfry opening
+                    if y in (0, CORNICE, belfry[0] - 1):
+                        mat = pal["plinth"]
+                    elif y == STRING:
+                        mat = pal["band"]
+                    else:
+                        mat = pal["pier"] if edge else pal["field"]
                     n += bool(L.put(v, u, y, mat))
-            n += bool(L.put(3, u, top - 3, pal["band"]))
-            n += bool(L.put(5, u, top - 3, pal["band"]))
-        for u in range(cu - 2, cu + 4):
-            for v in (3, 4, 5):
-                n += bool(L.put(v, u, top, pal["plinth"]))
+        for u in range(cu - 4, cu + 5):
+            for v in (2, 3, 4, 5):
+                n += bool(L.put(v, u, TOWER_TOP, pal["plinth"]))
             if (u - cu) % 2 == 0:
-                for v in (3, 5):
-                    n += bool(L.put(v, u, top + 1, pal["plinth"]))
-        L.lamp(3, cu, top - 4, pal["light"], hanging="false", waterlogged="false")
-        L.lamp(3, cu + 1, top - 4, pal["light"], hanging="false", waterlogged="false")
-    return {"cells": n, "top": top}
+                for v in (2, 5):
+                    n += bool(L.put(v, u, TOWER_TOP + 1, pal["plinth"]))
+        for du_ in (-2, 2):
+            L.lamp(2, cu + du_, belfry[0], pal["light"], hanging="false", waterlogged="false")
+    return {"cells": n, "top": TOWER_TOP}
 
 
 # --------------------------------------------------------------------------- the machine
@@ -686,20 +754,28 @@ def _machine(L: _Lot, p: dict, pal: dict, lane: int, side: int) -> dict:
 
 def _signs(L: _Lot, p: dict, pal: dict, mach: list, du: int) -> int:
     """What the gate has to say, and it says the price because a house that will not print its
-    odds does not know them. Fifteen characters a line, asserted rather than eyeballed."""
+    odds does not know them. Fifteen characters a line, asserted rather than eyeballed.
+
+    **EVERY ONE OF THEM HANGS IN THE DADO**, which is the only band of the front face that is
+    solid all the way along. The first pass hung the title over the portico and the lane plates in
+    the recessed bay panels - both of them columns with an OPENING in them, which is the exact
+    failure `gen/park.py` records four kinds shipping: a wall sign floating in air draws exactly
+    like one on a wall. `_Lot.sign` refuses rather than places, so they came back as a count of
+    two instead of six and nothing else said a word.
+    """
     price = price_blocks(int(p["price_level"]))
-    ax = int(p["axis"])
+    a0, a1 = p["arch"]
     n = 0
-    n += L.sign(2, ax - 1, 3, V_OUT, (p["title"], "", "MIDWAY GATE", ""), (3, ax - 1, 3))
-    n += L.sign(2, ax + 1, 3, V_OUT, ("ONE FARE", f"{price} GRASS BLOCKS", "", "PAY AT A LANE"),
-                (3, ax + 1, 3))
+    n += L.sign(2, a0 - 3, DADO, V_OUT, (p["title"], "", "MAIN GATE", ""), (3, a0 - 3, DADO))
+    n += L.sign(2, a1 + 3, DADO, V_OUT, ("ONE FARE", f"{price} GRASS", "PAY AT A LANE", ""),
+                (3, a1 + 3, DADO))
     for m in mach:
-        lane, side = m["lane"], m["side"]
-        n += L.sign(2, lane, 3, V_OUT, ("TURNSTILE", f"{price} GRASS", "IN THE SLOT", "->"),
-                    (3, lane, 3))
+        lane = m["lane"]
+        n += L.sign(2, lane, DADO, V_OUT, ("TURNSTILE", f"{price} GRASS", "IN THE SLOT", ""),
+                    (3, lane, DADO))
         slot_u = m["slot"][1]
-        n += L.sign(2, slot_u, 2, V_OUT, ("FARE SLOT", f"{price} GRASS", "BLOCKS", ""),
-                    (3, slot_u, 2))
+        n += L.sign(2, slot_u, DADO, V_OUT, ("FARE SLOT", f"{price} GRASS", "BLOCKS", ""),
+                    (3, slot_u, DADO))
     return n
 
 
@@ -715,8 +791,11 @@ def build(cfg: dict, donors=None) -> Canvas:
     pal = _pal(p["land"])
 
     mask = _ways_mask(p["ways"], v0, u0, dv, du) if p.get("ways") else None
-    top = int(p["wall_h"]) + 13
-    c = Canvas(dv, top + 3, du)
+    # THE CANVAS IS SIZED OFF THE COURSE SCHEDULE, never off a number typed twice: the towers
+    # are the tallest thing here and a canvas an inch short CROPS them, which `_Lot.put`
+    # would report as a refusal and nothing else would notice.
+    top = TOWER_TOP + 2
+    c = Canvas(dv, top + 1, du)
     L = _Lot(c, dv, du, mask)
 
     detail = {}

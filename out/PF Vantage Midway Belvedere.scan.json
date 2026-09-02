@@ -1,0 +1,284 @@
+{
+  "origin": {
+    "x": 97639,
+    "y": 203,
+    "z": 80528
+  },
+  "size": [
+    15,
+    15
+  ],
+  "generated_by": "park_vantage",
+  "kind": "park_vantage",
+  "land": "midway",
+  "lot": [
+    139,
+    228,
+    153,
+    242
+  ],
+  "shaft": [
+    15,
+    15
+  ],
+  "height": 48,
+  "facing": "west",
+  "look": "west",
+  "deck_surface_above_lawn": 36,
+  "deck_world_y": 239,
+  "storeys": 3,
+  "rise": 12,
+  "door": "west",
+  "lights": 22,
+  "outside_lot_refused": 0,
+  "flights": [
+    {
+      "from": 0,
+      "to": 11,
+      "facing": "north",
+      "band": [
+        11,
+        13
+      ],
+      "u_from": 13,
+      "u_to": 2
+    },
+    {
+      "from": 12,
+      "to": 23,
+      "facing": "south",
+      "band": [
+        1,
+        3
+      ],
+      "u_from": 1,
+      "u_to": 12
+    },
+    {
+      "from": 24,
+      "to": 35,
+      "facing": "north",
+      "band": [
+        11,
+        13
+      ],
+      "u_from": 13,
+      "u_to": 2
+    }
+  ],
+  "top_surface": 36,
+  "crown": "pavilion",
+  "crown_cells": 334,
+  "contract": "a climbable vantage: 3 flights of 12 treads, a room at every storey, and a deck whose walking surface is 36 courses over the lawn at world Y239 - reached on foot from the park's own ground and walkable back down, inside V139-153 / U228-242 and not one cell outside it",
+  "requires_in_game": [
+    "colour and the read of the crown against the sky can only be judged in world",
+    "no mechanism is claimed by this geometry: there is no lift, no gate and no circuit"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "landmark",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "focal_face": "west",
+      "narrative": "A stone-brick belvedere with white pilasters at every fourth cell, four courses of barred window at every storey, a red crown band, an open loggia on the west face looking onto the Circus, and a deck thirty-six courses over the lawn under an open striped canopy carried on eight posts.\n"
+    },
+    "metrics": {
+      "blocks": 2786,
+      "materials": 13,
+      "dominant_material_share": 0.2922,
+      "light_blocks": 11,
+      "massing": {
+        "width": 15,
+        "height": 41,
+        "depth": 15,
+        "fill_ratio": 0.302
+      },
+      "silhouette": {
+        "top": {
+          "area": 225,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 559,
+          "fill_ratio": 0.7764
+        },
+        "side": {
+          "area": 572,
+          "fill_ratio": 0.7944
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.3722,
+          0.3668,
+          0.2609
+        ],
+        "top_silhouette_perimeter": 60,
+        "surface_faces_per_block": 2.2233
+      },
+      "material_counts": {
+        "stone_bricks": 814,
+        "white_wool": 513,
+        "oak_planks": 398,
+        "chiseled_stone_bricks": 171,
+        "stone_brick_stairs": 164,
+        "smooth_stone": 160,
+        "cracked_stone_bricks": 158,
+        "red_wool": 156,
+        "polished_blackstone_bricks": 91,
+        "stone_brick_wall": 83,
+        "oak_stairs": 56,
+        "lantern": 11
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "a6f7c5e1c2cf0209380497b7d85aa72d8a3b275a044188edd51f119657811c08",
+    "generator_source_digest": "1175f4d885a23be1cbd5490a59c49171b8704f775111894e4728bee98a30fc21",
+    "anchors": [
+      {
+        "name": "street_front",
+        "kind": "visual_front",
+        "position": [
+          0,
+          1,
+          7
+        ],
+        "facing": "west",
+        "width": 3
+      },
+      {
+        "name": "entry",
+        "kind": "entry",
+        "position": [
+          0,
+          1,
+          7
+        ],
+        "facing": "west",
+        "width": 3
+      },
+      {
+        "name": "summit",
+        "kind": "deck",
+        "position": [
+          7,
+          36,
+          7
+        ],
+        "facing": "up",
+        "width": 13
+      }
+    ],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": true,
+      "mechanics": [
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 96.326519,
+    "blocks": 2786,
+    "blocks_per_second": 28.92
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 3,
+    "roles": [
+      "building"
+    ],
+    "blocks": 2786,
+    "mechanic_families": [
+      "light"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "experience",
+    "player_verbs": [
+      "climb the stair",
+      "stop at the loggia",
+      "stand under the canopy"
+    ],
+    "outcome": "The Midway's only high place, and the one spot in the park level with the Aeronaut balloon's envelope: the Circus reads as a composition from here rather than as a road, and the Sky Lift's wheel fills the northern view.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Vantage Midway Belvedere.litematic",
+  "name": "PF Vantage Midway Belvedere"
+}
