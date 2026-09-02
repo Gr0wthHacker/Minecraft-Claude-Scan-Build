@@ -274,7 +274,20 @@ THEMES = {
         "furniture": ["bench", "planter", "lamppost", "signpost", "bin", "flagpole"],
         "spacing": 0,
         "reserve": [[97640, 80351, 97649, 80449]],
-        "floors": [{"name": "Ground", "y": 0}],
+        # **THE FRONTIER'S PROGRAM DOES NOT FIT ITS PLOT, AND THE ANSWER IS DOWN.**
+        #
+        # Measured: 6,709 cells of module footprint against 8,811 of owned land - 76% before a
+        # single street is drawn - and a land with a 5-wide spine, 3-wide frontage walks and a
+        # service road cannot pack much past 60%. Every reordering simply changed WHICH module
+        # was squeezed out; the Saloon and the Gold Sluice took turns reporting NO SITE.
+        #
+        # PARK_VERTICAL_MASTERPLAN.md section 6 already answers it: the mine journey belongs
+        # under the town, and the hidden core band (B-48..B-8) is what it is for. A module on
+        # the Undermine floor stands 24 courses down, and `_clear` has always compared boxes in
+        # three dimensions - so it costs the surface nothing. This is the difference between a
+        # flat fairground with tunnels and a park whose mine is actually beneath it.
+        "floors": [{"name": "Ground", "y": 0},
+                   {"name": "Undermine", "y": -24}],
         "modules": [
             # **A LEVER TO ARM AND A BUTTON TO FIRE.** A two-block SUBTRACT interlock rather
             # than a machine pit - every pit in this repo has cost a floating floor - then a
@@ -284,22 +297,40 @@ THEMES = {
             {"name": "The Powder House", "gen": "frontiertown", "kind": "powderhouse",
              "size": [23, 8, 13], "orient": False,
              "params": {"land": "frontier", "facing": "east", "drift": 21}},
+            # ------------------------------------------------------- Prospecting Row
+            #
+            # PARK_FRONTIER.md asks for "Gold Sluice, Shooting Range, Nugget Chute under one
+            # covered porch, then Assay/Prize redemption" - one row of things you do with your
+            # hands, with the place you spend a win at the end of it. They were four separate
+            # machines scattered across the plot; naming the district is what puts them on one
+            # street, in the order a guest uses them.
+            #
             # Reuse, not new code: a plinko board is a gravel-washing chute in a mining town, and
             # DROP is a fourth verb beside press, shoot and weigh.
             {"name": "The Nugget Chute", "gen": "arcade", "kind": "plinko",
-             "size": [17, 17, 18], "orient": False,
+             "size": [17, 17, 18], "orient": False, "district": "Prospecting Row",
              "params": {"land": "frontier", "facing": "east", "title": "NUGGET CHUTE"}},
-            # Four paying games and nowhere to spend a win is a machine, not a game.
-            {"name": "Pay Window", "gen": "arcade", "kind": "prizecounter",
-             "size": [11, 7, 17], "orient": False,
-             "params": {"land": "frontier", "facing": "east"}},
             # A shooting range and an assay scale: both are things you do with your hands, and
             # both belong to a mining town.
             {"name": "Shooting Range", "gen": "arcade", "kind": "range",
-             "size": [26, 13, 15], "orient": False,
+             "size": [26, 13, 15], "orient": False, "district": "Prospecting Row",
              "params": {"land": "frontier", "facing": "east"}},
+            # **THE ASSAY OFFICE AND THE PAY WINDOW ARE ONE COUNTER, ON MAIN STREET.**
+            # PARK_FRONTIER.md: "Pay Window + Assay Office: Merge into Assay & Prize Office
+            # between games and Main Street", and its Main Street holds "Saloon, Assay & Prize
+            # Office, service/rest frontage". Two separate buildings - one weighing your find,
+            # one paying for it - is two queues for one transaction, and the pair sat at
+            # opposite ends of the land. They keep their own mechanisms and stand shoulder to
+            # shoulder, which is what a merge means for two things that each still have to work.
+            #
+            # They share Main Street's district rather than owning one of their own: a
+            # two-building district competes with the Saloon for the same street and leaves it
+            # NO SITE, which is what happened when they had their own.
             {"name": "Assay Office", "gen": "arcade", "kind": "weigh",
-             "size": [30, 10, 19], "orient": False,
+             "size": [30, 10, 19], "orient": False, "district": "Boomtown Main Street",
+             "params": {"land": "frontier", "facing": "east"}},
+            {"name": "Prize Office", "gen": "arcade", "kind": "prizecounter",
+             "size": [11, 7, 17], "orient": False, "district": "Boomtown Main Street",
              "params": {"land": "frontier", "facing": "east"}},
             # **A GAME YOU PLAY WITH YOUR HANDS.** Drop items into the head box; flowing
             # water carries them thirteen cells down a stepped launder into a hopper row feeding
@@ -307,7 +338,7 @@ THEMES = {
             # rings a bell. Both simulators agree, in both directions - it is dark when empty.
             # It replaces the Riverboat, which was a hull you could walk onto and nothing else.
             {"name": "Gold Sluice", "gen": "frontiertown", "kind": "sluice",
-             "size": [22, 9, 15], "orient": False,
+             "size": [22, 9, 15], "orient": False, "district": "Prospecting Row",
              "params": {"land": "frontier", "facing": "east"}},
             {"name": "Frontier Map", "gen": "wayfinding", "kind": "mapboard",
              "size": [3, 9, 11], "orient": False,
@@ -318,11 +349,19 @@ THEMES = {
              "params": {"land": "frontier", "facing": "east",
                         "arms": [{"direction": "south", "dest": "Midway"},
                                  {"direction": "west", "dest": "Mine Coaster"}]}},
-            {"name": "Runaway Mine", "gen": "attractions", "kind": "runawaymine",
-             "size": [26, 12, 23],
+            # **"MINE CART ESCAPE", NOT "RUNAWAY MINE".** PARK_FRONTIER.md asks for a family
+            # ride "mechanically and visually distinct from coaster", and the two names were a
+            # promise that they were the same thing twice. The mechanism is already the distinct
+            # one; the name was the part still claiming otherwise.
+            # ...and it is the ride that goes down there. A mine cart escape whose whole story
+            # is getting OUT of a mine belongs in one; on the surface it was a shed with track
+            # in it, taking 598 cells of the town's own street frontage to be so.
+            {"name": "Mine Cart Escape", "gen": "attractions", "kind": "runawaymine",
+             "size": [26, 12, 23], "district": "Mining Square", "floor": 1,
              "params": {"land": "frontier", "facing": "east"}},
             {"name": "Mine Coaster", "gen": "coaster", "kind": "coaster",
              "size": [47, 38, 47], "orient": False, "anchor": "edge", "side": "north",
+             "district": "Mining Square",
              "params": {"land": "frontier", "span": 44, "top": 34, "facing": "south"}},
             # **THE LOG FLUME IS BACK - `fluids.carries` returns True for it now.**
             #
@@ -354,13 +393,15 @@ THEMES = {
              "size": [31, 18, 31], "orient": False,
              "params": {"land": "frontier", "rapids_span": 23, "rapids_top": 12, "pool": 4,
                         "facing": "west"}},
+            # The headframe is the mine district's own entrance and its vertical landmark, so
+            # it belongs to Mining Square rather than standing wherever a bay was free.
             {"name": "The Mine Head", "gen": "frontiertown", "kind": "minehead",
-             "size": [19, 32, 21], "orient": False,
+             "size": [19, 32, 21], "orient": False, "district": "Mining Square",
              "params": {"land": "frontier", "facing": "east"}},
             # A saloon is a FRONTAGE with a bar behind it, so the square reservation books
             # its own depth again in air. The frontier had four free 17x17 slots and no 19x19.
             {"name": "The Saloon", "gen": "frontiertown", "kind": "saloon",
-             "size": [17, 16, 19], "orient": False,
+             "size": [17, 16, 19], "orient": False, "district": "Boomtown Main Street",
              "params": {"land": "frontier", "width": 17, "depth": 12, "facing": "east"}},
             # orient False: a windmill's sails read from every side, so it does not need the
             # square reservation - and at 13x21 booking 23x23 was the difference between it
@@ -393,82 +434,81 @@ THEMES = {
         "furniture": ["bench", "lamppost", "topiary", "signpost", "bin", "planter"],
         "spacing": 0,
         "reserve": [[97640, 80751, 97649, 80849]],
-        "floors": [{"name": "Ground", "y": 0}],
+        # **AND THE HOLLOW GOES DOWN TOO, for the same measured reason as the Frontier.** Its
+        # program needs 5,744 cells of the 8,811 it owns before a street is drawn, and the
+        # Plummet - a 20x17 drop tower, the smallest of its five flagships - was the module that
+        # kept losing. PARK_VERTICAL_MASTERPLAN.md section 7 already says where the room is:
+        # "public streets lead to a much older world below: crypts, forgotten rail tunnels, and
+        # a final founder's vault."
+        "floors": [{"name": "Ground", "y": 0},
+                   {"name": "Undercrypt", "y": -20}],
         "modules": [
-            # **A TOMB YOU WALK INTO AND A PUZZLE YOU SOLVE.** Three shroud-levers, each
-            # lighting its own lamp; the vault's doors open onto the prize alcove only while all
-            # three are up, and shut the moment one drops. It replaces the Graveyard and the Crypt,
-            # which were a field of stones and a sealed door.
+            # ---------------------------------------------------------- the Crypt Market
+            #
+            # **ELEVEN SMALL MODULES ARE NOT ELEVEN ATTRACTIONS.** PARK_HOLLOW.md: "Keep five
+            # major experiences; stop treating eleven small modules as equal attractions. Mirror
+            # Maze, Ossuary, Vault, Reliquary, and rest/service functions become one purposeful
+            # Crypt Market."
+            #
+            # Nothing here is deleted and nothing new is invented: what changes is that they now
+            # name a DISTRICT, and the packer sites a district together instead of hugging
+            # whichever neighbour happens to be nearest. That one word is the difference between
+            # a market and five machines standing on paving at opposite corners of the plot.
+            #
+            # **A TOMB YOU WALK INTO AND A PUZZLE YOU SOLVE.** Three shroud-levers, each lighting
+            # its own lamp; the vault's doors open onto the prize alcove only while all three are
+            # up, and shut the moment one drops.
+            # ...and the Ossuary is the piece that belongs down there. A tomb you walk INTO,
+            # on the surface, is a shed with levers in it; twenty courses under the market it is
+            # the crypt the market is named after, and it hands the Plummet back its site.
             {"name": "The Ossuary", "gen": "hollowmanor", "kind": "ossuary",
-             "size": [25, 10, 23],
+             "size": [25, 10, 23], "district": "Crypt Market", "floor": 1,
              "params": {"land": "hollow", "facing": "east"}},
-            # ...and this is where a Vault or Ossuary win gets spent. A game with no payout is a
+            # ...and this is where an Ossuary or Vault win gets spent. A game with no payout is a
             # machine, not a game.
             {"name": "The Reliquary", "gen": "arcade", "kind": "prizecounter",
-             "size": [11, 7, 17], "orient": False,
+             "size": [11, 7, 17], "orient": False, "district": "Crypt Market",
              "params": {"land": "hollow", "facing": "east"}},
-            {"name": "Sign The Ossuary", "gen": "wayfinding", "kind": "marker",
-             "size": [3, 5, 3], "orient": False,
-             "params": {"land": "hollow", "facing": "east", "name": "The Ossuary",
-                        "does": ["pull all three", "at once"]}},
-            # **A NAMEPLATE THAT ONLY NAMES A BUILDING ANSWERS THE WRONG QUESTION.** "THE
-            # VAULT" tells you which building it is and not whether it is worth going in,
-            # which is half the verdict a visitor makes from the street. Every marker
-            # carries what you DO there, in fifteen characters a line.
-            {"name": "Sign Haunted Manor", "gen": "wayfinding", "kind": "marker",
-             "size": [3, 5, 3], "orient": False,
-             "params": {"land": "hollow", "facing": "east", "name": 'Haunted Manor',
-                        "does": ['walk it through', 'front to back']}},
-            {"name": "Sign Ghost Train", "gen": "wayfinding", "kind": "marker",
-             "size": [3, 5, 3], "orient": False,
-             "params": {"land": "hollow", "facing": "east", "name": 'Ghost Train',
-                        "does": ['ride the cart', 'in the dark']}},
-            {"name": "Sign Clock Tower", "gen": "wayfinding", "kind": "marker",
-             "size": [3, 5, 3], "orient": False,
-             "params": {"land": "hollow", "facing": "east", "name": 'Clock Tower',
-                        "does": ['climb the stair', 'see the zone']}},
-            {"name": "Sign The Plummet", "gen": "wayfinding", "kind": "marker",
-             "size": [3, 5, 3], "orient": False,
-             "params": {"land": "hollow", "facing": "east", "name": 'The Plummet',
-                        "does": ['50 course drop', 'hold on']}},
-            {"name": "Sign Mirror Maze", "gen": "wayfinding", "kind": "marker",
-             "size": [3, 5, 3], "orient": False,
-             "params": {"land": "hollow", "facing": "east", "name": 'Mirror Maze',
-                        "does": ['find your way', 'no way back']}},
-            {"name": "Sign The Vault", "gen": "wayfinding", "kind": "marker",
-             "size": [3, 5, 3], "orient": False,
-             "params": {"land": "hollow", "facing": "east", "name": 'The Vault',
-                        "does": ['crack the code', 'win the prize']}},
-            {"name": "Sign The Quiet Room", "gen": "wayfinding", "kind": "marker",
-             "size": [3, 5, 3], "orient": False,
-             "params": {"land": "hollow", "facing": "east", "name": 'The Quiet Room',
-                        "does": ['make no sound', 'sculk listens']}},
-            {"name": "Sign The Seance", "gen": "wayfinding", "kind": "marker",
-             "size": [3, 5, 3], "orient": False,
-             "params": {"land": "hollow", "facing": "east", "name": 'The Seance',
-                        "does": ['pull the cord', 'read the meter']}},
-            # A 4x4 grid rather than 7x6: measured, 13x13 against 17x19. The hollow gained an
-            # ossuary and a prize counter and the maze was the piece that no longer fitted; it
-            # keeps its spanning-tree branches and its single solved route, so it is a shorter
-            # walk rather than a simpler one.
+            # A 4x4 grid rather than 7x6: measured, 13x13 against 17x19. It keeps its
+            # spanning-tree branches and its single solved route, so it is a shorter walk rather
+            # than a simpler one.
             {"name": "Mirror Maze", "gen": "attractions", "kind": "mirrormaze",
-             "size": [13, 10, 13], "orient": False,
+             "size": [13, 10, 13], "orient": False, "district": "Crypt Market",
              "params": {"land": "hollow", "facing": "east", "maze_w": 4, "maze_d": 4}},
-            # The hollow gets the two games that need a dark room: a combination vault, and a
-            # corridor of sculk sensors you have to cross without making a sound.
+            # The two games that need a dark room: a combination vault, and a corridor of sculk
+            # sensors you have to cross without making a sound.
             {"name": "The Vault", "gen": "arcade", "kind": "safe",
-             "size": [42, 8, 27], "orient": False,
+             "size": [42, 8, 27], "orient": False, "district": "Crypt Market",
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "The Quiet Room", "gen": "arcade", "kind": "quiet",
-             "size": [19, 7, 13], "orient": False,
+             "size": [19, 7, 13], "orient": False, "district": "Crypt Market",
              "params": {"land": "hollow", "facing": "east"}},
+            # **THE MARKET NEEDS SOMEWHERE TO SIT DOWN.** Section 7 of the vertical masterplan
+            # asks the Crypt Market to be "discovery/recovery" and names a Mourning Parlour for
+            # the recovery half. Every other land already had a recovery node and the Hollow had
+            # none, so a guest who had walked the manor, dropped the tower and solved the crypt
+            # had nowhere in the land to stop.
+            {"name": "The Mourning Parlour", "gen": "spectacle", "kind": "foodcourt",
+             "size": [15, 6, 19], "orient": False, "district": "Crypt Market",
+             "params": {"land": "hollow", "facing": "east"}},
+
+            # ---------------------------------------------------------- the Manor Quarter
             {"name": "The Seance", "gen": "hollowmanor", "kind": "seance",
-             "size": [15, 14, 19], "orient": False,
+             "size": [15, 14, 19], "orient": False, "district": "Manor Quarter",
              "params": {"land": "hollow", "facing": "east"}},
+
+            # ---------------------------------------------------------- wayfinding
+            #
+            # **NINE NAMEPLATES FOR ELEVEN DESTINATIONS IS NOT WAYFINDING, IT IS NOISE**, and it
+            # is the one thing PARK_HOLLOW.md is explicit about: signage belongs "at Gate/Arrival
+            # Court, Manor/Tower split, Ghost Train/Market split, and return loop - not at every
+            # facade." A label on every building answers "which building is this", which a
+            # visitor standing in front of one already knows; what they do not know is which way
+            # to turn. So the nine markers are gone and the two real forks each get a post.
             {"name": "Hollow Map", "gen": "wayfinding", "kind": "mapboard",
              "size": [3, 9, 11], "orient": False,
              "params": {"land": "hollow", "zone": "hollow", "title": "HOLLOW",
-                        "legend": ["MANOR west", "TOWER east", "RIDES south"],
+                        "legend": ["MANOR west", "TOWER east", "MARKET south"],
                         "facing": "east"}},
             {"name": "Hollow Post", "gen": "wayfinding", "kind": "fingerpost",
              "size": [9, 9, 9], "orient": False,
@@ -477,6 +517,18 @@ THEMES = {
                                  {"direction": "west", "dest": "Haunted Manor"},
                                  {"direction": "east", "dest": "Clock Tower"},
                                  {"direction": "south", "dest": "The Plummet"}]}},
+            # The Manor/Tower split and the Train/Market split: the two places a visitor has to
+            # choose and cannot see both answers from.
+            {"name": "Manor Turn Post", "gen": "wayfinding", "kind": "fingerpost",
+             "size": [9, 9, 9], "orient": False,
+             "params": {"land": "hollow", "facing": "east",
+                        "arms": [{"direction": "west", "dest": "Haunted Manor"},
+                                 {"direction": "east", "dest": "The Plummet"}]}},
+            {"name": "Market Turn Post", "gen": "wayfinding", "kind": "fingerpost",
+             "size": [9, 9, 9], "orient": False,
+             "params": {"land": "hollow", "facing": "east",
+                        "arms": [{"direction": "north", "dest": "Ghost Train"},
+                                 {"direction": "south", "dest": "The Reliquary"}]}},
             {"name": "Ghost Train", "gen": "attractions", "kind": "ghosttrain",
              "size": [21, 12, 15],
              "params": {"land": "hollow", "facing": "east"}},
@@ -484,13 +536,14 @@ THEMES = {
             # under the floorboard it fires through, so the footprint is unchanged and the height
             # is not.
             {"name": "Haunted Manor", "gen": "hollowmanor", "kind": "manor",
-             "size": [35, 52, 42],
+             "size": [35, 52, 42], "district": "Manor Quarter",
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "The Plummet", "gen": "bigwheel", "kind": "drop",
-             "size": [20, 73, 17],
+             "size": [20, 73, 17], "district": "Tower Quarter",
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "Clock Tower", "gen": "hollowmanor", "kind": "clocktower",
              "size": [17, 49, 17], "anchor": "edge", "side": "east",
+             "district": "Tower Quarter",
              "params": {"land": "hollow", "facing": "east"}},
             {"name": "Hollow Gate", "gen": "park", "kind": "arch", "size": [9, 9, 5],
              "anchor": "edge", "side": "north",
@@ -724,6 +777,114 @@ def bays(plot, size, spacing: int = 3, margin: int = 4) -> list:
     return out
 
 
+def _sitable(sited, candidate, own=None) -> bool:
+    """Both siting contracts at once: rule 4, and every public interface on the land.
+
+    One predicate rather than two calls at three call sites, because the third call site
+    is the one that gets forgotten - the alternate-facing branch has already been the
+    last to learn a rule twice.
+    """
+    return _rule_four_clear(sited, candidate) and _anchors_on_land(candidate, own)
+
+
+def _anchors_on_land(candidate, own) -> bool:
+    """Do all this module's public interfaces land on the land the theme owns?
+
+    The repair pass already turns a module whose FRONT opens onto land the theme does not
+    own. It knows nothing about the other seven anchors, so a ride sited hard against the
+    eastern boundary put its emergency exit two cells into the transit corridor - a fire
+    exit onto a railway, correctly unreachable, and there is no facing that fixes it. The
+    answer is not to turn it, it is not to put it there.
+
+    A handoff is exempt: an arch's connector side is off the land BY DEFINITION.
+    """
+    if own is None:
+        return True
+    from . import interfaces as _interfaces
+    trial = dict(candidate)
+    _interfaces.annotate([trial], owned=own)
+    for anchor in trial.get("interface", {}).get("anchors", []):
+        if not anchor.get("public") or anchor["name"] in _interfaces.HANDOFF:
+            continue
+        x, _y, z = anchor["at"]
+        if not (own[0] <= x <= own[1] and own[2] <= z <= own[3]):
+            return False
+    return True
+
+
+def _rule_four_clear(sited, candidate) -> bool:
+    """May this module stand here without discharging into a neighbour's queue?
+
+    PARK_OVERHAUL.md rule 4. Within one module the interface layout already keeps a queue mouth
+    and a discharge apart; what no module can see about itself is the ARRANGEMENT - a prize
+    counter sited shoulder to shoulder with a vault, its collection point exactly on the vault's
+    queue mouth. That is not a hypothetical: it is what the Hollow shipped, and grouping the two
+    into one market made it worse rather than better, because a district is precisely a set of
+    buildings standing close together.
+
+    So it is a SITING constraint, checked before a spot is taken rather than reported afterwards.
+    Reported, the only available fix is to move a module, which is this function running late.
+
+    **THE SITED MODULES HAVE NO ANCHORS YET, AND THE FIRST VERSION FORGOT IT.** Interfaces are
+    annotated after siting, so comparing a freshly-annotated candidate against the plan's own
+    module dicts compared it against nothing: nineteen checks, zero refusals, and the Reliquary
+    still discharging into the Vault. Both sides are annotated here, on copies, so the check is
+    of the arrangement rather than of one half of it.
+    """
+    from . import interfaces as _interfaces
+    trial = dict(candidate)
+    others = [dict(m) for m in sited if m.get("kind") not in {"paths", "plaza"}]
+    _interfaces.annotate(others + [trial])
+    if not trial.get("interface", {}).get("anchors"):
+        return True
+    return not _interfaces.exit_queue_collisions(others + [trial])
+
+
+#: How far a district's members may span before it stops reading as one street. A frontage of
+#: three or four buildings is about 60 cells on this plot; past that a guest sees separate
+#: buildings, whatever the theme calls them. Invented, like every other threshold in this file,
+#: and stated so the next person suspects the number before the code.
+DISTRICT_SPREAD = 60
+
+
+def _districts_of(modules) -> dict:
+    out = {}
+    for module in modules:
+        if module.get("district"):
+            out.setdefault(module["district"], []).append(module)
+    return {name: members for name, members in out.items() if len(members) > 1}
+
+
+def _district_spread(members) -> int:
+    """The longer side of the box a district's modules occupy."""
+    boxes = [_box_of(m) for m in members]
+    return max(max(b[2] for b in boxes) - min(b[0] for b in boxes),
+               max(b[3] for b in boxes) - min(b[1] for b in boxes)) + 1
+
+
+def _district_box(modules, district):
+    """The bounding box of everything already sited in a named district, or None.
+
+    Read off the SITED modules rather than kept as a running variable: a module can be refused a
+    site, and a ledger that assumed it landed would pull the whole district toward a building
+    that does not exist.
+    """
+    if not district:
+        return None
+    boxes = [_box_of(m) for m in modules if m.get("district") == district]
+    if not boxes:
+        return None
+    return (min(b[0] for b in boxes), min(b[1] for b in boxes),
+            max(b[2] for b in boxes), max(b[3] for b in boxes))
+
+
+def _box_gap(bx, bz, size, box) -> int:
+    """How far a candidate bay sits from a district's own footprint, 0 when they touch."""
+    x0, z0, x1, z1 = box
+    cx1, cz1 = bx + size[0] - 1, bz + size[2] - 1
+    return max(0, max(x0 - cx1, bx - x1)) + max(0, max(z0 - cz1, bz - z1))
+
+
 def _contact(bx, bz, size, taken, bounds) -> int:
     """How much of this candidate box's edge touches something already there, or the boundary.
 
@@ -929,7 +1090,32 @@ def _site_order(spec: dict) -> list:
         return fw * fd
 
     free.sort(key=area, reverse=True)
-    return edge + free + cover
+
+    # **A DISTRICT IS SITED CONSECUTIVELY, OR NAMING IT BUYS ALMOST NOTHING.** Sorted purely by
+    # area, a district's members are placed at wildly different moments - the Assay Office is the
+    # third module of the Frontier and the Prize Office the fourteenth - and by the time the
+    # second one is looking for a spot, every bay near the first has been taken by something
+    # else. Measured: the pair came out 78 cells apart on a 99-cell plot, which is two ends of
+    # the land rather than one counter.
+    #
+    # So the biggest member still decides WHERE a district starts - the rule this function exists
+    # for is untouched, and a large module still gets the pick of the plot - and the rest of the
+    # district follows immediately behind it, largest first. A module with no district keeps its
+    # place in the ordinary queue.
+    ordered, seen = [], set()
+    by_district = {}
+    for m in free:
+        if m.get("district"):
+            by_district.setdefault(m["district"], []).append(m)
+    for m in free:
+        if id(m) in seen:
+            continue
+        group = by_district.get(m.get("district")) or [m]
+        for member in group:
+            if id(member) not in seen:
+                seen.add(id(member))
+                ordered.append(member)
+    return edge + ordered + cover
 
 
 def make(brief: str, world: str, name: str | None = None, theme: str | None = None,
@@ -1033,6 +1219,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
     # measured footprint already includes each module's own apron, so zero here is a party wall,
     # not two buildings sharing a cell - which `_clear` still forbids.
     spacing = int(spec.get("spacing", spacing))
+    _own_for_siting = _owned_bounds(pl_plot, spec) if pl_plot is not None else None
     taken: list = []
     # **INFRASTRUCTURE IS RESERVED BEFORE THE BUILDINGS ARE PACKED, or it has nowhere to land.**
     # The transit line runs a fixed corridor down the east of all three plots and its stations
@@ -1074,6 +1261,16 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
         for i in range(int(mspec.get("count", 1))):
             size = ([bw + spacing, fh, bd + spacing] if orient
                     else [fw + spacing, fh, fd + spacing])
+            # **THE FLOOR'S LIFT HAS TO REACH THE COLLISION TEST, NOT ONLY THE MODULE
+            # DICT.** `_clear` has always compared boxes in three dimensions, and the lift
+            # was applied afterwards - so a ride on an Undermine floor 24 courses down still
+            # claimed its surface footprint against everything else, and moving the mine
+            # underground bought the town exactly nothing. The three free-siting branches
+            # site at `level`, which is the plane plus the floor's own offset; the edge,
+            # centre, origin and cover branches stay on the plane, because a gate on a
+            # different storey is not a gate.
+            lift = floors[min(int(mspec.get('floor', 0)), len(floors) - 1)]['y']
+            level = plane if plane is None else plane + lift
             spot = None
             taken_box = None
             bay = None
@@ -1208,17 +1405,36 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             # because a tidy grid over rolling terrain is still a build on rolling terrain.
             if plane is not None and pl_plot is not None:
                 _gb = _plot_bounds(pl_plot)
-                _bays = sorted(bays(pl_plot, size, spacing=1),
-                               key=lambda t: -_contact(t[0], t[1], size, taken, _gb))
+                # **A DISTRICT IS SITED TOGETHER, OR IT IS NOT A DISTRICT.** PARK_HOLLOW.md:
+                # "stop treating eleven small modules as equal attractions" - and the reason the
+                # Hollow reads as eleven machines on paving is that the packer sorts by CONTACT
+                # with anything already there, which hugs whichever neighbour happens to be
+                # nearest and scatters a market across the plot. A module that names a district
+                # prefers the bays nearest what its own district has already claimed; when the
+                # district has nothing yet, or nothing near enough is free, it falls back to the
+                # ordinary rule rather than reporting NO SITE. Grouping is a preference, and a
+                # sited module beats a tidy one.
+                _here = _district_box(pl.modules, mspec.get("district"))
+                if _here is not None:
+                    _bays = sorted(bays(pl_plot, size, spacing=1),
+                                   key=lambda t: (_box_gap(t[0], t[1], size, _here),
+                                                  -_contact(t[0], t[1], size, taken, _gb)))
+                else:
+                    _bays = sorted(bays(pl_plot, size, spacing=1),
+                                   key=lambda t: -_contact(t[0], t[1], size, taken, _gb))
                 for (bx, bz) in _bays:
                     # bays() hands back where the BUILD goes; the anchor is offset from it
                     ax, az = bx - fx, bz - fz
                     if not (pl_plot.contains(bx, bz)
                             and pl_plot.contains(bx + size[0], bz + size[2])):
                         continue
-                    if _clear(taken, bx, plane + fy, bz, size):
+                    if _clear(taken, bx, level + fy, bz, size) and _sitable(
+                            pl.modules, {"name": mspec["name"], "gen": mspec["gen"],
+                                         "kind": mspec["kind"], "at": [ax, plane, az],
+                                         "size": [fw, fh, fd], "anchor_offset": [fx, fy, fz],
+                                         "params": dict(mspec.get("params", {}))}, _own_for_siting):
                         spot = (ax, plane, az, 0)
-                        taken_box = (bx, plane + fy, bz, bw or fw, fh, bd or fd)
+                        taken_box = (bx, level + fy, bz, bw or fw, fh, bd or fd)
                         # the RESERVED corner, kept so the module can be re-placed inside its own
                         # slot once its facing is chosen from where it landed
                         bay = (bx, bz, bw or fw, bd or fd)
@@ -1273,13 +1489,31 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 # It is also what a street looks like: buildings shoulder to shoulder, not
                 # scattered evenly over a field.
                 _b = (px0, px1, pz0, pz1)
-                cands.sort(key=lambda t: (-_contact(t[0], t[1], size, taken, _b),
-                                          (t[0] + size[0] // 2 - cx0) ** 2
-                                          + (t[1] + size[2] // 2 - cz0) ** 2))
+                # **AND THE DISTRICT PREFERENCE HAS TO BE HERE TOO, or it only half works.** The
+                # grid branch learned it first and the Crypt Market still came out spread over
+                # 79x91 - almost the whole plot - because the market's big modules never reach
+                # the grid: a 42x27 vault exhausts every bay and lands in this fallback, which
+                # sorted purely by contact and cheerfully hugged whichever wall was nearest.
+                # Proximity to the district comes first, then contact, then the centre.
+                _here = _district_box(pl.modules, mspec.get("district"))
+                if _here is not None:
+                    cands.sort(key=lambda t: (_box_gap(t[0], t[1], size, _here),
+                                              -_contact(t[0], t[1], size, taken, _b),
+                                              (t[0] + size[0] // 2 - cx0) ** 2
+                                              + (t[1] + size[2] // 2 - cz0) ** 2))
+                else:
+                    cands.sort(key=lambda t: (-_contact(t[0], t[1], size, taken, _b),
+                                              (t[0] + size[0] // 2 - cx0) ** 2
+                                              + (t[1] + size[2] // 2 - cz0) ** 2))
                 for (bx, bz) in cands:
-                    if _clear(taken, bx, plane + fy, bz, size):
+                    if _clear(taken, bx, level + fy, bz, size) and _sitable(
+                            pl.modules, {"name": mspec["name"], "gen": mspec["gen"],
+                                         "kind": mspec["kind"],
+                                         "at": [bx - fx, plane, bz - fz],
+                                         "size": [fw, fh, fd], "anchor_offset": [fx, fy, fz],
+                                         "params": dict(mspec.get("params", {}))}, _own_for_siting):
                         spot = (bx - fx, plane, bz - fz, 0)
-                        taken_box = (bx, plane + fy, bz, bw or fw, fh, bd or fd)
+                        taken_box = (bx, level + fy, bz, bw or fw, fh, bd or fd)
                         bay = (bx, bz, bw or fw, bd or fd)
                         break
             # **AND IF IT WILL NOT FIT ONE WAY ROUND, TURN IT.** A module that opts out of the
@@ -1302,11 +1536,27 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 acands = [(bx, bz)
                           for bz in range(pz0, pz1 - asize[2] + 2)
                           for bx in range(px0, px1 - asize[0] + 2)]
-                acands.sort(key=lambda t: -_contact(t[0], t[1], asize, taken, _b))
+                # The district preference and rule 4 apply here too. This is the THIRD siting
+                # path in this function and the last one to learn them: a module that only fits
+                # turned is still a module of its district, and turning it does not exempt its
+                # discharge from landing on somebody's queue. Prospecting Row came out spread
+                # over 86x89 - the whole plot - because its turned member was placed by contact
+                # alone.
+                _ahere = _district_box(pl.modules, mspec.get("district"))
+                if _ahere is not None:
+                    acands.sort(key=lambda t: (_box_gap(t[0], t[1], asize, _ahere),
+                                               -_contact(t[0], t[1], asize, taken, _b)))
+                else:
+                    acands.sort(key=lambda t: -_contact(t[0], t[1], asize, taken, _b))
                 for (bx, bz) in acands:
-                    if _clear(taken, bx, plane + afy, bz, asize):
+                    if _clear(taken, bx, level + afy, bz, asize) and _sitable(
+                            pl.modules, {"name": mspec["name"], "gen": mspec["gen"],
+                                         "kind": mspec["kind"],
+                                         "at": [bx - afx, plane, bz - afz],
+                                         "size": [afw, afh, afd],
+                                         "anchor_offset": [afx, afy, afz], "params": _p2}, _own_for_siting):
                         spot = (bx - afx, plane, bz - afz, 0)
-                        taken_box = (bx, plane + afy, bz, afw, afh, afd)
+                        taken_box = (bx, level + afy, bz, afw, afh, afd)
                         bay = (bx, bz, afw, afd)
                         turned_params, fx, fy, fz = _p2, afx, afy, afz
                         fw, fh, fd = afw, afh, afd
@@ -1317,7 +1567,6 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                     if _clear(taken, x, y, z, size):
                         spot = (x, y, z, roll)
                         break
-            lift = floors[min(int(mspec.get("floor", 0)), len(floors) - 1)]["y"]
             label = mspec["name"] + (f" {i + 1}" if int(mspec.get("count", 1)) > 1 else "")
             if spot is None:
                 why = ("no free bay left on the plane" if plane is not None
@@ -1336,6 +1585,7 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
             taken.append(taken_box or (x + fx, y + fy, z + fz, bw or fw, fh, bd or fd))
             pl.modules.append({
                 "name": label, "gen": mspec["gen"], "kind": mspec["kind"],
+                "district": mspec.get("district"),
                 "at": [x, y + lift, z], "size": [fw, fh, fd], "roll": roll,
                 "declared_size": list(mspec["size"]), "anchor_offset": [fx, fy, fz],
                 "floor": floors[min(int(mspec.get("floor", 0)), len(floors) - 1)]["name"],
@@ -1344,6 +1594,18 @@ def make(brief: str, world: str, name: str | None = None, theme: str | None = No
                 "square": bool(orient),
                 "world": world,
             })
+    # **A DISTRICT THAT COULD NOT BE LAID OUT TOGETHER SAYS SO.** The preference is exactly that
+    # - a preference - and on a plot already holding a 47x47 coaster there is sometimes no
+    # contiguous land left for a three-module row. Sited apart and reported, a reviewer can move
+    # a ride or drop a module; sited apart and silent, the theme claims a street it does not have.
+    for _name, _members in _districts_of(pl.modules).items():
+        _gap = _district_spread(_members)
+        if _gap > DISTRICT_SPREAD:
+            pl.notes.append(
+                f"district {_name!r}: its {len(_members)} modules span {_gap} cells - the plot "
+                f"had no room to lay them out together, so it reads as separate buildings "
+                f"rather than as one street")
+
     if spec.get("orient") and plane is not None:
         _orient_to_streets(pl, plane, _owned_bounds(pl_plot, spec)
                            if pl_plot is not None else None)
@@ -1482,6 +1744,7 @@ def _orient_to_streets(pl, plane, own=None):
         # every siting check correct.
         if own is not None and not (own[0] <= turned[0] and turned[2] <= own[1]
                                     and own[2] <= turned[1] and turned[3] <= own[3]):
+            m["turn_declined"] = "the turned box leaves the land the theme owns"
             continue
         if own is not None:
             _saved = m["params"]
@@ -1489,18 +1752,45 @@ def _orient_to_streets(pl, plane, own=None):
             _fx, _fz = _front_of(m)
             m["params"] = _saved
             if not (own[0] <= _fx <= own[1] and own[2] <= _fz <= own[3]):
+                m["turn_declined"] = "the turned front opens onto land the theme does not own"
                 continue
+        turned_y = (m["at"][1] + fy, m["at"][1] + fy + fh - 1)
         for other in pl.modules:
             if other is m or other is hub or other["kind"] == "paths":
                 continue
-            ox0, oz0, ox1, oz1 = _box_of(other)
-            if turned[0] <= ox1 and ox0 <= turned[2] and turned[1] <= oz1 and oz0 <= turned[3]:
+            if _boxes_clash(turned, turned_y, other):
                 clash = True
                 break
         if clash:
+            m["turn_declined"] = "the turned box walks into a neighbour"
             continue
+        # **AND A TURN MAY NOT CREATE THE COLLISION SITING REFUSED.** Rule 4 is checked when a
+        # spot is taken, and then this pass flips the building and moves every anchor with it -
+        # so the Reliquary was sited clear of the Vault, turned to address the street it was
+        # joined to, and came to rest with its collection point one cell off the Vault's queue
+        # mouth. Every check upstream was correct. Declining the turn keeps its back to the
+        # street, which is the smaller fault - the same trade this pass already makes for a
+        # collision and for a door onto land the theme does not own.
+        _probe = {**m, "params": params, "at": [bx - fx, m["at"][1], bz - fz],
+                  "anchor_offset": [fx, fy, fz], "size": [fw, fh, fd]}
+        # **THE SAME PREDICATE SITING USES.** A turn re-places a module, so it owes the same
+        # two contracts a placement does - rule 4, and every public interface on the owned
+        # land. The front-on-owned-land test above is ONE of eight interfaces; turned, a
+        # ride at the eastern boundary put its emergency exit two cells into the transit
+        # corridor, a fire exit onto a railway that no facing fixes and that siting had
+        # already refused.
+        if not _sitable([o for o in pl.modules if o is not m], _probe, own):
+            m["turn_declined"] = "the turn breaks rule 4 or puts an interface off the land"
+            continue
+        m.pop("turn_declined", None)
         m["params"] = params
-        m["at"] = [bx - fx, plane, bz - fz]
+        # **A TURN MAY NOT FLATTEN A MODULE ONTO THE BUILD PLANE.** Both passes re-placed
+        # a module at `plane`, which is right for everything standing on the ground and
+        # silently undid the floor lift for anything that is not: the Frontier's mine ride
+        # was sited 24 courses down, turned to address its street, and came back up into
+        # the town it had just been moved out of - overlapping the headframe that is its
+        # own entrance. A turn changes which way a module faces, and nothing else.
+        m["at"] = [bx - fx, m["at"][1], bz - fz]
         m["anchor_offset"] = [fx, fy, fz]
         m["size"] = [fw, fh, fd]
 
@@ -1511,12 +1801,19 @@ def _orient_to_streets(pl, plane, own=None):
     # facing and take the first whose front lands on owned land without walking into a neighbour.
     if own is not None:
         for m in pl.modules:
-            if m is hub or m.get("edge") or m["kind"] == "paths" or not m.get("bay"):
+            # **THE SAME THRESHOLD RULE AS THE FIRST PASS.** Skipping every edge module
+            # left the Clock Tower - a landmark, not a threshold - presenting its face to
+            # the reserved transit corridor, which is the one direction no street may
+            # reach. A gate faces out by definition; a tower on the edge does not.
+            threshold = m["kind"] in ("arch", "gate")
+            if m is hub or (m.get("edge") and threshold) or m["kind"] == "paths":
+                continue
+            if not m.get("bay") and not m.get("edge"):
                 continue
             fx0, fz0 = _front_of(m)
             if own[0] <= fx0 <= own[1] and own[2] <= fz0 <= own[3]:
                 continue
-            bx, bz = m["bay"][0], m["bay"][1]
+            bx, bz = (m["bay"][0], m["bay"][1]) if m.get("bay") else _box_of(m)[:2]
             for cand in ("east", "north", "west", "south"):
                 if cand == m["params"].get("facing"):
                     continue
@@ -1524,20 +1821,45 @@ def _orient_to_streets(pl, plane, own=None):
                 cfx, cfy, cfz, cfw, cfh, cfd = measured_footprint(
                     m["gen"], m["kind"], params, m.get("declared_size", m["size"]))
                 box = (bx, bz, bx + cfw - 1, bz + cfd - 1)
-                if any(box[0] <= o[2] and o[0] <= box[2] and box[1] <= o[3] and o[1] <= box[3]
-                       for o in (_box_of(x) for x in pl.modules
-                                 if x is not m and x is not hub and x["kind"] != "paths")):
+                box_y = (m["at"][1] + cfy, m["at"][1] + cfy + cfh - 1)
+                if any(_boxes_clash(box, box_y, x) for x in pl.modules
+                       if x is not m and x is not hub and x["kind"] != "paths"):
                     continue
                 if not (own[0] <= bx and bx + cfw - 1 <= own[1]
                         and own[2] <= bz and bz + cfd - 1 <= own[3]):
                     continue
                 probe = {**m, "params": params,
-                         "at": [bx - cfx, plane, bz - cfz], "size": [cfw, cfh, cfd],
+                         "at": [bx - cfx, m["at"][1], bz - cfz], "size": [cfw, cfh, cfd],
                          "anchor_offset": [cfx, cfy, cfz]}
                 pfx, pfz = _front_of(probe)
-                if own[0] <= pfx <= own[1] and own[2] <= pfz <= own[3]:
-                    m.update(probe)
-                    break
+                if not (own[0] <= pfx <= own[1] and own[2] <= pfz <= own[3]):
+                    continue
+                        # Rule 4 and the on-land rule again. This pass turns a module for a
+                # different reason from the one above it and would otherwise re-create
+                # exactly the placements that one declines - which is what it did: the
+                # Reliquary was refused its flip by the first pass and given the same
+                # flip by this one, two functions later.
+                if not _sitable([o for o in pl.modules if o is not m], probe, own):
+                    continue
+                m.update(probe)
+                break
+
+
+def _y_span(m):
+    """The courses a module occupies. Two modules on different bands may share a plan
+    view and should: the Mine Head stands directly over the Mine Cart Escape, which is
+    what a headframe IS, and a plan-view collision test called that a clash and refused
+    to turn the headframe away from the railway."""
+    y0 = m["at"][1] + m.get("anchor_offset", (0, 0, 0))[1]
+    return y0, y0 + m["size"][1] - 1
+
+
+def _boxes_clash(a_box, a_y, b) -> bool:
+    b_box, b_y = _box_of(b), _y_span(b)
+    if not (a_y[0] <= b_y[1] and b_y[0] <= a_y[1]):
+        return False
+    return (a_box[0] <= b_box[2] and b_box[0] <= a_box[2]
+            and a_box[1] <= b_box[3] and b_box[1] <= a_box[3])
 
 
 def _inside_of(m):
@@ -1597,19 +1919,25 @@ def _add_paths(pl, spec, plane, world, pl_plot=None):
     # three real zones: 0 collisions with it, 20-53 without.
     hub.setdefault("params", {})["obstacles"] = obstacles
 
-    routes = circulation.build(pl.modules, (cx, cz), own)
+    routes = circulation.build(pl.modules, (cx, cz), own, plane)
     if not routes:
         return
 
     # **AND THE STREETS THEMSELVES ARE OBSTACLES TO THE PLANTING.** The plaza was handed the
     # buildings and told to keep clear of them, which it did - and then put a tree in the middle
     # of a spur. A route is a box like anything else.
+    from . import pathgraph
     for route in routes:
-        (ax, az), (bx, bz) = route["a"], route["b"]
-        half = int(route.get("width", 3)) // 2 + 1
+        # A shaft carries a Y, so its endpoints are three-element; `pathgraph.cells`
+        # already knows how to read either shape, and taking the box from the cells it
+        # actually claims is both correct for an L and correct for a vertical run.
+        claimed = pathgraph.cells(route)
+        if not claimed:
+            continue
+        xs = [c[0] for c in claimed]
+        zs = [c[1] for c in claimed]
         hub["params"]["obstacles"].append(
-            [min(ax, bx) - half, min(az, bz) - half,
-             max(ax, bx) + half, max(az, bz) + half])
+            [min(xs) - 1, min(zs) - 1, max(xs) + 1, max(zs) + 1])
 
     # The plan carries its own circulation so the gates can read it without re-deriving the
     # geometry - two derivations of one network is how a check and the thing it checks drift.
@@ -1985,7 +2313,8 @@ def upgrade_interfaces(name: str) -> Plan:
     plane = int(hub["at"][1])
 
     _interfaces.annotate(plan.modules, plane, own)
-    plan.routes = circulation.build(plan.modules, ((hx0 + hx1) // 2, (hz0 + hz1) // 2), own)
+    plan.routes = circulation.build(plan.modules, ((hx0 + hx1) // 2, (hz0 + hz1) // 2),
+                                    own, plane)
     for module in plan.modules:
         if module["kind"] == "paths":
             module.setdefault("params", {})["routes"] = plan.routes

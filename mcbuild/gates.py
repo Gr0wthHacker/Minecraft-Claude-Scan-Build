@@ -68,8 +68,11 @@ def route(plan: dict) -> dict:
     if not routes:
         return _result("route", ["the plan declares no circulation routes"])
     walk = P.walkable(routes)
+    hub = next((m for m in modules if m.get("covers") and m["kind"] == "plaza"), None)
+    plane = int(hub["at"][1]) if hub else None
+    levels = P.levels(routes, plane + 1) if plane is not None else None
     failures = [f"{u['module']}.{u['anchor']} at {u['at']}: {u['reason']}"
-                for u in I.unattached(modules, walk)]
+                for u in I.unattached(modules, walk, levels)]
     groups = P.components(walk)
     if len(groups) > 1:
         failures.append(f"the walkable network is in {len(groups)} pieces; "

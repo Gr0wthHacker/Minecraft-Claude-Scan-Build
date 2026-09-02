@@ -55,12 +55,23 @@ def missing(modules: list[dict]) -> list[str]:
     return out
 
 
-def inaccessible(modules: list[dict], paving: set[tuple[int, int]]) -> list[str]:
-    """Public modules must have at least one declared approach on the generated paving network."""
+def inaccessible(modules: list[dict], paving: set[tuple[int, int]],
+                 plane: int | None = None) -> list[str]:
+    """Public modules must have at least one declared approach on the generated paving network.
+
+    **THIS IS THE PLAN-VIEW CHECK, AND `interfaces.unattached` IS NOW THE AUTHORITY.** An access
+    candidate is one point on one course; a module on another band has its approach twenty
+    courses down, where this land's surface paving is its ROOF rather than its street. Handed a
+    `plane`, this skips those and leaves them to the check that knows about elevation - two
+    access checks disagreeing about one module is exactly the drift a shared entry point exists
+    to prevent, and the honest split is that this one answers about the surface.
+    """
     out = []
     for module in modules:
         contract = module.get("park_contract", {})
         if not contract.get("requires_path"):
+            continue
+        if plane is not None and module.get("at") and int(module["at"][1]) != plane:
             continue
         candidates = contract.get("access_candidates", [])
         if not any((int(point[0]), int(point[2])) in paving for point in candidates):

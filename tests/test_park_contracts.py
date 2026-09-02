@@ -56,4 +56,7 @@ def test_every_real_park_public_contract_has_a_generated_paved_approach(zone, is
     park.BUILDERS["paths"](drawn, {**park.PARK, **paths["params"], "at": paths["at"]}, None)
     y = paths["at"][1] - 1
     paving = {(x, z) for (x, yy, z) in drawn.cells if yy == y}
-    assert not park_contracts.inaccessible(plan.modules, paving)
+    # The surface check answers about the surface. A module on another band - the Hollow's
+    # Ossuary is twenty courses under its market - has its approach on its own landing, and
+    # `test_vertical_park` is what proves a shaft reaches it.
+    assert not park_contracts.inaccessible(plan.modules, paving, plane=paths["at"][1])

@@ -8104,3 +8104,183 @@ lines where `_site_bat` is thirty, and there is no pier left that can miss its f
 general answers to "this creature hangs" and "this creature clings" and both are covered by
 their own tests; deleting them narrows what the file can do without fixing anything. Putting
 either back into `GAPS` is a decision about reusing an asset, not maintenance.
+
+
+## The park overhaul: typed interfaces, capacity-aware streets, and a vertical park (2026-09-01)
+
+Two briefs landed together - `PARK_OVERHAUL.md` with the three land specs, and
+`PARK_VERTICAL_MASTERPLAN.md` - and they ask for the same thing from opposite directions: a park
+where every public build has a purpose, a reachable entrance, a usable interaction, a safe exit and
+a reason to sit where it sits, told across six elevation bands rather than on one plane.
+
+The rebuild's own first instruction is the one that had to be built before anything else:
+
+> "The existing park parallel manifests have module placement data but no typed anchors,
+> dependencies, or interface links. The rebuild begins by making those contracts mandatory. A plan
+> cannot be prepared or promoted when a public module has empty anchors."
+
+### 61 PUBLIC ANCHORS WERE STANDING ON NOTHING, AND NOTHING COULD SEE IT
+
+The path pass ran ONE spur to ONE front-of-building point per module. Measured against the brief's
+own interface table, that leaves - across the three lands - every ride exit, every emergency exit,
+every flank queue mouth and every view approach unreached. A building has more than one way in; a
+pass that knows about one of them cannot satisfy rule 2, and no check in the project asked.
+
+    mcbuild/interfaces.py    what interfaces a module owes, and where they are
+    mcbuild/circulation.py   the streets, built FROM those interfaces
+    mcbuild/pathgraph.py     capacity roles, and rules 4 and 6 as geometry
+    mcbuild/bands.py         the masterplan's six elevation bands
+    mcbuild/gates.py         the ten promotion gates
+    python -m mcbuild parkgate <plan>
+
+**AN ANCHOR IS A PLAN-TIME PROMISE, NOT A RENDER-TIME MEASUREMENT.** It has to exist before any
+block is generated or it cannot gate generation, which is the whole point of the rule - so the
+planner derives every anchor from a module's box, facing and TYPE, and the route gate then proves
+the streets honour it. A queue mouth and a discharge are placed on opposite flanks by construction,
+because rule 4 is easier to keep than to check.
+
+**A FRONTAGE IS A WALK, NOT A POINT.** The fix is what a real street does: a pavement along the
+face past every door on it, joined to the avenue once. One route serves a queue mouth at 0.20 and
+an exit at 0.80 of the same face, which is why the anchors are spread across the face at all.
+
+### THINGS THAT ONLY A MEASUREMENT WOULD HAVE CAUGHT
+
+- **A ROLE IS DECLARED, NOT INFERRED FROM WIDTH.** Inferring it makes the capacity gate a
+  tautology: every 3-wide route would be "secondary", no route would ever be a queue, and rule 4
+  could never fire. A route with no declared role is defaulted LOUDLY, so an undesigned circulation
+  reports as undesigned rather than as compliant.
+- **A SERVICE ROAD REACHED BY LONG SPURS IS NOT CONCEALED, IT IS THE STREET.** Three designs were
+  measured. A perimeter ring reached by the shortest perpendicular puts a building in the middle of
+  a 99x99 plot forty cells from any boundary, so the "concealed" road came out laid down the middle
+  of a guest path for 87 cells at a stretch. Stepping the spur aside picked a different guest path
+  to lie along. A rear yard per building collided with the NEIGHBOUR's join, because buildings
+  packed three cells apart leave the land behind one of them under the path to the next. What ships
+  is a backstage drawn LAST that yields: it grows outward from each door until it meets a public
+  cell and stops there, so `service AND public = 0` is true by construction. What that costs is
+  honest and reported: **31 service doors across the three lands and 13 with no yard behind them**
+  - and the distribution says where the problem actually is. The Frontier has 3 of 11 and the
+  Hollow 2 of 10; the Midway has **8 of 10**, because its whole west edge is the admission
+  sequence - Box Office, Entry Queue, Turnstiles, Arrival Court - pinned against the boundary with
+  nothing behind it. That is a siting problem with a name, which is the point of measuring it.
+- **RESERVING LAND FOR THE BACKSTAGE COST MORE THAN IT BOUGHT.** An eight-cell band on all four
+  sides of a plot already ten columns short for the transit corridor cost the Carousel and the
+  Terrace their sites outright and pushed the Big Wheel through the Arrival Court. Reverted: the
+  guest network takes precedence and the backstage takes what is left.
+- **A MODULE THAT SPANS BANDS IS A CONNECTOR, NOT A VIOLATION.** The first vertical gate checked
+  every band a module touched and failed the Mine Head for reaching the hidden core - which is the
+  entire point of a headframe - and the Haunted Manor for being three storeys tall. The masterplan
+  forbids "detached towers or caves at every altitude": a module sited WHOLLY in a band whose
+  function it does not answer. The function test is against the band a module mostly stands in.
+- **A BOUNDING BOX IS NOT A BUILDING.** The Big Wheel is 19 x 85 x 77 and mostly the air a wheel
+  turns in; counted as its box it filled 22% of the upper band alone and failed a ceiling meant to
+  catch a wall of towers. Occupancy reads a module's real block count where there is one - and
+  where there is not, the estimate WARNS rather than failing, because a bounding box may not block
+  a plan for the shape of a wheel.
+- **A GATE THAT CANNOT BE MEASURED HERE REPORTS THAT, AND DOES NOT PASS QUIETLY.** `mechanics`,
+  `safety`, `night` and `visual` need evidence produced elsewhere; all four BLOCK until it arrives.
+  A gate that grades an unmeasured thing as compliant converts an unknown into a false assurance,
+  which is worse than having no gate.
+
+### THE ONE THAT MATTERS MOST: A PLAN VIEW SAYS AN UNDERGROUND RIDE IS ON THE STREET
+
+It is on the street's SHADOW. Every attachment, connectivity and capacity check in this project was
+two-dimensional, which was harmless while every module sat on the build plane and became wrong the
+moment one did not.
+
+**And the moment came from the masterplan's own arithmetic.** Measured, the Frontier's declared
+program is 6,709 cells of module footprint against 8,811 of owned land - 76% before a single street
+is drawn - and a land with a 5-wide spine, 3-wide frontage walks and a service road cannot pack
+much past 60%. Every reordering simply changed WHICH module was squeezed out; the Saloon and the
+Gold Sluice took turns reporting NO SITE. Section 6 already answers it: the mine journey belongs
+under the town. The Mine Cart Escape now stands 24 courses down in the hidden core, directly under
+the Mine Head that is its entrance, and the town fits.
+
+**ONE MODULE LEAVING THE PLANE EXPOSED EVERY REMAINING TWO-DIMENSIONAL ASSUMPTION IN THE PARK**,
+and that is the most useful thing this session found. Each was correct while everything stood on
+one course and silently wrong the moment one thing did not:
+
+- **THE FLOOR'S LIFT HAS TO REACH THE COLLISION TEST.** `_clear` has always compared boxes in three
+  dimensions and the lift was applied afterwards, so a ride 24 courses down still claimed its
+  surface footprint and moving the mine underground bought the town exactly nothing.
+- **AN ANCHOR STANDS ON THE COURSE ITS OWN MODULE STANDS ON**, not on the land's plane. Pinned to
+  the plane, the mine's queue mouth was reported at street level and the route gate saw a ride
+  nobody could reach as perfectly served.
+- **A MODULE ON ANOTHER BAND GETS ITS OWN LEVEL'S CIRCULATION.** Its frontage walks carry a Y, one
+  `shaft` route joins them to the street, and `pathgraph.levels` is what lets the attachment check
+  tell a street from its shadow. One course is a step and needs nothing declared; more than that
+  needs a stair, which is section 4's rule.
+- **THE SHAFT HEAD HAS TO BE ON THE STREET.** A shaft stands in its module's own column, which on
+  the surface is not anywhere the town paved - so the network came out in two pieces, correctly: a
+  guest could reach the landing only by already being on it.
+- **A ROUTE MAY CARRY ITS OWN COURSE.** `park._paths` drew every route at the paths module's plane,
+  so the mine's landing was paved on top of the town.
+- **A TURN MAY NOT FLATTEN A MODULE ONTO THE BUILD PLANE.** Both orientation passes re-placed a
+  module at `plane`, which is right for everything standing on the ground and silently undid the
+  floor lift for anything that is not: the mine ride was sited 24 courses down, turned to address
+  its street, and came back up into the town it had just been moved out of.
+- **AN OVERLAP TEST IS A BOX TEST, AND A BOX HAS THREE DIMENSIONS.** Both turn passes and the
+  plan-view test called the Mine Head standing over the Mine Cart Escape a collision - which is
+  what a headframe IS - and refused to turn the headframe away from the railway because of it.
+- **BEING OFF THE LAND EXCUSES A HANDOFF AND NOTHING ELSE.** Applied to every anchor, `off_land`
+  also excused the Mine Head presenting its shopfront to the transit corridor: the front was off
+  the owned land, so the route gate stopped asking for a path to it and reported a building nobody
+  can enter as served.
+- **A TURN MOVES EVERY ANCHOR, NOT ONLY THE FRONT.** The repair pass tests one interface of eight;
+  turned, a ride at the eastern boundary put its emergency exit two cells into the transit
+  corridor - a fire exit onto a railway, which no facing fixes. Siting refuses such a spot now
+  (`_anchors_on_land`), and so do both turn passes.
+- **A CONNECTIVITY FLOOD OVER EVERY CELL DRAWN FLOODS THE BACKSTAGE.** A concealed service road
+  that does not join the street is the backstage WORKING; 51 cells of the Reliquary's yard read as
+  a broken street until the flood was scoped to the public network.
+- **THE SURFACE ACCESS CHECK ANSWERS ABOUT THE SURFACE.** `park_contracts.inaccessible` compares
+  one access point against one course; `interfaces.unattached` is the authority for anything on
+  another band, and the two disagreeing about one module is the drift a shared entry point exists
+  to prevent.
+
+### DISTRICTS, AND THE COLLISION THAT PROVED THEY WORKED
+
+PARK_HOLLOW.md: *"Keep five major experiences; stop treating eleven small modules as equal
+attractions."* The reason the Hollow read as eleven machines on paving is that the packer sorts by
+CONTACT with anything already there, which hugs whichever neighbour is nearest and scatters a
+market across the plot. A module now names a `district`, the biggest member decides where the
+district starts, and **the rest of the district is sited immediately behind it** - sorted by area
+alone the Assay Office was the Frontier's third module and the Prize Office its fourteenth, and the
+pair came out 78 cells apart on a 99-cell plot.
+
+Grouping them made the Reliquary discharge into the Vault's queue - which is not a regression, it
+is the arrangement problem becoming visible, because a district is precisely a set of buildings
+standing close together. So rule 4 became a SITING constraint rather than a report. **Its first
+version was vacuous and the count said so**: interfaces are annotated after siting, so a
+freshly-annotated candidate was compared against modules carrying no anchors at all - nineteen
+checks, zero refusals, and the collision still there. Both sides are annotated now.
+
+**A turn may not create the collision siting refused.** The orientation pass flips a building and
+moves every anchor with it, so the Reliquary was sited clear, turned to address its street, and
+came to rest one cell off the Vault's queue. Both turn passes check it - through `_sitable`, the
+same predicate siting uses, because three call sites with two checks each is how the third one
+gets forgotten - and a building that keeps its back to the street now RECORDS why
+(`turn_declined`), since declining silently is how a trade becomes a defect.
+
+**AND GROUPING IS A PREFERENCE, WHICH IS ALSO MEASURED.** Four of the seven districts still span
+more than 60 cells - the Crypt Market 68, Boomtown Main Street 75 - because a plot already holding
+a 47x47 coaster has no contiguous land left for a three-building frontage. Each one says so in the
+plan's own notes rather than claiming a street it does not have; the fix is a smaller program or a
+bigger plot, and both are decisions rather than bugs.
+
+### WHAT THE THREE LANDS SAY NOW
+
+All three pass every gate that can be derived offline. What is still open is stated rather than
+hidden:
+
+| | |
+|---|---|
+| `mechanics` `safety` `night` `visual` | no evidence supplied on any land - they BLOCK, by design |
+| 13 of 31 service doors | no backstage behind them - 8 of those are the Midway's admission sequence pinned to its west boundary. The fix is siting room, not path drawing |
+| Midway | still one band: the masterplan's own answer for it is a machine gallery under the food court, and it is not built |
+| Frontier, Hollow | one shaft each - the Mine Cart Escape 24 courses under its headframe, the Ossuary 20 under its market. Both lands' programs needed 65-76% of their plot as raw footprint before a street was drawn, and going down is what made them fit |
+| `out/plans/park_*.json` | carry the OLD module lists; the rebuilt programs need a re-plan and an approval, which is Jack's call and not a silent one |
+| `mcbuild layers` | **`_which` puts everything below `floor_y` into "Machines"**, which was right while the only thing under a park's floor WAS its wiring. An Undermine module is a room, not a basement, so slicing a rebuilt zone today would hand a printer a Machines layer containing a whole ride. Nothing is broken yet - no rebuilt zone has been sliced - and the fix is that a layer slice is per BAND rather than per plan, which is its own piece of work: `_read` reads cells out of a litematic and has no idea which module owns them. |
+
+The masterplan's section 6 and 7 journeys - the mine's ore chamber, flooded works and crystal
+reveal, the Hollow's catacombs, train show chambers and founder's vault - are the largest remaining
+piece of work and they are generator work, not planner work.

@@ -86,6 +86,9 @@ QUEUE = {"queue_entry", "queue_start", "queue_merge"}
 #: Anchors that discharge guests. Rule 4 forbids these sharing a cell with anything in QUEUE.
 EXIT = {"ride_exit", "public_exit", "exit", "emergency_exit", "collection_or_exit"}
 
+#: Anchors that belong on the far side of a threshold, where this land's paving may not go.
+HANDOFF = {"connector_side"}
+
 
 def resolve(name: str) -> str:
     """A land spec's own anchor name, in park-wide terms."""
@@ -235,13 +238,24 @@ def anchors_for(module: dict, plane: int | None = None, owned=None) -> list[dict
     `off_land` rather than dropped: an arch's connector side is outside the land BY DEFINITION -
     that is what makes it a handoff - and dropping it would hide the interface, while demanding
     paving for it would ask this land to build the connector's half of the threshold.
+
+    **BEING OFF THE LAND EXCUSES A HANDOFF AND NOTHING ELSE.** Applied to every anchor it also
+    excused the Mine Head presenting its shopfront to the transit corridor: the front was off the
+    owned land, so the route gate stopped asking for a path to it and reported a building nobody
+    can enter as served. `HANDOFF` names the two anchors that legitimately live on the far side
+    of a threshold; anything else off the land is a module facing the wrong way.
     """
     kind_type = module_type(module)
     layout = _LAYOUT.get(kind_type)
     if not layout:
         return []
     facing = module.get("params", {}).get("facing", "east")
-    y = (plane if plane is not None else module["at"][1]) + 1
+    # **AN ANCHOR STANDS ON THE COURSE ITS OWN MODULE STANDS ON, NOT ON THE LAND'S PLANE.**
+    # Pinning every anchor to the plane was harmless while every module sat on it, and became
+    # wrong the moment one did not: the Frontier's mine ride is 24 courses down and its queue
+    # mouth was reported at street level, so the route gate saw a ride nobody could reach as
+    # perfectly served. `plane` is the fallback for a module with no elevation of its own.
+    y = (module["at"][1] if module.get("at") else plane) + 1
     wanted = list(REQUIRED.get(kind_type, ())) + list(OPTIONAL.get(kind_type, ()))
     out = []
     for name in wanted:
@@ -250,7 +264,8 @@ def anchors_for(module: dict, plane: int | None = None, owned=None) -> list[dict
         relative, along, distance = layout[name]
         face = _resolve_face(facing, relative)
         x, z = _face_point(module, face, along, distance)
-        off_land = bool(owned) and not (owned[0] <= x <= owned[1] and owned[2] <= z <= owned[3])
+        off_land = (name in HANDOFF and bool(owned)
+                    and not (owned[0] <= x <= owned[1] and owned[2] <= z <= owned[3]))
         out.append({"name": name, "at": [int(x), int(y), int(z)], "face": face,
                     "public": name in PUBLIC, "queue": name in QUEUE, "exit": name in EXIT,
                     "off_land": off_land,
@@ -315,24 +330,46 @@ def missing_anchors(modules: list[dict]) -> list[dict]:
     return out
 
 
-def unattached(modules: list[dict], paving: set) -> list[dict]:
+#: How far above or below the paving an anchor may stand and still be reached from it. One
+#: course is a step; anything more needs a stair, a lift or a ramp, which is `pathgraph`'s
+#: `shaft` role and section 4's rule about vertical public changes.
+STEP_UP = 1
+
+
+def unattached(modules: list[dict], paving: set, levels=None) -> list[dict]:
     """Public anchors that do not touch the public paving graph.
 
     Checked as a 1-cell neighbourhood, not as an exact hit: an anchor is the cell a visitor
     STANDS in to use the interface, and a doorway two cells off a 5-wide avenue is served. An
     exact-match rule would report a correctly-built park as unreachable, which is the check
     nobody runs.
+
+    **AND IT HAS TO SEE ELEVATION, OR A VERTICAL PARK PASSES VACUOUSLY.** The moment a module
+    could sit on a floor below the plane - the Frontier's mine ride is 24 courses down - a plan
+    view of the paving said its queue mouth was on the street. It was on the street's SHADOW.
+    `levels` maps a paved cell to the courses reachable there; an anchor more than one step from
+    any of them is unreached, and the fix is a declared shaft rather than a wider tolerance.
     """
     out = []
     for module in modules:
         for anchor in module.get("interface", {}).get("anchors", []):
             if not anchor.get("public") or anchor.get("off_land"):
                 continue
-            x, _y, z = anchor["at"]
-            if not any((x + dx, z + dz) in paving
-                       for dx in (-1, 0, 1) for dz in (-1, 0, 1)):
+            x, y, z = anchor["at"]
+            near = [(x + dx, z + dz) for dx in (-1, 0, 1) for dz in (-1, 0, 1)
+                    if (x + dx, z + dz) in paving]
+            if not near:
                 out.append({"module": module.get("name", "?"), "anchor": anchor["name"],
                             "at": anchor["at"], "reason": "public anchor off the paving graph"})
+                continue
+            if levels is None:
+                continue
+            if not any(abs(y - level) <= STEP_UP
+                       for cell in near for level in levels.get(cell, ())):
+                out.append({"module": module.get("name", "?"), "anchor": anchor["name"],
+                            "at": anchor["at"],
+                            "reason": "public anchor is on the paving in plan but not in "
+                                      "elevation: it needs a stair, ramp or lift"})
     return out
 
 

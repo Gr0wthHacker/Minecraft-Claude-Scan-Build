@@ -21,11 +21,16 @@ as a through-route, because no route would ever be a queue.
 from __future__ import annotations
 
 #: role -> (minimum width, is it part of the public through-route network, is it concealed)
+#:
+#: `shaft` is the vertical one: a stair, lift or ramp joining two bands. It IS a through-route -
+#: a guest walks down it - and it is the only role whose endpoints differ in Y, which is why
+#: `cells` projects it to a single plan-view column rather than a run.
 ROLES = {
     "main_spine": (5, True,  False),
     "secondary":  (3, True,  False),
     "queue":      (2, False, False),
     "exit":       (3, True,  False),
+    "shaft":      (3, True,  False),
     "service":    (2, False, True),
 }
 
@@ -51,8 +56,19 @@ def normalise(routes: list[dict]) -> list[dict]:
 
 
 def cells(route: dict) -> set:
-    """The plan-view footprint of one straight route, at its declared width."""
-    (ax, az), (bx, bz) = route["a"], route["b"]
+    """The plan-view footprint of one straight route, at its declared width.
+
+    A route's endpoints may carry a Y - `[x, y, z]` rather than `[x, z]` - so the horizontal
+    pair is taken by position rather than by unpacking, and a SHAFT collapses to the column it
+    stands in: it travels in Y, and swept as a run it would pave a diagonal nobody walks.
+    """
+    a, b = route["a"], route["b"]
+    (ax, az) = (a[0], a[2]) if len(a) > 2 else (a[0], a[1])
+    (bx, bz) = (b[0], b[2]) if len(b) > 2 else (b[0], b[1])
+    if route.get("role") == "shaft":
+        half = int(route.get("width", 3)) // 2
+        return {(ax + dx, az + dz)
+                for dx in range(-half, half + 1) for dz in range(-half, half + 1)}
     half = int(route.get("width", 3)) // 2
     out = set()
     if ax == bx:
@@ -123,6 +139,29 @@ def service_overlaps(routes: list[dict]) -> list[dict]:
             out.append({"service": service.get("name"), "public": other.get("name"),
                         "cells": len(shared), "crossing_limit": patch,
                         "parallel": len(shared) > patch})
+    return out
+
+
+def levels(routes: list[dict], plane: int) -> dict:
+    """Which courses each paved cell reaches - a plan-view network with elevation attached.
+
+    Every ordinary route lies on the build plane unless its endpoints say otherwise. A `shaft`
+    is the exception and the reason this exists: it occupies ONE plan-view column and spans the
+    courses between its two ends, so the cell at its foot reaches both the street above and the
+    landing below. Without it a park with anything off the plane reads as connected in plan and
+    is a hole in elevation.
+    """
+    out = {}
+    for route in normalise(routes):
+        if not ROLES.get(route.get("role"), (0, False, False))[1]:
+            continue
+        a, b = route["a"], route["b"]
+        ya = int(a[1]) if len(a) > 2 else plane
+        yb = int(b[1]) if len(b) > 2 else plane
+        reach = set(range(min(ya, yb), max(ya, yb) + 1)) if route.get("role") == "shaft" \
+            else {ya, yb}
+        for cell in cells(route):
+            out.setdefault(cell, set()).update(reach)
     return out
 
 

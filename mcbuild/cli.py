@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import pathlib
 import sys
 
 from . import audit as audit_mod, coop, learn as learn_mod, palette, render, scan as scan_mod, schem
@@ -261,6 +262,13 @@ def cmd_parkgate(a):
     """The eight promotion gates PARK_OVERHAUL.md states, over a planned land."""
     from . import gates, planner
     pl = planner.Plan.load(a.plan)
+    # These are the PARK gates - PARK_OVERHAUL.md's eight plus the masterplan's two - and run
+    # over a casino they would report a building with no ride exits as broken. A category error
+    # answered with a long list of failures reads as a defect; it is refused instead.
+    if pl.theme not in {"midway", "frontier", "hollow"}:
+        print(f"{a.plan} is a {pl.theme!r} plan, not one of the three park lands - "
+              "the park gates do not apply to it")
+        return 2
     result = gates.run(dict(pl.__dict__), only=set(a.only.split(",")) if a.only else None)
     print(gates.report(result))
     if a.json:
@@ -622,7 +630,12 @@ def main(argv=None):
     p.add_argument("--out"); p.add_argument("--no-render", action="store_true"); p.set_defaults(fn=cmd_fromimage)
 
     a = ap.parse_args(argv)
-    a.fn(a)
+    # **A GATE THAT CANNOT FAIL A BUILD IS A REPORT.** Every command here returns None and exits
+    # 0; `parkgate` returns 1 when a land is blocked, so it can be the thing a pipeline stops on.
+    # Propagating the value costs nothing for the commands that return nothing.
+    code = a.fn(a)
+    if code:
+        raise SystemExit(int(code))
 
 
 if __name__ == "__main__":

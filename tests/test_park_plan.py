@@ -87,14 +87,49 @@ def test_the_biggest_module_is_sited_first(zone):
 
     free = [m for m in order
             if m.get("anchor") not in ("cover", "edge", "centre", "origin")]
-    areas = []
-    for m in free:
+
+    def _area(m):
         _fx, _fy, _fz, fw, _fh, fd = planner.measured_footprint(
             m["gen"], m["kind"], dict(m.get("params", {})), m["size"])
-        areas.append(fw * fd)
-    assert areas == sorted(areas, reverse=True), (
-        f"{zone}: sited out of size order - "
-        + ", ".join(f"{m['name']}={a}" for m, a in zip(free, areas)))
+        return fw * fd
+
+    # **A DISTRICT IS SITED CONSECUTIVELY, WHICH DELIBERATELY BREAKS A STRICT SIZE ORDER.**
+    # Naming a district buys almost nothing if its members are placed at wildly different
+    # moments: sorted by area alone the Assay Office was the Frontier's third module and the
+    # Prize Office its fourteenth, and the pair came out 78 cells apart on a 99-cell plot.
+    #
+    # The rule this test exists for is untouched, and it is asserted on the thing it is about:
+    # the module that DECIDES where a district goes is its biggest, and those leaders are still
+    # in descending order, so a large module still gets the pick of the plot and is never
+    # starved by a booth. Within a district the members are descending too.
+    leaders, seen = [], set()
+    for m in free:
+        key = m.get("district") or id(m)
+        if key in seen:
+            continue
+        seen.add(key)
+        leaders.append(m)
+    leader_areas = [_area(m) for m in leaders]
+    assert leader_areas == sorted(leader_areas, reverse=True), (
+        f"{zone}: districts sited out of size order - "
+        + ", ".join(f"{m['name']}={a}" for m, a in zip(leaders, leader_areas)))
+
+    for district in {m.get("district") for m in free if m.get("district")}:
+        members = [_area(m) for m in free if m.get("district") == district]
+        assert members == sorted(members, reverse=True), (
+            f"{zone}: {district} sited out of size order - {members}")
+
+    for m in free:
+        if m.get("district"):
+            continue
+        # An undistricted module keeps its place in the ordinary queue: it may not be sited
+        # before something bigger that is also undistricted.
+        index = free.index(m)
+        bigger = [o for o in free[index + 1:]
+                  if not o.get("district") and _area(o) > _area(m)]
+        assert not bigger, (
+            f"{zone}: {m['name']}={_area(m)} sited before "
+            + ", ".join(f"{o['name']}={_area(o)}" for o in bigger))
 
 
 @pytest.mark.parametrize("zone", ZONES)
@@ -206,9 +241,16 @@ def test_the_street_network_is_one_connected_walk(zone):
     of its axis that its gate is on - so a spur from a door on the far side ran out to a
     coordinate with no avenue to land on, and a side zone (one edge module) never got a second
     axis at all. Full-length cross axes make it connected by construction.
+
+    **THE FLOOD IS OVER THE PUBLIC NETWORK, NOT OVER EVERY CELL DRAWN.** A concealed service
+    road that does not join the street is the backstage WORKING - it yields to the public network
+    by construction - and flooding every paved cell reported 51 cells of the Reliquary's service
+    yard as a broken street. What has to be one piece is what a guest is routed along.
     """
     from collections import deque
-    ground = _paving(_planned(zone))
+    from mcbuild import pathgraph as P
+    plan = _planned(zone)
+    ground = _paving(plan) & P.public(P.normalise(plan.routes))
     assert ground
     start = next(iter(ground))
     seen, q = {start}, deque([start])
@@ -250,6 +292,12 @@ def test_every_door_is_on_the_street(zone):
         front, inside = planner._front_of(m), planner._inside_of(m)
         on_own = own[0] <= front[0] <= own[1] and own[2] <= front[1] <= own[3]
         pt = front if (not m.get("edge") or on_own) else inside
+        # **A MODULE ON ANOTHER BAND HAS ITS DOOR ON ANOTHER COURSE.** The Frontier's mine ride
+        # stands 24 courses under the town, so its door is not on the street and must not be:
+        # what joins it is a declared shaft, which `test_vertical_park` asserts. Checking it
+        # against the surface paving asks the town to have paved the mine's roof.
+        if m["at"][1] != pl.modules[0]["at"][1]:
+            continue
         assert pt in ground, f"{zone}: {m['name']} has no path to its door at {pt}"
 
 
@@ -299,7 +347,14 @@ def test_every_building_addresses_the_street_it_is_joined_to(zone):
             assert got in same_axis or {got, planner._BACK_FACING[got]} != same_axis, (
                 f"{zone}: {m['name']} faces {got} across its street ({want})")
             continue
-        assert got == want, f"{zone}: {m['name']} faces {got}, street is {want}"
+        # **...UNLESS TURNING IT WOULD BREAK SOMETHING WORSE, AND THE PLAN SAYS SO.** The turn
+        # pass declines for four measured reasons - off the owned land, a door onto land the
+        # theme does not own, into a neighbour, and rule 4's discharge landing on a neighbour's
+        # queue - and every one of them is a smaller fault than the alternative. What is not
+        # acceptable is declining SILENTLY, so a building keeping its back to the street has to
+        # be able to name the reason.
+        assert got == want or m.get("turn_declined"), (
+            f"{zone}: {m['name']} faces {got}, street is {want}, and no reason was recorded")
 
 
 @pytest.mark.parametrize("zone", ZONES)
@@ -325,10 +380,19 @@ def test_turning_a_building_never_pushes_it_into_its_neighbour(zone):
     reserved for it. Siting books a SQUARE for anything that may be turned, which is what makes
     the turn safe - and this is the check that would catch it if that ever stopped being true."""
     pl = _planned(zone)
-    boxes = [(m["name"], planner._box_of(m)) for m in pl.modules
+    # **TWO MODULES ON DIFFERENT BANDS MAY SHARE A PLAN VIEW, AND SHOULD.** The Mine Head
+    # stands directly over the Mine Cart Escape - that is what a headframe IS - and a plan-view
+    # overlap test called it a collision. A module is a box, and a box has three dimensions.
+    def _span(m):
+        y0 = m["at"][1] + m.get("anchor_offset", (0, 0, 0))[1]
+        return y0, y0 + m["size"][1] - 1
+
+    boxes = [(m["name"], planner._box_of(m), _span(m)) for m in pl.modules
              if not m.get("covers") and m["kind"] != "paths"]
-    for i, (na, a) in enumerate(boxes):
-        for nb, b in boxes[i + 1:]:
+    for i, (na, a, ay) in enumerate(boxes):
+        for nb, b, by in boxes[i + 1:]:
+            if not (ay[0] <= by[1] and by[0] <= ay[1]):
+                continue
             overlap = a[0] <= b[2] and b[0] <= a[2] and a[1] <= b[3] and b[1] <= a[3]
             assert not overlap, f"{zone}: {na} overlaps {nb} after orientation"
 

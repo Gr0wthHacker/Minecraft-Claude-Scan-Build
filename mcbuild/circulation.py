@@ -109,7 +109,103 @@ def _role_for(anchors: list[dict]) -> str:
     return "secondary"
 
 
-def build(modules: list[dict], centre: tuple[int, int], owned: tuple[int, int, int, int]) -> list[dict]:
+#: A module more than this far off the build plane is on another band, and a guest reaches it by
+#: a stair or a lift rather than by walking. One course is a step, which needs nothing declared.
+OFF_PLANE = 1
+
+
+def _level_of(module, street):
+    """The course this module's guests stand on - its own, not the land's."""
+    anchors = module.get("interface", {}).get("anchors", [])
+    return anchors[0]["at"][1] if anchors else street
+
+
+def _approach_of(module):
+    """The anchor a module's shaft comes down at - its own approach, or the best it has."""
+    anchors = [a for a in module.get("interface", {}).get("anchors", [])
+               if a.get("public") and not a.get("off_land")]
+    if not anchors:
+        return None
+    return next((a for a in anchors if I.resolve(a["name"]) in
+                 {"approach", "frontage", "arrival", "entry"}), anchors[0])
+
+
+def _landing(name, level, start, end, axis, approach):
+    """One level's own frontage walk, plus the leg that joins it to this module's shaft.
+
+    A landing is an ordinary secondary street that happens to be somewhere else in Y. It is
+    emitted with three-element endpoints so `pathgraph.levels` files its cells at the right
+    course, and it runs to the MODULE's own approach - which is where the shaft comes down.
+
+    **THE MODULE'S, NOT THE FACE'S.** Taken from the anchors on the face being walked, a face
+    carrying only an emergency exit resolved its own anchor as the approach, the join came out
+    zero-length, and that face's landing shipped as a nine-cell island under the town with no
+    way onto it. The check caught it; the cause was one word.
+    """
+    foot = (approach["at"][0], approach["at"][2])
+    walk = _leg((start[0], start[1]), (end[0], end[1]), WALK_WIDTH, "secondary",
+                name=f"{name} {axis} landing")
+    walk["a"] = [walk["a"][0], int(level), walk["a"][1]]
+    walk["b"] = [walk["b"][0], int(level), walk["b"][1]]
+    out = [walk]
+    mid = ((start[0] + end[0]) // 2, (start[1] + end[1]) // 2)
+    if mid != foot:
+        join = _leg(mid, foot, WALK_WIDTH, "secondary", name=f"{name} landing join")
+        join["a"] = [join["a"][0], int(level), join["a"][1]]
+        join["b"] = [join["b"][0], int(level), join["b"][1]]
+        out.append(join)
+    return out
+
+
+def _shafts(modules, plane, walkable) -> list[dict]:
+    """One declared vertical connection per module that stands off the build plane.
+
+    **A PLAN VIEW SAYS AN UNDERGROUND RIDE IS ON THE STREET. IT IS ON THE STREET'S SHADOW.** The
+    moment the Frontier's mine ride moved 24 courses down - which is the masterplan's own answer
+    to a town that does not fit its plot - every one of its public anchors still read as served,
+    because the attachment check only knew about x and z.
+
+    The shaft is placed at the module's own APPROACH, which is the cell a guest arrives at, and
+    it spans from the street down to that anchor's course. It is declared as `stairs` so the
+    grade rule lets it be steeper than one-in-one: that is what a stair IS, and the alternative -
+    a ramp at one block per course - would be a 24-cell run through the town to reach a ride
+    underneath it.
+
+    It is a CONTRACT, not a build: the generator that owns the connector - a headframe, a lift
+    tower, a stairwell - has to honour it, and the route gate is what says whether it did.
+    """
+    out = []
+    for module in modules:
+        if module.get("covers") or I.module_type(module) in {"path", "terrain", "service"}:
+            continue
+        approach = _approach_of(module)
+        if approach is None:
+            continue
+        x, y, z = approach["at"]
+        if abs(y - (plane + 1)) <= OFF_PLANE:
+            continue
+        # **THE SHAFT STANDS IN THE MODULE'S OWN APPROACH COLUMN.** Placed at the nearest
+        # street cell instead, its foot lands wherever that column happens to be underground -
+        # which is rock - and the landing it is supposed to reach is somewhere else. A lift
+        # goes straight down to the door it serves.
+        out.append({"a": [int(x), int(plane + 1), int(z)],
+                    "b": [int(x), int(y), int(z)],
+                    "width": WALK_WIDTH, "role": "shaft", "vertical": "stairs",
+                    "name": f"{module.get('name', '?')} shaft"})
+        # **AND THE SHAFT HEAD HAS TO BE ON THE STREET, or the whole underground level is an
+        # island.** The shaft stands in the module's own column, which on the surface is not
+        # anywhere the town paved - so the plan-view network came out in two pieces, correctly:
+        # a guest could reach the landing only by already being on it. This is the head's own
+        # approach, at street level, and it is what makes the two bands one walk.
+        head = min(walkable, key=lambda c: (c[0] - x) ** 2 + (c[1] - z) ** 2, default=None)
+        if head is not None and head != (x, z):
+            out.append(_leg((x, z), head, WALK_WIDTH, "secondary",
+                            name=f"{module.get('name', '?')} shaft approach"))
+    return out
+
+
+def build(modules: list[dict], centre: tuple[int, int], owned: tuple[int, int, int, int],
+          plane: int | None = None) -> list[dict]:
     """The whole circulation network for one land, as role-typed routes.
 
     `owned` is (x0, x1, z0, z1) of the land the theme owns - not of the plot. A land that clamps
@@ -149,14 +245,26 @@ def build(modules: list[dict], centre: tuple[int, int], owned: tuple[int, int, i
         return (min(max(point[0], ox0 + margin), ox1 - margin),
                 min(max(point[1], oz0 + margin), oz1 - margin))
 
+    street = None if plane is None else plane + 1
     for module in modules:
         if module.get("covers") or I.module_type(module) in {"path", "terrain", "service"}:
             continue
         name = module.get("name", "?")
+        # **A MODULE ON ANOTHER BAND GETS ITS OWN LEVEL'S CIRCULATION, NOT THE STREET'S.**
+        # The Frontier's mine ride stands 24 courses under the town. Drawn on the plane its
+        # frontage walk is the street's shadow: correct in plan, twenty-four blocks of solid
+        # rock in elevation. Its walks carry a Y, one shaft joins them to the street above, and
+        # the level map is what makes the route gate able to tell the two apart.
+        level = _level_of(module, street)
+        below = street is not None and level is not None and abs(level - street) > OFF_PLANE
         for face, anchors in sorted(_faces(module).items()):
             (start, end), axis = _walk_for(face, anchors)
             half = WALK_WIDTH // 2
             start, end = _inside(start, half), _inside(end, half)
+            if below:
+                routes.extend(_landing(name, level, start, end, axis,
+                                       _approach_of(module) or anchors[0]))
+                continue
             role = _role_for(anchors)
             width = WALK_WIDTH if role != "queue" else min(WALK_WIDTH, 3)
             routes.append(_leg(start, end, width, role, name=f"{name} {face} frontage"))
@@ -185,6 +293,8 @@ def build(modules: list[dict], centre: tuple[int, int], owned: tuple[int, int, i
     # yields; it does not cross. That is the only version of "hidden service routes" that is a
     # fact about the geometry rather than a label on it.
     from . import pathgraph
+    if plane is not None:
+        routes.extend(_shafts(modules, plane, pathgraph.public(routes)))
     routes.extend(_service_network(modules, owned, pathgraph.footprint(routes)))
     return [r for r in routes if r["a"] != r["b"]]
 

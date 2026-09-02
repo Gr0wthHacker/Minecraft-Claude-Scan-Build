@@ -1045,8 +1045,8 @@ def _paths(w: World, p: dict, ctx) -> dict:
 
     laid, lamps, rails = 0, 0, 0
 
-    def _leg(ax, az, bx, bz, route):
-        """One straight run. An L route is two of these; the corner belongs to both."""
+    def _leg(ax, az, bx, bz, route, y):
+        """One straight run at its own course. An L is two of these; the corner belongs to both."""
         nonlocal laid, lamps, rails
         role = route.get("role", "secondary")
         half = max(1, int(route.get("width", 3))) // 2
@@ -1099,17 +1099,30 @@ def _paths(w: World, p: dict, ctx) -> dict:
                     lamps += 1
 
     for r in routes:
-        ax, az = int(r["a"][0]), int(r["a"][1])
-        bx, bz = int(r["b"][0]), int(r["b"][1])
+        # **A ROUTE MAY CARRY ITS OWN COURSE.** An underground landing is `[x, y, z]` and drawing
+        # it at the paths module's own plane paves the mine's floor on top of the town - which is
+        # what happened the first time a module moved off the plane. A two-element endpoint is
+        # still the street.
+        a, b = r["a"], r["b"]
+        ax, az = (int(a[0]), int(a[2])) if len(a) > 2 else (int(a[0]), int(a[1]))
+        bx, bz = (int(b[0]), int(b[2])) if len(b) > 2 else (int(b[0]), int(b[1]))
+        ry = int(a[1]) if len(a) > 2 else y
+        if r.get("role") == "shaft":
+            # A shaft is a vertical run in one column: a landing at each end and the courses
+            # between them left open, because what fills them is a stair the module's own
+            # generator builds. Paving its whole column would seal the thing it exists to be.
+            for course in (ry, int(b[1]) if len(b) > 2 else y):
+                _leg(ax, az, bx, bz, r, course)
+            continue
         if ax != bx and az != bz:
             # AN L IS TWO LEGS. The circulation builder emits them for a frontage walk that has
             # to travel along the avenue's own axis to get onto it, and drawing only the dominant
             # axis - which is what a single-leg walk does - silently loses the second half and
             # leaves the walk joined to nothing.
-            _leg(ax, az, bx, az, r)
-            _leg(bx, az, bx, bz, r)
+            _leg(ax, az, bx, az, r, ry)
+            _leg(bx, az, bx, bz, r, ry)
         else:
-            _leg(ax, az, bx, bz, r)
+            _leg(ax, az, bx, bz, r, ry)
 
     from collections import Counter
     by_role = Counter(r.get("role", "secondary") for r in routes)
