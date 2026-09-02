@@ -110,12 +110,51 @@ def infrastructure_model(compiled: dict):
     return schem.Model(ids, palette), (ox, oy, oz)
 
 
+def ship(compiled: dict, complete: Path, preview_at=None) -> list[str]:
+    """Copy the park into the game's schematics folder, optionally REBASED for preview.
+
+    **A SCHEMATIC CARRYING THE PLAN LATTICE PLACES AT NOWHERE.** Every sidecar written here is
+    local to the WorldSpec anchor - deliberately, because PARK_BUILD_EXECUTION.md forbids pasting
+    a provisional coordinate into the live world. But Litematica places a design at its recorded
+    origin, so a shipped copy with a local origin lands at x5 z0 and the player sees nothing at
+    all. `--preview-at` writes the shipped SIDECARS at a world corner while the repo's own copies
+    keep the local lattice, so the two never get confused.
+
+    A preview is a hologram, not a paste: the warning in the build-execution doc is about
+    BUILDING at a provisional coordinate, not about looking at one.
+    """
+    import shutil
+    dest = Path(mcprofile.load()["schem_dir"])
+    dest.mkdir(parents=True, exist_ok=True)
+    shipped = []
+    for src in [complete] + sorted(PLACED.glob("*.litematic")):
+        side = src.with_suffix(".scan.json")
+        shutil.copy2(src, dest / src.name)
+        if side.exists():
+            meta = json.loads(side.read_text(encoding="utf-8"))
+            if preview_at:
+                ox, oy, oz = meta["origin"]["x"], meta["origin"]["y"], meta["origin"]["z"]
+                meta["origin"] = {"x": preview_at[0] + ox, "y": oy, "z": preview_at[2] + oz}
+                meta["local_origin"] = {"x": ox, "y": oy, "z": oz}
+                meta["preview_anchor"] = list(preview_at)
+                meta["anchor_status"] = ("PREVIEW placement only. The plan lattice is local; this "
+                                         "copy is rebased so Litematica can show it. Rebase "
+                                         "properly against a live capture before building.")
+            (dest / side.name).write_text(json.dumps(meta, indent=2), encoding="utf-8")
+        shipped.append(src.stem)
+    return shipped
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--merge", action="store_true", help="also fold the park into one artifact")
     ap.add_argument("--no-clash", action="store_true", help="skip the pairwise clash report")
     ap.add_argument("--ship", action="store_true",
                     help="copy the placed modules and the assembled park into the game's schematics folder")
+    ap.add_argument("--preview-at", nargs=3, type=int, metavar=("X", "Y", "Z"),
+                    help="world corner to REBASE the shipped copies onto so Litematica can show "
+                         "them. The plan lattice is local and a schematic carrying it places at "
+                         "x5 z0, which is nowhere - see the note in ship().")
     args = ap.parse_args()
 
     compiled = plan()
@@ -150,21 +189,16 @@ def main() -> int:
             base = scan.Scan(merged, {**base.meta, "origin": {"x": new[0], "y": new[1], "z": new[2]}},
                              base.litematic_path, base.sidecar_path)
         out = ROOT / "out" / "park_final" / "Park Complete.litematic"
-        scan.save_pair(str(out), base.model, base.meta, name="Park Complete")
+        scan.save_pair(str(out), base.model,
+                       {**base.meta, "kind": "park", "generated_by": "tools/parkassemble.py",
+                        "contains": ["infrastructure"] + [i["module"] for i in placed]},
+                       name="Park Complete")
         sy, sz, sx = base.model.ids.shape
         print(f"wrote {out}  {sx}x{sy}x{sz}  {int(base.model.solid().sum()):,} blocks")
         if args.ship:
-            import shutil
-            dest = Path(mcprofile.load()["schem_dir"])
-            dest.mkdir(parents=True, exist_ok=True)
-            shipped = []
-            for src in [out] + sorted(PLACED.glob("*.litematic")):
-                for suffix in (".litematic", ".scan.json"):
-                    side = src.with_suffix(suffix)
-                    if side.exists():
-                        shutil.copy2(side, dest / side.name)
-                        if suffix == ".litematic": shipped.append(side.stem)
-            print(f"shipped {len(shipped)} schematics to {dest}")
+            shipped = ship(compiled, out, args.preview_at)
+            print()
+            print(f"shipped {len(shipped)} schematics")
             for name in shipped: print(f"  {name}")
 
 
