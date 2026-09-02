@@ -338,49 +338,69 @@ def build(cfg: dict, donors=None) -> Canvas:
         return LAMPS[pal["land"]](x, z, pal, across)
 
     lamps = seats = refused = 0
+
+    def place_lamp(x: int, z: int, pal: dict, across: str,
+                   window=(0, 1, -1, 2, -2, 3, -3, 5, -5, 8, -8, 11, -11, 14, -14)) -> bool:
+        """Place one lamp, nudging along the verge until it clears paving.
+
+        THE WINDOW HAS TO CLEAR A PLAZA. A plaza is 27 across, so it swallows a verge for its
+        whole length; at a three-block nudge 33 lamps were refused outright and the east verge
+        of the spine came out with a 110-block gap in its rhythm. A gap that size is an accident,
+        not restraint."""
+        nonlocal lamps, refused
+        for shift in window:
+            sx_, sz_ = (x, z + shift) if across == "x" else (x + shift, z)
+            if lamp(sx_, sz_, pal, across):
+                lamps += 1
+                return True
+        refused += 1
+        return False
+
+    def bench(x: int, z: int, pal: dict, side: int) -> None:
+        nonlocal seats
+        for shift in (0, 1, -1, 2, -2):
+            zz = z + shift
+            if 0 <= zz < sz and not is_reserved(x, zz) and (x, zz) not in paved:
+                # a stair's TALL side IS its `facing` (test_stairhead's convention), so a bench on
+                # the west verge - looking east at the path - faces WEST: its back goes to the
+                # lawn. Written the other way round, every bench had its backrest to the street.
+                c.put(x, 1, zz, c.raw_state(pal["seat"], facing="west" if side < 0 else "east",
+                                            half="bottom", shape="straight"))
+                seats += 1
+                return
+
+    # LIGHTING IS AESTHETIC HERE, NOT FUNCTIONAL. Jack: "mobs cannot spawn they are disabled on
+    # our island so lighting can have shadow areas, but we need to be very intentional about
+    # everything." So this stopped chasing coverage: propagated, chasing zero dark cells wanted
+    # 765 lamps and still left a fifth of the walk unlit, because what binds is the distance
+    # ACROSS a thirteen-wide path, not the spacing along it. With nothing to spawn, that is a
+    # question about rhythm instead - and the answer is far fewer lamps, in the three places a
+    # lamp MEANS something: a rhythm down the two promenades, and a marker where an avenue meets
+    # them. The mid-block walk and the service lane get none: a service lane is meant to be
+    # missed, and a walk between two lit streets does not need its own row of posts.
     for z in range(sz):
         pal, _b, _t = land_at(z + u0)
         for side in (-1, 1):
             x = spine_v + side * (p["spine_half"] + 2)
-            if not (0 <= x < sx):
-                continue
-            # ONE VERGE AT A TIME, ALTERNATING. Jack: "theres too many overall lamps, we dont
-            # need hundreds to cover an area." A lamp on both verges every fourteen blocks is a
-            # picket fence: 326 of them. Staggered at 22 the walk is still lit end to end - a
-            # lantern is light 15, so the darkest point between two is about 5 - and the avenue
-            # reads as an avenue rather than as a corridor of poles.
             if (z + (0 if side < 0 else p["lamp_every"] // 2)) % p["lamp_every"] == 0:
-                # A REFUSAL LEAVES A HOLE IN THE RHYTHM, so a lamp that lands on paving is
-                # NUDGED along the verge until it finds lawn rather than dropped: 41 of them
-                # were being dropped outright, which is a dark gap wherever a path crosses.
-                for shift in (0, 1, -1, 2, -2, 3, -3, 4, -4):
-                    if lamp(x, z + shift, pal, "x"):
-                        lamps += 1
-                        break
-                else:
-                    refused += 1
+                place_lamp(x, z, pal, "x")
             elif z % p["seat_every"] == p["seat_every"] // 2:
-                for shift in (0, 1, -1, 2, -2):
-                    zz = z + shift
-                    if (0 <= zz < sz and not is_reserved(x, zz) and (x, zz) not in paved):
-                        # a bench faces the path it is beside, which is why it is there at all
-                        c.put(x, 1, zz, c.raw_state(pal["seat"],
-                                                    facing="east" if side < 0 else "west",
-                                                    half="bottom", shape="straight"))
-                        seats += 1
-                        break
+                bench(x, z, pal, side)
+        for side in (-1, 1):
+            x = prom_v + side * (p["promenade_half"] + 2)
+            every = p["lamp_every"] + 10
+            if (z + (0 if side < 0 else every // 2)) % every == 0:
+                place_lamp(x, z, pal, "x")
+            elif z % (p["seat_every"] * 2) == p["seat_every"]:
+                bench(x, z, pal, side)
+
+    # ...and one pair at each avenue's mouth, which is where a walker makes a decision.
     for u, pal in avenues:
         z = u - u0
-        for i, x in enumerate(range(spine_v + half + 4, deep, p["lamp_every"])):
-            for side in ((-1,) if i % 2 == 0 else (1,)):
-                zz = z + side * (p["avenue_half"] + 2)
-                if 0 <= zz < sz:
-                    for shift in (0, 1, -1, 2, -2, 3, -3, 4, -4):
-                        if lamp(x + shift, zz, pal, "z"):
-                            lamps += 1
-                            break
-                    else:
-                        refused += 1
+        for side in (-1, 1):
+            zz = z + side * (p["avenue_half"] + 2)
+            place_lamp(spine_v + half + 3, zz, pal, "z")
+            place_lamp(prom_v + (half - 4) + 3, zz, pal, "z")
 
     c.meta = {"kind": "parkways", "lands": [land["name"] for land in lands],
               "avenues": len(avenues), "lamps": lamps, "seats": seats,
