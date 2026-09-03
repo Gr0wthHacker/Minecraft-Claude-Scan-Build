@@ -1,5 +1,5 @@
 """Generator registry. Each module exposes DEFAULTS and build(cfg, donors)->Canvas."""
-from . import asset, parkways, parkrail, tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge, hamlet, campanile, harborlight, turtle, rootreach, lowglow, falls, thicket, enrich, parkour, frog, railspiral, casino, park, coaster, bigwheel, civic, frontiertown, hollowmanor, monument, streetfurniture, attractions, transit, ticketing, wayfinding, isthmus, spectacle, arcade, arrival, balloon, wyrm, undercroft, setpiece, prismworks
+from . import asset, parkways, parkrail, tree, fox, tower, underside, garden, pond, casing, farm, pathkit, sloth, gecko, dragonfly, belly, vertical, dressing, interior, courtyard, redstone, islet, spiral, stairwell, storehall, atelier, lake, voidisle, vestibule, quadruped, lowland, heron, bat, ladybug, stairhead, deckfloor, gallery, rootbreak, rimstair, courthall, ruinring, axolotl, ruinway, sanctum, voidbridge, hamlet, campanile, harborlight, turtle, rootreach, lowglow, falls, thicket, enrich, parkour, frog, railspiral, casino, park, coaster, bigwheel, civic, frontiertown, hollowmanor, monument, streetfurniture, attractions, transit, ticketing, wayfinding, isthmus, spectacle, arcade, arrival, balloon, wyrm, undercroft, setpiece, prismworks, prismwell, prismfloor
 from .canvas import Canvas, hash01
 
 class _Compose:
@@ -19,6 +19,7 @@ class _Wrap:
 
 from . import frontier_builds, midway_builds, prismworks_builds  # noqa: E402
 from . import park_entrance, park_frontage, park_vantage, park_water  # noqa: E402
+from . import mineridge, mineworks, park_games  # noqa: E402
 
 
 GENERATORS = {
@@ -37,6 +38,17 @@ GENERATORS = {
     # marquees, portals, queues, props - mcbuild/gen/park_frontage.py
     "park_frontage": park_frontage,
     "park_entrance": park_entrance,
+    # the mountain the Mine Coaster is cut into, and the works that feed it -
+    # mcbuild/gen/mineridge.py and mcbuild/gen/mineworks.py
+    "mineridge": mineridge,
+    "mineworks": mineworks,
+    # **THE GAMES INSIDE THE PARK'S BUILDINGS, AND THIS ENTRY WAS MISSING.**
+    # `mcbuild/gen/park_games.py`, `tests/test_park_games.py` and ten
+    # `configs/pf_game_*.yaml` all existed and the generator was not registered, so
+    # not one of those configs could be regenerated - `mcbuild gen` answered "unknown
+    # generator park_games". Three of the built artifacts were also never placed. A
+    # generator nobody can reach is indistinguishable from one nobody wrote.
+    "park_games": park_games,
     "compose": _Compose(),
     "setpiece": setpiece,
     "prismworks": _Wrap(prismworks.build, prismworks.PRISMWORKS),
@@ -127,6 +139,9 @@ GENERATORS = {
     "thicket": _Wrap(thicket.build_thicket, thicket.THICKET),
     "enrich": _Wrap(enrich.build_enrich, enrich.ENRICH),
     "parkour": _Wrap(parkour.build_parkour, parkour.PARKOUR),
+    "prismwell": _Wrap(prismwell.build_well, prismwell.WELL),
+    "prismrig": _Wrap(prismwell.build_rig, prismwell.RIG),
+    "prismfloor": _Wrap(prismfloor.build_floor, prismfloor.FLOOR),
     "railspiral": _Wrap(railspiral.build_railspiral, railspiral.RAILSPIRAL),
 }
 

@@ -1,0 +1,80 @@
+# PF WATER - WYRM GARDEN: the park's second piece of water, behind the Wyrm's Crossing.
+#
+# MEASURED BEFORE IT WAS DESIGNED, and the measurement decided what it could be. Of the Wyrm's
+# Crossing reach (U385-429), the public floor V24-V86 is **2,583 columns of which 195 are open** -
+# 92% of it is the Crossing itself, 19,084 cells of light grey wool and its footings. There is no
+# room for a lake there and there never was.
+#
+# What IS free is the strip between the Crossing's back and the park's back promenade:
+# **V87-V120 by U387-U427, 1,394 columns of which 1,320 are open lawn (95%)**. That is not a
+# congregation point and must not pretend to be one - it is behind the reach's own landmark, and
+# the only route that sees it is the back promenade at V123-127. So it gets a WATER GARDEN: a
+# quiet pool with a shingle shore, lilies, weed, bank planting and two trees, and nothing built
+# beside it at all.
+#
+# `terrace: false` and `boardwalk: false` are the whole difference from the Claim Lake, and they
+# are switches rather than a second generator because the shore, the depth, the seal, the shingle
+# and the light solver are the same problem at either size - a copy of them would drift, and the
+# thing that would drift is water containment.
+#
+# WITH NO QUAY THERE IS NO STRAIGHT RUN ANYWHERE IN THE SHORE. The Claim Lake's near edge is
+# pinned flat across its terrace because that is what a built quay is; here both edges are
+# harmonic curves that close on each other at the ends of the pool.
+name: PF Water Wyrm Garden
+gen: park_water
+params:
+  kind: garden
+  # x = 97500 + V0, z = 80300 + U0, y = the deepest bed course (the lawn is Y202)
+  anchor: [97587, 199, 80688]
+  world: out/Park Complete.litematic
+  v0: 87
+  v1: 119
+  u0: 388
+  u1: 426
+  ground_y: 202
+  seed: 23
+
+  terrace: false
+  boardwalk: false
+  pool_v0: 92               # five courses of bank between the Crossing's back and the water
+  far_reach: 20.0           # a pool ~21 across at its widest, closing to nothing at both ends
+  end_shape: 0.6
+  deep_at: 4
+  deepest_at: 9
+
+  # no shoal and no creek: the Signal Heron stands in the OTHER reach, and a shoal with no bird on
+  # it is an island in a pond. Both shapes are parked at V0/U0, outside this design entirely.
+  shoal_v: 0
+  shoal_u: 0
+  shoal_rv: 0.5
+  shoal_ru: 0.5
+  creek_v: 0
+  creek_u: 0
+  creek_rv: 0.5
+  creek_ru: 0.5
+  heron_feet: []
+  heron_clear: [0, 0, 0, 0]
+
+  trees: [[90, 393], [91, 407], [117, 398], [116, 415], [90, 421]]
+  lily_frac: 0.13
+  seagrass_frac: 0.09
+roles: [landscape]
+design:
+  purpose: terrain
+  hierarchy: supporting
+  style: midway
+  narrative: >
+    A quiet water garden in the strip between the Wyrm's Crossing and the park's back promenade -
+    a small pool with an organic shingle shore dithered into the lawn, a shelf of shallows over a
+    two-course body, lilies and weed, bank planting and five trees, lit from its own bed so it
+    cannot freeze. Nothing is built beside it: it is somewhere to come across, not somewhere to
+    gather.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_block, moss_carpet]
+  verify_dig_above: true
+origin_lock: false

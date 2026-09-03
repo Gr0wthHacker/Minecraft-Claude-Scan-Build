@@ -35,12 +35,16 @@ CONFIGS = sorted(glob.glob(os.path.join(ROOT, "configs", "pf_front_*.yaml")))
 #: is not a collision, here or in the pipeline's own `verify_against`.
 REPLACEABLE = {"moss_carpet"}
 
-#: The nineteen placed modules. A theme park names EVERYTHING at the front; the complaint that
+#: The eighteen placed modules. A theme park names EVERYTHING at the front; the complaint that
 #: started this work was that not one of them did.
+#: THE ARRIVAL COURT IS NOT ONE OF THEM ANY MORE (2026-09-03). It was retired - `PF Entry Gate`
+#: already did its job on the park's own axis - and the Carousel took its lot in Midway column A.
+#: This list pins a DECISION about which modules exist, so it moves with the decision rather than
+#: keeping a name that would now fail for a building nobody placed.
 MODULES = [
     "Trailhead Gate", "Prospecting Porch", "Boomtown Spine", "Mining Square",
     "Assay and Prize Office", "Mine Coaster", "Works Yard",
-    "Arrival Court", "Snack Window", "Carousel Court", "Sky Lift", "Skill Arcade", "Prize Point",
+    "Snack Window", "Carousel Court", "Sky Lift", "Skill Arcade", "Prize Point",
     "Foundry Gate", "Prism Array", "Resonance Vault", "Prism Ascent", "Forge Deck",
     "Service Gallery",
 ]
@@ -52,14 +56,16 @@ NAMED_BY = {
     "Boomtown Spine": "Boomtown Spine", "Mining Square": "Mining Square",
     "Assay and Prize Office": "Assay and Prize Office", "Mine Coaster": "Mine Coaster",
     "Works Yard": "Works Yard staff gate",
-    "Arrival Court": "Arrival Court", "Snack Window": "Snack Window",
-    #: THE CAROUSEL IS ANNOUNCED BY ITS OWN THRESHOLD, not by a gantry across the walk. The
-    #: Circus Gate stood at V20 - one cell of lawn behind the entry gate's back face and one in
-    #: front of the Welcome Court - and Jack named exactly that: *"gates and a board etc are all
-    #: overlapping and chaotic with the entrance to the main center."* It is removed, so the
-    #: expectation moves with the decision rather than pinning the thing that was rejected. A
-    #: walk-on ride gets thresholds, which is what this config already says it gets.
-    "Carousel Court": "Carousel entrance", "Sky Lift": "Sky Lift", "Skill Arcade": "Skill Arcade",
+    "Snack Window": "Snack Window",
+    #: THE CAROUSEL HAS A GANTRY AGAIN, AND IT IS NOT ACROSS THE WALK. It used to be named by its
+    #: threshold alone: it stood behind the wheel with no spur of its own, and the one gantry near
+    #: it was the Circus Gate at V20 - a cell of lawn behind the entry gate's back face and a cell
+    #: in front of the Welcome Court, which is exactly what Jack called *"gates and a board etc all
+    #: overlapping and chaotic with the entrance to the main center."* That gate is still gone.
+    #: In column A the ride has its own 3-wide spur at U234-236 with a gantry over it, off the
+    #: entrance axis entirely, so it is named the way every other lot is - plus the two thresholds,
+    #: which are what a walk-on ride gets instead of a queue.
+    "Carousel Court": "Carousel Court", "Sky Lift": "Sky Lift", "Skill Arcade": "Skill Arcade",
     "Prize Point": "Prize Point",
     "Foundry Gate": "Foundry Gate", "Prism Array": "Prism Array",
     "Resonance Vault": "Resonance Vault", "Prism Ascent": "Prism Ascent",

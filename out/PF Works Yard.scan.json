@@ -372,8 +372,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "95dc1673cf4c249af105f5f39765e3b3df9d97cad49ced6dfcd38857256d1485",
-    "generator_source_digest": "ba20ea3c325b512e6c4d381f79f227891356832ebfa3e76f5621a4bfecccaa65",
+    "fingerprint": "82413e01f08db50fa7193229d748ab25de05e0705805035a95f1200a05ec5a33",
+    "generator_source_digest": "4bdf1de052d31c8cf7e04f30f322bc3e26f41f4a90bc4313543128d89f2f574a",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -413,9 +413,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 67.555786,
+    "seconds": 99.594678,
     "blocks": 1227,
-    "blocks_per_second": 18.16
+    "blocks_per_second": 12.32
   },
   "generator_contract": {
     "ok": true,

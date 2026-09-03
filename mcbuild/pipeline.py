@@ -469,11 +469,23 @@ def _verify_in_context(m, res, capture, origin, verbose: bool, ignore: set | Non
     # Audit the context ALONE first. Every finite cut truncates vines, chains and lanterns at its
     # edges, so a capture has problems of its own - island_deep has 42, island_void 72 - and reporting
     # them against the design sends you hunting faults you did not cause.
-    baseline = {(pr.kind, pr.x, pr.y, pr.z) for pr in audit_mod.audit(s.model, ground=False).problems}
+    # IN WORLD COORDINATES, AND THAT IS NOT A TIDY-UP. `merge` sizes the composite to the UNION
+    # of both boxes, so a design that reaches outside its capture - anything hanging below a
+    # floating park, every void build in this repo - shifts the merged frame's origin and every
+    # local coordinate with it. Compared locally the baseline then matches NOTHING, and the
+    # capture's own problems are all reported as new: the Prism Well made `Park Complete`'s 28
+    # pre-existing state problems look like 28 of its own, and the design exited non-zero for
+    # them. A check that cries wolf is a check nobody runs, which this repo has now written down
+    # about the audit, the soffit and the circuit inspection.
+    bo = s.origin
+    baseline = {(pr.kind, pr.x + bo[0], pr.y + bo[1], pr.z + bo[2])
+                for pr in audit_mod.audit(s.model, ground=False).problems}
     merged, overlap = scan_mod.merge(s, m, origin)
     overlap -= _already_built_cells(m, origin, s)   # a cell the world already holds correctly is built, not a collision
     ctx = audit_mod.audit(merged, ground=False)
-    ctx.problems = [pr for pr in ctx.problems if (pr.kind, pr.x, pr.y, pr.z) not in baseline]
+    mo = (min(bo[0], origin[0]), min(bo[1], origin[1]), min(bo[2], origin[2]))
+    ctx.problems = [pr for pr in ctx.problems
+                    if (pr.kind, pr.x + mo[0], pr.y + mo[1], pr.z + mo[2]) not in baseline]
     if verbose:
         print(f"in context of {', '.join(os.path.basename(f) for f in files)}: overlap {overlap} cells, "
               f"NEW problems {len(ctx.problems)} (capture already had {len(baseline)}), "

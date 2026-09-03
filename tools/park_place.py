@@ -104,7 +104,21 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # we can always remove smaller buildings that are mostly useless."
                 "PF Vantage Prism Summit",
                 "PF Front Frontier", "PF Front Midway", "PF Front Prismworks",
-                "PF Entry Gate"}
+                "PF Entry Gate",
+                # THE FRONTIER'S MOUNTAIN AND ITS WORKS. `PF Mine Ridge` wraps the Mine Coaster
+                # without taking one cell of it; `PF Mine Works` is the ore line, the stamp mill
+                # and the dock. See configs/pf_mine_ridge.yaml and configs/pf_mine_works.yaml.
+                "PF Mine Ridge", "PF Mine Works",
+                # **THREE GAMES WERE BUILT FOR THE FRONTIER AND NEVER PLACED.** Measured over the
+                # shipped `Park Complete`, the whole land's interactive inventory was 646 rails,
+                # 2 buttons, 2 bells and 2 detector rails - every verb in it belonging to the
+                # coaster - while `out/PF Game Pan Line`, `Powder Striker` and `Prize Office` sat
+                # on disk, generated, simulated and absent from the park. A design that is built
+                # and unplaced is indistinguishable from one that was never written.
+                "PF Game Pan Line", "PF Game Powder Striker", "PF Game Prize Office",
+                # ...and the fourth, written for the Prospecting Porch's second bay,
+                # which shipped as a shell with no circuit behind it.
+                "PF Game The Riffle"}
 
 
 def extras() -> list:
@@ -148,9 +162,12 @@ def modules(report=False) -> list:
         # rebuilt from scratch into `out/PF <name>.litematic`; `out/park_final/artifacts` still
         # holds the previous attempt, and only the three rides Jack kept are taken from there.
         pf = ROOT / "out" / f"PF {name}.litematic"
-        compact_carousel = ROOT / "out" / "Carousel.litematic"
-        if name == "Carousel Court" and compact_carousel.exists():
-            f = compact_carousel
+        # THE CAROUSEL IS BUILT FROM `configs/carousel.yaml`, NOT FROM THE ARTIFACT. The artifact is
+        # diameter 45 - 52 x 47 - which is why it could only ever live in column B. `out/Carousel`
+        # is the same generator at the diameter its lot actually holds, and the lot is column A now.
+        own_carousel = ROOT / "out" / "Carousel.litematic"
+        if name == "Carousel Court" and own_carousel.exists():
+            f = own_carousel
         else:
             f = pf if pf.exists() else ARTIFACTS / f"{name}.litematic"
         if not f.exists():

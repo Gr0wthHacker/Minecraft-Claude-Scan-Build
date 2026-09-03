@@ -67,6 +67,8 @@ right-click whatever powers it and costs nothing; a note block is `expensive` ti
 """
 from __future__ import annotations
 
+import math
+
 from .canvas import Canvas, hash01
 from .vertical import Ctx, World
 from .park import (
@@ -1617,8 +1619,361 @@ def _hallofame(w: World, p: dict, ctx) -> dict:
                         "and not one block in it carries a signal"}
 
 
+# ------------------------------------------------------------------ the cascade
+
+#: THE CHIME'S FIVE NOTES. A note block's INSTRUMENT comes from the block underneath it, which is
+#: placeable and therefore guaranteed here: `packed_ice` gives `chime`, the one instrument in the
+#: game that sounds like water. Its PITCH does not: `note` is changed by RIGHT-CLICKING, not by
+#: placing, so a printer puts every one of them down at note 0 - and `work.INTENTIONAL` correctly
+#: does not compare it, so nothing will report the difference either. The five are recorded in the
+#: sidecar and tuned by hand, exactly as a dig list is cleared by hand. Stated here so that a build
+#: which is right is not read as a build that failed.
+CHIME_NOTES = (6, 8, 11, 13, 18)
+
+
+def _cascade(w: World, p: dict, ctx) -> dict:
+    """THE MIDWAY'S CENTREPIECE: an arcaded drum standing in a moat, wearing a ring of waterfalls,
+    with a dry chamber inside you can walk into and a chime you can play.
+
+    Jack, on a lagoon proposed for this lot: *"we have other lakes though, we cant have tons of
+    lakes and water, its repetitive, it should instead be a big water fountain sculpture or
+    something unique and enjoyable."* He is right and the count says so - the park holds 3,377
+    water blocks in five places, and the nearest is not the Claim Lake but the 228 cells in the
+    Welcome Court's own fountain, forty blocks in front of this one. So the water here is VERTICAL
+    and it is on an OBJECT: a few hundred cells that FALL, against the Claim Lake's 2,268 that lie
+    still. Falling water is also one of the very few things in this game that actually moves.
+
+    **IT IS A DIFFERENT OBJECT FROM THE COURT'S FOUNTAIN, AND THAT IS MEASURED.** The Welcome
+    Court's is 11 x 11 with three courses of water, and the whole court tops out at 11 courses.
+    This is 27 across and its crown stands 16 over the walk. They read as a SEQUENCE - a small
+    basin where you arrive, a monument where you gather - rather than as one idea done twice.
+
+    **YOU WALK ROUND IT, NEVER INTO IT.** `gen/midway.py` records that rule for a centrepiece, and
+    it matters more here rather than less, because this one is not low: the eleven-wide axis walk
+    splits into two five-wide arms and rejoins beyond, so nobody on their way to the wheel is
+    shoved about by falling water. The two chamber entrances are on the CROSS axis, over causeways,
+    so stepping inside is a discovery off the route rather than a toll on it.
+
+    **THE FALL HAS TO CLEAR THE DRUM, WHICH IS WHY THE BOWL CORBELS OUT.** `_fountain` already
+    records why three still pools are a failure - *"it audits clean, costs nothing, looks exactly
+    like a fountain in every render here, and never moves"* - and the open-notch rule that fixes
+    it. The notch alone is not enough here: a rim at the drum's own radius spills onto the drum's
+    own shoulder and dribbles down it. The bowl is therefore two radii wider than the piers, so a
+    notch has nine courses of open air under it and the water lands in the moat.
+    """
+    f = _Frame(p)
+    pal = LANDS[p["land"]]
+    say = _Plaques(p.get("sign", True))
+
+    W = max(31, int(p["width"]))                 # the lot, across the frontage
+    D = max(31, int(p["depth"]))                 # the lot, into the frame
+    ci = W // 2 + int(p.get("centre_i", 0))
+    cd = D // 2
+
+    R_PAD, R_KERB, R_DRUM = 13, 11, 8
+    R_BOWL, R_DISH = 10, 4
+    PIER_TOP = 8                                 # the piers run h=1..8
+    RAYS = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+    DOORS = {(1, 0), (-1, 0)}                    # the cross axis: causeways in, and no waterfall
+
+    def bay_of(di, dd):
+        """Which of the eight bays a cell faces, and how far off that bay's centre line it sits."""
+        best, off = None, 99.0
+        for (ux, uz) in RAYS:
+            n = math.hypot(ux, uz)
+            along = (di * ux + dd * uz) / n
+            across = abs(di * uz - dd * ux) / n
+            if along > 0 and across < off:
+                best, off = (ux, uz), across
+        return best, off
+
+    m = {"water": 0, "lamps": 0, "pad": 0}
+
+    # ---- h=-1  THE PAD. It is the plaza, the moat's bed and the chamber's floor all at once, and
+    # that is the whole reason this design has no dig list: it stands ON the lawn instead of being
+    # a tank hung under a one-block skin over open void, which is what the lagoon would have been.
+    kerb = set(_annulus(R_KERB, _disc))
+    sill = set(_annulus(R_DRUM, _disc))
+    moat = set(_cells(0, R_BOWL, _disc)) - set(_cells(0, R_DRUM, _disc))
+    # THE CAUSEWAY IS A THREE-WIDE GAP IN THE RIM AT EXACTLY THE SHEET'S LEVEL, and with the moat
+    # sunk it was the last way out: water ran along the bridge deck and flooded the whole plaza -
+    # 544 wet cells at walking level, every one of them inside the court, so the "does it leave the
+    # design" test read clean. A bridge over water needs PARAPETS, and here they are structural
+    # rather than decorative: they close the rim's course on both sides of every crossing.
+    cause = set()
+    rail = set()
+    for (ux, uz) in DOORS:
+        for t in range(R_DRUM - 1, R_PAD + 1):
+            for k in (-1, 0, 1):
+                cause.add((ux * t + uz * k, uz * t + ux * k))
+        for t in range(R_DRUM - 1, R_KERB + 1):
+            for k in (-2, 2):
+                rail.add((ux * t + uz * k, uz * t + ux * k))
+    moat -= rail
+
+    for (di, dd) in _cells(0, R_PAD, _disc):
+        if (di, dd) in moat and (di, dd) not in cause:
+            continue                                     # the moat is SUNK - see below
+        x, y, z = f.at(ci + di, cd + dd, -1)
+        if math.hypot(di, dd) <= R_DRUM - 0.5:
+            blk = pal["path"] if (x + z) % 2 else pal["ground"]      # the chamber floor
+        elif x % 6 == 0 or z % 6 == 0:
+            blk = pal["trim"]
+        else:
+            blk = pal["ground"] if (x + z) % 2 else pal["path"]
+        w.put(x, y, z, blk)
+        m["pad"] += 1
+
+    # ---- h=0  the moat, its two rims, and the causeways across it.
+    # A WATER CELL NEEDS A SOLID BED AND A SOLID RIM, and here both hold by construction: the bed
+    # is the pad one course down, and one step out of the moat raises the radius by at most one,
+    # so a full one-radius `_annulus` cannot be stepped over. `_border` here would leak on the
+    # diagonals, which is the mistake `_fountain`'s own docstring was written against.
+    # **A WATERFALL INTO A ONE-DEEP KERBED POOL RUNS STRAIGHT OVER THE KERB.** The first build put
+    # the moat's water level WITH its rim, and it leaked 3,283 cells across the court and into the
+    # Welcome Court fifty blocks away. It is not a rim bug and the rim was complete: falling water
+    # landing on a pool becomes a FLOWING SHEET one course above it, and a rim level with the
+    # water surface has nothing standing in that course to stop the sheet. The generator's own
+    # audit passed it, the block count was right, and `fluids.unenclosed` reported thirty cells -
+    # it took flooding the SHIPPED design against the real park to see the size of it.
+    #
+    # So the moat is SUNK: its water sits at h=-1, flush with the top of the plaza pad, and the
+    # rim stands at h=0 - the course a walker's feet are in, and the course the sheet forms in.
+    # The causeways are solid at h=-1, which also means you now walk straight in rather than
+    # stepping up over the rim and down again.
+    #
+    # ITS BED IS THE PARK'S OWN LAWN and this design places none, which is what keeps it free of a
+    # dig list. That is a DEPENDENCY, so it is a checked contract rather than an assumption:
+    # `tests/test_cascade.py` asserts every moat cell has a solid world block directly under it in
+    # the composite. The park is a one-block skin over open void and a hole there is a drain.
+    # TWO COURSES, NOT ONE, ON BOTH RINGS. A rim one course above the pool contains the sheet that
+    # forms when a fall lands - the rings measured complete at that course - and still leaked, because
+    # the sheet reaches the course ABOVE it too and both rings ended there. This is a basin wall you
+    # can see over from standing height and not a kerb, which is what a fountain this size has.
+    for (di, dd) in kerb | sill:
+        if (di, dd) not in cause:
+            w.put(*f.at(ci + di, cd + dd, 0), pal["trim"])
+            w.put(*f.at(ci + di, cd + dd, 1), pal["ground"] if (di, dd) in sill else pal["wall"])
+    # AND THE CROSSING IS A HUMPED BRIDGE, NOT A LEVEL PATH. Laid flush with the pad it was an open
+    # channel at the sheet's own level running from the moat straight into the chamber AND out over
+    # the plaza: 992 cells outside the envelope, the chamber under water and the lawn wet twenty
+    # blocks out. Over the moat's span the deck rises into the rim's course, which closes the ring;
+    # you step up one course onto the bridge and down one into the chamber, which is what crossing
+    # a moat is. The parapets ride on top of it.
+    span = {t for t in range(R_DRUM - 1, R_KERB + 1)}
+    for (di, dd) in cause & (kerb | sill | moat):
+        w.put(*f.at(ci + di, cd + dd, -1), pal["path"])
+        w.put(*f.at(ci + di, cd + dd, 0), pal["path"])
+        w.put(*f.at(ci + di, cd + dd, 1), pal["path"])
+    for (di, dd) in rail:
+        w.put(*f.at(ci + di, cd + dd, -1), pal["path"])
+        w.put(*f.at(ci + di, cd + dd, 0), pal["trim"])
+        w.put(*f.at(ci + di, cd + dd, 1), pal["wall"])
+        w.put(*f.at(ci + di, cd + dd, 2), pal["wall"])
+
+    # ---- h=1..PIER_TOP  the arcade: eight piers, eight bays open the whole way up. The bays carry
+    # no lintel on purpose - a lintel is a shelf, and the waterfall that comes through a bay would
+    # land on it instead of reaching the moat.
+    piers = set()
+    for (di, dd) in sill:
+        _bay, off = bay_of(di, dd)
+        if off < 1.6:                            # inside a bay: leave it open
+            continue
+        piers.add((di, dd))
+        for h in range(2, PIER_TOP + 1):
+            w.put(*f.at(ci + di, cd + dd, h),
+                  pal["wall"] if h % 4 == 0 else (pal["trim"] if h == 2 else pal["ground"]))
+
+    # ---- h=top  the entablature: the ring beam over the piers, the chamber's ceiling and the
+    # corbel the bowl stands on. A full disc out to R_BOWL-1, so the bowl's rim overhangs it by one
+    # and every notch has open air beneath.
+    top = PIER_TOP + 1
+    for (di, dd) in _cells(0, R_BOWL - 1, _disc):
+        w.put(*f.at(ci + di, cd + dd, top),
+              pal["wall"] if math.hypot(di, dd) > R_DRUM - 0.5 else pal["ground"])
+
+    # ---- h=top+1  THE BOWL and its notches. Six bays spill; the two over the doors do not, so you
+    # never have to walk through a waterfall to get in.
+    # A ONE-CELL NOTCH WORKS ON AN AXIS AND FAILS ON A DIAGONAL, and the first build shipped with
+    # four of its six falls fed by nothing. The rim is `_annulus`, one RADIUS wide - which on a
+    # diagonal is more than one CELL wide: the notch at (7,7) has r 9.90 and every one of its four
+    # orthogonal neighbours is at r 9.22, still rim, so the bowl's water (r <= 9) never reached it.
+    # The audit passed it, the block count was right, and two of the six waterfalls existed.
+    # A notch is therefore a CHANNEL cut along the bay's centre line, not a cell removed from the
+    # rim: every rim cell within 1.2 of that line goes, which is one cell on an axis and three on a
+    # diagonal, and the innermost of them always touches water by construction.
+    notches = set()
+    for (ux, uz) in RAYS:
+        if (ux, uz) in DOORS:
+            continue
+        for (di, dd) in _annulus(R_BOWL, _disc):
+            b, off = bay_of(di, dd)
+            if b == (ux, uz) and off < 1.2:
+                notches.add((di, dd))
+    # TWO COURSES OF RIM, NOTCHED ONLY ON THE LOWER ONE - the same lesson as the moat, one tier up.
+    # The dish above spills into this bowl, and a sheet one course over a bowl whose rim is only as
+    # tall as its water runs off the lip everywhere instead of through the six bays.
+    # AND THE SECOND COURSE GOES ON THE SAME CELLS AS THE FIRST, never over a notch. Placed on the
+    # whole ring it stood over the notch gaps with nothing under it - and an `_annulus` is NOT
+    # 6-connected at 45 degrees, so those cells had only diagonal ring neighbours too and shipped
+    # as isolated blocks. Over a notch the higher course is not wanted anyway: the notch column is
+    # exactly where the water is meant to leave.
+    for (di, dd) in _annulus(R_BOWL, _disc):
+        if (di, dd) not in notches:
+            w.put(*f.at(ci + di, cd + dd, top + 1), pal["trim"])
+            w.put(*f.at(ci + di, cd + dd, top + 2), pal["wall"])
+
+    # ---- the upper tiers: a pedestal standing in the bowl, a dish on it, and the crown
+    for (di, dd) in _cells(0, R_DISH - 1, _disc):
+        w.put(*f.at(ci + di, cd + dd, top + 2), pal["ground"])
+        w.put(*f.at(ci + di, cd + dd, top + 3), pal["ground"])
+    dish_notch = {(R_DISH, 0), (-R_DISH, 0), (0, R_DISH), (0, -R_DISH)}
+    for (di, dd) in _annulus(R_DISH, _disc):
+        if (di, dd) not in dish_notch:
+            w.put(*f.at(ci + di, cd + dd, top + 4), pal["trim"])
+            w.put(*f.at(ci + di, cd + dd, top + 5), pal["wall"])
+    # THE DISH IS A RING AROUND A JET COLUMN, not a full pool - `_fountain` says the same thing in
+    # its own words. Built solid, the crown above it stood on WATER, which is not a support: the
+    # component count caught it as a fifteen-cell piece floating over the fountain.
+    for h in (top + 4, top + 5):
+        for (di, dd) in _cells(0, 1, _disc):
+            w.put(*f.at(ci + di, cd + dd, h), pal["ground"])
+    for (di, dd) in _cells(0, 2, _disc):
+        w.put(*f.at(ci + di, cd + dd, top + 6), pal["ground"])
+    w.put(*f.at(ci, cd, top + 7), pal["accent"])
+    w.put(*f.at(ci, cd, top + 8), "end_rod", facing="up")
+
+    # ---- LIGHT BEFORE WATER, AND IT IS NOT DECORATION: still water under block light 10 turns to
+    # ICE. The Atelier court froze on its first build - twenty-nine of them - so every bed here
+    # carries flush froglight, which is also what lights the chamber from under its own moat.
+    lit = 0
+    for (di, dd) in sorted(moat - cause):
+        if di % 4 == 0 and dd % 4 == 0:
+            w.put(*f.at(ci + di, cd + dd, -1), "ochre_froglight")   # flush IN the pool
+            lit += 1
+    for (di, dd) in sorted(_cells(0, R_BOWL - 2, _disc)):
+        if di % 4 == 0 and dd % 4 == 0:
+            w.put(*f.at(ci + di, cd + dd, top), "ochre_froglight")
+            lit += 1
+    w.put(*f.at(ci, cd, top + 2), "ochre_froglight")
+    lit += 1
+
+    # ---- WATER LAST, into free cells only, so nothing already standing is drowned by the fill.
+    for (di, dd) in moat:
+        m["water"] += int(_put_free(w, f, ci + di, cd + dd, -1, "water", level="0"))
+    for (di, dd) in _cells(0, R_BOWL - 1, _disc):
+        m["water"] += int(_put_free(w, f, ci + di, cd + dd, top + 1, "water", level="0"))
+    for (di, dd) in set(_cells(0, R_DISH - 1, _disc)) - set(_cells(0, 1, _disc)):
+        m["water"] += int(_put_free(w, f, ci + di, cd + dd, top + 4, "water", level="0"))
+
+    # ---- THE CHIME, in the chamber: five note blocks on a wire that walks along a repeater chain,
+    # so they sound in SEQUENCE off one button rather than all at once. The park holds zero note
+    # blocks in 273,356, so this is the first sound in it.
+    fwd = _i_dir(f, 1)
+    notes = 0
+    for k, di in enumerate(range(-4, 5, 2)):
+        w.put(*f.at(ci + di, cd + 3, -1), "packed_ice")   # -> the chime instrument
+        w.put(*f.at(ci + di, cd + 3, 0), "note_block",
+              instrument="chime", note=str(CHIME_NOTES[k]), powered="false")
+        notes += 1
+    for di in range(-5, 5):
+        if di % 2:
+            w.put(*f.at(ci + di, cd + 4, 0), "repeater", facing=_BACK[fwd],
+                  delay="2", locked="false", powered="false")
+        else:
+            w.put(*f.at(ci + di, cd + 4, 0), "redstone_wire",
+                  east="side", west="side", north="side", south="side", power="0")
+    w.put(*f.at(ci - 5, cd + 4, 0), pal["trim"])
+    w.put(*f.at(ci - 5, cd + 4, 1), "stone_button", face="floor", facing=fwd, powered="false")
+
+    # ---- the chamber's lanterns, and the coping's
+    for (ux, uz) in RAYS:
+        if (ux, uz) in DOORS:
+            continue
+        di, dd = ux * (R_DRUM - 2), uz * (R_DRUM - 2)
+        if _free(w, f, ci + di, cd + dd, PIER_TOP):
+            w.put(*f.at(ci + di, cd + dd, PIER_TOP), pal["light"],
+                  hanging="true", waterlogged="false")
+            m["lamps"] += 1
+    for (ux, uz) in RAYS:
+        for t in range(R_KERB, 0, -1):
+            di, dd = ux * t, uz * t
+            if (di, dd) in kerb and (di, dd) not in cause:
+                w.put(*f.at(ci + di, cd + dd, 1), pal["light"],
+                      hanging="false", waterlogged="false")
+                m["lamps"] += 1
+                break
+
+    # ---- THE TWO WALK ARMS. This lot has no street through it - `Park Ways` draws the spine and
+    # the back promenade and nothing in between - so the walk from the Welcome Court's back edge to
+    # the promenade in front of the wheel is this design's to lay. Five wide each and tangent to the
+    # court, which is what makes the eleven-wide axis SPLIT and rejoin rather than run at the
+    # fountain: `gen/midway.py`'s rule that a centrepiece is walked round, never into.
+    arms = 0
+    for side in (-1, 1):
+        i0 = ci + side * (R_PAD + 3) - 2
+        for i in range(i0, i0 + 5):
+            if not (0 <= i < W):
+                continue
+            for d in range(0, D):
+                x, y, z = f.at(i, d, -1)
+                if w.has(x, y, z):
+                    continue
+                w.put(x, y, z, pal["wall"] if i in (i0, i0 + 4) else
+                      (pal["ground"] if (x + z) % 2 else pal["path"]))
+                arms += 1
+
+    # THE NAMEPLATE NEEDS A WALL, and it had none: `_Plaques` counted one wanted and none placed,
+    # which is exactly the silent-failure `park._sign` returns False for. It gets its own post.
+    title = str(p.get("title") or "THE CASCADE").upper()
+    # r must stay INSIDE the pad or the post stands on air: at (-6, -12) it is 13.4 from the
+    # centre against a pad of 13, and it shipped as a six-cell floating component.
+    pv, pd = ci - 6, cd - (R_PAD - 2)
+    for h in range(0, 3):
+        w.put(*f.at(pv, pd, h), pal["post"])
+    w.put(*f.at(pv, pd, 3), pal["trim"])
+    w.put(*f.at(pv, pd, 4), pal["light"], hanging="false", waterlogged="false")
+    say(w, f, pal, pv, pd - 1, 2, f.facing,
+        [title[:SIGN_WIDTH], "", "walk inside", "and play it"])
+
+    return {"kind": "cascade", "piers": len(piers), "bays": len(RAYS), "falls": len(notches),
+            "water": m["water"], "notes": notes, "chime_notes": list(CHIME_NOTES),
+            "lamps": m["lamps"], "froglight": lit, "pad": m["pad"], "arms": arms,
+            "height": top + 8, "radius": R_PAD,
+            "signs": say.want, "signs_placed": say.got,
+            "unverified": [
+                # `fluids.spread` IS NOT SOUND FOR A WATERFALL LANDING IN A POOL, and this is the
+                # limit of what can be checked here. Falling water that lands on an existing water
+                # level does not fall again in the model - it spreads sideways one course ABOVE the
+                # pool, and the fall above it then does the same thing one course higher, upward
+                # without limit. Measured: the basin flooded ALONE is perfectly contained (92
+                # sources, 92 cells reached, nothing outside its envelope), and the same model run
+                # with the falls reports a thousand-odd cells escaping - which got WORSE, not
+                # better, when the rim was raised a course. A real hole does not climb.
+                #
+                # The first course of that film is real Minecraft and the rim is two courses for
+                # it. Everything above is the model. So: the basin is verified watertight, the
+                # falls are verified to fall, and whether the whole thing is dry underfoot is the
+                # one thing here that has to be looked at in game.
+                "the basin is verified watertight and the falls are verified to fall, but GLOBAL "
+                "containment is not checkable offline: `fluids.spread` makes a fall that lands in "
+                "a pool spread one course higher each time, without limit. Stand in it in game.",
+                "a note block's PITCH is a right-click, not a placement: a printer puts "
+                           "all five of them down at note 0, and `work.INTENTIONAL` does not "
+                           "compare `note`, so nothing will report it either. The INSTRUMENT is "
+                           "guaranteed - it comes from the packed ice underneath. `chime_notes` "
+                           "is a hand-tuning step, like a dig list."],
+            "contract": "an arcaded drum of %d piers standing in a moat, %d of its eight bays "
+                        "carrying a waterfall from a bowl that corbels two radii past the piers so "
+                        "the fall has open air under it and lands in the moat; the two bays on the "
+                        "cross axis stay dry and carry the causeways in; every water cell has a "
+                        "solid bed one course under it and a full one-radius annulus rim, and "
+                        "every basin bed carries flush froglight so none of it can freeze"
+                        % (len(piers), len(notches))}
+
 BUILDERS = {
     "fountain": _fountain,
+    "cascade": _cascade,
     "statue": _statue,
     "shopstreet": _shopstreet,
     "bandstand": _bandstand,

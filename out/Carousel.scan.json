@@ -1,386 +1,627 @@
 {
   "origin": {
-    "x": 97588,
-    "y": 202,
-    "z": 80557
+    "x": 97524,
+    "y": 203,
+    "z": 80515
   },
   "size": {
-    "x": 32,
-    "y": 27,
-    "z": 27
+    "x": 46,
+    "y": 34,
+    "z": 41
   },
   "generated_by": "bigwheel",
   "kind": "bigwheel/carousel",
   "ride": "minecart circuit",
   "land": "midway",
   "facing": "west",
-  "contract": "a raised disc ringed by rail with four gated steps, a banded column, a wedge-striped cone whose every ring carries its riser, twenty mounts in two rings - and A RIDE: a closed minecart circuit of 64 cells running between the two rings. Every direction change is a plain rail because a powered rail has no curved state; every straight run between corners carries a redstone_block at both ends, because an unpowered powered rail is a brake. 36 corners, 28 powered rails: about 13.5 iron and 28 gold.",
+  "contract": "a raised disc ringed by rail with four gated steps, a banded column, a wedge-striped cone whose every ring carries its riser, twenty mounts in two rings - and A RIDE: a closed minecart circuit of 112 cells running between the two rings. Every direction change is a plain rail because a powered rail has no curved state; every straight run between corners carries a redstone_block at both ends, because an unpowered powered rail is a brake. 68 corners, 44 powered rails: about 25.5 iron and 44 gold.",
   "unverified": [
     "nobody has ridden it in game. The circuit's geometry, its power chain and its clearances are asserted here; whether a cart holds speed round a corner every other cell is reasoning until someone rides it."
   ],
-  "width": 27,
-  "depth": 32,
-  "diameter": 25,
-  "top": 25,
+  "width": 41,
+  "depth": 46,
+  "diameter": 39,
+  "top": 32,
   "mounts": 20,
-  "colours": 10,
-  "shapes": 16,
+  "colours": 11,
+  "shapes": 18,
   "mount_arcs": [
-    5.76,
-    3.93
+    9.42,
+    8.64
   ],
   "gates": 4,
-  "rail": 52,
+  "rail": 92,
   "lamps": 8,
   "signs": 3,
-  "track_r": 8,
-  "track": 64,
-  "corners": 36,
-  "powered": 28,
-  "sources": 18,
-  "iron_ingots": 13.5,
-  "gold_ingots": 28,
+  "track_r": 14,
+  "track": 112,
+  "corners": 68,
+  "powered": 44,
+  "sources": 27,
+  "iron_ingots": 25.5,
+  "gold_ingots": 44,
   "rail_path": [
     [
-      97606,
-      204,
-      80578
+      97549,
+      205,
+      80549
     ],
     [
-      97607,
-      204,
-      80578
+      97550,
+      205,
+      80549
     ],
     [
-      97608,
-      204,
-      80578
+      97551,
+      205,
+      80549
     ],
     [
-      97609,
-      204,
-      80578
+      97552,
+      205,
+      80549
     ],
     [
-      97609,
-      204,
-      80577
+      97552,
+      205,
+      80548
     ],
     [
-      97610,
-      204,
-      80577
+      97553,
+      205,
+      80548
     ],
     [
-      97610,
-      204,
-      80576
+      97554,
+      205,
+      80548
     ],
     [
-      97611,
-      204,
-      80576
+      97555,
+      205,
+      80548
     ],
     [
-      97612,
-      204,
-      80576
+      97555,
+      205,
+      80547
     ],
     [
-      97612,
-      204,
-      80575
+      97556,
+      205,
+      80547
     ],
     [
-      97613,
-      204,
-      80575
+      97557,
+      205,
+      80547
     ],
     [
-      97613,
-      204,
-      80574
+      97557,
+      205,
+      80546
     ],
     [
-      97613,
-      204,
-      80573
+      97558,
+      205,
+      80546
     ],
     [
-      97614,
-      204,
-      80573
+      97558,
+      205,
+      80545
     ],
     [
-      97614,
-      204,
-      80572
+      97559,
+      205,
+      80545
     ],
     [
-      97614,
-      204,
-      80571
+      97559,
+      205,
+      80544
     ],
     [
-      97614,
-      204,
-      80570
+      97560,
+      205,
+      80544
     ],
     [
-      97614,
-      204,
-      80569
+      97560,
+      205,
+      80543
     ],
     [
-      97614,
-      204,
-      80568
+      97561,
+      205,
+      80543
     ],
     [
-      97614,
-      204,
-      80567
+      97561,
+      205,
+      80542
     ],
     [
-      97613,
-      204,
-      80567
+      97561,
+      205,
+      80541
     ],
     [
-      97613,
-      204,
-      80566
+      97562,
+      205,
+      80541
     ],
     [
-      97613,
-      204,
-      80565
+      97562,
+      205,
+      80540
     ],
     [
-      97612,
-      204,
-      80565
+      97562,
+      205,
+      80539
     ],
     [
-      97612,
-      204,
-      80564
+      97563,
+      205,
+      80539
     ],
     [
-      97611,
-      204,
-      80564
+      97563,
+      205,
+      80538
     ],
     [
-      97611,
-      204,
-      80563
+      97563,
+      205,
+      80537
     ],
     [
-      97610,
-      204,
-      80563
+      97563,
+      205,
+      80536
     ],
     [
-      97609,
-      204,
-      80563
+      97563,
+      205,
+      80535
     ],
     [
-      97609,
-      204,
-      80562
+      97563,
+      205,
+      80534
     ],
     [
-      97608,
-      204,
-      80562
+      97563,
+      205,
+      80533
     ],
     [
-      97607,
-      204,
-      80562
+      97563,
+      205,
+      80532
     ],
     [
-      97606,
-      204,
-      80562
+      97563,
+      205,
+      80531
     ],
     [
-      97605,
-      204,
-      80562
+      97562,
+      205,
+      80531
     ],
     [
-      97604,
-      204,
-      80562
+      97562,
+      205,
+      80530
     ],
     [
-      97603,
-      204,
-      80562
+      97562,
+      205,
+      80529
     ],
     [
-      97603,
-      204,
-      80563
+      97561,
+      205,
+      80529
     ],
     [
-      97602,
-      204,
-      80563
+      97561,
+      205,
+      80528
     ],
     [
-      97601,
-      204,
-      80563
+      97561,
+      205,
+      80527
     ],
     [
-      97601,
-      204,
-      80564
+      97560,
+      205,
+      80527
     ],
     [
-      97600,
-      204,
-      80564
+      97560,
+      205,
+      80526
     ],
     [
-      97600,
-      204,
-      80565
+      97559,
+      205,
+      80526
     ],
     [
-      97599,
-      204,
-      80565
+      97559,
+      205,
+      80525
     ],
     [
-      97599,
-      204,
-      80566
+      97558,
+      205,
+      80525
     ],
     [
-      97599,
-      204,
-      80567
+      97558,
+      205,
+      80524
     ],
     [
-      97598,
-      204,
-      80567
+      97557,
+      205,
+      80524
     ],
     [
-      97598,
-      204,
-      80568
+      97557,
+      205,
+      80523
     ],
     [
-      97598,
-      204,
-      80569
+      97556,
+      205,
+      80523
     ],
     [
-      97598,
-      204,
-      80570
+      97555,
+      205,
+      80523
     ],
     [
-      97598,
-      204,
-      80571
+      97555,
+      205,
+      80522
     ],
     [
-      97598,
-      204,
-      80572
+      97554,
+      205,
+      80522
     ],
     [
-      97598,
-      204,
-      80573
+      97553,
+      205,
+      80522
     ],
     [
-      97599,
-      204,
-      80573
+      97553,
+      205,
+      80521
     ],
     [
-      97599,
-      204,
-      80574
+      97552,
+      205,
+      80521
     ],
     [
-      97599,
-      204,
-      80575
+      97551,
+      205,
+      80521
     ],
     [
-      97600,
-      204,
-      80575
+      97550,
+      205,
+      80521
     ],
     [
-      97600,
-      204,
-      80576
+      97549,
+      205,
+      80521
     ],
     [
-      97601,
-      204,
-      80576
+      97548,
+      205,
+      80521
     ],
     [
-      97601,
-      204,
-      80577
+      97547,
+      205,
+      80521
     ],
     [
-      97602,
-      204,
-      80577
+      97546,
+      205,
+      80521
     ],
     [
-      97603,
-      204,
-      80577
+      97545,
+      205,
+      80521
     ],
     [
-      97603,
-      204,
-      80578
+      97545,
+      205,
+      80522
     ],
     [
-      97604,
-      204,
-      80578
+      97544,
+      205,
+      80522
     ],
     [
-      97605,
-      204,
-      80578
+      97543,
+      205,
+      80522
+    ],
+    [
+      97543,
+      205,
+      80523
+    ],
+    [
+      97542,
+      205,
+      80523
+    ],
+    [
+      97541,
+      205,
+      80523
+    ],
+    [
+      97541,
+      205,
+      80524
+    ],
+    [
+      97540,
+      205,
+      80524
+    ],
+    [
+      97540,
+      205,
+      80525
+    ],
+    [
+      97539,
+      205,
+      80525
+    ],
+    [
+      97539,
+      205,
+      80526
+    ],
+    [
+      97538,
+      205,
+      80526
+    ],
+    [
+      97538,
+      205,
+      80527
+    ],
+    [
+      97537,
+      205,
+      80527
+    ],
+    [
+      97537,
+      205,
+      80528
+    ],
+    [
+      97537,
+      205,
+      80529
+    ],
+    [
+      97536,
+      205,
+      80529
+    ],
+    [
+      97536,
+      205,
+      80530
+    ],
+    [
+      97536,
+      205,
+      80531
+    ],
+    [
+      97535,
+      205,
+      80531
+    ],
+    [
+      97535,
+      205,
+      80532
+    ],
+    [
+      97535,
+      205,
+      80533
+    ],
+    [
+      97535,
+      205,
+      80534
+    ],
+    [
+      97535,
+      205,
+      80535
+    ],
+    [
+      97535,
+      205,
+      80536
+    ],
+    [
+      97535,
+      205,
+      80537
+    ],
+    [
+      97535,
+      205,
+      80538
+    ],
+    [
+      97535,
+      205,
+      80539
+    ],
+    [
+      97536,
+      205,
+      80539
+    ],
+    [
+      97536,
+      205,
+      80540
+    ],
+    [
+      97536,
+      205,
+      80541
+    ],
+    [
+      97537,
+      205,
+      80541
+    ],
+    [
+      97537,
+      205,
+      80542
+    ],
+    [
+      97537,
+      205,
+      80543
+    ],
+    [
+      97538,
+      205,
+      80543
+    ],
+    [
+      97538,
+      205,
+      80544
+    ],
+    [
+      97539,
+      205,
+      80544
+    ],
+    [
+      97539,
+      205,
+      80545
+    ],
+    [
+      97540,
+      205,
+      80545
+    ],
+    [
+      97540,
+      205,
+      80546
+    ],
+    [
+      97541,
+      205,
+      80546
+    ],
+    [
+      97541,
+      205,
+      80547
+    ],
+    [
+      97542,
+      205,
+      80547
+    ],
+    [
+      97542,
+      205,
+      80548
+    ],
+    [
+      97543,
+      205,
+      80548
+    ],
+    [
+      97544,
+      205,
+      80548
+    ],
+    [
+      97545,
+      205,
+      80548
+    ],
+    [
+      97545,
+      205,
+      80549
+    ],
+    [
+      97546,
+      205,
+      80549
+    ],
+    [
+      97547,
+      205,
+      80549
+    ],
+    [
+      97548,
+      205,
+      80549
     ]
   ],
   "rail_corners": [
     3,
     4,
-    5,
-    6,
+    7,
     8,
-    9,
     10,
+    11,
     12,
     13,
-    19,
+    14,
+    15,
+    16,
+    17,
+    18,
     20,
-    22,
+    21,
     23,
     24,
-    25,
-    26,
-    28,
-    29,
+    32,
+    33,
     35,
     36,
     38,
@@ -388,114 +629,190 @@
     40,
     41,
     42,
+    43,
     44,
     45,
+    46,
+    48,
+    49,
     51,
     52,
-    54,
-    55,
-    56,
-    57,
-    58,
     60,
-    61
+    61,
+    63,
+    64,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    76,
+    77,
+    79,
+    80,
+    88,
+    89,
+    91,
+    92,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    107,
+    108
   ],
   "rail_power": [
     [
-      97606,
-      203,
-      80578
+      97549,
+      204,
+      80549
     ],
     [
-      97608,
-      203,
-      80578
+      97551,
+      204,
+      80549
     ],
     [
-      97611,
-      203,
-      80576
+      97553,
+      204,
+      80548
     ],
     [
-      97613,
-      203,
-      80574
+      97554,
+      204,
+      80548
     ],
     [
-      97614,
-      203,
-      80572
+      97556,
+      204,
+      80547
     ],
     [
-      97614,
-      203,
-      80568
+      97561,
+      204,
+      80542
     ],
     [
-      97613,
-      203,
-      80566
+      97562,
+      204,
+      80540
     ],
     [
-      97610,
-      203,
-      80563
+      97563,
+      204,
+      80538
     ],
     [
-      97608,
-      203,
-      80562
+      97563,
+      204,
+      80532
     ],
     [
-      97604,
-      203,
-      80562
+      97562,
+      204,
+      80530
     ],
     [
-      97602,
-      203,
-      80563
+      97561,
+      204,
+      80528
     ],
     [
-      97599,
-      203,
-      80566
+      97556,
+      204,
+      80523
     ],
     [
-      97598,
-      203,
-      80568
+      97554,
+      204,
+      80522
     ],
     [
-      97598,
-      203,
-      80572
+      97552,
+      204,
+      80521
     ],
     [
-      97599,
-      203,
-      80574
+      97546,
+      204,
+      80521
     ],
     [
-      97602,
-      203,
-      80577
+      97544,
+      204,
+      80522
     ],
     [
-      97604,
-      203,
-      80578
+      97542,
+      204,
+      80523
     ],
     [
-      97605,
-      203,
-      80578
+      97537,
+      204,
+      80528
+    ],
+    [
+      97536,
+      204,
+      80530
+    ],
+    [
+      97535,
+      204,
+      80532
+    ],
+    [
+      97535,
+      204,
+      80538
+    ],
+    [
+      97536,
+      204,
+      80540
+    ],
+    [
+      97537,
+      204,
+      80542
+    ],
+    [
+      97543,
+      204,
+      80548
+    ],
+    [
+      97544,
+      204,
+      80548
+    ],
+    [
+      97546,
+      204,
+      80549
+    ],
+    [
+      97548,
+      204,
+      80549
     ]
   ],
   "board": [
-    97598,
-    204,
-    80570
+    97535,
+    205,
+    80535
   ],
   "mechanics": {
     "minecraft": "java-1.19",
@@ -534,46 +851,55 @@
       "purpose": "ride",
       "hierarchy": "landmark",
       "style": "midway",
-      "narrative": "Carousel serves the midway visitor journey."
+      "narrative": "A raised disc ringed by rail with four gated steps, a banded column and a wedge-striped cone, twenty mounts in two rings, and a closed minecart circuit running between them - the ride a rider actually takes, because nothing in vanilla turns a canopy. It fills the Midway's first lot, between the Claim Lake and the walk up to the wheel.\n"
     },
     "metrics": {
-      "blocks": 2912,
+      "blocks": 5999,
       "materials": 23,
-      "dominant_material_share": 0.2109,
+      "dominant_material_share": 0.2649,
       "light_blocks": 10,
       "massing": {
-        "width": 32,
-        "height": 27,
-        "depth": 27,
-        "fill_ratio": 0.1248
+        "width": 46,
+        "height": 34,
+        "depth": 41,
+        "fill_ratio": 0.0936
       },
       "silhouette": {
         "top": {
-          "area": 582,
-          "fill_ratio": 0.6736
+          "area": 1310,
+          "fill_ratio": 0.6946
         },
         "front": {
-          "area": 454,
-          "fill_ratio": 0.5255
+          "area": 787,
+          "fill_ratio": 0.5032
         },
         "side": {
-          "area": 449,
-          "fill_ratio": 0.6159
+          "area": 775,
+          "fill_ratio": 0.556
         }
       },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.5331,
+          0.3459,
+          0.121
+        ],
+        "top_silhouette_perimeter": 354,
+        "surface_faces_per_block": 1.951
+      },
       "material_counts": {
-        "stone_bricks": 614,
-        "red_wool": 542,
-        "white_wool": 536,
-        "blackstone": 257,
-        "oak_log": 254,
-        "yellow_wool": 176,
-        "stone": 172,
-        "stone_brick_stairs": 76,
-        "oak_fence": 55,
-        "rail": 36,
-        "powered_rail": 28,
-        "cyan_wool": 25
+        "stone_bricks": 1589,
+        "yellow_wool": 1550,
+        "red_wool": 1277,
+        "stone": 461,
+        "polished_blackstone_bricks": 363,
+        "oak_log": 266,
+        "oak_fence": 95,
+        "stone_brick_stairs": 92,
+        "rail": 68,
+        "powered_rail": 44,
+        "lime_wool": 29,
+        "pink_wool": 27
       }
     },
     "checks": [],
@@ -585,7 +911,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "70e8fa216d8745620ca69cfc5ca4971cfee8313a04a4e52098c9ff38e1799428",
+    "fingerprint": "73ccbce2151ec9919e6b9af8bbe69badadf5a16f67263622e8d445413ddce257",
     "generator_source_digest": "ad657c6e01f8485954dc722802d4a8b48931ec012b68046e8dea86e329765b2d",
     "anchors": [],
     "genome": {
@@ -633,18 +959,25 @@
     "requires_path": true,
     "access_candidates": [
       [
-        97586,
+        97524,
         204,
-        80570
+        80535
       ]
     ]
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 86.71487,
+    "blocks": 5999,
+    "blocks_per_second": 69.18
   },
   "generator_contract": {
     "ok": true,
     "failures": [],
     "anchors": 0,
     "roles": [],
-    "blocks": 2912,
+    "blocks": 5999,
     "mechanic_families": [
       "access",
       "light",
@@ -652,18 +985,30 @@
       "signage"
     ]
   },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
   "server_profile": {
     "name": "skyblock-1.19",
     "minecraft": "1.19",
     "data_version": 3120,
-    "enforce_server_blocks": true,
-    "allow_entities": false
+    "allow_entities": false,
+    "enforce_server_blocks": false
   },
-  "server_compatibility": [
-    "unsupported on skyblock-1.19: blackstone",
-    "unsupported on skyblock-1.19: oak_fence_gate",
-    "unsupported on skyblock-1.19: purple_wool",
-    "unsupported on skyblock-1.19: redstone_block"
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: magenta_wool",
+    "not in the provisional skyblock-1.19 list: oak_fence_gate",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: purple_wool",
+    "not in the provisional skyblock-1.19 list: redstone_block"
   ],
   "file": "Carousel.litematic",
   "name": "Carousel"

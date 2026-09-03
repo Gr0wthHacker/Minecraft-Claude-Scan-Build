@@ -1,31 +1,69 @@
+# THE CAROUSEL - the Midway's walk-on ride, in the lot the Arrival Court used to hold.
+#
+# Jack: "i want to put the carousel where currently there is a large rectangular building with an
+# open center, just between the welcome court and the heron; the building thats there can be saved
+# but should be removed." That building was `PF Arrival Court`; it is retired in its own config and
+# out of `tools/park_lots.PLACEMENT`, which is what decides whether a module is placed at all.
+#
+# THE LOT IS 48 x 41 AT V24, U215 - Midway column A, between the Claim Lake's heron (U174-210) and
+# the Welcome Court (U270-330), and off the U300 entrance axis so the wheel keeps the centre.
+#
+# DIAMETER 39, AND THE NUMBER IS THE LOT'S. `bigwheel._carousel` derives its footprint: R = D//2,
+# RC = R+1, W = 2*RC+1, and the forecourt adds FORE = 5 in front. So D = 39 gives 41 wide by 46
+# deep against a lot 41 wide by 48 deep - the whole lot, with two courses to spare at the back.
+#
+#     D=25  27 x 32   what stood behind the wheel: a ride adrift in a green margin
+#     D=39  41 x 46   this lot, filled
+#     D=45  47 x 52   the original park_final size - 5 too wide, 4 too deep; the streets at
+#                     U212-214 and U257-263 would have to move, and they are `Park Ways`
+#
+# THE APEX IS RC + 11 = 31 COURSES over the deck, against the Sky Lift's 77. The park's landmark
+# rule reserves the crown for the wheel and this does not come near it.
+#
+# `at` IS THE FRONT-LEFT FLOOR CORNER AND IT IS NOT THE MODEL'S OWN CORNER, ON EITHER AXIS.
+# `_Frame.at(i, d, h)` with facing=west runs `d` along +V and `i` along +U, and the forecourt is at
+# d = -FORE..-1 - so the model's minimum V is `at.x - 5`, and V24 wants at.x = 97529.
+#
+# AND `at.y` IS 204 SO THE MODEL'S OWN FLOOR LANDS ON 203. This one was got wrong first and it is
+# the drift this repo keeps writing rules about: `tools/park_place.py` puts every lot module's y0
+# on the ground layer's floor course, which is Y203 - the first course above the Y202 lawn - while
+# `bigwheel` lays its PAD at h=-1, one under `at.y`. Set to 203 the design verified against a world
+# one course below where the placer actually stands it, which reported 901 overlaps and ten
+# problems that do not exist. The pad is the floor course and the deck is one proud of it, which is
+# what a carousel deck is.
+#
+# PLACED FROM THE TABLE, NOT FROM THIS ORIGIN. `tools/park_place.py` places every lot module at its
+# measured lot corner; `at` here is what makes the design verify in the world position it will
+# actually stand in.
 name: Carousel
 gen: bigwheel
 params:
   land: midway
-  diameter: 25
-  mounts: 12
-  facing: west
-  at:
-  - 97593
-  - 203
-  - 80557
   kind: carousel
-  title: Carousel
-  under: out/newisle.litematic
+  facing: west          # the forecourt and the gate face the spine, as every Midway lot does
+  at: [97529, 204, 80515]
+  diameter: 39
+  mounts: 12
+  title: THE CAROUSEL
+  under: out/Park Complete.litematic
 finish:
-  verify_against: out/newisle.litematic
+  verify_against: out/Park Complete.litematic
+  # the lawn's decorative moss carpet is covered where the deck and the forecourt stand on it
+  verify_replaceable: [moss_carpet]
 park_contract:
   purpose: ride
   hierarchy: landmark
   land: midway
   requires_path: true
   access_candidates:
-  - - 97586
-    - 204
-    - 80570
+  - [97524, 204, 80535]
 design:
   purpose: ride
   hierarchy: landmark
   style: midway
-  narrative: Carousel serves the midway visitor journey.
+  narrative: >
+    A raised disc ringed by rail with four gated steps, a banded column and a wedge-striped cone,
+    twenty mounts in two rings, and a closed minecart circuit running between them - the ride a
+    rider actually takes, because nothing in vanilla turns a canopy. It fills the Midway's first
+    lot, between the Claim Lake and the walk up to the wheel.
 origin_lock: false

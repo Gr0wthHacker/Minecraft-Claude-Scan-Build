@@ -31,7 +31,7 @@ from __future__ import annotations
 import math
 
 from . import protect
-from ..plot import find as find_plot
+from ..plot import Plot, find as find_plot
 from .canvas import Canvas, hash01
 from .vertical import Ctx, World
 
@@ -40,6 +40,33 @@ PARKOUR = {
     "y_top": 194,
     "y_bottom": 44,
     "radius": 43,                # base orbit; the search flexes and the PLOT clamps it
+    # THREE OVERRIDES, ALL DEFAULTING TO None SO THE ISLAND RUN IS BIT-IDENTICAL. They exist
+    # for a course that does not orbit an island: the Prism Well hangs its descent inside a
+    # hundred-wide mouth cut through the park deck, which has no bedrock to find a plot from,
+    # is not centred on one, and wants a CONE rather than a cylinder.
+    "centre": None,              # [x, z] to orbit; default the plot centre, from the bedrock
+    "bounds": None,              # [x0, z0, x1, z1] legal box; default the 99x99 bedrock plot
+    # A CONE, NOT A CYLINDER, and it is what lets the run START somewhere a player is standing.
+    # A constant radius inside a mouth puts the first landing thirty blocks from the rim with no
+    # way to reach it. Beginning wide against the collar and tightening as it falls means the
+    # first jump is off the rim apron, the fall zone narrows toward the catch, and from the
+    # gallery the whole run funnels down to the return column.
+    "radius_bottom": None,       # radius at y_bottom; default: the same as `radius` all the way
+    # WHERE THE RUN BEGINS, IN DEGREES ROUND THE CENTRE. Zero is +x, matching `site`'s own
+    # `cos/sin`, and zero is the default so the Island Run is unchanged. It matters the moment a
+    # course has a built ENTRANCE: the Prism Well's start pier reaches in on the west axis and
+    # the run began on the east, ten blocks from the nearest cell anybody could stand on. Every
+    # check passed - the course was legal, hard, well-shaped and unreachable.
+    "start_angle": 0.0,
+    # AND THE CELL YOU JUMP FROM, if there is one. `site` skips its distance check entirely when
+    # `prev is None`, so the FIRST move of a run is unconstrained and simply takes the largest
+    # advance angle in the list - which put the Prism Descent's first landing 23 degrees round
+    # the mouth from the pier that exists to launch it, thirteen blocks from anywhere a player
+    # could stand. Setting `start_angle` alone does not fix it: the angle is where the search
+    # BEGINS, not where the first landing goes. Given a start cell the first jump is measured
+    # like every other one. None keeps the old behaviour, so the Island Run - which starts by
+    # stepping off the island itself - is unchanged.
+    "start_from": None,          # [x, y, z] the cell a player jumps from
     "radius_flex": [0, 3, -3, 6, -6, 9, -9, 12, -12, 15, -15],
     "advance": [5.0, 6.5, 8.0, 4.0, 9.5, 11.0, 3.0],
 
@@ -50,6 +77,14 @@ PARKOUR = {
     "rhythm": ["ledge", "ledge", "ledge", "gate", "ledge", "plunge",
                "ledge", "ledge", "gate", "ledge", "ledge", "plunge", "rest"],
     "hardening": 0.35,
+    # ROTATE THE GAP TARGETS PER MOVE. Off by default, because `Island Run` is a shipped design
+    # and this changes which landing the search picks. It exists because the search takes the
+    # FIRST advance angle whose chord fits UNDER the gap target - an upper bound - so with a
+    # fixed target every jump comes out at the same distance. On a cone that is worse than
+    # boring: the same angular list is 3.9 blocks at r45 and 1.7 at r20, so the bottom of the
+    # run collapses to two-block steps, which is a staircase, which is the exact thing Jack
+    # rejected the first Island Run for. Same idiom the plunges already use for their drops.
+    "gap_rotate": False,
 
     "slime": "slime_block",
     "gate_block": "stone_brick_wall",
@@ -78,6 +113,16 @@ _PASSABLE = set(AIRY) | {"vine", "short_grass", "tall_grass", "fern", "large_fer
                          "hanging_roots", "dead_bush", "snow", "tripwire"}
 
 
+def _orbit(p, y):
+    """The orbit radius at height `y` - constant unless `radius_bottom` says otherwise."""
+    rb = p.get("radius_bottom")
+    if rb is None:
+        return float(p["radius"])
+    span = max(p["y_top"] - p["y_bottom"], 1)
+    t = min(max((p["y_top"] - y) / span, 0.0), 1.0)      # 0 at the rim, 1 at the floor
+    return float(p["radius"]) + (float(rb) - float(p["radius"])) * t
+
+
 def _band(p, y):
     for lo, main, alt in p["bands"]:
         if y >= lo:
@@ -90,9 +135,20 @@ def build_parkour(cfg: dict, donors=None) -> Canvas:
     if not p.get("under"):
         raise ValueError("parkour needs params.under")
     ctx = Ctx(p["under"])
-    plot = find_plot(p["under"])
+    # THE BOUNDS AND THE ORBIT CENTRE ARE TWO QUESTIONS, and only one of them is the plot.
+    # `find_plot` reads the island's bedrock, which a park capture composited out of designs does
+    # not contain at all - so a course sited anywhere but the home island has to be TOLD its box,
+    # in world coordinates, rather than having one inferred from a capture that cannot supply it.
+    if p.get("bounds"):
+        bx0, bz0, bx1, bz1 = (int(v) for v in p["bounds"])
+        plot = Plot((bx0 + bx1) // 2, (bz0 + bz1) // 2, min(bx1 - bx0, bz1 - bz0) // 2)
+    else:
+        plot = find_plot(p["under"])
     w = World()
-    cx, cz = plot.cx, plot.cz
+    if p.get("centre"):
+        cx, cz = int(p["centre"][0]), int(p["centre"][1])
+    else:
+        cx, cz = plot.cx, plot.cz
 
     reserved = set()
     for path in (p.get("reserve") or []):
@@ -129,7 +185,7 @@ def build_parkour(cfg: dict, donors=None) -> Canvas:
             for dd in drops:
                 for gap in gaps:
                     for da in p["advance"]:
-                        r = p["radius"] + dr
+                        r = _orbit(p, y) + dr
                         a = math.radians(ang + da)
                         x = int(round(cx + r * math.cos(a)))
                         z = int(round(cz + r * math.sin(a)))
@@ -145,7 +201,8 @@ def build_parkour(cfg: dict, donors=None) -> Canvas:
                         return (x, ny, z, ang + da)
         return None
 
-    moves, ang, y, prev, i = [], 0.0, float(p["y_top"]), None, 0
+    start = tuple(int(v) for v in p["start_from"]) if p.get("start_from") else None
+    moves, ang, y, prev, i = [], float(p["start_angle"]), float(p["y_top"]), start, 0
     while y > p["y_bottom"] + 4 and len(moves) < 260:
         kind = p["rhythm"][i % len(p["rhythm"])]
         i += 1
@@ -164,6 +221,9 @@ def build_parkour(cfg: dict, donors=None) -> Canvas:
         else:
             # HARDER AS IT GOES: further down, the long gap gets tried first more often
             gaps = list(p["ledge_gap"])
+            if p.get("gap_rotate"):
+                k = int(hash01(int(y), i, p["seed"], 4) * len(gaps))
+                gaps = gaps[k:] + gaps[:k]
             if hash01(int(y), i, p["seed"]) > p["hardening"] * (1 - progress) + 0.25:
                 gaps = sorted(gaps, reverse=True)
             hop = site(ang, y, prev, 0, gaps, p["ledge_drop"], 4.5,

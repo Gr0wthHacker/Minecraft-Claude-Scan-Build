@@ -99,19 +99,32 @@ params:
     # THE WHEEL IS THE ONE MIDWAY RIDE THAT GENUINELY QUEUES - it loads a car at a time - so it
     # is the one that gets a line. The Carousel is a walk-on and gets thresholds instead, which is
     # a real distinction a visitor can read from the shape of what is in front of them.
-    # RE-AIMED. The wheel moved from V92 to V80 when column B was re-ordered to put it on the
-    # entrance axis as the park's centre attraction, and a marquee left at V74 stood 63 cells
-    # inside it. A marquee belongs one course in front of the door it names.
+    # RE-AIMED TWICE. The wheel went V92 -> V80 when column B was re-ordered onto the entrance
+    # axis, and a marquee left at V74 stood 63 cells inside it. It went V80 -> V130 on 2026-09-03
+    # so the Midway Cascade could stand between it and the Welcome Court, and both of these follow
+    # it. A marquee belongs one course in front of the door it names.
+    #
+    # AND IT STAYS OFF THE AXIS, at U274 rather than U300. This is the sightline the Circus Gate
+    # was deleted for standing in - Jack: "gates and a board etc are all overlapping and chaotic
+    # with the entrance to the main center" - and it is longer now, not shorter: gate doors, court,
+    # Cascade, wheel, all on U300. A gantry across it at V128 would be the Circus Gate again with
+    # fifty blocks between it and the last one.
     - kind: marquee
       name: Sky Lift
-      at: [78, 274]
+      at: [128, 274]
       span: 3
       depth: 2
       title: THE SKY LIFT
       lines: ["big wheel", "queue behind"]
+    # THE QUEUE CANNOT FOLLOW IT ALL THE WAY. At V118 a 10-deep line runs V118-127 and the last
+    # five of those are the PROMENADE, which is a street and not a lot. So it stops one course
+    # short of the verge at V120, on the Cascade's own lot - which is why `PF Midway Cascade`
+    # names V111-120 x U270-278 in its `blocked` list rather than discovering it as an overlap.
+    # You queue at the court's north-west corner, step onto the promenade, and the wheel is
+    # nine courses in front of you.
     - kind: queue
       name: Sky Lift queue
-      at: [68, 270]
+      at: [111, 270]
       width: 9
       depth: 10
       # TWO COURSES BETWEEN RAILS, NOT THREE. There are sixteen courses of lawn between the

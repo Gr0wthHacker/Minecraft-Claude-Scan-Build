@@ -18,7 +18,7 @@ import pytest
 
 from mcbuild import blocks, palette
 from mcbuild.gen import parkways
-from tools.park_lots import (NOT_A_LOT, PLACEMENT, load_modules, params_from_config,
+from tools.park_lots import (NOT_A_LOT, PLACEMENT, RETIRED, load_modules, params_from_config,
                              surface, verify)
 
 #: THE RESIDUALS, AS MEASURED, AND THEY ARE A CEILING RATHER THAN A SNAPSHOT. A build may improve
@@ -79,9 +79,14 @@ def test_the_known_shortfalls_are_a_ceiling_and_never_get_worse(params):
 
 
 def test_every_module_is_either_placed_or_declared_not_to_need_ground():
-    """A module that is neither placed nor named as grid-provided is one nobody noticed."""
+    """A module that is neither placed nor named as grid-provided is one nobody noticed.
+
+    THREE WAYS TO BE ACCOUNTED FOR, and they are kept apart because they mean different things: it
+    has a lot, the grid already draws it, or it is RETIRED with a reason written beside it. Filing
+    a retirement under `NOT_A_LOT` would claim a building exists somewhere it does not.
+    """
     names = {m["name"] for m in load_modules()}
-    unaccounted = names - set(PLACEMENT) - NOT_A_LOT
+    unaccounted = names - set(PLACEMENT) - NOT_A_LOT - RETIRED
     assert not unaccounted, f"no lot and no reason: {sorted(unaccounted)}"
 
 

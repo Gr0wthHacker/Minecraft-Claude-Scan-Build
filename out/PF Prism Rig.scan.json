@@ -1,0 +1,177 @@
+{
+  "origin": {
+    "x": 97561,
+    "y": 105,
+    "z": 80785
+  },
+  "size": {
+    "x": 58,
+    "y": 101,
+    "z": 58
+  },
+  "generated_by": "prismrig",
+  "kind": "prismrig",
+  "profile_view": "top",
+  "facing": [
+    -1,
+    0
+  ],
+  "features_built": {
+    "beam": 452,
+    "web": 472,
+    "post": 40,
+    "light": 90
+  },
+  "route_from": "out/PF Prism Descent.scan.json",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "prismworks",
+      "narrative": "A lit copper gantry following the descent's own line from the rim to the floor, one cell of beam with an iron-bar web outboard of it, carried on a post at each of the eight rests.\n"
+    },
+    "metrics": {
+      "blocks": 964,
+      "materials": 4,
+      "dominant_material_share": 0.4896,
+      "light_blocks": 0,
+      "massing": {
+        "width": 58,
+        "height": 101,
+        "depth": 58,
+        "fill_ratio": 0.0028
+      },
+      "silhouette": {
+        "top": {
+          "area": 767,
+          "fill_ratio": 0.228
+        },
+        "front": {
+          "area": 380,
+          "fill_ratio": 0.0649
+        },
+        "side": {
+          "area": 384,
+          "fill_ratio": 0.0656
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.36,
+          0.3496,
+          0.2905
+        ],
+        "top_silhouette_perimeter": 1839,
+        "surface_faces_per_block": 3.249
+      },
+      "material_counts": {
+        "iron_bars": 472,
+        "waxed_copper_block": 260,
+        "polished_blackstone_bricks": 167,
+        "ochre_froglight": 65
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "196cce2b8ab9daab91b64432fdc7bcfc39e48815eabcec387b3184289cf130d0",
+    "generator_source_digest": "c01fd92e277a59698f7f80e30a08eff7053d74e7bba34fbd8d5aa1d3c33916f8",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 78.162817,
+    "blocks": 964,
+    "blocks_per_second": 12.33
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 964,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "scenic_support",
+    "player_verbs": [
+      "read the line from the gallery",
+      "sight the next landing"
+    ],
+    "outcome": "The descent reads as a spiral from anywhere on the rim instead of as scattered blocks.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: iron_bars",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: waxed_copper_block"
+  ],
+  "file": "PF Prism Rig.litematic",
+  "name": "PF Prism Rig"
+}

@@ -1,0 +1,277 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80399
+  },
+  "size": {
+    "x": 124,
+    "y": 60,
+    "z": 71
+  },
+  "generated_by": "mineridge",
+  "kind": "mine_ridge",
+  "lot": [
+    124,
+    71
+  ],
+  "at": [
+    24,
+    99
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "signs": [
+    {
+      "at": [
+        123,
+        6,
+        25
+      ],
+      "facing": "east",
+      "lines": [
+        "ADIT No.1",
+        "ore level",
+        "mind your head"
+      ]
+    },
+    {
+      "at": [
+        123,
+        6,
+        34
+      ],
+      "facing": "east",
+      "lines": [
+        "ADIT No.1",
+        "way out",
+        "to the workings"
+      ]
+    }
+  ],
+  "refused": 0,
+  "parts": {
+    "talus_cells": 32331,
+    "crest": 48.0,
+    "top": 52,
+    "spoil": 392,
+    "boulders": 241,
+    "adit": {
+      "sets": 16,
+      "lamps": 7,
+      "rail": 23,
+      "portals": 2,
+      "portal_signs": 2,
+      "ore_face": 28,
+      "winze": [
+        105,
+        0,
+        30
+      ]
+    }
+  },
+  "contract": "a rock mass that wraps the Mine Coaster without occupying one cell the ride owns: talus whose reach and height are functions of the face above it, a crest south of the ride where the ride is lowest, benches only where the face is too steep to stand on, gravel only on a crust that is solid to the ground, and a walk-through adit whose cover is guaranteed before the mass is filled",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "rail": [
+        "rail"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "landmark",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "The worked-out mountain the Mine Coaster is cut into: a battered talus wrapping the ride's whole outline, a crag cresting fifty courses over the plane behind it, benched cut faces where the rock is too steep to stand on, gravel spoil tips at the foot, and a walk-through adit through the foot of the cut face with timber sets, rail, an ore chamber and a winze.\n"
+    },
+    "metrics": {
+      "blocks": 32255,
+      "materials": 23,
+      "dominant_material_share": 0.3361,
+      "light_blocks": 7,
+      "massing": {
+        "width": 124,
+        "height": 53,
+        "depth": 65,
+        "fill_ratio": 0.0755
+      },
+      "silhouette": {
+        "top": {
+          "area": 2304,
+          "fill_ratio": 0.2617
+        },
+        "front": {
+          "area": 1149,
+          "fill_ratio": 0.1544
+        },
+        "side": {
+          "area": 2375,
+          "fill_ratio": 0.5575
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.7359,
+          0.2454,
+          0.0188
+        ],
+        "top_silhouette_perimeter": 1669,
+        "surface_faces_per_block": 0.4627
+      },
+      "material_counts": {
+        "stone": 10840,
+        "cobblestone": 6062,
+        "andesite": 3563,
+        "cobbled_deepslate": 2425,
+        "granite": 1656,
+        "tuff": 1613,
+        "coal_ore": 1360,
+        "dripstone_block": 1179,
+        "deepslate": 1019,
+        "gravel": 892,
+        "gold_ore": 834,
+        "moss_block": 249
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "0e4c66cd4c0339cc99a5c9461473f482ff3af1edcbfa6abc30addfa2edd0c68e",
+    "generator_source_digest": "6e4eb664d2be29722a4935e6e375c3b316e68fffe5927f044f1449ea3ad20b8b",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 80.571698,
+    "blocks": 32255,
+    "blocks_per_second": 400.33
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "ride"
+    ],
+    "blocks": 32255,
+    "mechanic_families": [
+      "container",
+      "light",
+      "rail",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "experience",
+    "player_verbs": [
+      "walk the adit",
+      "look down the winze",
+      "stand at the ore face",
+      "walk under the crag"
+    ],
+    "outcome": "The Frontier's only mountain, and the first thing in the land that answers what the coaster is FOR: the ride is cut into the near face of a worked hill you can walk into.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: coal_ore",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: deepslate",
+    "not in the provisional skyblock-1.19 list: diorite",
+    "not in the provisional skyblock-1.19 list: dripstone_block",
+    "not in the provisional skyblock-1.19 list: gold_ore",
+    "not in the provisional skyblock-1.19 list: granite",
+    "not in the provisional skyblock-1.19 list: tuff"
+  ],
+  "file": "PF Mine Ridge.litematic",
+  "name": "PF Mine Ridge"
+}

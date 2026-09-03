@@ -1,0 +1,50 @@
+# PF GAME THE RIFFLE - the Prospecting Porch's second bay finally gets a mechanism.
+#
+# `frontier_builds._porch_lot`'s own docstring says it: "THE BAYS ARE SHELLS ... both bays are
+# built with their counter, backboard, result panel and reset hatch in place and NO circuit
+# behind them." One of the two has since been wired - `PF Game Pan Line` stands in the shooting
+# range bay - and the gold sluice bay had nothing at all.
+#
+# **IT IS ON THE VERANDA, NOT IN THE BAY, AND THAT IS A MEASUREMENT.** Standable-and-clear
+# columns inside the sluice shed (world V97-113 / U20-32, over the shipped `Park Complete`):
+# a walkable ring one to two cells wide round the settling pool and the launder, and no
+# rectangle in it bigger than 15 x 1. A console needs a footprint the room does not have, so it
+# goes where the guests already queue - the shared veranda down the porch's own avenue flank,
+# which `_porch_lot` built for exactly that and which measures clear across its whole width.
+#
+# **A TARGET IS THE RIGHT MECHANIC FOR A SLUICE**, not a borrowed one: `park_games`' `aim` reads
+# a `target` block's own output, which is proportional to how central the hit was, and runs it
+# down a decaying dust line so the last lamp lights only on a full reading. "How rich was the
+# wash" is the same shape of question as "how central was the shot", and it needs no new circuit
+# - which is this repo's rule, because a mechanism with no asserted contract does not ship.
+name: PF Game The Riffle
+gen: park_games
+params:
+  kind: aim
+  land: frontier
+  facing: north          # the shooter stands under the veranda and faces the sluice shed
+  at: [97600, 204, 80336]
+  building: PF Prospecting Porch
+  under: out/Park Complete.litematic
+  score: 6
+  title: 'THE RIFFLE'
+roles: [ride]
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: frontier
+  narrative: >
+    The gold sluice's own game, on the porch veranda: a riffle plate at counter height and a
+    six-lamp wash meter on the board beside it, with the bell for a clean run.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+origin_lock: false
+expensive_allowance: 6
+expensive_reason: >
+  6x redstone_lamp - a light cannot be substituted by colour (the nearest cheap match is a lamp
+  that does not light), and the lamp IS the reading this game shows, so the cost is declared
+  rather than hidden.

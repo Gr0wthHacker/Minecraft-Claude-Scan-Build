@@ -193,15 +193,29 @@ def missing_colors(names) -> list[str]:
 
 # ------------------------------------------------------------- cost tiers
 
+# JACK, 2026-09-03: "slime blocks are not expensive, glass panes are also not expensive."
+# He is the authority on his own server's economy and this table is INVENTED - CLAUDE.md has
+# said so from the start. Two corrections, and both change designs rather than only a number:
+#
+#   slime_block           expensive -> cheap. It is the only block in the game that cancels a
+#                         fall outright, so every parkour plunge and every catch floor here was
+#                         being rationed against a price that is not real. `Island Run` carries
+#                         `expensive_allowance: 13` purely for this and no longer needs it.
+#   _stained_glass_pane   expensive -> cheap. Plain `glass_pane` was already `ok`; a coloured
+#                         pane is the same item dyed, and dye is not what is dear here.
+#
+# Plain `glass`, `tinted_glass` and the SOLID `_stained_glass` blocks are deliberately NOT
+# moved: nothing Jack said touches them, and a table that quietly widens past its evidence is
+# how four separate palette conclusions in this repo have already gone wrong.
 EXPENSIVE_SUFFIXES = ("_terracotta", "_concrete", "_concrete_powder", "_stained_glass",
-                      "_stained_glass_pane", "_glazed_terracotta")
+                      "_glazed_terracotta")
 EXPENSIVE_NAMES = {"terracotta", "quartz_block", "smooth_quartz", "quartz_pillar", "chiseled_quartz_block",
                    "quartz_bricks", "glass", "tinted_glass", "prismarine", "prismarine_bricks",
                    "dark_prismarine", "sea_lantern", "purpur_block", "purpur_pillar", "end_stone",
                    "end_stone_bricks", "copper_block", "netherite_block", "diamond_block", "gold_block",
                    "emerald_block", "lapis_block", "amethyst_block", "calcite", "obsidian", "crying_obsidian",
                    "shroomlight", "glowstone", "redstone_lamp", "beacon", "sponge", "wet_sponge",
-                   "honey_block", "slime_block", "hay_block", "bookshelf", "note_block", "jukebox"}
+                   "honey_block", "hay_block", "bookshelf", "note_block", "jukebox"}
 OK_NAMES = {"iron_bars", "glass_pane", "smooth_stone", "smooth_stone_slab", "andesite", "polished_andesite",
             "diorite", "polished_diorite", "granite", "polished_granite", "tuff", "tuff_bricks",
             "polished_tuff", "deepslate", "cobbled_deepslate", "deepslate_bricks", "deepslate_tiles",

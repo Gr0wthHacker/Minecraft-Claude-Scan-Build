@@ -1,0 +1,98 @@
+# PF PRISM DESCENT - the course, hung in the middle of the Prism Well.
+#
+# The land's headline, and the thing v1 never had: its Prism Ascent config said outright "THE
+# PARKOUR COURSE IS NOT IN HERE... This design is the SPIRE the course will be hung on", and
+# what shipped was the spire.
+#
+# A CONE INSIDE A PIER'S REACH. The run begins at r30, off the head of the Prism Well's start
+# pier at r33, and tightens to r14. Starting at the RIM instead - the first version - forced
+# r45, and that one number cost three things: the fall zone became the whole hundred-wide disc
+# so the catch at the floor had to be seven thousand cells; the same eighty-six moves bought
+# only 1.84 turns, because a four-block jump is a small angle at a big radius; and the helix
+# hugged the collar instead of hanging clear in the middle of the mouth.
+#
+# 101 COURSES, WHICH IS JACK'S CALL. Y201 to Y100 against the 261 the plot has free: the brief
+# asks for a two-to-four minute run and a longer one kills replay. `Island Run` is the
+# calibration - 97 moves over 151 courses - and it cost 168 blocks, because a parkour course is
+# almost entirely air and the landings ARE the design.
+#
+# SLIME IS CHEAP, corrected by Jack on 2026-09-03: "slime blocks are not expensive". Every
+# plunge lands on one and slime cancels all fall damage outright, so no move on this run costs
+# health. `Island Run` carries `expensive_allowance: 13` purely because the old table priced
+# slime as dear; this needs none.
+#
+# THE ADVANCE LIST REACHES 23 DEGREES because the radius shrinks. Five degrees is 3.9 blocks at
+# r45 and 1.7 at r20 - under the two-block floor the search rejects - so a list that only holds
+# small angles simply runs out of legal moves half way down and the run stops short.
+#
+# WHAT IS NOT CLAIMED. Whether a jump that is geometrically legal is actually MAKEABLE cannot be
+# certified offline; nor can a checkpoint, a timer or a payment, and none of those is built. It
+# ships as a free run.
+name: PF Prism Descent
+gen: parkour
+params:
+  under: out/prism_site.litematic
+  centre: [97590, 80815]
+  bounds: [97542, 80767, 97638, 80863]     # the mouth, so nothing can wander into the collar
+  y_top: 201
+  y_bottom: 100
+  start_from: [97558, 202, 80815]   # the Well's pier head: the cell you actually jump off
+  start_angle: 180       # WEST, where the Well's start pier reaches in. The run began at 0
+                         # (east) and its first landing was ten blocks from anywhere a player
+                         # could stand - legal, hard, well-shaped and unreachable.
+  radius: 30
+  radius_flex: [0, 2, -2, 4, -4, -6, -8, -11]
+  # DESCENDING, AND THAT IS THE WHOLE DIFFERENCE. The search takes the first angle whose chord
+  # fits UNDER the gap target, so an ascending list always wins with its smallest entry - which
+  # at r45 is a 3.9-block jump and at r23 is 2.2. The first build came out with seventeen of its
+  # jumps at 2.2 and six at the 2.0 floor: a staircase at the bottom of a helix. Largest-first
+  # means every landing is as far out as the target allows, which also buys the turns.
+  advance: [23.0, 19.0, 16.0, 13.0, 11.0, 9.5, 8.0, 6.5, 5.0, 4.0, 3.0]
+  gap_rotate: true          # vary the target per move, or every jump is the same jump
+  radius_bottom: 14
+  # ONE PLUNGE IN TEN, AND THAT NUMBER IS WHAT MAKES IT A SPIRAL. The first build ran the
+  # default thirteen-move rhythm with two plunges in it and came out at forty-five moves, which
+  # over a hundred courses is under ONE full turn - a zig-zag down a hole, not a helix. The
+  # arithmetic: a ledge covers about 4.2 blocks, so at the average radius of 32 one turn costs
+  # ~48 moves, and the height has to be spent slowly enough to afford two of them. Nine plunges
+  # of about twelve carry the hundred courses; the ninety moves between them buy 1.9 turns.
+  rhythm: [ledge, ledge, gate, ledge, ledge, plunge, ledge, ledge, gate, rest]
+  plunge_drop: [10, 12, 8, 14, 11]
+  seed: 5
+roles: [ride]
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: prismworks
+  focal_face: west
+  narrative: >
+    A spiralling parkour descent of roughly a hundred courses, hung free in the middle of the
+    Prism Well: one-block sprint-jump landings, gates that must be cleared as well as reached,
+    plunges onto slime, and lit rest platforms, tightening from the rim to the return column as
+    it falls and cooling from warm to pale as it goes.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [step off the lip, sprint-jump the ledges, clear the gates, take the plunges, rest at a checkpoint]
+  outcome: >
+    You reach the floor of the well a hundred courses down, in sight of everyone on the gallery
+    the whole way, and take the return column back up.
+  reset: >
+    Nothing is consumed and no state is held. The course is re-runnable immediately and by
+    anyone; a miss falls to the catch at the floor rather than out of the world.
+  service_access: >
+    The floor and the return column are reached from the catch without crossing the course.
+  bypass: >
+    The gallery is a ring and the catwalk crosses to the column head: the whole well can be
+    walked, watched and left without setting foot on the run.
+requires_in_game:
+  - every landing is actually makeable, not merely legal - gap, drop and headroom together
+  - the first jump off the well's lip apron lands on the first ledge
+  - every plunge's slime cancels the fall, and the finale reaches the catch
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false      # the whole course hangs in void: that is what a parkour run IS
+  verify_against: [out/prism_site.litematic]
+origin_lock: false

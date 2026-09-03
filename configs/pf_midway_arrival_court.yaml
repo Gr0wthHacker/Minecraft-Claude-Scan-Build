@@ -1,3 +1,19 @@
+# RETIRED (2026-09-03). Jack's call: the carousel takes this lot and this building comes out.
+#
+# IT WAS A SECOND FRONT DOOR. `PF Entry Gate` was built after this and does the same job better -
+# spawn, forecourt, walk, paired iron doors, a fare till and the towers - at V0-18 on the park's
+# own axis. This is the admission sequence it superseded: a gateway, a ticket hall, an open court
+# and a turnstile screen, forty-four by thirty-five, in the FIRST lot inside the park. Two ticket
+# halls sixty blocks apart is one ticket hall and one large rectangular building with a hole in it.
+#
+# WHAT TAKES THE LOT. `Carousel Court`, rebuilt at diameter 39 - 46 x 41 against this lot's 48 x 41,
+# which is the whole lot and not a ride floating in a green margin. Column A (U215-255) sits between
+# the Claim Lake's heron and the Welcome Court, off the U300 entrance axis, so the wheel keeps the
+# centre and the carousel is the thing you meet first walking up the side.
+#
+# KEPT, NOT DELETED. The generator (`midway_builds._arrival_court`), this config and
+# `out/PF Arrival Court.litematic` all stand as the record. It is out of `tools/park_lots.PLACEMENT`,
+# which is the one thing that decides whether a module is placed at all.
 # PF ARRIVAL COURT - the park's front door, and the first thing anybody sees.
 #
 # `Park Ways` and `Park Rail` are shipped; the Sky Lift and the Carousel Court stand. This is one
