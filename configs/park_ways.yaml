@@ -64,12 +64,20 @@ params:
         promenade_half: 2             # 5 wide, and that last block is load-bearing: at 7 the exit
                                       # band lots come out 23 deep against a Forge Deck programmed
                                       # at exactly the band's own 24.
-        # WHERE THERE IS NOWHERE TO SWERVE TO, THE PROMENADE STOPS. Three columns carry a single
-        # build deeper than any promenade can clear - the Mine Coaster (111), the Carousel over the
-        # Sky Lift (130) and the Prism Array over the Resonance Vault (109). Drawing a street
-        # through them is what put "buildings on top of each other" in the first place. You walk
-        # AROUND those three blocks, on the avenues either side; the loop still closes.
-        promenade_gaps: [[98, 169], [264, 337], [470, 522]]
+        # WHERE THERE IS NOWHERE TO SWERVE TO, THE PROMENADE STOPS. Two columns carry a single
+        # build deeper than any promenade can clear - the Mine Coaster (111) and the Prism Array
+        # over the Resonance Vault (109). Drawing a street through them is what put "buildings on
+        # top of each other" in the first place. You walk AROUND those two blocks, on the avenues
+        # either side; the loop still closes.
+        #
+        # THE MIDWAY'S GAP IS GONE (2026-09-03) AND ITS REASON WAS STALE. U264-337 was skipped for
+        # "the Carousel over the Sky Lift, 130 deep" - a stack that was never built. The Carousel
+        # is in column A, the Sky Lift is 19 deep, and the column now reads 56 + 41 + 9 + 22 + 2 =
+        # its own 130 with the promenade INSIDE it. Measured before it was cut: V121-129 x U264-337
+        # was 666 columns carrying 33 moss carpets and nothing else, and walking the promenade's
+        # west end to its east end cost 117 steps around against ~75 through. It now runs in front
+        # of the wheel, which is what a cross walk terminating on a landmark is for.
+        promenade_gaps: [[98, 169], [470, 522]]
         service_v: 155                # V154-156, at the FRONT of the service band
         service_half: 1               # 3 wide - a staff lane, not a street
         rim_v: 170
@@ -158,8 +166,9 @@ params:
             walks: [{v: 78, half: 1, u0: 43, u1: 96, lit: false}]
 
           # MIDWAY   A U215-255 (41) | av U257-263 | B U265-336 (72) | av U338-344 | C U346-384
-          #   A  Arrival Court 48x41 V24-71 . Snack Window 27x41 V77-103
-          #   B  Carousel Court 68x71 V24-91 over Sky Lift 62x71 V92-153 - 130 deep, no promenade
+          #   A  Carousel Court 48x41 V24-71 . Snack Window 27x41 V77-103
+          #   B  Welcome Court 56x61 V24-79 . Midway Cascade 41x71 V80-120 . PROMENADE V121-129 .
+          #      Sky Lift 22x71 V130-151 - 56+41+9+22+2 = its own 130, promenade included
           #   C  Skill Arcade 51x33 V24-74 . Prize Point 20x33 V80-99
           - name: midway
             u0: 215
@@ -184,9 +193,21 @@ params:
             # avenue it joins and finishes on the court's own kerb, and the court's centre bay
             # is left open on this axis so the walk runs through the pavilion rather than into
             # one of its posts.
+            # SEVEN WIDE, WHICH IS THE AVENUE'S OWN WIDTH. `lay` gives a run a border, a band
+            # either side of it and a CORE in the middle, and at half 2 the core does not exist -
+            # every cell of a five-wide walk comes out as border or band, which is a strip of red
+            # and white tape rather than a path. At half 3 it reads exactly as the avenues it
+            # joins do: a dark edge, a red band, a stone centre.
+            # AND EACH ONE STOPS AT THE COURT'S KERB RATHER THAN ONE CELL INSIDE IT. Run in to
+            # U271 to guarantee an overlap, the walk crossed two columns of the court's own lot -
+            # and `tools/park_lots.py` measures a lot as the largest RECTANGLE of free ground, so
+            # two clipped columns at V48-54 cut a 56 x 61 lot down to a 24 x 67 one. The overlap
+            # was never needed: the court's kerb is paving, its threshold steps are on exactly
+            # these courses, and `test_the_welcome_court_is_reachable...` walks the join rather
+            # than assuming it.
             walks: [{v: 74, half: 1, u0: 214, u1: 257},
-                    {v: 51, half: 2, u0: 257, u1: 271, lit: false},
-                    {v: 51, half: 2, u0: 329, u1: 344, lit: false},
+                    {v: 51, half: 3, u0: 257, u1: 269, lit: false},
+                    {v: 51, half: 3, u0: 331, u1: 344, lit: false},
                     {v: 77, half: 1, u0: 344, u1: 384}]
 
           # PRISMWORKS  A U430-465 (36) | av U467-469 | B U471-521 (51) | av U523-525 | C U527-599
@@ -236,6 +257,14 @@ params:
         # mast NUDGED along its own line cannot arrive back in the vista from the end.
         keep_clear:
           - {name: arrival vista, v0: 0, u0: 294, v1: 23, u1: 306}
+          # AND THE REST OF THE SAME SIGHTLINE (2026-09-03). Closing the Midway's promenade gap put
+          # a lamp mast at V121/U300 and another at V129/U300 - dead on the axis, in the middle of
+          # the eleven-wide walk, at the one crossing between the Cascade and the wheel. The masts
+          # are correct: they land every 22 along the promenade's own verge lines, and U300 is
+          # simply where the count fell. The vista is what they may not stand in, and it does not
+          # end at V23 - it runs from the gate's doors to the Sky Lift's hub. Same band as above,
+          # so a mast NUDGED along its own line cannot arrive back in it from the end.
+          - {name: midway axis, v0: 80, u0: 294, v1: 129, u1: 306}
     # the bird stands on the Claim Line reach, seen down the spine from both lands
     - gen: heron
       offset: [26, 1, 176]

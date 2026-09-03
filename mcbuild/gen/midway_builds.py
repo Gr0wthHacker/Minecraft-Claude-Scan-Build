@@ -1372,6 +1372,15 @@ def _welcome_court(L, p) -> dict:
                                          facing="east" if v == v0 else "west",
                                          half="bottom", shape="straight", waterlogged="false"))
                 continue
+            if u in (u0, u1) and abs(v - mid) <= 3:
+                # AND THE SAME ON THE CROSS AXIS. Every lot in this park stands one course over
+                # the streets, so an unstepped kerb is a ledge: the cross walk arrived from the
+                # avenue at the ground layer's own course and met a one-block wall. Three of this
+                # court's four ways in had a step and the two that carry the cross walk did not.
+                m["steps"] += bool(L.put(v, 0, u, PAL["trim"],
+                                         facing="south" if u == u0 else "north",
+                                         half="bottom", shape="straight", waterlogged="false"))
+                continue
             if v in (v0, v1) or u in (u0, u1):
                 mat = PAL["inlay"]                 # the kerb: this court's own dark line
             elif (v, u) in paved:

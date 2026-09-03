@@ -25,9 +25,9 @@
   "benches": 8,
   "trees": 24,
   "beds": 4,
-  "floor": 1420,
+  "floor": 1406,
   "water": 73,
-  "steps": 26,
+  "steps": 40,
   "hedge": 331,
   "bunting": 4,
   "axis": 300,
@@ -148,7 +148,7 @@
       "material_counts": {
         "moss_block": 1489,
         "oak_leaves": 1019,
-        "polished_blackstone_bricks": 689,
+        "polished_blackstone_bricks": 675,
         "smooth_stone": 388,
         "stone_bricks": 355,
         "stone": 349,
@@ -169,8 +169,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "e4895b179db4450d67a3362d611b82b2180db7376b15b0071ac5f2e5fe8cfd60",
-    "generator_source_digest": "2706993d7289a4b0a8bfe11a048d3794313d01830a09a7ac8dd9764733900c30",
+    "fingerprint": "ec01458b52158953d88284cedc033d7f517e2b79cfeb563b252cfb585df451c2",
+    "generator_source_digest": "35672a41e778c11a26632b4fb27a5163a85641610fc12c2868b8cf14e681a169",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -213,9 +213,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 74.949975,
+    "seconds": 87.355817,
     "blocks": 5484,
-    "blocks_per_second": 73.17
+    "blocks_per_second": 62.78
   },
   "generator_contract": {
     "ok": true,
