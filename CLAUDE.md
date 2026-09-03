@@ -7231,6 +7231,103 @@ rim - flat, empty and 13 deep against a 13-deep animal - was the one window neve
   see. Whether that reads as an identity is a question for a walk, not a number.
 - **Nothing placed in game.**
 
+#### The dinosaurs: a dig, a bigger sauropod, and a pterosaur (2026-09-03)
+
+Jack: *"do the dig site first, make the existing dino bigger, and then lets do the pterosaur
+after"* - and, opening the ground up: *"we also will need to replace the frontier buildings etc so
+its OK for us to put things there."*
+
+**`gen/fossils.py` - THE BONE BED.** A skeleton is the one animal shape this medium cannot get
+wrong. The central sculpture rule is planar and columnar against volumetric, and a skeleton is
+nothing BUT sheets and tapers: a spine is a line, a rib is a curve one block thick, a skull is a
+small box with holes in it. The plan is the money view, which voxels give away free, and a dig is
+looked INTO.
+
+**A TRENCH IS A HOLE IN THE SPOIL, NOT A DIG.** A litematic cannot express removal - but the
+diggings' ground stands eleven courses above the plane, so forcing the height field to ZERO inside
+a box leaves a real cut with real walls at no cost and nothing to break first. It runs alongside
+the trail, which is the viewing gallery.
+
+**`gen/sauropod.py` GREW BY HALF, AND THE LEGS ARE WHY IT COULD.** The rim it stands on is thirteen
+rows deep and the animal's width is 2 x (stance + leg radius) - so the LEGS were the cap, not the
+body, and at 0.0853H of radius a leg was 0.17H in diameter where a real graviportal limb is nearer
+0.12H. Slimmed to a true gauge it is 11 wide at h=48 instead of 15: **63 long, 50 tall, 5,036
+blocks against 2,323**, on the same rim, with a clear column of ground each side.
+
+Finding it needed four searches and the fourth was an off-by-one: **`range(dv - L)` never tries the
+row a band actually starts on**, so the rim - flat, empty, and exactly as deep as the animal is
+wide - was the one window never tested. Three searches returning zero is not proof a land is full.
+
+**`gen/pterosaur.py` IS THE OTHER HALF OF THE SAME RULE.** The sauropod is columns; this is the
+PLANE - one membrane hung from one hugely elongated finger. It is NOT `bat.py` re-coloured, which
+Jack ruled out on the causeway: a bat's wing is a mammal's, four fingers over four spans with the
+body slung under it. And it carries its own crag, so it stands on the plateau's summit at **Y257,
+the highest ground in the Frontier** - the obvious perch, the Vantage Lookout, is measured and
+refused, because its deck is 8 x 15 and a 38-span animal on it reaches eight cells past the park's
+own boundary.
+
+##### Seven defects, and only one of them was visible
+
+- **A CANVAS SIZED FOR THE WRONG AXIS.** The sauropod's box was always long in X, so built facing
+  north its length ran along Z and it was **clipped to 22 blocks of 48** - head, neck and half the
+  tail simply refused - while the render still showed a plausible small dinosaur. The only symptom
+  was a refusal count nobody was reading.
+- **A PROTECTION SET KEYED ON MATERIAL PROTECTS EVERY CELL MADE OF THAT MATERIAL.** The crest is
+  `light_gray_wool` and so is the flank the whole animal is swept in, so "keep the crest" kept all
+  2,323 cells: the countershading ran, skipped everything, returned a tally of four zeros, and
+  shipped a monochrome animal. **It is the same mistake as answering rule 15 with a material list,
+  one level down: a set of things is not a set of cells.**
+- **THE SCALE PARAMETER DID NOT SCALE.** The leg radii and the whole head were absolute blocks -
+  this file's own named trap - so a bigger animal grew a bigger body on the same legs and kept a
+  toy head.
+- **THE TRENCH RESERVE RAN AFTER THE SHOPS.** A bench LOWERS the height field and a shop's cover
+  RAISES it, so whichever runs last wins: the trench took the rock off a lintel and the shop
+  shipped as a hut standing in a bank rather than a room cut into one.
+- **A WORKING SITED FOR THE OLD GROUND CAME OUT FLOATING** three courses over the new bench - 107
+  cells, one stray component. A prop checks its own footing now; the field is the authority on
+  where the ground is.
+- **A BROADLEAF CROWN IS RADIUS 3 WHERE A CONIFER'S WAS 2**, which put leaves on the lot's own edge
+  and refused fifty canopy cells at the boundary. **A re-theme that changes a tree's SHAPE changes
+  where a tree may stand.**
+- **AND A BONE OUTSIDE THE TRENCH DOES NOT OVERFLOW, IT VANISHES.** A femur landed nine cells
+  sideways in the TRAIL first; the bound then clipped 45 cells of rib, half of each girdle, and
+  half the SKULL - the part a stranger looks for - all silently. The bound lives in `_bone` and
+  nowhere else, which is `_Lot.put`'s own discipline: guarded per feature, the loose limbs were
+  confined and the ribs were not.
+
+##### CHASING EACH ARITHMETIC CORNER DID NOT CONVERGE
+
+The pterosaur came apart three separate times and **never at the size last tested**: the head at
+span 38 while 34 and 40 were whole, then both wingtips at 30 and 46. Every fix that patched one
+rounding corner left another - and a bug that passes the example you tried is the worst kind there
+is.
+
+So the contract is GUARANTEED rather than hoped for. `_stitch` measures the components the build
+actually produced and bridges the strays, and the bridged count is REPORTED rather than swallowed,
+because a build needing twenty cells of stitching is a build whose geometry is wrong. Swept over
+**168 builds - fourteen spans, three perch heights, four facings - none split, and the worst stitch
+is two cells.** The test asserts that ceiling, so the safety net cannot quietly become the design.
+
+Three joins are worth keeping as rules in their own right:
+
+- **A JOIN IS MADE BY OVERLAPPING, NEVER BY ABUTTING A COMPUTED EDGE** - the neck runs from the
+  body's CENTRE, not from its face.
+- **A CHAIN STEPPED BY HAND IS A ROW OF DIAGONAL NEIGHBOURS.** `f + k * 0.8, y + k * 0.7` is not
+  connected; `_run` steps finely and fills the corner where two axes change at once.
+- **A CORNER FILL THAT MENDS ONE AXIS MENDS ONE AXIS.** The wing's finger patched a change in
+  height and came apart wherever the sweep and the lift moved together.
+
+##### Still open
+
+- **The dig is one design in isolation and two in the world's own terms**, because the trail's
+  verge is `Park Ways`' lawn rather than this design's ground - the Mine Ridge's recorded
+  situation, and the composite is the truth.
+- **The pterosaur's profile is its weak bearing.** A spread-wing animal seen along its own span
+  foreshortens to a lump on a rock; head-on and in plan it is unmistakable, which is the same
+  trade the bat records. Nothing to fix - it is what a wing IS - but worth knowing before siting a
+  second one.
+- **Nothing placed in game.**
+
 ## The daily loop
 
 ```bash

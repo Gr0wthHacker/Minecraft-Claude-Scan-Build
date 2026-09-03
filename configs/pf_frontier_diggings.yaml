@@ -101,18 +101,29 @@ params:
     # is a guest street, and which this module's field already clamps for exactly that reason.
     u: 5
     w: 33
-    d: 12
+    # **FIFTEEN DEEP, BECAUSE THE SKELETON IS.** The spine bows 2.5 either way and the ribs
+    # reach five, so a twelve-deep cut clipped 45 cells of rib and half of each girdle - and
+    # every bone is bounded by the trench in `_bone`, so what a bone does at the wall is VANISH.
+    # The bench beyond it falls into the trail's own verge, which is level ground anyway.
+    d: 15
     bench: 3
     # the skeleton, in the trench's own coordinates. It is the SAME ANIMAL standing on the rim two
     # hundred blocks away, which is the point: the dig is where it came from.
     skel_v: 3
-    skel_u: 6
-    length: 25
-    bow: 3.5
-    ribs: {from: 5, to: 20, span: 6.0, every: 2}
+    skel_u: 7
+    # **THE SKULL HAS TO FIT TOO.** The spine starts at v15 and the skull sits eight cells
+    # past its far end, so a 25-long spine put the head at v42-48 against a trench ending at
+    # v44 - and a bone outside the trench does not overflow, it VANISHES. Half a skull, and
+    # the skull is the part a stranger looks for.
+    length: 20
+    bow: 2.5
+    # SPAN 4.5, NOT 6: the trench is twelve deep and the spine runs down its middle, so a rib
+    # reaching six cells hits the wall - and every bone is bounded by the trench in `_bone`,
+    # so what it does at the wall is vanish. 45 cells of rib and half of each girdle.
+    ribs: {from: 5, to: 20, span: 5.0, every: 2}
     # the canvas over the best find - the one thing in the cut with colour in it, and what makes a
     # plan view read as a place somebody works rather than as an outline.
-    shelter: [24, 3, 8, 8]
+    shelter: [24, 4, 8, 8]
   # **FOUR WORKINGS MOVED ACROSS THE TRAIL.** The bone bed's trench zeroes the height field
   # under whatever it covers, so a prop sited by hand for the old bank ends up standing on
   # nothing - one came out as a floating tree, 107 cells and a stray component. A prop now

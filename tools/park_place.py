@@ -194,6 +194,11 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # is 6 x 49, and this animal is 48 x 11 x 36. The outer rim past the railway rolls
                 # two courses in its whole length.
                 "PF Sauropod",
+                # ...and the other half of the rule the sauropod is built on: the sauropod is
+                # COLUMNS and this is the PLANE. It stands on the plateau's own summit at Y257 -
+                # the highest ground anywhere in the Frontier - on a crag it brings with it,
+                # because a wing is a silhouette and the only thing that reads behind one is sky.
+                "PF Pterosaur",
                 # THE WYRM'S SKULL, OFF THE CAUSEWAY AND ONTO THE LINE. Jack: "are we able to
                 # place the skull so that the mouth 'opens' around the railway, the back of the
                 # skeleton is towards the void and the mouth gap is where the railway passes

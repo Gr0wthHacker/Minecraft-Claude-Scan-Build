@@ -18,8 +18,10 @@ class _Wrap:
 
 
 from . import frontier_builds, midway_builds, prismworks_builds  # noqa: E402
+from . import minestation  # noqa: E402
 from . import park_entrance, park_frontage, park_vantage, park_water  # noqa: E402
-from . import claimrow, diggings, frontier_scatter, mineridge, mineworks, park_games, plateau, sauropod  # noqa: E402
+from . import claimrow, diggings, fossils, frontier_scatter, mineridge  # noqa: E402
+from . import mineworks, park_games, plateau, pterosaur, sauropod, seam  # noqa: E402
 from . import wyrmgate  # noqa: E402
 from . import menagerie  # noqa: E402
 
@@ -38,6 +40,8 @@ GENERATORS = {
     # the three climbable high points - see mcbuild/gen/park_vantage.py
     "park_vantage": park_vantage,
     # marquees, portals, queues, props - mcbuild/gen/park_frontage.py
+    # the Mine Coaster's own artifact, adopted and edited - mcbuild/gen/minestation.py
+    "minestation": minestation,
     "park_frontage": park_frontage,
     "park_entrance": park_entrance,
     # the mountain the Mine Coaster is cut into, and the works that feed it -
@@ -62,6 +66,13 @@ GENERATORS = {
     # the gate the paved route through it that a threshold has to have -
     # mcbuild/gen/claimrow.py
     "claimrow": claimrow,
+    # THE SEAM. Measured over the shipped park, Prismworks carries 3.0% of its columns in the
+    # 3-11 course band against the Frontier's 19.5%, and the Prism Reach 3.4% with NOTHING at
+    # all above 12 - so the well's tower reads as an object dropped on a lawn rather than the
+    # thing a place is built around. This is the crystal vein the well was cut to reach,
+    # breaking the surface: `fracture` in the reach, `yard` behind the Foundry Gate, `field`
+    # east of the mouth. mcbuild/gen/seam.py
+    "seam": seam,
     # THE LOST PLATEAU. Measured, the Frontier used show material at 1.3% against 21-32% for every
     # other land in the park - the biggest land, the most verbs, and no identity at all, because a
     # gold-rush mining camp IS timber and stone and cannot be fixed by adding colour. This dresses
@@ -74,6 +85,11 @@ GENERATORS = {
     # rather than the compound volumetric muscle that retired eight mammals.
     # mcbuild/gen/sauropod.py
     "sauropod": sauropod,
+    # ...and the other half of the same rule: the sauropod is COLUMNS and this is the PLANE. A
+    # pterosaur's identity is one membrane hung from one elongated finger, which is the shape this
+    # medium renders best of anything - the sky bird and the bat are the two recorded successes.
+    # mcbuild/gen/pterosaur.py
+    "pterosaur": pterosaur,
     # **THE GAMES INSIDE THE PARK'S BUILDINGS, AND THIS ENTRY WAS MISSING.**
     # `mcbuild/gen/park_games.py`, `tests/test_park_games.py` and ten
     # `configs/pf_game_*.yaml` all existed and the generator was not registered, so

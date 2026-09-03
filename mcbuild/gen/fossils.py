@@ -110,8 +110,27 @@ def floor(lot: _Lot, spec: dict, seed: int) -> dict:
 # --------------------------------------------------------------------------- the skeleton
 
 
+#: The trench a skeleton is being laid in, as (v0, u0, w, d) - set by `skeleton` for the duration
+#: of one build. **THE BOUND IS CHECKED IN `_bone` AND NOWHERE ELSE**, which is `_Lot.put`'s own
+#: discipline: a generator that checks its own arithmetic at each call site gets it right in five
+#: places and wrong in the sixth. Guarded per feature, the loose limbs were confined and the RIBS
+#: were not - 45 cells of rib reaching over the trench lip, and a femur in the guest walk before
+#: that. One check, one place.
+_BOUNDS = None
+
+
+def _inside(v, u) -> bool:
+    if _BOUNDS is None:
+        return True
+    v0, u0, w, d = _BOUNDS
+    return v0 <= v < v0 + w and u0 <= u < u0 + d
+
+
 def _bone(lot: _Lot, v, u, y=1, key="bone") -> int:
-    return 1 if lot.put(int(round(v)), int(y), int(round(u)), BONE[key]) else 0
+    v, u = int(round(v)), int(round(u))
+    if not _inside(v, u):
+        return 0
+    return 1 if lot.put(v, int(y), u, BONE[key]) else 0
 
 
 def _line(lot: _Lot, a, b, y=1, key="bone") -> int:
@@ -215,6 +234,16 @@ def skeleton(lot: _Lot, spec: dict, seed: int) -> dict:
     It is the SAME ANIMAL standing on the rim two hundred blocks away, which is the point: the dig
     is where it came from.
     """
+    global _BOUNDS
+    box = spec.get("bounds")
+    _BOUNDS = tuple(int(x) for x in box) if box else None
+    try:
+        return _skeleton(lot, spec, seed)
+    finally:
+        _BOUNDS = None
+
+
+def _skeleton(lot: _Lot, spec: dict, seed: int) -> dict:
     out = {}
     sp = spine(lot, spec)
     out["spine"] = {k: v for k, v in sp.items() if k != "path"}
@@ -223,10 +252,14 @@ def skeleton(lot: _Lot, spec: dict, seed: int) -> dict:
     # **A RIB CAGE HANGS BETWEEN TWO GIRDLES**, and without them it is a fan of loose curves. The
     # pelvis and the shoulder are two short heavy arcs across the spine, and they are what make the
     # plan read as one animal rather than as a scatter of bones.
+    # **THE GIRDLES SCALE WITH THE RIBS**, because both are bounded by the same trench: written as
+    # absolutes 4.0 and 5.0 they reached past a twelve-deep cut and the bound clipped them to
+    # thirteen cells - half a pelvis, which reads as neither a girdle nor a rib.
     rib_spec = spec.get("ribs") or {}
+    rspan = float(rib_spec.get("span", 6.0))
     girdles = 0
-    for idx, spread in ((int(rib_spec.get("from", 5)), 4.0),
-                        (int(rib_spec.get("to", 20)), 5.0)):
+    for idx, spread in ((int(rib_spec.get("from", 5)), rspan * 0.72),
+                        (int(rib_spec.get("to", 20)), rspan * 0.88)):
         if 0 <= idx < len(path):
             gv, gu = path[idx]
             for side in (1, -1):
@@ -243,20 +276,10 @@ def skeleton(lot: _Lot, spec: dict, seed: int) -> dict:
     # whole block exists to carry. It is the fourth time this land has needed the rule that a way
     # is stated and refused rather than remembered, so the trench states its own bounds and every
     # bone is checked against them.
-    box = spec.get("bounds")
     loose = 0
     for dv, du, ln, ang in (spec.get("loose") or
                             ((-4, 8, 7, 0.5), (10, -7, 8, 2.2), (22, 9, 6, 1.1))):
-        v, u = float(spec["v"]) + dv, float(spec["u"]) + du
-        if box:
-            bv, bu, bw, bd = (int(x) for x in box)
-            reach = ln + 1
-            if not (bv + 1 <= v - reach and v + reach <= bv + bw - 2
-                    and bu + 1 <= u - reach and u + reach <= bu + bd - 2):
-                out.setdefault("loose_refused", 0)
-                out["loose_refused"] += 1
-                continue
-        loose += limb(lot, v, u, ln, ang)
+        loose += limb(lot, float(spec["v"]) + dv, float(spec["u"]) + du, ln, ang)
     out["loose"] = loose
     return out
 

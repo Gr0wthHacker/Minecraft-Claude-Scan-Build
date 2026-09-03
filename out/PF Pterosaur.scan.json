@@ -1,0 +1,208 @@
+{
+  "origin": {
+    "x": 97604,
+    "y": 258,
+    "z": 80406
+  },
+  "size": {
+    "x": 34,
+    "y": 31,
+    "z": 44
+  },
+  "generated_by": "pterosaur",
+  "kind": "pterosaur",
+  "land": "frontier",
+  "facing": "west",
+  "span": 38.0,
+  "spread": 0.72,
+  "profile_axis": "u",
+  "refused": 0,
+  "parts": {
+    "crag": {
+      "cells": 338,
+      "height": 10
+    },
+    "wings": [
+      {
+        "cells": 244,
+        "struts": 4,
+        "tip": [
+          4.134399999999999,
+          19.0,
+          18.701999999999998
+        ]
+      },
+      {
+        "cells": 244,
+        "struts": 4,
+        "tip": [
+          4.134399999999999,
+          -19.0,
+          18.701999999999998
+        ]
+      }
+    ],
+    "body": 91,
+    "head": {
+      "cells": 38,
+      "crest": 16,
+      "eyes": 2
+    },
+    "feet": 20,
+    "stitch": {
+      "strays": 0,
+      "bridged": 0
+    }
+  },
+  "contract": "a pteranodon perched on its own crag: two membranes each hung from ONE elongated finger drawn as a dark leading edge, held half-spread so the outline steps rather than flattening, a short body sitting on the wing root, a long pale beak and a backswept crest that stands clear of the skull.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "sculpture",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "A pteranodon on the plateau's summit: two membranes each hung from one elongated finger and held half-spread, a short body on the wing root, a long pale beak and a backswept red crest, gripping a crag of the ridge's own rock that lifts it clear of the canopy.\n"
+    },
+    "metrics": {
+      "blocks": 691,
+      "materials": 10,
+      "dominant_material_share": 0.2301,
+      "light_blocks": 0,
+      "massing": {
+        "width": 20,
+        "height": 22,
+        "depth": 39,
+        "fill_ratio": 0.0403
+      },
+      "silhouette": {
+        "top": {
+          "area": 254,
+          "fill_ratio": 0.1698
+        },
+        "front": {
+          "area": 139,
+          "fill_ratio": 0.1319
+        },
+        "side": {
+          "area": 154,
+          "fill_ratio": 0.1129
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.5007,
+          0.4964,
+          0.0029
+        ],
+        "top_silhouette_perimeter": 260,
+        "surface_faces_per_block": 1.9074
+      },
+      "material_counts": {
+        "cobbled_deepslate": 159,
+        "gray_wool": 143,
+        "black_wool": 95,
+        "andesite": 91,
+        "stone": 78,
+        "brown_wool": 58,
+        "bone_block": 24,
+        "light_gray_wool": 22,
+        "red_wool": 11,
+        "moss_block": 10
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "feb398e13c7e3f473fa8c2d4254595a049bea32ef248bc70100a430f88d030bf",
+    "generator_source_digest": "b95db89a70ef2fd843f7745c543519bf9b0bf7b1b111d83e646f0730c5591368",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 54.244138,
+    "blocks": 691,
+    "blocks_per_second": 12.74
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 691,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate"
+  ],
+  "file": "PF Pterosaur.litematic",
+  "name": "PF Pterosaur"
+}

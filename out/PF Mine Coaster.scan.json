@@ -1,0 +1,204 @@
+{
+  "origin": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "size": [
+    101,
+    56,
+    61
+  ],
+  "generated_by": "minestation",
+  "kind": "minestation",
+  "source": "out/park_final/artifacts/Mine Coaster.litematic",
+  "gates_opened": 4,
+  "contract": "the Mine Coaster's own artifact, copied state for state in its own axes, with named fence cells of its station turned into open fence gates so the platform can be walked into from the concourse and out of from the track",
+  "unverified": [
+    "not placed in game",
+    "the ride's circuit and trestles are the artifact's own and are not re-derived here"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "spruce_fence_gate"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "rail": [
+        "powered_rail",
+        "rail"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "The Mine Coaster as it stands, with its station platform opened to the concourse in front of it and to the track behind it, so a rider can get off the train and out of the building.\n"
+    },
+    "metrics": {
+      "blocks": 31196,
+      "materials": 27,
+      "dominant_material_share": 0.3416,
+      "light_blocks": 15,
+      "massing": {
+        "width": 101,
+        "height": 56,
+        "depth": 61,
+        "fill_ratio": 0.0904
+      },
+      "silhouette": {
+        "top": {
+          "area": 4662,
+          "fill_ratio": 0.7567
+        },
+        "front": {
+          "area": 2703,
+          "fill_ratio": 0.4779
+        },
+        "side": {
+          "area": 2059,
+          "fill_ratio": 0.6028
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.3909,
+          0.5529,
+          0.0562
+        ],
+        "top_silhouette_perimeter": 1228,
+        "surface_faces_per_block": 1.482
+      },
+      "material_counts": {
+        "cracked_stone_bricks": 10657,
+        "stone": 6683,
+        "cobblestone": 3279,
+        "mossy_stone_bricks": 2072,
+        "spruce_log": 2014,
+        "stone_bricks": 1250,
+        "spruce_planks": 791,
+        "stripped_oak_log": 721,
+        "stone_brick_stairs": 648,
+        "cobbled_deepslate": 533,
+        "gravel": 518,
+        "spruce_fence": 445
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "14bb3de4073aa424f4909c434a53047360a412b132144a41c05f810551990bb5",
+    "generator_source_digest": "f6bd72f1f3cdcea5691a5294d95f94bcd3a8fd96b1416c273cce2b38d9b772f5",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 1.093769,
+    "blocks": 31196,
+    "blocks_per_second": 28521.55
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 31196,
+    "mechanic_families": [
+      "access",
+      "light",
+      "rail",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: coal_ore",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: dark_oak_log",
+    "not in the provisional skyblock-1.19 list: redstone_block",
+    "not in the provisional skyblock-1.19 list: spruce_fence_gate"
+  ],
+  "file": "PF Mine Coaster.litematic",
+  "name": "PF Mine Coaster"
+}
