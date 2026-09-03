@@ -19,7 +19,8 @@ class _Wrap:
 
 from . import frontier_builds, midway_builds, prismworks_builds  # noqa: E402
 from . import park_entrance, park_frontage, park_vantage, park_water  # noqa: E402
-from . import frontier_scatter, mineridge, mineworks, park_games  # noqa: E402
+from . import diggings, frontier_scatter, mineridge, mineworks, park_games  # noqa: E402
+from . import wyrmgate  # noqa: E402
 
 
 GENERATORS = {
@@ -45,6 +46,13 @@ GENERATORS = {
     # the land dressing: pines, snags, boulders and mine debris on the open lawn -
     # mcbuild/gen/frontier_scatter.py. NOT ONE BUILDING in it, deliberately.
     "frontier_scatter": frontier_scatter,
+    # the bone skull straddling the rim railway, mouth open around the track -
+    # mcbuild/gen/wyrmgate.py. It touches NOTHING the railway made and is carried
+    # from the rim, because the jaw is exactly as deep as the corridor is wide.
+    "wyrmgate": wyrmgate,
+    # the worked-out landscape that replaced Boomtown's seven false fronts, with two
+    # shops cut INTO its banks - mcbuild/gen/diggings.py
+    "diggings": diggings,
     # **THE GAMES INSIDE THE PARK'S BUILDINGS, AND THIS ENTRY WAS MISSING.**
     # `mcbuild/gen/park_games.py`, `tests/test_park_games.py` and ten
     # `configs/pf_game_*.yaml` all existed and the generator was not registered, so

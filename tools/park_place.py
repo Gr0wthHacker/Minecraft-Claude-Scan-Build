@@ -98,7 +98,24 @@ def plane_of(model, role: str = "") -> int:
 #: make the next `--ship` look like a regression when it changed. A name goes in here when its
 #: agent reports, not when its file appears.
 EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
-                "PF Vantage Frontier Lookout", "PF Vantage Midway Belvedere",
+                "PF Vantage Frontier Lookout",
+                # THE BELVEDERE IS WITHDRAWN. Jack, standing on its crown: "there is a large
+                # building/tower right next to the air balloon design... its squished between
+                # the balloon and the railway" - and he was right to pull it rather than nudge
+                # it. Its own docstring already recorded the squeeze it was built into: the door
+                # opens straight onto the Circus ring at V138 because there was nowhere else on
+                # this lot to put it, eighteen columns from the railway on the other side. A
+                # vantage that has to touch both landmarks to fit is not sited, it is wedged.
+                # Archived in archive/pf_vantage_midway_belvedere/.
+                #     "PF Vantage Midway Belvedere",
+                #
+                # A SHOOTING RANGE WAS TRIED IN ITS PLACE AND WITHDRAWN TOO. `arcade._range`'s
+                # concealed award floor runs 12 courses behind its visible booth - a 24-26 deep
+                # footprint that left a bare service slab trailing off the back of the build,
+                # correct by every offline check and visibly wrong the moment it was placed.
+                # Jack: "this looks terrible in current state, the blocks are sticking out the
+                # back etc." Archived in archive/claim_lake_range_v1/.
+                #     "PF Claim Lake Range",
                 # THE SUMMIT IS WITHDRAWN AGAIN, and this time by measurement rather than by
                 # caution: 2,709 of its 4,522 cells stand INSIDE the Prism Well's mouth. It
                 # was a viewpoint over the Prism Ascent, and the Ascent is gone - the well
@@ -131,7 +148,12 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # flora was 29,488 moss blocks and ZERO LEAVES - not one tree in a land that is
                 # 66% bare lawn. Jack: "i dont want a bunch of buildings to go into, this is just
                 # a village then ... find other small things to add in the area."
-                "PF Frontier Scatter"}
+                "PF Frontier Scatter",
+                # ...and the worked landscape that replaced Boomtown's seven false fronts. It
+                # carries the walk that module carried inside itself - `Park Ways` paves none of
+                # that lot - so retiring one without placing the other breaks the route from the
+                # spine to Mining Square.
+                "PF Frontier Diggings"}
 
 
 def extras() -> list:

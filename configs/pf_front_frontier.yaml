@@ -33,12 +33,17 @@ params:
       wing: 1
       title: TRAILHEAD GATE
       lines: ["frontier land", "trails and mine"]
+    # **RETITLED, BECAUSE THE PLACE IT NAMED IS GONE.** This read BOOMTOWN / "store - saloon /
+    # telegraph" over the spur to `Boomtown Spine` - seven false-fronted shops, 0 interactive
+    # blocks, retired. `PF Frontier Diggings` holds the lot now: a worked landscape with a trail,
+    # a working yard, two shafts and two shops cut into its banks. A marquee naming a module
+    # nobody placed is three references to somewhere a guest cannot go.
     - kind: marquee
-      name: Boomtown Spine
+      name: Frontier Diggings
       at: [20, 70]
       span: 7
-      title: BOOMTOWN
-      lines: ["store - saloon", "telegraph"]
+      title: THE DIGGINGS
+      lines: ["walk the trail", "store - assay"]
     - kind: marquee
       name: Mine Coaster
       at: [20, 134]

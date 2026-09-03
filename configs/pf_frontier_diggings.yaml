@@ -1,0 +1,130 @@
+# PF FRONTIER DIGGINGS - a worked-out landscape you walk THROUGH, with two shops cut into it.
+#
+# Jack: "i dont want a bunch of buildings to go into, this is just a village then, thats opposite
+# of what i asked for and is exactly what i complained on" ... "we can have a small amount of
+# buildings, but the rest should be other things" ... "we can do a landscape or something with
+# 1 or 2 small shops integrated."
+#
+# ---------------------------------------------------------------------------------------------
+# IT REPLACES BOOMTOWN SPINE, WHICH WAS THE COMPLAINT
+#
+# 53 x 46 at V24 U47 - the largest lot in the Frontier - held Main Street: a five-wide boardwalk
+# between two terraces of false-fronted shops. Measured over the shipped park it carried **ZERO
+# interactive blocks**, and it is the single biggest reason the land read as a village.
+#
+# ---------------------------------------------------------------------------------------------
+# THE ROUTE IS A HARD CONSTRAINT, AND IT IS MEASURED
+#
+# `Park Ways` paves **0 of this lot's 2,438 columns**. The walk from the spine to Mining Square
+# lived entirely inside the old module - its boardwalk at world U68-70, meeting the ground layer's
+# own spur at V19-23 / U69-71 in the west and the V77-79 cross walk in the east. Delete the module
+# and that walk goes with it, so the trail is laid at the same courses and everything else is
+# shaped around it. The banks are battered AWAY from it rather than merely kept off it: held at a
+# constant height they would read as two walls with a corridor between them, which is a trench.
+#
+# And the field FALLS TO THE LOT'S OWN EDGES, because this block is bounded north and south by the
+# land's two cross avenues (U40-47 and U92-99). A bank at full height against either would wall a
+# guest street.
+#
+# ---------------------------------------------------------------------------------------------
+# INTEGRATED MEANS DUG IN, NOT STOOD NEXT TO
+#
+# Two shops, one each side of the trail and offset along it so they do not face each other. Each
+# is a rock recess with a timber shopfront, a counter, an awning and a name - and the mass over it
+# is FORCED into the height field before a single cell is filled, because a recess cut into
+# whatever the bank happened to give is an open bay with two walls. That is the ridge's own tunnel
+# lesson, and the first draft of this generator had the calls in the wrong order.
+name: PF Frontier Diggings
+gen: diggings
+params:
+  kind: diggings
+  lot: [53, 46]
+  at: [24, 47]
+  sy: 28
+  # local u21-23 is world U68-70 - the old boardwalk's own courses, so both ends of the trail land
+  # on paving that already exists.
+  trail_u: 21
+  trail_w: 3
+  verge: 2
+  # **THE LINEAR RISE IS A VERGE BANK AND NOTHING MORE.** At 10 it dominated the whole field and
+  # the block came out as a symmetric terraced amphitheatre with a road down the middle - two
+  # mirrored ramps of regular contour steps, which is the ziggurat failure in a new shape. The
+  # shaping belongs to the MOUNDS; the linear term only keeps the trail from running across bare
+  # flat ground, and at 4 it is a low bank a guest looks over rather than a grandstand.
+  # **LOWER AND MUCH MORE OPEN THAN THE FIRST TWO TRIES.** At `bank: 10` the block came out as a
+  # symmetric terraced amphitheatre; at 4 with eight mounds it was still wall-to-wall grey rock -
+  # a rock garden with a corridor through it, which is not better than a street of shops, only
+  # greyer. Two mounds a side, lower and smaller, leaves most of the lot open ground for the
+  # land's own planting to fill.
+  bank: 2
+  bench: 3
+  # THE WORKING YARD: the one thing that makes this a PLACE rather than a corridor. The trail runs
+  # past it, the shafts and the cribbing gather round it, and a guest arrives at the diggings
+  # instead of merely passing them.
+  yard: [20, 26, 16, 12]
+  # THE HIGH POINTS, kept clear of the trail's verge by the field itself. They read as spoil banks
+  # thrown up either side of the workings rather than as a second mountain: the ridge crests at 53
+  # and nothing here passes 15.
+  # **THE TWO SIDES MUST NOT MIRROR EACH OTHER.** Different counts, different heights, different
+  # radii and none of them opposite its neighbour across the trail - otherwise the eye reads a
+  # cutting rather than ground that was dug at.
+  mounds:
+    - [9, 7, 12, 9]
+    - [42, 6, 9, 8]
+    - [12, 39, 10, 8]
+    - [45, 38, 12, 9]
+  shops:
+    - {v: 8, side: -1, width: 7, depth: 5, height: 4,
+       lines: ["THE STORE", "picks, powder", "candles", "cash only"]}
+    - {v: 33, side: 1, width: 7, depth: 5, height: 4,
+       lines: ["ASSAY SHED", "we weigh dust", "no credit"]}
+  # A PROP WITH A JOB, never a heap of vague blocks. Both shafts sit on a bank rather than on the
+  # trail, and every one of these is clear of the walk's own verge at u19-25.
+  # THE WORKINGS GATHER ROUND THE YARD (V20-35 / U26-37), which is what gives it a reason to be
+  # there; the pines stand on the open ground the mounds leave.
+  workings:
+    - [24, 30, shaft]
+    - [32, 34, shaft]
+    - [22, 28, crib]
+    - [34, 28, crib]
+    - [27, 36, ore]
+    - [30, 31, ore]
+    - [4, 5, pine]
+    - [50, 4, pine]
+    - [3, 42, pine]
+    - [50, 41, pine]
+    - [27, 3, pine]
+    - [18, 42, pine]
+    - [37, 42, pine]
+    - [10, 15, pine]
+    - [46, 15, pine]
+    - [8, 33, pine]
+    - [40, 17, pine]
+  seed: 77
+roles: [path]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: frontier
+  narrative: >
+    The diggings: a trodden trail west to east between spoil banks and cut rock, two shops dug
+    into the banks with timber shopfronts and striped awnings over their counters, two collared
+    shafts under windlasses, stacked cribbing holding the banks back, tipped ore and a few pines.
+fun_contract:
+  enforce: true
+  class: route
+  player_verbs: [walk the trail, look down a shaft, stop at a counter]
+  spatial_job: >
+    It carries the land's only walk from the spine to Mining Square, which the module it replaces
+    carried inside itself - `Park Ways` paves none of this lot.
+  outcome: >
+    The middle of the Frontier stops being a street of false fronts and becomes ground that was
+    worked, with two shops in it rather than seven.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

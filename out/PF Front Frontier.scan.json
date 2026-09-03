@@ -35,7 +35,7 @@
     },
     {
       "kind": "marquee",
-      "title": "BOOMTOWN",
+      "title": "THE DIGGINGS",
       "signs": 2,
       "lamps": 4,
       "span": 7,
@@ -51,7 +51,7 @@
       ],
       "facing": "west",
       "land": "frontier",
-      "name": "Boomtown Spine"
+      "name": "Frontier Diggings"
     },
     {
       "kind": "marquee",
@@ -318,7 +318,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "3793dfe75dfcfb2a9e11f4a110990bfc1a799def0740d92f9badd3cb782b9fd5",
+    "fingerprint": "229f43591feac3c049537557e12c633948e744a7e82727e86c5795e577cf7697",
     "generator_source_digest": "8953590b33a7a9a48c978350a60bf4dba61eb13c0ebbad52baf5e925feda9b45",
     "anchors": [],
     "genome": {
@@ -361,9 +361,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 50.043169,
+    "seconds": 49.3429,
     "blocks": 1967,
-    "blocks_per_second": 39.31
+    "blocks_per_second": 39.86
   },
   "generator_contract": {
     "ok": true,

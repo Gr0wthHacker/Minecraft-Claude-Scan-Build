@@ -42,7 +42,13 @@ REPLACEABLE = {"moss_carpet"}
 #: This list pins a DECISION about which modules exist, so it moves with the decision rather than
 #: keeping a name that would now fail for a building nobody placed.
 MODULES = [
-    "Trailhead Gate", "Prospecting Porch", "Boomtown Spine", "Mining Square",
+    # **`Boomtown Spine` IS RETIRED AND `Frontier Diggings` NAMES ITS LOT NOW.** Jack, three
+    # times: "they are visually great - but all serve no actual defined purpose"; "i dont want a
+    # bunch of buildings to go into, this is just a village then"; "we can have a small amount of
+    # buildings, but the rest should be other things." It was 53 x 46 of false fronts with 0
+    # interactive blocks. A marquee naming a module nobody places is a sign to somewhere a guest
+    # cannot go, so the marquee was retitled in the same commit as the retirement.
+    "Trailhead Gate", "Prospecting Porch", "Frontier Diggings", "Mining Square",
     "Assay and Prize Office", "Mine Coaster", "Works Yard",
     "Snack Window", "Carousel Court", "Sky Lift", "Skill Arcade", "Prize Point",
     "Foundry Gate", "Prism Array", "Resonance Vault", "Prism Ascent", "Forge Deck",
@@ -53,7 +59,7 @@ MODULES = [
 #: yard, which is what a park does instead of marqueeing its service road.
 NAMED_BY = {
     "Trailhead Gate": "Trailhead Gate", "Prospecting Porch": "Prospecting Porch",
-    "Boomtown Spine": "Boomtown Spine", "Mining Square": "Mining Square",
+    "Frontier Diggings": "Frontier Diggings", "Mining Square": "Mining Square",
     "Assay and Prize Office": "Assay and Prize Office", "Mine Coaster": "Mine Coaster",
     "Works Yard": "Works Yard staff gate",
     "Snack Window": "Snack Window",
@@ -338,7 +344,14 @@ def test_every_attraction_with_a_queue_also_has_a_way_out(designs):
             assert piece["exit"]["kind"] == "portal/exit"
             assert piece["legs"] >= 3, "a two-leg switchback is a corridor"
             assert piece["lamps"] >= piece["legs"], "every turn carries its own light"
-    assert queues >= 3, "the rides that genuinely wait each need a line"
+    # **AND THE MINE COASTER'S IS ITS OWN, WHICH IS WHY THIS IS TWO AND NOT THREE.**
+    # `Mine Coaster.scan.json` declares `queue_rows: 22`, `queue_cells: 67` and a contract reading
+    # "the queue is 3 wide and 22 rows" - the ride builds its own line to its own platform. The
+    # frontage used to add a SECOND one at V27-33 / U161-190: thirty-five cells south of the
+    # ride's own queue entry at U126, on the far flank from all four of its guest anchors, and
+    # half of it past U169 and outside the Frontier altogether. Jack: "the 'queue' area is weird,
+    # in the wrong area." A frontage queue is for a ride that does not build one.
+    assert queues >= 2, "the rides that build no queue of their own each need a line"
 
 
 def test_a_queue_leg_is_open_at_the_end_it_turns_at(designs):

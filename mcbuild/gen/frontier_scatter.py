@@ -62,6 +62,19 @@ FLORA = {
 #: THE GROUND THIS MAY PLANT ON, and nothing else. Anything paved belongs to `Park Ways`.
 LAWN = {"moss_block", "moss_carpet"}
 
+#: **A CELL THIS DESIGN ITSELF PLACED IS BUILT PROGRESS, NOT AN OBSTRUCTION** - rule 15, and the
+#: third time in one session that reading a composite as "the world before the design" has bitten
+#: this work. The scatter reads `Park Complete`, and once it is placed the composite CONTAINS it:
+#: measured, the second run refused almost every candidate it had already planted and came out at
+#: **428 blocks against 3,843**. The ground course still has to be lawn, so this cannot let it
+#: plant on the diggings' trail or on a bank - only back onto its own standing trees and rocks.
+#: ...and it is NARROW: only what this design actually places. `spruce_planks` and the like are
+#: in `FLORA` but unused here, and leaving them in let a canopy spread over a NEIGHBOUR built from
+#: the same timber - measured, 33 cells of leaf reaching into the Diggings, Mining Square and the
+#: Assay Office.
+OWN = {FLORA[k] for k in ("trunk", "bark", "leaf", "rock", "rock_b", "rock_c",
+                          "moss_rock", "scree", "ore", "barrel", "rail", "turf")}
+
 SCATTER = {
     "kind": "scatter",
     "lot": None,                 # [dv, du]
@@ -76,6 +89,14 @@ SCATTER = {
     # SWEEPS instead: it walks the land on a coarse lattice and plants wherever the ground itself
     # allows, which is the only method that survives the shape this land actually has.
     "sweep": None,               # {step, density, kinds: [...]}
+    # **AND IT KEEPS OUT OF EVERY MODULE'S LOT.** `OWN` has to exist or the second run refuses
+    # every cell the first one planted - but the Diggings and the Mine Ridge are built from the
+    # same rock and the same timber, so a material test cannot tell my own standing pine from
+    # theirs. Measured: 33 cells of leaf and boulder inside neighbours, then 18 after the canopy
+    # went per-cell. The two requirements are both real and they need two different mechanisms -
+    # `OWN` for re-planting my own ground, and a lot list for everybody else's. Land dressing goes
+    # on the ground BETWEEN modules.
+    "keep_out": [],              # [[v0, v1, u0, u1], ...] - other modules' lots
     "path_clear": 2,             # how far a planting stands off anything paved
     "seed": 0,
 }
@@ -91,12 +112,17 @@ class _Ground:
     Frontier is 34,000 columns and every drift re-probes its own neighbourhood.
     """
 
-    def __init__(self, ctx: Ctx, anchor, dv, du, at, clear: int):
+    def __init__(self, ctx: Ctx, anchor, dv, du, at, clear: int, keep_out=()):
         self.ctx, self.dv, self.du = ctx, dv, du
         self.ax, self.ay, self.az = anchor
         self.at_v, self.at_u = at
         self.clear = clear
+        self.keep_out = [tuple(int(x) for x in b) for b in (keep_out or ())]
         self._lawn: dict = {}
+
+    def owned(self, v, u) -> bool:
+        """Is this column inside somebody else's lot?"""
+        return any(a <= v <= b and c <= u <= d for a, b, c, d in self.keep_out)
 
     def world(self, v, u):
         return self.ax + self.at_v + v, self.az + self.at_u + u
@@ -106,17 +132,36 @@ class _Ground:
         key = (v, u)
         if key in self._lawn:
             return self._lawn[key]
+        if self.owned(v, u):
+            self._lawn[key] = False
+            return False
         x, z = self.world(v, u)
         # the ground course is one UNDER the plane a build stands on - `Park Ways` paves at 202
         ok = self.ctx.name_at(x, self.ay - 1, z).split(":")[-1] in LAWN
         if ok:
             for y in range(self.ay, self.ay + 9):
                 n = self.ctx.name_at(x, y, z).split(":")[-1]
-                if n not in ("air", "cave_air", "void_air", "moss_carpet"):
-                    ok = False
-                    break
+                if n in ("air", "cave_air", "void_air", "moss_carpet") or n in OWN:
+                    continue
+                ok = False
+                break
         self._lawn[key] = ok
         return ok
+
+    def free(self, v, u, y) -> bool:
+        """Is this exact CELL free in the world?
+
+        **A COLUMN TEST IS NOT A CELL TEST, AND A CANOPY IS CELLS.** `lawn` asks about a whole
+        column, which is right for deciding where a trunk may stand and wrong for deciding where a
+        leaf may go: a pine on open ground two cells from a neighbour spread its canopy straight
+        over that neighbour's roof, and thirty-three cells of leaf ended up inside the Diggings,
+        Mining Square and the Assay Office. Every spreading part asks this instead.
+        """
+        if not (0 <= v < self.dv and 0 <= u < self.du) or self.owned(v, u):
+            return False
+        x, z = self.world(v, u)
+        n = self.ctx.name_at(x, self.ay + y, z).split(":")[-1]
+        return n in ("air", "cave_air", "void_air", "moss_carpet") or n in OWN
 
     def clearing(self, v, u) -> bool:
         """...and is it far enough from anything paved or built to plant on?
@@ -161,7 +206,7 @@ def _pine(lot: _Lot, g: _Ground, v: int, u: int, seed: int) -> int:
                     continue
                 if dv == 0 and du == 0 and y < h:
                     continue
-                if not g.lawn(v + dv, u + du) and (dv or du):
+                if (dv or du) and not (g.lawn(v + dv, u + du) and g.free(v + dv, u + du, y)):
                     continue
                 # PERSISTENT, or the canopy decays the moment somebody breaks the trunk. Every
                 # leaf this repo has ever placed is persistent and this is why.
@@ -182,7 +227,7 @@ def _snag(lot: _Lot, g: _Ground, v: int, u: int, seed: int) -> int:
         if hash01(v, u, s, seed + 12) > 0.35:
             continue
         y = max(1, h - 1 - s % 2)
-        if g.lawn(v + dv, u + du):
+        if g.lawn(v + dv, u + du) and g.free(v + dv, u + du, y):
             n += 1 if lot.put(v + dv, y, u + du, FLORA["bark"],
                               axis="x" if dv else "z") else 0
     return n
@@ -197,6 +242,8 @@ def _boulder(lot: _Lot, g: _Ground, v: int, u: int, r: int, seed: int) -> int:
                 continue
             top = max(1, int(round(r * 1.1 * (1 - d / (r + 0.6)))))
             for y in range(0, top):
+                if not g.free(v + dv, u + du, y):
+                    continue
                 k = hash01(v + dv, u + du, y, seed + 21)
                 key = "moss_rock" if k < 0.18 else ("rock_b" if k < 0.42 else "rock")
                 n += 1 if lot.put(v + dv, y, u + du, FLORA[key]) else 0
@@ -321,7 +368,7 @@ def build(cfg: dict, donors=None) -> Canvas:
     lot = _Lot(c, dv, du, seed=int(p.get("seed", 0)))
     at = [int(x) for x in (p.get("at") or (0, 0))]
     g = _Ground(Ctx(p["under"]), [int(x) for x in p["anchor"]], dv, du, at,
-                int(p.get("path_clear", 2)))
+                int(p.get("path_clear", 2)), p.get("keep_out") or ())
 
     seed = int(p.get("seed", 0))
     drifts = [_drift(lot, g, d, seed) for d in (p.get("drifts") or [])]

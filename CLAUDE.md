@@ -6768,6 +6768,72 @@ deleted: the machinery and its contract stay, and a suite that reported green be
 nothing left to check would be worse than one that failed.
 
 
+### Boomtown retired: THE DIGGINGS (2026-09-03)
+
+Jack, three times over: *"they are visually great - but all serve no actual defined purpose"*;
+*"i dont want a bunch of buildings to go into, this is just a village then, thats opposite of what
+i asked for and is exactly what i complained on"*; and then the shape of the answer - *"we can
+have a small amount of buildings, but the rest should be other things ... we can do a landscape or
+something with 1 or 2 small shops integrated."*
+
+**MY OWN PREVIOUS SUGGESTION WAS THE THING HE HAD ALREADY REJECTED TWICE.** Asked what to do with
+Boomtown Spine I proposed filling its seven false fronts with a saloon and a telegraph - which is
+more buildings to go into, which is a village. Worth recording, because the wrong answer was
+arrived at by taking the land's own spec ("social spine") as the brief rather than the complaint.
+
+`Boomtown Spine` is out of `tools/park_lots.PLACEMENT`: 53 x 46, the biggest lot in the Frontier,
+seven false-fronted shops and **0 interactive blocks**. `PF Frontier Diggings`
+(`gen/diggings.py`, 5,792 blocks) takes the lot - a worked landscape with a trail, a working yard,
+two shafts under windlasses, cribbing, tipped ore, pines, and **TWO shops cut into its banks**.
+
+- **THE ROUTE WAS THE HARD CONSTRAINT AND IT IS MEASURED.** `Park Ways` paves **0 of that lot's
+  2,438 columns**, so the land's only walk from the spine to Mining Square lived INSIDE the old
+  module - its boardwalk at world U68-70, meeting the ground layer's spur at V19-23 / U69-71 and
+  the V77-79 cross walk. Retire the module without carrying that and the Frontier is cut in half.
+  The trail is laid on the same courses and everything else is shaped round it.
+- **BANKS BATTERED AWAY FROM THE TRAIL, NOT MERELY KEPT OFF IT.** Held at one height and simply
+  not placed on the walk, spoil either side is two walls with a corridor between them.
+- **AND THE LINEAR RISE MUST NOT DOMINATE.** At `bank: 10` the block came out as a symmetric
+  terraced amphitheatre - two mirrored ramps of regular contour steps with a road down the middle,
+  which is the ziggurat failure in a new shape. At 4 with eight mounds it was wall-to-wall grey
+  rock: a rock garden with a corridor, which is not better than a street of shops, only greyer.
+  At **2, with four mounds and a working yard**, most of the lot is open ground and the trail
+  arrives somewhere. **A ROUTE WITH SOMEWHERE TO STAND ON IT IS SOMEWHERE TO BE.**
+- **INTEGRATED MEANS DUG IN, NOT STOOD NEXT TO.** A 7 x 5 hut on the lawn beside a spoil heap is
+  an eighth false front; the same hut with rock forced over its lintel is part of the landscape.
+  The reserve runs FROM the front face inward - reserving one cell in front of it too forces mass
+  into the trail-side verge, buries the awning and the name board, and both shops shipped
+  `signed: false`.
+- **THE FALL TO THE LOT'S EDGE IS CLAMPED AFTER THE MOUNDS, NOT BEFORE THEM.** Before, a
+  `maximum` over the mounds simply overrides it and a twelve-course bank stands proud on the
+  boundary - against the land's cross avenue, which is a guest street.
+- **AND THE LANE IS STATED AND REFUSED. Third time in this land.** A timber set stood on the
+  coaster's rail; an adit's cross-cut post bricked up its own corridor; and two pines went
+  straight into the trail - twenty-four cells of trunk and canopy in the one walk the module
+  exists to carry. **A prop sited by hand near a way will eventually be sited IN it**, so the way
+  refuses rather than the hand remembering.
+
+### The scatter's two self-references, which pull opposite ways (2026-09-03)
+
+`PF Frontier Scatter` reads `Park Complete` to find plantable lawn, and once it is placed the
+composite CONTAINS it. Measured, the second run refused nearly every cell the first had planted
+and came out at **428 blocks against 3,843**. That is the snapshot trap for the third time in one
+session, and the fix is rule 15: a cell this design itself placed is built progress, so its own
+materials are allowed in the "is this column clear" test.
+
+**BUT THE DIGGINGS AND THE RIDGE ARE BUILT FROM THE SAME ROCK AND THE SAME TIMBER**, so that
+allowance immediately let a canopy spread over a neighbour: 33 clashing cells inside the Diggings,
+Mining Square and the Assay Office. Two more things were needed and they are different mechanisms:
+
+- **A COLUMN TEST IS NOT A CELL TEST, AND A CANOPY IS CELLS.** `lawn` asks about a whole column,
+  which is right for where a trunk may STAND and wrong for where a leaf may go. Every spreading
+  part asks per cell now: 33 -> 18.
+- **AND A LOT LIST FOR EVERYBODY ELSE'S GROUND.** No material test can tell my pine from the
+  Diggings' pine, so the nine module lots are keep-out. 18 -> 0. Land dressing goes on the ground
+  BETWEEN modules, and the density is set against what is actually available - the same density
+  over a third of the area came out at 1,881 blocks.
+
+
 ## The daily loop
 
 ```bash

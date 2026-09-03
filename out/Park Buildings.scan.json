@@ -10,7 +10,6 @@
   "anchor_status": "PREVIEW placement; rebase before building",
   "contains": [
     "Assay and Prize Office",
-    "Boomtown Spine",
     "Carousel Court",
     "Foundry Gate",
     "Midway Row",
@@ -30,6 +29,7 @@
     "PF Front Frontier",
     "PF Front Midway",
     "PF Front Prismworks",
+    "PF Frontier Diggings",
     "PF Frontier Scatter",
     "PF Game Pan Line",
     "PF Game Powder Striker",
@@ -42,7 +42,6 @@
     "PF Prism Well",
     "PF Signal Zero",
     "PF Vantage Frontier Lookout",
-    "PF Vantage Midway Belvedere",
     "PF Water Claim Lake",
     "PF Water Wyrm Garden"
   ],

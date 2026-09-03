@@ -147,7 +147,23 @@ PLACEMENT = {
     "Trailhead Gate":         (24, 0),
     "Prospecting Porch":      (69, 0),
     # --- Frontier -------------------------------------------------- col B  U47-93 (47 usable)
-    "Boomtown Spine":         (24, 47),
+    # **BOOMTOWN SPINE IS RETIRED.** Jack, three times: "they are visually great - but all serve
+    # no actual defined purpose"; "i dont want a bunch of buildings to go into, this is just a
+    # village then, thats opposite of what i asked for and is exactly what i complained on"; "we
+    # can have a small amount of buildings, but the rest should be other things."
+    #
+    # It was the biggest lot in the land - 53 x 46 - and measured over the shipped park it held
+    # **ZERO interactive blocks** across seven false-fronted shops. `PF Frontier Diggings` takes
+    # the lot: a worked landscape with a trail, a working yard, two shafts and TWO shops cut into
+    # its banks instead of seven standing on the lawn.
+    #
+    # **THE WALK IT CARRIED IS THE REASON THE REPLACEMENT EXISTS AT ALL.** `Park Ways` paves 0 of
+    # this lot's 2,438 columns, so the route from the spine to Mining Square lived inside the
+    # module: its boardwalk at world U68-70, meeting the ground layer's spur at V19-23 / U69-71
+    # and the V77-79 cross walk. The diggings lays its trail on the same courses.
+    #
+    # Its config, its generator and `out/PF Boomtown Spine.litematic` are all kept as the record;
+    # this table is the one thing that decides whether a module is placed.
     "Mining Square":          (80, 47),      # behind the new V77-79 cross walk; 41 declared
     "Assay and Prize Office": (130, 47),
     # --- Frontier -------------------------------------------------- col C  U99-169 (71 usable)

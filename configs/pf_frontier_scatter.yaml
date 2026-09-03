@@ -37,10 +37,29 @@ params:
   lot: [200, 170]
   at: [0, 0]
   under: out/Park Complete.litematic
+  # **EVERY MODULE'S LOT IS OFF LIMITS.** `OWN` lets a second run re-plant its own standing
+  # trees - without it the run after the first refused almost everything and came out at 428
+  # blocks against 3,843 - but the Diggings and the Mine Ridge are built from the SAME rock and
+  # timber, so no material test can tell my pine from theirs. These are the land's lots, from
+  # `tools/park_lots.PLACEMENT` and the two designs that carry their own origin.
+  keep_out:
+    - [24, 68, 0, 38]        # Trailhead Gate
+    - [69, 119, 0, 39]       # Prospecting Porch
+    - [130, 146, 0, 16]      # Vantage Frontier Lookout
+    - [24, 76, 47, 92]       # Frontier Diggings
+    - [80, 120, 47, 92]      # Mining Square
+    - [130, 149, 47, 92]     # Assay and Prize Office
+    - [24, 147, 99, 169]     # Mine Coaster and Mine Ridge
+    - [148, 169, 6, 105]     # Mine Works
+    - [157, 169, 125, 160]   # Works Yard
   path_clear: 2
+  # DENSER, BECAUSE THE GROUND IS SMALLER. With every module's lot off limits the plantable land
+  # is the verges and the gaps between them, so the same density over a third of the area came out
+  # at 1,881 blocks. The step and the density are set against what is actually available rather
+  # than against the lot's nominal 200 x 170.
   sweep:
-    step: 5
-    density: 0.5
+    step: 4
+    density: 0.85
     # PINES DOMINATE, and the rest are what a worked hillside carries. Two entries of `pine`
     # against one each of the others is what makes a stand read as woodland rather than as a
     # sampler of four things.
