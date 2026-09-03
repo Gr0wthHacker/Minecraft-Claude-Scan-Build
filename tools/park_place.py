@@ -98,6 +98,10 @@ def plane_of(model, role: str = "") -> int:
 #: make the next `--ship` look like a regression when it changed. A name goes in here when its
 #: agent reports, not when its file appears.
 EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
+                # THE PLAQUES GO IN LAST OF THE FRONTIER'S DRESSING, so a plaque can never
+                # take a cell the ground, the overgrowth or the rim wanted - first writer
+                # wins, and a board a guest reads is worth less than the walk it stands on.
+                "PF Plateau Plaques",
                 "PF Vantage Frontier Lookout",
                 # THE BELVEDERE IS WITHDRAWN. Jack, standing on its crown: "there is a large
                 # building/tower right next to the air balloon design... its squished between
@@ -247,7 +251,19 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # The configs, `mcbuild/gen/seam.py` and the three artifacts all stand as the
                 # record; this table is the one thing that decides whether a module is placed.
                 #     "PF Prism Fracture", "PF Prism Cutting Yard", "PF Prism Seam Field"
-                }
+                #
+                # WHAT REPLACES THEM IS GROUND. Jack: "build sophisticated impressive terrain that
+                # fits the area appropriately ... it cant be impassable terrain, it should still
+                # feel like a park, gradual hills, small areas ... really terrain the entire area,
+                # from the building you removed all the way to the railway edge, and all the way
+                # to our parkour area so it feels even that more dramatic of a fall."
+                #
+                # `PF Prism Downs` is the whole land and its reach - 154 x 212 - as downland
+                # swelling to a crest against the well's collar, so the shaft is a hole in a HILL.
+                # No step anywhere exceeds one course, measured on the shipped artifact rather
+                # than on the field, because the world's own floor is not one plane and two
+                # neighbours at the same height above it can still be two courses apart.
+                "PF Prism Downs"}
 
 
 def extras() -> list:
@@ -317,10 +333,38 @@ def modules(report=False) -> list:
     return out
 
 
+#: A TILE ENTITY BELONGS TO A BLOCK THAT CAN HOLD ONE. Carried on position alone, two of them
+#: landed on an `oak_log` and a `stone_bricks` - a source design whose sign block had since moved
+#: while its text stayed behind, which a litematic stores perfectly happily and a game reads as a
+#: corrupt region. The block at the destination is the authority, not the coordinate.
+TEXTED = ("sign", "lectern", "chest", "banner", "barrel", "furnace", "hopper", "dispenser",
+          "dropper", "beehive", "bee_nest", "jukebox", "campfire", "skull", "head", "shulker_box")
+
+
+def _holds_text(name: str) -> bool:
+    n = str(name).split(":")[-1]
+    return any(k in n for k in TEXTED)
+
+
 def merge(items) -> schem.Model:
-    """One model, module by module, first writer winning a contested cell."""
+    """One model, module by module, first writer winning a contested cell.
+
+    **A SIGN'S TEXT FOLLOWS ITS BLOCK, AND FOR A YEAR IT DID NOT.** A sign is two things in two
+    halves of a litematic - a palette entry and a tile entity - and this merge built a bare
+    `Model(ids, pal)`, so every sign in the park came out BLANK in the one artifact anybody
+    actually places. Measured before the fix: `PF Front Frontier` 16 tile entities, `PF Claim Lake
+    Menagerie` 19, `PF Trailhead Gate` 6 ... and `Park Complete` **0**. Nothing could see it: the
+    blocks are all correct, the audit passes, the BOM is right, and `render3d` draws a sign the
+    same whether or not it says anything. The only symptom is a guest walking a park where nothing
+    is named, which is exactly the complaint that found it.
+
+    `layers.slice_plan` has always carried them and states the rule it is keeping: a tile entity
+    whose block was won by another module is a tile entity with no block, which is a corrupt region
+    rather than a lost line. So a sign travels only when ITS OWN cell survived the contest.
+    """
     import numpy as np
     cells, pal, index = {}, [nbt.block_state("minecraft:air")], {}
+    owner, tiles = {}, []
     for name, v, u, m, plane in items:
         names = {i: e.value["Name"].value for i, e in enumerate(m.palette)}
         props = {i: e.value.get("Properties") for i, e in enumerate(m.palette)}
@@ -336,12 +380,42 @@ def merge(items) -> schem.Model:
                 slot = index[state] = len(pal)
                 pal.append(m.palette[key])
             cells[pos] = slot
+            owner[pos] = name
+        for t in (getattr(m, "tile_entities", None) or []):
+            try:
+                tv = t.value
+                pos = (int(tv["x"].value) + v,
+                       int(tv["y"].value) - plane + 1,
+                       int(tv["z"].value) + u)
+            except Exception:                                    # noqa: BLE001
+                continue
+            # a tile entity whose block lost the contest has no block to belong to
+            if owner.get(pos) != name:
+                continue
+            if not _holds_text(names[int(m.ids[tv["y"].value, tv["z"].value, tv["x"].value])]):
+                continue
+            tiles.append((pos, t))
     xs = [p[0] for p in cells]; ys = [p[1] for p in cells]; zs = [p[2] for p in cells]
     ox, oy, oz = min(xs), min(ys), min(zs)
     ids = np.zeros((max(ys) - oy + 1, max(zs) - oz + 1, max(xs) - ox + 1), np.int32)
     for (x, y, z), slot in cells.items():
         ids[y - oy, z - oz, x - ox] = slot
-    return schem.Model(ids, pal), (ox, oy, oz)
+    out = schem.Model(ids, pal)
+    out.tile_entities = [_shift_tile(t, x - ox, y - oy, z - oz) for (x, y, z), t in tiles]
+    return out, (ox, oy, oz)
+
+
+def _shift_tile(tag, x: int, y: int, z: int):
+    """The same tile entity, re-addressed into the merged frame.
+
+    Rewritten rather than mutated: the source model is another design's artifact and may be merged
+    again into a second composite in the same run, and a tile entity moved in place would carry the
+    first merge's coordinates into the second.
+    """
+    from mcbuild.nbt import Tag, TAG_COMPOUND, TAG_INT
+    v = dict(tag.value)
+    v["x"], v["y"], v["z"] = Tag(TAG_INT, int(x)), Tag(TAG_INT, int(y)), Tag(TAG_INT, int(z))
+    return Tag(TAG_COMPOUND, v)
 
 
 def clashes(items) -> list:
@@ -426,9 +500,12 @@ def complete(items):
     pal, index = [nbt.block_state("minecraft:air")], {}
     contested = Counter()
 
+    tiles = []
+
     def lay(m, ov, oy, ou, tag, honour_dig=False):
         names = {i: e.value["Name"].value for i, e in enumerate(m.palette)}
         props = {i: e.value.get("Properties") for i, e in enumerate(m.palette)}
+        won = set()
         for y, z, x in zip(*m.solid().nonzero()):
             Y, Z, X = int(y) + oy, int(z) + ou, int(x) + ov
             if not (0 <= Y < height and 0 <= Z < sz and 0 <= X < sx):
@@ -445,6 +522,20 @@ def complete(items):
             if slot is None:
                 slot = index[state] = len(pal); pal.append(m.palette[key])
             ids[Y, Z, X] = slot
+            won.add((int(x), int(y), int(z)))
+        # ...and its signs with it. This composite is the one Jack places, so a sign whose text
+        # is dropped here is a blank sign in the world however correct the module was.
+        for t in (getattr(m, "tile_entities", None) or []):
+            try:
+                tv = t.value
+                lx, ly, lz = int(tv["x"].value), int(tv["y"].value), int(tv["z"].value)
+            except Exception:                                    # noqa: BLE001
+                continue
+            if (lx, ly, lz) not in won:          # its block lost the cell, or was never laid
+                continue
+            if not _holds_text(names[int(m.ids[ly, lz, lx])]):
+                continue
+            tiles.append(_shift_tile(t, lx + ov, ly + oy, lz + ou))
 
     lay(model, origin[0], origin[1] - min(0, origin[1]), origin[2], "buildings")
     # THE RAIL'S OWN CORRIDOR START, read from its config rather than typed - it moved from
@@ -454,7 +545,9 @@ def complete(items):
     _rv = _yaml.safe_load((ROOT / "configs" / "park_rail.yaml").read_text(encoding="utf-8"))
     lay(rail, int(_rv["params"]["bounds"][0]), 0 - min(0, origin[1]), 0, "railway", True)
     lay(ways, 0, 0 - min(0, origin[1]), 0, "ground", True)
-    return schem.Model(ids, pal), (0, min(0, origin[1]), 0), contested
+    out = schem.Model(ids, pal)
+    out.tile_entities = tiles
+    return out, (0, min(0, origin[1]), 0), contested
 
 
 def main() -> int:

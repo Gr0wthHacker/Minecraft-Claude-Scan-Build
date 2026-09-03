@@ -278,6 +278,11 @@ def _way(lot: _Lot, g: _Ground, p: dict, seed: int) -> dict:
     """
     spec = p.get("way") or {}
     u0 = int(spec.get("u", 1))
+    # **A DESIGN WITH NO WAY IN IT MUST BE ABLE TO SAY SO.** `max(1, ...)` gave a width of 0 a
+    # one-cell walk running the whole length of the lot: a plaque design asked for no path and got
+    # 67 slabs of one down the land, which audits clean because a one-wide path is a legal path.
+    if int(spec.get("w", 3)) <= 0:
+        return {"axis": None, "u": None, "cells": 0, "kerb": 0, "glow": 0}
     w = max(1, int(spec.get("w", 3)))
     every = max(4, int(spec.get("glow_every", 11)))
     # **A WAY RUNS ALONG THE LOT'S LENGTH, AND THE LENGTH IS NOT ALWAYS V.** This was written for
@@ -574,6 +579,71 @@ def _stack(lot: _Lot, g: _Ground, v: int, u: int, seed: int) -> int:
 _FACE_STEP = {"north": (0, -1), "south": (0, 1), "east": (1, 0), "west": (-1, 0)}
 
 
+def _plaque(lot: _Lot, g: _Ground, spec: dict) -> dict:
+    """ONE INTERPRETATION POST: what this thing is, and why it is here.
+
+    **THIS IS THE ANSWER TO A MEASUREMENT, NOT A DECORATION.** Over the shipped Lost Plateau the
+    land's scenery - the coaster, the ridge, the canopy, the overgrowth, the two dinosaurs, the
+    dig and the rim - is **133,170 blocks, 88% of the land's mass, carrying EIGHT signs and
+    FOURTEEN interactive blocks between them.** A guest walks past a forty-thousand-block mountain
+    and a fifty-block sauropod and is told nothing about either, which is exactly "no sense of what
+    to do or why any of it is there".
+
+    A field camp is the one theme where this is also correct in-world: a working dig LABELS things,
+    because the labels are how the science is done. So the post is a specimen plaque - a stake, a
+    board angled to the walk, and three lines: what it is, what was found, what you can do.
+
+    **THE POST IS SITED ON THE WALK AND THE BOARD FACES IT.** A plaque read from the back of a lot
+    is a plaque nobody reads, and `lot.sign` places the text one cell along the facing, so the post
+    itself is the support - the same arrangement `_notice` uses and the reason its docstring says
+    the cell is derived from the facing rather than hard-coded.
+
+    **AND IT IS REFUSED, NEVER FLOATED.** Every cell goes through the ground probe, so a plaque
+    whose ground belongs to another design places nothing and says so in the sidecar. A stake in
+    mid-air beside a dinosaur is worse than no plaque at all, and it is the failure mode this park
+    has shipped twice: a sign whose support was assumed rather than checked.
+    """
+    v, u = int(spec["at"][0]), int(spec["at"][1])
+    facing = str(spec.get("facing", SOUTH))
+    if facing not in _FACE_STEP:
+        raise ValueError(f"a plaque faces one of {sorted(_FACE_STEP)}, not {facing!r}")
+    lines = [str(t) for t in (spec.get("lines") or [])][:4]
+    over = [t for t in lines if len(t) > 15]
+    # FIFTEEN CHARACTERS IS THE LINE, and this park has shipped a clipped sign three times now
+    # ("MINE CART ESCAP", "and prize windo", "ore from the ad"). A clip is silent in every render
+    # here and obvious in the first screenshot, so it is an error rather than a truncation.
+    if over:
+        raise ValueError(f"a plaque line clips past 15 characters: {over}")
+    out = {"at": [v, u], "facing": facing, "lines": lines, "cells": 0, "signed": False}
+    sv, su = _FACE_STEP[facing]
+    if not g.lawn(v, u):
+        out["refused"] = "no ground"
+        return out
+    n = 0
+    # A FOOTING IS LAID ON LAWN, NEVER OVER SOMEBODY'S PAVING. A plaque stands beside a walk by
+    # design, so its outer footing cell lands on that walk about half the time: laid blind it was
+    # three cells of slab over the street's own stone, which is a collision the canvas cannot see
+    # (`lot.put` writes the design, and the world is another design's artifact).
+    for dv, du in ((0, 0), (sv, su), (-sv, -su)):
+        # **THE WORLD, NOT `free` - BECAUSE `free` HONOURS `mine` AND `mine` LAUNDERS A BAD CELL.**
+        # `free` accepts a cell this design shipped last time, which is the right answer to rule 15
+        # everywhere else and exactly wrong here: ship one footing slab over the street's stone and
+        # its own artifact then reports that cell as its own progress for ever, so the collision
+        # can never be un-shipped. A footing is laid on genuinely empty ground or not at all.
+        wx, wz = g.world(v + dv, u + du)
+        here = g.ctx.name_at(wx, g.ay, wz).split(":")[-1]
+        if here in ("air", "cave_air", "void_air", "moss_carpet"):
+            n += 1 if lot.put(v + dv, 0, u + du, KIT["kerb"]) else 0
+    for y in (1, 2):
+        n += 1 if lot.log(v, y, u, KIT["post"], axis="y") else 0
+    n += 1 if lot.put(v, 3, u, KIT["board"]) else 0
+    if lot.sign(v + sv, 3, u + su, facing, lines):
+        out["signed"] = True
+        n += 1
+    out["cells"] = n
+    return out
+
+
 def _notice(lot: _Lot, g: _Ground, v: int, u: int, seed: int, facing=SOUTH) -> dict:
     """The trail notice board: two posts, a plank field, and what a guest needs to know on it.
 
@@ -817,6 +887,11 @@ def build(cfg: dict, donors=None) -> Canvas:
     if p.get("nests"):
         parts["nests"] = [_ptero.nest(lot, g, int(a), int(b), int(e), seed)
                           for a, b, e in p["nests"]]
+    # BEFORE the planting, so a drift can never grow over a board somebody has to read. The
+    # planting pass refuses an occupied cell, so this is a property of the order rather than of a
+    # check - the same reason the yard's apron is laid last.
+    if p.get("plaques"):
+        parts["plaques"] = [_plaque(lot, g, spec) for spec in p["plaques"]]
     parts["planting"] = _plant(lot, g, p, seed)
 
     c.world_origin = (anchor[0] + at_v, anchor[1], anchor[2] + at_u)

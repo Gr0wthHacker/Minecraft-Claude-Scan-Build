@@ -352,3 +352,64 @@ def test_the_flat_is_one_piece_where_it_matters(row_cfg):
     stray = len(ground) - len(seen)
     assert stray / len(ground) < 0.06, (
         f"{stray} of {len(ground)} ground cells are islands cut off from the working")
+
+
+# --------------------------------------------------------------------------- the plaques
+
+def _plaque_design():
+    p = os.path.join(ROOT, "out", "PF Plateau Plaques.scan.json")
+    return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else None
+
+
+def test_every_plaque_that_was_asked_for_is_signed():
+    """A SIGN SILENTLY REFUSED IS THIS PARK'S MOST-REPEATED FAILURE.
+
+    `_plaque` returns `signed: False` and a reason rather than raising, because a plaque whose
+    ground belongs to another design should cost that plaque and not the build - but a design that
+    ships six of seven boards and says nothing is the failure wearing a hat. The count is the test.
+    """
+    d = _plaque_design()
+    if d is None:
+        return
+    plaques = d["parts"].get("plaques") or []
+    assert plaques, "the plaque design built no plaques"
+    unsigned = [p for p in plaques if not p.get("signed")]
+    assert not unsigned, f"plaques with no board: {unsigned}"
+
+
+def test_no_plaque_line_clips():
+    """FIFTEEN CHARACTERS. This park has shipped 'MINE CART ESCAP', 'and prize windo' and
+    'ore from the ad' - a clip is invisible in every render here and obvious in a screenshot, so
+    the generator RAISES rather than truncating."""
+    d = _plaque_design()
+    if d is None:
+        return
+    for p in d["parts"].get("plaques") or []:
+        for line in p.get("lines") or []:
+            assert len(line) <= 15, f"{line!r} is {len(line)} characters"
+    # ...and the guard really fires, on a spec that never reaches a canvas
+    class _G:
+        def lawn(self, *a):
+            return True
+    with pytest.raises(ValueError):
+        claimrow._plaque(None, _G(), {"at": [0, 0], "lines": ["a" * 16]})
+
+
+def test_a_plaque_faces_a_real_direction():
+    """A facing is derived from the walk and typed by hand, so a typo must fail the build rather
+    than defaulting quietly to whichever way the code was written for."""
+    class _G:
+        def lawn(self, *a):
+            return True
+    with pytest.raises(ValueError):
+        claimrow._plaque(None, _G(), {"at": [0, 0], "facing": "left", "lines": ["X"]})
+
+
+def test_a_design_can_declare_that_it_has_no_way():
+    """`max(1, w)` gave a width of 0 a one-cell walk running the whole lot - 67 slabs of path down
+    a land for a design that asked for none, and a one-wide path audits perfectly clean."""
+    d = _plaque_design()
+    if d is None:
+        return
+    way = d["parts"].get("way") or {}
+    assert not way.get("cells"), f"the plaque design laid {way.get('cells')} cells of path"

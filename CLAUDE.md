@@ -7424,6 +7424,115 @@ that changes under its other callers is a different bug.
   are taken and some are not.
 
 
+#### EVERY SIGN IN THE PARK WAS BLANK, FOR A YEAR (2026-09-03)
+
+Jack: *"I see hanging lamps in weird places and theres still no sense of what to do or why any of
+its there."* The second half had a cause nobody had looked for.
+
+**A sign is TWO THINGS IN TWO HALVES OF A LITEMATIC** - a palette entry and a tile entity - and
+`park_place.merge` built a bare `schem.Model(ids, pal)`. Measured:
+
+| | tile entities |
+|---|---|
+| `PF Front Frontier` | 16 |
+| `PF Claim Lake Menagerie` | 19 |
+| `PF Trailhead Gate` | 6 |
+| `Park_Left Complete` | 29 |
+| **`Park Buildings`** | **0** |
+| **`Park Complete`** | **0** |
+
+Every module wrote its signs correctly and **the one artifact anybody actually places dropped all
+of them.** Nothing in the pipeline could see it: the blocks are right, the audit passes, the BOM is
+right, `/cscan check` is happy, and **`render3d` draws a sign identically whether or not it says
+anything.** The only symptom is a guest walking a park where nothing is named - which is exactly
+the complaint, arriving three sessions after the signs were written.
+
+**`layers.slice_plan` had it right the whole time** and states the rule the merge was missing: *a
+tile entity whose block was won by another module is a tile entity with no block, which is a
+corrupt region rather than a lost line.* So text travels only when its own cell survived the
+contest, and `_shift_tile` REWRITES the coordinates rather than mutating the source - a module
+merged into two composites in one run would otherwise carry the first merge's coordinates into the
+second, which is a whole land's signs landing on the wrong blocks with nothing reporting it.
+
+**And position alone was not enough.** Two tile entities landed on an `oak_log` and a
+`stone_bricks` - a source design whose sign block had since moved while its text stayed behind,
+which a litematic stores perfectly happily and the game reads as corruption. **The block at the
+destination is the authority, not the coordinate.** `tests/test_park_signs.py` pins all of it.
+
+    Park Complete signs carrying text:   0  ->  177
+
+#### THE LAMPS WERE FINE, AND MY FIRST MEASUREMENT SAID THEY WERE NOT
+
+Worth recording because the wrong answer was confident and nearly shipped a fix.
+
+`Park Ways` **paves at Y202 and stands its furniture at Y203+**. Measuring lamp-to-street distance
+on the Y203 course therefore measures the lamps against the MODULES' floors rather than against the
+streets, and it reported *"11 of 35 masts 8 to 25 blocks from any paving"* - posts alone in the
+grass. I wrote a `lamp_needs_street` gate for it, wired it into the config, regenerated, and it
+**blocked nothing at all**: the debug counter read `gated 37, blocked 0`, which is the tell.
+Measured on the real course, **every one of the 35 masts is exactly 2 blocks from a street.** The
+gate was reverted.
+
+**A guard that fires zero times on the case it was written for is evidence about the MEASUREMENT,
+not about the world.** And the specific trap generalises: this park has three courses that all
+look like "the floor" - the lawn at Y202, the build plane at Y203, and the modules' own floors -
+and `tools/parkship.py` already says so in as many words. Read the course off the artifact.
+
+#### The land's scenery was 88% of its mass and eight signs
+
+The measurement that stands, over the shipped Lost Plateau:
+
+| design | blocks | verbs | signs |
+|---|---|---|---|
+| Mine Coaster | 56,635 | 0 | 5 |
+| PF Mine Ridge | 41,948 | 1 | 1 |
+| PF Lost Plateau | 15,374 | 0 | 0 |
+| PF Frontier Diggings | 5,577 | 10 | 2 |
+| PF Frontier Overgrowth | 5,146 | 0 | 0 |
+| PF Sauropod | 5,036 | 0 | 0 |
+| PF Frontier Scatter | 2,215 | 3 | 0 |
+| PF Pterosaur | 691 | 0 | 0 |
+| PF Frontier Rim | 548 | 0 | 0 |
+| **total** | **133,170** | **14** | **8** |
+
+A guest walks past a forty-thousand-block mountain and a fifty-block dinosaur and is told nothing
+about either. **That is not a shortage of content, it is a shortage of LABELS** - and this land is
+the one theme where the label is also correct in-world, because a working dig labels its finds.
+
+**`PF Plateau Plaques`** (`claimrow._plaque`, 47 blocks, 0 problems, 0 overlap, all cheap): seven
+specimen posts - a stone footing, a stake, a board angled to the walk - naming what stands in front
+of them and what a guest can do about it. **Every site is MEASURED, not chosen**: the nearest cell
+to its subject's own centroid that is lawn, four courses clear and within two of paving. The three
+that sit twenty-plus blocks from their subject are the mountain, the canopy and the pterosaur, and
+that distance is the point - there is no walk up a mountain, so you read those at its foot.
+
+Four things it cost, each a rule this file already carries somewhere else:
+
+- **`mine` LAUNDERS A BAD CELL.** `_Ground.free` accepts a cell this design shipped last time,
+  which is the honest answer to rule 15 everywhere else and exactly wrong for a footing: ship one
+  slab over the street's stone and the design's own artifact reports that cell as its own progress
+  for ever, so the collision can never be un-shipped. The footing asks the WORLD directly.
+- **A COLUMN TEST IS NOT A CELL TEST**, one level down from where this file first recorded it.
+  `lawn` asks whether the course UNDER the plane is turf - which it is right beside a street, whose
+  own paving is in the cell the footing wants.
+- **A DESIGN WITH NO WAY MUST BE ABLE TO SAY SO.** `_way`'s `max(1, w)` gave a width of 0 a
+  one-cell walk running the whole lot: 67 slabs of path down a land for a design that asked for
+  none, and **a one-wide path audits perfectly clean** because it is a legal path.
+- **FIFTEEN CHARACTERS, and the generator RAISES rather than truncating.** This park has now
+  shipped "MINE CART ESCAP", "and prize windo" and "ore from the ad"; the sign dump that found
+  them was only possible once the composite carried text at all.
+
+##### Still open
+
+- **`MINE CART ESCAP`, `BOARD WHEN CLEA`, `CLEAR LINE EMPT` and `BOARD THEN PRES`** are real clips
+  in the ride and transit signage, now visible in the shipped composite for the first time. They
+  belong to those modules, not to this pass.
+- **The scenery still carries 14 verbs.** Naming a thing is not giving somebody something to do
+  with it, and the plaques are the cheap half. What the coaster, the mountain and the two dinosaurs
+  should let a guest DO is a design decision rather than a defect.
+- **Nothing placed in game.**
+
+
 ## The daily loop
 
 ```bash
