@@ -78,6 +78,32 @@ WELL = {
     # courses up. Inside it, a miss at any height on either half falls straight down the well
     # into the pool that is already there - one failure mode for two hundred courses of run, and
     # it is the dramatic one. The pier is how you reach r30 from a platform at r7.
+    # AND ABOVE THE DECK IT IS A TOWER, NOT A MAST. Jack, on the first crown: "i think we need
+    # to improve the above ground stuff more, i think visually it feels a bit chaotic, not as
+    # amazing as when looking down on it, lets upscale this". He is right and it measures: the
+    # column was nine wide over ninety-eight courses - ELEVEN TO ONE, which is a stick - and the
+    # helix orbited it as loose wire eight blocks out. At distance the whole thing read as thin
+    # bits at incompatible scales, with the Wyrm's pale arch out-massing the lot.
+    #
+    # CHAOS HERE IS AN ABSENCE OF HIERARCHY, not an excess of detail. The plan view works because
+    # it flattens everything into concentric rings; the elevation had no mass to organise around.
+    # So the shaft becomes a tapering drum with real setbacks and real openings - the void tower's
+    # own rule, that what makes voxels read as architecture is regularity and openings rather than
+    # damage - and the ring of masts is scaled until it is a colonnade at the base rather than
+    # noise. Three scales that belong to each other: tower, pylon, rail.
+    #
+    # A DRUM ABOVE, A LATTICE BELOW, and the split is deliberate. Above the deck this is the
+    # skyline and wants mass. Below it you are looking DOWN the well past it, and a drum there
+    # would block the one view the whole land is composed around - so under the deck it stays
+    # four lit posts you can see between.
+    "tower": True,
+    "ribs": 8,                      # the verticals that run the WHOLE shaft, floor to crown
+    "base_h": 14,                   # the wider base drum at the deck, before the taper starts
+    "tower_r": 12,                  # base radius above the deck
+    "tower_top": 6,                 # ...and at the crown
+    "tower_wall": 2,
+    "tower_stages": 4,              # setbacks: a stepped shaft has a silhouette, a cone does not
+    "tower_open": 4,                # openings per stage, on the cardinals
     "y_crown": None,                # None keeps the well exactly as it was: rim to floor only
     "crown_r": 7,
     "crown_pier_to": 33,
@@ -431,53 +457,193 @@ def build_well(cfg: dict, donors=None) -> Canvas:
             w.put(cx + dx, y, cz + dz, p["lift_case"])
         feats["lift"] += 5
 
-    # THE FOUR LIT POSTS, so the column reads as a spine from the whole rim - and the TIE RINGS
-    # that make it one object. The first build shipped the posts and the casing as five separate
-    # components hanging in the middle of a hundred-wide hole: nothing to place against, nothing
-    # to reach them from, and five floating objects where the design says one machine.
-    for sx in (-1, 1):
-        for sz in (-1, 1):
-            x, z = cx + sx * pr, cz + sz * pr
-            for y in range(yf, top):
-                w.put(x, y, z, p["light"] if (dy - y) % 8 == 0 else p["lift_case"])
-                w.put(x - sx, y, z, p["lift_cage"])
-                w.put(x, y, z - sz, p["lift_cage"])
-                feats["post"] += 3
+    # ------------------------------------------------------- 7b. THE SHAFT: ONE FRAME, FLOOR TO CROWN
+    # Jack, on the first tower: "i think the tower and the underneath need to feel connected, not
+    # completely differently, and needs to be much more visually designed/impressive than just a
+    # thinning tower stem". Both true, and the render showed exactly why.
+    #
+    # IT WAS TWO STRUCTURES STACKED. A dark masonry drum above the deck and a thin lit lattice
+    # below it, touching only where they met - two vocabularies, unrelated, one on top of the
+    # other. The fix is not to blend them; it is to build ONE THING and let it change what it DOES
+    # with height. Eight RIBS and a copper RING BEAM every eight courses run the whole two hundred
+    # and five, floor to crown, and they are the same members at the bottom of the pool as at the
+    # top of the sky. What changes is the infill: open between the ribs below the deck, where you
+    # are looking DOWN the well and a wall would block the one view the land is composed around,
+    # and panelled above it, where the land needs mass on the skyline.
+    #
+    # AND A THINNING STEM IS NOT A DESIGN. The first tower tapered ten to seven over ninety-eight
+    # courses - three blocks over four setbacks, so under one block a step, and a silhouette that
+    # cannot be seen is not a silhouette. This one steps TWELVE to SIX in four real setbacks, each
+    # landing on a projecting bracket course. The ribs stand PROUD of the panel by a cell, which is
+    # the one thing that stops a voxel cylinder reading as a smooth grey pipe; the base is a wider
+    # drum with its own cornice so the shaft GROWS out of the gallery instead of piercing it; and
+    # the windows have real heads and sills, so they read as openings rather than as places the
+    # wall ran out.
+    ribs = int(p["ribs"])
     tie = max(int(p["tie_every"]), 2)
-    for y in range(yf + 2, top - 1, tie):
-        for s in range(-pr, pr + 1):              # the frame joining post to post
-            for a, b in ((s, -pr), (s, pr), (-pr, s), (pr, s)):
-                w.put(cx + a, y, cz + b, p["trim"])
+    tr0, tr1 = float(p["tower_r"]), float(p["tower_top"])
+    stages = max(int(p["tower_stages"]), 1)
+    wall = int(p["tower_wall"])
+    base_h = int(p["base_h"])
+
+    def profile(y):
+        """(radius, stage, is_setback) at height `y` - one curve for the whole shaft."""
+        if not crown or y <= dy + base_h:
+            # THE FLARE RAMPS ONE CELL AT A TIME. Stepping straight from r12 below the deck
+            # to r14 above it moved every rib two cells in one course, and two cells apart
+            # is not adjacent: the shaft came apart into 21,288 cells below and 13,479
+            # above, which is the two-structures problem this rewrite exists to fix,
+            # reproduced by the very course that was meant to join them.
+            if not crown or y <= dy:
+                return tr0, -1, False
+            return tr0 + min(y - dy, 2), -1, False
+        span = max(crown - (dy + base_h), 1)
+        k = min(int((y - dy - base_h) / span * stages), stages - 1)
+        r = tr0 + (tr1 - tr0) * (k / max(stages - 1, 1))
+        edge = dy + base_h + int(k * span / stages)
+        return r, k, (y == edge and k > 0)
+
+    stage_h = max(int((crown - dy - base_h) / stages), 1) if crown else 1
+    # A RIB THAT CHANGES RADIUS CHANGES CELL, AND A DIAGONAL STEP IS NOT A STEP. Every flare
+    # and every setback moves each rib to a new column, so the course above is diagonal from
+    # the course below and the shaft comes apart there - it shipped as 21,288 cells below the
+    # deck and 13,475 above, which is the two-structures problem this rewrite exists to fix,
+    # reproduced by the courses meant to join them. Same failure as the ear tips, the
+    # ossicones and the Lowland Root's braid, and the same cure: carry the PREVIOUS column
+    # one course up so the two are orthogonal neighbours.
+    prev_rib: dict[int, tuple[int, int]] = {}
+    for y in range(yf, top):
+        r, k, setback = profile(y)
+        panelled = bool(crown) and y > dy + 1
+        ring = (y - yf) % tie == 0
+        for b in range(ribs):
+            a = math.radians(b * 360.0 / ribs)
+            # THE RIB, one cell proud of the panel line, and lit every sixteen courses
+            rx = int(round(cx + (r + 1) * math.cos(a)))
+            rz = int(round(cz + (r + 1) * math.sin(a)))
+            w.put(rx, y, rz, p["light"] if (crown and (crown - y) % 16 == 0) else p["lift_case"])
+            feats["post"] += 1
+            was = prev_rib.get(b)
+            if was and was != (rx, rz):
+                w.put(was[0], y, was[1], p["lift_case"])   # the bridge over the step
                 feats["post"] += 1
-        for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):   # and the spokes in to the casing
-            for q in range(2, pr):
-                w.put(cx + dx * q, y, cz + dz * q, p["trim"])
+            prev_rib[b] = (rx, rz)
+            ix = int(round(cx + r * math.cos(a)))
+            iz = int(round(cz + r * math.sin(a)))
+            if (ix, iz) != (rx, rz):
+                w.put(ix, y, iz, p["lift_case"])
+                feats["post"] += 1
+        if ring or setback:
+            # THE RING BEAM: what actually ties two hundred courses into one object
+            for x in range(int(cx - r - 2), int(cx + r + 3)):
+                for z in range(int(cz - r - 2), int(cz + r + 3)):
+                    d = math.hypot(x - cx, z - cz)
+                    if r - 0.5 <= d <= r + 1.5 and not w.has(x, y, z):
+                        w.put(x, y, z, p["trim"])
+                        feats["post"] += 1
+            for b in range(ribs):                       # and the spokes in to the lift casing
+                a = math.radians(b * 360.0 / ribs)
+                # SIX-CONNECTED, AND THE DIAGONAL SPOKES WERE NOT. With eight ribs, four
+                # bearings are at 45 degrees, where consecutive q give (2,2), (3,3), (4,4) -
+                # a diagonal staircase, and a diagonal neighbour is not a neighbour. Every
+                # cell of those four spokes shipped as its own component. Fourth time this
+                # exact failure has appeared in this design; bridge the step.
+                last = None
+                for q in range(2, int(r)):
+                    sx = int(round(cx + q * math.cos(a)))
+                    sz = int(round(cz + q * math.sin(a)))
+                    if last and last != (sx, sz) and abs(sx - last[0]) + abs(sz - last[1]) > 1:
+                        if not w.has(sx, y, last[1]):
+                            w.put(sx, y, last[1], p["trim"])
+                            feats["post"] += 1
+                    if not w.has(sx, y, sz):
+                        w.put(sx, y, sz, p["trim"])
+                        feats["post"] += 1
+                    last = (sx, sz)
+        if setback:
+            # the bracket: a setback PROJECTS, or the step above it reads as a mistake
+            for x in range(int(cx - r - 3), int(cx + r + 4)):
+                for z in range(int(cz - r - 3), int(cz + r + 4)):
+                    d = math.hypot(x - cx, z - cz)
+                    if r + 1.5 < d <= r + 2.5 and not w.has(x, y, z):
+                        w.put(x, y, z, p["trim"])
+                        feats["post"] += 1
+        if not panelled:
+            continue
+        # THE PANEL, set BACK from the ribs, with a window in every bay between them
+        for x in range(int(cx - r - 1), int(cx + r + 2)):
+            for z in range(int(cz - r - 1), int(cz + r + 2)):
+                d = math.hypot(x - cx, z - cz)
+                if not (r - wall + 0.5 <= d <= r - 0.5) or w.has(x, y, z):
+                    continue
+                a = math.degrees(math.atan2(z - cz, x - cx)) % 360.0
+                off = min(abs((a - b * 360.0 / ribs + 180) % 360 - 180) for b in range(ribs))
+                h = (y - dy - base_h) % stage_h
+                win = off > (360.0 / ribs / 2) - 7 and 3 <= h <= stage_h - 4
+                if win and not setback and y < crown - 3:
+                    continue                            # left open: the window
+                mat = p["collar_hi"] if k % 2 == 0 else p["kerb"]
+                if hash01(x, y, z, p["seed"], 7) < p["weather"] * 0.5:
+                    mat = p["collar_lo"]
+                w.put(x, y, z, mat)
                 feats["post"] += 1
 
-    # the head deck: the ring included, so it lands ON the posts rather than beside them, and
-    # never over the water column - the lift has to arrive somewhere
-    for x in range(cx - pr, cx + pr + 1):
-        for z in range(cz - pr, cz + pr + 1):
+    if crown:
+        # THE BASE CORNICE, so the shaft stands on something at the deck rather than passing through
+        for q in (0, 1):
+            y = dy + base_h + q
+            for x in range(int(cx - tr0 - 4), int(cx + tr0 + 5)):
+                for z in range(int(cz - tr0 - 4), int(cz + tr0 + 5)):
+                    d = math.hypot(x - cx, z - cz)
+                    if tr0 + 1.5 - q <= d <= tr0 + 3.5 - q and not w.has(x, y, z):
+                        w.put(x, y, z, p["trim"] if q else p["collar_hi"])
+                        feats["post"] += 1
+        # AND THE CROWN: a corbelled overhang, a parapet and DARK merlons - the void tower's own
+        # recipe, which this repo records as the thing that finally made a voxel tower read, and
+        # its own lesson that from directly above a merlon in the parapet's colour is invisible.
+        for q, grow in ((0, 2.5), (1, 3.5), (2, 2.5)):
+            y = crown - 2 + q
+            for x in range(int(cx - tr1 - 5), int(cx + tr1 + 6)):
+                for z in range(int(cz - tr1 - 5), int(cz + tr1 + 6)):
+                    d = math.hypot(x - cx, z - cz)
+                    if tr1 + 1.5 <= d <= tr1 + grow and not w.has(x, y, z):
+                        w.put(x, y, z, p["trim"] if q == 1 else p["collar_hi"])
+                        feats["post"] += 1
+        for b in range(ribs * 2):
+            a = math.radians(b * 360.0 / (ribs * 2))
+            # ON the parapet, not beyond it: at tr1+3 the merlons stood a cell outside the
+            # top cornice course and four of them shipped as two-cell strays.
+            mx = int(round(cx + (tr1 + 2) * math.cos(a)))
+            mz = int(round(cz + (tr1 + 2) * math.sin(a)))
+            w.put(mx, crown + 1, mz, p["collar_deep"])
+            w.put(mx, crown + 2, mz, p["collar_deep"] if b % 2 else p["light"])
+            feats["post"] += 2
+
+    # THE HEAD DECK, where the lift arrives at the deck course. Everything inside the ribs that
+    # is not the water column: you surface at walking height and step straight out onto it.
+    for x in range(cx - int(tr0), cx + int(tr0) + 1):
+        for z in range(cz - int(tr0), cz + int(tr0) + 1):
             if (x, z) == (cx, cz) or w.has(x, dy, z):
                 continue
-            w.put(x, dy, z, p["pave"] if max(abs(x - cx), abs(z - cz)) < pr else p["trim"])
+            if math.hypot(x - cx, z - cz) > tr0 - 0.5:
+                continue
+            w.put(x, dy, z, p["pave"])
             feats["lift"] += 1
 
     # ------------------------------------------------------------------ 8. THE CATWALK
-    # ONE SPOKE, NOT A CROSS. The column has to be reachable and buildable - a thing with
-    # nothing to place against is a thing that never gets built - but two crossing walkways
-    # would quarter the view down the shaft, which is the whole reason the mouth is this wide.
-    # A single pier on the entry axis costs one sightline and gives the land its best one: you
-    # stand at the middle of the mouth and look straight down a hundred and eight courses.
+    # ONE SPOKE, NOT A CROSS, and it is also the only thing that makes the rim and the shaft one
+    # object. A rewrite of the shaft deleted this section by accident and the design immediately
+    # came apart into 21,288 cells of collar-and-gallery at r34-62 and 13,483 cells of shaft at
+    # r0-23 - two perfectly-built structures with nothing between them. The component count is
+    # what caught it; nothing else could, because both halves are correct.
     #
-    # AND IT IS A TRUSS, NOT A PLANK. Forty-nine cells of deck hanging on nothing is buildable -
-    # the printer's rule is that any EARLIER neighbour counts, so a pier built outward carries
-    # itself - and it READS as a floating strip, which is the failure this land is being rebuilt
-    # to fix. A continuous spine beam under the centre line and a strut every sixth cell is what
-    # turns it into a gantry, and a gantry is the right register for a machine land.
+    # Two crossing walkways would quarter the view down the shaft, which is the whole reason the
+    # mouth is this wide. A single pier on the entry axis costs one sightline and gives the land
+    # its best one: you stand at the middle of the mouth and look straight down two hundred
+    # courses. It starts at the shaft's own face and runs out to the collar.
     tx, tz = -ez, ex
     half = int(p["walk"]) // 2
-    for q in range(pr, rm + col):
+    for q in range(int(tr0), rm + col):
         for s in range(-half, half + 1):
             x = int(round(cx + ex * q + tx * s))
             z = int(round(cz + ez * q + tz * s))
@@ -488,29 +654,31 @@ def build_well(cfg: dict, donors=None) -> Canvas:
         for s in (-half - 1, half + 1):
             x = int(round(cx + ex * q + tx * s))
             z = int(round(cz + ez * q + tz * s))
+            if w.has(x, dy, z):
+                continue
             w.put(x, dy, z, p["trim"])
             w.put(x, dy + 1, z, p["rail"])
             feats["rail"] += 1
         # the spine beam, continuous, one course under the walking line
         bx = int(round(cx + ex * q))
         bz = int(round(cz + ez * q))
-        w.put(bx, dy - 1, bz, p["trim"])
-        feats["corbel"] += 1
+        if not w.has(bx, dy - 1, bz):
+            w.put(bx, dy - 1, bz, p["trim"])
+            feats["corbel"] += 1
         if q % 6 == 0:
-            # THE STRUT HAS TO REACH THE SPINE OR IT IS NOT A TRUSS, IT IS A LOOSE BLOCK. The
-            # first version hung one cell two courses down at a lateral offset the spine beam
-            # never occupies, so all five came out as isolated components - six-connectivity
-            # again, and the same failure as the ear tips and the ossicones.
+            # THE STRUT HAS TO REACH THE SPINE OR IT IS NOT A TRUSS, IT IS A LOOSE BLOCK.
             for sgn in (-1, 1):
                 for s in range(1, half + 2):
                     x = int(round(cx + ex * q + tx * s * sgn))
                     z = int(round(cz + ez * q + tz * s * sgn))
-                    w.put(x, dy - 1, z, p["collar_lo"])
-                    feats["corbel"] += 1
+                    if not w.has(x, dy - 1, z):
+                        w.put(x, dy - 1, z, p["collar_lo"])
+                        feats["corbel"] += 1
                 x = int(round(cx + ex * q + tx * (half + 1) * sgn))
                 z = int(round(cz + ez * q + tz * (half + 1) * sgn))
-                w.put(x, dy - 2, z, p["collar_lo"])
-                feats["corbel"] += 1
+                if not w.has(x, dy - 2, z):
+                    w.put(x, dy - 2, z, p["collar_lo"])
+                    feats["corbel"] += 1
 
     # ------------------------------------------------------------------ 8b. THE CROWN
     # A deck on the column head at Y300 and a pier out to r33, which is the deck pier ninety-
@@ -638,12 +806,19 @@ def build_well(cfg: dict, donors=None) -> Canvas:
 
     return w.canvas({"kind": "well", "profile_view": "top", "facing": [-1, 0],
                      "features_built": feats, "dig": [list(d) for d in dig],
-                     "centre": [cx, cz], "r_mouth": rm, "y_floor": yf})
+                     "centre": [cx, cz], "r_mouth": rm, "y_floor": yf,
+                     "shaft_r": int(p["tower_r"]) + int(p.get("base_h") and 2 or 0)})
 
 
 # ---------------------------------------------------------------------- THE RIG
 
 RIG = {
+    # THE WORLD THE GANTRY HANGS IN, and it had none. The rig was generated from the routes
+    # alone and knew nothing about the well it hangs inside, so where the sky run passes the
+    # deck its beam landed squarely on the CATWALK - eleven cells at r21-23 on the entry axis,
+    # reported as overlap by the pipeline and by nothing in the generator. A design that hangs
+    # inside another one has to be told what is already there.
+    "under": None,
     # ONE OR MANY: the well has two concentric runs and one gantry serves both, so that the
     # beam is derived from every route it hangs over rather than from a helix re-computed here.
     "route": ["out/PF Crown Descent.scan.json", "out/PF Prism Descent.scan.json"],
@@ -697,6 +872,7 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
     import os
 
     p = {**RIG, **cfg}
+    ctx = Ctx(p["under"]) if p.get("under") else None
     paths = p["route"] if isinstance(p["route"], (list, tuple)) else [p["route"]]
     routes = []
     for path in paths:
@@ -725,6 +901,12 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
     # only the centre does. Barring the centres alone let the gantry put two beam cells inside
     # the corner of a checkpoint you stand on, and neither design could see it: the only thing
     # that reported them was the park assembly's module clash check.
+    def blocked(x, y, z):
+        """Occupied in the WORLD, so nothing here may claim it."""
+        if ctx is None:
+            return False
+        return ctx.name_at(x, y, z).split("[")[0].split(":")[-1] not in AIRY
+
     barred = set()
     for c in route:
         h = 1 if (len(c) > 3 and c[3] == "rest") else 0
@@ -739,7 +921,7 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
         if i % max(int(p["light_every"]), 1) == 0:
             mat = p["light"]
             feats["light"] += 1
-        if not w.has(x, y, z) and (x, y, z) not in barred:
+        if not w.has(x, y, z) and (x, y, z) not in barred and not blocked(x, y, z):
             w.put(x, y, z, mat)
             feats["beam"] += 1
 
@@ -782,7 +964,7 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
                 ddx, ddz = x - cx, z - cz
                 ox, oz = (x + (1 if ddx > 0 else -1), z) if abs(ddx) >= abs(ddz) \
                     else (x, z + (1 if ddz > 0 else -1))
-                if not w.has(ox, y, oz) and (ox, y, oz) not in barred:
+                if not w.has(ox, y, oz) and (ox, y, oz) not in barred and not blocked(ox, y, oz):
                     w.put(ox, y, oz, p["web"])
                     feats["web"] += 1
 
@@ -794,13 +976,15 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
         px = int(round(x + 2 * (x - cx) / d))
         pz = int(round(z + 2 * (z - cz) / d))
         for q in range(0, hang + 1):
-            if not w.has(px, y + q, pz) and (px, y + q, pz) not in barred:
+            if (not w.has(px, y + q, pz) and (px, y + q, pz) not in barred
+                    and not blocked(px, y + q, pz)):
                 w.put(px, y + q, pz, p["beam_alt"] if q < hang else p["beam"])
                 feats["post"] += 1
         # and the arm back to the beam, so the post is joined to what it carries
         ax = int(round(x + (x - cx) / d))
         az = int(round(z + (z - cz) / d))
-        if not w.has(ax, y + hang, az) and (ax, y + hang, az) not in barred:
+        if (not w.has(ax, y + hang, az) and (ax, y + hang, az) not in barred
+                and not blocked(ax, y + hang, az)):
             w.put(ax, y + hang, az, p["beam"])
             feats["post"] += 1
 
@@ -845,7 +1029,14 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
             main = set(comps[0])
             joined = False
             for frag in comps[1:]:
-                start = frag[0]
+                # FROM THE NEAREST CELL, NOT AN ARBITRARY ONE. The sky run's gantry breaks
+                # where the CATWALK crosses it at the deck, and the two halves are a
+                # hundred courses long each - so a flood started at `frag[0]` begins at
+                # whichever end the set happened to yield and exhausts its budget before it
+                # reaches the junction. The gap is one cell wide; the search just has to
+                # start beside it.
+                start = min(frag, key=lambda c: min(
+                    abs(c[0] - q[0]) + abs(c[1] - q[1]) + abs(c[2] - q[2]) for q in main))
                 prevs, queue, seen = {start: None}, [start], {start}
                 hit = None
                 for _step in range(4000):
@@ -857,7 +1048,7 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
                         break
                     for d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
                         q = (cur[0] + d[0], cur[1] + d[1], cur[2] + d[2])
-                        if q in seen or q in barred:
+                        if q in seen or q in barred or blocked(*q):
                             continue
                         seen.add(q)
                         prevs[q] = cur

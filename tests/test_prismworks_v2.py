@@ -316,6 +316,12 @@ def test_the_two_runs_are_plainly_apart():
         return min(rs), max(rs)
     dlo, dhi = band(DESC)
     clo, chi = band(CROWN)
-    assert dhi < clo + 0.5, (
+    # EITHER ORDER. Which run is inner is a design decision that has already been reversed
+    # once - the sky run moved inside to wrap the tower, and the deck run took the outside -
+    # so what is asserted is that the BANDS DO NOT OVERLAP, not which one is smaller. A test
+    # that pins the order would have failed the moment the towers arrived and told us nothing
+    # about the property that matters.
+    gap = max(clo - dhi, dlo - chi)
+    assert gap > 0, (
         f"the two runs share a radius band: deck {dlo:.0f}-{dhi:.0f}, sky {clo:.0f}-{chi:.0f} - "
         f"below the deck they would interleave into one unreadable mess")

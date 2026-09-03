@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": 97559,
+    "x": 97555,
     "y": 104,
-    "z": 80783
+    "z": 80781
   },
   "size": {
-    "x": 64,
+    "x": 70,
     "y": 199,
-    "z": 65
+    "z": 70
   },
   "generated_by": "prismrig",
   "kind": "prismrig",
@@ -17,10 +17,10 @@
     0
   ],
   "features_built": {
-    "beam": 1269,
-    "web": 1379,
-    "post": 110,
-    "light": 258
+    "beam": 1397,
+    "web": 1364,
+    "post": 106,
+    "light": 257
   },
   "route_from": [
     "out/PF Crown Descent.scan.json",
@@ -45,44 +45,44 @@
       "narrative": "A lit copper gantry following the descent's own line from the rim to the floor, one cell of beam with an iron-bar web outboard of it, carried on a post at each of the eight rests.\n"
     },
     "metrics": {
-      "blocks": 2758,
+      "blocks": 2867,
       "materials": 4,
-      "dominant_material_share": 0.5,
+      "dominant_material_share": 0.4758,
       "light_blocks": 0,
       "massing": {
-        "width": 64,
+        "width": 70,
         "height": 199,
-        "depth": 65,
-        "fill_ratio": 0.0033
+        "depth": 70,
+        "fill_ratio": 0.0029
       },
       "silhouette": {
         "top": {
-          "area": 1148,
-          "fill_ratio": 0.276
+          "area": 898,
+          "fill_ratio": 0.1833
         },
         "front": {
-          "area": 1080,
-          "fill_ratio": 0.0848
+          "area": 1128,
+          "fill_ratio": 0.081
         },
         "side": {
-          "area": 1072,
-          "fill_ratio": 0.0829
+          "area": 1122,
+          "fill_ratio": 0.0805
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.4333,
-          0.3535,
-          0.2132
+          0.4416,
+          0.3495,
+          0.2089
         ],
-        "top_silhouette_perimeter": 1638,
-        "surface_faces_per_block": 3.2415
+        "top_silhouette_perimeter": 1793,
+        "surface_faces_per_block": 3.234
       },
       "material_counts": {
-        "iron_bars": 1379,
-        "waxed_copper_block": 738,
-        "polished_blackstone_bricks": 460,
-        "ochre_froglight": 181
+        "iron_bars": 1364,
+        "waxed_copper_block": 735,
+        "polished_blackstone_bricks": 594,
+        "ochre_froglight": 174
       }
     },
     "checks": [],
@@ -94,8 +94,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "8c87202b5a36c61c798a092e79032201b63ace47a3f33a252f9ac91203bbd92f",
-    "generator_source_digest": "91d1220eb30e4e0a07466b02243ca7472c9405b80a460c88ec891d1dfdff4bc7",
+    "fingerprint": "06427d550713e44fdb07bab9d95ac7e3bff1b12dfe8a5d89a59ff50cbf6cb2c3",
+    "generator_source_digest": "1ee60ed9032bee476cbecf4f47d079a692cf3f4968fb0f5ffb5743800a6a4afc",
     "anchors": [],
     "genome": {
       "name": "prismworks",
@@ -132,9 +132,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 80.750379,
-    "blocks": 2758,
-    "blocks_per_second": 34.15
+    "seconds": 59.83632,
+    "blocks": 2867,
+    "blocks_per_second": 47.91
   },
   "generator_contract": {
     "ok": true,
@@ -143,7 +143,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 2758,
+    "blocks": 2867,
     "mechanic_families": []
   },
   "fun_contract": {

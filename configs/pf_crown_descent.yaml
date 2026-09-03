@@ -11,11 +11,15 @@
 # being the start of the ride and becomes its middle: the gallery stands between a course that
 # comes out of the sky and one that disappears into the ground.
 #
-# R30 CONSTANT, AND IT IS A SAFETY NUMBER RATHER THAN A SHAPE. Every landing must sit inside the
+# R19 CONSTANT, AND IT IS A SAFETY NUMBER RATHER THAN A SHAPE. Every landing must sit inside the
 # mouth's own cylinder, because a miss outside r50 lands on the lawn at Y203 from ninety courses
 # up. Inside it, a miss at ANY height falls straight down the well into the pool that is already
-# there - one failure mode for two hundred courses of run, and it is the dramatic one. r30 also
-# keeps it inside the pool's own r34, which is what the catch was sized to.
+# there - one failure mode for two hundred courses of run, and it is the dramatic one.
+#
+# AND IT IS THE INNER HELIX NOW, WHICH IS WHAT MAKES THE TOWER WORK. At r30 it orbited a
+# nine-wide stick eight blocks out and read as loose wire; at r19 it wraps a ten-wide drum
+# with four blocks of daylight between, which is a spiral ON a tower rather than a wire
+# near a post. The deck run took the outside in exchange, at r31.
 #
 # AND IT IS THE OUTER OF TWO. `PF Prism Descent` runs the inside of the void at r20 tapering to
 # r14 from the deck. Two concentric rings of landings below the deck, plainly apart, both landing
@@ -33,11 +37,11 @@ params:
   bounds: [97542, 80767, 97638, 80863]
   y_top: 298
   y_bottom: 100
-  radius: 30
-  radius_flex: [0, 2, -2, 4, -4, -6, 6]
+  radius: 21
+  radius_flex: [0, 2, -2, 4, -4]
   advance: [23.0, 19.0, 16.0, 13.0, 11.0, 9.5, 8.0, 6.5, 5.0, 4.0, 3.0]
   gap_rotate: true
-  start_from: [97558, 300, 80815]     # the crown pier head, 98 courses over the deck pier
+  start_from: [97568, 300, 80815]     # the crown pier head at r22, clear of the ribs
   start_angle: 180
   rhythm: [ledge, ledge, gate, ledge, ledge, plunge, ledge, ledge, gate, rest]
   plunge_drop: [12, 14, 10, 16, 11]

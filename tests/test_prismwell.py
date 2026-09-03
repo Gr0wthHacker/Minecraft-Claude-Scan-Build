@@ -83,7 +83,11 @@ def test_the_mouth_is_actually_empty():
     must stand at the collar or outside it, or the descent has nowhere to hang.
     """
     cx, cz, rm, _ = _geom()
-    lift_r, walk = 6, 4                       # post radius + a cell, and the catwalk's width
+    # THE SHAFT IS NOT A POST ANY MORE. It was four lit columns at chebyshev 4; it is now an
+    # eight-ribbed frame at r12 with a base drum flaring to r14 and a crown parapet at r9,
+    # and this number is what says how much of the void it is ALLOWED to occupy. Read it from
+    # the sidecar rather than typing it, or the test becomes a second source for the geometry.
+    lift_r, walk = int(_meta().get("shaft_r", 6)) + 4, 4
     strays = []
     for (x, y, z), n in _cells().items():
         r = math.hypot(x - cx, z - cz)

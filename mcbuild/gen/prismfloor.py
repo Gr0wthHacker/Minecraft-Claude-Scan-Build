@@ -116,14 +116,21 @@ def build_floor(cfg: dict, donors=None) -> Canvas:
         z = int(round(cz + (outer - 1) * math.sin(a)))
         w.put(x, wy, z, p["light"])
         feats["light"] += 1
-        # A CORNICE CAPS THE WALL, so it goes at the WALL's radius. Placed at the lamp ring's
-        # own radius it sat one course above the APRON with nothing under it - twenty-five
-        # floating cells, and the audit's component list only ever prints the largest six, so
-        # it read as "5 strays" until they were counted by hand.
-        wx = int(round(cx + (outer + wl - 1) * math.cos(a)))
-        wz = int(round(cz + (outer + wl - 1) * math.sin(a)))
-        w.put(wx, wy + int(p["wall_h"]), wz, p["trim"])
-        feats["wall"] += 1
+        # A CORNICE CAPS THE WALL, SO IT IS SNAPPED TO THE WALL RATHER THAN COMPUTED.
+        #
+        # Twice now. Placed at the lamp ring's own radius it sat a course above the APRON with
+        # nothing under it - twenty-five floating cells. Moved to the wall's nominal radius it
+        # was right at most bearings and off by rounding at two of them: `outer + wl - 1` came
+        # out at r40.46 against a wall spanning 40.5 to 42.5, so two cells hung in mid-air with
+        # six air neighbours. A ring of radius R and a ring of CELLS at radius R are not the
+        # same set, and the fix is to ask what was actually built instead of recomputing it.
+        for q in range(0, wl + 2):
+            wx = int(round(cx + (outer + 0.5 + q) * math.cos(a)))
+            wz = int(round(cz + (outer + 0.5 + q) * math.sin(a)))
+            if w.has(wx, wy + int(p["wall_h"]) - 1, wz):
+                w.put(wx, wy + int(p["wall_h"]), wz, p["trim"])
+                feats["wall"] += 1
+                break
 
     # ---------------------------------------------------------------------- THE BELL
     a = math.radians(float(p["bell_at"]))

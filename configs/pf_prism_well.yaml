@@ -47,10 +47,21 @@ params:
   # there is one spiral; below it there are two, concentric and clearly apart, both landing in
   # the same water. That is what makes each half separately runnable without the two lines of
   # landings interleaving into something nobody can follow.
+  # THE TOWER. Above the deck the shaft was 9 wide over 98 courses - eleven to one, a stick -
+  # and everything around it read as thin bits at incompatible scales. A stepped drum tapering
+  # 10 -> 7 through four setbacks, walls two thick, opened by four tall slots a stage, gives
+  # the land the mass it was missing and gives the helix something to read against. Below the
+  # deck it stays a lattice: a drum there would block the one view the land is composed around.
+  tower: true
+  tower_r: 10
+  tower_top: 7
+  tower_stages: 4
+  tower_open: 4
+  mast_h: 36              # was 18, which is noise beside a 98-course tower. Tower / pylon / rail.
   y_crown: 300            # the park's tallest, Jack's call: +98 over the deck, 20 under the limit
-  crown_r: 7
-  crown_pier_to: 33       # the sky run starts at r30, one jump off this
-  pier_to: 23             # ...and the deck run at r20, one jump off ITS pier, well inside
+  crown_r: 9
+  crown_pier_to: 23       # the sky run is the INNER helix: it starts at r21
+  pier_to: 35             # ...and the deck run is the OUTER one, at r33, off a long pier
   y_floor: 95
   seed: 7
 roles: [construction, building]

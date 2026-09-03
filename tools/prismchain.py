@@ -37,10 +37,24 @@ import numpy as np                                   # noqa: E402
 from mcbuild import schem, scan                      # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# WHAT COMES OUT OF `Park Complete` TO MAKE `park_future`, and it is two different lists for
+# two different reasons.
+#
+# The v1 designs come out because they are RETIRED - archived in archive/prismworks_v1/ and
+# coming out of the world.
+#
+# The v2 designs come out because `Park Complete` NOW CONTAINS THEM, and a design cannot be
+# verified against a stale copy of itself. The Prism Well grew a tower and immediately reported
+# eight overlaps against its own previous build: the collar had not moved, the material under it
+# had. CLAUDE.md already records this trap on the Frontier - "verify_against out/Park Complete
+# is now self-referential for these two designs" - and here it is, load-bearing.
 V1 = ["PF Foundry Gate", "PF Prism Array", "PF Resonance Vault", "PF Prism Ascent",
       "PF Forge Deck", "PF Service Gallery", "PF Vantage Prism Summit", "PF Front Prismworks",
       "PF Water Wyrm Garden", "PF Game The Alignment", "PF Game The Vault",
-      "PF Game Ascent Signal"]
+      "PF Game Ascent Signal",
+      # ...and v2's own previous build, or every regeneration fights the last one
+      "PF Prism Well", "PF Prism Descent", "PF Crown Descent", "PF Prism Rig",
+      "PF Signal Zero"]
 STEPS = ["well", "descent", "crown", "rig", "signal"]
 CONFIG = {"well": "configs/pf_prism_well.yaml", "descent": "configs/pf_prism_descent.yaml",
           "crown": "configs/pf_crown_descent.yaml", "rig": "configs/pf_prism_rig.yaml",
@@ -90,6 +104,36 @@ def build_park_future():
     # its own problems. A context that is not a possible world makes every audit against it a
     # lie - and this one is cheap to fix, because in the real world the carpet comes off with the
     # roof it was lying on.
+    # AND EMPTY THE WELL'S OWN CYLINDER, because subtracting by work.json always lags a build.
+    #
+    # `Park Complete` contains the LAST shipped well; the subtraction above uses the CURRENT
+    # work.json. Those are different sets the moment the design changes, so whatever the old
+    # build had and the new one does not stays behind - and the new design then reports overlaps
+    # against its own previous self. It happened twice: eight cells when the tower arrived, four
+    # more when the shaft was rebuilt, each time at the radius the old lattice posts stood at.
+    #
+    # The airspace over the mouth and the void under it belong to Prismworks v2 and to nothing
+    # else - the three retained v1 designs are measured CLEAR of the cylinder - so the honest
+    # context is one with that cylinder empty. The DECK COURSE ITSELF IS KEPT: the well digs it,
+    # and a context that has already removed it cannot tell you whether the dig is right.
+    import math
+    wcx, wcz, wr = 97590, 80815, 62
+    deck = 202
+    cleared = 0
+    for x in range(wcx - wr, wcx + wr + 1):
+        for z in range(wcz - wr, wcz + wr + 1):
+            if math.hypot(x - wcx, z - wcz) > wr:
+                continue
+            i, k = x - ox, z - oz
+            if not (0 <= i < ids.shape[2] and 0 <= k < ids.shape[1]):
+                continue
+            for j in range(ids.shape[0]):
+                if oy + j == deck or ids[j, k, i] == air:
+                    continue
+                ids[j, k, i] = air
+                cleared += 1
+    print(f"  cleared {cleared} cells from the well's cylinder (r{wr}, deck course kept)")
+
     needs_floor = ("carpet", "rail", "pressure_plate", "redstone_wire", "snow", "sapling",
                    "dead_bush", "short_grass", "tall_grass", "fern", "flower", "tulip",
                    "mushroom", "sugar_cane", "torch")

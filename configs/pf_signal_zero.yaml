@@ -11,7 +11,7 @@
 # column stops at each act - and a long fall into a lit pool is better than a net under your feet.
 #
 # SIZED FROM THE COURSE. The descent runs r30 to r14 and the search flexes four either way, so a
-# fall starts somewhere in r10..r34. Thirty-four of water covers it; that is a third of what the
+# fall starts somewhere in r15..r35 - the outer run flexes to 35. Thirty-six of water covers it; that is a third of what the
 # first geometry needed, and the Well's start pier is what bought the difference.
 #
 # THE BELL IS THE PAYOFF AND HAS NO REDSTONE IN IT. Cheap, 1.19, no circuit to desynchronise,
@@ -29,8 +29,12 @@ params:
   # so at six the corner posts fell just outside the kept-clear disc and the pool laid water
   # into all four of them. Four cells, and the only thing that reported it was the assembly's
   # own module clash check: both designs audited clean on their own.
-  keep_clear: 7           # the return column's footprint belongs to PF Prism Well
-  pool_r: 34
+  # FIFTEEN, BECAUSE THE COLUMN IS A FRAME NOW. This was sized when the shaft below the deck
+  # was four posts at chebyshev 4; it is an eight-ribbed frame at r13 running the whole way to
+  # the floor, and the pool laid 152 cells of water and bed straight through it. A number that
+  # names another design's footprint has to move when that design does.
+  keep_clear: 15          # the return frame's footprint belongs to PF Prism Well
+  pool_r: 38
   apron: 4
   wall: 2
   wall_h: 7

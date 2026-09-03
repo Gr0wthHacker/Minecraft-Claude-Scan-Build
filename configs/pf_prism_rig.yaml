@@ -16,6 +16,7 @@
 name: PF Prism Rig
 gen: prismrig
 params:
+  under: out/prism_deck.litematic   # the well and the deck run: what is already there
   # BOTH RUNS, and the config is what actually decides it - the generator's default gained the
   # sky run and this line kept overriding it with one, so the gantry came out 101 courses tall
   # over a well that is now 200. A default nobody reads is not a default.

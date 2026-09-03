@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": 97550,
+    "x": 97546,
     "y": 94,
-    "z": 80775
+    "z": 80771
   },
   "size": {
-    "x": 81,
+    "x": 89,
     "y": 9,
-    "z": 81
+    "z": 89
   },
   "generated_by": "prismfloor",
   "kind": "prismfloor",
@@ -17,11 +17,11 @@
     0
   ],
   "features_built": {
-    "bed": 4532,
-    "water": 3384,
-    "apron": 1148,
-    "wall": 4025,
-    "light": 25,
+    "bed": 5016,
+    "water": 3756,
+    "apron": 1260,
+    "wall": 4348,
+    "light": 28,
     "rail": 0,
     "bell": 23
   },
@@ -30,7 +30,7 @@
     80815
   ],
   "y_floor": 95,
-  "pool_r": 34,
+  "pool_r": 38,
   "mechanics": {
     "minecraft": "java-1.19",
     "families": {
@@ -63,48 +63,48 @@
       "narrative": "A lit chamber a hundred courses under the park: a pearl-lit pool thirty-four across that catches every fall on the course, a dry apron and a wall round it so the floor is a room and not a ledge, and a bell on a copper frame at the head of the pool.\n"
     },
     "metrics": {
-      "blocks": 13102,
+      "blocks": 14393,
       "materials": 9,
-      "dominant_material_share": 0.313,
+      "dominant_material_share": 0.3091,
       "light_blocks": 0,
       "massing": {
-        "width": 81,
+        "width": 89,
         "height": 9,
-        "depth": 81,
-        "fill_ratio": 0.2219
+        "depth": 89,
+        "fill_ratio": 0.2019
       },
       "silhouette": {
         "top": {
-          "area": 5032,
-          "fill_ratio": 0.767
+          "area": 5556,
+          "fill_ratio": 0.7014
         },
         "front": {
-          "area": 661,
-          "fill_ratio": 0.9067
+          "area": 727,
+          "fill_ratio": 0.9076
         },
         "side": {
-          "area": 673,
-          "fill_ratio": 0.9232
+          "area": 727,
+          "fill_ratio": 0.9076
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.8065,
-          0.1152,
-          0.0782
+          0.8098,
+          0.1132,
+          0.077
         ],
-        "top_silhouette_perimeter": 700,
-        "surface_faces_per_block": 1.1264
+        "top_silhouette_perimeter": 892,
+        "surface_faces_per_block": 1.139
       },
       "material_counts": {
-        "polished_blackstone_bricks": 4101,
-        "deepslate_bricks": 3431,
-        "water": 3384,
-        "cobbled_deepslate": 1006,
-        "smooth_stone": 675,
-        "waxed_copper_block": 264,
-        "stone": 214,
-        "pearlescent_froglight": 26,
+        "polished_blackstone_bricks": 4449,
+        "deepslate_bricks": 3807,
+        "water": 3756,
+        "cobbled_deepslate": 1086,
+        "smooth_stone": 733,
+        "waxed_copper_block": 291,
+        "stone": 241,
+        "pearlescent_froglight": 29,
         "bell": 1
       }
     },
@@ -117,8 +117,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "4e57d711e046246b3ac486cfaaee2c0e8ad9a9ff6f2d4e345f5b5b1d3593d29e",
-    "generator_source_digest": "cc32061c2584f39f7ba57f346135d8b4dff6eeaa5e04ed4a10b837a4b8e43fe5",
+    "fingerprint": "96f4b858e1acb41018111e3467ff48390ba6c3d63858d5b6032a7146d995b628",
+    "generator_source_digest": "3d1245049ba34e923e7149fdd6c2256ebd40c41d7ce0e2d869eb88a4f1d05189",
     "anchors": [],
     "genome": {
       "name": "prismworks",
@@ -158,9 +158,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 177.430586,
-    "blocks": 13102,
-    "blocks_per_second": 73.84
+    "seconds": 50.941652,
+    "blocks": 14393,
+    "blocks_per_second": 282.54
   },
   "generator_contract": {
     "ok": true,
@@ -170,7 +170,7 @@
       "building",
       "construction"
     ],
-    "blocks": 13102,
+    "blocks": 14393,
     "mechanic_families": [
       "fluid",
       "hazard"

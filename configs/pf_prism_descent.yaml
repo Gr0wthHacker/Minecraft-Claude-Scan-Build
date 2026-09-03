@@ -1,8 +1,8 @@
 # PF PRISM DESCENT - the DECK run: the inner of the well's two concentric spirals.
 #
-# IT IS THE INNER ONE NOW, and that is what lets the sky run exist without the two courses
-# interleaving. `PF Crown Descent` comes down the OUTSIDE of the void at r30 from Y300; this
-# one starts at the deck and stays inside it at r20 tapering to r14. Below the deck there are
+# IT IS THE OUTER ONE NOW, and that is what lets the sky run exist without the two courses
+# interleaving. `PF Crown Descent` wraps the tower at r19 from Y300 and keeps that
+# radius all the way down; this one takes the outside at r31. Below the deck there are
 # two rings of landings, concentric and clearly apart, and both end in the same pool - so a
 # runner can tell which line they are on, which two helices at the same radius would not
 # allow. Above the deck there is only the sky run.
@@ -43,12 +43,12 @@ params:
   bounds: [97542, 80767, 97638, 80863]     # the mouth, so nothing can wander into the collar
   y_top: 201
   y_bottom: 100
-  start_from: [97568, 202, 80815]   # the Well's DECK pier head: the cell you jump off
+  start_from: [97556, 202, 80815]   # the Well's DECK pier head at r34: where you jump off
   start_angle: 180       # WEST, where the Well's start pier reaches in. The run began at 0
                          # (east) and its first landing was ten blocks from anywhere a player
                          # could stand - legal, hard, well-shaped and unreachable.
-  radius: 20
-  radius_flex: [0, 2, -2, 4, -4, -6, -8, -11]
+  radius: 33
+  radius_flex: [0, 2, -2, 4, -4]
   # DESCENDING, AND THAT IS THE WHOLE DIFFERENCE. The search takes the first angle whose chord
   # fits UNDER the gap target, so an ascending list always wins with its smallest entry - which
   # at r45 is a 3.9-block jump and at r23 is 2.2. The first build came out with seventeen of its
@@ -56,7 +56,7 @@ params:
   # means every landing is as far out as the target allows, which also buys the turns.
   advance: [23.0, 19.0, 16.0, 13.0, 11.0, 9.5, 8.0, 6.5, 5.0, 4.0, 3.0]
   gap_rotate: true          # vary the target per move, or every jump is the same jump
-  radius_bottom: 14
+  radius_bottom: 33
   # ONE PLUNGE IN TEN, AND THAT NUMBER IS WHAT MAKES IT A SPIRAL. The first build ran the
   # default thirteen-move rhythm with two plunges in it and came out at forty-five moves, which
   # over a hundred courses is under ONE full turn - a zig-zag down a hole, not a helix. The
