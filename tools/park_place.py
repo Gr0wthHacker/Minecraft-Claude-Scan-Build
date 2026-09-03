@@ -169,7 +169,15 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # measured 1.4 blocks per column with 10% of it standing three courses tall -
                 # 39 x 44 of flat paving - and the Frontier had exactly one ride.
                 # `PARK_FRONTIER.md` asks for this one by name.
-                "PF Mine Cart Escape"}
+                "PF Mine Cart Escape",
+                # THE WYRM'S SKULL, OFF THE CAUSEWAY AND ONTO THE LINE. Jack: "are we able to
+                # place the skull so that the mouth 'opens' around the railway, the back of the
+                # skeleton is towards the void and the mouth gap is where the railway passes
+                # through sideways". `Wyrm's Crossing` keeps the paved crossing and loses the set
+                # piece, so the skull is in ONE place: see configs/pf_wyrm_gate.yaml for why his
+                # orientation is the only one that fits and why the design takes no cell the
+                # railway made.
+                "PF Wyrm Gate"}
 
 
 def extras() -> list:

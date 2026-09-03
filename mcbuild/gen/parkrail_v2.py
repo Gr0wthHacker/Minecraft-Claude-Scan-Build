@@ -119,6 +119,9 @@ def enhance(c, p):
             spring = parkrail._intrados(i, int(p['bay'])-int(p['pier_u']),
                                        int(p['spring_y']), deck-1-int(p['crown_gap']))
             for outer, inset in ((0, 1), (14, 13)):
+                # A stepped ring needs a backing course: recessing its
+                # spandrel must not leave the individual voussoirs floating.
+                put(inset, spring, z, pal['ring'])
                 for y in range(spring+1, deck-1):
                     c.put(outer, y, z, 0)
                     put(inset, y, z, pal['spandrel'])
@@ -128,6 +131,11 @@ def enhance(c, p):
         for x in (4, 10):
             for z in range(qz-3, qz+4):
                 put(x, deck, z, pal['band'])
+                c.put(x,walk,z,0)
+                c.put(x,walk+1,z,0)
+        for x in (5,9):
+            for z in range(qz-2,qz+3):
+                put(x,walk,z,pal['post'])
         # Exit and service access are on opposite ends of the station. An
         # additional central flight descends outside the original canopy.
         exit_top = ac-step*(half+3)
@@ -148,6 +156,16 @@ def enhance(c, p):
             put(10, y, service_z, 'ladder', facing='west')
         put(10, walk, service_z, pal['wood']+'_trapdoor', facing='west', half='bottom', open='false', powered='false', waterlogged='false')
         d = parkrail._Deck(c, p)
+        routes={'frontier':('TO MIDWAY','SCENIC TURNBACK'),
+                'midway':('TO PRISMWORKS','TO FRONTIER'),
+                'prismworks':('SCENIC TURNBACK','TO MIDWAY')}
+        for edge,face,z,label in ((3,'east',ac-3,routes[land][0]),
+                                  (11,'west',ac+3,routes[land][1])):
+            box(edge,walk,z,edge,walk+2,z,pal['wall'])
+            x=edge+(1 if face=='east' else -1)
+            if not d.sign(x+p['bounds'][0],walk+2,z,face,pal['wood'],
+                          [label,'LET RIDERS EXIT','BOARD THEN PRESS','WAIT FOR CLEAR']):
+                raise ValueError('platform destination board has no support')
         for x, z, text in [(1, portal, ['PARK LINE', st['title'], 'ENTRANCE', 'UP TO PLATFORMS']),
                             (7, qz, ['QUEUE HERE', 'LET RIDERS EXIT', 'BOARD WHEN CLEAR', 'FREE PARK LINE']),
                             (7, exit_top+step, ['EXIT', 'DOWN TO ARCADE', 'PARK RETURN', '']),
@@ -155,16 +173,23 @@ def enhance(c, p):
             # Independent sign plinths are outside the two-column side walks.
             # Portal sign faces the avenue, using the existing lintel as backing.
             if x == 1:
-                d.sign(172, 9, z, 'west', pal['wood'], text)
+                placed=d.sign(p['bounds'][0], 9, z, 'west', pal['wood'], text)
             else:
                 put(x, walk, z, pal['wall'])
-                d.sign(x+172, walk+1, z+step, 'south' if step > 0 else 'north', pal['wood'], text)
+                put(x, walk+1, z, pal['wall'])
+                placed=d.sign(x+p['bounds'][0], walk+1, z+step, 'south' if step > 0 else 'north', pal['wood'], text)
+            if not placed:
+                raise ValueError(f'railway sign has no support at {(x,z)}')
         contracts.append({'land': land, 'title': st['title'], 'entry': [0, 2, portal],
                           'queue': [[4, walk, qz], [10, walk, qz]],
                           'boarding': [[3, walk, ac], [11, walk, ac]],
                           'exit': [7, walk, exit_top], 'return': [7, 2, exit_top-step*(walk-2)],
                           'service': [10, 1, service_z], 'roof_peak': eave+(11 if land=='midway' else 5)})
     c.meta['renewal'] = {'version': 2, 'stations': contracts, 'live_proof': 'pending'}
+    c.legacy_signs = True
+    # End promenades extend beyond the last regular twelve-block light interval.
+    for z in (1,598):
+        put(7,deck,z,parkrail.FLUSH_LIGHT)
     if not grey:
         from .parkrail_signals import install
         c.meta['renewal']['signals'] = install(c, p)

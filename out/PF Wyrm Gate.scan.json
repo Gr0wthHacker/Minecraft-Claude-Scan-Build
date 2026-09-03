@@ -1,0 +1,237 @@
+{
+  "origin": {
+    "x": 97668,
+    "y": 203,
+    "z": 80666
+  },
+  "size": {
+    "x": 32,
+    "y": 68,
+    "z": 54
+  },
+  "generated_by": "wyrmgate",
+  "kind": "wyrm_gate",
+  "lot": [
+    32,
+    54
+  ],
+  "at": [
+    168,
+    366
+  ],
+  "land": "prism_reach",
+  "facing": "west",
+  "profile_axis": "u",
+  "sink": 6,
+  "girder": [
+    211,
+    217
+  ],
+  "arch": 3,
+  "skull_cells": 27088,
+  "refused": {
+    "railway": 705,
+    "girder": 737,
+    "walk_lane": 704,
+    "below_plate": 7644,
+    "off_plot": 1232
+  },
+  "dropped": {
+    "tnt": 77,
+    "stone_pressure_plate": 8
+  },
+  "spur_cells": 0,
+  "strays_pruned": 0,
+  "lamps": {
+    "roof": 6,
+    "rim": 19,
+    "spur": 0
+  },
+  "contract": "the bone skull straddling the rim railway with the track through its mouth: the face looks in at the park from the corridor's own near edge, the back of the cranium stands on the rim over the void, and not one cell of the railway - track, promenade, parapet, arch or arcade - is taken. Inside the corridor the skull's lowest course is the lintel, three over the deck; the mass is carried by a rock spur on the rim",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "chest"
+      ],
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "torch"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "landmark",
+      "hierarchy": "landmark",
+      "style": "prismworks",
+      "narrative": "The wyrm's skull, half-buried in the rim and clamped over the rim railway: the face looks in at the park, the back of the cranium stands over the void, and both tracks run through the open mouth between the jaws.\n"
+    },
+    "metrics": {
+      "blocks": 27091,
+      "materials": 23,
+      "dominant_material_share": 0.4633,
+      "light_blocks": 15,
+      "massing": {
+        "width": 32,
+        "height": 60,
+        "depth": 54,
+        "fill_ratio": 0.2613
+      },
+      "silhouette": {
+        "top": {
+          "area": 1590,
+          "fill_ratio": 0.9201
+        },
+        "front": {
+          "area": 1036,
+          "fill_ratio": 0.4761
+        },
+        "side": {
+          "area": 2276,
+          "fill_ratio": 0.6198
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.1833,
+          0.5407,
+          0.276
+        ],
+        "top_silhouette_perimeter": 214,
+        "surface_faces_per_block": 0.7176
+      },
+      "material_counts": {
+        "light_gray_wool": 12550,
+        "stone_bricks": 6754,
+        "bone_block": 2413,
+        "moss_block": 1600,
+        "mossy_stone_bricks": 877,
+        "white_wool": 855,
+        "smooth_stone": 801,
+        "oak_leaves": 577,
+        "brown_wool": 208,
+        "gray_wool": 114,
+        "black_wool": 72,
+        "short_grass": 52
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "8f62e9013518bfbe5cc2cdd0cf20d36660c7b9511557d6ba4fe940fad5c18865",
+    "generator_source_digest": "1119cc83819e36ce0d58cbf1f5e83d8bdeec927106cf4b209b0dd186b8f6a89f",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "fluid",
+        "hazard",
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 59.195467,
+    "blocks": 27091,
+    "blocks_per_second": 457.65
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "path"
+    ],
+    "blocks": 27091,
+    "mechanic_families": [
+      "container",
+      "fluid",
+      "hazard",
+      "light"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "experience",
+    "player_verbs": [
+      "ride through the mouth",
+      "walk the promenade under the palate",
+      "look up at the face"
+    ],
+    "outcome": "The one thing on the whole line that happens TO a rider rather than beside them: the train runs into a skull's mouth and out the far side of it.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
+  "file": "PF Wyrm Gate.litematic",
+  "name": "PF Wyrm Gate"
+}

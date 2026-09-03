@@ -234,8 +234,10 @@ def test_the_gallery_is_a_tunnel_and_not_a_trench(built, cfg):
 
 
 def test_the_gallery_is_walkable_end_to_end(built, cfg):
-    """A U with a portal at each end, so it is a walk-THROUGH rather than a dead end you turn
-    round in - the ruinway's own rule that a way is real when both of its ends are places."""
+    """A through-U (`mouths: 2`) has a portal at each end and is a walk-through rather than a dead
+    end you turn round in - the ruinway's own rule that a way is real when both of its ends are
+    places. The shipped ridge is `mouths: 1`: one lane, walkable from its portal to the chamber at
+    its far end and back - a pocket you step into, not a route you pass through."""
     _needs_adit(cfg)
     canvas, _model = built
     plan = mineridge._adit_plan(cfg["params"], canvas.sx, canvas.sz)
@@ -253,15 +255,31 @@ def test_the_gallery_is_walkable_end_to_end(built, cfg):
             assert canvas.solid(v, 0, u), f"the gallery has no floor at ({v},{u})"
 
 
-def test_both_portals_are_framed_and_named(built, cfg):
+def test_every_portal_is_framed_and_named(built, cfg):
+    """Generalized over `mouths` - the shipped ridge is 1, but a future `mouths: 2` ridge must
+    still get a frame and a sign at BOTH of its holes, not just the first."""
     _needs_adit(cfg)
     canvas, _model = built
     adit = canvas.meta["parts"]["adit"]
-    assert adit["portals"] == 2
-    assert adit["portal_signs"] == 2, \
+    mouths = max(1, int(cfg["params"]["adit"].get("mouths", 2)))
+    assert adit["portals"] == mouths
+    assert adit["portal_signs"] == mouths, \
         "a portal sign was refused, which means it was hung on a column with an opening in it"
-    assert adit["sets"] >= 10, "a bored hole with no timber sets in it reads as a cave"
+    assert adit["sets"] >= 4, "a bored hole with no timber sets in it reads as a cave"
     assert adit["ore_face"] > 10, "the chamber has no ore face - there is nothing to have come for"
+
+
+def test_the_alcove_does_not_open_onto_the_guest_moat(built, cfg):
+    """**THE FIRST ADIT'S MISTAKE, THE OTHER WAY ROUND.** It was killed for opening onto the
+    service lane, where no guest goes; the fix must not overcorrect into opening straight onto
+    the ride's own guest-anchor moat, which is kept clear so the ride reads AGAINST the mountain
+    rather than merging into it (`test_nothing_is_built_on_ground_that_belongs_to_somebody_else`).
+    The mouth itself must stand just outside every `keep_out` box, not inside one."""
+    _needs_adit(cfg)
+    v0, u0 = (int(x) for x in cfg["params"]["adit"]["at"])
+    for v0_, v1_, u0_, u1_ in cfg["params"]["keep_out"]:
+        assert not (int(v0_) <= v0 <= int(v1_) and int(u0_) <= u0 <= int(u1_)), \
+            f"the adit's own mouth at ({v0},{u0}) stands inside a keep-out box"
 
 
 # --------------------------------------------------------------------------- the mass

@@ -174,6 +174,13 @@ class Canvas:
                 "front_text": txt("front"),
                 "back_text": txt("back"),
             }))
+            if getattr(self, "legacy_signs", False):
+                # Java 1.19 reads Text1..4, Color and GlowingText. Keep the
+                # modern fields too for previews in a newer client.
+                out[-1].value.update({f"Text{i+1}": Tag(TAG_STRING, message)
+                                      for i, message in enumerate(t["front"])})
+                out[-1].value["Color"] = Tag(TAG_STRING, t["colour"])
+                out[-1].value["GlowingText"] = Tag(TAG_BYTE, int(t["glowing"]))
         return out
 
     def to_model(self) -> Model:

@@ -1,0 +1,419 @@
+{
+  "origin": {
+    "x": 97635,
+    "y": 202,
+    "z": 80479
+  },
+  "size": {
+    "x": 15,
+    "y": 14,
+    "z": 26
+  },
+  "generated_by": "arcade",
+  "kind": "range",
+  "footprint": [
+    15,
+    26
+  ],
+  "courses": [
+    -1,
+    12
+  ],
+  "land": "midway",
+  "facing": "north",
+  "contract": "three discs; a hit of strength L on disc k lights the bottom L of that disc's 6 lamps and no other disc's, and only a hit of 6 or more on the FAR disc rings the bell and pays, once",
+  "unverified": [
+    "A TARGET'S OUTPUT IS AN INPUT YOU STATE. The simulator has no entities and cannot fire an arrow; that a bullseye really reads 15 and a rim hit really reads 1 is the game's own behaviour."
+  ],
+  "budget": {
+    "redstone_lamp": 18
+  },
+  "concealed": 61,
+  "visible_redstone": 0,
+  "width": 13,
+  "depth": 12,
+  "height": 18,
+  "lanes": 3,
+  "score": 6,
+  "targets": [
+    [
+      97638,
+      206,
+      80484
+    ],
+    [
+      97642,
+      206,
+      80487
+    ],
+    [
+      97646,
+      206,
+      80490
+    ]
+  ],
+  "lamps": [
+    [
+      [
+        97639,
+        206,
+        80486
+      ],
+      [
+        97639,
+        207,
+        80487
+      ],
+      [
+        97639,
+        208,
+        80488
+      ],
+      [
+        97639,
+        209,
+        80489
+      ],
+      [
+        97639,
+        210,
+        80490
+      ],
+      [
+        97639,
+        211,
+        80491
+      ]
+    ],
+    [
+      [
+        97643,
+        206,
+        80489
+      ],
+      [
+        97643,
+        207,
+        80490
+      ],
+      [
+        97643,
+        208,
+        80491
+      ],
+      [
+        97643,
+        209,
+        80492
+      ],
+      [
+        97643,
+        210,
+        80493
+      ],
+      [
+        97643,
+        211,
+        80494
+      ]
+    ],
+    [
+      [
+        97647,
+        206,
+        80492
+      ],
+      [
+        97647,
+        207,
+        80493
+      ],
+      [
+        97647,
+        208,
+        80494
+      ],
+      [
+        97647,
+        209,
+        80495
+      ],
+      [
+        97647,
+        210,
+        80496
+      ],
+      [
+        97647,
+        211,
+        80497
+      ]
+    ]
+  ],
+  "tops": [
+    [
+      97638,
+      211,
+      80491
+    ],
+    [
+      97642,
+      211,
+      80494
+    ],
+    [
+      97646,
+      211,
+      80497
+    ]
+  ],
+  "bell": [
+    97645,
+    211,
+    80497
+  ],
+  "droppers": [
+    [
+      97646,
+      212,
+      80503
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97638,
+      206,
+      80484
+    ],
+    [
+      97642,
+      206,
+      80487
+    ],
+    [
+      97646,
+      206,
+      80490
+    ]
+  ],
+  "outputs": [
+    [
+      97645,
+      211,
+      80497
+    ],
+    [
+      97646,
+      212,
+      80503
+    ]
+  ],
+  "stock": {
+    "the dropper": "the prize a full-score shot on the far disc pays",
+    "the player": "arrows, or anything that hits a target block"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "dropper"
+      ],
+      "light": [
+        "lantern",
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater",
+        "target"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "A lakeside archery range in the reach between Frontier and Midway - three target discs at three distances, each scoring on its own column of lamps, the far one paying on a full-score hit with a bell that carries back to the shore. Sited on the exit/observation lot's own open lawn, clear of the Circus and the railway both.\n"
+    },
+    "metrics": {
+      "blocks": 1201,
+      "materials": 15,
+      "dominant_material_share": 0.3755,
+      "light_blocks": 20,
+      "massing": {
+        "width": 15,
+        "height": 14,
+        "depth": 26,
+        "fill_ratio": 0.22
+      },
+      "silhouette": {
+        "top": {
+          "area": 390,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 186,
+          "fill_ratio": 0.8857
+        },
+        "side": {
+          "area": 234,
+          "fill_ratio": 0.6429
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.4779,
+          0.2365,
+          0.2856
+        ],
+        "top_silhouette_perimeter": 82,
+        "surface_faces_per_block": 2.1432
+      },
+      "material_counts": {
+        "stone_bricks": 451,
+        "oak_log": 292,
+        "oak_planks": 210,
+        "white_wool": 123,
+        "polished_blackstone_bricks": 57,
+        "redstone_wire": 24,
+        "redstone_lamp": 18,
+        "yellow_wool": 11,
+        "comparator": 4,
+        "target": 3,
+        "lantern": 2,
+        "oak_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "15820401f9b434b1b3e088f5a776843b8e069a40ec74c8ef3f257e336c152f13",
+    "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97642,
+        204,
+        80479
+      ]
+    ]
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 65.579575,
+    "blocks": 1201,
+    "blocks_per_second": 18.31
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1201,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: dropper",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: redstone_lamp",
+    "not in the provisional skyblock-1.19 list: target"
+  ],
+  "file": "PF Claim Lake Range.litematic",
+  "name": "PF Claim Lake Range"
+}

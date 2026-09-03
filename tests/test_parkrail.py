@@ -69,7 +69,10 @@ RESERVE_LAST = 199
 
 
 def _params() -> dict:
-    return yaml.safe_load(CONFIG.read_text(encoding="utf-8"))["params"]
+    # These tests pin the legacy, level-track contract. The active renewal
+    # (sloped brakes and twelve detectors) has its own emitted-model suite.
+    return {**yaml.safe_load(CONFIG.read_text(encoding="utf-8"))["params"],
+            "renewal": False, "bay_half": 3}
 
 
 def _sec(p=None) -> dict:

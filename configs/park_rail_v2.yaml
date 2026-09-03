@@ -87,21 +87,33 @@ server_profile: skyblock-1.19
 world_contract: true
 cache_dir: out/railway_v2/cache
 anchors:
-- name: public_entry
-  kind: entrance
-  pos:
-  - 0
-  - 2
-  - 260
-- name: return
-  kind: exit
-  pos:
+- name: queue_entry
+  kind: queue
+  position:
+  - 4
+  - 13
+  - 286
+- name: boarding
+  kind: board
+  position:
+  - 4
+  - 13
+  - 279
+- name: ride_exit
+  kind: ride_exit
+  position:
   - 7
-  - 2
-  - 306
-- name: maintenance
-  kind: service
-  pos:
+  - 13
+  - 295
+- name: service_access
+  kind: maintenance
+  position:
   - 10
   - 1
   - 256
+source_revisions:
+  mcbuild/gen/parkrail.py: 1b6cf5ae0e648c616fd6fa4121dd756a07362e7b09a1cffc650c4540b3ad8e37
+  mcbuild/gen/parkrail_v2.py: eddb87a23570d25c4d25ffd5dbc651d9a1d2841839a97014bbe17aa7b3fec80d
+  mcbuild/gen/parkrail_signals.py: 129bb956c8209fea74faa9f32340e786c734fc50a73b2e497358472428cc3584
+  mcbuild/gen/canvas.py: 2ad44a5c0fa9c08f9f91f00301b1a557aacd19450462a2846a2461988060ddf0
+  mcbuild/circuit.py: 5618300159c51252a48e5ffed826d196144ee8e6e6b102ff8752aae8492c0aee

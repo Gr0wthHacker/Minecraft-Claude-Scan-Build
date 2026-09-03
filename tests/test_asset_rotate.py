@@ -107,39 +107,47 @@ def test_an_axis_pillar_lies_down_the_other_way_on_an_odd_turn():
 
 
 @pytest.mark.skipif(not SOURCE.exists(), reason="the reference asset is not checked out here")
-def test_the_open_mouth_shrine_in_the_park_faces_the_midway():
-    """The FULL-RESOLUTION skull is fitted to the reach, faces the Midway approach, and is whole.
+def test_the_open_mouth_skull_straddles_the_RAILWAY_and_faces_the_park():
+    """The FULL-RESOLUTION skull is turned to face the park, straddles the rim railway, and is whole.
 
-    THIS TEST USED TO ASSERT THE OPPOSITE AND IT WAS PINNING A DECISION JACK REVERSED. The skull
-    had been swapped for `bone_ruins.litematic` at downscale 3 because the skull shipped
-    detached; Jack: *"make sure the skull is still the full resolution skull but placed properly
-    / if its not there then get rid of ruins."*
+    THIS TEST HAS NOW BEEN REWRITTEN TWICE FOR THE SAME REASON, WHICH IS THE RULE: it pins a
+    DECISION about where the skull stands, and when Jack changes that decision the test changes
+    with it or the suite quietly enforces the arrangement he just replaced.
 
-    So the requirement is the same and the answer is different: the SOURCE is the skull at
-    `downscale: 1`, and *detached* is fixed where it was caused rather than avoided by using a
-    different file. Four fragments - two three-cell stone pillars and two two-cell clods - sit in
-    the export's own `z <= 5` slice, which is the exporter's crop rather than anything the
-    builder made, and `params.prune` drops them. The assertion that matters is not which file
-    was used; it is that what gets built is ONE PIECE, so that is what is measured here.
+    * v1 asserted the full-resolution skull must NOT be used, from when it had been swapped for
+      `bone_ruins.litematic` at downscale 3 because it shipped detached. Jack reversed that.
+    * v2 asserted `rotate: 180` on `Wyrm's Crossing`, the paved crossing out on the Prism Reach
+      causeway, so the face addressed the Midway approach along U.
+    * v3 is this one. Jack: *"are we able to place the skull so that the mouth 'opens' around the
+      railway, the back of the skeleton is towards the void and the mouth gap is where the railway
+      passes through sideways"*. The mouth is a tunnel along the face's own normal, so a railway
+      can only cross it SIDEWAYS - which needs the 54-wide axis along U and the 40-deep axis
+      across V, and that is a quarter turn from where it stood. It is `configs/pf_wyrm_gate.yaml`
+      now, on the line, and `Wyrm's Crossing` keeps the crossing and no longer carries a skull.
+
+    What is asserted here is what has been asserted all along and is the reason this test exists:
+    ONE PIECE, at full resolution, from the pruned export. Where it stands and which way it looks
+    belong to `tests/test_wyrmgate.py`, which can measure them against the railway.
     """
     import yaml
-    cfg = ROOT / "out" / "park_final" / "configs" / "wyrm_s_crossing.yaml"
+    cfg = ROOT / "configs" / "pf_wyrm_gate.yaml"
     if not cfg.exists():
-        pytest.skip("the module config is not built here")
-    c = yaml.safe_load(cfg.read_text(encoding="utf-8"))
-    parts = c["params"]["parts"]
-    placed = [p for p in parts if str((p.get("params") or {}).get("source", "")).endswith(
-        "bone_ruins_skull.litematic")]
-    assert len(placed) == 1, "the full-resolution skull is missing"
-    pr = placed[0]["params"]
-    assert pr.get("rotate") == 180, "the skull must address the Midway approach"
-    assert pr.get("downscale") in (None, 1), "the skull is placed at full resolution"
-    assert int(pr.get("prune") or 0) >= 3,         "without a prune floor the export's own crop debris ships as floating lumps"
+        pytest.skip("the gate config is not built here")
+    p = yaml.safe_load(cfg.read_text(encoding="utf-8"))["params"]
+    assert str(p["source"]).endswith("bone_ruins_skull.litematic"), "the skull is the asset"
+    assert p.get("downscale") in (None, 1), "the skull is placed at full resolution"
+    assert int(p.get("prune") or 0) >= 3,         "without a prune floor the export's own crop debris ships as floating lumps"
+
+    # AND THE SKULL IS GONE FROM THE CROSSING, so it is not standing in two places at once.
+    old = ROOT / "out" / "park_final" / "configs" / "wyrm_s_crossing.yaml"
+    if old.exists():
+        parts = yaml.safe_load(old.read_text(encoding="utf-8"))["params"]["parts"]
+        assert not [q for q in parts if q.get("gen") == "asset"],             "Wyrm's Crossing still carries an asset - the skull would be built twice"
 
     # ...and the prune actually does it: one 6-connected piece, measured on the built asset.
     import numpy as np
     from mcbuild.gen import asset
-    canvas = asset.build(dict(pr))
+    canvas = asset.build({"source": p["source"], "rotate": p["rotate"], "prune": p["prune"]})
     solid = canvas.ids > 0
     sy, sz, sx = solid.shape
     seen = np.zeros(solid.shape, bool)

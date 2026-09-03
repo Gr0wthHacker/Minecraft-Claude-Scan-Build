@@ -21,6 +21,7 @@ from . import frontier_builds, midway_builds, prismworks_builds  # noqa: E402
 from . import park_entrance, park_frontage, park_vantage, park_water  # noqa: E402
 from . import diggings, frontier_scatter, mineridge, mineworks, park_games  # noqa: E402
 from . import wyrmgate  # noqa: E402
+from . import menagerie  # noqa: E402
 
 
 GENERATORS = {
@@ -65,6 +66,7 @@ GENERATORS = {
     "prismworks": _Wrap(prismworks.build, prismworks.PRISMWORKS),
     "undercroft": undercroft,
     "arcade": arcade,
+    "menagerie": menagerie,
     "balloon": balloon,
     "wyrm": wyrm,
     "arrival": arrival,

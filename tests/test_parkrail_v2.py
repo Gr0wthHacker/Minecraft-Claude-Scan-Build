@@ -69,7 +69,7 @@ def test_all_six_integrated_signals_hold_clear_and_isolate(canvas):
         assert not sim.powered(port['brake'])
         for _ in range(2):
             sim.set_signal(port['set'],15)
-            sim.run(25)
+            sim.run(10)
             sim.set_signal(port['set'],0)
             sim.run(20)
             assert sim.powered(port['memory'])
@@ -85,11 +85,19 @@ def test_all_six_integrated_signals_hold_clear_and_isolate(canvas):
             sim.run(20)
             assert not sim.powered(port['brake'])
             sim.set_signal(port['reset'],15)
-            sim.run(25)
+            sim.run(10)
             sim.set_signal(port['reset'],0)
             sim.run(20)
             assert not sim.powered(port['memory'])
             assert sim.powered(port['hold'])
+        sim.set_signal(port['set'],15)
+        sim.run(10)
+        sim.set_signal(port['set'],0)
+        sim.run(20)
+        sim.press(port['manual_clear'],ticks=10)
+        sim.run(35)
+        assert sim.powered(port['hold']) and not sim.powered(port['memory'])
+        assert not sim.powered(port['brake']), 'staff reset is not a dispatch input'
 
 
 def test_power_only_brakes_at_declared_station_cells(canvas, params):
@@ -125,11 +133,55 @@ def test_current_rail_is_supported_clear_and_one_continuous_loop(canvas,params):
 def test_reaches_are_preserved_above_and_below_deck(canvas,params):
     old=parkrail.build({**params,'renewal':False,'bay_half':3}).to_model()
     new=canvas.to_model()
-    # Compare state strings: palette indices are deliberately not assumed stable.
+    from mcbuild import nbt
+    old_keys=[nbt.state_key(tag) for tag in old.palette]
+    new_keys=[nbt.state_key(tag) for tag in new.palette]
+    air=nbt.state_key(nbt.block_state('minecraft:air'))
+    # Compare complete states, not palette indices or only block names.
     for lo,hi in ((170,214),(385,429)):
         for y in range(new.ids.shape[0]):
             for z in range(lo,hi+1):
                 for x in range(15):
-                    a=new.names[new.ids[y,z,x]]
-                    b=old.names[old.ids[y,z,x]] if y<old.ids.shape[0] else 'minecraft:air'
+                    a=new_keys[new.ids[y,z,x]]
+                    b=old_keys[old.ids[y,z,x]] if y<old.ids.shape[0] else air
                     assert a==b,(x,y,z)
+
+
+def test_rail_simulator_matches_slope_endpoints_and_isolates_parallel_lines():
+    cells={(0,0,0):'redstone_block', (0,1,0):'powered_rail[shape=ascending_south]',
+           (0,2,1):'powered_rail[shape=north_south]',
+           (0,1,2):'powered_rail[shape=ascending_north]',
+           (0,1,3):'powered_rail[shape=north_south]',
+           (1,1,2):'powered_rail[shape=north_south]'}
+    s=Circuit.from_cells(cells);s.run(2)
+    assert all(s.powered(p) for p in ((0,1,0),(0,2,1),(0,1,2),(0,1,3)))
+    assert not s.powered((1,1,2))
+
+
+def test_namespaced_walk_passability():
+    from mcbuild import walk
+    cells={(0,0,0):'minecraft:stone_bricks',(1,0,0):'minecraft:stone_bricks',
+           (1,1,0):'minecraft:powered_rail[shape=east_west]'}
+    assert (1,1,0) in walk.reachable(cells,(0,1,0))
+
+
+def test_structure_has_no_detached_parts_and_stays_in_budget(canvas):
+    from mcbuild import audit
+    result=audit.audit(canvas.to_model(),ground=False)
+    assert result.components==[result.blocks]
+    assert not result.problems
+    assert result.blocks <= 42000
+    assert result.tiers['cheap']/result.blocks >= .80
+    assert result.tiers.get('expensive',0)<=100  # 88 glazing cells and six working status lamps
+
+
+def test_signs_include_readable_119_text_and_functional_labels(canvas):
+    tiles=canvas.to_model().tile_entities
+    assert tiles
+    messages=[]
+    for t in tiles:
+        assert all(f'Text{i}' in t.value for i in range(1,5))
+        messages.extend(t.value[f'Text{i}'].value for i in range(1,5))
+    text=' '.join(messages)
+    for label in ('QUEUE HERE','DOWN TO ARCADE','STAFF RESET','TO PRISMWORKS','TO FRONTIER'):
+        assert label in text

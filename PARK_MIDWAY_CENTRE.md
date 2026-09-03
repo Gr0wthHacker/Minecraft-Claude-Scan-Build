@@ -187,3 +187,55 @@ brick, moss, oak, lanterns, ochre froglight, end rod, water.
 3. **Whether the chamber is dry or a grotto.** Dry as drawn — a bench ring you look out from. The
    alternative is a shallow floor pool so you stand ankle-deep, which is more fun and makes the
    lighting harder.
+
+---
+
+## AS BUILT (2026-09-03)
+
+All of it shipped. `PLACEMENT`: `Sky Lift` (80, 266) -> **(130, 266)**, `Midway Cascade` at
+**(80, 266)**. `promenade_gaps` lost `[264, 337]`. `PF Midway Cascade` is
+**2,150 blocks, one component, 0 problems, 0 buildability faults, 2,145 cheap + 5 declared
+expensive**; `tests/test_cascade.py` is 9 cases and green.
+
+### Four defects the build found, each of which passed every other check
+
+- **A ONE-CELL NOTCH WORKS ON AN AXIS AND FAILS ON A DIAGONAL.** `_annulus` is one RADIUS wide,
+  which on a diagonal is more than one CELL wide: the notch at (7,7) sits at r 9.90 and all four
+  of its orthogonal neighbours are at 9.22 - still rim - so the bowl's water never reached it.
+  **Four of the six waterfalls existed only in the block count.** A notch is a channel now.
+- **A WATERFALL INTO A ONE-DEEP KERBED POOL RUNS STRAIGHT OVER THE KERB.** Falling water landing
+  on a pool becomes a flowing sheet one course ABOVE it, and a rim level with the water has
+  nothing standing in that course. It leaked 3,283 cells across the court and into the Welcome
+  Court fifty blocks away. The moat is sunk and both rings are two courses.
+- **A CAUSEWAY IS A GAP IN THE RIM AT EXACTLY THE SHEET'S LEVEL.** Laid flush it was an open
+  channel from the moat into the chamber and out over the plaza. It is a humped bridge with
+  parapets now - and the parapets are structural, not decoration.
+- **THE CROWN STOOD ON THE DISH'S WATER**, which is not a support, and shipped as a fifteen-cell
+  floating component. The dish is a ring around a jet column, which is what `_fountain` already
+  says a top dish is.
+
+### The one thing that could not be verified offline, stated rather than implied
+
+`fluids.spread` **is not sound for a waterfall landing in a pool.** Falling water that lands on an
+existing water level does not fall again in the model - it spreads sideways one course above, and
+the fall above it then does the same thing one course higher, upward without limit. The evidence
+that this is the model and not a hole: **raising the rim a course made the reported leak worse,
+not better** (964 -> 1,823), and **a real hole does not climb.**
+
+What IS proved: the basin flooded on its own is perfectly contained - **92 sources, 92 cells
+reached, nothing outside its envelope** - and the falls genuinely fall (126 FALLING cells, nine
+courses, six bays). Whether the plaza is dry underfoot is the one thing here that has to be looked
+at in game.
+
+### Also not verified: the chime's pitch
+
+A note block's INSTRUMENT comes from the block underneath and is guaranteed - packed ice gives
+`chime`. Its PITCH is a right-click, not a placement, so a printer puts all five down at note 0,
+and `work.INTENTIONAL` does not compare `note` either. `chime_notes` is in the sidecar and tuning
+it is a hand step, like clearing a dig list.
+
+### Open
+
+- The Cascade is **27 across against 19 tall**, which reads a little squat in `tools/look.py`.
+  Worth a look in game before deciding whether to raise the drum.
+- No night pass has been run over the new lot.

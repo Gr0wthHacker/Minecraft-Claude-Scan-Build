@@ -44,7 +44,7 @@ DOORS = {"oak_door", "spruce_door", "dark_oak_door", "iron_door",
 
 
 def _bare(n):
-    return None if n is None else n.split("[")[0]
+    return None if n is None else n.split("[")[0].split(":")[-1]
 
 
 def _open(cells, p) -> bool:

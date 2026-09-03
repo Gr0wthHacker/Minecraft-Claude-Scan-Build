@@ -1023,7 +1023,7 @@
       ],
       "depends_on": [],
       "budget": {
-        "blocks": 16000
+        "blocks": 12000
       },
       "scenarios": [
         "public_visit",
@@ -1133,29 +1133,47 @@
       "anchors": [
         {
           "name": "public_entry",
-          "kind": "entrance",
-          "pos": [
+          "kind": "entry",
+          "position": [
             0,
             2,
-            20
+            96
           ]
         },
         {
-          "name": "return",
-          "kind": "exit",
-          "pos": [
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            4,
+            13,
+            70
+          ]
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            4,
+            13,
+            77
+          ]
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
             7,
             13,
-            21
+            61
           ]
         },
         {
-          "name": "maintenance",
-          "kind": "service",
-          "pos": [
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
             10,
             1,
-            22
+            100
           ]
         }
       ],
@@ -1190,7 +1208,7 @@
       ],
       "depends_on": [],
       "budget": {
-        "blocks": 4500
+        "blocks": 3000
       },
       "scenarios": [
         "public_visit",
@@ -1300,17 +1318,17 @@
       "anchors": [
         {
           "name": "public_entry",
-          "kind": "entrance",
-          "pos": [
+          "kind": "entry",
+          "position": [
             0,
-            2,
+            1,
             20
           ]
         },
         {
           "name": "return",
           "kind": "exit",
-          "pos": [
+          "position": [
             7,
             13,
             21
@@ -1318,8 +1336,8 @@
         },
         {
           "name": "maintenance",
-          "kind": "service",
-          "pos": [
+          "kind": "maintenance",
+          "position": [
             10,
             1,
             22
@@ -1357,7 +1375,7 @@
       ],
       "depends_on": [],
       "budget": {
-        "blocks": 16000
+        "blocks": 12000
       },
       "scenarios": [
         "public_visit",
@@ -1467,29 +1485,47 @@
       "anchors": [
         {
           "name": "public_entry",
-          "kind": "entrance",
-          "pos": [
+          "kind": "entry",
+          "position": [
             0,
             2,
-            20
+            45
           ]
         },
         {
-          "name": "return",
-          "kind": "exit",
-          "pos": [
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            4,
+            13,
+            71
+          ]
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            4,
+            13,
+            64
+          ]
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
             7,
             13,
-            21
+            80
           ]
         },
         {
-          "name": "maintenance",
-          "kind": "service",
-          "pos": [
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
             10,
             1,
-            22
+            41
           ]
         }
       ],
@@ -1524,7 +1560,7 @@
       ],
       "depends_on": [],
       "budget": {
-        "blocks": 4500
+        "blocks": 3000
       },
       "scenarios": [
         "public_visit",
@@ -1634,17 +1670,17 @@
       "anchors": [
         {
           "name": "public_entry",
-          "kind": "entrance",
-          "pos": [
+          "kind": "entry",
+          "position": [
             0,
-            2,
+            1,
             20
           ]
         },
         {
           "name": "return",
           "kind": "exit",
-          "pos": [
+          "position": [
             7,
             13,
             21
@@ -1652,8 +1688,8 @@
         },
         {
           "name": "maintenance",
-          "kind": "service",
-          "pos": [
+          "kind": "maintenance",
+          "position": [
             10,
             1,
             22
@@ -1691,7 +1727,7 @@
       ],
       "depends_on": [],
       "budget": {
-        "blocks": 16000
+        "blocks": 12000
       },
       "scenarios": [
         "public_visit",
@@ -1801,29 +1837,47 @@
       "anchors": [
         {
           "name": "public_entry",
-          "kind": "entrance",
-          "pos": [
+          "kind": "entry",
+          "position": [
             0,
             2,
-            20
+            94
           ]
         },
         {
-          "name": "return",
-          "kind": "exit",
-          "pos": [
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            4,
+            13,
+            68
+          ]
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            4,
+            13,
+            75
+          ]
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
             7,
             13,
-            21
+            59
           ]
         },
         {
-          "name": "maintenance",
-          "kind": "service",
-          "pos": [
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
             10,
             1,
-            22
+            98
           ]
         }
       ],

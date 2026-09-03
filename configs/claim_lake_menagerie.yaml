@@ -1,0 +1,46 @@
+# PF CLAIM LAKE MENAGERIE - a small petting zoo off the lake's east shore.
+#
+# Replaces `PF Vantage Midway Belvedere` (withdrawn - squeezed between the balloon's Circus and
+# the railway) and `PF Claim Lake Range` (withdrawn - `arcade._range`'s concealed award floor
+# left a bare service slab trailing off its own back). Jack: "we should probably find something
+# else to put in this area, maybe a small zoo where we put actual MC animals."
+#
+# NO HIDDEN MACHINE THIS TIME, ON PURPOSE. `gen/menagerie.py` is fence, posts, four small
+# shelters and signs - every course of it is something a visitor can see, so there is nothing
+# behind it to trail off the back the way the range's pit did.
+#
+# THE SITE: V135-147 / U175-209, the same exit/observation lot the last two attempts used, off
+# both the Circus ring (V138, and this design does not sit at the Circus's own U anyway - it is
+# north of it, alongside the lake) and the railway (V172). Confirmed empty lawn by rendering the
+# actual `Park Complete.litematic`.
+#
+# THE ANIMALS ARE NOT IN THE SCHEMATIC. A litematic places blocks, not entities - the pens are
+# built empty, fenced and signed for what to lead in (`gen/menagerie.py`'s own docstring says so
+# plainly). Stocking them with real sheep, cows, pigs and chickens is a job for Jack, in world.
+name: PF Claim Lake Menagerie
+gen: menagerie
+params:
+  land: midway
+  facing: west
+  at: [97636, 203, 80476]
+  title: Claim Lake Menagerie
+  under: out/Park Complete.litematic
+finish:
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_block, moss_carpet]
+park_contract:
+  purpose: terrain
+  hierarchy: supporting
+  land: midway
+  requires_path: true
+  access_candidates:
+    - [97635, 204, 80492]
+design:
+  purpose: terrain
+  hierarchy: supporting
+  style: midway
+  narrative: >
+    A row of four fenced paddocks off the Claim Lake's east shore - sheep, cow, pig and chicken,
+    each with a small shelter, a hay marker, a gate and a named sign - built empty and ready to
+    stock, in the exit/observation lot the park's own street layout reserves here.
+origin_lock: false

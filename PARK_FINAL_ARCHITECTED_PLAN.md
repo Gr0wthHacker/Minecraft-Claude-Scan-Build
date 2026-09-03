@@ -153,6 +153,12 @@ territory legible from above and from street level.
 
 ## Build order
 
+The Park Line renewal is specified in `PARK_RAILWAY_RENEWAL.md` and
+`park_railway_v2.world.json`. Its five main-WorldSpec entries now crop one
+continuous V172–186 railway, retaining both Isthmus reaches and the existing
+station avenues. Three renewed stations remain secondary landmarks below B+35.
+The detailed candidate is locally reviewable; live minecart proof gates remain.
+
 1. Freeze the 600 by 200 WorldSpec, all land/reach edges, public paths, service
    spines, plot ownership, and vertical reservations.
 2. Generate and approve greyboxes for all listed components before detail.

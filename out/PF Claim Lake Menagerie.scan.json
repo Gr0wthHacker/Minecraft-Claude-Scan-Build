@@ -1,0 +1,216 @@
+{
+  "origin": {
+    "x": 97635,
+    "y": 202,
+    "z": 80475
+  },
+  "size": {
+    "x": 13,
+    "y": 4,
+    "z": 35
+  },
+  "generated_by": "menagerie",
+  "kind": "menagerie",
+  "footprint": [
+    33,
+    13
+  ],
+  "land": "midway",
+  "facing": "west",
+  "pens": [
+    "SHEEP MEADOW",
+    "COW PASTURE",
+    "PIG STY",
+    "CHICKEN COOP"
+  ],
+  "signed": true,
+  "contract": "4 fenced paddocks, each with a shelter, a feed marker, a gate and a named sign; no animal is placed by this generator - a litematic is blocks, not entities, and the pens are stocked in world, by hand",
+  "unverified": [
+    "NOTHING HERE IS LIVE STOCK. Every pen is empty on paste; the sign names what to lead in and with what."
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_fence_gate"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "terrain",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "A row of four fenced paddocks off the Claim Lake's east shore - sheep, cow, pig and chicken, each with a small shelter, a hay marker, a gate and a named sign - built empty and ready to stock, in the exit/observation lot the park's own street layout reserves here.\n"
+    },
+    "metrics": {
+      "blocks": 671,
+      "materials": 10,
+      "dominant_material_share": 0.5902,
+      "light_blocks": 6,
+      "massing": {
+        "width": 13,
+        "height": 4,
+        "depth": 35,
+        "fill_ratio": 0.3687
+      },
+      "silhouette": {
+        "top": {
+          "area": 455,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 34,
+          "fill_ratio": 0.6538
+        },
+        "side": {
+          "area": 99,
+          "fill_ratio": 0.7071
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.8867,
+          0.0507,
+          0.0626
+        ],
+        "top_silhouette_perimeter": 96,
+        "surface_faces_per_block": 2.3487
+      },
+      "material_counts": {
+        "moss_block": 396,
+        "oak_fence": 102,
+        "oak_log": 56,
+        "stone_brick_slab": 36,
+        "stone": 33,
+        "polished_blackstone_bricks": 26,
+        "hay_block": 8,
+        "lantern": 6,
+        "oak_fence_gate": 4,
+        "oak_wall_sign": 4
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "954c6ed725fb758ef915da2ac58989191b9dacc5b87f4a5c495c05a71041f9a0",
+    "generator_source_digest": "03c0499397c6dbae770d0cd4d1f5da7dd7897f25d0ff3ec9a3e1913626efd9d6",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "terrain",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97635,
+        204,
+        80492
+      ]
+    ]
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 68.194454,
+    "blocks": 671,
+    "blocks_per_second": 9.84
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 671,
+    "mechanic_families": [
+      "access",
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: hay_block",
+    "not in the provisional skyblock-1.19 list: oak_fence_gate",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Claim Lake Menagerie.litematic",
+  "name": "PF Claim Lake Menagerie"
+}

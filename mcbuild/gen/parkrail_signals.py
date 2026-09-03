@@ -100,9 +100,25 @@ def install(c, p):
                         for yy in (y-1,y):
                             if c.get_name(*pos(0,yy,t)).split(':')[-1] not in ('redstone_wire','repeater'):
                                 put(0,yy,t,SPAN[st['land']]['pier'])
+            # Staff recovery is a physical input on the reset cable, reached
+            # from the arcade. It does not bridge or energise a boarding rail.
+            for y in range(1,6):
+                put(1,y,3,'stone_bricks')
+                put(0,y,3,'ladder',facing='west' if mirror==1 else 'east')
+            put(0,6,3,'stone_bricks')
+            put(0,7,3,'stone_button',face='floor',facing='north',powered='false')
+            for y in range(1,5):
+                put(1,y,4,'stone_bricks')
+            from .parkrail import _Deck
+            sx,sy,sz=pos(0,4,4)
+            if not _Deck(c,p).sign(sx+p['bounds'][0],sy,sz,'west' if mirror==1 else 'east',
+                                   SPAN[st['land']]['wood'],
+                                   ['STAFF RESET','CHECK LINE EMPTY','CLEAR HOLD ONLY','NO DISPATCH']):
+                raise ValueError('staff reset label has no support')
             result.append({'station':st['title'],'track':'a' if direction==1 else 'b',
                            'set':pos(2,13,-10),'reset':pos(2,13,10),
                            'memory':pos(8,7,-27),'hold':pos(2,13,-40),
                            'brake':pos(2,13,0),'button':pos(3,14,0),
-                           'indicator':pos(2,10,-40)})
+                           'indicator':pos(2,10,-40),'manual_clear':pos(0,7,3),
+                           'staff_panel':pos(0,2,3)})
     return result
