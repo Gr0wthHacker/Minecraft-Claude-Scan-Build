@@ -8965,3 +8965,30 @@ than 72, and reads at 31 degrees of elevation rather than 46.
   tested the TREE's four corners and passed; the two BENCHES three courses behind it landed in the
   wheel queue's ground. Four cells, and the only reason they were caught is that `blocked` raises
   rather than dropping them.
+
+#### The queue was standing in a garden, and a composite's origin is nobody's constant
+
+Jack: *"theres some left over queue pieces or something strange on the left corner of the court
+right near the ferris wheel."* They were not leftovers. The Sky Lift's line runs down this lot's
+west flank at V108-123 x U269-279 on its way to the ride, and the Midway Row laid a seating
+terrace the whole depth of that flank - so a fenced queue and its red-and-white canopy stood in
+the middle of a lawn with trees, which is exactly what "strange" looks like.
+
+- **THE GARDENS STOP AT V105 AND THE BACK OF BOTH FLANKS IS PAVED.** The west lane is what the
+  queue stands in, which is what a queue should stand in; the east mirrors it as an open apron
+  onto the promenade, so the two read as a pair rather than as one garden with a fault in it.
+- **AND THE RESERVED GROUND IS KERBED.** This design may not place a cell inside `blocked`, so the
+  queue stands one course below the row's own paving on the ground layer's lawn - and an unedged
+  hole in a paved lane reads as a trench. The court frames its own reserved ground the same way.
+- **A GARDEN THAT IS SYMMETRIC EXCEPT WHERE SOMEBODY ELSE'S DESIGN FALLS READS AS A MISTAKE.** On
+  the stall pitch the third tree group sat at V105 and its crown reached V107, one cell short of
+  the queue's ground, so the guard correctly refused it on the WEST side only and the terraces
+  came out with three trees and two. They run on their own rhythm now.
+
+**AND A COMPOSITE'S ORIGIN IS A FUNCTION OF THE DEEPEST THING IN IT.**
+`tests/test_park_entrance.py` had `PARK_ORIGIN = (97500, 190, 80300)` typed as a literal. The day
+another stream placed an underground design in the Prismworks, `Park Complete`'s y went **190 ->
+94**, every lookup in that file was ninety-six courses out, and eight tests reported that a
+visitor spawns with no ground under them - a containment failure that was entirely the test's.
+The x and z are the park lattice's own anchor and never move; the y is nobody's constant, and it
+is read from the sidecar now.

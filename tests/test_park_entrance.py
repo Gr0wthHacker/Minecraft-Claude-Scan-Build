@@ -19,6 +19,7 @@ then DOES reach the other lands.
 """
 from __future__ import annotations
 
+import json
 import pathlib
 
 import numpy as np
@@ -35,7 +36,22 @@ PARK = ROOT / "out" / "Park Complete.litematic"
 
 #: The shipped ground and the shipped park, with their own origins off their own sidecars.
 WAYS_ORIGIN = (97500, 202, 80300)
-PARK_ORIGIN = (97500, 190, 80300)
+def _park_origin() -> tuple:
+    """`Park Complete`'s own origin, READ FROM ITS SIDECAR AND NEVER TYPED HERE.
+
+    It was the literal `(97500, 190, 80300)`, and a composite's origin is a function of the
+    DEEPEST thing anybody has placed in it: the day another stream put an underground design in
+    the Prismworks the y went 190 -> 94, every lookup in this file was ninety-six courses out, and
+    the containment tests reported that a visitor spawns with no ground under them. The x and z
+    are the park lattice's own anchor and do not move; the y is nobody's constant.
+    """
+    if not PARK.exists():
+        return (97500, 190, 80300)
+    o = json.loads(PARK.with_suffix(".scan.json").read_text(encoding="utf-8"))["origin"]
+    return (int(o["x"]), int(o["y"]), int(o["z"]))
+
+
+PARK_ORIGIN = _park_origin()
 LAWN_Y = 202                    # the course `Park Ways` paves; a visitor stands at 203
 
 #: The park's own U bands. The whole point of the compound is that neither of the outer two can be

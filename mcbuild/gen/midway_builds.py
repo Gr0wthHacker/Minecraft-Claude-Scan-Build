@@ -1699,6 +1699,18 @@ def _midway_row(L, p) -> dict:
     deep = 10                                      # a stall is ten deep behind its counter
     fronts = (axis - half - 1, axis + half + 1)    # U293 and U307
     terrace = (u0 + 4, u0 + 16, u1 - 16, u1 - 4)
+    #: HOW FAR BACK THE GARDENS RUN, AND IT IS SET BY THE WHEEL'S QUEUE. The Sky Lift's line runs
+    #: down this lot's west flank at V108-123 x U269-279 on its way to the ride, so a seating
+    #: terrace laid the whole depth put a fenced queue and its red-and-white canopy in the middle
+    #: of a garden - Jack: *"theres some left over queue pieces or something strange on the left
+    #: corner of the court right near the ferris wheel."* They are not leftovers; they are the
+    #: queue, standing on somebody's lawn.
+    #:
+    #: So the gardens stop at V105 and the back of both flanks is PAVED. The west lane is what the
+    #: queue stands in, which is what a queue should stand in; the east mirrors it as an open
+    #: apron onto the promenade, so the two read as a pair rather than as one garden with a fault
+    #: in it.
+    garden = 25
 
     # -- 1. the ground ---------------------------------------------------------------------------
     for v in range(v0, v1 + 1):
@@ -1716,11 +1728,30 @@ def _midway_row(L, p) -> dict:
                 # THE AVENUE, and its rungs are the court's own so the two read as one walk.
                 mat = PAL["field"] if (v - v0) % 6 == 0 else (
                     PAL["floor"] if (v + u) % 4 == 0 else PAL["floor2"])
-            elif terrace[0] <= u <= terrace[1] or terrace[2] <= u <= terrace[3]:
+            elif ((terrace[0] <= u <= terrace[1] or terrace[2] <= u <= terrace[3])
+                  and v <= v0 + garden):
                 mat = PAL["lawn"]
+            elif v == v0 + garden + 1 and (terrace[0] - 1 <= u <= terrace[1] + 1
+                                           or terrace[2] - 1 <= u <= terrace[3] + 1):
+                mat = PAL["inlay"]                 # the kerb that closes each garden
             else:
                 mat = PAL["floor"] if (v + u) % 4 == 0 else PAL["floor2"]
             m["floor"] += bool(L.put(v, 0, u, mat))
+
+    if keep_out:
+        # A KERB ROUND GROUND THIS DESIGN DOES NOT OWN. The Sky Lift's queue stands one course
+        # below the row's own paving, on the ground layer's lawn, because this design may not
+        # place a single cell inside its box - and an unedged hole in a paved lane reads as a
+        # trench rather than as a queue. The court frames its own reserved ground the same way.
+        for v, u in sorted(keep_out):
+            for dv, du in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                a, b = v + dv, u + du
+                # ...and the kerb stops at the lot, because the reserved ground runs to V120 and
+                # the lot's own last course IS V120: written without this it asks for eleven cells
+                # in the promenade's verge, which `_Lot` refuses and counts.
+                if (a, b) in keep_out or not (v0 <= a <= v1 and u0 <= b <= u1):
+                    continue
+                m["floor"] += bool(L.put(a, 0, b, PAL["inlay"]))
 
     # -- 2. the eight stalls ---------------------------------------------------------------------
     # FOUR A SIDE ON ONE RHYTHM, and the gap between them is what the bunting is strung across.
@@ -1758,8 +1789,13 @@ def _midway_row(L, p) -> dict:
     # the Snack Window already had to fix; this is the same answer at the scale of eight of them.
     for lo, hi in ((terrace[0], terrace[1]), (terrace[2], terrace[3])):
         cu = (lo + hi) // 2
-        for k in range(4):
-            v = v0 + 5 + k * pitch
+        # THREE GROUPS ON THEIR OWN RHYTHM, not the stalls'. On the stall pitch the third group
+        # sat at V105 and its crown reached V107, one cell short of the queue's ground - so the
+        # guard correctly refused it on the WEST side only and the two terraces came out with
+        # three trees and two. A garden that is symmetric except where somebody else's design
+        # happens to fall reads as a mistake, not as a constraint.
+        for k in range(3):
+            v = v0 + 6 + k * 8
             # THE GUARD COVERS THE WHOLE GROUP, not the tree it is written next to. Checked at
             # the tree's own four corners it passed and the two BENCHES three courses behind it
             # landed in the queue's ground - four cells, and the only reason they were caught is
