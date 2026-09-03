@@ -419,6 +419,88 @@ def test_a_stair_leans_the_way_it_was_built():
     assert by_v.get(22) == {pf._LEAN["east"]}, f"the back cornice faces {by_v.get(22)}"
 
 
+# --------------------------------------------------------------------------- the station porch
+
+
+def _porch_cells(**kw):
+    """Every cell one porch emits, as {(V, h, U): (block name, properties)}."""
+    spec = {"kind": "porch", "at": [25, 111], "facing": "west", "width": 16, "height": 6,
+            "bay": 4, "door": [-5, -3]}
+    spec.update(kw)
+    c = pf.build({"land": "frontier", "pieces": [spec]})
+    ox, oy, oz = c.world_origin
+    out = {}
+    for y, z, x in zip(*(c.ids != 0).nonzero()):
+        e = c.palette[int(c.ids[y, z, x])]
+        props = e.value.get("Properties")
+        out[(int(ox - 97500 + x), int(oy - 203 + y), int(oz - 80300 + z))] = (
+            e.value["Name"].value.split(":")[-1],
+            {k: v.value for k, v in props.value.items()} if props else {})
+    return out
+
+
+def _posts(cells):
+    return sorted({u for (_v, h, u), (n, _p) in cells.items()
+                   if n == "spruce_log" and h >= 1})
+
+
+def test_a_porch_post_never_stands_in_the_doorway():
+    """THE OPENING IS THE ONE PLACE A POST MAY NOT GO, and a `bay` that happens to land on it is
+    how a column ends up down the middle of a door. The Mine Coaster's door is U106-108 and the
+    porch is centred on U111, so the door is frontage offsets -5..-3."""
+    posts = _posts(_porch_cells())
+    assert posts, "the porch built no posts at all"
+    assert not set(posts) & {106, 107, 108}, f"a post stands in the doorway: U{posts}"
+    assert 105 in posts and 109 in posts, f"the doorway has no jambs: U{posts}"
+
+
+def test_a_porch_bay_is_never_one_cell_wide():
+    """SPACING THE POSTS FROM THE END OF THE RUN AND THEN DROPPING WHICHEVER FELL IN THE DOORWAY
+    leaves a jamb two cells from its neighbour, and both of them brace into the single cell
+    between - the second write wins, so one brace leans the wrong way. The opening sets the
+    rhythm instead, so every bay comes out the same width."""
+    posts = _posts(_porch_cells())
+    gaps = [b - a for a, b in zip(posts, posts[1:])]
+    assert gaps, f"one post is not a rhythm: U{posts}"
+    assert min(gaps) >= 3, f"a bay is {min(gaps) - 1} cells wide: posts at U{posts}"
+    assert len(set(gaps)) == 1, f"the bays are uneven: {gaps} for posts U{posts}"
+
+
+def test_every_porch_brace_leans_back_at_its_own_post():
+    """A KNEE BRACE IS WHAT SEPARATES A VERANDAH FROM A ROW OF STICKS, and a stair's TALL side is
+    its `facing` - so a brace springing from a post into the bay beside it leans BACK AT that
+    post. Drawn the other way it is a step hanging off the beam, and this repo's renderer draws
+    both identically, so it is asserted here rather than looked at."""
+    cells = _porch_cells()
+    posts = set(_posts(cells))
+    braces = {u: p["facing"] for (_v, _h, u), (n, p) in cells.items() if n == "spruce_stairs"}
+    assert braces, "the porch built no braces"
+    for u, facing in sorted(braces.items()):
+        assert (u - 1) in posts or (u + 1) in posts, f"a brace at U{u} springs from no post"
+        # for a west-facing piece the frontage runs with U, so a brace whose post is the
+        # higher-U neighbour must lean that way, and vice versa
+        want = "south" if (u + 1) in posts else "north"
+        assert facing == want, f"the brace at U{u} faces {facing}, not {want}"
+
+
+def test_a_porch_lays_no_plinth_on_somebody_elses_paving():
+    """The posts stand on the concourse of the building they front - the coaster's own - so a
+    plinth course is a cell taken off another design rather than a foundation. Nothing at all is
+    emitted on the course a guest walks on."""
+    floor = [k for k in _porch_cells() if k[1] == 0]
+    assert not floor, f"the porch laid {len(floor)} cells on the walking course: {floor[:4]}"
+
+
+def test_a_porch_carries_a_beam_the_whole_width_and_an_eave_in_front_of_it():
+    """The beam is what the roof appears to land on and the fascia is what gives a flat lid a
+    shadow line; a beam with a hole in it reads as a broken one."""
+    cells = _porch_cells()
+    beam = {u for (v, h, u), (n, _p) in cells.items() if v == 25 and h == 6 and n != "lantern"}
+    eave = {u for (v, h, u), (_n, _p) in cells.items() if v == 24 and h == 6}
+    assert beam == set(range(103, 119)), f"the beam is not continuous: U{sorted(beam)}"
+    assert eave == beam, "the fascia does not run the beam's own width"
+
+
 # --------------------------------------------------------------------------- the sloth's home
 
 

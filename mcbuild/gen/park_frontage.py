@@ -90,6 +90,10 @@ _BACK = {"west": "east", "east": "west", "north": "south", "south": "north"}
 #: rather than anybody eyeballing a render.
 _LEAN = _BACK
 
+#: A LYING LOG TAKES THE AXIS OF THE RUN IT LIES ALONG. A head beam written with no axis comes
+#: out standing on end, which our renderer draws as the same brown block.
+_AXIS = {"west": "x", "east": "x", "north": "z", "south": "z"}
+
 #: ONE PALETTE PER LAND, taken block for block from the land's own shipped builder so a marquee
 #: reads as the same hand as the building behind it - `frontier_builds.PAL`, `midway_builds.PAL`
 #: and `prismworks_builds.PRISM`. It is a COPY rather than an import on purpose: three streams are
@@ -964,6 +968,119 @@ def _sight(w, f, pal, p) -> dict:
     return _MOTIFS[motif](w, f, pal, q)
 
 
+# --------------------------------------------------------------------------- porch
+
+PORCH = {
+    "width": 16,          # cells along the frontage, centred on `at`
+    "height": 6,          # the head beam's course; posts run h1..height-1
+    "bay": 4,             # a post every this many frontage cells
+    "door": None,         # [i0, i1] inclusive frontage offsets kept free of posts
+    "eave": True,         # carry the beam one cell forward as a fascia
+    "lamps": True,
+}
+
+
+def _porch(w, f, pal, p) -> dict:
+    """THE VERANDAH IN FRONT OF A BUILDING WHOSE FRONT IS A BLANK WALL.
+
+    Jack, on the Mine Coaster's entrance after its signage had been moved onto the station:
+    "that entrance looks like shit still, you havent fixed a damn thing." He is right, and the
+    alignment fix was necessary and nowhere near sufficient - what the sign now correctly points
+    at is a flat brown box.
+
+    Measured off `out/Park Complete.litematic`, the coaster's station is a FLOOR AND A ROOF SEVEN
+    COURSES UP:
+
+        h-1  ground            h0-h1  the platform base
+        h2-h6  air, except two one-cell posts at V26 and V38
+        h7   a solid roof plate over V24-40 x U102-119
+
+    So a guest sees a 16 x 5 slab of one material with two unframed holes in it under an
+    overhanging lid - a bus depot wall, and nothing about it says a ride is behind it. A ride
+    station is not a wall, it is a COVERED PLATFORM, and what makes one read is the timber that
+    holds the roof up: posts on the paving, a head beam under the eaves, knee braces at every
+    post head and a lamp hung in each bay.
+
+    **THE POSTS START AT h1 AND NEVER LAY A PLINTH.** They stand on paving that belongs to the
+    building they front - the coaster's own concourse - so a plinth course is a cell taken off
+    another design, which is a clash rather than a foundation. A post standing on the paving is
+    also what a real verandah post does.
+
+    **A POST MAY NOT STAND IN THE DOOR.** `door` names the frontage cells the opening occupies;
+    posts inside it are dropped and a jamb post is placed either side instead, so the doorway
+    gets a wider bay rather than a column down its middle. That is the same rule as
+    `midway_builds._welcome_court`'s pavilion leaving its centre bay open on the cross axis.
+    """
+    q = {**PORCH, **p}
+    width, height = max(2, int(q["width"])), max(3, int(q["height"]))
+    bay = max(2, int(q["bay"]))
+    lo = -(width // 2)
+    hi = lo + width - 1
+    door = q.get("door")
+    d0, d1 = (int(door[0]), int(door[1])) if door else (1, 0)
+
+    # **THE OPENING SETS THE RHYTHM, NOT THE END OF THE RUN.** Spacing the posts from `lo` and
+    # then dropping whichever fell in the doorway leaves a jamb two cells from its neighbour and
+    # the bays come out 2-4-2-4 - which reads as a mistake, and puts two posts close enough that
+    # both brace into the one cell between them and the second facing overwrites the first. Both
+    # jambs are placed first and the bays step outward from them, so every bay is `bay` wide and
+    # the door is the widest.
+    posts = set()
+    if door:
+        posts |= {i for i in (d0 - 1, d1 + 1) if lo <= i <= hi}
+        for start, step in ((d0 - 1, -bay), (d1 + 1, bay)):
+            i = start + step
+            while lo <= i <= hi:
+                posts.add(i)
+                i += step
+    else:
+        posts = {i for i in range(lo, hi + 1) if (i - lo) % bay == 0}
+    # An end post only where it does not crowd the one beside it; otherwise the beam simply
+    # overhangs, which is what an eave does.
+    for i in (lo, hi):
+        if all(abs(i - j) >= 3 for j in posts):
+            posts.add(i)
+
+    for i in sorted(posts):
+        for h in range(1, height):
+            _put(w, f, pal, i, 0, h, "post", axis="y")
+        # KNEE BRACES, which are what separates a verandah from a row of sticks. A stair's TALL
+        # side is its `facing`, so a brace springing from a post toward the bay beside it faces
+        # back at the post.
+        for s in (-1, 1):
+            j = i + s
+            # NEVER BRACE INTO A ONE-CELL BAY. Both of its posts want that cell and the second
+            # write wins, so one brace leans the wrong way - and our renderer draws a stair's two
+            # facings identically, so it would only ever show in game.
+            if lo <= j <= hi and j not in posts and (j + s) not in posts:
+                _put(w, f, pal, j, 0, height - 1, pal["stair"],
+                     facing=f.side(-s), half="top", shape="straight", waterlogged="false")
+
+    for i in range(lo, hi + 1):
+        _put(w, f, pal, i, 0, height, "beam", axis=_AXIS[f.side(1)])
+    eaves = 0
+    if q["eave"]:
+        # THE FASCIA. The roof plate above is flat and its edge is a bare course; a board one cell
+        # forward of the beam gives the eave a shadow line, which is the whole of what stops a
+        # flat lid reading as a lid.
+        for i in range(lo, hi + 1):
+            _put(w, f, pal, i, -1, height, "board")
+            eaves += 1
+
+    lamps = 0
+    if q["lamps"]:
+        ordered = sorted(posts)
+        for a, b in zip(ordered, ordered[1:]):
+            i = (a + b) // 2
+            if i in posts or b - a < 2:
+                continue
+            _put(w, f, pal, i, 0, height - 1, pal["light"], hanging="true", waterlogged="false")
+            lamps += 1
+
+    return {"kind": "porch", "width": width, "height": height, "posts": sorted(posts),
+            "lamps": lamps, "eaves": eaves, "door": [d0, d1] if door else None}
+
+
 # --------------------------------------------------------------------------- pergola + stamp
 
 PERGOLA = {
@@ -1074,7 +1191,7 @@ def _stamp(w, f, p) -> dict:
 # --------------------------------------------------------------------------- build
 
 _KINDS = {"marquee": _marquee, "portal": _portal, "queue": _queue, "sight": _sight,
-          "pergola": _pergola}
+          "pergola": _pergola, "porch": _porch}
 
 
 def build(cfg: dict, donors=None) -> Canvas:

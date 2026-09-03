@@ -114,11 +114,11 @@ params:
           # not a verge mast that happened to land there, so removing it left the
           # crossing lit three-square - `test_a_crossing_is_lit_four_square_or_not_at_all`
           # caught it. At U109 the piers stand at U106-107 and U111-112, the lamp keeps
-          # its corner (the marquee is at U111 for the same reason), and the spur lands in
-          # the middle of a twenty-one-wide forecourt
+          # its corner, and the arch stands a course back at V21-23 where the lamp is not,
+          # so the spur, the arch and the door are one line
           # rather than at one of its three openings - which is what a forecourt is for.
           # See `configs/pf_front_frontier.yaml`.
-          - {v: 24, u: 113}     # Mine Coaster - the marquee's own opening
+          - {v: 24, u: 107}     # Mine Coaster - the station door, the arch and this spur
           - {v: 24, u: 235}     # Arrival Court
           # THE WELCOME COURT'S OWN THRESHOLD, and it is THIRTEEN WIDE because the door is.
           # Jack, on the finished court: "it needs to have paths or ways to connect to the other

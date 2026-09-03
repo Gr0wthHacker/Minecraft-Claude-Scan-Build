@@ -31,8 +31,8 @@ params:
       at: [20, 19]
       span: 5
       wing: 1
-      title: TRAILHEAD GATE
-      lines: ["frontier land", "trails and mine"]
+      title: BASE CAMP GATE
+      lines: ["lost plateau", "camp and dig"]
     # **RETITLED, BECAUSE THE PLACE IT NAMED IS GONE.** This read BOOMTOWN / "store - saloon /
     # telegraph" over the spur to `Boomtown Spine` - seven false-fronted shops, 0 interactive
     # blocks, retired. `PF Frontier Diggings` holds the lot now: a worked landscape with a trail,
@@ -43,7 +43,7 @@ params:
       at: [20, 70]
       span: 7
       title: THE DIGGINGS
-      lines: ["walk the trail", "store - assay"]
+      lines: ["walk the trench", "store and shed"]
     - kind: marquee
       name: Mine Coaster
       # NO WING: A 24-WIDE GANTRY DOES NOT FIT A 21-WIDE FORECOURT. With `wing: 1` this piece is
@@ -51,15 +51,28 @@ params:
       # crossing's own walkway, and at U119-120, which is the platform's way out. One bay is 8
       # wide and sits inside the concourse with room for the exit gate beyond it.
       #
-      # U113 IS DECIDED BY TWO THINGS IT MAY NOT STAND ON, both measured off `Park Ways`:
-      #   * V20/U105 is a CROSSING CORNER LAMP, not a verge mast that happened to land there. A
-      #     `keep_clear` band was tried and it left the U96 crossing lit three-square, which
-      #     `test_a_crossing_is_lit_four_square_or_not_at_all` caught.
-      #   * the U96 junction flares its own apron across the verge, paving V21 out to U103.
-      # Both piers sit east of U105, and the opening still covers the spur at U112-114.
-      at: [20, 113]
-      span: 5
-      title: MINE COASTER
+      # **IT STANDS ON THE DOOR'S OWN AXIS, AND A ROW OF V BOUGHT THAT.** At V20 the arch could
+      # not reach U107 - the station's door - because V20/U105 is a CROSSING CORNER LAMP and the
+      # arch's west pier lands on it. (A `keep_clear` band was tried and it left the U96 crossing
+      # lit three-square, which `test_a_crossing_is_lit_four_square_or_not_at_all` caught.) Held
+      # off the lamp the arch sat at U113, five cells east of the door: you walked under it and
+      # the way in was over your shoulder.
+      #
+      # The lamp is at V20 ONLY. Standing the arch a course back at V21-23 clears it outright,
+      # and V21-23 at U104-110 is open lawn - the U96 junction's apron paves V21 out to U103 and
+      # stops. So the spur, the arch and the door are one line at U107, which is what an approach
+      # to a ride is.
+      at: [21, 107]
+      # TWO COURSES DEEP, BECAUSE THE BACK SIGN LANDS AT `depth` AND V24 IS THE RIDE'S EAVE. At
+      # depth 3 the arch reads its back sign at V24/h7, which is a cell of the station's own roof
+      # overhang - `park_place` reported the clash between the two designs. At 2 the fascia is
+      # V21-22 and the two signs fall on V20 and V23, both open lawn.
+      depth: 2
+      # SPAN 3, WHICH IS THE DEFAULT AND THE SPUR'S OWN WIDTH. At 5 the piers stand at U103-104
+      # and U110-111, and V21/U103 is the last paved cell of the U96 junction's apron - a pier on
+      # a walkway, which `test_nothing_stands_in_a_walkway` caught. At 3 they sit on lawn at
+      # U104-105 and U109-110 and the opening is U106-108: the spur, the door and the arch.
+      title: PLATEAU RUN
       lines: ["the big one", "queue east"]
     # THE POSTS AND THE PORCH HAVE NO SPUR, so there is no path to arch over and the same piece
     # is built solid and stands beside the door instead. `style: board`.
@@ -69,24 +82,24 @@ params:
       style: board
       width: 11
       depth: 2
-      title: PROSPECTING
-      lines: ["shooting range", "gold sluice"]
+      title: THE SCREENS
+      lines: ["screen hut", "sorting run"]
     - kind: marquee
       name: Mining Square
       at: [80, 66]
       style: board
       width: 11
       depth: 1
-      title: MINING SQUARE
-      lines: ["coaster queue", "and ride exit"]
+      title: BASE CAMP
+      lines: ["quarry run", "and ride exit"]
     - kind: marquee
       name: Assay and Prize Office
       at: [129, 62]
       style: board
       width: 11
       depth: 2
-      title: ASSAY OFFICE
-      lines: ["weigh in here", "claim prizes"]
+      title: THE FOSSIL LAB
+      lines: ["log finds here", "claim prizes"]
 
     # ---------------------------------------------------------------- the ride's own thresholds
     # A SHOP DOOR IS A HOLE IN A WALL; A RIDE THRESHOLD IS A FRAME YOU PASS THROUGH WITH NOTHING
@@ -118,8 +131,8 @@ params:
     # further from the door, not nearer. **A DECLARED ANCHOR IS ONLY EVIDENCE ABOUT THE ARTIFACT
     # THAT DECLARES IT**; when two files share a name, measure the one the merge actually reads.
     #
-    # The two pieces now stand on the concourse itself: the marquee arches over the spur at
-    # U109-117, and the exit gate opens on the platform's own way out at U119-123.
+    # The pieces now stand on one line: the spur, the arch and the station's door are all U107,
+    # and the exit gate opens on the platform's own way out at U119-123.
     #
     # **THE ENTRANCE PORTAL IS RETIRED, AND THE FORECOURT IS WHY.** It was a third freestanding
     # frame on a concourse that measures 21 cells, whose west quarter is the U96 junction's own
@@ -134,6 +147,29 @@ params:
       mode: exit
       title: RIDE EXIT
       lines: ["", "", "no re-entry"]
+
+    # ---------------------------------------------------------------- the station's own front
+    # **THE SIGN WAS RIGHT AND THE THING IT POINTED AT WAS A BOX.** Jack, on the moved signage:
+    # "that entrance looks like shit still, you havent fixed a damn thing." Measured off
+    # `out/Park Complete.litematic`, the coaster's station is a floor and a roof SEVEN COURSES
+    # UP - h2 to h6 is air but for two one-cell posts - so a guest sees a 16 x 5 slab of one
+    # brown material with two unframed holes in it under an overhanging lid.
+    #
+    # A ride station is a COVERED PLATFORM, and what makes one read is the timber holding the
+    # roof up. This is that timber: posts on the concourse at V25, a head beam under the eaves at
+    # h6, knee braces at every post head, a fascia a cell forward so the flat lid gets a shadow
+    # line, and a lantern hung in each bay.
+    #
+    # `width: 16` at U111 is exactly the station's own front, U103-118. `door` is the opening at
+    # U106-108 in frontage offsets, so no post stands in the doorway and the jambs go either side
+    # of it instead - the arch, the spur and this bay are all on U107.
+    - kind: porch
+      name: Mine Coaster station front
+      at: [25, 111]
+      width: 16
+      height: 6
+      bay: 4
+      door: [-5, -3]
 
     # ---------------------------------------------------------------- the queue: DELETED
     # **THE RIDE ALREADY HAS ONE, AND THIS WAS A SECOND ONE IN THE WRONG PLACE.**
@@ -166,15 +202,15 @@ params:
       motif: ore_cart
       at: [92, 165]
       length: 5
-      title: ORE ROAD
-      lines: ["ran to the head", "of the workings"]
+      title: THE HAUL ROAD
+      lines: ["ran to the head", "of the cutting"]
     - kind: sight
       name: Trail Ore Cart
       motif: ore_cart
       at: [117, 155]
       length: 7
-      title: SPOIL TIP
-      lines: ["mine waste", "keep clear"]
+      title: MATRIX TIP
+      lines: ["spoil and rock", "keep clear"]
 
     # ---------------------------------------------------------------- back of house
     # A THEME PARK DOES NOT MARQUEE ITS SERVICE YARD; IT MARKS IT. An exit-mode portal with no
