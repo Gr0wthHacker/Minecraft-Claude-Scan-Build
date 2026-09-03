@@ -67,24 +67,6 @@
   ],
   "refused": 0,
   "parts": {
-    "line": {
-      "rails": 103,
-      "deck": 103,
-      "sources": 14,
-      "bents": 19,
-      "corners": [
-        [
-          2,
-          86
-        ],
-        [
-          17,
-          86
-        ]
-      ],
-      "cells": 103,
-      "contract": "a level line, every corner plain rail, a source every 8 within a run, and no leg in the lane or the walk"
-    },
     "mill": {
       "bin_top": 27,
       "battery_top": 21,
@@ -304,14 +286,8 @@
       "light": [
         "redstone_lamp"
       ],
-      "rail": [
-        "detector_rail",
-        "powered_rail",
-        "rail"
-      ],
       "redstone": [
         "comparator",
-        "detector_rail",
         "piston",
         "redstone_lamp",
         "redstone_wire",
@@ -326,7 +302,6 @@
       "access": "mcbuild.walk + generator route contracts",
       "container": "mcbuild.circuit inputs or operator-stocked metadata",
       "light": "mcbuild.nightlight",
-      "rail": "mcbuild.circuit + rail contract tests",
       "redstone": "mcbuild.circuit",
       "signage": "mcbuild.audit support/state checks"
     },
@@ -347,52 +322,52 @@
       "narrative": "The mine's works: an elevated ore railway on timber trestles from the ridge's east foot, crossing the guest walk and the service lane over them; a three-step stamp mill stepping down the way the ore travels, with a five-head battery a guest fires from a console in its own plinth; and a tipple over a stone loading bank beside the park railway.\n"
     },
     "metrics": {
-      "blocks": 5168,
-      "materials": 30,
-      "dominant_material_share": 0.3603,
+      "blocks": 4779,
+      "materials": 25,
+      "dominant_material_share": 0.3896,
       "light_blocks": 1,
       "massing": {
-        "width": 21,
+        "width": 14,
         "height": 28,
-        "depth": 91,
-        "fill_ratio": 0.0966
+        "depth": 63,
+        "fill_ratio": 0.1935
       },
       "silhouette": {
         "top": {
-          "area": 924,
-          "fill_ratio": 0.42
+          "area": 811,
+          "fill_ratio": 0.3686
         },
         "front": {
-          "area": 350,
-          "fill_ratio": 0.3977
+          "area": 327,
+          "fill_ratio": 0.3716
         },
         "side": {
-          "area": 1088,
-          "fill_ratio": 0.272
+          "area": 920,
+          "fill_ratio": 0.23
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.8208,
-          0.1769,
-          0.0023
+          0.8062,
+          0.1913,
+          0.0025
         ],
-        "top_silhouette_perimeter": 492,
-        "surface_faces_per_block": 1.7392
+        "top_silhouette_perimeter": 296,
+        "surface_faces_per_block": 1.669
       },
       "material_counts": {
         "stone_bricks": 1862,
-        "spruce_planks": 1713,
+        "spruce_planks": 1629,
         "dark_oak_stairs": 464,
-        "stripped_spruce_log": 244,
-        "spruce_log": 243,
+        "stripped_spruce_log": 206,
+        "spruce_log": 188,
         "polished_blackstone_bricks": 135,
-        "spruce_fence": 102,
-        "powered_rail": 94,
         "spruce_trapdoor": 94,
         "dark_oak_slab": 42,
         "redstone_wire": 35,
-        "white_wool": 25
+        "white_wool": 25,
+        "red_wool": 20,
+        "coal_ore": 19
       }
     },
     "checks": [],
@@ -404,8 +379,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "68eb5327f2cf17f0f468e80e9bc65cc56617767ee81502403f9ee1b039f54251",
-    "generator_source_digest": "35864a19b282addf88dea44722c6e837ca4bee8c96b546e3beb24536bc04ab10",
+    "fingerprint": "1654b778a3c44e19cd2c23b1d549a77b71e6a8cd9c2e09fd2f34b1b7d3a5e210",
+    "generator_source_digest": "f1ac5a2e5ad9024d091fb6b532d78f826f4cdf70ffadf02a657fb06c37d70efd",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -439,7 +414,6 @@
         "access",
         "container",
         "light",
-        "rail",
         "redstone",
         "signage"
       ],
@@ -450,9 +424,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 93.339991,
-    "blocks": 5168,
-    "blocks_per_second": 55.37
+    "seconds": 54.402797,
+    "blocks": 4779,
+    "blocks_per_second": 87.84
   },
   "generator_contract": {
     "ok": false,
@@ -466,12 +440,11 @@
     "roles": [
       "ride"
     ],
-    "blocks": 5168,
+    "blocks": 4779,
     "mechanic_families": [
       "access",
       "container",
       "light",
-      "rail",
       "redstone",
       "signage"
     ]
@@ -506,9 +479,7 @@
     "not in the provisional skyblock-1.19 list: coal_ore",
     "not in the provisional skyblock-1.19 list: dark_oak_slab",
     "not in the provisional skyblock-1.19 list: dark_oak_stairs",
-    "not in the provisional skyblock-1.19 list: detector_rail",
     "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
-    "not in the provisional skyblock-1.19 list: redstone_block",
     "not in the provisional skyblock-1.19 list: redstone_lamp"
   ],
   "file": "PF Mine Works.litematic",

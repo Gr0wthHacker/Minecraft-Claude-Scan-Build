@@ -59,6 +59,9 @@ params:
   corner_u: 86        # the turn east onto the main run, clear of the walk at u88-92
   mill: [9, 21, 34, 70]
   dock: [9, 21, 8, 30]
+  # THE LINE IS OFF - see `mineworks.WORKSDEF`. A third elevated railway in a land that already
+  # has the coaster and the park line, and it pierced the mill's own wall five courses up.
+  line: false
   power_every: 8
   seed: 53
 roles: [ride]

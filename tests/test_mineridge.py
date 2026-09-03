@@ -200,6 +200,18 @@ def test_the_tunnel_is_lined_and_timbered(built):
 # --------------------------------------------------------------------------- the adit
 
 
+#: **THE ADIT'S ASSERTIONS SKIP WHEN THERE IS NO ADIT, rather than passing vacuously.** It was
+#: deleted on sight: its mouths opened onto the service corridor at the back of the mountain where
+#: no guest goes, two mouths ten cells apart read as damage rather than as a gallery, and the ride
+#: already bores its own tunnel through the same rock (`Mine Coaster.scan.json`: `tunnels: 1`,
+#: `tunnel_mouths: 2`). The generator keeps it and its contract; point it at a face a guest can
+#: reach and turn it back on. What must not happen is a suite that reports green because there is
+#: nothing left to check.
+def _needs_adit(cfg):
+    if not cfg["params"].get("adit"):
+        pytest.skip("this ridge builds no adit (see configs/pf_mine_ridge.yaml)")
+
+
 def test_the_gallery_is_a_tunnel_and_not_a_trench(built, cfg):
     """**A TUNNEL IS A VOID WITH ROCK ON TOP, AND THE ROCK HAS TO BE PUT THERE FIRST.** Carved out
     of whatever the talus happened to give, a gallery under a thin part of the apron is an open
@@ -208,6 +220,7 @@ def test_the_gallery_is_a_tunnel_and_not_a_trench(built, cfg):
     show. So the cover is forced into the height field before a single cell is filled, and this
     is the assertion that it stayed forced.
     """
+    _needs_adit(cfg)
     canvas, _model = built
     plan = mineridge._adit_plan(cfg["params"], canvas.sx, canvas.sz)
     assert plan, "the ridge has no adit"
@@ -223,6 +236,7 @@ def test_the_gallery_is_a_tunnel_and_not_a_trench(built, cfg):
 def test_the_gallery_is_walkable_end_to_end(built, cfg):
     """A U with a portal at each end, so it is a walk-THROUGH rather than a dead end you turn
     round in - the ruinway's own rule that a way is real when both of its ends are places."""
+    _needs_adit(cfg)
     canvas, _model = built
     plan = mineridge._adit_plan(cfg["params"], canvas.sx, canvas.sz)
     # **PASSABLE IS NOT EMPTY**, and this project has been bitten by the converse twice. The
@@ -239,7 +253,8 @@ def test_the_gallery_is_walkable_end_to_end(built, cfg):
             assert canvas.solid(v, 0, u), f"the gallery has no floor at ({v},{u})"
 
 
-def test_both_portals_are_framed_and_named(built):
+def test_both_portals_are_framed_and_named(built, cfg):
+    _needs_adit(cfg)
     canvas, _model = built
     adit = canvas.meta["parts"]["adit"]
     assert adit["portals"] == 2

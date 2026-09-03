@@ -75,34 +75,49 @@ params:
 
     # ---------------------------------------------------------------- the ride's own thresholds
     # A SHOP DOOR IS A HOLE IN A WALL; A RIDE THRESHOLD IS A FRAME YOU PASS THROUGH WITH NOTHING
-    # EITHER SIDE OF IT. Entrance and exit flank the coaster's spur so the two halves of a ride
-    # are told apart before anybody reads a word - the entrance carries the land's accent across
-    # its head and a lamp each side, the exit carries neither.
+    # EITHER SIDE OF IT. Entrance and exit flank the coaster's approach so the two halves of a
+    # ride are told apart before anybody reads a word - the entrance carries the land's accent
+    # across its head and a lamp each side, the exit carries neither.
+    #
+    # **AND THEY STAND WHERE THE RIDE SAYS ITS DOORS ARE, WHICH IS NOT WHERE THEY WERE.** Jack:
+    # "on the other side of the rollercoaster the 'queue' area is weird, in the wrong area, etc."
+    # `Mine Coaster.scan.json` declares its own guest anchors, every one on its WEST flank at
+    # world V24:
+    #
+    #     queue_entry  U126        public_entry  U134
+    #     public_exit  U142        ride_exit     U146
+    #
+    # These stood at U116 and U152 - ten cells north of the queue entry and six south of the ride
+    # exit - so each framed a piece of open lawn BESIDE the door rather than the door. A generator
+    # that invents a ride's front is guessing at something the ride already states.
     - kind: portal
       name: Mine Coaster entrance
-      at: [21, 116]
+      at: [21, 126]
       mode: entrance
       title: RIDE ENTRANCE
-      lines: ["queue this way", "", "east flank"]
+      lines: ["queue this way", "", "mine coaster"]
     - kind: portal
       name: Mine Coaster exit
-      at: [21, 152]
+      at: [21, 146]
       mode: exit
       title: RIDE EXIT
       lines: ["", "", "no re-entry"]
 
-    # ---------------------------------------------------------------- the queue
-    # 106 x 10 OF OPEN LAWN DOWN THE COASTER'S EAST FLANK is the largest empty strip in the
-    # Frontier, and a queue is the one thing that belongs beside a ride rather than in front of
-    # it. It has NO FLOOR: the lawn is the floor, so it can never be mistaken for a second street.
-    - kind: queue
-      name: Mine Coaster queue
-      at: [27, 161]
-      width: 7
-      depth: 30
-      leg_every: 3
-      title: COASTER LINE
-      lines: ["about 10 min", "", "keep left"]
+    # ---------------------------------------------------------------- the queue: DELETED
+    # **THE RIDE ALREADY HAS ONE, AND THIS WAS A SECOND ONE IN THE WRONG PLACE.**
+    # `Mine Coaster.scan.json`: `queue_rows: 22`, `queue_cells: 67`, `queue_covered: 12`, and its
+    # own contract reads "the queue is 3 wide and 22 rows" leading to a platform whose board and
+    # unload are opposite flanks. The coaster builds its own.
+    #
+    # What stood here was a 7 x 30 switchback at world V27-33 / U161-190: thirty-five cells south
+    # of the ride's own queue entry at U126, on the far side of the ride from all four of its guest
+    # anchors, and **half of it past U169, which is outside the Frontier altogether** and into the
+    # Claim Line reach.
+    #
+    # The comment that justified it said it stood on "the open lawn down the Mine Coaster's EAST
+    # flank" - and V27 is its WEST flank. The site was picked from the biggest empty strip in the
+    # land rather than from where the ride's door is, which is exactly how a queue ends up
+    # pointing away from the thing it queues for.
 
     # ---------------------------------------------------------------- sight pieces
     # THE MEASURED TROUGHS ARE THE PRIORITY, and 95.5% of everywhere a guest can stand in this

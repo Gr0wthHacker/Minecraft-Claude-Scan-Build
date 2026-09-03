@@ -56,6 +56,15 @@ def test_the_only_expensive_block_is_declared(cfg, built):
 # --------------------------------------------------------------------------- the ore line
 
 
+#: **THE LINE'S ASSERTIONS SKIP WHEN THE LINE IS OFF, RATHER THAN PASSING VACUOUSLY.** It was
+#: deleted on sight - a third elevated railway in a land that already has the coaster and the park
+#: line, and it pierced the mill's own wall five courses up. The machinery and its contract stay;
+#: what must not happen is a suite that reports green because there is nothing left to check.
+def _needs_line(cfg):
+    if not cfg["params"].get("line"):
+        pytest.skip("the ore line is off in this config (see mineworks.WORKSDEF)")
+
+
 def test_a_powered_rail_has_no_corner_shape_in_the_registry():
     """The registry fact the whole line's geometry rests on, asked of the game rather than
     remembered. Every direction change on this line is plain `rail` BECAUSE of this."""
@@ -65,7 +74,8 @@ def test_a_powered_rail_has_no_corner_shape_in_the_registry():
     assert {"south_east", "north_west", "south_west", "north_east"} <= plain
 
 
-def test_every_corner_is_plain_rail(built):
+def test_every_corner_is_plain_rail(cfg, built):
+    _needs_line(cfg)
     canvas, model = built
     line = canvas.meta["parts"]["line"]
     ly = 5
@@ -76,6 +86,7 @@ def test_every_corner_is_plain_rail(built):
 
 def test_no_powered_rail_ever_runs_further_than_the_spacing_from_a_source(built, cfg):
     """AN UNPOWERED POWERED RAIL IS A BRAKE, and a dead rail is a cart stopped in mid-air."""
+    _needs_line(cfg)
     canvas, _model = built
     ly, every = 5, int(cfg["params"]["power_every"])
     powered, sources = [], set()
@@ -99,6 +110,7 @@ def test_no_trestle_leg_stands_in_the_service_lane_or_the_guest_walk(built, cfg)
     that a guest walking either of them has clear headroom under it: nothing in courses 0-3, with
     the deck at 4 and the rail at 5.
     """
+    _needs_line(cfg)
     canvas, _model = built
     lane = range(cfg["params"]["lane"][0], cfg["params"]["lane"][1] + 1)
     walk = range(cfg["params"]["walk"][0], cfg["params"]["walk"][1] + 1)
@@ -111,9 +123,10 @@ def test_no_trestle_leg_stands_in_the_service_lane_or_the_guest_walk(built, cfg)
                 assert not canvas.solid(v, y, u), f"a cell stands in the walk at ({v},{y},{u})"
 
 
-def test_the_line_is_level_for_its_whole_length(built):
+def test_the_line_is_level_for_its_whole_length(cfg, built):
     """A corner has no ascending shape either, so the surest way to keep a four-corner line legal
     is to give it no gradient at all."""
+    _needs_line(cfg)
     canvas, _model = built
     for v in range(canvas.sx):
         for u in range(canvas.sz):

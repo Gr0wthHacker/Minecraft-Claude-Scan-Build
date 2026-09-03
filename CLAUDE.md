@@ -6720,6 +6720,54 @@ false-front shops) and Trailhead Gate still have 0 interactive blocks between th
 with interiors is the village answer and is rejected; what they are FOR - a second ride, or
 nothing - is Jack's call.
 
+### The cleanup: three things that made no sense, and all three were mine (2026-09-03)
+
+Jack, on the placed land: *"the 2nd strange mining track placement that goes through the building
+should be deleted"* and *"the entrances/exits/mineshafts whatever they are cut into the
+rollercoaster mountain make no sense at the bottom and are just a broken weird circle, and on the
+other side of the rollercoaster the 'queue' area is weird, in the wrong area."*
+
+**THE RIDE ALREADY DECLARED EVERYTHING I WAS GUESSING AT.** `Mine Coaster.scan.json` carries its
+own anchors and its own counts, and nothing that added to this land had read them:
+
+    queue_entry V24 U126 . public_entry V24 U134 . public_exit V24 U142 . ride_exit V24 U146
+    boarding V79 U134 . service_access V134 U167
+    queue_rows 22 . queue_cells 67 . station_blocks 902 . tunnels 1 . tunnel_mouths 2
+
+Every guest anchor is on the ride's WEST flank at V24. Three separate faults followed from nobody
+looking:
+
+- **MY TALUS WALLED UP THE RIDE'S FRONT DOOR.** Measured against the placed park, the ridge's
+  apron formed a continuous three-cell wall at V26-28 across U122-150 - directly in front of all
+  four public anchors. A guest walking the ground layer's own spur to the ride's entrance met
+  rock. `keep_out` now holds V24-32 / U116-154 clear, and that is not a loss: a moat on the guest
+  side is what lets the ride read AGAINST the mountain rather than merge into it. **The talus
+  belongs on the faces nobody enters by**, and there is no way to know which those are without
+  reading the ride's own anchors.
+- **THE FRONTAGE BUILT A SECOND QUEUE, ON THE WRONG SIDE, HALF OF IT OUTSIDE THE LAND.** A 7 x 30
+  switchback at V27-33 / U161-190 - thirty-five cells south of the ride's own queue entry, on the
+  far flank from all four anchors, and past U169 into the Claim Line reach. Its own comment said
+  it stood "down the Mine Coaster's EAST flank" and V27 is the WEST one. **It was sited from the
+  biggest empty strip in the land rather than from where the ride's door is**, which is exactly
+  how a queue ends up pointing away from the thing it queues for. Deleted; the coaster builds its
+  own 3-wide, 22-row queue. Its thresholds moved from U116/U152 to U126/U146 - the anchors.
+- **THE ADIT WAS ON THE BACK OF THE MOUNTAIN AND DUPLICATED THE RIDE'S OWN TUNNEL.** Its mouths
+  opened east at V145-146, and the only thing on that side is the service lane and the works
+  corridor: an entrance whose approach is back-of-house is scenery nobody reaches. Two mouths ten
+  cells apart read as damage rather than as a gallery. And the ride already declares `tunnels: 1`
+  with `tunnel_mouths: 2` - a third set of holes in one mountain is not more mine, it is noise.
+  Deleted. The interior a guest experiences is the COASTER'S tunnel.
+- **AND THE ORE LINE PIERCED THE MILL'S OWN WALL FIVE COURSES UP.** Routing it through the stamp
+  mill was deliberate - ore arriving on a trestle over the stamp floor is what a real mill looks
+  like - and what it reads as from outside is a railway through a building. The land already has
+  two railways; a third elevated track is a third thing to work out. `line: false`.
+
+**A TEST WHOSE SUBJECT IS SWITCHED OFF SKIPS WITH THE REASON, RATHER THAN PASSING VACUOUSLY.**
+The four ore-line assertions and the three adit assertions are guarded on the config rather than
+deleted: the machinery and its contract stay, and a suite that reported green because there was
+nothing left to check would be worse than one that failed.
+
+
 ## The daily loop
 
 ```bash

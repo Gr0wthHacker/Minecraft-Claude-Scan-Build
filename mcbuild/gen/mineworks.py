@@ -101,6 +101,18 @@ WORKSDEF = {
     "mill": [9, 21, 34, 70],   # v0, v1, u0, u1
     "dock": [9, 21, 8, 30],
     "power_every": 8,
+    # **THE ORE LINE IS OFF, AND IT WAS DELETED ON SIGHT.** Jack: "the 2nd strange mining track
+    # placement that goes through the building should be deleted." He is right and the fault was
+    # mine twice over: the line was routed THROUGH the stamp mill on purpose - ore arriving on a
+    # trestle over the stamp floor is what a real mill looks like - and what that reads as from
+    # outside is a railway piercing a building's wall five courses up. Worse, the land already has
+    # two railways (the coaster and the park line), so a third elevated track is not more industry,
+    # it is a third thing to work out.
+    #
+    # The machinery stays and is correct; point it at a site where the line is not a third railway
+    # crossing somebody's roof and turn it on. `tests/test_mineworks.py` skips the line's own
+    # assertions when it is off rather than passing them vacuously.
+    "line": False,
     "seed": 0,
 }
 
@@ -596,9 +608,12 @@ def _dock(lot: _Lot, p: dict) -> dict:
     for k in range(4):
         lot.put(tv - 3 - k // 2, ly - 2 - k, tu, WORKS["shutter"], facing="east", half="top",
                 open="true", powered="false", waterlogged="false")
-    # a detector rail on the deck under the tipple, and a bell it rings
-    lot.put(tv, ly, tu, WORKS["detect"], shape="north_south", powered="false",
-            waterlogged="false")
+    # A DETECTOR RAIL WITH NO LINE ON IT IS A RAIL IN A ROOF. It was the tipple's own trip - a
+    # cart running under it rang the bell - and with the line gone there is nothing to trip it, so
+    # it is not placed. The bell stays: it hangs in the tipple and a guest can ring it.
+    if p.get("line"):
+        lot.put(tv, ly, tu, WORKS["detect"], shape="north_south", powered="false",
+                waterlogged="false")
     lot.put(tv, ly + 1, tu, WORKS["bell"], facing="west", attachment="ceiling", powered="false")
     # ...and the dock's goes on the tipple's own leg, which is the only vertical face it has:
     # its bank is three courses of platform and a sign wants a wall.
@@ -631,7 +646,8 @@ def build(cfg: dict, donors=None) -> Canvas:
     # wins. Built the other way round the line's handrail cut two courses out of the battery's
     # climb and the whole mill simulated as dead while auditing perfectly clean.
     parts = {}
-    parts["line"] = _line(lot, p)
+    if p.get("line"):
+        parts["line"] = _line(lot, p)
     parts["mill"] = _mill(lot, p)
     parts["dock"] = _dock(lot, p)
 

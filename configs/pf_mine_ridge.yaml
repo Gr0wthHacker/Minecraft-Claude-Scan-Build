@@ -121,6 +121,16 @@ params:
   keep_out:
     - [0, 106, 57, 70]     # world V24-130 x U156-169 - the queue, the tower and the ore road
     - [86, 106, 48, 62]    # world V110-130 x U147-161 - the Trail Ore Cart
+    # **THE RIDE'S OWN PUBLIC FACE, AND THE FIRST BUILD WALLED IT UP.** `Mine Coaster.scan.json`
+    # declares every one of its guest anchors on its WEST flank at world V24: queue_entry U126,
+    # public_entry U134, public_exit U142, ride_exit U146. Measured against the placed park, my
+    # talus formed a continuous three-cell wall at V26-28 across U122-150 - directly in front of
+    # all four. A guest walking the ground layer's own spur to the ride's front door met rock.
+    #
+    # A moat on the guest side is not a loss: it is what lets the ride read AGAINST the mountain
+    # instead of merging into it, which is the whole composition. The talus belongs on the faces
+    # nobody enters by.
+    - [0, 8, 17, 55]       # world V24-32 x U116-154 - the ride's own entry, exit and queue
   # THE MOAT: the crest reaches full height only seven cells clear of the ride EXCEPT in a tunnel
   # zone, so everywhere else the track has rock to read against instead of rock on top of it.
   stand_off: 7
@@ -133,19 +143,28 @@ params:
     - [118, 40, 6]
     - [104, 8, 5]
     - [116, 14, 4]
-  # THE ADIT IS IN THE EAST FACE, which is the one a guest reaches: they come off the U94-98
-  # cross walk onto the open lawn at V125-147 and the portals face them. It bores WEST into the
-  # crag and stops well clear of the ride's own columns - a gallery is CARVED, so a lane crossing
-  # the coaster's footprint would punch holes in the ride this design exists not to touch.
-  adit:
-    at: [121, 25]
-    into: west
-    length: 18
-    cross: 10
-    width: 3
-    height: 4
-    cover: 4
-    chamber: [106, 30, 3]
+  # ---------------------------------------------------------------------------------------
+  # THE ADIT IS DELETED, and the reason is worth keeping.
+  #
+  # Jack: "the entrances/exits/mineshafts whatever they are cut into the rollercoaster mountain
+  # make no sense at the bottom and are just a broken weird circle."
+  #
+  # Three things were wrong with it and every one of them is structural:
+  #
+  #  * **IT WAS ON THE BACK OF THE MOUNTAIN.** Its mouths opened east at world V145-146, and the
+  #    only thing on that side is the service lane at V154-156 and the works corridor. Guests do
+  #    not go there. A mine entrance whose approach is back-of-house is scenery nobody reaches.
+  #  * **TWO MOUTHS TEN CELLS APART READ AS A BROKEN CIRCLE, NOT AS A GALLERY.** The U-shape was
+  #    meant to make it a walk-THROUGH rather than a dead end - the ruinway's rule that a way is
+  #    real when both ends are places - and from outside, at the foot of a fifty-course crag, two
+  #    holes in the rock a few cells apart read as damage.
+  #  * **AND IT DUPLICATED THE RIDE'S OWN.** `Mine Coaster.scan.json` declares `tunnels: 1` and
+  #    `tunnel_mouths: 2` - the coaster already bores through its own ridge, and now runs through
+  #    this one as well. A third set of holes in the same mountain is not more mine, it is noise.
+  #
+  # The mountain's interior is the COASTER'S tunnel now, which is the one a guest actually
+  # experiences. Nothing is bored for them to walk into.
+  adit: null
   seed: 19
 roles: [ride]
 design:
