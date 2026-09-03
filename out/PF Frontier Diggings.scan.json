@@ -32,8 +32,8 @@
       "facing": "south",
       "lines": [
         "THE STORE",
-        "picks, powder",
-        "candles",
+        "picks, brushes",
+        "plaster, crates",
         "cash only"
       ]
     },
@@ -45,8 +45,8 @@
       ],
       "facing": "north",
       "lines": [
-        "ASSAY SHED",
-        "we weigh dust",
+        "THE BONE SHED",
+        "we log finds",
         "no credit"
       ]
     }
@@ -189,7 +189,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "3979a502992a9e51009a298db03e2f1205e8e08ffa83545085be54a6cc794389",
+    "fingerprint": "c1171d7772308dd9eab073fa30a52bfa1b260335246872dabfa3e48cd2806394",
     "generator_source_digest": "7e5993c1b8101c700a3e9ef724d381445dab80c445541adc811ccbe34777dd0a",
     "anchors": [],
     "genome": {
@@ -233,9 +233,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 48.707443,
+    "seconds": 54.693227,
     "blocks": 5792,
-    "blocks_per_second": 118.91
+    "blocks_per_second": 105.9
   },
   "generator_contract": {
     "ok": true,

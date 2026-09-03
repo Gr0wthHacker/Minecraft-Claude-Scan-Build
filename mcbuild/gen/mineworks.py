@@ -409,10 +409,10 @@ def _mill(lot: _Lot, p: dict) -> dict:
     # it, so the failure is a missing sign rather than a floating one - which is why the count is
     # returned and asserted.
     signs = 0
-    if lot.sign(v0 - 1, 6, u0 + 3, "west", ["THE STAMP MILL", "five heads",
-                                            "press to run", "ore from the adit"]):
+    if lot.sign(v0 - 1, 6, u0 + 3, "west", ["THE CRUSHER", "five heads",
+                                            "press to run", "matrix from"]):
         signs += 1
-    if lot.sign(v0 - 1, 6, u1 - 3, "west", ["ORE FROM THE", "ADIT No.1", "stamped here",
+    if lot.sign(v0 - 1, 6, u1 - 3, "west", ["MATRIX FROM", "THE CUTTING", "crushed here",
                                             "shipped by rail"]):
         signs += 1
     for u in range(u0 + 3, u1, 6):
@@ -618,7 +618,7 @@ def _dock(lot: _Lot, p: dict) -> dict:
     # ...and the dock's goes on the tipple's own leg, which is the only vertical face it has:
     # its bank is three courses of platform and a sign wants a wall.
     signs = 1 if lot.sign(tv - 3, 4, tu - 2, "west",
-                          ["ORE DOCK", "loads for the", "frontier line"]) else 0
+                          ["THE LOADING", "loads for the", "plateau line"]) else 0
     # THE LAMPS ARE SET FLUSH IN THE BANK'S OWN TOP COURSE, which is Jack's idiom on this island
     # and the one light nobody can knock off a loading platform. Flush means it IS the floor: the
     # cell it replaces is solid, so it can never be the stray a lamp standing on air becomes.

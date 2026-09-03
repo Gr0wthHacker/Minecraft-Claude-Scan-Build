@@ -76,8 +76,7 @@
       ],
       "facing": "south",
       "lines": [
-        "MINE CART",
-        "ESCAPE",
+        "QUARRY RUN",
         "queue north"
       ]
     },
@@ -89,9 +88,9 @@
       ],
       "facing": "south",
       "lines": [
-        "MINING SQUARE",
-        "diggings west",
-        "coaster south"
+        "BASE CAMP",
+        "the dig, west",
+        "plateau south"
       ]
     }
   ],
@@ -299,8 +298,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "fe0f5629cca940bb7dba379695379894da90e56852942ddcc50fce0b48c9297d",
-    "generator_source_digest": "eb73bdd24adff5d72c98643b2491d2b881825d5f5dbf98b1f3f14c7b98ab48ff",
+    "fingerprint": "d278d45a258feafc494a594d3b450cac997ea0eec57d29988512d13bf8f6e0cb",
+    "generator_source_digest": "fc1c2ee3980dc78300c593d37a60ebabc964012cd62a86f9ae71524b4f024ad9",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -343,9 +342,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 65.908919,
+    "seconds": 64.586583,
     "blocks": 2469,
-    "blocks_per_second": 37.46
+    "blocks_per_second": 38.23
   },
   "generator_contract": {
     "ok": true,

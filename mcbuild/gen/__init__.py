@@ -19,7 +19,7 @@ class _Wrap:
 
 from . import frontier_builds, midway_builds, prismworks_builds  # noqa: E402
 from . import park_entrance, park_frontage, park_vantage, park_water  # noqa: E402
-from . import claimrow, diggings, frontier_scatter, mineridge, mineworks, park_games, plateau  # noqa: E402
+from . import claimrow, diggings, frontier_scatter, mineridge, mineworks, park_games, plateau, sauropod  # noqa: E402
 from . import wyrmgate  # noqa: E402
 from . import menagerie  # noqa: E402
 
@@ -69,6 +69,11 @@ GENERATORS = {
     # in the park - as jungle, ADDITIVELY, so the coaster and the mountain are untouched.
     # mcbuild/gen/plateau.py
     "plateau": plateau,
+    # THE LOST PLATEAU'S LANDMARK, and the one big animal this system is good at: a brachiosaur is
+    # a neck on columnar legs, which is the giraffe - the only quadruped in this repo that works -
+    # rather than the compound volumetric muscle that retired eight mammals.
+    # mcbuild/gen/sauropod.py
+    "sauropod": sauropod,
     # **THE GAMES INSIDE THE PARK'S BUILDINGS, AND THIS ENTRY WAS MISSING.**
     # `mcbuild/gen/park_games.py`, `tests/test_park_games.py` and ten
     # `configs/pf_game_*.yaml` all existed and the generator was not registered, so

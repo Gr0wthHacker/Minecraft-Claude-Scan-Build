@@ -22,8 +22,11 @@ gen: menagerie
 params:
   land: midway
   facing: west
-  at: [97636, 203, 80476]
-  title: Claim Lake Menagerie
+  at: [97630, 203, 80473]
+  title: CLAIM LAKE
+  subtitle: MENAGERIE
+  width: 39
+  depth: 24
   under: out/Park Complete.litematic
 finish:
   verify_against: out/Park Complete.litematic

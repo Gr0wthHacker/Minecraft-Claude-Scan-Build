@@ -57,6 +57,13 @@ params:
   at: [69, 0]
   under: out/Park Complete.litematic
   sy: 16
+  # **RULE 15, WIRED UP.** This design reads `Park Complete`, and once it is placed that composite
+  # CONTAINS it - so on the second run its own worked ground, stakes and props read as somebody
+  # else's build and it refuses almost all of them. Measured, exactly that: **1,070 blocks came
+  # out as 8** the first time this ran after shipping. A material list cannot fix it in a land
+  # where every module is the same stone and spruce (see `gen/claimrow.py`), so the answer is the
+  # design's OWN shipped cells, read off its own litematic.
+  previous: out/PF Frontier Claim Row.litematic
   # THE WAY: three wide at U1-3, kerbed either side, a flush froglight every eleven courses. One
   # course proud of the moss, which is a free step and therefore needs no flight.
   way: {u: 1, w: 3, glow_every: 11}
@@ -109,9 +116,10 @@ params:
   # The working has to be CONTINUOUS and stop raggedly, not arrive in patches.
   worked: 9.0
   clear: 1
+  flora: jungle
   # SPARSE. At density 0.6 the flat came out with 502 leaf cells - a spruce plantation on a
   # worked-out claim. A few trees in the moss the working stopped at is the whole intent.
-  plant: {step: 6, density: 0.3, kinds: [pine, snag, snag, rock]}
+  plant: {step: 6, density: 0.3, kinds: [jungle, snag, snag, rock]}
   seed: 47
   title: THE CLAIM ROW
 roles: [construction]

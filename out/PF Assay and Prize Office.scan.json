@@ -117,8 +117,8 @@
       ],
       "facing": "west",
       "lines": [
-        "ASSAY OFFICE",
-        "and prize windo"
+        "THE FOSSIL LAB",
+        "and prizes"
       ]
     },
     {
@@ -130,8 +130,8 @@
       "facing": "west",
       "lines": [
         "PRIZE WINDOW",
-        "range and",
-        "sluice results"
+        "screen hut and",
+        "sorting run"
       ]
     },
     {
@@ -211,7 +211,7 @@
       ],
       "wall_top": 8,
       "ridge_y": 15,
-      "title": "ASSAY OFFICE",
+      "title": "THE FOSSIL LAB",
       "openings": [
         {
           "kind": "door",
@@ -530,8 +530,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "d03c55fac5c068b275e2b465487835f3162e1ec917b5addbe77400ffdedb5ac3",
-    "generator_source_digest": "ba20ea3c325b512e6c4d381f79f227891356832ebfa3e76f5621a4bfecccaa65",
+    "fingerprint": "a31027c845cab54b1e3b14352cbca7e9447db0ffa84c559b7351489b33a8e489",
+    "generator_source_digest": "fc1c2ee3980dc78300c593d37a60ebabc964012cd62a86f9ae71524b4f024ad9",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -573,9 +573,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 61.457586,
+    "seconds": 60.385731,
     "blocks": 2248,
-    "blocks_per_second": 36.58
+    "blocks_per_second": 37.23
   },
   "generator_contract": {
     "ok": true,

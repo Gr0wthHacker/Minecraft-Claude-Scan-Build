@@ -25,13 +25,13 @@
   "signs": [
     {
       "at": [
-        2,
+        11,
         2,
         14
       ],
       "facing": "south",
       "lines": [
-        "CLAIM No 1",
+        "DIG No 1",
         "SHALLOW BAR",
         "worked out"
       ]
@@ -44,7 +44,7 @@
       ],
       "facing": "south",
       "lines": [
-        "CLAIM No 2",
+        "DIG No 2",
         "THE ELBOW",
         "still paying"
       ]
@@ -57,7 +57,7 @@
       ],
       "facing": "south",
       "lines": [
-        "CLAIM No 3",
+        "DIG No 3",
         "LAST CHANCE",
         "abandoned"
       ]
@@ -86,6 +86,10 @@
         ],
         "number": 1,
         "signed": true,
+        "board": [
+          11,
+          13
+        ],
         "cells": 163
       },
       {
@@ -99,6 +103,10 @@
         ],
         "number": 2,
         "signed": true,
+        "board": [
+          26,
+          13
+        ],
         "cells": 197
       },
       {
@@ -112,11 +120,15 @@
         ],
         "number": 3,
         "signed": true,
+        "board": [
+          40,
+          13
+        ],
         "cells": 172
       }
     ],
     "worked": {
-      "cells": 114,
+      "cells": 115,
       "reach": 9.0
     },
     "pits": [
@@ -139,7 +151,7 @@
     ],
     "planting": {
       "trees": 8,
-      "cells": 227
+      "cells": 319
     }
   },
   "contract": "the ground inside Frontier column A's lots that no module ever built: worked placer ground laid at the plane and fading into untouched moss, a packed way that is walked rather than looked at, and staked, numbered claims with their tailings and rockers. No water, no building, and every candidate asked of the world this is verified against.",
@@ -176,52 +188,52 @@
       "narrative": "The worked-out placer flat behind the Prospecting Porch: a packed way down its whole length, three staked and numbered claims with their tailings, rockers and barrows, two windlasses over cribbed prospect pits, and pines and snags in the moss the working stopped at.\n"
     },
     "metrics": {
-      "blocks": 1070,
-      "materials": 20,
-      "dominant_material_share": 0.1626,
+      "blocks": 1168,
+      "materials": 22,
+      "dominant_material_share": 0.2277,
       "light_blocks": 0,
       "massing": {
         "width": 54,
-        "height": 8,
+        "height": 10,
         "depth": 18,
-        "fill_ratio": 0.1376
+        "fill_ratio": 0.1202
       },
       "silhouette": {
         "top": {
-          "area": 652,
-          "fill_ratio": 0.6355
+          "area": 653,
+          "fill_ratio": 0.6365
         },
         "front": {
-          "area": 153,
-          "fill_ratio": 0.1771
+          "area": 182,
+          "fill_ratio": 0.2106
         },
         "side": {
-          "area": 88,
-          "fill_ratio": 0.2895
+          "area": 104,
+          "fill_ratio": 0.3421
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.9813,
-          0.0187,
+          0.8579,
+          0.1421,
           0.0
         ],
-        "top_silhouette_perimeter": 374,
-        "surface_faces_per_block": 2.1701
+        "top_silhouette_perimeter": 378,
+        "surface_faces_per_block": 2.1901
       },
       "material_counts": {
-        "spruce_leaves": 174,
+        "jungle_leaves": 266,
         "cobbled_deepslate": 156,
-        "cobbled_deepslate_slab": 152,
+        "cobbled_deepslate_slab": 156,
         "cobblestone": 142,
-        "gravel": 112,
+        "gravel": 113,
         "dripstone_block": 101,
-        "spruce_log": 60,
-        "stripped_spruce_log": 59,
+        "stripped_spruce_log": 44,
+        "spruce_log": 41,
         "spruce_fence": 33,
         "spruce_planks": 24,
-        "coal_ore": 12,
-        "mossy_cobblestone": 11
+        "jungle_log": 19,
+        "stripped_jungle_log": 15
       }
     },
     "checks": [],
@@ -233,8 +245,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "dfd50b1faa3b7bdb166c57ce82f073981ddd4ada1bed9b4f9efe518d9b62a97f",
-    "generator_source_digest": "4e9b83d97ef0cb558b746b7fda0ee8fe69e62cd6e7f40809bef796b176c1b205",
+    "fingerprint": "95b9a83b2ff168fd026a96d16b0bd16e52998d1d1f39d15f6ba58eb9941fc5e3",
+    "generator_source_digest": "3d267bd7b3446bc8b716b936c3e4b512a2cf80dd25c31a392d3f89768bf70f54",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -276,9 +288,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 59.499185,
-    "blocks": 1070,
-    "blocks_per_second": 17.98
+    "seconds": 65.682877,
+    "blocks": 1168,
+    "blocks_per_second": 17.78
   },
   "generator_contract": {
     "ok": true,
@@ -287,7 +299,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 1070,
+    "blocks": 1168,
     "mechanic_families": [
       "container",
       "rail",
@@ -317,7 +329,9 @@
     "not in the provisional skyblock-1.19 list: cobbled_deepslate",
     "not in the provisional skyblock-1.19 list: cobbled_deepslate_slab",
     "not in the provisional skyblock-1.19 list: diorite",
-    "not in the provisional skyblock-1.19 list: dripstone_block"
+    "not in the provisional skyblock-1.19 list: dripstone_block",
+    "not in the provisional skyblock-1.19 list: jungle_log",
+    "not in the provisional skyblock-1.19 list: stripped_jungle_log"
   ],
   "file": "PF Frontier Claim Row.litematic",
   "name": "PF Frontier Claim Row"

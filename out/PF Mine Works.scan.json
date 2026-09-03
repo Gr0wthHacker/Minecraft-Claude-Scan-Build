@@ -31,10 +31,10 @@
       ],
       "facing": "west",
       "lines": [
-        "THE STAMP MILL",
+        "THE CRUSHER",
         "five heads",
         "press to run",
-        "ore from the ad"
+        "matrix from"
       ]
     },
     {
@@ -45,9 +45,9 @@
       ],
       "facing": "west",
       "lines": [
-        "ORE FROM THE",
-        "ADIT No.1",
-        "stamped here",
+        "MATRIX FROM",
+        "THE CUTTING",
+        "crushed here",
         "shipped by rail"
       ]
     },
@@ -59,9 +59,9 @@
       ],
       "facing": "west",
       "lines": [
-        "ORE DOCK",
+        "THE LOADING",
         "loads for the",
-        "frontier line"
+        "plateau line"
       ]
     }
   ],
@@ -379,8 +379,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "1654b778a3c44e19cd2c23b1d549a77b71e6a8cd9c2e09fd2f34b1b7d3a5e210",
-    "generator_source_digest": "f1ac5a2e5ad9024d091fb6b532d78f826f4cdf70ffadf02a657fb06c37d70efd",
+    "fingerprint": "0e274ba61c4823aa15f5c49d3a84fb6efb38fd44df3d1a4224dc008d77cd65b6",
+    "generator_source_digest": "4f7eef70feaf925456b2bda002ace98b7eb19436891f43d943a9bb8fd7294096",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -424,9 +424,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 54.402797,
+    "seconds": 57.910151,
     "blocks": 4779,
-    "blocks_per_second": 87.84
+    "blocks_per_second": 82.52
   },
   "generator_contract": {
     "ok": false,

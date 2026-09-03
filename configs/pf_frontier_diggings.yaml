@@ -75,9 +75,9 @@ params:
     - [45, 38, 12, 9]
   shops:
     - {v: 8, side: -1, width: 7, depth: 5, height: 4,
-       lines: ["THE STORE", "picks, powder", "candles", "cash only"]}
+       lines: ["THE STORE", "picks, brushes", "plaster, crates", "cash only"]}
     - {v: 33, side: 1, width: 7, depth: 5, height: 4,
-       lines: ["ASSAY SHED", "we weigh dust", "no credit"]}
+       lines: ["THE BONE SHED", "we log finds", "no credit"]}
   # A PROP WITH A JOB, never a heap of vague blocks. Both shafts sit on a bank rather than on the
   # trail, and every one of these is clear of the walk's own verge at u19-25.
   # THE WORKINGS GATHER ROUND THE YARD (V20-35 / U26-37), which is what gives it a reason to be

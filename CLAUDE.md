@@ -7132,17 +7132,104 @@ WORLD and not to this design, so in isolation it hangs on nothing. In context it
 composite is the truth** - and a pass whose whole purpose is dressing somebody else's surface can
 never be judged alone.
 
+#### The re-theme, carried through: the signs, the trees and the landmark (2026-09-03)
+
+**THE SIGNS.** A land whose signs contradict its ground is worse than one that is merely grey, and
+28 of them plus 11 frontage marquees still said Frontier. All of them now name what is actually
+there - the gate is **LOST PLATEAU / "camp and dig"**, the marquees are **BASE CAMP GATE**,
+**THE SCREENS**, **PLATEAU RUN**, **BASE CAMP**, **THE FOSSIL LAB**, **THE HAUL ROAD**,
+**MATRIX TIP**, the porch's bays are **THE SCREEN HUT** and **THE SORTING RUN**, the stamp mill is
+**THE CRUSHER** (which is what a stamp battery is), the claim posts read **DIG No 1 / THE BONE
+BED**, and the Diggings keeps its name because a dig site is a dig site.
+
+**Two signs were already clipped mid-word before this pass touched them** - "and prize windo" and
+"ore from the ad" - so a width check now runs over every config sign line in the land. **FIFTEEN
+CHARACTERS IS THE LINE**, and this file has recorded that twice now.
+
+**THE TREES.** `frontier_scatter` planted spruce, which is the single most frontier-looking thing
+left on the open ground. **A PALETTE SWAP IS NOT A SHAPE SWAP**, and that is the whole reason
+`_jungle` exists beside `_pine`: `_pine` narrows in steps, which is what makes a voxel conifer
+read, and built out of jungle wood it is a fir painted green. The broadleaf carries a crown wider
+than it is tall on a bare trunk - the same shape `gen/plateau.py` puts on the ridge, so the canopy
+above and the trees below read as one wood.
+
+Three things that change made necessary, each one a rule:
+
+- **THE PALETTE TRAVELS WITH THE GROUND PROBE, NOT AS A MODULE GLOBAL** - `gen/claimrow.py` shares
+  these props, so two lands with two species have to run in one process.
+- **`OWN` IS THE UNION ACROSS EVERY PALETTE.** Keyed to one, the re-theme would have refused every
+  spruce still standing and planted on top of it.
+- **AN UNKNOWN KIND RAISES; IT DOES NOT BECOME A ROCK.** The claim row's dispatcher swallowed any
+  name it did not recognise in an else-branch, so the day the config asked for `jungle` it would
+  have planted boulders and the only symptom would have been a suspiciously stony landscape.
+
+**AND `previous:` WAS BUILT AND NEVER WIRED UP.** The claim row reads `Park Complete`, and once it
+is placed that composite CONTAINS it - so on the first run after shipping it read its own worked
+ground as somebody else's build and **1,070 blocks came out as 8**. The mechanism was right and
+the config never named the file. Both configs carry it now.
+
+#### `gen/sauropod.py` - and the land has no room for it
+
+**2,323 blocks, ONE piece, 0 problems, all cheap.** A brachiosaur: four columnar tapered legs with
+the FRONT pair longer, a spindle barrel falling away to the hip, a neck rising nearly vertical to a
+crested head, and a tail as long as the neck.
+
+**IT IS BUILT BECAUSE OF THIS FILE'S RULE, NOT IN SPITE OF IT.** The neck is a column - the giraffe
+is the one quadruped here that works, and it works because its identity is a neck. The legs are
+columns. The silhouette carries it entirely, which is the panel review's only real question. **A
+diplodocid was rejected**: it carries its neck level, which foreshortens to nothing from three of
+four bearings and reads as a log on legs.
+
+**THE COAT IS A MEASURED HUE FLIP FROM THE CANOPY.** Against `jungle_leaves` (73,103,27),
+`brown_wool` is 53 RGB away and `gray_wool` 58 - both vanish, which is the green-turtle mistake.
+The ladder is `gray_wool` 67 / `light_gray_wool` 141 / `white_wool` 236, and the flank sits 134 RGB
+clear of the leaves it stands against.
+
+Three defects, and two of them were invisible:
+
+- **A CANVAS SIZED FOR THE WRONG AXIS.** The box was always long in X. Built facing north the
+  animal's length ran along Z and it was **clipped to 22 blocks of 48** - head, neck and half the
+  tail simply refused - while the render still showed a plausible small dinosaur. The only symptom
+  was a refusal count nobody was reading. The frame maps forward and side onto the world; the box
+  has to be mapped the same way.
+- **A PROTECTION SET KEYED ON MATERIAL PROTECTS EVERY CELL MADE OF THAT MATERIAL.** The crest is
+  `light_gray_wool` and so is the flank the whole animal is swept in, so "keep the crest" kept all
+  2,323 cells: the countershading ran, skipped everything, and returned a tally of four zeros. **It
+  is the same mistake as answering rule 15 with a material list, one level down** - a set of things
+  is not a set of cells - and it shipped a monochrome animal.
+- **AN EYE IS FOUND, NOT COMPUTED.** Placed at a calculated half-width it floated a cell proud of a
+  head the sweep had already moved, ringed in five cells of white on a head three wide - a clown
+  patch, 169 points of luminance where 35 is enough. It reads the built surface back now and its
+  ring is `light_gray_wool`.
+
+**AND THE LAND HAS NO SITE FOR IT.** Searched over the whole Frontier band plus the Claim Line
+reach, water allowed and roll tolerated to ten courses:
+
+    open lawn with 36 courses of sky        8,724 columns
+    LARGEST CLEAR RECTANGLE IN ALL OF IT      6 x 49
+    sites holding 42 x 13, its footprint           0
+    ...on the plateau's own soil, roll <= 10       0
+
+**The land is full: its open ground is verges and strips six wide.** Jack: *"we can put it
+somewhere on the far left side; against the void where the tower and other frontier objects
+currently are"* - and that is the one band with room, the outer rim past the railway at
+**V187-199, which rolls two courses in its entire length**. 132 windows of 13 x 42 fit there; it
+stands at the lowest-U one, the corner the Vantage Lookout is in, facing north into the park so a
+guest sees the head and neck rather than the tail.
+
+**A SEARCH THAT RETURNS ZERO IS NOT ALWAYS A FULL LAND.** This one returned zero four times and the
+fourth was an off-by-one: `range(dv - L)` never tries the row the band actually starts on, so the
+rim - flat, empty and 13 deep against a 13-deep animal - was the one window never tested.
+
 #### Still open
 
-- **The land is still called the Frontier on every sign it has.** The gate reads FRONTIER / "mine
-  and town", and the frontage marquees still name a Mining Square and a Prospecting Porch. That is
-  ~30 signs across six designs and it is the next thing, because a land whose signs contradict its
-  ground is worse than one that is merely grey.
-- **The icons are not built.** A sauropod over the treeline is what would name this land from
-  anywhere in the park; a pterosaur and a fossil dig in the Diggings are the other two.
-- **`frontier_scatter` still plants spruce** across the open ground - the pines belong to the theme
-  that went.
-- **Nothing placed in game.** Judge form and mass off `render3d`, palette in world.
+- **The fossil dig and the pterosaur are not built.** The Diggings is already a dig site and wants
+  bones in its trenches; a pterosaur is `gen/bat.py`'s category and would hang off the plateau's
+  face.
+- **The land measures 1.4% show material still**, because its colour is now FOLIAGE rather than
+  wool - the ridge's top surface went 24.2% green to 71.0%, which the show-material metric cannot
+  see. Whether that reads as an identity is a question for a walk, not a number.
+- **Nothing placed in game.**
 
 ## The daily loop
 

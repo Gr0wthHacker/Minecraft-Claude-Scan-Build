@@ -47,6 +47,13 @@ params:
   at: [24, 0]
   under: out/Park Complete.litematic
   sy: 16
+  # **RULE 15, WIRED UP.** This design reads `Park Complete`, and once it is placed that composite
+  # CONTAINS it - so on the second run its own worked ground, stakes and props read as somebody
+  # else's build and it refuses almost all of them. Measured, exactly that: **1,070 blocks came
+  # out as 8** the first time this ran after shipping. A material list cannot fix it in a land
+  # where every module is the same stone and spruce (see `gen/claimrow.py`), so the answer is the
+  # design's OWN shipped cells, read off its own litematic.
+  previous: out/PF Frontier Muster Yard.litematic
   # THE ROUTE THROUGH THE THRESHOLD. Two straight runs, three wide, measured off the gate's own
   # openings: from inside the portal (V33) south down U17-19 to V50, then east to the exit arch's
   # threshold at U33. It stops at U33 because V49/U34 is the store's own corner - measured, not
@@ -72,9 +79,10 @@ params:
   # worked yard rather than as a garden path.
   worked: 16.0
   clear: 1
+  flora: jungle
   # TWO OR THREE TREES, NOT A PLANTATION. At density 0.45 the court came out with 305 leaf cells -
   # a spruce wood inside a walled forecourt.
-  plant: {step: 9, density: 0.22, kinds: [pine, rock, rock]}
+  plant: {step: 9, density: 0.22, kinds: [jungle, rock, rock]}
   seed: 53
   title: THE MUSTER YARD
 roles: [construction]

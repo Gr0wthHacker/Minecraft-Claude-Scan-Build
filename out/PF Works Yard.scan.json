@@ -117,7 +117,7 @@
       ],
       "facing": "west",
       "lines": [
-        "WORKS YARD",
+        "FIELD STATION",
         "staff only"
       ]
     }
@@ -372,8 +372,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "82413e01f08db50fa7193229d748ab25de05e0705805035a95f1200a05ec5a33",
-    "generator_source_digest": "4bdf1de052d31c8cf7e04f30f322bc3e26f41f4a90bc4313543128d89f2f574a",
+    "fingerprint": "de09611a6f864c3be2e7e55dd6c8351ad45dcf4a27d1709955cd28292af352b1",
+    "generator_source_digest": "fc1c2ee3980dc78300c593d37a60ebabc964012cd62a86f9ae71524b4f024ad9",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -413,9 +413,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 99.594678,
+    "seconds": 60.300708,
     "blocks": 1227,
-    "blocks_per_second": 12.32
+    "blocks_per_second": 20.35
   },
   "generator_contract": {
     "ok": true,

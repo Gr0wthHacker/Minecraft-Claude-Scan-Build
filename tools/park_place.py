@@ -188,6 +188,12 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # ADDITIVELY, so the coaster and the mountain are untouched: 72% of the land's mass
                 # is those two designs and neither is regenerated.
                 "PF Lost Plateau",
+                # THE LANDMARK. Jack: "we can put it somewhere on the far left side; against the
+                # void where the tower and other frontier objects currently are." Measured, that
+                # is the ONLY place it fits: the largest clear rectangle anywhere else in the land
+                # is 6 x 49, and this animal is 48 x 11 x 36. The outer rim past the railway rolls
+                # two courses in its whole length.
+                "PF Sauropod",
                 # THE WYRM'S SKULL, OFF THE CAUSEWAY AND ONTO THE LINE. Jack: "are we able to
                 # place the skull so that the mouth 'opens' around the railway, the back of the
                 # skeleton is towards the void and the mouth gap is where the railway passes

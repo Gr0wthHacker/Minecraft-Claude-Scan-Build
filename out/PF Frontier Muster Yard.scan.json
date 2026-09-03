@@ -31,8 +31,8 @@
       ],
       "facing": "north",
       "lines": [
-        "THE CLAIM ROW",
-        "stakes east",
+        "THE DIG ROW",
+        "trenches east",
         "keep to the way"
       ]
     },
@@ -46,8 +46,8 @@
       "lines": [
         "THE LOOKOUT",
         "south, 60 out",
-        "no ore past",
-        "the stakes"
+        "no finds past",
+        "the pegs"
       ]
     }
   ],
@@ -250,8 +250,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "b24bb00f2c292c2c87bba5fe2062ea523d7d4a33c12b7b41e5130dc49ef817cc",
-    "generator_source_digest": "4e9b83d97ef0cb558b746b7fda0ee8fe69e62cd6e7f40809bef796b176c1b205",
+    "fingerprint": "07fb6d32feb0a4a2378469deb8f6a51f5b22bfe4e73ad125147dda63b076875a",
+    "generator_source_digest": "3d267bd7b3446bc8b716b936c3e4b512a2cf80dd25c31a392d3f89768bf70f54",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -294,9 +294,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 65.3456,
+    "seconds": 69.276738,
     "blocks": 905,
-    "blocks_per_second": 13.85
+    "blocks_per_second": 13.06
   },
   "generator_contract": {
     "ok": true,

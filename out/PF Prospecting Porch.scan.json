@@ -148,10 +148,10 @@
       ],
       "facing": "south",
       "lines": [
-        "THE WASH HOUSE",
-        "load the pan",
+        "THE SCREEN HUT",
+        "wash the matrix",
         "to the line",
-        "prizes: assay"
+        "prizes: lab"
       ]
     },
     {
@@ -162,9 +162,9 @@
       ],
       "facing": "south",
       "lines": [
-        "GOLD SLUICE",
+        "SORTING RUN",
         "wash your own",
-        "pay dirt"
+        "matrix"
       ]
     }
   ],
@@ -258,7 +258,7 @@
       ],
       "wall_top": 7,
       "ridge_y": 14,
-      "title": "THE WASH HOUSE",
+      "title": "THE SCREEN HUT",
       "openings": [
         {
           "kind": "door",
@@ -441,7 +441,7 @@
       ],
       "wall_top": 7,
       "ridge_y": 14,
-      "title": "GOLD SLUICE",
+      "title": "THE SORTING RUN",
       "openings": [
         {
           "kind": "door",
@@ -734,8 +734,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "d6994084f57e902c3f1bb6b940f09477163b2583d46cc3809d91ead53acd9f33",
-    "generator_source_digest": "c71b72098ac35a384bff5fda4566cf0eb3250a170e957cd507435eb339c7fa5e",
+    "fingerprint": "b9d9437d3fcee6bc5551690215c5715b36a3dc645ceb014afd42a47a0ad488bb",
+    "generator_source_digest": "fc1c2ee3980dc78300c593d37a60ebabc964012cd62a86f9ae71524b4f024ad9",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -777,9 +777,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 87.602084,
+    "seconds": 67.720625,
     "blocks": 3499,
-    "blocks_per_second": 39.94
+    "blocks_per_second": 51.67
   },
   "generator_contract": {
     "ok": false,

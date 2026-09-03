@@ -68,7 +68,8 @@ from __future__ import annotations
 
 from .canvas import Canvas, hash01
 from .frontier_builds import EAST, SOUTH, _Lot
-from .frontier_scatter import _Ground, _boulder, _pine, _snag, shipped_cells
+from .frontier_scatter import KINDS as _TREES
+from .frontier_scatter import _Ground, _boulder, flora_for, shipped_cells
 from .vertical import Ctx
 
 #: The worked flat's own kit. Every entry is checked against `blocks.available` (the 1.19 server),
@@ -174,6 +175,7 @@ CLAIMROW = {
     "worked": 7.0,                 # how far the worked ground reaches from the way and the claims
     "plant": None,                 # {"step": n, "density": f, "kinds": [...]}
     "clear": 1,                    # how far a planted trunk must be from anything built or paved
+    "flora": "spruce",             # which trees - see `frontier_scatter.PALETTES`
     "seed": 0,
     "title": "THE CLAIM ROW",
 }
@@ -410,7 +412,7 @@ def _claim(lot: _Lot, g: _Ground, spec: dict, seed: int) -> dict:
     # **SO IT TRIES BOTH ENDS.** A hand-tuned offset per claim is a number that goes stale the
     # first time a claim moves; asking for the near corner and falling back to the far one is the
     # same answer without anything to keep in sync, and `signed: false` still means neither worked.
-    lines = [f"CLAIM No {spec.get('number', 1)}", str(spec.get("name", ""))[:15],
+    lines = [f"DIG No {spec.get('number', 1)}", str(spec.get("name", ""))[:15],
              str(spec.get("note", "worked out"))[:15]]
     for bv in (v0, v1):
         bu = u1 + 1
@@ -580,8 +582,8 @@ def _notice(lot: _Lot, g: _Ground, v: int, u: int, seed: int, facing=SOUTH) -> d
             n += 1 if lot.put(v + dv, y, u, KIT["board" if y == 3 else "plank"]) else 0
     for dv in range(1, 3):
         n += 1 if lot.slab(v + dv, 4, u, KIT["slab"], "bottom") else 0
-    for dv, lines in ((1, ["THE CLAIM ROW", "stakes east", "keep to the way"]),
-                      (2, ["THE LOOKOUT", "south, 60 out", "no ore past", "the stakes"])):
+    for dv, lines in ((1, ["THE DIG ROW", "trenches east", "keep to the way"]),
+                      (2, ["THE LOOKOUT", "south, 60 out", "no finds past", "the pegs"])):
         if lot.sign(v + dv + sv, 3, u + su, facing, lines):
             out["signed"] += 1
             n += 1
@@ -698,12 +700,17 @@ def _plant(lot: _Lot, g: _Ground, p: dict, seed: int) -> dict:
             if hash01(a, b, seed + 63) > dens or not g.clearing(a, b):
                 continue
             kind = kinds[int(hash01(a, b, seed + 64) * len(kinds)) % len(kinds)]
-            if kind == "pine":
-                got = _pine(lot, g, a, b, seed)
-            elif kind == "snag":
-                got = _snag(lot, g, a, b, seed)
-            else:
+            # **AN UNKNOWN KIND RAISES; IT DOES NOT BECOME A ROCK.** Written as an else-branch this
+            # dispatcher swallowed every name it did not recognise - so the day the land changed
+            # species and the config asked for `jungle`, it would have planted boulders and the
+            # only symptom would have been a suspiciously stony landscape.
+            if kind == "rock":
                 got = _boulder(lot, g, a, b, 1 + int(hash01(a, b, seed + 65) * 2), seed)
+            elif kind in _TREES:
+                got = _TREES[kind](lot, g, a, b, seed)
+            else:
+                raise ValueError(f"unknown planting kind {kind!r}; have "
+                                 f"{sorted(list(_TREES) + ['rock'])}")
             if got:
                 trees += 1
                 cells += got
@@ -731,7 +738,8 @@ def build(cfg: dict, donors=None) -> Canvas:
     ctx = Ctx(p["under"])
     g = _Ground(ctx, anchor, dv, du, (at_v, at_u), int(p.get("clear", 1)),
                 keep_out=p.get("keep_out") or (), own=OWN,
-                mine=shipped_cells(p.get("previous")))
+                mine=shipped_cells(p.get("previous")),
+                flora=flora_for(p.get("flora")))
 
     parts: dict = {}
     if kind == "claims":

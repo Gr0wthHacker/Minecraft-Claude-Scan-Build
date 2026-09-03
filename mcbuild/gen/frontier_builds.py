@@ -1169,13 +1169,13 @@ def _trailhead(lot: _Lot, p: dict) -> dict:
 
     # 1. the west range - the portal, its towers, the trail office and the waiting porch
     out["portal"] = _arch(lot, 1, 7, eu - 6, eu + 6, axis="u", pier=3, clear_h=7,
-                          title="FRONTIER")
+                          title="LOST PLATEAU")
     # THE LAND'S NAME IS A SHAPED BOARD OVER THE ARCH, NOT A SIGN ON IT. A guest arriving on
     # the spine reads this from fifty blocks, where a sign is four pixels: a stepped parapet
     # standing six courses proud of the portal, a red cornice under a stone coping, a yellow
     # field in a red frame, and a froglight at each end of the board so it carries at night.
-    out["showgable"] = _showfront(lot, 1, 1, eu - 6, eu + 6, "-v", 11, "FRONTIER",
-                                  rise=6, lines=["mine and town"])
+    out["showgable"] = _showfront(lot, 1, 1, eu - 6, eu + 6, "-v", 11, "LOST PLATEAU",
+                                  rise=6, lines=["camp and dig"])
     out["tower_n"] = _tower(lot, 1, 7, eu - 12, eu - 7, top=15, ridge="v", title=None)
     out["tower_s"] = _tower(lot, 1, 7, eu + 7, eu + 12, top=15, ridge="v", title=None)
     # THE MASTS ARE THE SILHOUETTE. Two gate towers with pitched caps are two gate towers; a
@@ -1183,11 +1183,11 @@ def _trailhead(lot: _Lot, p: dict) -> dict:
     # to a quarter scale, which is the only scale most guests ever read this from.
     out["mast_n"] = _flagpole(lot, 4, eu - 12, 17, h=7, side=-1)
     out["mast_s"] = _flagpole(lot, 4, eu + 12, 17, h=7, side=1)
-    out["office"] = _shed(lot, 1, 12, 1, eu - 13, h=7, ridge="v", title="TRAIL OFFICE",
+    out["office"] = _shed(lot, 1, 12, 1, eu - 13, h=7, ridge="v", title="FIELD OFFICE",
                           doors=(("-v", (1 + eu - 13) // 2, 2),), false_front="-v",
                           show_rise=5, awning="-v", awning_y=5, awning_depth=1,
                           awning_fringe=False, sign_face="-v",
-                          sign_lines=["TRAIL OFFICE", "maps and lost", "property"])
+                          sign_lines=["FIELD OFFICE", "maps and lost", "property"])
     out["porch"] = _porch_run(lot, 1, 12, eu + 13, du - 1, out="-u", h=5, lamp_every=5)
     # BUNTING DOWN THE WAITING PORCH, strung post to post along its own colonnade. It is the
     # one thing in the forecourt a guest stands under while they wait, and forty blocks of it.
@@ -1221,14 +1221,14 @@ def _trailhead(lot: _Lot, p: dict) -> dict:
         else:
             lot.fence(v, 4, u, "u")
     out["exit"] = _arch(lot, 21, 29, du - 4, du - 2, axis="v", pier=3, clear_h=5,
-                        title="TO THE MINE")
+                        title="TO THE DIG")
 
     # 3. inside the court: the water tower against the flank wall, and the trail store
     out["water_tower"] = _water_tower(lot, dv - 6, 3, leg=7, r=3)
     out["store"] = _shed(lot, dv - 11, dv - 2, du - 12, du - 1, h=6, ridge="u",
-                         title="TRAIL STORE", doors=(("-v", du - 7, 2),),
+                         title="FIELD STORE", doors=(("-v", du - 7, 2),),
                          false_front="-v", show_rise=5, awning="-v", awning_y=4,
-                         sign_face="-v", sign_lines=["TRAIL STORE"])
+                         sign_face="-v", sign_lines=["FIELD STORE"])
     return out
 
 
@@ -1281,13 +1281,13 @@ def _porch_lot(lot: _Lot, p: dict) -> dict:
     # THE TWO BAYS ANNOUNCE THEMSELVES OVER THE VERANDA ROOF. A game bay whose name is only
     # readable from under the canopy is a game nobody chooses from the walk outside; the show
     # fronts stand proud of the veranda so both are named from the avenue at U41-45.
-    out["range"] = _shed(lot, 6, 22, du - 20, du - 8, h=7, ridge="v", title="THE WASH HOUSE",
+    out["range"] = _shed(lot, 6, 22, du - 20, du - 8, h=7, ridge="v", title="THE SCREEN HUT",
                          doors=(("+u", 14, 3),), false_front="+u", show_rise=6,
                          sign_face="+u",
                          # FIFTEEN CHARACTERS IS THE LINE. "prizes at the assay" is 19 and
                          # shipped clipped to "prizes at the a", mid-word.
-                         sign_lines=["THE WASH HOUSE", "load the pan", "to the line",
-                                     "prizes: assay"])
+                         sign_lines=["THE SCREEN HUT", "wash the matrix", "to the line",
+                                     "prizes: lab"])
     for v in range(8, 21):                            # the board and the result ladder
         lot.put(v, 4, du - 20, "paint")
         lot.put(v, 5, du - 20, "board")
@@ -1299,10 +1299,10 @@ def _porch_lot(lot: _Lot, p: dict) -> dict:
         lot.put(10, 1, u, "timber")
 
     # bay B - the gold sluice, a launder on trestles and a settling pool below it
-    out["sluice"] = _shed(lot, 28, 44, du - 20, du - 8, h=7, ridge="v", title="GOLD SLUICE",
+    out["sluice"] = _shed(lot, 28, 44, du - 20, du - 8, h=7, ridge="v", title="THE SORTING RUN",
                           doors=(("+u", 14, 3),), false_front="+u", show_rise=8,
                           sign_face="+u",
-                          sign_lines=["GOLD SLUICE", "wash your own", "pay dirt"])
+                          sign_lines=["SORTING RUN", "wash your own", "matrix"])
     for k, u in enumerate(range(du - 18, du - 9)):    # the launder, falling toward the pool
         y = 4 - k // 3
         for v in (31, 33):
@@ -1579,8 +1579,8 @@ def _square(lot: _Lot, p: dict) -> dict:
     out["mast_n"] = _flagpole(lot, v0, 3, base + 7, h=7, along="v", side=-1)
     out["mast_s"] = _flagpole(lot, v1, 3, base + 7, h=7, along="v", side=1)
     out["bunting"] = _bunting(lot, v0, v1, 3, base + 13, "v", sag=2)
-    lot.sign(v0 + 2, base + 4, 3, SOUTH, ["MINE CART", "ESCAPE", "queue north"])
-    lot.sign(v1 - 2, base + 4, 3, SOUTH, ["MINING SQUARE", "diggings west", "coaster south"])
+    lot.sign(v0 + 2, base + 4, 3, SOUTH, ["QUARRY RUN", "queue north"])
+    lot.sign(v1 - 2, base + 4, 3, SOUTH, ["BASE CAMP", "the dig, west", "plateau south"])
     out["board"] = {"v": [v0, v1], "u": 2}
 
     # the claim marker: a low ore cart on a stub of rail. **IT MOVES OUT OF THE RESERVE**, because
@@ -1649,9 +1649,9 @@ def _assay(lot: _Lot, p: dict) -> dict:
     eu = int(p.get("entry_u") or 23)
     out = {}
     v0, v1 = 3, dv - 4
-    out["range"] = _shed(lot, v0, v1, 4, du - 5, h=8, ridge="u", title="ASSAY OFFICE",
+    out["range"] = _shed(lot, v0, v1, 4, du - 5, h=8, ridge="u", title="THE FOSSIL LAB",
                          doors=(("-v", eu, 3), ("+v", du - 9, 2)),
-                         sign_face="-v", sign_lines=["ASSAY OFFICE", "and prize window"])
+                         sign_face="-v", sign_lines=["THE FOSSIL LAB", "and prizes"])
 
     # the entrance pavilion: piers proud of the range, a lintel, a stepped pediment
     for u in (eu - 3, eu + 3):
@@ -1697,7 +1697,7 @@ def _assay(lot: _Lot, p: dict) -> dict:
         # away from it, is a shutter over a counter.
         lot.put(v0 - 1, 3, u, "shutter", facing=WEST, half="top", open="false",
                 powered="false", waterlogged="false")
-    lot.sign(v0 - 1, 4, wu + 1, WEST, ["PRIZE WINDOW", "range and", "sluice results"])
+    lot.sign(v0 - 1, 4, wu + 1, WEST, ["PRIZE WINDOW", "screen hut and", "sorting run"])
     out["prize_window"] = {"v": v0, "u": [wu, du - 7]}
 
     # ONE BUILDING, TWO REGISTERS, AND THE CONTRAST IS THE DESIGN. An assay office weighs gold
@@ -1762,7 +1762,7 @@ def _works(lot: _Lot, p: dict) -> dict:
     out = {}
     out["shed"] = _shed(lot, 1, dv - 2, 5, 18, h=6, ridge="u", title="WORKS",
                         doors=(("-v", 12, 4),), windows=True,
-                        sign_face="-v", sign_lines=["WORKS YARD", "staff only"])
+                        sign_face="-v", sign_lines=["FIELD STATION", "staff only"])
     out["store"] = _shed(lot, 2, dv - 2, 25, 33, h=5, ridge="u", title=None,
                          doors=(("-v", 29, 2),), windows=False)
 

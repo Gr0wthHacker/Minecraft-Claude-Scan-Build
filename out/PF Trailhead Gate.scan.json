@@ -117,7 +117,7 @@
       ],
       "facing": "west",
       "lines": [
-        "FRONTIER"
+        "LOST PLATEAU"
       ]
     },
     {
@@ -128,7 +128,7 @@
       ],
       "facing": "east",
       "lines": [
-        "FRONTIER"
+        "LOST PLATEAU"
       ]
     },
     {
@@ -139,8 +139,8 @@
       ],
       "facing": "west",
       "lines": [
-        "FRONTIER",
-        "mine and town"
+        "LOST PLATEAU",
+        "camp and dig"
       ]
     },
     {
@@ -151,7 +151,7 @@
       ],
       "facing": "north",
       "lines": [
-        "TO THE MINE"
+        "TO THE DIG"
       ]
     },
     {
@@ -162,7 +162,7 @@
       ],
       "facing": "south",
       "lines": [
-        "TO THE MINE"
+        "TO THE DIG"
       ]
     },
     {
@@ -173,7 +173,7 @@
       ],
       "facing": "west",
       "lines": [
-        "TRAIL STORE"
+        "FIELD STORE"
       ]
     }
   ],
@@ -295,7 +295,7 @@
           25
         ]
       ],
-      "title": "FRONTIER",
+      "title": "LOST PLATEAU",
       "axis": "u",
       "clear_h": 7
     },
@@ -451,7 +451,7 @@
       ],
       "wall_top": 7,
       "ridge_y": 10,
-      "title": "TRAIL OFFICE",
+      "title": "FIELD OFFICE",
       "openings": [
         {
           "kind": "door",
@@ -580,7 +580,7 @@
           29
         ]
       ],
-      "title": "TO THE MINE",
+      "title": "TO THE DIG",
       "axis": "v",
       "clear_h": 5
     },
@@ -602,7 +602,7 @@
       ],
       "wall_top": 6,
       "ridge_y": 11,
-      "title": "TRAIL STORE",
+      "title": "FIELD STORE",
       "openings": [
         {
           "kind": "door",
@@ -844,8 +844,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "94ded467756a763d2e4fe1a82e3c3af9ea10cdc9424ff60308d9e018343bce46",
-    "generator_source_digest": "7230cbadcd9e414fbb9a940567a693ca11dd4b45bddc6506ccde46a7f86bbf4a",
+    "fingerprint": "f5d697a2130e5489e9b9e8aec8d66fc82aac02951d9d223375c3c46e13ee7c41",
+    "generator_source_digest": "fc1c2ee3980dc78300c593d37a60ebabc964012cd62a86f9ae71524b4f024ad9",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -887,9 +887,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 65.051943,
+    "seconds": 56.087346,
     "blocks": 4260,
-    "blocks_per_second": 65.49
+    "blocks_per_second": 75.95
   },
   "generator_contract": {
     "ok": true,

@@ -1,0 +1,183 @@
+{
+  "origin": {
+    "x": 97682,
+    "y": 203,
+    "z": 80317
+  },
+  "size": {
+    "x": 22,
+    "y": 40,
+    "z": 62
+  },
+  "generated_by": "sauropod",
+  "kind": "sauropod",
+  "land": "frontier",
+  "facing": "north",
+  "height": 34.0,
+  "profile_axis": "v",
+  "refused": 87,
+  "parts": {
+    "legs": {
+      "fore": 3612,
+      "hind": 4342
+    },
+    "body": 16034,
+    "neck": 3256,
+    "head": {
+      "cells": 327,
+      "crest": 12,
+      "eyes": 2
+    },
+    "tail": 5198,
+    "coat": {
+      "back": 623,
+      "flank": 909,
+      "belly": 571,
+      "mark": 204
+    }
+  },
+  "contract": "a brachiosaur: four columnar tapered legs with the FRONT pair longer, a spindle barrel whose back falls away to the hip, a neck that rises nearly vertical to a crested head, and a tail as long as the neck. One piece, countershaded off its own built form, and every tone a measured hue flip from the canopy it stands against.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "sculpture",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "A brachiosaur on the plateau's rim: four columnar tapered legs with the front pair longer, a spindle barrel falling away to the hip, a neck rising nearly vertical to a crested head, and a tail as long as the neck. Countershaded off its own built form and blotched along the spine.\n"
+    },
+    "metrics": {
+      "blocks": 2323,
+      "materials": 5,
+      "dominant_material_share": 0.3956,
+      "light_blocks": 0,
+      "massing": {
+        "width": 11,
+        "height": 36,
+        "depth": 48,
+        "fill_ratio": 0.1222
+      },
+      "silhouette": {
+        "top": {
+          "area": 272,
+          "fill_ratio": 0.1994
+        },
+        "front": {
+          "area": 268,
+          "fill_ratio": 0.3045
+        },
+        "side": {
+          "area": 419,
+          "fill_ratio": 0.169
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.4408,
+          0.5028,
+          0.0564
+        ],
+        "top_silhouette_perimeter": 251,
+        "surface_faces_per_block": 1.0745
+      },
+      "material_counts": {
+        "light_gray_wool": 919,
+        "gray_wool": 623,
+        "white_wool": 575,
+        "brown_wool": 204,
+        "black_wool": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "6930c884f3591b333a42a5952cd6c9a4b67d1f4a0cfe7304d154049d3c3395a5",
+    "generator_source_digest": "7d063bc537c88cc46f26916b55e9955286565b6e0acdb1b6612c0de665b60c7e",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 58.356223,
+    "blocks": 2323,
+    "blocks_per_second": 39.81
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 2323,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
+  "file": "PF Sauropod.litematic",
+  "name": "PF Sauropod"
+}

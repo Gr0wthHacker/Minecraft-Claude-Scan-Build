@@ -59,6 +59,21 @@ FLORA = {
     "turf": "moss_carpet",
 }
 
+#: **THE LAND CHANGED THEME, SO THE TREES HAD TO.** The Frontier is the Lost Plateau now - see
+#: `gen/plateau.py` for the measurement that condemned the old one - and a stand of spruce is the
+#: single most frontier-looking thing left on the open ground. A jungle swap is a PALETTE, not a
+#: rewrite: the sweep, the drifts, the ground probe and the keep-out list are all about where a
+#: tree may stand, and none of them cares what species it is.
+#:
+#: `spruce` is kept because it is what every other design in this repo's older lands plants, and
+#: silently repurposing a live default is a behaviour change for anyone who has one.
+PALETTES = {
+    "spruce": {},
+    "jungle": {"trunk": "jungle_log", "bark": "stripped_jungle_log", "leaf": "jungle_leaves",
+               "plank": "jungle_planks", "slab": "jungle_slab", "fence": "jungle_fence"},
+}
+
+
 #: THE GROUND THIS MAY PLANT ON, and nothing else. Anything paved belongs to `Park Ways`.
 LAWN = {"moss_block", "moss_carpet"}
 
@@ -72,8 +87,13 @@ LAWN = {"moss_block", "moss_carpet"}
 #: in `FLORA` but unused here, and leaving them in let a canopy spread over a NEIGHBOUR built from
 #: the same timber - measured, 33 cells of leaf reaching into the Diggings, Mining Square and the
 #: Assay Office.
-OWN = {FLORA[k] for k in ("trunk", "bark", "leaf", "rock", "rock_b", "rock_c",
-                          "moss_rock", "scree", "ore", "barrel", "rail", "turf")}
+_OWN_KEYS = ("trunk", "bark", "leaf", "rock", "rock_b", "rock_c",
+             "moss_rock", "scree", "ore", "barrel", "rail", "turf")
+#: ...and it is the union across EVERY palette, because a land that changes species still has to
+#: recognise the trees it planted last time. Keyed to one palette, the jungle re-theme would have
+#: refused every spruce still standing and re-planted on top of it.
+OWN = ({FLORA[k] for k in _OWN_KEYS}
+       | {v for pal in PALETTES.values() for k, v in pal.items() if k in _OWN_KEYS})
 
 def shipped_cells(path) -> frozenset:
     """The world cells a design SHIPPED last time, off its own artifact and sidecar.
@@ -127,6 +147,9 @@ SCATTER = {
     # SWEEPS instead: it walks the land on a coarse lattice and plants wherever the ground itself
     # allows, which is the only method that survives the shape this land actually has.
     "sweep": None,               # {step, density, kinds: [...]}
+    #: WHICH TREES. See `PALETTES` - `spruce` is the default because it is what this repo's older
+    #: lands plant, and the Frontier is `jungle` since it became the Lost Plateau.
+    "flora": "spruce",
     # **AND IT KEEPS OUT OF EVERY MODULE'S LOT.** `OWN` has to exist or the second run refuses
     # every cell the first one planted - but the Diggings and the Mine Ridge are built from the
     # same rock and the same timber, so a material test cannot tell my own standing pine from
@@ -151,7 +174,7 @@ class _Ground:
     """
 
     def __init__(self, ctx: Ctx, anchor, dv, du, at, clear: int, keep_out=(), own=None,
-                 mine=None):
+                 mine=None, flora=None):
         self.ctx, self.dv, self.du = ctx, dv, du
         self.ax, self.ay, self.az = anchor
         self.at_v, self.at_u = at
@@ -167,6 +190,10 @@ class _Ground:
         #: exact answer to rule 15; `own` is the heuristic one, and where both are given this wins
         #: on the cells it names and `own` covers the rest.
         self.mine = frozenset(mine or ())
+        #: **THE PALETTE TRAVELS WITH THE GROUND PROBE, NOT AS A MODULE GLOBAL.** Every prop here
+        #: is handed `g` already, so a land that plants jungle and a land that plants spruce can
+        #: run in one process - which they must, because `gen/claimrow.py` shares these props.
+        self.flora = dict(flora or FLORA)
         self._lawn: dict = {}
 
     def owned(self, v, u) -> bool:
@@ -248,7 +275,7 @@ def _pine(lot: _Lot, g: _Ground, v: int, u: int, seed: int) -> int:
     h = 5 + int(hash01(v, u, seed + 3) * 4)
     n = 0
     for y in range(0, h):
-        n += 1 if lot.put(v, y, u, FLORA["trunk"], axis="y") else 0
+        n += 1 if lot.put(v, y, u, g.flora["trunk"], axis="y") else 0
     tiers = [(h - 5, 2), (h - 4, 2), (h - 3, 1), (h - 2, 1), (h - 1, 1), (h, 0)]
     for y, r in tiers:
         if y < 1:
@@ -263,7 +290,39 @@ def _pine(lot: _Lot, g: _Ground, v: int, u: int, seed: int) -> int:
                     continue
                 # PERSISTENT, or the canopy decays the moment somebody breaks the trunk. Every
                 # leaf this repo has ever placed is persistent and this is why.
-                n += 1 if lot.put(v + dv, y, u + du, FLORA["leaf"],
+                n += 1 if lot.put(v + dv, y, u + du, g.flora["leaf"],
+                                  persistent="true", distance="7",
+                                  waterlogged="false") else 0
+    return n
+
+
+def _jungle(lot: _Lot, g: _Ground, v: int, u: int, seed: int) -> int:
+    """A broadleaf: a bare trunk carrying a crown WIDER THAN IT IS TALL.
+
+    **A PALETTE SWAP IS NOT A SHAPE SWAP, AND THAT IS THE WHOLE REASON THIS EXISTS.** `_pine`
+    narrows in steps, which is what makes a voxel conifer read; built out of jungle wood it is a
+    fir painted green, and the land would have come out of its re-theme still looking like the one
+    it left. A jungle crown is flat, broad and carried CLEAR of the ground, so you see under it -
+    the same shape `gen/plateau.py` puts on the ridge, so the canopy on the plateau and the trees
+    on the flat below it read as one wood.
+    """
+    h = 5 + int(hash01(v, u, seed + 7) * 4)
+    n = 0
+    for y in range(h):
+        n += 1 if lot.put(v, y, u, g.flora["trunk"], axis="y") else 0
+    for dy, r in ((h - 1, 3), (h, 3), (h + 1, 2)):
+        if dy < 1:
+            continue
+        for dv in range(-r, r + 1):
+            for du in range(-r, r + 1):
+                if dv * dv + du * du > r * r + r:
+                    continue
+                if dv == 0 and du == 0 and dy < h + 1:
+                    continue
+                if not (g.lawn(v + dv, u + du) and g.free(v + dv, u + du, dy)):
+                    continue
+                # PERSISTENT, or the crown decays the moment somebody breaks the trunk
+                n += 1 if lot.put(v + dv, dy, u + du, g.flora["leaf"],
                                   persistent="true", distance="7",
                                   waterlogged="false") else 0
     return n
@@ -275,13 +334,13 @@ def _snag(lot: _Lot, g: _Ground, v: int, u: int, seed: int) -> int:
     h = 3 + int(hash01(v, u, seed + 11) * 4)
     n = 0
     for y in range(0, h):
-        n += 1 if lot.put(v, y, u, FLORA["bark"], axis="y") else 0
+        n += 1 if lot.put(v, y, u, g.flora["bark"], axis="y") else 0
     for s, (dv, du) in enumerate(((1, 0), (0, 1), (-1, 0), (0, -1))):
         if hash01(v, u, s, seed + 12) > 0.35:
             continue
         y = max(1, h - 1 - s % 2)
         if g.lawn(v + dv, u + du) and g.free(v + dv, u + du, y):
-            n += 1 if lot.put(v + dv, y, u + du, FLORA["bark"],
+            n += 1 if lot.put(v + dv, y, u + du, g.flora["bark"],
                               axis="x" if dv else "z") else 0
     return n
 
@@ -299,7 +358,7 @@ def _boulder(lot: _Lot, g: _Ground, v: int, u: int, r: int, seed: int) -> int:
                     continue
                 k = hash01(v + dv, u + du, y, seed + 21)
                 key = "moss_rock" if k < 0.18 else ("rock_b" if k < 0.42 else "rock")
-                n += 1 if lot.put(v + dv, y, u + du, FLORA[key]) else 0
+                n += 1 if lot.put(v + dv, y, u + du, g.flora[key]) else 0
     return n
 
 
@@ -314,25 +373,25 @@ def _debris(lot: _Lot, g: _Ground, v: int, u: int, seed: int) -> int:
         # cells shipped as six free-floating clusters - a stack of timber floating over the lawn.
         for j in range(-1, 2):                               # course 0: along U
             if g.lawn(v + j, u):
-                n += 1 if lot.put(v + j, 0, u, FLORA["trunk"], axis="x") else 0
+                n += 1 if lot.put(v + j, 0, u, g.flora["trunk"], axis="x") else 0
         for j in range(-1, 2):                               # course 1: along V, crossing it
             if g.lawn(v, u + j) and lot.has(v, 0, u + j) or j == 0:
-                n += 1 if lot.put(v, 1, u + j, FLORA["trunk"], axis="z") else 0
-        n += 1 if lot.put(v, 2, u, FLORA["trunk"], axis="x") else 0
+                n += 1 if lot.put(v, 1, u + j, g.flora["trunk"], axis="z") else 0
+        n += 1 if lot.put(v, 2, u, g.flora["trunk"], axis="x") else 0
     elif pick < 0.68:                                        # an ore pile, tipped and spreading
         for dv in range(-2, 3):
             for du in range(-2, 3):
                 if abs(dv) + abs(du) > 2 or not g.lawn(v + dv, u + du):
                     continue
                 key = "ore" if hash01(v + dv, u + du, seed + 32) < 0.35 else "scree"
-                n += 1 if lot.put(v + dv, 0, u + du, FLORA[key]) else 0
+                n += 1 if lot.put(v + dv, 0, u + du, g.flora[key]) else 0
     else:                                                    # a cart axle and a barrel
         for k in range(3):
             if g.lawn(v + k, u):
-                n += 1 if lot.put(v + k, 0, u, FLORA["rail"], shape="east_west",
+                n += 1 if lot.put(v + k, 0, u, g.flora["rail"], shape="east_west",
                                   waterlogged="false") else 0
         if g.lawn(v + 1, u + 1):
-            n += 1 if lot.put(v + 1, 0, u + 1, FLORA["barrel"],
+            n += 1 if lot.put(v + 1, 0, u + 1, g.flora["barrel"],
                               facing="up", open="false") else 0
     return n
 
@@ -340,7 +399,7 @@ def _debris(lot: _Lot, g: _Ground, v: int, u: int, seed: int) -> int:
 # --------------------------------------------------------------------------- the drifts
 
 
-KINDS = {"pine": _pine, "snag": _snag}
+KINDS = {"pine": _pine, "jungle": _jungle, "snag": _snag}
 
 
 def _drift(lot: _Lot, g: _Ground, spec, seed: int) -> dict:
@@ -410,6 +469,16 @@ def _sweep(lot: _Lot, g: _Ground, spec: dict, dv: int, du: int, seed: int) -> di
 # --------------------------------------------------------------------------- entry point
 
 
+def flora_for(name):
+    """The planting palette for a land, by name. A palette this file does not know RAISES rather
+    than falling back to spruce - a silent fallback is how the Frontier would have kept its pines
+    through a re-theme and nobody would have seen a thing."""
+    key = str(name or "spruce")
+    if key not in PALETTES:
+        raise ValueError(f"unknown flora palette {key!r}; have {sorted(PALETTES)}")
+    return {**FLORA, **PALETTES[key]}
+
+
 def build(cfg: dict, donors=None) -> Canvas:
     p = {**SCATTER, **(cfg or {})}
     if not p.get("lot"):
@@ -421,7 +490,8 @@ def build(cfg: dict, donors=None) -> Canvas:
     lot = _Lot(c, dv, du, seed=int(p.get("seed", 0)))
     at = [int(x) for x in (p.get("at") or (0, 0))]
     g = _Ground(Ctx(p["under"]), [int(x) for x in p["anchor"]], dv, du, at,
-                int(p.get("path_clear", 2)), p.get("keep_out") or ())
+                int(p.get("path_clear", 2)), p.get("keep_out") or (),
+                flora=flora_for(p.get("flora")))
 
     seed = int(p.get("seed", 0))
     drifts = [_drift(lot, g, d, seed) for d in (p.get("drifts") or [])]
