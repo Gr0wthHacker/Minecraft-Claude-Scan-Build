@@ -1,12 +1,12 @@
 {
   "origin": {
-    "x": 97600,
+    "x": 97588,
     "y": 204,
-    "z": 80336
+    "z": 80333
   },
   "size": {
     "x": 12,
-    "y": 5,
+    "y": 6,
     "z": 4
   },
   "generated_by": "park_games",
@@ -20,223 +20,12 @@
   ],
   "courses": [
     0,
-    4
+    5
   ],
   "budget": {
     "redstone_lamp": 6
   },
-  "refused": [
-    [
-      97600,
-      204,
-      80339
-    ],
-    [
-      97600,
-      205,
-      80339
-    ],
-    [
-      97600,
-      206,
-      80339
-    ],
-    [
-      97600,
-      207,
-      80339
-    ],
-    [
-      97600,
-      208,
-      80339
-    ],
-    [
-      97601,
-      204,
-      80339
-    ],
-    [
-      97602,
-      204,
-      80339
-    ],
-    [
-      97603,
-      204,
-      80339
-    ],
-    [
-      97603,
-      205,
-      80339
-    ],
-    [
-      97603,
-      206,
-      80339
-    ],
-    [
-      97603,
-      207,
-      80339
-    ],
-    [
-      97603,
-      208,
-      80339
-    ],
-    [
-      97604,
-      204,
-      80339
-    ],
-    [
-      97605,
-      204,
-      80339
-    ],
-    [
-      97606,
-      204,
-      80339
-    ],
-    [
-      97606,
-      205,
-      80339
-    ],
-    [
-      97606,
-      206,
-      80339
-    ],
-    [
-      97606,
-      207,
-      80339
-    ],
-    [
-      97606,
-      208,
-      80339
-    ],
-    [
-      97607,
-      204,
-      80339
-    ],
-    [
-      97608,
-      204,
-      80339
-    ],
-    [
-      97609,
-      204,
-      80339
-    ],
-    [
-      97609,
-      205,
-      80339
-    ],
-    [
-      97609,
-      206,
-      80339
-    ],
-    [
-      97609,
-      207,
-      80339
-    ],
-    [
-      97609,
-      208,
-      80339
-    ],
-    [
-      97610,
-      204,
-      80339
-    ],
-    [
-      97611,
-      204,
-      80339
-    ],
-    [
-      97600,
-      209,
-      80339
-    ],
-    [
-      97601,
-      209,
-      80339
-    ],
-    [
-      97602,
-      209,
-      80339
-    ],
-    [
-      97603,
-      209,
-      80339
-    ],
-    [
-      97604,
-      209,
-      80339
-    ],
-    [
-      97605,
-      209,
-      80339
-    ],
-    [
-      97606,
-      209,
-      80339
-    ],
-    [
-      97607,
-      209,
-      80339
-    ],
-    [
-      97608,
-      209,
-      80339
-    ],
-    [
-      97609,
-      209,
-      80339
-    ],
-    [
-      97610,
-      209,
-      80339
-    ],
-    [
-      97611,
-      209,
-      80339
-    ],
-    [
-      97604,
-      209,
-      80338
-    ],
-    [
-      97608,
-      209,
-      80338
-    ]
-  ],
+  "refused": [],
   "contract": "1 disc(s); a hit of strength L on a disc lights the first min(L, 6) lamps of THAT disc's bar and no other's, and only L >= 6 lights its last lamp and rings its bell",
   "unverified": [
     "A TARGET'S OUTPUT IS AN INPUT YOU STATE. The simulator has no entities and cannot fire an arrow at it; that a bullseye really reads 15 and a rim hit really reads 1 is the game's own behaviour."
@@ -248,59 +37,59 @@
   "discs": 1,
   "targets": [
     [
-      97601,
+      97589,
       205,
-      80339
+      80336
     ]
   ],
   "target": [
-    97601,
+    97589,
     205,
-    80339
+    80336
   ],
   "bells": [
     [
-      97609,
+      97597,
       205,
-      80339
+      80336
     ]
   ],
   "bell": [
-    97609,
+    97597,
     205,
-    80339
+    80336
   ],
   "lamps": [
     [
       [
-        97603,
+        97591,
         205,
-        80338
+        80335
       ],
       [
-        97604,
+        97592,
         205,
-        80338
+        80335
       ],
       [
-        97605,
+        97593,
         205,
-        80338
+        80335
       ],
       [
-        97606,
+        97594,
         205,
-        80338
+        80335
       ],
       [
-        97607,
+        97595,
         205,
-        80338
+        80335
       ],
       [
-        97608,
+        97596,
         205,
-        80338
+        80335
       ]
     ]
   ],
@@ -308,46 +97,46 @@
   "leaks": [],
   "inputs": [
     [
-      97601,
+      97589,
       205,
-      80339
+      80336
     ]
   ],
   "outputs": [
     [
-      97609,
+      97597,
       205,
-      80339
+      80336
     ],
     [
-      97603,
+      97591,
       205,
-      80338
+      80335
     ],
     [
-      97604,
+      97592,
       205,
-      80338
+      80335
     ],
     [
-      97605,
+      97593,
       205,
-      80338
+      80335
     ],
     [
-      97606,
+      97594,
       205,
-      80338
+      80335
     ],
     [
-      97607,
+      97595,
       205,
-      80338
+      80335
     ],
     [
-      97608,
+      97596,
       205,
-      80338
+      80335
     ]
   ],
   "stock": {},
@@ -362,11 +151,15 @@
         "redstone_lamp",
         "redstone_wire",
         "target"
+      ],
+      "signage": [
+        "spruce_wall_sign"
       ]
     },
     "verifiers": {
       "light": "mcbuild.nightlight",
-      "redstone": "mcbuild.circuit"
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
     },
     "roles": [
       "construction",
@@ -385,45 +178,47 @@
       "narrative": "The gold sluice's own game, on the porch veranda: a riffle plate at counter height and a six-lamp wash meter on the board beside it, with the bell for a clean run.\n"
     },
     "metrics": {
-      "blocks": 130,
-      "materials": 7,
-      "dominant_material_share": 0.3538,
+      "blocks": 172,
+      "materials": 9,
+      "dominant_material_share": 0.4128,
       "light_blocks": 6,
       "massing": {
         "width": 12,
-        "height": 5,
+        "height": 6,
         "depth": 4,
-        "fill_ratio": 0.5417
+        "fill_ratio": 0.5972
       },
       "silhouette": {
         "top": {
-          "area": 44,
-          "fill_ratio": 0.9167
+          "area": 48,
+          "fill_ratio": 1.0
         },
         "front": {
-          "area": 52,
-          "fill_ratio": 0.8667
+          "area": 72,
+          "fill_ratio": 1.0
         },
         "side": {
-          "area": 13,
-          "fill_ratio": 0.65
+          "area": 16,
+          "fill_ratio": 0.6667
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.5385,
-          0.4,
-          0.0615
+          0.5,
+          0.3488,
+          0.1512
         ],
-        "top_silhouette_perimeter": 49,
-        "surface_faces_per_block": 2.1846
+        "top_silhouette_perimeter": 32,
+        "surface_faces_per_block": 1.8605
       },
       "material_counts": {
-        "spruce_planks": 46,
-        "polished_blackstone_bricks": 36,
+        "spruce_planks": 71,
+        "polished_blackstone_bricks": 48,
         "stone_bricks": 36,
         "redstone_lamp": 6,
-        "redstone_wire": 4,
+        "redstone_wire": 6,
+        "spruce_wall_sign": 2,
+        "bell": 1,
         "comparator": 1,
         "target": 1
       }
@@ -437,7 +232,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "2712bae0cc41d5fe54ff4d167198aca6beb371acf78f93a02e01745fcadfae74",
+    "fingerprint": "b398560f91ff0f4c5cb1e50bce81a05b6ec10c86ee2cb3e4497b420bec5e2dd6",
     "generator_source_digest": "8716c7797b80b617221c9b2d55370b1c6d400ee01a96d4e72a9fa5902478e078",
     "anchors": [],
     "genome": {
@@ -470,7 +265,8 @@
       "anchors": false,
       "mechanics": [
         "light",
-        "redstone"
+        "redstone",
+        "signage"
       ],
       "redstone_declared": true,
       "scenario": false
@@ -479,9 +275,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 100.132158,
-    "blocks": 130,
-    "blocks_per_second": 1.3
+    "seconds": 70.454941,
+    "blocks": 172,
+    "blocks_per_second": 2.44
   },
   "generator_contract": {
     "ok": false,
@@ -495,10 +291,11 @@
     "roles": [
       "ride"
     ],
-    "blocks": 130,
+    "blocks": 172,
     "mechanic_families": [
       "light",
-      "redstone"
+      "redstone",
+      "signage"
     ]
   },
   "fun_contract": {
@@ -520,6 +317,7 @@
   },
   "server_compatibility": [],
   "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
     "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
     "not in the provisional skyblock-1.19 list: redstone_lamp",
     "not in the provisional skyblock-1.19 list: target"

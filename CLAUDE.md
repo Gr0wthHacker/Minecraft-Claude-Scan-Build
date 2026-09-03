@@ -6626,10 +6626,22 @@ Four more things the works cost:
   because the shipped composite contains them. `park_place` rebuilds the merge from the artifacts
   every run so it is self-correcting, but a re-verify reports the delta against the LAST ship
   rather than against a clean world.
-- **The gold sluice bay itself still has no mechanism inside it.** Measured over the shipped park,
-  its standable-and-clear columns are a ring one to two cells wide round the settling pool with no
-  rectangle in it bigger than 15 x 1 - a console needs a footprint the room does not have. `PF
-  Game The Riffle` stands on the shared veranda instead, which is where the guests already queue.
+- **The gold sluice bay itself still has no mechanism INSIDE it, and both halves of that are a
+  measurement.** Its standable-and-clear columns are a ring one to two cells wide round the
+  settling pool, with no rectangle in it bigger than 15 x 1 - a console needs a footprint the room
+  does not have. And the veranda is not uniformly clear either: `_porch_run` stands a colonnade
+  every third cell and rails its outer edge, so the first six sites tried refused between 26 and
+  110 cells. **A console missing forty-two cells is a machine that does nothing while auditing
+  clean**, which is `test_park_games`' own rule and which caught this before it shipped. `PF Game
+  The Riffle` stands at the ONE site that measured zero refusals - V97588 / U80333, on the shared
+  veranda between the two bays, which is where a guest queues for both.
+
+- **`test_no_shipped_game_takes_a_cell_the_park_already_owns` was a snapshot trap and is fixed.**
+  It read `Park Complete` as "the world before the design", and the moment the three built-but-
+  unplaced games were placed, it reported `PF Game Pan Line` as colliding with ITSELF. What rule
+  15 actually says is that an overlap is a cell where the world holds something DIFFERENT, so a
+  cell a game already occupies with its own state is built progress. That is the fourth time this
+  repo has shipped the same trap.
 
 ## The daily loop
 

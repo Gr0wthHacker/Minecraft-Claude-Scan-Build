@@ -5,12 +5,18 @@
 # behind them." One of the two has since been wired - `PF Game Pan Line` stands in the shooting
 # range bay - and the gold sluice bay had nothing at all.
 #
-# **IT IS ON THE VERANDA, NOT IN THE BAY, AND THAT IS A MEASUREMENT.** Standable-and-clear
-# columns inside the sluice shed (world V97-113 / U20-32, over the shipped `Park Complete`):
-# a walkable ring one to two cells wide round the settling pool and the launder, and no
-# rectangle in it bigger than 15 x 1. A console needs a footprint the room does not have, so it
-# goes where the guests already queue - the shared veranda down the porch's own avenue flank,
-# which `_porch_lot` built for exactly that and which measures clear across its whole width.
+# **IT IS ON THE VERANDA, NOT IN THE BAY, AND BOTH HALVES OF THAT ARE MEASURED.**
+# Standable-and-clear columns inside the sluice shed (world V97597-97613 / U80320-80332, over the
+# shipped `Park Complete`): a walkable ring one to two cells wide round the settling pool and the
+# launder, with no rectangle in it bigger than 15 x 1. A console needs a footprint the room does
+# not have.
+#
+# And the veranda is not uniformly clear either - `_porch_run` stands a colonnade every third
+# cell and rails its outer edge, so the first six sites tried refused between 26 and 110 cells,
+# and **a console missing forty-two cells is a machine that does nothing** while auditing clean.
+# The site is the one that measured ZERO refusals: V97588 / U80333, facing north, on the shared
+# veranda between the two bays - which `_porch_lot`'s own docstring calls the one place in the lot
+# worth dressing, because it is where a guest queues for both.
 #
 # **A TARGET IS THE RIGHT MECHANIC FOR A SLUICE**, not a borrowed one: `park_games`' `aim` reads
 # a `target` block's own output, which is proportional to how central the hit was, and runs it
@@ -23,7 +29,7 @@ params:
   kind: aim
   land: frontier
   facing: north          # the shooter stands under the veranda and faces the sluice shed
-  at: [97600, 204, 80336]
+  at: [97588, 204, 80333]
   building: PF Prospecting Porch
   under: out/Park Complete.litematic
   score: 6
