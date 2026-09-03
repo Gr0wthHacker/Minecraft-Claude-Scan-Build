@@ -10,12 +10,18 @@
 # 215 grid runs of which 184 were one or two cells, and the conclusion was that a block is only
 # as good as the LINE it is part of. The fix is not more landings or brighter ones.
 #
-# DERIVED FROM THE COURSE'S OWN SIDECAR, so the two cannot drift. Regenerate the descent and
-# this must be regenerated after it - build order is descent, then rig.
+# DERIVED FROM BOTH COURSES' OWN SIDECARS, so nothing can drift. One gantry serves the sky run
+# and the deck run: it is the line every landing of either belongs to. Regenerate either
+# course and this must follow - build order is descent, crown, then rig.
 name: PF Prism Rig
 gen: prismrig
 params:
-  route: out/PF Prism Descent.scan.json
+  # BOTH RUNS, and the config is what actually decides it - the generator's default gained the
+  # sky run and this line kept overriding it with one, so the gantry came out 101 courses tall
+  # over a well that is now 200. A default nobody reads is not a default.
+  route:
+    - out/PF Crown Descent.scan.json
+    - out/PF Prism Descent.scan.json
   centre: [97590, 80815]
   hang: 4                 # the parkour's headroom is 3, so nothing here is in a jump's way
   light_every: 7

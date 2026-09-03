@@ -5,7 +5,7 @@
   "z": 80300
  },
  "kind": "park",
- "name": "prism_all",
+ "name": "prism_deck",
  "generated_by": "tools/park_place.py",
  "anchor_status": "PREVIEW placement; rebase before building",
  "contains": [
@@ -15125,6 +15125,6 @@
   ]
  ],
  "dig_note": "cells to BREAK before printing - see `contains` for their designs",
- "file": "prism_all.litematic",
- "note": "prism_deck plus the sky run and the gantry over both - the floor's context."
+ "file": "prism_deck.litematic",
+ "note": "prism_site plus the DECK run - what the sky run is sited against, so the two concentric helices cannot claim a cell of each other."
 }

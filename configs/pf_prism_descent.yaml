@@ -1,4 +1,11 @@
-# PF PRISM DESCENT - the course, hung in the middle of the Prism Well.
+# PF PRISM DESCENT - the DECK run: the inner of the well's two concentric spirals.
+#
+# IT IS THE INNER ONE NOW, and that is what lets the sky run exist without the two courses
+# interleaving. `PF Crown Descent` comes down the OUTSIDE of the void at r30 from Y300; this
+# one starts at the deck and stays inside it at r20 tapering to r14. Below the deck there are
+# two rings of landings, concentric and clearly apart, and both end in the same pool - so a
+# runner can tell which line they are on, which two helices at the same radius would not
+# allow. Above the deck there is only the sky run.
 #
 # The land's headline, and the thing v1 never had: its Prism Ascent config said outright "THE
 # PARKOUR COURSE IS NOT IN HERE... This design is the SPIRE the course will be hung on", and
@@ -36,11 +43,11 @@ params:
   bounds: [97542, 80767, 97638, 80863]     # the mouth, so nothing can wander into the collar
   y_top: 201
   y_bottom: 100
-  start_from: [97558, 202, 80815]   # the Well's pier head: the cell you actually jump off
+  start_from: [97568, 202, 80815]   # the Well's DECK pier head: the cell you jump off
   start_angle: 180       # WEST, where the Well's start pier reaches in. The run began at 0
                          # (east) and its first landing was ten blocks from anywhere a player
                          # could stand - legal, hard, well-shaped and unreachable.
-  radius: 30
+  radius: 20
   radius_flex: [0, 2, -2, 4, -4, -6, -8, -11]
   # DESCENDING, AND THAT IS THE WHOLE DIFFERENCE. The search takes the first angle whose chord
   # fits UNDER the gap target, so an ascending list always wins with its smallest entry - which

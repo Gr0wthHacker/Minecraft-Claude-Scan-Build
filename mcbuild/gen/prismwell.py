@@ -62,6 +62,25 @@ WELL = {
     "bay_reach": 3,                 # how far it oversails the void
     "entry_deg": 180,               # the course's start: west, facing the park spine
     "pier_to": 33,                  # the start pier reaches this far in; the run begins here
+    # THE CROWN, and it is the answer to a shame Jack named: "its probably a shame that side of
+    # the landscape just falls down, should we be building this straight up as well so its a
+    # really complete big circuit". The well only ever went DOWN, and 117 courses of clear
+    # headroom stood over the mouth doing nothing.
+    #
+    # NOT A TOWER BESIDE A HOLE - THE SAME COLUMN, CARRIED UP. A spire next to a well is two
+    # objects, and two objects is exactly what this land was rebuilt to stop being. The lift is
+    # already the spine the helix winds around; run it on to Y300 and the deck stops being the
+    # start of the ride and becomes its MIDDLE, with the gallery standing between a course that
+    # comes out of the sky and one that disappears into the ground.
+    #
+    # AND THE CROWN PIER IS WHAT KEEPS EVERY FALL SAFE. The upper course must hang INSIDE the
+    # mouth's own cylinder, because a miss outside r50 lands on the lawn at Y203 from ninety-odd
+    # courses up. Inside it, a miss at any height on either half falls straight down the well
+    # into the pool that is already there - one failure mode for two hundred courses of run, and
+    # it is the dramatic one. The pier is how you reach r30 from a platform at r7.
+    "y_crown": None,                # None keeps the well exactly as it was: rim to floor only
+    "crown_r": 7,
+    "crown_pier_to": 33,
     "y_floor": 95,                  # the well's floor - Signal Zero's course
     "lift_post_r": 4,               # the lit corner posts of the return column
     "cut_from": 198, "cut_to": 214,  # the Y band the mouth is cleared through
@@ -394,12 +413,20 @@ def build_well(cfg: dict, donors=None) -> Canvas:
     # The first build left that cell open and then PAVED IT: the head deck filled every cell of
     # the nine-by-nine that was not already taken, including the exit. A lift sealed on four
     # sides and a working one are the same picture in any render, which is why it is a test.
+    crown = int(p["y_crown"]) if p.get("y_crown") else None
+    top = (crown + 1) if crown else (dy + 1)
     w.put(cx, yf - 1, cz, "soul_sand")                # the bubble source
-    exit_cell = (cx + ex, dy + 1, cz + ez)
-    for y in range(yf, dy + 2):
+    # TWO EXITS WHEN THERE IS A CROWN, and the deck one is the anti-frustration contract. A
+    # two-hundred-course run you restart from the very top after every miss is the "long run-back
+    # after failure" the old brief forbids by name; getting off at the deck restarts the lower
+    # hundred only, which is what makes the two halves separately runnable.
+    exits = {(cx + ex, dy + 1, cz + ez)}
+    if crown:
+        exits.add((cx + ex, crown + 1, cz + ez))
+    for y in range(yf, top + 1):
         w.put(cx, y, cz, "water")
         for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            if (cx + dx, y, cz + dz) == exit_cell:
+            if (cx + dx, y, cz + dz) in exits:
                 continue
             w.put(cx + dx, y, cz + dz, p["lift_case"])
         feats["lift"] += 5
@@ -411,13 +438,13 @@ def build_well(cfg: dict, donors=None) -> Canvas:
     for sx in (-1, 1):
         for sz in (-1, 1):
             x, z = cx + sx * pr, cz + sz * pr
-            for y in range(yf, dy + 1):
+            for y in range(yf, top):
                 w.put(x, y, z, p["light"] if (dy - y) % 8 == 0 else p["lift_case"])
                 w.put(x - sx, y, z, p["lift_cage"])
                 w.put(x, y, z - sz, p["lift_cage"])
                 feats["post"] += 3
     tie = max(int(p["tie_every"]), 2)
-    for y in range(yf + 2, dy, tie):
+    for y in range(yf + 2, top - 1, tie):
         for s in range(-pr, pr + 1):              # the frame joining post to post
             for a, b in ((s, -pr), (s, pr), (-pr, s), (pr, s)):
                 w.put(cx + a, y, cz + b, p["trim"])
@@ -484,6 +511,67 @@ def build_well(cfg: dict, donors=None) -> Canvas:
                 z = int(round(cz + ez * q + tz * (half + 1) * sgn))
                 w.put(x, dy - 2, z, p["collar_lo"])
                 feats["corbel"] += 1
+
+    # ------------------------------------------------------------------ 8b. THE CROWN
+    # A deck on the column head at Y300 and a pier out to r33, which is the deck pier ninety-
+    # eight courses higher and in open sky. You ride the lift the whole way, walk out along a
+    # board with two hundred courses of nothing under it, and jump.
+    if crown:
+        cr = int(p["crown_r"])
+        for x in range(cx - cr, cx + cr + 1):
+            for z in range(cz - cr, cz + cr + 1):
+                if math.hypot(x - cx, z - cz) > cr + 0.5 or (x, z) == (cx, cz):
+                    continue                     # never over the water: the lift has to arrive
+                if w.has(x, crown, z):
+                    continue
+                edge = math.hypot(x - cx, z - cz) > cr - 1.5
+                w.put(x, crown, z, p["trim"] if edge else p["pave"])
+                feats["lift"] += 1
+                if edge and (x, z) != (cx + ex, cz + ez):
+                    w.put(x, crown + 1, z, p["rail"])   # railed, except where you step out
+                    feats["rail"] += 1
+        # the pier: the same board as the deck's, and the same truss under it
+        chalf = 1
+        # OUTWARD FROM THE PLATFORM, and the first version had this range backwards:
+        # range(33, 8) is EMPTY, so the pier body was never built at all and its five-cell
+        # head shipped as a floating component in open sky. The deck pier reads the same way -
+        # inner end first, outward - and copying it without re-checking the bounds is how a
+        # loop that runs zero times looks exactly like one that works.
+        for q in range(cr, int(p["crown_pier_to"]) + 1):
+            for t in range(-chalf, chalf + 1):
+                x = int(round(cx + ux * q + tx * t))
+                z = int(round(cz + uz * q + tz * t))
+                if not w.has(x, crown, z):
+                    w.put(x, crown, z, p["light"] if (t == 0 and q % 8 == 0) else p["pave"])
+                    feats["steps"] += 1
+            for t in (-chalf - 1, chalf + 1):
+                x = int(round(cx + ux * q + tx * t))
+                z = int(round(cz + uz * q + tz * t))
+                if not w.has(x, crown, z):
+                    w.put(x, crown, z, p["trim"])
+                    w.put(x, crown + 1, z, p["rail"])
+                    feats["rail"] += 1
+            bx = int(round(cx + ux * q))
+            bz = int(round(cz + uz * q))
+            w.put(bx, crown - 1, bz, p["trim"])          # the spine beam
+            feats["corbel"] += 1
+            if q % 6 == 0:
+                for sgn in (-1, 1):
+                    for t in range(1, chalf + 2):
+                        w.put(int(round(cx + ux * q + tx * t * sgn)), crown - 1,
+                              int(round(cz + uz * q + tz * t * sgn)), p["collar_lo"])
+                        feats["corbel"] += 1
+                    w.put(int(round(cx + ux * q + tx * (chalf + 1) * sgn)), crown - 2,
+                          int(round(cz + uz * q + tz * (chalf + 1) * sgn)), p["collar_lo"])
+                    feats["corbel"] += 1
+        # the head, lit and railed on three sides so the only way off is forward
+        for t in (-2, -1, 0, 1, 2):
+            x = int(round(cx + ux * (int(p["crown_pier_to"]) - 1) + tx * t))
+            z = int(round(cz + uz * (int(p["crown_pier_to"]) - 1) + tz * t))
+            w.put(x, crown, z, p["light"] if abs(t) <= 1 else p["trim"])
+            if abs(t) == 2:
+                w.put(x, crown + 1, z, p["rail"])
+            feats["steps"] += 1
 
     # ------------------------------------------------------------------ 9. THE MAST RING
     # PRISMWORKS LOST ITS SKYLINE WHEN IT LOST ITS SPIRE, and that had to be answered rather
@@ -556,7 +644,9 @@ def build_well(cfg: dict, donors=None) -> Canvas:
 # ---------------------------------------------------------------------- THE RIG
 
 RIG = {
-    "route": "out/PF Prism Descent.scan.json",   # the course's own sidecar: ONE source
+    # ONE OR MANY: the well has two concentric runs and one gantry serves both, so that the
+    # beam is derived from every route it hangs over rather than from a helix re-computed here.
+    "route": ["out/PF Crown Descent.scan.json", "out/PF Prism Descent.scan.json"],
     "centre": [97590, 80815],
     "hang": 4,                  # courses above a landing; the parkour's headroom is 3
     "post_at": ("rest",),       # which move kinds get a real post up to the gantry
@@ -607,13 +697,16 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
     import os
 
     p = {**RIG, **cfg}
-    path = p["route"]
-    if not os.path.exists(path):
-        raise ValueError(f"the rig needs the course's sidecar: {path} is not there")
-    md = json.load(open(path, encoding="utf-8"))
-    route = [tuple(c) for c in md.get("route") or ()]
-    if len(route) < 8:
-        raise ValueError(f"the course at {path} has only {len(route)} moves - regenerate it first")
+    paths = p["route"] if isinstance(p["route"], (list, tuple)) else [p["route"]]
+    routes = []
+    for path in paths:
+        if not os.path.exists(path):
+            raise ValueError(f"the rig needs the course's sidecar: {path} is not there")
+        r = [tuple(c) for c in json.load(open(path, encoding="utf-8")).get("route") or ()]
+        if len(r) < 8:
+            raise ValueError(f"the course at {path} has only {len(r)} moves - regenerate it")
+        routes.append(r)
+    route = [c for r in routes for c in r]      # for the bars: every landing of every run
 
     w = World()
     cx, cz = int(p["centre"][0]), int(p["centre"][1])
@@ -627,10 +720,18 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
     # in a neighbouring ledge's column. Thirty-five cells did, and every one of them is
     # something to clip on the way into a landing - invisible in any render, because a beam
     # above a landing and a beam in front of one draw identically.
+    # AND A REST IS 3x3, NOT ONE CELL. `gen/parkour.py` builds a rest platform with
+    # `rest_half` of 1, so eight of its nine cells never appear in the recorded route at all -
+    # only the centre does. Barring the centres alone let the gantry put two beam cells inside
+    # the corner of a checkpoint you stand on, and neither design could see it: the only thing
+    # that reported them was the park assembly's module clash check.
     barred = set()
     for c in route:
-        for q in range(0, 4):
-            barred.add((c[0], c[1] + q, c[2]))
+        h = 1 if (len(c) > 3 and c[3] == "rest") else 0
+        for dx in range(-h, h + 1):
+            for dz in range(-h, h + 1):
+                for q in range(0, 4):
+                    barred.add((c[0] + dx, c[1] + q, c[2] + dz))
     feats = {"beam": 0, "web": 0, "post": 0, "light": 0}
 
     def beam_at(i, x, y, z):
@@ -667,19 +768,23 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
                 break
             yield (x, y, z)
 
+    # PER ROUTE, NEVER ACROSS THE JOIN. Zipping the concatenated list pairs the last move of
+    # the sky run with the first of the deck run and draws a beam two hundred courses long
+    # straight through the middle of the well.
     n = 0
-    for a, b in zip(route, route[1:]):
-        for (x, y, z) in walk((a[0], a[1] + hang, a[2]), (b[0], b[1] + hang, b[2])):
-            beam_at(n, x, y, z)
-            n += 1
-            # the outward cell: a rail has WIDTH, and width is what carries at distance. On the
-            # dominant axis only, or it lands diagonally and is its own loose block.
-            ddx, ddz = x - cx, z - cz
-            ox, oz = (x + (1 if ddx > 0 else -1), z) if abs(ddx) >= abs(ddz) \
-                else (x, z + (1 if ddz > 0 else -1))
-            if not w.has(ox, y, oz) and (ox, y, oz) not in barred:
-                w.put(ox, y, oz, p["web"])
-                feats["web"] += 1
+    for one in routes:
+        for a, b in zip(one, one[1:]):
+            for (x, y, z) in walk((a[0], a[1] + hang, a[2]), (b[0], b[1] + hang, b[2])):
+                beam_at(n, x, y, z)
+                n += 1
+                # the outward cell: a rail has WIDTH, and width is what carries at distance. On the
+                # dominant axis only, or it lands diagonally and is its own loose block.
+                ddx, ddz = x - cx, z - cz
+                ox, oz = (x + (1 if ddx > 0 else -1), z) if abs(ddx) >= abs(ddz) \
+                    else (x, z + (1 if ddz > 0 else -1))
+                if not w.has(ox, y, oz) and (ox, y, oz) not in barred:
+                    w.put(ox, y, oz, p["web"])
+                    feats["web"] += 1
 
     # ------------------------------------------------------------ the posts, at the rests only
     for (x, y, z, kind) in ((c[0], c[1], c[2], c[3]) for c in route if len(c) > 3):
@@ -706,8 +811,8 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
     # pieces is the confetti this design exists to fix, so the answer is to go AROUND rather than
     # to stop barring: a breadth-first walk through unbarred air from each loose fragment back to
     # the main body, laying beam as it goes.
-    def components():
-        cells = set(w.cells)
+    def components(scope):
+        cells = set(scope)
         out, seen = [], set()
         for c0 in cells:
             if c0 in seen:
@@ -725,42 +830,65 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
             out.append(comp)
         return sorted(out, key=len, reverse=True)
 
-    comps = components()
-    for _ in range(8):
-        if len(comps) <= 1:
+    for one in routes:
+        # PER ROUTE. Two courses are two helices and their gantries are two LINES - stitching
+        # them to each other would draw a beam across ten blocks of open void between r30 and
+        # r20, which is a bridge nobody asked for and might sit in a jump path. What has to be
+        # one line is each RUN's own gantry, not the design as a whole.
+        mine = {c for c in w.cells if any(
+            abs(c[0] - m[0]) <= 6 and abs(c[2] - m[2]) <= 6 and 0 <= c[1] - m[1] <= 6
+            for m in one)}
+        for _ in range(8):
+            comps = components(mine)
+            if len(comps) <= 1:
+                break
+            main = set(comps[0])
+            joined = False
+            for frag in comps[1:]:
+                start = frag[0]
+                prevs, queue, seen = {start: None}, [start], {start}
+                hit = None
+                for _step in range(4000):
+                    if not queue:
+                        break
+                    cur = queue.pop(0)
+                    if cur in main:
+                        hit = cur
+                        break
+                    for d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+                        q = (cur[0] + d[0], cur[1] + d[1], cur[2] + d[2])
+                        if q in seen or q in barred:
+                            continue
+                        seen.add(q)
+                        prevs[q] = cur
+                        queue.append(q)
+                if hit is None:
+                    continue
+                node = hit
+                while node is not None:
+                    if not w.has(*node):
+                        w.put(node[0], node[1], node[2], p['beam_alt'])
+                        feats['beam'] += 1
+                    mine.add(node)
+                    node = prevs[node]
+                joined = True
+            if not joined:
+                break
+
+    # AND DROP WHAT STILL WILL NOT JOIN. A beam stub the walk cannot reach - barred out on every
+    # side by the landings it runs between - is five cells hanging in a two-hundred-course void,
+    # which is the confetti this whole design exists to remove. A five-cell GAP in an eighteen-
+    # hundred-cell line is invisible; five floating blocks are not. Same call `_drop_defer_orphans`
+    # makes one file over: if it cannot be carried, it should not be placed.
+    for _ in range(4):
+        comps = components(set(w.cells))
+        loose = [c for c in comps[1:] if len(c) < 12]
+        if not loose:
             break
-        main = set(comps[0])
-        joined = False
-        for frag in comps[1:]:
-            start = frag[0]
-            prevs, queue, seen = {start: None}, [start], {start}
-            hit = None
-            for _step in range(4000):
-                if not queue:
-                    break
-                cur = queue.pop(0)
-                if cur in main:
-                    hit = cur
-                    break
-                for d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
-                    q = (cur[0] + d[0], cur[1] + d[1], cur[2] + d[2])
-                    if q in seen or q in barred:
-                        continue
-                    seen.add(q)
-                    prevs[q] = cur
-                    queue.append(q)
-            if hit is None:
-                continue
-            node = hit
-            while node is not None:
-                if not w.has(*node):
-                    w.put(node[0], node[1], node[2], p["beam_alt"])
-                    feats["beam"] += 1
-                node = prevs[node]
-            joined = True
-        if not joined:
-            break
-        comps = components()
+        for frag in loose:
+            for cell in frag:
+                w.cells.pop(cell, None)
+                feats["beam"] -= 1
 
     return w.canvas({"kind": "prismrig", "profile_view": "top", "facing": [-1, 0],
-                     "features_built": feats, "route_from": path})
+                     "features_built": feats, "route_from": list(paths)})

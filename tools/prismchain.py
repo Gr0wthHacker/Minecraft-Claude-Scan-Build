@@ -10,10 +10,12 @@ merely mis-resolve a shared cell - it verifies against a world that does not exi
     1  PF Prism Well      cut + collar + gallery + pier + column   verified against park_future
     2  prism_cut          park_future with the well's DIG applied  (the mouth actually open)
     3  prism_site         prism_cut + the well                     the course's collision world
-    4  PF Prism Descent   the parkour, hung inside the mouth       verified against prism_site
-    5  PF Prism Rig       the gantry, from the DESCENT'S ROUTE      one source, so it cannot drift
-    6  prism_all          prism_site + descent + rig                what the floor is sited against
-    7  PF Signal Zero     catch, chamber and the signal             verified against prism_all
+    4  PF Prism Descent   the DECK run, r20->14 inside the mouth   verified against prism_site
+    5  prism_deck         prism_site + the deck run
+    6  PF Crown Descent   the SKY run, Y298->Y100 at r30           verified against prism_deck
+    7  PF Prism Rig       the gantry, from BOTH recorded routes    one source, so it cannot drift
+    8  prism_all          prism_deck + sky run + rig
+    9  PF Signal Zero     the catch, the chamber and the bell      verified against prism_all
 
 `park_future` is Park Complete MINUS the twelve archived v1 Prismworks designs - the park as it
 will be. It is the honest context: verifying against Park Complete would report the whole mouth
@@ -39,9 +41,10 @@ V1 = ["PF Foundry Gate", "PF Prism Array", "PF Resonance Vault", "PF Prism Ascen
       "PF Forge Deck", "PF Service Gallery", "PF Vantage Prism Summit", "PF Front Prismworks",
       "PF Water Wyrm Garden", "PF Game The Alignment", "PF Game The Vault",
       "PF Game Ascent Signal"]
-STEPS = ["well", "descent", "rig", "signal"]
+STEPS = ["well", "descent", "crown", "rig", "signal"]
 CONFIG = {"well": "configs/pf_prism_well.yaml", "descent": "configs/pf_prism_descent.yaml",
-          "rig": "configs/pf_prism_rig.yaml", "signal": "configs/pf_signal_zero.yaml"}
+          "crown": "configs/pf_crown_descent.yaml", "rig": "configs/pf_prism_rig.yaml",
+          "signal": "configs/pf_signal_zero.yaml"}
 
 
 def _out(*p):
@@ -163,11 +166,16 @@ def main():
               "prism_cut plus the Prism Well - the world the descent is sited and verified in.")
         _gen(CONFIG["descent"])
     if i <= 2:
-        _gen(CONFIG["rig"])
+        merge("prism_site", ["PF Prism Descent"], "prism_deck",
+              "prism_site plus the DECK run - what the sky run is sited against, so the two "
+              "concentric helices cannot claim a cell of each other.")
+        _gen(CONFIG["crown"])
     if i <= 3:
-        merge("prism_site", ["PF Prism Descent", "PF Prism Rig"], "prism_all",
-              "prism_site plus the descent and its rig - what the floor is sited against.")
-        if os.path.exists(os.path.join(ROOT, CONFIG["signal"])):
+        _gen(CONFIG["rig"])
+    if i <= 4:
+        merge("prism_deck", ["PF Crown Descent", "PF Prism Rig"], "prism_all",
+              "prism_deck plus the sky run and the gantry over both - the floor's context.")
+        if i <= 4 and os.path.exists(os.path.join(ROOT, CONFIG["signal"])):
             _gen(CONFIG["signal"])
         else:
             print(f"\n(no {CONFIG['signal']} yet - stopping after prism_all)")

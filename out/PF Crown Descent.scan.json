@@ -1,0 +1,1133 @@
+{
+  "origin": {
+    "x": 97560,
+    "y": 100,
+    "z": 80784
+  },
+  "size": {
+    "x": 62,
+    "y": 200,
+    "z": 63
+  },
+  "generated_by": "parkour",
+  "kind": "parkour",
+  "profile_view": "top",
+  "facing": [
+    0,
+    1
+  ],
+  "features_built": {
+    "ledge": 94,
+    "plunge": 16,
+    "gate": 31,
+    "rest": 15,
+    "slime": 16,
+    "lights": 140,
+    "gates": 31
+  },
+  "route": [
+    [
+      97560,
+      298,
+      80811,
+      "ledge"
+    ],
+    [
+      97561,
+      298,
+      80808,
+      "ledge"
+    ],
+    [
+      97562,
+      298,
+      80805,
+      "gate"
+    ],
+    [
+      97563,
+      298,
+      80801,
+      "ledge"
+    ],
+    [
+      97565,
+      298,
+      80798,
+      "ledge"
+    ],
+    [
+      97569,
+      282,
+      80794,
+      "plunge"
+    ],
+    [
+      97571,
+      282,
+      80792,
+      "ledge"
+    ],
+    [
+      97574,
+      282,
+      80790,
+      "ledge"
+    ],
+    [
+      97578,
+      282,
+      80788,
+      "gate"
+    ],
+    [
+      97582,
+      282,
+      80786,
+      "rest"
+    ],
+    [
+      97586,
+      282,
+      80785,
+      "ledge"
+    ],
+    [
+      97589,
+      282,
+      80785,
+      "ledge"
+    ],
+    [
+      97593,
+      282,
+      80785,
+      "gate"
+    ],
+    [
+      97597,
+      282,
+      80786,
+      "ledge"
+    ],
+    [
+      97601,
+      282,
+      80787,
+      "ledge"
+    ],
+    [
+      97605,
+      271,
+      80789,
+      "plunge"
+    ],
+    [
+      97608,
+      271,
+      80791,
+      "ledge"
+    ],
+    [
+      97611,
+      271,
+      80794,
+      "ledge"
+    ],
+    [
+      97613,
+      271,
+      80796,
+      "gate"
+    ],
+    [
+      97615,
+      271,
+      80799,
+      "rest"
+    ],
+    [
+      97617,
+      271,
+      80803,
+      "ledge"
+    ],
+    [
+      97619,
+      271,
+      80807,
+      "ledge"
+    ],
+    [
+      97620,
+      271,
+      80810,
+      "gate"
+    ],
+    [
+      97620,
+      271,
+      80814,
+      "ledge"
+    ],
+    [
+      97620,
+      271,
+      80818,
+      "ledge"
+    ],
+    [
+      97619,
+      261,
+      80823,
+      "plunge"
+    ],
+    [
+      97618,
+      261,
+      80826,
+      "ledge"
+    ],
+    [
+      97617,
+      261,
+      80829,
+      "ledge"
+    ],
+    [
+      97614,
+      261,
+      80832,
+      "gate"
+    ],
+    [
+      97612,
+      261,
+      80836,
+      "rest"
+    ],
+    [
+      97609,
+      261,
+      80838,
+      "ledge"
+    ],
+    [
+      97606,
+      261,
+      80840,
+      "ledge"
+    ],
+    [
+      97602,
+      261,
+      80842,
+      "gate"
+    ],
+    [
+      97598,
+      261,
+      80844,
+      "ledge"
+    ],
+    [
+      97595,
+      261,
+      80845,
+      "ledge"
+    ],
+    [
+      97590,
+      251,
+      80845,
+      "plunge"
+    ],
+    [
+      97586,
+      251,
+      80845,
+      "ledge"
+    ],
+    [
+      97583,
+      251,
+      80844,
+      "ledge"
+    ],
+    [
+      97579,
+      251,
+      80843,
+      "gate"
+    ],
+    [
+      97575,
+      251,
+      80841,
+      "rest"
+    ],
+    [
+      97573,
+      251,
+      80839,
+      "ledge"
+    ],
+    [
+      97569,
+      251,
+      80837,
+      "ledge"
+    ],
+    [
+      97567,
+      251,
+      80834,
+      "gate"
+    ],
+    [
+      97565,
+      251,
+      80831,
+      "ledge"
+    ],
+    [
+      97563,
+      251,
+      80827,
+      "ledge"
+    ],
+    [
+      97561,
+      237,
+      80822,
+      "plunge"
+    ],
+    [
+      97560,
+      237,
+      80819,
+      "ledge"
+    ],
+    [
+      97560,
+      237,
+      80815,
+      "ledge"
+    ],
+    [
+      97560,
+      237,
+      80811,
+      "gate"
+    ],
+    [
+      97561,
+      237,
+      80807,
+      "rest"
+    ],
+    [
+      97563,
+      237,
+      80803,
+      "ledge"
+    ],
+    [
+      97565,
+      237,
+      80799,
+      "ledge"
+    ],
+    [
+      97567,
+      237,
+      80796,
+      "gate"
+    ],
+    [
+      97570,
+      237,
+      80793,
+      "ledge"
+    ],
+    [
+      97573,
+      237,
+      80791,
+      "ledge"
+    ],
+    [
+      97577,
+      227,
+      80788,
+      "plunge"
+    ],
+    [
+      97581,
+      227,
+      80786,
+      "ledge"
+    ],
+    [
+      97585,
+      227,
+      80785,
+      "ledge"
+    ],
+    [
+      97589,
+      227,
+      80785,
+      "gate"
+    ],
+    [
+      97593,
+      227,
+      80785,
+      "rest"
+    ],
+    [
+      97596,
+      227,
+      80786,
+      "ledge"
+    ],
+    [
+      97600,
+      227,
+      80787,
+      "ledge"
+    ],
+    [
+      97604,
+      227,
+      80789,
+      "gate"
+    ],
+    [
+      97607,
+      227,
+      80790,
+      "ledge"
+    ],
+    [
+      97610,
+      227,
+      80793,
+      "ledge"
+    ],
+    [
+      97614,
+      213,
+      80797,
+      "plunge"
+    ],
+    [
+      97616,
+      213,
+      80801,
+      "ledge"
+    ],
+    [
+      97618,
+      213,
+      80805,
+      "ledge"
+    ],
+    [
+      97619,
+      213,
+      80809,
+      "gate"
+    ],
+    [
+      97620,
+      213,
+      80813,
+      "rest"
+    ],
+    [
+      97620,
+      213,
+      80817,
+      "ledge"
+    ],
+    [
+      97619,
+      213,
+      80821,
+      "ledge"
+    ],
+    [
+      97618,
+      213,
+      80825,
+      "gate"
+    ],
+    [
+      97616,
+      213,
+      80829,
+      "ledge"
+    ],
+    [
+      97614,
+      213,
+      80833,
+      "ledge"
+    ],
+    [
+      97610,
+      201,
+      80837,
+      "plunge"
+    ],
+    [
+      97607,
+      201,
+      80840,
+      "ledge"
+    ],
+    [
+      97603,
+      201,
+      80842,
+      "ledge"
+    ],
+    [
+      97599,
+      201,
+      80844,
+      "gate"
+    ],
+    [
+      97595,
+      201,
+      80845,
+      "rest"
+    ],
+    [
+      97591,
+      201,
+      80845,
+      "ledge"
+    ],
+    [
+      97587,
+      201,
+      80845,
+      "ledge"
+    ],
+    [
+      97584,
+      201,
+      80844,
+      "gate"
+    ],
+    [
+      97580,
+      201,
+      80843,
+      "ledge"
+    ],
+    [
+      97576,
+      201,
+      80842,
+      "ledge"
+    ],
+    [
+      97572,
+      187,
+      80839,
+      "plunge"
+    ],
+    [
+      97569,
+      187,
+      80836,
+      "ledge"
+    ],
+    [
+      97566,
+      187,
+      80833,
+      "ledge"
+    ],
+    [
+      97564,
+      187,
+      80830,
+      "gate"
+    ],
+    [
+      97562,
+      187,
+      80826,
+      "rest"
+    ],
+    [
+      97561,
+      187,
+      80822,
+      "ledge"
+    ],
+    [
+      97560,
+      187,
+      80818,
+      "ledge"
+    ],
+    [
+      97560,
+      187,
+      80814,
+      "gate"
+    ],
+    [
+      97560,
+      187,
+      80811,
+      "ledge"
+    ],
+    [
+      97561,
+      187,
+      80807,
+      "ledge"
+    ],
+    [
+      97563,
+      176,
+      80802,
+      "plunge"
+    ],
+    [
+      97565,
+      176,
+      80798,
+      "ledge"
+    ],
+    [
+      97568,
+      176,
+      80795,
+      "ledge"
+    ],
+    [
+      97571,
+      176,
+      80792,
+      "gate"
+    ],
+    [
+      97574,
+      176,
+      80790,
+      "rest"
+    ],
+    [
+      97578,
+      176,
+      80788,
+      "ledge"
+    ],
+    [
+      97582,
+      176,
+      80786,
+      "ledge"
+    ],
+    [
+      97586,
+      176,
+      80785,
+      "gate"
+    ],
+    [
+      97590,
+      176,
+      80785,
+      "ledge"
+    ],
+    [
+      97593,
+      176,
+      80785,
+      "ledge"
+    ],
+    [
+      97598,
+      162,
+      80786,
+      "plunge"
+    ],
+    [
+      97602,
+      162,
+      80787,
+      "ledge"
+    ],
+    [
+      97606,
+      162,
+      80789,
+      "ledge"
+    ],
+    [
+      97609,
+      162,
+      80792,
+      "gate"
+    ],
+    [
+      97612,
+      162,
+      80795,
+      "rest"
+    ],
+    [
+      97615,
+      162,
+      80798,
+      "ledge"
+    ],
+    [
+      97617,
+      162,
+      80802,
+      "ledge"
+    ],
+    [
+      97619,
+      162,
+      80806,
+      "gate"
+    ],
+    [
+      97619,
+      162,
+      80809,
+      "ledge"
+    ],
+    [
+      97620,
+      162,
+      80813,
+      "ledge"
+    ],
+    [
+      97620,
+      148,
+      80818,
+      "plunge"
+    ],
+    [
+      97619,
+      148,
+      80821,
+      "ledge"
+    ],
+    [
+      97618,
+      148,
+      80825,
+      "ledge"
+    ],
+    [
+      97616,
+      148,
+      80829,
+      "gate"
+    ],
+    [
+      97614,
+      148,
+      80833,
+      "rest"
+    ],
+    [
+      97611,
+      148,
+      80836,
+      "ledge"
+    ],
+    [
+      97608,
+      148,
+      80839,
+      "ledge"
+    ],
+    [
+      97604,
+      148,
+      80841,
+      "gate"
+    ],
+    [
+      97600,
+      148,
+      80843,
+      "ledge"
+    ],
+    [
+      97596,
+      148,
+      80844,
+      "ledge"
+    ],
+    [
+      97591,
+      132,
+      80845,
+      "plunge"
+    ],
+    [
+      97587,
+      132,
+      80845,
+      "ledge"
+    ],
+    [
+      97583,
+      132,
+      80844,
+      "ledge"
+    ],
+    [
+      97579,
+      132,
+      80843,
+      "gate"
+    ],
+    [
+      97575,
+      132,
+      80841,
+      "rest"
+    ],
+    [
+      97572,
+      132,
+      80839,
+      "ledge"
+    ],
+    [
+      97569,
+      132,
+      80836,
+      "ledge"
+    ],
+    [
+      97566,
+      132,
+      80833,
+      "gate"
+    ],
+    [
+      97564,
+      132,
+      80830,
+      "ledge"
+    ],
+    [
+      97562,
+      132,
+      80826,
+      "ledge"
+    ],
+    [
+      97561,
+      120,
+      80821,
+      "plunge"
+    ],
+    [
+      97560,
+      120,
+      80817,
+      "ledge"
+    ],
+    [
+      97560,
+      120,
+      80813,
+      "ledge"
+    ],
+    [
+      97561,
+      120,
+      80809,
+      "gate"
+    ],
+    [
+      97562,
+      120,
+      80805,
+      "rest"
+    ],
+    [
+      97563,
+      120,
+      80802,
+      "ledge"
+    ],
+    [
+      97565,
+      120,
+      80798,
+      "ledge"
+    ],
+    [
+      97568,
+      120,
+      80795,
+      "gate"
+    ],
+    [
+      97571,
+      120,
+      80792,
+      "ledge"
+    ],
+    [
+      97574,
+      120,
+      80790,
+      "ledge"
+    ],
+    [
+      97578,
+      110,
+      80787,
+      "plunge"
+    ],
+    [
+      97582,
+      110,
+      80786,
+      "ledge"
+    ],
+    [
+      97586,
+      110,
+      80785,
+      "ledge"
+    ],
+    [
+      97590,
+      110,
+      80785,
+      "gate"
+    ],
+    [
+      97594,
+      110,
+      80785,
+      "rest"
+    ],
+    [
+      97598,
+      110,
+      80786,
+      "ledge"
+    ],
+    [
+      97602,
+      110,
+      80787,
+      "ledge"
+    ],
+    [
+      97606,
+      110,
+      80789,
+      "gate"
+    ],
+    [
+      97609,
+      110,
+      80792,
+      "ledge"
+    ],
+    [
+      97612,
+      110,
+      80795,
+      "ledge"
+    ],
+    [
+      97616,
+      100,
+      80799,
+      "plunge"
+    ]
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "prismworks",
+      "focal_face": "west",
+      "narrative": "A spiralling parkour descent of two hundred courses at a constant radius of thirty, from a railed pier on the column's crown at Y300, down through the park deck and on into the void to the pool at Y95 - the outer of the well's two concentric runs, and the park's tallest thing.\n"
+    },
+    "metrics": {
+      "blocks": 307,
+      "materials": 8,
+      "dominant_material_share": 0.3518,
+      "light_blocks": 0,
+      "massing": {
+        "width": 62,
+        "height": 200,
+        "depth": 63,
+        "fill_ratio": 0.0004
+      },
+      "silhouette": {
+        "top": {
+          "area": 202,
+          "fill_ratio": 0.0517
+        },
+        "front": {
+          "area": 196,
+          "fill_ratio": 0.0158
+        },
+        "side": {
+          "area": 193,
+          "fill_ratio": 0.0153
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.329,
+          0.3257,
+          0.3453
+        ],
+        "top_silhouette_perimeter": 800,
+        "surface_faces_per_block": 4.6254
+      },
+      "material_counts": {
+        "ochre_froglight": 108,
+        "stone_bricks": 62,
+        "verdant_froglight": 32,
+        "stone_brick_wall": 31,
+        "mossy_stone_bricks": 26,
+        "deepslate_bricks": 22,
+        "slime_block": 16,
+        "cobbled_deepslate": 10
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "45b32ae905e7d7b0c7af15dead0c7f45d0a395a63c4f77337489422f39b1188a",
+    "generator_source_digest": "7acc8d9c099429b96cbf32bf4d4a007e9398febad15dbf130a6cef298e93955c",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 125.749036,
+    "blocks": 307,
+    "blocks_per_second": 2.44
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "ride"
+    ],
+    "blocks": 307,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "experience",
+    "player_verbs": [
+      "ride the column to the crown",
+      "walk the pier",
+      "jump",
+      "descend two hundred courses",
+      "land in the pool"
+    ],
+    "outcome": "You cross the whole vertical range of the park in one run, in sight of the gallery for the middle of it, and land in the pool a hundred courses under the island.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: deepslate_bricks",
+    "not in the provisional skyblock-1.19 list: slime_block",
+    "not in the provisional skyblock-1.19 list: verdant_froglight"
+  ],
+  "file": "PF Crown Descent.litematic",
+  "name": "PF Crown Descent"
+}

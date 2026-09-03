@@ -40,6 +40,17 @@ params:
   bay_half: 3
   bay_reach: 3
   entry_deg: 180          # west: the course starts facing the park spine
+  # TWO CONCENTRIC RUNS, AND THE PIERS ARE WHAT SEPARATE THEM. Jack: "should we be building this
+  # straight up as well so its a really complete big circuit" - so the column carries on to Y300
+  # and the sky run comes down the OUTSIDE of the void at r30, through the mouth, into the pool.
+  # The deck run keeps its own shorter pier and its own tighter helix inside it. Above the deck
+  # there is one spiral; below it there are two, concentric and clearly apart, both landing in
+  # the same water. That is what makes each half separately runnable without the two lines of
+  # landings interleaving into something nobody can follow.
+  y_crown: 300            # the park's tallest, Jack's call: +98 over the deck, 20 under the limit
+  crown_r: 7
+  crown_pier_to: 33       # the sky run starts at r30, one jump off this
+  pier_to: 23             # ...and the deck run at r20, one jump off ITS pier, well inside
   y_floor: 95
   seed: 7
 roles: [construction, building]
