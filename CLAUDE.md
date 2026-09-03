@@ -6449,6 +6449,188 @@ largest genuinely flat area is 13x13, and a game wants 12x10 clear.
     python -m mcbuild fleet --assign casino --accounts A,B,C
     # then on each alt:  /cscan fleet work
 
+## The Frontier: a mountain, a works, and four games nobody had placed (2026-09-03)
+
+Jack: *"frontier in its current design is useless outside of the rollercoaster, lets think about
+this area differently and figure out what we can build that supports the coaster, and is
+interesting + visual."* Then: *"do all"*.
+
+### The measurement, before anything was drawn
+
+Flooded over the shipped `out/Park Complete.litematic`, the Frontier band (U0-169, 200 x 170 =
+34,000 columns):
+
+| | |
+|---|---|
+| bare lawn | **66%** - 22,322 columns, and the largest free-lawn rectangle in the land was 8 x 18 |
+| interactive inventory, WHOLE LAND | **646 rails, 2 buttons, 2 bells, 2 detector rails** |
+| ...dispensers, hoppers, droppers, targets, note blocks, levers, plates, comparators | **zero** |
+| ...redstone wire | **zero** |
+| columns over 20 courses | 3.8%; exactly two things broke 25 - the Vantage Lookout at 44 and the ride at 42 |
+
+**EVERY VERB IN THE LAND BELONGED TO THE COASTER.** Six modules stood around it and not one was
+a thing a guest does; `frontier_builds._porch_lot`'s own docstring says the land's only declared
+dwell activity ships as two empty shells. And `tools/look.py --sheet panel` on the ride says the
+rest: **its PLAN IS A RECTANGLE** - a timber trestle perimeter round a terraced grey mass with
+vertical faces, 10,657 cells of `cracked_stone_bricks`, which is a BRICK. You cannot name it from
+the silhouette. The land's own spec promises *"a living gold-rush mining town against a worked-out
+mountain"* and **the mountain was never built.**
+
+### THREE GAMES WERE BUILT FOR THIS LAND AND NOBODY HAD PLACED THEM
+
+`out/PF Game Pan Line`, `PF Game Powder Striker` and `PF Game Prize Office` were on disk,
+generated, contract-asserted by simulation - and absent from `Park Complete`'s `contains` list.
+**And `park_games` was not in `gen/GENERATORS` at all**, so not one of the ten `configs/pf_game_*`
+could be regenerated: `mcbuild gen` answered *"unknown generator park_games"* while the module,
+its 400-line test file and ten configs all sat in the tree. A generator nobody can reach is
+indistinguishable from one nobody wrote, and a design that is built and unplaced is worse - it
+looks like work that was done.
+
+### What was built
+
+| design | blocks | what it is |
+|---|---|---|
+| `PF Mine Ridge` | 32,255 | the mountain the coaster is cut into, and a walk-through adit through its foot |
+| `PF Mine Works` | 5,168 | the ore line, a stamp mill a guest FIRES, and the dock the ore leaves by |
+| `PF Game The Riffle` | 130 | the Prospecting Porch's second bay, finally given a mechanism |
+| + placed | | the three frontier games that were already built |
+
+    interactive inventory   4 -> 971 blocks, and it now contains redstone
+                            55 wire, 7 comparators, 5 repeaters, 4 pistons, 14 lamps,
+                            1 target, 1 weighted plate, 7 bells, 4 buttons, 98 sources
+    columns over 20         3.8% -> 6.6%      tallest thing 44 -> 52
+    columns over 3          33.3% -> 39.7%
+
+### THE RIDGE IS THE COMPLEMENT OF THE RIDE, NOT A REPLACEMENT FOR IT
+
+`gen/mineridge.py` LOADS the coaster's own artifact and refuses every cell of it, so `overlap 0`
+is a property of the construction rather than a number to hope for. Three parts:
+
+- **TALUS** whose reach and height are both functions of the FACE above them - a forty-course wall
+  throws scree fifteen cells and a six-course one throws it three - so the finished outline is
+  irregular by construction rather than by noise. A max-first flood carrying each source's own
+  slope gives every cell the maximum over all sources at a fraction of an all-pairs scan.
+- **A CREST** on the east and south strips, which is where the room is: a capped distance
+  transform over the ride's footprint says the notch inside its plan reaches at most 7 cells of
+  clearance and mostly 1-6, while V101-123 (behind the lift hill) and the south strip run 7-12.
+  The lift hill climbs INTO the mountain's face, which is what a mine coaster is.
+- **AN ADIT** - two framed portals on one face, timber sets every third cell, rail underfoot, an
+  ore chamber with a gold face and a fenced winze.
+
+**THERE IS NO UNDERGROUND ON THIS ISLAND TO DIG INTO.** Measured: world Y202 is the lawn and all
+34,000 columns of it, and Y190-201 hold between 12 and 175 cells in the whole Frontier - the park
+is a one-block plate over void. A shaft is not available. An ADIT into a hillside is what a
+gold-rush mine on a hill actually is, and it is the one that can be built here.
+
+#### Six things the ridge cost, each of which shipped a clean-looking build
+
+- **CONES ARE THE WRONG PRIMITIVE.** Three point sources with a `(1-d)**1.6` falloff came out as
+  three sharp spires - a tent is what that exponent draws - and the terracing then wrapped each in
+  concentric contour rings, so the mass read as a stack of grey wedding cakes. A crag is a LINE
+  with a shoulder: distance to a SEGMENT, and a near-linear falloff off it. Pushed the other way
+  (an exponent well below one) it becomes a mesa, and a terraced mesa is a ziggurat - which was
+  the second build.
+- **TERRACING APPLIED EVERYWHERE BUILDS A ZIGGURAT.** A cone is uniformly steep so every column
+  snapped. The threshold is 2.0 courses per cell - genuinely unclimbable rather than merely
+  sloping - the foot is exempt, and the bench height carries a coarse jitter so a shelf wanders
+  instead of drawing a contour line.
+- **THE VALUE LADDER IS MEASURED ACROSS FAMILIES, NEVER INSIDE ONE**, and this file got it wrong
+  first. Measured with `blocks.color(..., "side")`: stone 126, andesite 136, cobblestone 127,
+  gravel 128 - **four materials inside ten points of luminance**, below the ~15 at which a tone
+  stops being a tone. A mass of those four is one grey whatever the mix, which is the same mistake
+  three separate CLAUDE.md notes already record about stone brick and blackstone. Across families
+  the rungs are real - `cobbled_deepslate` 77, `moss_block` 101, `tuff` 108, `granite` 112,
+  `stone` 126, `diorite` 188 - so the mass is BEDDED rather than speckled, in a six-course cycle
+  with MID between every accent. **And the beds REPEAT**: one ladder spread over fifty courses put
+  every accent in the bottom third where nothing could see it.
+- **THE CRAG GREW THROUGH THE RIDE, and refusing the ride's own cells did not stop it.** A column
+  one cell off the track took the crest's full height, so the first build swallowed the coaster
+  whole - the mass was there and the thing it exists to support was invisible from three bearings
+  out of four. `stand_off` holds the crest down near the ride and lets it reach full height only
+  seven cells clear, which leaves a moat the track reads against. The TALUS is deliberately not
+  capped: hugging the ride is its entire job.
+- **GROUND THAT BELONGS TO SOMEBODY ELSE.** 271 columns of the lot carry `PF Front Frontier`'s
+  own work - the coaster's 7 x 30 switchback queue, the Ridge Water Tower, the Ore Road and the
+  Trail Ore Cart, all in the south band. **A mountain deferring round a switchback queue is a
+  mountain with a rectangular bite out of it**, so those boxes are kept OUT rather than deferred.
+- **GRAVEL IS A CRUST MATERIAL** (rule 13). It is the top course of a column that is solid to the
+  ground and never a face, so a falling block never has air under it.
+
+And three inside the adit, all invisible to everything but a walk:
+
+- **A TUNNEL IS A VOID WITH ROCK ON TOP, AND THE ROCK HAS TO BE PUT THERE FIRST.** Carved out of
+  whatever the talus happened to give, a gallery under a thin part of the apron is an open trench
+  with two walls - which audits clean and renders as a tunnel from the one bearing that looks down
+  it. The cover is forced into the height field before a single cell is filled.
+- **A SET'S POST MAY NOT STAND IN THE GALLERY.** Where the cross-cut meets the corridor its own
+  posts land in the lane that feeds it - the same cell is a wall to one lane and a walkway to the
+  other - so a leg placed blind bricks up the junction. Nothing in an audit, a BOM or a render can
+  see it; the only symptom is a guest who cannot get through.
+- **A PORTAL BURIED IN ITS OWN TALUS IS NOT A PORTAL.** The mass is filled before the gallery is
+  cut, so without an approach cleared in front of each mouth the scree stands against it - and the
+  name board is REFUSED for having no empty cell to hang in, which is how one of the two shipped
+  unsigned and the other did not.
+
+**THE DESIGN ALONE IS IN SIX PIECES AND THAT IS CORRECT.** The ride is a hole in it, so a talus
+that wraps a ride is disconnected in isolation and one 62,138-cell piece in the composite - the
+Lowland Stair's own situation, and the composite is the truth.
+
+### The stamp mill: THE MACHINE LATCHED, TWICE, FROM TWO DIFFERENT CAUSES
+
+`gen/mineworks.py` builds an ore line, a three-step mill and a dock. The mill's stamp battery is
+the second thing in the Frontier a guest can operate, and its contract is asserted by
+`tests/test_mineworks.py` through `mcbuild.circuit`. It failed three times before it worked, and
+**on all three occasions the design audited clean, rendered identically and reported a correct
+BOM**:
+
+- **It did nothing at all.** The boost sat two cells past the pulse's output and the drive line
+  began past the end of the bay - the run was broken in two places.
+- **It latched ON while the button was held** because the drive line's first repeater stood on the
+  climb's own DUST, which is not a placement the game allows; the model resolved it by feeding the
+  staircase backwards, and the levels rose from 9 at the comparator to 14 at the top.
+- **It latched again** because the pulse's own delay leg ends one cell off the comparator's output,
+  and the step-across into the climb was laid level with it - so fifteen went straight round the
+  gate. **Every module in the chain was individually correct**, which is this file's own rule
+  about composing verified modules, met a third time.
+
+A machine that runs for as long as somebody leans on it is the mill's version of a house paying
+while a player holds a slot button. `test_A_HELD_BUTTON_GIVES_ONE_STROKE_AND_THE_BATTERY_RESETS`
+is deliberately tight - *off within twenty ticks while still HELD* - because a bound looser than
+the bug is what let `circuits.pulse` ship as a repeater, and this repo has written that down once
+already.
+
+Four more things the works cost:
+
+- **THE ORE LINE'S POWER SOURCES ARE A HAZARD TO ANY CIRCUIT NEAR THEM.** A `redstone_block` every
+  eight cells keeps its powered rail alive, and at V160 those ran four cells from the battery's own
+  climb. Moved to V165, the nearest source is five cells from the nearest dust - out of reach.
+- **A POWERED RAIL CANNOT CURVE**, off the registry rather than off memory, so every corner is
+  plain `rail`. On this server gold is farmable and iron is not, so the powered rail is the CHEAP
+  one and the plain rail is the expensive one - the reverse of the obvious reading.
+- **INSIDE THE MILL THE BUILDING CARRIES THE LINE.** The handrail run down the mill's interior
+  overwrote two courses of the battery's climb. The line is generated FIRST so that where the two
+  want one cell, the thing with a circuit in it wins.
+- **AN AWNING BELONGS TO A STEP, NOT TO A BUILDING** - run at one height across all three it had
+  no wall behind it over two of them and shipped as floating wool. And `wool` has no slab in the
+  game, which the state audit caught as thirty-three illegal blocks.
+
+### Still open, stated rather than left
+
+- **Nothing has been looked at in game.** All of it is `render3d`, which draws with the same
+  colour DB the palette picker optimises against - judge form and mass here, judge palette in
+  world. The composite reads as a mining town under a worked mountain from every bearing.
+- **The ridge is 32,255 blocks**, which is large against `PARK_VISUAL_AND_BUDGET_SPEC`'s
+  36-44k for the coaster INCLUDING its terrain. It is the land's defining feature and 94% of it
+  is `cheap` tier; the trade is stated rather than hidden.
+- **`verify_against: out/Park Complete.litematic` is now self-referential for these two designs**,
+  because the shipped composite contains them. `park_place` rebuilds the merge from the artifacts
+  every run so it is self-correcting, but a re-verify reports the delta against the LAST ship
+  rather than against a clean world.
+- **The gold sluice bay itself still has no mechanism inside it.** Measured over the shipped park,
+  its standable-and-clear columns are a ring one to two cells wide round the settling pool with no
+  rectangle in it bigger than 15 x 1 - a console needs a footprint the room does not have. `PF
+  Game The Riffle` stands on the shared veranda instead, which is where the guests already queue.
+
 ## The daily loop
 
 ```bash
@@ -8642,3 +8824,94 @@ player's head and renders the bunting as a wall across the view.**
 - `tests/test_parkways.py::test_every_build_the_park_owes_has_a_lot_that_holds_it` fails on
   **Wyrm's Crossing (58x44 in a lot that holds 1x0)**. Pre-existing, and it is the 39,504-block
   skull another stream is siting.
+
+### The court, third time: a grand fountain and a floor with no rings in it (2026-09-03)
+
+Jack, on the formal version: *"nah this is shite, we have a center fountain, and then it just leads
+to a bigger fountain, this feels crappy, we need something else to fill this space even if its
+funky design, fields of flowers, whatever"*, then *"the court should have a large fountain ideally
+sophisticated/intricate of stone(s), and then the trees/flower areas are cute with the pagodas on
+the sides etc, but we need to have enough interesting visually and walkable space etc that covers
+entrance all the way to the path before the ferris wheel"*, and *"make sure we get rid of the other
+fountain there, we should only have 1."*
+
+**"A CENTER FOUNTAIN THAT LEADS TO A BIGGER FOUNTAIN" WAS TWO SEPARATE THINGS, BOTH TRUE.**
+
+- **The floor.** A blue basin inside a stone ring inside a red-and-white ring inside another stone
+  ring can only read from above as a second, larger fountain drawn round the first. Every band on
+  that floor was concentric on the basin, which is the one thing it must not be.
+- **The park.** Measured, the Midway held exactly two water designs and both were on U300: this
+  court's basin at V51 and the **Midway Cascade** at V80-116, forty blocks behind it. Walking in
+  through the gate you met one and then the other.
+
+#### THE FLOOR IS RADIAL AND HAS NO RING ANYWHERE IN IT
+
+Sixteen spokes from the fountain to the lot's own kerb, running straight across the great walk
+rather than stopping at a roundel's edge.
+
+- **A SPOKE IS A CONSTANT WIDTH, NOT A CONSTANT ANGLE.** Drawn as an angular slice it is a wedge -
+  two cells at the hub and nine at the lot edge - so sixteen of them meeting in the middle is a
+  dark blot with a scalloped edge. The test is the PERPENDICULAR distance from the ray.
+- **AND IT HAD TO BE THE WHOLE FLOOR.** Confined to the ring of paving between the basin and a
+  r=15 rim, the spokes had FOUR CELLS to run in and came out as sixteen dashes. A grand fountain
+  is nineteen across; there is no annulus left to pattern, so the pattern is the court.
+
+#### THE FOUNTAIN: NINETEEN ACROSS, TEN COURSES, FOUR STONES, WATER AT THREE LEVELS
+
+A dark blackstone kerb, a stone-brick body, chiseled at every step, a diorite bowl. **"Intricate"
+at voxel scale is where one material stops and another starts**, not detail inside a material - so
+each tier is a different stone and reads as a separate piece. A sitting ledge of slabs one ring
+outside the wall, a plinth stepped 5-4-3 with a stair moulding at each step, a lower bowl with the
+stem rising through its water, a cantilevered upper bowl, and a lantern on the finial.
+
+Every water cell is enclosed BY CONSTRUCTION - the shell rule for the wall, a solid course under
+each pool, a ring of its own stone at each bowl's level. **A fountain that drains is the one
+failure this cannot be looked at to check.** Its height is bounded by a MEASURED sightline: the
+ray from a visitor's eye at the gate to the wheel's hub passes Y222 over this cell and the finial
+stands at Y213, which `test_the_wheel_is_visible_from_inside_the_gate` re-derives.
+
+#### THE GROUND RULE INVERTED: A PAVED COURT WITH GARDENS IN IT
+
+It was a formal garden with paths through it - four beds filling the quadrants - so of 3,416 cells
+barely a third could be stood on. Everything is walkable now except four corner beds, the two
+pavilions and whatever `blocked` reserves. The paving carries twelve lamp standards, eight benches
+on the fountain's rim, four raised planters, four masts and four bunting swags, because a big paved
+court with nothing on it is a car park.
+
+**AND THE BEDS ARE A PINWHEEL.** Radial wedges measured from the COURT'S centre rather than each
+bed's, so the four together are one pattern about the fountain. Radial for the same reason the
+floor is: concentric colour would have made the ring mistake four times larger. Six degrees a
+wedge - at twelve a bed only ever caught one or two and read as a block of colour with a hedge
+round it.
+
+**THE BOLD HALF IS WOOL AND THE PLANTED HALF IS FLOWERS, and that is about what can be JUDGED.**
+`render3d` draws every block as one flat RGB and a flower's texture is mostly transparent, so the
+database has `poppy` at (129,65,38) - the average of a red petal and a green stem over empty
+pixels. A bed of poppies renders here as brown-green mush and reads scarlet in game. Wool reads at
+any distance in either place; the flowers are planted in the moss wedges between it.
+
+#### THE CASCADE IS WITHDRAWN FROM PLACEMENT, NOT DELETED
+
+The court's fountain is the one that stays, because it is the one Jack asked for by name in the
+same breath. The Cascade's config and its 2,096-block artifact are untouched on disk, because it
+was built against a DIFFERENT instruction - *"move the wheel back and lets fill the area between
+with something more interesting ... it should instead be a big water fountain sculpture"* - and
+whoever owns that band needs to see what was there before choosing what replaces it. **V80-120 x
+U266-336 is empty ground now and that is 41 by 71 of it.**
+
+The Sky Lift's own 171 water cells at V134-147 are NOT a third fountain: they are a column 48
+courses tall standing on soul sand, which is the bubble lift that carries riders to the wheel.
+
+#### A GENERATOR THAT HARD-CODES ANOTHER DESIGN'S FOOTPRINT CANNOT BE TOLD WHEN IT MOVES
+
+The court reserved the Sky Lift queue's corner as a literal - V65 to the lot's end by the first
+ten columns. The wheel moved from V80 to V130, its queue went with it, the config's `blocked`
+entry was correctly removed by the stream that moved it, and the literal stayed: a ten-by-fifteen
+hole carved out of a court for something fifty blocks away. **NOTHING REPORTS THAT - a cell nobody
+built looks exactly like a cell nobody wanted.** It reads `blocked` now, so the config is the one
+source and the two cannot disagree.
+
+Found the same day and worth the same note: `out/PF Front Midway.litematic` still held the queue at
+the OLD address because that stream had edited its config without regenerating it, and the court
+clashed with a queue that no longer exists in its own config. **A config change is not landed until
+the artifact is rebuilt.**

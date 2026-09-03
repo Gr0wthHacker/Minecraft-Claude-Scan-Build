@@ -190,7 +190,37 @@ PLACEMENT = {
     # exactly the entry gate's own frontage, so the two read as one composition rather than as a
     # gate with a smaller thing behind it.
     "Welcome Court":          (24, 270),
-    "Sky Lift":               (80, 266),      # THE CENTRE ATTRACTION, straight down the axis
+    # THE WHEEL MOVED BACK FIFTY BLOCKS (2026-09-03), and it is an improvement rather than a cost.
+    # It crowns at Y276, 74 courses over the lawn; at V80 its ring centre stood 72 blocks from the
+    # gate's doors, a 46 degree angle - you crane your neck and the whole wheel does not fit the
+    # view - and there were SEVEN blocks between it and the back of the Welcome Court. At V130 it
+    # is 122 blocks and 31 degrees: the whole wheel, from the moment you clear the gate.
+    #
+    # V130 IS THE PARK'S OWN GRID LINE, not a number picked to suit. It is where the exit and
+    # observation band starts, and where every other lot in that band begins - Frontier Lookout
+    # (130, 0), Forge Deck (130, 527).
+    "Sky Lift":               (130, 266),     # THE CENTRE ATTRACTION, straight down the axis
+    # ...and what the fifty blocks bought: the lot between the Welcome Court and the wheel.
+    # "Midway Cascade":       (80, 266),      # 41 x 71 - WITHDRAWN, see below
+    #
+    # TWO FOUNTAINS ON ONE AXIS, FORTY BLOCKS APART. Jack: *"make sure we get rid of the other
+    # fountain there, we should only have 1."* Measured off the shipped park, the Midway held
+    # exactly two water designs and both were on U300 - the Welcome Court's basin at V51 (188
+    # cells) and the Cascade at V80-116 (369). Walking in through the gate you met one and then
+    # the other, which is the thing he first described as *"a center fountain, and then it just
+    # leads to a bigger fountain."*
+    #
+    # THE COURT'S IS THE ONE THAT STAYS, because it is the one he asked for by name in the same
+    # breath: *"the court should have a large fountain ideally sophisticated/intricate of
+    # stone(s)."*
+    #
+    # THE CASCADE IS WITHDRAWN FROM PLACEMENT, NOT DELETED. Its config and its 2,096-block
+    # artifact are untouched on disk, because it was built against a DIFFERENT instruction -
+    # *"move the wheel back and lets fill the area between with something more interesting ...
+    # it should instead be a big water fountain sculpture"* - and whoever owns that band needs
+    # to see what was there before choosing what replaces it. **V80-120 x U266-336 is empty
+    # ground now and that is 41 by 71 of it**, which is a decision for Jack rather than a hole
+    # this pass should quietly fill.
     # --- Midway ---------------------------------------------------- col C  U346-384 (39)
     "Skill Arcade":           (24, 346),
     # THE PRIZE POINT IS BACK, and the reason it went is the reason it returns. It was dropped as
@@ -217,6 +247,20 @@ PLACEMENT = {
     "Prism Ascent":           (24, 527),
     "Forge Deck":             (130, 527),
     "Service Gallery":        (157, 550),    # 13 deep available against a declared 18
+}
+
+#: RETIRED MODULES. Built, kept on disk as the record, and deliberately not placed. This is a
+#: separate set from `NOT_A_LOT` on purpose: that one means "the grid already draws it", and
+#: filing a retirement there would say a building exists somewhere it does not. A name here is a
+#: DECISION with a reason, which is the standing rule for a retirement in this repo - a flag with
+#: no reason beside it gets removed by whoever finds it inconvenient.
+RETIRED = {
+    #: 2026-09-03. `PF Entry Gate` was built after it and does the same job on the park's own axis,
+    #: so this was a second front door standing in the first lot inside the park - 44 x 35 of
+    #: gateway, ticket hall, open court and turnstile screen. The Carousel holds the lot now.
+    #: `configs/pf_midway_arrival_court.yaml`, `midway_builds._arrival_court` and
+    #: `out/PF Arrival Court.litematic` all stand.
+    "Arrival Court",
 }
 
 #: MODULES THE GRID ALREADY IS, or that hang off another build. None of them wants a lot:

@@ -5,7 +5,7 @@
     "z": 80525
   },
   "size": {
-    "x": 62,
+    "x": 112,
     "y": 13,
     "z": 156
   },
@@ -106,7 +106,7 @@
       ],
       "height": 10,
       "at": [
-        78,
+        128,
         274
       ],
       "facing": "west",
@@ -153,7 +153,7 @@
         "height": 6
       },
       "at": [
-        68,
+        111,
         270
       ],
       "facing": "west",
@@ -273,24 +273,24 @@
       "narrative": "The Midway's frontage: name gantries over the Welcome Court, Carousel and Arcade spurs, boards on the two counters that front a cross walk, a queue for the wheel with its own entrance and way out, walk-on thresholds at the Carousel and Arcade, and a separate Sloth garden behind the Prize Point, away from the wheel's silhouette; bunting animates the arcade flank while the band between the carousel and wheel remains deliberately open.\n"
     },
     "metrics": {
-      "blocks": 1069,
+      "blocks": 1093,
       "materials": 14,
-      "dominant_material_share": 0.217,
-      "light_blocks": 26,
+      "dominant_material_share": 0.2123,
+      "light_blocks": 30,
       "massing": {
-        "width": 62,
+        "width": 112,
         "height": 13,
         "depth": 156,
-        "fill_ratio": 0.0085
+        "fill_ratio": 0.0048
       },
       "silhouette": {
         "top": {
-          "area": 266,
-          "fill_ratio": 0.0275
+          "area": 278,
+          "fill_ratio": 0.0159
         },
         "front": {
-          "area": 188,
-          "fill_ratio": 0.2333
+          "area": 218,
+          "fill_ratio": 0.1497
         },
         "side": {
           "area": 342,
@@ -299,24 +299,24 @@
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.4556,
-          0.4191,
-          0.1254
+          0.4639,
+          0.4135,
+          0.1226
         ],
-        "top_silhouette_perimeter": 586,
-        "surface_faces_per_block": 2.507
+        "top_silhouette_perimeter": 630,
+        "surface_faces_per_block": 2.5398
       },
       "material_counts": {
         "stripped_oak_log": 232,
         "stone_brick_stairs": 161,
         "white_wool": 137,
         "red_wool": 136,
-        "stone_bricks": 125,
+        "stone_bricks": 135,
         "oak_fence": 72,
-        "polished_blackstone_bricks": 64,
-        "chiseled_stone_bricks": 63,
-        "lantern": 26,
-        "cracked_stone_bricks": 16,
+        "chiseled_stone_bricks": 68,
+        "polished_blackstone_bricks": 68,
+        "lantern": 30,
+        "cracked_stone_bricks": 17,
         "oak_wall_sign": 14,
         "ochre_froglight": 10
       }
@@ -330,7 +330,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "ea5d5df7bedb1ad1bbef0790f1f573a2fbc6fc9c0c0f1e90cfcff42bc2f4d88b",
+    "fingerprint": "67daf27d200ec2aac5f2263553e9a3d0ed01f48c548c707fa08d730335639761",
     "generator_source_digest": "8953590b33a7a9a48c978350a60bf4dba61eb13c0ebbad52baf5e925feda9b45",
     "anchors": [],
     "genome": {
@@ -373,9 +373,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 69.135552,
-    "blocks": 1069,
-    "blocks_per_second": 15.46
+    "seconds": 69.912125,
+    "blocks": 1093,
+    "blocks_per_second": 15.63
   },
   "generator_contract": {
     "ok": true,
@@ -384,7 +384,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 1069,
+    "blocks": 1093,
     "mechanic_families": [
       "access",
       "light",

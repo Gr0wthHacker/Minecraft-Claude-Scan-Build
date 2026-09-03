@@ -21,57 +21,30 @@
   ],
   "facing": "west",
   "signs": 2,
-  "lamps": 12,
-  "benches": 8,
-  "trees": 24,
+  "lamps": 16,
+  "benches": 12,
+  "trees": 8,
   "beds": 4,
-  "floor": 1406,
-  "water": 73,
+  "floor": 3376,
+  "water": 188,
   "steps": 40,
-  "hedge": 331,
+  "hedge": 200,
   "bunting": 4,
   "axis": 300,
   "centre": 51,
+  "fountain": {
+    "water": 188,
+    "courses": 10
+  },
   "basin": [
     51,
     300
   ],
-  "masts": [
-    {
-      "at": [
-        42,
-        291
-      ],
-      "top": 8,
-      "built": 14
-    },
-    {
-      "at": [
-        42,
-        309
-      ],
-      "top": 8,
-      "built": 14
-    },
-    {
-      "at": [
-        60,
-        291
-      ],
-      "top": 8,
-      "built": 14
-    },
-    {
-      "at": [
-        60,
-        309
-      ],
-      "top": 8,
-      "built": 14
-    }
-  ],
-  "roof": 199,
+  "roof": 233,
   "pavilions": 2,
+  "bedding": 264,
+  "flowers": 183,
+  "planters": 4,
   "contract": "one connected building inside lot V24-79 U270-330, fronting west, with a real doorway, a lit interior, a named sign, and no street furniture",
   "mechanics": {
     "minecraft": "java-1.19",
@@ -112,52 +85,52 @@
       "narrative": "The Midway's walk-up: an eleven-wide processional walk on the gate's own axis, opening into a paved roundel with a two-tier stone fountain at the park's exact centre, closed east and west by curved bench exedras, with four kerbed lawn beds carrying one oak each on the quadrant centres. Half the lot is green. Nothing of this court stands in the walk, so the vista from the gate's doors to the wheel's hub is the composition rather than an accident.\n"
     },
     "metrics": {
-      "blocks": 5484,
-      "materials": 25,
-      "dominant_material_share": 0.2715,
-      "light_blocks": 12,
+      "blocks": 5597,
+      "materials": 27,
+      "dominant_material_share": 0.2355,
+      "light_blocks": 17,
       "massing": {
         "width": 56,
         "height": 12,
         "depth": 61,
-        "fill_ratio": 0.1338
+        "fill_ratio": 0.1365
       },
       "silhouette": {
         "top": {
-          "area": 3266,
-          "fill_ratio": 0.9561
+          "area": 3416,
+          "fill_ratio": 1.0
         },
         "front": {
-          "area": 308,
-          "fill_ratio": 0.3056
+          "area": 301,
+          "fill_ratio": 0.2986
         },
         "side": {
-          "area": 355,
-          "fill_ratio": 0.3233
+          "area": 349,
+          "fill_ratio": 0.3179
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.8862,
-          0.1138,
+          0.8883,
+          0.1117,
           0.0
         ],
-        "top_silhouette_perimeter": 259,
-        "surface_faces_per_block": 2.2753
+        "top_silhouette_perimeter": 234,
+        "surface_faces_per_block": 2.0268
       },
       "material_counts": {
-        "moss_block": 1489,
-        "oak_leaves": 1019,
-        "polished_blackstone_bricks": 675,
-        "smooth_stone": 388,
-        "stone_bricks": 355,
-        "stone": 349,
-        "white_wool": 158,
-        "azalea": 122,
-        "polished_diorite_stairs": 120,
-        "stripped_oak_log": 120,
-        "crimson_stairs": 104,
-        "oak_log": 96
+        "smooth_stone": 1318,
+        "polished_blackstone_bricks": 1113,
+        "stone_bricks": 656,
+        "oak_leaves": 432,
+        "moss_block": 264,
+        "water": 188,
+        "red_wool": 168,
+        "white_wool": 168,
+        "stripped_oak_log": 140,
+        "polished_diorite_stairs": 138,
+        "stone_brick_slab": 128,
+        "crimson_stairs": 118
       }
     },
     "checks": [],
@@ -169,8 +142,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "ec01458b52158953d88284cedc033d7f517e2b79cfeb563b252cfb585df451c2",
-    "generator_source_digest": "35672a41e778c11a26632b4fb27a5163a85641610fc12c2868b8cf14e681a169",
+    "fingerprint": "b638257f204c357929cdaa606b3635b88296af38ff27faa834e73e1608b3d99e",
+    "generator_source_digest": "dd44f7bac9db664522dde9a9012a29818a28b44d86b238d53f9ca6853a48b23a",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -213,9 +186,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 87.355817,
-    "blocks": 5484,
-    "blocks_per_second": 62.78
+    "seconds": 84.314828,
+    "blocks": 5597,
+    "blocks_per_second": 66.38
   },
   "generator_contract": {
     "ok": true,
@@ -224,7 +197,7 @@
     "roles": [
       "path"
     ],
-    "blocks": 5484,
+    "blocks": 5597,
     "mechanic_families": [
       "fluid",
       "hazard",
@@ -254,8 +227,9 @@
     "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
     "not in the provisional skyblock-1.19 list: crimson_slab",
     "not in the provisional skyblock-1.19 list: crimson_stairs",
-    "not in the provisional skyblock-1.19 list: lightning_rod",
+    "not in the provisional skyblock-1.19 list: oxeye_daisy",
     "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_diorite",
     "not in the provisional skyblock-1.19 list: polished_diorite_slab",
     "not in the provisional skyblock-1.19 list: polished_diorite_stairs"
   ],

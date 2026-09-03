@@ -57,6 +57,8 @@ That is why `components == 1` is a test and not a hope.
 """
 from __future__ import annotations
 
+import math
+
 from .canvas import Canvas, hash01
 
 SIGN_WIDTH = 15                      # a sign line clips mid-word past this
@@ -99,6 +101,23 @@ PAL = {
     "trunk":   "oak_log",
     "leaf":    "oak_leaves",
     "shrub":   "azalea",
+    #: THE BOWL, and it is a FOURTH stone on purpose: "intricate" at voxel scale is
+    #: where one material stops and another starts, not detail inside a material.
+    "bowl":    "polished_diorite",             # 193
+    # --- THE CARPET BED --------------------------------------------------------------
+    #: A "flower field" made of flowers ALONE cannot be judged before it is placed: `render3d`
+    #: draws every block as one flat RGB and a flower's texture is mostly transparent, so the
+    #: database has `poppy` at (129,65,38) - the average of a red petal and a green stem over
+    #: empty pixels. A bed of poppies renders here as brown-green mush and reads scarlet in game.
+    #: So the BOLD half of the pattern is wool, which reads at any distance in either place, and
+    #: the flowers are planted in the moss wedges between it.
+    "bed_a":   "red_wool",
+    "bed_b":   "white_wool",
+    "bed_c":   "pink_wool",
+    "flower_a": "poppy",
+    "flower_b": "oxeye_daisy",
+    "flower_c": "pink_tulip",
+    "flower_x": "dandelion",
     # --- THE CANVAS ROOF ----------------------------------------------------------------
     #: THE ROOF IS THE BIGGEST SURFACE A BUILDING HAS AND IT WAS THE GREYEST THING IN THE LAND.
     #: Rendered from eight bearings, the Skill Arcade read as a COURTHOUSE and the Arrival
@@ -124,6 +143,15 @@ PAL = {
     "finial":  "lightning_rod",                # 255 - a white point, and one block
     "pennant": "yellow_wool",                  # 197
 }
+
+#: The carpet bed: (wool, the flower planted in the moss wedge that follows it). Keyed off `PAL`
+#: so the palette lives in one place and this is only the ORDER they run in.
+BEDDING = tuple((PAL[f"bed_{k}"], PAL[f"flower_{k}"]) for k in "abc")
+
+#: SIX DEGREES A WEDGE. The beds sit eighteen to thirty blocks out from the fountain, where six
+#: degrees is a stripe two to three wide - and at twelve a bed only ever caught one or two, so it
+#: read as a single block of colour with a hedge round it rather than as bedding.
+WEDGE_DEG = 6.0
 
 #: The pennants, cycled per mast. Four identical flags in a row is a fence, not a fairground.
 PENNANTS = ("pennant", "band", "frame", "pennant")
@@ -1181,38 +1209,70 @@ def _hedge(L, cells, m) -> int:
 
 
 def _court_pave(v, u, mid, axis, seed, half, rad) -> str:
-    """The court's floor, and EVERY LINE IN IT IS DERIVED FROM THE AXIS.
+    """THE WHOLE FLOOR IS ONE RADIAL PATTERN, and there is not a ring anywhere in it.
 
-    A pattern laid on world coordinates is right for a building, whose rooms have to line up with
-    each other; it is wrong for a composition whose whole subject is one centre line, because the
-    grid then lands wherever the lot happens to start. Here the rings are concentric on the basin
-    and the bands are measured from the axis, so the floor itself says where the middle is.
+    Jack: *"we have a center fountain, and then it just leads to a bigger fountain."* He was
+    describing the paving - a blue basin inside a stone ring inside a red-and-white ring inside
+    another stone ring, which from above can only read as a second, larger fountain drawn round
+    the first. Concentric anything on this floor makes that mistake.
 
-    THE RED AND WHITE DASH IS THE MIDWAY'S OWN COLOUR IN THE FLOOR. It runs the walk's inner edge
-    and the roundel's inner ring in runs of three - a one-cell alternation is noise past ten
-    blocks, and a solid band of either is a stripe the whole park already has too much of.
+    So the pattern is SIXTEEN SPOKES from the fountain to the lot's own kerb, and they run right
+    across the great walk rather than stopping at a roundel's edge. Confined to a ring of paving
+    between the basin and a rim they had four cells to run in and came out as sixteen dashes; the
+    court is one composition about one centre, and the floor now says so from any cell of it.
+
+    **A SPOKE IS A CONSTANT WIDTH, NOT A CONSTANT ANGLE.** Drawn as an angular slice it is a wedge
+    - two cells at the hub and nine at the lot edge - so the test is the PERPENDICULAR distance
+    from the ray. Sixteen wedges meeting in the middle is a dark blot with a scalloped edge; a
+    spoke is a line.
     """
     du = abs(u - axis)
-    r = int(((v - mid) ** 2 + (u - axis) ** 2) ** 0.5)
-    if du == half or r == rad or r == 6:
-        return PAL["inlay"]                        # the kerbs: the walk, the roundel, the basin
-    if r == rad - 3:
-        # THE ONE RED-AND-WHITE LINE, and it is on the ROUNDEL rather than on the walk. Run down
-        # both sides of a fifty-one-course walk as well it stopped being an accent and became the
-        # floor's subject - two candy stripes the length of the court, which is the loudest thing
-        # the Midway's palette can do and the opposite of what a walk-up wants underfoot.
-        return PAL["band"] if ((v + u) // 5) % 2 == 0 else PAL["frame"]
-    if r in (rad - 1, rad - 2) or du == half - 1:
+    dv, duu = v - mid, u - axis
+    r = (dv * dv + duu * duu) ** 0.5
+    if du == half:
+        return PAL["inlay"]                        # the great walk keeps its own two kerb lines
+    if r > 6.5:
+        step = math.radians(360.0 / 16)
+        ang = math.atan2(duu, dv) % step
+        if abs(r * math.sin(ang if ang < step / 2 else ang - step)) < 0.9:
+            return PAL["inlay"]
+    if du == half - 1:
         return PAL["field"]
-    if du < half and (v - mid) % 6 == 0:
-        return PAL["field"]                        # the walk's rungs
-    # A HALF-AND-HALF CHECKER IS A CHESSBOARD, NOT A FLOOR. `stone` and `smooth_stone` are 33
-    # apart in luminance, which is a pattern rather than a texture, so the light stone is the
-    # FIELD and the dark one is a grid in it every four - and the grid is measured from the
-    # court's own centre, so it lines up with the axis instead of with the lot's corner.
-    if (v - mid) % 4 == 0 or (u - axis) % 4 == 0:
-        return PAL["floor"]
-    return PAL["floor"] if hash01(v, u, seed) < 0.08 else PAL["floor2"]
+    return PAL["field"] if (v + u) % 4 == 0 else PAL["floor2"]
+
+
+def _pinwheel(L, inner, mid, axis, m) -> None:
+    """A CARPET BED IN RADIAL WEDGES: the fairground's own pattern, laid on the ground.
+
+    Jack, on four identical hedged squares of trees round a fountain: *"this feels crappy, we need
+    something else to fill this space even if its funky design, fields of flowers, whatever."*
+
+    **RADIAL, AND THAT IS THE WHOLE POINT.** Concentric bands are what made the roundel read as a
+    fountain inside a fountain, and a bed of concentric colour would have made the same mistake
+    four times larger. Wedges cannot read as rings. They are also the one pattern this land is
+    already built out of - a big top's canvas, a carousel's canopy and the wheel beyond are all
+    radial stripes - so a bed that fills the whole quadrant still belongs to the Midway.
+
+    Every wedge is measured from the COURT'S OWN CENTRE rather than from the bed's, so the four
+    beds are one pinwheel about the fountain rather than four small ones about themselves.
+
+    **THE BOLD HALF IS WOOL AND THE PLANTED HALF IS FLOWERS**, for a reason that is about what can
+    be judged rather than about taste - see `BEDDING`. The flowers are hashed rather than solid: a
+    bed packed cell to cell is a mat, and what a planted wedge should read as is dense planting
+    with its own ground showing through.
+    """
+    for v, u in sorted(inner):
+        ang = math.degrees(math.atan2(u - axis, v - mid)) % 360.0
+        k = int(ang / WEDGE_DEG)
+        wool, flower = BEDDING[(k // 2) % len(BEDDING)]
+        if k % 2 == 0:
+            L.put(v, 0, u, wool)
+            m["bedding"] = m.get("bedding", 0) + 1
+            continue
+        L.put(v, 0, u, PAL["lawn"])
+        if hash01(v, u, 17) < 0.72:
+            L.put(v, 1, u, flower if hash01(v, u, 29) < 0.8 else "dandelion")
+            m["flowers"] = m.get("flowers", 0) + 1
 
 
 def _parterres(L, open_cells, mid, axis, m, *, min_area=36) -> int:
@@ -1257,113 +1317,194 @@ def _parterres(L, open_cells, mid, axis, m, *, min_area=36) -> int:
         for v, u in edge:
             L.put(v, 0, u, PAL["inlay"])
             L.put(v, 1, u, PAL["cap"], type="bottom", waterlogged="false")
-        for v, u in inner:
-            L.put(v, 0, u, PAL["lawn"])
-        for v, u in sorted(inner):
-            if (v - mid) % 6 or (u - axis) % 6:
-                continue
+        _pinwheel(L, inner, mid, axis, m)
+        # ONE TREE PER BED, AT ITS FAR CORNER. Four on a lattice through the middle of a bed is
+        # four crowns standing in the pattern; the pinwheel is the bed now, and a tree belongs at
+        # the outside of it where it gives the flat garden a vertical without cutting a wedge.
+        far = max(sorted(inner), key=lambda c: (c[0] - mid) ** 2 + (c[1] - axis) ** 2)
+        for v, u in sorted(inner, key=lambda c: -((c[0] - far[0]) ** 2 + (c[1] - far[1]) ** 2)):
             crown = {(v + dv, u + du) for dv in range(-2, 3) for du in range(-2, 3)}
-            if crown <= inner:
+            if crown <= inner and (v - far[0]) ** 2 + (u - far[1]) ** 2 <= 25:
                 _tree(L, v, u, m)
-        # LOW PLANTING BETWEEN THE TREES, on the same lattice offset by half of it. Left to the
-        # trees alone a thirteen-by-seventeen bed is four crowns in a field of moss, which is the
-        # "immediate large amounts of empty green" measured at bed scale instead of at lot scale.
-        for v, u in sorted(inner):
-            if (v - mid) % 3 == 0 and (u - axis) % 3 == 0 and ((v - mid) % 6 or (u - axis) % 6):
-                L.put(v, 1, u, PAL["shrub"])
+                break
         _hedge(L, sorted(edge), m)
         beds += 1
     m["beds"] += beds
     return beds
 
 
+def _fountain(L, cv, cu, m, *, pool=9) -> dict:
+    """THE GRAND BASIN: nineteen across, ten courses, four stones and water at three levels.
+
+    Jack: *"the court should have a large fountain ideally sophisticated/intricate of stone(s)."*
+    What was here was a stepped basin eleven across and five courses - correct, restrained, and
+    the wrong size for the middle of a park. This is the centrepiece rather than an ornament.
+
+    **IT IS FOUR STONES AND NOT ONE**, because "intricate" at voxel scale is where one material
+    stops and another starts, not detail inside a material: a dark blackstone kerb, a stone-brick
+    body, chiseled at every step and a diorite bowl, so each tier is legible as a separate piece.
+
+    **EVERY WATER CELL IS ENCLOSED BY CONSTRUCTION** - the shell rule for the wall, a solid course
+    under each pool, and a ring of its own stone at each bowl's own level. A fountain that drains
+    is the one failure this cannot be looked at to check.
+
+    THE HEIGHT IS BOUNDED BY THE VISTA AND THE BOUND IS MEASURED. From a visitor's eye at the
+    gate's threshold the ray to the wheel's hub passes Y222 over this cell; the finial stands at
+    Y213. `test_the_wheel_is_visible_from_inside_the_gate` re-derives it rather than trusting this.
+    """
+    made = {"water": 0, "courses": 0}
+
+    def disc(r):
+        return _disc(cv, cu, r)
+
+    def put(cells, y, key, **props):
+        for v, u in sorted(cells):
+            L.put(v, y, u, PAL[key] if key in PAL else key, **props)
+
+    def flare(cells, y):
+        """A moulding that leans back INTO the tier it grows from - every cornice's rule here."""
+        for v, u in sorted(cells):
+            dv, du = v - cv, u - cu
+            if abs(dv) == abs(du):
+                L.put(v, y, u, PAL["cap"], type="top", waterlogged="false")
+            else:
+                nv, nu = (0, 1 if du > 0 else -1) if abs(du) > abs(dv) else (1 if dv > 0 else -1, 0)
+                L.put(v, y, u, PAL["trim"], facing=_opp(nv, nu), half="top", shape="straight",
+                      waterlogged="false")
+
+    basin, wall = _ring(cv, cu, pool)
+    seat = _ring(cv, cu, pool + 1)[1] - wall            # the ledge you can sit on, one ring out
+    put(seat, 1, "cap", type="bottom", waterlogged="false")
+    put(wall, 1, "inlay")                               # the dark kerb the whole thing stands in
+    for v, u in sorted(basin - disc(5)):
+        made["water"] += bool(L.put(v, 1, u, "water", level="0"))
+    put(disc(5), 1, "field")                            # the plinth, an island in the pool
+    flare(disc(5) - disc(4), 2)
+    put(disc(4), 2, "field")
+    flare(disc(4) - disc(3), 3)
+    put(disc(3), 3, "course")
+    put(disc(3) - disc(2), 4, "bowl")                   # the lower bowl's wall
+    for v, u in sorted(disc(2) - {(cv, cu)}):
+        made["water"] += bool(L.put(v, 4, u, "water", level="0"))
+    L.put(cv, 4, cu, PAL["field"])                      # ...and the stem rising through it
+    for y in (5, 6):
+        L.put(cv, y, cu, PAL["rail"], up="true", north="none", south="none", east="none",
+              west="none", waterlogged="false")
+    flare(disc(2) - disc(1), 7)                         # the upper bowl, cantilevered on the stem
+    put(disc(1), 7, "bowl")
+    put(disc(2) - disc(1), 8, "bowl")
+    for v, u in sorted(disc(1) - {(cv, cu)}):
+        made["water"] += bool(L.put(v, 8, u, "water", level="0"))
+    L.put(cv, 8, cu, PAL["course"])
+    L.put(cv, 9, cu, PAL["course"])
+    L.put(cv, 10, cu, PAL["light"], hanging="false", waterlogged="false")
+    made["courses"] = 10
+    m["fountain"] = made
+    return made
+
+
+def _planter(L, cv, cu, m) -> None:
+    """A RAISED TUB WITH A TREE IN IT: how a paved court is planted without losing its floor.
+
+    A garden takes ground away from walking and this does not - it is three by three, you go round
+    it, and it puts a crown at head height in the middle of an open square. Four of them are what
+    stops a big paved court reading as a car park.
+    """
+    for v in range(cv - 1, cv + 2):
+        for u in range(cu - 1, cu + 2):
+            edge = v in (cv - 1, cv + 1) or u in (cu - 1, cu + 1)
+            L.put(v, 1, u, PAL["inlay"] if edge else PAL["lawn"])
+            if edge:
+                L.put(v, 2, u, PAL["cap"], type="bottom", waterlogged="false")
+    _tree(L, cv, cu, m)
+    m["planters"] = m.get("planters", 0) + 1
+
+
 def _welcome_court(L, p) -> dict:
     """THE WALK-UP: what a visitor crosses between the entry gate and the wheel.
 
-        V24-74 x U270-330, axis U300, centre V49 - fifty-one deep by SIXTY-ONE wide
+        V24-79 x U270-330, axis U300, centre V51 - fifty-six deep by sixty-one wide
 
-    Jack, in two passes: *"gates and a board etc are all overlapping and chaotic with the entrance
-    to the main center ... make the entrance experience, and the leading park in front of it
-    before the ferris wheel perfect, highly detailed, sophisticated, no weird blocks, or overlaps,
-    no bad placements ... we need this to feel premium and clean"*, and then *"this court also
-    fits the theme of the center island area, and fills the space nicely, we dont want immediate
-    large amounts of empty green."*
+    Jack, over four passes: *"gates and a board etc are all overlapping and chaotic with the
+    entrance"*; *"it fills the space nicely, we dont want immediate large amounts of empty
+    green"*; *"it needs to have paths or ways to connect to the other pathways surrounding it"*;
+    and finally *"the court should have a large fountain ideally sophisticated/intricate of
+    stone(s), and then the trees/flower areas are cute with the pagodas on the sides etc, but we
+    need to have enough interesting visually and walkable space etc that covers entrance all the
+    way to the path before the ferris wheel."*
 
-    WHAT WAS HERE, measured off the shipped park rather than described: 4,613 blocks paved edge to
-    edge on one world-aligned grid, eleven trees of four species at eleven positions nothing
-    derived, nine `magenta_wool` and fifteen `light_blue_wool` cells with no other member of their
-    own colour near them, and lamp standards whose head course was a `yellow_wool` block. Nothing
-    in it was symmetric about the axis it stands on - and the axis is the ONE thing this lot has:
-    the entry gate's two doors, this court and the Sky Lift's hub all sit on U300, and the wheel's
-    densest column is U300 with 435 cells against 375 at each neighbour.
+    THE LAST OF THOSE INVERTED THE GROUND RULE. The court was a formal garden with paths through
+    it - four beds filling the quadrants, a thirteen-wide walk and a roundel - so of 3,416 cells
+    barely a third could be stood on. **It is a paved court with gardens IN it now:** everything
+    is walkable except four corner beds, the two pavilions and the wheel queue's own ten by ten.
 
-    THE LOT IS SIXTY-ONE WIDE AND WAS FORTY-ONE. Measured off the shipped ground layer, the two
-    flanks either side of the old lot were **714 columns of bare moss each** and nothing else, in
-    full view of the gate - which is exactly the "immediate large amounts of empty green". At
-    U270-330 the court now has the SAME FRONTAGE AS THE ENTRY GATE, whose compound is U270-330 to
-    the cell, so the two read as one composition rather than as a gate with a smaller thing behind
-    it.
+        the roundel      r=15 on (V51, U300) - thirty-one across, the walk opens into it
+        the fountain     nineteen across and ten courses, four stones, water at three levels
+        the great walk   U294-306, V24 to V79 - the spine's own width, gate to wheel
+        two pavilions    V44-58, open, on timber posts under the Midway's striped canvas
+        four beds        V27-38 and V67-78 x U282-292 and U308-318, hedged, carpet bedding
+        four planters    raised tubs on the open flanks, so paving is not a car park
+        the furniture    twelve lamp standards, eight benches, four masts, four bunting swags
 
-    THE COMPOSITION IS THE AXIS, and every piece is derived from it:
+    **NOTHING OF THIS COURT'S STANDS IN THE WALK.** Every lamp, pier, bench, post, tree and bed is
+    at |U-300| >= 7 - the thirteen-wide walk is clear above its own floor course for all fifty-six
+    courses except the fountain, which is on the axis deliberately and whose height is bounded by
+    a measured sightline rather than by taste.
 
-        the great walk   U294-306, V24 to V74 - thirteen wide, the spine's own width
-        the roundel      r=13 on (V49, U300), where the walk opens out
-        the basin        a raised stone fountain on the axis: two tiers, four courses, water
-        two pavilions    V43-55 x U270-278 and U322-330, striped canvas on timber posts
-        the cross walk   V46-52, joining the roundel to both pavilions
-        four parterres   kerbed, hedged, two oaks each, on the four quadrant centres
-        two garden rooms V64-74 at both rear corners - see the queue, below
-        lamp standards   the lamp above, paired about the axis and never on it
-        bunting          four swags across the walk, six courses up
+    **THE ROUNDEL IS A WHEEL AND NOT A SET OF RINGS.** Jack: *"we have a center fountain, and then
+    it just leads to a bigger fountain."* He was describing the floor - a blue basin inside a
+    stone ring inside a red-and-white ring reads as a second, larger fountain drawn round the
+    first, and from above that is all it can read as. The paving is radial now: it cannot read as
+    a ring because it has none, and it is the shape of the thing this court points at.
 
-    **NOTHING OF THIS COURT'S STANDS IN THE WALK.** Every lamp, pier, bench, post and tree is at
-    |U-300| >= 7, so the thirteen-wide walk is clear above its own floor course for all fifty-one
-    courses except the basin - which is on the axis deliberately, four courses high against a
-    seventy-four-course wheel behind it. `tests/test_midway_builds.py` measures that rather than
-    trusting this paragraph.
-
-    **THE POOL CANNOT DRAIN.** Its wall is built by the shell rule - the cells outside the disc
-    that have a face neighbour inside it - so there is no diagonal gap for water to find, and the
-    course under every water cell is this court's own paving.
-
-    **THE WHEEL'S QUEUE OWNS THE WEST REAR CORNER AND THIS DESIGN DOES NOT TOUCH IT.** Measured
-    off `out/PF Front Midway.litematic`, the Sky Lift's queue occupies exactly V65-74 x U270-279
-    inside this lot - fifty-four columns, a clean ten by ten. It is named in `blocked`, so wanting
-    one of its cells raises here rather than shipping as an overlap nobody can see. The court
-    frames that corner as a hedged garden room and builds nothing inside it; the east corner is
-    the same room with seats in it, so the plan is symmetric in FRAME while one of the two rooms
-    honestly holds a queue.
+    **THE WHEEL'S QUEUE OWNS V65-79 x U270-279 AND THIS DESIGN DOES NOT TOUCH IT** - fifty-four
+    columns read off `out/PF Front Midway.litematic` and named in `blocked`, so wanting one raises
+    here rather than shipping as an overlap nobody can see. The court kerbs round it and the ways'
+    own lawn shows through, which is what a queue should stand on anyway.
     """
     seed = int(p["seed"])
     v0, u0, v1, u1 = (int(q) for q in p["lot"])
     axis = (u0 + u1) // 2                          # U300 - the gate's doors and the wheel's hub
-    mid = (v0 + v1) // 2                           # V49
+    mid = (v0 + v1) // 2                           # V51
     half = 6                                       # the great walk is thirteen wide
-    rad = 13                                       # the roundel
+    rad = 15                                       # the roundel
     m = {"signs": 0, "lamps": 0, "benches": 0, "trees": 0, "beds": 0, "floor": 0, "water": 0,
          "steps": 0, "hedge": 0, "bunting": 0, "axis": axis, "centre": mid}
-    lawn: set = set()                              # what the composition leaves: see `_parterres`
 
-    #: THE WHEEL'S QUEUE, and the court builds nothing here. Ten by ten at the west rear corner,
-    #: read off the frontage design rather than assumed.
-    queue = {(v, u) for v in range(65, v1 + 1) for u in range(u0, u0 + 10)}
+    #: GROUND THIS COURT DOES NOT OWN, TAKEN FROM `blocked` RATHER THAN TYPED HERE.
+    #:
+    #: It was a literal - V65 to the lot's end by the first ten columns - because the Sky Lift's
+    #: queue stood in the court's west rear corner. The wheel moved to V130 with the Midway
+    #: Cascade between, its queue went with it, and the config's `blocked` entry was correctly
+    #: removed; the literal stayed and went on carving a ten-by-fifteen hole out of a court for
+    #: something fifty blocks away. A generator that hard-codes another design's footprint cannot
+    #: be told when that design moves, and NOTHING REPORTS IT: a cell nobody built looks exactly
+    #: like a cell nobody wanted. One source, so the two cannot disagree.
+    keep_out = {(v, u)
+                for bv0, _by0, bu0, bv1, _by1, bu1 in (p.get("blocked") or ())
+                for v in range(int(bv0), int(bv1) + 1)
+                for u in range(int(bu0), int(bu1) + 1)}
 
-    walk = {(v, u) for v in range(v0, v1 + 1) for u in range(axis - half, axis + half + 1)}
-    roundel = _disc(mid, axis, rad)
-    pavilions = [(mid - 6, u0, mid + 6, u0 + 8), (mid - 6, u1 - 8, mid + 6, u1)]
-    cross = {(v, u) for v in range(mid - 3, mid + 4) for u in range(u0 + 8, u1 - 7)}
-    paved = walk | roundel | cross
+    #: FOUR BEDS, MIRRORED IN BOTH AXES AND CLEAR OF THE QUEUE BY CONSTRUCTION. Eleven wide and
+    #: twelve deep at U282-292 / U308-318 - inboard of the queue's own ten columns, outboard of
+    #: the walk's thirteen, and clear of the roundel because the roundel ends at V66.
+    beds = [(a, b, a + 13, b + 12) for a in (v0 + 2, v0 + 40) for b in (axis - 22, axis + 10)]
+    bed_in, bed_kerb = set(), set()
+    for bv0, bu0, bv1, bu1 in beds:
+        inner = {(v, u) for v in range(bv0 + 1, bv1) for u in range(bu0 + 1, bu1)}
+        outer = {(v, u) for v in range(bv0, bv1 + 1) for u in range(bu0, bu1 + 1)}
+        bed_in |= inner
+        bed_kerb |= outer - inner
+
+    pavilions = [(mid - 7, u0, mid + 7, u0 + 8), (mid - 7, u1 - 8, mid + 7, u1)]
+    pav_plot = set()
     for pv0, pu0, pv1, pu1 in pavilions:
-        paved |= {(v, u) for v in range(pv0, pv1 + 1) for u in range(pu0, pu1 + 1)}
+        pav_plot |= {(v, u) for v in range(pv0, pv1 + 1) for u in range(pu0, pu1 + 1)}
 
-
-    # -- 1. the podium ---------------------------------------------------------------------------
-    # ONE COURSE, because every lot in this park is one course over the lawn the streets are cut
-    # into. The threshold on the axis is a stair rather than a kerb, at both ends, so the walk-up
-    # is a step rather than a ledge.
+    # -- 1. the podium: EVERYTHING is paved but the beds, and the beds are the exception ---------
     for v in range(v0, v1 + 1):
         for u in range(u0, u1 + 1):
-            if (v, u) in queue:
+            if (v, u) in keep_out:
                 continue
             if v in (v0, v1) and abs(u - axis) <= half:
                 # A FLIGHT THAT ASCENDS TOWARD D HAS EVERY TREAD facing=D - the convention pinned
@@ -1373,80 +1514,32 @@ def _welcome_court(L, p) -> dict:
                                          half="bottom", shape="straight", waterlogged="false"))
                 continue
             if u in (u0, u1) and abs(v - mid) <= 3:
-                # AND THE SAME ON THE CROSS AXIS. Every lot in this park stands one course over
-                # the streets, so an unstepped kerb is a ledge: the cross walk arrived from the
-                # avenue at the ground layer's own course and met a one-block wall. Three of this
-                # court's four ways in had a step and the two that carry the cross walk did not.
+                # AND THE SAME ON THE CROSS AXIS, where the walk from each avenue arrives. Every
+                # lot in this park stands one course over the streets, so an unstepped kerb is a
+                # ledge rather than a threshold.
                 m["steps"] += bool(L.put(v, 0, u, PAL["trim"],
                                          facing="south" if u == u0 else "north",
                                          half="bottom", shape="straight", waterlogged="false"))
                 continue
-            if v in (v0, v1) or u in (u0, u1):
+            if v in (v0, v1) or u in (u0, u1) or (v, u) in bed_kerb:
                 mat = PAL["inlay"]                 # the kerb: this court's own dark line
-            elif (v, u) in paved:
+            elif (v, u) in bed_in:
+                mat = PAL["lawn"]
+            else:
                 mat = _court_pave(v, u, mid, axis, seed, half, rad)
-            else:
-                lawn.add((v, u))
-                continue                           # laid by `_parterres`, which needs the shape
             m["floor"] += bool(L.put(v, 0, u, mat))
+    if keep_out:
+        # ...and a kerb drawn round whatever the court does not own, so the ground layer's own
+        # lawn showing through it reads as a panel rather than as a hole in the paving.
+        for v, u in sorted(keep_out):
+            for dv, du in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                if (v + dv, u + du) not in keep_out:
+                    m["floor"] += bool(L.put(v + dv, 0, u + du, PAL["inlay"]))
 
-    # -- 2. the basin ----------------------------------------------------------------------------
-    # A BASIN IS SEEN INTO, AND THAT SETS ITS HEIGHT AT ONE COURSE. Built two courses high with a
-    # dressed rim it measured beautifully and rendered as a dark stone DRUM: a walker's eye is
-    # 1.6 over their feet, the rim stood at 2.0 and the water surface at 1.875 behind it, so the
-    # one thing a fountain is for was invisible from anywhere on the walk. One course puts the
-    # surface at 0.875 - below the eye from three blocks out - and the pool is eleven across
-    # rather than nine, so it reads as water rather than as a well.
-    pool, wall = _ring(mid, axis, 5)
-    for v, u in wall:
-        L.put(v, 1, u, PAL["field"])               # a LIGHT rim: the dark ring is in the floor
-    for v, u in pool:
-        if max(abs(v - mid), abs(u - axis)) <= 1:
-            continue                               # the pedestal stands where the water is not
-        m["water"] += bool(L.put(v, 1, u, "water", level="0"))
-    # A STEPPED PLINTH, NOT A BOWL ON A STEM. Built as a 1x1 stem carrying a 3x3 bowl it read at
-    # walking distance as a grey box on a post - the flare that was meant to join them is one
-    # course of stairs and disappears past ten blocks. Five, then three, then the upper basin is
-    # a shape that survives the distance the walk is actually seen from.
-    for v in range(mid - 2, mid + 3):              # the plinth, rising out of the pool
-        for u in range(axis - 2, axis + 3):
-            L.put(v, 1, u, PAL["field"])
-    for dv in (-2, -1, 0, 1, 2):                   # ...with a moulding round its own edge
-        for du in (-2, -1, 0, 1, 2):
-            if max(abs(dv), abs(du)) != 2:
-                continue
-            if abs(dv) == 2 and abs(du) == 2:
-                L.put(mid + dv, 2, axis + du, PAL["cap"], type="bottom", waterlogged="false")
-            else:
-                # _dir TAKES A UNIT STEP, not an offset - and the moulding leans INTO the plinth
-                # it grows from, which is the same rule every cornice in this module follows.
-                nv, nu = (dv // 2, 0) if abs(dv) == 2 else (0, du // 2)
-                L.put(mid + dv, 2, axis + du, PAL["trim"], facing=_opp(nv, nu), half="bottom",
-                      shape="straight", waterlogged="false")
-    for v in range(mid - 1, mid + 2):              # the second stage
-        for u in range(axis - 1, axis + 2):
-            L.put(v, 2, u, PAL["field"])
-    for dv in (-1, 0, 1):                          # ...and the upper basin standing on it
-        for du in (-1, 0, 1):
-            if dv == du == 0:
-                m["water"] += bool(L.put(mid, 3, axis, "water", level="0"))
-            else:
-                L.put(mid + dv, 3, axis + du, PAL["course"])
+    # -- 2. the fountain -------------------------------------------------------------------------
+    _fountain(L, mid, axis, m)
+    m["water"] += m["fountain"]["water"]
     m["basin"] = [mid, axis]
-
-    # FOUR PENNANT MASTS ON THE ROUNDEL'S DIAGONALS. The court had no vertical between the wheel
-    # and the ground at all, and a fairground's own answer to that is a mast: the outline is the
-    # only thing that survives to a quarter scale, which this repo settled on the Trailhead Gate.
-    # They stand at |U-300| = 9, outside the thirteen-wide walk, so the vista never meets one.
-    #
-    # THE PENNANTS ARE RED AND WHITE AND NOT `PAL["pennant"]`, which is `yellow_wool`. Jack named
-    # yellow wool specifically as the thing to get rid of here, and the Midway's own two colours
-    # are the ones the roundel's floor ring, the bunting and the buildings' bands are already in.
-    for dv in (-9, 9):
-        for du, side in ((-9, -1), (9, 1)):
-            m.setdefault("masts", []).append(
-                _mast(L, mid + dv, axis + du, 1, h=7, side=side,
-                      colour="band" if dv * du > 0 else "frame"))
 
     # -- 3. the two pavilions --------------------------------------------------------------------
     for pv0, pu0, pv1, pu1 in pavilions:
@@ -1456,26 +1549,33 @@ def _welcome_court(L, p) -> dict:
             _bench(L, v, pu0 + 4, 0, inward, 3, m)
     m["pavilions"] = len(pavilions)
 
-    # -- 4. the parterres, derived from whatever lawn the composition leaves ---------------------
-    _parterres(L, lawn, mid, axis, m)
+    # -- 4. the beds ------------------------------------------------------------------------------
+    for bv0, bu0, bv1, bu1 in beds:
+        inner = {(v, u) for v in range(bv0 + 1, bv1) for u in range(bu0 + 1, bu1)}
+        _hedge(L, [(v, u) for v, u in bed_kerb
+                   if bv0 <= v <= bv1 and bu0 <= u <= bu1], m)
+        _pinwheel(L, inner, mid, axis, m)
+        m["beds"] += 1
+        _tree(L, (bv0 + bv1) // 2, (bu0 + bu1) // 2, m)
 
-    # -- 5. the standards, the benches, the bunting and the thresholds ---------------------------
-    # PAIRED ABOUT THE AXIS AND NEVER ON IT. Every one of these is at |U-300| >= 7, which is what
-    # keeps the vista from the gate to the wheel clear of this court's own furniture.
-    # EVENLY SPACED DOWN THE WALK, and that is arithmetic. At (v0+5, mid-16, mid+16, v1-5) the
-    # four came out as 29, 33, 65 and 69 - two tight PAIRS four courses apart with thirty-two
-    # blocks of nothing between them, which reads as a mistake rather than as a rhythm.
+    # -- 5. the furniture, and it is what keeps a big paved court from being a car park -----------
+    # PAIRED ABOUT THE AXIS AND NEVER ON IT. Every one is at |U-300| >= 7, which is what keeps the
+    # vista from the gate to the wheel clear of this court's own things.
     for v in (v0 + 5, mid - 10, mid + 10, v1 - 5):
         for u in (axis - half - 1, axis + half + 1):
             _standard(L, v, u, m)
-        # STRUNG BETWEEN THE TWO HEADS AND NOT OVER THEM. Run to the standards' own columns it
-        # overwrote the lantern that is the whole point of a standard - four of them, silently,
-        # and a lamp that is missing is invisible in a render while a lamp in the wrong place is
-        # not. It hangs off the head course at y5, so its end cells have a face to hold on to.
         _swag(L, v, axis - half, axis + half, 5, m)
-    for dv, look in ((-rad + 4, 1), (rad - 4, -1)):
-        _bench(L, mid + dv, axis - half - 3, look, 0, 3, m)
-        _bench(L, mid + dv, axis + half + 3, look, 0, 3, m)
+    for dv, du in ((-11, -11), (-11, 11), (11, -11), (11, 11)):
+        _standard(L, mid + dv, axis + du, m)       # ...and four on the roundel's own diagonals
+    for dv in (-rad + 1, rad - 1):                 # benches on the rim, facing the water
+        _bench(L, mid + dv, axis - 5, -1 if dv > 0 else 1, 0, 3, m)
+        _bench(L, mid + dv, axis + 5, -1 if dv > 0 else 1, 0, 3, m)
+    for du in (-rad + 1, rad - 1):
+        _bench(L, mid - 5, axis + du, 0, -1 if du > 0 else 1, 3, m)
+        _bench(L, mid + 5, axis + du, 0, -1 if du > 0 else 1, 3, m)
+    for dv in (-19, 19):                           # planters on the open flanks
+        for du in (-24, 24):
+            _planter(L, mid + dv, axis + du, m)
 
     for v, inward in ((v0 + 2, 1), (v1 - 2, -1)):
         for u in (axis - half - 2, axis + half + 2):
