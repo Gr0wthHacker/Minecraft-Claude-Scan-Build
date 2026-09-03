@@ -212,6 +212,18 @@ PARKRAIL = {
     # button would light only part of its own bay and a cart could be left stranded in the far half
     # of the platform it is trying to leave.
     "bay_half": 3,
+    # THE DWELL, and it is what makes this a SERVICE rather than a siding. A cart parked on a
+    # brake bay is only released by its own button, so a rider who walks away leaves it there -
+    # and the occupancy memory it set on arrival is cleared by the EXIT detector, which that cart
+    # will never reach. Simulated on the shipped model, the approach hold forty cells back then
+    # stays dead at 20, 100, 400 and 2000 ticks: one abandoned cart stops a whole running line for
+    # good, and the staff panel clears the memory without clearing the CART, so releasing the hold
+    # sends the next one into it. `dwell_at` is a third detector on each approach; its readout
+    # feeds a repeater chain along the maintenance kerb whose LENGTH is the delay, and the chain
+    # powers the brake. Every cart therefore departs by itself, empty or not, and the deadlock
+    # cannot happen. The button remains, and dispatches early.
+    "dwell_at": 34,                # cells back from the platform where the dwell timer starts
+    "dwell_delay": 4,              # redstone ticks per repeater in the chain (1-4)
     "track_inset": 3,              # cells of deck beyond each turnback, for the end walls
     "stations": None,              # [{at_u, land, title, board, stair}]
     "station_half": 13,            # platform half-length; the platform is 2*half + 1
@@ -222,6 +234,14 @@ PARKRAIL = {
     "head_v": 8,                   # ...and how far it reaches into the arcade from the park face
     "canopy_h": 5,                 # courses from the deck walk up to the canopy soffit
     "band_blend": 30,              # cells over which one land's masonry dithers into the next
+    # WHERE THE CORRIDOR STANDS IN THE WORLD, and without it the design ships as a litematic and
+    # NOTHING ELSE. `pipeline._save_outputs` writes the sidecar and the work list only when the
+    # generator declares a `world_origin`, and this one never did: the review tool supplied the
+    # origin by hand once, so every regeneration since replaced the .litematic and left a sidecar
+    # and a `work.json` describing a model that no longer existed. In game that is `/cscan check`
+    # grading the new railway against the old one - the same class of silence as a design whose
+    # config changed and whose artifact did not.
+    "origin": [97672, 202, 80300],  # V172 U0, one course under the park's own build plane
     "seed": 0,
 }
 
@@ -506,14 +526,25 @@ class _Deck:
         a sign hung on the one column that has an opening in it, and the mistake is invisible in
         every render: a wall sign floating in air draws exactly like one on a wall. A caller that
         ignores a False here is asking for that bug back.
+
+        AND A LINE OVER `SIGN_WIDTH` RAISES RATHER THAN BEING TRUNCATED. Silently cutting it is
+        how this railway shipped `BOARD THEN PRES`, `BOARD WHEN CLEA`, `CHECK LINE EMPT` and
+        `> PRISMWORKS 50` - four different signs clipped mid-word, on a design that had had a
+        formal review, because the only place the damage shows is a screenshot of the placed
+        build. The park has now done this in three separate generators; the cure is that the
+        generator refuses the line instead of shortening it behind the author's back.
         """
         dv = {"east": 1, "west": -1}.get(facing, 0)
         du = {"south": 1, "north": -1}.get(facing, 0)
+        over = [str(t) for t in list(lines)[:4] if len(str(t)) > SIGN_WIDTH]
+        if over:
+            raise ValueError(f"sign line over {SIGN_WIDTH} characters, it would clip mid-word: "
+                             + ", ".join(repr(t) for t in over))
         if not self.has(v - dv, y, u - du):
             return False
         if not self.put(v, y, u, f"{wood}_wall_sign", facing=facing, waterlogged="false"):
             return False
-        text = [str(t)[:SIGN_WIDTH] for t in list(lines)[:4]]
+        text = [str(t) for t in list(lines)[:4]]
         self.c.sign_text(v - self.v0, y, u - self.u0, front=text, colour="white", glowing=True)
         return True
 
@@ -768,6 +799,18 @@ def build(cfg: dict, donors=None) -> Canvas:
             detectors.append(j)
             if p.get("renewal"):
                 detectors.append(index[(tv-v0, zc+adir*10)])
+                # THE DWELL TRIGGER, and WHERE it sits is the whole of it. It must lie BETWEEN
+                # the approach hold at 40 and the arrival detector at 10: nearer than the hold, so
+                # that a cart stopped there still runs over it when released and starts its own
+                # dwell; further out than the arrival readout, because the chain it feeds runs
+                # FORWARD from here to the brake and cannot start behind its own output.
+                if not 10 < int(p["dwell_at"]) < 40:
+                    raise ValueError("dwell_at must lie between the arrival detector (10) and the "
+                                     "approach hold (40)")
+                dw = index.get((tv - v0, zc - adir * int(p["dwell_at"])))
+                if dw is None:
+                    raise ValueError(f"station {s['title']} has no room for its dwell trigger")
+                detectors.append(dw)
             bay_meta.append({"title": s["title"], "track": "a" if tv == track_a else "b",
                              "at_u": s["at_u"], "detector_u": cells[j][2] + u0})
 
@@ -895,6 +938,17 @@ def build(cfg: dict, donors=None) -> Canvas:
         c.tiles = {(x, y, z-lo+u0): tile for (x, y, z), tile in c.tiles.items()
                    if lo-u0 <= z <= hi-u0}
         c.meta["crop_u"] = [lo, hi]
+    # The origin is what turns a litematic into a DESIGN: without it the pipeline writes no
+    # sidecar and no work list, and the mod grades the new railway against whatever it graded
+    # last. A crop moves it along U by exactly what was cropped away.
+    ox, oy, oz = (int(v) for v in p["origin"])
+    if p.get("crop_u"):
+        oz += int(p["crop_u"][0]) - u0
+    c.world_origin = (ox, oy, oz)
+    c.meta.setdefault("railway_review", "PARK_RAILWAY_RENEWAL.md")
+    c.meta.setdefault("railway_live_proof", "pending")
+    c.meta.setdefault("anchor_status", "candidate; live proof pending")
+    c.meta.setdefault("budget_blocks", 42000)
     return c
 
 

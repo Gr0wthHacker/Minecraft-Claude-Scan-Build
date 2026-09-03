@@ -44,27 +44,27 @@ params:
     stair: 1
     board:
     - FRONTIER HALT
-    - '> MIDWAY 279'
-    - '> PRISMWORKS 505'
-    - PRESS TO DEPART
+    - '> MIDWAY'
+    - '> PRISMWORKS'
+    - DEPARTS ITSELF
   - at_u: 279
     land: midway
     title: MIDWAY CENTRAL
     stair: -1
     board:
     - MIDWAY CENTRAL
-    - < FRONTIER 77
-    - '> PRISMWORKS 505'
-    - PRESS TO DEPART
+    - < FRONTIER
+    - '> PRISMWORKS'
+    - DEPARTS ITSELF
   - at_u: 505
     land: prismworks
     title: PRISMWORKS END
     stair: 1
     board:
     - PRISMWORKS END
-    - < MIDWAY 279
-    - < FRONTIER 77
-    - PRESS TO DEPART
+    - < MIDWAY
+    - < FRONTIER
+    - DEPARTS ITSELF
   seed: 0
   renewal: true
 roles:
@@ -112,8 +112,8 @@ anchors:
   - 1
   - 256
 source_revisions:
-  mcbuild/gen/parkrail.py: 1b6cf5ae0e648c616fd6fa4121dd756a07362e7b09a1cffc650c4540b3ad8e37
-  mcbuild/gen/parkrail_v2.py: eddb87a23570d25c4d25ffd5dbc651d9a1d2841839a97014bbe17aa7b3fec80d
-  mcbuild/gen/parkrail_signals.py: 129bb956c8209fea74faa9f32340e786c734fc50a73b2e497358472428cc3584
+  mcbuild/gen/parkrail.py: 4c086f138bdb7dfe2673c03e699bd963987cfb3a5e999f2d7a5cbc82b23556f5
+  mcbuild/gen/parkrail_v2.py: 516dccf435b21016a0e8c2fab70bb23430f5db155b311c1d1262de5ae1c1b4ae
+  mcbuild/gen/parkrail_signals.py: 287132f0c7ca68dc792639157916ea373be4edcd99002b89f4d73f79c84e1678
   mcbuild/gen/canvas.py: 2ad44a5c0fa9c08f9f91f00301b1a557aacd19450462a2846a2461988060ddf0
-  mcbuild/circuit.py: 5618300159c51252a48e5ffed826d196144ee8e6e6b102ff8752aae8492c0aee
+  mcbuild/circuit.py: 297d4e57de157b42504a71890b4ef22f630c5fb4e2810e1e8352fb71de8d15f5

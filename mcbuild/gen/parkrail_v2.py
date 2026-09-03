@@ -163,13 +163,18 @@ def enhance(c, p):
                                   (11,'west',ac+3,routes[land][1])):
             box(edge,walk,z,edge,walk+2,z,pal['wall'])
             x=edge+(1 if face=='east' else -1)
+            # THE BOARD STATES THE OPERATING MODEL, and the model changed: a cart is no longer
+            # held until somebody finds the button, it leaves on its own dwell. A board that
+            # still said BOARD THEN PRESS would be telling a rider the ride will not start
+            # without them - which is exactly what an abandoned cart used to prove false.
             if not d.sign(x+p['bounds'][0],walk+2,z,face,pal['wood'],
-                          [label,'LET RIDERS EXIT','BOARD THEN PRESS','WAIT FOR CLEAR']):
+                          [label,'LET RIDERS EXIT','BOARD - IT GOES','PRESS TO GO NOW']):
                 raise ValueError('platform destination board has no support')
         for x, z, text in [(1, portal, ['PARK LINE', st['title'], 'ENTRANCE', 'UP TO PLATFORMS']),
-                            (7, qz, ['QUEUE HERE', 'LET RIDERS EXIT', 'BOARD WHEN CLEAR', 'FREE PARK LINE']),
+                            (7, qz, ['QUEUE HERE', 'LET RIDERS EXIT', 'NEXT CART SOON', 'FREE PARK LINE']),
                             (7, exit_top+step, ['EXIT', 'DOWN TO ARCADE', 'PARK RETURN', '']),
-                            (11, service_z+1, ['STAFF ONLY', 'SIGNAL CABINET', 'RESET / INSPECT', ''])]:
+                            (11, service_z+1, ['STAFF ONLY', 'SIGNAL CABINET', 'RESET / INSPECT',
+                                               'STOCK THE CARTS'])]:
             # Independent sign plinths are outside the two-column side walks.
             # Portal sign faces the avenue, using the existing lintel as backing.
             if x == 1:
@@ -186,6 +191,22 @@ def enhance(c, p):
                           'exit': [7, walk, exit_top], 'return': [7, 2, exit_top-step*(walk-2)],
                           'service': [10, 1, service_z], 'roof_peak': eave+(11 if land=='midway' else 5)})
     c.meta['renewal'] = {'version': 2, 'stations': contracts, 'live_proof': 'pending'}
+    # THE FLEET IS A STOCKING CONTRACT, because a minecart is an ENTITY and a litematic is
+    # blocks. Nothing in this project can ship one, and until this was written nothing SAID so:
+    # the line had six brake bays, six departure buttons, twelve detectors and a full signalling
+    # system, and no cart existed anywhere in the park to run on it. The menagerie's rule, in a
+    # railway: ship it empty and name exactly what to put in it and where.
+    #
+    # ONE CART PER BRAKE BAY. A cart set down on a bay has not run over its own dwell trigger, so
+    # it waits there for a rider rather than leaving on a timer nobody is there to use - and from
+    # the first dispatch onward it circulates under the dwell like any other. Six is therefore
+    # both the stock and the resting state.
+    c.meta['renewal']['fleet'] = {
+        'item': 'minecart', 'count': len(contracts) * 2,
+        'place_on': 'each brake bay - see signals[].brake',
+        'first_proof': 'run ONE cart round the whole circuit before stocking the rest',
+        'min_separation_cells': 30,
+    }
     c.legacy_signs = True
     # End promenades extend beyond the last regular twelve-block light interval.
     for z in (1,598):

@@ -29,11 +29,82 @@ power sources. No land building or live world is replaced by this workflow.
 * Sign entities include Java 1.19 Text1–Text4, Color and GlowingText fields.
 
 The budget ceiling is 42,000 blocks: 12,000 for each land and 3,000 for each
-reach. The reviewed model contains 38,992 blocks, versus 35,602 in the current
-railway: +3,390 / approximately 9.5%. More than 87% is cheap tier. The explicit
-94-block expensive allowance is 88 cells of station clerestory glazing and six
-working occupancy indicator lamps. The line uses twelve detector rails and
-four ordinary corner rails; repeaters and comparators are included in the BOM.
+reach. The reviewed model contained 38,992 blocks against 35,602 in the railway
+it replaced; with the dwell it is **39,220**. More than 87% is cheap tier. The
+explicit 94-block expensive allowance is 88 cells of station clerestory glazing
+and six working occupancy indicator lamps. The line uses **eighteen** detector
+rails - arrival, clearance and dwell trigger, one of each per bay - and four
+ordinary corner rails; repeaters and comparators are included in the BOM.
+
+## The fleet, and the dwell
+
+**A MINECART IS AN ENTITY, SO NO LITEMATIC IN THIS PROJECT CAN EVER CONTAIN ONE - AND NOTHING
+SAID SO.** Measured across the whole shipped park before this pass: zero minecarts, zero
+dispensers, zero activator rails. Six brake bays, six departure buttons, twelve detectors and a
+complete signalling system, with nothing to run on them; a guest arriving at a platform had no
+way to obtain a cart, and no sign anywhere named the omission. The fleet is a stocking contract
+now, recorded in the sidecar under `renewal.fleet` and on the staff panel: **one minecart on each
+of the six brake bays**, and `run ONE cart round the whole circuit before stocking the rest`. A
+cart set down on a bay has not run over its own dwell trigger, so it waits there for a rider
+rather than leaving on a clock with nobody aboard; from its first dispatch it circulates.
+
+**AND AN ABANDONED CART STOPPED A RUNNING LINE FOR GOOD.** The occupancy memory is set by the
+arrival detector and cleared only by the EXIT detector, which a cart nobody dispatches never
+reaches, so the approach hold forty cells back stayed dead - simulated on the shipped model at 20,
+100, 400 and 2000 ticks and still counting. The staff panel clears the MEMORY and not the CART, so
+the recovery it offered opened the hold in front of a platform that was still blocked. That is not
+an edge case; it is what happens the first time a rider walks away.
+
+So each platform now clears itself. A **third detector** on each approach, `dwell_at` = 34 cells
+out, feeds a chain of thirty repeaters along the maintenance kerb to a block beside the brake
+rail. When it arrives the brake goes live, the cart leaves whether or not anybody is aboard, and
+the exit detector then clears the memory and reopens the hold in the ordinary way. **The delay is
+the route**: `dwell_delay` ticks per repeater over the cells between the trigger and the platform,
+so moving the trigger moves the dwell and there is no second number to keep in step. Measured in
+simulation: 120 redstone ticks from the trigger, about 4 s of which is the cart's own run over
+those 34 cells, so the platform dwell is around seven seconds. The button remains, and dispatches
+early; a bay with no arrival is never released.
+
+**WHAT THE DWELL DOES NOT COVER, and it is the staff panel's real job.** A cart *destroyed* at a
+platform - a player breaks it - leaves the memory set with nothing left to run over the exit
+detector, so the dwell fires into an empty bay and the hold stays closed. That is exactly the case
+the labelled reset was written for and the case its wording describes: CHECK LINE OK, CLEAR HOLD
+ONLY. What changed is that the COMMON failure - a rider walking away - no longer needs a human at
+all, and the reset is no longer being asked to recover a platform that is still blocked.
+
+**And the hold is thirty cells of margin, not a headway guarantee.** It closes when the leader
+passes the arrival detector ten cells out, so a follower already inside forty cells has passed the
+hold before it shuts. `renewal.fleet.min_separation_cells` records the thirty and the live test
+card still governs multi-cart running.
+
+Three things this cost, each of which built cleanly and would have been invisible in game:
+
+* **THE BRIDGE MUST COME DOWN ONTO A BLOCK, NEVER ONTO DUST.** The chain crosses the arrival
+  readout at -10 on a three-block bridge a course up. Landed on a dust cell at -8 it released the
+  brake **thirty-five ticks early**, by a route nothing in the chain could see: dust beside a
+  powered rail activates that rail, an activated powered rail carries its own state eight rails
+  each way, and -8 plus eight is the platform. The cart left before it had stopped, and in
+  simulation it read as a perfectly good second pulse. Dust strongly powers the block beneath it,
+  so the descent lands on its own support and the next repeater reads that.
+  `test_nothing_but_the_release_can_reach_the_brake_through_the_TRACK` pins the general rule.
+* **THE KERB IS THE ONLY LANE THERE IS**, and that was measured rather than chosen: of the whole
+  fifteen-column section, the strip at x=1 beside the running rail is the one place with a
+  contiguous free, solid-supported run in all six approach frames. It is clear from -45 to +45
+  except for the two detector readouts.
+* **A REPEATER IS THE ONLY SAFE THING TO LAY BESIDE A LIVE RAIL**, because it outputs from its
+  front and nowhere else. The four dust cells the bridge needs are all a course above the rail.
+
+The dwell costs six detector rails (six iron), 180 repeaters and 228 blocks: 39,220 against the
+42,000 ceiling.
+
+## The signs said the wrong thing, and four of them were cut mid-word
+
+`_Deck.sign` truncated silently at fifteen characters, so the line shipped `BOARD THEN PRES`,
+`BOARD WHEN CLEA`, `CHECK LINE EMPT` and `> PRISMWORKS 50` on a design that had had a formal
+review - the damage shows only in a screenshot of the placed build. **It raises now instead of
+shortening behind the author's back**, and every board states the service that actually runs:
+`BOARD - IT GOES` / `PRESS TO GO NOW` rather than `BOARD THEN PRESS`, because a board telling a
+rider the ride will not start without them is exactly what an abandoned cart used to prove false.
 
 ## Operating design and proof boundary
 
@@ -49,7 +120,9 @@ detector ten cells after the platform clears it. An inverter powers the holding
 rail only when the memory is clear. The departure button does not clear occupancy.
 Staff can reset an inspected empty block from its labelled panel.
 
-This is an approach-holding system, **not a claim of collision-free operation
+The dwell chain is a THIRD input to the brake, and it is the one that makes this a service: the
+memory closes the approach, the chain reopens the platform, and the exit detector reopens the
+approach. This is an approach-holding system, **not a claim of collision-free operation
 at arbitrary headways**. The gap between the holding rail and arrival detector,
 plus signal propagation delay, means closely following carts may already have
 passed the hold before it closes. Operate the first proof with one cart and do

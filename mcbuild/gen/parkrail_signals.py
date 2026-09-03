@@ -113,12 +113,90 @@ def install(c, p):
             sx,sy,sz=pos(0,4,4)
             if not _Deck(c,p).sign(sx+p['bounds'][0],sy,sz,'west' if mirror==1 else 'east',
                                    SPAN[st['land']]['wood'],
-                                   ['STAFF RESET','CHECK LINE EMPTY','CLEAR HOLD ONLY','NO DISPATCH']):
+                                   ['STAFF RESET','CHECK LINE OK','CLEAR HOLD ONLY','NO DISPATCH']):
                 raise ValueError('staff reset label has no support')
-            result.append({'station':st['title'],'track':'a' if direction==1 else 'b',
-                           'set':pos(2,13,-10),'reset':pos(2,13,10),
-                           'memory':pos(8,7,-27),'hold':pos(2,13,-40),
-                           'brake':pos(2,13,0),'button':pos(3,14,0),
-                           'indicator':pos(2,10,-40),'manual_clear':pos(0,7,3),
-                           'staff_panel':pos(0,2,3)})
+            # A NEW CELL MUST NOT LAND ON AN OLD ONE, and `Canvas.put` cannot say so - it
+            # overwrites and returns True. The dwell chain runs thirty cells through a corridor
+            # that already carries three cable routes at three heights, so it places through a
+            # helper that refuses an occupied cell by NAME rather than silently replacing it.
+            def place(x,y,t,name,**props):
+                q=pos(x,y,t)
+                if c.solid(*q):
+                    raise ValueError(f'dwell chain would overwrite '
+                                     f'{c.get_name(*q).split(":")[-1]} at {q}')
+                if not c.put(*q,c.raw_state(name,**props)):
+                    raise ValueError(f'dwell chain outside railway: {q}')
+            port = {'station':st['title'],'track':'a' if direction==1 else 'b',
+                    'set':pos(2,13,-10),'reset':pos(2,13,10),
+                    'memory':pos(8,7,-27),'hold':pos(2,13,-40),
+                    'brake':pos(2,13,0),'button':pos(3,14,0),
+                    'indicator':pos(2,10,-40),'manual_clear':pos(0,7,3),
+                    'staff_panel':pos(0,2,3)}
+            port.update(dwell(c, p, pos, facing, place, direction))
+            result.append(port)
     return result
+
+
+def dwell(c, p, pos, facing, place, direction):
+    """THE DWELL: a repeater chain whose LENGTH is the delay, so every cart departs by itself.
+
+    Without it the railway deadlocks, and the deadlock is not an edge case - it is what happens
+    the first time a rider walks away from a cart. The brake bay is released only by its own
+    button; the occupancy memory that cart set on arrival is cleared only by the EXIT detector,
+    which a parked cart never reaches; and the approach hold forty cells back is dead for as long
+    as the memory stands. Simulated on the shipped model that is 20, 100, 400 and 2000 ticks and
+    counting. The staff panel clears the MEMORY and not the CART, so the recovery it offers opens
+    the hold in front of a platform that is still blocked.
+
+    So the platform is made to clear itself. A third detector on the approach - `dwell_at` cells
+    out, between the hold at forty and the arrival readout at ten - starts a chain of repeaters
+    that runs along the maintenance kerb to a block beside the brake rail. When it arrives the
+    brake goes live and the cart leaves, empty or not, and the exit detector then clears the
+    memory and reopens the hold in the ordinary way. THE DELAY IS THE ROUTE: `dwell_delay` ticks
+    per repeater over the cells between the trigger and the platform, so moving the trigger moves
+    the dwell and there is no second number to keep in step.
+
+    THE KERB IS THE ONLY LANE THERE IS, and that was measured rather than chosen: of the whole
+    fifteen-column section, the strip at x=1 beside the running rail is the one place with a
+    contiguous free, solid-supported run in all six approach frames. It is free from -45 to +45
+    except for the two detector readouts at -10 and +10, so the chain steps OVER the arrival
+    readout on a three-block bridge rather than routing round it - there is no round.
+
+    A REPEATER IS THE ONLY SAFE THING TO LAY BESIDE A LIVE RAIL. A repeater outputs from its front
+    and nowhere else, so a chain of them beside the running line cannot activate it; redstone dust
+    beside a powered rail can. The four dust cells the bridge needs are all a course above the
+    rail or a column clear of it.
+    """
+    D = int(p["dwell_at"])
+    delay = str(int(p["dwell_delay"]))
+    ahead = pos(0, 0, 1)                       # the compass word for one step toward the platform
+    flow = facing(pos(0, 0, 0), ahead)
+
+    def rep(t):
+        place(1, 13, t, "repeater", facing=flow, delay=delay, locked="false", powered="false")
+
+    place(1, 13, -D, "redstone_wire", power="0")          # read off the trigger detector beside it
+    for t in range(-D + 1, -11):
+        rep(t)
+    # the bridge over the arrival readout at -10: block, dust, block, dust, block, dust.
+    place(1, 13, -11, "stone_bricks")
+    place(1, 14, -11, "redstone_wire", power="0")
+    place(1, 14, -10, "stone_bricks")
+    place(1, 15, -10, "redstone_wire", power="0")
+    place(1, 13, -9, "stone_bricks")
+    place(1, 14, -9, "redstone_wire", power="0")
+    # AND THE BRIDGE COMES DOWN ONTO A BLOCK, NEVER ONTO DUST. Written with one more dust cell at
+    # -8 the chain released the brake THIRTY-FIVE TICKS EARLY and by a route nothing in it could
+    # see: dust beside a powered rail activates that rail, an activated powered rail carries its
+    # own state EIGHT rails each way, and -8 plus eight is the brake. The cart left before it had
+    # stopped. Dust strongly powers the block beneath it, so the descent lands on the support and
+    # the next repeater reads that - and a repeater outputs from its front alone, so nothing from
+    # here to the platform can reach the running line at all.
+    for t in range(-8, 0):
+        rep(t)
+    # The last block is horizontally adjacent to the brake rail, so a strongly powered block here
+    # is what sends the cart on. At rest it is an ordinary kerb stone and the bay stays dead.
+    place(1, 13, 0, "stone_bricks")
+    n = (D - 12) + 8
+    return {"trigger": pos(2, 13, -D), "release": pos(1, 13, 0), "repeaters": n,
+            "dwell_ticks": n * int(p["dwell_delay"])}
