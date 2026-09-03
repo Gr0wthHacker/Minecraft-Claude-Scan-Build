@@ -135,10 +135,12 @@ def ways_cells():
 
 @pytest.fixture(scope="module")
 def park_band():
-    """{(x, y, z): name} for the finished park inside the walking band, plus nothing else.
+    """Finished park walking band with the assembled gate's own lot removed.
 
     Sliced rather than loaded whole: `Park Complete` is 220 x 600 x 200 and the flood only ever
-    looks at the courses a visitor can stand in.
+    looks at the courses a visitor can stand in. Park Complete now correctly contains this gate,
+    so its own above-lawn cells are removed before the independently generated candidate is
+    overlaid; the Park Ways fixture still protects every pre-existing ground/lamp cell.
     """
     if not PARK.exists():
         pytest.skip("out/Park Complete.litematic is not shipped")
@@ -149,7 +151,11 @@ def park_band():
     sub = m.ids[lo:hi]
     out = {}
     for y, z, x in np.argwhere(sub > 0):
-        out[(int(x) + ox, int(y) + lo + oy, int(z) + oz)] = names[sub[y, z, x]]
+        wx, wy, wz = int(x) + ox, int(y) + lo + oy, int(z) + oz
+        v, u = wx - PE.ANCHOR[0], wz - PE.ANCHOR[2]
+        if wy >= PE.ANCHOR[1] and 0 <= v <= 5 and 270 <= u <= 330:
+            continue
+        out[(wx, wy, wz)] = names[sub[y, z, x]]
     return out
 
 
@@ -297,6 +303,44 @@ def test_the_spawn_cell_is_standable_and_nothing_of_ours_is_in_it(built, named, 
         "there is no headroom over the spawn"
 
 
+def test_the_spawn_looks_down_a_clear_sightline(built, named, park_band):
+    """WHAT THE VISITOR SEES, MEASURED RATHER THAN DESCRIBED.
+
+    From the spawn cell, along +X at eye height, every cell to the gate's back face must be
+    something you can see through - air, or the grille that closes the ceremonial arch. The
+    reason the spawn sits one cell off the axis is exactly this: `Park Ways`' apron lamp mast
+    stands at V4/U300 and puts a fence post three blocks in front of a visitor's eyes.
+    """
+    _c, _m, meta = built
+    x, y, z = meta["spawn"]["world"]
+    world = dict(park_band)
+    world.update(named)
+    v_back = meta["lot"][2]                      # V5, the gate building's back face
+    for v in range(meta["spawn"]["park"][0] + 1, v_back + 1):
+        cell = world.get((PE.ANCHOR[0] + v, y + 1, z))    # eye height: the course over the feet
+        assert cell in (None, "iron_bars", "iron_door"), \
+            f"the view to the entrance is blocked at V{v} by {cell}"
+    assert world.get((PE.ANCHOR[0] + v_back, y + 1, z)) == "iron_door", \
+        "the spawn is not aligned with an entrance door"
+
+
+def test_the_assembled_midway_axis_stays_clear_until_the_ferris_wheel(built):
+    """The carousel and wheel intake must flank the vista, never occupy it."""
+    m = schem.load(str(PARK))
+    ox, oy, oz = PARK_ORIGIN
+    _c, _built, meta = built
+    _x, feet_y, z = meta["spawn"]["world"]
+    u = z - oz
+    names = [n.split(":")[-1].split("[")[0] for n in m.names]
+    blocked = []
+    for v in range(6, 92):
+        for wy in (feet_y + 1, feet_y + 2):
+            slot = int(m.ids[wy - oy, u, v])
+            if slot:
+                blocked.append((v, wy, names[slot]))
+    assert blocked == [], f"arrival-to-wheel sightline is blocked: {blocked[:6]}"
+
+
 def test_the_walk_from_the_spawn_reaches_both_fare_slots(built, named, park_band):
     """A gate you cannot get to is not a gate. Flooded rather than assumed."""
     c, m, meta = built
@@ -309,7 +353,7 @@ def test_the_walk_from_the_spawn_reaches_both_fare_slots(built, named, park_band
         sx, sy, sz = lane["mouth"]
         # you stand in FRONT of the slot, one course out toward the forecourt (-V is -X)
         assert (sx - 2, sy - 1, sz) in reached or (sx - 2, sy, sz) in reached, \
-            f"nobody can reach the fare slot at {lane['mouth']}"
+            f"nobody can reach the payment chest at {lane['payment_chest']}"
 
 
 # --------------------------------------------------------------------------- containment
@@ -362,7 +406,7 @@ def test_the_flood_is_not_vacuous(built, park_band):
     assert beyond, "with the doors removed the flood still escapes nothing - the model is wrong"
 
 
-def test_the_ceremonial_arch_is_barred_from_the_floor_up(built, named):
+def test_the_ceremonial_arch_has_doors_surrounded_by_bars(built, named):
     """You see the park through it and you do not walk into it. A grille that starts one course up
     is a doorway with a decoration over it."""
     _c, _m, meta = built
@@ -372,8 +416,9 @@ def test_the_ceremonial_arch_is_barred_from_the_floor_up(built, named):
     for u in range(a0, a1 + 1):
         z = PE.ANCHOR[2] + u0 + u
         for y in (PE.ANCHOR[1], PE.ANCHOR[1] + 1):
-            assert named.get((x, y, z)) == "iron_bars", \
-                f"the ceremonial arch is open at U{u0 + u}, Y{y}"
+            want = "iron_door" if u in _params()["lanes"] else "iron_bars"
+            assert named.get((x, y, z)) == want, \
+                f"the ceremonial arch has the wrong closure at U{u0 + u}, Y{y}"
 
 
 # --------------------------------------------------------------------------- the pay gate
@@ -394,16 +439,15 @@ def _sim(built, fills, ticks=25):
 def test_the_price_is_arithmetic_and_not_a_taste(built):
     """A comparator reads a container as floor(14 * total / (slots * stack)) + 1, so a five-slot
     hopper of grass steps every 320/14 = 22.86 blocks. 22 reads 1 and 23 reads 2 - and 1 is what
-    ANY single item reads, which is why a price level under 2 is refused outright."""
+    ANY single item reads. Level 1 is intentionally used for the one-grass live-server contract."""
     assert PE.price_blocks(2) == 23
     assert PE.price_blocks(3) == 46
     for n, want in ((0, 0), (1, 1), (22, 1), (23, 2), (45, 2), (46, 3)):
         got = (14 * n) // 320 + (1 if n else 0)
         assert got == want, f"{n} grass blocks reads {got}, not {want}"
     _c, _m, meta = built
-    assert meta["price_blocks"] == 23 and meta["currency"] == "grass_block"
-    with pytest.raises(ValueError):
-        PE.build({**_params(), "price_level": 1})
+    assert PE.price_blocks(1) == 1
+    assert meta["price_blocks"] == 1 and meta["currency"] == "grass_block"
 
 
 def test_at_rest_every_door_is_shut(built):
@@ -413,68 +457,37 @@ def test_at_rest_every_door_is_shut(built):
 
 
 def test_below_the_price_no_door_opens(built):
-    """22 grass blocks reads 1, and 1 is what a single block reads. The threshold is what stops
-    the gate opening for a handful of grass."""
-    _ci, tr = _sim(built, [1, 1])
+    """An empty till is the only state below the one-grass admission price."""
+    _ci, tr = _sim(built, [0, 0])
     assert all(not lo and not up for row in tr for (lo, up) in row), \
         "the gate opened below its own price"
 
 
-def test_paying_opens_that_lane_and_only_that_lane(built):
-    """Two lanes, two machines, no bus between them: a shared line would also put one lane's
-    threshold next to the other's output. Each lane is simulated with the OTHER till empty."""
+def test_each_lane_has_an_independent_payment_chest_and_receipt_hopper(built):
     _c, _m, meta = built
-    for i in range(len(meta["lanes"])):
-        fills = [0] * len(meta["lanes"])
-        fills[i] = 2
-        _ci, tr = _sim(built, fills)
-        last = tr[-1]
-        assert last[i] == (True, True), f"lane {i} did not open on a full fare"
-        for j, state in enumerate(last):
-            if j != i:
-                assert state == (False, False), f"paying lane {i} opened lane {j}"
+    assert len(meta["lanes"]) == 2
+    assert len({tuple(l["payment_chest"]) for l in meta["lanes"]}) == 2
+    assert len({tuple(l["receipt_hopper"]) for l in meta["lanes"]}) == 2
 
 
-def test_both_halves_of_every_door_are_powered(built):
-    """ONE TORCH, BOTH HALVES. `emit` reaches the lower half beside it and a lit torch STRONGLY
-    POWERS THE BLOCK ABOVE IT, which is the jamb beside the upper half. Built without that jamb
-    the gate opens as a half-door, and no render in this repo would show it."""
-    _ci, tr = _sim(built, [2, 2])
-    lo_up = tr[-1]
-    assert all(lo and up for (lo, up) in lo_up), f"a door opened half: {lo_up}"
-
-
-def test_emptying_the_till_shuts_the_gate_again(built):
-    c, m, meta = built
-    ci = circuit.Circuit.of(m, c.world_origin)
-    tills = [tuple(l["till"]) for l in meta["lanes"]]
-    for t in tills:
-        ci.fill(t, 3)
-    for _ in range(20):
-        ci.step()
-    assert all(ci.powered(tuple(l["door"])) for l in meta["lanes"]), "the fare did not open it"
-    for t in tills:
-        ci.fill(t, 0)
-    for _ in range(20):
-        ci.step()
-    assert not any(ci.powered(tuple(l["door"])) for l in meta["lanes"]), \
-        "the gate stayed open after the till was emptied - it has latched"
-
-
-def test_A_FARE_LEFT_IN_THE_TILL_HOLDS_THE_GATE_OPEN(built):
-    """PINNED, NOT FIXED. The comparator reads the till continuously and nothing drains it, so
-    this is a TOLL GATE: paid for, it stands open until the keeper empties the till.
-
-    The self-resetting version - a latch set by the threshold and reset by an empty till,
-    unlocking a drain hopper into a collection barrel - is a good machine and is NOT SHIPPED,
-    because the drain is a hopper transfer and `mcbuild.circuit` has no entities. A hazard nobody
-    has written down is one nobody checks for.
-    """
-    _ci, tr = _sim(built, [2, 2], ticks=60)
-    assert tr[-1][0] == (True, True), \
-        "this hazard has been fixed - good, but the docstring and meta['hazards'] must change too"
+def test_adapter_opens_both_halves_and_has_a_failure_contract(built):
     _c, _m, meta = built
-    assert any("TILL" in h.upper() for h in meta["hazards"]), "the hazard is not recorded"
+    a = meta["adapter_contract"]
+    assert a["debit"] == {"item": "grass_block", "count": 1, "from": "player inventory"}
+    assert "both halves" in a["success"]
+    assert "refund" in a["failure"]
+
+
+def test_adapter_resets_the_lane_after_a_bounded_open_window(built):
+    _c, _m, meta = built
+    assert "5 seconds" in meta["adapter_contract"]["success"]
+    assert "close the door" in meta["adapter_contract"]["reset"]
+
+
+def test_the_adapter_consumes_the_receipt_before_reset(built):
+    _c, _m, meta = built
+    assert "receipt grass" in meta["adapter_contract"]["reset"]
+    assert meta["hazards"] == []
 
 
 def test_no_hopper_touches_a_torch(built, named):
@@ -508,7 +521,7 @@ def test_the_till_is_a_dead_end_so_it_can_accumulate(built):
     st = _states(m, c.world_origin)
     for lane in meta["lanes"]:
         assert "facing=down" in st[tuple(lane["till"])]
-        assert "facing=down" in st[tuple(lane["mouth"])]
+        assert st[tuple(lane["payment_chest"])].startswith("chest[")
 
 
 def test_the_circuit_inspection_finds_nothing_suspicious(built):

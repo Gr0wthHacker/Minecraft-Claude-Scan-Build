@@ -292,9 +292,16 @@ def test_the_lands_do_not_share_a_palette_family():
 
 
 def test_exactly_one_land_is_lit_cold():
-    """The gradient is a decision, so it is pinned. Two warm, one cold."""
-    cold = [land for land in LANDS if park.LANDS[land]["light"].startswith("soul_")]
-    assert len(cold) == 1, f"expected one cold-lit land, got {cold}"
+    """The gradient is a decision, so it is pinned. Two warm, one cold - PER PARK.
+
+    `park.LANDS` serves two parks: the retired three-island one (frontier / hollow / midway) and
+    the 600x200 one (frontier / midway / prismworks). Written against `sorted(LANDS)` this counted
+    across both, so the moment the second park's cold land was added the correct answer for each
+    park read as a wrong answer overall. The set comes from `park.PARKS` now.
+    """
+    for name, lands in park.PARKS.items():
+        cold = [land for land in lands if park.LANDS[land]["light"].startswith("soul_")]
+        assert len(cold) == 1, f"{name}: expected one cold-lit land, got {cold}"
 
 
 @pytest.mark.parametrize("land", LANDS)

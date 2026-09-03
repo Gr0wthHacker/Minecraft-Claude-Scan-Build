@@ -1,0 +1,325 @@
+{
+  "origin": {
+    "x": 97544,
+    "y": 203,
+    "z": 80826
+  },
+  "size": [
+    15,
+    16
+  ],
+  "generated_by": "park_vantage",
+  "kind": "park_vantage",
+  "land": "prismworks",
+  "lot": [
+    44,
+    526,
+    58,
+    541
+  ],
+  "shaft": [
+    15,
+    15
+  ],
+  "height": 77,
+  "facing": "west",
+  "look": "west",
+  "deck_surface_above_lawn": 65,
+  "deck_world_y": 268,
+  "storeys": 5,
+  "rise": 13,
+  "door": "north",
+  "lights": 36,
+  "outside_lot_refused": 0,
+  "flights": [
+    {
+      "from": 0,
+      "to": 12,
+      "facing": "north",
+      "band": [
+        11,
+        13
+      ],
+      "u_from": 13,
+      "u_to": 1
+    },
+    {
+      "from": 13,
+      "to": 25,
+      "facing": "south",
+      "band": [
+        1,
+        3
+      ],
+      "u_from": 1,
+      "u_to": 13
+    },
+    {
+      "from": 26,
+      "to": 38,
+      "facing": "north",
+      "band": [
+        11,
+        13
+      ],
+      "u_from": 13,
+      "u_to": 1
+    },
+    {
+      "from": 39,
+      "to": 51,
+      "facing": "south",
+      "band": [
+        1,
+        3
+      ],
+      "u_from": 1,
+      "u_to": 13
+    },
+    {
+      "from": 52,
+      "to": 64,
+      "facing": "north",
+      "band": [
+        11,
+        13
+      ],
+      "u_from": 13,
+      "u_to": 1
+    }
+  ],
+  "top_surface": 65,
+  "crown": "gallery",
+  "crown_cells": 110,
+  "bridge": {
+    "level": 1,
+    "floor_y": 12,
+    "walk_y": 13,
+    "v": [
+      7,
+      11
+    ],
+    "reach": 1,
+    "cells": 7
+  },
+  "contract": "a climbable vantage: 5 flights of 13 treads, a room at every storey, and a deck whose walking surface is 65 courses over the lawn at world Y268 - reached on foot from the park's own ground and walkable back down, inside V44-58 / U526-541 and not one cell outside it",
+  "requires_in_game": [
+    "colour and the read of the crown against the sky can only be judged in world",
+    "no mechanism is claimed by this geometry: there is no lift, no gate and no circuit"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "landmark",
+      "hierarchy": "landmark",
+      "style": "prismworks",
+      "focal_face": "north",
+      "narrative": "A stair tower of polished blackstone and smooth basalt beside the Prism Ascent: a pier rhythm broken by four courses of barred window at every storey, a string course at every floor, a corbelled oversail under the crown, an open loggia on the west face at the fourth storey, and a deck sixty-five courses over the lawn with a parapet, four lit corner piers and open sky. At the first storey a single cell of deck crosses onto the Prism Ascent's podium roof, which has been standing unreachable since it was built.\n"
+    },
+    "metrics": {
+      "blocks": 4522,
+      "materials": 14,
+      "dominant_material_share": 0.3737,
+      "light_blocks": 15,
+      "massing": {
+        "width": 15,
+        "height": 73,
+        "depth": 16,
+        "fill_ratio": 0.2581
+      },
+      "silhouette": {
+        "top": {
+          "area": 230,
+          "fill_ratio": 0.9583
+        },
+        "front": {
+          "area": 968,
+          "fill_ratio": 0.8381
+        },
+        "side": {
+          "area": 990,
+          "fill_ratio": 0.8036
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.3914,
+          0.3927,
+          0.2158
+        ],
+        "top_silhouette_perimeter": 74,
+        "surface_faces_per_block": 2.1911
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 1690,
+        "smooth_basalt": 1218,
+        "chiseled_deepslate": 640,
+        "polished_blackstone_brick_stairs": 251,
+        "cracked_polished_blackstone_bricks": 247,
+        "polished_deepslate": 165,
+        "polished_blackstone_brick_wall": 102,
+        "black_wool": 91,
+        "light_blue_wool": 69,
+        "pearlescent_froglight": 21,
+        "soul_lantern": 15,
+        "spruce_stairs": 8
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "0f0e73ac1e0146be7124cd7669c3c3792902eea6f48e3077733d6c72c2fbbd4b",
+    "generator_source_digest": "1175f4d885a23be1cbd5490a59c49171b8704f775111894e4728bee98a30fc21",
+    "anchors": [
+      {
+        "name": "street_front",
+        "kind": "visual_front",
+        "position": [
+          7,
+          1,
+          0
+        ],
+        "facing": "north",
+        "width": 3
+      },
+      {
+        "name": "entry",
+        "kind": "entry",
+        "position": [
+          7,
+          1,
+          0
+        ],
+        "facing": "north",
+        "width": 3
+      },
+      {
+        "name": "summit",
+        "kind": "deck",
+        "position": [
+          7,
+          65,
+          7
+        ],
+        "facing": "up",
+        "width": 13
+      }
+    ],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": true,
+      "mechanics": [
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 80.77966,
+    "blocks": 4522,
+    "blocks_per_second": 55.98
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 3,
+    "roles": [
+      "building"
+    ],
+    "blocks": 4522,
+    "mechanic_families": [
+      "light"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "experience",
+    "player_verbs": [
+      "climb the stair",
+      "cross to the podium roof",
+      "stop at the loggia",
+      "stand on the deck"
+    ],
+    "outcome": "The highest place a visitor can stand in the park - 65 courses over the lawn against a previous best of 40, and the previous best was coaster structure rather than a place. From the deck the whole 600 of the park is in one view; from the loggia the Prismworks avenues are; and the Prism Ascent's podium roof, 498 standable cells, becomes reachable on foot.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_deepslate",
+    "not in the provisional skyblock-1.19 list: cracked_polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: end_rod",
+    "not in the provisional skyblock-1.19 list: pearlescent_froglight",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_brick_slab",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_brick_stairs",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_brick_wall",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_deepslate",
+    "not in the provisional skyblock-1.19 list: smooth_basalt"
+  ],
+  "file": "PF Vantage Prism Summit.litematic",
+  "name": "PF Vantage Prism Summit"
+}

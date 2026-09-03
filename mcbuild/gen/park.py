@@ -65,6 +65,17 @@ _LEAN = {"east": "west", "west": "east", "north": "south", "south": "north"}
 SIGN_WIDTH = 15         # a sign line clips mid-word past this; asserted, never hoped for
 ROOM_H = 5              # floor to ceiling: four clear courses, which is a room not a corridor
 
+#: WHICH PARK EACH LAND BELONGS TO. This table serves TWO parks: the retired three-island park
+#: (frontier / hollow / midway) and the 600x200 park (frontier / midway / prismworks). Several
+#: identity contracts - "exactly one land is lit cold", "no two lands share a palette family" -
+#: are properties of ONE park's set, and adding a fourth land made them span both, so a land that
+#: is correctly the cold one in its own park read as a second cold land overall. The tests take
+#: their sets from here rather than from `sorted(LANDS)`.
+PARKS = {
+    "retired": ("frontier", "hollow", "midway"),
+    "park_final": ("frontier", "midway", "prismworks"),
+}
+
 LANDS = {
     "midway": {
         "ground": "stone_bricks",
@@ -152,17 +163,42 @@ LANDS = {
     # and the accent is the land's own signal cyan rather than a mood colour: Prismworks is the
     # machine land and its light is a SIGNAL.
     "prismworks": {
-        "ground": "polished_blackstone_bricks",
+        # ITS OWN GROUND, NOT THE HOLLOW'S. Both were `polished_blackstone_bricks` and
+        # `test_the_lands_do_not_share_a_palette_family` said so - which is the same complaint
+        # Jack made by eye ("I thought this area was now prism, which had a different
+        # purpose/feel"). `polished_deepslate` is what the SHIPPED ground layer already paves
+        # this land's streets with, so a building and the street it stands on read as one hand.
+        "ground": "polished_deepslate",
         "path": "smooth_basalt",
         "wall": "deepslate_tiles",
-        "trim": "deepslate_bricks",
+        # ITS OWN TRIM. The Hollow's is `deepslate_bricks` and two lands sharing one is what
+        # `test_the_lands_do_not_share_a_palette_family` exists to catch. Measured across
+        # families, which is the only place this economy has a ladder:
+        #     deepslate_tiles 55 (wall) -> blackstone 38 (trim) -> polished_deepslate 73 (ground)
+        # 17 from the wall and 34 from the ground, both clear of the 15 below which a trim course
+        # stops reading as a line. `polished_blackstone` measures 51, four from the wall - which
+        # is this repo's most-repeated palette mistake made inside one material family, and I
+        # made it again by reaching for the name rather than the number.
+        # It is NOT `cyan_wool`, which was the first answer and a bad one: `trim` is not only
+        # cornices and crenellations, it is the plaza's floor grid, the path kerbs and the
+        # terrace beds - the ground you actually stand on - and this table's own midway entry
+        # spells that out. `test_no_land_stands_on_wool` is what says so.
+        "trim": "blackstone",
         "post": "polished_deepslate",
         "beam": "polished_blackstone_bricks",
         "stair": "polished_deepslate_stairs",
         "slab": "polished_deepslate_slab",
         "fence": "polished_blackstone_brick_wall",
         "gate": "warped_fence_gate",
-        # THE ONE COLD LIGHT, and the reason this land reads apart from the other two at night.
+        # A SIGNAL, NOT A MOOD - and it must not be the Hollow's soul lantern, because exactly
+        # one land is lit cold and that one is the Hollow. `pearlescent_froglight` is cheap,
+        # witnessed, 1.19, and the ground layer already sets it flush in this land's paving, so
+        # the street and the buildings are lit by the same thing. It is also the machine land's
+        # own idea of light: an emitter you build INTO a surface rather than hang off it.
+        # A LANTERN, BECAUSE `light` IS USED AS ONE. `pearlescent_froglight` is a full block and
+        # takes neither `hanging` nor `waterlogged`, so every cell of it came out an illegal
+        # state - the registry says so and I did not ask it. 1.19 has exactly two lanterns, and
+        # the cold one is the right one for the machine land.
         "light": "soul_lantern",
         "canopy": ["deepslate_tiles", "cyan_wool"],
         "accent": "cyan_wool",

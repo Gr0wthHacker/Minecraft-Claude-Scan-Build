@@ -5,9 +5,9 @@
     "z": 80529
   },
   "size": {
-    "x": 73,
+    "x": 134,
     "y": 36,
-    "z": 152
+    "z": 154
   },
   "generated_by": "park_frontage",
   "kind": "park_frontage",
@@ -127,7 +127,7 @@
       "height": 10,
       "at": [
         74,
-        300
+        274
       ],
       "facing": "west",
       "land": "midway",
@@ -174,7 +174,7 @@
       },
       "at": [
         79,
-        296
+        270
       ],
       "facing": "west",
       "land": "midway",
@@ -202,7 +202,7 @@
       "height": 6,
       "at": [
         21,
-        311
+        285
       ],
       "facing": "west",
       "land": "midway",
@@ -272,67 +272,67 @@
           22
         ],
         [
-          15,
+          13,
           1
         ],
         [
-          15,
+          13,
           2
         ],
         [
-          15,
+          13,
           21
         ],
         [
-          15,
+          13,
           22
         ],
         [
-          16,
+          14,
           1
         ],
         [
-          16,
+          14,
           2
         ],
         [
-          16,
+          14,
           21
         ],
         [
-          16,
+          14,
           22
         ],
         [
-          30,
+          34,
           1
         ],
         [
-          30,
+          34,
           2
         ],
         [
-          30,
+          34,
           21
         ],
         [
-          30,
+          34,
           22
         ],
         [
-          31,
+          35,
           1
         ],
         [
-          31,
+          35,
           2
         ],
         [
-          31,
+          35,
           21
         ],
         [
-          31,
+          35,
           22
         ],
         [
@@ -372,8 +372,8 @@
       "lamps": 8,
       "pier_v": [
         0,
-        15,
-        30,
+        13,
+        34,
         44
       ],
       "pier_u": [
@@ -385,8 +385,8 @@
         24
       ],
       "at": [
-        24,
-        312
+        106,
+        360
       ],
       "facing": "west",
       "land": "midway",
@@ -403,27 +403,12 @@
         24
       ],
       "at": [
-        24,
-        312
+        106,
+        360
       ],
       "facing": "west",
       "land": "midway",
       "name": "Sky Lift Sloth"
-    },
-    {
-      "kind": "sight/bandstand",
-      "height": 12,
-      "footprint": [
-        9,
-        9
-      ],
-      "at": [
-        72,
-        316
-      ],
-      "facing": "west",
-      "land": "midway",
-      "name": "The Bandstand"
     },
     {
       "kind": "sight/bunting",
@@ -442,8 +427,8 @@
       "name": "Arcade Bunting"
     }
   ],
-  "piece_count": 15,
-  "signs": 17,
+  "piece_count": 14,
+  "signs": 16,
   "refused_signs": [],
   "contract": "everything in front of and between the park's attractions: a name board on every one, queues at the rides, entrance and exit thresholds, and sight pieces in the measured empty bands - none of it below the build plane, and nothing over a paved column below head height",
   "unverified": [
@@ -479,55 +464,55 @@
       "purpose": "path",
       "hierarchy": "supporting",
       "style": "midway",
-      "narrative": "The Midway's frontage: name gantries over the Welcome Court, Carousel and Arcade spurs, boards on the two counters that front a cross walk, a queue for the wheel with its own entrance and way out, walk-on thresholds at the Carousel and Arcade, and - filling the largest measured hole in the park - a timber arbour carrying the homeless Sky Lift Sloth, a bandstand beside it and a bunting run down the arcade's flank.\n"
+      "narrative": "The Midway's frontage: name gantries over the Welcome Court, Carousel and Arcade spurs, boards on the two counters that front a cross walk, a queue for the wheel with its own entrance and way out, walk-on thresholds at the Carousel and Arcade, and a separate Sloth garden behind the Prize Point, away from the wheel's silhouette; bunting animates the arcade flank while the band between the carousel and wheel remains deliberately open.\n"
     },
     "metrics": {
-      "blocks": 8212,
-      "materials": 24,
-      "dominant_material_share": 0.3837,
-      "light_blocks": 46,
+      "blocks": 7926,
+      "materials": 23,
+      "dominant_material_share": 0.3976,
+      "light_blocks": 42,
       "massing": {
-        "width": 73,
+        "width": 134,
         "height": 36,
-        "depth": 152,
-        "fill_ratio": 0.0206
+        "depth": 154,
+        "fill_ratio": 0.0107
       },
       "silhouette": {
         "top": {
-          "area": 1136,
-          "fill_ratio": 0.1024
+          "area": 1080,
+          "fill_ratio": 0.0523
         },
         "front": {
-          "area": 1206,
-          "fill_ratio": 0.4589
+          "area": 1191,
+          "fill_ratio": 0.2469
         },
         "side": {
-          "area": 1013,
-          "fill_ratio": 0.1851
+          "area": 992,
+          "fill_ratio": 0.1789
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.3139,
-          0.4496,
-          0.2365
+          0.2893,
+          0.4657,
+          0.245
         ],
-        "top_silhouette_perimeter": 1770,
-        "surface_faces_per_block": 1.6325
+        "top_silhouette_perimeter": 1684,
+        "surface_faces_per_block": 1.6157
       },
       "material_counts": {
         "brown_wool": 3151,
         "spruce_log": 1336,
-        "stripped_oak_log": 739,
-        "stone_bricks": 644,
-        "white_wool": 380,
-        "chiseled_stone_bricks": 334,
-        "red_wool": 273,
+        "stripped_oak_log": 703,
+        "stone_bricks": 600,
+        "white_wool": 336,
+        "chiseled_stone_bricks": 295,
         "light_gray_wool": 243,
-        "stone_brick_stairs": 234,
+        "stone_brick_stairs": 231,
         "dark_oak_wood": 228,
-        "polished_blackstone_bricks": 148,
-        "moss_block": 136
+        "red_wool": 194,
+        "moss_block": 136,
+        "polished_blackstone_bricks": 122
       }
     },
     "checks": [],
@@ -539,8 +524,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "e6ad65a98467b549cb487311abcba02d2e798b13144f5eadd3f3f6038d635d80",
-    "generator_source_digest": "cdc3979fd61e2932d288e594316947fd861196b38cf51e1445f5bb59fe622cd9",
+    "fingerprint": "b604be054e31f9fa16571498fd2648410d561c860a84d12647ec30ddd462d9c6",
+    "generator_source_digest": "8953590b33a7a9a48c978350a60bf4dba61eb13c0ebbad52baf5e925feda9b45",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -582,9 +567,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 139.488054,
-    "blocks": 8212,
-    "blocks_per_second": 58.87
+    "seconds": 61.235061,
+    "blocks": 7926,
+    "blocks_per_second": 129.44
   },
   "generator_contract": {
     "ok": true,
@@ -593,7 +578,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 8212,
+    "blocks": 7926,
     "mechanic_families": [
       "access",
       "light",

@@ -26,7 +26,7 @@
     "redstone_lamp": 1
   },
   "refused": [],
-  "contract": "the lamp and the bell come on only while the scale reads 4 to 4; below is dark and OVER is dark again",
+  "contract": "the lamp and the bell come on only while the scale reads exactly 4; below is dark and OVER is dark again",
   "unverified": [
     "A PLATE'S LEVEL IS AN INPUT YOU STATE. The simulator has no entities and cannot put an item on a scale; that N items really read N is the game's own behaviour."
   ],
@@ -166,8 +166,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "512c27087cad60c297df809e91e03e2b86f79016ef4843bd254fb7e7405916f8",
-    "generator_source_digest": "128e45445da1be3c5e39b8593cfce204dfee077a0b48c8f8abc377582df71f65",
+    "fingerprint": "c9e96863dae3a67cacc0048b7547a650b102c15e4c20ee706231dfb6e616bcdd",
+    "generator_source_digest": "db15f9980fcfc17e03710422b01f058018a82a10067ea4c3eac1d21e161b67bc",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -209,9 +209,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 80.090279,
+    "seconds": 77.200831,
     "blocks": 389,
-    "blocks_per_second": 4.86
+    "blocks_per_second": 5.04
   },
   "generator_contract": {
     "ok": false,

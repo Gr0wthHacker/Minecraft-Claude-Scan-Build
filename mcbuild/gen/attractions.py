@@ -90,6 +90,14 @@ EXTRA = {
                "bark": "stripped_oak_log", "trap": "oak_trapdoor"},
     "frontier": {"rock": "cobblestone", "rock_stair": "cobblestone_stairs", "aged": "mossy_cobblestone",
                  "bark": "stripped_spruce_log", "trap": "spruce_trapdoor"},
+    # PRISMWORKS. `park.LANDS` gained a third land and every per-land table in the park had to
+    # gain one with it - a land that is in one table and not another does not fail loudly, it
+    # raises a KeyError deep inside a generator, and 157 of this file's tests parameterise over
+    # `sorted(park.LANDS)`. The machine land's rock is its own polished deepslate rather than a
+    # cobble, because cobblestone is banned here.
+    "prismworks": {"rock": "polished_deepslate", "rock_stair": "polished_deepslate_stairs",
+                   "aged": "smooth_basalt", "bark": "stripped_dark_oak_log",
+                   "trap": "dark_oak_trapdoor"},
     "hollow": {"rock": "cobbled_deepslate", "rock_stair": "cobbled_deepslate_stairs",
                "aged": "polished_blackstone", "bark": "stripped_dark_oak_log",
                "trap": "dark_oak_trapdoor"},

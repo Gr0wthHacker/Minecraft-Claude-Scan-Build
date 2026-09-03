@@ -92,6 +92,10 @@ _FIELDS = {
     "midway": ["white_wool", "light_gray_wool", "oak_planks", "stone_bricks"],
     "frontier": ["spruce_planks", "oak_planks", "cobblestone", "stone_bricks"],
     "hollow": ["black_wool", "gray_wool", "deepslate_bricks", "polished_blackstone_bricks"],
+    # PRISMWORKS, the park's third land. A land present in `park.LANDS` and missing from a
+    # per-land table here is a KeyError deep inside a generator rather than a refusal at the
+    # door, which is how one addition took 276 tests down.
+    "prismworks": ["deepslate_tiles", "smooth_basalt", "polished_deepslate", "cyan_wool"],
 }
 
 # The shop accents - awning stripes, shutters, sign boards. Eight cheap wools, so two neighbours

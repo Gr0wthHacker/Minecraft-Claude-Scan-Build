@@ -7057,8 +7057,8 @@
       "generator": "compose",
       "role": "path",
       "footprint": [
-        58,
-        44
+        63,
+        36
       ],
       "at": [
         18,
@@ -7140,15 +7140,15 @@
             "gen": "park",
             "params": {
               "kind": "plaza",
-              "land": "hollow",
+              "land": "prismworks",
               "at": [
                 0,
                 0,
                 0
               ],
               "facing": "east",
-              "width": 34,
-              "depth": 60
+              "width": 36,
+              "depth": 63
             },
             "offset": [
               0,
@@ -7159,76 +7159,19 @@
           {
             "gen": "asset",
             "params": {
-              "source": "reference/bone_ruins_skull.litematic",
-              "downscale": 2
+              "source": "reference/bone_ruins.litematic",
+              "downscale": 3,
+              "rotate": 180
             },
             "offset": [
-              16,
+              13,
               0,
-              6
-            ]
-          },
-          {
-            "gen": "park",
-            "params": {
-              "kind": "arch",
-              "land": "hollow",
-              "at": [
-                0,
-                0,
-                0
-              ],
-              "facing": "east",
-              "width": 17,
-              "height": 14
-            },
-            "offset": [
-              1,
-              0,
-              8
-            ]
-          },
-          {
-            "gen": "park",
-            "params": {
-              "kind": "arch",
-              "land": "hollow",
-              "at": [
-                0,
-                0,
-                0
-              ],
-              "facing": "east",
-              "width": 17,
-              "height": 14
-            },
-            "offset": [
-              50,
-              0,
-              8
-            ]
-          },
-          {
-            "gen": "park",
-            "params": {
-              "kind": "booth",
-              "land": "hollow",
-              "at": [
-                0,
-                0,
-                0
-              ],
-              "facing": "east"
-            },
-            "offset": [
-              46,
-              0,
-              24
+              0
             ]
           }
         ]
       },
-      "resized_note": "the bone skull is the 54x66x40 reference at FULL resolution rather than halved - a skull halved turns every curve into a two-block step, which is exactly what read as flat"
+      "resized_note": "The complete open-mouth bone shrine is used, not the detached skull or the procedural rib yard. At one-third scale and rotated 180 degrees toward Midway it is roughly 37x29x35: large enough to enter and read as a shrine, while fitting the protected 63x36 reach without invading either neighboring land."
     },
     {
       "name": "Foundry Gate",

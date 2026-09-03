@@ -127,6 +127,16 @@ SPAN = {
                "pier": "stone_bricks", "arch": "smooth_stone"},
     "frontier": {"deck": "cobblestone", "kerb": "spruce_log",
                  "pier": "spruce_log", "arch": "spruce_planks"},
+    # PRISMWORKS - the third land, added when `park.LANDS` gained it. See the note in
+    # `attractions.EXTRA`: a land present in one table and missing from another is a KeyError
+    # deep inside a generator rather than a refusal at the door.
+    "prismworks": {"deck": "polished_blackstone_bricks", "kerb": "deepslate_bricks",
+                   # THE ARCH IS THE VALUE LINE and `deepslate_tiles` (55) is only 10 from the
+                   # deck's 45 - measured, and this repo's most-repeated palette mistake, made
+                   # inside one material family where a ladder cannot exist. `black_wool` is 22:
+                   # 23 clear of the deck, and the ladder across families is the only one this
+                   # economy has. The Hollow's own arch is `black_wool` for exactly this reason.
+                   "pier": "polished_deepslate", "arch": "black_wool"},
     "hollow": {"deck": "polished_blackstone_bricks", "kerb": "deepslate_bricks",
                "pier": "polished_blackstone_bricks", "arch": "black_wool"},
 }

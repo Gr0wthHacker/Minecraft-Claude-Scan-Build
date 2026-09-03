@@ -62,7 +62,7 @@ params:
       height: 10
       board: 3
       title: MIDWAY CIRCUS
-      lines: ["carousel ahead", "wheel behind it"]
+      lines: ["big wheel ahead", "carousel right"]
     - kind: marquee
       name: Skill Arcade
       at: [20, 362]
@@ -97,14 +97,14 @@ params:
     # a real distinction a visitor can read from the shape of what is in front of them.
     - kind: marquee
       name: Sky Lift
-      at: [74, 300]
+      at: [74, 274]
       span: 3
       depth: 2
       title: THE SKY LIFT
       lines: ["big wheel", "queue behind"]
     - kind: queue
       name: Sky Lift queue
-      at: [79, 296]
+      at: [79, 270]
       width: 9
       depth: 10
       # TWO COURSES BETWEEN RAILS, NOT THREE. There are sixteen courses of lawn between the
@@ -124,7 +124,7 @@ params:
       lines: ["carousel", "", "step up"]
     - kind: portal
       name: Carousel exit
-      at: [21, 311]
+      at: [21, 285]
       mode: exit
       title: RIDE EXIT
       lines: ["", "", "mind the step"]
@@ -141,31 +141,32 @@ params:
       title: WAY OUT
       lines: ["", "", "to the spine"]
 
-    # ---------------------------------------------------------------- the U320-339 trough
-    # 22 x 69 OF UNBROKEN LAWN, the largest hole in the park, and everything below stands in it.
+    # ---------------------------------------------------------------- the Sloth garden
+    # THE SLOTH IS A SECONDARY DISCOVERY, NOT PART OF THE WHEEL'S SILHOUETTE.  Its former
+    # V24/U312 position put the whole 46 x 24 arbour in the same view cone as the Carousel and
+    # Sky Lift.  This measured lawn behind the Prize Point gives it a separate garden: 25 clear
+    # U courses from the ride court, six clear V courses behind the building, and no intrusion
+    # into the V152 service band.  U312-339 is deliberately left as breathing room beside the
+    # wheel rather than treated as a hole that must be filled.
     # THE PIERS GO UNDER CELLS THAT EXIST: the lattice the sloth hangs from is a grid whose two
     # long rails run at its own U1-2 and U21-22, and everything between them is open air, so a
     # pier anywhere else would carry nothing and read as a post beside a sculpture.
     - kind: pergola
       name: Sloth Arbour piers
-      at: [24, 312]
+      at: [106, 360]
       size: [46, 24]
       top: 28
-      pier_v: [0, 15, 30, 44]
+      # These four V rows are lawn at both rail positions; the intervening cross-walk and its
+      # verge remain completely open beneath the raised animal.
+      pier_v: [0, 13, 34, 44]
       pier_u: [1, 21]
     - kind: stamp
       name: Sky Lift Sloth
-      at: [24, 312]
+      at: [106, 360]
       source: out/park_final/artifacts/Sky Lift Sloth.litematic
       lift: 6
-    - kind: sight
-      name: The Bandstand
-      motif: bandstand
-      at: [72, 316]
-      radius: 4
-      height: 6
-      title: BANDSTAND
-      lines: ["music at the", "top of the hour"]
+    # The former bandstand at V72/U316 was a third icon wedged between the carousel and wheel.
+    # This band now stays empty so the two rides read as separate destinations.
     - kind: sight
       name: Arcade Bunting
       motif: bunting
@@ -181,9 +182,9 @@ design:
   narrative: >
     The Midway's frontage: name gantries over the Welcome Court, Carousel and Arcade spurs,
     boards on the two counters that front a cross walk, a queue for the wheel with its own
-    entrance and way out, walk-on thresholds at the Carousel and Arcade, and - filling the
-    largest measured hole in the park - a timber arbour carrying the homeless Sky Lift Sloth,
-    a bandstand beside it and a bunting run down the arcade's flank.
+    entrance and way out, walk-on thresholds at the Carousel and Arcade, and a separate Sloth
+    garden behind the Prize Point, away from the wheel's silhouette; bunting animates the arcade
+    flank while the band between the carousel and wheel remains deliberately open.
 finish:
   cheapen: false
   hollow: false

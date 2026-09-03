@@ -18,7 +18,7 @@ class _Wrap:
 
 
 from . import frontier_builds, midway_builds, prismworks_builds  # noqa: E402
-from . import park_frontage, park_vantage, park_water  # noqa: E402
+from . import park_entrance, park_frontage, park_vantage, park_water  # noqa: E402
 
 
 GENERATORS = {
@@ -36,6 +36,7 @@ GENERATORS = {
     "park_vantage": park_vantage,
     # marquees, portals, queues, props - mcbuild/gen/park_frontage.py
     "park_frontage": park_frontage,
+    "park_entrance": park_entrance,
     "compose": _Compose(),
     "setpiece": setpiece,
     "prismworks": _Wrap(prismworks.build, prismworks.PRISMWORKS),

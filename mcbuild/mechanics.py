@@ -68,6 +68,7 @@ ROLE_GENERATORS = {
     "building": {
         "tower", "storehall", "atelier", "vestibule", "courthall", "sanctum", "hamlet",
         "campanile", "casino", "civic", "frontiertown", "hollowmanor", "arcade", "ticketing",
+        "park_entrance",
     },
     "landscape": {
         "tree", "underside", "garden", "pond", "islet", "lake", "voidisle", "lowland",

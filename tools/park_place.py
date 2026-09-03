@@ -93,9 +93,15 @@ def plane_of(model, role: str = "") -> int:
 #: make the next `--ship` look like a regression when it changed. A name goes in here when its
 #: agent reports, not when its file appears.
 EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
-                "PF Vantage Prism Summit", "PF Vantage Frontier Lookout",
-                "PF Vantage Midway Belvedere",
-                "PF Front Frontier", "PF Front Midway", "PF Front Prismworks"}
+                "PF Vantage Frontier Lookout",
+                # Retained on disk but not assembled: the Summit directly touches Prism Ascent
+                # and overlaps its frontage by 69 cells, so it reads as attached clutter rather
+                # than a distinct destination. Re-site it before promotion.
+                # Retained on disk but not assembled: its V139/U228 site now belongs to the
+                # Sloth garden, and stacking two optional sights there recreates the Midway
+                # clustering this placement pass is intended to remove.
+                "PF Front Frontier", "PF Front Midway", "PF Front Prismworks",
+                "PF Entry Gate"}
 
 
 def extras() -> list:
@@ -139,7 +145,11 @@ def modules(report=False) -> list:
         # rebuilt from scratch into `out/PF <name>.litematic`; `out/park_final/artifacts` still
         # holds the previous attempt, and only the three rides Jack kept are taken from there.
         pf = ROOT / "out" / f"PF {name}.litematic"
-        f = pf if pf.exists() else ARTIFACTS / f"{name}.litematic"
+        compact_carousel = ROOT / "out" / "Carousel.litematic"
+        if name == "Carousel Court" and compact_carousel.exists():
+            f = compact_carousel
+        else:
+            f = pf if pf.exists() else ARTIFACTS / f"{name}.litematic"
         if not f.exists():
             continue
         m = schem.load(str(f))

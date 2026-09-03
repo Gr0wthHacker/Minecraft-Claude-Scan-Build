@@ -7,13 +7,11 @@
 # it stands inside the ceremonial portico as the gate's own lamp. Every cell `Park Ways` owns is
 # refused by the generator and counted in `ground_layer_refused`.
 #
-# THE SPAWN is V1/U300 = world X97501 Y203 Z80600, yaw -90 (facing +V, world east), looking down
-# the park's axis: the barred ceremonial arch three cells ahead, the carousel and the Sky Lift
-# beyond it, and the railway viaduct at V172-186 behind those.
+# THE SPAWN is V1/U302 = world X97501 Y203 Z80602, yaw -90 (facing +V, world east), aligned with
+# the right-hand iron door in the V5 grille.
 #
-# THE PRICE is 23 grass blocks and it is arithmetic, not taste: a comparator reads a five-slot
-# hopper as floor(14*n/320)+1, so 22 blocks reads 1 and 23 reads 2. The gate is a threshold at
-# level 2. `park_entrance.price_blocks` is the one place that is written down.
+# THE PRICE is one grass block. Local redstone detects the first item in the till; the server
+# adapter must validate that it is grass and consume exactly one fare.
 name: PF Entry Gate
 gen: park_entrance
 params:
@@ -22,24 +20,24 @@ params:
   at: [0, 270]          # V0, U270
   size: [6, 61]         # V0..V5 by U270..U330
   axis: 30              # U300 - the park's own centre line
-  lanes: [22, 38]       # the two turnstile lanes, U292 and U308
-  arch: [26, 34]        # the ceremonial portico, U296..U304, barred at V5
+  lanes: [28, 32]       # paired iron doors inside the barred arch, U298 and U302
+  arch: [26, 34]        # U296..U304 grille, with iron doors at U298/U302
   towers: [6, 54]       # U276 and U324
-  spawn: [1, 30]        # V1, U300
-  price_level: 2        # -> 23 grass blocks
+  spawn: [1, 32]        # V1, U302 - aligned with the right-hand iron door
+  price_level: 1        # one grass block; exact item validation is a live-server gate
   ways: out/Park Ways.litematic
   title: THE MIDWAY
-roles: [gate]
+roles: [building]
 design:
-  purpose: gate
+  purpose: arrival
   hierarchy: landmark
   style: midway
   narrative: >
     The arrival compound at the centre island's void edge: a sea wall over the drop, a forecourt
     with the spawn on the park's own axis, a stanchion queue under a lit oak canopy, and a
     61-wide gate building whose ceremonial arch is barred so the park can be seen and not
-    entered. Two turnstile lanes carry iron doors that open when 23 grass blocks - this server's
-    currency - go into the till beside them. With the doors shut the compound is sealed: the
+    entered. Two turnstile lanes carry iron doors whose local preview opens on one deposited item;
+    the server adapter validates and consumes exactly one grass block. With the doors shut the compound is sealed: the
     void closes it in front, flank walls close it sideways, and the gate closes it behind.
 finish:
   cheapen: false

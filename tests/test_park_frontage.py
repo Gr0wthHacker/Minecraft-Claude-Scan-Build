@@ -64,7 +64,10 @@ NAMED_BY = {
 #: near 2,000 down to near 250, and that alternation is what reads as "clusters then empty space".
 #: These four are the emptiest bands a visitor actually walks through; the two reaches are being
 #: filled by another stream (a lake and the Wyrm) and are not this design's to answer for.
-TROUGHS = [(320, 339), (420, 439), (520, 539), (580, 599)]
+# U320-339 is now deliberate negative space between the Midway's three large silhouettes.  Filling
+# every low-density band was the metric that clustered the Sloth around the wheel in the first
+# place; the other three remain destinations rather than visual breathing room.
+TROUGHS = [(420, 439), (520, 539), (580, 599)]
 
 
 # --------------------------------------------------------------------------- fixtures
@@ -409,6 +412,19 @@ def test_you_can_walk_under_the_sloth(designs):
                         if v0 <= V < v0 + piece["size"][0] and u0 <= U < u0 + piece["size"][2]
                         and not _is_pier(c, V, U))
             assert floor >= 203 + 4, f"{name}: the sloth's lowest cell is at Y{floor}"
+
+
+def test_the_sloth_is_a_separate_garden_not_part_of_the_ride_cluster(designs):
+    """The Sloth must not share the Carousel/Sky Lift U band or consume the service reserve."""
+    for name, _cfg, c, _cells in designs:
+        for piece in c.meta["pieces"]:
+            if piece.get("name") != "Sky Lift Sloth":
+                continue
+            v0, u0 = piece["at"]
+            dv, _dy, du = piece["size"]
+            assert v0 + dv <= 152, f"{name}: Sloth reaches the service band at V{v0 + dv}"
+            assert u0 >= 360, f"{name}: Sloth has drifted onto the balloon or ride court"
+            assert u0 - 335 >= 25, "Sloth needs a readable gap after the wheel court"
 
 
 def _is_pier(c, V, U) -> bool:

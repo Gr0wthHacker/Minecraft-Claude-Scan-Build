@@ -107,24 +107,20 @@ def test_an_axis_pillar_lies_down_the_other_way_on_an_odd_turn():
 
 
 @pytest.mark.skipif(not SOURCE.exists(), reason="the reference asset is not checked out here")
-def test_the_skull_in_the_park_faces_the_midway():
-    """WHICH WAY IT FACES IS A SITING DECISION AND IT IS PINNED HERE.
-
-    The Prism Reach is U385-429, forty-five columns, and the full-resolution skull is 40 wide - so
-    at 90 or 270 the module measures 54 across and does not fit at all. Only 0 and 180 are
-    available, which means the face points ALONG the reach, and 180 turns it toward the Midway:
-    the park's centre, and the busier of the two approaches. A visitor walking in from the Midway
-    walks straight at the face; from Prismworks they arrive behind it, into the chamber.
-    """
+def test_the_open_mouth_shrine_in_the_park_faces_the_midway():
+    """The complete walk-in shrine is fitted to the reach and faces the Midway approach."""
     import yaml
     cfg = ROOT / "out" / "park_final" / "configs" / "wyrm_s_crossing.yaml"
     if not cfg.exists():
         pytest.skip("the module config is not built here")
     c = yaml.safe_load(cfg.read_text(encoding="utf-8"))
-    skull = [p for p in c["params"]["parts"]
-             if str((p.get("params") or {}).get("source", "")).endswith("bone_ruins_skull.litematic")]
-    assert skull, "the module no longer contains the bone skull"
-    pr = skull[0]["params"]
-    assert pr.get("rotate") == 180, "the skull must face the Midway approach"
-    assert not pr.get("downscale") or int(pr["downscale"]) == 1, \
-        "the skull must be FULL resolution - halving it turns every curve into a two-block step"
+    parts = c["params"]["parts"]
+    assert not any(str((p.get("params") or {}).get("source", "")).endswith(
+        "bone_ruins_skull.litematic") for p in parts), "the detached imported skull returned"
+    placed = [p for p in parts if str((p.get("params") or {}).get("source", "")).endswith(
+        "bone_ruins.litematic")]
+    assert len(placed) == 1, "the complete open-mouth bone shrine is missing"
+    pr = placed[0]["params"]
+    assert pr.get("rotate") == 180, "the shrine mouth must address the Midway approach"
+    assert pr.get("downscale") == 3, "the complete shrine must fit without cropping its altar"
+    assert placed[0].get("offset") == [13, 0, 0]

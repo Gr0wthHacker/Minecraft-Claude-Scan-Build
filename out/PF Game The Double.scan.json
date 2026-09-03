@@ -1,11 +1,11 @@
 {
   "origin": {
-    "x": 97539,
+    "x": 97543,
     "y": 204,
     "z": 80657
   },
   "size": {
-    "x": 19,
+    "x": 15,
     "y": 6,
     "z": 14
   },
@@ -15,7 +15,7 @@
   "land": "midway",
   "facing": "south",
   "footprint": [
-    19,
+    15,
     14
   ],
   "courses": [
@@ -28,7 +28,7 @@
   "refused": [],
   "contract": "the lamp and the bell come on only while BOTH buttons are down together; either one alone does nothing, and nothing fires when the machine is first built",
   "unverified": [],
-  "width": 19,
+  "width": 15,
   "depth": 14,
   "height": 6,
   "buttons": [
@@ -38,11 +38,12 @@
       80669
     ],
     [
-      97542,
+      97546,
       207,
       80669
     ]
   ],
+  "spread": 8,
   "lamp": [
     97554,
     206,
@@ -67,7 +68,7 @@
       80669
     ],
     [
-      97542,
+      97546,
       207,
       80669
     ]
@@ -123,23 +124,23 @@
       "narrative": "Bay three: two buttons twelve cells apart and one lamp between them. It is the only game in the park that cannot be played alone.\n"
     },
     "metrics": {
-      "blocks": 700,
+      "blocks": 560,
       "materials": 12,
-      "dominant_material_share": 0.3757,
+      "dominant_material_share": 0.3696,
       "light_blocks": 1,
       "massing": {
-        "width": 19,
+        "width": 15,
         "height": 6,
         "depth": 14,
-        "fill_ratio": 0.4386
+        "fill_ratio": 0.4444
       },
       "silhouette": {
         "top": {
-          "area": 266,
+          "area": 210,
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 114,
+          "area": 90,
           "fill_ratio": 1.0
         },
         "side": {
@@ -149,18 +150,18 @@
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.5329,
-          0.41,
+          0.5375,
+          0.4054,
           0.0571
         ],
-        "top_silhouette_perimeter": 66,
-        "surface_faces_per_block": 1.8143
+        "top_silhouette_perimeter": 58,
+        "surface_faces_per_block": 1.825
       },
       "material_counts": {
-        "polished_blackstone_bricks": 263,
-        "stone_bricks": 247,
-        "white_wool": 155,
-        "redstone_wire": 20,
+        "polished_blackstone_bricks": 207,
+        "stone_bricks": 195,
+        "white_wool": 127,
+        "redstone_wire": 16,
         "redstone_wall_torch": 3,
         "smooth_stone": 3,
         "oak_wall_sign": 2,
@@ -180,8 +181,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "6bc025a4b9b546a1e0da4f90abec9feff836112eb0a62b858442c701131efd8f",
-    "generator_source_digest": "128e45445da1be3c5e39b8593cfce204dfee077a0b48c8f8abc377582df71f65",
+    "fingerprint": "23bfca7256057d95bec8a1bf1f86cc36a0e65162d6ea2c7ed5f5ec01087e7dc8",
+    "generator_source_digest": "db15f9980fcfc17e03710422b01f058018a82a10067ea4c3eac1d21e161b67bc",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -223,9 +224,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 79.769438,
-    "blocks": 700,
-    "blocks_per_second": 8.78
+    "seconds": 85.054131,
+    "blocks": 560,
+    "blocks_per_second": 6.58
   },
   "generator_contract": {
     "ok": false,
@@ -239,7 +240,7 @@
     "roles": [
       "ride"
     ],
-    "blocks": 700,
+    "blocks": 560,
     "mechanic_families": [
       "light",
       "redstone",

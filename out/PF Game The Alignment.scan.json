@@ -34,7 +34,7 @@
   "depth": 4,
   "height": 6,
   "score": 8,
-  "lanes": 3,
+  "discs": 3,
   "targets": [
     [
       97531,
@@ -456,8 +456,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "062fc24a691f17baf111c38c5bf9782be473019f1bcdeec16b7701988d0f823d",
-    "generator_source_digest": "9d4ebee40ca94b3eda186791d9fd3d71b6c0e33ffc8cc5027449649232592d06",
+    "fingerprint": "70532f7ba4bc8b298e79a4a9ecdbeb58b7bccf8edca2e383f147f05c82496999",
+    "generator_source_digest": "db15f9980fcfc17e03710422b01f058018a82a10067ea4c3eac1d21e161b67bc",
     "anchors": [],
     "genome": {
       "name": "prismworks",
@@ -498,9 +498,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 83.811463,
+    "seconds": 101.735523,
     "blocks": 536,
-    "blocks_per_second": 6.4
+    "blocks_per_second": 5.27
   },
   "generator_contract": {
     "ok": false,

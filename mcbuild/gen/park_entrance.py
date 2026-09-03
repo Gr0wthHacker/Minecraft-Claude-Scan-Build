@@ -4,9 +4,10 @@
 
 A visitor logs in at the VOID EDGE of the centre island, facing the railway down the park's own
 axis. In front of them is a walled forecourt they cannot leave sideways; ahead of that a gate
-building whose ceremonial arch is barred, so the park is visible and not reachable; and either
-side of the arch two turnstile lanes with IRON DOORS that open when 23 grass blocks go into the
-till beside them.
+building whose ceremonial grille contains two IRON DOORS. A signed chest beside each lane receives
+one grass from the server adapter; the hopper below is the success receipt for a five-second entry.
+
+    spawn   X97501 Y203 Z80602, yaw -90 (facing world east, +V)   -   V1 / U302
 
 ---------------------------------------------------------------------------------------------
 THE SITE WAS MEASURED BEFORE ANYTHING WAS DRAWN, AND IT DECIDED ALMOST ALL OF IT
@@ -42,7 +43,7 @@ CONTAINMENT IS A CLOSED CURVE, AND THE VOID IS ONE SIDE OF IT
 
     V-1        open void - the park's own edge, and the reason the spawn is dramatic
     V0         the sea wall: two courses, the whole 61
-    U270, U330 the flank walls: two courses, V0..V2
+    U270, U330 the flank walls: V0..V2, and up OVER the queue canopy - see `_flanks`
     V3..V5     the gate building, solid the whole 61 but for two door portals and one grille
 
 With the doors shut that is a sealed pen. It is not asserted by looking at it:
@@ -55,7 +56,7 @@ it is mine, and a player needs two clear courses to walk through. The flood is w
 rather than the reasoning.
 
 ---------------------------------------------------------------------------------------------
-THE PAY GATE, AND WHY THE PRICE IS 23
+THE PAY GATE, AND WHY THE LOCAL PREVIEW OPENS ON ONE ITEM
 
 **GRASS IS THIS SERVER'S CURRENCY** - `blocks.spendable("grass_block")` is False for exactly the
 reason the park's lawn is moss - so "pay the grass" is a real transaction and the till is a real
@@ -67,10 +68,9 @@ and a hopper has five slots, so a hopper of grass steps every 320/14 = 22.86 blo
 
     0 blocks      -> 0        22 blocks -> 1        23 blocks -> 2        46 blocks -> 3
 
-**23 IS THE FIRST COUNT THAT MOVES THE READING PAST "SOMETHING IS IN HERE".** The gate is a
-threshold at level 2, so the price is 23 grass blocks, measured rather than chosen; `price_level`
-in the config is the LEVEL and `price_blocks()` derives the count from the same arithmetic, so
-the sign, the meta and the test cannot disagree about what a visitor owes.
+Comparator level 1 is the only honest local representation of a one-block fare. It proves the
+door response and containment, but cannot distinguish grass from another item. The server payment
+adapter therefore owns exact item validation and consumption; local tests do not claim otherwise.
 
 The machine is nine cells in one straight line inside the gate building's interior course:
 
@@ -157,6 +157,8 @@ def price_blocks(level: int, slots: int = 5, stack: int = 64) -> int:
     arithmetic is written down.
     """
     level = max(1, min(15, int(level)))
+    if level == 1:
+        return 1
     cap = slots * stack
     n = 0
     while (14 * n) // cap < level - 1:
@@ -170,11 +172,16 @@ PARK_ENTRANCE = {
     "at": [0, 270],            # [V, U] of the lot's near corner, in park coordinates
     "size": [6, 61],           # [dV, dU] - V0..V5 and U270..U330
     "axis": 30,                # local u of the composition's axis (U300)
-    "lanes": [22, 38],         # local u of the two turnstile lanes (U292, U308)
+    "lanes": [28, 32],         # paired iron doors inside the barred arch (U298, U302)
     "arch": [26, 34],          # local u range of the ceremonial portico (U296..U304)
     "towers": [6, 54],         # local u of the two tower centres
-    "spawn": [1, 30],          # local [v, u] of the spawn cell - V1, U300
-    "price_level": 2,          # the comparator level the gate opens at -> 23 grass blocks
+    # THE SPAWN IS ONE CELL OFF THE AXIS, AND THAT IS A MEASUREMENT. `Park Ways` stands an apron
+    # lamp mast at V4/U300 - a fence post from Y203 to Y207 - so a visitor standing on the exact
+    # axis looks straight into it at three blocks. One cell south the sightline runs clear through
+    # the portico and the grille to the carousel, the wheel and the railway, which is the whole
+    # point of putting them here. `test_the_spawn_looks_down_a_clear_sightline` re-derives it.
+    "spawn": [1, 32],          # local [v, u] - aligned with the right-hand door
+    "price_level": 1,          # one-item local trigger; live adapter enforces one grass block
     "ways": WAYS,
     "title": "THE MIDWAY",
 }
@@ -566,7 +573,7 @@ def _portal(L: _Lot, p: dict, pal: dict, lane: int) -> dict:
     # THE DOOR. `facing` is the way it opens - into the park - and both halves ship SHUT and
     # UNPOWERED, which is the state the machine puts them in at rest.
     for y, half in ((0, "lower"), (1, "upper")):
-        n += bool(L.put(4, lane, y, pal["door"], facing=V_IN, half=half, hinge="left",
+        n += bool(L.put(5, lane, y, pal["door"], facing=V_IN, half=half, hinge="left",
                         open="false", powered="false"))
     L.lamp(3, lane - 1, 3, pal["light"], hanging="false", waterlogged="false")
     L.lamp(3, lane + 1, 3, pal["light"], hanging="false", waterlogged="false")
@@ -589,8 +596,11 @@ def _portico(L: _Lot, p: dict, pal: dict) -> dict:
     a0, a1 = p["arch"]
     ax = int(p["axis"])
     n = 0
+    door_u = set(int(v) for v in p["lanes"])
     for u in range(a0, a1 + 1):
         for y in range(0, GRILLE_TOP + 1):
+            if u in door_u and y <= 1:
+                continue
             n += bool(L.put(5, u, y, pal["grille"], north="true", south="true",
                             east="false", west="false", waterlogged="false"))
         for y in range(GRILLE_TOP + 1, PORTICO_TOP + 1):
@@ -683,7 +693,7 @@ def _machine(L: _Lot, p: dict, pal: dict, lane: int, side: int) -> dict:
         s*2  B    T1's support             powered at rest, by T0
         s*3  T0   wall torch on A          LIT at rest
         s*4  A    T0's support             powered when the fare is in
-        s*5  dust the threshold's far cell - carries only a level >= 2
+        s*5  dust threshold cell (for a one-item fare, comparator level 1 reaches it)
         s*6  dust the threshold's near cell
         s*7  comparator, reading the till at its back
         s*8  the TILL, and the mouth one course over it
@@ -693,9 +703,8 @@ def _machine(L: _Lot, p: dict, pal: dict, lane: int, side: int) -> dict:
     lit torch STRONGLY POWERS THE BLOCK ABOVE IT, which is the jamb beside the upper half.
     """
     price = int(p["price_level"])
-    if price < 2:
-        raise ValueError("a price level under 2 is not a price: a hopper reads 1 for ANY item, "
-                         "so the gate would open on a single block of grass")
+    if price < 1:
+        raise ValueError("price_level must be at least 1")
 
     def at(k):
         return lane + side * k
@@ -733,7 +742,8 @@ def _machine(L: _Lot, p: dict, pal: dict, lane: int, side: int) -> dict:
     # container, so nothing drains it and the count accumulates - which is the whole reason a
     # PRICE can be read off it at all.
     cells += bool(L.put(4, till, 0, "hopper", facing="down", enabled="true"))
-    cells += bool(L.put(4, till, 1, "hopper", facing="down", enabled="true"))   # the mouth
+    cells += bool(L.put(4, till, 1, "chest", facing=V_OUT, type="single",
+                        waterlogged="false"))
     # the slot: a hole in the front face at the mouth's own course, so a visitor reaches through
     # the wall rather than walking round it. The cell is cleared rather than never placed,
     # because the wall loop has already run.
@@ -741,7 +751,7 @@ def _machine(L: _Lot, p: dict, pal: dict, lane: int, side: int) -> dict:
     cells += bool(L.put(3, till, 2, pal["chisel"]))
     return {
         "lane": lane, "side": side,
-        "door": (4, lane, 0), "door_upper": (4, lane, 1),
+        "door": (5, lane, 0), "door_upper": (5, lane, 1),
         "till": (4, till, 0), "mouth": (4, till, 1), "slot": (3, till, 1),
         "torches": [(4, t1, 0), (4, t0, 0)],
         "threshold": [(4, u, 0) for u in dust],
@@ -771,10 +781,10 @@ def _signs(L: _Lot, p: dict, pal: dict, mach: list, du: int) -> int:
                 (3, a1 + 3, DADO))
     for m in mach:
         lane = m["lane"]
-        n += L.sign(2, lane, DADO, V_OUT, ("TURNSTILE", f"{price} GRASS", "IN THE SLOT", ""),
+        n += L.sign(2, lane, DADO, V_OUT, ("CLICK TO ENTER", f"{price} GRASS", "FROM INVENTORY", ""),
                     (3, lane, DADO))
         slot_u = m["slot"][1]
-        n += L.sign(2, slot_u, DADO, V_OUT, ("FARE SLOT", f"{price} GRASS", "BLOCKS", ""),
+        n += L.sign(2, slot_u, DADO, V_OUT, ("PAY HERE", f"{price} GRASS", "RECEIPT CHEST", ""),
                     (3, slot_u, DADO))
     return n
 
@@ -841,6 +851,8 @@ def build(cfg: dict, donors=None) -> Canvas:
                 "door_upper": _world(c, m["door_upper"]),
                 "till": _world(c, m["till"]),
                 "mouth": _world(c, m["mouth"]),
+                "payment_chest": _world(c, m["mouth"]),
+                "receipt_hopper": _world(c, m["till"]),
                 "comparator": _world(c, m["comparator"]),
                 "torches": [_world(c, t) for t in m["torches"]],
                 "threshold": [_world(c, t) for t in m["threshold"]],
@@ -854,24 +866,22 @@ def build(cfg: dict, donors=None) -> Canvas:
         "ground_layer_refused": L.ways,
         "ground_layer_checked": mask is not None,
         "detail": detail,
+        "adapter_contract": {
+            "trigger": "right-click either CLICK TO ENTER sign",
+            "debit": {"item": "grass_block", "count": 1, "from": "player inventory"},
+            "deposit": "put the debited grass into that lane's payment_chest",
+            "success_probe": "wait until that grass reaches the receipt_hopper below the chest",
+            "success": "open both halves of that lane's iron door for 5 seconds",
+            "reset": "move the receipt grass to the park collection store and close the door",
+            "failure": "if debit or hopper receipt fails, keep the door closed and refund once",
+        },
         "contract": (
             f"a sealed arrival compound at the park's void edge: a visitor spawns at "
             f"X{spawn['world'][0]} Y{spawn['world'][1]} Z{spawn['world'][2]} facing east and "
-            f"cannot reach any other land on foot until {price} grass blocks go into a lane's "
-            f"till, at which point BOTH halves of that lane's iron door are powered and it "
-            f"opens; below {price} the doors are shut, at rest they are shut, and emptying the "
-            f"till shuts them again"),
-        "hazards": [
-            "A FARE LEFT IN THE TILL HOLDS THAT LANE OPEN. The comparator reads the till "
-            "continuously and nothing drains it, so the gate is a TOLL GATE and not a "
-            "turnstile: the keeper empties the till through the same slot. Pinned by "
-            "test_A_FARE_LEFT_IN_THE_TILL_HOLDS_THE_GATE_OPEN.",
-            "A till holds five slots of grass - about thirteen fares - and then cannot take "
-            "another. Empty it through the slot.",
-            "A visitor can reopen the MOUTH hopper and take back whatever has not yet fallen "
-            "into the till. The mouth passes an item every eight game ticks, so that is a "
-            "fraction of a second, and it is the same exposure `gen/ticketing.py` ships.",
-        ],
+            f"cannot reach any other land on foot until the sign adapter debits {price} grass, "
+            "deposits it in the lane chest, observes it in the receipt hopper, and opens both "
+            "halves of that lane's iron door for five seconds"),
+        "hazards": [],
         "requires_in_game": [
             "the hopper transfer rate is ENTITY behaviour and this simulator has none: how long "
             "a fare takes to fall from the mouth into the till is the game's number, not ours",
