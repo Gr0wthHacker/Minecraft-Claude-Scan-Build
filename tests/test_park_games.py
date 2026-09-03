@@ -430,16 +430,33 @@ def test_no_shipped_game_takes_a_cell_the_park_already_owns():
     """**RULE 2, AND THE ONE PROPERTY THAT MAKES THIS SAFE TO PLACE.** A console is fitted into a
     room that exists; a cell the capture owns is not a cell to compose with, it is an overlap. The
     generator refuses those cells and COUNTS them, because a machine missing a cell is a machine
-    that does nothing - so a non-zero count is a siting error, not a tidy-up."""
+    that does nothing - so a non-zero count is a siting error, not a tidy-up.
+
+    **AND `Park Complete` IS A SNAPSHOT OF A PARK THAT NOW CONTAINS THESE GAMES**, which is the
+    trap this repo has shipped three times. Read as "the world before the design", the composite
+    reports a placed game as colliding with ITSELF - the moment `tools/park_place.py` started
+    placing the three frontier games that had been built and left unplaced, this failed on
+    `PF Game Pan Line` at three of its own cells. What rule 15 actually says is that an overlap
+    is a cell where the world holds something DIFFERENT, so a cell the game already occupies with
+    its own state is built progress rather than a clash.
+    """
     shipped = _shipped()
     if not shipped:
         pytest.skip("no game designs have been generated yet")
+    from mcbuild import schem
     from mcbuild.gen.vertical import Ctx
     ctx = Ctx(WORLD)
     for spec, lit in shipped:
         cells, side = _cells(lit)
         assert side.get("refused") == [], f"{spec['name']} refused {side.get('refused')}"
-        clash = [c for c in cells if ctx.occupied(*c)]
+        mine = schem.load(lit)
+        o = side["origin"]
+        own = {}
+        for y, z, x in zip(*mine.solid().nonzero()):
+            own[(int(x) + o["x"], int(y) + o["y"], int(z) + o["z"])] = \
+                mine.names[int(mine.ids[y, z, x])].split("[")[0].split(":")[-1]
+        clash = [c for c in cells
+                 if ctx.occupied(*c) and ctx.name_at(*c).split(":")[-1] != own.get(c)]
         assert not clash, f"{spec['name']} overlaps the park at {clash[:3]}"
 
 

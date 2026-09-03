@@ -38,6 +38,8 @@ VIEWS = {
     "gate_side":     ((60, 240), (5, 300), 20, 14),
     "court_iso2":    ((-6, 250), (55, 300), 30, 8),
     "arrival_north": ((50, 200), (50, 300), 12, 16),
+    "row_walk":      ((84, 300), (140, 300), 2, 20),
+    "row_high":      ((30, 300), (125, 300), 45, 15),
     #: THE WHOLE ENTRANCE QUARTER IN ONE FRAME - the gate, the spur, the court, both avenues and
     #: the two cross walks. Every other view here is framed on the court, which is exactly why
     #: "I don't see it" was the right answer to a picture of the court.

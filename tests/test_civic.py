@@ -65,22 +65,39 @@ def test_every_block_state_is_legal(kind, land):
         assert blocks.validate(base, props) == [], f"{kind}/{land}: {spec} is not a legal state"
 
 
+#: EXPENSIVE BLOCKS A KIND IS ALLOWED, WITH THE REASON AND A CEILING. The default is none, and it
+#: stays none for every kind but one: the bandstand's playable feature is a second BELL rather than
+#: a note block precisely because note blocks are `expensive` tier here.
+#:
+#: The Cascade is the exception and it is Jack's call - *"yes add note blocks its fine"*. The park
+#: holds ZERO note blocks in 273,356, so its five-note chime is the first sound in it, and this is
+#: the same posture `configs/island_run.yaml` takes for its thirteen slime blocks: where the
+#: expensive material IS the feature, it is declared with its reason and a number rather than
+#: smuggled past a check. Five, and the check still catches a sixth.
+EXPENSIVE_ALLOWED = {"cascade": {"note_block": 5}}
+
+
 @pytest.mark.parametrize("kind", KINDS)
 @pytest.mark.parametrize("land", LANDS)
 def test_nothing_built_is_currency_or_expensive(kind, land):
-    """Note blocks are `expensive` tier here (`palette.tier("note_block") == "expensive"`),
-    which is exactly why the bandstand's playable feature is a second BELL rather than a note
-    block - a cheap, always-works, no-circuit interaction the fountain-and-bell idiom already
-    uses elsewhere on this island."""
+    """Currency is never allowed, the 1.19 allowlist is never optional, and `expensive` is allowed
+    only where `EXPENSIVE_ALLOWED` names the block AND the count stays inside its ceiling."""
     from mcbuild.gen.civic import build
     m = build(_cfg(kind, land)).to_model()
+    allowed = EXPENSIVE_ALLOWED.get(kind, {})
+    from collections import Counter
+    seen = Counter()
     for n in m.names:
         base = n.split(":")[-1].split("[")[0]
         if base == "air":
             continue
         assert blocks.spendable(base), f"{kind}/{land} places CURRENCY: {base}"
         assert blocks.available(base), f"{kind}/{land} places a block off the 1.19 allowlist: {base}"
-        assert palette.tier(base) != "expensive", f"{kind}/{land} places expensive: {base}"
+        if palette.tier(base) == "expensive":
+            assert base in allowed, f"{kind}/{land} places expensive: {base}"
+            seen[base] += 1
+    for base, n in seen.items():
+        assert n <= allowed[base],             f"{kind}/{land} places {n}x {base} against a declared allowance of {allowed[base]}"
 
 
 @pytest.mark.parametrize("kind", KINDS)

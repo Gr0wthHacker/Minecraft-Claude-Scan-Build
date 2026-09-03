@@ -53,6 +53,8 @@ def enhance(c, p):
                 box(x, walk+3, z, x, eave, z, frame)
                 box(x, walk, z, x, walk+2, z, pal['pier'])
             box(3, eave, z, 11, eave, z, frame)
+            for x in (5,9):
+                put(x, eave, z, parkrail.FLUSH_LIGHT)
             if land == 'frontier':
                 # Paired stepped knee braces and a king post under each truss.
                 for x in (4, 10):
@@ -91,6 +93,12 @@ def enhance(c, p):
                 put(7, eave+7, z, 'black_wool')
                 put(7, eave+8, z, 'black_wool')
                 put(8, eave+7, z, 'black_wool')
+            for x in (4,10):
+                for z in range(ac-2,ac+3):
+                    for y in range(eave+5,eave+10):
+                        put(x,y,z,'polished_blackstone_bricks' if z in (ac-2,ac+2) or y in (eave+5,eave+9) else 'smooth_stone')
+                for y,z in ((eave+7,ac),(eave+8,ac),(eave+7,ac+1)):
+                    put(x,y,z,'black_wool')
             box(4, eave+10, ac-4, 10, eave+10, ac+4, 'red_wool')
             box(5, eave+11, ac-3, 9, eave+11, ac+3, 'stone_bricks')
         # Portal reads from the avenue: two five-high jambs framing a clear
@@ -160,6 +168,17 @@ def enhance(c, p):
     if not grey:
         from .parkrail_signals import install
         c.meta['renewal']['signals'] = install(c, p)
+    # Power-source phasing changed around the new detectors. Preserve the
+    # existing reaches literally, including their rail beds, rather than
+    # allowing that phasing to rewrite the Isthmus.
+    original = parkrail.build({**p, 'renewal': False, 'bay_half': 3, 'crop_u': None})
+    remap=[]
+    for tag in original.reg.palette:
+        entry=tag.value
+        props={k:v.value for k,v in entry['Properties'].value.items()} if 'Properties' in entry else {}
+        remap.append(c.raw_state(entry['Name'].value,**props))
+    for lo, hi in ((170,214),(385,429)):
+        c.ids[:original.sy,lo:hi+1,:]=np.asarray(remap)[original.ids[:,lo:hi+1,:]]
     if grey:
         # Preserve empty circulation while showing only mass and supports.
         mask = c.ids > 0

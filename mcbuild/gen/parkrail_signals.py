@@ -29,6 +29,7 @@ def install(c, p):
     A dark approach signal is stop: the holding rail needs a lit inverter.
     """
     result = []
+    from .parkrail import SPAN
     for st in p['stations']:
         for track, direction, mirror in ((2,1,1),(12,-1,-1)):
             ac = st['at_u']
@@ -67,12 +68,14 @@ def install(c, p):
                 put(1,12,t,'stone_bricks')
                 put(1,13,t,'repeater',facing='west' if mirror==1 else 'east',delay='1',locked='false',powered='false')
                 put(0,13,t,'stone_bricks')
-            wire([(0,12,-10),(0,10,-12),(0,10,-31),(4,10,-31),(4,7,-34),
-                  (2,7,-34),(2,7,-29),(4,7,-29)])
-            wire([(0,12,10),(0,6,4),(0,6,-37),(6,6,-37),(6,7,-36),(6,7,-29)])
+            wire([(0,12,-10),(0,11,-11),(1,10,-11),(1,10,-31),(4,10,-31),(4,7,-34),
+                  (3,7,-34),(3,7,-29),(4,7,-29)])
+            wire([(0,12,10),(0,11,9),(1,10,9),(1,6,5),(1,6,-37),(6,6,-37),(6,7,-36),(6,7,-29)])
             wire([(8,7,-27),(10,7,-27),(10,7,-44),(2,7,-44),(2,10,-41)])
             for t in (-10,10):
                 put(0,13,t,'stone_bricks')
+            put(6,7,-34,'repeater',facing='south' if direction==1 else 'north',
+                delay='1',locked='false',powered='false')
             # Output inversion and strong upward feed through the holding bed.
             put(2,10,-40,'redstone_lamp',lit='false')
             put(2,11,-40,'redstone_torch',lit='true')
@@ -89,6 +92,14 @@ def install(c, p):
                     dt={'south':1,'north':-1}.get(props['facing'],0)
                     props['facing']=facing(pos(0,0,0),pos(dx,0,dt))
                 put(x+4,y+6,t-29,name,**props)
+            # Covered cable trays read as the viaduct's structural stringers.
+            # Keep the detector take-off exposed for inspection at its plinth.
+            for t in range(-37,10):
+                for y in range(6,11):
+                    if c.get_name(*pos(1,y,t)).split(':')[-1] in ('redstone_wire','repeater'):
+                        for yy in (y-1,y):
+                            if c.get_name(*pos(0,yy,t)).split(':')[-1] not in ('redstone_wire','repeater'):
+                                put(0,yy,t,SPAN[st['land']]['pier'])
             result.append({'station':st['title'],'track':'a' if direction==1 else 'b',
                            'set':pos(2,13,-10),'reset':pos(2,13,10),
                            'memory':pos(8,7,-27),'hold':pos(2,13,-40),

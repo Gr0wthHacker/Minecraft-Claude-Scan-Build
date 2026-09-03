@@ -32,6 +32,7 @@
   ],
   "lamps": 8,
   "froglight": 22,
+  "steps": 54,
   "pad": 429,
   "arms": 410,
   "height": 17,
@@ -83,15 +84,15 @@
       "narrative": "An arcaded drum of eight piers standing in a moat, wearing a ring of waterfalls that fall nine courses from a bowl corbelled clear of the piers - with a dry chamber inside it you walk into over two causeways on the cross axis, and a five-note chime on the wall you can play. The eleven-wide axis walk splits into two arms and rejoins beyond it, so the wheel behind is never hidden and nobody on their way to it is pushed about by falling water.\n"
     },
     "metrics": {
-      "blocks": 2096,
-      "materials": 16,
-      "dominant_material_share": 0.3058,
+      "blocks": 2150,
+      "materials": 17,
+      "dominant_material_share": 0.2981,
       "light_blocks": 9,
       "massing": {
         "width": 41,
         "height": 19,
         "depth": 37,
-        "fill_ratio": 0.0727
+        "fill_ratio": 0.0746
       },
       "silhouette": {
         "top": {
@@ -99,8 +100,8 @@
           "fill_ratio": 0.6196
         },
         "front": {
-          "area": 218,
-          "fill_ratio": 0.2798
+          "area": 220,
+          "fill_ratio": 0.2824
         },
         "side": {
           "area": 226,
@@ -109,12 +110,12 @@
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.6226,
-          0.3249,
-          0.0525
+          0.6321,
+          0.3167,
+          0.0512
         ],
         "top_silhouette_perimeter": 474,
-        "surface_faces_per_block": 2.0458
+        "surface_faces_per_block": 1.9953
       },
       "material_counts": {
         "stone_bricks": 641,
@@ -122,13 +123,13 @@
         "water": 369,
         "stone": 368,
         "polished_blackstone_bricks": 247,
+        "stone_brick_stairs": 54,
         "ochre_froglight": 22,
         "lantern": 9,
         "note_block": 5,
         "packed_ice": 5,
         "redstone_wire": 5,
-        "repeater": 4,
-        "oak_log": 3
+        "repeater": 4
       }
     },
     "checks": [],
@@ -140,8 +141,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "bccebaa79a088705b4c93dff4f3f5d829a49286fb4b002bca50ab25faa4d03e2",
-    "generator_source_digest": "31d09dc22a05fbc8353a873f1903d15fadc2b1d5c770c9b75313649cf54fc469",
+    "fingerprint": "c97ffe75af2940573706455a5c8eb97fb3ab541673d1c385a89571f831eafe4d",
+    "generator_source_digest": "2402ba5d84a17271b92d51a334bc99796689832deb4cb7ae037e3419468deea7",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -185,9 +186,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 95.758523,
-    "blocks": 2096,
-    "blocks_per_second": 21.89
+    "seconds": 112.463197,
+    "blocks": 2150,
+    "blocks_per_second": 19.12
   },
   "generator_contract": {
     "ok": true,
@@ -196,7 +197,7 @@
     "roles": [
       "building"
     ],
-    "blocks": 2096,
+    "blocks": 2150,
     "mechanic_families": [
       "fluid",
       "hazard",

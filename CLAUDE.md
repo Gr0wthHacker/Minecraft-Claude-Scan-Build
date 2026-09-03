@@ -8915,3 +8915,41 @@ Found the same day and worth the same note: `out/PF Front Midway.litematic` stil
 the OLD address because that stream had edited its config without regenerating it, and the court
 clashed with a queue that no longer exists in its own config. **A config change is not landed until
 the artifact is rebuilt.**
+
+### The Midway Row: the land was called the Midway and had no midway (2026-09-03)
+
+Jack: *"lots of empty space still between the court now and the ferris wheel, we need to fill that
+gap somehow."* Measured off the shipped park, **V80-122 x U264-337 was 3,180 columns of bare lawn**
+- forty-three deep by seventy-four wide, bigger than most lots here - and it existed because the
+water feature that filled it was withdrawn when he asked for one fountain rather than two.
+
+So the filler could not be water, and the pass before this one had already ruled out more lawn.
+
+**A MIDWAY IS NOT A GARDEN OR A PLAZA.** It is the strip of stalls and sideshows you walk BETWEEN
+on the way from one ride to the next, and this park had counters at its edges - the Snack Window at
+U235, the Prize Point at U348 - and nothing at all on its own centre line, which is the one piece
+of ground every visitor crosses. `configs/pf_midway_row.yaml`, `midway_builds._midway_row`: 5,383
+blocks, one piece, 0 problems, 0 clashes.
+
+    the avenue     U294-306, V80-120 - the Welcome Court's own walk, carried to the promenade
+    eight stalls   four a side facing each other, each with its own trade and its own sign
+    two terraces   U270-282 and U318-330 behind the rows: trees, benches, somewhere to eat
+    the bunting    strung across the avenue in every gap, on its own pair of posts
+
+**THE VISTA SURVIVES IT.** Nothing stands in the avenue, so the line from the entry gate through
+the court's fountain still ends at the wheel's hub - which is now 122 blocks from the doors rather
+than 72, and reads at 31 degrees of elevation rather than 46.
+
+#### Three things it shipped wrong first, and all three are about the GAP
+
+- **PITCH IS WIDTH PLUS THE GAP.** At pitch 9 and width 8 there is no gap: stall k ended at a+8 and
+  stall k+1 began at a+9, so four booths a side came out as one continuous terrace. **A row of
+  shops with no space between them is a wall**; the space is what makes it a street.
+- **AND THE BUNTING WAS STRUNG WHERE THE ARITHMETIC SAID THE GAP WAS**, which was the roof of the
+  next stall along. With the pitch fixed it had nothing to hang from instead - the gap is exactly
+  where there is no awning - and three swags shipped as three free-floating thirteen-cell
+  components. A line needs two ends, so each gap carries its own pair of posts.
+- **A GUARD COVERS THE GROUP, NOT THE THING IT IS WRITTEN NEXT TO.** The terrace's keep-out check
+  tested the TREE's four corners and passed; the two BENCHES three courses behind it landed in the
+  wheel queue's ground. Four cells, and the only reason they were caught is that `blocked` raises
+  rather than dropping them.

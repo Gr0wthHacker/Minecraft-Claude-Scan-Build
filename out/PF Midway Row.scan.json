@@ -64,15 +64,15 @@
       "narrative": "The Midway's own midway: the Welcome Court's thirteen-wide walk carried on to the back promenade, with four open-fronted stalls facing four more across it - hook a duck, hot dogs, a coconut shy, candy floss, tin can alley, toffee apples, a ring toss and lemonade - each under its own striped awning with a lit board over the counter, bunting strung across the avenue in every gap between them, and a seating terrace of trees and benches behind each row where what you bought is eaten. Nothing stands in the avenue, so the vista from the entry gate still ends at the wheel's hub.\n"
     },
     "metrics": {
-      "blocks": 5341,
-      "materials": 24,
-      "dominant_material_share": 0.226,
+      "blocks": 5383,
+      "materials": 25,
+      "dominant_material_share": 0.2242,
       "light_blocks": 30,
       "massing": {
         "width": 41,
         "height": 7,
         "depth": 71,
-        "fill_ratio": 0.2621
+        "fill_ratio": 0.2642
       },
       "silhouette": {
         "top": {
@@ -80,8 +80,8 @@
           "fill_ratio": 0.9509
         },
         "front": {
-          "area": 243,
-          "fill_ratio": 0.4939
+          "area": 252,
+          "fill_ratio": 0.5122
         },
         "side": {
           "area": 272,
@@ -90,12 +90,12 @@
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.6957,
-          0.3043,
+          0.6937,
+          0.3063,
           0.0
         ],
         "top_silhouette_perimeter": 287,
-        "surface_faces_per_block": 2.0236
+        "surface_faces_per_block": 2.0212
       },
       "material_counts": {
         "smooth_stone": 1207,
@@ -104,7 +104,7 @@
         "polished_diorite_slab": 370,
         "crimson_slab": 330,
         "polished_blackstone_bricks": 307,
-        "white_wool": 254,
+        "white_wool": 260,
         "stone": 252,
         "oak_leaves": 174,
         "oak_slab": 96,
@@ -121,8 +121,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "6a343660d419a3954981babf595b3ab5d3cd88b67bcfd54fb1b4b8535acddcd4",
-    "generator_source_digest": "1f76ab5721c13ef6acfa56c1a79fa417d88d44c4ebc0fe1639ca76ce1ce1c2d8",
+    "fingerprint": "3c4e0b8a84fa5c84c5c9e9c734356d007a29e847501b681247880738271378c1",
+    "generator_source_digest": "3b5c68438f43ce14282272ce3d8e5fcaf6e8398aac40cb4dbd1047c6388e5c77",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -164,9 +164,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 87.665061,
-    "blocks": 5341,
-    "blocks_per_second": 60.93
+    "seconds": 114.556542,
+    "blocks": 5383,
+    "blocks_per_second": 46.99
   },
   "generator_contract": {
     "ok": true,
@@ -175,7 +175,7 @@
     "roles": [
       "building"
     ],
-    "blocks": 5341,
+    "blocks": 5383,
     "mechanic_families": [
       "access",
       "container",
