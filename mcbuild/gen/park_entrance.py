@@ -170,7 +170,14 @@ PARK_ENTRANCE = {
     "kind": "gate",
     "land": "midway",
     "at": [0, 270],            # [V, U] of the lot's near corner, in park coordinates
-    "size": [6, 61],           # [dV, dU] - V0..V5 and U270..U330
+    # NINETEEN DEEP, and eighteen of that is the approach. Six was the composition's own depth
+    # and the whole lot with it, which made the sealed compound 143 standable cells - five deep by
+    # fifty-nine wide, a pen rather than an arrival. Jack asked for a spawn at the void edge and a
+    # WALK to a central entrance. V0-18 is the arrival apron (V0-5) plus the spine's own paving
+    # (V6-18); the ground layer keeps that paving because the ways mask only protects what stands
+    # ABOVE the floor course, so the approach walks on the park's own stone.
+    "size": [19, 61],          # [dV, dU] - V0..V18 and U270..U330
+    "front": 13,               # the gate composition sets back to V13..V18
     "axis": 30,                # local u of the composition's axis (U300)
     "lanes": [28, 32],         # paired iron doors inside the barred arch (U298, U302)
     "arch": [26, 34],          # local u range of the ceremonial portico (U296..U304)
@@ -180,7 +187,7 @@ PARK_ENTRANCE = {
     # axis looks straight into it at three blocks. One cell south the sightline runs clear through
     # the portico and the grille to the carousel, the wheel and the railway, which is the whole
     # point of putting them here. `test_the_spawn_looks_down_a_clear_sightline` re-derives it.
-    "spawn": [1, 32],          # local [v, u] - aligned with the right-hand door
+    "spawn": [1, 32],          # local [v, u] - at the void edge, aligned with the right-hand door
     "price_level": 1,          # one-item local trigger; live adapter enforces one grass block
     "ways": WAYS,
     "title": "THE MIDWAY",
@@ -267,8 +274,18 @@ class _Lot:
     owns. A cropped parapet is not a fault anything downstream can report, so both are reported.
     """
 
-    def __init__(self, c: Canvas, dv: int, du: int, mask: set | None):
+    def __init__(self, c: Canvas, dv: int, du: int, mask: set | None, front: int = 0):
         self.c, self.dv, self.du = c, dv, du
+        #: HOW FAR THE GATE SETS BACK FROM THE VOID EDGE, and it is the whole of the approach.
+        #: Every piece of the composition was written against a six-deep lot with absolute v of
+        #: 0..5, which is correct geometry and a five-block walk - a visitor spawned three steps
+        #: from the doors. Measured on the assembled park the sealed compound was 143 standable
+        #: cells, 5 deep by 59 wide: a pen rather than an arrival, and Jack asked for a WALK to a
+        #: central entrance. Rather than re-anchor thirty put-sites against `dv` (and re-earn the
+        #: containment proof), the composition keeps its own coordinates and the LOT grows in
+        #: front of it. Only the two pieces that belong to the edge itself - the sea wall and the
+        #: flank walls - opt out with `raw=True`.
+        self.front = int(front)
         self.mask = mask
         self.outside = 0
         self.ways = 0
@@ -284,8 +301,8 @@ class _Lot:
     def owned(self, v: int, u: int, y: int) -> bool:
         return self.mask is not None and (int(v), int(u), int(y)) in self.mask
 
-    def put(self, v: int, u: int, y: int, name: str, **props) -> bool:
-        v, u, y = int(v), int(u), int(y)
+    def put(self, v: int, u: int, y: int, name: str, raw: bool = False, **props) -> bool:
+        v, u, y = int(v) + (0 if raw else self.front), int(u), int(y)
         if not (0 <= v < self.dv and 0 <= u < self.du and 0 <= y < self.c.sy):
             self.outside += 1
             return False
@@ -295,7 +312,8 @@ class _Lot:
         blk = self.c.raw_state(name, **props) if props else self.blk(name)
         return self.c.put(v, y, u, blk)
 
-    def has(self, v: int, u: int, y: int) -> bool:
+    def has(self, v: int, u: int, y: int, raw: bool = False) -> bool:
+        v = int(v) + (0 if raw else self.front)
         if not (0 <= v < self.dv and 0 <= u < self.du and 0 <= y < self.c.sy):
             return False
         return self.c.solid(int(v), int(y), int(u))
@@ -324,7 +342,7 @@ class _Lot:
         if not self.put(v, u, y, "oak_wall_sign", facing=facing, waterlogged="false"):
             return False
         text = [str(s)[:SIGN_WIDTH] for s in list(lines)[:4]]
-        self.c.sign_text(int(v), int(y), int(u), front=text)
+        self.c.sign_text(int(v) + self.front, int(y), int(u), front=text)
         self.signs += 1
         return True
 
@@ -346,7 +364,7 @@ def _sea_wall(L: _Lot, pal: dict, du: int) -> dict:
     """The parapet along V0, over the void. Two courses, because one can be jumped."""
     n = 0
     for u in range(du):
-        n += bool(L.put(0, u, 0, pal["plinth"]))
+        n += bool(L.put(0, u, 0, pal["plinth"], raw=True))
         # A WALL BLOCK, NOT A FENCE. A fence reads as a rail and a rail is what the queue is made
         # of; the park's edge over open void wants mass, and a wall is also what a balustrade cap
         # sits on. The cap is the course a player cannot get over.
@@ -355,7 +373,7 @@ def _sea_wall(L: _Lot, pal: dict, du: int) -> dict:
         # Written the way a fence is written, all 61 came back as illegal states from the audit -
         # rule 11 in a new costume. They are DERIVED by the game anyway, which is why
         # `work.INTENTIONAL` drops them, so the right number of properties to state here is none.
-        n += bool(L.put(0, u, 1, pal["trim_wall"]))
+        n += bool(L.put(0, u, 1, pal["trim_wall"], raw=True))
     return {"cells": n}
 
 
@@ -368,12 +386,16 @@ def _flanks(L: _Lot, pal: dict, du: int) -> dict:
     whether it was necessary.
     """
     n = 0
+    # ...AND THEY RUN THE WHOLE LOT. Written as `range(0, 3)` they closed the composition's own
+    # three columns, which was the whole lot when the lot was six deep. With an approach in front
+    # of the gate they have to close that too, or the walk is a corridor with both sides open and
+    # the containment the flood proves is gone.
     for u in (0, du - 1):
-        for v in range(0, 3):
+        for v in range(0, L.dv):
             for y in range(0, CANOPY + 2):
                 mat = pal["plinth"] if y in (0, CANOPY + 1) else pal["pier"]
-                n += bool(L.put(v, u, y, mat))
-            n += bool(L.put(v, u, CANOPY + 2, pal["trim_slab"], type="bottom",
+                n += bool(L.put(v, u, y, mat, raw=True))
+            n += bool(L.put(v, u, CANOPY + 2, pal["trim_slab"], raw=True, type="bottom",
                             waterlogged="false"))
     return {"cells": n}
 
@@ -411,7 +433,14 @@ def _queue(L: _Lot, p: dict, pal: dict, du: int) -> dict:
         band = 1 if u % 6 == 3 else (2 if u % 6 == 1 else None)
         if band is None:
             continue
+        # A STANCHION IN BAND 1 REACHES BACK TO BAND 2, or it is a fence post standing alone.
+        # It used to touch the sea wall at the composition's own V0; with the gate set back
+        # behind an approach the sea wall is thirteen columns away, and four rails came off as
+        # single-cell components - which a connectivity check sees and a render does not, because
+        # `render3d` draws a fence as a full cube. Band 2 already reaches the gate's front face.
         rails += bool(L.put(band, u, 0, pal["post"], **_fence_props(True)))
+        if band == 1:
+            rails += bool(L.put(2, u, 0, pal["post"], **_fence_props(True)))
 
     # THE CANOPY. Posts stand ON the sea wall, never in the queue: a post in the walked band is
     # an obstacle the rails already provide. The beam spans V0..V3 so it lands on the gate
@@ -564,7 +593,13 @@ def _portal(L: _Lot, p: dict, pal: dict, lane: int) -> dict:
     for du_ in (-1, 1):                       # the jambs, both courses - one of them is what the
         for y in (0, 1):                      # machine's torch strongly powers
             n += bool(L.put(4, lane + du_, y, pal["pier"]))
-    for v in (3, 4, 5):                       # the arch head over the portal
+    # THE HEAD CARRIES THE LAND'S ACCENT AND A LAMP EACH SIDE, which is the vocabulary
+    # `gen/park_frontage.py` established over every attraction spur in the park: an ENTRANCE takes
+    # the accent across its head and a lamp either side, an EXIT takes neither, because at twenty
+    # blocks the word is unreadable and the shape is not. This is the park's front door, so it is
+    # the grandest member of that family rather than a different language.
+    n += bool(L.put(3, lane, 2, pal["band"]))                 # the read face
+    for v in (4, 5):
         n += bool(L.put(v, lane, 2, pal["chisel"]))
     for du_ in (-1, 1):
         n += bool(L.put(3, lane + du_, 2, pal["trim_stair"],
@@ -605,9 +640,12 @@ def _portico(L: _Lot, p: dict, pal: dict) -> dict:
                             east="false", west="false", waterlogged="false"))
         for y in range(GRILLE_TOP + 1, PORTICO_TOP + 1):
             n += bool(L.put(5, u, y, pal["field"]))       # the tympanum behind the arch
-    # the arch head: a chiselled soffit, and a springer either side leaning into the opening
+    # the arch head: the land's accent across the read face - the same entrance grammar as every
+    # attraction gantry in the park, nine cells of it rather than three - over a chiselled soffit,
+    # with a springer either side leaning into the opening.
     for u in range(a0, a1 + 1):
-        for v in (3, 4, 5):
+        n += bool(L.put(3, u, PORTICO_TOP + 1, pal["band"]))
+        for v in (4, 5):
             n += bool(L.put(v, u, PORTICO_TOP + 1, pal["chisel"]))
     for v in (3, 4):
         n += bool(L.put(v, a0 - 1, PORTICO_TOP, pal["trim_stair"], facing=U_PLUS, half="bottom",
@@ -806,7 +844,10 @@ def build(cfg: dict, donors=None) -> Canvas:
     # would report as a refusal and nothing else would notice.
     top = TOWER_TOP + 2
     c = Canvas(dv, top + 1, du)
-    L = _Lot(c, dv, du, mask)
+    L = _Lot(c, dv, du, mask, front=int(p.get("front", 0)))
+    if int(p.get("front", 0)) + 6 > dv:
+        raise ValueError(f"the gate sets back {p['front']} into a lot only {dv} deep - the "
+                         f"composition is six columns and would be cropped")
 
     detail = {}
     detail["sea_wall"] = _sea_wall(L, pal, du)

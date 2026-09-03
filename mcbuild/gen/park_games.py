@@ -95,28 +95,18 @@ from .vertical import Ctx, World
 
 # ---------------------------------------------------------------------------- palettes
 #
-# **NOT `LANDS` VERBATIM, AND FOR TWO MEASURED REASONS.** The frontier's `ground` there is
-# `cobblestone`, which this ticket bars outright; and there is no `prismworks` entry at all,
-# because the land was written after `park.py` and keeps its palette in `prismworks_builds.PRISM`.
-# The keys are exactly the ones `arcade._structural`, `_line`, `_run` and `park._sign` read, so a
-# console can be handed to any of those helpers whatever land it stands in.
+# **`LANDS` VERBATIM WHEREVER IT CAN BE.** The one departure is the frontier, whose `ground`
+# there is `cobblestone` - barred outright by this ticket, and not what the land's own buildings
+# stand on either: `frontier_builds.PAL` puts `stone_bricks` under everything with a blackstone
+# plinth below that. The keys used are exactly the ones `arcade._structural`, `_line`, `_run` and
+# `park._sign` read, so a console can be handed to any of those helpers whatever land it is in.
 
-_PRISM = {
-    "ground": "chiseled_deepslate",             # 54 - the land's own interior floor
-    "path": "polished_deepslate",
-    "wall": "polished_blackstone_bricks",       # 45 - the field
-    "trim": "smooth_basalt",                    # 73 - the string course, +28 on the field
-    "post": "blackstone",
-    "beam": "polished_blackstone_bricks",
-    "slab": "polished_blackstone_brick_slab",
-    "stair": "polished_blackstone_brick_stairs",
-    "fence": "warped_fence",
-    "gate": "warped_fence_gate",
-    "light": "soul_lantern",
-    "canopy": ["black_wool", "deepslate_bricks"],
-    "accent": "cyan_wool",                      # 104 - the land's signal colour
-    "wood": "warped",
-}
+# **PRISMWORKS IS `LANDS`' OWN NOW, AND THIS FILE'S COPY IS DELETED.** It was written here only
+# because `park.LANDS` had no prismworks entry at all - which, as `park.py` now records, meant a
+# land that does not exist in the table "silently becomes another land", and is very likely what
+# Jack meant by *"I thought this area was now prism - which had a different purpose/feel"*. Keeping
+# a second table beside the real one is the drift `proportions.measure` and `rubric.score` share an
+# entry point to avoid: two answers to one question, and no way to tell which a console used.
 
 _FRONTIER = {
     **LANDS["frontier"],
@@ -127,7 +117,8 @@ _FRONTIER = {
     "path": "smooth_stone",
 }
 
-PALETTES = {"midway": LANDS["midway"], "frontier": _FRONTIER, "prismworks": _PRISM}
+PALETTES = {"midway": LANDS["midway"], "frontier": _FRONTIER,
+            "prismworks": LANDS["prismworks"]}
 
 GAME = {
     "under": None,              # capture(s) the console is fitted into - see `Ctx`

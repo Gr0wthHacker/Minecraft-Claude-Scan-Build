@@ -18,7 +18,13 @@ params:
   kind: gate
   land: midway
   at: [0, 270]          # V0, U270
-  size: [6, 61]         # V0..V5 by U270..U330
+  # NINETEEN DEEP, EIGHTEEN OF IT APPROACH. At six the sealed compound measured 143 standable
+  # cells - five deep by fifty-nine wide - so a visitor spawned three steps from the doors. Jack
+  # asked for a spawn at the void edge and a WALK to a central entrance; V0-5 is the arrival apron
+  # and V6-18 is the spine's own paving, which the approach walks on because the ways mask only
+  # protects what stands ABOVE the floor course.
+  size: [19, 61]        # V0..V18 by U270..U330
+  front: 13             # the gate composition sets back to V13..V18; V1..V12 is the walk
   axis: 30              # U300 - the park's own centre line
   lanes: [28, 32]       # paired iron doors inside the barred arch, U298 and U302
   arch: [26, 34]        # U296..U304 grille, with iron doors at U298/U302

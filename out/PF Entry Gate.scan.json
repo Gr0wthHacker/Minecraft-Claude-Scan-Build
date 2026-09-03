@@ -5,7 +5,7 @@
     "z": 80570
   },
   "size": [
-    6,
+    19,
     61
   ],
   "generated_by": "park_entrance",
@@ -14,7 +14,7 @@
   "lot": [
     0,
     270,
-    5,
+    18,
     330
   ],
   "height": 28,
@@ -167,17 +167,17 @@
   "lights": 35,
   "signs": 6,
   "outside_lot_refused": 0,
-  "ground_layer_refused": 15,
+  "ground_layer_refused": 6,
   "ground_layer_checked": true,
   "detail": {
     "sea_wall": {
       "cells": 119
     },
     "flanks": {
-      "cells": 48
+      "cells": 304
     },
     "building": {
-      "cells": 2450,
+      "cells": 2458,
       "cornice_y": 12,
       "panel": [
         3,
@@ -185,14 +185,14 @@
       ]
     },
     "portico": {
-      "cells": 342
+      "cells": 340
     },
     "towers": {
-      "cells": 1305,
+      "cells": 1308,
       "top": 23
     },
     "queue": {
-      "rails": 9,
+      "rails": 13,
       "posts": 18,
       "beams": 24,
       "roof": 66
@@ -264,52 +264,52 @@
       "narrative": "The arrival compound at the centre island's void edge: a sea wall over the drop, a forecourt with the spawn on the park's own axis, a stanchion queue under a lit oak canopy, and a 61-wide gate building whose ceremonial arch is barred so the park can be seen and not entered. Two turnstile lanes carry iron doors whose local preview opens on one deposited item; the server adapter validates and consumes exactly one grass block. With the doors shut the compound is sealed: the void closes it in front, flank walls close it sideways, and the gate closes it behind.\n"
     },
     "metrics": {
-      "blocks": 3730,
+      "blocks": 3951,
       "materials": 22,
-      "dominant_material_share": 0.3845,
+      "dominant_material_share": 0.3629,
       "light_blocks": 27,
       "massing": {
-        "width": 6,
+        "width": 19,
         "height": 25,
         "depth": 61,
-        "fill_ratio": 0.4077
+        "fill_ratio": 0.1364
       },
       "silhouette": {
         "top": {
-          "area": 335,
-          "fill_ratio": 0.9153
+          "area": 389,
+          "fill_ratio": 0.3356
         },
         "front": {
-          "area": 111,
-          "fill_ratio": 0.7115
+          "area": 215,
+          "fill_ratio": 0.4352
         },
         "side": {
-          "area": 1126,
-          "fill_ratio": 0.71
+          "area": 1124,
+          "fill_ratio": 0.7087
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.4925,
-          0.3971,
-          0.1105
+          0.5209,
+          0.3748,
+          0.1043
         ],
-        "top_silhouette_perimeter": 270,
-        "surface_faces_per_block": 1.2016
+        "top_silhouette_perimeter": 468,
+        "surface_faces_per_block": 1.2513
       },
       "material_counts": {
         "white_wool": 1434,
-        "polished_blackstone_bricks": 801,
-        "smooth_stone": 605,
-        "stone_bricks": 321,
-        "red_wool": 189,
+        "polished_blackstone_bricks": 862,
+        "smooth_stone": 735,
+        "stone_bricks": 323,
+        "red_wool": 200,
         "stone_brick_wall": 59,
         "stone_brick_stairs": 55,
-        "iron_bars": 47,
+        "iron_bars": 45,
         "oak_slab": 44,
-        "chiseled_stone_bricks": 41,
-        "lantern": 27,
-        "oak_fence": 27
+        "stone_brick_slab": 38,
+        "oak_fence": 31,
+        "chiseled_stone_bricks": 30
       }
     },
     "checks": [],
@@ -321,8 +321,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "d8de073352d680b05e5e1bf9b0ca29db7a9fd8bed775d989c92e9f9914b0ebc2",
-    "generator_source_digest": "5d15217ee43e6500006920047ac96b797554f6479e132311c2d5b0fdd61b6d35",
+    "fingerprint": "2f58c32e1d1fb01cc229706d111e2786fb820a41a407258463513057dc720742",
+    "generator_source_digest": "cb2a16357c565638942377b72a149df179dc1ffddbfbbbad53d825c347d3b348",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -366,9 +366,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 61.812447,
-    "blocks": 3730,
-    "blocks_per_second": 60.34
+    "seconds": 61.870597,
+    "blocks": 3951,
+    "blocks_per_second": 63.86
   },
   "generator_contract": {
     "ok": true,
@@ -377,7 +377,7 @@
     "roles": [
       "building"
     ],
-    "blocks": 3730,
+    "blocks": 3951,
     "mechanic_families": [
       "access",
       "container",

@@ -7057,8 +7057,8 @@
       "generator": "compose",
       "role": "path",
       "footprint": [
-        63,
-        36
+        58,
+        44
       ],
       "at": [
         18,
@@ -7171,7 +7171,7 @@
           }
         ]
       },
-      "resized_note": "The complete open-mouth bone shrine is used, not the detached skull or the procedural rib yard. At one-third scale and rotated 180 degrees toward Midway it is roughly 37x29x35: large enough to enter and read as a shrine, while fitting the protected 63x36 reach without invading either neighboring land."
+      "resized_note": "THE SKULL IS THE 54x66x40 REFERENCE AT FULL RESOLUTION. Halving it turns every curve into a two-block step and thirding it is worse - that is what read as flat. The Prism Reach is U385-429, forty-five columns, so a 44-wide module only fits starting at U385, and the whole `bone_ruins` library build (105x111) cannot fit here at any resolution that keeps its detail. The skull is the part that reads."
     },
     {
       "name": "Foundry Gate",

@@ -225,6 +225,20 @@ def against_ground(model, origin) -> int:
 
 
 
+def _dig_of(names) -> list:
+    """Every dig cell declared by any part, in world coordinates, de-duplicated."""
+    seen, out = set(), []
+    for name in names:
+        side = ROOT / "out" / f"{name}.scan.json"
+        if not side.exists():
+            continue
+        for cell in (json.loads(side.read_text(encoding="utf-8")).get("dig") or []):
+            key = tuple(cell)
+            if key not in seen:
+                seen.add(key); out.append(list(cell))
+    return out
+
+
 def complete(items):
     """GROUND + RAILWAY + BUILDINGS AS ONE DESIGN, because three placements hide each other.
 
@@ -323,7 +337,14 @@ def main() -> int:
                  "kind": "park", "name": "Park Complete",
                  "generated_by": "tools/park_place.py",
                  "anchor_status": "PREVIEW placement; rebase before building",
-                 "contains": ["Park Ways", "Park Rail"] + [i[0] for i in items]}
+                 "contains": ["Park Ways", "Park Rail"] + [i[0] for i in items],
+                 # A LITEMATIC CANNOT EXPRESS REMOVAL, so every "break this first" cell lives in
+                 # a sidecar - and this file writes a FRESH sidecar on every ship, which silently
+                 # dropped the lake's 2,963 buried lawn cells and the viaduct's 52 the first time
+                 # I re-placed after adding them by hand. Gathered from the parts, so it cannot
+                 # be forgotten again: leave them and the lake is a lawn with water drawn on it.
+                 "dig": _dig_of(["Park Rail"] + [i[0] for i in items]),
+                 "dig_note": "cells to BREAK before printing - see `contains` for their designs"}
         scan.save_pair(str(wout), whole, wmeta, name="Park Complete")
         shutil.copy2(wout, dest / wout.name)
         (dest / "Park Complete.scan.json").write_text(json.dumps(wmeta, indent=2), encoding="utf-8")
