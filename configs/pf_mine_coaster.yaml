@@ -1,0 +1,65 @@
+# PF MINE COASTER - the ride's own artifact, adopted so its station can be edited.
+#
+# Jack: "i dont think its actually built to exit there, it seems like they just exit from same
+# area, can we save the current rollercoaster and edit this properly."
+#
+# ---------------------------------------------------------------------------------------------
+# WHAT WAS WRONG, MEASURED OFF `out/Park Complete.litematic`
+#
+# The station's platform - V28-30 x U118-125 - is a SEALED PEN. A `spruce_fence` runs the whole
+# of V27 across U119-123 and another the whole of V31, and there is no gate in either, so the
+# platform is enterable from neither the concourse in front of it nor the track behind it. The
+# east exit the frontage had been given was a gate opening onto a fence.
+#
+# The rest of the station is real and is left alone: a front hall at V27-31 x U104-117 (walk h2)
+# entered through the wall's own door at U106-108, a rear hall at V33-37, a rear corridor along
+# V39, the switchback pens east at V33-40 x U119-133, and crossings round the track's west end at
+# U99-101. What it has never had is a way from the track into the platform, or out of it.
+#
+# ---------------------------------------------------------------------------------------------
+# WHY THIS DESIGN EXISTS
+#
+# `tools/park_place.modules` prefers `out/PF <name>.litematic` over
+# `out/park_final/artifacts/<name>.litematic`. So this is how the park is handed an EDITED ride
+# while the artifact stays exactly as it is - untouched, re-read on every run, and the thing this
+# design is a diff against. **Do not edit the artifact.** Edit this.
+#
+# The copy keeps the source's own corner and its own axes, and the generator RAISES if the canvas
+# comes out a different size: `park_place` positions a module by its model's corner, and the Mine
+# Ridge's tunnel box, stand-off and adit are all measured against where this ride stands today.
+name: PF Mine Coaster
+gen: minestation
+params:
+  kind: minestation
+  source: out/park_final/artifacts/Mine Coaster.litematic
+  # the artifact's own (x=0, z=0) stands at V24 U99 - `tools/park_lots.PLACEMENT` - and its own
+  # course 13 is its ground, which `park_place.plane_of` derives rather than looks up. Both are
+  # here only so `gates` can be written in the park coordinates everything else is measured in.
+  at: [24, 99]
+  plane: 13
+  # THE TWO DOORS THE PLATFORM NEVER HAD, both on the concourse's own east opening at U119-120 so
+  # the walk is straight: track -> V31 gate -> platform -> V27 gate -> the wall's opening at
+  # V26/U119-120 -> the concourse, and out under the exit gate on the verge at U120.
+  #
+  # **THE FACING IS ACROSS THE FENCE, NOT ALONG IT.** A fence gate's posts stand on the two sides
+  # PERPENDICULAR to its `facing`, so a gate set into a fence that runs along U must face along V
+  # or it joins nothing and reads as a gate dropped beside the rail rather than set into it.
+  # These two fences run U119-123, so the gates face west - which is also the way out.
+  gates:
+    - {v: 27, u: [119, 120], h: 1, facing: west}   # platform -> concourse
+    - {v: 31, u: [119, 120], h: 1, facing: west}   # track -> platform
+finish:
+  # NO `verify_against`. This design carries no world origin - `tools/park_place` positions it
+  # from `PLACEMENT`, in the park's own lattice - so compositing it onto a world capture asks
+  # numpy for a box spanning both frames. The check that matters here is `park_place`'s own
+  # cross-design clash report, plus `tests/test_minestation.py`, which diffs this against the
+  # artifact cell for cell and allows exactly the gates the config names.
+  cheapen: false
+origin_lock: false
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: frontier
+  narrative: >
+    The Mine Coaster as it stands, with its station platform opened to the concourse in front of
+    it and to the track behind it, so a rider can get off the train and out of the building.

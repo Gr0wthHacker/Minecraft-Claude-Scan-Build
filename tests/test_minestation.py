@@ -104,6 +104,28 @@ def test_a_gate_asked_for_where_there_is_no_fence_raises(params):
         minestation.build(bad)
 
 
+def test_a_gate_faces_ACROSS_the_fence_it_is_set_into(params):
+    """A FENCE GATE'S POSTS STAND PERPENDICULAR TO ITS `facing`, so a gate set into a fence that
+    runs along U must face along V or it joins nothing - it reads as a gate dropped beside the
+    rail rather than set into the line, and our renderer draws every facing identically. Written
+    `facing: north` first, which is along the run."""
+    art = _states(schem.load(ART))
+    got = _states(minestation.build(params))
+    av, au = (int(a) for a in params["at"])
+    plane = int(params["plane"])
+    for g in params["gates"]:
+        v, h = int(g["v"]) - av, int(g["h"]) + plane
+        u0, u1 = (int(a) - au for a in g["u"])
+        # the run is whichever axis the artifact's own fence continues along
+        along_u = any(art.get((v, h, u), "").split("[")[0] == "spruce_fence"
+                      for u in (min(u0, u1) - 1, max(u0, u1) + 1))
+        assert along_u, f"the fence at v{v} h{h} does not run along U - re-measure before trusting"
+        for u in range(min(u0, u1), max(u0, u1) + 1):
+            face = dict(kv.split("=") for kv in got[(v, h, u)].split("[")[1][:-1].split(","))
+            assert face["facing"] in ("east", "west"), (
+                f"the gate at v{v} u{u} faces {face['facing']}, along its own fence run")
+
+
 def _passable(pal):
     AIRY = {"air", "cave_air", "void_air", "vine", "glow_lichen", "short_grass", "tall_grass",
             "fern", "moss_carpet", "torch", "wall_torch", "lantern", "rail", "powered_rail",
