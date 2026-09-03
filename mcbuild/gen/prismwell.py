@@ -496,7 +496,12 @@ def build_well(cfg: dict, donors=None) -> Canvas:
             # reproduced by the very course that was meant to join them.
             if not crown or y <= dy:
                 return tr0, -1, False
-            return tr0 + min(y - dy, 2), -1, False
+            # A BATTER, NOT A LEDGE. The flare rose to +2 and dropped straight back to tr0 at
+            # the first setback - two blocks in one course, so the PANEL was not vertically
+            # adjacent across the seam and the shaft shed two-by-two islands of wall. The ribs
+            # were bridged for exactly this and the panel was not. It rises over two courses
+            # and falls over two, which is also what a plinth does.
+            return tr0 + min(min(y - dy, 2), max(dy + base_h - y, 0)), -1, False
         span = max(crown - (dy + base_h), 1)
         k = min(int((y - dy - base_h) / span * stages), stages - 1)
         r = tr0 + (tr1 - tr0) * (k / max(stages - 1, 1))
@@ -512,6 +517,7 @@ def build_well(cfg: dict, donors=None) -> Canvas:
     # ossicones and the Lowland Root's braid, and the same cure: carry the PREVIOUS column
     # one course up so the two are orthogonal neighbours.
     prev_rib: dict[int, tuple[int, int]] = {}
+    prev_r = None
     for y in range(yf, top):
         r, k, setback = profile(y)
         panelled = bool(crown) and y > dy + 1
@@ -569,12 +575,22 @@ def build_well(cfg: dict, donors=None) -> Canvas:
                         w.put(x, y, z, p["trim"])
                         feats["post"] += 1
         if not panelled:
+            prev_r = r
             continue
-        # THE PANEL, set BACK from the ribs, with a window in every bay between them
-        for x in range(int(cx - r - 1), int(cx + r + 2)):
-            for z in range(int(cz - r - 1), int(cz + r + 2)):
+        # THE PANEL, set BACK from the ribs, with a window in every bay between them.
+        #
+        # A SETBACK COURSE CARRIES BOTH RADII. Each step is 2.7 blocks at a 12->4 taper, so
+        # the panel above a setback is not vertically adjacent to the panel below it and the
+        # shaft sheds a ring of two-by-two islands at every stage - the ribs were bridged for
+        # exactly this and the panel was not. Filling from the outer band to the inner one on
+        # that one course joins them AND is what a setback ledge is: the step you can see.
+        lo_r = min(r, prev_r) if (prev_r is not None and prev_r != r) else r
+        hi_r = max(r, prev_r) if (prev_r is not None and prev_r != r) else r
+        prev_r = r
+        for x in range(int(cx - hi_r - 1), int(cx + hi_r + 2)):
+            for z in range(int(cz - hi_r - 1), int(cz + hi_r + 2)):
                 d = math.hypot(x - cx, z - cz)
-                if not (r - wall + 0.5 <= d <= r - 0.5) or w.has(x, y, z):
+                if not (lo_r - wall + 0.5 <= d <= hi_r - 0.5) or w.has(x, y, z):
                     continue
                 a = math.degrees(math.atan2(z - cz, x - cx)) % 360.0
                 off = min(abs((a - b * 360.0 / ribs + 180) % 360 - 180) for b in range(ribs))

@@ -94,8 +94,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "06427d550713e44fdb07bab9d95ac7e3bff1b12dfe8a5d89a59ff50cbf6cb2c3",
-    "generator_source_digest": "1ee60ed9032bee476cbecf4f47d079a692cf3f4968fb0f5ffb5743800a6a4afc",
+    "fingerprint": "f0b4edbf661171fc602580ab5f132c46039f58d56b9efae9b07de0974c7760c8",
+    "generator_source_digest": "c8219619cf4e27c349d5587719da75acbf3a37575777dc9d00ddf4390dce6bf9",
     "anchors": [],
     "genome": {
       "name": "prismworks",
@@ -132,9 +132,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 59.83632,
+    "seconds": 64.105049,
     "blocks": 2867,
-    "blocks_per_second": 47.91
+    "blocks_per_second": 44.72
   },
   "generator_contract": {
     "ok": true,

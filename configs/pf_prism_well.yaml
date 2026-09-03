@@ -49,17 +49,28 @@ params:
   # landings interleaving into something nobody can follow.
   # THE TOWER. Above the deck the shaft was 9 wide over 98 courses - eleven to one, a stick -
   # and everything around it read as thin bits at incompatible scales. A stepped drum tapering
-  # 10 -> 7 through four setbacks, walls two thick, opened by four tall slots a stage, gives
+  # 12 -> 4 through four setbacks, walls two thick, opened by four tall slots a stage, gives
   # the land the mass it was missing and gives the helix something to read against. Below the
   # deck it stays a lattice: a drum there would block the one view the land is composed around.
   tower: true
-  tower_r: 10
-  tower_top: 7
+  # A DEEPER TAPER, AND THE FIRST ATTEMPT AT IT SILENTLY DID NOTHING. Jack: "taper should be
+  # more dramatic slightly". The generator's defaults were moved to 12 -> 6 when the shaft was
+  # rebuilt and THESE TWO LINES stayed at 10 -> 7, so what shipped tapered five blocks over
+  # ninety-eight courses - measured off the artifact, r13.5 at the base to r8.5 at the crown.
+  # A config overriding a default it was written before is invisible: both files look right.
+  # This repo wrote that rule down about the rig's route list two commits ago.
+  #
+  # 12 -> 4 is 2.7 blocks a setback and a crown that reads NINE wide against a twenty-five
+  # wide base. The base stays at 12 rather than growing: widening it pushes the base cornice
+  # to r15.5 against a sky helix whose inner flex is r17, and every radius in this land is
+  # now load-bearing on some other one.
+  tower_r: 12
+  tower_top: 4
   tower_stages: 4
   tower_open: 4
   mast_h: 36              # was 18, which is noise beside a 98-course tower. Tower / pylon / rail.
   y_crown: 300            # the park's tallest, Jack's call: +98 over the deck, 20 under the limit
-  crown_r: 9
+  crown_r: 7          # inside the parapet's reach, which the narrower top brings in
   crown_pier_to: 23       # the sky run is the INNER helix: it starts at r21
   pier_to: 35             # ...and the deck run is the OUTER one, at r33, off a long pier
   y_floor: 95

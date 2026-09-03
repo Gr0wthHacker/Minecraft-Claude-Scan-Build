@@ -24,8 +24,8 @@
     "rail": 524,
     "balcony": 168,
     "light": 72,
-    "lift": 1487,
-    "post": 13220,
+    "lift": 1551,
+    "post": 13564,
     "steps": 255
   },
   "dig": [
@@ -34451,7 +34451,7 @@
   ],
   "r_mouth": 50,
   "y_floor": 95,
-  "shaft_r": 12,
+  "shaft_r": 14,
   "mechanics": {
     "minecraft": "java-1.19",
     "families": {
@@ -34488,50 +34488,50 @@
       "narrative": "A hundred-wide mouth cut clean through the park deck, lined fifteen courses deep with a collar that darkens as it falls and carries a corbel at its foot, ringed by a nine-wide gallery, and overhung by eight balconies that oversail the void on their own brackets. A lit return column stands at the centre, floor to rim, which is the spine the descent winds around.\n"
     },
     "metrics": {
-      "blocks": 36098,
+      "blocks": 36503,
       "materials": 14,
-      "dominant_material_share": 0.2214,
+      "dominant_material_share": 0.2167,
       "light_blocks": 0,
       "massing": {
         "width": 125,
         "height": 209,
         "depth": 125,
-        "fill_ratio": 0.0111
+        "fill_ratio": 0.0112
       },
       "silhouette": {
         "top": {
-          "area": 5643,
-          "fill_ratio": 0.3612
+          "area": 5799,
+          "fill_ratio": 0.3711
         },
         "front": {
-          "area": 5213,
-          "fill_ratio": 0.1995
+          "area": 5240,
+          "fill_ratio": 0.2006
         },
         "side": {
-          "area": 5168,
-          "fill_ratio": 0.1978
+          "area": 5188,
+          "fill_ratio": 0.1986
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.087,
-          0.7454,
-          0.1676
+          0.0989,
+          0.762,
+          0.1391
         ],
-        "top_silhouette_perimeter": 2336,
-        "surface_faces_per_block": 1.87
+        "top_silhouette_perimeter": 2352,
+        "surface_faces_per_block": 1.9181
       },
       "material_counts": {
-        "deepslate_bricks": 7993,
-        "waxed_copper_block": 7286,
-        "polished_blackstone_bricks": 5602,
-        "cobbled_deepslate": 5306,
+        "waxed_copper_block": 7911,
+        "deepslate_bricks": 7739,
+        "polished_blackstone_bricks": 5557,
+        "cobbled_deepslate": 5321,
         "black_wool": 5264,
-        "smooth_stone": 2905,
+        "smooth_stone": 2968,
         "stone": 721,
         "deepslate_brick_wall": 542,
         "water": 207,
-        "ochre_froglight": 198,
+        "ochre_froglight": 199,
         "iron_bars": 64,
         "end_rod": 8
       }
@@ -34545,8 +34545,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "5144296a95d29d5e6ec38cdf39468ed24f92b86e0f8bfb64da740916dba9f95e",
-    "generator_source_digest": "d458bca657be601c6111da1e32795ad51f9a313ac4f1238560294d5eb98572a5",
+    "fingerprint": "2f59f8551543056a06195e1458150727ec023acde11b12cde26f1f8a50409586",
+    "generator_source_digest": "c8219619cf4e27c349d5587719da75acbf3a37575777dc9d00ddf4390dce6bf9",
     "anchors": [],
     "genome": {
       "name": "prismworks",
@@ -34587,9 +34587,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 61.645073,
-    "blocks": 36098,
-    "blocks_per_second": 585.58
+    "seconds": 71.727037,
+    "blocks": 36503,
+    "blocks_per_second": 508.92
   },
   "generator_contract": {
     "ok": true,
@@ -34599,7 +34599,7 @@
       "building",
       "construction"
     ],
-    "blocks": 36098,
+    "blocks": 36503,
     "mechanic_families": [
       "fluid",
       "hazard",
