@@ -1,0 +1,216 @@
+{
+  "origin": {
+    "x": 97500,
+    "y": 203,
+    "z": 80300
+  },
+  "size": {
+    "x": 200,
+    "y": 16,
+    "z": 170
+  },
+  "generated_by": "frontier_scatter",
+  "kind": "frontier_scatter",
+  "lot": [
+    200,
+    170
+  ],
+  "at": [
+    0,
+    0
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "refused": 0,
+  "parts": {
+    "drifts": [
+      {
+        "kind": "sweep",
+        "n": 109,
+        "cells": 3957,
+        "by_kind": {
+          "pine": 53,
+          "debris": 24,
+          "snag": 13,
+          "rock": 19
+        }
+      }
+    ],
+    "pieces": 109,
+    "by_kind": {
+      "pine": 53,
+      "snag": 13,
+      "rock": 19,
+      "debris": 24
+    },
+    "cells": 3957
+  },
+  "contract": "planting and props on the Frontier's open lawn and nowhere else: every cell stands on a column whose own ground is moss and whose neighbourhood within `path_clear` is moss too, so nothing is placed on paving, against a kerb, or on anything anybody built - and every stand is a drift with a noisy edge rather than scattered cells",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "rail": [
+        "rail"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "rail": "mcbuild.circuit + rail contract tests"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "filler",
+      "style": "frontier",
+      "narrative": "The Frontier's planting and props: stands of spruce with stepped canopies on the open lawn, dead barkless snags, mossy boulders in the land's own quarried palette, and what a mine leaves lying about - cross-piled timber, tipped ore, a barrel on a cart axle.\n"
+    },
+    "metrics": {
+      "blocks": 3843,
+      "materials": 10,
+      "dominant_material_share": 0.8022,
+      "light_blocks": 0,
+      "massing": {
+        "width": 200,
+        "height": 9,
+        "depth": 168,
+        "fill_ratio": 0.0127
+      },
+      "silhouette": {
+        "top": {
+          "area": 1371,
+          "fill_ratio": 0.0403
+        },
+        "front": {
+          "area": 700,
+          "fill_ratio": 0.2188
+        },
+        "side": {
+          "area": 675,
+          "fill_ratio": 0.2482
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.8847,
+          0.1153,
+          0.0
+        ],
+        "top_silhouette_perimeter": 2949,
+        "surface_faces_per_block": 2.0203
+      },
+      "material_counts": {
+        "spruce_leaves": 3083,
+        "spruce_log": 376,
+        "cobblestone": 99,
+        "stripped_spruce_log": 79,
+        "gravel": 54,
+        "andesite": 44,
+        "mossy_cobblestone": 40,
+        "rail": 33,
+        "coal_ore": 24,
+        "barrel": 11
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "122561015df3c85c44dbf4e1385c11400e9fe53e7ddbc5464fbd760d48de24a3",
+    "generator_source_digest": "18d74a73ca92c23336e5a979a15558747013895e525c14700fd4e18c6fefaac5",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "rail"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 51.127548,
+    "blocks": 3843,
+    "blocks_per_second": 75.16
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 3843,
+    "mechanic_families": [
+      "container",
+      "rail"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: coal_ore"
+  ],
+  "file": "PF Frontier Scatter.litematic",
+  "name": "PF Frontier Scatter"
+}

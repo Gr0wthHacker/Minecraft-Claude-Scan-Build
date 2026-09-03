@@ -41,7 +41,24 @@ def ride(cfg):
     if not os.path.exists(RIDE):
         pytest.skip("the Mine Coaster artifact is not shipped")
     dv, du = cfg["params"]["lot"]
-    return mineridge._ride_columns(cfg["params"], int(dv), int(du))
+    occ, face, rails = mineridge._ride_columns(cfg["params"], int(dv), int(du))
+    return occ, face
+
+
+@pytest.fixture(scope="module")
+def rails(cfg):
+    if not os.path.exists(RIDE):
+        pytest.skip("the Mine Coaster artifact is not shipped")
+    dv, du = cfg["params"]["lot"]
+    return mineridge._ride_columns(cfg["params"], int(dv), int(du))[2]
+
+
+def _tunnel_boxes(cfg):
+    return [tuple(int(x) for x in b) for b in (cfg["params"].get("tunnels") or [])]
+
+
+def _in_tunnel(cfg, v, u) -> bool:
+    return any(a <= v <= b and c <= u <= d for a, b, c, d in _tunnel_boxes(cfg))
 
 
 # --------------------------------------------------------------------------- the palette
@@ -78,13 +95,20 @@ def test_NOT_ONE_CELL_THE_RIDE_OWNS_IS_TAKEN(built, ride):
     that is already standing; a cell taken from the coaster is a block somebody places, is told
     is wrong, breaks and places again. Refusing them is what makes `overlap 0` a property of the
     construction rather than a number to hope for.
+
+    **AND IT IS A CELL TEST, NOT A COLUMN TEST** - which it was written as first, and that is a
+    real distinction rather than pedantry. Outside a tunnel the generator refuses the ride's whole
+    COLUMN, because a talus growing up between two trestle legs is a talus that swallows them.
+    Inside a tunnel it must fill the column and refuse only the cells the ride actually occupies,
+    or the track's own column stays open to the sky and the result is a cutting with two walls.
+    Asserted per column, this test forbids the tunnel the design exists to have.
     """
     canvas, _model = built
     occ, _face = ride
-    taken = [(v, y, u)
-             for v, u in zip(*np.nonzero(occ.any(axis=2)))
-             for y in range(canvas.sy)
-             if canvas.solid(int(v), y, int(u))]
+    ny = occ.shape[2]
+    taken = [(int(v), int(y), int(u))
+             for v, u, y in zip(*np.nonzero(occ))
+             if y < ny and canvas.solid(int(v), int(y), int(u))]
     assert not taken, f"{len(taken)} cells of the ride were built over, e.g. {taken[:5]}"
 
 
@@ -105,6 +129,8 @@ def test_the_talus_reaches_the_ride_and_the_crest_does_not(built, ride, cfg):
                 continue
             if away[v, u] <= 1.0:
                 hugging += 1
+            if _in_tunnel(cfg, v, u):
+                continue           # inside a tunnel the mass is MEANT to close over the ride
             if away[v, u] <= 2.0:
                 near_top = max(near_top, top)
             else:
@@ -131,6 +157,44 @@ def test_nothing_is_built_on_ground_that_belongs_to_somebody_else(built, cfg):
                     continue
                 for y in range(canvas.sy):
                     assert not canvas.solid(v, y, u), f"built at ({v},{y},{u}) inside a keep-out"
+
+
+def test_THE_RIDE_RUNS_THROUGH_THE_MOUNTAIN(built, cfg, rails):
+    """**THE ASSERTION JACK'S OWN EYE MADE FIRST.** The first build held a seven-cell stand-off
+    round the whole ride, and the track's easternmost point is V96 while the summit sat at V108-118
+    - so the mountain stood BESIDE the coaster. His words: *"the coaster doesnt even go into the
+    mountain you built."*
+
+    Two halves, and both have to be true or it is not a tunnel:
+      * every rail cell inside a tunnel zone carries ROCK OVER IT - otherwise it is a cutting;
+      * and NOTHING SOLID stands in the four courses a cart runs through - otherwise it is a wall.
+    The second half is not hypothetical: the timber sets' axis is derived from the track's own run
+    and that derivation is wrong at a CORNER, so two posts came down on the rail itself on a build
+    that audited clean and rendered as a perfectly good tunnel. It is the adit's cross-cut bug met
+    a second time.
+    """
+    canvas, _model = built
+    boxes = _tunnel_boxes(cfg)
+    assert boxes, "the ridge declares no tunnel, so the ride goes nowhere near it"
+    inside = [(v, y, u) for v, y, u in rails if _in_tunnel(cfg, v, u)]
+    assert len(inside) >= 20, f"only {len(inside)} rail cells are inside the mountain"
+
+    blocked = [(v, y + k, u) for v, y, u in inside for k in range(0, 4)
+               if canvas.solid(v, y + k, u)]
+    assert not blocked, f"{len(blocked)} cells stand in the cart's own lane, e.g. {blocked[:3]}"
+
+    roofed = [c for c in inside if any(canvas.solid(c[0], c[1] + k, c[2]) for k in range(5, 12))]
+    assert len(roofed) == len(inside),         f"only {len(roofed)} of {len(inside)} rail cells have rock over them - the rest is a cutting"
+
+
+def test_the_tunnel_is_lined_and_timbered(built):
+    """A bored hole in rock reads as a cave; dressed walls and a cap beam every fourth cell read
+    as a MINE. It is the adit's own rule applied to the ride."""
+    canvas, _model = built
+    lining = canvas.meta["parts"]["lining"]
+    assert lining["bore_cells"] > 500, "the bore is too small to be a tunnel"
+    assert lining["dressed"] > 200, "the tunnel's walls are raw rock, so it reads as a cave"
+    assert lining["sets"] >= 6, "a tunnel with no timber sets in it is a hole"
 
 
 # --------------------------------------------------------------------------- the adit

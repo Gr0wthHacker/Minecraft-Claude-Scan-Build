@@ -81,6 +81,10 @@ ROCK = {
     "kerb": "cobbled_deepslate_wall",
 }
 
+#: THE TUNNEL LINING. Dressed stone against the ride's own `cracked_stone_bricks`, so a bore reads
+#: as something that was CUT rather than as a hole the mountain happened to have.
+PORTAL = {"rock": "stone_bricks", "rock_c": "cracked_stone_bricks"}
+
 #: The adit's own kit - the town's timber, so the gallery reads as the same hand as the buildings.
 TIMBER = {
     "post": "spruce_log",
@@ -142,6 +146,11 @@ RIDGE = {
     "spoil": [],                     # [[v, u, radius], ...] - tips at the foot
     "keep_out": [],                  # [[v0, v1, u0, u1], ...] - ground that belongs to somebody
     "adit": None,                    # see `_adit`
+    "tunnels": [],                   # [[v0, v1, u0, u1], ...] - where the ride goes THROUGH
+    "bore_side": 2,                  # the swept envelope round the rail
+    "bore_up": 4,
+    "bore_down": 1,
+    "bore_cover": 3,
     "seed": 0,
     "title": "MINE RIDGE",
 }
@@ -284,7 +293,7 @@ def _terrace(h: np.ndarray, step: int, jitter: np.ndarray) -> np.ndarray:
 
 
 def _ride_columns(p: dict, dv: int, du: int):
-    """(occupied, top) in LOT coordinates and this canvas's own y.
+    """(occupied, top, rails) in LOT coordinates and this canvas's own y.
 
     `occupied[v, u, y]` is a cell the coaster owns and this design must refuse; `top[v, u]` is
     how far it stands over the plane, which is what the talus is a function of. The ride's own
@@ -294,9 +303,11 @@ def _ride_columns(p: dict, dv: int, du: int):
     occ = np.zeros((dv, du, 1), bool)
     top = np.zeros((dv, du))
     if not p.get("ride"):
-        return np.zeros((dv, du, 0), bool), top
+        return np.zeros((dv, du, 0), bool), top, []
     m = schem.load(str(p["ride"]))
     sol = m.solid()                                  # [y, U, V]
+    names = [n.split("[")[0].split(":")[-1] for n in m.names]
+    is_rail = np.isin(m.ids, [i for i, n in enumerate(names) if n.endswith("rail")])
     plane = int(p.get("ride_plane", 13))
     rv, ru = (int(x) for x in (p.get("ride_at") or (0, 0)))
     sy, su, sv = sol.shape
@@ -309,7 +320,39 @@ def _ride_columns(p: dict, dv: int, du: int):
             if 0 <= a < dv and 0 <= b < du:
                 occ[a, b, y - plane] = True
                 top[a, b] = max(top[a, b], y - plane + 1)
-    return occ, top
+    # THE TRACK ITSELF, which is what a tunnel is bored around. The ride's own mass is not: a bore
+    # sized to the whole structure would hollow out its trestles as well and leave the mountain
+    # standing on nothing.
+    rails = [(int(v) + rv, int(y) - plane, int(u) + ru)
+             for y, u, v in zip(*is_rail.nonzero()) if y >= plane]
+    rails = [(v, y, u) for v, y, u in rails if 0 <= v < dv and 0 <= u < du]
+    return occ, top, rails
+
+
+def _bore(rails, tunnel, dv, du, sy, side: int, up: int, down: int):
+    """The void a train needs, around every rail cell inside a tunnel zone.
+
+    **THE RIDE HAS TO GO THROUGH THE MOUNTAIN OR THERE IS NO POINT TO EITHER**, and the first
+    build got that exactly backwards: a blanket seven-cell stand-off held the crag clear of the
+    whole ride, so the mountain stood BESIDE the coaster rather than round it. Jack, on sight:
+    *"the coaster doesnt even go into the mountain you built."*
+
+    Inside a tunnel zone the stand-off is waived and the mass closes over the track; what keeps
+    the ride running is this - a swept envelope round the RAIL, cleared before anything is
+    filled. It is sized to the cart and not to the structure: a bore round the ride's whole mass
+    would hollow out its own trestles and leave the mountain standing on nothing.
+    """
+    out = set()
+    for v, y, u in rails:
+        if not (0 <= v < dv and 0 <= u < du) or not tunnel[v, u]:
+            continue
+        for dvv in range(-side, side + 1):
+            for duu in range(-side, side + 1):
+                for dy in range(-down, up + 1):
+                    a, b, c = v + dvv, y + dy, u + duu
+                    if 0 <= a < dv and 0 <= c < du and 0 <= b < sy:
+                        out.add((a, b, c))
+    return out
 
 
 # --------------------------------------------------------------------------- the adit
@@ -484,7 +527,7 @@ def _chamber(lot: _Lot, plan: dict, seed: int) -> dict:
 def _build(lot: _Lot, p: dict) -> dict:
     dv, du = lot.dv, lot.du
     seed = int(p.get("seed", 0))
-    occ, face = _ride_columns(p, dv, du)
+    occ, face, rails = _ride_columns(p, dv, du)
     ride_any = occ.any(axis=2) if occ.shape[2] else np.zeros((dv, du), bool)
     # **GROUND THAT BELONGS TO SOMEBODY ELSE.** Measured off `Park Complete`: 271 columns of this
     # lot carry something that is not the ride - the coaster's own switchback queue, the Ridge
@@ -505,7 +548,16 @@ def _build(lot: _Lot, p: dict) -> dict:
     # and reaches its full height only `stand` cells clear of it, which leaves a moat the track
     # reads against. The TALUS is deliberately not capped: hugging the ride is its entire job.
     stand = max(1, int(p.get("stand_off", 7)))
-    crest *= np.clip((_away(ride_any, stand + 2) - 1.0) / stand, 0.0, 1.0)
+    hold = np.clip((_away(ride_any, stand + 2) - 1.0) / stand, 0.0, 1.0)
+    # ...**EXCEPT WHERE THE RIDE IS MEANT TO GO IN.** A tunnel zone waives the stand-off entirely,
+    # so the crag closes over the track there and the train runs through the mountain instead of
+    # past it. Everywhere else the moat stands and the track reads against the rock.
+    tunnel = np.zeros((dv, du), bool)
+    for box in (p.get("tunnels") or []):
+        a, b, c_, d = (int(x) for x in box)
+        tunnel[max(0, a):min(dv, b + 1), max(0, c_):min(du, d + 1)] = True
+    hold[tunnel] = 1.0
+    crest *= hold
     # TWO OCTAVES. One grain-7 octave alone perturbs a 48-course crag by whole shoulders and
     # leaves its faces glassy; the grain-3 octave is what puts crags and gullies on them. Both are
     # on the FIELD, never on the cell - per cell this is confetti, which the Thicket shipped once.
@@ -515,6 +567,14 @@ def _build(lot: _Lot, p: dict) -> dict:
     h *= 0.82 + 0.30 * noise + 0.14 * (fine - 0.5)
     h = _terrace(h, int(p.get("bench", 4)), _noise(dv, du, seed + 101, grain=5))
     h[ride_any] = 0.0                                        # the ride owns its own columns
+
+    bore = _bore(rails, tunnel, dv, du, lot.c.sy,
+                 int(p.get("bore_side", 2)), int(p.get("bore_up", 4)),
+                 int(p.get("bore_down", 1)))
+    # THE MASS OVER A BORE IS FORCED, exactly as the adit's is: a tunnel roofed with whatever the
+    # crest happened to give at that column is an open cutting from above.
+    for v, y, u in bore:
+        h[v, u] = max(h[v, u], y + int(p.get("bore_cover", 3)) + 1)
 
     # ---- the adit, whose cover is guaranteed BEFORE anything is filled -----------------
     plan = _adit_plan(p, dv, du)
@@ -543,11 +603,22 @@ def _build(lot: _Lot, p: dict) -> dict:
     for v in range(dv):
         for u in range(du):
             n = int(hi[v, u])
-            if n <= 0 or ride_any[v, u]:
+            if n <= 0:
+                continue
+            # **OUTSIDE A TUNNEL THE REFUSAL IS PER COLUMN; INSIDE IT, PER CELL.** Refusing the
+            # ride's whole column is what keeps the talus from growing up through a trestle, and
+            # it is exactly what makes a tunnel impossible - the track's own column stays open to
+            # the sky and the result is a cutting with two walls. In a tunnel zone the mass fills
+            # every cell the ride does not itself occupy, and the bore is the void left for it.
+            if ride_any[v, u] and not tunnel[v, u]:
                 continue
             # THE BAND BOUNDARIES ARE JITTERED, or the strata draw a contour map round the crag
             lift = (noise[v, u] - 0.5) * 7.0
+            ny = occ.shape[2]
             for y in range(n):
+                # NEVER A CELL THE RIDE OWNS, and never the void it runs through
+                if (y < ny and occ[v, u, y]) or (v, y, u) in bore:
+                    continue
                 if y >= n - 1:
                     key = _pick(_CRUST, v, u, y, seed)
                 elif n <= 6:
@@ -569,6 +640,7 @@ def _build(lot: _Lot, p: dict) -> dict:
              "top": int(hi.max())}
 
     # ---- spoil tips, boulders, and the cut face's own steps ---------------------------
+    parts["lining"] = _line_bore(lot, bore, rails, tunnel, seed)
     parts["spoil"] = _spoil(lot, p.get("spoil") or [], hi, ride_any, seed)
     parts["boulders"] = _boulders(lot, hi, ride_any, seed)
 
@@ -588,6 +660,56 @@ def _pick(table, v, u, y, seed) -> str:
         if r < acc:
             return key
     return table[0][0]
+
+
+def _line_bore(lot: _Lot, bore, rails, tunnel, seed) -> dict:
+    """Dress the tunnel's own walls, and set them in timber every fourth cell along the track.
+
+    **A BORED HOLE IN ROCK READS AS A CAVE; TWO POSTS AND A CAP BEAM READ AS A MINE.** It is the
+    adit's rule applied to the ride, and it is also what tells a rider they are in a WORKED tunnel
+    rather than a hole the mountain happened to have. Only cells the mass actually filled are
+    dressed - the lining follows the bore's real boundary rather than a computed radius, which is
+    this project's standing rule about anything clinging to a built surface.
+    """
+    dressed = sets = 0
+    for v, y, u in sorted(bore):
+        for dvv, dyy, duu in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+            a, b, c = v + dvv, y + dyy, u + duu
+            if (a, b, c) in bore or not lot.has(a, b, c):
+                continue
+            key = "rock_c" if hash01(a, b, c, seed + 41) < 0.55 else "rock"
+            if lot.put(a, b, c, PORTAL[key]):
+                dressed += 1
+    # the sets: posts either side of the track and a cap over it, every fourth rail cell
+    along = sorted((v, y, u) for v, y, u in rails if 0 <= v < lot.dv and 0 <= u < lot.du
+                   and tunnel[v, u])
+    # **THE LANE THE CART RUNS IN, AND NOTHING MAY STAND IN IT.** The axis a set straddles is
+    # derived from the track's own run, and at a CORNER that derivation is wrong by construction -
+    # so two posts came down on the rail itself and the ride was blocked, on a build that audited
+    # clean and rendered as a perfectly good tunnel. It is the adit's cross-cut bug exactly, met a
+    # second time, and the fix is the same: state the lane and refuse it.
+    lane = {(v, y + k, u) for v, y, u in along for k in range(0, 4)}
+    for i, (v, y, u) in enumerate(along):
+        if i % 4:
+            continue
+        # WHICH WAY THE SET STANDS COMES FROM THE TRACK'S OWN RUN, not from a fixed axis: the
+        # east traverse runs along U and the descent along U too, but the lift hill runs along V,
+        # and a set built across the wrong axis stands in the lane it is supposed to frame.
+        run_v = sum(1 for a, _b, c in along if c == u and abs(a - v) <= 3)
+        across = "v" if run_v <= 2 else "u"
+        legs = [((v + sgn * 2, u) if across == "v" else (v, u + sgn * 2)) for sgn in (-1, 1)]
+        if any((a, yy, c) in lane for a, c in legs for yy in range(y, y + 4)):
+            continue                      # a set that would stand in the lane is not built
+        for a, c in legs:
+            for yy in range(y, y + 4):
+                lot.log(a, yy, c, TIMBER["post"], axis="y")
+        for k in range(-2, 3):
+            a, c = (v + k, u) if across == "v" else (v, u + k)
+            if (a, y + 4, c) in lane:
+                continue
+            lot.log(a, y + 4, c, TIMBER["beam"], axis="x" if across == "v" else "z")
+        sets += 1
+    return {"dressed": dressed, "sets": sets, "bore_cells": len(bore)}
 
 
 def _spoil(lot: _Lot, tips, hi, ride_any, seed) -> int:

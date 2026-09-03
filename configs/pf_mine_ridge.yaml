@@ -83,10 +83,37 @@ params:
   # south-east corner and the lift hill climbs INTO its face, which is what a mine coaster is.
   # Each entry is a SEGMENT [v0, u0, v1, u1, height, width]; the falloff is flat-topped, so a
   # segment is a mesa rather than a tent - point sources with a steep exponent came out as spires.
+  # **THE CRAG STRADDLES THE RIDE'S EAST CORNER, BECAUSE THE RIDE HAS TO GO THROUGH IT.** The
+  # first build put the summit at V108-118 and held it seven cells clear of the track, and the
+  # track's easternmost point is V96 - so the mountain stood BESIDE the coaster. Jack, on sight:
+  # "the coaster doesnt even go into the mountain you built."
+  #
+  # Measured in lot-local coordinates, the circuit is a rectangle and its four legs are:
+  #     north lift    V8-96   U3-5    y1 -> 39     climbing west to east
+  #     east traverse V91-96  U6-21   y39          FLAT, at the very top of the ride
+  #     descent       V78-86  U21-57  y39 -> 7
+  #     south return  V8-77   U51-57  y1-15
+  # The east traverse is the tunnel: sixteen cells of level track at the crest of the lift, which
+  # is exactly where a mine coaster dives into the hill. The summit now sits over it.
+  #
+  # Each entry is a SEGMENT [v0, u0, v1, u1, height, width]; the falloff is near-linear off the
+  # line, so a segment is a ridge - point sources with a steep exponent came out as spires and a
+  # flat-topped exponent came out as a terraced mesa.
   spine:
-    - [108, 18, 113, 46, 48, 15]   # the summit, immediately behind the lift hill
-    - [110, 46, 118, 54, 34, 11]   # the south shoulder, still clear of the frontage band
-    - [112, 4, 118, 12, 32, 10]    # the north knoll, at the guest's first sight of it
+    - [88, 10, 96, 40, 50, 20]     # the summit, straddling the east traverse and the descent
+    - [112, 16, 120, 36, 36, 13]   # the east shoulder, over the adit
+    - [110, 46, 118, 56, 30, 11]   # the south shoulder
+  # **THE TUNNEL.** Inside this box the stand-off is waived and the mass closes over the track;
+  # what keeps the ride running is the BORE - a swept envelope round the rail itself, cleared
+  # before anything is filled and then dressed and timbered. It covers the east traverse and the
+  # head of the descent, so a train crests the lift hill, runs into the mountain and comes out
+  # lower down the far side.
+  tunnels:
+    - [74, 100, 4, 34]
+  bore_side: 2
+  bore_up: 4
+  bore_down: 1
+  bore_cover: 3
   # GROUND THAT IS ALREADY SOMEBODY'S. Measured against `Park Complete`: 271 columns of this lot
   # carry something that is not the ride, and every one of them is `PF Front Frontier`'s - the
   # coaster's 7 x 30 switchback queue at V39-59, the Ridge Water Tower at V70-78, the Ore Road at
@@ -94,10 +121,8 @@ params:
   keep_out:
     - [0, 106, 57, 70]     # world V24-130 x U156-169 - the queue, the tower and the ore road
     - [86, 106, 48, 62]    # world V110-130 x U147-161 - the Trail Ore Cart
-  # THE MOAT. The crest reaches full height only seven cells clear of the ride; nearer than that
-  # it is held down, so the track has rock to read against instead of rock on top of it. The
-  # first build without this swallowed the coaster whole and it was invisible from three of the
-  # four review bearings. The TALUS is deliberately not capped - hugging the ride is its whole job.
+  # THE MOAT: the crest reaches full height only seven cells clear of the ride EXCEPT in a tunnel
+  # zone, so everywhere else the track has rock to read against instead of rock on top of it.
   stand_off: 7
   talus_reach: 13
   bench: 3

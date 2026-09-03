@@ -52,11 +52,16 @@
   ],
   "refused": 0,
   "parts": {
-    "talus_cells": 32331,
-    "crest": 48.0,
-    "top": 52,
+    "talus_cells": 37468,
+    "crest": 50.0,
+    "top": 54,
+    "lining": {
+      "dressed": 497,
+      "sets": 10,
+      "bore_cells": 1710
+    },
     "spoil": 392,
-    "boulders": 241,
+    "boulders": 267,
     "adit": {
       "sets": 16,
       "lamps": 7,
@@ -111,52 +116,52 @@
       "narrative": "The worked-out mountain the Mine Coaster is cut into: a battered talus wrapping the ride's whole outline, a crag cresting fifty courses over the plane behind it, benched cut faces where the rock is too steep to stand on, gravel spoil tips at the foot, and a walk-through adit through the foot of the cut face with timber sets, rail, an ore chamber and a winze.\n"
     },
     "metrics": {
-      "blocks": 32255,
-      "materials": 23,
-      "dominant_material_share": 0.3361,
+      "blocks": 37519,
+      "materials": 25,
+      "dominant_material_share": 0.3296,
       "light_blocks": 7,
       "massing": {
         "width": 124,
-        "height": 53,
-        "depth": 65,
-        "fill_ratio": 0.0755
+        "height": 54,
+        "depth": 67,
+        "fill_ratio": 0.0836
       },
       "silhouette": {
         "top": {
-          "area": 2304,
-          "fill_ratio": 0.2617
+          "area": 2509,
+          "fill_ratio": 0.285
         },
         "front": {
-          "area": 1149,
-          "fill_ratio": 0.1544
+          "area": 1887,
+          "fill_ratio": 0.2536
         },
         "side": {
-          "area": 2375,
-          "fill_ratio": 0.5575
+          "area": 2223,
+          "fill_ratio": 0.5218
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.7359,
-          0.2454,
-          0.0188
+          0.737,
+          0.2371,
+          0.026
         ],
-        "top_silhouette_perimeter": 1669,
-        "surface_faces_per_block": 0.4627
+        "top_silhouette_perimeter": 1861,
+        "surface_faces_per_block": 0.6857
       },
       "material_counts": {
-        "stone": 10840,
-        "cobblestone": 6062,
-        "andesite": 3563,
-        "cobbled_deepslate": 2425,
-        "granite": 1656,
-        "tuff": 1613,
-        "coal_ore": 1360,
-        "dripstone_block": 1179,
-        "deepslate": 1019,
-        "gravel": 892,
-        "gold_ore": 834,
-        "moss_block": 249
+        "stone": 12367,
+        "cobblestone": 6986,
+        "andesite": 3972,
+        "cobbled_deepslate": 2786,
+        "granite": 2040,
+        "tuff": 1909,
+        "coal_ore": 1625,
+        "dripstone_block": 1432,
+        "deepslate": 1163,
+        "gold_ore": 982,
+        "gravel": 937,
+        "mossy_cobblestone": 238
       }
     },
     "checks": [],
@@ -168,8 +173,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "0e4c66cd4c0339cc99a5c9461473f482ff3af1edcbfa6abc30addfa2edd0c68e",
-    "generator_source_digest": "6e4eb664d2be29722a4935e6e375c3b316e68fffe5927f044f1449ea3ad20b8b",
+    "fingerprint": "f99cb2330878400335e729a9024169564c48cfcd73988bec22e54d8b39deede8",
+    "generator_source_digest": "7598bf5f47587565c5a2694e8f6ec52eb6eda6d549821e059c422539ac996a9a",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -212,9 +217,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 80.571698,
-    "blocks": 32255,
-    "blocks_per_second": 400.33
+    "seconds": 50.21463,
+    "blocks": 37519,
+    "blocks_per_second": 747.17
   },
   "generator_contract": {
     "ok": false,
@@ -228,7 +233,7 @@
     "roles": [
       "ride"
     ],
-    "blocks": 32255,
+    "blocks": 37519,
     "mechanic_families": [
       "container",
       "light",

@@ -6643,6 +6643,83 @@ Four more things the works cost:
   cell a game already occupies with its own state is built progress. That is the fourth time this
   repo has shipped the same trap.
 
+### The ride has to go THROUGH the mountain (2026-09-03)
+
+Jack, on the placed ridge: *"the coaster doesnt even go into the mountain you built."* He was
+right, and the cause was a fix of mine one round earlier: `stand_off` held the crest seven cells
+clear of the whole ride so the crag would stop swallowing it, and **the track's easternmost point
+is V96 while the summit sat at V108-118**. The mountain stood BESIDE the coaster.
+
+**THE TRACK IS A RECTANGLE AND ITS LEGS ARE MEASURED**, in the ridge's own lot coordinates:
+
+    north lift     V8-96   U3-5    y1 -> 39     climbing west to east
+    east traverse  V91-96  U6-21   y39          FLAT, at the very top of the ride
+    descent        V78-86  U21-57  y39 -> 7
+    south return   V8-77   U51-57  y1-15
+
+The east traverse is the tunnel: sixteen cells of level track at the crest of the lift, which is
+exactly where a mine coaster dives into the hill. The summit moved to `[88, 10, 96, 40, 50, 20]`
+so it straddles it, and `tunnels: [[74, 100, 4, 34]]` is the box where the stand-off is WAIVED.
+
+**A BORE, NOT A MOAT.** Inside a tunnel zone the mass closes over the track and what keeps the
+ride running is a swept envelope round the RAIL - ±2 laterally, -1..+4 vertically - cleared before
+anything is filled, then dressed in stone brick and timbered with a set every fourth cell. Sized
+to the ride's whole MASS it would hollow out the trestles and leave the mountain standing on
+nothing, so it is sized to the cart.
+
+**OUTSIDE A TUNNEL THE REFUSAL IS PER COLUMN; INSIDE IT, PER CELL.** That distinction is the whole
+mechanism. Refusing the ride's whole column is what stops a talus growing up between two trestle
+legs - and it is exactly what makes a tunnel impossible, because the track's own column then stays
+open to the sky and the result is a cutting with two walls. `test_NOT_ONE_CELL_THE_RIDE_OWNS_IS_
+TAKEN` was written per column first and had to be rewritten per cell: asserted per column, it
+forbids the tunnel the design exists to have.
+
+**AND A SET'S POST STOOD ON THE TRACK - the same bug as the adit's cross-cut, met a second time.**
+The axis a set straddles is derived from the track's own run, and at a CORNER that derivation is
+wrong by construction, so two posts came down on the rail itself. The build audited clean, reported
+a correct BOM and rendered as a perfectly good tunnel; the only symptom is a cart that hits rock.
+The lane the cart runs in is stated now and refused, and
+`test_THE_RIDE_RUNS_THROUGH_THE_MOUNTAIN` asserts both halves - every rail cell inside the zone
+carries rock over it (or it is a cutting) and nothing solid stands in its four courses (or it is a
+wall). 45 of 45 roofed, 0 blocked.
+
+### THE LAND HAD ZERO TREES (2026-09-03)
+
+Jack: *"i dont want a bunch of buildings to go into, this is just a village then, thats opposite
+of what i asked for and is exactly what i complained on"* ... *"find other small things to add in
+the area either design or otherwise that complete it."*
+
+He is right, and my own previous suggestion - fill Boomtown with a saloon and a telegraph - was
+exactly the answer he had already rejected twice. **Measured, the Frontier's entire flora was:**
+
+    moss_block 29,488 . moss_carpet 731 . mossy_cobblestone 439 . mossy_stone_bricks 2,356
+
+and **ZERO LEAVES.** Not one tree in a land that is 66% bare lawn. That is why 22,000 columns of
+it read as a green carpet with things standing on it: nothing GROWS there.
+
+`PF Frontier Scatter` (`gen/frontier_scatter.py`, 3,843 blocks, 0 problems, 0 overlap) is pines
+with stepped canopies, dead barkless snags, mossy boulders in the land's own quarried palette, and
+what a mine leaves lying about - cross-piled timber, tipped ore, a barrel on a cart axle. **Not one
+building in it.** Frontier leaves 0 -> 3,083; columns with something over three courses tall
+33.3% -> 42.4%.
+
+- **IT SWEEPS RATHER THAN PLANTING A LIST OF STANDS, AND THAT IS A MEASUREMENT.** Of 11,562 open
+  lawn columns only **1,542 survive a three-cell erosion** - the open ground is verges and gaps
+  between buildings, and the largest free rectangle in the land is 8 x 18. A hand-picked list of
+  stand centres found exactly ONE site. The sweep walks the land on a coarse lattice and plants
+  wherever the ground itself allows, with a smooth density field so it comes out as thickets and
+  clearings rather than an even spread.
+- **A PINE ONE CELL OFF A KERB STILL CROWDS THE WALK.** The lawn test alone puts a trunk against
+  every street in the park; `path_clear` holds every planting two cells off anything paved.
+- **EVERY COURSE OF A CROSS-PILE SITS ON THE ONE UNDER IT.** Written as three rows at `k//2`
+  heights the top row landed on columns the bottom rows never touched - eighteen cells shipped as
+  six free-floating clusters, a stack of timber floating over the lawn.
+
+**Still open, and it is a decision rather than a defect:** Boomtown Spine (53 x 46, seven
+false-front shops) and Trailhead Gate still have 0 interactive blocks between them. Filling them
+with interiors is the village answer and is rejected; what they are FOR - a second ride, or
+nothing - is Jack's call.
+
 ## The daily loop
 
 ```bash

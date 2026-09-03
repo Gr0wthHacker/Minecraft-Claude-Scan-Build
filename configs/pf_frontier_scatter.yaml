@@ -1,0 +1,65 @@
+# PF FRONTIER SCATTER - the land dressing. NOT ONE BUILDING in it, deliberately.
+#
+# Jack: "i dont want a bunch of buildings to go into, this is just a village then, thats opposite
+# of what i asked for and is exactly what i complained on" ... "find other small things to add in
+# the area either design or otherwise that complete it."
+#
+# ---------------------------------------------------------------------------------------------
+# THE MEASUREMENT IS THE WHOLE ARGUMENT
+#
+# Counted over the shipped `out/Park Complete.litematic`, the Frontier's entire flora is:
+#
+#     moss_block 29,488 . moss_carpet 731 . mossy_cobblestone 439 . mossy_stone_bricks 2,356
+#
+# and **ZERO LEAVES**. Not one tree in a land that is 66% bare lawn. That is why 22,000 columns of
+# it read as a green carpet with things standing on it - nothing GROWS there. A gold-rush frontier
+# is pines, dead snags and rock, and the land had none of the three.
+#
+# ---------------------------------------------------------------------------------------------
+# IT SWEEPS RATHER THAN PLANTING A LIST OF STANDS, AND THAT IS A MEASUREMENT TOO
+#
+# The open ground is 11,562 columns, of which only **1,542 survive a three-cell erosion**: the
+# lawn is verges and gaps between buildings, and the largest free rectangle in the whole land is
+# 8 x 18. A hand-picked list of stand centres found exactly ONE site that could hold a thicket.
+# So the planting walks the land on a coarse lattice and plants wherever the ground itself allows,
+# with a smooth density field so it comes out as thickets and clearings rather than as an even
+# spread - which is the Lowland Thicket's rule (the randomness belongs on the drift, never on the
+# cell) expressed as a sweep.
+#
+# **NOTHING GOES ON PAVING AND NOTHING NARROWS A WALK.** `Park Ways` owns every paved cell in the
+# park. A candidate is planted only where the world's own ground course is moss AND every column
+# within `path_clear` is moss too - because a pine one cell off a kerb is not dressing, it is a
+# chicane.
+name: PF Frontier Scatter
+gen: frontier_scatter
+params:
+  kind: scatter
+  lot: [200, 170]
+  at: [0, 0]
+  under: out/Park Complete.litematic
+  path_clear: 2
+  sweep:
+    step: 5
+    density: 0.5
+    # PINES DOMINATE, and the rest are what a worked hillside carries. Two entries of `pine`
+    # against one each of the others is what makes a stand read as woodland rather than as a
+    # sampler of four things.
+    kinds: [pine, pine, pine, snag, rock, debris]
+  seed: 29
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: filler
+  style: frontier
+  narrative: >
+    The Frontier's planting and props: stands of spruce with stepped canopies on the open lawn,
+    dead barkless snags, mossy boulders in the land's own quarried palette, and what a mine leaves
+    lying about - cross-piled timber, tipped ore, a barrel on a cart axle.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

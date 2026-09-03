@@ -126,7 +126,12 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 "PF Game Pan Line", "PF Game Powder Striker", "PF Game Prize Office",
                 # ...and the fourth, written for the Prospecting Porch's second bay,
                 # which shipped as a shell with no circuit behind it.
-                "PF Game The Riffle"}
+                "PF Game The Riffle",
+                # THE LAND DRESSING, and not one building in it. Measured, the Frontier's whole
+                # flora was 29,488 moss blocks and ZERO LEAVES - not one tree in a land that is
+                # 66% bare lawn. Jack: "i dont want a bunch of buildings to go into, this is just
+                # a village then ... find other small things to add in the area."
+                "PF Frontier Scatter"}
 
 
 def extras() -> list:
