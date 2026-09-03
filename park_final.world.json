@@ -4844,6 +4844,73 @@
       }
     },
     {
+      "name": "Midway Row",
+      "plot": "welcome_court",
+      "generator": "midwaybuild",
+      "role": "building",
+      "footprint": [
+        41,
+        71
+      ],
+      "at": [
+        80,
+        266
+      ],
+      "access_points": [
+        [
+          80,
+          300
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            34
+          ],
+          "facing": "west",
+          "width": 13
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            34
+          ],
+          "facing": "west",
+          "width": 13
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            40,
+            1,
+            34
+          ],
+          "facing": "east",
+          "width": 13
+        }
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 6000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade"
+      ],
+      "style": "midway"
+    },
+    {
       "name": "Snack Window",
       "plot": "snack_window",
       "generator": "compose",

@@ -437,11 +437,29 @@ class Circuit:
             pos, hops = todo.popleft()
             if hops >= 8:
                 continue
-            for _direction, other in self.neighbours(pos):
+            for other in self._powered_rail_neighbours(pos):
                 if other in rails and other not in seen:
                     seen.add(other)
                     todo.append((other, hops + 1))
         self.rail_power = seen
+
+    def _powered_rail_neighbours(self, pos):
+        """Match rail endpoints, including slopes; parallel rails do not connect.
+
+        A sloping rail occupies its lower block and its raised endpoint touches
+        a rail in the next course. Six-neighbour voxel adjacency misses that
+        connection and incorrectly connects side-by-side running lines.
+        """
+        def ends(p):
+            shape = self.cells[p].prop('shape', 'north_south')
+            axis = ('east','west') if shape in ('east_west','ascending_east','ascending_west') else ('north','south')
+            return {d:p[1]+int(shape=='ascending_'+d) for d in axis}
+        for direction, height in ends(pos).items():
+            dx, _, dz = DIRS[direction]
+            for y in (pos[1]-1, pos[1], pos[1]+1):
+                other = (pos[0]+dx, y, pos[2]+dz)
+                if self.name(other)=='powered_rail' and ends(other).get(OPPOSITE[direction])==height:
+                    yield other
 
     _last_src: dict = {"emit": {}, "into": {}, "attach": {}}
 

@@ -190,6 +190,9 @@ PLACEMENT = {
     # exactly the entry gate's own frontage, so the two read as one composition rather than as a
     # gate with a smaller thing behind it.
     "Welcome Court":          (24, 270),
+    #: WHAT FILLS THE GAP THE CASCADE LEFT. 41 x 71 at the Cascade's own lot, so column B's depth
+    #: schedule is unchanged: 56 + 41 + 9 + 22 + 2 = its own 130. See `configs/pf_midway_row.yaml`.
+    "Midway Row":             (80, 266),
     # THE WHEEL MOVED BACK FIFTY BLOCKS (2026-09-03), and it is an improvement rather than a cost.
     # It crowns at Y276, 74 courses over the lawn; at V80 its ring centre stood 72 blocks from the
     # gate's doors, a 46 degree angle - you crane your neck and the whole wheel does not fit the

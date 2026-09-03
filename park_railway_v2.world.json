@@ -1,0 +1,1857 @@
+{
+  "format": 1,
+  "name": "Skyblock Park Final Free-First Build \u2014 Railway Renewal",
+  "seed": 17,
+  "server_profile": "skyblock-1.19",
+  "style_packs": [
+    "frontier",
+    "midway",
+    "prismworks"
+  ],
+  "site": {
+    "mode": "skyblock",
+    "anchor": [
+      97500,
+      203,
+      80300
+    ],
+    "build_plane": 203,
+    "bounds": [
+      0,
+      0,
+      199,
+      599
+    ],
+    "entry_points": [
+      [
+        12,
+        215
+      ]
+    ],
+    "protected": [],
+    "anchor_note": "Derived by tools/park_anchor.py from the island registry, NOT typed. The three plots expand to 200x200 about their own bedrock and their union is X97500..97699 Z80300..80899 - exactly 200x600, so the anchor is forced and there is no slack on any edge. The previous value [97500, 203, 80349] put U599 forty-nine blocks past the last plot."
+  },
+  "regions": [
+    {
+      "name": "frontier",
+      "bounds": [
+        0,
+        0,
+        199,
+        169
+      ]
+    },
+    {
+      "name": "frontier_reach",
+      "bounds": [
+        0,
+        170,
+        199,
+        214
+      ]
+    },
+    {
+      "name": "midway",
+      "bounds": [
+        0,
+        215,
+        199,
+        384
+      ]
+    },
+    {
+      "name": "prism_reach",
+      "bounds": [
+        0,
+        385,
+        199,
+        429
+      ]
+    },
+    {
+      "name": "prismworks",
+      "bounds": [
+        0,
+        430,
+        199,
+        599
+      ]
+    }
+  ],
+  "plots": [
+    {
+      "name": "trailhead_gate",
+      "region": "frontier",
+      "bounds": [
+        18,
+        0,
+        62,
+        38
+      ],
+      "zone": "landmark",
+      "style": "frontier"
+    },
+    {
+      "name": "signal_heron",
+      "region": "frontier_reach",
+      "bounds": [
+        82,
+        170,
+        133,
+        214
+      ],
+      "zone": "sculpture",
+      "style": "frontier"
+    },
+    {
+      "name": "boomtown_spine",
+      "region": "frontier",
+      "bounds": [
+        18,
+        40,
+        70,
+        85
+      ],
+      "zone": "building",
+      "style": "frontier"
+    },
+    {
+      "name": "mining_square",
+      "region": "frontier",
+      "bounds": [
+        75,
+        40,
+        130,
+        85
+      ],
+      "zone": "path",
+      "style": "frontier"
+    },
+    {
+      "name": "prospecting_porch",
+      "region": "frontier",
+      "bounds": [
+        85,
+        0,
+        135,
+        39
+      ],
+      "zone": "ride",
+      "style": "frontier"
+    },
+    {
+      "name": "mine_coaster",
+      "region": "frontier",
+      "bounds": [
+        30,
+        90,
+        140,
+        160
+      ],
+      "zone": "ride",
+      "style": "frontier"
+    },
+    {
+      "name": "assay_and_prize_office",
+      "region": "frontier",
+      "bounds": [
+        132,
+        40,
+        151,
+        85
+      ],
+      "zone": "building",
+      "style": "frontier"
+    },
+    {
+      "name": "works_yard",
+      "region": "frontier",
+      "bounds": [
+        152,
+        125,
+        169,
+        160
+      ],
+      "zone": "service",
+      "style": "frontier"
+    },
+    {
+      "name": "arrival_court",
+      "region": "midway",
+      "bounds": [
+        18,
+        220,
+        65,
+        260
+      ],
+      "zone": "arrival",
+      "style": "midway"
+    },
+    {
+      "name": "welcome_court",
+      "region": "midway",
+      "bounds": [
+        70,
+        220,
+        120,
+        260
+      ],
+      "zone": "path",
+      "style": "midway"
+    },
+    {
+      "name": "snack_window",
+      "region": "midway",
+      "bounds": [
+        125,
+        220,
+        151,
+        260
+      ],
+      "zone": "service",
+      "style": "midway"
+    },
+    {
+      "name": "carousel_court",
+      "region": "midway",
+      "bounds": [
+        18,
+        270,
+        85,
+        340
+      ],
+      "zone": "ride",
+      "style": "midway"
+    },
+    {
+      "name": "sky_lift",
+      "region": "midway",
+      "bounds": [
+        90,
+        270,
+        151,
+        345
+      ],
+      "zone": "landmark",
+      "style": "midway"
+    },
+    {
+      "name": "skill_arcade",
+      "region": "midway",
+      "bounds": [
+        20,
+        348,
+        70,
+        380
+      ],
+      "zone": "ride",
+      "style": "midway"
+    },
+    {
+      "name": "prize_point",
+      "region": "midway",
+      "bounds": [
+        75,
+        348,
+        94,
+        380
+      ],
+      "zone": "building",
+      "style": "midway"
+    },
+    {
+      "name": "wyrm_s_crossing",
+      "region": "prism_reach",
+      "bounds": [
+        18,
+        390,
+        80,
+        425
+      ],
+      "zone": "path",
+      "style": "prismworks"
+    },
+    {
+      "name": "foundry_gate",
+      "region": "prismworks",
+      "bounds": [
+        18,
+        435,
+        70,
+        470
+      ],
+      "zone": "arrival",
+      "style": "prismworks"
+    },
+    {
+      "name": "prism_array",
+      "region": "prismworks",
+      "bounds": [
+        75,
+        435,
+        127,
+        485
+      ],
+      "zone": "ride",
+      "style": "prismworks"
+    },
+    {
+      "name": "resonance_vault",
+      "region": "prismworks",
+      "bounds": [
+        75,
+        486,
+        127,
+        526
+      ],
+      "zone": "ride",
+      "style": "prismworks"
+    },
+    {
+      "name": "prism_ascent",
+      "region": "prismworks",
+      "bounds": [
+        24,
+        528,
+        116,
+        599
+      ],
+      "zone": "landmark",
+      "style": "prismworks"
+    },
+    {
+      "name": "forge_deck",
+      "region": "prismworks",
+      "bounds": [
+        128,
+        495,
+        151,
+        560
+      ],
+      "zone": "path",
+      "style": "prismworks"
+    },
+    {
+      "name": "service_gallery",
+      "region": "prismworks",
+      "bounds": [
+        152,
+        550,
+        169,
+        590
+      ],
+      "zone": "service",
+      "style": "prismworks"
+    },
+    {
+      "name": "sky_lift_sloth",
+      "region": "midway",
+      "bounds": [
+        96,
+        348,
+        141,
+        372
+      ],
+      "zone": "sculpture",
+      "style": "midway"
+    },
+    {
+      "name": "claim_line",
+      "region": "frontier_reach",
+      "bounds": [
+        6,
+        172,
+        80,
+        212
+      ],
+      "zone": "path",
+      "style": "frontier"
+    },
+    {
+      "name": "line_frontier",
+      "region": "frontier",
+      "bounds": [
+        172,
+        0,
+        186,
+        169
+      ],
+      "zone": "path",
+      "style": "frontier"
+    },
+    {
+      "name": "line_frontier_reach",
+      "region": "frontier_reach",
+      "bounds": [
+        172,
+        170,
+        186,
+        214
+      ],
+      "zone": "path",
+      "style": "frontier"
+    },
+    {
+      "name": "line_midway",
+      "region": "midway",
+      "bounds": [
+        172,
+        215,
+        186,
+        384
+      ],
+      "zone": "path",
+      "style": "midway"
+    },
+    {
+      "name": "line_prism_reach",
+      "region": "prism_reach",
+      "bounds": [
+        172,
+        385,
+        186,
+        429
+      ],
+      "zone": "path",
+      "style": "prismworks"
+    },
+    {
+      "name": "line_prismworks",
+      "region": "prismworks",
+      "bounds": [
+        172,
+        430,
+        186,
+        599
+      ],
+      "zone": "path",
+      "style": "prismworks"
+    }
+  ],
+  "routes": [
+    {
+      "name": "park_floor",
+      "kind": "path",
+      "width": 151,
+      "points": [
+        [
+          75,
+          76
+        ],
+        [
+          75,
+          523
+        ]
+      ]
+    },
+    {
+      "name": "park_backstage",
+      "kind": "service",
+      "width": 17,
+      "points": [
+        [
+          160,
+          9
+        ],
+        [
+          160,
+          590
+        ]
+      ]
+    },
+    {
+      "name": "park_spine",
+      "kind": "path",
+      "width": 5,
+      "points": [
+        [
+          12,
+          2
+        ],
+        [
+          12,
+          597
+        ]
+      ]
+    },
+    {
+      "name": "service_spine",
+      "kind": "service",
+      "width": 3,
+      "points": [
+        [
+          160,
+          1
+        ],
+        [
+          160,
+          598
+        ]
+      ]
+    },
+    {
+      "name": "access_trailhead_gate",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          19
+        ],
+        [
+          18,
+          19
+        ]
+      ]
+    },
+    {
+      "name": "access_signal_heron",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          79,
+          192
+        ],
+        [
+          82,
+          192
+        ]
+      ]
+    },
+    {
+      "name": "access_boomtown_spine",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          63
+        ],
+        [
+          18,
+          63
+        ]
+      ]
+    },
+    {
+      "name": "access_mining_square",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          63
+        ],
+        [
+          18,
+          63
+        ]
+      ]
+    },
+    {
+      "name": "access_prospecting_porch",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          82,
+          20
+        ],
+        [
+          85,
+          20
+        ]
+      ]
+    },
+    {
+      "name": "access_mine_coaster",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          125
+        ],
+        [
+          18,
+          125
+        ]
+      ]
+    },
+    {
+      "name": "access_assay_and_prize_office",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          63
+        ],
+        [
+          18,
+          63
+        ]
+      ]
+    },
+    {
+      "name": "access_works_yard",
+      "kind": "service",
+      "width": 3,
+      "points": [
+        [
+          149,
+          143
+        ],
+        [
+          152,
+          143
+        ]
+      ]
+    },
+    {
+      "name": "access_arrival_court",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          240
+        ],
+        [
+          18,
+          240
+        ]
+      ]
+    },
+    {
+      "name": "access_welcome_court",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          240
+        ],
+        [
+          18,
+          240
+        ]
+      ]
+    },
+    {
+      "name": "access_snack_window",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          240
+        ],
+        [
+          18,
+          240
+        ]
+      ]
+    },
+    {
+      "name": "access_carousel_court",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          305
+        ],
+        [
+          18,
+          305
+        ]
+      ]
+    },
+    {
+      "name": "access_sky_lift",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          320
+        ],
+        [
+          18,
+          320
+        ]
+      ]
+    },
+    {
+      "name": "access_skill_arcade",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          17,
+          360
+        ],
+        [
+          20,
+          360
+        ]
+      ]
+    },
+    {
+      "name": "access_prize_point",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          358
+        ],
+        [
+          18,
+          358
+        ]
+      ]
+    },
+    {
+      "name": "access_wyrm_s_crossing",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          408
+        ],
+        [
+          18,
+          408
+        ]
+      ]
+    },
+    {
+      "name": "access_foundry_gate",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          453
+        ],
+        [
+          18,
+          453
+        ]
+      ]
+    },
+    {
+      "name": "access_prism_array",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          72,
+          460
+        ],
+        [
+          75,
+          460
+        ]
+      ]
+    },
+    {
+      "name": "access_resonance_vault",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          72,
+          506
+        ],
+        [
+          75,
+          506
+        ]
+      ]
+    },
+    {
+      "name": "access_prism_ascent",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          21,
+          560
+        ],
+        [
+          24,
+          560
+        ]
+      ]
+    },
+    {
+      "name": "access_forge_deck",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          125,
+          528
+        ],
+        [
+          128,
+          528
+        ]
+      ]
+    },
+    {
+      "name": "access_service_gallery",
+      "kind": "service",
+      "width": 3,
+      "points": [
+        [
+          149,
+          570
+        ],
+        [
+          152,
+          570
+        ]
+      ]
+    },
+    {
+      "name": "access_claim_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          190
+        ],
+        [
+          18,
+          190
+        ]
+      ]
+    },
+    {
+      "name": "access_sky_lift_sloth",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          358
+        ],
+        [
+          18,
+          358
+        ]
+      ]
+    },
+    {
+      "name": "access_frontier_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          85
+        ],
+        [
+          5,
+          85
+        ]
+      ]
+    },
+    {
+      "name": "access_frontier_reach_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          192
+        ],
+        [
+          5,
+          192
+        ]
+      ]
+    },
+    {
+      "name": "access_midway_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          300
+        ],
+        [
+          5,
+          300
+        ]
+      ]
+    },
+    {
+      "name": "access_prism_reach_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          407
+        ],
+        [
+          5,
+          407
+        ]
+      ]
+    },
+    {
+      "name": "access_prismworks_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          515
+        ],
+        [
+          5,
+          515
+        ]
+      ]
+    },
+    {
+      "name": "railway_arcade",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          172,
+          2
+        ],
+        [
+          172,
+          597
+        ]
+      ]
+    },
+    {
+      "name": "railway_service",
+      "kind": "service",
+      "width": 2,
+      "points": [
+        [
+          184,
+          2
+        ],
+        [
+          184,
+          597
+        ]
+      ]
+    },
+    {
+      "name": "railway_approach_96",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          96
+        ],
+        [
+          172,
+          96
+        ]
+      ]
+    },
+    {
+      "name": "railway_approach_260",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          260
+        ],
+        [
+          172,
+          260
+        ]
+      ]
+    },
+    {
+      "name": "railway_approach_524",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          12,
+          524
+        ],
+        [
+          172,
+          524
+        ]
+      ]
+    }
+  ],
+  "view_corridors": [],
+  "modules": [
+    {
+      "name": "Frontier Line",
+      "plot": "line_frontier",
+      "generator": "parkrail",
+      "role": "path",
+      "footprint": [
+        15,
+        170
+      ],
+      "at": [
+        172,
+        0
+      ],
+      "access_points": [
+        [
+          172,
+          96
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 16000
+      },
+      "scenarios": [
+        "public_visit",
+        "queue_board_exit",
+        "occupied_platform",
+        "restart",
+        "staff_recovery"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "bounds": [
+          172,
+          0,
+          186,
+          599
+        ],
+        "lands": [
+          {
+            "name": "frontier",
+            "u0": 0,
+            "u1": 169
+          },
+          {
+            "name": "midway",
+            "u0": 215,
+            "u1": 384
+          },
+          {
+            "name": "prismworks",
+            "u0": 430,
+            "u1": 599
+          }
+        ],
+        "park_side": -1,
+        "deck_y": 12,
+        "ground_y": 1,
+        "bay": 15,
+        "pier_u": 3,
+        "spring_y": 4,
+        "crown_gap": 2,
+        "gate_k": 5,
+        "gate_h": 4,
+        "portal_every": 4,
+        "power_every": 8,
+        "light_every": 12,
+        "arch_light_every": 2,
+        "bay_half": 0,
+        "track_inset": 3,
+        "station_half": 13,
+        "stair_w": 3,
+        "head_half": 5,
+        "head_v": 8,
+        "canopy_h": 5,
+        "band_blend": 30,
+        "stations": [
+          {
+            "at_u": 77,
+            "land": "frontier",
+            "title": "FRONTIER HALT",
+            "stair": 1,
+            "board": [
+              "FRONTIER HALT",
+              "> MIDWAY 279",
+              "> PRISMWORKS 505",
+              "PRESS TO DEPART"
+            ]
+          },
+          {
+            "at_u": 279,
+            "land": "midway",
+            "title": "MIDWAY CENTRAL",
+            "stair": -1,
+            "board": [
+              "MIDWAY CENTRAL",
+              "< FRONTIER 77",
+              "> PRISMWORKS 505",
+              "PRESS TO DEPART"
+            ]
+          },
+          {
+            "at_u": 505,
+            "land": "prismworks",
+            "title": "PRISMWORKS END",
+            "stair": 1,
+            "board": [
+              "PRISMWORKS END",
+              "< MIDWAY 279",
+              "< FRONTIER 77",
+              "PRESS TO DEPART"
+            ]
+          }
+        ],
+        "seed": 0,
+        "renewal": true,
+        "crop_u": [
+          0,
+          169
+        ]
+      },
+      "anchors": [
+        {
+          "name": "public_entry",
+          "kind": "entrance",
+          "pos": [
+            0,
+            2,
+            20
+          ]
+        },
+        {
+          "name": "return",
+          "kind": "exit",
+          "pos": [
+            7,
+            13,
+            21
+          ]
+        },
+        {
+          "name": "maintenance",
+          "kind": "service",
+          "pos": [
+            10,
+            1,
+            22
+          ]
+        }
+      ],
+      "purpose": "Free park transport and elevated promenade",
+      "return_route": "railway_arcade",
+      "service_access": "railway_service",
+      "live_gates": [
+        "minecart stopping/restart",
+        "close-following carts",
+        "chunk reload",
+        "operator recovery"
+      ]
+    },
+    {
+      "name": "Frontier Reach Line",
+      "plot": "line_frontier_reach",
+      "generator": "parkrail",
+      "role": "path",
+      "footprint": [
+        15,
+        45
+      ],
+      "at": [
+        172,
+        170
+      ],
+      "access_points": [
+        [
+          172,
+          192
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 4500
+      },
+      "scenarios": [
+        "public_visit",
+        "queue_board_exit",
+        "occupied_platform",
+        "restart",
+        "staff_recovery"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "bounds": [
+          172,
+          0,
+          186,
+          599
+        ],
+        "lands": [
+          {
+            "name": "frontier",
+            "u0": 0,
+            "u1": 169
+          },
+          {
+            "name": "midway",
+            "u0": 215,
+            "u1": 384
+          },
+          {
+            "name": "prismworks",
+            "u0": 430,
+            "u1": 599
+          }
+        ],
+        "park_side": -1,
+        "deck_y": 12,
+        "ground_y": 1,
+        "bay": 15,
+        "pier_u": 3,
+        "spring_y": 4,
+        "crown_gap": 2,
+        "gate_k": 5,
+        "gate_h": 4,
+        "portal_every": 4,
+        "power_every": 8,
+        "light_every": 12,
+        "arch_light_every": 2,
+        "bay_half": 0,
+        "track_inset": 3,
+        "station_half": 13,
+        "stair_w": 3,
+        "head_half": 5,
+        "head_v": 8,
+        "canopy_h": 5,
+        "band_blend": 30,
+        "stations": [
+          {
+            "at_u": 77,
+            "land": "frontier",
+            "title": "FRONTIER HALT",
+            "stair": 1,
+            "board": [
+              "FRONTIER HALT",
+              "> MIDWAY 279",
+              "> PRISMWORKS 505",
+              "PRESS TO DEPART"
+            ]
+          },
+          {
+            "at_u": 279,
+            "land": "midway",
+            "title": "MIDWAY CENTRAL",
+            "stair": -1,
+            "board": [
+              "MIDWAY CENTRAL",
+              "< FRONTIER 77",
+              "> PRISMWORKS 505",
+              "PRESS TO DEPART"
+            ]
+          },
+          {
+            "at_u": 505,
+            "land": "prismworks",
+            "title": "PRISMWORKS END",
+            "stair": 1,
+            "board": [
+              "PRISMWORKS END",
+              "< MIDWAY 279",
+              "< FRONTIER 77",
+              "PRESS TO DEPART"
+            ]
+          }
+        ],
+        "seed": 0,
+        "renewal": true,
+        "crop_u": [
+          170,
+          214
+        ]
+      },
+      "anchors": [
+        {
+          "name": "public_entry",
+          "kind": "entrance",
+          "pos": [
+            0,
+            2,
+            20
+          ]
+        },
+        {
+          "name": "return",
+          "kind": "exit",
+          "pos": [
+            7,
+            13,
+            21
+          ]
+        },
+        {
+          "name": "maintenance",
+          "kind": "service",
+          "pos": [
+            10,
+            1,
+            22
+          ]
+        }
+      ],
+      "purpose": "Free park transport and elevated promenade",
+      "return_route": "railway_arcade",
+      "service_access": "railway_service",
+      "live_gates": [
+        "minecart stopping/restart",
+        "close-following carts",
+        "chunk reload",
+        "operator recovery"
+      ]
+    },
+    {
+      "name": "Midway Line",
+      "plot": "line_midway",
+      "generator": "parkrail",
+      "role": "path",
+      "footprint": [
+        15,
+        170
+      ],
+      "at": [
+        172,
+        215
+      ],
+      "access_points": [
+        [
+          172,
+          260
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 16000
+      },
+      "scenarios": [
+        "public_visit",
+        "queue_board_exit",
+        "occupied_platform",
+        "restart",
+        "staff_recovery"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway",
+      "params": {
+        "bounds": [
+          172,
+          0,
+          186,
+          599
+        ],
+        "lands": [
+          {
+            "name": "frontier",
+            "u0": 0,
+            "u1": 169
+          },
+          {
+            "name": "midway",
+            "u0": 215,
+            "u1": 384
+          },
+          {
+            "name": "prismworks",
+            "u0": 430,
+            "u1": 599
+          }
+        ],
+        "park_side": -1,
+        "deck_y": 12,
+        "ground_y": 1,
+        "bay": 15,
+        "pier_u": 3,
+        "spring_y": 4,
+        "crown_gap": 2,
+        "gate_k": 5,
+        "gate_h": 4,
+        "portal_every": 4,
+        "power_every": 8,
+        "light_every": 12,
+        "arch_light_every": 2,
+        "bay_half": 0,
+        "track_inset": 3,
+        "station_half": 13,
+        "stair_w": 3,
+        "head_half": 5,
+        "head_v": 8,
+        "canopy_h": 5,
+        "band_blend": 30,
+        "stations": [
+          {
+            "at_u": 77,
+            "land": "frontier",
+            "title": "FRONTIER HALT",
+            "stair": 1,
+            "board": [
+              "FRONTIER HALT",
+              "> MIDWAY 279",
+              "> PRISMWORKS 505",
+              "PRESS TO DEPART"
+            ]
+          },
+          {
+            "at_u": 279,
+            "land": "midway",
+            "title": "MIDWAY CENTRAL",
+            "stair": -1,
+            "board": [
+              "MIDWAY CENTRAL",
+              "< FRONTIER 77",
+              "> PRISMWORKS 505",
+              "PRESS TO DEPART"
+            ]
+          },
+          {
+            "at_u": 505,
+            "land": "prismworks",
+            "title": "PRISMWORKS END",
+            "stair": 1,
+            "board": [
+              "PRISMWORKS END",
+              "< MIDWAY 279",
+              "< FRONTIER 77",
+              "PRESS TO DEPART"
+            ]
+          }
+        ],
+        "seed": 0,
+        "renewal": true,
+        "crop_u": [
+          215,
+          384
+        ]
+      },
+      "anchors": [
+        {
+          "name": "public_entry",
+          "kind": "entrance",
+          "pos": [
+            0,
+            2,
+            20
+          ]
+        },
+        {
+          "name": "return",
+          "kind": "exit",
+          "pos": [
+            7,
+            13,
+            21
+          ]
+        },
+        {
+          "name": "maintenance",
+          "kind": "service",
+          "pos": [
+            10,
+            1,
+            22
+          ]
+        }
+      ],
+      "purpose": "Free park transport and elevated promenade",
+      "return_route": "railway_arcade",
+      "service_access": "railway_service",
+      "live_gates": [
+        "minecart stopping/restart",
+        "close-following carts",
+        "chunk reload",
+        "operator recovery"
+      ]
+    },
+    {
+      "name": "Prism Reach Line",
+      "plot": "line_prism_reach",
+      "generator": "parkrail",
+      "role": "path",
+      "footprint": [
+        15,
+        45
+      ],
+      "at": [
+        172,
+        385
+      ],
+      "access_points": [
+        [
+          172,
+          407
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 4500
+      },
+      "scenarios": [
+        "public_visit",
+        "queue_board_exit",
+        "occupied_platform",
+        "restart",
+        "staff_recovery"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "bounds": [
+          172,
+          0,
+          186,
+          599
+        ],
+        "lands": [
+          {
+            "name": "frontier",
+            "u0": 0,
+            "u1": 169
+          },
+          {
+            "name": "midway",
+            "u0": 215,
+            "u1": 384
+          },
+          {
+            "name": "prismworks",
+            "u0": 430,
+            "u1": 599
+          }
+        ],
+        "park_side": -1,
+        "deck_y": 12,
+        "ground_y": 1,
+        "bay": 15,
+        "pier_u": 3,
+        "spring_y": 4,
+        "crown_gap": 2,
+        "gate_k": 5,
+        "gate_h": 4,
+        "portal_every": 4,
+        "power_every": 8,
+        "light_every": 12,
+        "arch_light_every": 2,
+        "bay_half": 0,
+        "track_inset": 3,
+        "station_half": 13,
+        "stair_w": 3,
+        "head_half": 5,
+        "head_v": 8,
+        "canopy_h": 5,
+        "band_blend": 30,
+        "stations": [
+          {
+            "at_u": 77,
+            "land": "frontier",
+            "title": "FRONTIER HALT",
+            "stair": 1,
+            "board": [
+              "FRONTIER HALT",
+              "> MIDWAY 279",
+              "> PRISMWORKS 505",
+              "PRESS TO DEPART"
+            ]
+          },
+          {
+            "at_u": 279,
+            "land": "midway",
+            "title": "MIDWAY CENTRAL",
+            "stair": -1,
+            "board": [
+              "MIDWAY CENTRAL",
+              "< FRONTIER 77",
+              "> PRISMWORKS 505",
+              "PRESS TO DEPART"
+            ]
+          },
+          {
+            "at_u": 505,
+            "land": "prismworks",
+            "title": "PRISMWORKS END",
+            "stair": 1,
+            "board": [
+              "PRISMWORKS END",
+              "< MIDWAY 279",
+              "< FRONTIER 77",
+              "PRESS TO DEPART"
+            ]
+          }
+        ],
+        "seed": 0,
+        "renewal": true,
+        "crop_u": [
+          385,
+          429
+        ]
+      },
+      "anchors": [
+        {
+          "name": "public_entry",
+          "kind": "entrance",
+          "pos": [
+            0,
+            2,
+            20
+          ]
+        },
+        {
+          "name": "return",
+          "kind": "exit",
+          "pos": [
+            7,
+            13,
+            21
+          ]
+        },
+        {
+          "name": "maintenance",
+          "kind": "service",
+          "pos": [
+            10,
+            1,
+            22
+          ]
+        }
+      ],
+      "purpose": "Free park transport and elevated promenade",
+      "return_route": "railway_arcade",
+      "service_access": "railway_service",
+      "live_gates": [
+        "minecart stopping/restart",
+        "close-following carts",
+        "chunk reload",
+        "operator recovery"
+      ]
+    },
+    {
+      "name": "Prismworks Line",
+      "plot": "line_prismworks",
+      "generator": "parkrail",
+      "role": "path",
+      "footprint": [
+        15,
+        170
+      ],
+      "at": [
+        172,
+        430
+      ],
+      "access_points": [
+        [
+          172,
+          524
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 16000
+      },
+      "scenarios": [
+        "public_visit",
+        "queue_board_exit",
+        "occupied_platform",
+        "restart",
+        "staff_recovery"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "bounds": [
+          172,
+          0,
+          186,
+          599
+        ],
+        "lands": [
+          {
+            "name": "frontier",
+            "u0": 0,
+            "u1": 169
+          },
+          {
+            "name": "midway",
+            "u0": 215,
+            "u1": 384
+          },
+          {
+            "name": "prismworks",
+            "u0": 430,
+            "u1": 599
+          }
+        ],
+        "park_side": -1,
+        "deck_y": 12,
+        "ground_y": 1,
+        "bay": 15,
+        "pier_u": 3,
+        "spring_y": 4,
+        "crown_gap": 2,
+        "gate_k": 5,
+        "gate_h": 4,
+        "portal_every": 4,
+        "power_every": 8,
+        "light_every": 12,
+        "arch_light_every": 2,
+        "bay_half": 0,
+        "track_inset": 3,
+        "station_half": 13,
+        "stair_w": 3,
+        "head_half": 5,
+        "head_v": 8,
+        "canopy_h": 5,
+        "band_blend": 30,
+        "stations": [
+          {
+            "at_u": 77,
+            "land": "frontier",
+            "title": "FRONTIER HALT",
+            "stair": 1,
+            "board": [
+              "FRONTIER HALT",
+              "> MIDWAY 279",
+              "> PRISMWORKS 505",
+              "PRESS TO DEPART"
+            ]
+          },
+          {
+            "at_u": 279,
+            "land": "midway",
+            "title": "MIDWAY CENTRAL",
+            "stair": -1,
+            "board": [
+              "MIDWAY CENTRAL",
+              "< FRONTIER 77",
+              "> PRISMWORKS 505",
+              "PRESS TO DEPART"
+            ]
+          },
+          {
+            "at_u": 505,
+            "land": "prismworks",
+            "title": "PRISMWORKS END",
+            "stair": 1,
+            "board": [
+              "PRISMWORKS END",
+              "< MIDWAY 279",
+              "< FRONTIER 77",
+              "PRESS TO DEPART"
+            ]
+          }
+        ],
+        "seed": 0,
+        "renewal": true,
+        "crop_u": [
+          430,
+          599
+        ]
+      },
+      "anchors": [
+        {
+          "name": "public_entry",
+          "kind": "entrance",
+          "pos": [
+            0,
+            2,
+            20
+          ]
+        },
+        {
+          "name": "return",
+          "kind": "exit",
+          "pos": [
+            7,
+            13,
+            21
+          ]
+        },
+        {
+          "name": "maintenance",
+          "kind": "service",
+          "pos": [
+            10,
+            1,
+            22
+          ]
+        }
+      ],
+      "purpose": "Free park transport and elevated promenade",
+      "return_route": "railway_arcade",
+      "service_access": "railway_service",
+      "live_gates": [
+        "minecart stopping/restart",
+        "close-following carts",
+        "chunk reload",
+        "operator recovery"
+      ]
+    }
+  ],
+  "build_notes": {
+    "coordinate_mapping": "local x is plan V depth; local z is plan U length",
+    "anchor_status": "provisional; rebase against current capture before paste",
+    "target_block_budget": 275000,
+    "budget_policy": "78-86% cheap structure/detail; 10-16% okay accents; 2-5% declared functional expensive; no decorative terracotta/concrete/quartz/glass bulk",
+    "visual_spec": "PARK_VISUAL_AND_BUDGET_SPEC.md",
+    "gated_systems": [
+      "runtime minecart/projectile policy",
+      "grass-payment adapter acceptance",
+      "Prism Ascent live physics",
+      "Vault and Wyrm state machines"
+    ],
+    "module_count": 24,
+    "reserve_blocks": 11000,
+    "budget_note": "265,000 was the visual spec's programme. The transit railway is five segments the spec never costed - Jack: 'our transportation railway which made sense is completely gone' - so the target carries them rather than a reserve meant for review-led detail paying for them."
+  }
+}

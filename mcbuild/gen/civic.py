@@ -1771,6 +1771,20 @@ def _cascade(w: World, p: dict, ctx) -> dict:
         w.put(*f.at(ci + di, cd + dd, 1), pal["wall"])
         w.put(*f.at(ci + di, cd + dd, 2), pal["wall"])
 
+    # ---- h=0  A STEPPED SURROUND, and it is the only stair course in the piece. `tools/corpus.py`
+    # measures this project placing stairs at 0.64 per thousand cells against outside builders'
+    # 4.51, and a fountain of this size with a vertical kerb and nothing else is exactly that gap.
+    # It also does a job: it is the step you go up to reach the coping. Radial, so the tall side of
+    # every tread faces the basin - the convention `test_stairhead` pins, and our renderer draws
+    # both directions identically.
+    steps = 0
+    for (di, dd) in _annulus(R_KERB + 1, _disc):
+        if (di, dd) in cause or (di, dd) in rail:
+            continue
+        _stair(w, f, ci + di, cd + dd, 0, pal["stair"],
+               _BACK[_face_out_radial(f, di, dd)])
+        steps += 1
+
     # ---- h=1..PIER_TOP  the arcade: eight piers, eight bays open the whole way up. The bays carry
     # no lintel on purpose - a lintel is a shelf, and the waterfall that comes through a bay would
     # land on it instead of reaching the moat.
@@ -1938,7 +1952,7 @@ def _cascade(w: World, p: dict, ctx) -> dict:
 
     return {"kind": "cascade", "piers": len(piers), "bays": len(RAYS), "falls": len(notches),
             "water": m["water"], "notes": notes, "chime_notes": list(CHIME_NOTES),
-            "lamps": m["lamps"], "froglight": lit, "pad": m["pad"], "arms": arms,
+            "lamps": m["lamps"], "froglight": lit, "steps": steps, "pad": m["pad"], "arms": arms,
             "height": top + 8, "radius": R_PAD,
             "signs": say.want, "signs_placed": say.got,
             "unverified": [

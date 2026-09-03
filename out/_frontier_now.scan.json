@@ -1,0 +1,16 @@
+{
+  "kind": "probe",
+  "name": "Frontier Now",
+  "facing": "west",
+  "origin": {
+    "x": 97500,
+    "y": 190,
+    "z": 80300
+  },
+  "size": {
+    "x": 200,
+    "y": 220,
+    "z": 172
+  },
+  "file": "_frontier_now.litematic"
+}

@@ -1593,9 +1593,197 @@ def _welcome_court(L, p) -> dict:
     return m
 
 
+#: THE MIDWAY'S OWN STALLS, and what each one sells. A row of eight identical booths is a
+#: barracks; eight of the same SHAPE carrying eight different trades is a midway.
+STALLS = (
+    ("HOOK A DUCK", ("every one", "a winner")),
+    ("HOT DOGS", ("mustard", "and onions")),
+    ("COCONUT SHY", ("three balls", "a go")),
+    ("CANDY FLOSS", ("spun while", "you wait")),
+    ("TIN CAN ALLEY", ("knock them", "all down")),
+    ("TOFFEE APPLES", ("and brandy", "snaps")),
+    ("RING TOSS", ("over the peg", "to win")),
+    ("LEMONADE", ("cold, by", "the jug")),
+)
+
+
+def _stall(L, v0, v1, u_front, deep, nu, seed, title, lines, m) -> dict:
+    """ONE OPEN-FRONTED BOOTH, facing the avenue across its own counter.
+
+    `nu` is the direction it LOOKS - the front is at `u_front` and the booth runs `deep` cells
+    away from it. It is open rather than walled because a stall you cannot see into is a shed:
+    what a midway is made of is a counter, a striped awning over it, a lit board above that, and
+    the prizes on the back wall showing between the posts.
+    """
+    made = {"cells": 0}
+    back = u_front + nu * deep
+    mid = (v0 + v1) // 2
+    for v in range(v0, v1 + 1):                    # the back wall, and the shelf of prizes on it
+        for y in range(1, 6):
+            L.put(v, y, back, _field(seed, v, y, back) if y < 5 else PAL["frame"])
+        L.put(v, 1, back - nu, PAL["board"])
+        for y in (2, 4):
+            L.put(v, y, back - nu, PAL["shelf"], type="bottom", waterlogged="false")
+    for v in range(v0, v1 + 1, 2):
+        L.put(v, 3, back - nu, "barrel", facing=_dir(0, -nu), open="false")
+    for v in (v0, v1):                             # the two flank walls, one cell in from the ends
+        for u in range(min(u_front, back), max(u_front, back) + 1):
+            for y in range(1, 6):
+                L.put(v, y, u, _field(seed, v, y, u) if y < 5 else PAL["frame"])
+    for v in range(v0 + 1, v1):                    # the floor, and the counter across the front
+        for u in range(min(u_front, back) + 1, max(u_front, back)):
+            L.put(v, 0, u, PAL["floor2"])
+        L.put(v, 0, u_front, PAL["inlay"])
+        L.put(v, 1, u_front, PAL["counter"], type="top", waterlogged="false")
+    for v in range(v0, v1 + 1):                    # the head, the striped awning and its valance
+        L.put(v, 5, u_front, PAL["course"])
+        L.put(v, 6, u_front - nu, PAL["band"] if (v // 2) % 2 else PAL["frame"])
+        L.put(v, 6, u_front, PAL["band"] if (v // 2) % 2 else PAL["frame"])
+        _valance(L, v, 5, u_front - nu, 0, -nu)
+    for v in range(v0, v1 + 1):                    # the roof over the booth itself
+        for u in range(min(u_front, back), max(u_front, back) + 1):
+            st, cp = _canvas_mat(CANVAS, v)
+            L.put(v, 6, u, PAL[cp], type="bottom", waterlogged="false")
+    made["signs"] = bool(L.sign(mid, 4, u_front - nu, 0, -nu, [title, "", *lines]))
+    m["signs"] += int(made["signs"])
+    m["lamps"] += bool(_lamp(L, v0 + 1, 5, u_front - nu))
+    m["lamps"] += bool(_lamp(L, v1 - 1, 5, u_front - nu))
+    for v in (v0 + 1, v1 - 1):                     # a froglight in the counter, so it is lit at
+        L.put(v, 0, u_front, PAL["glow"])          # night without a lamp in the walkway
+    m["stalls"] = m.get("stalls", 0) + 1
+    return made
+
+
+def _midway_row(L, p) -> dict:
+    """THE MIDWAY ITSELF: the strip of stalls between the Welcome Court and the wheel.
+
+        V80-120 x U266-336, axis U300 - forty-one deep by seventy-one wide
+
+    Jack: *"lots of empty space still between the court now and the ferris wheel, we need to fill
+    that gap somehow."* Measured off the shipped park the hole was **3,180 columns of bare lawn**,
+    forty-three deep by seventy-four wide, and it exists because the water feature that filled it
+    was withdrawn when he asked for one fountain in the Midway rather than two.
+
+    **THE LAND IS CALLED THE MIDWAY AND IT HAD NO MIDWAY.** A midway is not a garden or a plaza -
+    it is the strip of stalls and sideshows you walk BETWEEN on the way from one ride to the next,
+    and this park had counters at its edges and nothing at all on its own centre line. It is also
+    the one answer to this gap that is neither water nor more lawn, which is what the last two
+    passes ruled out between them.
+
+        the avenue     U294-306, V80-120 - the Welcome Court's own walk, carried to the promenade
+        eight stalls   four a side, facing each other across it, each with its own trade
+        two terraces   U270-282 and U318-330 behind the rows: trees, seats and tables
+        the bunting    strung across the avenue at every gap between stalls
+
+    **THE AVENUE IS THE COURT'S WALK AND THE SAME WIDTH**, so a visitor who has come through the
+    gate, the court and the fountain keeps walking down one line to the wheel. The stalls flank it
+    and none of them stands in it: the vista from the gate ends at the wheel's own hub.
+
+    **THE SKY LIFT'S QUEUE OWNS V109-120 x U269-279** and this design does not touch it - it is
+    read from `blocked`, so wanting one of its cells raises here rather than shipping as an
+    overlap nobody can see, and so a generator cannot go on reserving ground after the thing that
+    needed it has moved.
+    """
+    seed = int(p["seed"])
+    v0, u0, v1, u1 = (int(q) for q in p["lot"])
+    axis = (u0 + u1) // 2                          # U300 - the line the whole park is built on
+    half = 6                                       # the avenue is thirteen wide, as the court is
+    m = {"signs": 0, "lamps": 0, "benches": 0, "trees": 0, "floor": 0, "bunting": 0,
+         "stalls": 0, "axis": axis}
+
+    keep_out = {(v, u)
+                for bv0, _by0, bu0, bv1, _by1, bu1 in (p.get("blocked") or ())
+                for v in range(int(bv0), int(bv1) + 1)
+                for u in range(int(bu0), int(bu1) + 1)}
+
+    deep = 10                                      # a stall is ten deep behind its counter
+    fronts = (axis - half - 1, axis + half + 1)    # U293 and U307
+    terrace = (u0 + 4, u0 + 16, u1 - 16, u1 - 4)
+
+    # -- 1. the ground ---------------------------------------------------------------------------
+    for v in range(v0, v1 + 1):
+        for u in range(u0, u1 + 1):
+            if (v, u) in keep_out:
+                continue
+            if v in (v0, v1) and abs(u - axis) <= half:
+                m["floor"] += bool(L.put(v, 0, u, PAL["trim"],
+                                         facing="east" if v == v0 else "west",
+                                         half="bottom", shape="straight", waterlogged="false"))
+                continue
+            if v in (v0, v1) or u in (u0, u1) or abs(u - axis) == half:
+                mat = PAL["inlay"]
+            elif abs(u - axis) < half:
+                # THE AVENUE, and its rungs are the court's own so the two read as one walk.
+                mat = PAL["field"] if (v - v0) % 6 == 0 else (
+                    PAL["floor"] if (v + u) % 4 == 0 else PAL["floor2"])
+            elif terrace[0] <= u <= terrace[1] or terrace[2] <= u <= terrace[3]:
+                mat = PAL["lawn"]
+            else:
+                mat = PAL["floor"] if (v + u) % 4 == 0 else PAL["floor2"]
+            m["floor"] += bool(L.put(v, 0, u, mat))
+
+    # -- 2. the eight stalls ---------------------------------------------------------------------
+    # FOUR A SIDE ON ONE RHYTHM, and the gap between them is what the bunting is strung across.
+    # A continuous terrace of stalls is a wall; four with three gaps is a street.
+    # PITCH IS WIDTH PLUS THE GAP, and at nine-and-eight there IS no gap: stall k ended at a+8
+    # and stall k+1 began at a+9, so four booths a side came out as one continuous terrace - and
+    # the three bunting swags, strung at what the arithmetic called the gap, landed on the roof of
+    # the next stall along. A row of shops with no space between them is a wall; the space is
+    # what makes it a street, and it is where the bunting hangs.
+    pitch, wide = 10, 7
+    for k in range(4):
+        a = v0 + 2 + k * pitch
+        for side, u_front in ((-1, fronts[0]), (1, fronts[1])):
+            title, lines = STALLS[k * 2 + (0 if side < 0 else 1)]
+            if any((v, u) in keep_out
+                   for v in range(a, a + wide + 1)
+                   for u in range(min(u_front, u_front + side * deep),
+                                  max(u_front, u_front + side * deep) + 1)):
+                continue                           # somebody else's ground: leave it alone
+            _stall(L, a, a + wide, u_front, deep, side, seed, title, lines, m)
+    # ...AND BUNTING IN EVERY GAP, ON ITS OWN PAIR OF POSTS. Strung between the stalls it had
+    # nothing to hang from - the gap is exactly where there is no awning - and three swags shipped
+    # as three free-floating thirteen-cell components. A line needs two ends.
+    for k in range(3):
+        v = v0 + 2 + k * pitch + wide + 1
+        for u in fronts:
+            for y in range(1, 6):
+                L.put(v, y, u, PAL["post"], north="false", south="false", east="false",
+                      west="false", waterlogged="false")
+            L.put(v, 6, u, PAL["frame"])
+        _swag(L, v, fronts[0], fronts[1], 6, m)
+
+    # -- 3. the two terraces behind the rows -----------------------------------------------------
+    # WHERE YOU EAT WHAT YOU BOUGHT. A row of food counters with nowhere to stand is the mistake
+    # the Snack Window already had to fix; this is the same answer at the scale of eight of them.
+    for lo, hi in ((terrace[0], terrace[1]), (terrace[2], terrace[3])):
+        cu = (lo + hi) // 2
+        for k in range(4):
+            v = v0 + 5 + k * pitch
+            # THE GUARD COVERS THE WHOLE GROUP, not the tree it is written next to. Checked at
+            # the tree's own four corners it passed and the two BENCHES three courses behind it
+            # landed in the queue's ground - four cells, and the only reason they were caught is
+            # that `blocked` raises rather than dropping them.
+            if any((v + dv, cu + du) in keep_out
+                   for dv in range(-3, 5) for du in range(-4, 5)):
+                continue
+            _tree(L, v, cu, m)
+            _bench(L, v + 3, cu - 3, 0, 1, 2, m)
+            _bench(L, v + 3, cu + 3, 0, -1, 2, m)
+        for v in range(v0 + 2, v1 - 1, 12):
+            _standard(L, v, lo - 2, m)
+
+    # -- 4. the avenue's own furniture ------------------------------------------------------------
+    for v in range(v0 + 4, v1 - 2, 12):
+        for u in (axis - half + 1, axis + half - 1):
+            _standard(L, v, u, m)
+    return m
+
+
 _KINDS = {
     "arrival_court": (_arrival_court, "PF Arrival Court"),
     "welcome_court": (_welcome_court, "PF Welcome Court"),
+    "midway_row": (_midway_row, "PF Midway Row"),
     "snack_window": (_snack_window, "PF Snack Window"),
     "skill_arcade": (_skill_arcade, "PF Skill Arcade"),
     "prize_point": (_prize_point, "PF Prize Point"),

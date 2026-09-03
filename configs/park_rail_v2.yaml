@@ -1,0 +1,107 @@
+name: Park Rail Renewal
+gen: parkrail
+params:
+  bounds:
+  - 172
+  - 0
+  - 186
+  - 599
+  lands:
+  - name: frontier
+    u0: 0
+    u1: 169
+  - name: midway
+    u0: 215
+    u1: 384
+  - name: prismworks
+    u0: 430
+    u1: 599
+  park_side: -1
+  deck_y: 12
+  ground_y: 1
+  bay: 15
+  pier_u: 3
+  spring_y: 4
+  crown_gap: 2
+  gate_k: 5
+  gate_h: 4
+  portal_every: 4
+  power_every: 8
+  light_every: 12
+  arch_light_every: 2
+  bay_half: 0
+  track_inset: 3
+  station_half: 13
+  stair_w: 3
+  head_half: 5
+  head_v: 8
+  canopy_h: 5
+  band_blend: 30
+  stations:
+  - at_u: 77
+    land: frontier
+    title: FRONTIER HALT
+    stair: 1
+    board:
+    - FRONTIER HALT
+    - '> MIDWAY 279'
+    - '> PRISMWORKS 505'
+    - PRESS TO DEPART
+  - at_u: 279
+    land: midway
+    title: MIDWAY CENTRAL
+    stair: -1
+    board:
+    - MIDWAY CENTRAL
+    - < FRONTIER 77
+    - '> PRISMWORKS 505'
+    - PRESS TO DEPART
+  - at_u: 505
+    land: prismworks
+    title: PRISMWORKS END
+    stair: 1
+    board:
+    - PRISMWORKS END
+    - < MIDWAY 279
+    - < FRONTIER 77
+    - PRESS TO DEPART
+  seed: 0
+  renewal: true
+roles:
+- ride
+- path
+- bridge
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: midway
+  narrative: Three distinct free stations on a two-track rim railway with independent
+    exit stairs, sloped dispatch and approach holding.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+origin_lock: false
+server_profile: skyblock-1.19
+world_contract: true
+cache_dir: out/railway_v2/cache
+anchors:
+- name: public_entry
+  kind: entrance
+  pos:
+  - 0
+  - 2
+  - 260
+- name: return
+  kind: exit
+  pos:
+  - 7
+  - 2
+  - 306
+- name: maintenance
+  kind: service
+  pos:
+  - 10
+  - 1
+  - 256

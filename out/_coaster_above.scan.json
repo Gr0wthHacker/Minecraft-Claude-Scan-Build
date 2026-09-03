@@ -1,0 +1,16 @@
+{
+  "kind": "probe",
+  "name": "Coaster Above",
+  "facing": "west",
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80399
+  },
+  "size": {
+    "x": 101,
+    "y": 43,
+    "z": 61
+  },
+  "file": "_coaster_above.litematic"
+}

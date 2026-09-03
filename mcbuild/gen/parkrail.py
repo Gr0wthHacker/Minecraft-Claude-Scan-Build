@@ -368,6 +368,13 @@ def plan(params: dict) -> list:
     for x in range(xb - 1, xa, -1):
         cells.append((x, y, lo, False))
     cells.append((xa, y, lo, True))
+    if p.get("renewal"):
+        raised = set()
+        for station in p['stations']:
+            for x, direction in ((sec['track_a']-v0, 1), (sec['track_b']-v0, -1)):
+                for at in (station['at_u'], station['at_u']-direction*40):
+                    raised.add((x, at-u0-direction))
+        cells = [(x, yy+int((x,z) in raised), z, corner) for x,yy,z,corner in cells]
     return cells
 
 
@@ -753,7 +760,14 @@ def build(cfg: dict, donors=None) -> Canvas:
             if j is None:
                 raise ValueError(f"station {s['title']} has no room for its approach detector")
             bays.append(i)
+            if p.get("renewal"):
+                hold = index.get((tv-v0, zc-adir*40))
+                if hold is None:
+                    raise ValueError('station has no room for approach holding block')
+                bays.append(hold)
             detectors.append(j)
+            if p.get("renewal"):
+                detectors.append(index[(tv-v0, zc+adir*10)])
             bay_meta.append({"title": s["title"], "track": "a" if tv == track_a else "b",
                              "at_u": s["at_u"], "detector_u": cells[j][2] + u0})
 
@@ -869,6 +883,18 @@ def build(cfg: dict, donors=None) -> Canvas:
                     "rail and a bell at each bay's approach - and not one cell outside V%d-%d"
                     % (v0, v1),
     }
+    if p.get("renewal"):
+        from .parkrail_v2 import enhance
+        c = enhance(c, p)
+    if p.get("crop_u"):
+        lo, hi = map(int, p["crop_u"])
+        if not u0 <= lo <= hi <= u1:
+            raise ValueError("rail crop must stay inside the planned circuit")
+        c.ids = c.ids[:, lo-u0:hi-u0+1, :].copy()
+        c.sz = hi-lo+1
+        c.tiles = {(x, y, z-lo+u0): tile for (x, y, z), tile in c.tiles.items()
+                   if lo-u0 <= z <= hi-u0}
+        c.meta["crop_u"] = [lo, hi]
     return c
 
 

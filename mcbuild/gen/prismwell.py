@@ -699,5 +699,68 @@ def build_rig(cfg: dict, donors=None) -> Canvas:
             w.put(ax, y + hang, az, p["beam"])
             feats["post"] += 1
 
+    # ------------------------------------------------------------ STITCH WHAT THE BARS BROKE
+    # BARRING IS RIGHT AND IT CUTS THE LINE. Where the helix passes over itself - twice, at about
+    # a turn apart - the beam for the lower pass lands inside the headroom of the upper one, so
+    # those cells are correctly refused and the beam comes apart into fragments. A gantry in
+    # pieces is the confetti this design exists to fix, so the answer is to go AROUND rather than
+    # to stop barring: a breadth-first walk through unbarred air from each loose fragment back to
+    # the main body, laying beam as it goes.
+    def components():
+        cells = set(w.cells)
+        out, seen = [], set()
+        for c0 in cells:
+            if c0 in seen:
+                continue
+            stack, comp = [c0], []
+            seen.add(c0)
+            while stack:
+                x, y, z = stack.pop()
+                comp.append((x, y, z))
+                for d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+                    q = (x + d[0], y + d[1], z + d[2])
+                    if q in cells and q not in seen:
+                        seen.add(q)
+                        stack.append(q)
+            out.append(comp)
+        return sorted(out, key=len, reverse=True)
+
+    comps = components()
+    for _ in range(8):
+        if len(comps) <= 1:
+            break
+        main = set(comps[0])
+        joined = False
+        for frag in comps[1:]:
+            start = frag[0]
+            prevs, queue, seen = {start: None}, [start], {start}
+            hit = None
+            for _step in range(4000):
+                if not queue:
+                    break
+                cur = queue.pop(0)
+                if cur in main:
+                    hit = cur
+                    break
+                for d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+                    q = (cur[0] + d[0], cur[1] + d[1], cur[2] + d[2])
+                    if q in seen or q in barred:
+                        continue
+                    seen.add(q)
+                    prevs[q] = cur
+                    queue.append(q)
+            if hit is None:
+                continue
+            node = hit
+            while node is not None:
+                if not w.has(*node):
+                    w.put(node[0], node[1], node[2], p["beam_alt"])
+                    feats["beam"] += 1
+                node = prevs[node]
+            joined = True
+        if not joined:
+            break
+        comps = components()
+
     return w.canvas({"kind": "prismrig", "profile_view": "top", "facing": [-1, 0],
                      "features_built": feats, "route_from": path})

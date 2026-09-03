@@ -28,8 +28,8 @@ from mcbuild import schem  # noqa: E402
 PARK = ROOT / "out" / "Park Complete.litematic"
 OUT = ROOT / "out" / "entrance" / "quarter_labelled.png"
 
-V0, V1, U0, U1 = 0, 95, 248, 352      # the quarter: the spine, the court and both avenues
-SCALE = 9                              # pixels per block
+V0, V1, U0, U1 = 0, 145, 250, 350     # the quarter: gate, court, midway row, wheel
+SCALE = 7                              # pixels per block
 
 LAWN = {"moss_block", "moss_carpet"}
 #: (name test, colour). Ordered - the first match wins, so the specific cases precede the field.
@@ -57,7 +57,8 @@ LABELS = [
     (51, 266, "cross walk", "l"),
     (51, 334, "cross walk", "l"),
     (51, 300, "THE WELCOME COURT", "l"),
-    (85, 300, "THE BIG WHEEL", "l"),
+    (100, 300, "MIDWAY ROW  8 stalls", "l"),
+    (138, 300, "THE BIG WHEEL", "l"),
 ]
 
 

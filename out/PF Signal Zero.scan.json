@@ -158,9 +158,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 138.882984,
+    "seconds": 133.137955,
     "blocks": 13182,
-    "blocks_per_second": 94.91
+    "blocks_per_second": 99.01
   },
   "generator_contract": {
     "ok": true,
