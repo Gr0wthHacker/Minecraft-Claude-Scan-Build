@@ -1,0 +1,96 @@
+# PF FRONTIER MUSTER YARD - what goes INSIDE the Trailhead Gate's walled court.
+#
+# Jack: "basically everything on this row from the orange flag to the tower is useless/waste of
+# usage of space."
+#
+# ---------------------------------------------------------------------------------------------
+# THE COURT IS THE SHAPE JACK ALREADY RETIRED A MODULE FOR
+#
+# `frontier_builds._trailhead` builds a portal, two flanking towers, a trail office, a waiting
+# porch, a stockade round both flanks and the back, a water tower and a trail store - and leaves
+# its own court as untouched lawn. Measured over the shipped park: **1,800 columns, 3.4 blocks per
+# column, 63% bare moss, and ZERO interactive blocks in the whole lot.**
+#
+# That is "a large rectangular building with an open center", which is the exact reason the
+# Arrival Court was retired from `tools/park_lots.PLACEMENT`. An open threshold is right - you
+# pass through it - but nine hundred columns of nothing inside it is not.
+#
+# **AND THERE IS NO PAVED ROUTE THROUGH THE GATE AT ALL.** Measured: a guest comes through a
+# monumental portal at V25-31/U13-25 and walks on moss to the exit arch at V45-53/U35-37. A
+# threshold with no path through it is a gate onto a lawn, and that alone is most of why the court
+# reads as unfinished whatever is standing round its edge.
+#
+# ---------------------------------------------------------------------------------------------
+# WHY THIS IS A SEPARATE DESIGN AND NOT AN EDIT TO `_trailhead`
+#
+# `gen/park_games.py` already does exactly this - "games INSIDE the park's buildings" - and for the
+# same reason: the yard's content and the gate's shell are different work with different lifetimes,
+# they share no cell, and a separately placeable design can be looked at, moved or dropped without
+# regenerating a 1,800-line building generator that three other lots depend on.
+#
+# It shares the gate's own lot, so its LOCAL coordinates are the gate's: v = V - 24, u = U.
+# `_Ground` refuses any cell the world already fills, so the gate's stockade, water tower, store,
+# porch and office need no keep-out list - they are simply not free.
+#
+# ---------------------------------------------------------------------------------------------
+# THE BELL IS THE VERB
+#
+# The whole row from the pennant to the tower carries one thing a guest can operate. A bell is
+# cheap, on the 1.19 server, and what a trail head actually has: the bell that calls a party away.
+# It hangs from a CEILING attachment, so its head beam goes in first - the same rule as a chain and
+# a hanging lantern, and the reason `_Lot.hang` refuses a fitting with nothing over it.
+name: PF Frontier Muster Yard
+gen: claimrow
+params:
+  kind: yard
+  lot: [45, 39]
+  at: [24, 0]
+  under: out/Park Complete.litematic
+  sy: 16
+  # THE ROUTE THROUGH THE THRESHOLD. Two straight runs, three wide, measured off the gate's own
+  # openings: from inside the portal (V33) south down U17-19 to V50, then east to the exit arch's
+  # threshold at U33. It stops at U33 because V49/U34 is the store's own corner - measured, not
+  # assumed.
+  legs:
+    - [9, 26, 17, 19]
+    - [24, 26, 17, 33]
+  # THE YARD'S FURNITURE, all of it beside the route and none of it in it. `notice` and `bell`
+  # take a facing: which side the walk is on, which only the config knows.
+  props:
+    - [10, 21, notice, north]     # read from the way at U17-19
+    - [14, 21, bell, west]        # the muster bell, on its own posts
+    - [30, 8, corral, 10, 12]     # the pen, clear of the water tower's U0-6
+    - [27, 21, hitch]
+    - [12, 9, crates]
+    - [16, 26, stack]
+    - [20, 12, barrow]
+    - [33, 21, wagon]
+  # THE APRON. A yard is beaten ground with a route through it, not a lawn with a path on it: the
+  # first build paved the two legs and stopped, which is 116 cells of route in a nine-hundred-column
+  # court and leaves the court exactly as bare as the complaint found it. Reach 16 fills the court
+  # and fades out against the stockade, so the two paved legs read as the formal route ACROSS a
+  # worked yard rather than as a garden path.
+  worked: 16.0
+  clear: 1
+  # TWO OR THREE TREES, NOT A PLANTATION. At density 0.45 the court came out with 305 leaf cells -
+  # a spruce wood inside a walled forecourt.
+  plant: {step: 9, density: 0.22, kinds: [pine, rock, rock]}
+  seed: 53
+  title: THE MUSTER YARD
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: frontier
+  narrative: >
+    The muster yard inside the Trailhead Gate: the paved route from the portal to the exit arch
+    that the threshold never had, a notice board read from the way, the muster bell on its posts,
+    a stock pen, a hitching rail, freight waiting and a flat wagon.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

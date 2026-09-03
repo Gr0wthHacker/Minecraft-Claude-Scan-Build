@@ -1241,10 +1241,24 @@ def _porch_lot(lot: _Lot, p: dict) -> dict:
     the avenue at U41-45. The veranda therefore runs the full length of that flank and the two
     bays open onto it, which is also what a prospecting row looks like.
 
-    THE BAYS ARE SHELLS. `PARK_FULL_BUILD_SPEC` states their build state as "shell/circuits
-    separately", and this repo does not ship a machine it cannot verify - two finished casino
-    games were cut for exactly that. Both bays are built with their counter, backboard, result
-    panel and reset hatch in place and NO circuit behind them.
+    **THE BAYS ARE NO LONGER SHELLS, AND THIS DOCSTRING SAID THEY WERE LONG AFTER THEY WERE NOT.**
+    `PARK_FULL_BUILD_SPEC` stated their build state as "shell/circuits separately" and this file
+    repeated it; the machines were added afterwards, by `gen/park_games.py`, and nobody came back.
+    Measured over the shipped park: `PF Game Pan Line` (a `mark` console - load the pan to exactly
+    three) stands INSIDE bay A at V81-90/U22-31, and `PF Game The Riffle` (an `aim` console) stands
+    on the shared veranda at V88/U33.
+
+    **WHAT WAS ACTUALLY WRONG IS THAT BAY A PROMISED A GAME IT DOES NOT HAVE.** It was signed
+    SHOOTING RANGE with a target backboard and a firing counter, and what is in it is a washing
+    scale - so a guest reads a promise the building cannot keep, which is this land's own complaint
+    ("really nice to look at - but serve no purpose") wearing a sign. The bay is THE WASH HOUSE
+    now, which is what it contains.
+
+    **AND BAY B HAS NO MACHINE BECAUSE IT HAS NO ROOM.** Measured with everything standing: the
+    sluice bay's largest box clear to head height is **4 x 6**, inside its own dry settling pool,
+    against a smallest console of 10 x 4. Its launder, trestles, pool and kerb fill it. That is a
+    siting fact rather than an omission, and a game cannot be jammed in without deleting the
+    scenery that makes the bay a sluice.
     """
     dv, du = lot.dv, lot.du
     out = {}
@@ -1262,21 +1276,25 @@ def _porch_lot(lot: _Lot, p: dict) -> dict:
                       "u": [du - 1, du - 1], "y": [1, 1], "lintel_y": 5,
                       "jambs": [[ev - 1, du - 1], [ev + 2, du - 1]], "span": [ev, ev + 1]})
 
-    # bay A - the shooting range, its backboard away from the walk
+    # bay A - THE WASH HOUSE, its board away from the walk. It was signed SHOOTING RANGE for a
+    # game that was never built in it; what stands in it is `PF Game Pan Line`, a washing scale.
     # THE TWO BAYS ANNOUNCE THEMSELVES OVER THE VERANDA ROOF. A game bay whose name is only
     # readable from under the canopy is a game nobody chooses from the walk outside; the show
     # fronts stand proud of the veranda so both are named from the avenue at U41-45.
-    out["range"] = _shed(lot, 6, 22, du - 20, du - 8, h=7, ridge="v", title="SHOOTING RANGE",
+    out["range"] = _shed(lot, 6, 22, du - 20, du - 8, h=7, ridge="v", title="THE WASH HOUSE",
                          doors=(("+u", 14, 3),), false_front="+u", show_rise=6,
                          sign_face="+u",
-                         sign_lines=["SHOOTING RANGE", "five shots", "prizes at the", "assay office"])
-    for v in range(8, 21):                            # the backboard and the result ladder
+                         # FIFTEEN CHARACTERS IS THE LINE. "prizes at the assay" is 19 and
+                         # shipped clipped to "prizes at the a", mid-word.
+                         sign_lines=["THE WASH HOUSE", "load the pan", "to the line",
+                                     "prizes: assay"])
+    for v in range(8, 21):                            # the board and the result ladder
         lot.put(v, 4, du - 20, "paint")
         lot.put(v, 5, du - 20, "board")
-        lot.put(v, 3, du - 20, "canvas_c")             # the score field, under the target line
+        lot.put(v, 3, du - 20, "canvas_c")             # the score field, under the pan line
     for k, v in enumerate(range(9, 20, 2)):
         lot.put(v, 6, du - 19, "glow")
-    for u in range(du - 19, du - 9):                  # the firing counter
+    for u in range(du - 19, du - 9):                  # the washing counter
         lot.slab(11, 1, u, "timber_slab", "top")
         lot.put(10, 1, u, "timber")
 

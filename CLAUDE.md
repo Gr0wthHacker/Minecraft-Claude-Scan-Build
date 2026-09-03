@@ -6908,6 +6908,144 @@ occupies is swept back out afterwards and the count is REPORTED. It read 102 on 
 reads 0 on this one - which is how you tell a guard that fired from a guard that is decorative.
 
 
+### The row from the pennant to the tower: the ground the modules never built (2026-09-03)
+
+Jack, on a Litematica overlay looking down Frontier column A: *"basically everything on this row
+from the orange flag to the tower is useless/waste of usage of space."*
+
+**MEASURED, AND HE WAS RIGHT FOUR TIMES OVER.** The row - the Prospecting Porch's orange pennant to
+the Vantage Lookout, V24-146 x U0-39, 5,840 columns:
+
+| | cols | b/col | bare moss | things a guest can operate |
+|---|---|---|---|---|
+| Trailhead Gate V24-68 | 1800 | 3.4 | **63%** | **0** |
+| Prospecting Porch V69-118 | 2000 | 3.1 | **54%** | 2 consoles, both at V88-90 |
+| the gap V119-129 | 440 | **1.1** | 52% | **0** |
+| Vantage Lookout V130-146 | 680 | 7.9 | 34% | 1 barrel, 3 rails |
+
+**3,153 of 5,840 columns bare**, in two 1,000-cell holes plus a 29x19 void in front of the tower.
+
+**AND THE CAUSE IS TWO CORRECT RULES MEETING.** The holes are not BETWEEN the modules, they are
+INSIDE them:
+
+- `_trailhead` builds a portal, two towers, an office, a porch, a stockade, a water tower and a
+  store, and leaves its own ~24 x 31 court as lawn. That is *"a large rectangular building with an
+  open center"* - the exact shape the Arrival Court was retired for - still standing, in a
+  different land. **And there was no paved route through the gate at all**: a guest came through a
+  monumental portal and walked on moss to the exit arch.
+- `_porch_lot`'s own docstring says why it does not fill its lot: its declared west door *"opens
+  into the BACK OF TRAILHEAD GATE"*, so it is a strip on the avenue flank and U0-18 is its unbuilt
+  back - **two buildings' backsides facing each other across twenty columns of lawn.**
+- `frontier_scatter` cannot reach either, correctly: it KEEPS OUT of every module lot, because a
+  material test cannot tell its own pine from the Diggings'.
+
+**So the ground that is inside a lot and outside a building belonged to nobody.** `gen/claimrow.py`
+owns it: `PF Frontier Claim Row` (1,070) works the porch's back and the gap; `PF Frontier Muster
+Yard` (905) furnishes the gate's court and gives the threshold its route. **0 problems, 0 overlap,
+all cheap-or-ok, no water and not one building** - Jack ruled both out for this land, and a
+played-out placer claim is dry by definition, so the constraint and the subject agree.
+
+Coverage: the claim row dresses **83%** of its workable lot and the yard **78%**, and what is left
+is moss showing through - which is what makes a working stop raggedly instead of being a rectangle.
+
+#### A MATERIAL TEST CANNOT ANSWER RULE 15 IN A LAND WITH ONE PALETTE
+
+`frontier_scatter`'s `OWN` set exists so a second run re-lays its own standing work rather than
+refusing it - the 428-blocks-against-3,843 bug - and its own comment warns the set must be narrow.
+In this lot **neither width works**, and both failures shipped a clean audit:
+
+- **wide** (the full kit): the marquee's plinth is `polished_blackstone_bricks` and so is this
+  design's, so a claim's board post went straight through the Prospecting Porch's marquee and 39
+  cells of pine canopy grew into the Trailhead Gate;
+- **narrow**: this design's own stakes, posts, planks and barrels are the same spruce every building
+  in the land is framed in, so a re-run refuses its own props.
+
+**A DESIGN'S OWN CELLS ARE KNOWABLE EXACTLY - THEY ARE IN ITS OWN LITEMATIC.** `shipped_cells`
+reads them in world coordinates and `_Ground` takes them as `mine=`; `OWN` shrinks to
+`{"moss_carpet"}`, the one thing in this park that is genuinely ground cover rather than somebody's
+build. Material identity never decides an overlap again, and `test_mine_is_exact_where_own_is_a_
+guess` pins the difference on a two-column fixture.
+
+What still needs naming by hand is a NEIGHBOUR standing on the lawn, and that is measured rather
+than guessed - three things inside the claim row's lot, listed in its config with their cell counts.
+
+#### FIVE MATERIALS INSIDE TWENTY-ONE POINTS OF LUMINANCE IS ONE GREY
+
+The first worked flat was gravel 128, cobblestone 127, andesite 136, stone 126 and mossy cobble
+115, and it rendered as a pale slab. **That is the fourth time this file records the same mistake**
+- stone brick, blackstone, the Mine Ridge, and now this - and every one was made by searching
+WITHIN a family, where a ladder cannot exist by construction. Measured across families,
+cheap-or-ok and 1.19:
+
+    cobbled_deepslate  77   spoil, and what a shaft throws up
+    dripstone_block   112   turned earth, and WARM, so it is not a fifth grey
+    cobblestone       127   the wash
+    gravel            128   the crust - rule 13, top course only
+    diorite           188   the pale washed bars
+
+Smallest step 15, biggest 60. `test_the_worked_ground_is_a_real_value_ladder` re-derives it rather
+than trusting the table.
+
+Three more things the flat needed, each a rule this file already carries:
+
+- **THE MATERIAL IS DRAWN ON A COARSE LATTICE, NOT PER CELL.** Per cell, five materials over a
+  thousand columns is static - a slab with speckles on it. Three quarters of the draw comes from a
+  3x3 block of ground and a quarter from the cell, so it comes out as patches with ragged edges.
+- **THE MIX IS A FUNCTION OF HOW WORKED THE CELL IS**, read off the SAME score that decides how far
+  the working reaches - so the tone gradient and the outline are one thing and cannot drift apart.
+  The middle is spoil and turned earth; the edge is gravel and moss showing through.
+- **A BOUNDARY MUST BE A DIFFERENT VALUE FROM THE GROUND IT BOUNDS.** 150 claim-kerb slabs at 127
+  against a working running 77-128 drew no line at all from the one view a claim is read from,
+  which is the plan. `cobbled_deepslate_slab` at 77 is the same 50-point step the island's own
+  masonry gets from `deepslate_bricks`.
+
+#### Four traps, each of which shipped a clean audit
+
+- **`no:` IS NOT AN INTEGER KEY, IT IS `False`.** YAML 1.1 parses on/off/yes/no as booleans, so a
+  claim written `no: 1` came out keyed `False` - the number silently lost, and then the design
+  fingerprint's `sort_keys` exploded on a dict holding a bool and a str. The Lowland Glow shipped
+  this with a key called `on`. `test_no_config_key_is_a_yaml_boolean` walks both configs.
+- **A SIGN GOES IN A CELL AND `_Lot.sign` ONLY ASKS THE CANVAS.** It checks the board is behind it
+  and the cell is empty - both true of a cell inside a NEIGHBOUR's keep-out box, because the canvas
+  is this design's own and knows nothing of the world. A claim's post stood legally at U13 and hung
+  its sign at U14, one cell inside the marquee, and the sign refused SILENTLY. The board asks the
+  ground probe about its sign's cell now - **and tries the claim's far corner when the near one is
+  refused**, because a hand-tuned offset per claim is a number that goes stale the first time a
+  claim moves.
+- **`free(v, u, y)`, NOT `(v, y, u)`.** The fix above was first written with the arguments
+  transposed, so it checked a cell that does not exist: the guard read as working and the overlap
+  stayed exactly where it was.
+- **A YARD IS BEATEN GROUND WITH A ROUTE THROUGH IT, NOT A LAWN WITH A PATH ON IT.** The muster
+  yard's first build paved its two legs and stopped - 116 cells of route in a nine-hundred-column
+  court, which leaves the court exactly as bare as the complaint found it.
+
+#### The bays were not shells, and the docstring saying so was stale
+
+`_porch_lot` has said since it was written that both its bays are *"built with their counter,
+backboard, result panel and reset hatch in place and NO circuit behind them."* The machines were
+added afterwards by `gen/park_games.py` and nobody came back. Measured: `PF Game Pan Line` (a
+`mark` console - load the pan to exactly three) stands INSIDE bay A at V81-90/U22-31, and
+`PF Game The Riffle` on the shared veranda at V88/U33.
+
+**WHAT WAS ACTUALLY WRONG IS THAT BAY A PROMISED A GAME IT DOES NOT HAVE** - signed SHOOTING RANGE,
+with a target backboard and a firing counter, holding a washing scale. It is **THE WASH HOUSE** now,
+which is what is in it. (And "prizes at the assay" is nineteen characters, so it shipped clipped to
+"prizes at the a" - **fifteen characters is the line**, and this file has recorded that once
+already.)
+
+**And bay B has no machine because it has no room.** With everything standing, its largest box clear
+to head height is **4 x 6**, inside its own dry settling pool, against a smallest console of 10 x 4;
+the wash house's is 3 x 11. That is a siting fact rather than an omission - a game cannot go in
+without deleting the launder, trestles and pool that make the bay a sluice.
+
+#### Still open on this row
+
+- **Trailhead Gate's zero interactive blocks is now one** - the muster bell, which is the only verb
+  the yard adds. The whole row still carries three.
+- **The Vantage Lookout is a 56-course tower beside 5-7 course sheds**, and in elevation the row
+  reads as a strip of brown huts and then a skyscraper. Not touched; it is a massing decision.
+- **Nothing here has been placed in game.** Judge form and mass off `render3d`, palette in world.
+
 ## The daily loop
 
 ```bash

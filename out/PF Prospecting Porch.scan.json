@@ -148,10 +148,10 @@
       ],
       "facing": "south",
       "lines": [
-        "SHOOTING RANGE",
-        "five shots",
-        "prizes at the",
-        "assay office"
+        "THE WASH HOUSE",
+        "load the pan",
+        "to the line",
+        "prizes: assay"
       ]
     },
     {
@@ -258,7 +258,7 @@
       ],
       "wall_top": 7,
       "ridge_y": 14,
-      "title": "SHOOTING RANGE",
+      "title": "THE WASH HOUSE",
       "openings": [
         {
           "kind": "door",
@@ -734,8 +734,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "049c09b0e88b824dfea2eab23cbd434b3fff371da9645775690c6360f0717140",
-    "generator_source_digest": "ba20ea3c325b512e6c4d381f79f227891356832ebfa3e76f5621a4bfecccaa65",
+    "fingerprint": "d6994084f57e902c3f1bb6b940f09477163b2583d46cc3809d91ead53acd9f33",
+    "generator_source_digest": "c71b72098ac35a384bff5fda4566cf0eb3250a170e957cd507435eb339c7fa5e",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -777,9 +777,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 63.247488,
+    "seconds": 87.602084,
     "blocks": 3499,
-    "blocks_per_second": 55.32
+    "blocks_per_second": 39.94
   },
   "generator_contract": {
     "ok": false,

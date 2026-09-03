@@ -19,7 +19,7 @@ class _Wrap:
 
 from . import frontier_builds, midway_builds, prismworks_builds  # noqa: E402
 from . import park_entrance, park_frontage, park_vantage, park_water  # noqa: E402
-from . import diggings, frontier_scatter, mineridge, mineworks, park_games  # noqa: E402
+from . import claimrow, diggings, frontier_scatter, mineridge, mineworks, park_games  # noqa: E402
 from . import wyrmgate  # noqa: E402
 from . import menagerie  # noqa: E402
 
@@ -54,6 +54,14 @@ GENERATORS = {
     # the worked-out landscape that replaced Boomtown's seven false fronts, with two
     # shops cut INTO its banks - mcbuild/gen/diggings.py
     "diggings": diggings,
+    # THE GROUND THE MODULES NEVER BUILT. Frontier column A is 54% bare moss and the two biggest
+    # holes are INSIDE its lots: the Trailhead Gate's walled court has an empty middle and the
+    # Prospecting Porch is a strip on one flank with twenty columns of unbuilt back. The scatter
+    # keeps out of module lots (rightly - a material test cannot tell its pine from the
+    # Diggings'), so that ground belonged to nobody. `kind: claims` works it; `kind: yard` gives
+    # the gate the paved route through it that a threshold has to have -
+    # mcbuild/gen/claimrow.py
+    "claimrow": claimrow,
     # **THE GAMES INSIDE THE PARK'S BUILDINGS, AND THIS ENTRY WAS MISSING.**
     # `mcbuild/gen/park_games.py`, `tests/test_park_games.py` and ten
     # `configs/pf_game_*.yaml` all existed and the generator was not registered, so

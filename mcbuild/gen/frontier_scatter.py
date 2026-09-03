@@ -75,6 +75,44 @@ LAWN = {"moss_block", "moss_carpet"}
 OWN = {FLORA[k] for k in ("trunk", "bark", "leaf", "rock", "rock_b", "rock_c",
                           "moss_rock", "scree", "ore", "barrel", "rail", "turf")}
 
+def shipped_cells(path) -> frozenset:
+    """The world cells a design SHIPPED last time, off its own artifact and sidecar.
+
+    **THIS IS THE HONEST ANSWER TO RULE 15, AND `own` IS NOT.** A cell this design placed is built
+    progress rather than an obstruction - but in a land where every module is stone brick,
+    blackstone and spruce, **a material test cannot tell a neighbour's plinth from this design's
+    own.** Measured: the claim row put a board post and a pine straight through the Prospecting
+    Porch's marquee because the marquee's plinth is `polished_blackstone_bricks` and so is the
+    claim row's, and the muster yard grew 39 cells of canopy into the Trailhead Gate for the same
+    reason. `own` was the mechanism that let both happen, and widening or narrowing it only ever
+    trades one of those failures for the other.
+
+    A design's own previous cells are knowable EXACTLY: they are in its own litematic. So this
+    reads them, in world coordinates, and the ground probe treats those and nothing else as its
+    own. Absent (a first run, or a design never shipped) is an empty set, which is the correct
+    answer - there is nothing of ours standing yet.
+    """
+    import json
+    import os
+
+    from .. import schem
+
+    if not path or not os.path.exists(path):
+        return frozenset()
+    side = os.path.splitext(path)[0] + ".scan.json"
+    if not os.path.exists(side):
+        return frozenset()
+    o = json.load(open(side))["origin"]
+    m = schem.load(path)
+    ids = m.ids
+    out = set()
+    sy, sz, sx = ids.shape
+    nz = ids.nonzero()
+    for y, z, x in zip(*nz):
+        out.add((int(x) + o["x"], int(y) + o["y"], int(z) + o["z"]))
+    return frozenset(out)
+
+
 SCATTER = {
     "kind": "scatter",
     "lot": None,                 # [dv, du]
@@ -112,12 +150,23 @@ class _Ground:
     Frontier is 34,000 columns and every drift re-probes its own neighbourhood.
     """
 
-    def __init__(self, ctx: Ctx, anchor, dv, du, at, clear: int, keep_out=()):
+    def __init__(self, ctx: Ctx, anchor, dv, du, at, clear: int, keep_out=(), own=None,
+                 mine=None):
         self.ctx, self.dv, self.du = ctx, dv, du
         self.ax, self.ay, self.az = anchor
         self.at_v, self.at_u = at
         self.clear = clear
         self.keep_out = [tuple(int(x) for x in b) for b in (keep_out or ())]
+        #: **WHOSE STANDING BLOCKS COUNT AS THIS DESIGN'S OWN.** Rule 15 - a cell this design
+        #: itself placed is built progress, not an obstruction - and the set is different for
+        #: every design, because it is exactly what that design PLACES. Defaulting it to this
+        #: module's `OWN` would hand a borrower the scatter's answer to its own question, which
+        #: is the drift `proportions.measure` and `rubric.score` share an entry point to avoid.
+        self.own = frozenset(OWN if own is None else own)
+        #: The world cells this design itself shipped last time - see `shipped_cells`. This is the
+        #: exact answer to rule 15; `own` is the heuristic one, and where both are given this wins
+        #: on the cells it names and `own` covers the rest.
+        self.mine = frozenset(mine or ())
         self._lawn: dict = {}
 
     def owned(self, v, u) -> bool:
@@ -141,7 +190,9 @@ class _Ground:
         if ok:
             for y in range(self.ay, self.ay + 9):
                 n = self.ctx.name_at(x, y, z).split(":")[-1]
-                if n in ("air", "cave_air", "void_air", "moss_carpet") or n in OWN:
+                if n in ("air", "cave_air", "void_air", "moss_carpet") or n in self.own:
+                    continue
+                if (x, y, z) in self.mine:
                     continue
                 ok = False
                 break
@@ -161,7 +212,9 @@ class _Ground:
             return False
         x, z = self.world(v, u)
         n = self.ctx.name_at(x, self.ay + y, z).split(":")[-1]
-        return n in ("air", "cave_air", "void_air", "moss_carpet") or n in OWN
+        if n in ("air", "cave_air", "void_air", "moss_carpet") or n in self.own:
+            return True
+        return (x, self.ay + y, z) in self.mine
 
     def clearing(self, v, u) -> bool:
         """...and is it far enough from anything paved or built to plant on?

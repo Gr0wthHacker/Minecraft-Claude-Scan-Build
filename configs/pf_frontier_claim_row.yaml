@@ -1,0 +1,133 @@
+# PF FRONTIER CLAIM ROW - the worked ground behind the Prospecting Porch, and up to the Lookout.
+#
+# Jack, looking down Frontier column A: "basically everything on this row from the orange flag to
+# the tower is useless/waste of usage of space."
+#
+# ---------------------------------------------------------------------------------------------
+# THE MEASUREMENT, AND WHOSE GROUND THIS IS
+#
+# Over the shipped park, V24-146 x U0-39 is 5,840 columns and **54% of it is bare moss**. The two
+# biggest holes are not between the modules, they are INSIDE them - and the cause is two correct
+# rules meeting:
+#
+#   * `frontier_builds._porch_lot`'s own docstring says it does not fill its lot: its declared
+#     west door "opens into the BACK OF TRAILHEAD GATE", so it is built as a strip on the avenue
+#     flank at U19-39 and **U0-18 x 50 = 1,000 columns is its unbuilt back** - pressed against the
+#     Trailhead Gate's own unbuilt back. Two buildings' backsides across twenty columns of lawn.
+#   * `frontier_scatter` KEEPS OUT of every module's lot, and rightly - a material test cannot
+#     tell its own pine from the Diggings', and it measured 33 cells of leaf inside neighbours
+#     before the keep-out list existed.
+#
+# So the ground that is inside a lot and outside a building belonged to nobody. This design owns
+# it: **V69-122 x U0-18**, stopping one column short of the ground layer's own cross walk at
+# V123-127, which is measured and not guessed.
+#
+# ---------------------------------------------------------------------------------------------
+# WHAT IT IS, AND WHAT IT DELIBERATELY IS NOT
+#
+# **NO WATER.** Jack, on this land: "we dont need more water, we can do a landscape or something
+# with 1 or 2 small shops integrated." A played-out placer claim is dry by definition - the wash
+# is worked out and the creek has moved on - so the constraint and the subject agree. There is no
+# creek, no pool and no trough.
+#
+# **NO BUILDING.** "i dont want a bunch of buildings to go into, this is just a village then."
+# The tallest thing here is a windlass.
+#
+# **AND IT CHANGES THE SURFACE, WHICH IS WHAT THE COMPLAINT IS ABOUT.** Props scattered over moss
+# leave "a green carpet with things standing on it" - Jack's own description of this land, twice.
+# The worked ground IS the design: gravel, cobble and andesite at the plane, reaching out from the
+# way and the claims and fading raggedly into untouched moss.
+#
+# ---------------------------------------------------------------------------------------------
+# THE LAYOUT IS THE SHAPE OF THE FREE GROUND, NOT A DRAWING
+#
+# Measured cell by cell, the strip is not a rectangle. U0-3 is free for the whole 54 courses; U4-18
+# is free at V69-82 and V92-122 and blocked between them by the porch's own ore bin (V83-91 x
+# U4-12) and its covered walk (V85-89 x U12-21). So:
+#
+#   * the WAY runs in the always-free lane at U1-3, the full length, so the flat is WALKED;
+#   * the three claims take the two wide blocks either side of the ore bin;
+#   * the two windlasses stand where their legs both land on free ground - which is checked at
+#     build time, and a windlass whose legs do not both stand is reported rather than half-built.
+name: PF Frontier Claim Row
+gen: claimrow
+params:
+  kind: claims
+  lot: [54, 19]
+  at: [69, 0]
+  under: out/Park Complete.litematic
+  sy: 16
+  # THE WAY: three wide at U1-3, kerbed either side, a flush froglight every eleven courses. One
+  # course proud of the moss, which is a free step and therefore needs no flight.
+  way: {u: 1, w: 3, glow_every: 11}
+  # ---------------------------------------------------------------------------------------------
+  # WHAT STANDS ON THE LAWN INSIDE THIS LOT, MEASURED. Three things, and every one of them had to
+  # be listed rather than detected.
+  #
+  # `_Ground.lawn` refuses any column the world fills - but only after `OWN` has had its say, and
+  # `OWN` exists for rule 15 (a cell this design placed is built progress, not an obstruction). In
+  # a land where every building is stone brick, blackstone and spruce, **a material test cannot
+  # tell a neighbour's plinth from this design's own**: the first build put claim 1's board post
+  # and a pine straight through the Prospecting Porch's own marquee, because the marquee's plinth
+  # is `polished_blackstone_bricks` and so is this design's. `frontier_scatter` records the same
+  # trade and answers it the same way - a measured keep-out list, not a cleverer material test.
+  #
+  #     V82-92 x U4-18   119 cols   the porch's ore bin and its covered walk
+  #     V70-72 x U15-18    9 cols   the Prospecting Porch marquee, off `PF Front Frontier`
+  #     V121   x U11       1 col    a Park Ways light post - lantern on a chiseled brick pier
+  #
+  # Everything else occupied in this lot is a single `moss_carpet` cell, which is declared
+  # replaceable below. Each box carries one cell of margin so nothing jams up against it.
+  keep_out:
+    - [12, 24, 3, 18]
+    - [0, 4, 14, 18]
+    - [51, 53, 10, 12]
+  # THE CLAIMS. Each is a kerbed working with four stakes, a numbered board on its own post facing
+  # the way, a tailings heap, a rocker and a barrow. `heap`/`rocker`/`barrow` are offsets from the
+  # claim's own near corner, so moving a claim moves its furniture with it.
+  #
+  # **NOT `no:`** - YAML 1.1 parses that as the boolean False, which does not raise, silently loses
+  # the number, and then breaks the design fingerprint on a dict holding both a bool and a string.
+  # The Lowland Glow shipped the same trap with a key called `on`.
+  claims:
+    - {v: 2,  u: 4, dv: 10, du: 9, number: 1, name: SHALLOW BAR, note: worked out,
+       heap: [4, 10, 2, 3], rocker: [2, 2], barrow: [7, 3]}
+    - {v: 26, u: 4, dv: 11, du: 9, number: 2, name: THE ELBOW, note: still paying,
+       heap: [5, 10, 3, 4], rocker: [3, 3], barrow: [8, 2]}
+    - {v: 40, u: 4, dv: 11, du: 9, number: 3, name: LAST CHANCE, note: abandoned,
+       heap: [4, 11, 2, 3], rocker: [2, 4], barrow: [8, 3]}
+  # THE PROSPECT PITS. A collar and a windlass; there is no hole, because a litematic cannot
+  # express removal and a shaft mouth reads from above as its collar anyway - which is what
+  # `diggings._workings` settled for the same reason. Sited in the gaps at U15-17 that no claim's
+  # tailings heap reaches, because a collar cell the heap already owns is a windlass with a leg
+  # missing - and `_pit` reports `windlass: false` rather than building half of one.
+  pits:
+    - [38, 16]
+    - [51, 16]
+  # NINE, NOT SIX. At reach 6 the flat came out as 533 crust cells over 1,026 columns, in islands -
+  # which is the confetti failure the Lowland Thicket and the deck soffit both shipped, in gravel.
+  # The working has to be CONTINUOUS and stop raggedly, not arrive in patches.
+  worked: 9.0
+  clear: 1
+  # SPARSE. At density 0.6 the flat came out with 502 leaf cells - a spruce plantation on a
+  # worked-out claim. A few trees in the moss the working stopped at is the whole intent.
+  plant: {step: 6, density: 0.3, kinds: [pine, snag, snag, rock]}
+  seed: 47
+  title: THE CLAIM ROW
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: filler
+  style: frontier
+  narrative: >
+    The worked-out placer flat behind the Prospecting Porch: a packed way down its whole length,
+    three staked and numbered claims with their tailings, rockers and barrows, two windlasses over
+    cribbed prospect pits, and pines and snags in the moss the working stopped at.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

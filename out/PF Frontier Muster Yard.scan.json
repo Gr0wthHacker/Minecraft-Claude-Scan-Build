@@ -1,0 +1,345 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80300
+  },
+  "size": {
+    "x": 45,
+    "y": 16,
+    "z": 39
+  },
+  "generated_by": "claimrow",
+  "kind": "frontier_yard",
+  "lot": [
+    45,
+    39
+  ],
+  "at": [
+    24,
+    0
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "signs": [
+    {
+      "at": [
+        11,
+        3,
+        20
+      ],
+      "facing": "north",
+      "lines": [
+        "THE CLAIM ROW",
+        "stakes east",
+        "keep to the way"
+      ]
+    },
+    {
+      "at": [
+        12,
+        3,
+        20
+      ],
+      "facing": "north",
+      "lines": [
+        "THE LOOKOUT",
+        "south, 60 out",
+        "no ore past",
+        "the stakes"
+      ]
+    }
+  ],
+  "refused": 0,
+  "parts": {
+    "legs": [
+      {
+        "box": [
+          9,
+          26,
+          17,
+          19
+        ],
+        "cells": 52,
+        "glow": 2
+      },
+      {
+        "box": [
+          24,
+          26,
+          17,
+          33
+        ],
+        "cells": 40,
+        "glow": 2
+      }
+    ],
+    "props": [
+      {
+        "at": [
+          27,
+          21
+        ],
+        "kind": "hitch",
+        "cells": 10
+      },
+      {
+        "at": [
+          12,
+          9
+        ],
+        "kind": "crates",
+        "cells": 5
+      },
+      {
+        "at": [
+          16,
+          26
+        ],
+        "kind": "stack",
+        "cells": 7
+      },
+      {
+        "at": [
+          20,
+          12
+        ],
+        "kind": "barrow",
+        "cells": 4
+      },
+      {
+        "at": [
+          33,
+          21
+        ],
+        "kind": "wagon",
+        "cells": 22
+      }
+    ],
+    "notice": {
+      "at": [
+        10,
+        21
+      ],
+      "facing": "north",
+      "signed": 2,
+      "cells": 16
+    },
+    "bell": {
+      "at": [
+        14,
+        21
+      ],
+      "bell": true,
+      "cells": 13
+    },
+    "corral": {
+      "v": [
+        30,
+        39
+      ],
+      "u": [
+        8,
+        19
+      ],
+      "gate": true,
+      "cells": 43
+    },
+    "worked": {
+      "cells": 689,
+      "reach": 16.0
+    },
+    "planting": {
+      "trees": 1,
+      "cells": 5
+    }
+  },
+  "contract": "the muster yard inside the Trailhead Gate's walled court: the paved route from the portal to the exit arch that the threshold never had, and the freight, pens and bell of a trail head. The bell is the verb.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "spruce_fence_gate"
+      ],
+      "container": [
+        "barrel"
+      ],
+      "rail": [
+        "rail"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The muster yard inside the Trailhead Gate: the paved route from the portal to the exit arch that the threshold never had, a notice board read from the way, the muster bell on its posts, a stock pen, a hitching rail, freight waiting and a flat wagon.\n"
+    },
+    "metrics": {
+      "blocks": 905,
+      "materials": 26,
+      "dominant_material_share": 0.2575,
+      "light_blocks": 0,
+      "massing": {
+        "width": 44,
+        "height": 5,
+        "depth": 38,
+        "fill_ratio": 0.1083
+      },
+      "silhouette": {
+        "top": {
+          "area": 856,
+          "fill_ratio": 0.4877
+        },
+        "front": {
+          "area": 71,
+          "fill_ratio": 0.0986
+        },
+        "side": {
+          "area": 51,
+          "fill_ratio": 0.0817
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "top_silhouette_perimeter": 584,
+        "surface_faces_per_block": 2.3602
+      },
+      "material_counts": {
+        "cobblestone": 233,
+        "dripstone_block": 185,
+        "cobbled_deepslate": 108,
+        "gravel": 106,
+        "spruce_fence": 44,
+        "smooth_stone": 42,
+        "mossy_cobblestone": 29,
+        "stone_bricks": 25,
+        "diorite": 22,
+        "spruce_log": 19,
+        "cracked_stone_bricks": 14,
+        "spruce_slab": 12
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "b24bb00f2c292c2c87bba5fe2062ea523d7d4a33c12b7b41e5130dc49ef817cc",
+    "generator_source_digest": "4e9b83d97ef0cb558b746b7fda0ee8fe69e62cd6e7f40809bef796b176c1b205",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 65.3456,
+    "blocks": 905,
+    "blocks_per_second": 13.85
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 905,
+    "mechanic_families": [
+      "access",
+      "container",
+      "rail",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: coal_ore",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: diorite",
+    "not in the provisional skyblock-1.19 list: dripstone_block",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: spruce_fence_gate"
+  ],
+  "file": "PF Frontier Muster Yard.litematic",
+  "name": "PF Frontier Muster Yard"
+}

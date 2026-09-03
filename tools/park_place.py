@@ -170,6 +170,16 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # 39 x 44 of flat paving - and the Frontier had exactly one ride.
                 # `PARK_FRONTIER.md` asks for this one by name.
                 "PF Mine Cart Escape",
+                # THE GROUND THE MODULES NEVER BUILT. Jack, looking down Frontier column A:
+                # "basically everything on this row from the orange flag to the tower is
+                # useless/waste of usage of space." Measured, V24-146 x U0-39 was 5,840 columns
+                # and 54% bare moss - and the two biggest holes were INSIDE the lots: the
+                # Trailhead Gate's walled court has an empty middle and no paved route through it
+                # at all, and the Prospecting Porch is built as a strip on one flank with twenty
+                # columns of unbuilt back. `frontier_scatter` keeps out of module lots (rightly -
+                # a material test cannot tell its pine from the Diggings'), so that ground
+                # belonged to nobody.
+                "PF Frontier Claim Row", "PF Frontier Muster Yard",
                 # THE WYRM'S SKULL, OFF THE CAUSEWAY AND ONTO THE LINE. Jack: "are we able to
                 # place the skull so that the mouth 'opens' around the railway, the back of the
                 # skeleton is towards the void and the mouth gap is where the railway passes
