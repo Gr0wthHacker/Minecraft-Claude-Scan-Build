@@ -132,6 +132,16 @@ SPUR = {"deep": "deepslate", "rock": "stone", "bed": "mossy_stone_bricks",
         "brown": "dripstone_block", "crust": "moss_block"}
 LAMP = "ochre_froglight"
 
+#: A PLANT ROOTS IN THE DIRT FAMILY AND NOWHERE ELSE (rule 11). The diorama carries two tufts of
+#: short grass standing on its own `smooth_stone` paving - legal in the builder's own world only
+#: because nobody asked, and two placement problems here the moment those courses came inside the
+#: plot. They are dropped rather than re-bedded: moving somebody else's paving to suit a tuft of
+#: grass is a worse answer than losing the tuft.
+PLANTS = {"short_grass", "tall_grass", "fern", "large_fern", "dead_bush", "azalea",
+          "flowering_azalea", "moss_carpet", "grass", "sweet_berry_bush"}
+SOIL = {"moss_block", "dirt", "coarse_dirt", "rooted_dirt", "podzol", "grass_block", "mycelium",
+        "mud", "muddy_mangrove_roots", "farmland", "dirt_path", "clay", "gravel", "sand"}
+
 
 def build(cfg: dict, donors=None) -> Canvas:
     p = {**GATE, **(cfg or {})}
@@ -198,6 +208,17 @@ def build(cfg: dict, donors=None) -> Canvas:
         if c.put(int(xv), int(y - sink), int(zu), remap[int(skull.ids[y, zu, xv])]):
             placed += 1
 
+    # ------------------------------------------------------------------ what cannot root
+    unrooted = 0
+    for u in range(du):
+        for v in range(dv):
+            for y in range(c.sy):
+                if c.get_name(v, y, u).split(":")[-1] in PLANTS:
+                    below = c.get_name(v, y - 1, u).split(":")[-1] if y else "plate"
+                    if below not in SOIL and below != "plate":
+                        c.ids[y, u, v] = 0
+                        unrooted += 1
+
     # ------------------------------------------------------------------ the spur
     spur = _spur(c, p, keep, dv, du, at_v, ay, sink, c1)
 
@@ -227,6 +248,7 @@ def build(cfg: dict, donors=None) -> Canvas:
         "dropped": dropped,
         "spur_cells": spur["cells"],
         "strays_pruned": strays,
+        "unrooted_plants": unrooted,
         "lamps": lamps,
         "contract": (
             "the bone skull straddling the rim railway with the track through its mouth: the "

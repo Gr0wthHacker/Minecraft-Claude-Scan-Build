@@ -1,22 +1,22 @@
 {
   "origin": {
-    "x": 97668,
+    "x": 97653,
     "y": 203,
     "z": 80666
   },
   "size": {
-    "x": 32,
+    "x": 47,
     "y": 68,
     "z": 54
   },
   "generated_by": "wyrmgate",
   "kind": "wyrm_gate",
   "lot": [
-    32,
+    47,
     54
   ],
   "at": [
-    168,
+    153,
     366
   ],
   "land": "prism_reach",
@@ -28,13 +28,13 @@
     217
   ],
   "arch": 3,
-  "skull_cells": 27088,
+  "skull_cells": 27856,
   "refused": {
-    "railway": 705,
-    "girder": 737,
-    "walk_lane": 704,
-    "below_plate": 7644,
-    "off_plot": 1232
+    "railway": 595,
+    "girder": 486,
+    "walk_lane": 485,
+    "below_plate": 8712,
+    "off_plot": 0
   },
   "dropped": {
     "tnt": 77,
@@ -42,9 +42,10 @@
   },
   "spur_cells": 0,
   "strays_pruned": 0,
+  "unrooted_plants": 0,
   "lamps": {
     "roof": 6,
-    "rim": 19,
+    "rim": 10,
     "spur": 0
   },
   "contract": "the bone skull straddling the rim railway with the track through its mouth: the face looks in at the park from the corridor's own near edge, the back of the cranium stands on the rim over the void, and not one cell of the railway - track, promenade, parapet, arch or arcade - is taken. Inside the corridor the skull's lowest course is the lintel, three over the deck; the mass is carried by a rock spur on the rim",
@@ -87,52 +88,52 @@
       "narrative": "The wyrm's skull, half-buried in the rim and clamped over the rim railway: the face looks in at the park, the back of the cranium stands over the void, and both tracks run through the open mouth between the jaws.\n"
     },
     "metrics": {
-      "blocks": 27091,
+      "blocks": 27857,
       "materials": 23,
-      "dominant_material_share": 0.4633,
-      "light_blocks": 15,
+      "dominant_material_share": 0.4568,
+      "light_blocks": 14,
       "massing": {
-        "width": 32,
+        "width": 36,
         "height": 60,
         "depth": 54,
-        "fill_ratio": 0.2613
+        "fill_ratio": 0.2388
       },
       "silhouette": {
         "top": {
-          "area": 1590,
-          "fill_ratio": 0.9201
+          "area": 1698,
+          "fill_ratio": 0.669
         },
         "front": {
-          "area": 1036,
-          "fill_ratio": 0.4761
+          "area": 1073,
+          "fill_ratio": 0.3357
         },
         "side": {
-          "area": 2276,
-          "fill_ratio": 0.6198
+          "area": 2312,
+          "fill_ratio": 0.6296
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.1833,
-          0.5407,
-          0.276
+          0.2058,
+          0.5258,
+          0.2684
         ],
-        "top_silhouette_perimeter": 214,
-        "surface_faces_per_block": 0.7176
+        "top_silhouette_perimeter": 358,
+        "surface_faces_per_block": 0.7111
       },
       "material_counts": {
-        "light_gray_wool": 12550,
-        "stone_bricks": 6754,
-        "bone_block": 2413,
-        "moss_block": 1600,
-        "mossy_stone_bricks": 877,
-        "white_wool": 855,
-        "smooth_stone": 801,
-        "oak_leaves": 577,
-        "brown_wool": 208,
-        "gray_wool": 114,
-        "black_wool": 72,
-        "short_grass": 52
+        "light_gray_wool": 12724,
+        "stone_bricks": 6962,
+        "bone_block": 2440,
+        "moss_block": 1551,
+        "smooth_stone": 1057,
+        "mossy_stone_bricks": 920,
+        "white_wool": 854,
+        "oak_leaves": 645,
+        "brown_wool": 242,
+        "gray_wool": 113,
+        "black_wool": 80,
+        "stone_brick_stairs": 55
       }
     },
     "checks": [],
@@ -144,8 +145,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "8f62e9013518bfbe5cc2cdd0cf20d36660c7b9511557d6ba4fe940fad5c18865",
-    "generator_source_digest": "1119cc83819e36ce0d58cbf1f5e83d8bdeec927106cf4b209b0dd186b8f6a89f",
+    "fingerprint": "a2226e8d4b14730d9fa69dd8153ecbae5572ba2afccc7d97d45ca81a48f847c2",
+    "generator_source_digest": "0810c23c8227b1a5f7cfdb528c676591496edcb2fc9b3b1cc529f2f546d5ffa7",
     "anchors": [],
     "genome": {
       "name": "prismworks",
@@ -187,9 +188,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 59.195467,
-    "blocks": 27091,
-    "blocks_per_second": 457.65
+    "seconds": 62.079115,
+    "blocks": 27857,
+    "blocks_per_second": 448.73
   },
   "generator_contract": {
     "ok": true,
@@ -198,7 +199,7 @@
     "roles": [
       "path"
     ],
-    "blocks": 27091,
+    "blocks": 27857,
     "mechanic_families": [
       "container",
       "fluid",
@@ -231,7 +232,9 @@
     "enforce_server_blocks": false
   },
   "server_compatibility": [],
-  "server_unlisted": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: polished_andesite_stairs"
+  ],
   "file": "PF Wyrm Gate.litematic",
   "name": "PF Wyrm Gate"
 }
