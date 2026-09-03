@@ -53,7 +53,12 @@ KEEP = {"Sky Lift", "Carousel Court", "Mine Coaster",
         #: only thing programmed for the Prism Reach. It was being dropped because the keep list
         #: named rides and nothing else, and that alone is why U377-429 measures as FIFTY-THREE
         #: COLUMNS OF NOTHING. A void that size is not restraint, it is a module nobody placed.
-        "Wyrm's Crossing"}
+        "Wyrm's Crossing",
+        #: AND THE WELCOME COURT, which was built and never placed because the keep list named
+        #: rides. It is the stone court with trees and a water feature that the park's centre
+        #: needed - Jack: "that center area where the ferris wheel should have a stone walk up,
+        #: maybe a small fountain... a welcoming area that cleanly paths and directs them."
+        "Welcome Court"}
 
 #: V0 -> X, U0 -> Z, and the floor course. Derived by tools/park_anchor.py from the island
 #: registry; stated here only so a shipped sidecar can carry it.
@@ -93,13 +98,11 @@ def plane_of(model, role: str = "") -> int:
 #: make the next `--ship` look like a regression when it changed. A name goes in here when its
 #: agent reports, not when its file appears.
 EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
-                "PF Vantage Frontier Lookout",
-                # Retained on disk but not assembled: the Summit directly touches Prism Ascent
-                # and overlaps its frontage by 69 cells, so it reads as attached clutter rather
-                # than a distinct destination. Re-site it before promotion.
-                # Retained on disk but not assembled: its V139/U228 site now belongs to the
-                # Sloth garden, and stacking two optional sights there recreates the Midway
-                # clustering this placement pass is intended to remove.
+                "PF Vantage Frontier Lookout", "PF Vantage Midway Belvedere",
+                # THE SUMMIT IS THE PARK'S BEST VIEWPOINT and was withheld for touching the Prism
+                # Ascent. Jack: "add the prism summit, adjust the lot sizes to fit if necessary -
+                # we can always remove smaller buildings that are mostly useless."
+                "PF Vantage Prism Summit",
                 "PF Front Frontier", "PF Front Midway", "PF Front Prismworks",
                 "PF Entry Gate"}
 

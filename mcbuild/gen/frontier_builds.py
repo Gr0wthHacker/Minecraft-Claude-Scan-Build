@@ -98,7 +98,27 @@ PAL = {
     "glow": "ochre_froglight",                # a flush light IS the floor; nobody can knock it off
     "sign": "spruce_wall_sign",
     "rail": "rail",
+    # --- THE SHOW LAYER -----------------------------------------------------------------
+    #: A TOWN IS MASONRY. A FAIRGROUND IS CANVAS. Measured on the first build of these six
+    #: lots, the whole land ran 0.0-2.6% coloured or lit blocks - stone brick, spruce and dark
+    #: oak, which is exactly how you build a village. These are the blocks that say SHOW, and
+    #: every one is cheap, spendable and on the 1.19 server (`tests/test_frontier_builds.py`
+    #: asks the registry rather than this comment).
+    "canvas_a": "red_wool",                   # L65   the stripe that reads from the spine
+    "canvas_b": "white_wool",                 # L236  236 - 65 = 171 of luminance in one step
+    "canvas_c": "yellow_wool",                # L197  the third tone, for a board field
+    "pennant": "orange_wool",                 # L137  a flag, and the only warm mid tone
+    "mast": "spruce_fence",                   # a flag pole is a fence, not a log: it is thin
+    "finial": "lightning_rod",                # L255  a white point on a skyline, one block
+    "flag": "red_banner",                     # a banner IS a flag, and nothing else in the game is
 }
+
+#: THE CANVAS STRIPE, and why it is two tones and not three. `red_wool` 65 against `white_wool`
+#: 236 is 171 points of luminance - the biggest cheap step this economy has - and the flamingo
+#: settled the general rule for exactly this problem: three tones of one hue beat two tones and
+#: a third hue, but two tones at maximum contrast beat both when the job is READING FROM FIFTY
+#: BLOCKS. Yellow is a FIELD colour here (a board behind a name), never a third stripe.
+STRIPE = ("canvas_a", "canvas_b")
 
 #: The masonry variants and how often each shows. Plain dominates or the wall reads as rubble.
 _WEATHER = (("base", 0.72), ("base_worn", 0.14), ("base_moss", 0.09), ("base_carved", 0.05))
@@ -418,7 +438,8 @@ def _cap(lot: _Lot, v0, v1, u0, u1, y0: int, *, courses=2, key="roof",
 
 def _shed(lot: _Lot, v0, v1, u0, u1, *, h=7, ridge="u", title=None, doors=(),
           windows=True, floor=True, eaves=True, false_front=None, glass="glass",
-          band_y=3, sign_face=None, sign_lines=None) -> dict:
+          band_y=3, sign_face=None, sign_lines=None, show=True, show_rise=4,
+          awning=None, awning_y=None) -> dict:
     """A frontier building: plinth, masonry base, string course, framed storey, head beam, roof.
 
     `doors` are (face, centre, width) where face is "-v"/"+v"/"-u"/"+u" - the face's own outward
@@ -460,16 +481,34 @@ def _shed(lot: _Lot, v0, v1, u0, u1, *, h=7, ridge="u", title=None, doors=(),
     # 4. the roof
     ridge_y = _gable(lot, v0, v1, u0, u1, h, ridge=ridge, eaves=eaves)
 
-    # 5. a false front - the parapet that makes a frontier shop a frontier shop
+    # 5. THE SHOW FRONT - the parapet that makes a frontier shop an ATTRACTION rather than a
+    #    house. `show=False` falls back to the plain three-course false front, which is what a
+    #    SERVICE building wants: the Works Yard must not announce itself, and a back-of-house
+    #    shed wearing a name board is the "everything is an attraction" failure from the other
+    #    side. The show front OWNS the name when it carries one, or the shed signs the same
+    #    face twice and the second sign is silently refused - this project's most-repeated
+    #    failure shape.
+    front = None
     if false_front:
-        _false_front(lot, v0, v1, u0, u1, false_front, h, title)
+        if show:
+            front = _showfront(lot, v0, v1, u0, u1, false_front, h, title, rise=show_rise,
+                               lines=(list(sign_lines)[1:] if sign_lines else None))
+        else:
+            _false_front(lot, v0, v1, u0, u1, false_front, h, title)
 
-    # 6. the name, on a wall that is actually there
-    if sign_face and sign_lines:
+    # 6. the canvas, over the face a guest walks up to
+    canvas = None
+    if awning:
+        canvas = _canvas(lot, v0, v1, u0, u1, awning,
+                         int(awning_y if awning_y is not None else band_y + 2))
+
+    # 7. the name, on a wall that is actually there
+    signed = bool(front and front.get("signed"))
+    if sign_face and sign_lines and not (signed and sign_face == false_front):
         _face_sign(lot, v0, v1, u0, u1, sign_face, sign_lines)
 
     return {"v": [v0, v1], "u": [u0, u1], "wall_top": h, "ridge_y": ridge_y,
-            "title": title, "openings": made}
+            "title": title, "openings": made, "showfront": front, "canvas": canvas}
 
 
 def _is_stud(v, u, v0, v1, u0, u1) -> bool:
@@ -831,6 +870,236 @@ def _pave(lot: _Lot, v0, v1, u0, u1, *, field="base", border="plinth", inlay="ti
                 lit += 1
             lot.put(v, 0, u, key)
     return lit
+
+
+# --------------------------------------------------------------------------- the show layer
+#
+# WHAT SEPARATES A THEME PARK FROM A TOWN IS NOT THE BUILDINGS, IT IS WHAT IS ON THE FRONT OF
+# THEM. Jack, looking at the first build of these six lots: "they are visually great - but all
+# serve no actual defined purpose - it feels more like multiple villages or towns than a theme
+# park", and then "we need this to be a theme park, and amusement area, beautiful, not just
+# full of buildings." Measured, the whole land ran 0.0-2.6% coloured-or-lit blocks. Stone
+# brick, spruce and dark oak with a plinth, a string course and a cornice IS how you build a
+# village; it is a correct answer to a question nobody asked.
+#
+# Four pieces, and each does one job a masonry facade cannot:
+#
+#   _showfront   a SHAPED parapet with a name board and a lit band - says WHAT HAPPENS INSIDE
+#   _canvas      a striped awning that projects and slopes - says CANVAS, breaks the wall
+#   _bunting     a strung line between two fixed points - says FAIRGROUND, and costs nothing
+#   _flagpole    / _cupola - the silhouette, the only thing that survives to a quarter scale
+#
+# THE SHAPE CARRIES, NOT THE WORD. `park_frontage._portal` settled this for the park's own
+# thresholds - "colour is the whole of the distinction, because at distance the word is
+# unreadable and the shape is not" - and it is why a show front is SHAPED rather than merely
+# painted: at a quarter scale the name board is four pixels and the stepped outline is not.
+
+
+def _shape(n: int, rise: int) -> list:
+    """The stepped profile of a show front, in courses above the wall top, symmetric about its
+    own middle.
+
+    A FLAT PARAPET IS A PARAPET; A SHAPED ONE IS A SHOPFRONT. The middle third stands at full
+    `rise` and each cell beyond it steps down one, so the outline is a plateau with shoulders -
+    which is what a false front on a frontier street actually is, and it is legible as a
+    silhouette when nothing else about the building is.
+    """
+    if n <= 0:
+        return []
+    mid = (n - 1) / 2.0
+    inner = max(0.0, (max(1, n // 3) - 1) / 2.0)
+    return [max(1, rise - max(0, int(abs(k - mid) - inner))) for k in range(n)]
+
+
+def _front_cells(v0, v1, u0, u1, face):
+    """The cells of one named face, in order along it, and the outward step from it."""
+    if face in ("-v", "+v"):
+        v = v0 if face == "-v" else v1
+        return [(v, u) for u in range(u0, u1 + 1)], ((-1, 0) if face == "-v" else (1, 0))
+    u = u0 if face == "-u" else u1
+    return [(v, u) for v in range(v0, v1 + 1)], ((0, -1) if face == "-u" else (0, 1))
+
+
+def _face_dir(face: str) -> str:
+    return {"-v": WEST, "+v": EAST, "-u": NORTH, "+u": SOUTH}[face]
+
+
+def _showfront(lot: _Lot, v0, v1, u0, u1, face, h, title, *, rise=4, lines=None,
+               field="canvas_c", frame="canvas_a", lit=True, board=True) -> dict:
+    """THE FACADE THAT ANNOUNCES ITSELF: a shaped parapet, a painted name board, a lit band.
+
+    This replaces the flat three-course false front the first build carried. That parapet was
+    correct architecture and it said nothing: a guest twenty blocks away saw a rectangle of
+    spruce with a rectangle of red in the middle of it, and every shop on the street had one.
+
+    Three things are added and every one of them is measurable in a render:
+
+      * the top is SHAPED (`_shape`), so the outline differs from its neighbours;
+      * the name board is a `canvas_c` FIELD inside a `canvas_a` FRAME - a panel rather than a
+        painted patch, which is what carries a name at distance;
+      * two `glow` blocks sit IN the frame, one at each end of the board. A froglight built
+        into the board is part of the structure and cannot be knocked off, which is the rule
+        this park lights everything by - and it is what makes the name readable at night.
+
+    NOTHING PROJECTS. Every cell is in the face's own column, so a show front standing on a lot
+    boundary cannot leave the lot - which is the one way a facade quietly stops existing.
+    """
+    cells, _step = _front_cells(v0, v1, u0, u1, face)
+    prof = _shape(len(cells), max(2, int(rise)))
+    for k, (v, u) in enumerate(cells):
+        top = h + prof[k]
+        for y in range(h + 1, top):
+            lot.put(v, y, u, "timber")
+        lot.put(v, top, u, "band")                     # the coping, following the shaped outline
+
+    made = {"face": face, "profile": prof, "cells": len(cells), "board": None, "lit": 0}
+    if not board or len(cells) < 7:
+        return made
+
+    # -- the name board: a field inside a frame, centred, three courses of it ----------------
+    mid = len(cells) // 2
+    half = min(3, (len(cells) - 3) // 2)
+    lo, hi = mid - half, mid + half
+    by = h + 1                                         # the board's own bottom course
+    for k in range(lo, hi + 1):
+        v, u = cells[k]
+        edge = k in (lo, hi)
+        for y in (by, by + 1, by + 2):
+            if y > h + prof[k]:
+                continue
+            rim = edge or y in (by, by + 2)
+            lot.put(v, y, u, frame if rim else field)
+    made["board"] = {"span": [lo, hi], "y": [by, by + 2]}
+
+    if lit:
+        for k in (lo, hi):
+            v, u = cells[k]
+            if h + prof[k] >= by + 1:
+                lot.put(v, by + 1, u, "glow")
+                made["lit"] += 1
+
+    if title:
+        made["signed"] = _face_sign(lot, v0, v1, u0, u1, face,
+                                    [title] + [str(x) for x in (lines or [])], y=by + 1)
+    return made
+
+
+def _canvas(lot: _Lot, v0, v1, u0, u1, face, y, *, depth=2, stripe=STRIPE, fringe=True,
+            phase=0, run=2) -> dict:
+    """A STRIPED AWNING: two courses of canvas sloping out from a wall, with a hanging valance.
+
+    IT SLOPES, WHICH IS THE WHOLE POINT. A flat coloured shelf projecting from a wall reads as
+    a shelf; an awning that drops a course as it comes out reads as fabric, and it is the one
+    element here that breaks a facade's vertical silhouette at EYE level rather than at roof
+    level. The stripe runs in `run`-wide bands - one-wide stripes are noise past ten blocks,
+    which is the ladybird's own spot-spacing finding in a different body.
+
+    THE VALANCE IS A TRAPDOOR AND ONLY A TRAPDOOR CAN DO IT: a thin vertical panel on a block
+    face, which is the vertical slab this game never shipped. We place them at a seventh of the
+    outside corpus's rate, and this is where they earn it.
+    """
+    cells, (sv, su) = _front_cells(v0, v1, u0, u1, face)
+    out = _face_dir(face)
+    laid = valance = 0
+    for k, (v, u) in enumerate(cells):
+        if not lot.has(v, y - 1, u) and not lot.has(v, y, u):
+            continue                                   # no wall here - a gap, a door, a corner
+        key = stripe[((k + phase) // max(1, run)) % len(stripe)]
+        for d in range(1, depth + 1):
+            if lot.put(v + sv * d, y - (d - 1), u + su * d, key):
+                laid += 1
+        if fringe:
+            d = depth + 1
+            if lot.put(v + sv * d, y - (depth - 1), u + su * d, "shutter", facing=out,
+                       half="top", open="true", powered="false", waterlogged="false"):
+                valance += 1
+    return {"face": face, "y": y, "depth": depth, "cells": laid, "valance": valance}
+
+
+def _bunting(lot: _Lot, a: int, b: int, fixed: int, y: int, axis: str, *, sag=1,
+             stripe=("canvas_a", "canvas_b", "canvas_c")) -> int:
+    """A STRUNG LINE BETWEEN TWO FIXED POINTS, dipping in the middle.
+
+    Bunting is the cheapest thing in this file and the loudest: a line of alternating colour
+    strung high over a street says fairground before a guest has read one sign.
+
+    IT DIPS, AND A DIP NEEDS A RISER. A run that simply steps down a course touches its
+    neighbour only at a diagonal, which is not connected at all - the ear-tip failure this repo
+    has now paid for five times, and the reason `_porch_run`'s lean-to carries a riser under
+    every step. Both ends must land on something the caller has already built, or the line is
+    a second component hanging in the air.
+    """
+    lo, hi = (a, b) if a <= b else (b, a)
+    n = hi - lo + 1
+    if n < 5:
+        return 0
+    laid = 0
+    prev = y
+    for k in range(n):
+        t = min(k, n - 1 - k) / max(1.0, (n - 1) / 2.0)   # 0 at the ends, 1 in the middle
+        cy = y - int(round(sag * t))
+        key = stripe[k % len(stripe)]
+        for yy in range(min(cy, prev), max(cy, prev) + 1):
+            if axis == "u":
+                laid += bool(lot.put(fixed, yy, lo + k, key))
+            else:
+                laid += bool(lot.put(lo + k, yy, fixed, key))
+        prev = cy
+    return laid
+
+
+def _flagpole(lot: _Lot, v: int, u: int, y0: int, *, h=6, colour="pennant", along="u") -> dict:
+    """A POLE WITH A PENNANT ON IT, AND A WHITE POINT AT THE TOP OF IT.
+
+    THE SILHOUETTE IS THE ONLY THING THAT SURVIVES TO A QUARTER SCALE. A roofline of similar
+    gables is a town whatever colour it is painted; a mast standing six courses clear of one is
+    the cheapest legible difference this file can buy - about a dozen blocks.
+
+    THE PENNANT IS WOOL, NOT A BANNER. A banner is the right object in the game and it renders
+    as a thin sheet our own tools draw as a cube, so it cannot be judged offline at all; three
+    wool cells rigid against the mast are a shape both a render and a player can see.
+    """
+    # A FREE POST CONNECTS TO NOTHING. `_Lot.fence` forces two sides true, which is right for a
+    # rail running along a wall and wrong for a mast: a fence drawn as connected to open air
+    # renders with two stubs sticking out of it, and our own tools draw a fence as a full cube
+    # so nothing offline would ever have shown it.
+    for y in range(y0, y0 + h):
+        lot.put(v, y, u, "mast", north="false", south="false", east="false", west="false",
+                waterlogged="false")
+    lot.put(v, y0 + h, u, "finial", facing="up", waterlogged="false")
+    flown = 0
+    dv, du = (0, 1) if along == "u" else (1, 0)
+    for k in range(3):                                 # a tapering pennant off the mast's side
+        for j in range(3 - k):
+            flown += bool(lot.put(v + dv * (j + 1), y0 + h - 2 - k, u + du * (j + 1), colour))
+    return {"at": [v, u], "top": y0 + h, "pennant": flown}
+
+
+def _cupola(lot: _Lot, cv: int, cu: int, y0: int, *, r=1, h=4) -> dict:
+    """A LIT LANTERN ON A RIDGE: four posts, glazed sides, a stepped cap and a point.
+
+    A cupola is the one roof element that changes a building's OUTLINE rather than its surface,
+    and it is what tells one shed from the next at the distance a guest actually chooses which
+    door to walk to.
+    """
+    v0, v1, u0, u1 = cv - r, cv + r, cu - r, cu + r
+    for v in range(v0, v1 + 1):                        # the deck it stands on, so it is one piece
+        for u in range(u0, u1 + 1):
+            lot.put(v, y0, u, "band")
+    for y in range(y0 + 1, y0 + h):
+        for v in range(v0, v1 + 1):
+            for u in range(u0, u1 + 1):
+                if v in (v0, v1) and u in (u0, u1):
+                    lot.log(v, y, u, "post", axis="y")
+                elif v in (v0, v1) or u in (u0, u1):
+                    lot.bars(v, y, u, "u" if v in (v0, v1) else "v")
+    lot.put(cv, y0 + h - 1, cu, "glow")
+    top = _cap(lot, v0, v1, u0, u1, y0 + h, courses=1)
+    # THE POINT SITS ON THE CAP, NOT A COURSE ABOVE IT. A finial with a course of air under it
+    # is a second component, which is the one failure this file's own connectivity test exists
+    # to catch and the one a render cannot show.
+    lot.put(cv, top + 1, cu, "finial", facing="up", waterlogged="false")
+    return {"at": [cv, cu], "top": top + 1}
 
 
 # --------------------------------------------------------------------------- the six lots

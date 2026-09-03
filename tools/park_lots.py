@@ -161,11 +161,19 @@ PLACEMENT = {
     "Arrival Court":          (24, 215),
     "Snack Window":           (77, 215),
     # --- Midway ---------------------------------------------------- col B  U265-336 (72)
-    "Carousel Court":         (24, 266),
-    "Sky Lift":               (92, 266),
+    # THE FERRIS WHEEL IS THE CENTRE ATTRACTION, so column B's front is cleared for the approach
+    # to it and the carousel goes off to the side. Jack: "we want the ferris wheel to be the main
+    # center attraction, lets put the carousel somewhere off to the left or right." The wheel
+    # already straddles the park's own centre (V100, U300); what stood between it and the
+    # entrance was the carousel.
+    # COLUMN B, RE-ORDERED FRONT TO BACK. The carousel is 52 deep by 47 WIDE and no other Midway
+    # column is wider than 41, so it cannot leave column B - what it can do is get out of the
+    # approach. Front to back the column now reads: welcome court, the wheel, the carousel.
+    "Welcome Court":          (24, 280),      # centred on the entrance axis U300
+    "Sky Lift":               (80, 266),      # THE CENTRE ATTRACTION, straight down the axis
+    "Carousel Court":         (102, 266),     # behind the wheel and as far to the left as it goes
     # --- Midway ---------------------------------------------------- col C  U346-384 (39)
     "Skill Arcade":           (24, 346),
-    "Prize Point":            (80, 346),
     # "Sky Lift Sloth" hangs from the Sky Lift's own arch. It has no ground lot and needs none.
     # --- Wyrm's Crossing reach ------------------------------------- U389-426 (38 usable)
     # AT THE REACH'S OWN START. The full-resolution skull is 40 wide and the Prism Reach is

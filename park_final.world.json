@@ -5105,8 +5105,8 @@
       "generator": "compose",
       "role": "ride",
       "footprint": [
-        68,
-        71
+        52,
+        47
       ],
       "at": [
         18,
@@ -5604,7 +5604,8 @@
             ]
           }
         ]
-      }
+      },
+      "resized_note": "the RIDE alone, not the court - Jack kept the merry-go-round and threw the plazas, queues, booths and benches around it away"
     },
     {
       "name": "Sky Lift",
@@ -5612,7 +5613,7 @@
       "generator": "compose",
       "role": "ride",
       "footprint": [
-        62,
+        22,
         71
       ],
       "at": [
@@ -6313,7 +6314,8 @@
             ]
           }
         ]
-      }
+      },
+      "resized_note": "the WHEEL alone; 19 deep as built, 22 declared for its own clearance"
     },
     {
       "name": "Sky Lift Sloth",

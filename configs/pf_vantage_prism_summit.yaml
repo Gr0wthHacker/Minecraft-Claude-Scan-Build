@@ -57,7 +57,11 @@ gen: park_vantage
 params:
   kind: tower
   land: prismworks
-  at: [44, 526]
+  # FIVE COLUMNS FORWARD. At V44 the tower's back three columns (V56-58) ran into the frontage
+  # marquee standing over the Prism Ascent's spur at U531-537 - 69 cells, which is why it was
+  # built and then held out of the assembly. It keeps its bridge to the Ascent's podium roof,
+  # which is a U relationship and untouched by moving in V.
+  at: [39, 526]
   size: [15, 16]        # the LOT; the shaft is 15 x 15 and U541 is the bridge column
   shaft: [15, 15]
   rise: 13              # THE PODIUM'S OWN COURSE - see above; this number is not free

@@ -1,6 +1,6 @@
 {
   "origin": {
-    "x": 97544,
+    "x": 97539,
     "y": 203,
     "z": 80826
   },
@@ -12,9 +12,9 @@
   "kind": "park_vantage",
   "land": "prismworks",
   "lot": [
-    44,
+    39,
     526,
-    58,
+    53,
     541
   ],
   "shaft": [
@@ -102,7 +102,7 @@
     "reach": 1,
     "cells": 7
   },
-  "contract": "a climbable vantage: 5 flights of 13 treads, a room at every storey, and a deck whose walking surface is 65 courses over the lawn at world Y268 - reached on foot from the park's own ground and walkable back down, inside V44-58 / U526-541 and not one cell outside it",
+  "contract": "a climbable vantage: 5 flights of 13 treads, a room at every storey, and a deck whose walking surface is 65 courses over the lawn at world Y268 - reached on foot from the park's own ground and walkable back down, inside V39-53 / U526-541 and not one cell outside it",
   "requires_in_game": [
     "colour and the read of the crown against the sky can only be judged in world",
     "no mechanism is claimed by this geometry: there is no lift, no gate and no circuit"
@@ -192,7 +192,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "0f0e73ac1e0146be7124cd7669c3c3792902eea6f48e3077733d6c72c2fbbd4b",
+    "fingerprint": "f75b1a35af2b88b6c0ad79d0072a4308f3f9dcbadab559f33f9fb945c0865117",
     "generator_source_digest": "1175f4d885a23be1cbd5490a59c49171b8704f775111894e4728bee98a30fc21",
     "anchors": [
       {
@@ -266,9 +266,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 80.77966,
+    "seconds": 63.167883,
     "blocks": 4522,
-    "blocks_per_second": 55.98
+    "blocks_per_second": 71.59
   },
   "generator_contract": {
     "ok": true,

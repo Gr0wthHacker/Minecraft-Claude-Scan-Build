@@ -95,16 +95,19 @@ params:
     # THE WHEEL IS THE ONE MIDWAY RIDE THAT GENUINELY QUEUES - it loads a car at a time - so it
     # is the one that gets a line. The Carousel is a walk-on and gets thresholds instead, which is
     # a real distinction a visitor can read from the shape of what is in front of them.
+    # RE-AIMED. The wheel moved from V92 to V80 when column B was re-ordered to put it on the
+    # entrance axis as the park's centre attraction, and a marquee left at V74 stood 63 cells
+    # inside it. A marquee belongs one course in front of the door it names.
     - kind: marquee
       name: Sky Lift
-      at: [74, 274]
+      at: [78, 274]
       span: 3
       depth: 2
       title: THE SKY LIFT
       lines: ["big wheel", "queue behind"]
     - kind: queue
       name: Sky Lift queue
-      at: [79, 270]
+      at: [68, 270]
       width: 9
       depth: 10
       # TWO COURSES BETWEEN RAILS, NOT THREE. There are sixteen courses of lawn between the
@@ -116,15 +119,17 @@ params:
       lines: ["one car at a", "time - please", "wait here"]
 
     # ---------------------------------------------------------------- walk-on thresholds
+    # THE CAROUSEL IS BEHIND THE WHEEL NOW, at V102-153 and as far to the left of the axis as a
+    # 47-wide ride fits in a 71-wide column. Its thresholds follow it.
     - kind: portal
       name: Carousel entrance
-      at: [21, 291]
+      at: [99, 291]
       mode: entrance
       title: RIDE ENTRANCE
       lines: ["carousel", "", "step up"]
     - kind: portal
       name: Carousel exit
-      at: [21, 285]
+      at: [99, 285]
       mode: exit
       title: RIDE EXIT
       lines: ["", "", "mind the step"]
@@ -141,30 +146,24 @@ params:
       title: WAY OUT
       lines: ["", "", "to the spine"]
 
-    # ---------------------------------------------------------------- the Sloth garden
-    # THE SLOTH IS A SECONDARY DISCOVERY, NOT PART OF THE WHEEL'S SILHOUETTE.  Its former
-    # V24/U312 position put the whole 46 x 24 arbour in the same view cone as the Carousel and
-    # Sky Lift.  This measured lawn behind the Prize Point gives it a separate garden: 25 clear
-    # U courses from the ride court, six clear V courses behind the building, and no intrusion
-    # into the V152 service band.  U312-339 is deliberately left as breathing room beside the
-    # wheel rather than treated as a hole that must be filled.
-    # THE PIERS GO UNDER CELLS THAT EXIST: the lattice the sloth hangs from is a grid whose two
-    # long rails run at its own U1-2 and U21-22, and everything between them is open air, so a
-    # pier anywhere else would carry nothing and read as a post beside a sculpture.
-    - kind: pergola
-      name: Sloth Arbour piers
-      at: [106, 360]
-      size: [46, 24]
-      top: 28
-      # These four V rows are lawn at both rail positions; the intervening cross-walk and its
-      # verge remain completely open beneath the raised animal.
-      pier_v: [0, 13, 34, 44]
-      pier_u: [1, 21]
-    - kind: stamp
-      name: Sky Lift Sloth
-      at: [106, 360]
-      source: out/park_final/artifacts/Sky Lift Sloth.litematic
-      lift: 6
+    # ---------------------------------------------------------------- the Sloth garden, REMOVED
+    # Jack: "I also think the sloth should be placed 'above' the railway somewhere, it can attach
+    # to a part of the railway and be a part of the design, I think it takes up a lot of space on
+    # the ground and it doesnt really need to be there."
+    #
+    # The arbour was 46 x 24 of Midway lawn plus eight two-by-two piers, and he is right that a
+    # hanging animal has no business occupying ground. It is removed, and the sloth is homeless
+    # again on purpose rather than left standing where it does not belong.
+    #
+    # WHAT MOUNTING IT ON THE VIADUCT ACTUALLY COSTS, measured, so nobody re-tries it blind:
+    # the sloth is 46 deep x 30 tall x 24 wide and its lattice is the TOP three courses, with the
+    # animal hung below. The rail corridor is V172-186, FIFTEEN columns, and the arcade under the
+    # deck is eleven courses - so it fits neither across the corridor nor beneath the deck, and
+    # rotated ninety degrees it is still 24 deep against 15. Hanging it BESIDE the viaduct works
+    # geometrically (its lattice above the parapet, the animal at a rider's eye level) but needs
+    # a bracket off the viaduct's own portal frames, which is a piece of `parkrail` work rather
+    # than a frontage stamp - a lattice with no support is a floating component, which is what
+    # the connectivity check would report and a render would not.
     # The former bandstand at V72/U316 was a third icon wedged between the carousel and wheel.
     # This band now stays empty so the two rides read as separate destinations.
     - kind: sight
