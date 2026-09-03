@@ -7328,6 +7328,102 @@ Three joins are worth keeping as rules in their own right:
   second one.
 - **Nothing placed in game.**
 
+#### "Can we improve further": three passes, and the one that changed the whole land (2026-09-03)
+
+Jack, after the re-theme. I measured the land, offered three, and he took all three.
+
+| design | blocks | what it is |
+|---|---|---|
+| `PF Frontier Overgrowth` | 5,146 | the jungle taking the camp back - vines, roof moss, ferns, hanging roots |
+| `PF Frontier Rim` | 2,215 | the cliff walk and a pterosaur nesting colony on the land's outer edge |
+| the Vantage Lookout | +4 | an orientation board and a bell, on a 56-course tower that had NO verbs at all |
+
+    the town (U0-98)      foliage 30.3% -> 35.2%
+    the Vantage Lookout   0 interactive blocks -> 4 (three signs and a bell)
+    the rim (V187-199)    2,249 columns at 3.8 b/col carrying one animal -> a walk and four nests
+
+**THE RE-THEME WAS DONE ON THE TERRAIN AND NEVER ON THE ARCHITECTURE**, and one render said so:
+the plateau's own surface went to 71% green while the camp below it stayed grey - stone 13%, stone
+brick 9%, cracked stone brick 8%, cobblestone 8% - so the land read as a rainforest standing next
+to a mining town. **No amount of further planting on the LAWN fixes that, because the grey is the
+BUILDINGS**, and `frontier_scatter` correctly keeps out of every module lot.
+
+**AND THE OBVIOUS FIX IS UNBUILDABLE.** Swapping stone brick for its mossy variant is what a
+builder would do by hand; **a litematica printer places into AIR and never replaces**, so every
+swapped cell would stand as permanent amber in `/cscan check` for the life of the park. The deck
+floor's rule says it from the other side - a remedial design's damage is measured in what it
+REPLACES. `gen/overgrowth.py` adds and never covers, and `test_it_never_replaces_a_standing_block`
+asserts it against the artifact rather than against a log line.
+
+**IT STARTS THREE COURSES UP**, which is a doorway rule rather than an aesthetic one: a vine at a
+wall's foot is exactly where a guest walks past it, and beginning above head height keeps every
+door, street and queue clear BY CONSTRUCTION rather than by a list of exceptions. Ferns are the
+one growth at ground level and they root only in soil - rule 11 again - never on `Park Ways`'
+paving.
+
+##### Four faults, each of which shipped a design that audited perfectly clean
+
+- **A VINE'S FLAGS NAME THE FACE IT CLINGS TO, NOT THE WAY IT FACES.** Written as the back of the
+  side it grew from, **2,948 of 3,000 vines named a face with open air behind it** - and a vine
+  hanging in air renders identically to one on a wall in every sheet this repo has. It is the one
+  block whose connection flags are a DECISION rather than something the game derives
+  (`work.MULTIFACE` exists for exactly this), so it is the one that can be silently wrong.
+  `props[side] = "true"`, not `props[_BACK[side]]`.
+- **A ROOF IS NOT A WALL.** The first build asked the WALL question about a roof, and this land's
+  roofs are stairs and slabs, which cannot carry a vine and can perfectly well carry a carpet:
+  moss landed on **486 cells of the ~35,000 it was aiming at** and reported a number. `ROOF` is
+  derived through `blocks.supports_top` now, never typed out.
+- **A WAY RUNS ALONG THE LOT'S LENGTH, AND THE LENGTH IS NOT ALWAYS V.** `claimrow._way` was
+  written for the claim row, whose lot is 54 deep in V, so the walk was laid along V at a fixed U
+  and nobody had to say so. Pointed at the rim - 13 in V and 98 in U - the same code laid a
+  **3 x 13 patch instead of a 98-block cliff walk**: 38 cells where 294 were wanted, and it audits
+  perfectly clean, because a patch of path is a legal path. `axis` is explicit and RAISES on
+  anything else.
+- **A SIGN LINE OVER FIFTEEN CHARACTERS CLIPS MID-WORD**, and this park has shipped that twice.
+  The lookout's board asked for "nests on the top" (16) and the guard fired; it reads "nests up
+  top". A width check at the point of placement is the only thing that catches it before a
+  screenshot does.
+
+##### TWO LAND-DRESSING PASSES ON ONE STRIP IS A CLASH NO SINGLE DESIGN CAN SEE
+
+The ship reported the session's first clashes - `Overgrowth x Rim: 3 cells`, `Rim x Scatter: 1` -
+and **every one of the three designs reported `overlap 0` against the world**, correctly, because
+`finish.verify_against` audits against the CAPTURE and the capture does not contain the other two.
+This is the casino's own recorded lesson at land scale: cross-design overlap is a DIFFERENT
+question from world overlap and needs its own check, which `tools/park_place.py` is. Both
+neighbours reserve the rim's box by name now.
+
+##### Why a clifftop, and why a nest
+
+The rim is the only band in the Frontier with real room and the only one against the void - and it
+is **the part a guest is least likely to reach**, because it sits past the railway, which is
+exactly why it gets a WAY rather than only scenery. A strip with things on it and no route to them
+is a strip nobody sees; the sauropod was already out there and nothing led to it. The nests are
+`gen/pterosaur.nest` - a scrape of the ridge's own rock with pale eggs in it - because a nest
+belongs to the ANIMAL rather than to the ground, and an egg is a dome whose canonical view is the
+PLAN: the ladybird's category, and the two reasons it works here. **The way runs at the band's
+inner edge so the colony sits between it and the drop** - you walk past a colony rather than
+through it.
+
+##### And the tower had nothing in it
+
+`PF Vantage Frontier Lookout` is 17.8 blocks per column and 56 courses tall - the densest thing in
+its land - and carried **zero interactive blocks**: you climb it and there is nothing there. That
+is the complaint Jack has now made of this park three separate times, and for an observation tower
+the answer is not a game, it is the board that tells you what you are looking AT and the bell a
+lookout rings. **The module is shared with Prismworks, so both are opt-in** - a shared generator
+that changes under its other callers is a different bug.
+
+##### Still open
+
+- **Nothing here has been placed in game.** All of it is `render3d`, which draws with the same
+  colour DB the palette picker optimises against - judge form and mass here, palette in world.
+- **`render3d` draws a vine as a full cube**, so the one thing these sheets genuinely cannot judge
+  is how heavy the overgrowth reads. The density is 0.16 because 11,855 vines was 92% of a first
+  build and read as a curtain over everything; growth is a DRIFT, and the point is that some walls
+  are taken and some are not.
+
+
 ## The daily loop
 
 ```bash

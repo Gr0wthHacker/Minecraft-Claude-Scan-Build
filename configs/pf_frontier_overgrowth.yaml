@@ -1,0 +1,77 @@
+# PF FRONTIER OVERGROWTH - the jungle taking the camp back.
+#
+# Jack, after the re-theme: "can we improve further".
+#
+# ---------------------------------------------------------------------------------------------
+# THE RENDER SAID IT PLAINLY: THE JUNGLE STOPS AT THE PLATEAU'S EDGE
+#
+# Measured over the shipped land:
+#
+#     leaves on the plateau  (U99-169)    7.0%
+#     leaves in the town     (U0-98)      3.0-3.5%
+#     exposed building cells carrying anything green    ~0 of ~35,000
+#
+# So the land read as a rainforest standing next to a grey mining town. The re-theme was done on
+# the TERRAIN and never on the ARCHITECTURE, and no amount of further planting on the lawn fixes
+# that, because the grey is the buildings: stone 13%, stone brick 9%, cracked stone brick 8%,
+# cobblestone 8%.
+#
+# ---------------------------------------------------------------------------------------------
+# ADDITIVE, AND THAT IS A BUILDABILITY RULE
+#
+# The obvious move is to swap stone brick for its mossy variant - and a litematica printer places
+# into AIR and never replaces, so every swapped cell would be a cell nobody can ever print. The
+# deck floor's rule says it from the other side: a remedial design's damage is measured in what it
+# REPLACES, and 492 replacements read as vandalism where 84 read as a repair. Nothing here touches
+# a standing block.
+#
+# **AND IT STARTS THREE COURSES UP.** A vine at a wall's foot is exactly where a guest walks past
+# it; beginning above head height keeps every doorway, street and queue clear by construction
+# rather than by a list of exceptions. Ferns are the one growth at ground level and they root only
+# in soil, never on `Park Ways`' paving.
+name: PF Frontier Overgrowth
+gen: overgrowth
+params:
+  kind: overgrowth
+  lot: [200, 170]
+  at: [0, 0]
+  under: out/Park Complete.litematic
+  previous: out/PF Frontier Overgrowth.litematic
+  sy: 40
+  head_room: 3
+  # **THE PLATEAU IS ALREADY A JUNGLE**, and `gen/plateau.py` owns its surface - a second pass
+  # hanging vines off the ridge's own rock would be two designs on one face. This grows on the
+  # CAMP, so the mountain's lot is kept out.
+  keep_out:
+    - [24, 147, 99, 169]
+    # THE RIM'S OWN GROUND. `PF Frontier Rim` lays the cliff walk and the nesting colony
+    # there; two land-dressing passes on one strip is what `finish.defer_to` exists to stop.
+    - [185, 199, 73, 172]      # PF Frontier Rim
+  # 11,855 vines was 92% of the design and read as a curtain over everything; growth is a
+  # DRIFT, and the point is that some walls are taken and some are not.
+  vines: {density: 0.16, drop: 5}
+  # **A ROOF IS NOT A WALL.** The first build asked the wall question about a roof and moss
+  # landed on 486 cells of the ~35,000 it was aiming at - this land's roofs are stairs and
+  # slabs, which cannot carry a vine and can perfectly well carry a carpet.
+  roofs: {density: 0.42}
+  ferns: {density: 0.22}
+  roots: {density: 0.18}
+  seed: 83
+  title: THE OVERGROWTH
+roles: [construction]
+design:
+  purpose: terrain
+  hierarchy: filler
+  style: frontier
+  narrative: >
+    Vine curtains down the camp's walls from above head height, moss and azalea creeping over the
+    roofs, ferns at the foot of a wall where the ground is soil, and hanging roots under the
+    overhangs - the jungle reclaiming an expedition camp.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

@@ -1,0 +1,73 @@
+# PF FRONTIER RIM - the cliff walk and the nesting colony, on the land's outer edge.
+#
+# Jack, asked what to improve: all three, and this is the third.
+#
+# ---------------------------------------------------------------------------------------------
+# WHY IT NEEDED ANYTHING
+#
+# Measured over the shipped land, V187-199 is **2,249 columns at 3.8 blocks per column carrying one
+# animal** - the sauropod at U8-70 - and open lawn for the other hundred. It is also the only band
+# in the Frontier with real room, and the only one against the void.
+#
+# **AND IT IS THE PART OF THE LAND A GUEST IS LEAST LIKELY TO REACH**, because it sits past the
+# railway - which is exactly why it gets a WAY rather than only scenery. A strip with things on it
+# and no route to them is a strip nobody sees; the sauropod is already out here and nothing led to
+# it.
+#
+# ---------------------------------------------------------------------------------------------
+# A CLIFFTOP IS WHERE A PTEROSAUR COLONY ACTUALLY IS
+#
+# The nests are `gen/pterosaur.nest` - a scrape of the ridge's own rock with pale eggs in it -
+# because a nest belongs to the ANIMAL rather than to the ground it sits on, and the animal it
+# belongs to is perched on the plateau's summit two hundred blocks away. An egg is a dome and the
+# canonical view of a nest is the PLAN, which is the same two reasons the ladybird and the turtle
+# work in this medium.
+#
+# The way runs at U-low inside the band so the nests sit BETWEEN it and the drop, which is the
+# right way round: you walk past a colony rather than through it.
+name: PF Frontier Rim
+gen: claimrow
+params:
+  kind: claims
+  lot: [13, 98]
+  at: [187, 75]
+  under: out/Park Complete.litematic
+  previous: out/PF Frontier Rim.litematic
+  sy: 16
+  # the cliff walk, three wide along the band's inner edge
+  # **ALONG U.** This lot is 13 in V and 98 in U, so the walk runs along U at a fixed V -
+  # the default is V, which laid a 3 x 13 patch here and audited perfectly clean.
+  way: {axis: u, u: 1, w: 3, glow_every: 12}
+  claims: []
+  pits: []
+  # **THE NESTING COLONY.** [v, u, eggs] in the lot's own coordinates - four scrapes out toward the
+  # drop, none of them touching the way.
+  nests:
+    - [8, 12, 4]
+    - [7, 30, 3]
+    - [9, 56, 5]
+    - [7, 80, 3]
+  # no worked ground: this is a clifftop, not a dig. The way and the nests are the whole design,
+  # and the moss between them is the land's own.
+  worked: 0
+  clear: 1
+  flora: jungle
+  plant: {step: 7, density: 0.4, kinds: [jungle, snag, rock, rock]}
+  seed: 91
+  title: THE RIM
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: filler
+  style: frontier
+  narrative: >
+    The cliff walk along the plateau's outer rim, with a pteranodon nesting colony between it and
+    the drop: four scrapes of the ridge's own rock, eggs in each, and jungle and snags between.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

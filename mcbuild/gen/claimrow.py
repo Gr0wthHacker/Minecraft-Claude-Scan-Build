@@ -68,6 +68,7 @@ from __future__ import annotations
 
 from .canvas import Canvas, hash01
 from .frontier_builds import EAST, SOUTH, _Lot
+from . import pterosaur as _ptero
 from .frontier_scatter import KINDS as _TREES
 from .frontier_scatter import _Ground, _boulder, flora_for, shipped_cells
 from .vertical import Ctx
@@ -172,6 +173,11 @@ CLAIMROW = {
     "claims": [],                  # claims: [{v, u, dv, du, no, name}]
     "pits": [],                    # claims: [[v, u], ...] - a prospect pit and its windlass
     "props": [],                   # yard: [[v, u, kind], ...] - see `_PROPS`
+    #: **THE RIM'S OWN CONTENT.** 2,249 columns at 3.8 blocks per column carrying one animal, on
+    #: the land's outer edge against the void - which is where a pterosaur colony would actually
+    #: be. `[[v, u, eggs], ...]`; the builder is `gen/pterosaur.nest`, because a nest belongs to
+    #: the animal rather than to the ground it sits on.
+    "nests": [],
     "worked": 7.0,                 # how far the worked ground reaches from the way and the claims
     "plant": None,                 # {"step": n, "density": f, "kinds": [...]}
     "clear": 1,                    # how far a planted trunk must be from anything built or paved
@@ -274,14 +280,22 @@ def _way(lot: _Lot, g: _Ground, p: dict, seed: int) -> dict:
     u0 = int(spec.get("u", 1))
     w = max(1, int(spec.get("w", 3)))
     every = max(4, int(spec.get("glow_every", 11)))
+    # **A WAY RUNS ALONG THE LOT'S LENGTH, AND THE LENGTH IS NOT ALWAYS V.** This was written for
+    # the claim row, whose lot is 54 deep in V and 19 wide in U, so the walk was laid along V at a
+    # fixed U and nobody had to say so. Pointed at the rim - 13 in V and 98 in U - the same code
+    # laid a 3 x 13 patch instead of a 98-block cliff walk: 38 cells where 294 were wanted, and it
+    # audits perfectly clean, because a patch of path is a legal path.
+    axis = str(spec.get("axis", "v"))
+    if axis not in ("v", "u"):
+        raise ValueError(f"a way runs along v or u, not {axis!r}")
+    along = lot.dv if axis == "v" else lot.du
     cells = kerb = glow = 0
-    for v in range(lot.dv):
+    for i in range(along):
         for k in range(w):
-            u = u0 + k
+            v, u = (i, u0 + k) if axis == "v" else (u0 + k, i)
             if not g.lawn(v, u) or lot.has(v, 0, u):
                 continue
-            mid = k == w // 2
-            if mid and v % every == every // 2:
+            if k == w // 2 and i % every == every // 2:
                 glow += 1 if lot.put(v, 0, u, KIT["glow"]) else 0
                 continue
             # THE WAY IS THE HARDEST-PACKED GROUND ON THE FLAT, so it reads darker than the
@@ -291,10 +305,11 @@ def _way(lot: _Lot, g: _Ground, p: dict, seed: int) -> dict:
             key = "wash" if r < 0.38 else ("spoil" if r < 0.66 else
                                            "crust" if r < 0.88 else "earth")
             cells += 1 if lot.put(v, 0, u, KIT[key]) else 0
-        for u in (u0 - 1, u0 + w):
+        for k in (-1, w):
+            v, u = (i, u0 + k) if axis == "v" else (u0 + k, i)
             if g.lawn(v, u) and not lot.has(v, 0, u) and hash01(v, u, seed + 6) < 0.72:
                 kerb += 1 if lot.slab(v, 0, u, KIT["kerb"], "bottom") else 0
-    return {"u": [u0, u0 + w - 1], "cells": cells, "kerb": kerb, "glow": glow}
+    return {"axis": axis, "u": [u0, u0 + w - 1], "cells": cells, "kerb": kerb, "glow": glow}
 
 
 def _heap(lot: _Lot, g: _Ground, v0: int, u0: int, r: int, h: int, seed: int) -> int:
@@ -799,6 +814,9 @@ def build(cfg: dict, donors=None) -> Canvas:
         # LAST, so the apron can never take a cell a prop or a leg wanted - `_crust` refuses an
         # occupied cell, which makes that a property of the order rather than of a check.
         parts["worked"] = _worked(lot, g, p, seeds, seed)
+    if p.get("nests"):
+        parts["nests"] = [_ptero.nest(lot, g, int(a), int(b), int(e), seed)
+                          for a, b, e in p["nests"]]
     parts["planting"] = _plant(lot, g, p, seed)
 
     c.world_origin = (anchor[0] + at_v, anchor[1], anchor[2] + at_u)

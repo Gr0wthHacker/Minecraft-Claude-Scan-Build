@@ -79,7 +79,7 @@
   ],
   "top_surface": 44,
   "crown": "cabin",
-  "crown_cells": 565,
+  "crown_cells": 590,
   "contract": "a climbable vantage: 4 flights of 11 treads, a room at every storey, and a deck whose walking surface is 44 courses over the lawn at world Y247 - reached on foot from the park's own ground and walkable back down, inside V130-146 / U0-16 and not one cell outside it",
   "requires_in_game": [
     "colour and the read of the crown against the sky can only be judged in world",
@@ -90,10 +90,14 @@
     "families": {
       "light": [
         "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
       ]
     },
     "verifiers": {
-      "light": "mcbuild.nightlight"
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
     },
     "roles": [
       "building",
@@ -113,15 +117,15 @@
       "narrative": "A timber-framed watch tower: stone-brick masonry with spruce pilasters at every fourth cell, four courses of barred window at every storey, a chiseled string course at every floor, a corbelled oversail, an open loggia on the south face looking onto the Mine Coaster, and a deck forty-four courses over the lawn carrying a hipped-roof cabin on one half and open parapet on the other.\n"
     },
     "metrics": {
-      "blocks": 4129,
-      "materials": 15,
-      "dominant_material_share": 0.3495,
+      "blocks": 4154,
+      "materials": 17,
+      "dominant_material_share": 0.3474,
       "light_blocks": 13,
       "massing": {
         "width": 17,
         "height": 51,
         "depth": 17,
-        "fill_ratio": 0.2801
+        "fill_ratio": 0.2818
       },
       "silhouette": {
         "top": {
@@ -129,8 +133,8 @@
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 771,
-          "fill_ratio": 0.8099
+          "area": 777,
+          "fill_ratio": 0.8162
         },
         "side": {
           "area": 828,
@@ -139,21 +143,21 @@
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.3328,
-          0.3844,
-          0.2829
+          0.3308,
+          0.382,
+          0.2872
         ],
         "top_silhouette_perimeter": 68,
-        "surface_faces_per_block": 2.1008
+        "surface_faces_per_block": 2.1093
       },
       "material_counts": {
         "stone_bricks": 1443,
-        "spruce_planks": 1201,
+        "spruce_planks": 1207,
         "chiseled_stone_bricks": 259,
         "dark_oak_planks": 243,
+        "spruce_log": 203,
         "stone_brick_stairs": 196,
         "cracked_stone_bricks": 188,
-        "spruce_log": 188,
         "stone_brick_wall": 114,
         "polished_blackstone_bricks": 104,
         "dark_oak_stairs": 88,
@@ -170,8 +174,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "81b070ceea886dee8a6f41f85f3eec65e57c20368d79fe8d35cbfb423288a447",
-    "generator_source_digest": "1175f4d885a23be1cbd5490a59c49171b8704f775111894e4728bee98a30fc21",
+    "fingerprint": "65a5dfd8e3bb570b63ee65b5ab553c19db8ab88cac599e040efd6a48f28fb110",
+    "generator_source_digest": "86de16b3e44baa0c81c27a49582de34503b060d79470edfae325425ddff0508e",
     "anchors": [
       {
         "name": "street_front",
@@ -236,7 +240,8 @@
       "journey": false,
       "anchors": true,
       "mechanics": [
-        "light"
+        "light",
+        "signage"
       ],
       "redstone_declared": false,
       "scenario": false
@@ -245,9 +250,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 79.125425,
-    "blocks": 4129,
-    "blocks_per_second": 52.18
+    "seconds": 51.413316,
+    "blocks": 4154,
+    "blocks_per_second": 80.8
   },
   "generator_contract": {
     "ok": true,
@@ -256,9 +261,10 @@
     "roles": [
       "building"
     ],
-    "blocks": 4129,
+    "blocks": 4154,
     "mechanic_families": [
-      "light"
+      "light",
+      "signage"
     ]
   },
   "fun_contract": {
@@ -288,6 +294,7 @@
   },
   "server_compatibility": [],
   "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
     "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
     "not in the provisional skyblock-1.19 list: dark_oak_planks",
     "not in the provisional skyblock-1.19 list: dark_oak_slab",

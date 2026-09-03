@@ -328,6 +328,52 @@ def _stitch(c: Canvas, key: str = "wing_edge") -> dict:
     return {"strays": len(comps) - 1, "bridged": bridged}
 
 
+def nest(lot, g, v0: int, u0: int, eggs: int, seed: int) -> dict:
+    """A scrape with eggs in it - the rim's own content, and the cheapest thing that says LIVING.
+
+    **AN EGG IS A DOME, WHICH IS THE PRIMITIVE THIS MEDIUM RENDERS BEST**, and the canonical view
+    of a nest is the PLAN, which voxels give away free - the same two reasons the ladybird and the
+    turtle work. It needs no support, no clearance and no site search: a ring of rock two courses
+    high with pale ovals inside it reads at any scale it is built.
+
+    `lot` is a `frontier_builds._Lot` and `g` a `frontier_scatter._Ground`, so this composes with
+    the land-dressing generators rather than needing a frame of its own.
+    """
+    out = {"at": [v0, u0], "eggs": 0, "cells": 0}
+    n = 0
+    r = 3 + eggs // 2
+    for dv in range(-r, r + 1):
+        for du in range(-r, r + 1):
+            d = (dv * dv + du * du) ** 0.5
+            if d > r or not g.lawn(v0 + dv, u0 + du):
+                continue
+            if d > r - 1.2:                       # the rim of the scrape, two courses
+                q = hash01(v0 + dv, u0 + du, seed + 71)
+                key = "rock" if q < 0.5 else ("rock_b" if q < 0.8 else "moss")
+                n += 1 if lot.put(v0 + dv, 0, u0 + du, HIDE[key]) else 0
+                if q < 0.55:
+                    n += 1 if lot.put(v0 + dv, 1, u0 + du, HIDE[key]) else 0
+            else:                                  # ...and the scrape itself, bedded down
+                n += 1 if lot.put(v0 + dv, 0, u0 + du, HIDE["rock_c"]) else 0
+    # the eggs: a pale oval each, laid round the middle so none touches another
+    import math
+    for k in range(eggs):
+        a = 2 * math.pi * k / max(1, eggs)
+        ev = v0 + int(round(math.cos(a) * (r - 2.2)))
+        eu = u0 + int(round(math.sin(a) * (r - 2.2)))
+        if not g.lawn(ev, eu):
+            continue
+        placed = 0
+        for dv, du in ((0, 0), (1, 0), (0, 1), (1, 1)):
+            placed += 1 if lot.put(ev + dv, 1, eu + du, HIDE["claw"]) else 0
+        if placed:
+            lot.put(ev, 2, eu, HIDE["claw"])
+            out["eggs"] += 1
+            n += placed + 1
+    out["cells"] = n
+    return out
+
+
 def _dims(span: float, spread: float, perch_h: int) -> dict:
     """Everything as a fraction of the SPAN, so one number scales the animal.
 

@@ -51,6 +51,16 @@ params:
   look: east            # back down the whole 600
   loggia:
     - {level: 3, face: south}
+  # **THE TOWER HAD ZERO VERBS.** Measured over the shipped land it is 15.3 blocks per column and
+  # 56 courses tall - the densest thing in the Frontier - and you climb it to find nothing at all.
+  # For an observation post over a plateau full of animals the answer is not a game: it is the
+  # board that tells you what you are looking AT, and the bell a lookout rings. Fifteen characters
+  # a line, which this park has clipped twice.
+  deck_board:
+    - ["THE PLATEAU", "north-east", "sauropod, rim"]
+    - ["THE BONE BED", "south-west", "dig No 1-3"]
+    - ["WATCH THE SKY", "pteranodon", "nests up top"]
+  deck_bell: true
   seed: 7
 roles: [building]
 anchors:

@@ -199,6 +199,11 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # the highest ground anywhere in the Frontier - on a crag it brings with it,
                 # because a wing is a silhouette and the only thing that reads behind one is sky.
                 "PF Pterosaur",
+                # THE JUNGLE TAKES THE CAMP BACK, and the rim gets a reason to walk to. Measured
+                # after the re-theme: leaves were 7.0% of the plateau and 3.0% of the town, ~35,000
+                # exposed building cells carried nothing green, and the rim was 2,249 columns at
+                # 3.8 blocks per column carrying one animal and no route to it.
+                "PF Frontier Overgrowth", "PF Frontier Rim",
                 # THE WYRM'S SKULL, OFF THE CAUSEWAY AND ONTO THE LINE. Jack: "are we able to
                 # place the skull so that the mouth 'opens' around the railway, the back of the
                 # skeleton is towards the void and the mouth gap is where the railway passes
@@ -206,7 +211,43 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # piece, so the skull is in ONE place: see configs/pf_wyrm_gate.yaml for why his
                 # orientation is the only one that fits and why the design takes no cell the
                 # railway made.
-                "PF Wyrm Gate"}
+                "PF Wyrm Gate",
+                # THE SEAM, in three places. Jack, looking at the ground round the finished well:
+                # "we need to find something to actually place in these areas, they dont fit well
+                # especially now with our awesome prism tower." Measured over the shipped park,
+                # Prismworks carries 3.0% of its columns in the 3-11 course band against the
+                # Frontier's 19.5% and the Prism Reach 3.4% with NOTHING above twelve - so the
+                # tower reads as an object dropped on a lawn rather than the thing a place is
+                # built around, and the reach's only content is `Wyrm's Crossing`'s bare plate,
+                # 2,650 of whose 2,839 blocks are three dark greys of paving.
+                #
+                # One idea in three sites: the crystal vein the well was cut to reach, breaking
+                # the surface. `fracture` crosses the reach and its dead plate; `yard` is the
+                # cutting yard behind the Foundry Gate, which is the only thing in the land that
+                # accounts for the well being a DIG; `field` is the vein at full size east of the
+                # mouth with a raked bank you watch the descent from. See mcbuild/gen/seam.py.
+                # ...AND ALL THREE ARE WITHDRAWN FROM PLACEMENT, THE DAY THEY WERE BUILT. Jack,
+                # on the placed result: "this looks terrible" and "these random spires and stuff
+                # all look terrible ... this is crappy and not good."
+                #
+                # HE IS RIGHT AND THE FAILURE IS THE PRIMITIVE, NOT THE TUNING. Forty tapering
+                # columns on a flat plate read as a picket fence: `base_radius` narrows every one
+                # of them to a single cell within a third of its height, they all end in a white
+                # cap, and the trace scattered single wool cells across the paving - which is the
+                # confetti failure this repo has already recorded on the deck soffit, the lowland
+                # thicket and the frontier scatter, re-created a fourth time.
+                #
+                # AND THE DEEPER ONE: SCATTERED OBJECTS ON A FLAT PLANE ARE CLUTTER, WHATEVER
+                # THEIR SHAPE. Every part of this park that reads is TERRAIN or a single mass -
+                # the Mine Ridge, the Lost Plateau, the Diggings - and the Frontier's 19.5%
+                # mid-band that this design was chasing comes from a MOUNTAIN, not from props. A
+                # height histogram can be moved by either and only one of them looks like
+                # anything.
+                #
+                # The configs, `mcbuild/gen/seam.py` and the three artifacts all stand as the
+                # record; this table is the one thing that decides whether a module is placed.
+                #     "PF Prism Fracture", "PF Prism Cutting Yard", "PF Prism Seam Field"
+                }
 
 
 def extras() -> list:

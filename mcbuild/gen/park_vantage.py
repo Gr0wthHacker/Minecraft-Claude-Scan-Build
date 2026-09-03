@@ -196,6 +196,16 @@ PARK_VANTAGE = {
     #: Only the Summit uses it and the cells it lays are inside the lot like everything else.
     "bridge": None,
     "title": None,
+    #: **AN ORIENTATION BOARD ON THE CROWN DECK, AND IT IS OFF BY DEFAULT.** Measured over the
+    #: shipped park, `PF Vantage Frontier Lookout` is 15.3 blocks per column and 56 courses tall -
+    #: the densest thing in its land - and carries ZERO interactive blocks: you climb it and there
+    #: is nothing there. That is the complaint Jack has made of this park three separate times
+    #: ("really nice to look at - but serve no actual defined purpose"), and for an observation
+    #: tower the answer is not a game: it is the board that tells you what you are looking AT, and
+    #: the bell a lookout rings. This module is shared with Prismworks, so it is opt-in rather than
+    #: a default - a shared generator that changes under its other callers is a different bug.
+    "deck_board": None,          # [[line, line, line], ...] - up to four signs, 15 chars a line
+    "deck_bell": False,          # a bell on the deck: the one verb a lookout actually has
     "seed": 0,
 }
 
@@ -687,6 +697,59 @@ def _crown(L: _Lot, p: dict, pal: dict, sv: int, su: int, vi0: int, ui0: int,
             else:
                 n += bool(L.put(v, u, s, pal["wall"], up="true", north="none", south="none",
                                 east="none", west="none", waterlogged="false"))
+    n += _deck_fittings(L, p, pal, sv, su, vi0, ui0, vi1, ui1, s)
+    return n
+
+
+def _deck_fittings(L, p, pal, sv, su, vi0, ui0, vi1, ui1, s) -> int:
+    """The orientation board and the bell, on the open half of the crown deck.
+
+    **A SIGN'S SUPPORT IS CHECKED, NOT ASSUMED**, and this module's own `SIGN_WIDTH` is 15 - a line
+    past that clips mid-word, which this park has shipped twice. **AND A BELL HANGS FROM A CEILING
+    ATTACHMENT**, so its head beam goes in first: the same rule as a chain and a hanging lantern,
+    and the reason a fitting placed blind comes away as a cluster with nothing to place against.
+    """
+    lines = p.get("deck_board") or []
+    if not lines and not p.get("deck_bell"):
+        return 0
+    n = 0
+    # the OPEN half of the deck - the cabin takes vi0..vi0+6, so the board goes at the far end
+    bv = vi1 - 2
+    mid = (ui0 + ui1) // 2
+    if lines:
+        for du in (-2, 2):                       # two posts
+            for y in (s + 1, s + 2, s + 3):
+                n += bool(L.put(bv, mid + du, y, pal["column"]))
+        for du in range(-1, 2):                  # the board between them
+            for y in (s + 2, s + 3):
+                n += bool(L.put(bv, mid + du, y, pal["board"]))
+        for k, text in enumerate(lines[:3]):
+            du = -1 + k
+            over = [t for t in text if isinstance(t, str) and len(t) > SIGN_WIDTH]
+            if over:
+                raise ValueError(f"a deck sign line clips past {SIGN_WIDTH} chars: {over}")
+            if L.has(bv, mid + du, s + 3) and not L.has(bv - 1, mid + du, s + 3):
+                # the sign's block is taken from the land's own timber rather than a palette key
+                # this module does not have - only the Frontier opts in, and a `sign` key added to
+                # all three palettes would be a change to two lands that asked for nothing.
+                sign = pal.get("sign") or (
+                    "spruce_wall_sign" if "spruce" in pal.get("column", "") else "oak_wall_sign")
+                if L.put(bv - 1, mid + du, s + 3, sign, facing="west",
+                         waterlogged="false"):
+                    L.c.sign_text(bv - 1, s + 3, mid + du,
+                                  front=[str(t)[:SIGN_WIDTH] for t in list(text)[:4]] + [""] * 4,
+                                  colour="white", glowing=True)
+                    n += 1
+    if p.get("deck_bell"):
+        cv = vi1 - 5
+        for du in (-1, 1):
+            for y in (s + 1, s + 2, s + 3):
+                n += bool(L.put(cv, mid + du, y, pal["column"]))
+        for du in (-1, 0, 1):
+            n += bool(L.put(cv, mid + du, s + 4, pal["column"]))
+        if L.has(cv, mid, s + 4):
+            n += bool(L.put(cv, mid, s + 3, "bell", attachment="ceiling", facing="west",
+                            powered="false"))
     return n
 
 
