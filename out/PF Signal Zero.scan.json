@@ -17,8 +17,8 @@
     0
   ],
   "features_built": {
-    "bed": 4572,
-    "water": 3424,
+    "bed": 4532,
+    "water": 3384,
     "apron": 1148,
     "wall": 4025,
     "light": 25,
@@ -63,20 +63,20 @@
       "narrative": "A lit chamber a hundred courses under the park: a pearl-lit pool thirty-four across that catches every fall on the course, a dry apron and a wall round it so the floor is a room and not a ledge, and a bell on a copper frame at the head of the pool.\n"
     },
     "metrics": {
-      "blocks": 13182,
+      "blocks": 13102,
       "materials": 9,
-      "dominant_material_share": 0.3119,
+      "dominant_material_share": 0.313,
       "light_blocks": 0,
       "massing": {
         "width": 81,
         "height": 9,
         "depth": 81,
-        "fill_ratio": 0.2232
+        "fill_ratio": 0.2219
       },
       "silhouette": {
         "top": {
-          "area": 5072,
-          "fill_ratio": 0.7731
+          "area": 5032,
+          "fill_ratio": 0.767
         },
         "front": {
           "area": 661,
@@ -89,17 +89,17 @@
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.8077,
-          0.1146,
-          0.0778
+          0.8065,
+          0.1152,
+          0.0782
         ],
-        "top_silhouette_perimeter": 684,
-        "surface_faces_per_block": 1.1244
+        "top_silhouette_perimeter": 700,
+        "surface_faces_per_block": 1.1264
       },
       "material_counts": {
-        "polished_blackstone_bricks": 4112,
-        "deepslate_bricks": 3460,
-        "water": 3424,
+        "polished_blackstone_bricks": 4101,
+        "deepslate_bricks": 3431,
+        "water": 3384,
         "cobbled_deepslate": 1006,
         "smooth_stone": 675,
         "waxed_copper_block": 264,
@@ -117,7 +117,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "442c55a9d1baaa9703dff4bb398aa038a4f5097335582a395799f1c0bcdf339a",
+    "fingerprint": "4e57d711e046246b3ac486cfaaee2c0e8ad9a9ff6f2d4e345f5b5b1d3593d29e",
     "generator_source_digest": "cc32061c2584f39f7ba57f346135d8b4dff6eeaa5e04ed4a10b837a4b8e43fe5",
     "anchors": [],
     "genome": {
@@ -158,9 +158,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 173.631431,
-    "blocks": 13182,
-    "blocks_per_second": 75.92
+    "seconds": 117.81223,
+    "blocks": 13102,
+    "blocks_per_second": 111.21
   },
   "generator_contract": {
     "ok": true,
@@ -170,7 +170,7 @@
       "building",
       "construction"
     ],
-    "blocks": 13182,
+    "blocks": 13102,
     "mechanic_families": [
       "fluid",
       "hazard"

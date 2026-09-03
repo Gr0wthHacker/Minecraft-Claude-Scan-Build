@@ -99,10 +99,18 @@ def plane_of(model, role: str = "") -> int:
 #: agent reports, not when its file appears.
 EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 "PF Vantage Frontier Lookout", "PF Vantage Midway Belvedere",
-                # THE SUMMIT IS THE PARK'S BEST VIEWPOINT and was withheld for touching the Prism
-                # Ascent. Jack: "add the prism summit, adjust the lot sizes to fit if necessary -
-                # we can always remove smaller buildings that are mostly useless."
-                "PF Vantage Prism Summit",
+                # THE SUMMIT IS WITHDRAWN AGAIN, and this time by measurement rather than by
+                # caution: 2,709 of its 4,522 cells stand INSIDE the Prism Well's mouth. It
+                # was a viewpoint over the Prism Ascent, and the Ascent is gone - the well
+                # IS the viewpoint now, and its rim gallery is nine wide with eight balconies
+                # oversailing the void. Archived in archive/prismworks_v1/.
+                #     "PF Vantage Prism Summit",
+                #
+                # PRISMWORKS v2 - THE PRISM WELL. Four designs, and the ORDER MATTERS: the
+                # rig is derived from the descent's recorded route and the floor is sited
+                # against both. `tools/prismchain.py` builds them in sequence; this list only
+                # places what that produced. See PRISMWORKS_V2_PLAN.md.
+                "PF Prism Well", "PF Prism Descent", "PF Prism Rig", "PF Signal Zero",
                 "PF Front Frontier", "PF Front Midway", "PF Front Prismworks",
                 "PF Entry Gate",
                 # THE FRONTIER'S MOUNTAIN AND ITS WORKS. `PF Mine Ridge` wraps the Mine Coaster
@@ -273,12 +281,23 @@ def complete(items):
     The ground is laid under a building on purpose - a floor that stops at the wall leaves a hole
     the moment anything moves - so the building has to win the cells they share or the picture
     shows paving drawn through a wall.
+
+    AND A CELL YOU ARE TOLD TO BREAK IS NOT A CELL YOU ARE TOLD TO PLACE. The Prism Well is a
+    hundred-wide mouth cut through the deck, so it declares 8,233 dig cells - and 8,037 of them
+    are cells `Park Ways` lays moss in. Shipped without this the composite instructs you to place
+    eight thousand blocks and then break them, and anyone printing it fills in the hole the
+    design exists to open. The dig list wins over the GROUND and the RAILWAY; it is not applied
+    to buildings, because a design that digs its own footing and rebuilds it is doing exactly
+    what a dig is for.
     """
     import numpy as np
     from collections import Counter
     ways = schem.load(str(ROOT / "out" / "Park Ways.litematic"))
     rail = schem.load(str(ROOT / "out" / "Park Rail.litematic"))
     model, origin = merge(items)
+    # world -> plan, the same frame `merge` places into: plan + ANCHOR == world
+    dug = {(c[0] - ANCHOR[0], c[1] - ANCHOR[1], c[2] - ANCHOR[2])
+           for c in _dig_of(["Park Rail"] + [i[0] for i in items])}
 
     height = 220
     sz, sx = ways.ids.shape[1], ways.ids.shape[2]
@@ -286,12 +305,15 @@ def complete(items):
     pal, index = [nbt.block_state("minecraft:air")], {}
     contested = Counter()
 
-    def lay(m, ov, oy, ou, tag):
+    def lay(m, ov, oy, ou, tag, honour_dig=False):
         names = {i: e.value["Name"].value for i, e in enumerate(m.palette)}
         props = {i: e.value.get("Properties") for i, e in enumerate(m.palette)}
         for y, z, x in zip(*m.solid().nonzero()):
             Y, Z, X = int(y) + oy, int(z) + ou, int(x) + ov
             if not (0 <= Y < height and 0 <= Z < sz and 0 <= X < sx):
+                continue
+            if honour_dig and (X, Y + min(0, origin[1]), Z) in dug:
+                contested[tag + " (dug)"] += 1
                 continue
             if ids[Y, Z, X]:
                 contested[tag] += 1
@@ -309,8 +331,8 @@ def complete(items):
     # would have laid the whole railway seven columns out with nothing to say so.
     import yaml as _yaml
     _rv = _yaml.safe_load((ROOT / "configs" / "park_rail.yaml").read_text(encoding="utf-8"))
-    lay(rail, int(_rv["params"]["bounds"][0]), 0 - min(0, origin[1]), 0, "railway")
-    lay(ways, 0, 0 - min(0, origin[1]), 0, "ground")
+    lay(rail, int(_rv["params"]["bounds"][0]), 0 - min(0, origin[1]), 0, "railway", True)
+    lay(ways, 0, 0 - min(0, origin[1]), 0, "ground", True)
     return schem.Model(ids, pal), (0, min(0, origin[1]), 0), contested
 
 

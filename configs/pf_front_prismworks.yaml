@@ -31,12 +31,12 @@ params:
       title: PRISMWORKS
       lines: ["the works", "mind the light"]
     - kind: marquee
-      name: Prism Array
+      name: Prism Well
       at: [20, 496]
       span: 7
       height: 8
-      title: PRISM ARRAY
-      lines: ["choose a route", "find the vault"]
+      title: THE PRISM WELL
+      lines: ["look down", "then climb down"]
     # AND EVERY HEAD BEAM HERE IS AT EIGHT, NOT SIX. A verge lamp mast is a different height in
     # every land - measured off the shipped ground layer, frontier tops out at Y206, the Midway at
     # Y208 and Prismworks at Y210, because this land's mast carries an end rod over its lantern.
@@ -48,64 +48,33 @@ params:
     # the outer bay of a winged gantry here would land on the pair at U576-577 - so the piece is
     # made grand in HEIGHT instead, which is also the right register beside an 84-course spire.
     - kind: marquee
-      name: Prism Ascent
+      name: Prism Descent
       at: [20, 563]
       span: 7
       height: 8
       board: 3
-      title: PRISM ASCENT
-      lines: ["climb the spire", "practice first"]
-    - kind: marquee
-      name: Resonance Vault
-      at: [81, 491]
-      span: 11
-      pier: 2
-      depth: 1
-      height: 8
-      title: RESONANCE
-      lines: ["two to four", "players"]
-    - kind: marquee
-      name: Forge Deck
-      at: [128, 560]
-      span: 3
-      pier: 2
-      depth: 1
-      height: 8
-      title: FORGE DECK
-      lines: ["view over", "the works"]
-
-    # ---------------------------------------------------------------- thresholds and queues
-    # THE ASCENT AND THE VAULT BOTH GENUINELY WAIT - one is a timed attempt on a course, the
-    # other a cooperative puzzle for two to four - so both get a line. Everything else in this
-    # land walks straight in and gets a threshold instead.
+      title: THE DESCENT
+      lines: ["86 jumps down", "free practice"]
     - kind: queue
-      name: Prism Ascent queue
+      name: Prism Descent queue
       at: [26, 585]
       width: 9
       depth: 24
       leg_every: 3
-      title: ASCENT LINE
+      title: DESCENT LINE
       lines: ["one runner at", "a time", "practice free"]
-    - kind: queue
-      name: Resonance Vault queue
-      at: [86, 512]
-      width: 8
-      depth: 15
-      leg_every: 3
-      title: VAULT LINE
-      lines: ["2-4 players", "solo route", "on the left"]
     - kind: portal
-      name: Prism Array entrance
+      name: Prism Well entrance
       at: [21, 486]
       mode: entrance
-      title: ARRAY ENTRY
-      lines: ["route choice", "", "no time limit"]
+      title: WELL ENTRY
+      lines: ["rim gallery", "", "free to watch"]
     - kind: portal
-      name: Prism Array exit
+      name: Prism Well exit
       at: [21, 506]
       mode: exit
-      title: ARRAY EXIT
-      lines: ["", "", "vault is east"]
+      title: WELL EXIT
+      lines: ["", "", "lift returns"]
 
     # ---------------------------------------------------------------- the two empty bands
     # A RELAY IS A LINE OF THE SAME THING, AND THAT IS WHY IT WORKS HERE. One tall pylon in a
@@ -141,27 +110,6 @@ params:
       height: 20
       title: SIGNAL 3
       lines: ["array relay"]
-    - kind: sight
-      name: Array Relay Two
-      motif: pylon
-      at: [58, 534]
-      height: 16
-      title: SIGNAL 4
-      lines: ["array relay"]
-    - kind: sight
-      name: Array Relay Three
-      motif: pylon
-      at: [86, 534]
-      height: 12
-      title: SIGNAL 5
-      lines: ["array relay"]
-    - kind: sight
-      name: Deck Lens
-      motif: lens
-      at: [110, 534]
-      radius: 3
-      title: LENS BLANK
-      lines: ["ground but not", "figured"]
     - kind: sight
       name: Ascent Relay
       motif: pylon

@@ -35,7 +35,7 @@
     },
     {
       "kind": "marquee",
-      "title": "PRISM ARRAY",
+      "title": "THE PRISM WELL",
       "signs": 2,
       "lamps": 4,
       "span": 7,
@@ -51,11 +51,11 @@
       ],
       "facing": "west",
       "land": "prismworks",
-      "name": "Prism Array"
+      "name": "Prism Well"
     },
     {
       "kind": "marquee",
-      "title": "PRISM ASCENT",
+      "title": "THE DESCENT",
       "signs": 2,
       "lamps": 4,
       "span": 7,
@@ -71,47 +71,7 @@
       ],
       "facing": "west",
       "land": "prismworks",
-      "name": "Prism Ascent"
-    },
-    {
-      "kind": "marquee",
-      "title": "RESONANCE",
-      "signs": 1,
-      "lamps": 4,
-      "span": 11,
-      "piers": 2,
-      "frontage": [
-        -7,
-        7
-      ],
-      "height": 12,
-      "at": [
-        81,
-        491
-      ],
-      "facing": "west",
-      "land": "prismworks",
-      "name": "Resonance Vault"
-    },
-    {
-      "kind": "marquee",
-      "title": "FORGE DECK",
-      "signs": 1,
-      "lamps": 4,
-      "span": 3,
-      "piers": 2,
-      "frontage": [
-        -3,
-        3
-      ],
-      "height": 12,
-      "at": [
-        128,
-        560
-      ],
-      "facing": "west",
-      "land": "prismworks",
-      "name": "Forge Deck"
+      "name": "Prism Descent"
     },
     {
       "kind": "queue",
@@ -152,7 +112,7 @@
       "contract": "a switchback line on open lawn: one entrance at the near end, one exit at the far end, every leg open at the end it turns at, a canopy over the back, and no floor of its own",
       "entrance": {
         "kind": "portal/entrance",
-        "title": "ASCENT LINE",
+        "title": "DESCENT LINE",
         "signs": 1,
         "lamps": 2,
         "height": 6
@@ -170,58 +130,11 @@
       ],
       "facing": "west",
       "land": "prismworks",
-      "name": "Prism Ascent queue"
-    },
-    {
-      "kind": "queue",
-      "width": 8,
-      "depth": 15,
-      "legs": 4,
-      "lamps": 4,
-      "turns": [
-        [
-          7,
-          3
-        ],
-        [
-          0,
-          6
-        ],
-        [
-          7,
-          9
-        ],
-        [
-          0,
-          12
-        ]
-      ],
-      "contract": "a switchback line on open lawn: one entrance at the near end, one exit at the far end, every leg open at the end it turns at, a canopy over the back, and no floor of its own",
-      "entrance": {
-        "kind": "portal/entrance",
-        "title": "VAULT LINE",
-        "signs": 1,
-        "lamps": 2,
-        "height": 6
-      },
-      "exit": {
-        "kind": "portal/exit",
-        "title": "WAY OUT",
-        "signs": 1,
-        "lamps": 0,
-        "height": 6
-      },
-      "at": [
-        86,
-        512
-      ],
-      "facing": "west",
-      "land": "prismworks",
-      "name": "Resonance Vault queue"
+      "name": "Prism Descent queue"
     },
     {
       "kind": "portal/entrance",
-      "title": "ARRAY ENTRY",
+      "title": "WELL ENTRY",
       "signs": 1,
       "lamps": 2,
       "height": 6,
@@ -231,11 +144,11 @@
       ],
       "facing": "west",
       "land": "prismworks",
-      "name": "Prism Array entrance"
+      "name": "Prism Well entrance"
     },
     {
       "kind": "portal/exit",
-      "title": "ARRAY EXIT",
+      "title": "WELL EXIT",
       "signs": 1,
       "lamps": 0,
       "height": 6,
@@ -245,7 +158,7 @@
       ],
       "facing": "west",
       "land": "prismworks",
-      "name": "Prism Array exit"
+      "name": "Prism Well exit"
     },
     {
       "kind": "sight/pylon",
@@ -309,51 +222,6 @@
     },
     {
       "kind": "sight/pylon",
-      "height": 20,
-      "footprint": [
-        7,
-        7
-      ],
-      "at": [
-        58,
-        534
-      ],
-      "facing": "west",
-      "land": "prismworks",
-      "name": "Array Relay Two"
-    },
-    {
-      "kind": "sight/pylon",
-      "height": 16,
-      "footprint": [
-        7,
-        7
-      ],
-      "at": [
-        86,
-        534
-      ],
-      "facing": "west",
-      "land": "prismworks",
-      "name": "Array Relay Three"
-    },
-    {
-      "kind": "sight/lens",
-      "height": 10,
-      "footprint": [
-        9,
-        3
-      ],
-      "at": [
-        110,
-        534
-      ],
-      "facing": "west",
-      "land": "prismworks",
-      "name": "Deck Lens"
-    },
-    {
-      "kind": "sight/pylon",
       "height": 19,
       "footprint": [
         7,
@@ -382,8 +250,8 @@
       "name": "Service Gallery staff gate"
     }
   ],
-  "piece_count": 18,
-  "signs": 23,
+  "piece_count": 12,
+  "signs": 16,
   "refused_signs": [],
   "contract": "everything in front of and between the park's attractions: a name board on every one, queues at the rides, entrance and exit thresholds, and sight pieces in the measured empty bands - none of it below the build plane, and nothing over a paved column below head height",
   "unverified": [
@@ -418,52 +286,52 @@
       "narrative": "Prismworks' frontage: signal-mast gantries over the Foundry, Array and Ascent spurs, a one-course gantry on the Vault's and the Forge Deck's own short spurs, queue lines for the two experiences that genuinely wait, entry and exit thresholds on the Array, and two lit pylons and two spare lenses standing in the land's two measured empty bands.\n"
     },
     "metrics": {
-      "blocks": 2791,
+      "blocks": 1963,
       "materials": 14,
-      "dominant_material_share": 0.2458,
-      "light_blocks": 61,
+      "dominant_material_share": 0.2593,
+      "light_blocks": 41,
       "massing": {
         "width": 134,
         "height": 25,
         "depth": 164,
-        "fill_ratio": 0.0051
+        "fill_ratio": 0.0036
       },
       "silhouette": {
         "top": {
-          "area": 784,
-          "fill_ratio": 0.0357
+          "area": 527,
+          "fill_ratio": 0.024
         },
         "front": {
-          "area": 511,
-          "fill_ratio": 0.1525
+          "area": 425,
+          "fill_ratio": 0.1269
         },
         "side": {
-          "area": 752,
-          "fill_ratio": 0.1834
+          "area": 585,
+          "fill_ratio": 0.1427
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.7449,
-          0.2153,
-          0.0398
+          0.7269,
+          0.2308,
+          0.0423
         ],
-        "top_silhouette_perimeter": 1309,
-        "surface_faces_per_block": 2.4056
+        "top_silhouette_perimeter": 849,
+        "surface_faces_per_block": 2.3138
       },
       "material_counts": {
-        "polished_blackstone_bricks": 686,
-        "black_wool": 586,
-        "smooth_basalt": 510,
-        "cyan_wool": 412,
-        "polished_blackstone_brick_stairs": 191,
-        "warped_fence": 154,
-        "soul_lantern": 61,
-        "light_blue_wool": 40,
-        "pearlescent_froglight": 36,
-        "polished_blackstone_brick_slab": 36,
-        "cracked_polished_blackstone_bricks": 26,
-        "end_rod": 24
+        "polished_blackstone_bricks": 509,
+        "black_wool": 407,
+        "smooth_basalt": 356,
+        "cyan_wool": 276,
+        "polished_blackstone_brick_stairs": 139,
+        "warped_fence": 100,
+        "soul_lantern": 41,
+        "light_blue_wool": 26,
+        "cracked_polished_blackstone_bricks": 24,
+        "polished_blackstone_brick_slab": 24,
+        "pearlescent_froglight": 23,
+        "end_rod": 16
       }
     },
     "checks": [],
@@ -475,8 +343,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "e1dc28772033318d5b54e4df7dc345f2e4c6c92f3286ecd31ffdf53dccf9b7c8",
-    "generator_source_digest": "cdc3979fd61e2932d288e594316947fd861196b38cf51e1445f5bb59fe622cd9",
+    "fingerprint": "5b4ae104a2bde12fcf0fbf470ba0b4455ed803f4481c0b319abdaf08096f5554",
+    "generator_source_digest": "8953590b33a7a9a48c978350a60bf4dba61eb13c0ebbad52baf5e925feda9b45",
     "anchors": [],
     "genome": {
       "name": "prismworks",
@@ -516,9 +384,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 140.507021,
-    "blocks": 2791,
-    "blocks_per_second": 19.86
+    "seconds": 55.234749,
+    "blocks": 1963,
+    "blocks_per_second": 35.54
   },
   "generator_contract": {
     "ok": true,
@@ -527,7 +395,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 2791,
+    "blocks": 1963,
     "mechanic_families": [
       "light",
       "signage"

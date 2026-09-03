@@ -24,7 +24,12 @@ gen: prismfloor
 params:
   centre: [97590, 80815]
   y_floor: 95
-  keep_clear: 6           # the return column's footprint belongs to PF Prism Well
+  # SEVEN, NOT SIX, AND IT IS THE DIAGONAL THAT DECIDES IT. The Well's four lit posts stand at
+  # CHEBYSHEV 4 from the centre, which is 5.66 EUCLIDEAN - and the test here is `r < keep-0.5`,
+  # so at six the corner posts fell just outside the kept-clear disc and the pool laid water
+  # into all four of them. Four cells, and the only thing that reported it was the assembly's
+  # own module clash check: both designs audited clean on their own.
+  keep_clear: 7           # the return column's footprint belongs to PF Prism Well
   pool_r: 34
   apron: 4
   wall: 2

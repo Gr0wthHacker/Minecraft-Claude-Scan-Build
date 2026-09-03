@@ -243,12 +243,25 @@ PLACEMENT = {
     "Wyrm's Crossing":        (24, 385),
     # --- Prismworks ------------------------------------------------ col A  U430-465 (36)
     "Foundry Gate":           (24, 430),
-    # --- Prismworks ------------------------------------------------ col B  U471-521 (51)
-    "Prism Array":            (24, 471),
-    "Resonance Vault":        (82, 471),
-    # --- Prismworks ------------------------------------------------ col C  U527-599 (73)
-    "Prism Ascent":           (24, 527),
-    "Forge Deck":             (130, 527),
+    # --- Prismworks ------------------------------------------------ col B and C
+    # FOUR MODULES REMOVED FOR THE PRISM WELL (2026-09-03). Jack: "prism in its current
+    # state is not a theme park, its a collection of buildings; this is a failure of
+    # design." Prismworks v2 is one hundred-wide mouth cut through the deck at
+    # (97590, 80815) with the descent hanging in it, and these four stood INSIDE it -
+    # measured against the well's footprint, not guessed:
+    #
+    #     Prism Array       5,065 cells inside the mouth
+    #     Resonance Vault   8,595   - the whole building
+    #     Prism Ascent      5,758   - the 84-course spire, in the middle of the hole
+    #     Forge Deck          332
+    #
+    # Cell-for-cell collision UNDERSTATES this and is the wrong test: the Ascent overlaps
+    # the well by only 84 cells, because a tower standing in a hole barely touches its
+    # collar. What matters is what is inside the mouth, because the mouth is a DIG.
+    #
+    # Foundry Gate and Service Gallery are measured CLEAR (0 cells inside) and stay: the
+    # land keeps its threshold and its back-of-house. They are archived whole in
+    # archive/prismworks_v1/ - see PRISMWORKS_V2_PLAN.md.
     "Service Gallery":        (157, 550),    # 13 deep available against a declared 18
 }
 
