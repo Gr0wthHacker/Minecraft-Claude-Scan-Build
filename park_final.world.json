@@ -4026,7 +4026,7 @@
       "generator": "compose",
       "role": "path",
       "footprint": [
-        51,
+        56,
         61
       ],
       "at": [
@@ -5105,8 +5105,8 @@
       "generator": "compose",
       "role": "ride",
       "footprint": [
-        52,
-        47
+        48,
+        41
       ],
       "at": [
         18,
@@ -5605,7 +5605,7 @@
           }
         ]
       },
-      "resized_note": "the RIDE alone, not the court - Jack kept the merry-go-round and threw the plazas, queues, booths and benches around it away"
+      "resized_note": "the RIDE alone at diameter 39 - 46 x 41 - in the Midway's column A lot (48 x 41), which the Arrival Court held until 2026-09-03. At diameter 45 it was 52 x 47 and column B was the only column wide enough."
     },
     {
       "name": "Sky Lift",

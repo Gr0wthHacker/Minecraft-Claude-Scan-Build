@@ -1,6 +1,7 @@
 """THE PARK'S FRONT DOOR: where a visitor lands, the queue they walk, and the gate they pay at.
 
-    PF Entry Gate   V0-5 x U270-330, world X97500-97505 / Z80570-80630, Y203 up
+    PF Entry Gate   V0-18 x U270-330, world X97500-97518 / Z80570-80630, Y203 up
+                    the arrival apron is V0-5, the approach V6-12, the gate V13-18
 
 A visitor logs in at the VOID EDGE of the centre island, facing the railway down the park's own
 axis. In front of them is a walled forecourt they cannot leave sideways; ahead of that a gate
@@ -25,12 +26,22 @@ V0-V5 x U240-U369 it says:
 So the compound is **U270..U330** and not one cell wider: a cell further either way is somebody's
 plaza. That is why the axis is U300 and why the composition is 61 wide.
 
-**AND THE PARK'S OWN LAMP STANDS ON THE AXIS.** The mast at V4/U300 occupies Y203-Y208 in the
-one column the gate would most like to be solid. It is not moved and it is not built over: the
-ceremonial arch is a nine-wide portico open at V3-V4, the mast stands INSIDE it as the gate's own
-lamp, and the grille that closes the arch is at V5 behind it. Every cell `Park Ways` owns is
-refused by `_Lot.put` and counted, so the rule "nothing may touch a street, a path, a plaza, a
-verge or a lamp" holds BY CONSTRUCTION rather than by a promise - see `_ways_mask`.
+**THE PARK'S OWN LAMP USED TO STAND ON THE AXIS AND NO LONGER DOES.** While the composition sat
+at V3-V5 the apron mast at V4/U300 stood INSIDE the ceremonial portico and was the gate's own
+lamp - deliberate, and written down here as such. When the lot grew to nineteen courses to give
+the arrival a WALK, the gate moved twelve blocks east and the mast stayed where it was: a
+five-wide timber crossbeam at head height, dead centre of a nineteen-deep forecourt, on the one
+sightline the whole park is composed about. Jack, walking through it: *"gates and a board etc are
+all overlapping and chaotic with the entrance."*
+
+`parkways.keep_clear` is the fix and it is a different instrument from a feature lot, because the
+approach WALKS ON the spine's own stone and must keep its paving: it refuses furniture and
+nothing else. The vista band is V0-23 x U294-306 and both masts nudged along their own line to
+U308, clear of the walk and still lighting the forecourt.
+
+Every cell `Park Ways` owns is refused by `_Lot.put` and counted, so the rule "nothing may touch a
+street, a path, a plaza, a verge or a lamp" holds BY CONSTRUCTION rather than by a promise - see
+`_ways_mask`.
 
 **THE FLOOR IS NOT MINE AND IS NOT PAVED.** Every Y202 cell in the compound is `Park Ways`'
 moss. A design that repaved it would be replacing a finished ground layer, so the forecourt is

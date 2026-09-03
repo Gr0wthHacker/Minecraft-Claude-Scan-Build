@@ -27,18 +27,18 @@ name: PF Welcome Court
 gen: midwaybuild
 params:
   kind: welcome_court
-  lot: [24, 270, 74, 330]
+  lot: [24, 270, 79, 330]
   # the world corner of (V24, the first course above the lawn, U280). `Park Complete` is anchored
   # at 97500 190 80300 and its lawn course is Y202, so a lot's floor course is Y203.
   at: [97524, 203, 80570]
   height: 18
   seed: 7
   # THE SKY LIFT'S QUEUE OWNS THE WEST REAR CORNER. Measured off `out/PF Front Midway.litematic`
-  # it occupies exactly V65-74 x U270-279 inside this lot - fifty-four columns, a clean ten by
-  # ten, footings included. Named here, wanting one of its cells RAISES rather than shipping as
+  # it occupies exactly V65-79 x U270-279 inside this lot - ninety-eight columns, a clean ten
+  # wide, footings included. Named here, wanting one of its cells RAISES rather than shipping as
   # an overlap nobody can see.
   blocked:
-    - [65, 0, 270, 74, 11, 279]
+    - [65, 0, 270, 79, 11, 279]
 roles: [path]
 design:
   purpose: path

@@ -158,7 +158,20 @@ PLACEMENT = {
     # "one safe, 5-wide causeway", which is the spine and the promenade running through it.
     "Signal Heron":           (34, 174),     # its own reserved garden, V34-60 U174-210
     # --- Midway ---------------------------------------------------- col A  U215-255 (41)
-    "Arrival Court":          (24, 215),
+    # THE CAROUSEL TOOK THIS LOT AND THE ARRIVAL COURT CAME OUT. Jack: "i want to put the carousel
+    # where currently there is a large rectangular building with an open center, just between the
+    # welcome court and the heron; the building thats there can be saved but should be removed."
+    #
+    # The building was the Arrival Court - 44 x 35 of gateway, ticket hall, open court and turnstile
+    # screen. `PF Entry Gate` was built later and does that job on the park's own axis, so this was
+    # a SECOND front door standing in the first lot inside the park. Its config, its generator and
+    # `out/PF Arrival Court.litematic` are all kept as the record; it is out of this table, which is
+    # the one thing that decides whether a module is placed.
+    #
+    # AND IT IS NOT THE APPROACH. Column A is U215-255, off the U300 entrance axis - the wheel keeps
+    # the centre, and "somewhere off to the left or right" is exactly where this is. It also puts the
+    # carousel next to the Claim Lake and its heron, which is the reach a visitor walks up first.
+    "Carousel Court":         (24, 215),      # 46 x 41 at diameter 39; the lot is 48 x 41
     "Snack Window":           (77, 215),
     # --- Midway ---------------------------------------------------- col B  U265-336 (72)
     # THE FERRIS WHEEL IS THE CENTRE ATTRACTION, so column B's front is cleared for the approach
@@ -166,9 +179,11 @@ PLACEMENT = {
     # center attraction, lets put the carousel somewhere off to the left or right." The wheel
     # already straddles the park's own centre (V100, U300); what stood between it and the
     # entrance was the carousel.
-    # COLUMN B, RE-ORDERED FRONT TO BACK. The carousel is 52 deep by 47 WIDE and no other Midway
-    # column is wider than 41, so it cannot leave column B - what it can do is get out of the
-    # approach. Front to back the column now reads: welcome court, the wheel, the carousel.
+    # COLUMN B IS THE WHEEL'S, AND ONLY THE WHEEL'S. The carousel used to sit behind it at (102, 266)
+    # because at diameter 45 it was 47 WIDE and no other Midway column was wider than 41. Rebuilt at
+    # 39 it is 41 wide and column A holds it, which is why it could move at all - the size was the
+    # whole constraint. Front to back the column now reads: welcome court, the wheel, and V102-153
+    # is open ground behind it.
     # SIXTY-ONE WIDE NOW, NOT FORTY-ONE, and still centred on the entrance axis U300. The two
     # flanks either side of the old lot measured 714 columns of bare moss EACH and nothing else -
     # Jack: "we dont want immediate large amounts of empty green" - and at U270-330 the court has
@@ -176,7 +191,6 @@ PLACEMENT = {
     # gate with a smaller thing behind it.
     "Welcome Court":          (24, 270),
     "Sky Lift":               (80, 266),      # THE CENTRE ATTRACTION, straight down the axis
-    "Carousel Court":         (102, 266),     # behind the wheel and as far to the left as it goes
     # --- Midway ---------------------------------------------------- col C  U346-384 (39)
     "Skill Arcade":           (24, 346),
     # THE PRIZE POINT IS BACK, and the reason it went is the reason it returns. It was dropped as

@@ -58,6 +58,17 @@ POST_1_19 = {
     "pink_petals", "torchflower", "pitcher_plant", "short_grass",
 }
 
+#: THE DESIGN'S OWN LOT, DERIVED FROM THE GENERATOR'S DEFAULTS RATHER THAN TYPED HERE. It was
+#: `0 <= v <= 5`, which was the whole lot when the composition was six courses deep; the lot grew
+#: to nineteen to give the arrival a walk and this stayed behind, so `Park Complete` - which
+#: correctly contains this gate - collided with the candidate over its own thirteen new columns
+#: and reported 2,866 overlaps against itself. A fixture that pins a snapshot fails the moment the
+#: design improves; this one moves with it.
+_LOT = (PE.PARK_ENTRANCE["at"][0], PE.PARK_ENTRANCE["at"][1],
+        PE.PARK_ENTRANCE["at"][0] + PE.PARK_ENTRANCE["size"][0] - 1,
+        PE.PARK_ENTRANCE["at"][1] + PE.PARK_ENTRANCE["size"][1] - 1)
+
+
 BANNED = {"cobblestone", "mossy_cobblestone", "cobblestone_slab", "cobblestone_stairs",
           "cobblestone_wall"}
 
@@ -153,7 +164,7 @@ def park_band():
     for y, z, x in np.argwhere(sub > 0):
         wx, wy, wz = int(x) + ox, int(y) + lo + oy, int(z) + oz
         v, u = wx - PE.ANCHOR[0], wz - PE.ANCHOR[2]
-        if wy >= PE.ANCHOR[1] and 0 <= v <= 5 and 270 <= u <= 330:
+        if wy >= PE.ANCHOR[1] and _LOT[0] <= v <= _LOT[2] and _LOT[1] <= u <= _LOT[3]:
             continue
         out[(wx, wy, wz)] = names[sub[y, z, x]]
     return out
@@ -324,21 +335,83 @@ def test_the_spawn_looks_down_a_clear_sightline(built, named, park_band):
         "the spawn is not aligned with an entrance door"
 
 
-def test_the_assembled_midway_axis_stays_clear_until_the_ferris_wheel(built):
-    """The carousel and wheel intake must flank the vista, never occupy it."""
+def test_the_arrival_can_walk_from_the_gate_to_the_wheel(built):
+    """THE WALK, NOT A CORRIDOR. Every course of the axis band must be somewhere a visitor can put
+    their feet, from the gate's own doorway to the wheel's face.
+
+    Written as "no block at all in these two courses for eighty-six columns" this forbade the one
+    thing the walk-up is FOR - Jack asked the centre for "a stone walk up, maybe a small fountain"
+    - and it forbade the gate's own doors as well, because it read the courses ABOVE a walker
+    rather than the two a walker occupies. A fountain a visitor walks around is not an obstruction;
+    a building in the middle of the approach is. So this asserts a route and the next test asserts
+    the view.
+    """
     m = schem.load(str(PARK))
     ox, oy, oz = PARK_ORIGIN
     _c, _built, meta = built
     _x, feet_y, z = meta["spawn"]["world"]
-    u = z - oz
     names = [n.split(":")[-1].split("[")[0] for n in m.names]
-    blocked = []
-    for v in range(6, 92):
-        for wy in (feet_y + 1, feet_y + 2):
-            slot = int(m.ids[wy - oy, u, v])
-            if slot:
-                blocked.append((v, wy, names[slot]))
-    assert blocked == [], f"arrival-to-wheel sightline is blocked: {blocked[:6]}"
+
+    # PARK V IS THE MODEL'S OWN X INDEX and park U its Z, because `Park Complete` is anchored at
+    # the same X/Z as the park lattice - which is the only reason this file can index it directly.
+    axis_u = z - oz
+    assert (ox, oz) == (PE.ANCHOR[0], PE.ANCHOR[2])
+
+    def solid(v, u, y):
+        slot = int(m.ids[y - oy, u, v])
+        return bool(slot) and not passable(names[slot])
+
+    def standable(v, u, y):
+        return solid(v, u, y - 1) and not solid(v, u, y) and not solid(v, u, y + 1)
+
+    # EVERY LOT IN THIS PARK IS ONE COURSE OVER THE LAWN THE STREETS ARE CUT INTO, so a walk that
+    # crosses one steps UP - and a test pinned to the spawn's own course reports a finished court
+    # as fifty-one columns of solid wall. The step is what is allowed, not any height at all: a
+    # visitor may rise one course and no more.
+    back = meta["lot"][2]                          # the gate's own back face
+    dead, floor = [], feet_y
+    for v in range(back + 1, 80):
+        # THE WALK IS A BAND, NOT A LINE. The court's basin stands on the axis on purpose and a
+        # walker goes round it, so the question is whether SOME column of the axis band carries
+        # them - which is what "clearly demonstrate a flow" actually means.
+        here = [y for u in range(axis_u - 6, axis_u + 7)
+                for y in (floor, floor + 1, floor - 1) if standable(v, u, y)]
+        if not here:
+            dead.append(v)
+        else:
+            floor = min(here, key=lambda y: abs(y - floor))
+    assert dead == [], f"the walk from the gate to the wheel is blocked at V{dead[:6]}"
+
+
+def test_the_wheel_is_visible_from_inside_the_gate(built):
+    """THE VISTA, MEASURED AS A RAY AND NOT AS A TUNNEL.
+
+    "One module blocks another's approach view" is the thing the visual spec asks about, and the
+    honest test of it is a line from a visitor's eye to the thing they are meant to see - not a
+    demand that eighty-six courses of the park hold nothing. The Sky Lift's hub is 74 courses up
+    and forty blocks beyond the court's fountain, so the ray clears it by a dozen; a BUILDING in
+    the approach would not.
+    """
+    m = schem.load(str(PARK))
+    ox, oy, oz = PARK_ORIGIN
+    _c, _built, meta = built
+    _x, feet_y, z = meta["spawn"]["world"]
+    names = [n.split(":")[-1].split("[")[0] for n in m.names]
+    v_eye = meta["lot"][2] + 1                     # one step past the doors
+    hub_v, hub_y = 90, feet_y + 40                 # the wheel's own densest column and its hub
+    hits = []
+    # ...and the ray STOPS AT THE WHEEL'S OWN FACE. Run to the hub it strikes the wheel, which is
+    # the ride being visible rather than something blocking it.
+    for k in range(1, (hub_v - v_eye) * 4):
+        t = k / ((hub_v - v_eye) * 4)
+        v = v_eye + t * (hub_v - v_eye)
+        if v >= 80:
+            break
+        y = (feet_y + 1.6) + t * (hub_y - feet_y - 1.6)
+        slot = int(m.ids[int(round(y)) - oy, z - oz, int(round(v))])
+        if slot and not passable(names[slot]):
+            hits.append((int(round(v)), int(round(y)), names[slot]))
+    assert hits == [], f"the wheel is not visible from the gate: {hits[:6]}"
 
 
 def test_the_walk_from_the_spawn_reaches_both_fare_slots(built, named, park_band):
@@ -412,7 +485,10 @@ def test_the_ceremonial_arch_has_doors_surrounded_by_bars(built, named):
     _c, _m, meta = built
     a0, a1 = _params()["arch"]
     u0 = meta["lot"][1]
-    x = PE.ANCHOR[0] + 5                      # the arch is closed at V5, the building's back face
+    # THE BACK FACE IS `front + 5`, NOT V5. The composition is six columns deep wherever it is set
+    # back to, and it is set back thirteen now - so a constant here names a column of open
+    # forecourt and every lookup misses.
+    x = PE.ANCHOR[0] + _params()["front"] + 5
     for u in range(a0, a1 + 1):
         z = PE.ANCHOR[2] + u0 + u
         for y in (PE.ANCHOR[1], PE.ANCHOR[1] + 1):
@@ -541,7 +617,7 @@ def test_every_stair_leans_into_the_wall_it_grows_from(built):
     c, m, meta = built
     st = _states(m, c.world_origin)
     cor = PE.ANCHOR[1] + meta["detail"]["building"]["cornice_y"]
-    x_cor = PE.ANCHOR[0] + 2
+    x_cor = PE.ANCHOR[0] + _params()["front"] + 2
     seen = 0
     for (x, y, z), s in st.items():
         if "stone_brick_stairs" not in s:

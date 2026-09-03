@@ -30,17 +30,21 @@ params:
     # Ways` puts a lamp mast every 22 cells along the verge lamp line, and at span 5 the Midway's
     # piers land on the masts at U238 and U298. The opening may cross a mast - it is empty air and
     # the head beam clears it by two courses - but a PIER may not.
-    # THE TITLE WAS WRONG AND IT NAMED A DIFFERENT LOT. This gantry stands on the Arrival Court's
-    # own spur at U235; the Welcome Court is at U280-320, forty-five blocks away and behind the
-    # entry gate. A sign that names the building fifty blocks further on is worse than no sign.
+    # THE TITLE WAS WRONG AND IT NAMED A DIFFERENT LOT. This gantry stands on column A's own spur
+    # at U235; the Welcome Court is at U280-320, forty-five blocks away and behind the entry gate.
+    # A sign that names the building fifty blocks further on is worse than no sign.
+    # AND THE BUILDING BEHIND IT CHANGED (2026-09-03). The Arrival Court was retired - `PF Entry
+    # Gate` had already taken its job - and the Carousel moved out of column B into this lot at
+    # diameter 39. The gantry does not move: the spur is still U234-236 and the carousel's own
+    # forecourt is U231-239 behind it, so it fronts the ride exactly as it fronted the hall.
     - kind: marquee
-      name: Arrival Court
+      name: Carousel Court
       at: [20, 235]
       span: 7
       height: 7
       board: 3
-      title: ARRIVAL COURT
-      lines: ["tickets and", "guest services"]
+      title: THE CAROUSEL
+      lines: ["walk-on ride", "no queue"]
     # ---------------------------------------------------------------- THE CIRCUS GATE, REMOVED
     # Jack, on the placed park: *"gates and a board etc are all overlapping and chaotic with the
     # entrance to the main center."* Measured, he is describing three monumental things inside
@@ -119,17 +123,20 @@ params:
       lines: ["one car at a", "time - please", "wait here"]
 
     # ---------------------------------------------------------------- walk-on thresholds
-    # THE CAROUSEL IS BEHIND THE WHEEL NOW, at V102-153 and as far to the left of the axis as a
-    # 47-wide ride fits in a 71-wide column. Its thresholds follow it.
+    # THE CAROUSEL IS IN COLUMN A NOW, at V24-69 x U215-255 - the lot the Arrival Court held. Its
+    # thresholds follow it, and they take the Skill Arcade's own arrangement because it is the same
+    # problem: a lot whose door is a 3-wide spur with a gantry already over it. Marquee on the spur
+    # at V20, portals at V21 flanking it - U227 and U243, eight either side of the lot's centre, so
+    # a 5-wide frame clears the gantry's piers at U231/U239 and the verge lamp masts at U216/U238.
     - kind: portal
       name: Carousel entrance
-      at: [99, 291]
+      at: [21, 227]
       mode: entrance
       title: RIDE ENTRANCE
       lines: ["carousel", "", "step up"]
     - kind: portal
       name: Carousel exit
-      at: [99, 285]
+      at: [21, 243]
       mode: exit
       title: RIDE EXIT
       lines: ["", "", "mind the step"]

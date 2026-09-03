@@ -8461,3 +8461,147 @@ level and the two bright lands are MARGINAL from above, for the same reason - th
 contact and clusters its buildings into a third of the plot while the rest is bare paving. The
 Hollow is the best composed of the three. What no surface view shows is the undercrypt, 56 courses
 down: **the deep journeys need a packet of their own before anybody can say they read.**
+
+## The Midway entrance: the walk-up from the gate to the wheel (2026-09-02)
+
+Jack, arriving through it: *"gates and a board etc are all overlapping and chaotic with the
+entrance to the main center ... carefully just work on making the entrance experience, and the
+leading park in front of it before the ferris wheel and surrounding area perfect, highly detailed,
+sophisticated, no weird blocks, or overlaps, no bad placements ... we need this to feel premium and
+clean"*, and then *"this court also fits the theme of the center island area, and fills the space
+nicely, we dont want immediate large amounts of empty green."*
+
+**EVERY ONE OF THOSE WAS A REAL, MEASURABLE DEFECT AND NOT ONE OF THEM FAILED ANY CHECK.** The
+designs audited clean, reported zero placement problems, zero overlap and zero clashes, and the
+assembly reported `module clashes: none`. Measured off `out/Park Complete.litematic`:
+
+    V13-18   PF Entry Gate       61 wide, towers, a portico, titled THE MIDWAY
+    V19                          ONE CELL of lawn
+    V20-22   the Circus Gate     41 wide, fifteen courses, titled MIDWAY CIRCUS
+    V23                          ONE CELL of lawn
+    V24-74   the Welcome Court   the walk-up itself
+
+Three monumental things inside twenty-four courses, all announcing the same land, on the one
+sightline the whole park is composed about - the entry gate's two doors, this court and the Sky
+Lift's hub are all on U300, and the wheel's densest column IS U300 with 435 cells against 375 at
+each neighbour.
+
+### THE AXIS EXISTED AND NOTHING WAS USING IT
+
+- **The Circus Gate is removed**, not moved. It was sited when the gate's lot was six courses deep
+  and the axis was open ground; the gate grew to nineteen for the walk-up Jack asked for and this
+  was never re-measured. A visitor who has just walked through a gate that names the land should
+  meet the vista, not a second gantry two blocks behind the first.
+- **Two `Park Ways` apron masts stood IN the walk** - V4/U300, dead centre of the forecourt, and
+  V20/U298 between the gate's back face and the court's step. Each is a five-wide timber crossbeam
+  at head height. The first was DELIBERATE once: it stood inside the old portico as the gate's own
+  lamp, and the docstring still said so twelve blocks after the gate moved away from it.
+- **`parkways.keep_clear` is the fix, and it is a different instrument from a `feature_lot`.** A
+  feature lot refuses PAVING too, and the approach walks on the spine's own stone. `keep_clear`
+  refuses furniture and nothing else. **The whole five-cell arm spread is tested, not just the
+  post**: at the post alone a mast one cell outside a walk still hangs a lantern in the middle of
+  it, which is how the second of the two came to stand where it did.
+- **The Arrival Court's marquee was titled WELCOME COURT** and stands forty-five blocks from the
+  Welcome Court, on the far side of the entry gate.
+
+### THE COURT, REBUILT - `midway_builds._welcome_court`
+
+What was there, measured rather than described: 4,613 blocks paved edge to edge on one
+world-aligned grid, eleven trees of four species at eleven positions nothing derived, nine
+`magenta_wool` and fifteen `light_blue_wool` cells with no other member of their colour near them,
+and lamp standards whose head course was **a `yellow_wool` block** under a lantern on twelve
+courses of oak. That is the "crappy lamp posts with yellow wool tops" exactly.
+
+    the great walk   U294-306, V24 to V74 - thirteen wide, the spine's own width
+    the roundel      r=13 on (V49, U300), where the walk opens out
+    the basin        a stepped stone fountain: an eleven-wide pool, a plinth, an upper basin
+    two pavilions    V43-55, open, on timber posts under a striped canvas roof
+    four parterres   kerbed, hedged, planted - DERIVED, see below
+    twelve standards a dark plinth, a stone base, a wall shaft, a dressed head, ONE lantern
+    four masts       red and white pennants on the roundel's diagonals
+    four swags       bunting across the walk, evenly spaced
+
+**THE LOT WENT FROM 41 WIDE TO 61.** The two flanks either side of the old one measured **714
+columns of bare moss each** and nothing else, in full view of the gate - which is precisely the
+"immediate large amounts of empty green". At U270-330 the court has exactly the entry gate's own
+frontage, so the two read as one composition rather than as a gate with a smaller thing behind it.
+
+**EVERY PATCH OF LAWN THE COMPOSITION LEAVES BECOMES A PLANTED BED, DERIVED.** Hand-placing four
+beds answers the question only where somebody remembered to, and it answered it for the 41-wide lot
+and not for the 61-wide one - which is how the flanks came to be bare in the first place.
+`_parterres` floods whatever the walk, roundel, pavilions and queue do not take, and every
+connected piece over 36 cells gets a kerb, a clipped hedge on it, and planting on **a lattice
+anchored on the court's own centre**. Anchoring on (mid, axis) rather than on each patch is what
+keeps it symmetric: two mirrored patches get mirrored trees because the lattice is mirrored, and
+nothing is typed twice. A tree is planted only where its whole crown fits inside the patch - the
+check a render cannot make, because a leaf over a kerb draws exactly like a leaf over moss.
+
+**THE WHEEL'S QUEUE OWNS THE WEST REAR CORNER AND THE COURT DOES NOT TOUCH IT.** Measured off
+`out/PF Front Midway.litematic` it is exactly V65-74 x U270-279 - fifty-four columns, a clean ten
+by ten - and it is named in `blocked`, so wanting one of its cells raises rather than shipping as
+an overlap nobody can see.
+
+### Six things that shipped a clean audit and a wrong build
+
+- **A SAG IS NOT 6-CONNECTED UNLESS THE STEP IS FILLED.** The bunting dipped one course in the
+  middle and the dipped cells were diagonal to their neighbours: four five-cell swags shipped as
+  free-floating clusters. The ear-tip rule, in fabric.
+- **THE SWAG OVERWROTE THE LAMP IT WAS STRUNG BETWEEN.** Run to the standards' own columns rather
+  than between them, it replaced the lantern that is the whole point of a standard - four of them,
+  silently. **A lamp that is missing is invisible in a render; a lamp in the wrong place is not.**
+- **`_dir` TAKES A UNIT STEP, NOT AN OFFSET.** `_dir(-2, 0)` is a `KeyError`, which is the good
+  case; the bad one is a corner cell of a flare, which faces two ways where a stair faces one and
+  has to be a slab or it leans along whichever axis was written first.
+- **A HALF-AND-HALF CHECKER IS A CHESSBOARD, NOT A FLOOR.** `stone` and `smooth_stone` are 33 apart
+  in luminance - a pattern, not a texture - so the light one is the field and the dark one is a
+  grid in it every four, measured from the court's own centre.
+- **A BASIN IS SEEN INTO, AND THAT SETS ITS HEIGHT AT ONE COURSE.** Two courses with a dressed rim
+  measured beautifully and rendered as a dark stone drum: a walker's eye is 1.6 over their feet,
+  the rim stood at 2.0 and the water at 1.875 behind it. One course puts the surface below the eye
+  from three blocks out.
+- **A STEPPED PLINTH, NOT A BOWL ON A STEM.** A 1x1 stem carrying a 3x3 bowl read at walking
+  distance as a grey box on a post - the stair flare meant to join them is one course and
+  disappears past ten blocks.
+
+### AND A COORDINATE BUG NOTHING IN THIS PIPELINE COULD SEE
+
+`park_entrance._world` did not add `_Lot.front`, so **every world coordinate the entry gate
+published was thirteen blocks west of the block it named**: the sidecar said the till stood at
+X97504 and the hopper is at X97517. The build audits clean, the circuit simulates, the containment
+floods, and a render draws the machine exactly where it is. **The one consumer that cannot look is
+the SERVER PAYMENT ADAPTER**, which is handed those numbers to debit a fare against.
+
+### The tests changed with the decisions, which is the rule
+
+- **A fixture that pins a snapshot fails the moment the design improves.** `park_band` excluded
+  `0 <= v <= 5`, which was the whole lot when the composition was six deep; `Park Complete`
+  correctly contains this gate now, so it collided with the candidate over its own thirteen new
+  columns and reported **2,866 overlaps against itself**. It derives the lot from the generator's
+  own defaults now. Two more tests hard-coded V5 and V2 for the back face and the cornice.
+- **A CORRIDOR TEST IS NOT A SIGHTLINE TEST.** `the assembled midway axis stays clear until the
+  ferris wheel` demanded that eighty-six courses of the park hold no block at all in two courses -
+  which forbade the fountain Jack asked the centre for, forbade the gate's own doors, and read the
+  courses ABOVE a walker rather than the two a walker occupies. It is two tests now: **the walk**,
+  which follows the surface a course at a time and allows the one-course step every lot in this
+  park stands on, and **the view**, which is a ray from a visitor's eye to the wheel's hub and
+  stops at the wheel's own face.
+
+### Where it stands, and what is left
+
+`Park Complete` is 355,036 blocks, `module clashes: none`, the court is one connected piece with 0
+placement problems and 0 leaks, and all 32 entrance tests pass. Nothing here has been placed in
+game, and colour is still judged by the same database the palette picker optimises against - so
+judge form here and palette in world. `tools/entview.py` renders the named plan-coordinate views
+this pass was worked from; **its eye heights are h2, because a camera at h5 is three courses over a
+player's head and renders the bunting as a wall across the view.**
+
+**Still open, and deliberately not touched:**
+
+- **The `Park Ways` midway street lamp is unchanged** - a dark-oak fence shaft under a five-wide
+  slab crossbeam with two hanging lanterns. It is the only dark-oak furniture in a land of smooth
+  stone, white and red, and it reads heavy. It is also the shape Jack himself specified ("we only
+  need the slabs with 1 chain where the oak connects to the lamp"), and changing it is a park-wide
+  decision about all three lands rather than an entrance fix.
+- `tests/test_parkways.py::test_every_build_the_park_owes_has_a_lot_that_holds_it` fails on
+  **Wyrm's Crossing (58x44 in a lot that holds 1x0)**. Pre-existing, and it is the 39,504-block
+  skull another stream is siting.

@@ -1253,13 +1253,16 @@ def _parterres(L, open_cells, mid, axis, m, *, min_area=36) -> int:
         for v, u in inner:
             L.put(v, 0, u, PAL["lawn"])
         for v, u in sorted(inner):
-            if (v - mid) % 7 or (u - axis) % 7:
+            if (v - mid) % 6 or (u - axis) % 6:
                 continue
             crown = {(v + dv, u + du) for dv in range(-2, 3) for du in range(-2, 3)}
             if crown <= inner:
                 _tree(L, v, u, m)
-        for v, u in sorted(inner):                 # low planting, off the same lattice
-            if (v - mid) % 7 == 3 and (u - axis) % 7 == 3:
+        # LOW PLANTING BETWEEN THE TREES, on the same lattice offset by half of it. Left to the
+        # trees alone a thirteen-by-seventeen bed is four crowns in a field of moss, which is the
+        # "immediate large amounts of empty green" measured at bed scale instead of at lot scale.
+        for v, u in sorted(inner):
+            if (v - mid) % 3 == 0 and (u - axis) % 3 == 0 and ((v - mid) % 6 or (u - axis) % 6):
                 L.put(v, 1, u, PAL["shrub"])
         _hedge(L, sorted(edge), m)
         beds += 1
@@ -1372,45 +1375,47 @@ def _welcome_court(L, p) -> dict:
             m["floor"] += bool(L.put(v, 0, u, mat))
 
     # -- 2. the basin ----------------------------------------------------------------------------
-    # THE WALL IS TWO COURSES AND CARRIES NO COPING, AND BOTH OF THOSE ARE ABOUT SEEING THE WATER.
-    # At one course with a half-slab lip the rim stood 1.5 over the paving and the water surface
-    # 0.875 under it, so from a walker's eye the basin was a dark stone drum with nothing in it -
-    # which is what a fountain is for. Two full courses put the surface at 1.875 and the rim at
-    # 2.0: you see the water from anywhere on the walk, and the top course is dressed so the rim
-    # still reads as moulded rather than as the top of a wall.
-    pool, wall = _ring(mid, axis, 4)
+    # A BASIN IS SEEN INTO, AND THAT SETS ITS HEIGHT AT ONE COURSE. Built two courses high with a
+    # dressed rim it measured beautifully and rendered as a dark stone DRUM: a walker's eye is
+    # 1.6 over their feet, the rim stood at 2.0 and the water surface at 1.875 behind it, so the
+    # one thing a fountain is for was invisible from anywhere on the walk. One course puts the
+    # surface at 0.875 - below the eye from three blocks out - and the pool is eleven across
+    # rather than nine, so it reads as water rather than as a well.
+    pool, wall = _ring(mid, axis, 5)
     for v, u in wall:
-        L.put(v, 1, u, PAL["inlay"])
-        L.put(v, 2, u, PAL["course"])
+        L.put(v, 1, u, PAL["field"])               # a LIGHT rim: the dark ring is in the floor
     for v, u in pool:
-        L.put(v, 1, u, PAL["field"])               # the basin's own floor, under the water
         if max(abs(v - mid), abs(u - axis)) <= 1:
             continue                               # the pedestal stands where the water is not
-        m["water"] += bool(L.put(v, 2, u, "water", level="0"))
-    for y in (1, 2, 3):                            # the pedestal, rising out of the pool
-        for v in range(mid - 1, mid + 2):
-            for u in range(axis - 1, axis + 2):
-                L.put(v, y, u, PAL["field"])
-    L.put(mid, 4, axis, PAL["course"])             # the stem
-    for dv in (-1, 0, 1):                          # the bowl's corbelled underside
-        for du in (-1, 0, 1):
-            if dv == du == 0:
-                L.put(mid, 5, axis, PAL["field"])
-            elif dv and du:
-                # A CORNER OF THE FLARE FACES TWO WAYS AND A STAIR FACES ONE, so a corner cell is
-                # a slab. Given a facing it would lean along whichever axis was written first and
-                # break the bowl's own symmetry - which our renderer draws exactly as it draws a
-                # correct one.
-                L.put(mid + dv, 5, axis + du, PAL["cap"], type="top", waterlogged="false")
+        m["water"] += bool(L.put(v, 1, u, "water", level="0"))
+    # A STEPPED PLINTH, NOT A BOWL ON A STEM. Built as a 1x1 stem carrying a 3x3 bowl it read at
+    # walking distance as a grey box on a post - the flare that was meant to join them is one
+    # course of stairs and disappears past ten blocks. Five, then three, then the upper basin is
+    # a shape that survives the distance the walk is actually seen from.
+    for v in range(mid - 2, mid + 3):              # the plinth, rising out of the pool
+        for u in range(axis - 2, axis + 3):
+            L.put(v, 1, u, PAL["field"])
+    for dv in (-2, -1, 0, 1, 2):                   # ...with a moulding round its own edge
+        for du in (-2, -1, 0, 1, 2):
+            if max(abs(dv), abs(du)) != 2:
+                continue
+            if abs(dv) == 2 and abs(du) == 2:
+                L.put(mid + dv, 2, axis + du, PAL["cap"], type="bottom", waterlogged="false")
             else:
-                L.put(mid + dv, 5, axis + du, PAL["trim"], facing=_opp(dv, du), half="top",
+                # _dir TAKES A UNIT STEP, not an offset - and the moulding leans INTO the plinth
+                # it grows from, which is the same rule every cornice in this module follows.
+                nv, nu = (dv // 2, 0) if abs(dv) == 2 else (0, du // 2)
+                L.put(mid + dv, 2, axis + du, PAL["trim"], facing=_opp(nv, nu), half="bottom",
                       shape="straight", waterlogged="false")
-    for dv in (-1, 0, 1):                          # ...and the upper bowl standing on it
+    for v in range(mid - 1, mid + 2):              # the second stage
+        for u in range(axis - 1, axis + 2):
+            L.put(v, 2, u, PAL["field"])
+    for dv in (-1, 0, 1):                          # ...and the upper basin standing on it
         for du in (-1, 0, 1):
             if dv == du == 0:
-                m["water"] += bool(L.put(mid, 6, axis, "water", level="0"))
+                m["water"] += bool(L.put(mid, 3, axis, "water", level="0"))
             else:
-                L.put(mid + dv, 6, axis + du, PAL["field"])
+                L.put(mid + dv, 3, axis + du, PAL["course"])
     m["basin"] = [mid, axis]
 
     # FOUR PENNANT MASTS ON THE ROUNDEL'S DIAGONALS. The court had no vertical between the wheel
@@ -1441,7 +1446,10 @@ def _welcome_court(L, p) -> dict:
     # -- 5. the standards, the benches, the bunting and the thresholds ---------------------------
     # PAIRED ABOUT THE AXIS AND NEVER ON IT. Every one of these is at |U-300| >= 7, which is what
     # keeps the vista from the gate to the wheel clear of this court's own furniture.
-    for v in (v0 + 5, mid - 16, mid + 16, v1 - 5):
+    # EVENLY SPACED DOWN THE WALK, and that is arithmetic. At (v0+5, mid-16, mid+16, v1-5) the
+    # four came out as 29, 33, 65 and 69 - two tight PAIRS four courses apart with thirty-two
+    # blocks of nothing between them, which reads as a mistake rather than as a rhythm.
+    for v in (v0 + 5, mid - 10, mid + 10, v1 - 5):
         for u in (axis - half - 1, axis + half + 1):
             _standard(L, v, u, m)
         # STRUNG BETWEEN THE TWO HEADS AND NOT OVER THEM. Run to the standards' own columns it
