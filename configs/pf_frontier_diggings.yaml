@@ -82,24 +82,47 @@ params:
   # trail, and every one of these is clear of the walk's own verge at u19-25.
   # THE WORKINGS GATHER ROUND THE YARD (V20-35 / U26-37), which is what gives it a reason to be
   # there; the pines stand on the open ground the mounds leave.
-  workings:
-    - [24, 30, shaft]
-    - [32, 34, shaft]
-    - [22, 28, crib]
-    - [34, 28, crib]
-    - [27, 36, ore]
-    - [30, 31, ore]
-    - [4, 5, pine]
-    - [50, 4, pine]
-    - [3, 42, pine]
-    - [50, 41, pine]
-    - [27, 3, pine]
-    - [18, 42, pine]
-    - [37, 42, pine]
-    - [10, 15, pine]
-    - [46, 15, pine]
-    - [8, 33, pine]
-    - [40, 17, pine]
+  # ---------------------------------------------------------------------------------------------
+  # THE BONE BED. Jack re-themed the land - "frontier needs to change" - and then: "do the dig site
+  # first." This lot was already a dig; what it lacked was anything IN the trenches.
+  #
+  # **IT RUNS ALONGSIDE THE TRAIL, WHICH IS THE VIEWING GALLERY.** The walk is at U68-70 (local
+  # u21-23) with a level verge either side, so a trench on the low-u flank is looked straight down
+  # into by every guest crossing the block - which is how a real dig is seen, and the reason the
+  # plan is the money view here.
+  #
+  # 33 x 16 is 528 of this lot's 2,438 columns, and it takes two of the four spoil mounds with it.
+  # That is correct: a dig this size IS the block, and the mounds it replaces are spoil that would
+  # have come out of it.
+  trench:
+    v: 12
+    # **U5, NOT U2.** The bench falls one course per cell out, so a trench two cells from
+    # the lot's own edge stands three courses tall ON it - against the land's cross avenue, which
+    # is a guest street, and which this module's field already clamps for exactly that reason.
+    u: 5
+    w: 33
+    d: 12
+    bench: 3
+    # the skeleton, in the trench's own coordinates. It is the SAME ANIMAL standing on the rim two
+    # hundred blocks away, which is the point: the dig is where it came from.
+    skel_v: 3
+    skel_u: 6
+    length: 25
+    bow: 3.5
+    ribs: {from: 5, to: 20, span: 6.0, every: 2}
+    # the canvas over the best find - the one thing in the cut with colour in it, and what makes a
+    # plan view read as a place somebody works rather than as an outline.
+    shelter: [24, 3, 8, 8]
+  # **FOUR WORKINGS MOVED ACROSS THE TRAIL.** The bone bed's trench zeroes the height field
+  # under whatever it covers, so a prop sited by hand for the old bank ends up standing on
+  # nothing - one came out as a floating tree, 107 cells and a stray component. A prop now
+  # checks its own footing and refuses; these are re-sited so nothing has to be refused.
+  # **A BROADLEAF CROWN IS RADIUS 3 WHERE A CONIFER'S WAS 2**, and that is what put leaves on
+  # the lot's own edge - the land's cross avenue - and refused fifty canopy cells at the
+  # boundary. Every tree is now at least four cells in from every edge, out of the trench and
+  # its bench (u2-19), off the trail, and clear of the yard and the shafts. A re-theme that
+  # changes a tree's SHAPE changes where a tree may stand.
+  workings: [[24, 30, shaft], [32, 34, shaft], [22, 28, crib], [34, 28, crib], [27, 36, ore], [30, 31, ore], [5, 30, pine], [8, 38, pine], [14, 34, pine], [17, 40, pine], [40, 30, pine], [44, 38, pine], [48, 34, pine], [38, 41, pine]]
   seed: 77
 roles: [path]
 design:

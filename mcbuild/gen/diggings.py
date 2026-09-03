@@ -39,6 +39,7 @@ from __future__ import annotations
 import numpy as np
 
 from .canvas import Canvas, hash01
+from . import fossils
 from .frontier_builds import _Lot
 from .mineridge import ROCK, _BAND, _CRUST, _DARK, _MID, _STRATA, _noise, _pick, _terrace
 
@@ -83,6 +84,11 @@ DIGGINGS = {
     "yard": None,              # [v, u, w, d] - a level working yard off the trail
     "shops": [],               # see `_shop`
     "workings": [],            # [[v, u, kind], ...] - kind: shaft | crib | ore | pine
+    #: **THE BONE BED.** Jack re-themed the land: "frontier needs to change ... do the dig site
+    #: first." A trench is a HOLE IN THE SPOIL rather than a dig - the ground here stands up to
+    #: eleven courses above the plane, so forcing the field to zero inside a box leaves a real cut
+    #: with real walls at no cost and with nothing to break first. See `gen/fossils.py`.
+    "trench": None,            # {v, u, w, d, bench, length, bow, ribs: {...}, shelter: [v,u,w,d]}
     "bench": 3,
     "seed": 0,
     "title": "THE DIGGINGS",
@@ -325,6 +331,15 @@ def _workings(lot: _Lot, h: np.ndarray, p: dict, seed: int) -> dict:
             tally["refused"] += 1
             continue
         base = int(hi[v, u]) if 0 <= v < lot.dv and 0 <= u < lot.du else 0
+        # **A PROP MUST STAND ON SOMETHING, AND THE GROUND UNDER IT CAN MOVE.** A working is sited
+        # by hand against the terrain the config describes; the bone bed's trench then zeroes the
+        # height field under whatever it covers, and a tree sited for the old bank came out
+        # floating three courses over the new bench - 107 cells, one stray component, and the only
+        # reason it was caught is that a floating tree is also a disconnected one. The field is
+        # the authority on where the ground is; the prop asks it rather than being told.
+        if base > 0 and not lot.has(v, base - 1, u):
+            tally["refused"] += 1
+            continue
         if kind == "shaft":
             # the collar: a fenced ring one course proud, with a lit hole in the middle
             for dv in (-1, 0, 1):
@@ -360,15 +375,21 @@ def _workings(lot: _Lot, h: np.ndarray, p: dict, seed: int) -> dict:
                     lot.put(v + dv, base, u + du, ROCK[key])
             tally["ore"] += 1
         elif kind == "pine":
+            # **JUNGLE, AND THE CROWN IS WIDE AND FLAT.** The land is the Lost Plateau now, and a
+            # palette swap is not a shape swap: a conifer narrows in steps, which is exactly what
+            # makes it read as a fir, and built in jungle wood it is a fir painted green. This is
+            # the same crown `gen/plateau.py` puts on the ridge and `frontier_scatter._jungle` puts
+            # on the flat, so all three read as one wood. The KIND keeps its name, because a config
+            # that has to be re-keyed to change a species is a config nobody re-keys.
             hgt = 6 + int(hash01(v, u, seed + 11) * 3)
             for y in range(base, base + hgt):
-                lot.put(v, y, u, SHOP["post"], axis="y")
-            for k, r in ((hgt - 5, 2), (hgt - 4, 2), (hgt - 3, 1), (hgt - 2, 1), (hgt, 0)):
+                lot.put(v, y, u, "jungle_log", axis="y")
+            for k, r in ((hgt - 1, 3), (hgt, 3), (hgt + 1, 2)):
                 for dv in range(-r, r + 1):
                     for du in range(-r, r + 1):
-                        if dv * dv + du * du > r * r + r or (dv == 0 and du == 0 and k < hgt):
+                        if dv * dv + du * du > r * r + r or (dv == 0 and du == 0 and k < hgt + 1):
                             continue
-                        lot.put(v + dv, base + k, u + du, "spruce_leaves",
+                        lot.put(v + dv, base + k, u + du, "jungle_leaves",
                                 persistent="true", distance="7", waterlogged="false")
             tally["pine"] += 1
     return tally
@@ -390,12 +411,36 @@ def build(cfg: dict, donors=None) -> Canvas:
     # ORDER IS THE WHOLE THING HERE: reserve, fill, then cut. The shops force their own cover into
     # the field BEFORE a cell is placed, so a recess is a room with rock over it rather than a bay
     # cut out of whatever the bank happened to give at that column.
+    # **THE TRENCH IS RESERVED BEFORE THE SHOPS, AND THE ORDER IS THE WHOLE THING.** A trench's
+    # bench LOWERS the height field and a shop's cover RAISES it, so whichever runs last wins.
+    # Run last, the trench took the rock off the lintel of the shop at v8 and it shipped as a hut
+    # standing in a bank instead of a room cut into one - which is the failure this module's own
+    # test calls "a hut, not a cut", and it caught it.
+    if p.get("trench"):
+        fossils.reserve(h, p["trench"])
     for spec in (p.get("shops") or []):
         _shop_reserve(h, spec, p)
     parts = {"mass": _fill(lot, h, seed)}
     parts["trail"] = _trail(lot, p, seed)
     parts["shops"] = [_shop(lot, spec, p, seed) for spec in (p.get("shops") or [])]
     parts["workings"] = _workings(lot, h, p, seed)
+    if p.get("trench"):
+        t = dict(p["trench"])
+        bed = {"floor": fossils.floor(lot, t, seed)}
+        # the skeleton is laid FIRST and the furniture round it second, so a stake or a crate can
+        # never take a cell a bone wanted - `_bone` writes through `_Lot.put`, which overwrites.
+        sk = dict(t)
+        sk.setdefault("v", t["v"] + 3)
+        sk["v"] = t["v"] + int(t.get("skel_v", 3))
+        sk["u"] = t["u"] + int(t.get("skel_u", t.get("d", 16) // 2))
+        sk["length"] = int(t.get("length", max(8, int(t.get("w", 30)) - 8)))
+        sk["bounds"] = [t["v"], t["u"], int(t.get("w", 30)), int(t.get("d", 16))]
+        bed["skeleton"] = fossils.skeleton(lot, sk, seed)
+        bed["furniture"] = fossils.furniture(lot, t, seed)
+        if t.get("shelter"):
+            sv, su, sw, sd = (int(x) for x in t["shelter"])
+            bed["shelter"] = fossils.shelter(lot, t["v"] + sv, t["u"] + su, sw, sd)
+        parts["bone_bed"] = bed
 
     av, ay, au = (int(v) for v in p["anchor"])
     at_v, at_u = (int(v) for v in (p.get("at") or (0, 0)))

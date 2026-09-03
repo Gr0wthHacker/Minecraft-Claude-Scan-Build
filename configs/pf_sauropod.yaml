@@ -37,8 +37,17 @@ gen: sauropod
 params:
   kind: brachiosaur
   facing: north
-  at: [193, 52]
-  height: 34
+  # **48, NOT 34 - AND THE LEGS ARE WHY IT COULD GROW.** Jack: "i think it can be a bit bigger."
+  # The rim band is thirteen rows deep and the animal's width is 2 x (stance + leg radius), so it
+  # was the LEGS that capped it, not the body: at 0.0853H of radius a leg was 0.17H in diameter
+  # where a real graviportal limb is nearer 0.12H. Slimmed to a true gauge it is 11 wide at h=48
+  # instead of 15 - a clear column of rim each side - and half again as tall. 63 long, 50 tall,
+  # 5,036 blocks against 2,323.
+  #
+  # `at` is the FRAME ORIGIN, between the front feet: the animal runs V(at-5..+5) and
+  # U(at-30..+32), so this is **V188-198 x U8-70** on ground at Y203-204, inside a rim of V187-199.
+  at: [193, 38]
+  height: 48
   under: out/Park Complete.litematic
   ground: true
   seed: 3

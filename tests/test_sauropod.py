@@ -104,7 +104,15 @@ def test_the_canvas_is_sized_by_the_facing(facing):
     short_axis = min(max(vs) - min(vs), max(us) - min(us)) + 1
     assert long_axis >= 44, f"{facing}: clipped to {long_axis} long"
     assert short_axis <= 14, f"{facing}: {short_axis} wide is not a sauropod"
-    assert len(cells) > 2000, f"{facing}: only {len(cells)} cells survived"
+    # **NOT A CELL COUNT.** Pinning one is pinning a SNAPSHOT, and this repo has shipped that trap
+    # four times: slimming the legs to a true gauge - a real improvement, and what let the animal
+    # grow at all - took h=34 from 2,323 cells to 1,848 and failed a test about a completely
+    # different property. What this asserts is that all four facings build the SAME animal, which
+    # is the actual question when a canvas is sized by its facing.
+    ref = len(_cells(sauropod.build({"height": 34, "facing": "west",
+                                     "ground": False, "seed": 3})))
+    assert abs(len(cells) - ref) <= max(20, ref * 0.03), (
+        f"{facing} built {len(cells)} cells against west's {ref} - the box is clipping it")
 
 
 @pytest.mark.parametrize("facing", ("north", "south", "east", "west"))

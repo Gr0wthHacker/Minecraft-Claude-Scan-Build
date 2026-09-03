@@ -141,7 +141,7 @@
       "height": 6,
       "at": [
         21,
-        121
+        120
       ],
       "facing": "west",
       "land": "frontier",
@@ -299,8 +299,8 @@
           "fill_ratio": 0.0917
         },
         "side": {
-          "area": 656,
-          "fill_ratio": 0.194
+          "area": 651,
+          "fill_ratio": 0.1925
         }
       },
       "composition": {
@@ -336,7 +336,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "d64f9c766cdd1e8b959138c02111228f5368ee7f9296ec2cbaac55a28b9a17ad",
+    "fingerprint": "ead30c334b13e33258569ca9e07f4dee597935e2377d50fa82138be26d786f5a",
     "generator_source_digest": "f0f76467d78ec00970e1a3b0efd847cbeb2d999e93b04da11421fd2180118919",
     "anchors": [],
     "genome": {
@@ -379,9 +379,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 50.976872,
+    "seconds": 49.712225,
     "blocks": 1912,
-    "blocks_per_second": 37.51
+    "blocks_per_second": 38.46
   },
   "generator_contract": {
     "ok": true,

@@ -55,7 +55,7 @@ params:
     # THE SAUROPOD'S GROUND. The land had no site for a 48-block animal anywhere but the outer rim
     # (see `configs/pf_sauropod.yaml` for the search), and the scatter had already planted 240
     # trees and props inside its footprint. A margin of two, because a canopy is cells.
-    - [185, 199, 26, 81]       # PF Sauropod
+    - [185, 199, 4, 74]        # PF Sauropod - h=48, V188-198 x U8-70, plus a margin of two
     # **AND THE COASTER'S OWN FRONTAGE, WHICH IS ON THE VERGE AND NOT IN A LOT.** The verge
     # band V19-23 is legitimately this design's ground - it is between modules - so nothing
     # kept it off. Then the ride's entrance ensemble moved onto the station's real front at

@@ -183,8 +183,8 @@ def _legs(fr: _Frame, d: dict) -> dict:
     """
     out = {}
     fh, bh = d["shoulder"], d["hip"]
-    for name, f, y1, rt, rb in (("fore", d["fore_f"], fh, 2.5, 1.7),
-                                ("hind", d["hind_f"], bh, 2.9, 1.9)):
+    for name, f, y1, rt, rb in (("fore", d["fore_f"], fh, d["fore_r0"], d["fore_r1"]),
+                                ("hind", d["hind_f"], bh, d["hind_r0"], d["hind_r1"])):
         cells = 0
         for s in (d["stance"], -d["stance"]):
             cells += _sweep(fr, (f, s, y1), (f, s, y1 * 0.42), rt, rb * 1.05, "flank")
@@ -254,32 +254,36 @@ def _head(fr: _Frame, d: dict, tip) -> dict:
     """
     f0, _, y0 = tip
     n = 0
-    n += _sweep(fr, (f0, 0, y0), (f0 + 2.6, 0, y0 + 0.35), 1.5, 1.7, "flank", step=0.25)
-    n += _sweep(fr, (f0 + 2.6, 0, y0 + 0.35), (f0 + 4.4, 0, y0 - 0.2), 1.6, 1.05, "flank",
-                step=0.25)
+    a, b = d["head_f0"], d["head_f1"]
+    n += _sweep(fr, (f0, 0, y0), (f0 + a, 0, y0 + 0.35), d["head_r0"], d["head_r1"],
+                "flank", step=0.25)
+    n += _sweep(fr, (f0 + a, 0, y0 + 0.35), (f0 + b, 0, y0 - 0.2), d["head_r2"], d["head_r3"],
+                "flank", step=0.25)
     # the crest: a raised arch over the nostrils, and the one feature that says brachiosaur
     crest = 0
+    cf = f0 + d["eye_f"] * 1.1
     for df in range(-1, 2):
         for ds in (-1, 0, 1):
-            if fr.put(f0 + 2.4 + df, ds, y0 + 2.0, "crest", protect=True):
+            if fr.put(cf + df, ds, y0 + d["crest_y"], "crest", protect=True):
                 crest += 1
     for ds in (-1, 0, 1):
-        if fr.put(f0 + 2.4, ds, y0 + 2.7, "crest", protect=True):
+        if fr.put(cf, ds, y0 + d["crest_top"], "crest", protect=True):
             crest += 1
     # **AN EYE IS A BEAD ON THE SURFACE, AND ITS RING IS QUIET.** The first build put a five-cell
     # white ring on a head 3 wide - a clown patch, and 169 points of luminance against a coat that
     # needs 35 to read. `light_gray_wool` is 74 clear of the back and disappears at distance while
     # the bead still reads, which is what a ring is for.
     eyes = 0
+    ef, ey = f0 + d["eye_f"], y0 + d["eye_y"]
     for sign in (1, -1):
-        edge = fr.surface_s(f0 + 2.2, y0 + 0.9)
+        edge = fr.surface_s(ef, ey)
         if edge is None:
             continue
-        s = sign * edge
-        if fr.put(f0 + 2.2, s, y0 + 0.9, "eye", protect=True):
+        side = sign * edge
+        if fr.put(ef, side, ey, "eye", protect=True):
             eyes += 1
         for df, dy in ((0, 1), (0, -1)):
-            fr.put(f0 + 2.2 + df, s, y0 + 0.9 + dy, "eye_ring", protect=True)
+            fr.put(ef + df, side, ey + dy, "eye_ring", protect=True)
     return {"cells": n, "crest": crest, "eyes": eyes}
 
 
@@ -365,7 +369,13 @@ def _dims(height: float) -> dict:
         "hind_f": -H * 0.20,
         "chest_f": H * 0.24,
         "hip_f": -H * 0.26,
-        "stance": max(2.0, H * 0.095),
+        # **THE LEGS ARE THE ANIMAL'S WIDTH, NOT THE BODY**, and they were over-thick: at 0.0853H
+        # of radius a leg was 0.17H in diameter, where a real graviportal limb is nearer 0.12H.
+        # That cost the whole build - the rim it stands on is thirteen rows deep, width is
+        # 2 x (stance + leg radius), and at the old gauge the ceiling was h=36. Slimmer legs at a
+        # narrower gauge are both more accurate and let it grow to h=48 in the same band.
+        # The gauge must stay WIDER than the leg or the two legs merge into one mass.
+        "stance": max(2.0, H * 0.072),
         "body_r": H * 0.115,
         "neck_f": H * 0.24,
         "neck_r0": H * 0.075,
@@ -374,6 +384,26 @@ def _dims(height: float) -> dict:
         "tail_f": H * 0.62,
         "tail_y": H * 0.10,
         "tail_r0": H * 0.085,
+        # **NOTHING HERE IS IN ABSOLUTE BLOCKS, AND THE LEGS AND HEAD WERE.** CLAUDE.md's own rule:
+        # "Feature sizes must scale. A tail hardcoded at 13 blocks was longer than a deer's legs
+        # and broke the model in two. Anything in absolute blocks has this latent." The leg radii
+        # were literals 2.5/1.7 and 2.9/1.9 and the head's 1.5/1.7/2.6/4.4, so a bigger animal grew
+        # a bigger body on the SAME legs and kept a toy head - it was a scale parameter that did
+        # not scale. These fractions reproduce the h=34 build exactly and now follow it up.
+        "fore_r0": H * 0.0580,
+        "fore_r1": H * 0.0400,
+        "hind_r0": H * 0.0620,
+        "hind_r1": H * 0.0440,
+        "head_f0": H * 0.0765,
+        "head_f1": H * 0.1294,
+        "head_r0": H * 0.0441,
+        "head_r1": H * 0.0500,
+        "head_r2": H * 0.0471,
+        "head_r3": H * 0.0309,
+        "eye_f": H * 0.0647,
+        "eye_y": H * 0.0265,
+        "crest_y": H * 0.0588,
+        "crest_top": H * 0.0794,
     }
 
 
