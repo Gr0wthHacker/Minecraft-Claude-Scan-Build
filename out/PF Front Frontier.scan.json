@@ -55,26 +55,6 @@
     },
     {
       "kind": "marquee",
-      "title": "PLATEAU RUN",
-      "signs": 2,
-      "lamps": 4,
-      "span": 3,
-      "piers": 2,
-      "frontage": [
-        -3,
-        3
-      ],
-      "height": 10,
-      "at": [
-        21,
-        107
-      ],
-      "facing": "west",
-      "land": "frontier",
-      "name": "Mine Coaster"
-    },
-    {
-      "kind": "marquee",
       "title": "THE SCREENS",
       "signs": 2,
       "lamps": 0,
@@ -134,38 +114,31 @@
       "name": "Assay and Prize Office"
     },
     {
-      "kind": "portal/exit",
-      "title": "RIDE EXIT",
-      "signs": 1,
-      "lamps": 0,
-      "height": 6,
-      "at": [
-        21,
-        120
-      ],
-      "facing": "west",
-      "land": "frontier",
-      "name": "Mine Coaster exit"
-    },
-    {
       "kind": "porch",
-      "width": 16,
+      "width": 19,
       "height": 6,
       "posts": [
-        -6,
-        -2,
-        2,
-        6
+        -7,
+        -3,
+        1,
+        5,
+        9
       ],
-      "lamps": 5,
-      "eaves": 16,
-      "door": [
-        -5,
-        -3
+      "lamps": 6,
+      "eaves": 19,
+      "doors": [
+        [
+          -6,
+          -4
+        ],
+        [
+          6,
+          8
+        ]
       ],
       "pylons": 2,
-      "front": 124,
-      "signs": 1,
+      "front": 142,
+      "signs": 3,
       "bay": [
         -3,
         3
@@ -173,11 +146,11 @@
       "roof": 7,
       "at": [
         25,
-        111
+        112
       ],
       "facing": "west",
       "land": "frontier",
-      "name": "Mine Coaster station front"
+      "name": "Mine Coaster"
     },
     {
       "kind": "sight/water_tower",
@@ -239,8 +212,8 @@
       "name": "Works Yard staff gate"
     }
   ],
-  "piece_count": 12,
-  "signs": 17,
+  "piece_count": 10,
+  "signs": 16,
   "refused_signs": [],
   "contract": "everything in front of and between the park's attractions: a name board on every one, queues at the rides, entrance and exit thresholds, and sight pieces in the measured empty bands - none of it below the build plane, and nothing over a paved column below head height",
   "unverified": [
@@ -279,51 +252,51 @@
       "narrative": "The Frontier's frontage: a name board over every attraction's own spur, entrance and exit thresholds flanking the Mine Coaster's approach, a switchback queue down the coaster's east flank, a water tower and two ore-cart props in the land's empty bands, and a staff gate on the works yard. Nothing below the build plane, nothing in a walkway, no street furniture.\n"
     },
     "metrics": {
-      "blocks": 1912,
+      "blocks": 1792,
       "materials": 19,
-      "dominant_material_share": 0.1512,
-      "light_blocks": 23,
+      "dominant_material_share": 0.1551,
+      "light_blocks": 20,
       "massing": {
         "width": 134,
         "height": 21,
         "depth": 161,
-        "fill_ratio": 0.0042
+        "fill_ratio": 0.004
       },
       "silhouette": {
         "top": {
-          "area": 352,
-          "fill_ratio": 0.0163
+          "area": 333,
+          "fill_ratio": 0.0154
         },
         "front": {
-          "area": 258,
-          "fill_ratio": 0.0917
+          "area": 256,
+          "fill_ratio": 0.091
         },
         "side": {
-          "area": 651,
-          "fill_ratio": 0.1925
+          "area": 630,
+          "fill_ratio": 0.1863
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.5706,
-          0.3593,
-          0.0701
+          0.5575,
+          0.3677,
+          0.0748
         ],
-        "top_silhouette_perimeter": 705,
-        "surface_faces_per_block": 2.0952
+        "top_silhouette_perimeter": 653,
+        "surface_faces_per_block": 2.1004
       },
       "material_counts": {
-        "spruce_planks": 289,
-        "stone_bricks": 274,
-        "stripped_spruce_log": 199,
-        "smooth_stone": 173,
-        "polished_blackstone_bricks": 167,
-        "dark_oak_stairs": 153,
-        "red_wool": 149,
-        "spruce_log": 114,
-        "stone_brick_stairs": 95,
+        "spruce_planks": 278,
+        "stone_bricks": 264,
+        "stripped_spruce_log": 188,
+        "smooth_stone": 163,
+        "polished_blackstone_bricks": 161,
+        "dark_oak_stairs": 141,
+        "red_wool": 135,
+        "spruce_log": 106,
         "dark_oak_planks": 92,
-        "cracked_stone_bricks": 64,
+        "stone_brick_stairs": 81,
+        "cracked_stone_bricks": 53,
         "spruce_fence": 40
       }
     },
@@ -336,8 +309,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "ead30c334b13e33258569ca9e07f4dee597935e2377d50fa82138be26d786f5a",
-    "generator_source_digest": "f0f76467d78ec00970e1a3b0efd847cbeb2d999e93b04da11421fd2180118919",
+    "fingerprint": "99079575fe11aa3fab5c0cd4a2ddf1b96c30d9d208b5f6869a290ba0e576a35a",
+    "generator_source_digest": "a489ef6ff8b881cb9b7606057100aabb1fac48a1ef3fd3114f5bc41a4e7b2ae8",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -379,9 +352,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 49.712225,
-    "blocks": 1912,
-    "blocks_per_second": 38.46
+    "seconds": 49.327722,
+    "blocks": 1792,
+    "blocks_per_second": 36.33
   },
   "generator_contract": {
     "ok": true,
@@ -390,7 +363,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 1912,
+    "blocks": 1792,
     "mechanic_families": [
       "light",
       "rail",

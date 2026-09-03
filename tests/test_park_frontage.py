@@ -424,8 +424,9 @@ def test_a_stair_leans_the_way_it_was_built():
 
 def _porch_cells(**kw):
     """Every cell one porch emits, as {(V, h, U): (block name, properties)}."""
-    spec = {"kind": "porch", "at": [25, 111], "facing": "west", "width": 16, "height": 6,
-            "bay": 4, "door": [-5, -3]}
+    spec = {"kind": "porch", "at": [25, 112], "facing": "west", "width": 19, "height": 6,
+            "bay": 4, "doors": [{"at": [-6, -4], "title": "this way in"},
+                                {"at": [6, 8], "title": "way out"}]}
     spec.update(kw)
     c = pf.build({"land": "frontier", "pieces": [spec]})
     ox, oy, oz = c.world_origin
@@ -445,13 +446,16 @@ def _posts(cells):
 
 
 def test_a_porch_post_never_stands_in_the_doorway():
-    """THE OPENING IS THE ONE PLACE A POST MAY NOT GO, and a `bay` that happens to land on it is
-    how a column ends up down the middle of a door. The Mine Coaster's door is U106-108 and the
-    porch is centred on U111, so the door is frontage offsets -5..-3."""
+    """THE OPENING IS THE ONE PLACE A POST MAY NOT GO - nor a PYLON. At width 18 the run ended at
+    U120 and the east pylon landed on the exit opening's own last cell, so the way out came out
+    ONE CELL WIDE with a stone pier standing in it, which only a walk-through measurement showed.
+    The Mine Coaster's two openings are U106-108 and U118-120."""
     posts = _posts(_porch_cells())
     assert posts, "the porch built no posts at all"
-    assert not set(posts) & {106, 107, 108}, f"a post stands in the doorway: U{posts}"
-    assert 105 in posts and 109 in posts, f"the doorway has no jambs: U{posts}"
+    # the Mine Coaster's two openings, in world U: the way in at U106-108 and the way out at
+    # U119-120 - a post in either is a column down the middle of a doorway
+    assert not set(posts) & {106, 107, 108, 118, 119, 120}, f"a post stands in a doorway: U{posts}"
+    assert {105, 109, 117} <= set(posts), f"an opening has no jamb: U{posts}"
 
 
 def test_a_porch_bay_is_never_one_cell_wide():
@@ -463,7 +467,10 @@ def test_a_porch_bay_is_never_one_cell_wide():
     gaps = [b - a for a, b in zip(posts, posts[1:])]
     assert gaps, f"one post is not a rhythm: U{posts}"
     assert min(gaps) >= 3, f"a bay is {min(gaps) - 1} cells wide: posts at U{posts}"
-    assert len(set(gaps)) == 1, f"the bays are uneven: {gaps} for posts U{posts}"
+    # THE OPENINGS DIVIDE THE RUN, so the bays are not all one width - what matters is that none
+    # is a cell wide and none is twice another, which is what a rhythm stepped outward from two
+    # openings produced: posts at U109/U110, U113/U114 and U117/U118.
+    assert max(gaps) <= 2 * min(gaps), f"the bays are lopsided: {gaps} for posts U{posts}"
 
 
 def test_every_porch_brace_leans_back_at_its_own_post():
@@ -495,9 +502,11 @@ def test_a_porch_carries_a_beam_the_whole_width_and_an_eave_in_front_of_it():
     """The beam is what the roof appears to land on and the fascia is what gives a flat lid a
     shadow line; a beam with a hole in it reads as a broken one."""
     cells = _porch_cells()
-    beam = {u for (v, h, u), (n, _p) in cells.items() if v == 25 and h == 6 and n != "lantern"}
-    eave = {u for (v, h, u), (_n, _p) in cells.items() if v == 24 and h == 6}
-    assert beam == set(range(103, 119)), f"the beam is not continuous: U{sorted(beam)}"
+    beam = {u for (v, h, u), (n, _p) in cells.items()
+            if v == 25 and h == 6 and n not in ("lantern",)}
+    eave = {u for (v, h, u), (n, _p) in cells.items()
+            if v == 24 and h == 6 and not n.endswith("wall_sign")}
+    assert beam == set(range(103, 122)), f"the beam is not continuous: U{sorted(beam)}"
     assert eave == beam, "the fascia does not run the beam's own width"
 
 
@@ -568,21 +577,34 @@ def test_the_name_bay_stands_clear_of_the_parapet_and_carries_a_sign():
     stand above the wall either side of it, and its sign has to be on a block rather than
     silently refused, which is this project's most-repeated failure shape."""
     c = pf.build({"land": "frontier", "pieces": [
-        {"kind": "porch", "at": [25, 111], "facing": "west", "width": 16, "height": 6, "bay": 4,
-         "door": [-5, -3], "pylon": True, "roof": 7, "parapet": 3, "bay_at": 0, "bay_width": 7,
-         "bay_rise": 5, "title": "Mine Coaster", "lines": ["depot"]}]})
+        {"kind": "porch", "at": [25, 112], "facing": "west", "width": 19, "height": 6, "bay": 4,
+         "doors": [{"at": [-6, -4]}, {"at": [6, 8]}], "pylon": True, "roof": 7, "parapet": 3,
+         "bay_at": 0, "bay_width": 7, "bay_rise": 5, "title": "Mine Coaster",
+         "lines": ["depot"]}]})
     assert not getattr(c, "refused_signs", None), "a name board was refused"
     cells = _front_cells()
     tall = {}
     for (v, h, u), (_n, _p) in cells.items():
         if v == 25 and h > 7:
             tall[u] = max(tall.get(u, 0), h)
-    bay = [tall[u] for u in range(108, 115) if u in tall]
-    wing = [tall[u] for u in tall if u < 108 or u > 114]
+    # DERIVED, never typed out again - the bay moves with `at` and `bay_at`, and a test that
+    # pins the old centre reports the wings as the bay and fails on a correct build.
+    lo = 112 - 7 // 2
+    bay_u = set(range(lo, lo + 7))
+    bay = [tall[u] for u in bay_u if u in tall]
+    wing = [tall[u] for u in tall if u not in bay_u]
     assert bay and wing, f"no bay or no wing: {sorted(tall)}"
     assert min(bay) > max(wing), f"the bay ({min(bay)}) does not clear the parapet ({max(wing)})"
     signs = [k for k, (n, _p) in cells.items() if n.endswith("wall_sign")]
-    assert len(signs) == 1, f"the name bay carries {len(signs)} signs"
+    # ONE ON THE BAY AND ONE OVER EACH OPENING. The bay's names the ride from down the promenade;
+    # the two on the head beam say which way through is which, which is what tells a way in from
+    # a way out at twenty blocks - the job the two free-standing gates used to do badly.
+    high = [k for k in signs if k[1] > 7]
+    low = [k for k in signs if k[1] <= 7]
+    assert len(high) == 1, f"the name bay carries {len(high)} signs"
+    assert len(low) == 2, f"{len(low)} openings are signed, not two"
+    assert {k[2] for k in low} == {107, 119}, (  # each opening's own middle
+        f"the opening signs are at U{sorted(k[2] for k in low)}, not over the two ways through")
 
 
 # --------------------------------------------------------------------------- the sloth's home

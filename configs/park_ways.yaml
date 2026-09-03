@@ -126,7 +126,7 @@ params:
           # The ride does discharge there: its platform is V28-30 x U118-125 and the
           # station's east opening is V26/U119-120, so this is a real way out and it now
           # has a real walk. Enter west at U107, leave east at U120.
-          - {v: 24, u: 120}     # Mine Coaster - the way out, under the exit gate
+          - {v: 24, u: 119}     # Mine Coaster - the way out, through the depot's east bay
           - {v: 24, u: 235}     # Arrival Court
           # THE WELCOME COURT'S OWN THRESHOLD, and it is THIRTEEN WIDE because the door is.
           # Jack, on the finished court: "it needs to have paths or ways to connect to the other

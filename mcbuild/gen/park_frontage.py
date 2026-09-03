@@ -974,7 +974,7 @@ PORCH = {
     "width": 16,          # cells along the frontage, centred on `at`
     "height": 6,          # the head beam's course; posts run h1..height-1
     "bay": 4,             # a post every this many frontage cells
-    "door": None,         # [i0, i1] inclusive frontage offsets kept free of posts
+    "doors": None,        # [{at: [i0, i1], title}] openings kept free of posts, each signed
     "eave": True,         # carry the beam one cell forward as a fascia
     "lamps": True,
     "pylon": False,       # stone bookends at the two ends of the run
@@ -1024,8 +1024,9 @@ def _porch(w, f, pal, p) -> dict:
     bay = max(2, int(q["bay"]))
     lo = -(width // 2)
     hi = lo + width - 1
-    door = q.get("door")
-    d0, d1 = (int(door[0]), int(door[1])) if door else (1, 0)
+    doors = [{"at": [int(d["at"][0]), int(d["at"][1])], "title": d.get("title")}
+             for d in (q.get("doors") or [])]
+    gaps = [tuple(d["at"]) for d in doors]
 
     # **THE OPENING SETS THE RHYTHM, NOT THE END OF THE RUN.** Spacing the posts from `lo` and
     # then dropping whichever fell in the doorway leaves a jamb two cells from its neighbour and
@@ -1033,14 +1034,26 @@ def _porch(w, f, pal, p) -> dict:
     # both brace into the one cell between them and the second facing overwrites the first. Both
     # jambs are placed first and the bays step outward from them, so every bay is `bay` wide and
     # the door is the widest.
-    posts = set()
-    if door:
-        posts |= {i for i in (d0 - 1, d1 + 1) if lo <= i <= hi}
-        for start, step in ((d0 - 1, -bay), (d1 + 1, bay)):
-            i = start + step
-            while lo <= i <= hi:
-                posts.add(i)
-                i += step
+    # **THE OPENINGS DIVIDE THE RUN AND EACH SEGMENT IS SPACED ON ITS OWN.** Stepping a rhythm
+    # outward from every opening puts two of them a cell apart wherever two openings are near
+    # each other - measured, a door and an exit in one eighteen-cell frontage came out with
+    # posts at -3/-2, 1/2 and 5/6, which is three one-cell bays and the brace bug back with them.
+    # A jamb either side of every opening is mandatory; everything between two jambs is then
+    # divided evenly, so no bay is a cell wide and none is twice the others.
+    inside = lambda i: any(a <= i <= b for a, b in gaps)
+    if gaps:
+        anchors = {i for d0, d1 in gaps for i in (d0 - 1, d1 + 1) if lo <= i <= hi and not inside(i)}
+        for end in (lo, hi):
+            if not inside(end) and all(abs(end - j) >= 3 for j in anchors):
+                anchors.add(end)
+        posts = set(anchors)
+        run = sorted(anchors)
+        for a, b in zip(run, run[1:]):
+            if any(a < x <= b or a <= y < b for x, y in gaps):
+                continue                     # this pair brackets an opening; it stays open
+            n = max(1, round((b - a) / bay))
+            for k in range(1, n):
+                posts.add(a + round((b - a) * k / n))
     else:
         posts = {i for i in range(lo, hi + 1) if (i - lo) % bay == 0}
     # An end post only where it does not crowd the one beside it; otherwise the beam simply
@@ -1060,7 +1073,7 @@ def _porch(w, f, pal, p) -> dict:
             # NEVER BRACE INTO A ONE-CELL BAY. Both of its posts want that cell and the second
             # write wins, so one brace leans the wrong way - and our renderer draws a stair's two
             # facings identically, so it would only ever show in game.
-            if lo <= j <= hi and j not in posts and (j + s) not in posts:
+            if lo <= j <= hi and j not in posts and (j + s) not in posts and not inside(j):
                 _put(w, f, pal, j, 0, height - 1, pal["stair"],
                      facing=f.side(-s), half="top", shape="straight", waterlogged="false")
 
@@ -1074,6 +1087,19 @@ def _porch(w, f, pal, p) -> dict:
         for i in range(lo, hi + 1):
             _put(w, f, pal, i, -1, height, "board")
             eaves += 1
+
+    signs = 0
+    for d in doors:
+        if not d["title"]:
+            continue
+        mid = (d["at"][0] + d["at"][1]) // 2
+        # THE FASCIA IS THE SUPPORT, SO THE SIGN HANGS IN FRONT OF THE FASCIA - not in it. Placed
+        # at the fascia's own depth the sign REPLACES a board and leaves a hole in the eave over
+        # every opening, which `test_a_porch_carries_a_beam_the_whole_width_and_an_eave_in_front_
+        # of_it` caught. A sign over the opening it names is what tells a way in from a way out
+        # at twenty blocks, which is the whole job of a threshold.
+        if _sign(w, f, pal, mid, -2, height, f.facing, [str(d["title"]).upper()]):
+            signs += 1
 
     lamps = 0
     if q["lamps"]:
@@ -1149,7 +1175,6 @@ def _porch(w, f, pal, p) -> dict:
                 _put(w, f, pal, i, d, roof + rise - 1, "accent")
 
     # the name, on the panel, and a lamp either side of it
-    signs = 0
     if rise >= 5 and q.get("title"):
         lines = [str(q["title"]).upper()] + [str(x) for x in (q.get("lines") or [])]
         if _sign(w, f, pal, b_at, -2, roof + rise - 2, f.facing, lines):
@@ -1161,7 +1186,7 @@ def _porch(w, f, pal, p) -> dict:
                 lamps += 1
 
     return {"kind": "porch", "width": width, "height": height, "posts": sorted(posts),
-            "lamps": lamps, "eaves": eaves, "door": [d0, d1] if door else None,
+            "lamps": lamps, "eaves": eaves, "doors": gaps,
             "pylons": pylons, "front": front, "signs": signs,
             "bay": [b_lo, b_hi] if rise else None, "roof": roof}
 

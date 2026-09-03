@@ -44,36 +44,6 @@ params:
       span: 7
       title: THE DIGGINGS
       lines: ["walk the trench", "store and shed"]
-    - kind: marquee
-      name: Mine Coaster
-      # NO WING: A 24-WIDE GANTRY DOES NOT FIT A 21-WIDE FORECOURT. With `wing: 1` this piece is
-      # four bays and its outer piers land 11 cells out either side - at U98-99, which is the U96
-      # crossing's own walkway, and at U119-120, which is the platform's way out. One bay is 8
-      # wide and sits inside the concourse with room for the exit gate beyond it.
-      #
-      # **IT STANDS ON THE DOOR'S OWN AXIS, AND A ROW OF V BOUGHT THAT.** At V20 the arch could
-      # not reach U107 - the station's door - because V20/U105 is a CROSSING CORNER LAMP and the
-      # arch's west pier lands on it. (A `keep_clear` band was tried and it left the U96 crossing
-      # lit three-square, which `test_a_crossing_is_lit_four_square_or_not_at_all` caught.) Held
-      # off the lamp the arch sat at U113, five cells east of the door: you walked under it and
-      # the way in was over your shoulder.
-      #
-      # The lamp is at V20 ONLY. Standing the arch a course back at V21-23 clears it outright,
-      # and V21-23 at U104-110 is open lawn - the U96 junction's apron paves V21 out to U103 and
-      # stops. So the spur, the arch and the door are one line at U107, which is what an approach
-      # to a ride is.
-      at: [21, 107]
-      # TWO COURSES DEEP, BECAUSE THE BACK SIGN LANDS AT `depth` AND V24 IS THE RIDE'S EAVE. At
-      # depth 3 the arch reads its back sign at V24/h7, which is a cell of the station's own roof
-      # overhang - `park_place` reported the clash between the two designs. At 2 the fascia is
-      # V21-22 and the two signs fall on V20 and V23, both open lawn.
-      depth: 2
-      # SPAN 3, WHICH IS THE DEFAULT AND THE SPUR'S OWN WIDTH. At 5 the piers stand at U103-104
-      # and U110-111, and V21/U103 is the last paved cell of the U96 junction's apron - a pier on
-      # a walkway, which `test_nothing_stands_in_a_walkway` caught. At 3 they sit on lawn at
-      # U104-105 and U109-110 and the opening is U106-108: the spur, the door and the arch.
-      title: PLATEAU RUN
-      lines: ["the big one", "queue east"]
     # THE POSTS AND THE PORCH HAVE NO SPUR, so there is no path to arch over and the same piece
     # is built solid and stands beside the door instead. `style: board`.
     - kind: marquee
@@ -107,51 +77,22 @@ params:
     # ride are told apart before anybody reads a word - the entrance carries the land's accent
     # across its head and a lamp each side, the exit carries neither.
     #
-    # **THEY STAND WHERE THE RIDE'S DOOR MEASURES, AND THE DECLARED ANCHORS WERE THE WRONG FILE.**
-    # Jack: "the entrance to the rollercoaster and the queue stuff is all misaligned."
+    # **THE MINE COASTER'S FRONTAGE IS ONE BUILDING NOW, NOT THREE OBJECTS.** Jack, on the
+    # arch, the depot front and the exit gate strung along twenty cells of verge: "it just feels
+    # bad and disconnected and cheap." He is right. A free-standing timber arch, a building, and
+    # a free-standing stone gate, with lawn between them, is three thin things on a strip - and
+    # adding a fourth was never going to fix it.
     #
-    # `out/Mine Coaster.scan.json` declares guest anchors at U126/U134/U142/U146 and they were
-    # taken at face value. **THAT SIDECAR BELONGS TO A BUILD THIS PARK DOES NOT PLACE.** There is
-    # no `out/PF Mine Coaster.litematic`, so `tools/park_place.modules` falls through to
-    # `out/park_final/artifacts/Mine Coaster.litematic` - a 101 x 61 build with no `park_contract`
-    # and no anchors at all. The file that publishes the anchors is 69 x 97, rotated a quarter
-    # turn against it, and 26 columns too wide for the 111 x 71 lot: it can never be placed as it
-    # stands. Two artifacts of one name, and the signage was sited off the one nobody builds.
+    # The marquee and both portals are RETIRED here. The way in and the way out are OPENINGS IN
+    # THE DEPOT'S OWN COLONNADE, each with its own sign over the head beam, under one parapet
+    # that runs the whole width. That is what a station frontage is, and it is the same rule the
+    # void tower settled: what reads as architecture is regularity and openings.
     #
-    # Measured off `out/Park Complete.litematic` instead - the thing that actually stands:
-    #
-    #     concourse terrace   V24-25 x U100-120     two deep, twenty-one wide, the ride's forecourt
-    #     station front wall  V26    x U103-118     solid, with openings at U100-102 and U106-108
-    #     platform            V28-30 x U118-125     rails at V27 and V31, U119-123
-    #     the running track   V32    x U102-142
-    #
-    # So the ride's front door is U100-120 and every piece of its signage stood at U126-146 -
-    # three to twenty-six columns past the east end of the concourse, in front of the blank flank,
-    # on bare lawn. Walking the marquee from U126 to U134 (which this file did once) moved it
-    # further from the door, not nearer. **A DECLARED ANCHOR IS ONLY EVIDENCE ABOUT THE ARTIFACT
-    # THAT DECLARES IT**; when two files share a name, measure the one the merge actually reads.
-    #
-    # The pieces now stand on one line: the spur, the arch and the station's door are all U107,
-    # and the exit gate opens on the platform's own way out at U119-123.
-    #
-    # **THE ENTRANCE PORTAL IS RETIRED, AND THE FORECOURT IS WHY.** It was a third freestanding
-    # frame on a concourse that measures 21 cells, whose west quarter is the U96 junction's own
-    # paved apron (V21 out to U103) and whose U105 carries a crossing corner lamp. Every position
-    # that clears both stands within a cell of the marquee's west pier, so the three come out as
-    # one continuous 19-cell band - which is the wall of frontage this pass exists to undo,
-    # rebuilt twenty cells west. A marquee IS an entrance arch by its own docstring; what a guest
-    # needs here is one arch to walk under and one gate to come out of.
-    - kind: portal
-      name: Mine Coaster exit
-      # U120, SO THE OPENING IS U119-121 - the concourse's own east end, and the 3-wide
-      # exit spur runs through it. At U121 the opening was U120-122 and two of its three
-      # cells were lawn past the end of the paving: an arch on the grass beside a
-      # building, which is what Jack called the random extra arch.
-      at: [21, 120]
-      mode: exit
-      title: RIDE EXIT
-      lines: ["", "", "no re-entry"]
-
+    # Measured, so the openings land on the doors that exist: the station's front wall opens at
+    # U106-108 (the way in, on the arch's old axis and the spur's) and the concourse's east end
+    # at U118-120 (the way out, over the platform's new gates). The colonnade spans U103-121,
+    # which is the wall's own width carried east to reach that exit and one further for the
+    # pylon that ends it.
     # ---------------------------------------------------------------- the station's own front
     # **THE SIGN WAS RIGHT AND THE THING IT POINTED AT WAS A BOX.** Jack, on the moved signage:
     # "that entrance looks like shit still, you havent fixed a damn thing." Measured off
@@ -164,9 +105,6 @@ params:
     # h6, knee braces at every post head, a fascia a cell forward so the flat lid gets a shadow
     # line, and a lantern hung in each bay.
     #
-    # `width: 16` at U111 is exactly the station's own front, U103-118. `door` is the opening at
-    # U106-108 in frontage offsets, so no post stands in the doorway and the jambs go either side
-    # of it instead - the arch, the spur and this bay are all on U107.
     #
     # **AND A FALSE FRONT, BECAUSE A FLAT LID IS WHAT MAKES A BUILDING READ AS A BOX.** Jack, on
     # the porch alone: "we need this entry to be something real not a strange brown blob of
@@ -195,12 +133,20 @@ params:
     # the one real value step this land's palette has at cheap tier, and two piers at the ends
     # are what stop a colonnade reading as a fence.
     - kind: porch
-      name: Mine Coaster station front
-      at: [25, 111]
-      width: 16
+      name: Mine Coaster
+      # NINETEEN WIDE, AND THE LAST CELL IS WHY. At 18 the run ends at U120 and the east PYLON
+      # lands on the exit opening's own last cell, so the way out came out ONE CELL WIDE with a
+      # stone pier standing in it. The pylon needs a column of its own past the opening.
+      at: [25, 112]
+      width: 19
       height: 6
       bay: 4
-      door: [-5, -3]
+      # THE TWO WAYS THROUGH, in frontage offsets from U112: the door at U106-108 and the exit at
+      # U119-120. Each keeps its jambs, the openings divide the run, and every bay between them is
+      # spaced on its own - stepping one rhythm outward from both put posts a cell apart.
+      doors:
+        - {at: [-6, -4], title: this way in}
+        - {at: [6, 8], title: way out}
       pylon: true
       roof: 7
       parapet: 3
