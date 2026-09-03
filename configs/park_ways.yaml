@@ -199,6 +199,22 @@ params:
         # reach now, which is where PARK_FINAL_ARCHITECTED_PLAN.md says the Signal Heron stands.
         feature_lots:
           - {name: heron garden, v0: 34, u0: 174, v1: 60, u1: 210}
+
+        # THE ARRIVAL VISTA KEEPS ITS PAVING AND LOSES ITS FURNITURE - which is why this is not
+        # a feature lot: the walk-up from the void edge to the Welcome Court's threshold runs on
+        # the spine's own stone and must keep it.
+        #
+        # Two apron masts stood in it, measured off the shipped layer: V4/U300, dead centre of
+        # the entry gate's nineteen-deep forecourt, and V20/U298, between the gate's back face
+        # and the court's own step. Each is a five-wide timber crossbeam at head height on the
+        # ONE sightline this park is composed about - the gate's two doors, the Welcome Court's
+        # walk and the Sky Lift's hub are all on U300, and the wheel's densest column is U300
+        # with 435 cells against 375 at each neighbour.
+        #
+        # The band is U294-306: the eleven-wide walk plus a cell of tolerance each side, so a
+        # mast NUDGED along its own line cannot arrive back in the vista from the end.
+        keep_clear:
+          - {name: arrival vista, v0: 0, u0: 294, v1: 23, u1: 306}
     # the bird stands on the Claim Line reach, seen down the spine from both lands
     - gen: heron
       offset: [26, 1, 176]

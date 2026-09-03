@@ -2,73 +2,85 @@
   "origin": {
     "x": 97524,
     "y": 203,
-    "z": 80515
+    "z": 80570
   },
   "size": {
-    "x": 48,
-    "y": 26,
-    "z": 41
+    "x": 51,
+    "y": 18,
+    "z": 61
   },
   "generated_by": "midwaybuild",
   "kind": "midway_build",
-  "build": "arrival_court",
-  "name": "PF Arrival Court",
+  "build": "welcome_court",
+  "name": "PF Welcome Court",
   "lot": [
     24,
-    215,
-    71,
-    255
+    270,
+    74,
+    330
   ],
   "facing": "west",
-  "signs": 5,
-  "lamps": 22,
-  "gates": 5,
-  "openings": 282,
-  "roof": 630,
-  "floor": 1540,
-  "ceiling": 429,
+  "signs": 2,
+  "lamps": 12,
+  "benches": 8,
+  "trees": 14,
+  "beds": 4,
+  "floor": 1350,
+  "water": 41,
+  "steps": 26,
+  "hedge": 311,
+  "bunting": 4,
+  "axis": 300,
+  "centre": 49,
+  "basin": [
+    49,
+    300
+  ],
   "masts": [
     {
       "at": [
-        25,
-        223
+        40,
+        291
       ],
-      "built": 0
+      "top": 8,
+      "built": 14
     },
     {
       "at": [
-        25,
-        247
+        40,
+        309
       ],
-      "built": 0
+      "top": 8,
+      "built": 14
     },
     {
       "at": [
-        68,
-        223
+        58,
+        291
       ],
-      "top": 18,
-      "built": 13
+      "top": 8,
+      "built": 14
     },
     {
       "at": [
-        68,
-        247
+        58,
+        309
       ],
-      "top": 18,
-      "built": 13
+      "top": 8,
+      "built": 14
     }
   ],
-  "contract": "one connected building inside lot V24-71 U215-255, fronting west, with a real doorway, a lit interior, a named sign, and no street furniture",
+  "roof": 199,
+  "pavilions": 2,
+  "contract": "one connected building inside lot V24-74 U270-330, fronting west, with a real doorway, a lit interior, a named sign, and no street furniture",
   "mechanics": {
     "minecraft": "java-1.19",
     "families": {
-      "access": [
-        "oak_fence_gate",
-        "oak_trapdoor"
+      "fluid": [
+        "water"
       ],
-      "container": [
-        "barrel"
+      "hazard": [
+        "water"
       ],
       "light": [
         "lantern"
@@ -78,74 +90,74 @@
       ]
     },
     "verifiers": {
-      "access": "mcbuild.walk + generator route contracts",
-      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
       "light": "mcbuild.nightlight",
       "signage": "mcbuild.audit support/state checks"
     },
     "roles": [
-      "building",
-      "construction"
+      "construction",
+      "path"
     ],
     "role_contracts": {
-      "building": "legal states, supported attachments, accessible entries, and interior clearance",
-      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
     }
   },
   "design": {
     "brief": {
-      "purpose": "arrival",
-      "hierarchy": "landmark",
+      "purpose": "path",
+      "hierarchy": "supporting",
       "style": "midway",
-      "narrative": "The Midway's admission sequence in one building: a gateway on the spine, a ticket hall with the box office and guest services either side of it, an open arcaded court, and a turnstile screen that hands a visitor east into the land. No food, no prizes and no street furniture - the ground layer draws the street and the centre of the court stays empty.\n"
+      "narrative": "The Midway's walk-up: an eleven-wide processional walk on the gate's own axis, opening into a paved roundel with a two-tier stone fountain at the park's exact centre, closed east and west by curved bench exedras, with four kerbed lawn beds carrying one oak each on the quadrant centres. Half the lot is green. Nothing of this court stands in the walk, so the vista from the gate's doors to the wheel's hub is the composition rather than an accident.\n"
     },
     "metrics": {
-      "blocks": 6010,
-      "materials": 28,
-      "dominant_material_share": 0.1682,
-      "light_blocks": 22,
+      "blocks": 4823,
+      "materials": 25,
+      "dominant_material_share": 0.2745,
+      "light_blocks": 12,
       "massing": {
-        "width": 46,
-        "height": 22,
-        "depth": 37,
-        "fill_ratio": 0.1605
+        "width": 51,
+        "height": 12,
+        "depth": 61,
+        "fill_ratio": 0.1292
       },
       "silhouette": {
         "top": {
-          "area": 1696,
-          "fill_ratio": 0.8618
+          "area": 3011,
+          "fill_ratio": 0.9679
         },
         "front": {
-          "area": 543,
-          "fill_ratio": 0.4351
+          "area": 284,
+          "fill_ratio": 0.3094
         },
         "side": {
-          "area": 655,
-          "fill_ratio": 0.6144
+          "area": 354,
+          "fill_ratio": 0.3224
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.6815,
-          0.3155,
-          0.003
+          0.8791,
+          0.1209,
+          0.0
         ],
-        "top_silhouette_perimeter": 297,
-        "surface_faces_per_block": 2.0885
+        "top_silhouette_perimeter": 244,
+        "surface_faces_per_block": 2.2235
       },
       "material_counts": {
-        "stone_bricks": 1011,
-        "stone_brick_stairs": 809,
-        "stone": 704,
-        "oak_planks": 602,
-        "white_wool": 540,
-        "smooth_stone": 432,
-        "polished_diorite_stairs": 242,
-        "stripped_oak_log": 233,
-        "polished_blackstone_bricks": 232,
-        "crimson_stairs": 227,
-        "red_wool": 220,
-        "stone_brick_slab": 208
+        "moss_block": 1324,
+        "oak_leaves": 705,
+        "polished_blackstone_bricks": 674,
+        "stone_bricks": 359,
+        "smooth_stone": 357,
+        "stone": 335,
+        "white_wool": 153,
+        "stripped_oak_log": 140,
+        "crimson_stairs": 120,
+        "polished_diorite_stairs": 104,
+        "polished_diorite_slab": 88,
+        "red_wool": 79
       }
     },
     "checks": [],
@@ -157,8 +169,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "9cb3ffaf9c9e868af37ff0c3d102248e622fcc62aa65ab1b4dfd1d2e77ca2bd9",
-    "generator_source_digest": "b8fe94c691bbe04dbcd09fd44afb07393831b480222b7e6d9233acf872ace88f",
+    "fingerprint": "dfced5d48448ec66fc14302f9e3f9678d5978793f1b6928e379bf0631b1a3653",
+    "generator_source_digest": "36c85b7cd59f26c324484b61fc698be5f2210785c3c73972295bb4524953ccb7",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -179,7 +191,7 @@
       "light_density": "bright-nodes"
     },
     "variation": {
-      "facade": "bracketed"
+      "facade": "stepped"
     },
     "capabilities": {
       "purpose": true,
@@ -189,8 +201,8 @@
       "journey": false,
       "anchors": false,
       "mechanics": [
-        "access",
-        "container",
+        "fluid",
+        "hazard",
         "light",
         "signage"
       ],
@@ -201,21 +213,21 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 75.787528,
-    "blocks": 6010,
-    "blocks_per_second": 79.3
+    "seconds": 71.686512,
+    "blocks": 4823,
+    "blocks_per_second": 67.28
   },
   "generator_contract": {
     "ok": true,
     "failures": [],
     "anchors": 0,
     "roles": [
-      "building"
+      "path"
     ],
-    "blocks": 6010,
+    "blocks": 4823,
     "mechanic_families": [
-      "access",
-      "container",
+      "fluid",
+      "hazard",
       "light",
       "signage"
     ]
@@ -243,10 +255,9 @@
     "not in the provisional skyblock-1.19 list: crimson_slab",
     "not in the provisional skyblock-1.19 list: crimson_stairs",
     "not in the provisional skyblock-1.19 list: lightning_rod",
-    "not in the provisional skyblock-1.19 list: oak_fence_gate",
     "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
     "not in the provisional skyblock-1.19 list: polished_diorite_slab",
     "not in the provisional skyblock-1.19 list: polished_diorite_stairs"
   ],
-  "file": "PF Arrival Court.litematic"
+  "file": "PF Welcome Court.litematic"
 }

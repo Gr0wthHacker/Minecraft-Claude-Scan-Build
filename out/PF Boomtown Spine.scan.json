@@ -322,7 +322,7 @@
     {
       "at": [
         6,
-        5,
+        10,
         21
       ],
       "facing": "south",
@@ -333,7 +333,7 @@
     {
       "at": [
         19,
-        5,
+        9,
         21
       ],
       "facing": "south",
@@ -344,7 +344,7 @@
     {
       "at": [
         30,
-        5,
+        10,
         21
       ],
       "facing": "south",
@@ -355,7 +355,7 @@
     {
       "at": [
         40,
-        5,
+        9,
         21
       ],
       "facing": "south",
@@ -366,7 +366,7 @@
     {
       "at": [
         8,
-        5,
+        9,
         25
       ],
       "facing": "north",
@@ -377,7 +377,7 @@
     {
       "at": [
         23,
-        5,
+        10,
         25
       ],
       "facing": "north",
@@ -388,7 +388,7 @@
     {
       "at": [
         38,
-        5,
+        9,
         25
       ],
       "facing": "north",
@@ -554,9 +554,24 @@
       "cv": 30,
       "cu": 4,
       "diagonal": true
+    },
+    {
+      "style": "cap",
+      "v": [
+        39,
+        41
+      ],
+      "u": [
+        13,
+        15
+      ],
+      "y0": 18,
+      "y1": 18,
+      "cv": 40.0,
+      "cu": 14.0
     }
   ],
-  "stairs": 1337,
+  "stairs": 1274,
   "refused": 0,
   "parts": {
     "shops": [
@@ -615,7 +630,109 @@
               ]
             }
           }
-        ]
+        ],
+        "showfront": {
+          "face": "+u",
+          "profile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5
+          ],
+          "cells": 12,
+          "board": {
+            "span": [
+              3,
+              9
+            ],
+            "y": [
+              9,
+              11
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              1,
+              20
+            ],
+            [
+              2,
+              20
+            ],
+            [
+              3,
+              20
+            ],
+            [
+              4,
+              20
+            ],
+            [
+              5,
+              20
+            ],
+            [
+              6,
+              20
+            ],
+            [
+              7,
+              20
+            ],
+            [
+              8,
+              20
+            ],
+            [
+              9,
+              20
+            ],
+            [
+              10,
+              20
+            ],
+            [
+              11,
+              20
+            ],
+            [
+              12,
+              20
+            ]
+          ],
+          "tops": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            17,
+            17,
+            17,
+            16,
+            15,
+            14,
+            13
+          ],
+          "top": 17,
+          "signed": true
+        },
+        "canvas": {
+          "face": "+u",
+          "y": 5,
+          "depth": 2,
+          "cells": 24,
+          "valance": 12
+        }
       },
       {
         "v": [
@@ -672,7 +789,109 @@
               ]
             }
           }
-        ]
+        ],
+        "showfront": {
+          "face": "+u",
+          "profile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5
+          ],
+          "cells": 12,
+          "board": {
+            "span": [
+              3,
+              9
+            ],
+            "y": [
+              8,
+              10
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              14,
+              20
+            ],
+            [
+              15,
+              20
+            ],
+            [
+              16,
+              20
+            ],
+            [
+              17,
+              20
+            ],
+            [
+              18,
+              20
+            ],
+            [
+              19,
+              20
+            ],
+            [
+              20,
+              20
+            ],
+            [
+              21,
+              20
+            ],
+            [
+              22,
+              20
+            ],
+            [
+              23,
+              20
+            ],
+            [
+              24,
+              20
+            ],
+            [
+              25,
+              20
+            ]
+          ],
+          "tops": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            16,
+            16,
+            16,
+            15,
+            14,
+            13,
+            12
+          ],
+          "top": 16,
+          "signed": true
+        },
+        "canvas": {
+          "face": "+u",
+          "y": 5,
+          "depth": 2,
+          "cells": 24,
+          "valance": 12
+        }
       },
       {
         "v": [
@@ -729,7 +948,79 @@
               ]
             }
           }
-        ]
+        ],
+        "showfront": {
+          "face": "+u",
+          "profile": [
+            7,
+            8,
+            9,
+            9,
+            9,
+            8,
+            7
+          ],
+          "cells": 7,
+          "board": {
+            "span": [
+              1,
+              5
+            ],
+            "y": [
+              9,
+              11
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              27,
+              20
+            ],
+            [
+              28,
+              20
+            ],
+            [
+              29,
+              20
+            ],
+            [
+              30,
+              20
+            ],
+            [
+              31,
+              20
+            ],
+            [
+              32,
+              20
+            ],
+            [
+              33,
+              20
+            ]
+          ],
+          "tops": [
+            15,
+            16,
+            17,
+            17,
+            17,
+            16,
+            15
+          ],
+          "top": 17,
+          "signed": true
+        },
+        "canvas": {
+          "face": "+u",
+          "y": 5,
+          "depth": 2,
+          "cells": 14,
+          "valance": 7
+        }
       },
       {
         "v": [
@@ -786,7 +1077,103 @@
               ]
             }
           }
-        ]
+        ],
+        "showfront": {
+          "face": "+u",
+          "profile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5
+          ],
+          "cells": 11,
+          "board": {
+            "span": [
+              2,
+              8
+            ],
+            "y": [
+              8,
+              10
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              35,
+              20
+            ],
+            [
+              36,
+              20
+            ],
+            [
+              37,
+              20
+            ],
+            [
+              38,
+              20
+            ],
+            [
+              39,
+              20
+            ],
+            [
+              40,
+              20
+            ],
+            [
+              41,
+              20
+            ],
+            [
+              42,
+              20
+            ],
+            [
+              43,
+              20
+            ],
+            [
+              44,
+              20
+            ],
+            [
+              45,
+              20
+            ]
+          ],
+          "tops": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            16,
+            16,
+            15,
+            14,
+            13,
+            12
+          ],
+          "top": 16,
+          "signed": true
+        },
+        "canvas": {
+          "face": "+u",
+          "y": 5,
+          "depth": 2,
+          "cells": 22,
+          "valance": 11
+        }
       },
       {
         "v": [
@@ -843,7 +1230,127 @@
               ]
             }
           }
-        ]
+        ],
+        "showfront": {
+          "face": "-u",
+          "profile": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5,
+            4
+          ],
+          "cells": 15,
+          "board": {
+            "span": [
+              4,
+              10
+            ],
+            "y": [
+              8,
+              10
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              1,
+              26
+            ],
+            [
+              2,
+              26
+            ],
+            [
+              3,
+              26
+            ],
+            [
+              4,
+              26
+            ],
+            [
+              5,
+              26
+            ],
+            [
+              6,
+              26
+            ],
+            [
+              7,
+              26
+            ],
+            [
+              8,
+              26
+            ],
+            [
+              9,
+              26
+            ],
+            [
+              10,
+              26
+            ],
+            [
+              11,
+              26
+            ],
+            [
+              12,
+              26
+            ],
+            [
+              13,
+              26
+            ],
+            [
+              14,
+              26
+            ],
+            [
+              15,
+              26
+            ]
+          ],
+          "tops": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            16,
+            16,
+            16,
+            16,
+            15,
+            14,
+            13,
+            12,
+            11
+          ],
+          "top": 16,
+          "signed": true
+        },
+        "canvas": {
+          "face": "-u",
+          "y": 5,
+          "depth": 2,
+          "cells": 30,
+          "valance": 15
+        }
       },
       {
         "v": [
@@ -900,7 +1407,121 @@
               ]
             }
           }
-        ]
+        ],
+        "showfront": {
+          "face": "-u",
+          "profile": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5,
+            4
+          ],
+          "cells": 14,
+          "board": {
+            "span": [
+              4,
+              10
+            ],
+            "y": [
+              9,
+              11
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              17,
+              26
+            ],
+            [
+              18,
+              26
+            ],
+            [
+              19,
+              26
+            ],
+            [
+              20,
+              26
+            ],
+            [
+              21,
+              26
+            ],
+            [
+              22,
+              26
+            ],
+            [
+              23,
+              26
+            ],
+            [
+              24,
+              26
+            ],
+            [
+              25,
+              26
+            ],
+            [
+              26,
+              26
+            ],
+            [
+              27,
+              26
+            ],
+            [
+              28,
+              26
+            ],
+            [
+              29,
+              26
+            ],
+            [
+              30,
+              26
+            ]
+          ],
+          "tops": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            17,
+            17,
+            17,
+            16,
+            15,
+            14,
+            13,
+            12
+          ],
+          "top": 17,
+          "signed": true
+        },
+        "canvas": {
+          "face": "-u",
+          "y": 5,
+          "depth": 2,
+          "cells": 28,
+          "valance": 14
+        }
       },
       {
         "v": [
@@ -957,9 +1578,182 @@
               ]
             }
           }
-        ]
+        ],
+        "showfront": {
+          "face": "-u",
+          "profile": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5,
+            4
+          ],
+          "cells": 14,
+          "board": {
+            "span": [
+              4,
+              10
+            ],
+            "y": [
+              8,
+              10
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              32,
+              26
+            ],
+            [
+              33,
+              26
+            ],
+            [
+              34,
+              26
+            ],
+            [
+              35,
+              26
+            ],
+            [
+              36,
+              26
+            ],
+            [
+              37,
+              26
+            ],
+            [
+              38,
+              26
+            ],
+            [
+              39,
+              26
+            ],
+            [
+              40,
+              26
+            ],
+            [
+              41,
+              26
+            ],
+            [
+              42,
+              26
+            ],
+            [
+              43,
+              26
+            ],
+            [
+              44,
+              26
+            ],
+            [
+              45,
+              26
+            ]
+          ],
+          "tops": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            16,
+            16,
+            16,
+            15,
+            14,
+            13,
+            12,
+            11
+          ],
+          "top": 16,
+          "signed": true
+        },
+        "canvas": {
+          "face": "-u",
+          "y": 5,
+          "depth": 2,
+          "cells": 28,
+          "valance": 14
+        }
       }
     ],
+    "masts": [
+      {
+        "at": [
+          7,
+          20
+        ],
+        "top": 25,
+        "pennant": 6
+      },
+      {
+        "at": [
+          20,
+          20
+        ],
+        "top": 24,
+        "pennant": 6
+      },
+      {
+        "at": [
+          30,
+          20
+        ],
+        "top": 25,
+        "pennant": 6
+      },
+      {
+        "at": [
+          40,
+          20
+        ],
+        "top": 24,
+        "pennant": 6
+      },
+      {
+        "at": [
+          8,
+          26
+        ],
+        "top": 24,
+        "pennant": 6
+      },
+      {
+        "at": [
+          24,
+          26
+        ],
+        "top": 25,
+        "pennant": 6
+      },
+      {
+        "at": [
+          39,
+          26
+        ],
+        "top": 24,
+        "pennant": 6
+      }
+    ],
+    "bunting": 27,
     "gate": {
       "span": [
         21,
@@ -985,12 +1779,30 @@
         4
       ],
       "top": 15
+    },
+    "cupola": {
+      "at": [
+        40,
+        14
+      ],
+      "top": 19
+    },
+    "mast": {
+      "at": [
+        6,
+        14
+      ],
+      "top": 22,
+      "pennant": 6
     }
   },
   "contract": "one connected frontier build filling no cell outside its 53x46 lot, every opening framed with two whole jambs and a lintel between their tops, every stair leaning the way it climbs, every sign on a wall that is there, and no street furniture - the ground layer already draws all of it",
   "mechanics": {
     "minecraft": "java-1.19",
     "families": {
+      "access": [
+        "spruce_trapdoor"
+      ],
       "light": [
         "lantern"
       ],
@@ -999,6 +1811,7 @@
       ]
     },
     "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
       "light": "mcbuild.nightlight",
       "signage": "mcbuild.audit support/state checks"
     },
@@ -1019,15 +1832,15 @@
       "narrative": "A boom-town main street: a five-wide boardwalk between two terraces of false-fronted timber shops with awnings over the walk, a water tower behind the north terrace, and a portal at the east end onto the cross walk to Mining Square.\n"
     },
     "metrics": {
-      "blocks": 6246,
-      "materials": 21,
-      "dominant_material_share": 0.3157,
+      "blocks": 6936,
+      "materials": 27,
+      "dominant_material_share": 0.3097,
       "light_blocks": 4,
       "massing": {
         "width": 53,
-        "height": 16,
+        "height": 26,
         "depth": 39,
-        "fill_ratio": 0.1889
+        "fill_ratio": 0.1291
       },
       "silhouette": {
         "top": {
@@ -1035,36 +1848,36 @@
           "fill_ratio": 0.6148
         },
         "front": {
-          "area": 756,
-          "fill_ratio": 0.4755
+          "area": 862,
+          "fill_ratio": 0.5421
         },
         "side": {
-          "area": 448,
-          "fill_ratio": 0.3246
+          "area": 517,
+          "fill_ratio": 0.3746
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.7821,
-          0.2179,
-          0.0
+          0.7304,
+          0.2572,
+          0.0124
         ],
         "top_silhouette_perimeter": 654,
-        "surface_faces_per_block": 2.308
+        "surface_faces_per_block": 2.3201
       },
       "material_counts": {
-        "spruce_planks": 1972,
-        "dark_oak_stairs": 1150,
+        "spruce_planks": 2148,
+        "dark_oak_stairs": 1158,
         "stone_bricks": 491,
-        "stripped_spruce_log": 463,
+        "stripped_spruce_log": 458,
+        "spruce_log": 451,
         "polished_blackstone_bricks": 424,
-        "spruce_log": 420,
-        "smooth_stone": 391,
+        "smooth_stone": 400,
         "glass_pane": 296,
+        "red_wool": 280,
         "spruce_slab": 162,
-        "dark_oak_slab": 86,
-        "spruce_stairs": 85,
-        "cracked_stone_bricks": 72
+        "white_wool": 109,
+        "spruce_fence": 102
       }
     },
     "checks": [],
@@ -1076,8 +1889,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "d8c497ce93568582244faf42791f76491161f5627eb735ed46d918f7f71fe627",
-    "generator_source_digest": "6ce00b9b336f6417cc5df74138c9d392870fc1d8827fea95c0463a0b391f1d81",
+    "fingerprint": "421fe031a8736a6bb48db4a267159938d409c0f0767f9dcdf1fd264f481c924f",
+    "generator_source_digest": "f1bf9a37ed9f1d0d50ffaac284c59c7920d2022536d38d2e8a6a465eab749a6e",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -1108,6 +1921,7 @@
       "journey": false,
       "anchors": false,
       "mechanics": [
+        "access",
         "light",
         "signage"
       ],
@@ -1118,9 +1932,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 50.03095,
-    "blocks": 6246,
-    "blocks_per_second": 124.84
+    "seconds": 68.641908,
+    "blocks": 6936,
+    "blocks_per_second": 101.05
   },
   "generator_contract": {
     "ok": true,
@@ -1129,8 +1943,9 @@
     "roles": [
       "building"
     ],
-    "blocks": 6246,
+    "blocks": 6936,
     "mechanic_families": [
+      "access",
       "light",
       "signage"
     ]
@@ -1155,8 +1970,11 @@
   "server_compatibility": [],
   "server_unlisted": [
     "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: dark_oak_planks",
     "not in the provisional skyblock-1.19 list: dark_oak_slab",
     "not in the provisional skyblock-1.19 list: dark_oak_stairs",
+    "not in the provisional skyblock-1.19 list: iron_bars",
+    "not in the provisional skyblock-1.19 list: lightning_rod",
     "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
   ],
   "file": "PF Boomtown Spine.litematic",

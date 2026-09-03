@@ -30,39 +30,34 @@ params:
     # Ways` puts a lamp mast every 22 cells along the verge lamp line, and at span 5 the Midway's
     # piers land on the masts at U238 and U298. The opening may cross a mast - it is empty air and
     # the head beam clears it by two courses - but a PIER may not.
+    # THE TITLE WAS WRONG AND IT NAMED A DIFFERENT LOT. This gantry stands on the Arrival Court's
+    # own spur at U235; the Welcome Court is at U280-320, forty-five blocks away and behind the
+    # entry gate. A sign that names the building fifty blocks further on is worse than no sign.
     - kind: marquee
       name: Arrival Court
       at: [20, 235]
       span: 7
       height: 7
       board: 3
-      title: WELCOME COURT
-      lines: ["the midway", "rides and games"]
-    # ---------------------------------------------------------------- THE PARK'S CENTRAL ICON
-    # U300 is the midpoint of a 600-block park and the Carousel's spur lands at U301, so this is
-    # the one piece of ground on the axis every visitor walks that is also the middle of the
-    # place. It is built as the grand one: three bays, seventeen cells of frontage, a ten-course
-    # opening, a three-course fascia and a lit crown - fifteen courses in all.
+      title: ARRIVAL COURT
+      lines: ["tickets and", "guest services"]
+    # ---------------------------------------------------------------- THE CIRCUS GATE, REMOVED
+    # Jack, on the placed park: *"gates and a board etc are all overlapping and chaotic with the
+    # entrance to the main center."* Measured, he is describing three monumental things inside
+    # twenty-four courses of one another, all announcing the same land:
     #
-    # AND IT IS DELIBERATELY NOT A FOURTH SKYLINE DOMINANT. Measured above the lawn, the park's
-    # three anchors are Prism Ascent 84, Sky Lift 74 and Mine Coaster 43, with the Carousel behind
-    # this gate at 37. At 15 the gate reads as a threshold from either direction down the spine
-    # and never competes with the things it is pointing at.
+    #   V13-18   PF Entry Gate      a 61-wide gate building, towers, a portico, title THE MIDWAY
+    #   V20-22   Circus Gate        a 41-wide gantry, fifteen courses, title MIDWAY CIRCUS
+    #   V24-74   the Welcome Court  the walk-up itself
     #
-    # WHY NOT THE MIDWAY CIRCUS. The roundabout at V125 U235 carrying the Aeronaut balloon is
-    # measured out of the job rather than passed over: it stands 107 courses BEHIND the spine, 65
-    # blocks off the park's own midpoint, and 26 courses tall - which puts it behind a 37-course
-    # carousel and under a 74-course wheel from every public approach. It is a good terminal
-    # ornament for the back promenade loop and it should stay exactly that.
-    - kind: marquee
-      name: Circus Gate
-      at: [20, 301]
-      span: 7
-      wing: 1
-      height: 10
-      board: 3
-      title: MIDWAY CIRCUS
-      lines: ["big wheel ahead", "carousel right"]
+    # ONE CELL OF LAWN separated the gate's back face from this gantry's piers and one more
+    # separated the gantry from the court. It was sited when the entry gate's lot was six courses
+    # deep and the axis was open ground; the gate grew to nineteen and this was never re-measured.
+    #
+    # It is REMOVED rather than moved. A visitor has just walked through a gate that names the
+    # land, and the next thing they should meet is the vista down the walk to the wheel - which is
+    # what this stood in. The Welcome Court carries the naming on its own threshold piers, at the
+    # side of the walk rather than across it.
     - kind: marquee
       name: Skill Arcade
       at: [20, 362]
@@ -82,6 +77,11 @@ params:
       depth: 1
       title: SNACK WINDOW
       lines: ["food and drink", "seats behind"]
+    # A GANTRY STRADDLES THE SPUR, NOT THE BUILDING. The Prize Point's own centre is U364 and
+    # aiming the marquee there put a three-wide pier flat across the walk at U361-362, which
+    # `test_nothing_stands_in_a_walkway` caught: measured off `Park Ways`, V79 is lawn the whole
+    # way along except U361-363, and those three cells ARE the spur to the door. The board is
+    # centred on them, so the opening is the walk and both piers stand on grass.
     - kind: marquee
       name: Prize Point
       at: [79, 362]

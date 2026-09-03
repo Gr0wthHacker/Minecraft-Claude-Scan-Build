@@ -177,7 +177,7 @@
       "cells": 304
     },
     "building": {
-      "cells": 2458,
+      "cells": 2455,
       "cornice_y": 12,
       "panel": [
         3,
@@ -185,7 +185,7 @@
       ]
     },
     "portico": {
-      "cells": 340
+      "cells": 343
     },
     "towers": {
       "cells": 1308,
@@ -266,7 +266,7 @@
     "metrics": {
       "blocks": 3951,
       "materials": 22,
-      "dominant_material_share": 0.3629,
+      "dominant_material_share": 0.3622,
       "light_blocks": 27,
       "massing": {
         "width": 19,
@@ -284,8 +284,8 @@
           "fill_ratio": 0.4352
         },
         "side": {
-          "area": 1124,
-          "fill_ratio": 0.7087
+          "area": 1127,
+          "fill_ratio": 0.7106
         }
       },
       "composition": {
@@ -295,17 +295,17 @@
           0.1043
         ],
         "top_silhouette_perimeter": 468,
-        "surface_faces_per_block": 1.2513
+        "surface_faces_per_block": 1.2528
       },
       "material_counts": {
-        "white_wool": 1434,
+        "white_wool": 1431,
         "polished_blackstone_bricks": 862,
         "smooth_stone": 735,
         "stone_bricks": 323,
         "red_wool": 200,
         "stone_brick_wall": 59,
         "stone_brick_stairs": 55,
-        "iron_bars": 45,
+        "iron_bars": 48,
         "oak_slab": 44,
         "stone_brick_slab": 38,
         "oak_fence": 31,
@@ -366,9 +366,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 61.870597,
+    "seconds": 82.247241,
     "blocks": 3951,
-    "blocks_per_second": 63.86
+    "blocks_per_second": 48.04
   },
   "generator_contract": {
     "ok": true,

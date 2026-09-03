@@ -37,7 +37,7 @@
     "minecraft": "java-1.19",
     "families": {
       "access": [
-        "dark_oak_trapdoor"
+        "warped_trapdoor"
       ],
       "light": [
         "soul_lantern"
@@ -72,7 +72,7 @@
     },
     "metrics": {
       "blocks": 4138,
-      "materials": 17,
+      "materials": 18,
       "dominant_material_share": 0.262,
       "light_blocks": 10,
       "massing": {
@@ -109,14 +109,14 @@
         "blackstone_slab": 720,
         "chiseled_deepslate": 676,
         "deepslate_tiles": 345,
-        "smooth_basalt": 339,
+        "smooth_basalt": 308,
         "polished_deepslate_slab": 275,
-        "blackstone_stairs": 182,
         "polished_deepslate_stairs": 158,
+        "waxed_cut_copper_stairs": 156,
         "polished_blackstone_brick_wall": 120,
         "black_wool": 89,
         "iron_bars": 51,
-        "dark_oak_trapdoor": 34
+        "cyan_wool": 45
       }
     },
     "checks": [],
@@ -128,8 +128,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "0fa344bb768703e025fde2060baff66a965803ec3df040b6a9e551bb549c521b",
-    "generator_source_digest": "db5965504ece8d9dd178963b8a30eedbc39fc2198cd2b799175395a510041d4f",
+    "fingerprint": "938f7c364b3cb1c567173d4ae938eca4c55af6374bcbb612e178ed0a35ccdb87",
+    "generator_source_digest": "29dba607ce9fde5225e15d716ee2145093a22ebad36ae82707cc0eb07d162cfb",
     "anchors": [
       {
         "name": "public_entry",
@@ -215,9 +215,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 66.446537,
+    "seconds": 65.174636,
     "blocks": 4138,
-    "blocks_per_second": 62.28
+    "blocks_per_second": 63.49
   },
   "generator_contract": {
     "ok": true,
@@ -264,7 +264,6 @@
     "not in the provisional skyblock-1.19 list: blackstone_slab",
     "not in the provisional skyblock-1.19 list: blackstone_stairs",
     "not in the provisional skyblock-1.19 list: chiseled_deepslate",
-    "not in the provisional skyblock-1.19 list: dark_oak_trapdoor",
     "not in the provisional skyblock-1.19 list: deepslate_tiles",
     "not in the provisional skyblock-1.19 list: iron_bars",
     "not in the provisional skyblock-1.19 list: pearlescent_froglight",
@@ -273,7 +272,9 @@
     "not in the provisional skyblock-1.19 list: polished_deepslate_slab",
     "not in the provisional skyblock-1.19 list: polished_deepslate_stairs",
     "not in the provisional skyblock-1.19 list: smooth_basalt",
-    "not in the provisional skyblock-1.19 list: warped_wall_sign"
+    "not in the provisional skyblock-1.19 list: warped_trapdoor",
+    "not in the provisional skyblock-1.19 list: warped_wall_sign",
+    "not in the provisional skyblock-1.19 list: waxed_cut_copper_stairs"
   ],
   "file": "PF Forge Deck.litematic",
   "name": "PF Forge Deck"

@@ -6,7 +6,7 @@
   },
   "size": {
     "x": 82,
-    "y": 16,
+    "y": 13,
     "z": 152
   },
   "generated_by": "park_frontage",
@@ -15,7 +15,7 @@
   "pieces": [
     {
       "kind": "marquee",
-      "title": "WELCOME COURT",
+      "title": "ARRIVAL COURT",
       "signs": 2,
       "lamps": 4,
       "span": 7,
@@ -32,26 +32,6 @@
       "facing": "west",
       "land": "midway",
       "name": "Arrival Court"
-    },
-    {
-      "kind": "marquee",
-      "title": "MIDWAY CIRCUS",
-      "signs": 2,
-      "lamps": 4,
-      "span": 7,
-      "piers": 4,
-      "frontage": [
-        -14,
-        14
-      ],
-      "height": 15,
-      "at": [
-        20,
-        301
-      ],
-      "facing": "west",
-      "land": "midway",
-      "name": "Circus Gate"
     },
     {
       "kind": "marquee",
@@ -253,8 +233,8 @@
       "name": "Arcade Bunting"
     }
   ],
-  "piece_count": 12,
-  "signs": 16,
+  "piece_count": 11,
+  "signs": 14,
   "refused_signs": [],
   "contract": "everything in front of and between the park's attractions: a name board on every one, queues at the rides, entrance and exit thresholds, and sight pieces in the measured empty bands - none of it below the build plane, and nothing over a paved column below head height",
   "unverified": [
@@ -293,52 +273,52 @@
       "narrative": "The Midway's frontage: name gantries over the Welcome Court, Carousel and Arcade spurs, boards on the two counters that front a cross walk, a queue for the wheel with its own entrance and way out, walk-on thresholds at the Carousel and Arcade, and a separate Sloth garden behind the Prize Point, away from the wheel's silhouette; bunting animates the arcade flank while the band between the carousel and wheel remains deliberately open.\n"
     },
     "metrics": {
-      "blocks": 1638,
+      "blocks": 1069,
       "materials": 14,
-      "dominant_material_share": 0.2143,
-      "light_blocks": 30,
+      "dominant_material_share": 0.217,
+      "light_blocks": 26,
       "massing": {
         "width": 82,
-        "height": 16,
+        "height": 13,
         "depth": 152,
-        "fill_ratio": 0.0082
+        "fill_ratio": 0.0066
       },
       "silhouette": {
         "top": {
-          "area": 355,
-          "fill_ratio": 0.0285
+          "area": 266,
+          "fill_ratio": 0.0213
         },
         "front": {
-          "area": 212,
-          "fill_ratio": 0.1616
+          "area": 201,
+          "fill_ratio": 0.1886
         },
         "side": {
-          "area": 577,
-          "fill_ratio": 0.2373
+          "area": 354,
+          "fill_ratio": 0.1791
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.4982,
-          0.3382,
-          0.1636
+          0.4556,
+          0.4191,
+          0.1254
         ],
-        "top_silhouette_perimeter": 729,
-        "surface_faces_per_block": 2.3675
+        "top_silhouette_perimeter": 594,
+        "surface_faces_per_block": 2.5519
       },
       "material_counts": {
-        "stripped_oak_log": 351,
-        "white_wool": 257,
-        "stone_bricks": 245,
-        "stone_brick_stairs": 231,
-        "red_wool": 194,
-        "chiseled_stone_bricks": 93,
-        "polished_blackstone_bricks": 88,
+        "stripped_oak_log": 232,
+        "stone_brick_stairs": 161,
+        "white_wool": 137,
+        "red_wool": 136,
+        "stone_bricks": 125,
         "oak_fence": 72,
-        "cracked_stone_bricks": 34,
-        "lantern": 30,
-        "oak_wall_sign": 16,
-        "ochre_froglight": 14
+        "polished_blackstone_bricks": 64,
+        "chiseled_stone_bricks": 63,
+        "lantern": 26,
+        "cracked_stone_bricks": 16,
+        "oak_wall_sign": 14,
+        "ochre_froglight": 10
       }
     },
     "checks": [],
@@ -350,7 +330,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "8449b3f17b1c2962450ce76a90962ff27d1941e55db72d9c69d38072a06471eb",
+    "fingerprint": "387e9f33fc70d9b4cb14d588b1147b7152e326ddb55f5b3cb1df8f99bae7ff86",
     "generator_source_digest": "8953590b33a7a9a48c978350a60bf4dba61eb13c0ebbad52baf5e925feda9b45",
     "anchors": [],
     "genome": {
@@ -393,9 +373,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 64.522579,
-    "blocks": 1638,
-    "blocks_per_second": 25.39
+    "seconds": 70.419961,
+    "blocks": 1069,
+    "blocks_per_second": 15.18
   },
   "generator_contract": {
     "ok": true,
@@ -404,7 +384,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 1638,
+    "blocks": 1069,
     "mechanic_families": [
       "access",
       "light",

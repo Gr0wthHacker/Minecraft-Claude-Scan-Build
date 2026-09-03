@@ -69,8 +69,8 @@
     },
     "metrics": {
       "blocks": 1666,
-      "materials": 22,
-      "dominant_material_share": 0.2509,
+      "materials": 26,
+      "dominant_material_share": 0.0882,
       "light_blocks": 5,
       "massing": {
         "width": 19,
@@ -102,18 +102,18 @@
         "surface_faces_per_block": 1.9532
       },
       "material_counts": {
-        "stone_brick_stairs": 418,
-        "stone_brick_slab": 290,
+        "crimson_stairs": 147,
         "stone": 147,
+        "stone_brick_stairs": 138,
         "stone_bricks": 134,
+        "polished_diorite_stairs": 133,
         "oak_planks": 128,
+        "crimson_slab": 124,
         "white_wool": 113,
         "stripped_oak_log": 104,
+        "polished_diorite_slab": 102,
         "smooth_stone": 83,
-        "polished_blackstone_bricks": 75,
-        "chiseled_stone_bricks": 46,
-        "red_wool": 36,
-        "oak_slab": 22
+        "polished_blackstone_bricks": 75
       }
     },
     "checks": [],
@@ -125,8 +125,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "29fcaed2cebf0deb2671363d563a2c41f090b47df316c78e431cbcb8f2545b84",
-    "generator_source_digest": "ac1b88ebc5dbab59cf2f20fc1d8552ba13b8adc2790faab1b2c88f75674d3cd8",
+    "fingerprint": "b82830ac15d084c4164cd44a8aa3fe3728b0eae082743dfe807cddd60c1ffe53",
+    "generator_source_digest": "b8fe94c691bbe04dbcd09fd44afb07393831b480222b7e6d9233acf872ace88f",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -169,9 +169,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 61.137171,
+    "seconds": 69.812604,
     "blocks": 1666,
-    "blocks_per_second": 27.25
+    "blocks_per_second": 23.86
   },
   "generator_contract": {
     "ok": true,
@@ -208,8 +208,12 @@
   "server_compatibility": [],
   "server_unlisted": [
     "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: crimson_slab",
+    "not in the provisional skyblock-1.19 list: crimson_stairs",
     "not in the provisional skyblock-1.19 list: oak_door",
-    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_diorite_slab",
+    "not in the provisional skyblock-1.19 list: polished_diorite_stairs"
   ],
   "file": "PF Prize Point.litematic"
 }

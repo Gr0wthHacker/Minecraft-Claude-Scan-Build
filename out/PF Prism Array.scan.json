@@ -70,15 +70,15 @@
       "narrative": "A lit hall you walk into: a six-bay loggia across the street front, screened bays on all four sides under a proud string course and a corbelled cornice, and a clerestory raised over the middle carrying its own parapet and a ring of hung lamps. Under it a grid of twelve prism columns, each banded cyan and capped with a froglight, standing on a world-aligned floor.\n"
     },
     "metrics": {
-      "blocks": 9497,
-      "materials": 19,
-      "dominant_material_share": 0.4118,
+      "blocks": 9868,
+      "materials": 23,
+      "dominant_material_share": 0.3963,
       "light_blocks": 20,
       "massing": {
         "width": 47,
-        "height": 24,
+        "height": 25,
         "depth": 47,
-        "fill_ratio": 0.1791
+        "fill_ratio": 0.1787
       },
       "silhouette": {
         "top": {
@@ -86,36 +86,36 @@
           "fill_ratio": 0.8002
         },
         "front": {
-          "area": 882,
-          "fill_ratio": 0.5943
+          "area": 908,
+          "fill_ratio": 0.6119
         },
         "side": {
-          "area": 886,
-          "fill_ratio": 0.6204
+          "area": 914,
+          "fill_ratio": 0.6401
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.4567,
-          0.4336,
-          0.1097
+          0.4643,
+          0.4289,
+          0.1068
         ],
         "top_silhouette_perimeter": 477,
-        "surface_faces_per_block": 2.0876
+        "surface_faces_per_block": 2.0841
       },
       "material_counts": {
         "polished_blackstone_bricks": 3911,
         "chiseled_deepslate": 1224,
         "polished_deepslate_slab": 1020,
-        "smooth_basalt": 678,
+        "smooth_basalt": 828,
         "deepslate_tiles": 578,
-        "blackstone_stairs": 428,
-        "black_wool": 358,
         "iron_bars": 324,
+        "waxed_cut_copper_stairs": 256,
+        "gray_wool": 198,
         "polished_blackstone_brick_wall": 182,
-        "polished_deepslate_stairs": 160,
-        "warped_trapdoor": 160,
-        "cracked_polished_blackstone_bricks": 130
+        "blackstone_stairs": 172,
+        "cyan_wool": 172,
+        "black_wool": 160
       }
     },
     "checks": [],
@@ -127,8 +127,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "1e7e46afce6347e9cf556d53769c480f48d03efa015632ba96d92ae92c1165a0",
-    "generator_source_digest": "db5965504ece8d9dd178963b8a30eedbc39fc2198cd2b799175395a510041d4f",
+    "fingerprint": "965fa8fe415f149fb2580ab7e403abcda645e9b3906aa070e4b93597a807b43a",
+    "generator_source_digest": "29dba607ce9fde5225e15d716ee2145093a22ebad36ae82707cc0eb07d162cfb",
     "anchors": [
       {
         "name": "queue_entry",
@@ -225,9 +225,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 58.740901,
-    "blocks": 9497,
-    "blocks_per_second": 161.68
+    "seconds": 72.081379,
+    "blocks": 9868,
+    "blocks_per_second": 136.9
   },
   "generator_contract": {
     "ok": true,
@@ -237,7 +237,7 @@
       "building",
       "ride"
     ],
-    "blocks": 9497,
+    "blocks": 9868,
     "mechanic_families": [
       "access",
       "light",
@@ -277,14 +277,17 @@
     "not in the provisional skyblock-1.19 list: cracked_polished_blackstone_bricks",
     "not in the provisional skyblock-1.19 list: deepslate_tiles",
     "not in the provisional skyblock-1.19 list: iron_bars",
+    "not in the provisional skyblock-1.19 list: lightning_rod",
     "not in the provisional skyblock-1.19 list: pearlescent_froglight",
     "not in the provisional skyblock-1.19 list: polished_blackstone_brick_wall",
     "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
     "not in the provisional skyblock-1.19 list: polished_deepslate_slab",
     "not in the provisional skyblock-1.19 list: polished_deepslate_stairs",
     "not in the provisional skyblock-1.19 list: smooth_basalt",
+    "not in the provisional skyblock-1.19 list: warped_fence",
     "not in the provisional skyblock-1.19 list: warped_trapdoor",
-    "not in the provisional skyblock-1.19 list: warped_wall_sign"
+    "not in the provisional skyblock-1.19 list: warped_wall_sign",
+    "not in the provisional skyblock-1.19 list: waxed_cut_copper_stairs"
   ],
   "file": "PF Prism Array.litematic",
   "name": "PF Prism Array"

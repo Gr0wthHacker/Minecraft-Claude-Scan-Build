@@ -58,6 +58,10 @@ BANNED = {
 
 ASSET = {"source": None, "downscale": None, "threshold": 0.42, "min_component": 6,
          "repalette": True, "keep": None, "map": None,
+         #: DROP 6-CONNECTED FRAGMENTS UNDER THIS MANY CELLS. Off by default and declared per
+         #: asset: see `_prune` - a loader that silently deleted parts of somebody else's build
+         #: would be worse than the debris it is removing.
+         "prune": 0,
          #: 0/90/180/270 clockwise about Y. AN OUTSIDE BUILD ARRIVES FACING WHEREVER ITS AUTHOR
          #: LEFT IT, and this park's lots all front one way - so without this the only control
          #: over which side a visitor sees is which corner of the lot you drop it in, which is no
@@ -122,11 +126,58 @@ def build(cfg: dict, donors=None) -> Canvas:
         blk = remap.get(int(model.ids[y, z, x]), 0)
         if blk:
             canvas.put(x, y, z, blk)
+    pruned = _prune(canvas, int(p.get("prune") or 0))
     canvas.meta = {"kind": "asset", "source": str(path), "downscale": factor,
-                   "substituted": swapped, "unplaceable": unplaceable,
+                   "substituted": swapped, "unplaceable": unplaceable, "pruned": pruned,
                    "contract": "an outside build placed as an asset, resized and re-paletted to "
                                "what this server can actually spend - never imitated"}
     return canvas
+
+
+def _prune(canvas: Canvas, floor: int) -> int:
+    """Drop 6-connected fragments smaller than `floor` cells. Zero (the default) is off.
+
+    AN IMPORTED SCHEMATIC IS A FINITE CUT OF SOMEBODY ELSE'S WORLD, and every finite cut
+    truncates something. `reference/bone_ruins_skull.litematic` ships four fragments - two
+    three-cell stone pillars and two two-cell clods - all of them in the slice `z <= 5`, which is
+    its own near edge: the last courses of a feature whose body was outside the exporter's
+    selection. They audit clean (supported, legal, affordable) and they read in game as four
+    lumps hanging forty-seven courses up.
+
+    THE THRESHOLD IS DECLARED PER ASSET AND NEVER GUESSED. A three-cell fragment is debris in a
+    38,000-block skull and a whole feature in a small one, so nothing is pruned unless the config
+    says how small is too small - a loader that silently deleted parts of an imported build would
+    be worse than the debris.
+    """
+    if floor <= 0:
+        return 0
+    import numpy as np
+    solid = canvas.ids > 0
+    if not solid.any():
+        return 0
+    sy, sz, sx = solid.shape
+    seen = np.zeros(solid.shape, bool)
+    nb = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
+    dropped = 0
+    for start in map(tuple, np.argwhere(solid)):
+        if seen[start]:
+            continue
+        stack, cells = [start], []
+        seen[start] = True
+        while stack:
+            cy, cz, cx = stack.pop()
+            cells.append((cy, cz, cx))
+            for dy, dz, dx in nb:
+                q = (cy + dy, cz + dz, cx + dx)
+                if (0 <= q[0] < sy and 0 <= q[1] < sz and 0 <= q[2] < sx
+                        and solid[q] and not seen[q]):
+                    seen[q] = True
+                    stack.append(q)
+        if len(cells) < floor:
+            for cy, cz, cx in cells:
+                canvas.ids[cy, cz, cx] = 0
+            dropped += len(cells)
+    return dropped
 
 
 def _rotate(model, turns: int):

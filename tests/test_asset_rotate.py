@@ -108,19 +108,56 @@ def test_an_axis_pillar_lies_down_the_other_way_on_an_odd_turn():
 
 @pytest.mark.skipif(not SOURCE.exists(), reason="the reference asset is not checked out here")
 def test_the_open_mouth_shrine_in_the_park_faces_the_midway():
-    """The complete walk-in shrine is fitted to the reach and faces the Midway approach."""
+    """The FULL-RESOLUTION skull is fitted to the reach, faces the Midway approach, and is whole.
+
+    THIS TEST USED TO ASSERT THE OPPOSITE AND IT WAS PINNING A DECISION JACK REVERSED. The skull
+    had been swapped for `bone_ruins.litematic` at downscale 3 because the skull shipped
+    detached; Jack: *"make sure the skull is still the full resolution skull but placed properly
+    / if its not there then get rid of ruins."*
+
+    So the requirement is the same and the answer is different: the SOURCE is the skull at
+    `downscale: 1`, and *detached* is fixed where it was caused rather than avoided by using a
+    different file. Four fragments - two three-cell stone pillars and two two-cell clods - sit in
+    the export's own `z <= 5` slice, which is the exporter's crop rather than anything the
+    builder made, and `params.prune` drops them. The assertion that matters is not which file
+    was used; it is that what gets built is ONE PIECE, so that is what is measured here.
+    """
     import yaml
     cfg = ROOT / "out" / "park_final" / "configs" / "wyrm_s_crossing.yaml"
     if not cfg.exists():
         pytest.skip("the module config is not built here")
     c = yaml.safe_load(cfg.read_text(encoding="utf-8"))
     parts = c["params"]["parts"]
-    assert not any(str((p.get("params") or {}).get("source", "")).endswith(
-        "bone_ruins_skull.litematic") for p in parts), "the detached imported skull returned"
     placed = [p for p in parts if str((p.get("params") or {}).get("source", "")).endswith(
-        "bone_ruins.litematic")]
-    assert len(placed) == 1, "the complete open-mouth bone shrine is missing"
+        "bone_ruins_skull.litematic")]
+    assert len(placed) == 1, "the full-resolution skull is missing"
     pr = placed[0]["params"]
-    assert pr.get("rotate") == 180, "the shrine mouth must address the Midway approach"
-    assert pr.get("downscale") == 3, "the complete shrine must fit without cropping its altar"
-    assert placed[0].get("offset") == [13, 0, 0]
+    assert pr.get("rotate") == 180, "the skull must address the Midway approach"
+    assert pr.get("downscale") in (None, 1), "the skull is placed at full resolution"
+    assert int(pr.get("prune") or 0) >= 3,         "without a prune floor the export's own crop debris ships as floating lumps"
+
+    # ...and the prune actually does it: one 6-connected piece, measured on the built asset.
+    import numpy as np
+    from mcbuild.gen import asset
+    canvas = asset.build(dict(pr))
+    solid = canvas.ids > 0
+    sy, sz, sx = solid.shape
+    seen = np.zeros(solid.shape, bool)
+    nb = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
+    sizes = []
+    for start in map(tuple, np.argwhere(solid)):
+        if seen[start]:
+            continue
+        stack, n = [start], 0
+        seen[start] = True
+        while stack:
+            cy, cz, cx = stack.pop()
+            n += 1
+            for dy, dz, dx in nb:
+                q = (cy + dy, cz + dz, cx + dx)
+                if (0 <= q[0] < sy and 0 <= q[1] < sz and 0 <= q[2] < sx
+                        and solid[q] and not seen[q]):
+                    seen[q] = True
+                    stack.append(q)
+        sizes.append(n)
+    assert len(sizes) == 1, f"the skull ships in {len(sizes)} pieces: {sorted(sizes)[-6:]}"

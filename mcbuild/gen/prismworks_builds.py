@@ -113,6 +113,29 @@ PRISM = {
     "chain":   "iron_chain",
     "rod":     "end_rod",
     "sign":    "warped",                       # -> warped_wall_sign
+    # -- THE PLANT METAL, and the reason this land could not be told from the Hollow ---------
+    #
+    # Jack, on the placed park: "we still need to properly design the prism area", and he could
+    # not tell it was Prismworks. Rendered from eight bearings the Foundry Gate is a DARK BLOCK
+    # and the Ascent a DARK SPIRE - correct architecture, strong silhouette, and no identity,
+    # because every material in the land sits between luminance 38 and 73 and every one of them
+    # is grey. A ladder of six greys is still six greys: the eye reads ONE hue and calls it
+    # stone. What a machine land needs, and had none of, is a PLANT METAL.
+    #
+    # `waxed_copper_block` (192,108,80) is L124 and CHEAP on this economy, where plain
+    # `copper_block` is expensive - the waxed variant is the affordable one, which is not
+    # something to remember but something `palette.tier` was asked. Against the field at 45 it
+    # is 79 points of luminance AND a full hue flip, which is the only real hue this land can
+    # buy; and `waxed_cut_copper_stairs`/`_slab` give it a matching trim family, which no wool
+    # ever does. It is used ONLY where a plant would be metal - a cornice band, a setback
+    # collar, a gantry, a duct - never as a wall, or the land stops being deepslate.
+    "plant":   "waxed_copper_block",           # 124 - the machine metal
+    "pstair":  "waxed_cut_copper_stairs",
+    "pslab":   "waxed_cut_copper_slab",
+    # -- the cold timber, in its two tones ---------------------------------------------------
+    "deck":    "warped_planks",                # 91  - decking and duct casing
+    "bright":  "stripped_warped_stem",         # 131 - the bright member of the signal frame
+    "mast":    "lightning_rod",                # 255 - an instrument, and one block
 }
 
 PRISMWORKS_BUILDS = {
@@ -265,6 +288,19 @@ class _Lot:
 # ---------------------------------------------------------------------------- the grammar
 
 
+def _name(L: _Lot, v, u, y, facing, lines, *, span=6) -> bool:
+    """Hang a name at `u`, and if that cell is taken try either side of it before giving up.
+
+    A nameplate competes for the one column outside a wall with every other projecting thing a
+    building has - a pilaster strip, a hood, a canopy. Refusing outright leaves a building
+    nobody can name, and this file already carries the rule that says so.
+    """
+    for d in [0] + [k * sgn for k in range(1, span + 1) for sgn in (1, -1)]:
+        if L.sign(v, u + d, y, facing, lines):
+            return True
+    return False
+
+
 def _perimeter(v0, u0, v1, u1):
     """(v, u, dv, du, t) for every cell of a rectangle's boundary, with its OUTWARD normal.
 
@@ -355,8 +391,14 @@ def _cornice(L: _Lot, v0, u0, v1, u1, y, *, mat=None):
     A stair's TALL side IS its `facing`, so a corbel under an overhang faces the wall it grows
     from. Our renderer draws a stair the wrong way round identically to a right one, so this is
     asserted in `tests/test_prismworks_builds.py` and never eyeballed.
+
+    **IT IS COPPER, AND THAT IS THE LAND'S SIGNATURE.** Every building here is capped by one
+    band of plant metal - the Gate's head, each of the Ascent's four setbacks, the Vault's
+    crown, the Deck's edge - so a guest reads six buildings as one WORKS rather than as six
+    dark blocks. It is a single line per building, at the one course a cornice occupies, which
+    is what keeps a warm metal from turning a cold land warm.
     """
-    mat = mat or PRISM["kstair"]
+    mat = mat or PRISM["pstair"]
     n = 0
     for v, u, dv, du, _t in _perimeter(v0, u0, v1, u1):
         n += bool(L.put(v + dv, u + du, y, mat, facing=_dir(-dv, -du), half="top",
@@ -374,7 +416,7 @@ def _skirt(L: _Lot, v0, u0, v1, u1, y, *, mat=None):
     return n
 
 
-def _parapet(L: _Lot, v0, u0, v1, u1, y, *, every=3, tall=2, lamp_every=0):
+def _parapet(L: _Lot, v0, u0, v1, u1, y, *, every=3, tall=2, lamp_every=0, mast_every=0):
     """A parapet with REAL merlon gaps, and the gaps are left empty by the loop that draws it.
 
     Building a full ring first and alternating merlons over it repaints cells that already exist:
@@ -388,8 +430,17 @@ def _parapet(L: _Lot, v0, u0, v1, u1, y, *, every=3, tall=2, lamp_every=0):
             for k in range(tall):
                 L.put(v, u, y + k, PRISM["high"] if k == tall - 1 else PRISM["pier"])
             merlons += 1
-            if lamp_every and (corner or t % (every * lamp_every) == 0):
+            lit = lamp_every and (corner or t % (every * lamp_every) == 0)
+            if lit:
                 L.put(v, u, y + tall, PRISM["glow"])
+            # AN INSTRUMENT ARRAY, WHICH IS WHAT A MACHINE LAND HAS INSTEAD OF FLAGS. A
+            # lightning rod is one block, it is white against a dark parapet, and a ROW of them
+            # on a rhythm is the single cheapest thing that says "this building measures
+            # something". It stands on the merlon's own crown, so it is supported by
+            # construction rather than by hope.
+            if mast_every and (corner or t % (every * mast_every) == 0):
+                base = y + tall + (1 if lit else 0)
+                L.put(v, u, base, PRISM["mast"], facing="up", waterlogged="false")
         else:
             L.put(v, u, y, PRISM["wall"], waterlogged="false")
     return merlons
@@ -416,12 +467,24 @@ def _roof(L: _Lot, v0, u0, v1, u1, y, *, rib=5, coping=True):
     return ribs
 
 
-def _pilasters(L: _Lot, v0, u0, v1, u1, y0, h, *, bay=6):
-    """A base and a capital on every pier: two projecting stairs, outside the wall face.
+def _pilasters(L: _Lot, v0, u0, v1, u1, y0, h, *, bay=6, signal=True, step=4):
+    """A base, a capital, and A COUNTABLE LADDER OF LIGHT between them.
 
-    The cheapest real trim there is, and the one that most changes whether a bay rhythm reads as
-    a rhythm or as a stripe. It is applied OUTSIDE the wall, so it costs the building nothing
-    inside and casts a shadow where the eye is.
+    The base and capital are the cheapest real trim there is and the one that most decides
+    whether a bay rhythm reads as a rhythm or as a stripe. They are applied OUTSIDE the wall,
+    so they cost the building nothing inside and cast their shadow where the eye is.
+
+    **THE STRIP IS THE LAND'S IDENTITY AND IT IS A SEQUENCE, NOT A SPARKLE.** Prismworks was
+    specified as precision and sequence, and what it actually shipped was 388 cyan cells
+    scattered through 14,664 - which renders as speckle at any distance and reads as noise on a
+    dark wall. A pilaster now carries a PROJECTING strip from base to capital: `pier` stone,
+    with a `signal` cell every `step` courses, `high` for the last two, and a `glow` under the
+    capital. Every pier on every building counts the same way, so the land reads as calibrated -
+    and a projection reads at a hundred blocks where a tone step reads at ten.
+
+    The strip is on the OUTSIDE face, in the same column the base and capital already occupy,
+    so it takes no cell the wall wanted and cannot leave the lot by any more than the trim it
+    replaces.
     """
     n = 0
     for v, u, dv, du, t in _perimeter(v0, u0, v1, u1):
@@ -429,6 +492,26 @@ def _pilasters(L: _Lot, v0, u0, v1, u1, y0, h, *, bay=6):
             continue
         n += bool(L.put(v + dv, u + du, y0, PRISM["dstair"], facing=_dir(-dv, -du),
                         half="bottom", shape="straight", waterlogged="false"))
+        if signal and h >= 6:
+            top = y0 + h - 2
+            for k, y in enumerate(range(y0 + 1, top)):
+                # NEVER OVER SOMETHING THAT IS ALREADY THERE. The strip is drawn in the column
+                # OUTSIDE the wall, which is the same column a shutter hood, a canopy slab or a
+                # nameplate lives in - and the Service Gallery's own name is a wall sign in
+                # exactly one of those cells. Written without this the strip covered it, the
+                # sign was refused, and the building shipped with nobody able to say what it is:
+                # this project's most-repeated failure shape, caught here by its own test.
+                if L.has(v + dv, u + du, y):
+                    continue
+                if y >= top - 2:
+                    key = "high"
+                elif k % max(2, step) == max(2, step) - 1:
+                    key = "signal"
+                else:
+                    key = "pier"
+                n += bool(L.put(v + dv, u + du, y, PRISM[key]))
+            if not L.has(v + dv, u + du, top):
+                n += bool(L.put(v + dv, u + du, top, PRISM["glow"]))
         n += bool(L.put(v + dv, u + du, y0 + h - 1, PRISM["dstair"], facing=_dir(-dv, -du),
                         half="top", shape="straight", waterlogged="false"))
     return n
@@ -560,7 +643,7 @@ def _gate(L: _Lot, p: dict) -> dict:
     _pilasters(L, v0, u0, v1, u1, 1, h, bay=6)
     _cornice(L, v0, u0, v1, u1, h + 1)
     L.ring(v0, u0, v1, u1, h + 1, PRISM["dark"])
-    merlons = _parapet(L, v0, u0, v1, u1, h + 2, every=3, tall=2, lamp_every=3)
+    merlons = _parapet(L, v0, u0, v1, u1, h + 2, every=3, tall=2, lamp_every=3, mast_every=2)
     # the two pylons carry the signal above everything else
     for u in (u0 + 2, u1 - 2):
         for v in (v0 + 2, v1 - 2):
@@ -624,13 +707,13 @@ def _array(L: _Lot, p: dict) -> dict:
     _string_course(L, v0, u0, v1, u1, 8)
     _pilasters(L, v0, u0, v1, u1, 1, h, bay=6)
     _cornice(L, v0, u0, v1, u1, h + 1)
-    _parapet(L, v0, u0, v1, u1, h + 2, every=4, tall=1, lamp_every=4)
+    _parapet(L, v0, u0, v1, u1, h + 2, every=4, tall=1, lamp_every=4, mast_every=2)
     cv0, cu0, cv1, cu1 = v0 + 10, u0 + 12, v1 - 10, u1 - 12
     _bay_wall(L, cv0, cu0, cv1, cu1, h + 2, 6, bay=4, sill=1, win=4, glaze="shutter",
               weather=False, band=h + 7)
     _roof(L, cv0, cu0, cv1, cu1, h + 8, rib=4)
     _cornice(L, cv0, cu0, cv1, cu1, h + 8)
-    _parapet(L, cv0, cu0, cv1, cu1, h + 9, every=3, tall=1, lamp_every=2)
+    _parapet(L, cv0, cu0, cv1, cu1, h + 9, every=3, tall=1, lamp_every=2, mast_every=3)
     # the lantern's own light, hung from the underside of the clerestory roof over the array
     for v in range(cv0 + 2, cv1, 5):
         for u in range(cu0 + 2, cu1, 5):
@@ -716,7 +799,7 @@ def _vault(L: _Lot, p: dict) -> dict:
     _pilasters(L, v0, u0, v1, u1, 1, h, bay=5)
     _roof(L, v0, u0, v1, u1, h + 1, rib=5)
     _cornice(L, v0, u0, v1, u1, h + 1)
-    _parapet(L, v0, u0, v1, u1, h + 2, every=4, tall=1, lamp_every=3)
+    _parapet(L, v0, u0, v1, u1, h + 2, every=4, tall=1, lamp_every=3, mast_every=2)
     sv0, su0, sv1, su1 = v0 + 8, u0 + 8, v1 - 8, u1 - 8
     y = h + 2
     for k, inset in enumerate((0, 3, 6)):
@@ -743,7 +826,7 @@ def _vault(L: _Lot, p: dict) -> dict:
     for v, u in ((a, b), (a, d), (cc, b), (cc, d)):
         L.put(v, u, y + 2, PRISM["rod"], facing="up")
     _skirt(L, v0, u0, v1, u1, 0)
-    L.sign(v0 - 1, door - 3, 4, _WEST, ["RESONANCE", "VAULT", "", "three inputs"])
+    _name(L, v0 - 1, door - 3, 4, _WEST, ["RESONANCE", "VAULT", "", "three inputs"])
     return {"buttresses": 4, "ambulatory_piers": piers, "resonator_top": y + 2, "block_h": h}
 
 
@@ -792,7 +875,7 @@ def _ascent(L: _Lot, p: dict) -> dict:
     _pilasters(L, v0, u0, v1, u1, 1, h, bay=6)
     _roof(L, v0, u0, v1, u1, h + 1, rib=5)
     _cornice(L, v0, u0, v1, u1, h + 1)
-    _parapet(L, v0, u0, v1, u1, h + 2, every=4, tall=1, lamp_every=3)
+    _parapet(L, v0, u0, v1, u1, h + 2, every=4, tall=1, lamp_every=3, mast_every=2)
     # the podium is a RING: its middle is the open court the tower stands in
     L.cut(v0 + 6, u0 + 6, h + 1, v1 - 6, u1 - 6, h + 1)
     L.cut(v0 + 6, u0 + 6, h + 2, v1 - 6, u1 - 6, h + 2)
@@ -824,9 +907,13 @@ def _ascent(L: _Lot, p: dict) -> dict:
         # is a chimney; the rings are what give the taper something to be measured against, and
         # they are a projection rather than a tone step for the reason this whole land is - at
         # 23 luminance a step reads at ten blocks and a one-cell shadow reads at a hundred.
+        # ...AND EVERY RING IS COPPER, ON A TWELVE-COURSE COUNT. Four setback collars and six
+        # intermediate rings, all in plant metal on a fixed rhythm, is what turns a dark taper
+        # into an INSTRUMENT: a guest at the podium can count the stages, which is the whole of
+        # what "precision and sequence" means when the only tool you have is a silhouette.
         for y in range(y0, y1):
             if y % 12 == 11:
-                _string_course(L, a, b, cc, d, y)
+                _string_course(L, a, b, cc, d, y, mat=PRISM["pslab"])
         # EVERY SETBACK IS A FLOOR PLATE, AND THAT IS STRUCTURAL RATHER THAN DECORATIVE. The next
         # stage is inset one cell on every side, so its ring stands over the LAST stage's open
         # middle: without a plate at the seam each stage floats above the one under it. Stages 1
@@ -851,9 +938,19 @@ def _ascent(L: _Lot, p: dict) -> dict:
                 for w in (-1, 0, 1):
                     wv, wu = (v, u + w) if dv_ else (v + w, u)
                     edge = (k == reach)
-                    if edge:
-                        L.put(wv, wu, y, PRISM["high"] if y % 8 == 0 else PRISM["pier"])
-                    elif w == 0 and y % 8 == 0:
+                    if edge and w == 0:
+                        # THE BLADE'S LEADING EDGE IS ONE CONTINUOUS LINE OF LIGHT, and this is
+                        # the single biggest thing that tells this tower from a dark spire. It
+                        # was `high` every EIGHTH course and `pier` between, which at fifty
+                        # blocks is not a sequence, it is speckle - the same failure the coats
+                        # of eight retired mammals had, and the reason the ladybird's spots
+                        # needed spacing rather than more of them. A continuous 145-luminance
+                        # line against a 45 field, four of them, one per cardinal face, reads
+                        # from the spine; a `glow` every eight makes it countable.
+                        L.put(wv, wu, y, PRISM["glow"] if y % 8 == 0 else PRISM["high"])
+                    elif edge:
+                        L.put(wv, wu, y, PRISM["pier"])
+                    elif w == 0 and y % 8 == 4:
                         L.put(wv, wu, y, PRISM["signal"])
                     else:
                         L.put(wv, wu, y, PRISM["field"])
@@ -887,7 +984,8 @@ def _ascent(L: _Lot, p: dict) -> dict:
     L.put(cv, cu, 83, PRISM["rod"], facing="up")
     for v, u in ((a, b), (a, d), (cc, b), (cc, d)):
         L.put(v, u, 81, PRISM["rod"], facing="up")
-    L.sign(v0 - 1, door - 4, 5, _WEST, ["PRISM ASCENT", "", "practice free", "watch from deck"])
+    _name(L, v0 - 1, door - 4, 5, _WEST, ["PRISM ASCENT", "", "practice free",
+                                          "watch from deck"])
     return {"top": 84, "fin_cells": fins, "causeway_piers": piers, "stages": len(stages),
             "podium_h": h}
 
@@ -942,7 +1040,14 @@ def _deck(L: _Lot, p: dict) -> dict:
         if v == v0 and door - 2 <= u <= door + 2:
             continue
         if _corner(v, u, v0, u0, v1, u1) or t % 5 == 0:
-            L.fill(v, u, deck_y + 1, v, u, deck_y + 2, PRISM["pier"])
+            # THE POST IS A THREE-CELL RUN, NOT A CAP ON A STICK. This deck exists to be stood
+            # on while looking at the Ascent, and it faces the Ascent's own lit blades - so its
+            # balustrade posts climb the same ladder the rest of the land does, pier to signal
+            # to high, rather than being grey with one blue hat. Measured, the deck's signal was
+            # 33% in runs against 70-86% everywhere else: it was the one piece of the land that
+            # still read as sparkle.
+            L.put(v, u, deck_y + 1, PRISM["pier"])
+            L.put(v, u, deck_y + 2, PRISM["signal"])
             L.put(v, u, deck_y + 3, PRISM["high"])
             if t % 15 == 0:
                 L.put(v, u, deck_y + 4, PRISM["glow"])
@@ -983,7 +1088,7 @@ def _deck(L: _Lot, p: dict) -> dict:
     # every five with air between them, so a sign three cells from the flight hangs on nothing -
     # and a wall sign floating in air draws exactly like one on a wall in every render we have.
     su = u0 + max(0, (door - 3 - u0) // 5) * 5
-    L.sign(v0 - 1, su, 3, _WEST, ["FORGE DECK", "", "watch the", "ascent"])
+    _name(L, v0 - 1, su, 3, _WEST, ["FORGE DECK", "", "watch the", "ascent"])
     return {"deck_y": deck_y, "undercroft_piers": piers, "balustrade": rails, "canopy_y": can_y,
             "nameplate_pier": su}
 
@@ -1056,7 +1161,7 @@ def _gallery(L: _Lot, p: dict) -> dict:
         if t % 2 == 0:
             L.put(v, u, h + 10, PRISM["signal"])
     _skirt(L, v0, u0, v1, u1, 0)
-    L.sign(v0 - 1, door - 2, 3, _WEST, ["SERVICE", "GALLERY", "", "staff only"])
+    _name(L, v0 - 1, door - 2, 3, _WEST, ["SERVICE", "GALLERY", "", "staff only"])
     return {"shutters": shutters, "monitor_y": h + 5, "stack_top": h + 10, "shed_h": h}
 
 

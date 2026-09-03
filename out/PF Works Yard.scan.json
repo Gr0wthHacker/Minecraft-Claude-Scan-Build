@@ -216,7 +216,9 @@
             ]
           }
         }
-      ]
+      ],
+      "showfront": null,
+      "canvas": null
     },
     "store": {
       "v": [
@@ -273,7 +275,9 @@
             ]
           }
         }
-      ]
+      ],
+      "showfront": null,
+      "canvas": null
     },
     "chimney": {
       "at": [
@@ -368,8 +372,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "c508600890a0338fcceb96e7b87d54f551f807dffc18ad8ac65907b0035692bc",
-    "generator_source_digest": "6ce00b9b336f6417cc5df74138c9d392870fc1d8827fea95c0463a0b391f1d81",
+    "fingerprint": "95dc1673cf4c249af105f5f39765e3b3df9d97cad49ced6dfcd38857256d1485",
+    "generator_source_digest": "ba20ea3c325b512e6c4d381f79f227891356832ebfa3e76f5621a4bfecccaa65",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -409,9 +413,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 64.966196,
+    "seconds": 67.555786,
     "blocks": 1227,
-    "blocks_per_second": 18.89
+    "blocks_per_second": 18.16
   },
   "generator_contract": {
     "ok": true,

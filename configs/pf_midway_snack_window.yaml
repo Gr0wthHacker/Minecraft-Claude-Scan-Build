@@ -12,6 +12,15 @@
 # THE MARGIN IS WHAT KEEPS IT OFF THE GROUND LAYER. The lamp arms on walk 1 reach V77-78 at
 # U232 and U247, three to five courses up, and one more at V83/U254-255 - so the awning stops at
 # V79 and the envelope stops at U246. The threshold is at Y0, three courses under all of them.
+#
+# THE SHOW LAYER (2026-09-02). Rendered from eight bearings, the first build of this land read
+# as CIVIC ARCHITECTURE - dressed grey stone, white pilasters, one red band and a plain dark
+# grey roof. The roof is the biggest surface a building has and it was the greyest thing here,
+# so it is striped canvas now: `crimson_stairs` (L62) against `polished_diorite_stairs` (L193),
+# both cheap, both 1.19, both with a matching slab - which a roof needs. The gable END takes
+# the land's own two wool tones banded upright, because that is the view a guest walking up the
+# spine actually gets; and each hall carries masts with pennants, which is the only part of a
+# building that survives to a quarter scale.
 name: PF Snack Window
 gen: midwaybuild
 params:

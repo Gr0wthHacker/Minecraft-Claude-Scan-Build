@@ -110,7 +110,10 @@ PAL = {
     "pennant": "orange_wool",                 # L137  a flag, and the only warm mid tone
     "mast": "spruce_fence",                   # a flag pole is a fence, not a log: it is thin
     "finial": "lightning_rod",                # L255  a white point on a skyline, one block
-    "flag": "red_banner",                     # a banner IS a flag, and nothing else in the game is
+    # A BANNER IS NOT IN THIS LIST, AND THAT IS DELIBERATE. It is the right object in the game
+    # for a flag and `render3d` draws it as a full cube, so a build using one cannot be judged
+    # offline at all - which on this park is the difference between a change that was looked at
+    # and a change that was hoped for. `_flagpole` flies three rigid wool cells instead.
 }
 
 #: THE CANVAS STRIPE, and why it is two tones and not three. `red_wool` 65 against `white_wool`
@@ -439,7 +442,7 @@ def _cap(lot: _Lot, v0, v1, u0, u1, y0: int, *, courses=2, key="roof",
 def _shed(lot: _Lot, v0, v1, u0, u1, *, h=7, ridge="u", title=None, doors=(),
           windows=True, floor=True, eaves=True, false_front=None, glass="glass",
           band_y=3, sign_face=None, sign_lines=None, show=True, show_rise=4,
-          awning=None, awning_y=None) -> dict:
+          awning=None, awning_y=None, awning_depth=2, awning_fringe=True) -> dict:
     """A frontier building: plinth, masonry base, string course, framed storey, head beam, roof.
 
     `doors` are (face, centre, width) where face is "-v"/"+v"/"-u"/"+u" - the face's own outward
@@ -491,16 +494,31 @@ def _shed(lot: _Lot, v0, v1, u0, u1, *, h=7, ridge="u", title=None, doors=(),
     front = None
     if false_front:
         if show:
-            front = _showfront(lot, v0, v1, u0, u1, false_front, h, title, rise=show_rise,
+            # A FALSE FRONT THAT DOES NOT CLEAR ITS OWN ROOF IS NOT A FALSE FRONT, IT IS
+            # WALLPAPER. The first build of Boomtown set the rise from taste - three to five
+            # courses - and every one of the seven fronts finished at or below its own ridge,
+            # so from any bearing but straight down the street the whole terrace was an
+            # undifferentiated field of brown gables. That is precisely the "village" the
+            # rework exists to undo, and only an orbit render showed it: head-on it looked
+            # finished. The rise is now derived from `ridge_y`, so a deeper shop automatically
+            # gets a taller front, which is also what a real boomtown street does.
+            want = max(int(show_rise), (ridge_y - h) + 2)
+            front = _showfront(lot, v0, v1, u0, u1, false_front, h, title, rise=want,
                                lines=(list(sign_lines)[1:] if sign_lines else None))
         else:
             _false_front(lot, v0, v1, u0, u1, false_front, h, title)
 
     # 6. the canvas, over the face a guest walks up to
+    # AN AWNING PROJECTS, SO ITS DEPTH IS A PROPERTY OF THE SITE AND NOT OF THE BUILDING.
+    # The Trail Office stands one cell off its own lot line: a two-deep canvas with a valance
+    # is four columns of fabric and three of them are outside the lot, which is twelve cells
+    # cropped at placement and an awning that half exists. `_Lot.put` counts every refusal and
+    # the boundary test reads that count, which is the only reason this was ever visible.
     canvas = None
     if awning:
         canvas = _canvas(lot, v0, v1, u0, u1, awning,
-                         int(awning_y if awning_y is not None else band_y + 2))
+                         int(awning_y if awning_y is not None else band_y + 2),
+                         depth=max(1, int(awning_depth)), fringe=bool(awning_fringe))
 
     # 7. the name, on a wall that is actually there
     signed = bool(front and front.get("signed"))
@@ -924,7 +942,14 @@ def _face_dir(face: str) -> str:
     return {"-v": WEST, "+v": EAST, "-u": NORTH, "+u": SOUTH}[face]
 
 
-def _showfront(lot: _Lot, v0, v1, u0, u1, face, h, title, *, rise=4, lines=None,
+#: THE FLOOR UNDER A SHOW FRONT'S RISE, and it is arithmetic rather than taste. The name board
+#: is three courses and the painted cornice is one, so a parapet shorter than five courses puts
+#: the board's own top row where the coping goes and the two overwrite each other - which draws
+#: perfectly well and quietly loses the cornice line on exactly the shops with the lowest walls.
+MIN_RISE = 5
+
+
+def _showfront(lot: _Lot, v0, v1, u0, u1, face, h, title, *, rise=5, lines=None,
                field="canvas_c", frame="canvas_a", lit=True, board=True) -> dict:
     """THE FACADE THAT ANNOUNCES ITSELF: a shaped parapet, a painted name board, a lit band.
 
@@ -945,14 +970,22 @@ def _showfront(lot: _Lot, v0, v1, u0, u1, face, h, title, *, rise=4, lines=None,
     boundary cannot leave the lot - which is the one way a facade quietly stops existing.
     """
     cells, _step = _front_cells(v0, v1, u0, u1, face)
-    prof = _shape(len(cells), max(2, int(rise)))
+    prof = _shape(len(cells), max(MIN_RISE, int(rise)))
+    tops = []
     for k, (v, u) in enumerate(cells):
         top = h + prof[k]
+        tops.append(top)
         for y in range(h + 1, top):
             lot.put(v, y, u, "timber")
+        # THE PAINTED CORNICE, one course under the coping and running the WHOLE shaped front.
+        # It is the single loudest line this file draws for the fewest blocks: a red course
+        # under a white-stone coping, following an outline that steps, and it is legible from
+        # the spine where a name board is four pixels.
+        lot.put(v, top - 1, u, frame)
         lot.put(v, top, u, "band")                     # the coping, following the shaped outline
 
-    made = {"face": face, "profile": prof, "cells": len(cells), "board": None, "lit": 0}
+    made = {"face": face, "profile": prof, "cells": len(cells), "board": None, "lit": 0,
+            "at": [list(c) for c in cells], "tops": tops, "top": max(tops)}
     if not board or len(cells) < 7:
         return made
 
@@ -1048,7 +1081,8 @@ def _bunting(lot: _Lot, a: int, b: int, fixed: int, y: int, axis: str, *, sag=1,
     return laid
 
 
-def _flagpole(lot: _Lot, v: int, u: int, y0: int, *, h=6, colour="pennant", along="u") -> dict:
+def _flagpole(lot: _Lot, v: int, u: int, y0: int, *, h=6, colour="pennant", along="u",
+              side=1) -> dict:
     """A POLE WITH A PENNANT ON IT, AND A WHITE POINT AT THE TOP OF IT.
 
     THE SILHOUETTE IS THE ONLY THING THAT SURVIVES TO A QUARTER SCALE. A roofline of similar
@@ -1068,7 +1102,11 @@ def _flagpole(lot: _Lot, v: int, u: int, y0: int, *, h=6, colour="pennant", alon
                 waterlogged="false")
     lot.put(v, y0 + h, u, "finial", facing="up", waterlogged="false")
     flown = 0
-    dv, du = (0, 1) if along == "u" else (1, 0)
+    # A PAIR OF MASTS MUST FLY OUTWARD. Both pennants on the same side of a symmetrical gate
+    # reads as one of them having been put up wrong, and it is the sort of thing only a render
+    # from the front will ever show.
+    sgn = 1 if side >= 0 else -1
+    dv, du = (0, sgn) if along == "u" else (sgn, 0)
     for k in range(3):                                 # a tapering pennant off the mast's side
         for j in range(3 - k):
             flown += bool(lot.put(v + dv * (j + 1), y0 + h - 2 - k, u + du * (j + 1), colour))
@@ -1121,12 +1159,28 @@ def _trailhead(lot: _Lot, p: dict) -> dict:
     # 1. the west range - the portal, its towers, the trail office and the waiting porch
     out["portal"] = _arch(lot, 1, 7, eu - 6, eu + 6, axis="u", pier=3, clear_h=7,
                           title="FRONTIER")
+    # THE LAND'S NAME IS A SHAPED BOARD OVER THE ARCH, NOT A SIGN ON IT. A guest arriving on
+    # the spine reads this from fifty blocks, where a sign is four pixels: a stepped parapet
+    # standing six courses proud of the portal, a red cornice under a stone coping, a yellow
+    # field in a red frame, and a froglight at each end of the board so it carries at night.
+    out["showgable"] = _showfront(lot, 1, 1, eu - 6, eu + 6, "-v", 11, "FRONTIER",
+                                  rise=6, lines=["mine and town"])
     out["tower_n"] = _tower(lot, 1, 7, eu - 12, eu - 7, top=15, ridge="v", title=None)
     out["tower_s"] = _tower(lot, 1, 7, eu + 7, eu + 12, top=15, ridge="v", title=None)
+    # THE MASTS ARE THE SILHOUETTE. Two gate towers with pitched caps are two gate towers; a
+    # mast standing seven courses clear of each, flying outward, is the outline that survives
+    # to a quarter scale, which is the only scale most guests ever read this from.
+    out["mast_n"] = _flagpole(lot, 4, eu - 12, 17, h=7, side=-1)
+    out["mast_s"] = _flagpole(lot, 4, eu + 12, 17, h=7, side=1)
     out["office"] = _shed(lot, 1, 12, 1, eu - 13, h=7, ridge="v", title="TRAIL OFFICE",
-                          doors=(("-v", (1 + eu - 13) // 2, 2),), sign_face="-v",
+                          doors=(("-v", (1 + eu - 13) // 2, 2),), false_front="-v",
+                          show_rise=5, awning="-v", awning_y=5, awning_depth=1,
+                          awning_fringe=False, sign_face="-v",
                           sign_lines=["TRAIL OFFICE", "maps and lost", "property"])
     out["porch"] = _porch_run(lot, 1, 12, eu + 13, du - 1, out="-u", h=5, lamp_every=5)
+    # BUNTING DOWN THE WAITING PORCH, strung post to post along its own colonnade. It is the
+    # one thing in the forecourt a guest stands under while they wait, and forty blocks of it.
+    out["bunting"] = _bunting(lot, 1, 12, du - 2, 6, "v", sag=1)
 
     # 2. the stockade - the flanks and the back, with buttress piers so a long wall has a rhythm
     for v in range(7, dv):
@@ -1162,6 +1216,7 @@ def _trailhead(lot: _Lot, p: dict) -> dict:
     out["water_tower"] = _water_tower(lot, dv - 6, 3, leg=7, r=3)
     out["store"] = _shed(lot, dv - 11, dv - 2, du - 12, du - 1, h=6, ridge="u",
                          title="TRAIL STORE", doors=(("-v", du - 7, 2),),
+                         false_front="-v", show_rise=5, awning="-v", awning_y=4,
                          sign_face="-v", sign_lines=["TRAIL STORE"])
     return out
 
@@ -1197,12 +1252,17 @@ def _porch_lot(lot: _Lot, p: dict) -> dict:
                       "jambs": [[ev - 1, du - 1], [ev + 2, du - 1]], "span": [ev, ev + 1]})
 
     # bay A - the shooting range, its backboard away from the walk
+    # THE TWO BAYS ANNOUNCE THEMSELVES OVER THE VERANDA ROOF. A game bay whose name is only
+    # readable from under the canopy is a game nobody chooses from the walk outside; the show
+    # fronts stand proud of the veranda so both are named from the avenue at U41-45.
     out["range"] = _shed(lot, 6, 22, du - 20, du - 8, h=7, ridge="v", title="SHOOTING RANGE",
-                         doors=(("+u", 14, 3),), sign_face="+u",
+                         doors=(("+u", 14, 3),), false_front="+u", show_rise=6,
+                         sign_face="+u",
                          sign_lines=["SHOOTING RANGE", "five shots", "prizes at the", "assay office"])
     for v in range(8, 21):                            # the backboard and the result ladder
         lot.put(v, 4, du - 20, "paint")
         lot.put(v, 5, du - 20, "board")
+        lot.put(v, 3, du - 20, "canvas_c")             # the score field, under the target line
     for k, v in enumerate(range(9, 20, 2)):
         lot.put(v, 6, du - 19, "glow")
     for u in range(du - 19, du - 9):                  # the firing counter
@@ -1211,7 +1271,8 @@ def _porch_lot(lot: _Lot, p: dict) -> dict:
 
     # bay B - the gold sluice, a launder on trestles and a settling pool below it
     out["sluice"] = _shed(lot, 28, 44, du - 20, du - 8, h=7, ridge="v", title="GOLD SLUICE",
-                          doors=(("+u", 14, 3),), sign_face="+u",
+                          doors=(("+u", 14, 3),), false_front="+u", show_rise=8,
+                          sign_face="+u",
                           sign_lines=["GOLD SLUICE", "wash your own", "pay dirt"])
     for k, u in enumerate(range(du - 18, du - 9)):    # the launder, falling toward the pool
         y = 4 - k // 3
@@ -1239,6 +1300,12 @@ def _porch_lot(lot: _Lot, p: dict) -> dict:
                 for y in range(1, 4):
                     lot.log(v, y, u, "post", axis="y")
                 lot.log(v, 4, u, "beam", axis="z")
+
+    # BUNTING THE WHOLE LENGTH OF THE VERANDA, and a mast at each end of it. The veranda is
+    # where a guest queues for both bays, so it is the one place in this lot worth dressing.
+    out["bunting"] = _bunting(lot, 5, dv - 6, du - 2, 6, "v", sag=1)
+    out["mast_n"] = _flagpole(lot, 4, du - 4, 7, h=6, side=-1)
+    out["mast_s"] = _flagpole(lot, dv - 5, du - 4, 7, h=6, side=-1)
     return out
 
 
@@ -1297,36 +1364,79 @@ def _boomtown(lot: _Lot, p: dict) -> dict:
     nu0, nu1 = max(1, su0 - 13), su0 - 1
     su_0, su_1 = su1 + 1, min(du - 2, su1 + 13)
 
+    # EVERY SHOP GETS A DIFFERENT PARAPET, AND THAT IS THE POINT. `show_rise` alternates 3-5
+    # courses along each terrace, so the two rooflines are a run of DIFFERENT shaped outlines
+    # rather than the row of similar gables that made this street read as a village. The
+    # wall heights already alternated and it was not enough: a gable is a gable.
     for i, (a, b, name) in enumerate(north):
         h = 7 if i % 2 else 8
         out["shops"].append(_shed(
             lot, a, b, nu0, nu1, h=h, ridge="v", title=name,
-            doors=(("+u", (a + b) // 2, 2),), false_front="+u",
+            doors=(("+u", (a + b) // 2, 2),), false_front="+u", show_rise=3 + (i % 3),
+            awning="+u", awning_y=5,
             sign_face="+u", sign_lines=[name]))
     for i, (a, b, name) in enumerate(south):
         h = 8 if i % 2 else 7
         out["shops"].append(_shed(
             lot, a, b, su_0, su_1, h=h, ridge="v", title=name,
-            doors=(("-u", (a + b) // 2, 2),), false_front="-u",
+            doors=(("-u", (a + b) // 2, 2),), false_front="-u", show_rise=5 - (i % 3),
+            awning="-u", awning_y=5,
             sign_face="-u", sign_lines=[name]))
 
-    # the awnings over the boardwalk, which is what a frontier street actually looks like
+    # THE POSTS THAT CARRY THE CANVAS. `_canvas` lays the fabric and nothing under it - a shade
+    # sail with no visible support is the "floating fitting" this file's own audit keeps
+    # catching - so the boardwalk keeps its colonnade, and the rail between the posts is what
+    # makes a boardwalk a boardwalk rather than a strip of planks.
     for v in range(0, dv):
         for (line, step) in ((nu1 + 1, 1), (su_0 - 1, -1)):
             if not lot.has(v, 1, line - step):
                 continue
-            lot.stair(v, 4, line, "timber_stair", facing=_u_face(step), half="top")
             if v % 4 == 0:
-                for y in range(1, 4):
+                for y in range(1, 5):
                     lot.log(v, y, line, "post", axis="y")
             elif v % 4 == 2:
                 lot.fence(v, 1, line, "v")
+
+    # A MAST ON EVERY SHOWFRONT'S OWN COPING. This is the answer to the thing the orbit sheet
+    # found and nothing else could: a false front faces the STREET, so from the promenade north
+    # of the terrace or the cross walk south of it the whole block was brown roofs and the
+    # colour was invisible - the money view was the only view that worked. A staff standing
+    # eight courses over the parapet is seen from every bearing, and a row of pennants over a
+    # roofline is the single most theme-park thing this file can draw for a dozen blocks each.
+    # SEVEN IDENTICAL ORANGE PENNANTS IN A ROW IS A FENCE, NOT A FAIRGROUND. The colour
+    # cycles, so the roofline reads as a strung set of flags rather than as one repeated part -
+    # the same reason the deck soffit's grid failed and the ladybird's spots needed spacing.
+    colours = ("pennant", "canvas_a", "canvas_c", "canvas_b")
+    out["masts"] = []
+    for i, shop in enumerate(out["shops"]):
+        f = shop.get("showfront")
+        if not f or not f.get("at"):
+            continue
+        k = len(f["at"]) // 2
+        v, u = f["at"][k]
+        side = 1 if f["face"] == "+u" else -1
+        out["masts"].append(_flagpole(lot, v, u, f["tops"][k] + 1, h=6 + (i % 3), side=side,
+                                      colour=colours[i % len(colours)]))
+
+    # BUNTING ACROSS THE STREET, at three places where a shop stands on BOTH terraces at once.
+    # It is the loudest fifty blocks in the land and it costs nothing: strung at h7 it is two
+    # courses over the canvas and four over a player's head, so it hangs in the one part of a
+    # street nothing else uses.
+    out["bunting"] = 0
+    for v in (10, 20, 40):
+        if lot.has(v, 7, nu1) and lot.has(v, 7, su_0):
+            out["bunting"] += _bunting(lot, nu1, su_0, v, 7, "u", sag=1)
 
     # THE STREET HAS A PLACE AT BOTH ENDS. The east portal stands clear of the last shop fronts
     # and opens straight onto the V77-79 cross walk, which is the whole reason the grid cut one.
     out["gate"] = _arch(lot, dv - 6, dv - 2, su0 - 1, su1 + 1, axis="u", pier=1, clear_h=5,
                         title="MINING SQUARE")
     out["water_tower"] = _water_tower(lot, 30, 4, leg=7, r=3)
+    # A BELFRY OVER THE STAGE OFFICE, and a mast over the telegraph room. Two outlines the
+    # neighbouring roofs do not have, at the two ends of the terrace, so the street reads as a
+    # composed row from either approach rather than as an even run.
+    out["cupola"] = _cupola(lot, 40, (nu0 + nu1) // 2, out["shops"][3]["ridge_y"], r=1, h=4)
+    out["mast"] = _flagpole(lot, 6, (nu0 + nu1) // 2, out["shops"][0]["ridge_y"] + 1, h=6)
     for u in range(7, nu0 + 1):                       # the tower's own yard, back of the terrace
         for v in (28, 32):
             lot.put(v, 0, u, "timber")
@@ -1366,7 +1476,15 @@ def _square(lot: _Lot, p: dict) -> dict:
             lot.log(v, y, 2, "post", axis="y")
     for v in range(v0 + 1, v1):
         lot.put(v, 4, 2, "board")
+        lot.put(v, 3, 2, "canvas_a")                   # the painted band under the board
     _cap(lot, v0, v1, 2, 4, 7, courses=1)             # a canopy over the board, out over the square
+    # THE SQUARE IS A DECISION POINT AND IT HAS TO LOOK LIKE ONE. Two masts flanking the show
+    # board and a strung line between them turn a paved rectangle with an ore cart on it into
+    # the place a guest stops - and neither costs a walkable cell, because both stand ON the
+    # board's own structure rather than in the square.
+    out["mast_n"] = _flagpole(lot, v0, 3, 7, h=7, along="v", side=-1)
+    out["mast_s"] = _flagpole(lot, v1, 3, 7, h=7, along="v", side=1)
+    out["bunting"] = _bunting(lot, v0, v1, 3, 13, "v", sag=2)
     lot.sign(v0 + 2, 4, 3, SOUTH, ["MINE COASTER", "queue north", "exit south"])
     lot.sign(v1 - 2, 4, 3, SOUTH, ["MINING SQUARE", "boomtown west", "works east"])
     out["board"] = {"v": [v0, v1], "u": 2}
@@ -1481,6 +1599,27 @@ def _assay(lot: _Lot, p: dict) -> dict:
                 powered="false", waterlogged="false")
     lot.sign(v0 - 1, 4, wu + 1, WEST, ["PRIZE WINDOW", "range and", "sluice results"])
     out["prize_window"] = {"v": v0, "u": [wu, du - 7]}
+
+    # ONE BUILDING, TWO REGISTERS, AND THE CONTRAST IS THE DESIGN. An assay office weighs gold
+    # and is meant to look sober - barred lights, plain masonry, no colour at all. The PRIZE
+    # half is a shopfront and must not look like it: a shaped show front, a striped awning over
+    # the counter and a name board, all of it confined to the nine columns the window occupies.
+    # A whole range dressed the same way would be a fairground with a vault in it.
+    # FOURTEEN COLUMNS OF THE FORTY-SIX, AND NOT ONE MORE. The prize end is where a win is
+    # redeemed, so it is the loudest thing on this building and it has to carry from the
+    # promenade; the other thirty-two stay sober masonry with barred lights, which is what an
+    # assay office weighing gold is supposed to look like. A whole range dressed like this is a
+    # fairground with a vault in it, and a whole range dressed like the vault is a village.
+    out["prize_front"] = _showfront(lot, v0, v1, wu - 8, du - 5, "-v", 8, "PRIZES",
+                                    rise=6, lines=["win at the", "range or sluice"])
+    # THE CANVAS RUNS THE WHOLE PRIZE FRONTAGE, not just the counter. Stopped at the four
+    # columns of the hatch it read as a small blind over a window in a civic wall; run the full
+    # fourteen it is a SHOPFRONT, which is what the building's south end is for.
+    out["prize_canvas"] = _canvas(lot, v0, v1, wu - 8, du - 5, "-v", 5, depth=2)
+    pf = out["prize_front"]
+    k = len(pf["at"]) // 2
+    out["prize_mast"] = _flagpole(lot, v0, pf["at"][k][1], pf["tops"][k] + 1, h=6, side=1,
+                                  colour="canvas_c")
 
     # a cupola on the ridge, so a 46-long range has a centre from the skyline too
     ridge_v = (v0 + v1) // 2

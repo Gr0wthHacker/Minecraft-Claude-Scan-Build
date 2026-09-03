@@ -463,3 +463,132 @@ def test_an_unknown_kind_and_a_lot_too_small_both_raise():
         fb.build({"kind": "works", "lot": [4, 4]})
     with pytest.raises(ValueError):
         fb.build({"kind": "works"})
+
+# ---------------------------------------------------------------- the show layer
+
+#: WHAT SEPARATES A THEME PARK FROM A TOWN, in blocks. Jack: "it feels more like multiple
+#: villages or towns than a theme park", and measured on the first build of these six lots the
+#: whole land ran 0.0-2.6% of these. A masonry facade with a plinth, a string course and a
+#: cornice is a correct answer to a question nobody asked.
+SHOW = ("_wool", "froglight", "lantern", "lightning_rod", "_banner", "_carpet")
+
+#: The Works Yard is EXEMPT AND THAT IS THE DESIGN. `PARK_FULL_BUILD_SPEC` puts it back of house -
+#: "hidden from normal guest view except one controlled glimpse" - and a service shed wearing a
+#: name board and a pennant is the "everything is an attraction" failure from the other side.
+#: An exemption stated here is a decision; one left as a lower threshold is an oversight.
+SERVICE = {"works"}
+
+
+@pytest.mark.parametrize("kind", sorted(set(LOTS) - SERVICE))
+def test_every_guest_facing_build_carries_real_canvas_and_light(built, kind):
+    """Colour and light are not decoration on a fairground, they are the announcement.
+
+    The floor is deliberately low - a frontier land is timber and stone and it should stay so -
+    but 0.0% is a village and this is what stops it going back there.
+    """
+    cnt = _counts(built[kind])
+    total = sum(cnt.values())
+    show = sum(k for n, k in cnt.items() if any(t in n for t in SHOW))
+    assert show / total >= 0.03, (
+        f"{kind}: only {100 * show / total:.1f}% canvas, paint or light - that is a village")
+
+
+def test_the_service_yard_is_deliberately_plain():
+    """The contrast IS the design: a park where the back of house looks like the front has no
+    front. If this ever starts failing, something has dressed a staff building."""
+    cnt = _counts(build("works"))
+    show = sum(k for n, k in cnt.items() if any(t in n for t in SHOW))
+    assert show <= 4, f"the works yard has been dressed up: {show} show cells"
+
+
+def test_a_show_front_is_SHAPED_and_stands_clear_of_its_own_roof():
+    """TWO THINGS A FALSE FRONT MUST DO, and the first build of Boomtown did neither.
+
+    * SHAPED - a flat parapet is a parapet; the stepped outline is what a guest reads at a
+      quarter scale, where the name board is four pixels and the silhouette is not.
+    * CLEAR OF ITS OWN RIDGE - every one of the seven fronts finished at or below its own roof,
+      so from any bearing but straight down the street the terrace was a field of brown gables.
+      That is invisible head-on, which is exactly why it shipped, and only an orbit render found
+      it.
+    """
+    c = build("boomtown")
+    shops = c.meta["parts"]["shops"]
+    assert len(shops) >= 6
+    for shop in shops:
+        f = shop["showfront"]
+        assert f, shop["title"]
+        prof = f["profile"]
+        assert max(prof) > min(prof), f"{shop['title']}: a flat parapet, not a shaped one"
+        assert prof == prof[::-1], f"{shop['title']}: a shaped front is symmetric about itself"
+        assert f["top"] > shop["ridge_y"], (
+            f"{shop['title']}: front tops at {f['top']}, its own ridge at {shop['ridge_y']}")
+
+
+def test_the_shaped_profile_is_a_plateau_with_shoulders_and_never_a_spike():
+    """A linear height profile peaks on a single column and reads as a stick - the ruinway's apse
+    shipped exactly that. A wall crest is a LINE, not a point."""
+    for n in (7, 9, 13, 21):
+        prof = fb._shape(n, 6)
+        assert len(prof) == n
+        assert prof.count(max(prof)) >= max(1, n // 3), (n, prof)
+        assert prof[0] == min(prof) and prof[-1] == min(prof), (n, prof)
+
+
+def test_every_awning_valance_hangs_off_the_canvas_it_belongs_to():
+    """A trapdoor is the vertical slab this game never shipped and it is the one block we place
+    at a seventh of the outside corpus's rate. It only works if it is ATTACHED: a panel whose
+    supporting cell is air hangs off nothing, and `render3d` draws it as a full cube either way.
+    """
+    c = build("boomtown")
+    cells = _cells(c)
+    valances = [(k, p) for k, (n, p) in cells.items()
+                if n == fb.PAL["shutter"] and p.get("open") == "true"
+                and p.get("half") == "top"]
+    assert valances, "no awning valance anywhere on Main Street"
+    for (v, y, u), props in valances:
+        dv, du = _STEP[props["facing"]]
+        assert (v - dv, y, u - du) in cells, f"a valance at {(v, y, u)} attaches to nothing"
+
+
+def test_every_mast_stands_on_something_and_carries_a_pennant():
+    """A mast is the cheapest legible silhouette this file can buy and it is worthless floating.
+    It also must not be a fence CONNECTED to open air: `_Lot.fence` forces two sides true, which
+    is right for a rail along a wall and renders as two stubs on a free post."""
+    c = build("boomtown")
+    cells = _cells(c)
+    # `PAL["mast"]` is the same block as `PAL["fence"]`, and a boardwalk rail is a fence too -
+    # correctly CONNECTED along its own line. A mast is the free-standing case, so it is
+    # identified by having no connection at all rather than by its name.
+    masts = [(k, p) for k, (n, p) in cells.items()
+             if n == fb.PAL["mast"]
+             and all(p.get(q) == "false" for q in ("north", "south", "east", "west"))]
+    assert len(masts) >= 7, f"only {len(masts)} free-standing mast cells on a seven-shop street"
+    for (v, y, u), _props in masts:
+        assert (v, y - 1, u) in cells, f"a mast at {(v, y, u)} stands on nothing"
+    rods = [k for k, (n, _p) in cells.items() if n == fb.PAL["finial"]]
+    assert rods, "no finial: a mast with no point is a fence post"
+    for (v, y, u) in rods:
+        assert (v, y - 1, u) in cells, f"a finial at {(v, y, u)} floats"
+
+
+def test_bunting_is_one_run_that_dips_and_never_a_line_of_loose_blocks():
+    """A dip needs a RISER. A run that steps down a course touches its neighbour only at a
+    diagonal, which is not connected at all - the ear-tip failure, for the fifth time in this
+    repo. The whole-build connectivity test would catch it, and this says WHY."""
+    from mcbuild.gen.canvas import Canvas
+    c = Canvas(3, 12, 21)
+    lot = fb._Lot(c, 3, 21)
+    for u in (2, 18):                                  # the two things it is strung between
+        for y in range(0, 9):
+            lot.put(1, y, u, "timber")
+    laid = fb._bunting(lot, 2, 18, 1, 8, "u", sag=2)
+    assert laid >= 17, laid
+    got = {(y, u) for y in range(12) for u in range(21) if c.solid(1, y, u)}
+    run = sorted({u for y, u in got if y >= 6})
+    assert run == list(range(2, 19)), "the run has a hole in it"
+    ys = {u: max(y for y, uu in got if uu == u and y >= 6) for u in range(2, 19)}
+    assert ys[10] < ys[2], "the middle of the run does not dip"
+    for u in range(3, 19):                             # every neighbouring pair shares a course
+        a = {y for y, uu in got if uu == u - 1 and y >= 6}
+        b = {y for y, uu in got if uu == u and y >= 6}
+        assert a & b, f"the run breaks between u{u - 1} and u{u}"

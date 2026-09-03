@@ -89,6 +89,21 @@ PARKWAYS = {
     #: ...and where even a swerve has nowhere to go, the promenade simply stops. [[u0, u1], ...].
     #: The loop is closed by the avenues either side; you walk AROUND that block, not through it.
     "promenade_gaps": None,
+    #: [{v0, u0, v1, u1}] - GROUND THAT KEEPS ITS PAVING AND LOSES ITS FURNITURE.
+    #:
+    #: A `feature_lot` is the wrong instrument for a vista: it refuses paving too, and the park's
+    #: entrance walks on the spine's own stone. Measured off the shipped ground layer, two of the
+    #: Midway's apron lamp masts stand squarely in the arrival walk - V4/U300 in the middle of the
+    #: entry gate's nineteen-deep forecourt, and V20/U298 between the gate's back face and the
+    #: Welcome Court's threshold - each of them a five-wide timber crossbeam at head height on the
+    #: one sightline the whole park is composed about. Jack, arriving through it: *"gates and a
+    #: board etc are all overlapping and chaotic with the entrance."*
+    #:
+    #: The mast at V4/U300 was DELIBERATE once and stopped being so without anything noticing: the
+    #: gate composition used to stand at V3-V5 with the mast inside its portico as the gate's own
+    #: lamp, and when the lot grew to nineteen courses to give Jack the walk-up he asked for, the
+    #: mast stayed where it was and the gate moved twelve blocks away from it.
+    "keep_clear": None,
     "lamp_every": 22,
     "seat_every": 18,
     "plaza_half": 13,
@@ -133,6 +148,13 @@ def build(cfg: dict, donors=None) -> Canvas:
     # middle, which is the whole difference between a roundabout and a disc.
     islands = [(int(rb["v"]) - v0, int(rb["u"]) - u0, int(rb["r"]) - int(rb.get("ring", 5)))
                for rb in (p.get("roundabouts") or [])]
+
+    #: The vistas: paved, and furnished by nobody. Held in the canvas' own lattice like `reserved`.
+    keep_clear = [(int(k["v0"]) - v0, int(k["u0"]) - u0, int(k["v1"]) - v0, int(k["u1"]) - u0)
+                  for k in (p.get("keep_clear") or [])]
+
+    def is_keep_clear(x: int, z: int) -> bool:
+        return any(a <= x <= c and b <= z <= d for a, b, c, d in keep_clear)
 
     def is_reserved(x: int, z: int) -> bool:
         if any(a <= x <= c and b <= z <= d for a, b, c, d in reserved):
@@ -532,6 +554,12 @@ def build(cfg: dict, donors=None) -> Canvas:
         but where an avenue, a plaza, the mid-block walk or the service lane crosses that line
         the cell is paving, and a post was going down in the middle of it. The mast's cell and
         both arm cells are checked; an arm may reach OVER a path, a post may not stand in one."""
+        # A MAST'S ARMS REACH TWO CELLS EITHER SIDE OF IT, so a vista is cleared by testing the
+        # WHOLE FIVE-CELL SPREAD against the reserve and not just the post. Tested at the post
+        # alone, a mast one cell outside a nine-wide walk still hangs a lantern in the middle of
+        # it - which is exactly how the second of these two came to stand where it does.
+        if any(is_keep_clear(*_step(x, z, side, across)) for side in (-2, -1, 0, 1, 2)):
+            return False
         if not (0 <= x < sx and 0 <= z < sz) or is_reserved(x, z) or (x, z) in paved:
             return False   # counted by the caller: a refusal is a lamp that would have stood
                            # in a walkway, and the count is how the guard is checked at all -

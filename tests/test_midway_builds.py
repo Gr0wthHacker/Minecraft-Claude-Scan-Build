@@ -13,6 +13,7 @@ a wall behind it, and a value ladder that is actually a ladder.
 """
 from __future__ import annotations
 
+import json
 import pathlib
 
 import numpy as np
@@ -31,12 +32,23 @@ CONFIGS = {
 }
 KINDS = tuple(CONFIGS)
 
-#: The shipped ground layer, with `Park Ways`, `Park Rail`, the Carousel and the Sky Lift in it.
-#: It is the only evidence about what these lots already contain, and it is 200x600x220, so the
-#: tests that need it are the ones that read it and no others.
-PARK = ROOT / "out" / "Park Complete.litematic"
-PARK_ORIGIN = (97500, 190, 80300)     # the corner of that model, from its own sidecar
-LAWN_Y = 202                          # ...and the course its lawn occupies
+#: THE GROUND LAYER, READ FROM THE GROUND LAYER'S OWN DESIGNS AND NOT FROM A COMPOSITE.
+#:
+#: This used to read `out/Park Complete.litematic`, and that is a SNAPSHOT TRAP of the exact kind
+#: this repo has now shipped three times. `Park Complete` is a composite of the whole park, so the
+#: day these four buildings were first generated and merged into it, the fixture started holding
+#: THE BUILDINGS THEMSELVES - and the test that asks "does this design land on a cell the world
+#: already owns" began comparing each design to its own previous self. It reported 5,157 clashes
+#: on the Skill Arcade, which is that building's entire block count, and it failed identically
+#: before and after any change: a test that cannot pass is not a test.
+#:
+#: What the check actually means is stated in its own docstring - the cells the GROUND LAYER owns,
+#: which is `Park Ways` (lawn, spine, avenues, walks, spurs, verges and every lamp mast and arm)
+#: plus `Park Rail`. Those are designs rather than composites, so they cannot absorb their
+#: neighbours, and the lamp arms this test exists to protect are all in the first of them.
+PARK = [ROOT / "out" / "Park Ways.litematic", ROOT / "out" / "Park Rail.litematic"]
+PARK_ORIGIN = (97500, 190, 80300)     # the frame the cells below are reported in
+LAWN_Y = 202                          # ...and the course the lawn occupies
 
 #: Blocks the game gained AFTER 1.19. The server is 1.19 and the client is 26.2, so any of these
 #: is in the registry, has legal states, renders in a card, passes every audit - and cannot be
@@ -93,15 +105,24 @@ def _park_cells():
     generator uses - stating it in one place is the only way two coordinate systems stay agreed.
     """
     if getattr(_park_cells, "_cache", None) is None:
-        m = schem.load(str(PARK))
-        names = [n.split(":")[-1].split("[")[0] for n in m.names]
-        lawn = LAWN_Y - PARK_ORIGIN[1]
         cells = {}
-        ys, zs, xs = np.where(m.solid())
-        for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist()):
-            if y <= lawn:
+        for path in PARK:
+            if not path.exists():
                 continue
-            cells[(int(x), int(y) - lawn, int(z))] = names[int(m.ids[y, z, x])]
+            m = schem.load(str(path))
+            sc = json.loads((path.parent / (path.stem + ".scan.json")).read_text())
+            o = sc["origin"]                       # {"x":..,"y":..,"z":..}, not a triple
+            ox, oy, oz = int(o["x"]), int(o["y"]), int(o["z"])
+            names = [n.split(":")[-1].split("[")[0] for n in m.names]
+            ys, zs, xs = np.where(m.solid())
+            for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist()):
+                wy = oy + int(y)
+                if wy <= LAWN_Y:
+                    continue
+                # reported in the park's own V / courses-above-lawn / U, which is the zero the
+                # generator uses. Two coordinate systems agree only if one place states it.
+                cells[(ox + int(x) - PARK_ORIGIN[0], wy - LAWN_Y,
+                       oz + int(z) - PARK_ORIGIN[2])] = names[int(m.ids[y, z, x])]
         _park_cells._cache = cells
     return _park_cells._cache
 
@@ -171,7 +192,7 @@ def test_nothing_lands_on_a_cell_the_ground_layer_already_owns(kind, built):
     decorative scatter is broken where a building stands on it, which is what
     `finish.verify_replaceable` means.
     """
-    if not PARK.exists():
+    if not any(p.exists() for p in PARK):
         pytest.skip(f"{PARK.name} is not in out/ - regenerate it with tools/park_place.py")
     _c, model, meta = built[kind]
     v0, u0, _v1, _u1 = meta["lot"]
@@ -189,7 +210,7 @@ def test_the_blocked_boxes_are_the_lamp_arms_the_world_really_has(kind, built):
     """A guard aimed at nothing is a guard that has gone stale. Every cell each config declares
     `blocked` must actually be occupied in the shipped ground layer, or the measurement it was
     derived from has moved and the envelope was set in from a boundary that is no longer there."""
-    if not PARK.exists():
+    if not any(p.exists() for p in PARK):
         pytest.skip(f"{PARK.name} is not in out/")
     world = _park_cells()
     boxes = _params(kind)["blocked"]
@@ -523,3 +544,117 @@ def test_each_build_card_s_own_count_is_what_shipped(built):
     assert built["snack_window"][2]["seats"] <= 6, "'build last; max 6 seats'"
     assert built["snack_window"][2]["seats"] == 6
     assert built["arrival_court"][2]["gates"] >= 3, "a single turnstile is a bottleneck"
+
+# ------------------------------------------------------------------ the show layer
+
+#: THE BLOCKS THAT SAY SHOW. Rendered from eight bearings, the first build of these four read as
+#: CIVIC ARCHITECTURE - dressed grey stone, white pilasters, one red band and a plain dark grey
+#: roof. The Skill Arcade was a courthouse and the Arrival Court a town hall, which is precisely
+#: Jack's "multiple villages or towns" verdict arriving as a measurement rather than an opinion.
+SHOW = ("_wool", "froglight", "lantern", "lightning_rod", "crimson_", "polished_diorite")
+
+
+@pytest.mark.parametrize("kind", KINDS)
+def test_the_building_carries_real_canvas_and_light(kind, built):
+    """A midway is canvas and paint. This is the floor that stops it going back to masonry."""
+    _c, model, _meta = built[kind]
+    named = _named(model)
+    total = len(named)
+    show = sum(1 for n in named.values() if any(t in n for t in SHOW))
+    assert show / total >= 0.08, (
+        f"{kind}: only {100 * show / total:.1f}% canvas, paint or light")
+
+
+@pytest.mark.parametrize("kind", KINDS)
+def test_the_roof_is_striped_canvas_and_not_a_grey_plate(kind, built):
+    """THE ROOF IS THE BIGGEST SURFACE A BUILDING HAS and it was the greyest thing in the land.
+
+    A big top is red and white, and the game has no wool stair - so the stripe is FOUND rather
+    than remembered: `crimson_stairs` at luminance 62 against `polished_diorite_stairs` at 193,
+    both cheap, both 1.19, and both with a matching slab, which a roof needs because every
+    course of a hip carries a slab under the ring above it.
+
+    BOTH TONES MUST APPEAR. One is a coloured roof; two are a stripe, and only the second reads
+    as fabric rather than as tile.
+    """
+    _c, model, _meta = built[kind]
+    got = set(_named(model).values())
+    for key in ("roof_a", "roof_b"):
+        assert MB.PAL[key] in got, f"{kind} has no {key} on its roof"
+
+
+def test_the_two_canvas_tones_are_a_real_step_and_come_in_matching_families():
+    """Measured off `blocks.color`, never off this docstring - the same discipline the value
+    ladder test uses, because four notes in this repo have concluded the wrong thing from a
+    contrast measured inside ONE material family."""
+    def lum(n):
+        r, g, b = blocks.color(n, "side")
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    a, b = MB.PAL["roof_a"], MB.PAL["roof_b"]
+    assert abs(lum(b) - lum(a)) >= 100, (lum(a), lum(b))
+    for key in ("roof_a", "roof_a_cap", "roof_b", "roof_b_cap"):
+        n = MB.PAL[key]
+        assert blocks.available(n) and blocks.spendable(n)
+        assert palette.tier(n) != "expensive", n
+    assert MB.PAL["roof_a"].rsplit("_", 1)[0] == MB.PAL["roof_a_cap"].rsplit("_", 1)[0]
+    assert MB.PAL["roof_b"].rsplit("_", 1)[0] == MB.PAL["roof_b_cap"].rsplit("_", 1)[0]
+
+
+def test_a_striped_roof_bands_DOWN_the_slope_and_never_along_it():
+    """Banded the wrong way a roof comes out in horizontal courses, which reads as brickwork
+    rather than as fabric - and it draws perfectly well either way, so only a test sees it."""
+    from mcbuild.gen.canvas import Canvas
+    c = Canvas(9, 14, 9)
+    L = MB._Lot(c, (0, 0, 8, 8))
+    MB._gable(L, 0, 0, 8, 8, 2, 0, axis="v", tympanum=False, stripe=MB.CANVAS)
+    by_v, by_u = {}, {}
+    for x in range(9):
+        for z in range(9):
+            for y in range(2, 14):
+                n = c.get_name(x, y, z).split(":")[-1]
+                if "crimson" in n or "diorite" in n:
+                    by_v.setdefault(x, set()).add("a" if "crimson" in n else "b")
+                    by_u.setdefault(z, set()).add("a" if "crimson" in n else "b")
+    # a band is one tone the whole way down its own slope...
+    assert all(len(t) == 1 for t in by_v.values()), by_v
+    # ...and a course ACROSS the slope crosses more than one band
+    assert any(len(t) > 1 for t in by_u.values()), by_u
+
+
+@pytest.mark.parametrize("kind", ("arrival_court", "skill_arcade"))
+def test_the_big_halls_carry_a_mast_that_stands_on_something(kind, built):
+    """A MAST IS THE ONLY THING THAT SURVIVES TO A QUARTER SCALE, and both of these had flat
+    roofs with the same eave line as everything else. A mast is also worthless floating: it is
+    planted on a support-checked cell, and `render3d` draws a fence as a full cube so nothing
+    offline would ever have shown a floating one."""
+    _c, model, meta = built[kind]
+    masts = [m for m in (meta.get("masts") or []) if m.get("built")]
+    assert masts, f"{kind} has no mast at all"
+    named = _named(model)
+    v0, u0, _v1, _u1 = meta["lot"]
+    for m in masts:
+        v, u = m["at"]
+        rods = [k for k, n in named.items() if n == MB.PAL["finial"]]
+        assert rods, "a mast with no point is a fence post"
+        for (x, y, z) in rods:
+            assert (x, y - 1, z) in named, f"{kind}: a finial at {(x, y, z)} floats"
+
+
+@pytest.mark.parametrize("kind", KINDS)
+def test_no_mast_is_drawn_connected_to_open_air(kind, built):
+    """`_Lot` has no fence helper, so a mast is written cell by cell - and a fence with its four
+    sides left at their defaults renders with stubs sticking out of it into nothing."""
+    _c, model, meta = built[kind]
+    named = _named(model)
+    for (x, y, z), n in named.items():
+        if n != MB.PAL["mast"]:
+            continue
+        props = model.props_at(x, y, z)
+        if all(props.get(q) == "false" for q in ("north", "south", "east", "west")):
+            continue
+        # a connected fence must actually have the neighbour it claims
+        for q, (dx, dz) in (("north", (0, -1)), ("south", (0, 1)),
+                            ("east", (1, 0)), ("west", (-1, 0))):
+            if props.get(q) == "true":
+                assert (x + dx, y, z + dz) in named or (x + dx, y + 1, z + dz) in named, \
+                    f"{kind}: a fence at {(x, y, z)} claims a {q} neighbour it has not got"

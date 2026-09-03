@@ -888,19 +888,19 @@ def build(cfg: dict, donors=None) -> Canvas:
         "lanes": [
             {
                 "lane_u": u0 + m["lane"],
-                "door": _world(c, m["door"]),
-                "door_upper": _world(c, m["door_upper"]),
-                "till": _world(c, m["till"]),
-                "mouth": _world(c, m["mouth"]),
-                "payment_chest": _world(c, m["mouth"]),
-                "receipt_hopper": _world(c, m["till"]),
-                "comparator": _world(c, m["comparator"]),
-                "torches": [_world(c, t) for t in m["torches"]],
-                "threshold": [_world(c, t) for t in m["threshold"]],
+                "door": _world(c, m["door"], L.front),
+                "door_upper": _world(c, m["door_upper"], L.front),
+                "till": _world(c, m["till"], L.front),
+                "mouth": _world(c, m["mouth"], L.front),
+                "payment_chest": _world(c, m["mouth"], L.front),
+                "receipt_hopper": _world(c, m["till"], L.front),
+                "comparator": _world(c, m["comparator"], L.front),
+                "torches": [_world(c, t, L.front) for t in m["torches"]],
+                "threshold": [_world(c, t, L.front) for t in m["threshold"]],
             }
             for m in mach
         ],
-        "outputs": [_world(c, m["door"]) for m in mach],
+        "outputs": [_world(c, m["door"], L.front) for m in mach],
         "lights": L.lights,
         "signs": L.signs,
         "outside_lot_refused": L.outside,
@@ -936,10 +936,22 @@ def build(cfg: dict, donors=None) -> Canvas:
     return c
 
 
-def _world(c: Canvas, cell) -> list:
+def _world(c: Canvas, cell, front: int = 0) -> list:
+    """A composition cell as world coordinates - AND THE SET-BACK IS PART OF THE ADDRESS.
+
+    `_Lot.put` adds `front` to every composition cell, so the machine's own `(v, u, y)` is local
+    to the composition and not to the lot. Read without it, every world coordinate this design
+    publishes was thirteen blocks west of the block it names: the meta said the till stood at
+    X97504 and the hopper is at X97517.
+
+    That is invisible in every check this repo has - the build audits clean, the circuit
+    simulates, the containment floods, and a render draws the machine exactly where it is. The
+    one consumer that cannot look is the SERVER PAYMENT ADAPTER, which is handed these numbers to
+    debit a fare against, and it would have been pointed at the middle of the forecourt.
+    """
     v, u, y = cell
     ox, oy, oz = c.world_origin
-    return [ox + int(v), oy + int(y), oz + int(u)]
+    return [ox + int(v) + int(front), oy + int(y), oz + int(u)]
 
 
 def _refuse_reserves(v0: int, u0: int, dv: int, du: int) -> None:

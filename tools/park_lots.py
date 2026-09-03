@@ -169,11 +169,25 @@ PLACEMENT = {
     # COLUMN B, RE-ORDERED FRONT TO BACK. The carousel is 52 deep by 47 WIDE and no other Midway
     # column is wider than 41, so it cannot leave column B - what it can do is get out of the
     # approach. Front to back the column now reads: welcome court, the wheel, the carousel.
-    "Welcome Court":          (24, 280),      # centred on the entrance axis U300
+    # SIXTY-ONE WIDE NOW, NOT FORTY-ONE, and still centred on the entrance axis U300. The two
+    # flanks either side of the old lot measured 714 columns of bare moss EACH and nothing else -
+    # Jack: "we dont want immediate large amounts of empty green" - and at U270-330 the court has
+    # exactly the entry gate's own frontage, so the two read as one composition rather than as a
+    # gate with a smaller thing behind it.
+    "Welcome Court":          (24, 270),
     "Sky Lift":               (80, 266),      # THE CENTRE ATTRACTION, straight down the axis
     "Carousel Court":         (102, 266),     # behind the wheel and as far to the left as it goes
     # --- Midway ---------------------------------------------------- col C  U346-384 (39)
     "Skill Arcade":           (24, 346),
+    # THE PRIZE POINT IS BACK, and the reason it went is the reason it returns. It was dropped as
+    # "1,666 blocks of shed with nothing in it" - true of what was standing then. It now carries
+    # the highest show-front share in the park (39.7% colour and canvas against a land median
+    # near 20) and a working redemption counter from `configs/pf_game_prize_point.yaml`, and the
+    # Arcade's own sign already reads "prizes east". Dropping it would have orphaned a game, a
+    # marquee and a sign, which is three references to a building nobody can reach.
+    # AT V80, NOT V75. `park_final.world.json` says (75, 348) and V77-79 is the cross walk that
+    # every second-rank building in this park stands behind - Mining Square keeps the same line.
+    "Prize Point":            (80, 348),
     # "Sky Lift Sloth" hangs from the Sky Lift's own arch. It has no ground lot and needs none.
     # --- Wyrm's Crossing reach ------------------------------------- U389-426 (38 usable)
     # AT THE REACH'S OWN START. The full-resolution skull is 40 wide and the Prism Reach is

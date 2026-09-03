@@ -91,7 +91,67 @@ PAL = {
     "light":   "lantern",
     "glow":    "ochre_froglight",              # the light that costs no metal
     "wood":    "oak",
+    # --- THE COURT'S PLANTING ------------------------------------------------------------
+    #: `grass_block` and every form of dirt are CURRENCY on this server, which is why the whole
+    #: park's lawn is moss and why a planted bed here is moss too. One species of tree and one
+    #: shrub, so four beds read as four of the same thing rather than as four collections.
+    "lawn":    "moss_block",
+    "trunk":   "oak_log",
+    "leaf":    "oak_leaves",
+    "shrub":   "azalea",
+    # --- THE CANVAS ROOF ----------------------------------------------------------------
+    #: THE ROOF IS THE BIGGEST SURFACE A BUILDING HAS AND IT WAS THE GREYEST THING IN THE LAND.
+    #: Rendered from eight bearings, the Skill Arcade read as a COURTHOUSE and the Arrival
+    #: Court as a town hall: dressed grey stone, white pilasters, one red band, and a plain
+    #: dark grey hipped roof over all of it. Nothing about either said games, or admission, or
+    #: fairground - which is exactly Jack's "multiple villages or towns" verdict, measured.
+    #:
+    #: A big top is RED AND WHITE and the game has no wool stair, so the stripe is found by
+    #: measurement instead of by memory: `crimson_stairs` (101,49,71) L62 against
+    #: `polished_diorite_stairs` (193,193,195) L193 is 131 points of luminance in one step,
+    #: both cheap, both in the 1.19 registry, and both with a matching slab - which a roof
+    #: needs, because every course of a hip carries a slab under the ring above it.
+    "roof_a":  "crimson_stairs",               # 62
+    "roof_a_cap": "crimson_slab",
+    "roof_b":  "polished_diorite_stairs",      # 193
+    "roof_b_cap": "polished_diorite_slab",
+    # --- the skyline --------------------------------------------------------------------
+    #: A MAST IS THE ONLY THING THAT SURVIVES TO A QUARTER SCALE. Four flat-topped halls with
+    #: the same eave line read as a terrace of civic buildings whatever they are painted; a
+    #: staff standing seven courses clear of a roof is a dozen blocks and it is what makes a
+    #: roofline read as a fairground from across the park.
+    "mast":    "oak_fence",
+    "finial":  "lightning_rod",                # 255 - a white point, and one block
+    "pennant": "yellow_wool",                  # 197
 }
+
+#: The pennants, cycled per mast. Four identical flags in a row is a fence, not a fairground.
+PENNANTS = ("pennant", "band", "frame", "pennant")
+
+#: The canvas stripe, and its band width. A one-cell stripe is noise past ten blocks and a
+#: five-cell one is two coloured roofs side by side; three is a stripe.
+CANVAS = (("roof_a", "roof_a_cap"), ("roof_b", "roof_b_cap"))
+CANVAS_BAND = 3
+#: THE GABLE END IS THE HEAD-ON VIEW, and it is the one a guest walking up the spine actually
+#: gets. Under a striped roof it was still grey `field` stone, so the Skill Arcade read as a
+#: courthouse wearing a circus hat. The tympanum takes the land's own two wool tones, banded
+#: ACROSS the slope so the stripes run vertically - which is what a tent's end wall does, and
+#: the opposite axis from the roof's own bands.
+TYMPANUM = ("band", "frame")
+
+
+def _canvas_mat(stripe, band: int):
+    """(stair key, slab key) for one band of a striped roof, or the plain grey pair."""
+    if not stripe:
+        return "trim", "cap"
+    return stripe[(band // CANVAS_BAND) % len(stripe)]
+
+
+def _tympanum_mat(stripe, band: int, seed, v, y, u):
+    """The gable end's own material: canvas under a canvas roof, dithered stone under a grey one."""
+    if not stripe:
+        return _field(seed, v, y, u)
+    return PAL[TYMPANUM[(band // CANVAS_BAND) % len(TYMPANUM)]]
 
 MIDWAY_BUILD = {
     "kind": None,          # arrival_court | snack_window | skill_arcade | prize_point
@@ -298,7 +358,7 @@ def _pane(along_v: bool, along_u: bool) -> dict:
             "east": str(along_v).lower(), "west": str(along_v).lower(), "waterlogged": "false"}
 
 
-def _gable(L, v0, u0, v1, u1, eave, seed, *, axis, pitch=1, tympanum=True):
+def _gable(L, v0, u0, v1, u1, eave, seed, *, axis, pitch=1, tympanum=True, stripe=None):
     """A gabled roof. `axis` names the direction the RIDGE runs: 'v' or 'u'.
 
     Every roof course leans toward its own ridge, which is the same rule as a flight ascending
@@ -327,12 +387,17 @@ def _gable(L, v0, u0, v1, u1, eave, seed, *, axis, pitch=1, tympanum=True):
             if s * (w - (lo + half)) > 0:
                 continue
             for (v, u) in (_line(v0, w, v1, w) if axis == "v" else _line(w, u0, w, u1)):
+                # THE STRIPE RUNS DOWN THE SLOPE, never along it: a band is indexed by the
+                # coordinate that runs ALONG the ridge, so each band is a strip of canvas from
+                # ridge to eave. Banded the other way the roof comes out in horizontal courses,
+                # which reads as brickwork rather than as fabric.
+                st, cp = _canvas_mat(stripe, v if axis == "v" else u)
                 if j == half or not step:
-                    made["roof"] += bool(L.put(v, y, u, PAL["cap"], type="bottom",
+                    made["roof"] += bool(L.put(v, y, u, PAL[cp], type="bottom",
                                                waterlogged="false"))
                 else:
                     face = _dir(0, s) if axis == "v" else _dir(s, 0)
-                    made["roof"] += bool(L.put(v, y, u, PAL["trim"], facing=face, half="bottom",
+                    made["roof"] += bool(L.put(v, y, u, PAL[st], facing=face, half="bottom",
                                                shape="straight", waterlogged="false"))
         if tympanum:
             for e in ((v0, v1) if axis == "v" else (u0, u1)):
@@ -341,12 +406,15 @@ def _gable(L, v0, u0, v1, u1, eave, seed, *, axis, pitch=1, tympanum=True):
                     if s * (w - (lo + half)) > 0:
                         continue
                     v, u = (e, w) if axis == "v" else (w, e)
+                    # banded on the axis the SLOPE runs along, so the stripes stand upright
+                    tband = w
                     for yy in range(eave, y):
-                        made["tympanum"] += bool(L.put(v, yy, u, _field(seed, v, yy, u)))
+                        made["tympanum"] += bool(
+                            L.put(v, yy, u, _tympanum_mat(stripe, tband, seed, v, yy, u)))
     return made
 
 
-def _hip(L, v0, u0, v1, u1, eave, seed):
+def _hip(L, v0, u0, v1, u1, eave, seed, *, stripe=None):
     """A hipped or pyramidal roof: concentric rings of stairs, each carrying the ring above it.
 
     THE UNDER-SLAB IS STRUCTURAL AND NOT DECORATION. Without it every ring touches the next only
@@ -364,8 +432,9 @@ def _hip(L, v0, u0, v1, u1, eave, seed):
             for u in range(b0, b1 + 1):
                 if not (v in (a0, a1) or u in (b0, b1)):
                     continue
+                st, cp = _canvas_mat(stripe, v)
                 if last:
-                    made += bool(L.put(v, y, u, PAL["cap"], type="bottom", waterlogged="false"))
+                    made += bool(L.put(v, y, u, PAL[cp], type="bottom", waterlogged="false"))
                 else:
                     # A ROOF COURSE LEANS TOWARD ITS OWN APEX, and the apex of a hip is inboard of
                     # every edge - so the ring's west side faces EAST. Written the obvious way
@@ -373,14 +442,15 @@ def _hip(L, v0, u0, v1, u1, eave, seed):
                     # exactly as it draws the right ones.
                     face = ("east" if v == a0 else "west" if v == a1
                             else "south" if u == b0 else "north")
-                    made += bool(L.put(v, y, u, PAL["trim"], facing=face, half="bottom",
+                    made += bool(L.put(v, y, u, PAL[st], facing=face, half="bottom",
                                        shape="straight", waterlogged="false"))
                 if k:
-                    made += bool(L.put(v, y - 1, u, PAL["cap"], type="top", waterlogged="false"))
+                    made += bool(L.put(v, y - 1, u, PAL[cp], type="top", waterlogged="false"))
         if last:
             for v in range(a0, a1 + 1):
                 for u in range(b0, b1 + 1):
-                    made += bool(L.put(v, y, u, PAL["cap"], type="bottom", waterlogged="false"))
+                    st, cp = _canvas_mat(stripe, v)
+                    made += bool(L.put(v, y, u, PAL[cp], type="bottom", waterlogged="false"))
             break
         k += 1
     return made
@@ -415,6 +485,32 @@ def _lamp(L, v, y, u) -> bool:
     if not L.has(v, y + 1, u) or not _can_hang(L.name_at(v, y + 1, u)):
         return False
     return L.put(v, y, u, PAL["light"], hanging="true", waterlogged="false")
+
+
+def _mast(L, v, u, y0, *, h=7, colour="pennant", side=1, along="u") -> dict:
+    """A POLE, A PENNANT AND A WHITE POINT - and it is only built on something that is there.
+
+    THE SUPPORT IS CHECKED. A mast planted on a roof course that a gable's own step happens to
+    leave empty is a floating dozen blocks and a second component, and `render3d` draws a fence
+    as a full cube so nothing offline would ever have shown it.
+
+    THE PENNANT IS WOOL, NOT A BANNER. A banner is the right object in the game and our own
+    tools cannot draw it, so it cannot be judged before it is placed; three wool cells rigid
+    against the mast are a shape a render and a player both see.
+    """
+    if not L.has(v, y0 - 1, u):
+        return {"at": [v, u], "built": 0}
+    n = 0
+    for y in range(y0, y0 + h):
+        n += bool(L.put(v, y, u, PAL["mast"], north="false", south="false", east="false",
+                        west="false", waterlogged="false"))
+    n += bool(L.put(v, y0 + h, u, PAL["finial"], facing="up", waterlogged="false"))
+    sgn = 1 if side >= 0 else -1
+    dv, du = (0, sgn) if along == "u" else (sgn, 0)
+    for k in range(3):                             # a tapering pennant off the mast's side
+        for j in range(3 - k):
+            n += bool(L.put(v + dv * (j + 1), y0 + h - 2 - k, u + du * (j + 1), PAL[colour]))
+    return {"at": [v, u], "top": y0 + h, "built": n}
 
 
 def _valance(L, v, y, u, nv, nu) -> bool:
@@ -518,7 +614,7 @@ def _arrival_court(L, p) -> dict:
     m["openings"] += _opening(L, hall_v1, mid, 1, 0, 1, gate_h, gate_w, seed, glazed=False,
                               sill=False)
     m["ceiling"] = _ceiling(L, v0 + 1, u0 + 1, hall_v1 - 1, u1 - 1, top, seed)
-    m["roof"] += _gable(L, v0, u0, hall_v1, u1, top + 2, seed, axis="u")["roof"]
+    m["roof"] += _gable(L, v0, u0, hall_v1, u1, top + 2, seed, axis="u", stripe=CANVAS)["roof"]
     for u in range(u0 + 4, u1 - 3, 6):
         m["lamps"] += bool(_lamp(L, v0 + 3, top - 1, u))
         m["lamps"] += bool(_lamp(L, hall_v1 - 3, top - 1, u))
@@ -635,12 +731,21 @@ def _arrival_court(L, p) -> dict:
     m["openings"] += _opening(L, court_v1 + 1, mid, -1, 0, 1, 6, 10, seed, glazed=False,
                               sill=False)
     m["ceiling"] += _ceiling(L, court_v1 + 2, u0 + 1, v1 - 1, u1 - 1, 9, seed)
-    m["roof"] += _gable(L, court_v1 + 1, u0, v1, u1, 11, seed, axis="u")["roof"]
+    m["roof"] += _gable(L, court_v1 + 1, u0, v1, u1, 11, seed, axis="u", stripe=CANVAS)["roof"]
     for u in range(u0 + 4, u1 - 3, 7):
         m["lamps"] += bool(_lamp(L, v1 - 3, 7, u))
     m["signs"] += bool(L.sign(v1 + 1, 5, mid, 1, 0,
                               ["TURNSTILES", "", "TO THE MIDWAY", "AND ALL RIDES"]))
     m["signs"] += bool(L.sign(court_v1, 5, mid - 3, -1, 0, ["KEEP LEFT", "TO EXIT", "", ""]))
+    # THE PARK'S FRONT DOOR NEEDS A SKYLINE, and this one had none: a symmetrical grey mass
+    # with a pediment. Four masts - a pair flanking the gateway on the spine face and a pair on
+    # the turnstile range behind it - so the entrance reads as a threshold from the approach
+    # and the whole building has a top edge that is not a straight line.
+    m["masts"] = []
+    for i, (mv, mu, y0, side) in enumerate(((v0, mid - 12, 15, -1), (v0, mid + 12, 15, 1),
+                                            (v1, mid - 12, 12, -1), (v1, mid + 12, 12, 1))):
+        m["masts"].append(_mast(L, mv, mu, y0, h=6, side=side,
+                                colour=PENNANTS[i % len(PENNANTS)]))
     return m
 
 
@@ -686,7 +791,7 @@ def _snack_window(L, p) -> dict:
           opens=lambda v, u, y: abs(u - mid) <= 1 and 1 <= y <= 3)
     _service_door(L, v1, mid, seed, m)
     m["ceiling"] = _ceiling(L, v0 + 1, u0 + 1, v1 - 1, u1 - 1, top, seed)
-    m["roof"] = _gable(L, v0, u0, v1, u1, top + 2, seed, axis="u")["roof"]
+    m["roof"] = _gable(L, v0, u0, v1, u1, top + 2, seed, axis="u", stripe=CANVAS)["roof"]
 
     # -- the kitchen, its chimney, and the loggia that six people eat in ------------------------
     for u in range(mid - 3, mid + 4):
@@ -769,7 +874,16 @@ def _skill_arcade(L, p) -> dict:
     _service_door(L, v1, mid, seed, m, sign_y=5)
 
     # -- 3. the roof: one ridge the length of the hall, so the west elevation is a gable ---------
-    m["roof"] = _gable(L, v0, u0, v1, u1, top + 2, seed, axis="v", pitch=2)["roof"]
+    m["roof"] = _gable(L, v0, u0, v1, u1, top + 2, seed, axis="v", pitch=2, stripe=CANVAS)["roof"]
+    # FOUR MASTS ON THE EAVE CORNERS. Rendered from eight bearings this hall read as a
+    # COURTHOUSE - dressed grey stone, white pilasters, one red band, a flat grey roof - and
+    # the striped canvas fixed the roof without fixing the OUTLINE, which is what carries at
+    # the distance a guest chooses a door from. Each mast is support-checked, so one landing on
+    # a course the gable's own step leaves empty is simply not built rather than floating.
+    m["masts"] = []
+    for i, (mv, mu, side) in enumerate(((v0, u0, -1), (v0, u1, 1), (v1, u0, -1), (v1, u1, 1))):
+        m["masts"].append(_mast(L, mv, mu, top + 3, h=6, side=side,
+                                colour=PENNANTS[i % len(PENNANTS)]))
     for u in range(mid - 4, mid + 5, 4):           # the oculus in the gable, over the sign band
         for k in (-1, 1):
             L.put(v0, top + 5, u + k, PAL["frame"])
@@ -865,7 +979,7 @@ def _prize_point(L, p) -> dict:
           opens=lambda v, u, y: abs(u - mid) <= 1 and 1 <= y <= 3)
     _service_door(L, v1, mid, seed, m)
     m["ceiling"] = _ceiling(L, v0 + 1, u0 + 1, v1 - 1, u1 - 1, top, seed)
-    m["roof"] = _hip(L, v0, u0, v1, u1, top + 2, seed)
+    m["roof"] = _hip(L, v0, u0, v1, u1, top + 2, seed, stripe=CANVAS)
 
     for u in range(mid - 5, mid + 6):              # the shelf wall the prizes actually stand on
         L.put(v1 - 1, 1, u, PAL["board"])
@@ -880,8 +994,484 @@ def _prize_point(L, p) -> dict:
     return m
 
 
+# ---------------------------------------------------------------------------- the court kit
+
+
+def _disc(cv, cu, r):
+    return {(v, u)
+            for v in range(cv - r, cv + r + 1)
+            for u in range(cu - r, cu + r + 1)
+            if (v - cv) ** 2 + (u - cu) ** 2 <= r * r}
+
+
+def _ring(cv, cu, r):
+    """THE SHELL RULE: the cells OUTSIDE a disc that have a FACE neighbour inside it.
+
+    A rasterised circle taken from a band in the radius equation is fat at the diagonals and thin
+    on the axes - the void tower's own finding - and worse here, because a basin wall with one
+    diagonal gap in it is a basin that drains. Water spreads to its four face neighbours only, so
+    a wall built as "outside, with a face neighbour inside" holds BY CONSTRUCTION whatever the
+    rasteriser does at the corners.
+    """
+    inside = _disc(cv, cu, r)
+    out = set()
+    for v, u in inside:
+        for dv, du in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            if (v + dv, u + du) not in inside:
+                out.add((v + dv, u + du))
+    return inside, out
+
+
+def _standard(L, v, u, m) -> bool:
+    """THE COURT'S LAMP, AND THE REASON THIS BUILD EXISTS AT ALL.
+
+    Jack, on the shipped court: *"get rid of the crappy lamp posts with yellow wool tops and crap
+    - we need this to feel premium and clean."* Measured off `out/Park Complete.litematic` the old
+    court's standards were an oak-log foot, four oak fence courses, another log, a blackstone cap,
+    **a `yellow_wool` block** and a lantern on top of that - twelve courses of timber with a wool
+    cube near the head. There is no reading of that which is not what he said.
+
+    This is a lamp STANDARD: a dark plinth, a stone base, a three-course wall shaft - a wall
+    renders as a slender post rather than as a block - a dressed head, and ONE lantern on it. Six
+    courses, one cell square, one light.
+
+    THE HEAD IS A FULL BLOCK BECAUSE A LANTERN CANNOT STAND ON A WALL: `blocks.supports_top` says
+    so for `stone_brick_wall`, which is the same rule that cost the Prismworks lamp its first
+    build and put 104 placement problems in it.
+    """
+    if not L.put(v, 0, u, PAL["inlay"]):
+        return False
+    L.put(v, 1, u, PAL["course"])
+    for y in (2, 3, 4):
+        L.put(v, y, u, PAL["rail"], up="true", north="none", south="none", east="none",
+              west="none", waterlogged="false")
+    L.put(v, 5, u, PAL["course"])
+    L.put(v, 6, u, PAL["light"], hanging="false", waterlogged="false")
+    m["lamps"] += 1
+    return True
+
+
+def _bench(L, v, u, nv, nu, length, m) -> int:
+    """A SEAT FACING SOMETHING, with a stone end at each end of it.
+
+    `(nv, nu)` is the direction the sitter LOOKS. A stair's tall side is its `facing`, so the back
+    of a seat is on the far side from the view and the stair faces AWAY from it - written the
+    obvious way round every bench faces its own back, and `render3d` draws both the same.
+    """
+    tv, tu = (0, 1) if nv else (1, 0)
+    made = 0
+    half = length // 2
+    for k in range(-half, half + 1):
+        made += bool(L.put(v + tv * k, 1, u + tu * k, PAL["seat"], facing=_opp(nv, nu),
+                           half="bottom", shape="straight", waterlogged="false"))
+    for k in (-half - 1, half + 1):                # the stone ends, so a bench has arms
+        made += bool(L.put(v + tv * k, 1, u + tu * k, PAL["cap"], type="bottom",
+                           waterlogged="false"))
+    m["benches"] += 1
+    return made
+
+
+def _tree(L, cv, cu, m) -> int:
+    """One oak, on the centre of its own bed. Small, round, and THE SAME IN EVERY BED.
+
+    The shipped court had eleven trees of four species at eleven positions nothing derived, and
+    from above they read as blobs dropped on a grid. Identical trees on derived centres read as
+    planting; four species at eleven hand-chosen points read as a nursery.
+    """
+    made = 0
+    for y in range(1, 5):
+        made += bool(L.put(cv, y, cu, PAL["trunk"], axis="y"))
+    for y, r in ((4, 2), (5, 2), (6, 1)):
+        for v in range(cv - r, cv + r + 1):
+            for u in range(cu - r, cu + r + 1):
+                if (v - cv) ** 2 + (u - cu) ** 2 > r * r:
+                    continue
+                if v == cv and u == cu and y < 6:
+                    continue                       # the trunk runs up through its own crown
+                made += bool(L.put(v, y, u, PAL["leaf"], distance="1", persistent="true",
+                                   waterlogged="false"))
+    made += bool(L.put(cv, 6, cu, PAL["leaf"], distance="1", persistent="true",
+                       waterlogged="false"))
+    m["trees"] += 1
+    return made
+
+
+def _swag(L, v, u0, u1, y, m) -> int:
+    """BUNTING ACROSS THE WALK: a red-and-white line that dips in the middle.
+
+    A LINE THAT DOES NOT SAG IS A BEAM. The dip is what says fabric, and it is the cheapest thing
+    in this design that says FAIRGROUND rather than civic square - which is the whole of Jack's
+    *"make sure this court also fits the theme of the center island area"*.
+
+    **A SAG IS NOT 6-CONNECTED UNLESS THE STEP IS FILLED.** A cell at y and its neighbour at y-1
+    are diagonal, which is the failure that once broke a pair of ear tips off a cat and shipped
+    four five-cell swags here as free-floating clusters - so the column where the height changes
+    carries BOTH courses. It hangs off the lamp standards' own heads at either end, which is what
+    gives it something to be strung from rather than ending in mid-air.
+    """
+    centre = (u0 + u1) // 2
+    span = max(1, (u1 - u0) // 2)
+    made, last = 0, None
+    for u in range(u0, u1 + 1):
+        h = y - (1 if abs(u - centre) * 3 < span else 0)
+        mat = PAL["band"] if ((u - u0) // 2) % 2 == 0 else PAL["frame"]
+        made += bool(L.put(v, h, u, mat))
+        if last is not None and last != h:         # the step, filled so the line is one piece
+            for k in range(min(last, h), max(last, h) + 1):
+                made += bool(L.put(v, k, u, mat))
+        last = h
+    m["bunting"] += 1
+    return made
+
+
+def _pavilion(L, v0, u0, v1, u1, seed, m) -> dict:
+    """AN OPEN CANVAS PAVILION - the piece that makes this court read as a fairground.
+
+    Eight timber posts, a white frieze and a STRIPED CANVAS ROOF: `crimson_stairs` L62 against
+    `polished_diorite_stairs` L193, which is the same pair the Midway's four buildings roof with,
+    measured rather than remembered and 131 points of luminance apart in one step. So the court's
+    two pavilions are the same hand as the Arrival Court and the Skill Arcade, and the flank they
+    stand on stops being lawn.
+
+    IT IS OPEN ON ALL FOUR SIDES. A shed here would be a fifth building on a lot whose job is to
+    be walked across; what a walk-up wants is shelter you can see through, with a seat in it.
+    """
+    made = {"posts": 0, "seats": 0}
+    for v in range(v0, v1 + 1):
+        for u in (u0, u1):
+            if v in (v0, v1) or (v - v0) % 3 == 0:
+                for y in range(1, 6):
+                    made["posts"] += bool(L.put(v, y, u, PAL["beam"], axis="y"))
+    for u in range(u0 + 1, u1):
+        for v in (v0, v1):
+            if (u - u0) % 3 == 0:
+                for y in range(1, 6):
+                    made["posts"] += bool(L.put(v, y, u, PAL["beam"], axis="y"))
+    for v in range(v0, v1 + 1):                    # the frieze the roof sits on
+        for u in range(u0, u1 + 1):
+            if v in (v0, v1) or u in (u0, u1):
+                L.put(v, 6, u, PAL["frame"])
+    m["roof"] = _hip(L, v0, u0, v1, u1, 7, seed, stripe=CANVAS)
+    for v in range(v0 + 2, v1 - 1, 3):             # ...and the lights hung off its own frieze
+        for u in (u0 + 1, u1 - 1):
+            m["lamps"] += bool(_lamp(L, v, 5, u))
+    return made
+
+
+def _hedge(L, cells, m) -> int:
+    """A CLIPPED HEDGE: one course of leaves on the bed's own kerb.
+
+    It is what turns a kerbed square of moss into a BED. Persistent, because a leaf block with
+    `persistent=false` and no log within six decays - the one property of a leaf that a render
+    cannot show and that every leaf this repo places has had set since the first sky bird.
+    """
+    n = 0
+    for v, u in cells:
+        n += bool(L.put(v, 1, u, PAL["leaf"], distance="1", persistent="true",
+                        waterlogged="false"))
+    m["hedge"] += n
+    return n
+
+
+def _court_pave(v, u, mid, axis, seed, half, rad) -> str:
+    """The court's floor, and EVERY LINE IN IT IS DERIVED FROM THE AXIS.
+
+    A pattern laid on world coordinates is right for a building, whose rooms have to line up with
+    each other; it is wrong for a composition whose whole subject is one centre line, because the
+    grid then lands wherever the lot happens to start. Here the rings are concentric on the basin
+    and the bands are measured from the axis, so the floor itself says where the middle is.
+
+    THE RED AND WHITE DASH IS THE MIDWAY'S OWN COLOUR IN THE FLOOR. It runs the walk's inner edge
+    and the roundel's inner ring in runs of three - a one-cell alternation is noise past ten
+    blocks, and a solid band of either is a stripe the whole park already has too much of.
+    """
+    du = abs(u - axis)
+    r = int(((v - mid) ** 2 + (u - axis) ** 2) ** 0.5)
+    if du == half or r == rad or r == 6:
+        return PAL["inlay"]                        # the kerbs: the walk, the roundel, the basin
+    if r == rad - 3:
+        # THE ONE RED-AND-WHITE LINE, and it is on the ROUNDEL rather than on the walk. Run down
+        # both sides of a fifty-one-course walk as well it stopped being an accent and became the
+        # floor's subject - two candy stripes the length of the court, which is the loudest thing
+        # the Midway's palette can do and the opposite of what a walk-up wants underfoot.
+        return PAL["band"] if ((v + u) // 5) % 2 == 0 else PAL["frame"]
+    if r in (rad - 1, rad - 2) or du == half - 1:
+        return PAL["field"]
+    if du < half and (v - mid) % 6 == 0:
+        return PAL["field"]                        # the walk's rungs
+    # A HALF-AND-HALF CHECKER IS A CHESSBOARD, NOT A FLOOR. `stone` and `smooth_stone` are 33
+    # apart in luminance, which is a pattern rather than a texture, so the light stone is the
+    # FIELD and the dark one is a grid in it every four - and the grid is measured from the
+    # court's own centre, so it lines up with the axis instead of with the lot's corner.
+    if (v - mid) % 4 == 0 or (u - axis) % 4 == 0:
+        return PAL["floor"]
+    return PAL["floor"] if hash01(v, u, seed) < 0.08 else PAL["floor2"]
+
+
+def _parterres(L, open_cells, mid, axis, m, *, min_area=36) -> int:
+    """EVERY PATCH OF LAWN THE COMPOSITION LEAVES BECOMES A PLANTED BED. Derived, not placed.
+
+    Jack, on the first build of this court: *"it fills the space nicely, we dont want immediate
+    large amounts of empty green."* Hand-placing four beds answers that only where somebody
+    remembered to put one, and it answered it for the 41-wide lot and not for the 61-wide one -
+    which is exactly how the two flanks came to be 714 columns of bare moss each in the first
+    place.
+
+    So the lawn is whatever the walk, the roundel, the pavilions and the queue do not take, and
+    every connected piece of it bigger than `min_area` gets a kerb, a clipped hedge on that kerb,
+    and trees on a LATTICE ANCHORED ON THE COURT'S OWN CENTRE. Anchoring the lattice on (mid,
+    axis) rather than on each patch is what keeps the planting symmetric: two mirrored patches
+    get mirrored trees because the lattice is mirrored, and nothing has to be typed twice.
+
+    A tree is planted only where its whole crown fits inside the patch, so a bed never overhangs
+    its own hedge - the check a render cannot make, because a leaf over a kerb draws exactly like
+    a leaf over moss.
+    """
+    seen, beds = set(), 0
+    for cell in sorted(open_cells):
+        if cell in seen:
+            continue
+        patch, stack = set(), [cell]
+        seen.add(cell)
+        while stack:
+            v, u = stack.pop()
+            patch.add((v, u))
+            for dv, du in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                nxt = (v + dv, u + du)
+                if nxt in open_cells and nxt not in seen:
+                    seen.add(nxt)
+                    stack.append(nxt)
+        if len(patch) < min_area:
+            continue
+        edge = {(v, u) for v, u in patch
+                if any((v + dv, u + du) not in patch
+                       for dv, du in ((1, 0), (-1, 0), (0, 1), (0, -1)))}
+        inner = patch - edge
+        for v, u in edge:
+            L.put(v, 0, u, PAL["inlay"])
+            L.put(v, 1, u, PAL["cap"], type="bottom", waterlogged="false")
+        for v, u in inner:
+            L.put(v, 0, u, PAL["lawn"])
+        for v, u in sorted(inner):
+            if (v - mid) % 7 or (u - axis) % 7:
+                continue
+            crown = {(v + dv, u + du) for dv in range(-2, 3) for du in range(-2, 3)}
+            if crown <= inner:
+                _tree(L, v, u, m)
+        for v, u in sorted(inner):                 # low planting, off the same lattice
+            if (v - mid) % 7 == 3 and (u - axis) % 7 == 3:
+                L.put(v, 1, u, PAL["shrub"])
+        _hedge(L, sorted(edge), m)
+        beds += 1
+    m["beds"] += beds
+    return beds
+
+
+def _welcome_court(L, p) -> dict:
+    """THE WALK-UP: what a visitor crosses between the entry gate and the wheel.
+
+        V24-74 x U270-330, axis U300, centre V49 - fifty-one deep by SIXTY-ONE wide
+
+    Jack, in two passes: *"gates and a board etc are all overlapping and chaotic with the entrance
+    to the main center ... make the entrance experience, and the leading park in front of it
+    before the ferris wheel perfect, highly detailed, sophisticated, no weird blocks, or overlaps,
+    no bad placements ... we need this to feel premium and clean"*, and then *"this court also
+    fits the theme of the center island area, and fills the space nicely, we dont want immediate
+    large amounts of empty green."*
+
+    WHAT WAS HERE, measured off the shipped park rather than described: 4,613 blocks paved edge to
+    edge on one world-aligned grid, eleven trees of four species at eleven positions nothing
+    derived, nine `magenta_wool` and fifteen `light_blue_wool` cells with no other member of their
+    own colour near them, and lamp standards whose head course was a `yellow_wool` block. Nothing
+    in it was symmetric about the axis it stands on - and the axis is the ONE thing this lot has:
+    the entry gate's two doors, this court and the Sky Lift's hub all sit on U300, and the wheel's
+    densest column is U300 with 435 cells against 375 at each neighbour.
+
+    THE LOT IS SIXTY-ONE WIDE AND WAS FORTY-ONE. Measured off the shipped ground layer, the two
+    flanks either side of the old lot were **714 columns of bare moss each** and nothing else, in
+    full view of the gate - which is exactly the "immediate large amounts of empty green". At
+    U270-330 the court now has the SAME FRONTAGE AS THE ENTRY GATE, whose compound is U270-330 to
+    the cell, so the two read as one composition rather than as a gate with a smaller thing behind
+    it.
+
+    THE COMPOSITION IS THE AXIS, and every piece is derived from it:
+
+        the great walk   U294-306, V24 to V74 - thirteen wide, the spine's own width
+        the roundel      r=13 on (V49, U300), where the walk opens out
+        the basin        a raised stone fountain on the axis: two tiers, four courses, water
+        two pavilions    V43-55 x U270-278 and U322-330, striped canvas on timber posts
+        the cross walk   V46-52, joining the roundel to both pavilions
+        four parterres   kerbed, hedged, two oaks each, on the four quadrant centres
+        two garden rooms V64-74 at both rear corners - see the queue, below
+        lamp standards   the lamp above, paired about the axis and never on it
+        bunting          four swags across the walk, six courses up
+
+    **NOTHING OF THIS COURT'S STANDS IN THE WALK.** Every lamp, pier, bench, post and tree is at
+    |U-300| >= 7, so the thirteen-wide walk is clear above its own floor course for all fifty-one
+    courses except the basin - which is on the axis deliberately, four courses high against a
+    seventy-four-course wheel behind it. `tests/test_midway_builds.py` measures that rather than
+    trusting this paragraph.
+
+    **THE POOL CANNOT DRAIN.** Its wall is built by the shell rule - the cells outside the disc
+    that have a face neighbour inside it - so there is no diagonal gap for water to find, and the
+    course under every water cell is this court's own paving.
+
+    **THE WHEEL'S QUEUE OWNS THE WEST REAR CORNER AND THIS DESIGN DOES NOT TOUCH IT.** Measured
+    off `out/PF Front Midway.litematic`, the Sky Lift's queue occupies exactly V65-74 x U270-279
+    inside this lot - fifty-four columns, a clean ten by ten. It is named in `blocked`, so wanting
+    one of its cells raises here rather than shipping as an overlap nobody can see. The court
+    frames that corner as a hedged garden room and builds nothing inside it; the east corner is
+    the same room with seats in it, so the plan is symmetric in FRAME while one of the two rooms
+    honestly holds a queue.
+    """
+    seed = int(p["seed"])
+    v0, u0, v1, u1 = (int(q) for q in p["lot"])
+    axis = (u0 + u1) // 2                          # U300 - the gate's doors and the wheel's hub
+    mid = (v0 + v1) // 2                           # V49
+    half = 6                                       # the great walk is thirteen wide
+    rad = 13                                       # the roundel
+    m = {"signs": 0, "lamps": 0, "benches": 0, "trees": 0, "beds": 0, "floor": 0, "water": 0,
+         "steps": 0, "hedge": 0, "bunting": 0, "axis": axis, "centre": mid}
+    lawn: set = set()                              # what the composition leaves: see `_parterres`
+
+    #: THE WHEEL'S QUEUE, and the court builds nothing here. Ten by ten at the west rear corner,
+    #: read off the frontage design rather than assumed.
+    queue = {(v, u) for v in range(65, v1 + 1) for u in range(u0, u0 + 10)}
+
+    walk = {(v, u) for v in range(v0, v1 + 1) for u in range(axis - half, axis + half + 1)}
+    roundel = _disc(mid, axis, rad)
+    pavilions = [(mid - 6, u0, mid + 6, u0 + 8), (mid - 6, u1 - 8, mid + 6, u1)]
+    cross = {(v, u) for v in range(mid - 3, mid + 4) for u in range(u0 + 8, u1 - 7)}
+    paved = walk | roundel | cross
+    for pv0, pu0, pv1, pu1 in pavilions:
+        paved |= {(v, u) for v in range(pv0, pv1 + 1) for u in range(pu0, pu1 + 1)}
+
+
+    # -- 1. the podium ---------------------------------------------------------------------------
+    # ONE COURSE, because every lot in this park is one course over the lawn the streets are cut
+    # into. The threshold on the axis is a stair rather than a kerb, at both ends, so the walk-up
+    # is a step rather than a ledge.
+    for v in range(v0, v1 + 1):
+        for u in range(u0, u1 + 1):
+            if (v, u) in queue:
+                continue
+            if v in (v0, v1) and abs(u - axis) <= half:
+                # A FLIGHT THAT ASCENDS TOWARD D HAS EVERY TREAD facing=D - the convention pinned
+                # in `test_stairhead`, and one our own renderer draws identically either way.
+                m["steps"] += bool(L.put(v, 0, u, PAL["trim"],
+                                         facing="east" if v == v0 else "west",
+                                         half="bottom", shape="straight", waterlogged="false"))
+                continue
+            if v in (v0, v1) or u in (u0, u1):
+                mat = PAL["inlay"]                 # the kerb: this court's own dark line
+            elif (v, u) in paved:
+                mat = _court_pave(v, u, mid, axis, seed, half, rad)
+            else:
+                lawn.add((v, u))
+                continue                           # laid by `_parterres`, which needs the shape
+            m["floor"] += bool(L.put(v, 0, u, mat))
+
+    # -- 2. the basin ----------------------------------------------------------------------------
+    # THE WALL IS TWO COURSES AND CARRIES NO COPING, AND BOTH OF THOSE ARE ABOUT SEEING THE WATER.
+    # At one course with a half-slab lip the rim stood 1.5 over the paving and the water surface
+    # 0.875 under it, so from a walker's eye the basin was a dark stone drum with nothing in it -
+    # which is what a fountain is for. Two full courses put the surface at 1.875 and the rim at
+    # 2.0: you see the water from anywhere on the walk, and the top course is dressed so the rim
+    # still reads as moulded rather than as the top of a wall.
+    pool, wall = _ring(mid, axis, 4)
+    for v, u in wall:
+        L.put(v, 1, u, PAL["inlay"])
+        L.put(v, 2, u, PAL["course"])
+    for v, u in pool:
+        L.put(v, 1, u, PAL["field"])               # the basin's own floor, under the water
+        if max(abs(v - mid), abs(u - axis)) <= 1:
+            continue                               # the pedestal stands where the water is not
+        m["water"] += bool(L.put(v, 2, u, "water", level="0"))
+    for y in (1, 2, 3):                            # the pedestal, rising out of the pool
+        for v in range(mid - 1, mid + 2):
+            for u in range(axis - 1, axis + 2):
+                L.put(v, y, u, PAL["field"])
+    L.put(mid, 4, axis, PAL["course"])             # the stem
+    for dv in (-1, 0, 1):                          # the bowl's corbelled underside
+        for du in (-1, 0, 1):
+            if dv == du == 0:
+                L.put(mid, 5, axis, PAL["field"])
+            elif dv and du:
+                # A CORNER OF THE FLARE FACES TWO WAYS AND A STAIR FACES ONE, so a corner cell is
+                # a slab. Given a facing it would lean along whichever axis was written first and
+                # break the bowl's own symmetry - which our renderer draws exactly as it draws a
+                # correct one.
+                L.put(mid + dv, 5, axis + du, PAL["cap"], type="top", waterlogged="false")
+            else:
+                L.put(mid + dv, 5, axis + du, PAL["trim"], facing=_opp(dv, du), half="top",
+                      shape="straight", waterlogged="false")
+    for dv in (-1, 0, 1):                          # ...and the upper bowl standing on it
+        for du in (-1, 0, 1):
+            if dv == du == 0:
+                m["water"] += bool(L.put(mid, 6, axis, "water", level="0"))
+            else:
+                L.put(mid + dv, 6, axis + du, PAL["field"])
+    m["basin"] = [mid, axis]
+
+    # FOUR PENNANT MASTS ON THE ROUNDEL'S DIAGONALS. The court had no vertical between the wheel
+    # and the ground at all, and a fairground's own answer to that is a mast: the outline is the
+    # only thing that survives to a quarter scale, which this repo settled on the Trailhead Gate.
+    # They stand at |U-300| = 9, outside the thirteen-wide walk, so the vista never meets one.
+    #
+    # THE PENNANTS ARE RED AND WHITE AND NOT `PAL["pennant"]`, which is `yellow_wool`. Jack named
+    # yellow wool specifically as the thing to get rid of here, and the Midway's own two colours
+    # are the ones the roundel's floor ring, the bunting and the buildings' bands are already in.
+    for dv in (-9, 9):
+        for du, side in ((-9, -1), (9, 1)):
+            m.setdefault("masts", []).append(
+                _mast(L, mid + dv, axis + du, 1, h=7, side=side,
+                      colour="band" if dv * du > 0 else "frame"))
+
+    # -- 3. the two pavilions --------------------------------------------------------------------
+    for pv0, pu0, pv1, pu1 in pavilions:
+        _pavilion(L, pv0, pu0, pv1, pu1, seed, m)
+        inward = 1 if pu0 == u0 else -1
+        for v in (pv0 + 3, pv1 - 3):               # seats under it, facing the court
+            _bench(L, v, pu0 + 4, 0, inward, 3, m)
+    m["pavilions"] = len(pavilions)
+
+    # -- 4. the parterres, derived from whatever lawn the composition leaves ---------------------
+    _parterres(L, lawn, mid, axis, m)
+
+    # -- 5. the standards, the benches, the bunting and the thresholds ---------------------------
+    # PAIRED ABOUT THE AXIS AND NEVER ON IT. Every one of these is at |U-300| >= 7, which is what
+    # keeps the vista from the gate to the wheel clear of this court's own furniture.
+    for v in (v0 + 5, mid - 16, mid + 16, v1 - 5):
+        for u in (axis - half - 1, axis + half + 1):
+            _standard(L, v, u, m)
+        # STRUNG BETWEEN THE TWO HEADS AND NOT OVER THEM. Run to the standards' own columns it
+        # overwrote the lantern that is the whole point of a standard - four of them, silently,
+        # and a lamp that is missing is invisible in a render while a lamp in the wrong place is
+        # not. It hangs off the head course at y5, so its end cells have a face to hold on to.
+        _swag(L, v, axis - half, axis + half, 5, m)
+    for dv, look in ((-rad + 4, 1), (rad - 4, -1)):
+        _bench(L, mid + dv, axis - half - 3, look, 0, 3, m)
+        _bench(L, mid + dv, axis + half + 3, look, 0, 3, m)
+
+    for v, inward in ((v0 + 2, 1), (v1 - 2, -1)):
+        for u in (axis - half - 2, axis + half + 2):
+            for dv in (0, inward):                 # a 2 x 1 pier, its long side down the walk
+                for y in range(1, 5):
+                    L.put(v + dv, y, u, PAL["frame"] if y == 4 else PAL["field"])
+                L.put(v + dv, 5, u, PAL["cap"], type="bottom", waterlogged="false")
+            L.put(v, 5, u, PAL["course"])
+            L.put(v, 6, u, PAL["light"], hanging="false", waterlogged="false")
+            m["lamps"] += 1
+    m["signs"] += bool(L.sign(v0 + 2, 3, axis - half - 3, 0, -1,
+                              ["WELCOME COURT", "", "the big wheel", "straight ahead"]))
+    m["signs"] += bool(L.sign(v0 + 2, 3, axis + half + 3, 0, 1,
+                              ["WELCOME COURT", "", "carousel and", "arcade beyond"]))
+    return m
+
+
 _KINDS = {
     "arrival_court": (_arrival_court, "PF Arrival Court"),
+    "welcome_court": (_welcome_court, "PF Welcome Court"),
     "snack_window": (_snack_window, "PF Snack Window"),
     "skill_arcade": (_skill_arcade, "PF Skill Arcade"),
     "prize_point": (_prize_point, "PF Prize Point"),

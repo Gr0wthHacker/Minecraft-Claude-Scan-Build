@@ -70,15 +70,15 @@
       "narrative": "The machine land's gate: two pylons with a seven-wide passage cut clean through them on the spine's own axis, an overbridge chamber over the passage, a corbelled cornice and a merlon parapet, and four signal masts on the pylon corners. Behind it a twin arcade carries the axis twenty-one courses into the land under a louvred roof and then stops.\n"
     },
     "metrics": {
-      "blocks": 5239,
-      "materials": 21,
-      "dominant_material_share": 0.4041,
+      "blocks": 5578,
+      "materials": 22,
+      "dominant_material_share": 0.3795,
       "light_blocks": 6,
       "massing": {
         "width": 45,
         "height": 28,
         "depth": 36,
-        "fill_ratio": 0.1155
+        "fill_ratio": 0.123
       },
       "silhouette": {
         "top": {
@@ -86,36 +86,36 @@
           "fill_ratio": 0.5079
         },
         "front": {
-          "area": 611,
-          "fill_ratio": 0.3843
+          "area": 642,
+          "fill_ratio": 0.4038
         },
         "side": {
-          "area": 778,
-          "fill_ratio": 0.7204
+          "area": 817,
+          "fill_ratio": 0.7565
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.4976,
-          0.2458,
-          0.2565
+          0.4923,
+          0.2668,
+          0.2409
         ],
         "top_silhouette_perimeter": 644,
-        "surface_faces_per_block": 2.0836
+        "surface_faces_per_block": 2.0685
       },
       "material_counts": {
         "polished_blackstone_bricks": 2117,
-        "smooth_basalt": 1078,
+        "smooth_basalt": 1317,
         "black_wool": 364,
         "polished_deepslate_slab": 324,
-        "blackstone_stairs": 203,
         "deepslate_tiles": 162,
         "warped_trapdoor": 159,
         "cracked_polished_blackstone_bricks": 143,
+        "cyan_wool": 124,
         "gray_wool": 112,
         "blackstone": 106,
-        "iron_bars": 103,
-        "cyan_wool": 84
+        "waxed_cut_copper_stairs": 106,
+        "iron_bars": 103
       }
     },
     "checks": [],
@@ -127,8 +127,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "92625f63d97643b24216a7db50bf737fbfab172061dcf4c4c5be2c27822d75ee",
-    "generator_source_digest": "7a75fd91a57599154c79fecc91e8f9e8671bce26f01e6d045bad7bc569c8141a",
+    "fingerprint": "6be14ac573d88b7e661e5b5a276a7a5ec2a273db0e3fa8bab15de551143ec464",
+    "generator_source_digest": "feb61459f813c7d43e7f233e4035d4d01bbe5479ecc535a3db4cd3b7f1cc8294",
     "anchors": [
       {
         "name": "public_entry",
@@ -214,9 +214,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 62.092495,
-    "blocks": 5239,
-    "blocks_per_second": 84.37
+    "seconds": 59.681588,
+    "blocks": 5578,
+    "blocks_per_second": 93.46
   },
   "generator_contract": {
     "ok": true,
@@ -226,7 +226,7 @@
       "building",
       "path"
     ],
-    "blocks": 5239,
+    "blocks": 5578,
     "mechanic_families": [
       "access",
       "light",
@@ -274,7 +274,8 @@
     "not in the provisional skyblock-1.19 list: smooth_basalt",
     "not in the provisional skyblock-1.19 list: warped_fence",
     "not in the provisional skyblock-1.19 list: warped_trapdoor",
-    "not in the provisional skyblock-1.19 list: warped_wall_sign"
+    "not in the provisional skyblock-1.19 list: warped_wall_sign",
+    "not in the provisional skyblock-1.19 list: waxed_cut_copper_stairs"
   ],
   "file": "PF Foundry Gate.litematic",
   "name": "PF Foundry Gate"

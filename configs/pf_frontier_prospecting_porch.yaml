@@ -11,6 +11,16 @@
 # Both carry their counter, backboard, result panel, launder and reset hatch; neither carries a
 # circuit. This repo cut two finished casino games rather than ship a machine it could not verify
 # by simulation, and a game with a wire in it and no contract is that mistake again.
+#
+# THE SHOW LAYER (2026-09-02). Jack: "we need this to be a theme park, and amusement area,
+# beautiful, not just full of buildings." Measured, the whole Frontier ran 0.0-2.6% coloured or
+# lit blocks - stone brick, spruce and dark oak with a plinth, a string course and a cornice,
+# which is a correct way to build a VILLAGE. What was added is announcement rather than
+# ornament: a SHAPED show front with a name board and a painted cornice on every guest-facing
+# frontage, striped canvas awnings, bunting, and a mast with a pennant on the skyline. The rise
+# of every show front is DERIVED from its own ridge, because a false front that does not clear
+# its roof is invisible from every bearing but straight down the street - which is how the
+# first build passed a head-on render and read as a village from everywhere else.
 name: PF Prospecting Porch
 gen: frontier_builds
 params:

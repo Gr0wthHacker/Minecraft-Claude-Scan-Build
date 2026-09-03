@@ -53,7 +53,13 @@ NAMED_BY = {
     "Assay and Prize Office": "Assay and Prize Office", "Mine Coaster": "Mine Coaster",
     "Works Yard": "Works Yard staff gate",
     "Arrival Court": "Arrival Court", "Snack Window": "Snack Window",
-    "Carousel Court": "Circus Gate", "Sky Lift": "Sky Lift", "Skill Arcade": "Skill Arcade",
+    #: THE CAROUSEL IS ANNOUNCED BY ITS OWN THRESHOLD, not by a gantry across the walk. The
+    #: Circus Gate stood at V20 - one cell of lawn behind the entry gate's back face and one in
+    #: front of the Welcome Court - and Jack named exactly that: *"gates and a board etc are all
+    #: overlapping and chaotic with the entrance to the main center."* It is removed, so the
+    #: expectation moves with the decision rather than pinning the thing that was rejected. A
+    #: walk-on ride gets thresholds, which is what this config already says it gets.
+    "Carousel Court": "Carousel entrance", "Sky Lift": "Sky Lift", "Skill Arcade": "Skill Arcade",
     "Prize Point": "Prize Point",
     "Foundry Gate": "Foundry Gate", "Prism Array": "Prism Array",
     "Resonance Vault": "Resonance Vault", "Prism Ascent": "Prism Ascent",
@@ -97,8 +103,22 @@ def ground():
 
 
 def _occupant(g, V, Y, U):
-    """What the shipped park already holds at this PARK cell, or None. Carpet is not an occupant."""
-    for model, names, y0 in ((g["W"], g["wn"], g["wy0"]), (g["C"], g["cn"], g["cy0"])):
+    """What the GROUND LAYER holds at this PARK cell, or None. Carpet is not an occupant.
+
+    IT READ `Park Complete` AND THAT IS THE SNAPSHOT TRAP AT PARK SCALE. The composite is built
+    BY placing these designs, so once the park ships every frontage cell is in it and each design
+    reports its own entire body as a collision - `PF Front Frontier shares 2406 cells`, which is
+    all 2,406 of them. A test whose evidence contains the thing it is testing measures nothing,
+    and it fails only after the work succeeds.
+
+    The ground layer is the honest evidence for the rule this file names - street, plaza, verge,
+    spur, kerb, lamp - because `Park Ways` is generated from the grid and never from a placement.
+    MODULE-AGAINST-MODULE IS A DIFFERENT QUESTION AND IT ALREADY HAS A BETTER ANSWER:
+    `tools/park_place.py` compares all thirty placed modules pairwise in world coordinates and
+    prints `module clashes`, which covers frontage against building AND frontage against
+    frontage, neither of which a composite can be asked about after the fact.
+    """
+    for model, names, y0 in ((g["W"], g["wn"], g["wy0"]),):
         ly = Y - y0
         if 0 <= ly < model.ids.shape[0] and 0 <= U < model.ids.shape[1] and 0 <= V < model.ids.shape[2]:
             i = int(model.ids[ly, U, V])

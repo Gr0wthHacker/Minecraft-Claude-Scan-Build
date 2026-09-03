@@ -8,6 +8,7 @@ draw wrong, and the fact that this design set claims no mechanism at all.
 """
 from __future__ import annotations
 
+import json
 import os
 import sys
 
@@ -21,6 +22,24 @@ from mcbuild import blocks, circuit, palette, schem                      # noqa:
 from mcbuild.gen import prismworks_builds as pb                          # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
+
+#: THE GROUND LAYER, READ FROM THE GROUND LAYER'S OWN DESIGNS AND NOT FROM A COMPOSITE.
+#:
+#: This used to be `out/Park Complete.litematic`, and that is a SNAPSHOT TRAP: `Park Complete` is
+#: a composite of the whole park, so the day these six were first generated and merged into it,
+#: the fixture began holding THE BUILDINGS THEMSELVES. Three tests then compared each design to
+#: its own previous self - "is this lot empty of anything but lawn" answered by a model of the
+#: building standing in the lot, and "is the Ascent the tallest thing in the park" answered by the
+#: Ascent. All three failed identically before and after any change, which is not a test.
+#:
+#: What all three actually mean is the GROUND: `Park Ways` (lawn, spine, avenues, walks, spurs,
+#: verges, and every lamp mast and arm) plus `Park Rail`. Those are designs, so they cannot
+#: absorb their neighbours - and the lamp arms these tests exist to protect are all in the first.
+GROUND_PARTS = [os.path.join(ROOT, "out", "Park Ways.litematic"),
+                os.path.join(ROOT, "out", "Park Rail.litematic")]
+#: ...and the park's OTHER buildings, for the one test that asks whether the Ascent is the
+#: tallest thing standing. That question is about neighbours, so it must exclude the Ascent's own
+#: lot rather than the whole composite - see `test_the_ascent_tops_out...`.
 GROUND = os.path.join(ROOT, "out", "Park Complete.litematic")
 CONFIGS = ["pf_prismworks_foundry_gate", "pf_prismworks_prism_array",
            "pf_prismworks_resonance_vault", "pf_prismworks_prism_ascent",
@@ -66,9 +85,46 @@ def built():
 
 @pytest.fixture(scope="module")
 def ground():
-    if not os.path.exists(GROUND):
-        pytest.skip("out/Park Complete.litematic is not on disk")
-    return schem.load(GROUND)
+    """The ground layer, composited into one array on the park's own frame.
+
+    Built rather than loaded, because the two parts have different origins and the callers index
+    it as `[y - (LAWN_Y - 190) ...][U][V]` - the frame `Park Complete` happens to have. Stating
+    that conversion once is the only way two coordinate systems stay agreed.
+    """
+    parts = [p for p in GROUND_PARTS if os.path.exists(p)]
+    if not parts:
+        pytest.skip("the ground layer designs are not on disk")
+    return _composite(parts)
+
+
+def _composite(paths):
+    """A `Model`-alike on the (Y-190, U-80300, V-97500) frame `Park Complete` uses."""
+    class _M:
+        pass
+
+    out = _M()
+    out.ids = np.zeros((220, 600, 200), dtype=np.int32)
+    names = ["minecraft:air"]
+    index = {"minecraft:air": 0}
+    for path in paths:
+        m = schem.load(path)
+        sc = json.loads(open(path.replace(".litematic", ".scan.json"),
+                             encoding="utf-8").read())["origin"]
+        ox, oy, oz = int(sc["x"]) - 97500, int(sc["y"]) - 190, int(sc["z"]) - 80300
+        remap = {}
+        for i, n in enumerate(m.names):
+            if n not in index:
+                index[n] = len(names)
+                names.append(n)
+            remap[i] = index[n]
+        ys, zs, xs = np.nonzero(m.ids)
+        for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist()):
+            wy, wz, wx = y + oy, z + oz, x + ox
+            if 0 <= wy < 220 and 0 <= wz < 600 and 0 <= wx < 200:
+                out.ids[wy, wz, wx] = remap[int(m.ids[y, z, x])]
+    out.names = names
+    out.solid = lambda: out.ids != 0
+    return out
 
 
 def _cells(model):
@@ -441,11 +497,24 @@ def test_the_prism_ascent_is_columnar_and_planar(built):
         assert us == {cu - 1, cu, cu + 1}, f"the +V fin at y{y} is {sorted(us)}, not a 3-cell blade"
 
 
-def test_the_ascent_tops_out_over_the_tallest_thing_already_in_the_park(built, ground):
-    """It is a dominant, not a competitor - and the number it has to beat is measured, not recalled."""
-    sol = ground.solid()
+def test_the_ascent_tops_out_over_the_tallest_thing_already_in_the_park(built):
+    """It is a dominant, not a competitor - and the number it has to beat is measured, not recalled.
+
+    THE MEASUREMENT MUST EXCLUDE THE ASCENT'S OWN LOT. This read `Park Complete` whole, and
+    `Park Complete` is a composite: the day the Ascent was first generated and merged into it,
+    the "tallest thing already in the park" became THE ASCENT, `mine > park_top` became
+    `286 > 286`, and the test failed identically whatever anybody did to the design. That is the
+    snapshot trap this repo has now shipped four times, and the fix is the same each time - ask
+    the question about the NEIGHBOURS, which means masking out the thing being judged.
+    """
+    if not os.path.exists(GROUND):
+        pytest.skip("out/Park Complete.litematic is not on disk")
+    park = schem.load(GROUND)
+    sol = park.solid().copy()
+    _cfg, canvas, model = built["pf_prismworks_prism_ascent"]
+    (v0, u0), (dv, du) = _cfg["params"]["at"], _cfg["params"]["size"]
+    sol[:, u0:u0 + du, v0:v0 + dv] = False          # the columns this design itself owns
     park_top = max(y for y in range(sol.shape[0]) if sol[y].any()) + 190
-    _cfg_, canvas, model = built["pf_prismworks_prism_ascent"]
     mine = max(y for y, _z, _x in zip(*np.nonzero(model.solid()))) + canvas.world_origin[1]
     assert mine > park_top, f"the headline ({mine}) is not the tallest thing in the park ({park_top})"
     assert mine - park_top <= 20, "a dominant, not a spike nothing else can answer"
@@ -486,3 +555,137 @@ def test_the_service_gallery_stays_out_of_the_protected_rim(built):
     cfg, canvas, model = built["pf_prismworks_service_gallery"]
     v0, dv = cfg["params"]["at"][0], cfg["params"]["size"][0]
     assert v0 + dv - 1 <= 169, "this shed reaches the rim edge"
+
+# --------------------------------------------------------------------------- the machine land
+
+#: THE MATERIALS THAT SAY MACHINE. Jack: "we still need to properly design the prism area", and
+#: he could not tell it WAS Prismworks. Rendered from eight bearings the first build of these six
+#: was correct architecture with no identity: every material in the land sat between luminance 38
+#: and 73 and every one of them was grey, so the eye read one hue and called it stone.
+PLANT = ("copper",)                     # the warm metal, and the land's only hue
+SIGNAL = ("cyan_wool", "light_blue_wool", "froglight", "lightning_rod")
+
+
+def _names_of(model):
+    names = [n.split(":")[-1].split("[")[0] for n in model.names]
+    out = {}
+    ys, zs, xs = np.nonzero(model.ids)
+    for y, z, x in zip(ys, zs, xs):
+        out[(int(x), int(z), int(y))] = names[model.ids[y, z, x]]
+    return out
+
+
+@pytest.mark.parametrize("stem", CONFIGS)
+def test_every_building_wears_the_land_s_plant_metal(built, stem):
+    """ONE COPPER BAND PER BUILDING, AT THE CORNICE, AND THAT IS THE LAND'S SIGNATURE.
+
+    `waxed_copper_block` is L124 against a L45 field - 79 points AND a full hue flip - and it is
+    CHEAP here where plain `copper_block` is expensive, which is not something to remember but
+    something `palette.tier` was asked. It is confined to a cornice, a setback collar and a
+    gantry: a warm metal used as a wall would turn a cold land warm, which is the opposite
+    failure and just as bad.
+    """
+    _cfg, _c, model = built[stem]
+    got = set(_names_of(model).values())
+    assert any(any(t in n for t in PLANT) for n in got), \
+        f"{stem} carries no plant metal at all - it is six greys, which reads as one"
+
+
+@pytest.mark.parametrize("stem", CONFIGS)
+def test_the_plant_metal_is_a_line_and_never_a_wall(built, stem):
+    """A cornice band is a line. If copper ever becomes a field the land stops being deepslate,
+    so the ceiling is stated here rather than left to whoever adds the next building."""
+    _cfg, _c, model = built[stem]
+    named = _names_of(model)
+    copper = sum(1 for n in named.values() if any(t in n for t in PLANT))
+    assert copper / max(1, len(named)) <= 0.12, \
+        f"{stem}: {100 * copper / len(named):.1f}% copper - that is cladding, not a band"
+
+
+def test_the_plant_metal_is_cheap_available_and_has_a_matching_trim_family():
+    """Asked of the registry, never of a memory: `copper_block` is EXPENSIVE on this economy and
+    `waxed_copper_block` is cheap, which is exactly the sort of thing this repo has got wrong by
+    reaching for the obvious name."""
+    for key in ("plant", "pstair", "pslab"):
+        n = pb.PRISM[key]
+        assert blocks.available(n), n
+        assert blocks.spendable(n), n
+        assert palette.tier(n) != "expensive", n
+    r, g, b = blocks.color(pb.PRISM["plant"], "side")
+    assert r > b + 60, "the plant metal has to be a real hue against a grey land"
+
+
+@pytest.mark.parametrize("stem", CONFIGS)
+def test_the_signal_is_a_SEQUENCE_and_not_a_sparkle(built, stem):
+    """PRECISION AND SEQUENCE IS THE LAND'S BRIEF, and what it shipped was 388 cyan cells
+    scattered through 14,664 - which at any distance is speckle on a dark wall.
+
+    The measure of a sequence is that its signal cells form RUNS rather than singletons: a
+    pilaster strip is a vertical ladder and a blade edge is a continuous line, so most signal
+    cells have a signal cell directly above or below them. A scatter has almost none.
+    """
+    _cfg, _c, model = built[stem]
+    named = _names_of(model)
+    sig = {k for k, n in named.items() if any(t in n for t in SIGNAL)}
+    assert len(sig) >= 35, f"{stem} has {len(sig)} signal cells - that is not a signal"
+    # A RUN IN ANY DIRECTION, not just a vertical one. The first version of this measured only
+    # vertical stacking and reported four correct buildings at 43-49%, because a shaft ring and
+    # a crown band are HORIZONTAL sequences and count for nothing under that rule. What separates
+    # a sequence from a sparkle is whether a signal cell has a signal NEIGHBOUR at all.
+    runs = sum(1 for (v, u, y) in sig
+               if any((v + a, u + b, y + c) in sig for a, b, c in
+                      ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))))
+    assert runs / len(sig) >= 0.65, (
+        f"{stem}: only {100 * runs / len(sig):.0f}% of the signal is in runs - the rest is "
+        "speckle, which is what 388 scattered cyan cells looked like at fifty blocks")
+
+
+def test_a_pilaster_strip_climbs_from_pier_through_signal_to_a_lit_head():
+    """The ladder is what makes the land COUNTABLE, and it is asserted on a bare box so the
+    order cannot drift with whatever building happens to call it."""
+    from mcbuild.gen.canvas import Canvas
+    c = Canvas(11, 20, 11)
+    L = pb._Lot(c, {"at": [0, 0], "size": [11, 11], "seed": 0})
+    L.hollow(1, 1, 0, 9, 9, 0, pb.PRISM["pier"])
+    for y in range(1, 13):
+        L.ring(1, 1, 9, 9, y, pb.PRISM["field"])
+    pb._pilasters(L, 1, 1, 9, 9, 1, 12, bay=4)
+    col = [c.get_name(0, y, 5).split(":")[-1] for y in range(1, 13)]
+    assert pb.PRISM["signal"] in col, col
+    assert pb.PRISM["high"] in col, col
+    assert pb.PRISM["glow"] in col, col
+    # the head is the LAST thing on the strip, under the capital
+    assert col.index(pb.PRISM["glow"]) > col.index(pb.PRISM["signal"]), col
+
+
+@pytest.mark.parametrize("stem", ["pf_prismworks_foundry_gate", "pf_prismworks_prism_array",
+                                  "pf_prismworks_resonance_vault"])
+def test_the_parapets_carry_an_instrument_array(built, stem):
+    """A machine land has instruments where a fairground has flags, and a lightning rod is one
+    block: white, on a rhythm, on top of a merlon that is really there."""
+    _cfg, _c, model = built[stem]
+    named = _names_of(model)
+    rods = [k for k, n in named.items() if n == pb.PRISM["mast"]]
+    assert len(rods) >= 4, f"{stem} has {len(rods)} instruments on its parapet"
+    for (v, u, y) in rods:
+        assert (v, u, y - 1) in named, f"{stem}: an instrument at {(v, u, y)} floats"
+
+
+def test_the_ascent_s_blade_edges_are_ONE_CONTINUOUS_LINE_OF_LIGHT(built):
+    """The single biggest thing that tells this tower from a dark spire.
+
+    The leading edge of each fin was `high` every EIGHTH course and `pier` between, which at
+    fifty blocks is speckle - the same failure eight retired mammal coats had. It is continuous
+    now, with a `glow` every eight so a guest can count the stages.
+    """
+    _cfg, _c, model = built["pf_prismworks_prism_ascent"]
+    named = _names_of(model)
+    bright = {pb.PRISM["high"], pb.PRISM["glow"]}
+    cv, cu = 46, 36
+    # the +V blade's own tip column, over the courses the fin actually spans
+    runs = 0
+    for y in range(10, 55):
+        col = [(v, cu, y) for v in range(cv + 7, cv + 20)]
+        if any(named.get(k) in bright for k in col):
+            runs += 1
+    assert runs >= 40, f"the blade edge is lit on only {runs} of 45 courses - that is a sparkle"

@@ -154,6 +154,23 @@
       "axis": "v",
       "clear_h": 5
     },
+    "mast_n": {
+      "at": [
+        15,
+        3
+      ],
+      "top": 14,
+      "pennant": 6
+    },
+    "mast_s": {
+      "at": [
+        25,
+        3
+      ],
+      "top": 14,
+      "pennant": 6
+    },
+    "bunting": 15,
     "board": {
       "v": [
         15,
@@ -210,15 +227,15 @@
       "narrative": "The mine district's decision point: a bordered stone square with an inlaid cross and flush lights, a show board facing the walk, a claim marker on a stub of rail pointing east, and the coaster's queue and exit arches twenty courses apart on the flank toward the ride.\n"
     },
     "metrics": {
-      "blocks": 2217,
-      "materials": 22,
-      "dominant_material_share": 0.415,
+      "blocks": 2256,
+      "materials": 27,
+      "dominant_material_share": 0.4078,
       "light_blocks": 8,
       "massing": {
         "width": 38,
-        "height": 10,
+        "height": 15,
         "depth": 45,
-        "fill_ratio": 0.1296
+        "fill_ratio": 0.088
       },
       "silhouette": {
         "top": {
@@ -226,35 +243,35 @@
           "fill_ratio": 0.8865
         },
         "front": {
-          "area": 225,
-          "fill_ratio": 0.1829
+          "area": 264,
+          "fill_ratio": 0.2146
         },
         "side": {
-          "area": 137,
-          "fill_ratio": 0.0993
+          "area": 144,
+          "fill_ratio": 0.1043
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          1.0,
-          0.0,
+          0.9845,
+          0.0155,
           0.0
         ],
         "top_silhouette_perimeter": 334,
-        "surface_faces_per_block": 2.0776
+        "surface_faces_per_block": 2.1037
       },
       "material_counts": {
         "stone_bricks": 920,
-        "spruce_planks": 478,
+        "spruce_planks": 469,
         "polished_blackstone_bricks": 329,
         "stone_brick_slab": 121,
         "stone_brick_wall": 66,
         "stripped_spruce_log": 47,
-        "white_wool": 41,
+        "white_wool": 47,
         "smooth_stone": 32,
         "spruce_slab": 32,
         "cracked_stone_bricks": 27,
-        "dark_oak_stairs": 24,
+        "dark_oak_stairs": 22,
         "ochre_froglight": 16
       }
     },
@@ -267,8 +284,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "8f8fb76a15dfd09c31a3212262a51f06ad73b5626fee8afd0065166f777c0146",
-    "generator_source_digest": "6ce00b9b336f6417cc5df74138c9d392870fc1d8827fea95c0463a0b391f1d81",
+    "fingerprint": "b6c76033c5a135c3befff20b8c842684c53db72670a69d74ab78ea2c18e4c9d1",
+    "generator_source_digest": "ba20ea3c325b512e6c4d381f79f227891356832ebfa3e76f5621a4bfecccaa65",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -311,9 +328,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 52.641667,
-    "blocks": 2217,
-    "blocks_per_second": 42.11
+    "seconds": 65.704765,
+    "blocks": 2256,
+    "blocks_per_second": 34.34
   },
   "generator_contract": {
     "ok": true,
@@ -322,7 +339,7 @@
     "roles": [
       "path"
     ],
-    "blocks": 2217,
+    "blocks": 2256,
     "mechanic_families": [
       "access",
       "light",
@@ -352,6 +369,7 @@
     "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
     "not in the provisional skyblock-1.19 list: dark_oak_planks",
     "not in the provisional skyblock-1.19 list: dark_oak_stairs",
+    "not in the provisional skyblock-1.19 list: lightning_rod",
     "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
   ],
   "file": "PF Mining Square.litematic",
