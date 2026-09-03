@@ -157,12 +157,20 @@
         2,
         6
       ],
-      "lamps": 3,
+      "lamps": 5,
       "eaves": 16,
       "door": [
         -5,
         -3
       ],
+      "pylons": 2,
+      "front": 124,
+      "signs": 1,
+      "bay": [
+        -3,
+        3
+      ],
+      "roof": 7,
       "at": [
         25,
         111
@@ -232,7 +240,7 @@
     }
   ],
   "piece_count": 12,
-  "signs": 16,
+  "signs": 17,
   "refused_signs": [],
   "contract": "everything in front of and between the park's attractions: a name board on every one, queues at the rides, entrance and exit thresholds, and sight pieces in the measured empty bands - none of it below the build plane, and nothing over a paved column below head height",
   "unverified": [
@@ -271,51 +279,51 @@
       "narrative": "The Frontier's frontage: a name board over every attraction's own spur, entrance and exit thresholds flanking the Mine Coaster's approach, a switchback queue down the coaster's east flank, a water tower and two ore-cart props in the land's empty bands, and a staff gate on the works yard. Nothing below the build plane, nothing in a walkway, no street furniture.\n"
     },
     "metrics": {
-      "blocks": 1768,
+      "blocks": 1912,
       "materials": 19,
-      "dominant_material_share": 0.1578,
-      "light_blocks": 21,
+      "dominant_material_share": 0.1512,
+      "light_blocks": 23,
       "massing": {
         "width": 134,
         "height": 21,
         "depth": 161,
-        "fill_ratio": 0.0039
+        "fill_ratio": 0.0042
       },
       "silhouette": {
         "top": {
-          "area": 351,
+          "area": 352,
           "fill_ratio": 0.0163
         },
         "front": {
-          "area": 242,
-          "fill_ratio": 0.086
+          "area": 258,
+          "fill_ratio": 0.0917
         },
         "side": {
-          "area": 601,
-          "fill_ratio": 0.1778
+          "area": 656,
+          "fill_ratio": 0.194
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.6063,
-          0.3179,
-          0.0758
+          0.5706,
+          0.3593,
+          0.0701
         ],
-        "top_silhouette_perimeter": 701,
-        "surface_faces_per_block": 2.1199
+        "top_silhouette_perimeter": 705,
+        "surface_faces_per_block": 2.0952
       },
       "material_counts": {
-        "spruce_planks": 279,
-        "stone_bricks": 240,
-        "stripped_spruce_log": 201,
+        "spruce_planks": 289,
+        "stone_bricks": 274,
+        "stripped_spruce_log": 199,
+        "smooth_stone": 173,
+        "polished_blackstone_bricks": 167,
         "dark_oak_stairs": 153,
-        "red_wool": 145,
-        "polished_blackstone_bricks": 135,
-        "smooth_stone": 121,
+        "red_wool": 149,
         "spruce_log": 114,
         "stone_brick_stairs": 95,
         "dark_oak_planks": 92,
-        "cracked_stone_bricks": 55,
+        "cracked_stone_bricks": 64,
         "spruce_fence": 40
       }
     },
@@ -328,8 +336,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "4eb4cb798436aa17a0b3b40c83573faf13bfc0652ebdeda427b281eaf8054e44",
-    "generator_source_digest": "9c0321e420b38f2d8a55f9770520382f48572118dddde0776952fc5accadff66",
+    "fingerprint": "d64f9c766cdd1e8b959138c02111228f5368ee7f9296ec2cbaac55a28b9a17ad",
+    "generator_source_digest": "f0f76467d78ec00970e1a3b0efd847cbeb2d999e93b04da11421fd2180118919",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -371,9 +379,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 55.240381,
-    "blocks": 1768,
-    "blocks_per_second": 32.01
+    "seconds": 50.976872,
+    "blocks": 1912,
+    "blocks_per_second": 37.51
   },
   "generator_contract": {
     "ok": true,
@@ -382,7 +390,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 1768,
+    "blocks": 1912,
     "mechanic_families": [
       "light",
       "rail",

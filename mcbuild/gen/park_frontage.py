@@ -977,6 +977,14 @@ PORCH = {
     "door": None,         # [i0, i1] inclusive frontage offsets kept free of posts
     "eave": True,         # carry the beam one cell forward as a fascia
     "lamps": True,
+    "pylon": False,       # stone bookends at the two ends of the run
+    "roof": None,         # the course the building's own roof plate sits at; default height + 1
+    "parapet": 0,         # courses of low parapet over the roof, across the whole width
+    "bay_at": None,       # frontage offset of the raised centre bay - the DOOR's own axis
+    "bay_width": 7,
+    "bay_rise": 5,        # courses the centre bay stands above the roof
+    "title": None,
+    "lines": None,
 }
 
 
@@ -1077,8 +1085,85 @@ def _porch(w, f, pal, p) -> dict:
             _put(w, f, pal, i, 0, height - 1, pal["light"], hanging="true", waterlogged="false")
             lamps += 1
 
+    # -- the stone bookends -------------------------------------------------------------------
+    # ALL THAT BROWN NEEDS SOMETHING THAT IS NOT BROWN. The station behind this is `spruce_planks`
+    # wall under a `spruce_planks`/`stripped_oak_log` roof, and a spruce colonnade in front of it
+    # is a third brown - measured, `stone_bricks` is L122 and `smooth_stone` L159 against the
+    # spruce family's browns, which is the only real value step this land's palette has at
+    # cheap tier. Two piers, at the ends, so the run reads as a building rather than a fence.
+    pylons = 0
+    if q["pylon"]:
+        for i in (lo, hi):
+            for d in (0, -1):
+                for h in range(1, height):
+                    _put(w, f, pal, i, d, h, _weathered(pal, int(q.get("seed", 0)), i, d, h))
+                _put(w, f, pal, i, d, height, "band")
+            pylons += 1
+
+    # -- the false front ----------------------------------------------------------------------
+    # **A FLAT LID IS WHAT MAKES A BUILDING READ AS A BOX**, and this one's roof is a plate of one
+    # material with a bare edge. A gold-rush depot answers it the way the whole land does: a FALSE
+    # FRONT standing on the roof line - a parapet across the width, a taller bay over the door
+    # carrying the name, and a coping on both. It is the land's own idiom and it is what the void
+    # tower settled about voxels generally: what reads as architecture is REGULARITY AND OPENINGS,
+    # never damage.
+    roof = int(q["roof"]) if q.get("roof") is not None else height + 1
+    para, rise = max(0, int(q["parapet"])), max(0, int(q["bay_rise"]))
+    bw = max(1, int(q["bay_width"]))
+    b_at = q.get("bay_at")
+    b_at = int(b_at) if b_at is not None else 0
+    b_lo, b_hi = b_at - bw // 2, b_at - bw // 2 + bw - 1
+    # **IT IS MASONRY, AND THAT IS A MEASUREMENT.** Built in the same timber as the verandah under
+    # it the false front vanished: `spruce_planks` is L88.8 and `stripped_spruce_log` L92.8 - FOUR
+    # APART - so a board field coped with a log has no coping, and against a spruce wall and a
+    # spruce roof the whole entrance came out as one brown mass. This repo has made that mistake
+    # three times and written it down each time: A VALUE LADDER IS FOUND ACROSS FAMILIES, NEVER
+    # INSIDE ONE. Across them the rungs are real -
+    #
+    #     polished_blackstone_bricks  44.6      the plinth line, under everything
+    #     spruce_planks               88.8      the name panel, warm on the stone
+    #     stone_bricks                122.0     the field
+    #     smooth_stone                159.0     the jambs and the coping
+    #
+    # - steps of 44, 33 and 37 against the ~15 below which a course stops being a line. A depot's
+    # masonry false front over a timber verandah is also simply what the thing is.
+    panel = {b_at - 1, b_at, b_at + 1} if rise >= 5 else set()
+    front = 0
+    for i in range(lo, hi + 1):
+        in_bay = rise and b_lo <= i <= b_hi
+        tall = (roof + rise) if in_bay else (roof + para)
+        for h in range(roof + 1, tall + 1):
+            if h == roof + 1:
+                key = "plinth"                       # the dark line the whole front stands on
+            elif h == tall or (in_bay and i in (b_lo, b_hi)) or i in (lo, hi):
+                key = "band"                         # coping, and a jamb at every corner
+            elif in_bay and i in panel and h in (tall - 3, tall - 2):
+                key = "board"                        # the name panel, warm against the stone
+            else:
+                key = _weathered(pal, int(q.get("seed", 0)), i, h)
+            for d in (0, -1):
+                _put(w, f, pal, i, d, h, key)
+                front += 1
+        if in_bay and rise >= 3 and b_lo < i < b_hi and i not in panel:
+            for d in (0, -1):
+                _put(w, f, pal, i, d, roof + rise - 1, "accent")
+
+    # the name, on the panel, and a lamp either side of it
+    signs = 0
+    if rise >= 5 and q.get("title"):
+        lines = [str(q["title"]).upper()] + [str(x) for x in (q.get("lines") or [])]
+        if _sign(w, f, pal, b_at, -2, roof + rise - 2, f.facing, lines):
+            signs += 1
+        for i in (b_at - 2, b_at + 2):
+            if b_lo < i < b_hi:
+                _put(w, f, pal, i, -1, roof + rise - 3, pal["light"],
+                     hanging="true", waterlogged="false")
+                lamps += 1
+
     return {"kind": "porch", "width": width, "height": height, "posts": sorted(posts),
-            "lamps": lamps, "eaves": eaves, "door": [d0, d1] if door else None}
+            "lamps": lamps, "eaves": eaves, "door": [d0, d1] if door else None,
+            "pylons": pylons, "front": front, "signs": signs,
+            "bay": [b_lo, b_hi] if rise else None, "roof": roof}
 
 
 # --------------------------------------------------------------------------- pergola + stamp

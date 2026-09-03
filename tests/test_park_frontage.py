@@ -501,6 +501,90 @@ def test_a_porch_carries_a_beam_the_whole_width_and_an_eave_in_front_of_it():
     assert eave == beam, "the fascia does not run the beam's own width"
 
 
+def _front_cells():
+    return _porch_cells(pylon=True, roof=7, parapet=3, bay_at=0, bay_width=7, bay_rise=5,
+                        title="Mine Coaster", lines=["depot"])
+
+
+def _lum(name):
+    r, g, b = blocks.color(name, "side")
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def test_the_false_front_is_not_another_brown():
+    """**A VALUE LADDER IS FOUND ACROSS FAMILIES, NEVER INSIDE ONE**, and the first false front
+    here was built in the verandah's own timber: `spruce_planks` is L88.8 and
+    `stripped_spruce_log` L92.8 - FOUR APART - so a board field coped with a log had no coping,
+    and against a spruce wall under a spruce roof the whole entrance was one brown mass. Jack:
+    "we need this entry to be something real not a strange brown blob of crap."
+
+    This repo has drawn the same wrong conclusion three times from measuring inside one family.
+    The rungs are asserted rather than trusted, against the ~15 below which a course stops being
+    a line at all."""
+    cells = _front_cells()
+    above = [n for (_v, h, _u), (n, _p) in cells.items() if h > 7]
+    below = [n for (_v, h, _u), (n, _p) in cells.items() if 1 <= h <= 6]
+    assert above and below, "the porch built no false front, or no verandah under it"
+    field = max(set(above), key=above.count)
+    timber = max(set(below), key=below.count)
+    assert _lum(field) - _lum(timber) >= 25, (
+        f"the false front's {field} (L{_lum(field):.0f}) is the same value as the verandah's "
+        f"{timber} (L{_lum(timber):.0f}) - it will not read as a separate element")
+
+
+def test_the_false_front_stands_on_a_dark_line_and_wears_a_coping():
+    """A field of one material with a straight top is a hoarding. The plinth is what separates
+    the front from the roof it stands on and the coping is what finishes it, and both have to be
+    a real step off the field or they are decoration nobody can see."""
+    cells = _front_cells()
+    base = {u: n for (v, h, u), (n, _p) in cells.items() if h == 8 and v == 25}
+    assert base, "the false front has no base course"
+    assert len(set(base.values())) == 1, f"the plinth line is not one material: {set(base.values())}"
+    plinth = next(iter(base.values()))
+    # EVERY COLUMN'S OWN TOP COURSE IS ITS COPING, and the wings and the bay stop at different
+    # heights - so the field is what is left once the plinth and each column's own top are taken
+    # out. Sampling a fixed pair of courses instead picks up the wings' coping and reports the
+    # coping as the field, which is a test measuring its own confusion.
+    tops = {}
+    for (v, h, u), (n, _p) in cells.items():
+        if v == 25 and h > 7:
+            tops[u] = max(tops.get(u, (0, "")), (h, n))
+    field = [n for (v, h, u), (n, _p) in cells.items()
+             if v == 25 and 8 < h < tops.get(u, (0,))[0]]
+    common = max(set(field), key=field.count)
+    assert _lum(common) - _lum(plinth) >= 25, (
+        f"the plinth {plinth} (L{_lum(plinth):.0f}) does not draw a line under the field "
+        f"{common} (L{_lum(common):.0f})")
+    copings = {n for _h, n in tops.values()}
+    assert len(copings) == 1, f"the coping is not one material: {copings}"
+    cop = next(iter(copings))
+    assert _lum(cop) - _lum(common) >= 20, (
+        f"the coping {cop} (L{_lum(cop):.0f}) is the same value as the field "
+        f"{common} (L{_lum(common):.0f})")
+
+
+def test_the_name_bay_stands_clear_of_the_parapet_and_carries_a_sign():
+    """The bay is what a false front is FOR - a name you can read from the street - so it has to
+    stand above the wall either side of it, and its sign has to be on a block rather than
+    silently refused, which is this project's most-repeated failure shape."""
+    c = pf.build({"land": "frontier", "pieces": [
+        {"kind": "porch", "at": [25, 111], "facing": "west", "width": 16, "height": 6, "bay": 4,
+         "door": [-5, -3], "pylon": True, "roof": 7, "parapet": 3, "bay_at": 0, "bay_width": 7,
+         "bay_rise": 5, "title": "Mine Coaster", "lines": ["depot"]}]})
+    assert not getattr(c, "refused_signs", None), "a name board was refused"
+    cells = _front_cells()
+    tall = {}
+    for (v, h, u), (_n, _p) in cells.items():
+        if v == 25 and h > 7:
+            tall[u] = max(tall.get(u, 0), h)
+    bay = [tall[u] for u in range(108, 115) if u in tall]
+    wing = [tall[u] for u in tall if u < 108 or u > 114]
+    assert bay and wing, f"no bay or no wing: {sorted(tall)}"
+    assert min(bay) > max(wing), f"the bay ({min(bay)}) does not clear the parapet ({max(wing)})"
+    signs = [k for k, (n, _p) in cells.items() if n.endswith("wall_sign")]
+    assert len(signs) == 1, f"the name bay carries {len(signs)} signs"
+
+
 # --------------------------------------------------------------------------- the sloth's home
 
 

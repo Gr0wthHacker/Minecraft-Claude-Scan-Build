@@ -163,6 +163,33 @@ params:
     # `width: 16` at U111 is exactly the station's own front, U103-118. `door` is the opening at
     # U106-108 in frontage offsets, so no post stands in the doorway and the jambs go either side
     # of it instead - the arch, the spur and this bay are all on U107.
+    #
+    # **AND A FALSE FRONT, BECAUSE A FLAT LID IS WHAT MAKES A BUILDING READ AS A BOX.** Jack, on
+    # the porch alone: "we need this entry to be something real not a strange brown blob of
+    # crap." The station's wall is `spruce_planks` and its roof is a flat plate of
+    # `spruce_planks` and `stripped_oak_log` with a bare edge - 16 x 5 of one brown under a lid.
+    # Measured, V24-25 above h7 is EMPTY across the whole front, which is a 2 x 6 x 21 envelope
+    # sitting exactly where a gold-rush depot puts its false front. So: a parapet across the
+    # width at h8-h10, a bay over the DOOR rising to h12 carrying the name, and a red band
+    # tying it to the arch below.
+    #
+    # **IT IS MASONRY AND THE FIRST ONE WAS NOT.** Built in the verandah's own timber it
+    # disappeared: `spruce_planks` is L88.8 and `stripped_spruce_log` L92.8, four apart, so
+    # against a spruce wall under a spruce roof the whole entrance was one brown mass. The
+    # ladder is across families - blackstone plinth 44.6, spruce name panel 88.8, stone
+    # brick field 122.0, smooth stone coping 159.0.
+    #
+    # **THE BAY IS CENTRED ON THE BUILDING, NOT ON THE DOOR.** Put on the door at U107 it stood
+    # three cells behind the arch and carried a red band and a name of its own - two name boards
+    # on one axis, and from the promenade the arch's fascia covered the depot's. The axis that
+    # has to line up is the WAY IN (spur, arch, door, all U107); a building's name goes on the
+    # middle of the building. At U111 the two read as a gate in front of a depot rather than as
+    # one lumpy stack, and the arch is timber against the front's masonry.
+    #
+    # `pylon: true` puts the only thing on this frontage that is NOT brown. The wall, the roof
+    # and this colonnade are three browns; `stone_bricks` (L122) and `smooth_stone` (L159) are
+    # the one real value step this land's palette has at cheap tier, and two piers at the ends
+    # are what stop a colonnade reading as a fence.
     - kind: porch
       name: Mine Coaster station front
       at: [25, 111]
@@ -170,6 +197,14 @@ params:
       height: 6
       bay: 4
       door: [-5, -3]
+      pylon: true
+      roof: 7
+      parapet: 3
+      bay_at: 0
+      bay_width: 7
+      bay_rise: 5
+      title: Mine Coaster
+      lines: ["depot"]
 
     # ---------------------------------------------------------------- the queue: DELETED
     # **THE RIDE ALREADY HAS ONE, AND THIS WAS A SECOND ONE IN THE WRONG PLACE.**
