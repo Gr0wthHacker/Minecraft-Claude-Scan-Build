@@ -59,15 +59,15 @@
       "signs": 2,
       "lamps": 4,
       "span": 5,
-      "piers": 4,
+      "piers": 2,
       "frontage": [
-        -11,
-        11
+        -4,
+        4
       ],
       "height": 10,
       "at": [
         20,
-        134
+        113
       ],
       "facing": "west",
       "land": "frontier",
@@ -134,20 +134,6 @@
       "name": "Assay and Prize Office"
     },
     {
-      "kind": "portal/entrance",
-      "title": "RIDE ENTRANCE",
-      "signs": 1,
-      "lamps": 2,
-      "height": 6,
-      "at": [
-        21,
-        126
-      ],
-      "facing": "west",
-      "land": "frontier",
-      "name": "Mine Coaster entrance"
-    },
-    {
       "kind": "portal/exit",
       "title": "RIDE EXIT",
       "signs": 1,
@@ -155,7 +141,7 @@
       "height": 6,
       "at": [
         21,
-        146
+        121
       ],
       "facing": "west",
       "land": "frontier",
@@ -221,8 +207,8 @@
       "name": "Works Yard staff gate"
     }
   ],
-  "piece_count": 12,
-  "signs": 17,
+  "piece_count": 11,
+  "signs": 16,
   "refused_signs": [],
   "contract": "everything in front of and between the park's attractions: a name board on every one, queues at the rides, entrance and exit thresholds, and sight pieces in the measured empty bands - none of it below the build plane, and nothing over a paved column below head height",
   "unverified": [
@@ -261,51 +247,51 @@
       "narrative": "The Frontier's frontage: a name board over every attraction's own spur, entrance and exit thresholds flanking the Mine Coaster's approach, a switchback queue down the coaster's east flank, a water tower and two ore-cart props in the land's empty bands, and a staff gate on the works yard. Nothing below the build plane, nothing in a walkway, no street furniture.\n"
     },
     "metrics": {
-      "blocks": 1967,
+      "blocks": 1756,
       "materials": 18,
-      "dominant_material_share": 0.15,
-      "light_blocks": 20,
+      "dominant_material_share": 0.1521,
+      "light_blocks": 18,
       "massing": {
         "width": 134,
         "height": 21,
         "depth": 161,
-        "fill_ratio": 0.0043
+        "fill_ratio": 0.0039
       },
       "silhouette": {
         "top": {
-          "area": 370,
-          "fill_ratio": 0.0172
+          "area": 332,
+          "fill_ratio": 0.0154
         },
         "front": {
           "area": 232,
           "fill_ratio": 0.0824
         },
         "side": {
-          "area": 659,
-          "fill_ratio": 0.1949
+          "area": 581,
+          "fill_ratio": 0.1718
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.5943,
-          0.3376,
-          0.0681
+          0.5957,
+          0.328,
+          0.0763
         ],
-        "top_silhouette_perimeter": 680,
-        "surface_faces_per_block": 2.0763
+        "top_silhouette_perimeter": 644,
+        "surface_faces_per_block": 2.0945
       },
       "material_counts": {
-        "spruce_planks": 295,
-        "stone_bricks": 271,
-        "stripped_spruce_log": 240,
-        "dark_oak_stairs": 187,
-        "red_wool": 187,
-        "polished_blackstone_bricks": 151,
-        "smooth_stone": 129,
-        "spruce_log": 112,
-        "stone_brick_stairs": 110,
+        "spruce_planks": 267,
+        "stone_bricks": 253,
+        "stripped_spruce_log": 198,
+        "dark_oak_stairs": 159,
+        "red_wool": 149,
+        "polished_blackstone_bricks": 139,
+        "smooth_stone": 125,
+        "stone_brick_stairs": 95,
+        "spruce_log": 94,
         "dark_oak_planks": 92,
-        "cracked_stone_bricks": 58,
+        "cracked_stone_bricks": 57,
         "spruce_fence": 40
       }
     },
@@ -318,7 +304,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "229f43591feac3c049537557e12c633948e744a7e82727e86c5795e577cf7697",
+    "fingerprint": "5c5d08998cfad99f95ddc45f2b6953fc8e66abbd3d69d946833ee74b1d954217",
     "generator_source_digest": "8953590b33a7a9a48c978350a60bf4dba61eb13c0ebbad52baf5e925feda9b45",
     "anchors": [],
     "genome": {
@@ -361,9 +347,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 49.3429,
-    "blocks": 1967,
-    "blocks_per_second": 39.86
+    "seconds": 47.230147,
+    "blocks": 1756,
+    "blocks_per_second": 37.18
   },
   "generator_contract": {
     "ok": true,
@@ -372,7 +358,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 1967,
+    "blocks": 1756,
     "mechanic_families": [
       "light",
       "rail",

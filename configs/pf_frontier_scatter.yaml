@@ -52,6 +52,13 @@ params:
     - [24, 147, 99, 169]     # Mine Coaster and Mine Ridge
     - [148, 169, 6, 105]     # Mine Works
     - [157, 169, 125, 160]   # Works Yard
+    # **AND THE COASTER'S OWN FRONTAGE, WHICH IS ON THE VERGE AND NOT IN A LOT.** The verge
+    # band V19-23 is legitimately this design's ground - it is between modules - so nothing
+    # kept it off. Then the ride's entrance ensemble moved onto the station's real front at
+    # U100-120 and a tipped-ore pile at V19-23/U117-121 landed inside the exit portal:
+    # `park_place` reported 4 contested cells between the two. Land dressing yields to a
+    # guest threshold. The band is the three pieces plus a cell of tolerance each end.
+    - [19, 23, 97, 124]      # Mine Coaster frontage - entrance, marquee and exit
   path_clear: 2
   # DENSER, BECAUSE THE GROUND IS SMALLER. With every module's lot off limits the plantable land
   # is the verges and the gaps between them, so the same density over a third of the area came out

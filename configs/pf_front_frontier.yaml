@@ -46,9 +46,19 @@ params:
       lines: ["walk the trail", "store - assay"]
     - kind: marquee
       name: Mine Coaster
-      at: [20, 134]
+      # NO WING: A 24-WIDE GANTRY DOES NOT FIT A 21-WIDE FORECOURT. With `wing: 1` this piece is
+      # four bays and its outer piers land 11 cells out either side - at U98-99, which is the U96
+      # crossing's own walkway, and at U119-120, which is the platform's way out. One bay is 8
+      # wide and sits inside the concourse with room for the exit gate beyond it.
+      #
+      # U113 IS DECIDED BY TWO THINGS IT MAY NOT STAND ON, both measured off `Park Ways`:
+      #   * V20/U105 is a CROSSING CORNER LAMP, not a verge mast that happened to land there. A
+      #     `keep_clear` band was tried and it left the U96 crossing lit three-square, which
+      #     `test_a_crossing_is_lit_four_square_or_not_at_all` caught.
+      #   * the U96 junction flares its own apron across the verge, paving V21 out to U103.
+      # Both piers sit east of U105, and the opening still covers the spur at U112-114.
+      at: [20, 113]
       span: 5
-      wing: 1
       title: MINE COASTER
       lines: ["the big one", "queue east"]
     # THE POSTS AND THE PORCH HAVE NO SPUR, so there is no path to arch over and the same piece
@@ -84,26 +94,43 @@ params:
     # ride are told apart before anybody reads a word - the entrance carries the land's accent
     # across its head and a lamp each side, the exit carries neither.
     #
-    # **AND THEY STAND WHERE THE RIDE SAYS ITS DOORS ARE, WHICH IS NOT WHERE THEY WERE.** Jack:
-    # "on the other side of the rollercoaster the 'queue' area is weird, in the wrong area, etc."
-    # `Mine Coaster.scan.json` declares its own guest anchors, every one on its WEST flank at
-    # world V24:
+    # **THEY STAND WHERE THE RIDE'S DOOR MEASURES, AND THE DECLARED ANCHORS WERE THE WRONG FILE.**
+    # Jack: "the entrance to the rollercoaster and the queue stuff is all misaligned."
     #
-    #     queue_entry  U126        public_entry  U134
-    #     public_exit  U142        ride_exit     U146
+    # `out/Mine Coaster.scan.json` declares guest anchors at U126/U134/U142/U146 and they were
+    # taken at face value. **THAT SIDECAR BELONGS TO A BUILD THIS PARK DOES NOT PLACE.** There is
+    # no `out/PF Mine Coaster.litematic`, so `tools/park_place.modules` falls through to
+    # `out/park_final/artifacts/Mine Coaster.litematic` - a 101 x 61 build with no `park_contract`
+    # and no anchors at all. The file that publishes the anchors is 69 x 97, rotated a quarter
+    # turn against it, and 26 columns too wide for the 111 x 71 lot: it can never be placed as it
+    # stands. Two artifacts of one name, and the signage was sited off the one nobody builds.
     #
-    # These stood at U116 and U152 - ten cells north of the queue entry and six south of the ride
-    # exit - so each framed a piece of open lawn BESIDE the door rather than the door. A generator
-    # that invents a ride's front is guessing at something the ride already states.
-    - kind: portal
-      name: Mine Coaster entrance
-      at: [21, 126]
-      mode: entrance
-      title: RIDE ENTRANCE
-      lines: ["queue this way", "", "mine coaster"]
+    # Measured off `out/Park Complete.litematic` instead - the thing that actually stands:
+    #
+    #     concourse terrace   V24-25 x U100-120     two deep, twenty-one wide, the ride's forecourt
+    #     station front wall  V26    x U103-118     solid, with openings at U100-102 and U106-108
+    #     platform            V28-30 x U118-125     rails at V27 and V31, U119-123
+    #     the running track   V32    x U102-142
+    #
+    # So the ride's front door is U100-120 and every piece of its signage stood at U126-146 -
+    # three to twenty-six columns past the east end of the concourse, in front of the blank flank,
+    # on bare lawn. Walking the marquee from U126 to U134 (which this file did once) moved it
+    # further from the door, not nearer. **A DECLARED ANCHOR IS ONLY EVIDENCE ABOUT THE ARTIFACT
+    # THAT DECLARES IT**; when two files share a name, measure the one the merge actually reads.
+    #
+    # The two pieces now stand on the concourse itself: the marquee arches over the spur at
+    # U109-117, and the exit gate opens on the platform's own way out at U119-123.
+    #
+    # **THE ENTRANCE PORTAL IS RETIRED, AND THE FORECOURT IS WHY.** It was a third freestanding
+    # frame on a concourse that measures 21 cells, whose west quarter is the U96 junction's own
+    # paved apron (V21 out to U103) and whose U105 carries a crossing corner lamp. Every position
+    # that clears both stands within a cell of the marquee's west pier, so the three come out as
+    # one continuous 19-cell band - which is the wall of frontage this pass exists to undo,
+    # rebuilt twenty cells west. A marquee IS an entrance arch by its own docstring; what a guest
+    # needs here is one arch to walk under and one gate to come out of.
     - kind: portal
       name: Mine Coaster exit
-      at: [21, 146]
+      at: [21, 121]           # opening U120-122, on the platform's own way out
       mode: exit
       title: RIDE EXIT
       lines: ["", "", "no re-entry"]

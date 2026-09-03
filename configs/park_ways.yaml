@@ -100,7 +100,25 @@ params:
         spurs:
           - {v: 24, u: 19}      # Trailhead Gate
           - {v: 24, u: 70}      # Boomtown Spine
-          - {v: 24, u: 134}     # Mine Coaster
+          # THE COASTER'S SPUR RUNS TO ITS DOOR, WHICH IS U107 AND WAS NEVER U134. The
+          # entrance was sited off `out/Mine Coaster.scan.json`'s declared anchors, and
+          # that sidecar belongs to a 69 x 97 build the park does not place - the merge
+          # reads `out/park_final/artifacts/Mine Coaster.litematic`, 101 x 61, whose
+          # station front measures V24-25 x U100-120. The spur ended on lawn twenty-seven
+          # cells past it.
+          #
+          # U109 IS THE CONCOURSE'S OWN MIDDLE AND NOT ITS DOOR, AND A LAMP DECIDED IT.
+          # Centred on U107 the marquee's piers fall on U104-105 and U109-110, and
+          # V20/U105 carries a mast. A `keep_clear` band was tried and it is the wrong
+          # instrument: that mast is one of the FOUR CORNER LAMPS of the U96 crossing,
+          # not a verge mast that happened to land there, so removing it left the
+          # crossing lit three-square - `test_a_crossing_is_lit_four_square_or_not_at_all`
+          # caught it. At U109 the piers stand at U106-107 and U111-112, the lamp keeps
+          # its corner (the marquee is at U111 for the same reason), and the spur lands in
+          # the middle of a twenty-one-wide forecourt
+          # rather than at one of its three openings - which is what a forecourt is for.
+          # See `configs/pf_front_frontier.yaml`.
+          - {v: 24, u: 113}     # Mine Coaster - the marquee's own opening
           - {v: 24, u: 235}     # Arrival Court
           # THE WELCOME COURT'S OWN THRESHOLD, and it is THIRTEEN WIDE because the door is.
           # Jack, on the finished court: "it needs to have paths or ways to connect to the other
