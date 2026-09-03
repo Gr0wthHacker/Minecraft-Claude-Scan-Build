@@ -29,6 +29,23 @@ params:
   kind: square
   lot: [41, 46]
   at: [80, 47]
+  # **THE RIDE'S GROUND.** `PF Mine Cart Escape` stands here - world V98-120 / U66-91, local
+  # v18-40 / u19-44 - and it brings its own apron and its own piers. Paving under it would be two
+  # designs on one surface, which is exactly what the casino was sliced into layers to avoid.
+  # The square's two arches sit on this box's own edge and are its queue and its exit.
+  reserve:
+    - [18, 40, 19, 44]
+  # **PAVED BUT NEVER RAISED.** `PF Game Powder Striker` is a console standing on this square's
+  # own floor at world V83-96 / U57-60 (local v3-16 / u10-13). Reserve it and the console floats;
+  # terrace it and the console is buried. It needs the floor exactly where it already is.
+  flat:
+    - [1, 17, 8, 15]
+  # THE TERRACE, and it is the whole fix for 1.4 blocks a column: one plane of paving reads as a
+  # car park however well it is inlaid. Two courses, on the west third - the side the V77-79 cross
+  # walk delivers a guest to - so the arrival is the high ground and the ride's forecourt is the
+  # low, with one seven-wide flight between them.
+  terrace: 2
+  terrace_v: 13
   seed: 51
 roles: [path]
 design:

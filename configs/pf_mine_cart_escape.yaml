@@ -1,0 +1,102 @@
+# PF MINE CART ESCAPE - the Frontier's SECOND RIDE, in the emptiest lot in the land.
+#
+# Jack: "what about the rest of frontier though, outside of the rollercoaster and now this little
+# mine-shop area, its so much wasted empty crap."
+#
+# ---------------------------------------------------------------------------------------------
+# THE MEASUREMENT THAT PICKED THE SITE
+#
+# Blocks per column, and how much of each lot stands three courses tall, over the shipped park:
+#
+#     Vantage Lookout        289 cols   14.3   100%
+#     Mine Coaster + Ridge  8804 cols    7.8    63%
+#     Assay & Prize Office   920 cols    2.9    71%
+#     Trailhead Gate        1755 cols    2.5    38%
+#     Frontier Diggings     2438 cols    2.4    30%
+#     Mine Works            2200 cols    2.2    33%
+#     Prospecting Porch     2040 cols    2.1    45%
+#     MINING SQUARE         1886 cols    1.4    10%   <- 39 x 44 of flat stone paving
+#
+# Mining Square was the second-biggest lot in the land and a car park: one course of paving, an
+# ore cart, and 90% of it nothing taller than a kerb.
+#
+# ---------------------------------------------------------------------------------------------
+# AND THE LAND HAD EXACTLY ONE RIDE
+#
+# `PARK_FRONTIER.md` asks for this one by name - "Runaway Mine -> rework as family-scale **Mine
+# Cart Escape**, mechanically and visually distinct from coaster" - and `gen/attractions.py`
+# already builds it. Its own contract, verified by that generator rather than claimed here:
+#
+#     a closed, powered minecart circuit that leaves a roofed station straight, runs out under two
+#     timbered mine portals, climbs 7 courses on trestles up the east side, crosses the crest
+#     level with the headframe's hoist beam and over the spoil heaps, and falls 7 courses back to
+#     the platform. 62 cells, 4 corners. VERIFIED: closed, every run powered at both ends, every
+#     corner flat on both sides, every elevated cell carried to the apron on piers, two clear
+#     courses over every rail cell, and the platform walkable from the ground it stands on.
+#
+# **THE HEADFRAME STANDS INSIDE THE LOOP**, which is that generator's own recorded rebuild: a
+# ride's content is what you PASS, and a hoist four cells beyond the far rail is scenery for
+# somebody on the ground rather than for the rider.
+#
+# ---------------------------------------------------------------------------------------------
+# THE SITE, EXACTLY
+#
+# `facing: west` gives a 23 x 26 footprint whose origin is `at` minus (2, 1, 2), so this lands on
+# world X 97598-97620 / Z 80366-80391 - local v18-40 / u19-44 of Mining Square's lot. That box is
+# `reserve`d in `configs/pf_frontier_mining_square.yaml`, so the square lays no paving in it: the
+# ride brings its own apron and its own piers, and two designs on one surface is the thing
+# `finish.defer_to` exists to stop.
+#
+# It is clear of `PF Game Powder Striker` (world V83-96 / U57-60), which the square holds FLAT for
+# the same reason - a console needs its floor exactly where it already is.
+#
+# **AND THE SQUARE'S TWO ARCHES ARE TRUE NOW.** They read COASTER QUEUE and RIDE EXIT and stood
+# forty cells north of a coaster whose four guest anchors are all on its west flank at V24. They
+# are this ride's queue and this ride's exit, on the reserve's own edge, because the ride is
+# actually here.
+name: PF Mine Cart Escape
+gen: attractions
+params:
+  kind: runawaymine
+  land: frontier
+  facing: west
+  at: [97600, 204, 80368]
+  under: out/Park Complete.litematic
+  title: MINE CART ESCAPE
+  lines: ["family ride", "mind the drop"]
+  power_every: 8
+  min_run: 3
+  seed: 61
+roles: [ride]
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: frontier
+  narrative: >
+    The Frontier's second ride: a closed minecart circuit out of a roofed station, under two
+    timbered portals, seven courses up the east side on trestles, across the crest level with the
+    headframe's hoist beam, and seven down the west side back to the platform.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [board the cart, ride the climb, pass the headframe, take the drop]
+  outcome: >
+    A closed lap: the cart leaves the platform, climbs seven courses, crosses level with the
+    headframe standing inside its own loop, falls seven and returns to the same platform.
+  reset: >
+    The circuit is closed and every run is powered at both ends, so the cart returns to where it
+    started with nothing to reset by hand.
+  service_access: >
+    Every elevated cell is carried to the apron on piers and the platform is walkable from the
+    ground it stands on, so the whole circuit is reachable on foot for a stuck cart.
+  bypass: >
+    The square is its forecourt and is walked across without boarding; the arches are thresholds,
+    not a gate.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

@@ -1,0 +1,240 @@
+{
+  "origin": {
+    "x": 97598,
+    "y": 203,
+    "z": 80366
+  },
+  "size": {
+    "x": 23,
+    "y": 13,
+    "z": 26
+  },
+  "generated_by": "attractions",
+  "kind": "runawaymine",
+  "land": "frontier",
+  "facing": "west",
+  "contract": "a closed, powered minecart circuit that leaves a roofed station straight, runs out under two timbered mine portals, climbs 7 courses on trestles up the east side, crosses the crest level with the headframe's hoist beam and over the spoil heaps, and falls 7 courses back to the platform. 62 cells, 4 corners. VERIFIED: closed, every run powered at both ends, every corner flat on both sides, every elevated cell carried to the apron on piers, two clear courses over every rail cell, and the platform walkable from the ground it stands on. NOT verified: cart speed - there is no cart-physics model here, so ride it once before anyone is told it completes the lap.",
+  "unverified": [],
+  "width": 26,
+  "depth": 23,
+  "height": 12,
+  "track": 62,
+  "corners": 4,
+  "powered": 58,
+  "piers": 12,
+  "portals": 2,
+  "heaps": 2,
+  "rise": 7,
+  "fall": 7,
+  "crest": 7,
+  "iron_ingots": 1.5,
+  "gold_ingots": 58,
+  "redstone_blocks": 12,
+  "signed": true,
+  "platform_at": [
+    97601,
+    204,
+    80371
+  ],
+  "boarding_at": [
+    97603,
+    205,
+    80374
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "rail": [
+        "powered_rail",
+        "rail"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "The Frontier's second ride: a closed minecart circuit out of a roofed station, under two timbered portals, seven courses up the east side on trestles, across the crest level with the headframe's hoist beam, and seven down the west side back to the platform.\n"
+    },
+    "metrics": {
+      "blocks": 1091,
+      "materials": 15,
+      "dominant_material_share": 0.5811,
+      "light_blocks": 2,
+      "massing": {
+        "width": 23,
+        "height": 13,
+        "depth": 26,
+        "fill_ratio": 0.1403
+      },
+      "silhouette": {
+        "top": {
+          "area": 598,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 117,
+          "fill_ratio": 0.3913
+        },
+        "side": {
+          "area": 161,
+          "fill_ratio": 0.4763
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.8011,
+          0.1842,
+          0.0147
+        ],
+        "top_silhouette_perimeter": 98,
+        "surface_faces_per_block": 2.264
+      },
+      "material_counts": {
+        "cobblestone": 634,
+        "spruce_log": 128,
+        "spruce_planks": 100,
+        "mossy_cobblestone": 96,
+        "powered_rail": 58,
+        "stone": 19,
+        "spruce_stairs": 13,
+        "redstone_block": 12,
+        "iron_chain": 10,
+        "spruce_fence": 10,
+        "rail": 4,
+        "barrel": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "6053d59e7aab2329b961707e0468d8c72e2997ab9f44038daa0e6a3bb816336c",
+    "generator_source_digest": "9bd4c80c627d9c27bd2b5319ab361a7dce0d743fec6cce9a8fc0c9077a65a081",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 71.320455,
+    "blocks": 1091,
+    "blocks_per_second": 15.3
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "ride"
+    ],
+    "blocks": 1091,
+    "mechanic_families": [
+      "container",
+      "light",
+      "rail",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "experience",
+    "player_verbs": [
+      "board the cart",
+      "ride the climb",
+      "pass the headframe",
+      "take the drop"
+    ],
+    "outcome": "A closed lap: the cart leaves the platform, climbs seven courses, crosses level with the headframe standing inside its own loop, falls seven and returns to the same platform.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: redstone_block"
+  ],
+  "file": "PF Mine Cart Escape.litematic",
+  "name": "PF Mine Cart Escape"
+}

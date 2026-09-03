@@ -6834,6 +6834,80 @@ Mining Square and the Assay Office. Two more things were needed and they are dif
   over a third of the area came out at 1,881 blocks.
 
 
+### A SECOND RIDE, in the emptiest lot in the land (2026-09-03)
+
+Jack: *"what about the rest of frontier though, outside of the rollercoaster and now this little
+mine-shop area, its so much wasted empty crap."*
+
+**MEASURED, IT WAS NOT VOIDS - IT WAS DENSITY.** 56% of the land was built and the biggest empty
+rectangle in it was 10 x 12. What the numbers actually say is blocks per column, and how much of
+each lot stands three courses tall:
+
+    Vantage Lookout        289 cols   14.3   100%
+    Mine Coaster + Ridge  8804 cols    7.8    63%
+    Assay & Prize Office   920 cols    2.9    71%
+    Works Yard             468 cols    2.6    65%
+    Trailhead Gate        1755 cols    2.5    38%
+    Frontier Diggings     2438 cols    2.4    30%
+    Mine Works            2200 cols    2.2    33%
+    Prospecting Porch     2040 cols    2.1    45%
+    MINING SQUARE         1886 cols    1.4    10%    <- a car park
+
+**Mining Square was the second-biggest lot in the land and 39 x 44 of flat stone paving** with an
+ore cart on it - 1.4 blocks a column, 90% of it nothing taller than a kerb. And the land had
+exactly ONE ride.
+
+`PARK_FRONTIER.md` asks for the missing one by name - *"Runaway Mine -> rework as family-scale
+Mine Cart Escape, mechanically and visually distinct from coaster"* - and `gen/attractions.py`
+already builds it, with a contract that generator verifies rather than claims: a closed powered
+circuit out of a roofed station, under two timbered portals, seven courses up the east side on
+trestles, across the crest level with the headframe's hoist beam, seven down the west, back to the
+platform. 62 cells, 4 corners, every run powered at both ends, every corner flat on both sides,
+every elevated cell on piers, two clear courses over every rail. **The headframe stands INSIDE the
+loop**, which is that file's own recorded rebuild: a ride's content is what you PASS.
+
+- **AND THE SQUARE'S TWO ARCHES ARE TRUE NOW.** They read COASTER QUEUE and RIDE EXIT and stood
+  forty cells north of a coaster whose four guest anchors are all on its WEST flank at V24. They
+  are the cart ride's queue and exit, because the ride is actually in this square.
+- **A RESERVE, A FLAT AND A TERRACE ARE THREE DIFFERENT ANSWERS** and conflating any two breaks
+  one. `reserve` means another design owns the ground - the ride brings its own apron and piers,
+  so paving under it is two designs on one surface. `flat` means pave it but never RAISE it -
+  `PF Game Powder Striker` is a console standing on the square's own floor, so reserving it leaves
+  the console floating and terracing it leaves the console buried. The terrace itself is the fix
+  for 1.4 blocks a column: one plane reads as a car park however well it is inlaid.
+- **THE GROUND STOPPED BEING ONE NUMBER, AND EVERYTHING STANDING ON IT HAD TO ASK.** With a
+  terrace over the west third, `base = ter` is right on the terrace and two courses wrong off it:
+  the show board spans v15-25, the terrace stops at v13, and the board shipped as a 140-cell
+  fragment floating two courses over the paving with the claim marker as another thirty.
+
+### The adit, third siting: THE RIDE'S FOOTPRINT IS NOT ITS LOT (2026-09-03)
+
+A parallel session re-added the adit with `mouths: 1` - the right answer to *"a broken weird
+circle"*, and to a later note that *"basically none of the mountain is used except the top peak"* -
+sited two cells off the coaster's own `ride_exit` anchor. **`park_place` reported 102 contested
+cells between the ridge and the ride**, because local v14 is world V38 and **the Mine Coaster's own
+low track runs world V32-44**. An anchor is a door in a face; the footprint behind it is not free
+ground.
+
+Mapping the ride's footprint across the whole guest band showed there was no fixing it by a cell or
+two: on that flank the only free ground is the 5-wide moat at world V24-28, which this design
+deliberately keeps out of so the ride's four anchors stay open.
+
+**THE SITE THAT WORKED CAME OUT OF DELETING SOMETHING ELSE.** The ridge's `keep_out` was one box
+over the whole south band because the frontage had put a 7 x 30 coaster queue at V27-33/U161-190.
+That queue is gone (the ride builds its own), and the band actually holds three props - the Ridge
+Water Tower, the Ore Road and the Trail Ore Cart. Narrowing one box to three freed **~1,100
+columns of empty ground south of the ride**, which is a fair part of the "wasted empty crap": the
+mass now has a real south flank instead of stopping dead at the ride's own south edge, and the
+adit is bored into it at world V40-52 / U160-168, reached off the lawn a guest walks round the
+ride's south side.
+
+**AND THE REFUSAL IS STRUCTURAL RATHER THAN THE NUMBERS BEING RIGHT.** `_fill` refuses `occ` per
+cell and the adit's own placements did not, so whatever an adit is pointed at, a cell the ride
+occupies is swept back out afterwards and the count is REPORTED. It read 102 on the old site and
+reads 0 on this one - which is how you tell a guard that fired from a guard that is decorative.
+
+
 ## The daily loop
 
 ```bash

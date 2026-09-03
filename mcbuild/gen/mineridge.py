@@ -366,9 +366,15 @@ def _adit_plan(p: dict, dv: int, du: int) -> dict | None:
     an open trench with two walls - which audits clean, renders as a gallery from the one bearing
     that looks down it, and is a slot in the hillside from every other.
 
-    THE TWO PORTALS SHARE A FACE AND THE GALLERY IS A U, so it is a walk-THROUGH rather than a
-    dead end you have to turn round in - the same rule the ruinway settled about paths: a way is
-    real when both of its ends are places.
+    `mouths` DEFAULTS TO 2 - THE ORIGINAL WALK-THROUGH U, kept for anyone who points this at a
+    face with a real second approach. **The shipped ridge uses `mouths: 1`**: a single lane in,
+    ending at the chamber's own back wall rather than a second portal. The two-mouth U was killed
+    on sight for two reasons that a single mouth cannot repeat - "two mouths ten cells apart read
+    as a broken circle, not a gallery" (there is only ever one hole in the hillside to read) and
+    "it duplicated the ride's own tunnel" (a dead-end alcove is a different kind of space from a
+    through-bore, not a second copy of it). The ruinway's rule - a way is real when both of its
+    ends are places - still holds for the walk-through case; a one-mouth alcove is a different
+    shape on purpose, a pocket you step into and back out of, not a through route.
     """
     a = p.get("adit")
     if not a:
@@ -380,12 +386,15 @@ def _adit_plan(p: dict, dv: int, du: int) -> dict | None:
     clear = max(3, int(a.get("height", 4)))
     step = -1 if a.get("into", "west") == "west" else 1
     far = v0 + step * (ln - 1)
+    mouths = max(1, int(a.get("mouths", 2)))
 
-    lanes = [
-        {"axis": "v", "cells": [(v0 + step * i, u0) for i in range(ln)]},
-        {"axis": "u", "cells": [(far, u0 + j) for j in range(cross)]},
-        {"axis": "v", "cells": [(v0 + step * i, u0 + cross - 1) for i in range(ln)]},
-    ]
+    lanes = [{"axis": "v", "cells": [(v0 + step * i, u0) for i in range(ln)]}]
+    portals = [(v0, u0)]
+    if mouths >= 2:
+        lanes.append({"axis": "u", "cells": [(far, u0 + j) for j in range(cross)]})
+        lanes.append({"axis": "v", "cells": [(v0 + step * i, u0 + cross - 1) for i in range(ln)]})
+        portals.append((v0, u0 + cross - 1))
+
     cells = set()
     for lane in lanes:
         across = 1 if lane["axis"] == "v" else 0          # widen ACROSS the lane's own run
@@ -402,7 +411,7 @@ def _adit_plan(p: dict, dv: int, du: int) -> dict | None:
     cells = {(v, u) for v, u in cells if 0 <= v < dv and 0 <= u < du}
     return {"cells": cells, "lanes": lanes, "step": step, "length": ln, "cross": cross,
             "half": half, "clear": clear, "chamber": chamber,
-            "portals": [(v0, u0), (v0, u0 + cross - 1)],
+            "portals": portals,
             "cover": max(2, int(a.get("cover", 4)))}
 
 
@@ -453,7 +462,8 @@ def _cut_adit(lot: _Lot, plan: dict, seed: int) -> dict:
 
 
 def _portals(lot: _Lot, plan: dict) -> dict:
-    """A framed mouth on each end of the U, and a named board over it.
+    """A framed mouth at each portal (one, for the shipped single-mouth alcove), and a named board
+    over it.
 
     A hole in a hillside is a cave. A hole with two posts, a cap beam and a name over it is a
     MINE, and the frame is also what tells a guest the hole is a way IN rather than scenery.
@@ -491,18 +501,33 @@ def _portals(lot: _Lot, plan: dict) -> dict:
 def _chamber(lot: _Lot, plan: dict, seed: int) -> dict:
     """The stope at the far end: an ore face, a winze you can look down, and a working bench.
 
-    THE REVEAL IS PASSED, NOT STOOD IN. A guest walks THROUGH the cross-cut, so the ore face is
-    on the wall opposite the lane rather than in the middle of it - the undercroft's own rule,
-    learned when every chamber put its own thing in the middle of its own corridor and the lane
-    had to be re-cleared afterwards.
+    **TWO SHAPES, BECAUSE A ROOM YOU WALK PAST IS NOT A ROOM YOU WALK INTO.** A through-U
+    (`mouths: 2`) has a CROSS-lane running perpendicular to `step`, so a guest passes the chamber
+    side-on: THE REVEAL IS PASSED, NOT STOOD IN, and the ore face sits on the wall opposite the
+    lane rather than in the middle of it - the undercroft's own rule, learned when every chamber
+    put its own thing in the middle of its own corridor and the lane had to be re-cleared
+    afterwards.
+
+    A single-mouth alcove (`mouths: 1`) has no cross-lane - the guest walks STRAIGHT toward the
+    chamber along `step`, so the reveal has to be faced head-on, at the deepest point the room
+    reaches, with the winze reachable BEFORE it. Using the through-U's own formula here put the
+    wall on the NEAR side of the chamber centre and the winze beyond it - on a straight approach
+    that seals the winze behind the very wall it is meant to sit in front of, which no audit or
+    connectivity check can see (the winze is still built, still fenced, still lit; it is simply
+    behind solid rock). `test_the_gallery_is_walkable_end_to_end` and a render both missed it for
+    the same reason this project's other silent-void bugs did: a check that asks "is this cell
+    passable" never asks whether anything can actually REACH it.
     """
     ch = plan.get("chamber")
     if not ch:
         return {}
     cv, cu, r = (int(x) for x in ch)
     clear, step = plan["clear"], plan["step"]
+    single = len(plan["lanes"]) == 1
     n_ore = 0
-    v = cv - step * (r + 1)                                      # the back wall, past the lane
+    # a single-mouth alcove faces the wall AHEAD, at the room's own deepest point; a through-U's
+    # cross-lane sees it set back on the far side of the chamber centre from where it entered.
+    v = cv + step * (r + 1) if single else cv - step * (r + 1)
     for u in range(cu - r, cu + r + 1):
         for y in range(1, clear + 1):
             if not lot.inside(v, u):
@@ -511,7 +536,10 @@ def _chamber(lot: _Lot, plan: dict, seed: int) -> dict:
             key = "gold" if rr < 0.20 else ("coal" if rr < 0.52 else "rock_b")
             if lot.put(v, y, u, ROCK[key]):
                 n_ore += 1
-    wv, wu = cv + step, cu                                       # the winze, fenced and lit
+    # the winze, fenced and lit - one step BACK from the wall in a straight alcove, so it is
+    # always on the reachable side of it; one step past the chamber centre in a through-U, where
+    # the guest's own cross-lane already carries them clear of the ore face.
+    wv, wu = (cv - step, cu) if single else (cv + step, cu)
     for dv_ in (-1, 0, 1):
         for du_ in (-1, 0, 1):
             if abs(dv_) + abs(du_) == 1:
@@ -645,10 +673,36 @@ def _build(lot: _Lot, p: dict) -> dict:
     parts["boulders"] = _boulders(lot, hi, ride_any, seed)
 
     # ---- the adit --------------------------------------------------------------------
+    # **AND NOT ONE CELL OF IT MAY BE THE RIDE'S.** `_fill` refuses `occ` per cell, and the adit's
+    # own placements - floor, timber sets, portal frame, ore face, lamps - did not: sited two cells
+    # off the coaster's `ride_exit` anchor, the chamber reached into the ride's own south return
+    # leg and `park_place` reported 102 contested cells between the two designs. The mouth wants
+    # to be near the ride's exit, which is exactly what makes this easy to get wrong by one or two
+    # cells, so the refusal is structural rather than a number in a config: whatever an adit is
+    # pointed at, a cell the ride occupies is swept back out afterwards and REPORTED.
     if plan:
         parts["adit"] = _cut_adit(lot, plan, seed)
         parts["adit"].update(_portals(lot, plan))
         parts["adit"].update(_chamber(lot, plan, seed))
+        taken = 0
+        ny = occ.shape[2]
+        for v, u in sorted(plan["cells"] | {(a, b) for a in range(dv) for b in range(du)
+                                            if False}):
+            for y in range(min(ny, lot.c.sy)):
+                if occ[v, u, y] and lot.c.solid(v, y, u):
+                    lot.c.put(v, y, u, 0)
+                    taken += 1
+        # ...and the shoulder round it, because a portal FRAME and a set's cap stand one cell
+        # outside the gallery's own plan.
+        for v, u in sorted({(a + dv_, b + du_) for a, b in plan["cells"]
+                            for dv_ in (-2, -1, 0, 1, 2) for du_ in (-2, -1, 0, 1, 2)}):
+            if not (0 <= v < dv and 0 <= u < du):
+                continue
+            for y in range(min(ny, lot.c.sy)):
+                if occ[v, u, y] and lot.c.solid(v, y, u):
+                    lot.c.put(v, y, u, 0)
+                    taken += 1
+        parts["adit"]["ride_cells_swept"] = taken
     return parts
 
 

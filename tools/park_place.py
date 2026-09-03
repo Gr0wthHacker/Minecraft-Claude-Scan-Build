@@ -116,6 +116,13 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # Jack: "this looks terrible in current state, the blocks are sticking out the
                 # back etc." Archived in archive/claim_lake_range_v1/.
                 #     "PF Claim Lake Range",
+                #
+                # A SMALL PETTING ZOO TAKES THE SQUARE INSTEAD. Jack: "maybe a small zoo where
+                # we put actual MC animals" - `gen/menagerie.py` is fence, posts, four small
+                # shelters and signs, nothing concealed and nothing behind its own back wall, so
+                # there is nothing left to trail off it. The pens ship empty; stocking them with
+                # real animals is Jack's own job in world. See configs/claim_lake_menagerie.yaml.
+                "PF Claim Lake Menagerie",
                 # THE SUMMIT IS WITHDRAWN AGAIN, and this time by measurement rather than by
                 # caution: 2,709 of its 4,522 cells stand INSIDE the Prism Well's mouth. It
                 # was a viewpoint over the Prism Ascent, and the Ascent is gone - the well
@@ -128,6 +135,10 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # against both. `tools/prismchain.py` builds them in sequence; this list only
                 # places what that produced. See PRISMWORKS_V2_PLAN.md.
                 "PF Prism Well", "PF Prism Descent", "PF Prism Rig", "PF Signal Zero",
+                # ...and the SKY RUN, which carries the column on to Y300 and makes
+                # Prismworks the park's tallest thing. Jack: "should we be building this
+                # straight up as well so its a really complete big circuit".
+                "PF Crown Descent",
                 "PF Front Frontier", "PF Front Midway", "PF Front Prismworks",
                 "PF Entry Gate",
                 # THE FRONTIER'S MOUNTAIN AND ITS WORKS. `PF Mine Ridge` wraps the Mine Coaster
@@ -153,7 +164,12 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # carries the walk that module carried inside itself - `Park Ways` paves none of
                 # that lot - so retiring one without placing the other breaks the route from the
                 # spine to Mining Square.
-                "PF Frontier Diggings"}
+                "PF Frontier Diggings",
+                # ...and the SECOND RIDE, in the emptiest lot in the land. Mining Square
+                # measured 1.4 blocks per column with 10% of it standing three courses tall -
+                # 39 x 44 of flat paving - and the Frontier had exactly one ride.
+                # `PARK_FRONTIER.md` asks for this one by name.
+                "PF Mine Cart Escape"}
 
 
 def extras() -> list:

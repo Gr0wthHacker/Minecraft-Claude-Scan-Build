@@ -147,6 +147,10 @@ FRONTIER = {
     "anchor": [97500, 203, 80300],  # V0,U0 -> world X,Z, and the course a guest stands on
     "entry_u": None,               # the door's U inside the lot (defaults per kind)
     "entry_v": None,               # ...or its V, for a kind entered off a flank
+    "reserve": None,               # [[v0, v1, u0, u1], ...] - ground another design owns
+    "terrace": 0,                  # courses the upper terrace stands over the square
+    "terrace_v": None,
+    "flat": None,                  # [[v0, v1, u0, u1], ...] - paved but never RAISED
     "title": None,
     "seed": 0,
 }
@@ -869,7 +873,7 @@ def _kerb(lot: _Lot, cells, key="plinth", y=0):
 
 
 def _pave(lot: _Lot, v0, v1, u0, u1, *, field="base", border="plinth", inlay="timber",
-          glow_every=0) -> int:
+          glow_every=0, reserve=()) -> int:
     """The square's floor: a bordered field with an inlaid cross, and its light IN the paving.
 
     A FLUSH FROGLIGHT IS THE FLOOR, not a fixture on it - an opaque emitter a course down, so it
@@ -878,8 +882,15 @@ def _pave(lot: _Lot, v0, v1, u0, u1, *, field="base", border="plinth", inlay="ti
     """
     lit = 0
     cv, cu = (v0 + v1) // 2, (u0 + u1) // 2
+    keep = [tuple(int(x) for x in b) for b in (reserve or ())]
     for v in range(v0, v1 + 1):
         for u in range(u0, u1 + 1):
+            # **A RESERVED CELL IS ANOTHER DESIGN'S GROUND.** The Mine Cart Escape brings its own
+            # apron and its own piers, so paving under it is two designs on one surface - the
+            # thing `finish.defer_to` exists to stop, and the reason the casino was sliced into
+            # layers rather than shipped as thirty overlapping fragments.
+            if any(a <= v <= b and c <= u <= d for a, b, c, d in keep):
+                continue
             edge = v in (v0, v0 + 1, v1 - 1, v1) or u in (u0, u0 + 1, u1 - 1, u1)
             cross = abs(v - cv) <= 3 or abs(u - cu) <= 3
             key = border if edge else (inlay if cross else field)
@@ -1444,91 +1455,162 @@ def _boomtown(lot: _Lot, p: dict) -> dict:
 
 
 def _square(lot: _Lot, p: dict) -> dict:
-    """F3 - Mining Square: the choice point, and an open SQUARE rather than a building.
+    """F3 - Mining Square: the mine yard, and the Mine Cart Escape's own forecourt.
 
-    Its role in `park_final.world.json` is `path`. The grid re-specced it from 56 x 46 to 41 x 46
-    for exactly this: at 56 it ran through the back promenade and 184 cells into the Assay office,
-    including the cell that is Assay's own front door. At 41, column B reads Boomtown 53 + the
-    V77-79 walk + this 41 = exactly 97, and it fronts a real street.
+    **MEASURED, THIS WAS A CAR PARK.** 1,886 columns, 2,583 blocks - **1.4 blocks per column, and
+    only 10% of it standing three courses tall.** Every other lot in the Frontier runs 2.1-2.9 and
+    the ridge runs 7.8. Jack: *"the rest of frontier... its so much wasted empty crap."* A 39 x 44
+    plane of stone brick with an ore cart on it is the single biggest expanse of nothing in the
+    land, and it was also the second-biggest lot.
 
-    THE QUEUE AND THE EXIT ARE ON THE EAST FLANK, TWENTY COURSES APART. That flank faces the
-    U95-97 alley and, past it, the Mine Coaster's own column - so a guest reads "queue" and "exit"
-    as two separate doors to the same ride, which is what the spec asks for by name and what the
-    old module got wrong by putting both on one face.
+    **AND ITS STATED PURPOSE RESTED ON THE SAME WRONG ASSUMPTION THE FRONTAGE QUEUE DID.** This
+    docstring used to read "that flank faces the U95-97 alley and, past it, the Mine Coaster's own
+    column - so a guest reads queue and exit as two separate doors to the same ride". The Mine
+    Coaster declares all four of its guest anchors on its WEST flank at world V24; this square is
+    V80-120, forty cells north of the ride and on the far side of it. The two arches named a ride
+    whose doors are nowhere near them.
+
+    The arches are TRUE now: `PF Mine Cart Escape` stands in this lot, inside `reserve`, and they
+    are its queue and its exit. A square is a ride's forecourt, which is what a decision point is.
+
+    Its role in `park_final.world.json` is `path`, and it still carries the walk across the block.
     """
     dv, du = lot.dv, lot.du
     out = {}
-    out["lights"] = _pave(lot, 2, dv - 3, 2, du - 3, glow_every=8)
-    out["queue"] = _arch(lot, 5, 12, du - 5, du - 2, axis="v", pier=2, clear_h=5,
-                         title="COASTER QUEUE")
-    out["exit"] = _arch(lot, dv - 13, dv - 6, du - 5, du - 2, axis="v", pier=2, clear_h=5,
+    keep = [tuple(int(x) for x in b) for b in (p.get("reserve") or ())]
+
+    def reserved(v, u) -> bool:
+        return any(a <= v <= b and c <= u <= d for a, b, c, d in keep)
+
+    out["lights"] = _pave(lot, 2, dv - 3, 2, du - 3, glow_every=8, reserve=keep)
+    out["reserve"] = [list(b) for b in keep]
+
+    # **THE SQUARE IS TERRACED NOW, AND THAT IS THE FIX FOR 1.4 BLOCKS A COLUMN.** One plane of
+    # paving reads as a car park however well it is inlaid; two levels with a flight between them
+    # read as a yard cut into a slope, which is what a mine yard IS. The upper terrace takes the
+    # west third - the side the cross walk delivers a guest to - so the arrival is the high ground
+    # and the ride's forecourt is the low.
+    ter = int(p.get("terrace") or 0)
+    steps_up = 0
+    # **A TERRACE KEEP-OUT IS NOT THE SAME THING AS A RESERVE**, and conflating them breaks one of
+    # the two. `reserve` means "another design owns this ground, lay nothing" - the ride brings its
+    # own apron. `flat` means "pave it, but do NOT raise it": `PF Game Powder Striker` is a console
+    # standing on this square's own floor, so removing the paving leaves it floating and raising the
+    # paving leaves it buried. It needs the floor at course 0, which is a third answer.
+    flatten = [tuple(int(x) for x in b) for b in (p.get("flat") or ())]
+
+    def held_flat(v, u) -> bool:
+        return any(a <= v <= b and c <= u <= d for a, b, c, d in flatten)
+
+    if ter:  # noqa: E301
+        tv = int(p.get("terrace_v") or (dv // 3))
+        for v in range(2, tv + 1):
+            for u in range(2, du - 2):
+                if reserved(v, u) or held_flat(v, u):
+                    continue
+                for y in range(1, ter + 1):
+                    lot.put(v, y, u, lot.weather(v, u, y) if y < ter else "band")
+        # the retaining edge, and ONE flight up it: a terrace with no way onto it is a wall, and a
+        # terrace you can climb anywhere is a ramp with a kerb drawn on it.
+        flight = range(du // 2 - 3, du // 2 + 4)
+        for u in range(2, du - 2):
+            if reserved(tv, u) or held_flat(tv, u):
+                continue
+            if u in flight:
+                for k in range(ter):
+                    lot.stair(tv - k, ter - k, u, "base_stair", facing=EAST)
+                steps_up += 1
+                continue
+            lot.put(tv, ter, u, "plinth")
+            lot.slab(tv, ter + 1, u, "base_slab", "bottom")
+        out["terrace"] = {"courses": ter, "v": [2, tv], "steps": steps_up}
+
+    # the two arches, on the reserve's own edge, naming the ride that stands behind them
+    au = (keep[0][2] - 4) if keep else (du - 5)
+    out["queue"] = _arch(lot, 5, 12, au, au + 3, axis="v", pier=2, clear_h=5,
+                         title="CART QUEUE")
+    out["exit"] = _arch(lot, dv - 13, dv - 6, au, au + 3, axis="v", pier=2, clear_h=5,
                         title="RIDE EXIT")
 
-    # the show board on the west side - the square's one piece of architecture, and it faces the
-    # walk a guest arrives on
-    v0, v1 = (dv // 2) - 5, (dv // 2) + 5
+    # **THE GROUND IS NO LONGER ONE NUMBER, AND ANYTHING STANDING ON IT HAS TO ASK.** With a
+    # terrace over the west third, `base = ter` is right for a cell on the terrace and two courses
+    # WRONG for one off it: the show board spans v15-25 and the terrace stops at v13, so it
+    # shipped as a 140-cell fragment floating two courses over the paving, and the claim marker as
+    # another thirty. Both are on the terrace now, which is also where they belong - a show board
+    # faces the arrival, and the arrival is the high ground.
+    def ground(v, u) -> int:
+        return ter if (ter and 2 <= v <= int(p.get("terrace_v") or (dv // 3))
+                       and not held_flat(v, u) and not reserved(v, u)) else 0
+
+    # the show board, ON the terrace - the side the cross walk delivers a guest to
+    v0, v1 = 3, 13
+    base = ground((v0 + v1) // 2, 2)
     for v in range(v0, v1 + 1):
-        for y in range(1, 6):
-            lot.put(v, y, 2, lot.weather(v, 2, y) if y < 3 else "timber")
-        lot.log(v, 6, 2, "beam", axis="x")
+        for y in range(base + 1, base + 6):
+            lot.put(v, y, 2, lot.weather(v, 2, y) if y < base + 3 else "timber")
+        lot.log(v, base + 6, 2, "beam", axis="x")
     for v in (v0, v1):
-        for y in range(1, 7):
+        for y in range(base + 1, base + 7):
             lot.log(v, y, 2, "post", axis="y")
     for v in range(v0 + 1, v1):
-        lot.put(v, 4, 2, "board")
-        lot.put(v, 3, 2, "canvas_a")                   # the painted band under the board
-    _cap(lot, v0, v1, 2, 4, 7, courses=1)             # a canopy over the board, out over the square
-    # THE SQUARE IS A DECISION POINT AND IT HAS TO LOOK LIKE ONE. Two masts flanking the show
-    # board and a strung line between them turn a paved rectangle with an ore cart on it into
-    # the place a guest stops - and neither costs a walkable cell, because both stand ON the
-    # board's own structure rather than in the square.
-    out["mast_n"] = _flagpole(lot, v0, 3, 7, h=7, along="v", side=-1)
-    out["mast_s"] = _flagpole(lot, v1, 3, 7, h=7, along="v", side=1)
-    out["bunting"] = _bunting(lot, v0, v1, 3, 13, "v", sag=2)
-    lot.sign(v0 + 2, 4, 3, SOUTH, ["MINE COASTER", "queue north", "exit south"])
-    lot.sign(v1 - 2, 4, 3, SOUTH, ["MINING SQUARE", "boomtown west", "works east"])
+        lot.put(v, base + 4, 2, "board")
+        lot.put(v, base + 3, 2, "canvas_a")            # the painted band under the board
+    _cap(lot, v0, v1, 2, 4, base + 7, courses=1)       # a canopy out over the square
+    # A DECISION POINT HAS TO LOOK LIKE ONE. Two masts flanking the show board and a strung line
+    # between them, and neither costs a walkable cell: both stand ON the board's own structure.
+    out["mast_n"] = _flagpole(lot, v0, 3, base + 7, h=7, along="v", side=-1)
+    out["mast_s"] = _flagpole(lot, v1, 3, base + 7, h=7, along="v", side=1)
+    out["bunting"] = _bunting(lot, v0, v1, 3, base + 13, "v", sag=2)
+    lot.sign(v0 + 2, base + 4, 3, SOUTH, ["MINE CART", "ESCAPE", "queue north"])
+    lot.sign(v1 - 2, base + 4, 3, SOUTH, ["MINING SQUARE", "diggings west", "coaster south"])
     out["board"] = {"v": [v0, v1], "u": 2}
 
-    # the claim marker: a low ore cart on a stub of rail, POINTING at the ride it names
-    cv, cu = dv // 2, du // 2
-    for u in range(cu - 3, cu + 4):
-        lot.put(cv, 1, u, "plinth")
-        lot.put(cv, 2, u, "rail", shape="east_west", waterlogged="false")
-    for u in (cu - 4, cu + 4):
-        lot.put(cv, 1, u, "base_slab")
-        lot.slab(cv, 1, u, "base_slab", "bottom")
-    for v in (cv - 1, cv + 1):
-        for u in range(cu - 1, cu + 2):
-            lot.put(v, 1, u, "plinth")
-            lot.put(v, 2, u, "beam")
-    for u in (cu - 1, cu + 1):
-        lot.put(cv, 3, u, "shutter", facing=NORTH if u < cu else SOUTH, half="bottom",
-                open="true", powered="false", waterlogged="false")
-    out["marker"] = {"at": [cv, cu], "points": "east, to the Mine Coaster"}
+    # the claim marker: a low ore cart on a stub of rail. **IT MOVES OUT OF THE RESERVE**, because
+    # the ride's apron is there now - and a prop inside another design's footprint is the overlap
+    # this whole `reserve` exists to prevent.
+    cv = dv // 2
+    cu = max(7, (keep[0][2] // 2) if keep else du // 2)
+    if not reserved(cv, cu):
+        base = ground(cv, cu)
+        for u in range(cu - 3, cu + 4):
+            lot.put(cv, base + 1, u, "plinth")
+            lot.put(cv, base + 2, u, "rail", shape="east_west", waterlogged="false")
+        for u in (cu - 4, cu + 4):
+            lot.slab(cv, base + 1, u, "base_slab", "bottom")
+        for v in (cv - 1, cv + 1):
+            for u in range(cu - 1, cu + 2):
+                lot.put(v, base + 1, u, "plinth")
+                lot.put(v, base + 2, u, "beam")
+        for u in (cu - 1, cu + 1):
+            lot.put(cv, base + 3, u, "shutter", facing=NORTH if u < cu else SOUTH,
+                    half="bottom", open="true", powered="false", waterlogged="false")
+        out["marker"] = {"at": [cv, cu]}
 
     # THE SQUARE STANDS ONE COURSE PROUD OF THE LAWN, so it needs an edge and a way up onto it.
     # A kerb of low wall with a slab coping reads as a paved terrace; a bare cut edge reads as a
     # mistake. The north face - the one the V77-79 cross walk delivers a guest to - is opened for
     # a seven-wide flight instead, which is the width the spec asks a decision point for.
     steps = 0
-    approach = range(cu - 3, cu + 4)
+    approach = range(du // 2 - 3, du // 2 + 4)
     for u in range(2, du - 2):
+        if reserved(1, u):
+            continue
         if u in approach:
-            lot.stair(u * 0 + 1, 0, u, "base_stair", facing=EAST)
+            lot.stair(1, 0, u, "base_stair", facing=EAST)
             steps += 1
             continue
         lot.put(1, 0, u, "base_slab")
         lot.slab(1, 0, u, "base_slab", "bottom")
     for v in range(2, dv - 2):
         for u in (1, du - 2):
-            if lot.has(v, 1, u):
+            if lot.has(v, 1, u) or reserved(v, u):
                 continue
             lot.put(v, 1, u, "base_wall", north="low" if v > 2 else "none",
                     south="low" if v < dv - 3 else "none", east="none", west="none",
                     up="true", waterlogged="false")
     for v in (2, dv - 3):
         for u in range(1, du - 1):
-            if lot.has(v, 1, u):
+            if lot.has(v, 1, u) or reserved(v, u):
                 continue
             lot.slab(v, 1, u, "base_slab", "bottom")
     out["approach_steps"] = steps

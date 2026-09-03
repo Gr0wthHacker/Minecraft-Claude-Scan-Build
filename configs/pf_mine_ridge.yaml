@@ -103,6 +103,10 @@ params:
     - [88, 10, 96, 40, 50, 20]     # the summit, straddling the east traverse and the descent
     - [112, 16, 120, 36, 36, 13]   # the east shoulder, over the adit
     - [110, 46, 118, 56, 30, 11]   # the south shoulder
+    # THE SOUTH-WEST FLANK, on the ground the deleted queue was holding. It is what makes
+    # the mass reach past the ride's own south edge at U159 instead of stopping at it,
+    # and it is the rock the adit is bored into.
+    - [18, 62, 40, 67, 19, 17]     # world V42-64 x U161-166
   # **THE TUNNEL.** Inside this box the stand-off is waived and the mass closes over the track;
   # what keeps the ride running is the BORE - a swept envelope round the rail itself, cleared
   # before anything is filled and then dressed and timbered. It covers the east traverse and the
@@ -118,9 +122,18 @@ params:
   # carry something that is not the ride, and every one of them is `PF Front Frontier`'s - the
   # coaster's 7 x 30 switchback queue at V39-59, the Ridge Water Tower at V70-78, the Ore Road at
   # V92-96 and the Trail Ore Cart at V117-123, all in the south band. Local boxes, with margin.
+  # **NARROWED, BECAUSE THE THING IT WAS SIZED FOR IS GONE.** This was one box covering world
+  # V24-130 x U156-169 - the whole south band - because `PF Front Frontier` put a 7 x 30 coaster
+  # queue at V27-33 / U161-190. That queue is deleted (the ride builds its own), and measured
+  # against the placed park the band now holds only three props: the Ridge Water Tower at
+  # V70-79/U160-167, the Ore Road at V90-96/U162-167 and the Trail Ore Cart at V118-124/U152-158.
+  # Keeping the whole band out left **~1,100 columns of empty ground** south of the ride, which is
+  # a fair part of what Jack means by "the rest of frontier... so much wasted empty crap". Three
+  # boxes with margin instead of one, and the mass now has a real south flank.
   keep_out:
-    - [0, 106, 57, 70]     # world V24-130 x U156-169 - the queue, the tower and the ore road
-    - [86, 106, 48, 62]    # world V110-130 x U147-161 - the Trail Ore Cart
+    - [42, 58, 57, 70]     # world V66-82 x U156-169 - the Ridge Water Tower
+    - [62, 76, 59, 70]     # world V86-100 x U158-169 - the Ore Road
+    - [90, 104, 49, 62]    # world V114-128 x U148-161 - the Trail Ore Cart
     # **THE RIDE'S OWN PUBLIC FACE, AND THE FIRST BUILD WALLED IT UP.** `Mine Coaster.scan.json`
     # declares every one of its guest anchors on its WEST flank at world V24: queue_entry U126,
     # public_entry U134, public_exit U142, ride_exit U146. Measured against the placed park, my
@@ -144,27 +157,53 @@ params:
     - [104, 8, 5]
     - [116, 14, 4]
   # ---------------------------------------------------------------------------------------
-  # THE ADIT IS DELETED, and the reason is worth keeping.
+  # THE ADIT IS BACK, AS ONE MOUTH, ON THE GUEST'S OWN SIDE.
   #
-  # Jack: "the entrances/exits/mineshafts whatever they are cut into the rollercoaster mountain
-  # make no sense at the bottom and are just a broken weird circle."
+  # Jack, first: "the entrances/exits/mineshafts whatever they are cut into the rollercoaster
+  # mountain make no sense at the bottom and are just a broken weird circle." Jack, later,
+  # auditing the finished land: "basically none of [the mountain] is used except for the top peak
+  # on the one side." Both are true, and the fix for the second one cannot repeat what caused the
+  # first. It doesn't:
   #
-  # Three things were wrong with it and every one of them is structural:
+  #  * **IT WAS ON THE BACK OF THE MOUNTAIN.** The old mouths opened east at world V145-146, onto
+  #    the service lane. This one opens at local v14/u49 - world V38/U148 - two cells south of the
+  #    ride's own `ride_exit` anchor (world V24/U146) and clear of the guest-side moat (`keep_out`
+  #    box below), which the first siting attempt put the portal frame one cell inside of. A guest
+  #    walking out of the coaster passes within a few cells of it.
+  #  * **TWO MOUTHS TEN CELLS APART READ AS A BROKEN CIRCLE.** There is only one mouth now.
+  #    `mouths: 1` in `mineridge._adit_plan` builds a single lane ending at the chamber's own
+  #    back wall - a pocket you step into and back out of, never a second hole in the hillside
+  #    to read as damage alongside the first.
+  #  * **IT DUPLICATED THE RIDE'S OWN TUNNEL.** A dead-end alcove is a different kind of space
+  #    from a through-bore: you don't ride a cart through it, you walk in, read the ore face,
+  #    look down the winze, and walk back out. It is not a second copy of the coaster's tunnel,
+  #    it is the one thing in this land you can do with the mountain on foot.
   #
-  #  * **IT WAS ON THE BACK OF THE MOUNTAIN.** Its mouths opened east at world V145-146, and the
-  #    only thing on that side is the service lane at V154-156 and the works corridor. Guests do
-  #    not go there. A mine entrance whose approach is back-of-house is scenery nobody reaches.
-  #  * **TWO MOUTHS TEN CELLS APART READ AS A BROKEN CIRCLE, NOT AS A GALLERY.** The U-shape was
-  #    meant to make it a walk-THROUGH rather than a dead end - the ruinway's rule that a way is
-  #    real when both ends are places - and from outside, at the foot of a fifty-course crag, two
-  #    holes in the rock a few cells apart read as damage.
-  #  * **AND IT DUPLICATED THE RIDE'S OWN.** `Mine Coaster.scan.json` declares `tunnels: 1` and
-  #    `tunnel_mouths: 2` - the coaster already bores through its own ridge, and now runs through
-  #    this one as well. A third set of holes in the same mountain is not more mine, it is noise.
+  # THE SITE IS DELIBERATELY SHALLOW - fourteen cells deep, well short of the crest's own spine
+  # (v88+) and the ride's tunnel box (v74+) - because there is no guest path any deeper into this
+  # lot than the moat in front of the ride's own anchors. A mouth a guest cannot walk to is the
+  # first mistake repeated with different numbers.
+  # **AND THE SITE MOVED, BECAUSE THE OLD ONE WAS INSIDE THE RIDE.** Local v14 is world V38, and
+  # the Mine Coaster's own low track runs world V32-44: measured, the mouth and its chamber took
+  # **102 cells the ride owns** and `park_place` reported the clash between the two designs.
+  # Mapping the ride's footprint across the whole guest band shows why there was no fixing it by a
+  # cell or two - on that flank the only free ground is the 5-wide moat at world V24-28, which
+  # this design deliberately keeps out of so the ride's four guest anchors stay open.
   #
-  # The mountain's interior is the COASTER'S tunnel now, which is the one a guest actually
-  # experiences. Nothing is bored for them to walk into.
-  adit: null
+  # The south flank is where a mouth can actually stand: world V40-52 / U160-168 is open ground,
+  # clear of the ride (which ends at U159) and of all three frontage props, and it is reached off
+  # the U168+ lawn a guest walks round the ride's south side. `mineridge` sweeps any ride cell an
+  # adit takes and REPORTS the count, so the refusal is structural rather than these numbers being
+  # right - but the numbers are right too, and `ride_cells_swept` is 0.
+  adit:
+    at: [16, 65]
+    into: east
+    mouths: 1
+    length: 12
+    width: 3
+    height: 4
+    cover: 4
+    chamber: [27, 65, 3]
   seed: 19
 roles: [ride]
 design:
@@ -174,8 +213,9 @@ design:
   narrative: >
     The worked-out mountain the Mine Coaster is cut into: a battered talus wrapping the ride's
     whole outline, a crag cresting fifty courses over the plane behind it, benched cut faces
-    where the rock is too steep to stand on, gravel spoil tips at the foot, and a walk-through
-    adit through the foot of the cut face with timber sets, rail, an ore chamber and a winze.
+    where the rock is too steep to stand on, gravel spoil tips at the foot, and a single-mouth
+    adit at the foot of the cut face, two cells from the ride's own exit, with timber sets, rail,
+    an ore chamber and a winze.
 fun_contract:
   enforce: true
   class: experience
@@ -184,12 +224,13 @@ fun_contract:
     The Frontier's only mountain, and the first thing in the land that answers what the coaster
     is FOR: the ride is cut into the near face of a worked hill you can walk into.
   reset: >
-    Nothing is consumed and no state is held. The gallery is a U with a portal at each end and is
-    walkable in both directions.
+    Nothing is consumed and no state is held. The gallery is one lane ending at the chamber's own
+    back wall - a pocket you walk into and back out of, not a through route.
   service_access: >
     None is needed and none is claimed - there is no plant and no mechanism in this geometry.
   bypass: >
-    The whole thing is walked past on the lawn without entering; both portals are on one face.
+    The whole thing is walked past on the lawn without entering; the one mouth is set back from
+    the guest path, so nobody has to duck in.
 finish:
   cheapen: false
   hollow: false
