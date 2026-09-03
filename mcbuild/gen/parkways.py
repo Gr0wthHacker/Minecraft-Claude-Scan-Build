@@ -299,19 +299,26 @@ def build(cfg: dict, donors=None) -> Canvas:
     # at (20, 69), (20, 300) and (20, 496) - exactly on the spine's east verge at the mouth of
     # Boomtown Spine, Carousel Court and the Prism Array. Nothing had to be special-cased: a lamp
     # already refuses to stand on paving, so the spur simply has to exist first.
+    #
+    # A SPUR MAY BE AS WIDE AS THE DOOR IT SERVES, and until this it was three cells whatever
+    # stood behind it. The Welcome Court's threshold is thirteen wide, on the same axis as the
+    # entry gate's own portico - so a three-wide spur between them is a garden path laid across
+    # the mouth of a triumphal arch. `half` is per entry and defaults to the old value, so every
+    # spur that wanted three still gets three.
     spur_half = 1
     for sp in (p.get("spurs") or []):
         z = int(sp["u"]) - u0
         if not (0 <= z < sz):
             continue
+        half = int(sp.get("half", spur_half))
         pal, _b, _t = land_at(int(sp["u"]))
         # walk back toward the street until paving is met - the gap decides the length, not a
         # number in a table that goes stale the moment a verge is retuned
         for x in range(int(sp["v"]) - v0 - 1, max(-1, int(sp["v"]) - v0 - 12), -1):
             if x < 0 or (x, z) in paved:
                 break
-            for d in range(-spur_half, spur_half + 1):
-                lay(x, z + d, pal, pal, 0.0, spur_half, abs(d), x)
+            for d in range(-half, half + 1):
+                lay(x, z + d, pal, pal, 0.0, half, abs(d), x)
 
     # THE STATION WALKS, and the gap in the rim they need. Drawn BEFORE the rim so the rim knows
     # to leave them alone: a post every six along a boundary is right everywhere except the one

@@ -94,7 +94,13 @@ params:
           - {v: 24, u: 70}      # Boomtown Spine
           - {v: 24, u: 134}     # Mine Coaster
           - {v: 24, u: 235}     # Arrival Court
-          - {v: 24, u: 301}     # Carousel Court
+          # THE WELCOME COURT'S OWN THRESHOLD, and it is THIRTEEN WIDE because the door is.
+          # Jack, on the finished court: "it needs to have paths or ways to connect to the other
+          # pathways surrounding it otherwise its disconnected and not an actual welcome." He is
+          # right and this was the worst of it: the entry gate's portico, this spur and the
+          # court's own step are the same doorway, and it was carried across the verge by three
+          # cells of stone offset one block from the axis every other piece is centred on.
+          - {v: 24, u: 300, half: 6}   # Welcome Court - the park's own front door
           - {v: 24, u: 362}     # Skill Arcade
           - {v: 24, u: 407}     # Wyrm's Crossing
           - {v: 24, u: 448}     # Foundry Gate
@@ -165,7 +171,22 @@ params:
             # Resonance Vault with no way off it - because a column's usable width stops one
             # cell short of the avenue on each side, at its lamp line. Every walk now overlaps
             # the paving it joins, so the network cannot be broken by a verge.
+            # COLUMN B HAD NO CROSS WALK AT ALL and it is the column the park is entered
+            # through. It was written off as "130 deep, one ride" when the Carousel stood over
+            # the Sky Lift; the front 56 of it is the Welcome Court now, and a court whose only
+            # way in is the door it faces is a cul-de-sac. Jack: "otherwise its disconnected and
+            # not an actual welcome."
+            #
+            # THE WALK IS DECLARED ONLY OVER THE TWO GAPS, not across the whole column. The
+            # court's own cross axis is paved between them - a roundel with a pavilion at each
+            # end - so drawing a street through it would be a second surface under a finished
+            # one, which is the thing this park was rebuilt to stop. Each half overlaps the
+            # avenue it joins and finishes on the court's own kerb, and the court's centre bay
+            # is left open on this axis so the walk runs through the pavilion rather than into
+            # one of its posts.
             walks: [{v: 74, half: 1, u0: 214, u1: 257},
+                    {v: 51, half: 2, u0: 257, u1: 271, lit: false},
+                    {v: 51, half: 2, u0: 329, u1: 344, lit: false},
                     {v: 77, half: 1, u0: 344, u1: 384}]
 
           # PRISMWORKS  A U430-465 (36) | av U467-469 | B U471-521 (51) | av U523-525 | C U527-599

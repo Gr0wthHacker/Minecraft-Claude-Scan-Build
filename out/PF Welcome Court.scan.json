@@ -112,15 +112,15 @@
       "narrative": "The Midway's walk-up: an eleven-wide processional walk on the gate's own axis, opening into a paved roundel with a two-tier stone fountain at the park's exact centre, closed east and west by curved bench exedras, with four kerbed lawn beds carrying one oak each on the quadrant centres. Half the lot is green. Nothing of this court stands in the walk, so the vista from the gate's doors to the wheel's hub is the composition rather than an accident.\n"
     },
     "metrics": {
-      "blocks": 5504,
+      "blocks": 5484,
       "materials": 25,
-      "dominant_material_share": 0.2705,
+      "dominant_material_share": 0.2715,
       "light_blocks": 12,
       "massing": {
         "width": 56,
         "height": 12,
         "depth": 61,
-        "fill_ratio": 0.1343
+        "fill_ratio": 0.1338
       },
       "silhouette": {
         "top": {
@@ -128,8 +128,8 @@
           "fill_ratio": 0.9561
         },
         "front": {
-          "area": 310,
-          "fill_ratio": 0.3075
+          "area": 308,
+          "fill_ratio": 0.3056
         },
         "side": {
           "area": 355,
@@ -138,12 +138,12 @@
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.8866,
-          0.1134,
+          0.8862,
+          0.1138,
           0.0
         ],
         "top_silhouette_perimeter": 259,
-        "surface_faces_per_block": 2.2802
+        "surface_faces_per_block": 2.2753
       },
       "material_counts": {
         "moss_block": 1489,
@@ -153,9 +153,9 @@
         "stone_bricks": 355,
         "stone": 349,
         "white_wool": 158,
-        "stripped_oak_log": 140,
         "azalea": 122,
         "polished_diorite_stairs": 120,
+        "stripped_oak_log": 120,
         "crimson_stairs": 104,
         "oak_log": 96
       }
@@ -169,8 +169,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "9f0efbab785ac03f8a755536f251640be1d7af259aed735bea290a7d85d8425f",
-    "generator_source_digest": "670070b5aef824e990c56c7918d75df8aaf120ac3a8b891f15fc7f0330910def",
+    "fingerprint": "e4895b179db4450d67a3362d611b82b2180db7376b15b0071ac5f2e5fe8cfd60",
+    "generator_source_digest": "2706993d7289a4b0a8bfe11a048d3794313d01830a09a7ac8dd9764733900c30",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -213,9 +213,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 69.67906,
-    "blocks": 5504,
-    "blocks_per_second": 78.99
+    "seconds": 74.949975,
+    "blocks": 5484,
+    "blocks_per_second": 73.17
   },
   "generator_contract": {
     "ok": true,
@@ -224,7 +224,7 @@
     "roles": [
       "path"
     ],
-    "blocks": 5504,
+    "blocks": 5484,
     "mechanic_families": [
       "fluid",
       "hazard",

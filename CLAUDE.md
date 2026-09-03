@@ -8586,9 +8586,46 @@ the SERVER PAYMENT ADAPTER**, which is handed those numbers to debit a fare agai
   park stands on, and **the view**, which is a ray from a visitor's eye to the wheel's hub and
   stops at the wheel's own face.
 
+### ...and then it was a cul-de-sac (2026-09-03)
+
+Jack, on the finished court: *"it needs to have paths or ways to connect to the other pathways
+surrounding it otherwise its disconnected and not an actual welcome."* Measured off the shipped
+ground he was right three times over, and every one of them is the park's OWN grammar not being
+used rather than a new thing being needed:
+
+- **THE SPUR WAS THREE CELLS WIDE AND ONE OFF THE AXIS.** `spurs` had a hard-coded `spur_half = 1`,
+  so every door in the park got three cells whatever stood behind it - and the entry gate's
+  portico, this spur and the court's threshold are the SAME DOORWAY, thirteen wide. `half` is per
+  entry now and the court's is 6. Its `u` was 301 as well, against an axis of 300, so the one
+  connection on the park's centre line was a garden path laid off-centre across the mouth of a
+  triumphal arch.
+- **THE MIDWAY'S CENTRE COLUMN HAD NO CROSS WALK.** `walks` already exists, already runs avenue to
+  avenue, and its own comment already says *"A WALK MUST TOUCH THE STREETS AT BOTH ENDS OR IT IS
+  NOT A WALK"* - and column B was written off as "130 deep, one ride" when the Carousel stood over
+  the Sky Lift. The front 56 of it is the Welcome Court now, its flanks faced 714 columns of lawn
+  each, and the avenues at U260 and U341 lay beyond them with nothing joining the two.
+- **IT IS DECLARED OVER THE TWO GAPS, NOT ACROSS THE COLUMN.** The court's own cross axis is paved
+  between them - a roundel with a pavilion at each end - so a street drawn through it would be a
+  second surface under a finished one, which is the thing this park was rebuilt to stop. Each half
+  overlaps the avenue it joins and finishes on the court's kerb.
+- **AND THE PAVILION HAD A POST IN THE DOORWAY.** Its post rhythm is every three from its own
+  corner and its centre landed exactly on the cross axis. A pavilion standing on a walk has to be
+  something you go THROUGH, so the centre bay is left open on that axis.
+
+**THE TEST IS A WALK, NOT A LOOK.** `test_the_welcome_court_is_reachable_from_the_spine_and_from_
+both_avenues` floods the finished park on foot - one course up, one down, four ways, no jumps and
+no falls - and demands the walk's head, its foot at the wheel and both pavilion openings, then
+floods again from each avenue and demands the walk. A kerb, a post or a one-course ledge fails
+here rather than in game.
+
+**IT STARTS BEHIND THE GATE'S DOORS AND THAT IS NOT A DODGE.** Flooded from the spine it cannot
+get through at all, correctly: U300 is the grille BETWEEN the two lanes and the doors are shut at
+rest, because this is a toll gate. `test_park_entrance.py` owns the question of whether a visitor
+could have got that far without paying; this one owns where they can go once they have.
+
 ### Where it stands, and what is left
 
-`Park Complete` is 355,036 blocks, `module clashes: none`, the court is one connected piece with 0
+`Park Complete` is 352,900 blocks, `module clashes: none`, the court is one connected piece with 0
 placement problems and 0 leaks, and all 32 entrance tests pass. Nothing here has been placed in
 game, and colour is still judged by the same database the palette picker optimises against - so
 judge form here and palette in world. `tools/entview.py` renders the named plan-coordinate views

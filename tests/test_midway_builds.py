@@ -658,3 +658,119 @@ def test_no_mast_is_drawn_connected_to_open_air(kind, built):
             if props.get(q) == "true":
                 assert (x + dx, y, z + dz) in named or (x + dx, y + 1, z + dz) in named, \
                     f"{kind}: a fence at {(x, y, z)} claims a {q} neighbour it has not got"
+
+
+# ------------------------------------------------------------------ the court is CONNECTED
+
+#: THE ASSEMBLED PARK, and here that is the right file to read rather than the trap `_park_cells`
+#: warns about. Those tests ask "does MY design land on somebody else's cell", and a composite
+#: containing the design answers that about itself. This one asks whether a visitor can WALK from
+#: one part of the finished park to another, which is a question only the composite can answer.
+COMPLETE = ROOT / "out" / "Park Complete.litematic"
+
+#: What a body passes through. Not what light passes through - a lantern and a set of iron bars
+#: stop a body and pass light, and a sign and a carpet do the opposite. Read the wrong way round a
+#: walk check is a claim about a different park.
+_PASSABLE = {"air", "cave_air", "void_air", "moss_carpet", "short_grass", "tall_grass", "fern",
+             "large_fern", "dead_bush", "azalea", "flowering_azalea", "glow_lichen", "vine",
+             "torch", "wall_torch", "soul_torch", "redstone_wire", "lever", "rail", "water"}
+_PASSABLE_SUFFIX = ("_sign", "_button", "_pressure_plate", "_carpet", "_torch", "_rail")
+
+
+def _walkable(model, origin, band, box):
+    """{(V, Y, U)} a visitor can stand in: solid under, two clear courses, inside `box`."""
+    ox, oy, oz = origin
+    names = [n.split(":")[-1].split("[")[0] for n in model.names]
+    v0, u0, v1, u1 = box
+    solid = set()
+    ys, zs, xs = np.where(model.solid())
+    for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist()):
+        wy = oy + int(y)
+        V, U = ox + int(x) - PARK_ORIGIN[0], oz + int(z) - PARK_ORIGIN[2]
+        if not (band[0] <= wy <= band[1] and v0 <= V <= v1 and u0 <= U <= u1):
+            continue
+        n = names[int(model.ids[y, z, x])]
+        if n in _PASSABLE or n.endswith(_PASSABLE_SUFFIX):
+            continue
+        solid.add((V, wy, U))
+    return {(V, y + 1, U) for (V, y, U) in solid
+            if (V, y + 1, U) not in solid and (V, y + 2, U) not in solid}
+
+
+def _reach(stand, start):
+    """Flood on foot: one course up, one course down, four ways - no jumps and no falls."""
+    if start not in stand:
+        raise AssertionError(f"the start cell {start} is not standable")
+    seen, q = {start}, [start]
+    while q:
+        V, y, U = q.pop()
+        for dv, du in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            for dy in (0, 1, -1):
+                nxt = (V + dv, y + dy, U + du)
+                if nxt in stand and nxt not in seen:
+                    seen.add(nxt)
+                    q.append(nxt)
+    return seen
+
+
+@pytest.fixture(scope="module")
+def midway_walk():
+    if not COMPLETE.exists():
+        pytest.skip("out/Park Complete.litematic is not shipped")
+    m = schem.load(str(COMPLETE))
+    sc = json.loads(COMPLETE.with_suffix(".scan.json").read_text())
+    o = sc["origin"]
+    return _walkable(m, (int(o["x"]), int(o["y"]), int(o["z"])),
+                     (LAWN_Y - 1, LAWN_Y + 14), (0, 240, 100, 360))
+
+
+def test_the_welcome_court_is_reachable_from_the_spine_and_from_both_avenues(midway_walk):
+    """A COURT WHOSE ONLY WAY IN IS THE DOOR IT FACES IS A CUL-DE-SAC.
+
+    Jack, on the finished court: *"it needs to have paths or ways to connect to the other pathways
+    surrounding it otherwise its disconnected and not an actual welcome."* Measured off the shipped
+    ground he was right three times over: the entry gate's portico, the court's own threshold and
+    the spur between them are the same thirteen-wide doorway, and the spur was THREE cells wide and
+    offset one block from the axis; and the Midway's centre column - the column the whole park is
+    entered through - carried no cross walk at all, so the court's two flanks faced 714 columns of
+    lawn each with the avenues at U260 and U341 beyond them and nothing joining the two.
+
+    This is a WALK, not a look. It floods the finished park on foot from the spine and demands the
+    court's own centre, and then floods from each avenue and demands the same cell - so a kerb, a
+    pavilion post or a one-course ledge in the way fails here rather than in game.
+    """
+    # THE FLOOD STARTS BEHIND THE GATE'S DOORS, at V19/U302 - the lane the spawn is aligned with.
+    # Started on the spine it cannot get through at all and that is CORRECT: U300 is the grille
+    # between the two lanes, and the doors are shut at rest because this is a toll gate. What is
+    # being tested here is the walk a PAYING visitor makes, and `test_park_entrance.py` owns the
+    # question of whether they could have got this far without paying.
+    start = next(iter(sorted(c for c in midway_walk if c[0] == 19 and c[2] == 302)), None)
+    assert start, "the gate's own threshold is not standable at V19/U302"
+    reached = _reach(midway_walk, start)
+
+    # NOT THE COURT'S CENTRE, WHICH IS THE FOUNTAIN. V51/U300 is a water cell by design and a
+    # visitor stands on none of it; the places to demand are the ones they walk - the head of the
+    # walk, its foot at the wheel, and the two pavilion openings the cross walk runs through.
+    want = {"walk head": (30, 300), "walk foot": (70, 300),
+            "west pavilion": (51, 274), "east pavilion": (51, 326)}
+    for name, (v, u) in want.items():
+        assert any(c[0] == v and c[2] == u for c in reached),             f"{name} at V{v}/U{u} cannot be walked to from the spine"
+
+    for name, u in (("west avenue", 260), ("east avenue", 341)):
+        seed = next(iter(sorted(c for c in midway_walk if c[0] == 51 and c[2] == u)), None)
+        assert seed, f"the {name} is not standable at V51/U{u}"
+        from_avenue = _reach(midway_walk, seed)
+        assert any(c[0] == 40 and c[2] == 300 for c in from_avenue),             f"the court's cross walk does not reach the {name}"
+
+
+def test_the_courts_own_threshold_is_as_wide_as_the_spur_that_serves_it(midway_walk):
+    """A THIRTEEN-WIDE DOOR SERVED BY A THREE-WIDE PATH IS A BOTTLENECK WITH A CEREMONY ROUND IT.
+
+    The gate's portico, this spur and the court's step are one doorway and they must be one width.
+    Measured on the ground: how many of the thirteen axis columns a visitor can actually walk from
+    the spine's verge onto the court's own floor.
+    """
+    lanes = [u for u in range(294, 307)
+             if any((23, y, u) in midway_walk for y in range(LAWN_Y, LAWN_Y + 3))
+             and any((24, y, u) in midway_walk for y in range(LAWN_Y, LAWN_Y + 3))]
+    assert len(lanes) == 13, f"only {len(lanes)} of the 13 axis columns cross the verge: {lanes}"

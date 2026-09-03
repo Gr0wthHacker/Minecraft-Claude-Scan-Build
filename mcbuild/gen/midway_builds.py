@@ -1137,8 +1137,15 @@ def _pavilion(L, v0, u0, v1, u1, seed, m) -> dict:
     be walked across; what a walk-up wants is shelter you can see through, with a seat in it.
     """
     made = {"posts": 0, "seats": 0}
+    cv = (v0 + v1) // 2
     for v in range(v0, v1 + 1):
         for u in (u0, u1):
+            # THE CENTRE BAY IS LEFT OPEN ON THE CROSS AXIS, and that is a route rather than a
+            # taste: the court's cross walk runs out through this pavilion to the avenue beyond
+            # it, and the post rhythm put one squarely in the middle of the doorway. A pavilion
+            # standing on a walk has to be something you go THROUGH.
+            if abs(v - cv) <= 1:
+                continue
             if v in (v0, v1) or (v - v0) % 3 == 0:
                 for y in range(1, 6):
                     made["posts"] += bool(L.put(v, y, u, PAL["beam"], axis="y"))
