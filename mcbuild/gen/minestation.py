@@ -124,18 +124,36 @@ def build(cfg: dict, donors=None):
     d = p.get("dispatch")
     dispatch = None
     if d:
-        pl, bt = d["plinth"], d["button"]
-        px, py, pz = _local(pl["v"], pl["u"], pl["h"])
+        filled = {(int(x), int(y), int(z))
+                  for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist())}
+        bt = d["button"]
         bx, by, bz = _local(bt["v"], bt["u"], bt["h"])
-        for key, what in (((px, py, pz), "plinth"), ((bx, by, bz), "button")):
-            if key in {(int(x), int(y), int(z))
-                       for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist())}:
-                raise ValueError(f"minestation: the dispatch {what} at local {key} is not empty "
-                                 f"in the ride - it would overwrite a cell of the artifact")
-        w.put(px, py, pz, str(pl.get("block", "stone_bricks")))
+        if (bx, by, bz) in filled:
+            raise ValueError(f"minestation: the dispatch button at local {(bx, by, bz)} is not "
+                             f"empty in the ride - it would overwrite a cell of the artifact")
+        face = str(bt.get("face", "wall"))
+        # **THE SUPPORT IS CHECKED, NOT ASSUMED.** A button with nothing to hang on is refused by
+        # the game, silently, and a dispatch that is not there looks exactly like a ride that
+        # does not work - this project's most-repeated failure shape.
+        back = {"floor": (0, -1, 0), "ceiling": (0, 1, 0),
+                "wall": {"north": (0, 0, 1), "south": (0, 0, -1),
+                         "west": (1, 0, 0), "east": (-1, 0, 0)}.get(str(bt.get("facing")))}[face]
+        sup = (bx + back[0], by + back[1], bz + back[2])
+        if sup not in filled:
+            raise ValueError(f"minestation: the dispatch button at local {(bx, by, bz)} has "
+                             f"nothing to hang on at {sup} - the game would refuse it")
+        # ...AND SO IS WHAT IT DRIVES. A button strongly powers only the block it is attached to,
+        # so that block must touch the braked rails or pressing it does nothing at all.
+        rails = {k for k in plain} | {(bx, by, bz)}
+        touching = any((sup[0] + a, sup[1] + b, sup[2] + c) in filled
+                       and names[int(m.ids[sup[1] + b, sup[2] + c, sup[0] + a])] == "powered_rail"
+                       for a, b, c in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, 1, 0)))
+        if not touching:
+            raise ValueError(f"minestation: the button's support at local {sup} touches no "
+                             f"powered rail - pressing it would power nothing")
         w.put(bx, by, bz, str(bt.get("block", "stone_button")),
-              face="wall", facing=str(bt["facing"]), powered="false")
-        dispatch = {"plinth": [px, py, pz], "button": [bx, by, bz]}
+              face=face, facing=str(bt.get("facing", "north")), powered="false")
+        dispatch = {"button": [bx, by, bz], "support": list(sup), "face": face}
 
     sy, sz, sx = m.ids.shape
     c = w.canvas({

@@ -15,16 +15,17 @@
   "gates_opened": 4,
   "rails_isolated": 2,
   "dispatch": {
-    "plinth": [
+    "button": [
+      7,
+      15,
+      12
+    ],
+    "support": [
       7,
       14,
-      19
+      12
     ],
-    "button": [
-      6,
-      14,
-      19
-    ]
+    "face": "floor"
   },
   "contract": "the Mine Coaster's own artifact, copied state for state in its own axes, with named fence cells of its station turned into open fence gates so the platform can be walked into from the concourse and out of from the track, a braked station section held by plain-rail isolators either side, and a button that powers it to dispatch",
   "unverified": [
@@ -73,7 +74,7 @@
       "narrative": "The Mine Coaster as it stands, with its station platform opened to the concourse in front of it and to the track behind it, so a rider can get off the train and out of the building.\n"
     },
     "metrics": {
-      "blocks": 31198,
+      "blocks": 31197,
       "materials": 28,
       "dominant_material_share": 0.3416,
       "light_blocks": 15,
@@ -99,12 +100,12 @@
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.391,
+          0.3909,
           0.5528,
           0.0562
         ],
         "top_silhouette_perimeter": 1228,
-        "surface_faces_per_block": 1.4818
+        "surface_faces_per_block": 1.4821
       },
       "material_counts": {
         "cracked_stone_bricks": 10657,
@@ -112,7 +113,7 @@
         "cobblestone": 3279,
         "mossy_stone_bricks": 2072,
         "spruce_log": 2014,
-        "stone_bricks": 1251,
+        "stone_bricks": 1250,
         "spruce_planks": 791,
         "stripped_oak_log": 721,
         "stone_brick_stairs": 648,
@@ -130,8 +131,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "d664ccb3f2cfec0573d279b8590b836aa381e532d8e447cb5734bbe731b33a18",
-    "generator_source_digest": "3ce4140f3294da74931d8c1ad59e917ac6695aea3a14911cbdbec324704ec625",
+    "fingerprint": "8a96b66ba4d4c79617ce99006a042e67295cb8adfae99a8f45519f08aafb87dd",
+    "generator_source_digest": "8520a8a867055b666fa82f18750c4a43287ea356a04e06ab675e3658cbe38e84",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -175,16 +176,16 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 1.334041,
-    "blocks": 31198,
-    "blocks_per_second": 23386.09
+    "seconds": 1.33498,
+    "blocks": 31197,
+    "blocks_per_second": 23368.89
   },
   "generator_contract": {
     "ok": true,
     "failures": [],
     "anchors": 0,
     "roles": [],
-    "blocks": 31198,
+    "blocks": 31197,
     "mechanic_families": [
       "access",
       "light",

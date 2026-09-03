@@ -77,9 +77,8 @@ def _asked(params):
         out.update(dict(span(r, "isolator")))
     d = params.get("dispatch")
     if d:
-        for k in ("plinth", "button"):
-            c = d[k]
-            out[(int(c["v"]) - av, int(c["h"]) + plane, int(c["u"]) - au)] = k
+        c = d["button"]
+        out[(int(c["v"]) - av, int(c["h"]) + plane, int(c["u"]) - au)] = "button"
     return out
 
 
@@ -93,7 +92,7 @@ def test_the_adopted_ride_is_the_artifact_cell_for_cell_except_what_the_config_a
     asked = _asked(params)
     added, gone = set(got) - set(art), set(art) - set(got)
     assert not gone, f"the copy is missing {len(gone)} cells of the artifact, eg {sorted(gone)[:4]}"
-    assert added == {k for k, v in asked.items() if v in ("plinth", "button")}, (
+    assert added == {k for k, v in asked.items() if v == "button"}, (
         f"the copy adds {sorted(added)} but the config asks for the dispatch only")
     changed = {k for k in art if k in got and art[k] != got[k]}
     assert changed == {k for k, v in asked.items() if v in ("gate", "isolator")}, (
@@ -331,7 +330,7 @@ def test_only_the_station_rails_are_braked(ride, params):
     plane = int(params["plane"])
     dead = {(p[0] + av, p[2] + au, p[1] - plane)
             for p, (n, _s) in rails.items() if n == "powered_rail" and p not in dist}
-    assert dead == {(32, 118, 1), (32, 119, 1), (32, 120, 1)}, (
+    assert dead == _station(params), (
         f"the braked rails are {sorted(dead)}, not the station's three")
 
 
@@ -343,9 +342,9 @@ def test_the_station_holds_a_cart_at_rest_and_the_button_dispatches_it(ride, par
     c = Circuit.of(ride)
     av, au = (int(a) for a in params["at"])
     plane = int(params["plane"])
-    hold = [(32 - av, 1 + plane, u - au) for u in (118, 119, 120)]
-    btn = tuple(params["dispatch"]["button"][k] for k in ("v", "h", "u"))
-    btn = (btn[0] - av, btn[1] + plane, btn[2] - au)
+    hold = [(v - av, h + plane, u - au) for v, u, h in sorted(_station(params))]
+    b = params["dispatch"]["button"]
+    btn = (int(b["v"]) - av, int(b["h"]) + plane, int(b["u"]) - au)
     assert c.name(btn) == "stone_button", f"there is no dispatch button at {btn}"
     for _ in range(6):
         c.step()
@@ -358,3 +357,50 @@ def test_the_station_holds_a_cart_at_rest_and_the_button_dispatches_it(ride, par
         c.step()
     assert not any(c.powered(p) for p in hold), (
         "the station stays live after the press - the next cart will not stop")
+
+
+def _station(params):
+    """The braked cells, DERIVED from the isolators rather than typed twice.
+
+    The two plain rails cut the powered chain, so the station is whatever lies between them -
+    writing the answer out again is how a test and the thing it measures drift apart.
+    """
+    us = sorted(int(a) for r in params["plain"] for a in r["u"])
+    v = int(params["plain"][0]["v"])
+    h = int(params["plain"][0]["h"])
+    return {(v, u, h) for u in range(min(us) + 1, max(us))}
+
+
+def test_a_rider_can_stand_beside_every_braked_rail_on_both_flanks():
+    """**THE BRAKE HAS TO BE WHERE A RIDER CAN STAND**, and the first one was not. Jack: "the
+    actual getting on and off is still broken." Put at U118-120 the only near-side standing
+    beside the track was INSIDE the two fence gates - you boarded out of a gateway - and the one
+    clear cell had the dispatch plinth on it. Measured on the shipped composite, because a
+    platform is made of the ride's floor and the frontage's air together."""
+    s = scan.load(COMPLETE)
+    ox, oy, oz = s.origin
+    ids = s.model.ids
+    names = [nbt.state_name(e).split(":")[-1] for e in s.model.palette]
+    props = [nbt.state_props(e) for e in s.model.palette]
+    PASS = {"air", "cave_air", "moss_carpet", "short_grass", "vine", "rail", "powered_rail",
+            "detector_rail", "lantern", "torch", "wall_torch", "stone_button"}
+
+    def idx(V, U, h):
+        return int(ids[PLANE + h - oy, U + A[1] - oz, V + A[0] - ox])
+
+    def clear(V, U, h):
+        i = idx(V, U, h)
+        return names[i] in PASS or (names[i].endswith("_fence_gate")
+                                    and str(props[i].get("open")) == "true")
+
+    def stands(V, U, h):
+        return (not clear(V, U, h - 1)) and clear(V, U, h) and clear(V, U, h + 1)
+
+    with open(CFG, encoding="utf-8") as fh:
+        pr = yaml.safe_load(fh)["params"]
+    for v, u, h in sorted(_station(pr)):
+        assert names[idx(v, u, h)] == "powered_rail", f"V{v} U{u} h{h} is not a rail"
+        near, far = stands(v - 1, u, h + 1), stands(v + 1, u, h + 1)
+        assert near and far, (
+            f"the braked rail at V{v} U{u} has no platform: near={near} far={far} - a rider "
+            f"cannot get on or off here")
