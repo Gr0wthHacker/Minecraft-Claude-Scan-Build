@@ -180,6 +180,14 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # a material test cannot tell its pine from the Diggings'), so that ground
                 # belonged to nobody.
                 "PF Frontier Claim Row", "PF Frontier Muster Yard",
+                # THE LOST PLATEAU. Jack: "I just think this theme is boring and dull and doesnt
+                # represent well - its confusing to the end user ... 'frontier' needs to change."
+                # Measured, the Frontier used show material at 1.3% against 21-32% for every other
+                # land - the biggest land in the park, the most verbs, and no identity, because a
+                # gold-rush mining camp IS timber and stone. This dresses the Mine Ridge as jungle,
+                # ADDITIVELY, so the coaster and the mountain are untouched: 72% of the land's mass
+                # is those two designs and neither is regenerated.
+                "PF Lost Plateau",
                 # THE WYRM'S SKULL, OFF THE CAUSEWAY AND ONTO THE LINE. Jack: "are we able to
                 # place the skull so that the mouth 'opens' around the railway, the back of the
                 # skeleton is towards the void and the mouth gap is where the railway passes

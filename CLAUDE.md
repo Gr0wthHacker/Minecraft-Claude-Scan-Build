@@ -7046,6 +7046,104 @@ without deleting the launder, trestles and pool that make the bay a sluice.
   reads as a strip of brown huts and then a skyscraper. Not touched; it is a massing decision.
 - **Nothing here has been placed in game.** Judge form and mass off `render3d`, palette in world.
 
+### THE LOST PLATEAU - the Frontier re-themed, and the number that condemned it (2026-09-03)
+
+Jack: *"I just think this theme is boring and dull and doesnt represent well - its confusing to the
+end user ... lets take the same color schemes potentially so we dont change the coaster, but I think
+'frontier' needs to change and we need to represent something more interesting here - looking at the
+rest of the park, this falls so short."*
+
+**ONE NUMBER IS THE WHOLE COMPLAINT.** Show material - wool, concrete, copper, glass, lamps, carpet,
+anything MADE and coloured - as a share of each land:
+
+| land | blocks | show | verbs | reads as |
+|---|---|---|---|---|
+| Midway | 87,967 | **24.0%** | 335 | red/white fairground |
+| Prismworks | 96,576 | **21.7%** | 316 | copper and cyan |
+| Wyrm reach | 31,738 | **31.7%** | 12 | a 40-block bone skull |
+| **Frontier** | **144,620** | **1.3%** | 349 | moss 20%, stone 15%, brick 10%, cobble 9% |
+
+**IT WAS THE BIGGEST LAND IN THE PARK AND THE ONE WITH THE MOST TO DO**, so it was never short on
+effort - it was short on IDENTITY, at one twentieth the colour of its neighbours. **And a gold-rush
+mining camp cannot be fixed by adding colour, because timber and stone IS the theme.** That is why
+the theme went and the execution stayed, and it is worth keeping as a general test: when a land
+measures fine on every axis but reads as nothing, ask what its palette is FOR before adding to it.
+
+**THE EXPENSIVE PART SURVIVES ANY RE-THEME, AND THAT DECIDED WHICH ONE.** `Mine Coaster` (56,635)
+and `PF Mine Ridge` (41,948) are 98,583 blocks - **72% of the land's mass** - and a mountain with a
+rail ride cut through it works under any story: a cave tunnel and a mine tunnel are the same tunnel,
+and a timber trestle over a gorge is a timber trestle. Every other building is under 5,800, so the
+cost of a re-theme is almost entirely in the remaining 28%.
+
+Of three directions costed - Lost World, volcano, alpine - the Lost World wins on measurement rather
+than taste:
+
+- **highest reuse in the park**: a mining camp and a palaeontology field camp are the SAME
+  BUILDINGS, so the gate, works yard, assay office, wash house and lookout rename rather than
+  rebuild, and `PF Frontier Diggings` is already literally a dig site;
+- **it owns a colour nothing else in the park has** - jungle green and bone - where a volcano's
+  orange fights the Midway's red and an alpine white fights the Wyrm reach's 25% light grey;
+- **and it is the one content type this repo can build.** CLAUDE.md's own line is planar/columnar
+  against volumetric: a sauropod is a neck on columnar legs (the giraffe, which works), a pterosaur
+  is a membrane wing (the bat, which works), a stegosaur is a convex mass with planar plates (the
+  ladybird category), and a fossil is pure planar. The Wyrm skull proves bone-work reads at 40
+  blocks. **A T-REX IS THE ONE EVERYBODY WANTS AND THE ONE THIS SYSTEM IS WORST AT** - a heavy biped
+  is volumetric muscle, which is what retired eight mammals - so if it is ever built it is built as
+  a SKELETON, which is planar and which the Wyrm already proves.
+
+#### `gen/plateau.py` - the canopy, and why it is the cheapest possible change
+
+**15,374 blocks, 0 overlap, 0 new problems in context, all cheap tier, and not one cell of the
+coaster or the mountain touched.** Everything goes into AIR above the ridge's own surface, so the
+pass is reversible by breaking what it placed - the deck floor's rule that a remedial design is
+judged by what it REPLACES, applied to a mountain.
+
+The ridge was the lever because it is the biggest grey object in the park: 8,804 columns, **5,776 of
+them standing at Y206 or above**, top surface stone 14% / gravel 13% / cobble 9% / andesite 4%.
+
+    THE RIDGE'S TOP SURFACE, 8,804 columns:   24.2% green  ->  71.0% green
+      stone 13.8% -> 5.2% . cobblestone 8.8% -> 3.7% . gravel 12.9% -> under 3%
+      jungle_leaves 17.6% . vine 9.4% . fern 6.4% . azalea 3.3% . moss 19.8% -> 29.0%
+
+Four pieces, in the order they must run: a **moss cap one course over the rock** (which is the
+colour AND the soil - a plant roots in the dirt family and nowhere else, and the Lowland Thicket
+returned 173 placement problems for treating mossy cobble as ground); **jungle canopies** on the
+cap; **vine curtains** down the faces; **ferns and lichen** under them.
+
+Four things it cost:
+
+- **A JUNGLE CROWN IS WIDE AND FLAT, NOT CONICAL.** A spruce narrows in steps and reads as a fir;
+  what says jungle is a crown wider than it is tall carried clear of the ground on a bare trunk, so
+  you see UNDER it - which is also what makes it read from the ride, which passes below the crest.
+- **THE SKY CLEARANCE TEST IS NOT OPTIONAL.** The coaster's trestles are 14.9% of this lot's top
+  surface, so a tree on a bench beside the track grows straight through it - invisible in a plan
+  view and obvious from the ride.
+- **A FACE IS FOUND, NOT DRAWN.** A vine curtain hangs where the ground falls away - a column whose
+  neighbour is three or more courses lower shows that much rock. Drawn as a rule about position it
+  lands on flat ground and reads as green string in mid-air.
+- **CHECK THE SOIL, DO NOT ASSUME IT.** The cap is at top+1 and a fern at top+2, so the soil looks
+  guaranteed - until a neighbouring tree whose ground is one course lower drops a canopy leaf into
+  that very cell. Six ferns shipped standing on `jungle_leaves`: a placement problem in context and
+  invisible in isolation.
+
+**AND THE DESIGN ALONE REPORTS 1,310 PROBLEMS, ALL OF THEM VINES WITH "no attachment".** That is the
+Mine Ridge's own situation and it is correct: a vine clings to the ridge's rock, which belongs to the
+WORLD and not to this design, so in isolation it hangs on nothing. In context it is 0. **The
+composite is the truth** - and a pass whose whole purpose is dressing somebody else's surface can
+never be judged alone.
+
+#### Still open
+
+- **The land is still called the Frontier on every sign it has.** The gate reads FRONTIER / "mine
+  and town", and the frontage marquees still name a Mining Square and a Prospecting Porch. That is
+  ~30 signs across six designs and it is the next thing, because a land whose signs contradict its
+  ground is worse than one that is merely grey.
+- **The icons are not built.** A sauropod over the treeline is what would name this land from
+  anywhere in the park; a pterosaur and a fossil dig in the Diggings are the other two.
+- **`frontier_scatter` still plants spruce** across the open ground - the pines belong to the theme
+  that went.
+- **Nothing placed in game.** Judge form and mass off `render3d`, palette in world.
+
 ## The daily loop
 
 ```bash

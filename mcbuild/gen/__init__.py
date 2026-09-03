@@ -19,7 +19,7 @@ class _Wrap:
 
 from . import frontier_builds, midway_builds, prismworks_builds  # noqa: E402
 from . import park_entrance, park_frontage, park_vantage, park_water  # noqa: E402
-from . import claimrow, diggings, frontier_scatter, mineridge, mineworks, park_games  # noqa: E402
+from . import claimrow, diggings, frontier_scatter, mineridge, mineworks, park_games, plateau  # noqa: E402
 from . import wyrmgate  # noqa: E402
 from . import menagerie  # noqa: E402
 
@@ -62,6 +62,13 @@ GENERATORS = {
     # the gate the paved route through it that a threshold has to have -
     # mcbuild/gen/claimrow.py
     "claimrow": claimrow,
+    # THE LOST PLATEAU. Measured, the Frontier used show material at 1.3% against 21-32% for every
+    # other land in the park - the biggest land, the most verbs, and no identity at all, because a
+    # gold-rush mining camp IS timber and stone and cannot be fixed by adding colour. This dresses
+    # the Mine Ridge - 8,804 columns, 5,776 of them standing at Y206+ and the biggest grey object
+    # in the park - as jungle, ADDITIVELY, so the coaster and the mountain are untouched.
+    # mcbuild/gen/plateau.py
+    "plateau": plateau,
     # **THE GAMES INSIDE THE PARK'S BUILDINGS, AND THIS ENTRY WAS MISSING.**
     # `mcbuild/gen/park_games.py`, `tests/test_park_games.py` and ten
     # `configs/pf_game_*.yaml` all existed and the generator was not registered, so
