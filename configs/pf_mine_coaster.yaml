@@ -48,6 +48,29 @@ params:
   gates:
     - {v: 27, u: [119, 120], h: 1, facing: west}   # platform -> concourse
     - {v: 31, u: [119, 120], h: 1, facing: west}   # track -> platform
+  # ---------------------------------------------------------------------------------------
+  # THE STATION, WHICH THE RIDE HAS NEVER HAD.
+  #
+  # Measured on the artifact: the track is ONE CLOSED LOOP of 284 rails, every rail with exactly
+  # two links and no dead ends - the topology is sound. And all 278 of its powered rails are
+  # ENERGISED, 54 fed directly by a `redstone_block` and the rest by the eight-rail chain off
+  # those. A cart therefore never stops anywhere on the circuit, which is why there was no
+  # station: the ride is a loop that runs for ever with nowhere to get on.
+  #
+  # An UNPOWERED powered rail is a BRAKE. So three rails at the platform are cut out of the
+  # chain by a PLAIN rail either side - plain rather than air, because the loop has to stay
+  # closed - and a cart coasting in stops on them.
+  plain:
+    - {v: 32, u: [117, 117], h: 1}   # cuts the chain from the redstone_block at V32/U115
+    - {v: 32, u: [121, 121], h: 1}   # ...and the one at V32/U123
+  # The braked section is then V32/U118-120, which is the three rails against the platform's own
+  # gates. A STRONGLY-POWERED BLOCK BESIDE A POWERED RAIL ACTIVATES IT and a button on a block
+  # strongly powers that block, so the plinth stands in the boarding lane at U118 against those
+  # rails and the button goes on its platform face: an operator on the platform can press it, and
+  # a rider already in the cart is within reach of it.
+  dispatch:
+    plinth: {v: 31, u: 118, h: 1, block: stone_bricks}
+    button: {v: 30, u: 118, h: 1, facing: west}
 finish:
   # NO `verify_against`. This design carries no world origin - `tools/park_place` positions it
   # from `PLACEMENT`, in the park's own lattice - so compositing it onto a world capture asks
