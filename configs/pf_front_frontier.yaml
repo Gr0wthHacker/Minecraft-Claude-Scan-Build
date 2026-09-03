@@ -143,7 +143,11 @@ params:
     # needs here is one arch to walk under and one gate to come out of.
     - kind: portal
       name: Mine Coaster exit
-      at: [21, 121]           # opening U120-122, on the platform's own way out
+      # U120, SO THE OPENING IS U119-121 - the concourse's own east end, and the 3-wide
+      # exit spur runs through it. At U121 the opening was U120-122 and two of its three
+      # cells were lawn past the end of the paving: an arch on the grass beside a
+      # building, which is what Jack called the random extra arch.
+      at: [21, 120]
       mode: exit
       title: RIDE EXIT
       lines: ["", "", "no re-entry"]
