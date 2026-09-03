@@ -1,22 +1,32 @@
-# PF CLAIM LAKE MENAGERIE - a small petting zoo off the lake's east shore.
+# PF CLAIM LAKE MENAGERIE - a walk-through farmyard zoo, filling its whole lot.
 #
 # Replaces `PF Vantage Midway Belvedere` (withdrawn - squeezed between the balloon's Circus and
 # the railway) and `PF Claim Lake Range` (withdrawn - `arcade._range`'s concealed award floor
 # left a bare service slab trailing off its own back). Jack: "we should probably find something
 # else to put in this area, maybe a small zoo where we put actual MC animals."
 #
-# NO HIDDEN MACHINE THIS TIME, ON PURPOSE. `gen/menagerie.py` is fence, posts, four small
-# shelters and signs - every course of it is something a visitor can see, so there is nothing
-# behind it to trail off the back the way the range's pit did.
+# REBUILT 2026-09-03. Jack, on the first version: "the zoo on the park is tiny and doesnt look
+# good, we want to use the full space and make it much more visually interesting." Both halves
+# measured: it was four IDENTICAL 7x10 pens in one row, 455 columns of a 1,014-column lot and
+# three courses tall at its highest point. It now fills 936 of them - the whole lot bar the
+# frontage verge - with four DIFFERENT habitats round a T of paths, and a skyline that runs from
+# the aviary's cupola down through the barn ridge to an open pond.
 #
-# THE SITE: V135-147 / U175-209, the same exit/observation lot the last two attempts used, off
-# both the Circus ring (V138, and this design does not sit at the Circus's own U anyway - it is
-# north of it, alongside the lake) and the railway (V172). Confirmed empty lawn by rendering the
-# actual `Park Complete.litematic`.
+# NO HIDDEN MACHINE, ON PURPOSE - the reason this design got the lot in the first place. Every
+# course of it is something a visitor can see, so there is nothing behind it to trail off the
+# back the way the range's pit did.
 #
-# THE ANIMALS ARE NOT IN THE SCHEMATIC. A litematic places blocks, not entities - the pens are
-# built empty, fenced and signed for what to lead in (`gen/menagerie.py`'s own docstring says so
-# plainly). Stocking them with real sheep, cows, pigs and chickens is a job for Jack, in world.
+# THE SITE: V130-153 / U173-211, the whole `frontier|midway / exit-observation` lot
+# `tools/park_lots.py` measures here (26 deep x 39 wide, walks on all four sides), less the
+# V128-129 frontage verge. THAT VERGE IS NOT SPARE GROUND - `Park Ways` stands three of its own
+# lamp standards on V129 at U175, U192 and U209, and the middle one is dead on the lot's own
+# midline. Built one row further forward, the gateway would have had a lamp post in its doorway;
+# left alone, those three lamps light the frontage for nothing.
+#
+# THE ANIMALS ARE NOT IN THE SCHEMATIC. A litematic places blocks, not entities - the enclosures
+# are built empty, gated and signed for what to lead in (`gen/menagerie.py`'s own docstring says
+# so plainly). Stocking them with real sheep, cows, pigs, hens and fish is a job for Jack, in
+# world.
 name: PF Claim Lake Menagerie
 gen: menagerie
 params:
@@ -37,13 +47,16 @@ park_contract:
   land: midway
   requires_path: true
   access_candidates:
-    - [97635, 204, 80492]
+    - [97629, 204, 80492]
 design:
   purpose: terrain
   hierarchy: supporting
   style: midway
   narrative: >
-    A row of four fenced paddocks off the Claim Lake's east shore - sheep, cow, pig and chicken,
-    each with a small shelter, a hay marker, a gate and a named sign - built empty and ready to
-    stock, in the exit/observation lot the park's own street layout reserves here.
+    A walk-through farmyard zoo on the Claim Lake's south side, filling the whole exit and
+    observation lot: a gated frontage with two capped towers, a red timber barn you walk through
+    with four railed stalls off its cross aisle, a sunken duck pond with a canopied jetty, an
+    open sheep meadow with a shelter and a trough, a cage aviary under a lattice roof with a
+    cupola on top, and a raised lookout terminating the spine - built empty, gated and signed for
+    what to lead into each enclosure.
 origin_lock: false
