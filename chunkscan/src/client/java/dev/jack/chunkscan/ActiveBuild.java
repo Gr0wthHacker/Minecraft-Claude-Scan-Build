@@ -17,6 +17,10 @@ final class ActiveBuild {
         ResumeBinding before = ResumeBinding.capture(sourceDir, design, expected.world(), expected.dimension());
         String mismatch = expected.mismatch(before);
         if (mismatch != null) throw new IOException(mismatch);
+		// PLACEMENTS block; withdrawals are reported. An unfinished placement leaves a cell of the
+		// world in a state the plan does not know about and CAN be settled by looking at it. A
+		// withdrawal can be settled by nothing, which is why refusing to start on one was a design
+		// that never started again. See BuildJournal.unresolvedInContext.
 		var unresolved = BuildJournal.unresolvedInContext(sourceDir, expected);
 		if (!unresolved.isEmpty()) throw new IOException("unreconciled action at "
 			+ unresolved.values().iterator().next() + "; inspect the world before resuming");

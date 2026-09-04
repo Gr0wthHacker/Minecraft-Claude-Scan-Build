@@ -138,9 +138,34 @@ final class Withdraw {
     static boolean unconfirmed() { return awaitingTransfer; }
 
     static void cancel() {
+		closeJournal(Minecraft.getInstance(), "CANCELLED");
 		phase = Phase.IDLE;
 		chest = null;
         awaitingTransfer = false; transfer = null;
+		transferJournal = null;
+	}
+
+	/**
+	 * Close whatever record this withdrawal opened, whichever way it is ending.
+	 *
+	 * <p><b>A started record with no finish must only ever mean the client died mid-action.</b> It
+	 * did not: every failure path dropped the field and wrote nothing, so a chest that no longer
+	 * held what the index promised left an open record - and ActiveBuild.prepare then refused to
+	 * start that design ever again, with an error nothing in this mod could resolve. Jack, on the
+	 * loop going to grab materials that were not there any more: <i>"it broke it; it should move
+	 * on"</i>.
+	 */
+	private static void closeJournal(Minecraft mc, String result) {
+		if (transferJournal == null || mc == null) return;
+		try {
+			ActiveBuild.Snapshot revision = ChunkScanClient.printDesign == null ? null
+				: ActiveBuild.current(ScanRunner.schematicsDir(mc), ChunkScanClient.printDesign);
+			if (revision != null) BuildJournal.finishTransfer(revision.sourceDirectory(),
+				revision.binding(), transferJournal, result, 0);
+		} catch (Exception ignored) {
+			// The record stays open and reconcile() closes it on the next resume. That path exists
+			// precisely so a write that cannot happen now is not a design that never starts again.
+		}
 		transferJournal = null;
 	}
 
@@ -414,6 +439,8 @@ final class Withdraw {
 	}
 
 	private static void fail(Minecraft mc, String why) {
+		// The record this attempt opened is closed here, whatever went wrong. See closeJournal.
+		closeJournal(mc, "FAILED");
         boolean uncertain = awaitingTransfer;
         BlockPos failedChest = chest;
         if (mc.player != null && Screens.container() != null && Screens.container().getMenu().containerId == menuId)

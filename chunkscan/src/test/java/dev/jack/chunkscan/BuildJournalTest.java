@@ -42,11 +42,34 @@ class BuildJournalTest {
         Files.writeString(BuildJournal.file(dir), "{\"event\":\"started\"");
         assertTrue(BuildJournal.unresolved(dir, first).containsKey("journal-corrupt"));
     }
-    @Test void transferIsNotResolvedByPlacementRulesOrByARevisionChange() throws Exception {
+    @Test void aTransferIsRecordedAcrossRevisionsAndCLOSEDLikeOne() throws Exception {
         String transfer = BuildJournal.beginTransfer(dir, first, new BlockPos(12, 64, 3), "stone", 64);
         assertEquals("12,64,3", BuildJournal.unresolved(dir, first).get(transfer));
-        assertEquals("12,64,3", BuildJournal.unresolvedInContext(dir, second).get(transfer));
+        assertEquals("12,64,3", BuildJournal.unresolvedTransfers(dir, second).get(transfer),
+            "a withdrawal stopped being visible across a revision change");
         BuildJournal.finishTransfer(dir, first, transfer, "NO_CHANGE", 0);
-        assertTrue(BuildJournal.unresolvedInContext(dir, second).isEmpty());
+        assertTrue(BuildJournal.unresolvedTransfers(dir, second).isEmpty());
+    }
+
+    @Test void aLooseWITHDRAWALNeverBlocksAResume() throws Exception {
+        // The one that bricked a design. A withdrawal moves items between two containers the player
+        // already owns, so it cannot corrupt a build - and its outcome cannot be read off the world
+        // afterwards, so nothing in this mod could ever settle it. Blocking on one was not caution,
+        // it was a build that never started again: the chest turned out to be empty, the withdrawal
+        // failed, and every later follow threw "unreconciled action" for good.
+        BuildJournal.beginTransfer(dir, first, new BlockPos(12, 64, 3), "stone", 64);
+        assertTrue(BuildJournal.unresolvedInContext(dir, second).isEmpty(),
+            "an unaccounted withdrawal is refusing to let the design start");
+        assertFalse(BuildJournal.unresolvedTransfers(dir, second).isEmpty(),
+            "...and it has been forgotten rather than reported");
+    }
+
+    @Test void aLoosePLACEMENTStillBlocksAResume() throws Exception {
+        // The distinction the whole split rests on: this one leaves a cell of the world in a state
+        // the plan does not know about, and it IS settleable - reconcile reads it off the world as
+        // soon as that chunk loads.
+        BuildJournal.begin(dir, first, new BlockPos(4, 70, 9), "stone_bricks");
+        assertFalse(BuildJournal.unresolvedInContext(dir, second).isEmpty(),
+            "an unfinished placement is no longer stopping a resume");
     }
 }
