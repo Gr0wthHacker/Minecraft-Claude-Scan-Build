@@ -144,6 +144,57 @@ final class Loop {
 	static final int FETCH_RADIUS = 400;
 
 	/**
+	 * ONE COURSE AT A TIME, FROM THE BOTTOM.
+	 *
+	 * <p>Jack: <i>"what if we took baritone's approach where it does it by Y layer"</i>. It answers
+	 * four separate reports at once, and the reason is geometric rather than tidy-minded.
+	 *
+	 * <p><b>A station was a CUBE and a stand is a DISC.</b> Cells were binned into 4-cubes, whose far
+	 * corner is 3.46 from the middle, and a standing spot covers about 3 - so part of every bin was
+	 * out of reach BY CONSTRUCTION. The loop highlighted them, flew there, placed the near face,
+	 * stalled on the rest, moved in closer, abandoned the bin and picked it again next recount.
+	 * Reported as: it is covering just out of reach of placing blocks very often.
+	 *
+	 * <p>Restricted to one course, a bin is a 4x4 SQUARE - half-diagonal 2.83 - and a body hovering
+	 * a course above it has its eyes 2.7 up, which leaves about 3.2 of horizontal reach. The whole
+	 * bin fits, with room to spare, and it fits the same way everywhere instead of depending on how
+	 * the work happened to be shaped.
+	 *
+	 * <p>Three more things fall out of it. <b>Support</b>: building upward means the course below is
+	 * already there, which is what the work list's own bottom-up order has always assumed and
+	 * nothing enforced - so far fewer cells have nothing to place against. <b>Travel</b>: a plane is
+	 * swept, where a cloud is toured. <b>Standing</b>: the finished course below is a floor, so
+	 * there is somewhere to land rather than hover.
+	 */
+	static final int LAYER_BAND = 1;
+
+	/** How many courses to look up through in one recount before giving the answer we have. */
+	static final int LAYER_LOOKAHEAD = 8;
+
+	/** The distinct courses that still hold work, lowest first. */
+	static List<Integer> layers(List<Work.Cell> cells) {
+		java.util.TreeSet<Integer> ys = new java.util.TreeSet<>();
+		for (Work.Cell c : cells) ys.add(c.pos().getY());
+		return new ArrayList<>(ys);
+	}
+
+	/**
+	 * The cells of one course.
+	 *
+	 * @param band how many courses above it to take as well. A slab and the block it sits on are one
+	 *             course of BUILDING even when they are two of geometry, and splitting them costs a
+	 *             whole extra pass over the same ground.
+	 */
+	static List<Work.Cell> layer(List<Work.Cell> cells, int y, int band) {
+		List<Work.Cell> out = new ArrayList<>();
+		for (Work.Cell c : cells) {
+			int d = c.pos().getY() - y;
+			if (d >= 0 && d <= band) out.add(c);
+		}
+		return out;
+	}
+
+	/**
 	 * The trips worth making, nearest-first among those in range.
 	 *
 	 * <p>Ranking was by shortfall SIZE alone, so the biggest pile won however far away it was. Size

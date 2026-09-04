@@ -473,4 +473,71 @@ class LoopTest {
 		// blocks - so the two bounds are deliberately different, and the fetch is the looser.
 		assertTrue(Loop.FETCH_RADIUS > Loop.WORK_RADIUS);
 	}
+
+	// ---------------------------------------------------------------- one course at a time
+
+	private static Nav.Passable air(java.util.Set<Long> solid) {
+		return (x, y, z) -> !solid.contains(BlockPos.asLong(x, y, z))
+			&& !solid.contains(BlockPos.asLong(x, y + 1, z));
+	}
+
+	private static Work.Cell c(int x, int y, int z) {
+		return new Work.Cell(new BlockPos(x, y, z), "stone_bricks");
+	}
+
+	@Test
+	void aStationIsNeverWiderThanONEStandCanFinish() {
+		// The bin used to be the printer's range, floored - and a bin that wide cannot be covered
+		// from a spot inside it: a square of side b has its far corner b*sqrt(2)/2 from the middle,
+		// and the stand only has reach - ARRIVE_MIN. At the real 4.2 a 4-wide bin is 2.83 against
+		// 3.0 and just fits; at 4 it is 2.83 against 2.8 and does not, and nothing said so - the
+		// leftover corner was highlighted, flown to and stalled on. Derived, it cannot not fit.
+		double stand = Plan.reachExact() - Autopilot.ARRIVE_MIN;
+		double corner = Math.sqrt(2) * Plan.binSize() / 2.0;
+		assertTrue(corner <= stand,
+			"the station is wider than one stand can finish: " + corner + " > " + stand);
+		assertTrue(Plan.binSize() >= 2, "a station one cell wide is not a station");
+	}
+
+	@Test
+	void aStandIsFOUNDThatCoversAWholeCourseBin() {
+		// Asserted through the search rather than by hand, because hand-picking one is how you get
+		// the arithmetic wrong: two courses above a bin already puts the eyes 3.1 from its far cell
+		// at reach 4, which is out. What actually works is being CLOSE to the course - level with
+		// it, or one above - which is the same thing as landing on the finished course below.
+		int b = Plan.binSize();
+		java.util.List<Work.Cell> square = new java.util.ArrayList<>();
+		for (int x = 0; x < b; x++) for (int z = 0; z < b; z++) square.add(c(x, 100, z));
+		BlockPos stand = Plan.bestStand(air(java.util.Set.of()), square, Plan.reachExact(),
+			new BlockPos(9, 101, 9), 4, Autopilot.ARRIVE_MIN);
+		assertNotNull(stand, "no stand at all for a flat " + b + "x" + b + " course");
+		assertEquals(square.size(),
+			Plan.coveredFrom(square, stand, Plan.reachExact() - Autopilot.ARRIVE_MIN),
+			"the best stand for a whole course bin still cannot finish it");
+	}
+
+	@Test
+	void itWorksUPWARDSFromTheLowestCourse() {
+		// Which is what makes the course below already built, and therefore both the support for
+		// this one and a floor to stand on.
+		java.util.List<Work.Cell> mixed = java.util.List.of(c(0, 105, 0), c(1, 100, 1), c(2, 103, 2));
+		assertEquals(java.util.List.of(100, 103, 105), Loop.layers(mixed));
+	}
+
+	@Test
+	void aCourseTakesTheBandAboveItAndNothingElse() {
+		// A slab and the block it sits on are one course of BUILDING even when they are two of
+		// geometry; splitting them costs a whole extra pass over the same ground.
+		java.util.List<Work.Cell> stack = java.util.List.of(c(0, 100, 0), c(0, 101, 0), c(0, 102, 0));
+		assertEquals(2, Loop.layer(stack, 100, Loop.LAYER_BAND).size());
+		assertEquals(1, Loop.layer(stack, 100, 0).size());
+	}
+
+	@Test
+	void aCourseNeverReachesDOWNWARDS() {
+		// It would take work whose support is not built yet, which is the order the whole thing
+		// exists to keep.
+		java.util.List<Work.Cell> stack = java.util.List.of(c(0, 99, 0), c(0, 100, 0));
+		assertEquals(1, Loop.layer(stack, 100, Loop.LAYER_BAND).size());
+	}
 }

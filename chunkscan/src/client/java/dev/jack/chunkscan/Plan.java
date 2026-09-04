@@ -598,6 +598,24 @@ final class Plan {
 	 * SUBTRACTS from it - a standoff, an arrival allowance - must not pay the flooring as well, or a
 	 * 4.2-block reach is spent down to 2.8 and the only way to cover a cluster is to stand in it.
 	 */
+	/**
+	 * How wide a station may be, so that ONE stand covers all of it.
+	 *
+	 * <p>The bin size was {@link #reach} - the printer's range, floored - and a bin that wide cannot
+	 * be covered from a spot inside it: a square bin of side b has its far corner b*sqrt(2)/2 from
+	 * the middle, and the stand only has {@code reach - ARRIVE_MIN}. At the real 4.2 a 4-wide bin is
+	 * 2.83 against 3.0 and just fits; at the fallback 4 it is 2.83 against 2.8 and does not, and
+	 * nothing said so - the leftover corner was simply highlighted, flown to, and stalled on.
+	 *
+	 * <p>So it is DERIVED. Whatever the reach turns out to be, the station is the largest square a
+	 * stand can finish, and "just out of reach" stops being expressible.
+	 */
+	static int binSize() {
+		double usable = reachExact() - Autopilot.ARRIVE_MIN;
+		int b = (int) Math.floor(usable * 2 / Math.sqrt(2));
+		return Math.max(2, b);
+	}
+
 	static double reachExact() {
 		if (Printer.driving()) return Printer.REACH;
 		double real = Litematica.printerRange();

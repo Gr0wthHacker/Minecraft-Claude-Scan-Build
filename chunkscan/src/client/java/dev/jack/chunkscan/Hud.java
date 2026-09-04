@@ -66,6 +66,8 @@ final class Hud {
 	 */
 	private static BlockPos workAnchor = null;
 	private static boolean saidFarFetch = false;
+	/** The course being built. See Loop.LAYER_BAND - a design is worked upward, one at a time. */
+	private static int workLayer = Integer.MIN_VALUE;
 	private static boolean saidIndexBroken = false;
 	/** Items whose unboxing failed here, and when to try them again. A site is a place, not a fact. */
 	private static final Map<String, Long> unboxRetryAt = new java.util.HashMap<>();
@@ -571,23 +573,37 @@ final class Hud {
                     + Loop.WORK_RADIUS + ")"));
             }
         }
-        // Cells with a face to click and not written off. The LOOSE test: is a neighbour solid.
-        java.util.List<Work.Cell> supported = Work.placeableNow(mc.level, here).stream()
-            .filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
-            .filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
-            .toList();
-        // ---- AND THEN ASK THE PRINTER, NOT AN APPROXIMATION OF IT.
+        // ---- ONE COURSE AT A TIME, FROM THE BOTTOM. See Loop.LAYER_BAND.
         //
-        // A solid neighbour is necessary and it is not sufficient: the item has to yield the state
-        // the design wants, it has to survive there, and the cell has to be unobstructed. The loop
-        // was choosing spots by the loose test while the printer refused them by the strict one, so
-        // a cell that can never go in stayed in the frontier for ever - clustered, flown to,
-        // stalled at, abandoned, and picked again on the next recount. See Printer.everPlaceable.
-        java.util.List<Work.Cell> frontier = supported.stream()
-            .filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block()))
-            .toList();
-        // Counted, never merely dropped: work quietly removed from the plan is work the design
-        // never completes and nothing explains.
+        // Walk up from the lowest course that still holds work and take the first one that yields
+        // anything the printer would actually accept. Bounded, because a design with a hundred
+        // empty courses under it must not cost a hundred passes in one recount - what we have after
+        // the budget is a truthful answer about the courses we looked at.
+        java.util.List<Work.Cell> supported = java.util.List.of();
+        java.util.List<Work.Cell> frontier = java.util.List.of();
+        int layerY = Integer.MIN_VALUE;
+        java.util.List<Integer> courses = Loop.layers(here);
+        for (int i = 0; i < courses.size() && i < Loop.LAYER_LOOKAHEAD; i++) {
+            java.util.List<Work.Cell> course = Loop.layer(here, courses.get(i), Loop.LAYER_BAND);
+            java.util.List<Work.Cell> ok = Work.placeableNow(mc.level, course).stream()
+                .filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
+                .filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
+                .toList();
+            // ---- AND THEN ASK THE PRINTER, NOT AN APPROXIMATION OF IT. A solid neighbour is
+            // necessary and not sufficient: the item has to yield the state the design wants, it
+            // has to survive there, and the cell has to be unobstructed. See Printer.everPlaceable.
+            java.util.List<Work.Cell> real = ok.stream()
+                .filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block()))
+                .toList();
+            if (!real.isEmpty()) { supported = ok; frontier = real; layerY = courses.get(i); break; }
+            supported = ok;                              // the best answer so far, if none yields
+        }
+        if (layerY != Integer.MIN_VALUE && layerY != workLayer) {
+            if (workLayer != Integer.MIN_VALUE) mc.player.sendSystemMessage(Component.literal(
+                "[cscan] course Y" + workLayer + " done — up to Y" + layerY
+                    + " (" + frontier.size() + " cells)"));
+            workLayer = layerY;
+        }
         int refusedByState = supported.size() - frontier.size();
         java.util.List<Plan.Cluster> cl = Plan.clusters(frontier, carrying, java.util.Set.of(), java.util.Set.of(), me, spotCentre);
 		spotsLeft = cl.size();
@@ -902,7 +918,7 @@ final class Hud {
 		// Standing anywhere else is standing in front of something the printer will not touch.
 		java.util.List<Work.Cell> live = Work.placeableNow(mc.level, spot.ready());
 		if (live.isEmpty()) { stopGuiding(); spotCentre = null; return; }
-		Plan.Station st = Plan.station(live, Plan.reach(), me, stationsTried);
+		Plan.Station st = Plan.station(live, Plan.binSize(), me, stationsTried);
 		if (st == null) {
 			// EVERY BIN HERE HAS BEEN TRIED AND NONE TOOK A BLOCK. Retrying them from the top was
 			// a loop with a message every five seconds. The spot is given up on, counted, and
@@ -915,7 +931,7 @@ final class Hud {
 		}
 
 		// ---- the per-station stall, measured on this station's OWN cell count
-		java.util.List<Work.Cell> here = Plan.atStation(live, st, Plan.reach());
+		java.util.List<Work.Cell> here = Plan.atStation(live, st, Plan.binSize());
 		// Within reach of the work, rather than still on the way to it.
 		boolean arrived = target == null
 			|| me.distSqr(target) <= (double) (Plan.reach() + STANDOFF) * (Plan.reach() + STANDOFF);
@@ -930,10 +946,10 @@ final class Hud {
 		// somewhere else now looks better — all of the flying, none of the building.
 		if (stationBin != Long.MIN_VALUE && stationArrivedAt > 0
 			&& now - stationArrivedAt < DWELL_MS) {
-			Plan.Station staying = Plan.stationOf(live, stationBin, Plan.reach());
+			Plan.Station staying = Plan.stationOf(live, stationBin, Plan.binSize());
 			if (staying != null) {
 				st = staying;
-				here = Plan.atStation(live, st, Plan.reach());
+				here = Plan.atStation(live, st, Plan.binSize());
 			}
 		}
 		// WHEN WE ARE THE PRINTER, ASK THE PRINTER. The clocks below exist only because placement
@@ -994,7 +1010,7 @@ final class Hud {
 				}
 				// No ring - a cell in a slot, a bin against a ceiling. Then holding still is the
 				// only thing left, and it is still better than not building.
-				if (allWithinReach(me, here, Plan.reach())) return;
+				if (allWithinReach(me, here, Plan.reachExact() - Autopilot.ARRIVE_MIN)) return;
 
 				// ---- MOVE AROUND THE WORK AS IT GETS BUILT. The bin is a 4-cube, so its far corner
 				// is 3.5 from the centre and a standoff a few blocks out puts part of it beyond the
@@ -1121,12 +1137,16 @@ final class Hud {
 	}
 
 	/** Can the printer still touch every one of these from where the player is standing? */
-	private static boolean allWithinReach(BlockPos me, java.util.List<Work.Cell> cells, int reach) {
-		double r2 = (double) reach * reach;
-		for (Work.Cell c : cells) {
-			if (c.pos().distSqr(me) > r2) return false;
-		}
-		return true;
+	/**
+	 * Can the printer touch every one of these from here?
+	 *
+	 * <p><b>Asked the way the printer asks it.</b> This measured BLOCK to BLOCK against a FLOORED
+	 * reach, while Printer.placement measures eye to face against the real one, and Plan.coveredFrom
+	 * measures eye to centre - three answers to one question, and the loop was steered by the
+	 * loosest of them. One entry point, so they cannot drift.
+	 */
+	private static boolean allWithinReach(BlockPos me, java.util.List<Work.Cell> cells, double reach) {
+		return Plan.coveredFrom(cells, me, reach) >= cells.size();
 	}
 
 	/**
@@ -1530,6 +1550,7 @@ final class Hud {
         // ---- FILL THE PACK FIRST. See topUp.
         topUp = true;
         saidFarFetch = false;
+        workLayer = Integer.MIN_VALUE;
         workAnchor = null;                           // a new design is a new area
         watch(name);
 		following = true;
