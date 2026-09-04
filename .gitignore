@@ -19,3 +19,7 @@ out/_test/*
 # your machine's paths stay yours; copy profile.example.yaml instead
 profile.yaml
 .claude/settings.local.json
+
+# game logs are rewritten every session and kept dirtying the tree
+logs/
+chunkscan/logs/
