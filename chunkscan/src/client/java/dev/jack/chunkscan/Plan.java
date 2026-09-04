@@ -48,6 +48,21 @@ final class Plan {
 	static final int MAX_CLUSTERS = 6;
 
 	/**
+	 * How far you should be willing to fly to double the work waiting for you.
+	 *
+	 * <p>Ranking was {@code doable} first with distance as a TIE-BREAK, which across a park spanning
+	 * six hundred blocks means distance is never consulted at all: exact ties in count are rare, so
+	 * a spot with 400 cells at the far end of the map beats 399 at your feet, every recount. The
+	 * loop then spends the session travelling.
+	 *
+	 * <p>So a spot is worth {@code doable} discounted by how far it is: at this many blocks it must
+	 * carry twice the work to win, at twice this, four times. 48 is about one comfortable flight
+	 * here - short enough that the loop finishes what is under it first, long enough that it will
+	 * still cross a land for a genuinely bigger job rather than picking at scraps.
+	 */
+	static final double TRAVEL_SCALE = 48.0;
+
+	/**
 	 * A place worth going to.
 	 *
 	 * @param cells every cell of the design in reach of one standing spot — including the ones that
@@ -74,6 +89,15 @@ final class Plan {
 		 */
 		int doable() {
 			return Math.max(0, ready.size() - shortBy);
+		}
+
+		/**
+		 * What this spot is worth from where you are standing: work, discounted by travel.
+		 *
+		 * <p>Nearness is not a tie-break, it is part of the price. See {@link #TRAVEL_SCALE}.
+		 */
+		double worth(BlockPos from) {
+			return doable() / (1.0 + Math.sqrt(centre.distSqr(from)) / TRAVEL_SCALE);
 		}
 	}
 
@@ -192,8 +216,10 @@ final class Plan {
 			}
 			out.add(new Cluster(centre, group, ready, want, blocked, sealed, shortBy));
 		}
-		// Report by what you can actually DO there, not by how many cells happen to be nearby.
-		out.sort(Comparator.<Cluster>comparingInt(Cluster::doable).reversed()
+		// Report by what you can actually DO there, not by how many cells happen to be nearby -
+		// and DISCOUNTED BY THE TRIP, so the work under your feet is finished before the loop
+		// crosses an island for a slightly larger pile.
+		out.sort(Comparator.<Cluster>comparingDouble(c -> c.worth(from)).reversed()
 			.thenComparingDouble(c -> c.centre().distSqr(from)));
 		return out;
 	}

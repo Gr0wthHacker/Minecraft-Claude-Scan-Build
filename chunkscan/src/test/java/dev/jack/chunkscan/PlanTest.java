@@ -74,6 +74,45 @@ class PlanTest {
 	}
 
 	@Test
+	void theWorkUnderYourFeetBeatsASlightlyBiggerPileAcrossTheIsland() {
+		// The reported symptom: autofly crossing the park to a spot with marginally more work,
+		// every recount, and never finishing what you are standing in. Ranking was doable-count
+		// first with distance only breaking EXACT ties, so on a 600-block park distance never
+		// decided anything at all.
+		List<Work.Cell> todo = new ArrayList<>(blob(0, 100, 0, 22, "stone_bricks"));
+		todo.addAll(blob(400, 100, 400, 24, "stone_bricks"));
+		List<Plan.Cluster> cl = Plan.clusters(todo, carrying("stone_bricks", 640), Set.of(), BlockPos.ZERO);
+		assertEquals(2, cl.size());
+		assertEquals(0, cl.get(0).centre().distSqr(BlockPos.ZERO), 20_000,
+			"the near spot must be chosen even though the far one has two more cells");
+	}
+
+	@Test
+	void itWillStillCrossTheParkForWorkThatIsActuallyWorthIt() {
+		// The other half, and the reason this is a discount rather than a "nearest wins" rule:
+		// a handful of cells at your feet must not pin the loop while a real job waits.
+		List<Work.Cell> todo = new ArrayList<>(blob(0, 100, 0, 2, "stone_bricks"));
+		todo.addAll(blob(200, 100, 200, 40, "stone_bricks"));
+		List<Plan.Cluster> cl = Plan.clusters(todo, carrying("stone_bricks", 640), Set.of(), BlockPos.ZERO);
+		assertEquals(2, cl.size());
+		assertTrue(cl.get(0).centre().distSqr(BlockPos.ZERO) > 40_000,
+			"forty cells across the park beats two under your feet");
+	}
+
+	@Test
+	void aSpotIsWorthLessTheFurtherAwayItIs() {
+		List<Work.Cell> near = blob(0, 100, 0, 20, "stone_bricks");
+		List<Work.Cell> far = blob(300, 100, 300, 20, "stone_bricks");
+		double atFeet = Plan.clusters(near, carrying("stone_bricks", 640), Set.of(), BlockPos.ZERO)
+			.get(0).worth(BlockPos.ZERO);
+		double away = Plan.clusters(far, carrying("stone_bricks", 640), Set.of(), BlockPos.ZERO)
+			.get(0).worth(BlockPos.ZERO);
+		// Same work, so the only difference is the trip. The near blob is still 100 blocks up, so
+		// it is not free either - the honest ratio here is about 3.3x, not the 4x first asserted.
+		assertTrue(atFeet > away * 3, "identical work far away must be worth substantially less");
+	}
+
+	@Test
 	void aClusterNeverPromisesMoreThanYouCarry() {
 		List<Work.Cell> todo = blob(0, 100, 0, 40, "stone_bricks");
 		List<Plan.Cluster> cl = Plan.clusters(todo, carrying("stone_bricks", 7), Set.of(), BlockPos.ZERO);
