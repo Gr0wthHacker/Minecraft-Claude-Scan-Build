@@ -93,6 +93,12 @@ final class Bounds {
 	 */
 	static Nav.Passable within(Nav.Passable free) {
 		if (!active) return free;
+		// A WALK STAYS A WALK. Nav tests `instanceof WalkingSpace` to apply the step rules a body
+		// on foot needs (no diagonal climbs, footing under every cell); wrapped in a plain lambda
+		// the fenced walk lost that type and routed like a flight - across gaps.
+		if (free instanceof WalkingSpace walk) {
+			return walk.confined((x, y, z) -> contains(x, y, z) && contains(x, y + 1, z));
+		}
 		return (x, y, z) -> contains(x, y, z) && contains(x, y + 1, z) && free.at(x, y, z);
 	}
 

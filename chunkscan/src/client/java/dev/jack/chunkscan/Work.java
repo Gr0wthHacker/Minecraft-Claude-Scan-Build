@@ -247,7 +247,10 @@ final class Work {
 	}
 
 	private static boolean isReplaceable(BlockState st) {
-		return st.isAir();
+		// What a right-click places INTO: air, and anything the game itself replaces - grass, a
+		// fern, a snow layer. Never a fluid, or a source gets built over. Read as air-only, a lawn
+		// design over short grass reported every cell as a deviation to break by hand.
+		return st.isAir() || (st.canBeReplaced() && st.getFluidState().isEmpty());
 	}
 
 	/**
@@ -322,7 +325,10 @@ final class Work {
 	static Map<String, Integer> carrying(net.minecraft.client.player.LocalPlayer player) {
 		Map<String, Integer> out = new LinkedHashMap<>();
 		if (player == null) return out;
-		for (net.minecraft.world.item.ItemStack st : player.getInventory()) {
+		// THE 36 REAL SLOTS. Iterating the Inventory walks 41 - armour and the offhand too - and a
+		// stack of the needed block in the offhand read as carried, was never placeable, and the
+		// station stalled, moved in, gave up and thrashed on a material it "had".
+		for (net.minecraft.world.item.ItemStack st : player.getInventory().getNonEquipmentItems()) {
 			if (st == null || st.isEmpty()) continue;
 			out.merge(BuiltInRegistries.ITEM.getKey(st.getItem()).getPath(), st.getCount(), Integer::sum);
 		}
@@ -346,7 +352,10 @@ final class Work {
 	static Map<String, Integer> boxed(net.minecraft.client.player.LocalPlayer player) {
 		Map<String, Integer> out = new LinkedHashMap<>();
 		if (player == null) return out;
-		for (net.minecraft.world.item.ItemStack st : player.getInventory()) {
+		// THE 36 REAL SLOTS. Iterating the Inventory walks 41 - armour and the offhand too - and a
+		// stack of the needed block in the offhand read as carried, was never placeable, and the
+		// station stalled, moved in, gave up and thrashed on a material it "had".
+		for (net.minecraft.world.item.ItemStack st : player.getInventory().getNonEquipmentItems()) {
 			if (st == null || st.isEmpty()) continue;
 			var contents = st.getOrDefault(net.minecraft.core.component.DataComponents.CONTAINER,
 				net.minecraft.world.item.component.ItemContainerContents.EMPTY);

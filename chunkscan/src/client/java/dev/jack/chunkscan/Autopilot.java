@@ -553,6 +553,12 @@ final class Autopilot {
 
 	private static int regainCool = 0;
 	private static int regainTries = 0;
+	// ITS OWN STAGE, NOT THE RESCUE'S. Sharing `rescueStage` meant rescue() - which runs first on
+	// every tick and resets its stage whenever the body is NOT falling - wiped the take-off
+	// sequence one tick after it began: the key was held for four consecutive ticks (one jump,
+	// never a double tap), four "tries" were spent, and the session was permanently on foot.
+	private static int regainStage = 0;
+	private static int regainTimer = 0;
 	private static boolean regainSaid = false;
 
 	/** Should we be flying and are not, with the server's permission to fix that? */
@@ -570,8 +576,8 @@ final class Autopilot {
 		if (p.getAbilities().flying) {
 			regainTries = 0;
 			regainSaid = false;
-			if (rescueStage != 0 && !isFalling(p.getDeltaMovement().y, false, p.onGround(), true)) {
-				rescueStage = 0;
+			if (regainStage != 0) {
+				regainStage = 0;
 				release(mc);
 			}
 			return false;
@@ -595,36 +601,36 @@ final class Autopilot {
 			}
 			return false;
 		}
-		if (regainCool > 0) return rescueStage != 0;       // mid-sequence, or waiting to try again
+		if (regainCool > 0) return regainStage != 0;       // mid-sequence, or waiting to try again
 
 		// The same two taps as the fall rescue. From the ground the first is a jump and the second
 		// lands while airborne, which is exactly the gesture a player makes.
-		rescueTimer++;
-		switch (rescueStage) {
+		regainTimer++;
+		switch (regainStage) {
 			case 0 -> {
-				rescueStage = 1;
-				rescueTimer = 0;
+				regainStage = 1;
+				regainTimer = 0;
 				regainTries++;
 				hold(mc, true, false);
 			}
 			case 1 -> {
-				if (rescueTimer >= TAP_GAP) {
-					rescueStage = 2;
-					rescueTimer = 0;
+				if (regainTimer >= TAP_GAP) {
+					regainStage = 2;
+					regainTimer = 0;
 					hold(mc, false, false);
 				}
 			}
 			case 2 -> {
-				if (rescueTimer >= TAP_GAP) {
-					rescueStage = 3;
-					rescueTimer = 0;
+				if (regainTimer >= TAP_GAP) {
+					regainStage = 3;
+					regainTimer = 0;
 					hold(mc, true, false);
 				}
 			}
 			default -> {
-				if (rescueTimer >= TAP_GAP) {
-					rescueStage = 0;
-					rescueTimer = 0;
+				if (regainTimer >= TAP_GAP) {
+					regainStage = 0;
+					regainTimer = 0;
 					regainCool = REGAIN_EVERY;
 					hold(mc, false, false);
 				}
@@ -869,7 +875,7 @@ final class Autopilot {
 				p.sendSystemMessage(Component.literal("[cscan] " + Wand.fmt(target)
 					+ " is outside the autofly bounds - not going. /cscan autofly bounds off to lift them."));
 			}
-			if (p.getAbilities().flying) p.setDeltaMovement(Bounds.clamp(p.position(), Vec3.ZERO));
+			if (p.getAbilities().flying) p.setDeltaMovement(avoid(p, keepAirborne(mc, p, Bounds.clamp(p.position(), Vec3.ZERO), GROUND_CLEAR)));
 			release(mc);
 			return;
 		}
@@ -980,7 +986,10 @@ final class Autopilot {
 		boolean threading = flying && (isTight(mc, Hud.target() == null ? null : aimCell())
 			|| (!path.isEmpty() && isTight(mc, path.get(0))));
 
-		boolean bumped = flying && p.horizontalCollision;
+		// A ceiling or a floor met in flight is a bump as much as a wall is - and on this server
+		// the vertical one is the contact that ends flight. Not while landing, where the floor is
+		// the plan.
+		boolean bumped = flying && (p.horizontalCollision || (p.verticalCollision && !landing));
 		if (bumped) {
 			bumps++;
 			repathIn = 0;
@@ -1012,10 +1021,10 @@ final class Autopilot {
 			// happened to be the smaller number. Raise that constant and the give-up below would
 			// silently never fire again.
 			if (threading) wedged++;
-			if (threading && bumps < WEDGED_TICKS) {
+			if (threading && wedged < WEDGED_TICKS) {
 				// line up and creep: see the note above
 			} else if (bumps % BUMP_LOOK_EVERY == 1) {
-				Nav.Passable free = Nav.of(mc.level);
+				Nav.Passable free = Bounds.within(Nav.of(mc.level));
 				BlockPos here = p.blockPosition();
 				java.util.List<BlockPos> round = Nav.escape(free, here, target, BUMP_LOOK,
 					System.nanoTime() + Nav.MAX_MILLIS * 1_000_000L / 2);
@@ -1059,12 +1068,13 @@ final class Autopilot {
 		lastSeenAt = p.position();
 		if (Recovery.inTrouble(moving, true, false)) {
 			trouble++;
+		} else if (stage != Recovery.Stage.NONE) {
+			// A RUNG IS NOT CANCELLED BY THE MOVEMENT IT CAUSES. Written as "moving means fine",
+			// every rung lasted exactly one tick: the back-off's own first step read as progress,
+			// the stage reset, and the flight steered straight back into the wedge it was leaving.
+			// While a rung is driving, only the rung ends itself - see recover().
 		} else {
 			trouble = 0;
-			if (stage != Recovery.Stage.NONE) {
-				stage = Recovery.Stage.NONE;
-				climbTo = null;
-			}
 			// ...and while things are fine, drop a crumb every so often. The way out of a wedge is
 			// almost always the way in, and that is the only place we KNOW was open.
 			if (++breadcrumbAge > CRUMB_EVERY && !p.horizontalCollision) {
@@ -1126,6 +1136,18 @@ final class Autopilot {
 					partial = !r.complete();       // the chords throw the elbow room straight away
 				}
 			}
+			if (raw.isEmpty() && flying) {
+				// ---- LIFTED SECOND. A tight route keeps only the two cells the body occupies
+				// clear, so its cheapest leg skims a floor at a tenth of a block - and on this
+				// server contact ends flight, and Jack has watched it end at a block's distance.
+				// Before accepting a route that may hug a floor, look for one with a clear cell
+				// under the feet the whole way. Indoors this fails at once (a two-course room has
+				// no such cell) and costs almost nothing; in open air it keeps the ride off the deck.
+				Nav.Passable base = free;
+				Nav.Passable lifted = (x, y, z) -> base.at(x, y, z) && base.at(x, y - 1, z);
+				Nav.Route r = Nav.routeEx(lifted, here, target, deadline);
+				if (!r.path().isEmpty()) { raw = r.path(); used = lifted; partial = !r.complete(); }
+			}
 			if (raw.isEmpty()) {
 				Nav.Route r = Nav.routeEx(free, here, target, deadline);
 				raw = r.path();
@@ -1154,7 +1176,10 @@ final class Autopilot {
 		// Steer at the next waypoint rather than at the destination: that is the whole difference
 		// between going through the door and pressing on the wall beside it.
 		Vec3 aim = to;
-		double near = waypointRadius(flying ? speed : WALK_SPEED);
+		// From the speed actually being flown (last tick's), not the dial: at dial 1.5 crawling
+		// through a bend at 0.45, the dial's radius popped a waypoint 3.75 blocks early and the
+		// pursuit chord cut the corner that waypoint was there to round.
+		double near = waypointRadius(flying ? Math.min(speed, Math.max(appliedSpeed, CORNER_SPEED)) : WALK_SPEED);
 		while (!path.isEmpty() && (flying ? me.distanceTo(flyTo(path.get(0))) <= near
 			: WalkingSpace.arrived(me, path.get(0)))) {
 			legFrom = flyTo(path.get(0));                 // the leg we are on starts where we passed
@@ -1323,10 +1348,12 @@ final class Autopilot {
 			sink(mc, step.y < -CLIMB_DEADZONE);
 			// ---- AND DO NOT SEND A STEP THAT TOUCHES ANYTHING. Last, after every other rule has
 			// had its say, because it is the only one that is about the world rather than the plan.
-			step = avoid(p, step);
-			// ---- AND NEVER PAST THE FENCE. After everything, for the same reason as avoid: it is
-			// about where the body may BE, and every rule above is about where it wants to go.
+			// ---- NEVER PAST THE FENCE, and then never into a block. The fence runs FIRST: when the
+			// body is already outside it, clamp ADDS a pull back toward the box, and a component
+			// nothing has tested against the world is exactly what avoid exists to catch. Inside
+			// the box clamp only ever shortens an axis, which avoid then cannot make unsafe.
 			step = Bounds.clamp(me, step);
+			step = avoid(p, step);
 			p.setDeltaMovement(step);
 		} else {
 			release(mc);                               // on foot the vertical is the ground's job
@@ -1392,7 +1419,11 @@ final class Autopilot {
 		// So on foot the only destination it will steer to is a fetch, and only with ground under
 		// it. Anything else and it takes its hands off and says why: a stalled loop costs an hour,
 		// and the alternative cost an inventory.
-		if (!Hud.fetching()) {
+		// ...and a LANDING, which is a floor by construction: the whole point of Hud.Mode.LAND is
+		// that the body stands beside the work and walks to the next patch of it. Written without
+		// this, needsFlight said "walk" and this gate said "not a fetch", and a landed body never
+		// moved again.
+		if (!Hud.fetching() && !Hud.targetLand()) {
 			if (!warnedFalling) {
 				warnedFalling = true;
 				p.sendSystemMessage(Component.literal("[cscan] flight is off and building needs it"
@@ -1581,6 +1612,14 @@ final class Autopilot {
 		if (x != 0 && !fits.test(new Vec3(x, 0, 0))) x = 0;
 		if (y != 0 && !fits.test(new Vec3(0, y, 0))) y = 0;
 		if (z != 0 && !fits.test(new Vec3(0, 0, z))) z = 0;
+		// ...AND THE STEP THAT IS ACTUALLY SENT. Each axis can be clear on its own while the
+		// diagonal clips a block's corner - the game resolves the axes in sequence from the moved
+		// position. Test the combination, and give up the smaller horizontal component first.
+		if (!fits.test(new Vec3(x, y, z))) {
+			if (Math.abs(x) < Math.abs(z)) x = 0; else z = 0;
+			if (!fits.test(new Vec3(x, y, z))) { x = 0; z = 0; }
+			if (!fits.test(new Vec3(x, y, z))) y = 0;
+		}
 		return new Vec3(x, y, z);
 	}
 
@@ -1934,6 +1973,8 @@ final class Autopilot {
 	static final double MOVED_ENOUGH = 0.05;
 	/** Ticks between breadcrumbs. */
 	static final int CRUMB_EVERY = 40;
+	/** A crumb further than this is not the way in, it is somewhere we were a while ago. */
+	static final double CRUMB_MAX = 16.0;
 	/** How far up the climb-out goes before trying again. */
 	static final int CLIMB_HEIGHT = 25;
 
@@ -1950,12 +1991,18 @@ final class Autopilot {
 				// The way out is the way in. Fly the crumb, not the destination.
 				if (breadcrumb == null) return false;
 				Vec3 back = Vec3.atCenterOf(breadcrumb);
-				if (p.position().distanceTo(back) < 2.0) {
-					breadcrumb = null;                  // used it; if that was not enough, climb
+				if (p.position().distanceTo(back) > CRUMB_MAX) {
+					breadcrumb = null;                  // too old to be the way in: let the ladder climb
 					return false;
 				}
-				p.setDeltaMovement(Bounds.clamp(p.position(), keepAirborne(mc, p,
-					back.subtract(p.position()).normalize().scale(BLIND_SPEED * 2), GROUND_CLEAR)));
+				if (p.position().distanceTo(back) < 2.0) {
+					breadcrumb = null;                  // used it: the normal flight gets another go
+					stage = Recovery.Stage.NONE;
+					trouble = 0;
+					return false;
+				}
+				p.setDeltaMovement(avoid(p, Bounds.clamp(p.position(), keepAirborne(mc, p,
+					back.subtract(p.position()).normalize().scale(BLIND_SPEED * 2), GROUND_CLEAR))));
 				return true;
 			}
 			case CLIMB_OUT -> {
@@ -1968,7 +2015,11 @@ final class Autopilot {
 					trouble = Recovery.BACK_OFF_AT;     // give the normal flight another go
 					return false;
 				}
-				p.setDeltaMovement(Bounds.clamp(p.position(), new Vec3(0, Math.min(SPEED, 0.4), 0)));
+				// Through the ceiling clamp and the collision test: a climb into the underside of
+				// the plate is contact, and contact is what this rung exists to get away from.
+				// Blocked overhead it does not move, `trouble` keeps counting, and GO_HOME follows.
+				p.setDeltaMovement(avoid(p, Bounds.clamp(p.position(),
+					keepAirborne(mc, p, new Vec3(0, Math.min(SPEED, 0.4), 0), GROUND_CLEAR))));
 				return true;
 			}
 			case GO_HOME -> {

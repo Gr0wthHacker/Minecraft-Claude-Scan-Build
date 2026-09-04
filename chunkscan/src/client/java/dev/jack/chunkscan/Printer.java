@@ -37,7 +37,7 @@ final class Printer {
 	private Printer() {}
 
 	/** What one attempt turned into, once the world has been looked at again. */
-	enum Verdict { PLACED, MISMATCH, STILL_AIR, BLOCKED, NO_ITEM, NO_FACE, OUT_OF_REACH, REFUSED }
+	enum Verdict { PLACED, PARTIAL, MISMATCH, STILL_AIR, BLOCKED, NO_ITEM, NO_FACE, OUT_OF_REACH, REFUSED }
 
 	record Attempt(BlockPos pos, String want, Verdict verdict, String got) {}
 
@@ -185,8 +185,25 @@ final class Printer {
         return !state.isAir() && !state.canBeReplaced() && state.blocksMotion()
             && !Storage.isContainer(name) && !name.endsWith("_door") && !name.endsWith("_trapdoor")
             && !name.endsWith("_fence_gate") && !name.endsWith("_button") && !name.equals("lever")
-            && !name.endsWith("_bed") && !name.equals("note_block") && !name.equals("jukebox");
+            && !name.endsWith("_bed") && !name.equals("note_block") && !name.equals("jukebox")
+            && !toggles(name);
     }
+
+	/**
+	 * Blocks a right-click USES rather than places against. The server runs the block's own use()
+	 * first, so clicking one with a block in hand cycles a repeater's delay, flips a comparator,
+	 * feeds a composter the held block, rings a bell - and places nothing. The cell was then given
+	 * up and the toggle was permanent, in the machine room under the tree. Never a placement face.
+	 */
+	static boolean toggles(String name) {
+		return name.equals("repeater") || name.equals("comparator") || name.equals("daylight_detector")
+			|| name.equals("composter") || name.equals("bell") || name.endsWith("cake")
+			|| name.equals("flower_pot") || name.startsWith("potted_") || name.equals("target")
+			|| name.equals("lectern") || name.endsWith("cauldron") || name.equals("dragon_egg")
+			|| name.equals("respawn_anchor") || name.equals("beehive") || name.equals("bee_nest")
+			|| name.endsWith("candle") || name.endsWith("redstone_ore") || name.equals("tnt")
+			|| name.equals("chiseled_bookshelf") || name.equals("decorated_pot") || name.endsWith("sign");
+	}
 
     /** A normal inventory slot, never armor or offhand. */
 	/**
@@ -355,6 +372,7 @@ final class Printer {
 		if (mc.player == null || mc.level == null || slot < 0 || !mc.level.isLoaded(pos)) return null;
         if (!Rules.inLockedProfile(state) || (Rules.serverListIsAuthoritative() && !Rules.isOnServer(state))) return null;
         if (Islands.outside(ScanRunner.schematicsDir(mc), pos.getX(), pos.getZ())) return null;
+        if (!Bounds.contains(pos)) return null;           // the fence, at the one place every caller passes
         LocalPlayer p = mc.player;
         ItemStack stack = p.getInventory().getItem(slot);
 		if (ActionRecipe.waterBucket(state) && stack.getItem() instanceof BucketItem) {
@@ -441,6 +459,10 @@ final class Printer {
 		for (Direction face : faces()) {
 			BlockPos nb = pos.relative(face.getOpposite());
 			if (!mc.level.isLoaded(nb) || !support(mc.level.getBlockState(nb))) continue;
+			// A BUCKET USED ON A WATERLOGGABLE BLOCK WATERLOGS THAT BLOCK - a wall, a slab, a stair,
+			// a pane - and a waterlogged kerb is a source flowing out of the pool it was meant to
+			// hold. The target stays air, the cell is given up, and the flood is real.
+			if (mc.level.getBlockState(nb).getBlock() instanceof net.minecraft.world.level.block.SimpleWaterloggedBlock) continue;
 			for (var box : mc.level.getBlockState(nb).getShape(mc.level, nb).toAabbs()) {
 				Vec3 wanted = hit(pos, face, false);
 				double x = Math.max(nb.getX() + box.minX + 0.001, Math.min(wanted.x, nb.getX() + box.maxX - 0.001));
@@ -518,6 +540,24 @@ final class Printer {
 		return new Placement(ray, p.getYRot(), p.getXRot());
 	}
 
+    /** A hotbar slot a swap may take: empty first, then a plain block; never a tool or a keepsake. */
+	static int swapSlot(LocalPlayer p) {
+		var inv = p.getInventory();
+		for (int i = 0; i < 9; i++) if (inv.getItem(i).isEmpty()) return i;
+		for (int i = 0; i < 9; i++) {
+			ItemStack st = inv.getItem(i);
+			if (st.getItem() instanceof BlockItem && !keepsake(st)) return i;
+		}
+		return inv.getSelectedSlot();
+	}
+
+	/** The build journal is what makes a placement accountable; without it the loop STOPS, and says so. */
+	private static void journalFailed(Minecraft mc, Exception why) {
+		if (mc != null && mc.player != null) mc.player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+			"[cscan] printer: the build journal cannot be written (" + why + ") — stopping"));
+		Hud.stopForSafety(mc);
+	}
+
     static Verdict place(Minecraft mc, BlockPos pos, String state) {
         if (busy() || !AutomationControl.enter(ActionGate.Owner.PRINT)) return Verdict.REFUSED;
         if (mc.player == null || mc.level == null || mc.gameMode == null || givenUpOn(pos)) return Verdict.REFUSED;
@@ -528,9 +568,13 @@ final class Printer {
         Placement plan = placement(mc, pos, state, slot);
         if (plan == null) return Verdict.NO_FACE;
         if (slot >= 9) {
-            // Vanilla SWAP moves a main-inventory stack to the selected hotbar slot.
-            mc.gameMode.handleContainerInput(p.inventoryMenu.containerId, slot, p.getInventory().getSelectedSlot(),
-                ContainerInput.SWAP, p);
+			// Vanilla SWAP moves a main-inventory stack to a hotbar slot - and NOT the selected one
+			// blindly: after a dig the selected slot is the pickaxe, and swapping it into the pack
+			// left every later dig bare-handed. Take an empty hotbar slot, else one holding a plain
+			// block, and select it first so the click lands where the stack goes.
+			int dest = swapSlot(p);
+			p.getInventory().setSelectedSlot(dest);
+			mc.gameMode.handleContainerInput(p.inventoryMenu.containerId, slot, dest, ContainerInput.SWAP, p);
             lastPlaceTick = mc.level.getGameTime();
             return Verdict.NO_ITEM; // wait for the next tick, never click with the old held item
         }
@@ -543,7 +587,7 @@ final class Printer {
 		if (revision != null) {
 			try { pendingJournal = BuildJournal.begin(revision.sourceDirectory(), revision.binding(), pos, state); }
 			catch (java.io.IOException unavailable) {
-				Hud.off();
+				journalFailed(mc, unavailable);
 				return Verdict.REFUSED;
 			}
 		}
@@ -560,7 +604,7 @@ final class Printer {
 			lastPlaceTick = mc.level.getGameTime();
 		} catch (RuntimeException uncertain) {
 			// A packet may have left before a local failure. The start record intentionally remains.
-			Hud.off();
+			journalFailed(mc, uncertain);
 			throw uncertain;
 		}
         return Verdict.PLACED;
@@ -623,6 +667,14 @@ final class Printer {
 				placedSince++;
 				interval = INTERVAL_MIN;                            // it is taking them: full pace
 				out.add(new Attempt(a.pos(), a.want(), Verdict.PLACED, got));
+			} else if (ActionRecipe.slabIntermediate(st, a.want()) || ActionRecipe.vineIntermediate(st, a.want())
+				|| ActionRecipe.glowLichenIntermediate(st, a.want())) {
+				// HALF WAY IS NOT WRONG. A double slab is two clicks and a many-faced vine is one per
+				// face; placement() builds them that way on purpose, and this then called the first
+				// click a MISMATCH, gave the cell up for thirty seconds and told the station to move.
+				placedSince++;                                      // progress, so the station stays
+				interval = INTERVAL_MIN;
+				out.add(new Attempt(a.pos(), a.want(), Verdict.PARTIAL, got));
 			} else {
 				mismatched++;
 				refusedSince++;
@@ -644,7 +696,7 @@ final class Printer {
 		try { BuildJournal.finish(revision.sourceDirectory(), revision.binding(), pendingJournal, verdict, observed); }
 		catch (java.io.IOException ignored) {
 			// The start record is intentionally retained: failed completion is unknown, not success.
-			Hud.off();
+			journalFailed(Minecraft.getInstance(), ignored);
 		}
 	}
 

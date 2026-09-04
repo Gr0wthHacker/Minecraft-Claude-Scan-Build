@@ -27,6 +27,7 @@ final class ChestScan {
 				for (int x = cx - 16; x <= cx + 16; x++) for (int z = cz - 16; z <= cz + 16; z++) {
 					if (!mc.level.getChunkSource().hasChunk(x, z)) continue;
 					for (BlockPos p : mc.level.getChunk(x, z).getBlockEntities().keySet()) {
+						if (!Bounds.contains(p)) continue;         // the autofly fence: not a chest to walk to
 						String block = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(p).getBlock()).getPath();
 						if (!Storage.buildStorage(block) || attempted.getOrDefault(p.asLong(), 0L) > now) continue;
 						Storage.Container c = new Storage.Container();

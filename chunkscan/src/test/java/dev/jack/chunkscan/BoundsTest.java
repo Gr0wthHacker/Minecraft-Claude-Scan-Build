@@ -151,4 +151,20 @@ class BoundsTest {
 		assertTrue(Bounds.contains(100, 100, 100));
 		assertEquals("", Bounds.dimension());
 	}
+
+	@Test
+	void aFencedWalkIsStillAWalk() {
+		// Nav applies the on-foot step rules by TYPE; a fence that wrapped the walk in a plain lambda
+		// lost the type and routed a walker like a flight, across gaps.
+		Bounds.set(new BlockPos(0, 60, 0), new BlockPos(9, 69, 9), "d");
+		Nav.Passable body = (x, y, z) -> true;
+		Nav.Passable floor = (x, y, z) -> y == 63;                 // one floor, at 63: feet stand at 64
+		Nav.Passable fenced = Bounds.within(new WalkingSpace(body, floor));
+		assertTrue(fenced instanceof WalkingSpace, "the fenced walk lost its type");
+		assertTrue(fenced.at(4, 64, 4), "on the floor, inside the fence");
+		assertFalse(fenced.at(4, 65, 4), "no footing");
+		assertFalse(fenced.at(12, 64, 4), "outside the fence");
+		WalkingSpace w = (WalkingSpace) fenced;
+		assertFalse(w.step(4, 64, 4, 1, 1, 1), "a diagonal climb is still forbidden on foot");
+	}
 }

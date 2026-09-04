@@ -93,6 +93,13 @@ final class Hud {
 	private static BlockPos lookTarget = null;
 	private static long lookSince = 0;
 	private static int lookFailures = 0;
+	/** When a foreign container screen was first seen holding the loop up; 0 when none is. */
+	private static long screenWaitSince = 0;
+	static final long SCREEN_WAIT_SAY_MS = 60_000;
+	/** When the loop parked at a dead end with nothing else to do; 0 while it has work. */
+	private static long deadEndSince = 0;
+	/** Parked that long with nothing to do, the loop stops and says so rather than idling all night. */
+	static final long DEAD_END_STOP_MS = 120_000;
 	static final long LOOK_STUCK_MS = 8_000;
 	static final int LOOK_STRIKES = 2;
 	/** Consecutive recounts whose work list could not be read. */
@@ -142,6 +149,61 @@ final class Hud {
 	 * it as an excursion. If the place to look is outside the area, the area is finished, so the
 	 * area moves; the next recount then works out from there.
 	 */
+	/**
+	 * Out of view is not finished: go and look at the nearest unseen cell, under a watchdog.
+	 *
+	 * <p>ONE method for both places that look - the empty-todo case and the dead end - because the
+	 * second was written without the fence check or the watchdog, and a cell in a chunk that never
+	 * loads (or one the fence excludes) was flown at for ever, re-guided every recount, with every
+	 * clock reset by the re-guiding. Returns true when this recount is spoken for.
+	 */
+	private static boolean lookForUnseen(Minecraft mc, Work.Split sp, String why) {
+		if (sp.unseen() <= 0 || sp.nearestUnseen() == null || unseenGivenUp.contains(sp.name())) return false;
+		long t = System.currentTimeMillis();
+		BlockPos look = sp.nearestUnseen();
+		if (!Bounds.contains(look)) {
+			// Out of view AND outside the fence: the flight would refuse it, the watchdog would
+			// strike it twice and write the design off - so write it off now and say why.
+			unseenGivenUp.add(sp.name());
+			mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.unseen() + " cell(s) of "
+				+ sp.name() + " are out of view and outside the autofly bounds - not going to look"));
+			return false;
+		}
+		if (target != null && target.equals(lookTarget)) {
+			// ---- THE LOOK WATCHDOG. Neither the stall clock nor the going-nowhere clock can see
+			// this phase, so: arrived, or parked, and the count has not moved - one strike; two
+			// and the design's unseen cells are written off for this session, which is what lets
+			// `follow all` move on. Only while the autopilot is the one meant to be moving.
+			boolean parked = Autopilot.on()
+				&& (Autopilot.arrivedAt(target) || t - Math.max(movedAt, lookSince) > LOOK_STUCK_MS);
+			if (parked) {
+				lookFailures++;
+				if (lookFailures >= LOOK_STRIKES) {
+					unseenGivenUp.add(sp.name());
+					mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.unseen()
+						+ " cell(s) of " + sp.name() + " sit in chunks that will not load from"
+						+ " anywhere I can get to — treating them as out of reach this session"));
+				} else {
+					mc.player.sendSystemMessage(Component.literal("[cscan] could not get the"
+						+ " chunks at " + Wand.fmt(target) + " to load — one more try"));
+				}
+				lookTarget = null;
+				stopGuiding();
+				Highlight.clear("goto");
+			}
+			return true;
+		}
+		fetching = false;
+		lastProgressMs = t;
+		lookTarget = look;
+		lookSince = t;
+		Highlight.clear("goto");
+		goLook(mc, look, why);
+		mc.player.sendSystemMessage(Component.literal("[cscan] " + why + " — going to look at "
+			+ Wand.fmt(look)));
+		return true;
+	}
+
 	private static void goLook(Minecraft mc, BlockPos at, String why) {
 		// Going to look is a move, so the radius starts again at arm's length when we get there.
 		workRadius = Loop.nearAgain();
@@ -348,7 +410,7 @@ final class Hud {
 	 * touching something — it has already touched the one thing it is allowed to.
 	 */
 	private static void standAt(Minecraft mc, java.util.List<Work.Cell> here, BlockPos me, String note) {
-		Nav.Passable free = Nav.of(mc.level);
+		Nav.Passable free = Bounds.within(Nav.of(mc.level));      // a stand outside the fence is refused later
 		java.util.function.Predicate<BlockPos> solid = b -> mc.level.isLoaded(b)
 			&& mc.level.getBlockState(b).blocksMotion();
 		BlockPos ground = Plan.groundStand(free, solid, here, Plan.reachExact() - LAND_SLACK, me, STANDOFF + 3);
@@ -368,7 +430,7 @@ final class Hud {
 	/** Standing at a landing that still reaches something of what is left: stay put. */
 	private static boolean landedAndReaching(java.util.List<Work.Cell> here) {
 		return targetLand() && Plan.coveredFrom(here, target, Plan.reachExact() - LAND_SLACK,
-			Nav.of(Minecraft.getInstance().level)) > 0;
+			Bounds.within(Nav.of(Minecraft.getInstance().level))) > 0;
 	}
 
 	static BlockPos target() {
@@ -383,8 +445,29 @@ final class Hud {
 	 * for as long as you stand there is not guidance, it is noise.
 	 */
 	private static void advance(Minecraft mc, Work.Split sp) {
+		if (Screens.container() != null && !Withdraw.busy() && !Unbox.running()) {
+			// A CONTAINER SCREEN NOBODY HERE OPENED parks the loop, correctly - and used to do it
+			// in silence for as long as it stayed open. Say so once a minute.
+			long t = System.currentTimeMillis();
+			if (screenWaitSince == 0) screenWaitSince = t;
+			else if (t - screenWaitSince > SCREEN_WAIT_SAY_MS) {
+				screenWaitSince = t;
+				mc.player.sendSystemMessage(Component.literal("[cscan] a container screen has been"
+					+ " open for a minute - the loop is waiting for it to close (Escape)"));
+			}
+		} else {
+			screenWaitSince = 0;
+		}
         if (Withdraw.busy() || Unbox.running() || Screens.container() != null || AutomationControl.ownsGuidance()) return;
 		BlockPos me = mc.player.blockPosition();
+		if (lookTarget != null && !sp.todo().isEmpty()) {
+			// THE LOOK WORKED: the chunks loaded and there is work in them. Forget the look now, or
+			// its strikes accumulate for the whole session and its start time reads as a 90s stall
+			// the moment the first recount with work in it arrives.
+			lookTarget = null;
+			lookFailures = 0;
+			lastProgressMs = System.currentTimeMillis();
+		}
 
 		// ---- OUT OF VIEW IS NOT FINISHED. `split` can only diff chunks the client has, so an empty
 		// todo list means "nothing left within sight". On a 240-block island that is routinely most
@@ -392,56 +475,7 @@ final class Hud {
 		// `follow all` walks the whole list announcing victory in about a second.
 		//
 		// Go and look instead. Flying there loads the chunks, and the next recount has real work.
-		if (sp.todo().isEmpty() && sp.unseen() > 0 && sp.nearestUnseen() != null
-			&& !unseenGivenUp.contains(sp.name())) {
-			long t = System.currentTimeMillis();
-			BlockPos look = sp.nearestUnseen();
-			if (!Bounds.contains(look)) {
-				// Out of view AND outside the fence: the flight would refuse it, the look watchdog
-				// would strike it twice and write the design off - so write it off now and say why.
-				unseenGivenUp.add(sp.name());
-				mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.unseen() + " cell(s) of "
-					+ sp.name() + " are out of view and outside the autofly bounds - not going to look"));
-				return;
-			}
-			if (target != null && target.equals(lookTarget)) {
-				// ---- THE LOOK WATCHDOG. Neither the stall clock nor the going-nowhere clock
-				// could see this phase (the target is reset every time it is re-guided), so a
-				// cell in a chunk that never loads — beyond render distance from anywhere the
-				// flight can get, or somewhere it cannot reach at all — was flown at for ever,
-				// re-announced every few seconds. Arrived, or parked, and the count has not
-				// moved: that is one strike; two and the design's unseen cells are written off
-				// for this session, which is what lets `follow all` move on.
-				boolean parked = Autopilot.arrivedAt(target)
-					|| t - Math.max(movedAt, lookSince) > LOOK_STUCK_MS;
-				if (parked) {
-					lookFailures++;
-					if (lookFailures >= LOOK_STRIKES) {
-						unseenGivenUp.add(sp.name());
-						mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.unseen()
-							+ " cell(s) of " + sp.name() + " sit in chunks that will not load from"
-							+ " anywhere I can get to — treating them as out of reach this session"));
-					} else {
-						mc.player.sendSystemMessage(Component.literal("[cscan] could not get the"
-							+ " chunks at " + Wand.fmt(target) + " to load — one more try"));
-					}
-					lookTarget = null;
-					stopGuiding();
-					Highlight.clear("goto");
-				}
-				return;
-			}
-			fetching = false;
-			lastProgressMs = t;
-			lookTarget = look;
-			lookSince = t;
-			Highlight.clear("goto");
-			goLook(mc, look, sp.unseen() + " cells out of view");
-			mc.player.sendSystemMessage(Component.literal("[cscan] nothing left in sight, but "
-				+ sp.unseen() + " cells are in chunks I do not have — going to look at "
-				+ Wand.fmt(look)));
-			return;
-		}
+		if (sp.todo().isEmpty() && lookForUnseen(mc, sp, sp.unseen() + " cells out of view")) return;
 		if (sp.placementComplete() || (sp.todo().isEmpty() && unseenGivenUp.contains(sp.name()))) {
 			doneThisSession.add(sp.name());
             if (!sp.wrong().isEmpty()) mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.wrong().size() + " mismatches remain; this design is NOT complete."));
@@ -507,21 +541,31 @@ final class Hud {
 		// todo to unseen; counted as placed they inflated the session report, reset the stall
 		// clock, and blinded the thrash detector at exactly the moment spots were being abandoned.
 		// Only the part of a shrink that unseen does not account for is progress.
-		if (lastTodo >= 0 && lastUnseen >= 0) {
-			int gone = (lastTodo - sp.todo().size()) - (sp.unseen() - lastUnseen);
-			if (gone > 0) {
-				placedTotal += gone;
-				lastProgressMs = now;
-				// ---- AND BACK TO ARM'S LENGTH. The radius grew because there was nothing near;
-				// something just went in, so there is. Left wide it would keep ranking the whole
-				// two hundred blocks and the flying starts again.
-				workRadius = Loop.nearAgain();
-			}
+		lastReport = Printer.driving() ? Printer.drainReport() : new int[] {0, 0};
+		int placedNow;
+		if (Printer.driving()) {
+			// OUR OWN PRINTER REPORTS, and that is the only count a chunk cannot fake: a chunk that
+			// loads with its cells already BUILT moves them from unseen to built with todo
+			// untouched, and the inference below read exactly that as placing - inflating the
+			// report, resetting the stall clock and blinding the thrash detector on the way in.
+			placedNow = lastReport[0];
+		} else if (lastTodo >= 0 && lastUnseen >= 0 && sp.unseen() == lastUnseen) {
+			// Inferred, for litematica-printer, and only while no chunk moved: a recount in which
+			// unseen changed at all is not evidence about placement either way.
+			placedNow = Math.max(0, lastTodo - sp.todo().size());
+		} else {
+			placedNow = 0;
+		}
+		if (placedNow > 0) {
+			placedTotal += placedNow;
+			lastProgressMs = now;
+			// ---- AND BACK TO ARM'S LENGTH. The radius grew because there was nothing near;
+			// something just went in, so there is. Left wide it would keep ranking the whole
+			// two hundred blocks and the flying starts again.
+			workRadius = Loop.nearAgain();
 		}
 		lastTodo = sp.todo().size();
 		lastUnseen = sp.unseen();
-		lastReport = Printer.driving() ? Printer.drainReport() : new int[] {0, 0};
-		if (lastReport[0] > 0) lastProgressMs = now;      // a placement is progress, whatever the count says
 		if (++recounts % RELAX_EVERY == 0) Printer.relax();
 		if (Loop.stalled(now, lastProgressMs, fetching, STALL_MS)) {
 			stalls++;
@@ -575,13 +619,23 @@ final class Hud {
         // Opened in ONE step rather than by re-scanning at each rung: how far the work is is an
         // answer a single pass already contains, and re-scanning is five passes over half a million
         // cells every recount for as long as there is nothing near.
-        double nearest = Loop.nearestDistance(sp.todo(), me);
+        // ---- WHAT THIS SESSION MAY WORK ON, decided ONCE. Off the plot, outside the fence, out
+        // of the locked profile or given up on: none of it is this session's work, and every
+        // question below - how far is the nearest cell, which course is lowest, where to move to -
+        // has to be asked of the same list. Asked of the whole todo, the eight-course lookahead
+        // was spent on courses the fence excludes and the loop moved to cells it may not reach.
+        java.util.List<Work.Cell> eligible = sp.todo().stream()
+            .filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
+            .filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
+            .filter(c -> Bounds.contains(c.pos()))
+            .toList();
+        double nearest = Loop.nearestDistance(eligible, me);
         if (nearest > workRadius) workRadius = Loop.radiusReaching(nearest);
-        java.util.List<Work.Cell> here = Loop.focus(sp.todo(), me, workRadius);
-        if (here.isEmpty() && !sp.todo().isEmpty()) {
+        java.util.List<Work.Cell> here = Loop.focus(eligible, me, workRadius);
+        if (here.isEmpty() && !eligible.isEmpty()) {
             // Nothing within the widest look. That is not a bigger radius, it is a different place
             // to work: go to the nearest remaining cell and start again at arm's length there.
-            BlockPos moved = Loop.reanchor(sp.todo(), me);
+            BlockPos moved = Loop.reanchor(eligible, me);
             if (moved != null && (target == null || !target.equals(moved))) {
                 workRadius = Loop.nearAgain();
                 mc.player.sendSystemMessage(Component.literal(
@@ -681,11 +735,7 @@ final class Hud {
 			// the whole design's shortfall, which filled the pack with the far end's materials.
 			// ...and never for a cell nothing can ever place: outside the profile, off the plot, or
 			// given up on. Shopping for those is a trip to a dead end.
-			java.util.List<Work.Cell> everWork = sp.todo().stream()
-				.filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
-				.filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
-                .filter(c -> Bounds.contains(c.pos()))   // the autofly fence: not this session's work
-				.toList();
+			java.util.List<Work.Cell> everWork = eligible;
 			java.util.List<Work.Cell> demand = Plan.nearDemand(everWork, frontier,
 				me, Work.loadCapacity(mc.player));
 			targets = Plan.fetchTargets(demand, carrying, index, me,
@@ -786,11 +836,7 @@ final class Hud {
                 if (phase == Loop.Phase.DEAD_END && !frontier.isEmpty() && ChestScan.advance(mc, sp.name(), index)) {
                     return;
                 }
-                if (sp.unseen() > 0 && sp.nearestUnseen() != null) {
-                    goLook(mc, sp.nearestUnseen(), "look for remaining schematic support");
-                    lastProgressMs = now;
-                    return;
-                }
+                if (lookForUnseen(mc, sp, "look for remaining schematic support")) return;
 				// Nothing placeable and nothing to fetch are DIFFERENT dead ends and want different
 				// answers: one sends you to the store hall, the other says your pack is full of
 				// something this design has no room left for.
@@ -818,13 +864,30 @@ final class Hud {
 						mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.name()
 							+ " handed back unfinished; moving on to " + other));
 						switchTo(mc, other);
+						return;
 					}
+				}
+				// NOTHING ELSE TO DO, AND NOWHERE TO GO. Two minutes of that is a parked loop, and a
+				// parked loop that stays "following" all night is the failure this file keeps
+				// writing rules about. Long enough for a hand to break the one block in the way.
+				if (deadEndSince == 0) deadEndSince = now;
+				if (now - deadEndSince > DEAD_END_STOP_MS) {
+					mc.player.sendSystemMessage(Component.literal("[cscan] parked at a dead end for "
+						+ (DEAD_END_STOP_MS / 60_000) + " minutes with nothing else to do — stopping."
+						+ " /cscan why for the reason, /cscan follow to start again."));
+					following = false;
+					ActiveBuild.clear();
+					ChunkScanClient.printDesign = null;
+					stopGuiding();
+					Highlight.clear("goto");
+					remember(mc);
 				}
 				return;
 			}
 			default -> { }
 		}
 		said = false;
+		deadEndSince = 0;
 
 		// ---- SPOT HYSTERESIS. Two levels of it now, and they are different questions: this one is
 		// "am I still working the same region", and `stand` below is "where in it do I float".
@@ -1016,12 +1079,13 @@ final class Hud {
 					standAt(mc, here, me, here.size() + " here");
 					return;
 				}
-				List<BlockPos> lap = Plan.ring(Nav.of(mc.level), here, Plan.reachExact(), STANDOFF + 2);
+				List<BlockPos> lap = Plan.ring(Bounds.within(Nav.of(mc.level)), here, Plan.reachExact(), STANDOFF + 2);
 				if (lap.size() >= 2) {
 					if (now - orbitSince >= ORBIT_MS || target == null) {
 						orbitSince = now;
 						orbitLeg = (orbitLeg + 1) % lap.size();
 					}
+					orbitLeg %= lap.size();                        // the ring shrinks as cells go in
 					BlockPos stop = lap.get(orbitLeg);
 					if (!stop.equals(target)) {
 						Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
@@ -1038,7 +1102,7 @@ final class Hud {
 				// printer's reach. Re-aiming at the centroid of what is LEFT walks you round the
 				// group from a new angle every time some of it goes in — which is the difference
 				// between finishing a station and placing the near face of it and stopping.
-				BlockPos re = Plan.bestStand(Nav.of(mc.level), here, Plan.reachExact(),
+				BlockPos re = Plan.bestStand(Bounds.within(Nav.of(mc.level)), here, Plan.reachExact(),
 					mc.player.blockPosition(), STANDOFF + 2, Autopilot.ARRIVE_MIN);
 				if (re != null && !re.equals(target)) {
 					Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
@@ -1060,7 +1124,7 @@ final class Hud {
 					BlockPos was = target;
 					standAt(mc, here, me, here.size() + " here, closer");
 					BlockPos close = target != null && !target.equals(was) ? target
-						: Nav.standoff(Nav.of(mc.level), Plan.centroid(here), mc.player.blockPosition(), 1);
+						: Nav.standoff(Bounds.within(Nav.of(mc.level)), Plan.centroid(here), mc.player.blockPosition(), 1);
 					if (close != null && !close.equals(was)) {
 						if (!close.equals(target)) guide(close, here.size() + " here, closer");
 						mc.player.sendSystemMessage(Component.literal(
@@ -1681,9 +1745,11 @@ final class Hud {
 						mc.player.sendSystemMessage(Component.literal(
 							"[cscan] giving up after 20 failures in a row: " + e));
 						following = false;
-        ActiveBuild.clear();
-            ChunkScanClient.printDesign = null;
+						ActiveBuild.clear();
+						ChunkScanClient.printDesign = null;
 						stopGuiding();
+						Highlight.clear("goto");
+						remember(mc);              // or session.json still says following, and the next join resumes into it
 					}
 				}
 			}

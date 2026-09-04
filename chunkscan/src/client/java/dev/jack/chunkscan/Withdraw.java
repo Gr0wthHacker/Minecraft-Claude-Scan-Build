@@ -246,6 +246,9 @@ final class Withdraw {
         }
         BlockHitResult hit = ContainerInteraction.openingHit(mc, chest);
         if (hit == null) return;
+        // SNEAK-CLICKING A CHEST PLACES THE HELD BLOCK ON ITS FACE. The autopilot's descent key is
+        // sneak, and this only ever worked because its release ran earlier in the same tick.
+        if (mc.player.isShiftKeyDown()) return;
         ContainerWatcher.expect(mc, chest);
         openRevision = MenuObservations.LIVE.revision();
         requested = true;
@@ -401,7 +404,7 @@ final class Withdraw {
 			return true;
 		} catch (java.io.IOException unavailable) {
 			fail(mc, "withdrawal journal unavailable; automation stopped");
-			Hud.off();
+			Hud.stopForSafety(mc);                  // and the session note, or the next join resumes into it
 			return false;
 		}
 	}
@@ -417,7 +420,9 @@ final class Withdraw {
 			return true;
 		} catch (java.io.IOException unavailable) {
 			// Start record remains. Do not let an unaccounted transfer feed a placement plan.
-			Hud.off();
+			if (mc.player != null) mc.player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+				"[cscan] the withdrawal journal cannot be written (" + unavailable + ") — stopping"));
+			Hud.stopForSafety(mc);
 			return false;
 		}
 	}

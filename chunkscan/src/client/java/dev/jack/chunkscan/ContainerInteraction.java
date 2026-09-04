@@ -53,11 +53,12 @@ final class ContainerInteraction {
 	static BlockPos approach(Minecraft mc, BlockPos target, Set<Long> tried) {
 		if (mc.player == null || mc.level == null || !mc.level.isLoaded(target)) return null;
 		boolean flying = mc.player.getAbilities().flying;
-		var space = flying ? Nav.of(mc.level) : Nav.standable(mc.level);
+		var space = Bounds.within(flying ? Nav.of(mc.level) : Nav.standable(mc.level));
 		double eyeHeight = mc.player.getEyePosition().y - mc.player.getY();
 		BlockPos me = mc.player.blockPosition();
 		return approachCells(target)
-			.filter(p -> !tried.contains(p.asLong()))
+						.filter(p -> !tried.contains(p.asLong()))
+			.filter(Bounds::contains)                   // an approach cell outside the fence is refused, six seconds at a time
 			.filter(p -> mc.level.isLoaded(p) && mc.level.isLoaded(p.above())
 				&& space.at(p.getX(), p.getY(), p.getZ())
 				&& (!flying || hoverable(mc, p))

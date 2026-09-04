@@ -19,6 +19,12 @@ final class WalkingSpace implements Nav.Passable {
         return dx*dx + dz*dz <= 0.09 && Math.abs(feet.y-node.getY()) <= 0.25;
     }
 
+    /** The same walk confined to the cells {@code cell} allows - see Bounds.within. */
+    WalkingSpace confined(Nav.Passable cell) {
+        Nav.Passable b = body;
+        return new WalkingSpace((x, y, z) -> cell.at(x, y, z) && b.at(x, y, z), footing);
+    }
+
     boolean step(int x, int y, int z, int dx, int dy, int dz) {
         if (Math.abs(dx)>1 || Math.abs(dy)>1 || Math.abs(dz)>1 || (dx==0 && dz==0)) return false;
         if (!at(x,y,z) || !at(x+dx,y+dy,z+dz)) return false;

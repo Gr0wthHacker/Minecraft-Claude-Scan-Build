@@ -265,8 +265,10 @@ class AutopilotTest {
 		// down — and on foot that is the air over the void. Where it FETCHES is a container somebody
 		// walked to, which is a floor.
 		String src = source();
-		assertTrue(src.contains("if (!Hud.fetching())"),
-			"walking is no longer gated on the trip being a fetch");
+		// ...or a LANDING, which is a floor by construction - the one other place a body may be
+		// on foot, and the reason Hud.Mode.LAND exists. Without it a landed body never moved again.
+		assertTrue(src.contains("if (!Hud.fetching() && !Hud.targetLand())"),
+			"walking is no longer gated on the trip being a fetch or a landing");
 		assertTrue(src.contains("groundBelow"), "walking no longer checks there is a floor");
 		assertTrue(src.contains("wasFlying && !flying"),
 			"losing flight in mid-air is no longer treated as an emergency");
@@ -426,7 +428,7 @@ class AutopilotTest {
 		// repath floor, so it ran a full A* every tick; and it backed off along the frozen yaw into
 		// whatever was behind.
 		String src = source();
-		int bump = src.indexOf("boolean bumped = flying && p.horizontalCollision");
+		int bump = src.indexOf("boolean bumped = flying && (p.horizontalCollision || (p.verticalCollision && !landing))");
 		assertTrue(bump > 0, "the collision branch is gone");
 		int aim = src.indexOf("p.setYRot(approach");
 		assertTrue(aim > bump, "the aim no longer happens after a bump is noticed");
@@ -840,9 +842,12 @@ class AutopilotTest {
 		// which correctly picks the shaft again, and repeat for ever. Two mechanisms each doing
 		// their own job correctly and fighting.
 		String src = source();
-		assertTrue(src.contains("if (threading && bumps < WEDGED_TICKS)"),
+		// ...and the hand-off compares WEDGED, the counter that measures it: `bumps` is reset every
+		// STUCK_TICKS (40), which is under WEDGED_TICKS (60), so written against `bumps` the branch
+		// was always taken and the give-up below it was the only thing that ever ended a wedge.
+		assertTrue(src.contains("if (threading && wedged < WEDGED_TICKS)"),
 			"a bump in a tight gap goes straight back to looking for a detour");
-		int guard = src.indexOf("if (threading && bumps < WEDGED_TICKS)");
+		int guard = src.indexOf("if (threading && wedged < WEDGED_TICKS)");
 		int escape = src.indexOf("Nav.escape(free, here, target, BUMP_LOOK,");
 		assertTrue(guard < escape, "the escape is still reached first while threading");
 	}
@@ -900,5 +905,17 @@ class AutopilotTest {
 		String body = src.substring(at, at + 500);
 		assertTrue(body.contains("bumps = 0") && body.contains("wedged = 0"),
 			"arriving no longer clears the contact state");
+	}
+
+	@Test
+	void avoidTestsTheStepItActuallySends() {
+		// Each axis clear on its own, the diagonal not: a block's corner between two open lanes.
+		// The old per-axis rule sent the diagonal and clipped it; the smaller component goes first.
+		java.util.function.Predicate<Vec3> corner = s -> !(s.x > 0.2 && s.z > 0.2);
+		Vec3 got = Autopilot.avoid(new Vec3(0.5, 0, 0.9), corner);
+		assertEquals(0, got.x, 1.0e-9, "the smaller horizontal component is the one dropped");
+		assertEquals(0.9, got.z, 1.0e-9);
+		Vec3 fine = Autopilot.avoid(new Vec3(0.5, 0.1, -0.9), corner);
+		assertEquals(new Vec3(0.5, 0.1, -0.9), fine, "a step that fits is untouched");
 	}
 }

@@ -522,6 +522,11 @@ public final class ChunkScanClient implements ClientModInitializer {
 
 	private static int setBounds(FabricClientCommandSource src, BlockPos a, BlockPos b) {
 		Minecraft mc = src.getClient();
+		if (Math.abs(a.getY() - b.getY()) < 1) {
+			ok(src, "a fence needs at least two courses of height - a body is nearly two blocks tall,"
+				+ " and a one-course box has nowhere legal to put it.");
+			return 0;
+		}
 		String dim = mc.level == null ? "" : mc.level.dimension().identifier().toString();
 		Bounds.set(a, b, dim);
 		Hud.remember(mc);
@@ -2377,6 +2382,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 				net.minecraft.world.phys.Vec3 eye = mc.player.getEyePosition();
 				for (Work.Cell c : sp.todo()) {
 					if (Printer.givenUpOn(c.pos())) continue;
+					if (!Printer.everPlaceableCached(mc, c.pos(), c.block())) continue;   // the sweep is the stutter
 					if (eye.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(c.pos())) > reach2) continue;
                     int slot = Printer.inventorySlot(mc.player, c.block());
                     if (slot < 0) continue;

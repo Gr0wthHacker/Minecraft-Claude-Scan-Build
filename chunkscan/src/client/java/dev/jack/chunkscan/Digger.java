@@ -50,7 +50,7 @@ final class Digger {
 	static final int GIVE_UP_MAX = 1200;
 	private static int giveUpAt = GIVE_UP_MAX;
 
-	enum Verdict { BROKE, PROTECTED, OVER_VOID, OFF_PLOT, OUT_OF_REACH, ALREADY_AIR, STUCK, WORKING }
+	enum Verdict { BROKE, PROTECTED, OVER_VOID, OFF_PLOT, FENCED, OUT_OF_REACH, ALREADY_AIR, STUCK, WORKING }
 
 	record Refusal(BlockPos pos, Verdict why, String block) {}
 
@@ -105,6 +105,7 @@ final class Digger {
 		if (Islands.outside(ScanRunner.schematicsDir(mc), p.getX(), p.getZ())) {
 			return Verdict.OFF_PLOT;
 		}
+		if (!Bounds.contains(p)) return Verdict.FENCED;    // the autofly fence, at the actuator
 		VoidRisk.Cell under = VoidRisk.under(mc.level, p, mc.level.getMinY());
 		if (under.verdict() == VoidRisk.Verdict.VOID) return Verdict.OVER_VOID;
 		if (mc.player.getEyePosition().distanceToSqr(Vec3.atCenterOf(p)) > REACH * REACH) {
@@ -232,6 +233,7 @@ final class Digger {
 				case PROTECTED -> "PROTECTED (a mechanism, or wool that may be a sensor's silencer)";
 				case OVER_VOID -> "over OPEN VOID (the drop would be lost)";
 				case OFF_PLOT -> "outside the plot";
+				case FENCED -> "outside the autofly bounds";
 				case OUT_OF_REACH -> "out of reach from where you stood";
 				case STUCK -> "would not break (wrong tool?)";
 				default -> e.getKey().name().toLowerCase(java.util.Locale.ROOT);
