@@ -294,7 +294,25 @@ final class Hud {
 	 * translate while walking; an arrow that swings as you turn is one you follow.
 	 */
 	static void guide(BlockPos where, String note) {
-		guide(where, note, false);
+		guide(where, note, Mode.NEAR);
+	}
+
+	/** What the flight is meant to do at the target. */
+	enum Mode { NEAR, EXACT, LAND }
+	private static Mode mode = Mode.NEAR;
+
+	/**
+	 * Guide to a cell to LAND in: descend onto its floor, let flight end, and work standing. See
+	 * Plan.groundStand for why — work on a floor cannot be reached from a hovering stand at all.
+	 * The loop takes off again by itself (Autopilot.regain) when the next target needs the air.
+	 */
+	static void guideLand(BlockPos where, String note) {
+		guide(where, note, Mode.LAND);
+	}
+
+	/** Whether the current target is a cell to land in. */
+	static boolean targetLand() {
+		return target != null && mode == Mode.LAND;
 	}
 
 	/**
@@ -302,26 +320,57 @@ final class Hud {
 	 * a place to hover NEAR, a chest's approach cell is a place to BE.
 	 */
 	static void guideExact(BlockPos where, String note) {
-		guide(where, note, true);
+		guide(where, note, Mode.EXACT);
 	}
 
-	private static void guide(BlockPos where, String note, boolean mustReach) {
+	private static void guide(BlockPos where, String note, Mode how) {
 		target = where;
-		exact = mustReach;
+		mode = how;
 		targetNote = note == null ? "" : note;
 	}
 
-	private static boolean exact = false;
-
 	/** Whether the current target is one the flight must actually reach, not merely approach. */
 	static boolean targetExact() {
-		return target != null && exact;
+		return target != null && mode == Mode.EXACT;
 	}
 
 	static void stopGuiding() {
 		target = null;
-		exact = false;
+		mode = Mode.NEAR;
 		targetNote = "";
+	}
+
+	/** Slack off the printer's reach for a stand whose position is exact — a landing. */
+	static final double LAND_SLACK = 0.4;
+
+	/**
+	 * Pick where to work THESE cells from, and guide there: on the ground when the ground covers
+	 * as much as the air does, in the air otherwise. Landing is preferred on a tie because a body
+	 * on a floor does not drift, does not have to hold altitude, and cannot lose flight by
+	 * touching something — it has already touched the one thing it is allowed to.
+	 */
+	private static void standAt(Minecraft mc, java.util.List<Work.Cell> here, BlockPos me, String note) {
+		Nav.Passable free = Nav.of(mc.level);
+		java.util.function.Predicate<BlockPos> solid = b -> mc.level.isLoaded(b)
+			&& mc.level.getBlockState(b).blocksMotion();
+		BlockPos ground = Plan.groundStand(free, solid, here, Plan.reachExact() - LAND_SLACK, me, STANDOFF + 3);
+		BlockPos hover = Plan.bestStand(free, here, Plan.reachExact(), me, STANDOFF + 2, Autopilot.ARRIVE_MIN);
+		int onGround = ground == null ? 0 : Plan.coveredFrom(here, ground, Plan.reachExact() - LAND_SLACK, free);
+		int inAir = hover == null ? 0 : Plan.coveredFrom(here, hover, Plan.reachExact() - Autopilot.ARRIVE_MIN, free);
+		Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
+		if (ground != null && onGround >= inAir) {
+			guideLand(ground, "land: " + note);
+			return;
+		}
+		if (hover == null) hover = Nav.standoff(free, Plan.centroid(here), me, STANDOFF);
+		if (hover == null) hover = Plan.centroid(here);
+		guide(hover, note);
+	}
+
+	/** Standing at a landing that still reaches something of what is left: stay put. */
+	private static boolean landedAndReaching(java.util.List<Work.Cell> here) {
+		return targetLand() && Plan.coveredFrom(here, target, Plan.reachExact() - LAND_SLACK,
+			Nav.of(Minecraft.getInstance().level)) > 0;
 	}
 
 	static BlockPos target() {
@@ -920,6 +969,16 @@ final class Hud {
 				// a parked body still drifts, still has to correct, and only ever reaches the faces
 				// one vantage can see. The ring gives a bearing to move ON to rather than a point to
 				// hold, so the correction becomes travel and the far side of the bin gets built.
+				if (landedAndReaching(here)) return;      // standing, and it still reaches: stay
+				if (targetLand()) {                         // landed, but what is left is out of reach
+					standAt(mc, here, me, here.size() + " here");
+					return;
+				}
+				if (landedAndReaching(here)) return;      // standing, and it still reaches: stay
+				if (targetLand()) {                         // landed, but what is left is out of reach
+					standAt(mc, here, me, here.size() + " here");
+					return;
+				}
 				List<BlockPos> lap = Plan.ring(Nav.of(mc.level), here, Plan.reachExact(), STANDOFF + 2);
 				if (lap.size() >= 2) {
 					if (now - orbitSince >= ORBIT_MS || target == null) {
@@ -961,10 +1020,12 @@ final class Hud {
 				if (what == Loop.Station.CLOSER) {
 					stationRetry = 1;
 					stationSince = now;
-					BlockPos close = Nav.standoff(Nav.of(mc.level), Plan.centroid(here),
-						mc.player.blockPosition(), 1);
-					if (close != null && !close.equals(target)) {
-						guide(close, here.size() + " here, closer");
+					BlockPos was = target;
+					standAt(mc, here, me, here.size() + " here, closer");
+					BlockPos close = target != null && !target.equals(was) ? target
+						: Nav.standoff(Nav.of(mc.level), Plan.centroid(here), mc.player.blockPosition(), 1);
+					if (close != null && !close.equals(was)) {
+						if (!close.equals(target)) guide(close, here.size() + " here, closer");
 						mc.player.sendSystemMessage(Component.literal(
 							"[cscan] nothing placed here in " + (STATION_MS / 1000)
 								+ "s — moving in closer"));
@@ -991,14 +1052,10 @@ final class Hud {
 		stationArrivedAt = 0;                            // not there yet; the dwell starts on arrival
 		orbitLeg = 0;
 		orbitSince = now;                            // a new bin is a new lap
-		// COVERAGE, not proximity. See Plan.bestStand: the spot is chosen by how many of these cells
-		// the printer can touch from it, discounted by how far short the flight parks.
-		BlockPos at = Plan.bestStand(Nav.of(mc.level), here, Plan.reachExact(), me, STANDOFF + 2,
-			Autopilot.ARRIVE_MIN);
-		if (at == null) at = Nav.standoff(Nav.of(mc.level), st.where(), me, STANDOFF);
-		if (at == null) at = st.where();
-		Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
-		guide(at, st.cells() + " here, " + spot.doable() + " in this spot");
+		// COVERAGE, not proximity. See Plan.bestStand and Plan.groundStand: the spot is chosen by
+		// how many of these cells the printer can touch from it — from the ground when the work is
+		// on a floor, from the air when it is not.
+		standAt(mc, here, me, st.cells() + " here, " + spot.doable() + " in this spot");
 		mc.player.sendSystemMessage(Component.literal("[cscan] " + st.cells() + " cells at "
 			+ Wand.fmt(st.where()) + " — " + spot.doable() + " left in this spot, "
 			+ (spotsInPlan - 1) + " more spots after it"));

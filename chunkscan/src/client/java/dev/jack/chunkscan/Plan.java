@@ -761,13 +761,11 @@ final class Plan {
 					if (!free.at(c.getX(), c.getY(), c.getZ())) continue;
 					if (!Nav.airBelow(free, c, Nav.AIR_BELOW)) continue;
 					if (!Nav.headroom(free, c, Nav.AIR_ABOVE)) continue;
-					int covered = 0;
+					// FROM THE EYES, not the feet cell: the printer's ray leaves from the eyes, and
+					// a cell four courses below the feet is a block and a half further from them.
+					int covered = coveredFrom(cells, c, r, free);
 					double nearestCell = Double.MAX_VALUE;
-					for (Work.Cell w : cells) {
-						double d2 = w.pos().distSqr(c);
-						if (d2 <= r2) covered++;
-						nearestCell = Math.min(nearestCell, d2);
-					}
+					for (Work.Cell w : cells) nearestCell = Math.min(nearestCell, eyeDistSqr(c, w.pos()));
 					if (covered == 0) continue;
 					double near = c.distSqr(from);
 					// ---- COVERAGE FIRST, THEN STAND BACK.
@@ -801,6 +799,88 @@ final class Plan {
 	 * every two seconds that staying put is still best, and the moment another bin looks fuller the
 	 * loop leaves mid-wall.
 	 */
+	/** Where the eyes are above the feet cell's floor. */
+	static final double EYE = 1.62;
+	/** Solid cells wanted in the 3x3 under a landing: a one-block ledge over the void is not a floor. */
+	static final int PAD_MIN = 6;
+
+	/**
+	 * A place to LAND and work from, or null if the work has no floor beside it.
+	 *
+	 * <p>Jack: <i>"it is hovering above a group thats not placeable; i think we need to also analyze
+	 * area and identify when it can land"</i>. A flying stand needs three clear cells under it
+	 * ({@link Nav#AIR_BELOW}) and the flight holds two and a half off any floor — both right for
+	 * work on a wall, and both impossible for work ON A FLOOR: paving, a lawn, the bottom course of
+	 * anything. Over a plate no cell qualifies, the fallback is the centroid, the flight parks three
+	 * blocks over it, and the printer reaches nothing. That is the hover.
+	 *
+	 * <p>So: a cell the body fits in, with a real floor under it (a 3x3 pad, not a ledge), that is not
+	 * itself work still to be placed, from which the eyes are within reach of the most cells. The
+	 * loop lands there, builds standing, and takes off again when the next station needs it.
+	 */
+	static BlockPos groundStand(Nav.Passable free, java.util.function.Predicate<BlockPos> solid,
+	                            List<Work.Cell> cells, double reach, BlockPos from, int maxOut) {
+		if (cells.isEmpty()) return null;
+		Set<Long> work = new java.util.HashSet<>();
+		for (Work.Cell c : cells) work.add(c.pos().asLong());
+		BlockPos mid = centroid(cells);
+		BlockPos best = null;
+		int bestCovered = 0;
+		double bestNear = Double.MAX_VALUE;
+		for (int dx = -maxOut; dx <= maxOut; dx++) {
+			for (int dz = -maxOut; dz <= maxOut; dz++) {
+				for (int dy = -4; dy <= 4; dy++) {
+					BlockPos c = mid.offset(dx, dy, dz);
+					if (!free.at(c.getX(), c.getY(), c.getZ())) continue;
+					if (work.contains(c.asLong()) || work.contains(c.above().asLong())) continue;
+					BlockPos floor = c.below();
+					if (!solid.test(floor)) continue;
+					int pad = 0;
+					for (int ex = -1; ex <= 1; ex++)
+						for (int ez = -1; ez <= 1; ez++)
+							if (solid.test(floor.offset(ex, 0, ez))) pad++;
+					if (pad < PAD_MIN) continue;
+					int covered = coveredFrom(cells, c, reach, free);
+					if (covered == 0) continue;
+					double near = c.distSqr(from);
+					if (covered > bestCovered || (covered == bestCovered && near < bestNear)) {
+						bestCovered = covered;
+						bestNear = near;
+						best = c;
+					}
+				}
+			}
+		}
+		return best;
+	}
+
+	/** How many of these cells the printer can touch from a body standing (feet) in {@code stand}. */
+	static int coveredFrom(List<Work.Cell> cells, BlockPos stand, double reach) {
+		return coveredFrom(cells, stand, reach, null);
+	}
+
+	/**
+	 * ...and, given the world, only the ones the eyes can SEE. Reach alone let a stand UNDER a
+	 * plate count the paving on top of it — a block and a half from the eyes, through a floor.
+	 */
+	static int coveredFrom(List<Work.Cell> cells, BlockPos stand, double reach, Nav.Passable free) {
+		double r2 = reach * reach;
+		int n = 0;
+		for (Work.Cell w : cells) {
+			if (eyeDistSqr(stand, w.pos()) > r2) continue;
+			if (free != null && !Nav.sees(free, stand, w.pos())) continue;
+			n++;
+		}
+		return n;
+	}
+
+	/** Squared distance from the eyes of a body standing in {@code stand} to the centre of {@code cell}. */
+	static double eyeDistSqr(BlockPos stand, BlockPos cell) {
+		double dx = cell.getX() + 0.5 - (stand.getX() + 0.5), dy = cell.getY() + 0.5 - (stand.getY() + EYE),
+			dz = cell.getZ() + 0.5 - (stand.getZ() + 0.5);
+		return dx * dx + dy * dy + dz * dz;
+	}
+
 	static Station stationOf(List<Work.Cell> cells, long bin, int reach) {
 		List<Work.Cell> mine = new ArrayList<>();
 		for (Work.Cell c : cells) {

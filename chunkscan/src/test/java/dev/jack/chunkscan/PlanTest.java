@@ -814,9 +814,15 @@ class PlanTest {
 		}
 		List<Work.Cell> low = List.of(cell(0, 100, 0, "stone_bricks"));
 		BlockPos stand = Plan.bestStand(air(solid), low, 5, new BlockPos(6, 104, 0), 4, 1.2);
-		assertNotNull(stand);
-		assertTrue(Nav.airBelow(air(solid), stand, Nav.AIR_BELOW),
-			"chose a spot resting on the floor: " + stand);
+		// A block lying ON a floor has no hovering stand at all once reach is measured from the
+		// eyes: three clear cells under the feet puts the eyes four courses over it. That is not a
+		// spot resting on the floor, it is no spot — and the case Plan.groundStand exists for.
+		if (stand != null) {
+			assertTrue(Nav.airBelow(air(solid), stand, Nav.AIR_BELOW),
+				"chose a spot resting on the floor: " + stand);
+		}
+		assertNotNull(Plan.groundStand(air(solid), b -> solid.contains(b.asLong()), low, 3.8,
+			new BlockPos(6, 104, 0), 5), "nowhere to land beside a block on a floor");
 	}
 
 	@Test

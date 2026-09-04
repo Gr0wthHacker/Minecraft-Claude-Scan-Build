@@ -402,7 +402,7 @@ final class Autopilot {
 	static String stalledBecause(Minecraft mc) {
 		if (!on) return null;
 		if (mc.player == null) return null;
-		if (!mc.player.getAbilities().flying && !Hud.fetching()) {
+		if (!mc.player.getAbilities().flying && !Hud.fetching() && !Hud.targetLand()) {
 			return "flight is off and building needs it";
 		}
 		// A CONTAINER screen, not any screen. Chat, the map and the pause menu do not stop it — see
@@ -574,7 +574,10 @@ final class Autopilot {
 			}
 			return false;
 		}
-		if (!canRegainFlight(false, p.getAbilities().mayfly, Hud.target() != null)) {
+		BlockPos goal = Hud.target();
+		boolean wanted = goal != null && needsFlight(Hud.targetLand(), groundNoRoute,
+			Math.sqrt(p.blockPosition().distSqr(goal)));
+		if (!canRegainFlight(false, p.getAbilities().mayfly, wanted)) {
 			if (!p.getAbilities().mayfly && !regainSaid) {
 				regainSaid = true;
 				p.sendSystemMessage(Component.literal("[cscan] flight is off and the server will"
@@ -863,6 +866,9 @@ final class Autopilot {
 		// place to PUT THE BODY, and a body stands on its feet - see flyTo.
 		boolean solidTarget = mc.level.getBlockState(target).blocksMotion();
 		boolean exact = !solidTarget && Hud.targetExact();
+		// A LANDING. The target is a cell with a floor under it, and the point is to touch that
+		// floor: flight ends on contact on this server, and here that is what is wanted.
+		boolean landing = !solidTarget && Hud.targetLand();
 		Vec3 to = solidTarget ? Vec3.atCenterOf(target) : flyTo(target);
 		double dist = me.distanceTo(to);
 		// A SOLID DESTINATION IS ARRIVED AT FROM OUTSIDE IT. A chest is a block, so the tight radius
@@ -879,6 +885,7 @@ final class Autopilot {
 		if (!target.equals(approaching)) {
 			approaching = target;
 			arrivedAt = null;
+			groundNoRoute = false;
 			bestDist = Double.MAX_VALUE;
 			sinceCloser = 0;
 		}
@@ -893,7 +900,8 @@ final class Autopilot {
 		// ...and whether closing any further would mean touching something. See SAFE_GAP: reach is
 		// worth having and it is not worth the flight.
 		boolean wall = surfaceAhead(mc, p, to.subtract(me), SAFE_GAP);
-		if (hasArrived(dist, sinceCloser, floor, ceiling, CLOSING_PATIENCE, wall)) {
+		boolean landed = landing && (dist <= 0.5 || (p.onGround() && dist < 2.0));
+		if (landing ? landed : hasArrived(dist, sinceCloser, floor, ceiling, CLOSING_PATIENCE, wall)) {
 			// ARRIVING IS NOT DISARMING. The first version called stop(), which sets on=false — so
 			// autofly switched itself off at the first chest and the unattended loop never flew
 			// again. Hold still and stay armed; the next `guide()` moves the target and this
@@ -912,7 +920,10 @@ final class Autopilot {
 		// So: losing flight while off the ground is not a mode change, it is an emergency. Hands
 		// off completely, say so where it cannot be missed, and disarm — resuming automatically
 		// into whatever revoked it is how you lose the inventory the second time as well.
-		if (wasFlying && !flying && !p.onGround()) {
+		if (landing && dist < 2.5) {
+			// Touching down: flight ending here is the plan, not an emergency.
+			wasFlying = flying;
+		} else if (wasFlying && !flying && !p.onGround()) {
 			wasFlying = false;
 			// Worded carefully: this is not "you took over". The player is often not touching
 			// anything, and being told they are in control when they are falling and did nothing is
@@ -1106,6 +1117,7 @@ final class Autopilot {
 				escaping = !raw.isEmpty();
 			}
 			noRoute = raw.isEmpty();
+			if (!flying && noRoute && Hud.targetLand()) groundNoRoute = true;   // cannot walk it: fly
 			partialRoute = !noRoute && (partial || escaping);
 			path = raw.isEmpty() ? new java.util.ArrayList<>()
 				: new java.util.ArrayList<>(flying ? Nav.loosen(used, here, Nav.simplify(used, here, raw)) : raw);
@@ -1283,7 +1295,7 @@ final class Autopilot {
 			// forward. That is the head grinding. The route was checked by Nav and avoid below now
 			// guarantees no step touches anything, so the clamp has nothing to add while there is a
 			// route; it is for the direct guess and for holding still at a spot.
-			if (path.isEmpty()) step = keepAirborne(mc, p, step, exact ? EXACT_CLEAR : GROUND_CLEAR);
+			if (path.isEmpty() && !landing) step = keepAirborne(mc, p, step, exact ? EXACT_CLEAR : GROUND_CLEAR);
 			// Scaled, not pressed — for the CLIMB. See the note on VERTICAL_GAIN and, more
 			// importantly, the one above it about what the jump key actually does.
 			step = liftFor(step, Math.max(speed, RISE) * 1.5);
@@ -1374,10 +1386,12 @@ final class Autopilot {
 			return;
 		}
 		warnedFalling = false;
+		walkOn(mc, p, dir, aim, speed);
+	}
+
+	private static void walkOn(Minecraft mc, LocalPlayer p, Vec3 dir, Vec3 aim, double speed) {
 		Vec3 flat = new Vec3(dir.x, 0, dir.z);
 		if (flat.lengthSqr() < 1.0e-6) {
-			// Straight up or straight down: no heading to walk in. Jump if the way out is upward,
-			// otherwise stand still and let the next repath find a floor route.
 			if (aim.y > p.getY() + 0.5 && p.onGround()) {
 				p.setDeltaMovement(new Vec3(0, JUMP, 0));
 			}
@@ -1963,6 +1977,22 @@ final class Autopilot {
 	/** At the target: kill the drift but stay armed for the next leg. */
 	/** The target the flight last called itself arrived at, or null while it is still going. */
 	private static BlockPos arrivedAt = null;
+	/** A landing target that could not be walked to from here — so take off for it. */
+	private static boolean groundNoRoute = false;
+	/** Further than this on foot and it is quicker to take off, even to another landing. */
+	static final double WALK_AT_MOST = 24.0;
+
+	/**
+	 * Does getting to the current target need the air? A hovering station or a chest approach
+	 * does. A LANDING does not, if it can be walked to from here — a body already standing on
+	 * the floor beside the next patch of paving walks over rather than taking off, landing, and
+	 * losing flight twice for nothing. It takes off when the walk is long, or when there is no
+	 * walking route at all.
+	 */
+	static boolean needsFlight(boolean landTarget, boolean walkRouteFailed, double distance) {
+		if (!landTarget) return true;
+		return walkRouteFailed || distance > WALK_AT_MOST;
+	}
 
 	/** Has the flight arrived at THIS target? False for any other, and false while still closing. */
 	static boolean arrivedAt(BlockPos t) {

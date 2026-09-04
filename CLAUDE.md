@@ -11477,3 +11477,46 @@ longer take turns being the target mid-flight.
 withdrawal — `BuildAuditTest` pins it as a rule, and it is one. Double chests are still indexed
 per half and double-counted. `standoff`'s last-resort fallback still returns a cell the autopilot
 cannot descend to (the station ladder handles it). None of this has been flown in game yet.
+
+### Landing: work on a floor has no hovering stand (2026-09-04)
+
+Jack, after the first jar: *"it is hovering above a group thats not placeable; i think we need
+to also analyze area and identify when it can land and it should take off by itself"*.
+
+**THE HOVER WAS STRUCTURAL.** A flying stand needs three clear cells under it (`Nav.AIR_BELOW`)
+and the flight holds two and a half off any floor — both right for work on a wall, and both
+impossible for work ON a floor: paving, a lawn, the bottom course of anything. Over a plate no
+cell qualified, the fallback was the centroid, the flight parked three blocks over it, and the
+printer reached nothing. Every station stalled, moved in closer (to another hover), abandoned,
+and the next bin did the same. And it was worse than it looked: the stand's coverage was measured
+from the FEET, so a stand four courses up "covered" paving its eyes were 4.6 blocks from, and a
+stand UNDER the plate covered the paving on top of it, through the floor.
+
+- **`Plan.groundStand`** — a cell the body fits in, with a real floor under it (a 3x3 pad, not a
+  ledge over the void), that is not itself work still to place, from which the eyes are within
+  reach of the most cells. `Hud.standAt` computes both stands and takes the ground when it
+  covers at least as much as the air, because a body on a floor does not drift, holds no
+  altitude, and cannot lose flight by touching something.
+- **Coverage is from the EYES and only of cells the eyes can SEE** (`Plan.coveredFrom` with a
+  `Passable`), for both kinds of stand. `Nav.sees` lost its "adjacent is always seen" shortcut,
+  because the cell directly above the eyes' own ceiling is adjacent.
+- **A landing is a target mode** (`Hud.Mode.LAND`). The flight descends onto the floor and lets
+  flight end — on this server that is what contact does, and here it is the plan, so the
+  mid-air-revocation emergency is suspended inside the last two and a half blocks. Arrival is
+  standing on the cell.
+- **It takes off by itself** through the existing double-tap (`Autopilot.regain`), now gated on
+  `needsFlight`: a hovering station or a chest approach always needs the air; a landing does not
+  if it can be WALKED to — a body standing beside the next patch of paving walks over, and only
+  takes off when the walk is long (`WALK_AT_MOST` 24) or there is no walking route.
+- **A landing that still reaches something of what is left is not re-aimed**: the orbit that
+  moves a hovering station round its work would otherwise take off from a good floor because it
+  placed something.
+
+`tests/LandingTest.java` (5) and the rewritten `aSpotWithNoAirUnderItIsNotASpot` pin it: a
+row of paving on a plate has no hovering stand and a landing that reaches it; a one-wide ledge
+is not a floor; reach is the eyes' reach; the walk-or-fly rule.
+
+**Not done, and worth knowing before the next flight:** the printer still needs the standing
+body to have a line to each cell's face, and `groundStand` checks the eye line to the cell
+centre, not to a face — a landing beside a cell whose only open face is away from it will stall
+the station the usual way. And nothing here has been flown in game.

@@ -598,7 +598,10 @@ final class Nav {
 		double sx = from.getX() + 0.5, sy = from.getY() + EYE, sz = from.getZ() + 0.5;
 		double dx = to.getX() + 0.5 - sx, dy = to.getY() + 0.5 - sy, dz = to.getZ() + 0.5 - sz;
 		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-		if (len <= 1.6) return true;                       // adjacent: nothing can be between
+		if (len < 1.0e-6) return true;
+		// No "adjacent is always seen" shortcut: the cell directly above the eyes' own ceiling is
+		// adjacent, and a floor is exactly what stands between a body under a plate and the paving
+		// on top of it. The samples decide.
 		int steps = (int) Math.ceil(len * 4);
 		for (int i = 1; i <= steps; i++) {
 			double t = (double) i / steps;
