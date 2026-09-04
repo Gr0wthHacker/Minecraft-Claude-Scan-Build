@@ -48,12 +48,10 @@ class IslandsTest {
 	}
 
 	@Test
-	void anUnknownPlaceIsNotAnOffPlotOne(@TempDir Path dir) throws Exception {
-		// Somewhere the registry has never been told about must answer "I cannot say", the same
-		// posture Plot already takes when the bedrock was never found. Reporting it as off-plot
-		// would refuse every build on an island nobody had got round to recording.
+	void anUnknownPlaceIsNotAuthorizedByKnownPlots(@TempDir Path dir) throws Exception {
+		// A bounded build must register a new island before using its coordinates.
 		Path d = registry(dir, TWO);
-		assertFalse(Islands.outside(d, 500000, 500000));
+		assertTrue(Islands.outside(d, 500000, 500000));
 		assertEquals(0, Islands.over(d, 500000, 500000));
 	}
 

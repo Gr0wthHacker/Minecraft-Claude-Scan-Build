@@ -1287,7 +1287,7 @@ def _queue(w, f, pal, p, seed, i0, i1, dt):
             w.put(*pos, pal["post"] if h >= 0 else pal["ground"])
             n += 1
     signed = _sign(w, f, pal, post_i, post_d - 1, 2, f.facing,
-                   ["QUEUE", "3 wide", "%d rows" % rows, "board at the end"])
+                   ["QUEUE", "3 wide", "%d rows" % rows, "board at end"])
     return n, sorted(occupied), rows, signed, len(head)
 
 
@@ -2696,7 +2696,7 @@ def _rapids(w: World, p: dict, ctx) -> dict:
     signed += _sign(w, f, pal, (gi0 + gi1) // 2, gd - 1, 2, f.facing,
                     [title, "", "you will get", "wet"])
     signed += _sign(w, f, pal, gi0, gd - 1, 1, f.facing,
-                    ["BOARDING", "wade the pool,", "climb the tower,", "float back down"])
+                    ["BOARDING", "wade the pool,", "climb the tower", "float back down"])
 
     cells = {pos: name for pos, (name, _props) in w.cells.items()}
 

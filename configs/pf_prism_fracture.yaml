@@ -34,7 +34,7 @@ name: PF Prism Fracture
 gen: seam
 params:
   kind: fracture
-  lot: [58, 45]
+  lot: [146, 45]
   at: [24, 385]
   sy: 34
   under: out/Park Complete.litematic
@@ -45,24 +45,25 @@ params:
   # are all drawn from the same four dark stones.
   off_limits:
     - out/Park Ways.litematic
-  axis: [38, 1, 10, 43]
-  reach: 15.0
+    - out/PF Water Wyrm Garden.litematic
+  axis: [145, 1, 10, 43]
+  reach: 16.0
   falloff: 0.85
-  grow: [0.30, 1.0]
+  grow: [0.45, 1.0]
   # FIVE OUTCROPS, NOT AN EVEN DUSTING. The first build spread its shards evenly down the axis
   # and the plan read as blue confetti on a dark floor - the thicket's and the deck soffit's own
   # failure, arriving a third time. A vein surfaces in a few places and the ground between them
   # is what makes those places read.
-  lobes: 5
-  lobe_r: [6.0, 12.0]
+  lobes: 11
+  lobe_r: [7.0, 15.0]
   lobe_wander: 5.0
   lobe_floor: 0.26
-  pitch: 4
+  pitch: 3
   density: 1.0
   # **NOTHING UNDER TEN IS A SHARD, IT IS A SPLINTER**, and splinters are `_rubble`'s job. The
   # first build's heights ran 5-9 and they read as bollards: at six courses the three-tone
   # gradient is two cells a band, which is a stripe rather than a crystal.
-  height: [10, 28]
+  height: [11, 30]
   clear: 1
   rubble: true
   # THE CRACK ITSELF, three cells wide and running the whole lot. Without it the five outcrops
@@ -77,16 +78,14 @@ params:
   # it is paved - see `_walk`: the plate is already a floor and a strip laid over it would be a
   # second surface on a finished one.
   walk:
-    - {v: 0, u: 24, dv: 28, du: 4}
-    - {v: 24, u: 18, dv: 4, du: 11}
+    - {v: 0, u: 33, dv: 40, du: 4}
 
   # ...and the shards keep off it. `lanes` is the walk plus a cell of tolerance and the lookout's
   # own box; `lane_clear` then holds a shard's FOOT two further cells back, because a shard leans
   # up to a fifth of its height and a foot beside the walk is a crystal over it.
   lanes:
-    - [0, 28, 23, 28]
-    - [23, 28, 17, 29]
-    - [20, 32, 27, 39]
+    - [0, 40, 32, 37]
+    - [39, 51, 30, 42]
   lane_clear: 2
 
   # THE END OF THE LANE IS A PLACE, which is this repo's own rule for when a path is real. Entry
@@ -96,11 +95,11 @@ params:
   # planters and the sunken basin the crossing already carries are measured around, not paved
   # over. A deck with holes in it where somebody else's fern stands is not a deck.
   lookout:
-    v: 21
-    u: 28
+    v: 40
+    u: 31
     dv: 11
     du: 11
-    entry: north
+    entry: west
     lines: ["THE SEAM", "strike it", "it answers"]
   seed: 41
 roles: [path]

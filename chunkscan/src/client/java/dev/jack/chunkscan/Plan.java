@@ -169,19 +169,9 @@ final class Plan {
 				if (taken.contains(c.pos().asLong())) continue;
 				if (c.pos().distSqr(centre) <= r2) group.add(c);
 			}
-			if (group.size() < 3) continue;               // not worth walking to
+			if (group.isEmpty()) continue; // the final one or two cells are still work
 			for (Work.Cell c : group) taken.add(c.pos().asLong());
 
-			// Allocate stock IN RANK ORDER. The second cluster is told what the first one leaves.
-			Map<String, Integer> want = new LinkedHashMap<>();
-			for (Work.Cell c : group) want.merge(c.item(), 1, Integer::sum);
-			int shortBy = 0;
-			for (var e : want.entrySet()) {
-				int have = stock.getOrDefault(e.getKey(), 0);
-				int use = Math.min(have, e.getValue());
-				stock.put(e.getKey(), have - use);
-				shortBy += e.getValue() - use;
-			}
 			int blocked = 0, sealed = 0;
 			List<Work.Cell> ready = new ArrayList<>();
 			for (Work.Cell c : group) {
@@ -189,6 +179,16 @@ final class Plan {
 				if (blockedCells.contains(k)) blocked++;
 				else if (sealedCells.contains(k)) sealed++;   // one reason each, never counted twice
 				else ready.add(c);
+			}
+			// Allocate stock IN RANK ORDER. The second cluster is told what the first one leaves.
+			Map<String, Integer> want = new LinkedHashMap<>();
+			for (Work.Cell c : ready) want.merge(c.item(), 1, Integer::sum);
+			int shortBy = 0;
+			for (var e : want.entrySet()) {
+				int have = stock.getOrDefault(e.getKey(), 0);
+				int use = Math.min(have, e.getValue());
+				stock.put(e.getKey(), have - use);
+				shortBy += e.getValue() - use;
 			}
 			out.add(new Cluster(centre, group, ready, want, blocked, sealed, shortBy));
 		}
@@ -340,6 +340,36 @@ final class Plan {
 	}
 
 	/**
+	 * Choose the least-covered material during one refill trip.
+	 *
+	 * <p>A first-fit list fills every empty slot with its first entry. That is fine for a stone-only
+	 * wall and disastrous for a build that needs stone, wood and glass before any of them can make a
+	 * useful frontier. Coverage is measured against the remaining demand represented by the target,
+	 * so each material gets a turn before the largest demand takes a second stack.
+	 */
+	static Restock nextLoadFetch(List<Restock> addressable, Map<String, Integer> carrying, Room room) {
+		Restock best = null;
+		for (Restock r : addressable) {
+			if (room.of(r.item()) <= 0) continue;
+			if (best == null || coverage(r, carrying) < coverage(best, carrying)
+				|| (coverage(r, carrying) == coverage(best, carrying) && r.missing() > best.missing())) best = r;
+		}
+		return best;
+	}
+
+	private static double coverage(Restock r, Map<String, Integer> carrying) {
+		int have = Math.max(0, carrying.getOrDefault(r.item(), 0));
+		return (double) have / Math.max(1, have + r.missing());
+	}
+
+	/** Four stacks per material before the load planner rotates to another needed material. */
+	static int takeLoadAmount(Restock r, int materialKinds, int room) {
+		int ordinary = takeHowMany(r, room);
+		if (materialKinds <= 1) return ordinary;
+		return Math.min(ordinary, 4 * 64);
+	}
+
+	/**
 	 * What the WHOLE remaining design is short of, biggest shortfall first, with an address.
 	 *
 	 * <p>Not per-cluster: a cluster's shortfall is the wrong unit for a trip. {@link #restockTargets}
@@ -439,6 +469,7 @@ final class Plan {
 	 * the same conservatism the rest of this file uses about reach.
 	 */
 	static int reach() {
+        if (Printer.driving()) return (int)Math.floor(Printer.REACH);
 		double real = Litematica.printerRange();
 		if (real <= 0) return PRINTER_REACH;
 		return Math.max(2, (int) Math.floor(real) - 1);

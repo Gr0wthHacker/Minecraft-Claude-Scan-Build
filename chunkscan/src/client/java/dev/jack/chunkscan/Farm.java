@@ -112,6 +112,7 @@ final class Farm {
 		nextAt = mc.level.getGameTime() + STEP_TICKS;
 
 		List<BlockPos> ripe = cellsOf(mc, crop);
+        if (ripe.isEmpty() && Digger.busy()) Digger.tick(mc, ripe);
 		if (!ripe.isEmpty()) {
 			int before = Digger.broke();
 			String msg = Digger.tick(mc, ripe);

@@ -111,6 +111,25 @@ final class Rules {
 		return serverAuthoritative;
 	}
 
+    private static Set<String> vanilla119;
+    /** Version availability, independent of the provisional island's observed inventory list. */
+    static synchronized boolean inLockedProfile(String block) {
+        if (vanilla119 == null) {
+            vanilla119 = Set.of();
+            try (InputStream in = Rules.class.getResourceAsStream("/chunkscan_1_19.json")) {
+                if (in != null) vanilla119 = strings(JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject(), "blocks");
+            } catch (Exception e) { ChunkScanClient.LOG.warn("1.19 block registry missing; automatic placement disabled", e); }
+        }
+        // The running client uses newer names for these existing 1.19 blocks.
+        // Translate only for availability; inventory and live states retain client IDs.
+        String serverName = switch (shortName(block)) {
+            case "iron_chain" -> "chain";
+            case "short_grass" -> "grass";
+            default -> shortName(block);
+        };
+        return vanilla119.contains(serverName);
+    }
+
 	/**
 	 * Which storage category an item belongs to, or null if none claims it.
 	 *

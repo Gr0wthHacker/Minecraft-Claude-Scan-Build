@@ -290,12 +290,39 @@ def _sign(w, f, pal, i, d, h, facing, front, back=()):
     x, y, z = f.at(i, d, h)
     if not w.has(x - fdx, y, z - fdz):
         return False
-    lines = [str(s)[:SIGN_WIDTH] for s in list(front)[:4]]
-    lines += [""] * (4 - len(lines))
+    lines = _fit(front)
     w.put(x, y, z, f"{pal['wood']}_wall_sign", facing=facing, waterlogged="false")
-    w.sign(x, y, z, front=lines,
-           back=[str(s)[:SIGN_WIDTH] for s in list(back)[:4]], colour="white", glowing=True)
+    w.sign(x, y, z, front=lines, back=_fit(back), colour="white", glowing=True)
     return True
+
+
+def _fit(lines):
+    """Four sign lines, RAISING on anything too long rather than clipping it mid-word.
+
+    **THE PARK HAS SHIPPED CLIPPED SIGNS FIVE TIMES**, in five different generators - `MINE CART
+    ESCAP`, `keep to the wal`, `112-cell circui`, `wade in and hol`, `prismworks: eas` - because
+    this helper silently truncated at `SIGN_WIDTH`, and the damage shows only in a screenshot of
+    the placed build. Every offline check passes a clipped sign: the block is legal, supported,
+    affordable and in 1.19, and `render3d` draws a sign identically whatever it says.
+
+    So the author is told at build time. Shortening behind their back is what put a half-word on
+    a board a guest reads, and a COMPUTED line (`"%d-cell circuit" % len(track)`) crosses the
+    width the day its number gains a digit, which no amount of care at the call site prevents.
+
+    A TITLE is still clipped by its caller, deliberately: a title comes from a config a human
+    wrote, twenty-three of them already run over, and making those raise is a park-wide decision
+    rather than a helper's to take. `tests/test_park_signs.py` is what catches a clipped title,
+    by reading the SHIPPED composite - which is the only place every path can be seen at once.
+    """
+    out = []
+    for s in list(lines)[:4]:
+        s = str(s)
+        if len(s) > SIGN_WIDTH:
+            raise ValueError(
+                f"sign line {s!r} is {len(s)} characters; a sign clips mid-word past "
+                f"{SIGN_WIDTH}. Shorten it - do not let it be truncated silently.")
+        out.append(s)
+    return out + [""] * (4 - len(out))
 
 
 def _hang_light(w, f, pal, i, d, h):

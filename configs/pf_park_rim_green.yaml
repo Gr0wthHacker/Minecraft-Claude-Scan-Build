@@ -1,0 +1,82 @@
+# PF PARK RIM GREEN - the protected rim reserve, and the lightest possible touch on it.
+#
+# ---------------------------------------------------------------------------------------------
+# THE SINGLE BIGGEST PATCH OF DEAD GROUND IN THE PARK, AND THE ONE THAT MAY NOT BE PAVED
+#
+# `python tools/park_empty.py` over the shipped park: of the 9,083 columns four or more blocks
+# from anything built or planted, **3,919 are one blob** - V190-199 running U170 to U599, ten deep
+# and four hundred and thirty long. Every column in the park that is TEN or more from anything is
+# in it, and the worst is thirteen.
+#
+# **IT IS ALSO A DECLARED RESERVE.** `PARK_GRID_PLAN.md`: "171-199 | protected rim and void
+# reserve - 0 paved cells, asserted", for "support, terrain, void safety, sightline protection",
+# and `tests/test_parkways.py::test_the_protected_rim_reserve_carries_nothing` holds the ground
+# layer to it. So the honest reading is that PAVING is forbidden and TERRAIN is the reserve's own
+# stated purpose - and a rail rider on the V172-186 viaduct spends the whole journey looking out
+# over this strip, which is the one audience it has.
+#
+# Hence a separate design rather than a wider lot on `PF Park Green`: it is the same generator at
+# a THIRD of the density, capped at THREE COURSES, and with no trees and no hedges in its kit.
+#
+#   * nothing tall enough to close the outward sightline the reserve exists to protect
+#   * nothing paved, nothing built, nothing anybody stands on
+#   * rough grass, ferns, low scrub and the odd boulder - moor rather than lawn
+#
+# TO TURN IT OFF, drop this design from `EXTRAS_READY` in `tools/park_place.py`. The reserve then
+# goes back to being 3,919 columns of mown moss, which is a defensible choice and should be a
+# deliberate one.
+#
+# ---------------------------------------------------------------------------------------------
+# WHAT IT KEEPS OUT OF
+#
+# The Frontier's whole rim is spoken for - `PF Sauropod` stands at V188-198 U8-70 and
+# `PF Frontier Rim` lays the cliff walk and the pterosaur nesting colony at V187-199 U75-172 -
+# so this begins at U173. `PF Wyrm Gate` straddles the railway at V157-192 U366-419 and takes a
+# margin either side, because the one thing a 36-block skull needs is for its silhouette to be
+# read against empty sky.
+name: PF Park Rim Green
+gen: parkgreen
+params:
+  kind: green
+  lot: [13, 600]           # V187-199
+  at: [187, 0]
+  under: out/Park Complete.litematic
+  previous: out/PF Park Rim Green.litematic
+  keep_out:
+    # THE FRONTIER'S RIM: the Sauropod and PF Frontier Rim, in this lot's own coordinates.
+    - [0, 12, 0, 174]
+    # THE WYRM GATE, with a margin of six either side of its own footprint.
+    - [0, 12, 360, 425]
+  path_clear: 2
+  # A LOWER GATE THAN THE MAIN PASS. The reserve is ten deep and almost entirely open, so at
+  # `open_min: 3` the ramp would run the whole strip at full density - which is a hedge along the
+  # railway, not a moor. Starting the ramp at 4 and topping it at 9 puts what little there is in
+  # the middle of the strip and leaves the courses either side of it clear.
+  open_min: 4
+  open_full: 9
+  density: 0.22
+  step: 4
+  # NO TREE AND NO HEDGE. Both are sightline blockers, and a clipped hedge on a wild reserve reads
+  # as somebody's garden that ran out of fence.
+  kinds: [meadow, meadow, meadow, shrub, rock]
+  # THREE COURSES. A boulder may reach it; nothing else here is that tall.
+  max_height: 3
+  seed: 57
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: filler
+  style: frontier
+  narrative: >
+    Rough moor on the park's outer reserve, beyond the railway: tussocks of grass and fern, low
+    scrub and the odd boulder, nothing over three courses and nothing paved - so the strip reads
+    as unimproved ground rather than as a mown verge nobody finished, and the void view the
+    reserve exists to protect is still a void view.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

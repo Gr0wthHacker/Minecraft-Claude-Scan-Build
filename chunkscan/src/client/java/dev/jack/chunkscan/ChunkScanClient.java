@@ -121,9 +121,15 @@ public final class ChunkScanClient implements ClientModInitializer {
 		// below, which is the part that should survive; the positions are not.
 		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
 			(handler, client) -> {
+                MenuObservations.LIVE.clear();
+                AutomationControl.clear();
+                Crafter.stop(); Smelter.stop(); Shop.stop(); Farm.stop(); Photo.stop();
+                Digger.reset(); digDesign = null; printDesign = null;
 				Withdraw.cancel();
 				Withdraw.clearFailures();
-				Hud.stopGuiding();
+				Hud.off();
+                Printer.reset();
+                Unbox.stop();
 				Autopilot.forget();
 			});
 		// RESUME. The loop's whole point is running while you are not watching, and a dropped
@@ -1003,6 +1009,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 			// you read, not a HUD that never appears.
 			Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
 			Hud.follow(name);
+            Hud.followAll(mc, false);
 			Hud.remember(src.getClient());
 			// `follow` points; `autofly` moves. Saying so here is the difference between the loop
 			// working and the loop appearing to do nothing, and it is the commonest way to start it
@@ -2180,7 +2187,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 				+ "It places into AIR only and never breaks anything" + digNote(sp));
 			ok(src, "  every placement is VERIFIED against the world, so a wrong state is reported "
 				+ "rather than counted. /cscan print off to stop");
-			if (!Litematica.enabled(sp.name()).equals("no")) {
+			if (Boolean.TRUE.equals(Litematica.enabled(sp.name()))) {
 				ok(src, "  litematica-printer may also be running on this design — turn one of them "
 					+ "off, or two printers will fight over the same cells");
 			}
@@ -2238,6 +2245,16 @@ public final class ChunkScanClient implements ClientModInitializer {
 	 */
 	private static void printerTick() {
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+            if (Screens.container() != null) Digger.pause(mc);
+            // Farm placements also need their acknowledgements processed without a print design.
+            if (printDesign == null && mc.level != null && mc.player != null && Printer.busy()) {
+                try { Printer.verify(mc); }
+                catch (Exception e) {
+                    LOG.warn("background placement verification failed", e);
+                    Printer.reset(); Farm.stop(); Hud.off();
+                    say(mc, "placement verification failed; automation stopped for inspection");
+                }
+            }
 			// One guarded tick for every machine. A throw out of a tick event is a client CRASH —
 			// the rule this file learned on the movement tick and then again on the highlight tick —
 			// and each of these is stopped rather than left half-running if it throws.
@@ -2271,16 +2288,22 @@ public final class ChunkScanClient implements ClientModInitializer {
 							+ ": wanted " + a.want() + ", got " + a.got() + " — left for you"));
 					}
 				}
-				if (Printer.busy() || !Printer.ready(mc)) return;
+				if (printDesign == null || Hud.warmingUp() || Printer.busy() || !Printer.ready(mc) || Screens.container() != null
+                    || Withdraw.busy() || Unbox.running()) return;
+                if (Hud.following() && !printDesign.equals(Hud.watching())) return;
+                if (Fleet.heldByOther(ScanRunner.schematicsDir(mc), printDesign, Fleet.me(mc))) return;
 				Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), printDesign,
 					mc.player.blockPosition(), (int) Printer.REACH + 2);
 				Work.Cell next = null;
 				double best = Double.MAX_VALUE;
 				for (Work.Cell c : sp.todo()) {
 					if (Printer.givenUpOn(c.pos())) continue;
+                    int slot = Printer.inventorySlot(mc.player, c.block());
+                    if (slot < 0) continue;
 					double d = mc.player.getEyePosition().distanceToSqr(
 						net.minecraft.world.phys.Vec3.atCenterOf(c.pos()));
-					if (d < best && d <= Printer.REACH * Printer.REACH) {
+					if (d < best && d <= (Printer.REACH + 1) * (Printer.REACH + 1)
+                        && Printer.placement(mc, c.pos(), c.block(), slot) != null) {
 						best = d;
 						next = c;
 					}
@@ -2294,7 +2317,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 						noItemSaid = next.item();
 						mc.player.sendSystemMessage(Component.literal(
 							"[cscan] printer: no " + next.item() + " in your HOTBAR — it places what "
-							+ "you hold, so put a stack on the bar"));
+							+ "you hold; moving a stack from inventory"));
 					}
 				}
 			} catch (Exception e) {
@@ -2310,7 +2333,16 @@ public final class ChunkScanClient implements ClientModInitializer {
 	                              java.util.function.Function<Minecraft, String> tick,
 	                              Runnable stop) {
 		try {
-			return tick.apply(mc);
+            ActionGate.Owner owner = switch (what) {
+                case "crafter" -> ActionGate.Owner.CRAFT;
+                case "smelter" -> ActionGate.Owner.SMELT;
+                case "shop" -> ActionGate.Owner.SHOP;
+                case "farm" -> ActionGate.Owner.FARM;
+                case "photo" -> ActionGate.Owner.PHOTO;
+                case "unbox" -> ActionGate.Owner.UNBOX;
+                default -> throw new IllegalArgumentException("Unregistered automation: " + what);
+            };
+            return AutomationControl.helper(owner, () -> tick.apply(mc));
 		} catch (Exception e) {
 			LOG.warn("{} tick", what, e);
 			stop.run();

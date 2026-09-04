@@ -66,6 +66,14 @@ final class Digger {
 		refusals.clear();
 	}
 
+    static boolean busy() { return target != null; }
+
+    static void pause(Minecraft mc) {
+        if (target != null && mc.gameMode != null) mc.gameMode.stopDestroyBlock();
+        target = null;
+        swings = 0;
+    }
+
 	static int broke() {
 		return broke;
 	}
@@ -85,7 +93,7 @@ final class Digger {
 	 * first one named should be the one that is most obviously not negotiable.
 	 */
 	static Verdict judge(Minecraft mc, BlockPos p) {
-		if (mc.level == null || mc.player == null) return Verdict.STUCK;
+		if (mc.level == null || mc.player == null || !mc.level.isLoaded(p)) return Verdict.STUCK;
 		BlockState st = mc.level.getBlockState(p);
 		if (st.isAir()) return Verdict.ALREADY_AIR;
 		String name = BuiltInRegistries.BLOCK.getKey(st.getBlock()).toString();
@@ -107,15 +115,26 @@ final class Digger {
 	 * @param list the design's dig list — the ONLY cells this will ever touch
 	 */
 	static String tick(Minecraft mc, List<BlockPos> list) {
-		if (mc.level == null || mc.player == null || list.isEmpty()) return null;
+        if (mc.level == null || mc.player == null || mc.gameMode == null) return null;
+        if (Screens.container() != null) { pause(mc); return null; }
+        if (!AutomationControl.enter(ActionGate.Owner.DIG)) return null;
+        if (list.isEmpty()) {
+            if (target != null) {
+                if (mc.level.isLoaded(target) && mc.level.getBlockState(target).isAir()) broke++;
+                mc.gameMode.stopDestroyBlock();
+            }
+            target = null;
+            swings = 0;
+            return null;
+        }
 
 		if (target != null) {
-			if (mc.level.getBlockState(target).isAir()) {
-				broke++;
-				target = null;
-				swings = 0;
-				return null;
-			}
+            if (!list.contains(target) || judge(mc, target) != Verdict.WORKING) {
+                if (mc.level.isLoaded(target) && mc.level.getBlockState(target).isAir()) broke++;
+                mc.gameMode.stopDestroyBlock();
+                target = null; swings = 0;
+                return null;
+            }
 			if (++swings > GIVE_UP_TICKS) {
 				givenUp.add(key(target));
 				refusals.add(new Refusal(target, Verdict.STUCK,

@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.Property;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -19,14 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Reads &lt;name&gt;.work.json — a design flattened to world-coordinate cells by mcbuild — and diffs it
- * against the live world.
- *
- * The mod has a Litematica writer but no reader, so the desktop (which already has one) exports the
- * cell list once per generation. Diffing happens here against the world as it is right now, so the
- * answer never goes stale between captures.
- */
+/** Loads schematics at recorded origins (or legacy work lists) and compares them with the live world. */
 final class Work {
 	/**
 	 * One cell of a design. {@code block} is what mcbuild wrote: either a bare name, or
@@ -35,8 +27,7 @@ final class Work {
 	record Cell(BlockPos pos, String block) {
 		/** The block name without its state — what you put in a shulker, and what a tally counts. */
 		String item() {
-			int b = block.indexOf('[');
-			return b < 0 ? block : block.substring(0, b);
+			return ActionRecipe.itemFor(block);
 		}
 
 		boolean hasState() {
@@ -73,7 +64,7 @@ final class Work {
 		 * <p>`/cscan dig` has always been able to SHOW the list. Showing is not the same as knowing:
 		 * the number that ends a session has to include it.
 		 */
-		boolean complete() { return todo.isEmpty() && unseen == 0 && dig.isEmpty(); }
+		boolean complete() { return todo.isEmpty() && wrong.isEmpty() && unseen == 0 && dig.isEmpty(); }
 
 		/**
 		 * Everything the LOOP can finish: placements only.
@@ -110,7 +101,33 @@ final class Work {
 		return schematicsDir.resolve(name + ".work.json");
 	}
 
-	static List<Cell> load(Path schematicsDir, String name) throws IOException {
+	private record Cached(java.nio.file.attribute.FileTime dataTime, long dataSize,
+        java.nio.file.attribute.FileTime originTime, List<Cell> cells) {}
+    private static final Map<Path, Cached> cache = new LinkedHashMap<>();
+
+    static synchronized List<Cell> load(Path schematicsDir, String name) throws IOException {
+        schematicsDir = ActiveBuild.inputs(schematicsDir, name);
+        Path work = file(schematicsDir, name);
+        Path lit = schematicsDir.resolve(name + ".litematic");
+        Path side = schematicsDir.resolve(name + ".scan.json");
+        boolean schematic = Files.exists(lit);
+        Path source = (schematic ? lit : work).toAbsolutePath().normalize();
+        if (!Files.exists(source)) throw new IOException("Missing schematic/work list: " + name);
+        var time = Files.getLastModifiedTime(source);
+        var originTime = schematic ? Files.getLastModifiedTime(side) : null;
+        long size = Files.size(source);
+        Cached old = cache.get(source);
+        if (old != null && old.dataTime().equals(time) && old.dataSize() == size
+            && java.util.Objects.equals(old.originTime(), originTime)) return old.cells();
+        List<Cell> cells = schematic ? LitematicReader.read(lit, Designs.load(schematicsDir, name).origin())
+            : loadWork(schematicsDir, name);
+        cells = List.copyOf(cells);
+        if (cache.size() >= 8) cache.remove(cache.keySet().iterator().next());
+        cache.put(source, new Cached(time, size, originTime, cells));
+        return cells;
+    }
+
+    private static List<Cell> loadWork(Path schematicsDir, String name) throws IOException {
 		Path p = file(schematicsDir, name);
 		if (!Files.exists(p)) {
 			throw new IOException(name + ".work.json missing — regenerate it with: python -m mcbuild work \"" + name + "\"");
@@ -174,10 +191,13 @@ final class Work {
 			}
 			BlockState st = level.getBlockState(c.pos());
 			if (matches(st, c.block())) built++;
-			else if (isReplaceable(st)) todo.add(c);
+			else if (isReplaceable(st) || ActionRecipe.slabIntermediate(st, c.block())
+				|| ActionRecipe.vineIntermediate(st, c.block()) || ActionRecipe.glowLichenIntermediate(st, c.block())) todo.add(c);
 			else wrong.add(c);
 		}
 		todo.sort((a, b) -> {
+			int recipe = Integer.compare(ActionRecipe.order(a.block()), ActionRecipe.order(b.block()));
+			if (recipe != 0) return recipe;
 			int dy = Integer.compare(a.pos().getY(), b.pos().getY());       // bottom-up: always reachable
 			if (dy != 0) return dy;
 			return Double.compare(a.pos().distSqr(near), b.pos().distSqr(near));
@@ -193,7 +213,7 @@ final class Work {
 	}
 
 	private static boolean isReplaceable(BlockState st) {
-		return st.isAir() || st.canBeReplaced();
+		return st.isAir();
 	}
 
 	/**
@@ -207,44 +227,17 @@ final class Work {
 	static final Map<String, Set<String>> BECOMES = Map.of("ice", Set.of("water"));
 
 	/**
-	 * Does the world hold what the design asked for? The design names only the properties it
-	 * DECIDED — a stair's facing and half, a slab's type — so anything it did not name is not
-	 * compared. Everything else about a block state is the game reacting to the neighbourhood
-	 * (a stair's shape, a wall's connections, waterlogged), and flagging those reports a deviation
-	 * for a block that is exactly right.
-	 *
-	 * <p>A spec with no properties compares by name alone, which is also what every work.json
-	 * written before this looked like — so an un-regenerated design still reads correctly.
-	 */
+     * Compare imported requirements while allowing automatic neighbor-derived state to converge.
+     * Raw properties remain in StateContract; orientation, fluids and mechanism state stay required.
+     * A legacy bare block specification compares identity only.
+     */
 	static boolean matches(BlockState st, String spec) {
-		int b = spec.indexOf('[');
-		String want = b < 0 ? spec : spec.substring(0, b);
-		String have = BuiltInRegistries.BLOCK.getKey(st.getBlock()).getPath();
-		if (!have.equals(want)) return BECOMES.getOrDefault(want, Set.of()).contains(have);
-		if (b < 0) return true;
-		int end = spec.lastIndexOf(']');
-		if (end <= b) return true;
-		for (String pair : spec.substring(b + 1, end).split(",")) {
-			int eq = pair.indexOf('=');
-			if (eq < 0) continue;
-			if (!propEquals(st, pair.substring(0, eq).trim(), pair.substring(eq + 1).trim())) return false;
-		}
-		return true;
-	}
-
-	private static boolean propEquals(BlockState st, String key, String value) {
-		for (Property<?> p : st.getProperties()) {
-			if (!p.getName().equals(key)) continue;
-			return valueName(st, p).equals(value);
-		}
-		// The design named a property this block does not have. That is a design bug, not a
-		// deviation in the world - say the cell is wrong so it surfaces rather than hiding.
-		return false;
-	}
-
-	private static <T extends Comparable<T>> String valueName(BlockState st, Property<T> p) {
-		return p.getName(st.getValue(p));
-	}
+        StateContract contract = StateContract.parse(spec);
+        if (!contract.valid) return false;
+        String have = BuiltInRegistries.BLOCK.getKey(st.getBlock()).getPath();
+        if (!have.equals(contract.block)) return BECOMES.getOrDefault(contract.block, Set.of()).contains(have);
+        return contract.propertiesMatch(st);
+    }
 
 	/**
 	 * How many of each BLOCK the given cells need. Keyed on the item, not the state: a shopping
@@ -386,10 +379,8 @@ final class Work {
 	}
 
 	static Solid solidIn(Level level) {
-		// An UNLOADED neighbour is treated as solid: claiming a cell needs scaffolding because the
-		// chunk behind it is not loaded would send you to build a tower against terrain that is
-		// already there.
-		return p -> !level.isLoaded(p) || !level.getBlockState(p).isAir();
+		// Unloaded and non-clickable neighbors are not proven placement support.
+		return p -> level.isLoaded(p) && Printer.support(level.getBlockState(p));
 	}
 
 	static boolean needsScaffold(Solid solid, Cell c, Set<Long> earlier) {
@@ -471,7 +462,7 @@ final class Work {
 	static List<Cell> placeableNow(Solid solid, List<Cell> cells) {
 		List<Cell> out = new ArrayList<>();
 		for (Cell c : cells) {
-			if (!needsScaffold(solid, c, Set.of())) out.add(c);
+			if (!needsScaffold(solid, c, Set.of()) && !enclosed(solid, c, Set.of())) out.add(c);
 		}
 		return out;
 	}

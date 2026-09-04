@@ -144,8 +144,30 @@ def rect_fits(cells, dv: int, du: int):
 #: depth or width it is short - see PARK_GRID_PLAN.md, which is written from this table.
 PLACEMENT = {
     # --- Frontier -------------------------------------------------- col A  U0-39 (40 usable)
-    "Trailhead Gate":         (24, 0),
-    "Prospecting Porch":      (69, 0),
+    # **THE WEST HALF OF THE LOST PLATEAU IS TERRAIN NOW, AND FIVE BUILDINGS ARE RETIRED WITH IT.**
+    # Jack, on the re-themed land: "its just buildings, the dig zone is crappy ... i like the
+    # dinosaurs sculptures, i like the roller coaster, i just really dont like this splatter of
+    # buildings that dont look amazing and dont really do anything."
+    #
+    # Measured over the shipped park, columns A and B - 11,310 columns, 40% of the land's ground -
+    # carried SIX BUILDINGS, 17,857 BLOCKS AND ONE INTERACTIVE BLOCK BETWEEN THEM:
+    #
+    #     Trailhead Gate 4,260 / 0 verbs    Prospecting Porch 3,499 / 0    Mining Square 2,469 / 0
+    #     Assay & Prize  2,248 / 0          Works Yard        1,227 / 0    Vantage Lookout 4,154 / 1
+    #
+    # ...at 4.3 and 3.1 blocks per column against column C's 10.8, which is the mountain and the
+    # coaster. What Jack likes is 74% of the land's mass and all of it is in the east half.
+    #
+    # `PF Plateau Vale` takes column A (jungle downland, four trial trenches and ONE ARCH where the
+    # Trailhead Gate's 45x39 of towers, court and stockade stood) and `PF Plateau Bone Bed` takes
+    # column B (one excavation across both its lots). Neither needs a row in this table - both
+    # carry their own origin and are placed from `park_place.EXTRAS_READY`, like the terrain
+    # designs they are.
+    #
+    # Every retired module's config, generator and artifact stand as the record; this table is the
+    # one thing that decides whether a module is placed.
+    #     "Trailhead Gate":         (24, 0),
+    #     "Prospecting Porch":      (69, 0),
     # --- Frontier -------------------------------------------------- col B  U47-93 (47 usable)
     # **BOOMTOWN SPINE IS RETIRED.** Jack, three times: "they are visually great - but all serve
     # no actual defined purpose"; "i dont want a bunch of buildings to go into, this is just a
@@ -164,7 +186,15 @@ PLACEMENT = {
     #
     # Its config, its generator and `out/PF Boomtown Spine.litematic` are all kept as the record;
     # this table is the one thing that decides whether a module is placed.
-    "Mining Square":          (80, 47),      # behind the new V77-79 cross walk; 41 declared
+    # ...and `PF Frontier Diggings`, which took Boomtown's lot, is retired in its turn - Jack
+    # called the dig zone "crappy" and he was right about the scale of it: a 30x16 trench with a
+    # 25-block spine inside a 53x46 lot, plus two more timber shops. The bone bed is 99 x 46.
+    #     "Mining Square":          (80, 47),
+    #
+    # THE ASSAY AND PRIZE OFFICE STAYS, AND IT IS THE LAND'S ONE BUILDING IN THE WEST. Jack: "we
+    # can have a small amount of buildings." It sits NORTH of the V123-127 cross avenue - a
+    # separate block from the excavation - and it is where `PF Game Prize Office` lives, so
+    # retiring it would orphan a working game to remove 2,248 blocks.
     "Assay and Prize Office": (130, 47),
     # --- Frontier -------------------------------------------------- col C  U99-169 (71 usable)
     "Mine Coaster":           (24, 99),
@@ -172,7 +202,13 @@ PLACEMENT = {
     # --- Claim Line reach ------------------------------------------ U174-210 (37 usable)
     # "Claim Line" is not here and needs no lot: PARK_FINAL_ARCHITECTED_PLAN calls the reach
     # "one safe, 5-wide causeway", which is the spine and the promenade running through it.
-    "Signal Heron":           (34, 174),     # its own reserved garden, V34-60 U174-210
+    # **`Signal Heron` IS SUPERSEDED AND HAS NO LOT (2026-09-03).** The bird is built by
+    # `park_ways.yaml` itself - `- gen: heron, offset: [26, 1, 176]` - into the `heron garden`
+    # feature lot, which is the same ground this entry reserved. So the old
+    # `out/park_final/artifacts/Signal Heron.litematic` is never placed and never will be, and a
+    # lot held for a module nobody places is ground nothing else may use. It is also what
+    # `test_worldrender.py` fails on: "module Signal Heron footprint does not fit its plot".
+    # The garden itself is untouched - `Park Ways` still reserves it and still stands the bird.
     # --- Midway ---------------------------------------------------- col A  U215-255 (41)
     # THE CAROUSEL TOOK THIS LOT AND THE ARRIVAL COURT CAME OUT. Jack: "i want to put the carousel
     # where currently there is a large rectangular building with an open center, just between the
@@ -241,7 +277,28 @@ PLACEMENT = {
     # ground now and that is 41 by 71 of it**, which is a decision for Jack rather than a hole
     # this pass should quietly fill.
     # --- Midway ---------------------------------------------------- col C  U346-384 (39)
-    "Skill Arcade":           (24, 346),
+    # **THE SKILL ARCADE IS RETIRED.** Jack: "i dont like these and they feel out of place/useless
+    # unclear." Measured over the shipped park it was **6,364 blocks, 51 x 33, 84% of its footprint
+    # solid and twenty-one courses tall** - a closed hall with three games in it, which is the same
+    # shape as the Arrival Court and Boomtown Spine and was retired for the same reason. Three
+    # things made it read the way he describes and every one is a number:
+    #
+    #   - the inside is good (a lit aisle, timber trusses, three working bays, 1,160 standable
+    #     cells) and NOTHING on the street says so. A hall reads as a building; a counter reads
+    #     as a game.
+    #   - its own marquee in `PF Front Midway` promised **"five games"** over **three**.
+    #   - and the column has no route through it. `Park Ways` paves nothing in V24-99 but the V77
+    #     cross walk and two door spurs, because the hall fills the column wall to wall - so you
+    #     do not walk THROUGH this strip, you walk up to a door. Every other Midway column has a
+    #     spine.
+    #
+    # `PARK_MIDWAY.md` has asked for the replacement in its own words all along: *"a single
+    # awning/facade-backed games frontage. Each bay has a standing spot, input, outcome, clear
+    # prize or score path, and protected redstone rear."* That is `PF Games Row`, which carries
+    # all four machines in the open and runs the column's own walk from the avenue to the helter
+    # skelter's forecourt. Its config, `midway_builds._skill_arcade` and the artifact all stand
+    # as the record; this table is the one thing that decides whether a module is placed.
+    #     "Skill Arcade":       (24, 346),
     # THE PRIZE POINT IS BACK, and the reason it went is the reason it returns. It was dropped as
     # "1,666 blocks of shed with nothing in it" - true of what was standing then. It now carries
     # the highest show-front share in the park (39.7% colour and canvas against a land median
@@ -250,15 +307,31 @@ PLACEMENT = {
     # marquee and a sign, which is three references to a building nobody can reach.
     # AT V80, NOT V75. `park_final.world.json` says (75, 348) and V77-79 is the cross walk that
     # every second-rank building in this park stands behind - Mining Square keeps the same line.
-    "Prize Point":            (80, 348),
+    # ...AND THE PRIZE POINT WITH IT, because a redemption counter separated from the games it
+    # redeems is a second building doing half a job. It was the better of the two - 1,927 blocks,
+    # 42.5% detail, a nine-barrel counter visible from its own front - and the row absorbs it as
+    # the bay that TERMINATES the sequence, which is what `PARK_MIDWAY.md` means by "place the
+    # prize counter as the natural next step". `PF Game Prize Point` is re-sited into it.
+    #     "Prize Point":        (80, 348),
     # "Sky Lift Sloth" hangs from the Sky Lift's own arch. It has no ground lot and needs none.
     # --- Wyrm's Crossing reach ------------------------------------- U389-426 (38 usable)
     # AT THE REACH'S OWN START. The full-resolution skull is 40 wide and the Prism Reach is
     # U385-429, forty-five columns - at U389 a 44-wide module runs to U432, three columns into
     # Prismworks. There is no slack: it starts where the reach does.
-    "Wyrm's Crossing":        (24, 385),
+    # **THE CROSSING'S PLATE IS WITHDRAWN.** Jack: "remove the plaza or make it blend more
+    # naturally." It is 58 x 43 - 2,650 of its 2,839 blocks are three dark greys of bare paving -
+    # and the skull it was built to carry moved to `PF Wyrm Gate` on the rim, so what stood in the
+    # Prism Reach was the floor of a building that is not there. A raised dark slab in the middle
+    # of a lawn cannot be made to blend; the ground that replaces it can.
+    #     "Wyrm's Crossing":    (24, 385),
     # --- Prismworks ------------------------------------------------ col A  U430-465 (36)
-    "Foundry Gate":           (24, 430),
+    # **AND THE FOUNDRY GATE.** Jack: "the building shouldnt of been kept and should of been
+    # turned to something else." It is the last v1 building at the land's threshold, in the exact
+    # palette `PRISMWORKS_V2_PLAN.md` diagnosed as the failure - 54% of v1 was two dark greys -
+    # and v2 retired the other thirteen for being a collection of buildings. Keeping one of them
+    # because it happened to be a threshold was the wrong call; a threshold does not have to be a
+    # building.
+    #     "Foundry Gate":       (24, 430),
     # --- Prismworks ------------------------------------------------ col B and C
     # FOUR MODULES REMOVED FOR THE PRISM WELL (2026-09-03). Jack: "prism in its current
     # state is not a theme park, its a collection of buildings; this is a failure of
@@ -293,6 +366,28 @@ RETIRED = {
     #: `configs/pf_midway_arrival_court.yaml`, `midway_builds._arrival_court` and
     #: `out/PF Arrival Court.litematic` all stand.
     "Arrival Court",
+    #: 2026-09-03. **THE LOST PLATEAU'S WEST HALF IS TERRAIN AND ONE EXCAVATION.** Jack: "its just
+    #: buildings, the dig zone is crappy ... i really dont like this splatter of buildings that
+    #: dont look amazing and dont really do anything." Measured, columns A and B - 11,310 columns,
+    #: 40% of the land's ground - carried SIX BUILDINGS, 17,857 BLOCKS AND ONE interactive block,
+    #: at 4.3 and 3.1 blocks per column against column C's 10.8.
+    #:
+    #:     Trailhead Gate    4,260 / 0 verbs   a portal, two towers, an office, a porch, a
+    #:                                         stockade, a water tower and a store, round a court
+    #:                                         its own generator left as bare lawn
+    #:     Prospecting Porch 3,499 / 0
+    #:     Mining Square     2,469 / 0
+    #:
+    #: `PF Plateau Vale` and `PF Plateau Bone Bed` hold that ground; both carry their own origin
+    #: and are placed from `park_place.EXTRAS_READY`, like the terrain designs they are. Every
+    #: config, generator and artifact stands as the record.
+    "Trailhead Gate", "Prospecting Porch", "Mining Square",
+    #: 2026-09-03. Jack, on the two buildings at the head of Midway column C: "i dont like these
+    #: and they feel out of place/useless unclear." A 6,364-block closed hall with three games in
+    #: it and a marquee promising five, and a kiosk doing half a job forty courses away.
+    #: `PF Games Row` replaces both with the frontage `PARK_MIDWAY.md` asks for by name and
+    #: carries all four machines in the open. See the notes in `PLACEMENT` above.
+    "Skill Arcade", "Prize Point",
 }
 
 #: MODULES THE GRID ALREADY IS, or that hang off another build. None of them wants a lot:

@@ -197,12 +197,22 @@ class Circuit:
         """Drive a lever/plate. A BUTTON should use `press` — holding a button is not a thing."""
         self.inputs[pos] = on
 
+    #: What a finger can actually press. `press` is checked against this for the same reason
+    #: `set_signal` is checked: a test that presses AIR passes, and what it proves is nothing.
+    #: The railway's departure buttons were verified this way for a fortnight before anyone
+    #: confirmed a button was there at all.
+    PRESSABLE = ("_button", "lever", "_pressure_plate", "tripwire_hook")
+
     def press(self, pos, ticks: int = 10) -> None:
         """A button: on for `ticks` redstone ticks, then off by itself.
 
         Modelled as a real pulse rather than a held input because half the circuits that exist
         only work on an EDGE, and a test that holds a button forever silently tests a lever.
         """
+        cell = self.at(pos)
+        name = "air" if cell is None else cell.name
+        if not any(name.endswith(k) or name == k for k in self.PRESSABLE):
+            raise ValueError(f"{pos} is {name}, not something a player can press")
         self.inputs[pos] = True
         self.pulses[pos] = ticks
 
@@ -884,6 +894,15 @@ def inspect(model, origin=(0, 0, 0)) -> list:
                         break
                 if near:
                     break
+            # **A NOTE BLOCK IS THE ONE DRIVEN BLOCK A PLAYER OPERATES BY HAND.** Right-clicking
+            # one plays it, so an unwired note block is a musical instrument standing where
+            # somebody can reach it - furniture, not a fault. Every other member of DRIVEN is
+            # useless without a signal, which is why the rule is narrowed to this one name rather
+            # than relaxed. Calibrated the same way as the QC pistons and the two-block door
+            # above: `gen/seam.py`'s note rail is seven of them with no redstone in the design at
+            # all, and a check that cries wolf on a build that works is a check nobody runs.
+            if cell.name == "note_block":
+                near = True
             if not near and not moving_driver_near(c, pos):
                 out.append((f"{cell.name} is not wired", pos,
                             "no wire and no source touches it"))

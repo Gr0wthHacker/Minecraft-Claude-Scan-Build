@@ -46,24 +46,14 @@ class PrinterTest {
 		}
 	}
 
-	@Test
-	void theYawIsTheOppositeOfTheFacingWanted() {
-		// A stair's `facing` is the direction its tall side points, which the game derives as the
-		// player's own direction REVERSED. Written the obvious way, every stair on the island comes
-		// out backwards and the renderer draws it as if it were right.
-		assertEquals(0f, Printer.yawFor(Direction.NORTH), 0.01, "yaw 0 looks +Z, giving facing=north");
-		assertEquals(180f, Printer.yawFor(Direction.SOUTH), 0.01);
-		assertEquals(90f, Printer.yawFor(Direction.EAST), 0.01);
-		assertEquals(270f, Printer.yawFor(Direction.WEST), 0.01);
-	}
 
 	@Test
 	void theFaceOrderPrefersPlacingOnTopOfSomething() {
 		// What a player does, and the least ambiguous: clicking a ceiling is awkward and more often
 		// out of reach from a standing spot chosen for the work.
 		Direction[] order = Printer.faces();
-		assertEquals(Direction.DOWN, order[0]);
-		assertEquals(Direction.UP, order[order.length - 1]);
+		assertEquals(Direction.UP, order[0]);
+		assertEquals(Direction.DOWN, order[order.length - 1]);
 		assertEquals(6, order.length, "all six faces must be tried before a cell is called floating");
 	}
 

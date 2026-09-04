@@ -19,6 +19,7 @@ final class Designs {
 	private Designs() {}
 
 	static Design load(Path schematicsDir, String name) throws IOException {
+        schematicsDir = ActiveBuild.inputs(schematicsDir, name);
 		// The name becomes a path here. See Work.file for why the gate lives at the conversion.
 		String bad = ChunkScanClient.badName(name);
 		if (bad != null) throw new IOException(bad);
@@ -39,6 +40,24 @@ final class Designs {
 		}
 		String display = root.has("name") ? root.get("name").getAsString() : name;
 		return new Design(display, lit, side, origin, dig);
+	}
+
+	/** Explicit approval is required before an unattended executor may touch the world. */
+	static void requireAutonomousApproval(Path schematicsDir, String name) throws IOException {
+		String bad = ChunkScanClient.badName(name);
+		if (bad != null) throw new IOException(bad);
+		Path side = schematicsDir.resolve(name + ".scan.json");
+		if (!Files.isRegularFile(schematicsDir.resolve(name + ".litematic")) || !Files.isRegularFile(side))
+			throw new IOException("autonomous build needs a registered .litematic and .scan.json sidecar");
+		JsonObject root;
+		try { root = JsonParser.parseString(Files.readString(side, StandardCharsets.UTF_8)).getAsJsonObject(); }
+		catch (Exception badSidecar) { throw new IOException("unreadable autonomous-build registration", badSidecar); }
+		String status = root.has("anchor_status") ? root.get("anchor_status").getAsString() : "";
+		String normalized = status.toLowerCase(java.util.Locale.ROOT);
+		if (normalized.contains("preview") || normalized.contains("provisional") || normalized.contains("rebase"))
+			throw new IOException("registration says '" + status + "'");
+		if (!root.has("automation_approved") || !root.get("automation_approved").getAsBoolean())
+			throw new IOException("sidecar is not explicitly automation_approved");
 	}
 
 	/**
@@ -109,6 +128,7 @@ final class Designs {
 	 * dig list, and the cost of being wrong the other way is picking another name.
 	 */
 	static boolean designExists(Path schematicsDir, String name) {
+        schematicsDir = ActiveBuild.inputs(schematicsDir, name);
 		Path side = schematicsDir.resolve(name + ".scan.json");
 		if (!Files.exists(side)) return false;
 		try {
@@ -156,6 +176,7 @@ final class Designs {
 	 * <p>Empty when the sidecar says nothing, which is every design written before this existed.
 	 */
 	static List<String> after(Path schematicsDir, String name) {
+        schematicsDir = ActiveBuild.inputs(schematicsDir, name);
 		List<String> out = new ArrayList<>();
 		Path side = schematicsDir.resolve(name + ".scan.json");
 		if (!Files.exists(side)) return out;
@@ -231,6 +252,7 @@ final class Designs {
 	}
 
 	private static String facingName(java.nio.file.Path schematicsDir, String name) {
+        schematicsDir = ActiveBuild.inputs(schematicsDir, name);
 		try {
 			java.nio.file.Path side = schematicsDir.resolve(name + ".scan.json");
 			if (!java.nio.file.Files.exists(side)) return "";

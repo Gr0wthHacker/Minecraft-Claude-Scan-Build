@@ -1,0 +1,101 @@
+# PF HELTER SKELTER - the Midway's third ride, in the emptiest lot in the park.
+#
+# Jack, standing in it: *"theres a strip here before the prism area that has these buildings and
+# this empty plot, i think we can do more with this area thats more impactful to the player, and
+# cooler."*
+#
+# THE PLOT IS MEASURED, NOT DESCRIBED. Read off `out/Park Complete.litematic` before anything was
+# drawn - Midway column C's whole rear, V100-153 x U345-384:
+#
+#     2,160 columns, streets on all four sides
+#     0.09 blocks per column        1,953 of 2,160 surface cells bare moss
+#     0.9% standing three courses   13 lanterns in the whole thing
+#     tops out at Y208              against Y223 for the Skill Arcade and Y276 for the wheel
+#
+# Mining Square - the lot Jack had replaced in the Frontier for being a car park - measured 1.4
+# blocks per column. This was fifteen times emptier, and a hole in the skyline as well as on the
+# ground. The Midway meanwhile had TWO rides against the Frontier's coaster, cart ride, mountain
+# and two dinosaurs.
+#
+# `at` IS THE WORLD CORNER OF (V100, the first course above the lawn, U345). `Park Complete` is
+# anchored at 97500 190 80300 and its lawn course is Y202, so a lot's floor course is Y203.
+name: PF Helter Skelter
+gen: helter
+params:
+  lot: [100, 345, 153, 384]
+  at: [97600, 203, 80645]
+  height: 50
+  seed: 7
+  # THE PROMENADE SPLITS THE LOT AND IS NOT THIS DESIGN'S GROUND. `Park Ways` runs the back
+  # promenade through V123-127 and the service lane through V154-156; the first is inside this
+  # lot and is in `blocked`, so a paving loop that walks the whole lot RAISES here rather than
+  # laying a second surface over a finished street.
+  rear: [128, 153]
+  front: [100, 122]
+  arch_at: 113
+  centre: [142, 365]
+  drum_r: 5
+  wall_r: 8
+  # THE TOWER GREW FIVE COURSES SO THE SPIRAL COULD WRAP THREE TIMES INSTEAD OF TWICE. At 25 the
+  # descent made 1.75 turns and the ribbon read as two red collars with fifteen courses of bare
+  # tower between them; the wraps are 9.8 apart now and the thing reads as a helter-skelter from
+  # across the park. Crown at world Y249 - clear of the Skill Arcade's Y223 and well under the
+  # wheel's Y276, which is what a second landmark in one land should be.
+  top: 30
+  drum_top: 34
+  cap_top: 44
+  # 1.75 TURNS IS CHOSEN, NOT DISCOVERED. The descent starts on the drum's -V face, so at exactly
+  # a quarter turn short of two the foot points +U - the opposite side of the tower from the
+  # boarding pool. `PARK_MIDWAY.md`: "The exit cannot feed into waiting guests."
+  # TURNS MUST BE A QUARTER SHORT OF A WHOLE ONE, and that is arithmetic rather than taste: the
+  # head is on the -V face, so only 0.75, 1.75, 2.75 ... land the foot pointing +U, opposite the
+  # queue. 2.75 over 27 courses is one course per four cells of travel - a slide on blue ice, and
+  # gentle enough that the worst case is a walkable spiral ramp.
+  turns: 2.75
+  run_per_course: 3.0
+  chute_bottom: 3
+  # CELLS THE GROUND LAYER ALREADY OWNS. Three lamp-mast lines stand at U345, U363 and U382 and
+  # their arms reach four courses into this lot on both promenade verges; the back promenade
+  # itself is five courses of finished street. Named here, wanting one of their cells RAISES at
+  # build time instead of shipping as an overlap no render can show - a lantern inside a wall
+  # draws exactly like a wall.
+  blocked:
+    - [123, 0, 345, 127, 49, 384]     # the back promenade, and its two verge courses
+    - [103, 0, 345, 103, 5, 347]      # the forecourt's own mast, on the U345 verge
+    - [119, 0, 345, 122, 5, 345]
+    - [119, 0, 363, 122, 5, 363]
+    - [119, 0, 382, 122, 5, 382]
+    - [128, 0, 345, 131, 5, 345]
+    - [128, 0, 363, 131, 5, 363]
+    - [128, 0, 382, 131, 5, 382]
+# TYPED ANCHORS, IN LOCAL CANVAS SPACE (x = V - 100, y = the course, z = U - 345). `roles: [ride]`
+# makes `generator_contract` demand all four of these by name, and without them it fails the module
+# - which is the check that stops a ride shipping with its exit feeding into its own queue.
+anchors:
+  - {name: queue_entry,    kind: queue,       position: [46, 1, 1],   facing: north}
+  - {name: boarding,       kind: board,       position: [42, 3, 11],  facing: south}
+  - {name: ride_exit,      kind: ride_exit,   position: [42, 1, 37],  facing: south}
+  - {name: service_access, kind: maintenance, position: [48, 1, 20],  facing: east}
+roles: [ride]
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: midway
+  narrative: >
+    A red-and-white striped drum forty-two courses tall at the Midway's east end, with a blue-ice
+    helix wound one and three-quarter turns round the outside of it. A rider queues in the west
+    yard, climbs two courses onto the boarding deck and steps off it into a trough of water whose
+    far end is a three-by-three soul-sand bubble column; the column carries them twenty-five
+    courses up the inside of the drum to a floor under a band of windows that looks west to the
+    wheel and east to Prismworks; they walk out of the top door onto the chute and slide down and
+    round the tower to a packed-ice run-out in the east yard, which is the opposite side from the
+    queue. A thirteen-wide walk off the Prize Point, an arch that names the ride, and a planted
+    terrace either side of it are the whole of the forecourt - no building at all.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

@@ -744,7 +744,9 @@ final class Autopilot {
 		// alt-tabbing away stopped the loop dead — and the whole point of an unattended loop is that
 		// you are doing something else while it runs. A chest is the one screen worth pausing for,
 		// because flying off mid-withdrawal is how you half-empty a chest and blacklist it.
-		if (Screens.container() != null) {
+		if (Screens.container() != null || AutomationControl.blocksMovement()) {
+            if (rescue(mc, p)) return;
+            if (p.getAbilities().flying) p.setDeltaMovement(Vec3.ZERO);
 			release(mc);
 			return;
 		}
@@ -990,12 +992,7 @@ final class Autopilot {
 				roomyRoute = !raw.isEmpty();
 			}
 			if (raw.isEmpty()) raw = Nav.route(free, here, target);
-			if (raw.isEmpty() && !flying) {
-				// No footing all the way there. The flying route at least has the right doorways in
-				// it, and walking it gets as far as the ground allows rather than nowhere at all.
-				free = Nav.of(mc.level);
-				raw = Nav.route(free, here, target);
-			}
+
 			// NO ROUTE IS NOT A REASON TO FLY AT THE WALL. Getting round an obstacle is a search,
 			// not a nudge: flood outward and take the reachable cell that gets closest to the goal —
 			// up, down, left, right, behind, whichever actually helps. Re-run every repath it is a
@@ -1006,7 +1003,7 @@ final class Autopilot {
 				escaping = !raw.isEmpty();
 			}
 			path = raw.isEmpty() ? new java.util.ArrayList<>()
-				: new java.util.ArrayList<>(Nav.loosen(free, here, Nav.simplify(free, here, raw)));
+				: new java.util.ArrayList<>(flying ? Nav.loosen(free, here, Nav.simplify(free, here, raw)) : raw);
 			legFrom = p.position();                        // the first leg starts where we are
 			pathTo = target;
 			routedFlying = flying;
@@ -1025,11 +1022,32 @@ final class Autopilot {
 		// between going through the door and pressing on the wall beside it.
 		Vec3 aim = to;
 		double near = waypointRadius(flying ? speed : WALK_SPEED);
-		while (!path.isEmpty() && me.distanceTo(Vec3.atCenterOf(path.get(0))) <= near) {
+		while (!path.isEmpty() && (flying ? me.distanceTo(Vec3.atCenterOf(path.get(0))) <= near
+			: WalkingSpace.arrived(me, path.get(0)))) {
 			legFrom = Vec3.atCenterOf(path.get(0));       // the leg we are on starts where we passed
 			path.remove(0);
 		}
-		if (!path.isEmpty()) {
+		if (!flying) {
+			// Ground travel must never fall through to direct steering after a failed search.
+			boolean valid = !path.isEmpty();
+			if (valid && p.onGround()) {
+				BlockPos start = p.blockPosition(), next = path.get(0);
+				Nav.Passable ground = Nav.standable(mc.level);
+				valid = start.equals(next) ? ground.at(next.getX(), next.getY(), next.getZ())
+					: Nav.stepFits(ground, start.getX(), start.getY(), start.getZ(),
+						next.getX()-start.getX(), next.getY()-start.getY(), next.getZ()-start.getZ());
+			}
+			if (!valid) {
+				release(mc);
+				p.setDeltaMovement(0, p.getDeltaMovement().y, 0);
+				appliedSpeed = 0;
+				slowBecause = "waiting for supported walking route";
+				if (!path.isEmpty()) { path.clear(); repathIn = 0; }
+				return;
+			}
+			aim = Vec3.atBottomCenterOf(path.get(0));
+		}
+		if (flying && !path.isEmpty()) {
 			// ---- FLY THE SEGMENT, NOT THE POINT.
 			//
 			// `clear` validated waypoint-to-WAYPOINT. What actually gets flown is

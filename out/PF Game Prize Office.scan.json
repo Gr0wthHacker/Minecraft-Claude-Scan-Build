@@ -1,11 +1,11 @@
 {
   "origin": {
-    "x": 97640,
+    "x": 97639,
     "y": 204,
     "z": 80356
   },
   "size": {
-    "x": 5,
+    "x": 6,
     "y": 6,
     "z": 16
   },
@@ -16,7 +16,7 @@
   "facing": "west",
   "footprint": [
     16,
-    5
+    6
   ],
   "courses": [
     0,
@@ -84,8 +84,8 @@
     80370
   ],
   "button": [
-    97642,
-    207,
+    97639,
+    205,
     80370
   ],
   "signed": true,
@@ -112,8 +112,8 @@
       80366
     ],
     [
-      97642,
-      207,
+      97639,
+      205,
       80370
     ]
   ],
@@ -189,24 +189,24 @@
       "narrative": "Four prize windows set into the counter's front, each with a lamp in the counter top that is lit exactly when that window has something in it, and a call bell.\n"
     },
     "metrics": {
-      "blocks": 273,
-      "materials": 11,
-      "dominant_material_share": 0.4103,
+      "blocks": 274,
+      "materials": 12,
+      "dominant_material_share": 0.3759,
       "light_blocks": 4,
       "massing": {
-        "width": 5,
+        "width": 6,
         "height": 6,
         "depth": 16,
-        "fill_ratio": 0.5687
+        "fill_ratio": 0.4757
       },
       "silhouette": {
         "top": {
-          "area": 80,
-          "fill_ratio": 1.0
+          "area": 81,
+          "fill_ratio": 0.8438
         },
         "front": {
-          "area": 20,
-          "fill_ratio": 0.6667
+          "area": 21,
+          "fill_ratio": 0.5833
         },
         "side": {
           "area": 96,
@@ -215,17 +215,18 @@
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.5201,
-          0.3553,
-          0.1245
+          0.5255,
+          0.3504,
+          0.1241
         ],
-        "top_silhouette_perimeter": 42,
-        "surface_faces_per_block": 1.7216
+        "top_silhouette_perimeter": 61,
+        "surface_faces_per_block": 1.7226
       },
       "material_counts": {
-        "spruce_planks": 112,
-        "polished_blackstone_bricks": 75,
+        "spruce_planks": 103,
+        "polished_blackstone_bricks": 68,
         "stone_bricks": 64,
+        "glass_pane": 17,
         "redstone_wire": 5,
         "barrel": 4,
         "comparator": 4,
@@ -245,8 +246,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "b3ff08d85af240eb6f8ed2c7f3372ee97a7080c83882f0323a7721aad83fcb57",
-    "generator_source_digest": "db15f9980fcfc17e03710422b01f058018a82a10067ea4c3eac1d21e161b67bc",
+    "fingerprint": "602d103c4625f4f7ce88ebd1fc3192a98d44878e887ede6172f40f45a61d60d7",
+    "generator_source_digest": "f8d068c37d1fa0e2573cf985742d1ab99fa6c346927679fd7492a15b58d11f48",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -289,9 +290,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 84.236112,
-    "blocks": 273,
-    "blocks_per_second": 3.24
+    "seconds": 3.092226,
+    "blocks": 274,
+    "blocks_per_second": 88.61
   },
   "generator_contract": {
     "ok": false,
@@ -305,7 +306,7 @@
     "roles": [
       "ride"
     ],
-    "blocks": 273,
+    "blocks": 274,
     "mechanic_families": [
       "container",
       "light",

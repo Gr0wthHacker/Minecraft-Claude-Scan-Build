@@ -95,9 +95,14 @@ from .vertical import Ctx
 PAL = {
     "deck": "polished_blackstone_bricks",   # the plate the seam breaks through
     "deck_b": "blackstone",
-    "rock": "cobbled_deepslate",
-    "rock_b": "deepslate_bricks",
-    "rock_c": "tuff",
+    #: THE ROCK IS ITS OWN LADDER, measured across families like everything else here:
+    #: `polished_blackstone_bricks` 45 - `smooth_basalt` 73 - `tuff` 108, steps of 28 and 35. The
+    #: first yard was `cobbled_deepslate` 77 on `deepslate_bricks` 71 on `tuff` 108, which is two
+    #: identical greys and a highlight - a bench field with no steps visible in it.
+    "rock": "smooth_basalt",                # the face
+    "rock_b": "tuff",                       # the tread, and the only light tone in the mass
+    "rock_c": "cobbled_deepslate",          # texture, sparingly
+    "rock_d": "deepslate_bricks",
     "kerb": "polished_blackstone_brick_slab",
     "step": "polished_blackstone_brick_stairs",
     "rock_step": "cobbled_deepslate_stairs",
@@ -241,6 +246,13 @@ class _Deck:
     #: somebody's build.
     SOFT = ("air", "cave_air", "void_air", "moss_carpet")
 
+    #: **A FLUID IS NOT A FLOOR.** `_soft` says water is not free, which is right - a design may
+    #: never overwrite a fluid - and a seat probe that stops at the first non-soft course would
+    #: therefore read a pond's surface as perfectly good ground and plant a crystal standing on
+    #: it. This is `gen/thicket.py`'s own lesson from the opposite side: there, `is_protected`
+    #: holding "water" banned the whole harbour margin in silence.
+    WET = ("water", "flowing_water", "lava", "bubble_column", "ice", "kelp", "seagrass")
+
     def __init__(self, ctx: Ctx, anchor, dv, du, at, clear: int = 1,
                  keep_out=(), mine=None, band: int = 2, head: int = 4, surface=None):
         self.ctx, self.dv, self.du = ctx, dv, du
@@ -296,6 +308,8 @@ class _Deck:
                 # street has the same shape as the ground this design works.
                 if (x, floor, z) in self.surface:
                     break
+                if self.ctx.name_at(x, floor, z).split(":")[-1] in self.WET:
+                    break
                 if all(self._soft(x, self.ay + y + k, z) for k in range(self.head)):
                     out = y
                 break
@@ -339,6 +353,20 @@ class _Deck:
             return False
         x, wy, z = self.world(v, u, y)
         return self._soft(x, wy, z)
+
+    def bare(self, v, u, y) -> bool:
+        """Free AND genuinely empty - no ground cover of anybody else's to replace.
+
+        `moss_carpet` is soft everywhere else here on purpose: it is ground cover a design may
+        overwrite and `verify_replaceable` says so. But `tools/park_place.py` reports a raw SHARED
+        CELL between two modules, so replacing a neighbour's carpet shows up for ever as a clash
+        in the park's own assembly report - measured, two kerb cells against `Wyrm's Crossing`.
+        A kerb is worth less than a clean report, so the kerb asks this and nothing else does.
+        """
+        if not self.free(v, u, y):
+            return False
+        x, wy, z = self.world(v, u, y)
+        return self.ctx.name_at(x, wy, z).split(":")[-1] in ("air", "cave_air", "void_air")
 
     def rooted(self, v, u, head: int = 0):
         """A seat with `clear` columns of margin round it, all seated within one course.
@@ -483,11 +511,14 @@ def _shard(lot: _Lot, g: _Deck, v: int, u: int, h: int, seed: int) -> dict:
         else:
             cv, cu = last_v, last_u
         last_v, last_u = cv, cu
+        # **THE WHITE IS A POINT, NOT A THIRD OF THE SHARD.** At 0.30/0.70 the top three tenths
+        # came out white with a lit cap on it, and a field of them read as a row of lollipops.
+        # The body is the two blues; white is where it catches the light.
         if y >= h - 2:
             key = "glow"
-        elif t < 0.30:
+        elif t < 0.42:
             key = "base"
-        elif t < 0.70:
+        elif t < 0.80:
             key = "mid"
         else:
             key = "tip"
@@ -502,7 +533,9 @@ def _shard(lot: _Lot, g: _Deck, v: int, u: int, h: int, seed: int) -> dict:
     # THE POINT. `amethyst_cluster` is the one block in the game whose texture is a crystal, it
     # is cheap here, and it is the only purple in a design of cyan - so it goes where it can be
     # seen and nowhere else.
-    if top and h >= 10 and g.free(top[0], top[2], top[1] + 1):
+    # ...and only on the big ones. On every shard it is a purple dot per spike, which from the
+    # spine read as a row of lollipops rather than as the one violet note in a field of blue.
+    if top and h >= 16 and g.free(top[0], top[2], top[1] + 1):
         if lot.put(top[0], top[1] + 1, top[2], PAL["crystal"], facing="up", waterlogged="false"):
             cells += 1
     return {"at": [v, u], "h": h, "r0": r0, "cells": cells}
@@ -697,7 +730,7 @@ def _sweep(lot: _Lot, g: _Deck, p: dict, seed: int) -> dict:
                        for dv in (-1, 0, 1) for du in (-1, 0, 1)):
                     continue
                 s = _intensity(p, a, b, lobes)
-                if hash01(a, b, 9, seed) > s * 0.40:
+                if hash01(a, b, 9, seed) > s * 0.95:
                     continue
                 if any(abs(a - cv) + abs(b - cu) < cr + 2 for cv, cu, cr in taken):
                     continue
@@ -760,7 +793,7 @@ def _walk(lot: _Lot, g: _Deck, p: dict, seed: int) -> dict:
                     # is the thing this park was rebuilt to stop - and leaving it undrawn makes
                     # the route a gap in a field, which nobody reads as a route. A kerb slab
                     # along the outer cells says where the walk is at the cost of its own line.
-                    if edge:
+                    if edge and g.bare(v, u, y):
                         n += int(lot.slab(v, y, u, PAL["kerb"]))
                     continue
                 key = "path_b" if edge else ("path" if hash01(v, u, 41, seed) > 0.22
@@ -913,10 +946,13 @@ def _bench(lot: _Lot, g: _Deck, spec: dict, seed: int, crystal: bool = False) ->
                 if not g.free(v, u, y + k):
                     continue
                 if k == h - 1:
+                    # THE TREAD IS THE LIGHT TONE. A bench whose top is the same stone as its
+                    # face is a heap; the step only exists where the value changes.
                     n += int(lot.put(v, y + k, u, PAL["path" if spec.get("walk") else "rock_b"]))
                     tops += 1
                 else:
-                    key = "rock" if hash01(v, u, 61 + k, seed) < 0.55 else "rock_b"
+                    r = hash01(v, u, 61 + k, seed)
+                    key = "rock" if r < 0.62 else ("deck" if r < 0.86 else "rock_c")
                     n += int(lot.put(v, y + k, u, PAL[key]))
             # THE SEAM SHOWS IN THE FACE. A cut face with no crystal in it is a quarry, and this
             # land is not a quarry - it is the one place the vein can be seen in section.
@@ -947,15 +983,21 @@ def _steps(lot: _Lot, g: _Deck, spec: dict) -> int:
         line = [(v, u0 + du // 2) for v in range(v0, v0 + dv)]
     else:
         line = [(v0 + dv // 2, u) for u in range(u0, u0 + du)]
-    last = -1
-    for v, u in line:
-        y = g.seat(v, u)
-        if y is None:
+    # **WALK THE LINE IN THE DIRECTION OF ASCENT.** Written the other way round the height only
+    # ever falls, `h > last` is true once, and the flight ships as a SINGLE STAIR - which is what
+    # the first yard did, and which nothing but the block count could see.
+    hs = [_terrace_height(spec, v, u) for v, u in line]
+    if hs and hs[0] > hs[-1]:
+        line, hs = line[::-1], hs[::-1]
+    for i in range(len(line) - 1):
+        if hs[i + 1] != hs[i] + 1:
             continue
-        h = _terrace_height(spec, v, u)
-        if h > last and h > 0 and g.free(v, u, y + h - 1):
-            n += int(lot.stair(v, y + h - 1, u, PAL["rock_step"], up))
-        last = h
+        v, u = line[i]
+        y = g.seat(v, u)
+        # the riser's own course at the LOWER cell: its fill stops at h-1, so h is free, and a
+        # tread there is the half step between one bench and the next
+        if y is not None and g.free(v, u, y + hs[i]):
+            n += int(lot.stair(v, y + hs[i], u, PAL["rock_step"], up))
     return n
 
 

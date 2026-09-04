@@ -65,6 +65,10 @@ final class Unbox {
 	private static String why = "";
 	private static boolean counting;
 	private static int beforeTake;
+    private static int lastWithdrawalCount;
+    private static boolean placedByUs, placementSent, withdrawalStarted;
+    private static int sequence;
+    private static Object sourceLevel;
 
 	private Unbox() {}
 
@@ -91,7 +95,7 @@ final class Unbox {
 	/** Which hotbar slot holds a shulker box containing `item`, or -1. */
 	static int boxWith(LocalPlayer p, String item) {
 		String w = Rules.shortName(item);
-		for (int i = 0; i < 9; i++) {
+		for (int i = 0; i < 36; i++) {
 			ItemStack st = p.getInventory().getItem(i);
 			if (st.isEmpty()) continue;
 			String n = BuiltInRegistries.ITEM.getKey(st.getItem()).getPath();
@@ -150,10 +154,12 @@ final class Unbox {
 		why = "";
 		counting = false;
 		waited = 0;
+        placedByUs = placementSent = withdrawalStarted = false;
+        sourceLevel = mc.level;
 		int slot = boxWith(p, want);
 		if (slot < 0) {
 			phase = Phase.FAILED;
-			return "no shulker box in your HOTBAR holds " + want
+			return "no shulker box in your inventory holds " + want
 				+ " (it places what you hold, so put the box on the bar)";
 		}
 		where = site(mc);
@@ -183,11 +189,17 @@ final class Unbox {
 
 	/** One step. Returns a line worth saying, or null. */
 	static String tick(Minecraft mc) {
-		if (!running() || mc.player == null || mc.level == null) return null;
+		if (!running()) return null;
+        if (mc.player == null || mc.level == null || mc.level != sourceLevel) { stop(); return null; }
 		if (mc.level.getGameTime() < nextAt) return null;
 		nextAt = mc.level.getGameTime() + STEP_TICKS;
+        if (phase == Phase.TAKING && Withdraw.took() > lastWithdrawalCount) {
+            lastWithdrawalCount = Withdraw.took();
+            waited = 0;
+        }
 		if (++waited > GIVE_UP_TICKS) {
 			phase = Phase.FAILED;
+            Hud.off();
 			why = "took too long";
 			return "unbox gave up at " + Wand.fmt(where) + " — check the box is not still on the ground";
 		}
@@ -202,84 +214,59 @@ final class Unbox {
 		};
 	}
 
-	private static String place(Minecraft mc, LocalPlayer p) {
-		if (!mc.level.getBlockState(where).isAir()) {
-			phase = Phase.OPENING;                      // it is already down
-			return null;
-		}
-		int slot = boxWith(p, want);
-		if (slot < 0) {
-			phase = Phase.FAILED;
-			why = "the box left your hotbar";
-			return "unbox stopped: " + why;
-		}
-		Direction face = null;
-		for (Direction d : Direction.values()) {
-			if (mc.level.getBlockState(where.relative(d)).blocksMotion()) {
-				face = d.getOpposite();
-				break;
-			}
-		}
-		if (face == null) {
-			phase = Phase.FAILED;
-			why = "nothing to place the box against";
-			return "unbox stopped: " + why;
-		}
-		int was = p.getInventory().getSelectedSlot();
-		p.getInventory().setSelectedSlot(slot);
-		BlockPos nb = where.relative(face.getOpposite());
-		mc.gameMode.useItemOn(p, InteractionHand.MAIN_HAND,
-			new BlockHitResult(Vec3.atCenterOf(nb), face, nb, false));
-		p.swing(InteractionHand.MAIN_HAND);
-		p.getInventory().setSelectedSlot(was);
-		return null;
-	}
+    private static String place(Minecraft mc, LocalPlayer p) {
+        if (placementSent) {
+            if (!Printer.acknowledged(sequence, ((PredictionAccess)mc.level).chunkscan$acknowledged())) return null;
+            String gotBlock = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(where).getBlock()).getPath();
+            if (!gotBlock.equals(boxItem) || count(p, boxItem) >= boxesBefore) {
+                phase = Phase.FAILED; Hud.off();
+                return "unbox stopped: server did not confirm placement of our box";
+            }
+            placedByUs = true; phase = Phase.OPENING; return null;
+        }
+        if (!mc.level.getBlockState(where).isAir()) {
+            phase = Phase.FAILED; Hud.off(); return "unbox stopped: destination became occupied";
+        }
+        int slot = boxWith(p, want);
+        if (slot < 0) { phase = Phase.FAILED; Hud.off(); return "unbox stopped: box is missing"; }
+        if (slot >= 9) {
+            mc.gameMode.handleContainerInput(p.inventoryMenu.containerId, slot, p.getInventory().getSelectedSlot(), ContainerInput.SWAP, p);
+            return null;
+        }
+        Printer.Placement plan = Printer.placement(mc, where, boxItem, slot);
+        if (plan == null) { phase = Phase.FAILED; Hud.off(); return "unbox stopped: no reachable visible support face"; }
+        p.getInventory().setSelectedSlot(slot);
+        mc.gameMode.useItemOn(p, InteractionHand.MAIN_HAND, plan.hit());
+        placementSent = true;
+        sequence = ((PredictionAccess)mc.level).chunkscan$sequence();
+        return null;
+    }
 
-	private static String open(Minecraft mc, LocalPlayer p) {
-		if (Screens.container() instanceof AbstractContainerScreen<?>) {
-			phase = Phase.TAKING;
-			return null;
-		}
-        if (mc.level.getBlockState(where).isAir()) {
-			phase = Phase.PLACING;                      // it never went down
-			return null;
-		}
-		mc.gameMode.useItemOn(p, InteractionHand.MAIN_HAND,
-			new BlockHitResult(Vec3.atCenterOf(where), Direction.UP, where, false));
-		return null;
-	}
+    private static String open(Minecraft mc, LocalPlayer p) {
+        if (!placedByUs) { phase = Phase.FAILED; Hud.off(); return "unbox stopped: box ownership not verified"; }
+        if (!withdrawalStarted) {
+            beforeTake = count(p, want);
+            Withdraw.begin(where, want, beforeTake + wanted);
+            Withdraw.reserveSlots = 1; // the box must fit when recovered
+            lastWithdrawalCount = 0;
+            withdrawalStarted = true;
+            phase = Phase.TAKING;
+        }
+        return null;
+    }
 
-	private static String take(Minecraft mc, LocalPlayer p) {
-		if (counting) {
-			counting = false;
-			got += Math.max(0, count(p, want) - beforeTake);
-		}
-		if (!(Screens.container() instanceof AbstractContainerScreen<?> cs)) {
-			phase = Phase.BREAKING;                     // closed, by us or by the server
-			return null;
-		}
-		var inv = p.getInventory();
-		for (int i = 0; i < cs.getMenu().slots.size(); i++) {
-			Slot s = cs.getMenu().slots.get(i);
-			if (s.container == inv) continue;
-			ItemStack st = s.getItem();
-			if (st.isEmpty()) continue;
-			if (!BuiltInRegistries.ITEM.getKey(st.getItem()).getPath().equals(want)) continue;
-			// COUNTED FROM THE PACK ON A LATER TICK, NOT FROM THE SLOT NOW. `st.getCount()` is what
-			// the server is being ASKED to move, and a full pack moves less; the Crafter shipped
-			// exactly this race a few hours ago and reported zero for ever. Here it would only
-			// overstate a message, which is a smaller lie and still a lie.
-			beforeTake = count(p, want);
-			mc.gameMode.handleContainerInput(cs.getMenu().containerId, i, 0,
-				ContainerInput.QUICK_MOVE, p);
-			counting = true;
-			return null;
-		}
-		// nothing left worth taking
-		p.closeContainer();
-		phase = Phase.BREAKING;
-		return null;
-	}
+    private static String take(Minecraft mc, LocalPlayer p) {
+        if (Withdraw.busy()) return null;
+        if (Withdraw.phase() != Withdraw.Phase.DONE) {
+            phase = Phase.FAILED;
+            why = "withdrawal failed; box remains at " + Wand.fmt(where) + ": " + Withdraw.note();
+            Hud.off();
+            return "unbox stopped: " + why;
+        }
+        got = Math.max(0, count(p, want) - beforeTake);
+        phase = Phase.BREAKING;
+        return null;
+    }
 
 	private static String breakIt(Minecraft mc, LocalPlayer p) {
 		if (mc.level.getBlockState(where).isAir()) {
@@ -289,7 +276,7 @@ final class Unbox {
 		// ONLY THE CELL WE PLACED INTO. The island is full of shulker boxes that are somebody's
 		// storage, and "a shulker box nearby" is not a thing this may ever break.
 		String n = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(where).getBlock()).getPath();
-		if (!n.contains("shulker_box")) {
+		if (!placedByUs || !n.equals(boxItem)) {
 			phase = Phase.FAILED;
 			why = "the cell holds " + n + ", not our box";
 			return "unbox stopped: " + why;
@@ -311,6 +298,7 @@ final class Unbox {
 		}
 		if (waited > GIVE_UP_TICKS - 40) {
 			phase = Phase.FAILED;
+            Hud.off();
 			why = "THE BOX DID NOT COME BACK";
 			return "unbox: " + why + " — it is on the ground at " + Wand.fmt(where)
 				+ ". Go and pick it up before anything else.";

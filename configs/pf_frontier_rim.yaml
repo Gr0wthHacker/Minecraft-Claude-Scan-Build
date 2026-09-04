@@ -1,68 +1,142 @@
-# PF FRONTIER RIM - the cliff walk and the nesting colony, on the land's outer edge.
+# PF FRONTIER RIM - THE ROOKERY. The clifftop behind the railway, where the sauropod stands.
 #
-# Jack, asked what to improve: all three, and this is the third.
-#
-# ---------------------------------------------------------------------------------------------
-# WHY IT NEEDED ANYTHING
-#
-# Measured over the shipped land, V187-199 is **2,249 columns at 3.8 blocks per column carrying one
-# animal** - the sauropod at U8-70 - and open lawn for the other hundred. It is also the only band
-# in the Frontier with real room, and the only one against the void.
-#
-# **AND IT IS THE PART OF THE LAND A GUEST IS LEAST LIKELY TO REACH**, because it sits past the
-# railway - which is exactly why it gets a WAY rather than only scenery. A strip with things on it
-# and no route to them is a strip nobody sees; the sauropod is already out here and nothing led to
-# it.
+# Jack: "what about the area behind the railway where the dinosaur is, that whole area needs to be
+# refined, i like the eggs and the idea of other small things there."
 #
 # ---------------------------------------------------------------------------------------------
-# A CLIFFTOP IS WHERE A PTEROSAUR COLONY ACTUALLY IS
+# THE MEASUREMENT, AND IT IS ONE NUMBER
 #
-# The nests are `gen/pterosaur.nest` - a scrape of the ridge's own rock with pale eggs in it -
-# because a nest belongs to the ANIMAL rather than to the ground it sits on, and the animal it
-# belongs to is perched on the plateau's summit two hundred blocks away. An egg is a dome and the
-# canonical view of a nest is the PLAN, which is the same two reasons the ladybird and the turtle
-# work in this medium.
+# The rim is V187-199 by U0-172: 2,249 columns, the only band in the land with real room, the only
+# one against the void, and the only one a guest reaches by TRAIN rather than on foot. Measured
+# over the shipped park, split at the sauropod:
 #
-# The way runs at U-low inside the band so the nests sit BETWEEN it and the drop, which is the
-# right way round: you walk past a colony rather than through it.
+#     sauropod end U0-70    923 columns . 57% carry something . tallest 50 . 504 columns over 6
+#     colony end  U71-172  1,326 columns . 37% carry something . TALLEST 5 . ZERO over 6
+#
+# **A HUNDRED AND TWO BLOCKS OF NESTING COLONY WITH NOTHING OVER THREE COURSES TALL**, at 0.6
+# blocks per column. The previous design here was a 3-wide walk, four scrapes and two snags - and
+# this file's own Frontier note already says why that cannot read: "on this moss, under ten-tall
+# trees, architecture below ~6 courses dissolves into ground noise".
+#
+# ---------------------------------------------------------------------------------------------
+# THE LAYOUT, IN LOT COORDINATES (v0 = V187, v12 = V199 = the drop; u = world U)
+#
+#     v0-2      the cliff walk, the full 173 - and it goes UNDER the animal, see below
+#     v3-5      the landward nests, and the hide
+#     v6-10     the colony proper: scrapes, juveniles, the bone find
+#     v9-11     the perch stacks, out toward the drop
+#     v12       the cliff rail, in gaps
+#
+# **THE WALK GOES UNDER THE SAUROPOD, AND THE LEGS DECIDE HOW WIDE IT IS.** Measured off the
+# animal's own artifact at the ground course it occupies U28-32 and U46-50 and nothing else: two
+# rows of feet, near leg V188-192, far leg V194-198, **V193 clear straight through**. So the
+# middle segment is DECLARED five wide (V191-195) and the feet carve it down to one for three
+# rows, twice. That squeeze is the point of putting a walk there at all - and it is what the world
+# gives rather than something special-cased, because `_walk` places only where the ground is lawn.
+#
+# The two 9-wide aprons at u24-25 and u53-54 are where the trail swings out and back; without them
+# the inner and outer lanes never touch and the walk is three separate paths.
 name: PF Frontier Rim
-gen: claimrow
+gen: rookery
 params:
-  kind: claims
-  lot: [13, 98]
-  at: [187, 75]
+  kind: rookery
+  lot: [13, 173]
+  at: [187, 0]
   under: out/Park Complete.litematic
   previous: out/PF Frontier Rim.litematic
-  sy: 16
-  # the cliff walk, three wide along the band's inner edge
-  # **ALONG U.** This lot is 13 in V and 98 in U, so the walk runs along U at a fixed V -
-  # the default is V, which laid a 3 x 13 patch here and audited perfectly clean.
-  way: {axis: u, u: 1, w: 3, glow_every: 12}
-  claims: []
-  pits: []
-  # **THE NESTING COLONY.** [v, u, eggs] in the lot's own coordinates - four scrapes out toward the
-  # drop, none of them touching the way.
-  nests:
-    - [8, 12, 4]
-    - [7, 30, 3]
-    - [9, 56, 5]
-    - [7, 80, 3]
-  # no worked ground: this is a clifftop, not a dig. The way and the nests are the whole design,
-  # and the moss between them is the land's own.
-  worked: 0
   clear: 1
   flora: jungle
-  plant: {step: 7, density: 0.4, kinds: [jungle, snag, rock, rock]}
   seed: 91
-  title: THE RIM
+  title: THE ROOKERY
+
+  walks:
+    - {v: 0, w: 3, u0: 0,  u1: 23}      # in from the head end, along the inner edge
+    - {v: 0, w: 9, u0: 24, u1: 25}      # the swing out
+    - {v: 4, w: 5, u0: 26, u1: 52}      # UNDER THE ANIMAL - five declared, one at the feet
+    - {v: 0, w: 9, u0: 53, u1: 54}      # ...and back in
+    - {v: 0, w: 3, u0: 55, u1: 172}     # the cliff walk, past the whole colony
+
+  # THE CLIFF RAIL, on the outermost course, in gaps. A continuous fence is a wall and the view is
+  # the point; a rider on the railway sees a dotted line rather than a hem across the whole band.
+  rail: {v: 12, every: 11, run: 7}
+
+  # THE BELLY DECK. U33-45 is thirteen blocks of open lawn under a fifty-block animal, and standing
+  # there looking up is the best moment on this strip. It was bare grass with nothing leading to it.
+  deck:
+    v: 5
+    u: 34
+    dv: 3
+    du: 9
+    lines: [UNDER THE, SAUROPOD, look up - one, animal did this]
+
+  # THE HIDE, on the walk in the middle of the colony and beside the Frontier Halt at U96, which is
+  # where a guest arrives. Its slit faces EAST - out at the nests - and its door faces the walk.
+  hide:
+    v: 3
+    u: 99
+    dv: 4
+    du: 7
+    facing: east
+    lines: [THE HIDE, voices down, they are, nesting]
+
+  # THE SCRAPES. Negative eggs means HATCHED - the shell, and no whole egg - so the colony reads
+  # over a season rather than as one photograph repeated. Spaced against the stacks below: a nest's
+  # radius is 3 + eggs/2, a stack's is 3, and no two centres are closer than nine.
+  nests:
+    - [7, 76, 4]
+    - [4, 88, 3]
+    - [9, 113, 5]
+    - [5, 128, -2]
+    - [9, 152, 4]
+    - [6, 168, -3]
+    # ...and two under the animal, which is exactly where a colony would be: sheltered.
+    - [9, 38, 3]
+    - [9, 60, -2]
+
+  # THE SKYLINE, and the whole reason this design exists. Isolated COLUMNS, so they frame the void
+  # view the reserve protects rather than walling it. `h` is the crown; a stack that would grow
+  # into the sauropod's barrel is clipped by the ground probe and comes out as a boulder.
+  stacks:
+    - [10, 8, 11]                        # past the head, so the animal has something behind it
+    - [10, 100, 9]
+    - [10, 124, 14]
+    - [9, 140, 10]
+    - [10, 162, 12]
+    - [10, 64, 9]
+
+  # THE JUVENILES, beside a nest each. Facing east, out over the drop, which is where the adults
+  # come in from.
+  hatchlings:
+    - [6, 81, east]
+    - [7, 117, east]
+    - [7, 156, east]
+
+  # A PARTIAL SKELETON weathering out of the rim, laid along U so the walk reads it side-on.
+  bones:
+    - [8, 92]
+
+  # A RANGER'S KIT at the hide, and one at the deck.
+  kit:
+    - [3, 106]
+    - [3, 46]
+
+  plaques:
+    - {at: [3, 70], facing: north, lines: [THE ROOKERY, pteranodon, nest here, keep to the way]}
+    - {at: [3, 133], facing: north, lines: [SPECIMEN 14, part skeleton, weathering, out of the rim]}
+
+  # ...and the jungle keeps growing between it all. Low density: the colony is the content and a
+  # thicket over it would hide the very thing this design exists to show.
+  plant: {step: 7, density: 0.42, kinds: [jungle, jungle, snag, rock]}
 roles: [construction]
 design:
   purpose: path
   hierarchy: filler
   style: frontier
   narrative: >
-    The cliff walk along the plateau's outer rim, with a pteranodon nesting colony between it and
-    the drop: four scrapes of the ridge's own rock, eggs in each, and jungle and snags between.
+    The clifftop rookery on the Lost Plateau's outer rim: a walk that runs the whole band and
+    passes under the sauropod between its feet, guano-capped perch stacks against the void, a
+    nesting colony of full, hatching and hatched scrapes with juveniles beside them, a timber
+    observation hide, a partial skeleton weathering out of the edge, and a railed drop.
 finish:
   cheapen: false
   hollow: false

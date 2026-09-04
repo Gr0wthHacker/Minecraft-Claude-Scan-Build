@@ -98,6 +98,16 @@ def plane_of(model, role: str = "") -> int:
 #: make the next `--ship` look like a regression when it changed. A name goes in here when its
 #: agent reports, not when its file appears.
 EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
+                # THE EMPTY-GROUND CLEANUP. `extras()` places in filename order and every lot
+                # module goes in before any of them, so a shrub can never take a cell a
+                # BUILDING wanted; and it plants only where the composite it reads is already
+                # open lawn, so it cannot take a cell from the extras placed after it either.
+                # First writer wins, and a flower is worth less than anything else here.
+                #
+                # `PF Park Rim Green` is the protected V187-199 reserve, separately, at a
+                # third of the density and capped at three courses. Drop it from this set to
+                # leave the reserve as bare moss - see its own config for the trade.
+                "PF Park Green", "PF Park Rim Green",
                 # THE PLAQUES GO IN LAST OF THE FRONTIER'S DRESSING, so a plaque can never
                 # take a cell the ground, the overgrowth or the rim wanted - first writer
                 # wins, and a board a guest reads is worth less than the walk it stands on.
@@ -164,11 +174,32 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # 66% bare lawn. Jack: "i dont want a bunch of buildings to go into, this is just
                 # a village then ... find other small things to add in the area."
                 "PF Frontier Scatter",
-                # ...and the worked landscape that replaced Boomtown's seven false fronts. It
-                # carries the walk that module carried inside itself - `Park Ways` paves none of
-                # that lot - so retiring one without placing the other breaks the route from the
-                # spine to Mining Square.
-                "PF Frontier Diggings",
+                # **THE WEST HALF IS TERRAIN AND ONE EXCAVATION NOW.** Jack, on the re-themed land:
+                # "its just buildings, the dig zone is crappy ... i really dont like this splatter
+                # of buildings that dont look amazing and dont really do anything." Measured, its
+                # columns A and B carried six buildings, 17,857 blocks and ONE interactive block.
+                #
+                # `PF Plateau Vale` is column A - jungle downland, four trial trenches and a single
+                # arch where the Trailhead Gate's 45x39 of towers, court and stockade stood - and
+                # `PF Plateau Bone Bed` is column B, ONE excavation across the Diggings' lot, Mining
+                # Square's lot and the park's own cross walk between them, which it uses as the
+                # causeway into the bottom of the pit rather than fighting.
+                #
+                # ORDER MATTERS: the vale carries the arch that straddles the U41-45 avenue and the
+                # bone bed reserves the ground the three re-sited games stand on, so both go in
+                # before the land dressing that keeps out of module lots.
+                "PF Plateau Vale", "PF Plateau Bone Bed",
+                #
+                # RETIRED WITH THEM, and each was measured before it was cut:
+                #   PF Frontier Diggings  5,577 - a 30x16 trench with a 25-block spine in a 53x46
+                #                                 lot, plus two more timber shops. This IS the dig
+                #                                 zone Jack called crappy; the bone bed is 99 x 46.
+                #   PF Frontier Claim Row 1,168 } ground dressing written to fill the holes the
+                #   PF Frontier Muster Yard 905 } gate and the porch left inside their own lots.
+                # Their configs, generators and artifacts all stand as the record.
+                #     "PF Frontier Diggings",
+                #     "PF Frontier Claim Row", "PF Frontier Muster Yard",
+                #
                 # ...and the SECOND RIDE, in the emptiest lot in the land. Mining Square
                 # measured 1.4 blocks per column with 10% of it standing three courses tall -
                 # 39 x 44 of flat paving - and the Frontier had exactly one ride.
@@ -183,7 +214,8 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # columns of unbuilt back. `frontier_scatter` keeps out of module lots (rightly -
                 # a material test cannot tell its pine from the Diggings'), so that ground
                 # belonged to nobody.
-                "PF Frontier Claim Row", "PF Frontier Muster Yard",
+                #     (see the retirement note above - both are out with the two lots they
+                #      were written to dress)
                 # THE LOST PLATEAU. Jack: "I just think this theme is boring and dull and doesnt
                 # represent well - its confusing to the end user ... 'frontier' needs to change."
                 # Measured, the Frontier used show material at 1.3% against 21-32% for every other
@@ -263,7 +295,80 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # No step anywhere exceeds one course, measured on the shipped artifact rather
                 # than on the field, because the world's own floor is not one plane and two
                 # neighbours at the same height above it can still be two courses apart.
-                "PF Prism Downs"}
+                "PF Prism Downs",
+                # THE MIDWAY'S THIRD RIDE, in the emptiest lot in the park. Jack, standing in it:
+                # "theres a strip here before the prism area that has these buildings and this
+                # empty plot, i think we can do more with this area thats more impactful to the
+                # player, and cooler." Measured before anything was drawn, Midway column C's rear
+                # - V100-153 x U345-384, 2,160 columns with streets on all four sides - was
+                # **0.09 blocks per column**, 0.9% of it standing three courses tall, 13 lanterns
+                # in the whole thing and a top of Y208 against Y223 for the Skill Arcade beside it.
+                # Mining Square, the lot he had replaced in the Frontier for being a car park, was
+                # 1.4; this was fifteen times emptier, and a hole in the skyline as well.
+                #
+                # It carries its own origin, so it is placed from here rather than from
+                # `PLACEMENT` - see configs/pf_helter_skelter.yaml and mcbuild/gen/helter.py.
+                "PF Helter Skelter",
+                # **AND THE FOUR MACHINES THAT BELONG TO THE TWO BUILDINGS IN FRONT OF IT.** This
+                # is the Frontier's own failure, in the Midway: `out/PF Game Target Wall`,
+                # `The Double`, `The Mark` and `Prize Point` were built, circuit-simulated and
+                # absent from the shipped park, so the Skill Arcade and the Prize Point stood as
+                # empty shells while the whole land carried FOUR buttons across 170 columns. A
+                # design that is built and unplaced is indistinguishable from one nobody wrote.
+                # THE STREET THAT REPLACED THE SKILL ARCADE AND THE PRIZE POINT. Jack: "i dont
+                # like these and they feel out of place/useless unclear." `PF Games Row` is the
+                # frontage `PARK_MIDWAY.md` asks for by name - a walk from the east avenue to the
+                # helter skelter's forecourt, a continuous awning down each verge, and six
+                # self-contained consoles standing on it. There is no building in it.
+                #
+                # IT GOES IN BEFORE THE CONSOLES, so a bay's own cell can never be won by the
+                # street: the row reserves all six boxes and raises on a hit, and the consoles
+                # count their own refusals from the other side.
+                # **AND THE ROW IS RETIRED IN ITS TURN, WITH ALL SIX CONSOLES.** Jack, on it as
+                # built: "the games arent playable as they are facing, theyre ugly, and just not
+                # working, these have been a consistent issue, either identify and make them
+                # really look good, or trash the idea and lets put something else there."
+                #
+                # THE FAULT IS IN `park_games`, NOT IN THE SITING, and it is worth stating exactly
+                # because four more consoles stand in the Frontier with it. Dumped block for block
+                # off `out/PF Game Target Wall.litematic`:
+                #
+                #     Y206   ############   the lid
+                #     Y205   ##B#######T#   the BELL and the TARGET - the game's own INPUT
+                #            ###LLLLLL###   the six score lamps
+                #     Y204   ############   the plinth
+                #            front face U357: solid at Y204, Y205 and Y206
+                #
+                # A console is a THREE-COURSE SEALED CABINET. Its score lamps - the thing that
+                # tells a player what happened - are buried in the lid course in EVERY kind; the
+                # `aim` and `striker` targets are entirely enclosed, so they cannot be shot; and
+                # `pair`'s two buttons sit on top of a three-course lid, above a standing player's
+                # head, with their lamp buried eleven cells away at the far end. Only `counter`'s
+                # barrels are on a face a player can touch.
+                #
+                # **AND EVERY ONE OF THEM SIMULATES CORRECTLY.** The circuits are right. That is
+                # this repo's own cardinal sin - a machine that looks like it works - in the one
+                # subsystem written to prevent it, and it is why the games have been "a consistent
+                # issue" for as long as they have existed. Its own docstring says what it assumes:
+                # "a console is furniture ... it needs no ceiling because the building already has
+                # one." The Skill Arcade was that building, and it was hiding them.
+                #
+                # STILL OPEN AND NOT THIS PASS'S: `PF Game Pan Line`, `PF Game Powder Striker`,
+                # `PF Game The Riffle` and `PF Game Prize Office` are PLACED in the Frontier with
+                # the same fault. Fixing it is a rewrite of `park_games` across six kinds and
+                # eleven configs - lamps on the front face, inputs reachable, the counter a course
+                # lower - with every simulated contract to re-verify. It is its own job.
+                #
+                # `PF Midway Garden` takes the lot and keeps the one thing worth keeping: the walk.
+                "PF Midway Garden",
+                #     "PF Games Row",
+                # ...AND THE SIX MACHINES THAT STAND IN IT. Three re-sited out of the retired
+                # hall, one out of the retired kiosk, and TWO THE MARQUEE HAD ALREADY PROMISED -
+                # the board over the Arcade said "five games" over three. `PARK_MIDWAY.md` names
+                # the high striker by name and `park_games` already had the kind.
+                #     "PF Game Target Wall", "PF Game The Mark", "PF Game The Striker",
+                #     "PF Game The Double", "PF Game The Signal", "PF Game Prize Point",
+                }
 
 
 def extras() -> list:

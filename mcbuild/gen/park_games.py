@@ -167,7 +167,8 @@ def _plinth(w: World, f, pal: dict, width: int, depth: int, deck: int) -> None:
                 w.put(*f.at(i, d, h), pal["ground"])
 
 
-def _ring(w: World, f, pal: dict, width: int, depth: int, h: int) -> list:
+def _ring(w: World, f, pal: dict, width: int, depth: int, h: int,
+          window: bool = True, keep=()) -> list:
     """The machine course's own wall, and the reason it is a RING rather than a fill.
 
     Filling every unused cell of the machine course would put a solid block against every component
@@ -195,6 +196,25 @@ def _ring(w: World, f, pal: dict, width: int, depth: int, h: int) -> list:
                 if w.name(*pos) in MACHINE:
                     leaks.append(list(pos))
                 continue
+            # **THE FRONT ROW IS A WINDOW, AND THAT IS THE WHOLE POINT OF THE COURSE.** Walled, the
+            # machine course is sealed: its score lamps - the thing that tells a player what
+            # happened - are invisible from the only side anybody stands on, and the aim and
+            # striker discs cannot be shot at all. Jack: "the games arent playable as they are
+            # facing, theyre ugly, and just not working." A player's eye stands at 1.62 above the
+            # floor, so this course IS their eye line; open, they look straight into the works.
+            #
+            # It stays SOLID at the two end posts, which carry the cabinet, and at every column
+            # `keep` names - those are where a control is bolted to the outside and must have
+            # something to bolt to.
+            if window and d == 0 and 0 < i < width - 1 and i not in set(keep):
+                # **GLAZED, NOT OPEN.** Left as air the window is a hole a hand reaches through:
+                # measured, nine of eleven consoles then had a wire, a repeater or a comparator
+                # with a clear line to the outside, which is the leak `_ring` is a wall to prevent.
+                # A pane stops the hand and not the eye, which is exactly what a shopfront is - and
+                # `_daylight` cuts it back to air in the few columns an ARROW has to pass through,
+                # because glass stops one of those too.
+                w.put(pos[0], pos[1], pos[2], "glass_pane")
+                continue
             w.put(pos[0], pos[1], pos[2], pal["wall"])
     return leaks
 
@@ -212,6 +232,103 @@ def _lid(w: World, f, pal: dict, width: int, depth: int, h: int, open_at=()) -> 
             if (i, d) in skip or w.has(*f.at(i, d, h)):
                 continue
             w.put(*f.at(i, d, h), pal["trim"])
+
+
+def _daylight(w: World, f, cells, depth: int, pane: str | None = "glass_pane",
+              fabric=()) -> int:
+    """Carve a clear line from every readout and every control to the FRONT of the cabinet.
+
+    Opening the machine course's front row is not enough on its own, and the reason is that the
+    kinds do not all put their parts on one plane: `pair`, `counter`, `mark` and `striker` carry
+    lamps in or above the LID course, where the lid walls them in, and `aim` and `striker` set
+    their disc into the BOARD, where the ring's own back row stands in front of it. Measured, six
+    of seven kinds still had an invisible readout and three had an unreachable input after the
+    window went in.
+
+    So this walks out from each cell one at a time and removes whatever this design put in the way
+    - never a component, so it cannot carve through the works.
+
+    **A READOUT IS GLAZED AND AN INPUT IS OPEN, and that distinction is the whole of it.** A score
+    lamp must be SEEN and must not be reachable, so its channel is filled back with a pane: a hand
+    cannot get through and a wire behind it cannot be broken. A disc has to be SHOT and a button
+    pressed, so those channels are air - glass stops an arrow.
+    """
+    n = 0
+    for pos in cells:
+        i, d, h = _ij(f, pos)
+        for dd in range(d - 1, -2, -1):
+            q = f.at(i, dd, h)
+            if not w.has(*q):
+                continue
+            # **IT MAY ONLY REMOVE FABRIC.** A blocklist of "the works" was not enough: written
+            # that way it ate the counter's own call button and the striker's rules sign, both of
+            # which are neither wire nor lamp, and the circuit tests caught it. So this carves the
+            # cabinet's own wall, trim, floor and glazing and NOTHING else - a whitelist, because
+            # the next part somebody adds will not be on anybody's blocklist either.
+            if w.name(*q) not in set(fabric):
+                break
+            del w.cells[q]
+            w.signs.pop(q, None)
+            if pane and 0 <= dd < depth:
+                w.put(q[0], q[1], q[2], pane)
+            n += 1
+    return n
+
+
+def _reattach(w: World, f, pal: dict, cells) -> int:
+    """Put back the block every wall control is bolted to, after the carving has been through.
+
+    **A BUTTON CANNOT HANG ON A PANE.** The counter's call button ended up attached to glass,
+    because the bell it rings is an OUTPUT and the sightline carved for that bell ran straight
+    through the button's own backing - the two passes are correct on their own and wrong together.
+    A control is placed before the sightlines and read after them, so this is the last word.
+    """
+    n = 0
+    for pos in cells:
+        if w.name(*pos) not in ("stone_button", "lever"):
+            continue
+        i, d, h = _ij(f, pos)
+        back = f.at(i, d + 1, h)
+        if w.has(*back) and w.name(*back) not in ("glass_pane", "iron_bars"):
+            continue
+        w.put(back[0], back[1], back[2], pal["wall"])
+        n += 1
+    return n
+
+
+def _seal(w: World, f, depth: int) -> int:
+    """Glaze anything the carving left within a hand's reach, and GUARANTEE it rather than hope.
+
+    `_daylight` cuts an INPUT's channel to air, because glass stops an arrow and a disc has to be
+    shot - and a channel cut past a disc can leave the wire behind it open to the outside. Rather
+    than reason about which kind does that (three of eleven did, and each for its own reason), this
+    walks every machine cell afterwards and puts a pane in the first free cell of any line that is
+    air all the way out. **A PROPERTY WORTH HAVING IS WORTH GUARANTEEING**: the ring is a wall so a
+    player cannot break the works, and a window that undoes that quietly is worse than no window.
+    """
+    n = 0
+    for pos in [q for q, (name, _pr) in w.cells.items() if name in MACHINE]:
+        i, d, h = _ij(f, pos)
+        # **A WIRE IS NOT A BARRIER, AND READING IT AS ONE IS WHY THIS DID NOTHING AT FIRST.** A
+        # long dust run points at the front, so every cell in front of the cell behind it is more
+        # dust - and a first version that bailed on any occupied cell therefore bailed on every
+        # wire in the design and placed not one pane, while the front-most cell of each run was
+        # still open to the world. Only something a hand cannot pass counts as cover.
+        cover, free = False, None
+        for dd in range(d - 1, -2, -1):
+            q = f.at(i, dd, h)
+            if w.has(*q):
+                if w.name(*q) in MACHINE:
+                    continue
+                cover = True
+                break
+            if dd >= 0:
+                free = q                               # the cell nearest the front, so one pane
+        if cover or free is None:
+            continue
+        w.put(free[0], free[1], free[2], "glass_pane")
+        n += 1
+    return n
 
 
 def _board(w: World, f, pal: dict, width: int, depth: int, height: int) -> None:
@@ -268,6 +385,36 @@ def _press(w: World, f, pal: dict, i: int, d: int, h: int, facing: str) -> tuple
     w.put(pad[0], pad[1], pad[2], pal["accent"])
     pos = f.at(i, d, h)
     w.put(pos[0], pos[1], pos[2], "stone_button", face="floor", facing=facing, powered="false")
+    return pos
+
+
+def _face_control(w: World, f, pal: dict, i: int, h: int, facing: str,
+                  kind: str = "stone_button") -> tuple:
+    """A control on the FRONT of the cabinet, at the machine course - which is eye level.
+
+    **THE CONTROLS USED TO SIT ON THE LID**, two courses over the machine, and `_press`'s docstring
+    calls that "where a hand can reach it". Measured against a standing player it is not: the lid's
+    top face is 1.4 blocks ABOVE their eye, so they press a button they cannot see on a counter
+    they cannot see over. That is half of "not playable"; the sealed machine course was the other
+    half.
+
+    This is the same mechanic turned through ninety degrees. `_press` relies on a floor button
+    strongly powering the block BENEATH it, with dust under that block; a wall button strongly
+    powers the block BEHIND it, and dust in the cell behind THAT reads it with no routing at all.
+    So the control is on the outside of the cabinet where a hand and an eye both find it, the
+    machine stays sealed behind its own front, and the wire never leaves the box.
+    """
+    back = f.at(i, 0, h)                       # the front-row cell it is bolted to
+    if not w.has(*back):
+        w.put(back[0], back[1], back[2], pal["wall"])
+    pad = f.at(i, -1, h - 1)                   # a step of the land's accent under it, so it reads
+    if not w.has(*pad):
+        w.put(pad[0], pad[1], pad[2], pal["accent"])
+    pos = f.at(i, -1, h)
+    w.put(pos[0], pos[1], pos[2], kind, face="wall", facing=facing, powered="false")
+    drive = f.at(i, 1, h)                      # the cell the press arrives in
+    if not w.has(*drive):
+        w.put(drive[0], drive[1], drive[2], "redstone_wire")
     return pos
 
 
@@ -576,12 +723,12 @@ def _pair(w: World, p: dict, ctx) -> dict:
     fd = gate["feed_d"]                           # d = 2
 
     # THE NEAR BUTTON sits over its own lane and drops straight onto the feed.
-    b0 = _press(w, f, pal, near, 1, my + 2, p["facing"])
+    b0 = _face_control(w, f, pal, near, my, p["facing"])
     _line(w, pal, f, (near, 1), (near, fd), my)
     # THE FAR ONE is eight cells away and comes home along the FRONT lane, which is the one lane
     # nothing else uses. It stops on its own feed lane, so the empty column between the two feeds -
     # the column `and_gate` needs kept clear or it becomes an OR - is never written.
-    b1 = _press(w, f, pal, near + spread, 1, my + 2, p["facing"])
+    b1 = _face_control(w, f, pal, near + spread, my, p["facing"])
     _line(w, pal, f, (near + spread, 1), (far, 1), my)
     _line(w, pal, f, (far, 1), (far, fd), my)
 
@@ -592,7 +739,7 @@ def _pair(w: World, p: dict, ctx) -> dict:
     lamp = f.at(oi, od + 2, my + 1)
     w.put(lamp[0], lamp[1], lamp[2], "redstone_lamp", lit="false")
 
-    leaks = _ring(w, f, pal, width, depth, my)
+    leaks = _ring(w, f, pal, width, depth, my, keep=(near, near + spread))
     bell = _bell(w, f, pal, oi + 1, od + 2, my, p["facing"])
     _lid(w, f, pal, width, depth, my + 1)
     title = str(p.get("title") or "THE DOUBLE").upper()
@@ -653,10 +800,10 @@ def _pattern(w: World, p: dict, ctx) -> dict:
     gate = _and(w, f, pal, D, gi, gd, my, n)
     fd = gate["feed_d"]                                # gd - 1
 
-    levers = []
+    levers, gate_cols = [], [gate["lanes"][k] for k in range(len(want))]
     for k, up in enumerate(want):
         i = gate["lanes"][k]
-        levers.append(_lever(w, f, pal, i, 1, my + 2, p["facing"]))
+        levers.append(_face_control(w, f, pal, i, my, p["facing"], "lever"))
         if up:
             _line(w, pal, f, (i, 1), (i, fd), my)
         else:
@@ -685,7 +832,7 @@ def _pattern(w: World, p: dict, ctx) -> dict:
         w.put(cell[0], cell[1], cell[2], "redstone_lamp", lit="false")
         lamps.append(cell)
 
-    leaks = _ring(w, f, pal, width, depth, my)
+    leaks = _ring(w, f, pal, width, depth, my, keep=tuple(gate_cols))
 
     door = []
     if p.get("door"):
@@ -753,7 +900,7 @@ def _starter(w: World, p: dict, ctx) -> dict:
     _plinth(w, f, pal, width, depth, deck)
     _board(w, f, pal, width, depth, height)
 
-    btn = _press(w, f, pal, 1, 2, my + 2, p["facing"])
+    btn = _face_control(w, f, pal, 1, my, p["facing"])
     seat = f.at(1, 2, my)
     w.put(seat[0], seat[1], seat[2], "redstone_wire")
     # **THE PULSE'S DELAY LEG IS PERPENDICULAR AND IT HAS A SIDE.** On `side=1` it landed on the
@@ -776,7 +923,7 @@ def _starter(w: World, p: dict, ctx) -> dict:
         lamps.append(lamp)
 
     last_i = 4 + (stages - 1) * 2
-    leaks = _ring(w, f, pal, width, depth, my)
+    leaks = _ring(w, f, pal, width, depth, my, keep=(1,))
     bell = _bell(w, f, pal, last_i + 1, 1, my, p["facing"])
     _lid(w, f, pal, width, depth, my + 1)
     title = str(p.get("title") or "THE SIGNAL").upper()
@@ -838,11 +985,11 @@ def _counter(w: World, p: dict, ctx) -> dict:
         w.put(lamp[0], lamp[1], lamp[2], "redstone_lamp", lit="false")
         lamps.append(lamp)
 
-    call = _press(w, f, pal, width - 2, 2, my + 2, p["facing"])
+    call = _face_control(w, f, pal, width - 2, my, p["facing"])
     seat = f.at(width - 2, 2, my)
     w.put(seat[0], seat[1], seat[2], "redstone_wire")
 
-    leaks = _ring(w, f, pal, width, depth, my)
+    leaks = _ring(w, f, pal, width, depth, my, keep=(width - 2,))
     bell = _bell(w, f, pal, width - 2, 1, my, p["facing"])
     _lid(w, f, pal, width, depth, my + 1)
     title = str(p.get("title") or "PRIZE COUNTER").upper()
@@ -888,6 +1035,22 @@ def build(cfg: dict, donors=None) -> Canvas:
     w = World()
     ctx = Ctx(p["under"]) if p.get("under") else None
     meta = BUILDERS[p["kind"]](w, p, ctx)
+
+    # **THE SIGHTLINES, CARVED ONCE FOR EVERY KIND.** Each builder states its own `inputs` and
+    # `outputs`, so this is the one place that knows what a player has to see and touch without
+    # knowing anything about how the game works - and doing it here rather than seven times is
+    # what stops the next kind shipping sealed. A readout is GLAZED and a control is OPEN: a lamp
+    # must be seen and must not be reachable, a disc must be shot and glass stops an arrow.
+    f0 = _Frame(p)
+    deep = int(meta.get("depth") or 4)
+    fabric = {PALETTES[p["land"]][k] for k in ("wall", "trim", "ground", "accent")
+              if k in PALETTES[p["land"]]} | {"glass_pane"}
+    _daylight(w, f0, [tuple(q) for q in meta.get("outputs") or []], deep,
+              pane="glass_pane", fabric=fabric)
+    _daylight(w, f0, [tuple(q) for q in meta.get("inputs") or []], deep,
+              pane=None, fabric=fabric)
+    _reattach(w, f0, PALETTES[p["land"]], [tuple(q) for q in meta.get("inputs") or []])
+    _seal(w, f0, deep)
 
     # **NOTHING MAY BE WRITTEN WHERE THE BUILDING ALREADY STANDS.** A console is fitted into a room
     # that exists, so a cell the capture owns is not a cell to compose with - it is an overlap, and

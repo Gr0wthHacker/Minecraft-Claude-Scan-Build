@@ -1,0 +1,104 @@
+# PF PLATEAU VALE - the other half of the west end: jungle downland, trial trenches, one arch.
+#
+# Jack: "i really dont like this splatter of buildings that dont look amazing and dont really do
+# anything", and, choosing what replaces them: terrain plus one big dig, and for the land's front
+# door "a single arch/portal, small - no court, no towers, no stockade. The land's identity comes
+# from the terrain behind it."
+#
+# ---------------------------------------------------------------------------------------------
+# WHAT THIS LOT HELD
+#
+# `PF Trailhead Gate` (45x39, 4,260 blocks, 0 verbs - a portal, two towers, an office, a porch, a
+# stockade, a water tower and a store, round a court its own generator left as bare lawn), `PF
+# Prospecting Porch` (51x40, 3,499, 0 verbs), and the two ground-dressing passes written to fill
+# the holes those two left inside their own lots - `PF Frontier Claim Row` and `PF Frontier Muster
+# Yard`. All four are retired from `tools/park_lots.PLACEMENT`.
+#
+# ---------------------------------------------------------------------------------------------
+# IT IS THE SAME GENERATOR AS THE BONE BED, WITH FEWER HOLES IN IT
+#
+# `gen/bonebed.py` with no big pit is downland: banks clamped to `slope` courses per cell of
+# distance from a street, coarse roll over them, turf where the ground is flat enough to hold soil
+# and the mountain's own rock where it is not. That is deliberate - the vale and the excavation's
+# banks are ONE piece of ground with a hole in one end of it, and two generators would have made
+# them two different hillsides in the same land within a session.
+#
+# What it does have is FOUR TRIAL TRENCHES: small shallow cuts with a stake grid and a plank walk,
+# which is how a real dig prospects the ground around the one it is working. They say the bone bed
+# is the middle of something rather than an object on a lawn, and they cost 4 x ~200 blocks.
+#
+# ---------------------------------------------------------------------------------------------
+# THE AVENUE RUNS THROUGH IT AND THE ARCH STRADDLES THE AVENUE
+#
+# `Park Ways` runs the land's main avenue at U41-45 from V1 to V170 - measured, not assumed - so
+# the lot is 47 wide to U46 and `level_u` keeps all five lanes at the plane. The arch's piers stand
+# on the verge either side; NOTHING is placed in the lanes, because a gate a guest has to walk
+# round is not a gate.
+name: PF Plateau Vale
+gen: bonebed
+params:
+  kind: bonebed
+  lot: [99, 47]
+  at: [24, 0]
+  sy: 26
+  seed: 11
+  title: THE VALE
+
+  # the avenue, in local u. There is no paving at all inside V24-122 x U0-40, so `level_v` is
+  # empty here: the V77-79 cross walk runs U41-97 and never reaches this lot's own ground.
+  level_u: [[41, 45]]
+  margin: 2
+
+  # GENTLER THAN THE DIG'S BANKS ON PURPOSE. 0.62 is `downs.py`'s downland number - "gradual
+  # hills, small areas, it should still feel like a park" - where the bone bed's 0.85 is spoil.
+  # The vale is what a guest walks ACROSS; the spoil is what they look down from.
+  slope: 0.62
+  cap: 9
+  bench_run: 1
+  bench_rise: 3
+  roll: {grain: 21, amp: 2.6}
+  wobble: {amp: 2.4, grain: 8}
+
+  # FOUR TRIAL TRENCHES, shallow, scattered up the vale - a dig prospecting the ground around the
+  # one it is working. Nothing is in them yet, which is the point: the stakes and the empty cut
+  # are the story.
+  pits:
+    - [14, 26, 8, 18, 4]
+    - [40, 50, 24, 34, 5]
+    - [66, 78, 6, 16, 4]
+    - [88, 96, 22, 32, 4]
+
+  grid: {step: 5}
+  walks:
+    - [16, 24, 20, 1]
+    - [42, 48, 26, 1]
+    - [68, 76, 14, 1]
+
+  # THE ARCH. Two timber piers on stone footings either side of the avenue, a lintel over it at
+  # head height plus two, a knee brace at each springing and a hanging lamp under each. Six
+  # courses and about a hundred and forty blocks against the Trailhead Gate's 4,260.
+  arch: {v: 4, u0: 40, u1: 46, h: 7, d: 3,
+         lines: ["THE LOST", "PLATEAU", "dig, ride,", "and look up"]}
+
+  spoil:
+    - [30, 20, 6, 4]
+    - [56, 12, 5, 3]
+    - [82, 30, 6, 4]
+
+  crates: [[27, 19], [45, 25], [72, 15]]
+
+  # DENSER THAN THE DIG'S BANKS. This is the wood the plateau's canopy comes down into, so it is
+  # the one part of the land's west end that is genuinely jungle rather than worked ground.
+  plant: {tree: 0.030, fern: 0.20, vine: 0.20}
+  light: 12
+
+  boards:
+    - {v: 20, u: 20, y: 2, facing: south, lines: ["TRIAL TRENCH", "no. 4", "nothing yet -", "keep looking"]}
+    - {v: 46, u: 27, y: 2, facing: south, lines: ["TRIAL TRENCH", "no. 7", "shell, mostly", "and one tooth"]}
+
+finish:
+  verify_against: out/Park Complete.litematic
+
+# The park lattice anchors every module itself; the island's origin lock is not this design's
+# frame - see `at` and `anchor`.
+origin_lock: false

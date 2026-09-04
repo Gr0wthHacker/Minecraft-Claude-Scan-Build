@@ -44,6 +44,12 @@ params:
   # CAMP, so the mountain's lot is kept out.
   keep_out:
     - [24, 147, 99, 169]
+    # **THE WEST HALF IS TERRAIN NOW AND IT GROWS ITS OWN.** `PF Plateau Vale` and `PF Plateau
+    # Bone Bed` replaced five buildings with ground, and both hang vines down their own benched
+    # faces and carpet their own turf. This pass exists to green the CAMP's masonry, and the camp
+    # is gone; run over the same hillside as well it is a second drift on one surface.
+    - [24, 122, 0, 46]
+    - [24, 122, 47, 92]
     # THE RIM'S OWN GROUND. `PF Frontier Rim` lays the cliff walk and the nesting colony
     # there; two land-dressing passes on one strip is what `finish.defer_to` exists to stop.
     - [185, 199, 73, 172]      # PF Frontier Rim

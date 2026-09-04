@@ -1,22 +1,22 @@
 {
   "origin": {
-    "x": 97586,
+    "x": 97585,
     "y": 204,
-    "z": 80656
+    "z": 80653
   },
   "size": {
-    "x": 5,
+    "x": 13,
     "y": 4,
-    "z": 13
+    "z": 6
   },
   "generated_by": "park_games",
   "kind": "counter",
-  "building": "PF Prize Point",
+  "building": "PF Games Row",
   "land": "midway",
-  "facing": "west",
+  "facing": "south",
   "footprint": [
     13,
-    5
+    6
   ],
   "courses": [
     0,
@@ -36,92 +36,92 @@
   "lanes": 3,
   "barrels": [
     [
-      97586,
+      97596,
       205,
       80657
     ],
     [
-      97586,
+      97593,
       205,
-      80660
+      80657
     ],
     [
-      97586,
+      97590,
       205,
-      80663
+      80657
     ]
   ],
   "lamps": [
     [
-      97588,
+      97596,
       206,
-      80657
+      80655
     ],
     [
-      97588,
+      97593,
       206,
-      80660
+      80655
     ],
     [
-      97588,
+      97590,
       206,
-      80663
+      80655
     ]
   ],
   "bell": [
-    97587,
+    97586,
     205,
-    80667
+    80656
   ],
   "button": [
-    97588,
-    207,
-    80667
+    97586,
+    205,
+    80658
   ],
   "signed": true,
   "leaks": [],
   "inputs": [
     [
-      97586,
+      97596,
+      205,
+      80657
+    ],
+    [
+      97593,
+      205,
+      80657
+    ],
+    [
+      97590,
       205,
       80657
     ],
     [
       97586,
       205,
-      80660
-    ],
-    [
-      97586,
-      205,
-      80663
-    ],
-    [
-      97588,
-      207,
-      80667
+      80658
     ]
   ],
   "outputs": [
     [
-      97588,
+      97596,
       206,
-      80657
+      80655
     ],
     [
-      97588,
+      97593,
       206,
-      80660
+      80655
     ],
     [
-      97588,
+      97590,
       206,
-      80663
+      80655
     ],
     [
-      97587,
+      97586,
       205,
-      80667
+      80656
     ]
   ],
   "stock": {
@@ -139,8 +139,7 @@
       "redstone": [
         "comparator",
         "redstone_lamp",
-        "redstone_wire",
-        "stone_button"
+        "redstone_wire"
       ],
       "signage": [
         "oak_wall_sign"
@@ -171,48 +170,48 @@
     "metrics": {
       "blocks": 197,
       "materials": 11,
-      "dominant_material_share": 0.335,
+      "dominant_material_share": 0.2944,
       "light_blocks": 3,
       "massing": {
-        "width": 5,
+        "width": 13,
         "height": 4,
-        "depth": 13,
-        "fill_ratio": 0.7577
+        "depth": 6,
+        "fill_ratio": 0.6314
       },
       "silhouette": {
         "top": {
-          "area": 65,
-          "fill_ratio": 1.0
+          "area": 66,
+          "fill_ratio": 0.8462
         },
         "front": {
-          "area": 18,
-          "fill_ratio": 0.9
-        },
-        "side": {
           "area": 52,
           "fill_ratio": 1.0
+        },
+        "side": {
+          "area": 18,
+          "fill_ratio": 0.75
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.5888,
+          0.5939,
           0.3299,
-          0.0812
+          0.0761
         ],
-        "top_silhouette_perimeter": 36,
+        "top_silhouette_perimeter": 52,
         "surface_faces_per_block": 1.665
       },
       "material_counts": {
-        "white_wool": 66,
-        "polished_blackstone_bricks": 61,
+        "white_wool": 58,
+        "polished_blackstone_bricks": 56,
         "stone_bricks": 52,
+        "glass_pane": 14,
         "redstone_wire": 4,
         "barrel": 3,
         "comparator": 3,
         "redstone_lamp": 3,
         "oak_wall_sign": 2,
         "bell": 1,
-        "stone_button": 1,
         "yellow_wool": 1
       }
     },
@@ -225,8 +224,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "613f3fd297abef5a96ecdb1e23d99a06e90bd37c92659e57c3434c6e5e120d7f",
-    "generator_source_digest": "db15f9980fcfc17e03710422b01f058018a82a10067ea4c3eac1d21e161b67bc",
+    "fingerprint": "2e5458696dbdcc79ee46cb81ee63f6e921d14d96695729c6137c3890e09f8526",
+    "generator_source_digest": "961a1d442968dd53e826d5ac5bff918e97434a1892feb90ef2bf38f3fd918ed2",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -269,9 +268,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 94.272457,
+    "seconds": 4.538021,
     "blocks": 197,
-    "blocks_per_second": 2.09
+    "blocks_per_second": 43.41
   },
   "generator_contract": {
     "ok": false,

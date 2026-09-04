@@ -2,7 +2,7 @@
   "origin": {
     "x": 97581,
     "y": 204,
-    "z": 80322
+    "z": 80350
   },
   "size": {
     "x": 10,
@@ -11,7 +11,7 @@
   },
   "generated_by": "park_games",
   "kind": "mark",
-  "building": "PF Prospecting Porch",
+  "building": "PF Plateau Bone Bed",
   "land": "frontier",
   "facing": "south",
   "footprint": [
@@ -38,17 +38,17 @@
   "plate": [
     97589,
     206,
-    80329
+    80357
   ],
   "lamp": [
     97586,
     207,
-    80325
+    80353
   ],
   "bell": [
     97585,
     206,
-    80325
+    80353
   ],
   "signed": true,
   "leaks": [],
@@ -56,19 +56,19 @@
     [
       97589,
       206,
-      80329
+      80357
     ]
   ],
   "outputs": [
     [
       97586,
       207,
-      80325
+      80353
     ],
     [
       97585,
       206,
-      80325
+      80353
     ]
   ],
   "stock": {},
@@ -111,15 +111,15 @@
       "narrative": "The washing bench in the porch's west shed: load the pan to exactly three and the lamp comes on; a fourth loses it.\n"
     },
     "metrics": {
-      "blocks": 345,
-      "materials": 10,
-      "dominant_material_share": 0.4638,
+      "blocks": 344,
+      "materials": 11,
+      "dominant_material_share": 0.4651,
       "light_blocks": 1,
       "massing": {
         "width": 10,
         "height": 6,
         "depth": 9,
-        "fill_ratio": 0.6389
+        "fill_ratio": 0.637
       },
       "silhouette": {
         "top": {
@@ -137,17 +137,18 @@
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.5217,
-          0.4145,
-          0.0638
+          0.5233,
+          0.4128,
+          0.064
         ],
         "top_silhouette_perimeter": 38,
-        "surface_faces_per_block": 1.4435
+        "surface_faces_per_block": 1.4593
       },
       "material_counts": {
         "stone_bricks": 160,
-        "polished_blackstone_bricks": 88,
-        "spruce_planks": 82,
+        "polished_blackstone_bricks": 83,
+        "spruce_planks": 74,
+        "glass_pane": 12,
         "redstone_wire": 7,
         "repeater": 2,
         "spruce_wall_sign": 2,
@@ -166,8 +167,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "7d3c1dd35ee825e697d4f8e05f51db10aef64721c687083d0ee2a91ea90b7f02",
-    "generator_source_digest": "db15f9980fcfc17e03710422b01f058018a82a10067ea4c3eac1d21e161b67bc",
+    "fingerprint": "ca39318c719c140a40dd8e6fffd29c46245f337f6f5675f8035ea83bd2c8736d",
+    "generator_source_digest": "f8d068c37d1fa0e2573cf985742d1ab99fa6c346927679fd7492a15b58d11f48",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -209,9 +210,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 79.367826,
-    "blocks": 345,
-    "blocks_per_second": 4.35
+    "seconds": 2.887352,
+    "blocks": 344,
+    "blocks_per_second": 119.14
   },
   "generator_contract": {
     "ok": false,
@@ -225,7 +226,7 @@
     "roles": [
       "ride"
     ],
-    "blocks": 345,
+    "blocks": 344,
     "mechanic_families": [
       "light",
       "redstone",

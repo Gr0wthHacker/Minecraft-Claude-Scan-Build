@@ -1,0 +1,188 @@
+# PF PRISM DOWNS - the whole of Prismworks and its reach as gentle ground falling into the shaft.
+#
+# Jack, after two rejected attempts at putting OBJECTS on this land:
+#
+#   "i think youre doing this idea all wrong ... get rid of the building, turn it into something
+#    else, remove the plaza or make it blend more naturally, and make this environment
+#    significantly better"
+#   "build sophisticated impressive terrain that fits the area appropriately"
+#   "it cant be impassable terrain, it should still feel like a park, gradual hills, small areas"
+#   "really terrain the entire area, from the building you removed all the way to the railway
+#    edge, and all the way to our parkour area so it feels even that more dramatic of a fall"
+#
+# ---------------------------------------------------------------------------------------------
+# THE SITE, MEASURED WITH THE GATE AND THE PLATE ALREADY WITHDRAWN
+#
+# Prismworks and the Prism Reach are 36,550 columns and **95% of them stand 0-2 courses tall**.
+# The Foundry Gate is unplaced (the last v1 building), `Wyrm's Crossing`'s 58 x 43 plate is
+# unplaced (2,650 of its 2,839 blocks were bare paving and the skull it carried moved to the rim),
+# and `gen/seam.py`'s three crystal-spire designs are unplaced. This is the ground itself.
+#
+# ---------------------------------------------------------------------------------------------
+# THE LOT IS THE WHOLE LAND, WHICH IS THE INSTRUCTION
+#
+# V19-172: from the spine's own verge to the railway's rim reserve. U388-599: from the Midway
+# boundary - so the reach blends instead of ending at a slab - to the park's east edge.
+#
+# EVERY STREET INSIDE IT STAYS LEVEL AND IS MET AT GRADE. The spine's verge, both avenues, the
+# back promenade, the service lane, the rim and every lamp mast and bench on them are read off
+# `Park Ways`' own artifact rather than guessed from a material, and the ground eases down to
+# them at 0.62 courses per cell. The shaft's collar is NOT met that way: the ground stands against
+# it and steps down, which is the whole of "a more dramatic fall".
+name: PF Prism Downs
+gen: downs
+params:
+  kind: downs
+  lot: [154, 212]
+  at: [19, 388]
+  sy: 34
+  under: out/Park Complete.litematic
+  previous: out/PF Prism Downs.litematic
+  off_limits:
+    - out/Park Ways.litematic
+    - out/Park Rail.litematic
+
+  # THE SHAFT, in local coordinates. World (97590, 80815) is V90 U515; the lot starts at V19 U388,
+  # so the mouth is local (71, 127). `hold` 62 is the collar's outer edge - the crest holds from
+  # there outward, so the ground arrives at the rim high rather than tailing off before it.
+  mouth: [71, 127, 62]
+  peak: 18.0
+  reach: 135.0
+  shape: 0.85
+
+  # **THE TWO NUMBERS THAT DECIDE WHETHER THIS IS A PARK OR A CRAG.** 0.62 courses per cell away
+  # from a street is a slope a guest strolls up without noticing; 1.0 against the well's collar
+  # and against any build is a scarp they climb. Neither can produce a step over one course,
+  # because `relax` beats the rounded field down until none does - and `tests/test_downs.py`
+  # walks the finished ground rather than trusting the arithmetic.
+  slope: 0.80
+  build_slope: 1.0
+  margin: 1
+
+  # GRADUAL HILLS AND SMALL AREAS. The roll is what turns a dome into downland - long shoulders
+  # and shallow hollows at a 26-cell grain - and the fine grain is the texture on them. Noise on
+  # the FIELD, never thresholded per cell: the thicket shipped the other version once and came out
+  # as 191 blobs of which 75% were one or two cells.
+  # THE RIPPLES. Jack: "make it feel more like ground ripples as if the parkour thing was
+  # smashing through the gap, almost giving the feel of motion." A shock wave off the collar:
+  # tallest at the rim, dying out over about fifty cells, with the wavelength STRETCHING as it
+  # travels and the radius wandering - a constant spacing on a true circle is a dartboard, not
+  # ground.
+  # **THREE BIG WAVES, NOT TWELVE SMALL ONES.** At an eighteen-cell wavelength the rings came out
+  # as corduroy under the planting - texture rather than landform, which is what "it just looks
+  # like hilly terrain" was. A wave has to be wider than the things standing on it: at 36 the
+  # radius carries about three, each a broad green trough and a broad dark ridge, and THAT is a
+  # shape you can see from the ground.
+  ripple: {amp: 7.0, wave: 34.0, decay: 70.0, stretch: 0.86, wobble: 8.0, grain: 26}
+  # **THE RAYS ARE THE HALF THAT READS FROM THE GROUND.** Rings only work in plan - standing on
+  # one you cannot see it curve - and a guest is never in plan view. Eleven streaks of dark slate
+  # thrown out of the shaft, each a different length, thinning as they go: from anywhere on the
+  # downs one of them is pointing at the tower.
+  rays: {count: 11, sharp: 3.0, amp: 3.0, reach: 95.0, wander: 1.7, grain: 30}
+  ray_at: 0.76
+  # **THE ROLL IS THE BASE, NOT THE SUBJECT.** At amp 5 it was as strong as the ripples and
+  # the land read as generic hills with the story buried in them. Long and quiet now, so the
+  # waves are the landform.
+  roll: {grain: 34, amp: 1.6}
+  fine: {grain: 15, amp: 0.6}
+  bench: 3
+
+  # THE DELLS - small level pockets with a rock lip, cut into the swell after the walkability
+  # clamp because a hollow is that rule's own shape inverted. These are the "small areas": a
+  # guest is IN one rather than on it.
+  # **THE FOUR WAYS IN.** `PF Prism Well` has approaches at 0/90/180/270 reaching out to about
+  # r=58 and the first terrain buried every one of them - measured, the downs stood 7-10 courses
+  # over the rim gallery around its whole circumference and only 3 of 72 sampled bearings were at
+  # grade. Each ramp is a valley 11 wide falling to the collar at half a course per cell, with a
+  # shoulder so the ground drops into it from both flanks rather than a trench being cut.
+  # 180 heads for the spine, 90 and 270 for the two avenues, 0 for the service side.
+  # ...and each one CARRIES THE PARK'S OWN PAVING to the collar, breaking as it climbs. Measured
+  # after the first attempt, only the 180 ramp landed on a surviving route at all - the other
+  # three were green valleys pointing at ground the terrain had already run over. `way` is the
+  # paved width inside the valley; `run` is how far out it is carried.
+  #   180  the spine, which runs the whole length of the park at V6-18
+  #   270  the U467-469 avenue          90  the U523-525 avenue
+  #     0  the back promenade and the service lane on the rim side
+  ramps:
+    - {bearing: 0,   width: 11, slope: 0.50, shoulder: 0.7, way: 3, run: 44}
+    - {bearing: 90,  width: 13, slope: 0.45, shoulder: 0.7, way: 3, run: 62}
+    - {bearing: 180, width: 13, slope: 0.45, shoulder: 0.7, way: 5, run: 52}
+    - {bearing: 270, width: 13, slope: 0.45, shoulder: 0.7, way: 3, run: 62}
+
+  # **THE LAND'S OWN AVENUES ARE NAMED, BECAUSE WIDTH CANNOT TELL THEM FROM A SPUR.** Both are
+  # three cells wide, so `main_at` buried both - and then three of the four ramps had nothing to
+  # land on. Local u is U-388: the avenues are U467-469 and U523-525, the back promenade V122-128
+  # and the service lane V154-156. Kept only where they are actually paved, so a box cannot
+  # flatten lawn it happens to cover.
+  keep:
+    - [0, 153, 77, 83]
+    - [0, 153, 133, 139]
+    - [101, 111, 0, 211]
+    - [133, 139, 0, 211]
+  dells:
+    - [34, 30, 11, 6]
+    - [96, 52, 13, 7]
+    - [40, 96, 12, 6]
+    - [118, 150, 12, 7]
+    - [46, 176, 14, 8]
+    - [126, 196, 11, 6]
+
+  # **TURF DOMINATES AND ROCK IS THE EXCEPTION.** At 0.55 the downs came out 40% bare grey and
+  # read as a slag heap; the Lost Plateau is 71% green on top and that is what makes it land. Rock
+  # shows on genuinely steep faces and at the scarp, and nowhere else.
+  # THE EJECTA. Jack: "realistically we should be scattering blocks that arent grass or wood and
+  # are dark slate etc." Slate and basalt lying on the turf, thickest at the rim and thinning
+  # outward - the ripples' own story told in material rather than in height. Slabs, so the ground
+  # stays walkable; a full block only where all four neighbours are level with it.
+  debris: {density: 0.07, decay: 70.0}
+  # **MEASURED: THE GRADIENT RULE WAS PUTTING ROCK ON 58% OF THE SURFACE.** `relax` caps every
+  # step at one course, so "too steep to hold soil" is true almost everywhere and the downs came
+  # out as a slate field with moss on it. The rock belongs to the wave crests, the rays and the
+  # rim; the gradient only adds a scatter of outcrops on the steepest ground.
+  turf_slope: 0.95
+  bare_share: 0.07
+  # **THE BANDS ONLY READ IF THEY ARE THE MINORITY.** At 0.30 / 0.26 the crest and ray masks
+  # covered most of the land and the downs came out as a slate field with moss on it. Green is the
+  # ground; the dark is the wave top and the ray's own spine, and nothing else.
+  crest_at: 0.86
+  # the last eight cells before the shaft are always rock: grass to the lip of a
+  # hundred-course hole is the picture of a floor with a hole in it.
+  rock_ring: 5
+  # **THE TREES WERE TOO THICK.** Jack: "our tree coverage is too thick and we need to put other
+  # things, small groupings of rock maybe, to make this more real feeling." Half the trees, and
+  # boulder groups in their place - real ground is thickets, bare shoulders and rock lying where
+  # it fell, not an even orchard.
+  plant: {density: 0.15, tree: 0.008, fern: 0.14}
+  rocks: {density: 0.16, grain: 13}
+  # the spine and the seven-wide avenues stay perfect; the promenade, the service lane and every
+  # spur are ground the ripples run over.
+  main_at: 3.0
+  light: 13
+  seed: 91
+roles: [path]
+design:
+  purpose: path
+  hierarchy: landmark
+  style: prismworks
+  narrative: >
+    Prismworks as downland: turf and azalea swelling gently from the Midway boundary and from
+    every street to a crest against the well's collar, basalt showing where the ground is too
+    steep to hold soil, small dells cut into the shoulders, and a stepped scarp at the rim so the
+    shaft is a hole in a hill rather than a hole in a plate.
+fun_contract:
+  enforce: true
+  class: scenic_support
+  player_verbs: [walk the downs, stand on the crest and look into the shaft, sit in a dell]
+  spatial_job: >
+    It is the whole land's ground - 36,550 columns that stood 95% flat - and it is what gives the
+    well's shaft and its hundred-course tower any context at all.
+  outcome: >
+    Prismworks stops being a hole in a lawn.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

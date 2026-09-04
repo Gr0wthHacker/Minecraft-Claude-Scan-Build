@@ -1,0 +1,104 @@
+# PF GAMES ROW - what replaces the Skill Arcade and the Prize Point at the head of Midway column C.
+#
+# Jack, on the two buildings: *"i dont like these and they feel out of place/useless unclear."*
+#
+# MEASURED BEFORE EITHER WAS RETIRED. Skill Arcade 6,364 blocks, 51 x 33, 84% of its footprint
+# solid, twenty-one courses, THREE games inside it and a marquee promising FIVE. Prize Point 1,927
+# blocks doing half a job forty courses away. And `Park Ways` paves nothing in V24-99 but the V77
+# cross walk and two door spurs, because the hall filled the column wall to wall - so the column
+# had a door where every other column in this park has a spine.
+#
+# `PARK_MIDWAY.md` asks for the replacement in its own words: "Merge Plinko, High Striker, and
+# arcade functions into a single awning/facade-backed games frontage ... place the prize counter
+# as the natural next step."
+#
+# THIS DESIGN IS THE STREET. Every console builds its own shell, counter, board and sign in
+# `park_games`; the six boxes below are RESERVED, so wanting one of their cells raises here
+# rather than shipping as a console with a hole in it.
+#
+# `at` IS THE WORLD CORNER OF (V24, the first course above the lawn, U345).
+name: PF Games Row
+gen: gamesrow
+params:
+  lot: [24, 345, 99, 384]
+  at: [97524, 203, 80645]
+  height: 12
+  seed: 5
+  # THE WALK RUNS BETWEEN THE TWO BAY FRONT LINES, so it cannot take a console's cell however the
+  # bays are re-sited: fronts at U357 and U371, walk U358-370. It is the Welcome Court's own
+  # thirteen-wide walk, and it meets the helter skelter's forecourt at V100.
+  axis: 364
+  walk_half: 6
+  facade_top: 4
+  fronts: [357, 371]
+  bays:
+    - [26, 354, 37, 357]     # PF Game Target Wall   aim
+    - [41, 349, 51, 357]     # PF Game The Mark      mark
+    - [55, 354, 66, 357]     # PF Game The Striker   striker  - NEW, the one the spec names
+    - [28, 371, 42, 384]     # PF Game The Double    pair
+    - [48, 371, 63, 375]     # PF Game The Signal    starter  - NEW, the fifth game
+    - [85, 353, 97, 357]     # PF Game Prize Point   counter  - past the cross walk
+  # EACH CONSOLE'S OWN TOP COURSE, read off its shipped artifact - the awning has to clear the
+  # board behind the counter, and the boards are not all the same height.
+  bay_tops: [6, 7, 7, 6, 6, 4]
+  gaps: [[32, 34], [44, 46], [56, 58], [68, 70], [89, 91]]
+  seats: [[39, -1], [53, -1], [45, 1], [65, 1], [83, -1], [83, 1]]
+  # THIRTEEN TREES, EVERY SITE MEASURED off the shipped park - a five-by-five of nothing
+  # above the lawn, seven apart, on the flanks behind the frontage. A canopy is CELLS and a
+  # lawn test is a COLUMN, which is the guard this park has already got wrong twice, so
+  # these are coordinates rather than a rule.
+  #
+  # AND THREE WERE DROPPED, because `verify_replaceable` and `park_place.clashes` ask DIFFERENT
+  # questions and only the second one counts here: the audit lets this design stand a trunk in
+  # `PF Park Green`'s moss carpet, and the cross-design check reports it as two designs sharing a
+  # cell - which is a work problem, not a rendering one. A site with another design's ground cover
+  # in it is not a free site.
+  plant:
+    - [26, 347]
+    - [34, 347]
+    - [45, 374]
+    - [45, 382]
+    - [53, 378]
+    - [54, 347]
+    - [61, 378]
+    - [62, 350]
+    - [69, 373]
+    - [70, 347]
+    - [85, 373]
+    - [93, 373]
+    - [94, 347]
+  # CELLS THE PARK ALREADY OWNS. `Park Ways`' cross walk crosses this lot at V76-78; three of its
+  # lamp masts stand on the verges; and `PF Front Midway`'s gantry over the cross-walk spur stands
+  # at V79. Named here, wanting one of them RAISES at build time instead of shipping as an overlap
+  # no render can show. The six bay boxes are in the same list for the same reason.
+  blocked:
+    - [76, 0, 345, 78, 11, 384]     # the back cross walk, and it is not this design's ground
+    - [62, 0, 345, 62, 11, 347]     # the U345 verge's lamp mast
+    - [73, 0, 357, 75, 11, 357]     # the cross walk's own lamp, on the -U verge
+    - [79, 0, 353, 81, 11, 353]     # ...and its pair
+    - [79, 0, 358, 79, 11, 366]     # the gantry over the spur, retitled to name the prize counter
+    - [26, 1, 354, 37, 11, 357]
+    - [41, 1, 349, 51, 11, 357]
+    - [55, 1, 354, 66, 11, 357]
+    - [28, 1, 371, 42, 11, 384]
+    - [48, 1, 371, 63, 11, 375]
+    - [85, 1, 353, 97, 11, 357]
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: midway
+  narrative: >
+    The Midway's games street: a thirteen-wide walk from the east avenue to the helter skelter's
+    forecourt, with three open-fronted consoles down one side and two down the other, a continuous
+    striped awning on posts over each verge so the six read as one frontage rather than as six
+    sheds, bunting strung across the walk between them, benches on the verges, and the prize
+    counter at the far end past the cross walk - the natural next step. No building in it at all.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet, short_grass, fern]
+origin_lock: false

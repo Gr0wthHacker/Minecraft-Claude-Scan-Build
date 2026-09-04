@@ -911,8 +911,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "73ccbce2151ec9919e6b9af8bbe69badadf5a16f67263622e8d445413ddce257",
-    "generator_source_digest": "ad657c6e01f8485954dc722802d4a8b48931ec012b68046e8dea86e329765b2d",
+    "fingerprint": "f6814701f8cc44d52e79a97a456b54d6534d95109c68ae780f9b21fb9de22af3",
+    "generator_source_digest": "aeb88dfa39aebd74e63611607fe4c08849ebb024ceec37edae55b29e992c050e",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -968,9 +968,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 86.71487,
+    "seconds": 122.2496,
     "blocks": 5999,
-    "blocks_per_second": 69.18
+    "blocks_per_second": 49.07
   },
   "generator_contract": {
     "ok": true,

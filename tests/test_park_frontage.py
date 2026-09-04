@@ -48,18 +48,40 @@ MODULES = [
     # buildings, but the rest should be other things." It was 53 x 46 of false fronts with 0
     # interactive blocks. A marquee naming a module nobody places is a sign to somewhere a guest
     # cannot go, so the marquee was retitled in the same commit as the retirement.
-    "Trailhead Gate", "Prospecting Porch", "Frontier Diggings", "Mining Square",
+    #: **AND FOUR MORE WENT WITH THE LOST PLATEAU'S WEST HALF.** Jack, on the re-themed land:
+    #: "its just buildings, the dig zone is crappy ... i really dont like this splatter of
+    #: buildings that dont look amazing and dont really do anything." Measured, columns A and B
+    #: carried six buildings, 17,857 blocks and ONE interactive block; `PF Plateau Vale` and
+    #: `PF Plateau Bone Bed` hold that ground now and each has a marquee of its own on the spur.
+    #: `Trailhead Gate`, `Prospecting Porch`, `Frontier Diggings` and `Mining Square` are out of
+    #: `tools/park_lots.PLACEMENT` and `park_place.EXTRAS_READY` - and a marquee naming a module
+    #: nobody places is a sign to somewhere a guest cannot go, which is the rule this list already
+    #: learned from Boomtown.
+    #:
+    #: TWO OF THE FOUR WERE NOT ONLY STALE, THEY WERE IN THE WAY: THE SCREENS stood at V70 U20 and
+    #: BASE CAMP at V80 U66, both deep INSIDE the lots the terrain designs hold, and a board on
+    #: posts in the middle of a hillside is a clash rather than a sign.
+    "Plateau Vale", "Plateau Bone Bed",
     "Assay and Prize Office", "Mine Coaster", "Works Yard",
-    "Snack Window", "Carousel Court", "Sky Lift", "Skill Arcade", "Prize Point",
-    "Foundry Gate", "Prism Array", "Resonance Vault", "Prism Ascent", "Forge Deck",
+    #: ...AND `Prize Point` WENT WITH THE GAMES ROW, hours after the six above. `PF Midway
+    #: Garden` holds that lot, so the gantry at the head of column C names the garden and the
+    #: one that said "redeem here" is gone - there was nothing left to redeem at.
+    "Snack Window", "Carousel Court", "Sky Lift", "Midway Garden",
+    #: **AND SIX MORE, AND THIS LIST HAD NOT LEARNED ITS OWN LESSON (2026-09-03).** `Skill
+    #: Arcade` went when `PF Games Row` replaced it, and `Foundry Gate`, `Prism Array`,
+    #: `Resonance Vault`, `Prism Ascent` and `Forge Deck` all went with Prismworks v1 - so
+    #: this roster was asking for a marquee over six buildings that are not in the park, and
+    #: it had already been hand-corrected twice before (Boomtown, then the Lost Plateau four).
+    #: A hand-copied roster goes stale in exactly the way a marquee does, so it is CHECKED
+    #: against the two lists that decide placement now rather than only edited when someone
+    #: notices - see `test_this_roster_only_names_modules_the_park_actually_places`.
     "Service Gallery",
 ]
 
 #: Which piece answers for which module. A marquee names it; a staff gate marks a back-of-house
 #: yard, which is what a park does instead of marqueeing its service road.
 NAMED_BY = {
-    "Trailhead Gate": "Trailhead Gate", "Prospecting Porch": "Prospecting Porch",
-    "Frontier Diggings": "Frontier Diggings", "Mining Square": "Mining Square",
+    "Plateau Vale": "Plateau Vale", "Plateau Bone Bed": "Plateau Bone Bed",
     "Assay and Prize Office": "Assay and Prize Office", "Mine Coaster": "Mine Coaster",
     "Works Yard": "Works Yard staff gate",
     "Snack Window": "Snack Window",
@@ -71,11 +93,9 @@ NAMED_BY = {
     #: In column A the ride has its own 3-wide spur at U234-236 with a gantry over it, off the
     #: entrance axis entirely, so it is named the way every other lot is - plus the two thresholds,
     #: which are what a walk-on ride gets instead of a queue.
-    "Carousel Court": "Carousel Court", "Sky Lift": "Sky Lift", "Skill Arcade": "Skill Arcade",
-    "Prize Point": "Prize Point",
-    "Foundry Gate": "Foundry Gate", "Prism Array": "Prism Array",
-    "Resonance Vault": "Resonance Vault", "Prism Ascent": "Prism Ascent",
-    "Forge Deck": "Forge Deck", "Service Gallery": "Service Gallery staff gate",
+    "Carousel Court": "Carousel Court", "Sky Lift": "Sky Lift",
+    "Midway Garden": "Midway Garden",
+    "Service Gallery": "Service Gallery staff gate",
 }
 
 #: THE FOUR MEASURED TROUGHS. Built columns per 20-wide U band across the public floor swing from
@@ -268,9 +288,38 @@ def test_a_property_the_block_does_not_have_is_a_typo_and_raises():
 # --------------------------------------------------------------------------- what a park has
 
 
+def test_this_roster_only_names_modules_the_park_actually_places():
+    """**A HAND-COPIED ROSTER GOES STALE IN EXACTLY THE WAY A MARQUEE DOES.**
+
+    `MODULES` has been hand-corrected three times - Boomtown, then the Lost Plateau four, then six
+    more in Prismworks and the Midway - and each time it was noticed only because the test started
+    failing with `nothing announces [...]`, which reads as a MISSING SIGN rather than as a RETIRED
+    BUILDING and sends the next reader looking for the wrong thing.
+
+    `tools/park_lots.PLACEMENT` and `park_place.EXTRAS_READY` are the two lists that actually decide
+    what is placed, so the roster is checked against them. This is the same rule the park applies to
+    its own signage: a name that points at something not standing is the defect, wherever it is
+    written down.
+    """
+    import sys
+    sys.path.insert(0, ROOT)
+    from tools.park_lots import PLACEMENT
+    from tools.park_place import EXTRAS_READY
+    placed = set(PLACEMENT)
+    placed |= {n[3:] if n.startswith("PF ") else n for n in EXTRAS_READY}
+    #: A GAME CONSOLE IS PLACED UNDER ITS OWN `PF Game <name>` KEY, and the module a marquee names
+    #: is the counter rather than the console, so the two spellings are reconciled here.
+    placed |= {n.replace("Game ", "") for n in placed}
+    stale = [m for m in MODULES if m not in placed]
+    assert not stale, ("this roster names modules the park does not place, so the naming test "
+                       "reports them as unsigned rather than as retired: %s" % stale)
+
+
 def test_every_one_of_the_nineteen_modules_is_named(designs):
-    """THE COMPLAINT THAT STARTED THIS WORK: not one of the park's nineteen modules said what it
-    was from outside."""
+    """THE COMPLAINT THAT STARTED THIS WORK: not one of the park's modules said what it was from
+    outside. The roster moves as modules are retired and replaced - it is nineteen no longer - and
+    what is pinned is that every module `PLACEMENT` and `EXTRAS_READY` actually place has a piece
+    of frontage announcing it."""
     built = set()
     for _name, _cfg, c, _cells in designs:
         built |= {p.get("name") for p in c.meta["pieces"]}

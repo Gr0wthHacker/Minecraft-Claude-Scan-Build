@@ -31,7 +31,7 @@
       ],
       "facing": "west",
       "land": "prismworks",
-      "name": "Foundry Gate"
+      "name": "Prismworks Gate"
     },
     {
       "kind": "marquee",
@@ -173,7 +173,7 @@
       ],
       "facing": "west",
       "land": "prismworks",
-      "name": "Foundry Relay One"
+      "name": "Well Relay One"
     },
     {
       "kind": "sight/pylon",
@@ -188,7 +188,7 @@
       ],
       "facing": "west",
       "land": "prismworks",
-      "name": "Foundry Relay Two"
+      "name": "Well Relay Two"
     },
     {
       "kind": "sight/lens",
@@ -203,7 +203,7 @@
       ],
       "facing": "west",
       "land": "prismworks",
-      "name": "Foundry Lens"
+      "name": "Well Lens"
     },
     {
       "kind": "sight/pylon",
@@ -218,7 +218,7 @@
       ],
       "facing": "west",
       "land": "prismworks",
-      "name": "Array Relay One"
+      "name": "Rig Relay"
     },
     {
       "kind": "sight/pylon",
@@ -233,7 +233,7 @@
       ],
       "facing": "west",
       "land": "prismworks",
-      "name": "Ascent Relay"
+      "name": "Crown Relay"
     },
     {
       "kind": "portal/exit",
@@ -343,8 +343,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "5b4ae104a2bde12fcf0fbf470ba0b4455ed803f4481c0b319abdaf08096f5554",
-    "generator_source_digest": "8953590b33a7a9a48c978350a60bf4dba61eb13c0ebbad52baf5e925feda9b45",
+    "fingerprint": "4e57a63862ce981f3d6f7ff7aa3ed8f13f6a2d66323b7b6d87b4e6a664751b6d",
+    "generator_source_digest": "a489ef6ff8b881cb9b7606057100aabb1fac48a1ef3fd3114f5bc41a4e7b2ae8",
     "anchors": [],
     "genome": {
       "name": "prismworks",
@@ -384,9 +384,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 55.234749,
+    "seconds": 63.471545,
     "blocks": 1963,
-    "blocks_per_second": 35.54
+    "blocks_per_second": 30.93
   },
   "generator_contract": {
     "ok": true,

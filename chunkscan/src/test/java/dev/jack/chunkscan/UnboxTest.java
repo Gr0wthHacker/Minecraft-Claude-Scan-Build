@@ -110,8 +110,8 @@ class UnboxTest {
 		// The Crafter shipped this exact race earlier in the day: `getCount()` is what the server
 		// is being ASKED to move, and a full pack moves less.
 		String s = src("Unbox");
-		assertTrue(s.contains("COUNTED FROM THE PACK ON A LATER TICK"),
-			"the reason must stay beside the fix");
+		assertTrue(s.contains("Withdraw.begin(where") && s.contains("if (Withdraw.busy()) return null;"),
+            "unbox must use the server-response-aware withdrawal and wait for it");
 		assertFalse(s.contains("got += st.getCount()"), "that is the race, not the fix");
 	}
 }

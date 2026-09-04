@@ -2,89 +2,362 @@
   "origin": {
     "x": 97687,
     "y": 203,
-    "z": 80375
+    "z": 80300
   },
   "size": {
     "x": 13,
-    "y": 16,
-    "z": 98
+    "y": 24,
+    "z": 173
   },
-  "generated_by": "claimrow",
-  "kind": "frontier_claims",
+  "generated_by": "rookery",
+  "kind": "rookery",
   "lot": [
     13,
-    98
+    173
   ],
   "at": [
     187,
-    75
+    0
   ],
   "land": "frontier",
   "facing": "west",
   "profile_axis": "u",
-  "signs": [],
-  "refused": 2,
+  "refused": 4,
   "parts": {
-    "way": {
-      "axis": "u",
-      "u": [
-        1,
-        3
+    "walks": [
+      {
+        "v": [
+          0,
+          2
+        ],
+        "u": [
+          0,
+          23
+        ],
+        "rows": 24,
+        "cells": 70,
+        "kerb": 18,
+        "glow": 2
+      },
+      {
+        "v": [
+          0,
+          8
+        ],
+        "u": [
+          24,
+          25
+        ],
+        "rows": 2,
+        "cells": 18,
+        "kerb": 2,
+        "glow": 0
+      },
+      {
+        "v": [
+          4,
+          8
+        ],
+        "u": [
+          26,
+          52
+        ],
+        "rows": 27,
+        "cells": 97,
+        "kerb": 25,
+        "glow": 2
+      },
+      {
+        "v": [
+          0,
+          8
+        ],
+        "u": [
+          53,
+          54
+        ],
+        "rows": 2,
+        "cells": 18,
+        "kerb": 1,
+        "glow": 0
+      },
+      {
+        "v": [
+          0,
+          2
+        ],
+        "u": [
+          55,
+          172
+        ],
+        "rows": 118,
+        "cells": 345,
+        "kerb": 84,
+        "glow": 9
+      }
+    ],
+    "rail": {
+      "v": 12,
+      "cells": 158,
+      "posts": 79
+    },
+    "hide": {
+      "at": [
+        3,
+        99
       ],
-      "cells": 189,
-      "kerb": 105,
-      "glow": 7
+      "size": [
+        4,
+        7
+      ],
+      "facing": "east",
+      "cells": 113,
+      "door": 6,
+      "slit": 5,
+      "signed": true
     },
-    "claims": [],
-    "worked": {
-      "cells": 0,
-      "reach": 0.0
+    "deck": {
+      "at": [
+        5,
+        34
+      ],
+      "size": [
+        3,
+        9
+      ],
+      "cells": 53,
+      "rail": 26,
+      "signed": true
     },
-    "pits": [],
-    "nests": [
+    "stacks": [
       {
         "at": [
-          8,
-          12
+          10,
+          8
         ],
-        "eggs": 3,
-        "cells": 83
+        "h": 11,
+        "cells": 222,
+        "clipped": false
       },
       {
         "at": [
-          7,
-          30
+          10,
+          100
         ],
-        "eggs": 1,
-        "cells": 23
+        "h": 9,
+        "cells": 166,
+        "clipped": false
+      },
+      {
+        "at": [
+          10,
+          124
+        ],
+        "h": 14,
+        "cells": 259,
+        "clipped": false
       },
       {
         "at": [
           9,
-          56
+          140
+        ],
+        "h": 10,
+        "cells": 208,
+        "clipped": false
+      },
+      {
+        "at": [
+          10,
+          162
+        ],
+        "h": 12,
+        "cells": 240,
+        "clipped": false
+      },
+      {
+        "at": [
+          10,
+          64
+        ],
+        "h": 9,
+        "cells": 177,
+        "clipped": false
+      }
+    ],
+    "nests": [
+      {
+        "at": [
+          7,
+          76
+        ],
+        "eggs": 4,
+        "cells": 117,
+        "hatched": false
+      },
+      {
+        "at": [
+          4,
+          88
         ],
         "eggs": 3,
-        "cells": 63
+        "cells": 84,
+        "hatched": false
+      },
+      {
+        "at": [
+          9,
+          113
+        ],
+        "eggs": 5,
+        "cells": 111,
+        "hatched": false
+      },
+      {
+        "at": [
+          5,
+          128
+        ],
+        "eggs": 0,
+        "cells": 45,
+        "hatched": true,
+        "shell": 6
+      },
+      {
+        "at": [
+          9,
+          152
+        ],
+        "eggs": 4,
+        "cells": 105,
+        "hatched": false
+      },
+      {
+        "at": [
+          6,
+          168
+        ],
+        "eggs": 0,
+        "cells": 49,
+        "hatched": true,
+        "shell": 9
+      },
+      {
+        "at": [
+          9,
+          38
+        ],
+        "eggs": 3,
+        "cells": 77,
+        "hatched": false
+      },
+      {
+        "at": [
+          9,
+          60
+        ],
+        "eggs": 0,
+        "cells": 49,
+        "hatched": true,
+        "shell": 6
+      }
+    ],
+    "hatchlings": [
+      {
+        "at": [
+          6,
+          81
+        ],
+        "facing": "east",
+        "cells": 22
       },
       {
         "at": [
           7,
-          80
+          117
         ],
-        "eggs": 3,
-        "cells": 78
+        "facing": "east",
+        "cells": 22
+      },
+      {
+        "at": [
+          7,
+          156
+        ],
+        "facing": "east",
+        "cells": 22
       }
     ],
-    "planting": {
-      "trees": 2,
-      "cells": 13
-    }
+    "bones": [
+      {
+        "at": [
+          8,
+          92
+        ],
+        "cells": 83,
+        "ribs": 16
+      }
+    ],
+    "kit": 10,
+    "plaques": [
+      {
+        "at": [
+          3,
+          70
+        ],
+        "facing": "north",
+        "lines": [
+          "THE ROOKERY",
+          "pteranodon",
+          "nest here",
+          "keep to the way"
+        ],
+        "cells": 4,
+        "signed": true
+      },
+      {
+        "at": [
+          3,
+          133
+        ],
+        "facing": "north",
+        "lines": [
+          "SPECIMEN 14",
+          "part skeleton",
+          "weathering",
+          "out of the rim"
+        ],
+        "cells": 4,
+        "signed": true
+      }
+    ],
+    "plant": {
+      "trees": 16,
+      "cells": 899
+    },
+    "eggs": 19,
+    "skyline": 14,
+    "cells": 3982
   },
-  "contract": "the ground inside Frontier column A's lots that no module ever built: worked placer ground laid at the plane and fading into untouched moss, a packed way that is walked rather than looked at, and staked, numbered claims with their tailings and rockers. No water, no building, and every candidate asked of the world this is verified against.",
+  "contract": "the Frontier's clifftop rookery, behind the railway: a walk that runs the whole band and passes UNDER the sauropod between its feet, perch stacks that give the strip a skyline it measured zero of, a nesting colony of full, hatching and hatched scrapes with juveniles beside them, an observation hide, a bone find and a railed drop. Nothing is placed on paving or on anything standing; every piece asks the world per CELL as it rises, so the sauropod stops the tall things and the low ones stand under it.",
   "mechanics": {
     "minecraft": "java-1.19",
-    "families": {},
-    "verifiers": {},
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
     "roles": [
       "construction"
     ],
@@ -97,54 +370,55 @@
       "purpose": "path",
       "hierarchy": "filler",
       "style": "frontier",
-      "narrative": "The cliff walk along the plateau's outer rim, with a pteranodon nesting colony between it and the drop: four scrapes of the ridge's own rock, eggs in each, and jungle and snags between.\n"
+      "narrative": "The clifftop rookery on the Lost Plateau's outer rim: a walk that runs the whole band and passes under the sauropod between its feet, guano-capped perch stacks against the void, a nesting colony of full, hatching and hatched scrapes with juveniles beside them, a timber observation hide, a partial skeleton weathering out of the edge, and a railed drop.\n"
     },
     "metrics": {
-      "blocks": 548,
-      "materials": 11,
-      "dominant_material_share": 0.2646,
-      "light_blocks": 0,
+      "blocks": 3634,
+      "materials": 30,
+      "dominant_material_share": 0.2111,
+      "light_blocks": 2,
       "massing": {
         "width": 13,
-        "height": 5,
-        "depth": 98,
-        "fill_ratio": 0.086
+        "height": 14,
+        "depth": 173,
+        "fill_ratio": 0.1154
       },
       "silhouette": {
         "top": {
-          "area": 452,
-          "fill_ratio": 0.3548
+          "area": 1567,
+          "fill_ratio": 0.6968
         },
         "front": {
-          "area": 34,
-          "fill_ratio": 0.1635
+          "area": 143,
+          "fill_ratio": 0.4583
         },
         "side": {
-          "area": 139,
-          "fill_ratio": 0.0886
+          "area": 779,
+          "fill_ratio": 0.1876
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          1.0,
-          0.0,
+          0.8753,
+          0.1247,
           0.0
         ],
-        "top_silhouette_perimeter": 784,
-        "surface_faces_per_block": 2.9197
+        "top_silhouette_perimeter": 1453,
+        "surface_faces_per_block": 2.0468
       },
       "material_counts": {
-        "cobbled_deepslate": 145,
-        "cobbled_deepslate_slab": 100,
-        "cobblestone": 76,
-        "stone": 72,
-        "bone_block": 48,
-        "gravel": 37,
-        "andesite": 23,
-        "dripstone_block": 19,
-        "stripped_jungle_log": 13,
-        "moss_block": 8,
-        "ochre_froglight": 7
+        "jungle_leaves": 767,
+        "cobbled_deepslate": 714,
+        "cobblestone": 444,
+        "diorite": 289,
+        "dripstone_block": 231,
+        "stone": 194,
+        "white_wool": 141,
+        "bone_block": 136,
+        "cobbled_deepslate_slab": 106,
+        "spruce_fence": 100,
+        "gravel": 94,
+        "spruce_planks": 90
       }
     },
     "checks": [],
@@ -156,8 +430,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "72dface484edc8fdf804be582dddef38fe89cdf0ff06fc977739cc5180afba8c",
-    "generator_source_digest": "03a82fbff04342e1bc7a88b4a00bc61ec34607ff4b0483555e286c78e25e0189",
+    "fingerprint": "dc12a135c9188f314c78dd2bdfa56aaf331df82f0f42b6f704244f0d4ad8d9ac",
+    "generator_source_digest": "7639da6c58890cf19a3b74ba1f623ef297691ec023d73eb1cb5f6bf4acfbd85b",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -187,7 +461,11 @@
       "visual_review": false,
       "journey": false,
       "anchors": false,
-      "mechanics": [],
+      "mechanics": [
+        "container",
+        "light",
+        "signage"
+      ],
       "redstone_declared": false,
       "scenario": false
     }
@@ -195,9 +473,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 53.361245,
-    "blocks": 548,
-    "blocks_per_second": 10.27
+    "seconds": 85.889812,
+    "blocks": 3634,
+    "blocks_per_second": 42.31
   },
   "generator_contract": {
     "ok": true,
@@ -206,8 +484,12 @@
     "roles": [
       "construction"
     ],
-    "blocks": 548,
-    "mechanic_families": []
+    "blocks": 3634,
+    "mechanic_families": [
+      "container",
+      "light",
+      "signage"
+    ]
   },
   "fun_contract": {
     "declared": false,
@@ -230,7 +512,9 @@
   "server_unlisted": [
     "not in the provisional skyblock-1.19 list: cobbled_deepslate",
     "not in the provisional skyblock-1.19 list: cobbled_deepslate_slab",
+    "not in the provisional skyblock-1.19 list: diorite",
     "not in the provisional skyblock-1.19 list: dripstone_block",
+    "not in the provisional skyblock-1.19 list: jungle_log",
     "not in the provisional skyblock-1.19 list: stripped_jungle_log"
   ],
   "file": "PF Frontier Rim.litematic",

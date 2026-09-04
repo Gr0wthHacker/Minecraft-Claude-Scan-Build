@@ -138,7 +138,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "6053d59e7aab2329b961707e0468d8c72e2997ab9f44038daa0e6a3bb816336c",
+    "fingerprint": "26239fd266c139ce5980bfdfa5838bf78cebe0f6eaa7ab764c04976de6575cae",
     "generator_source_digest": "9bd4c80c627d9c27bd2b5319ab361a7dce0d743fec6cce9a8fc0c9077a65a081",
     "anchors": [],
     "genome": {
@@ -182,9 +182,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 71.320455,
+    "seconds": 77.577573,
     "blocks": 1091,
-    "blocks_per_second": 15.3
+    "blocks_per_second": 14.06
   },
   "generator_contract": {
     "ok": false,

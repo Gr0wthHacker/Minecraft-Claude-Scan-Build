@@ -29,9 +29,16 @@ params:
   kind: aim
   land: frontier
   facing: north          # the shooter stands under the veranda and faces the sluice shed
-  at: [97588, 204, 80333]
-  building: PF Prospecting Porch
-  under: out/Park Complete.litematic
+  at: [97580, 204, 80361]
+  building: PF Plateau Bone Bed
+  # **A CONSOLE'S CONTEXT IS THE GROUND LAYER, NOT THE COMPOSITE IT ENDS UP IN.** Pointed at
+  # `Park Complete` this design reads a world that ALREADY CONTAINS ITSELF the moment it is placed:
+  # `park_games` refuses every cell the capture owns, so a regenerate finds its own standing copy
+  # and ships a stub of a machine, silently, with 0 problems. `PF Game The Riffle` lost its disc,
+  # its comparator and its whole lamp row that way and still audited clean.
+  under:
+    - out/Park Ways.litematic
+    - out/PF Park Green.litematic
   score: 6
   title: 'THE RIFFLE'
 roles: [ride]
@@ -47,7 +54,6 @@ finish:
   hollow: false
   ground: false
   drop_floaters: false
-  verify_against: out/Park Complete.litematic
 origin_lock: false
 expensive_allowance: 6
 expensive_reason: >

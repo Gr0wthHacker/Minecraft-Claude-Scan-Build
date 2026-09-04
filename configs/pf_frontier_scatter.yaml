@@ -43,11 +43,14 @@ params:
   # timber, so no material test can tell my pine from theirs. These are the land's lots, from
   # `tools/park_lots.PLACEMENT` and the two designs that carry their own origin.
   keep_out:
-    - [24, 68, 0, 38]        # Trailhead Gate
-    - [69, 119, 0, 39]       # Prospecting Porch
+    # **THE WEST HALF IS TWO TERRAIN DESIGNS NOW, AND BOTH BRING THEIR OWN PLANTING.** The
+    # Trailhead Gate, the Prospecting Porch, the Diggings and Mining Square are retired; `PF
+    # Plateau Vale` and `PF Plateau Bone Bed` take their ground and each dresses it with the same
+    # JUNGLE palette this pass uses. Two planting passes over one hillside is the confetti failure
+    # this repo has recorded four times, so the whole west end is off limits here.
+    - [24, 122, 0, 46]       # PF Plateau Vale
+    - [24, 122, 47, 92]      # PF Plateau Bone Bed
     - [130, 146, 0, 16]      # Vantage Frontier Lookout
-    - [24, 76, 47, 92]       # Frontier Diggings
-    - [80, 120, 47, 92]      # Mining Square
     - [130, 149, 47, 92]     # Assay and Prize Office
     - [24, 147, 99, 169]     # Mine Coaster and Mine Ridge
     - [148, 169, 6, 105]     # Mine Works

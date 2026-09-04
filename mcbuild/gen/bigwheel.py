@@ -1371,7 +1371,7 @@ def _carousel(w: World, p: dict, ctx) -> dict:
     # ...and two on the column itself, which is what a rider reads from the cart.
     if p.get("sign", True) and _signed(w, f, pal, c, c - 2, 7, f.facing,
                                        [title[:SIGN_WIDTH], "", "%d mounts" % len(mounts),
-                                        "%d-cell circuit" % len(track)]):
+                                        "%d-cell track" % len(track)]):
         signs += 1
     if p.get("sign", True) and _signed(w, f, pal, c, c + 2, 7, f.back,
                                        [title[:SIGN_WIDTH], "", "mind the rail", "hold the pole"]):

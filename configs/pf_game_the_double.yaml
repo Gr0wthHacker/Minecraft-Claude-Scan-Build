@@ -9,10 +9,20 @@ gen: park_games
 params:
   kind: pair
   land: midway
-  facing: south
-  at: [97557, 204, 80670]
-  building: PF Skill Arcade
-  under: out/Park Complete.litematic
+  facing: north
+  at: [97528, 204, 80671]
+  building: PF Games Row
+  # **THE CONSOLE'S CONTEXT IS THE GROUND LAYER, NOT THE COMPOSITE IT ENDS UP IN.** Pointed at
+  # `Park Complete` this design read a world that ALREADY CONTAINED ITSELF the moment it was
+  # placed: `park_games` refuses every cell the capture owns, so a regenerate found its own
+  # standing copy and shipped a 4-block stub of a 556-block machine, silently, with 0 problems.
+  # A console is fitted to the ground it stands on - `Park Ways` paves it, `PF Park Green` plants
+  # it, `PF Front Midway` signs it - and its own bay is reserved by `PF Games Row`, so nothing
+  # else in the park can be in the way.
+  under:
+    - out/Park Ways.litematic
+    - out/PF Park Green.litematic
+    - out/PF Front Midway.litematic
   title: 'THE DOUBLE'
 roles: [ride]
 design:
@@ -26,7 +36,6 @@ finish:
   hollow: false
   ground: false
   drop_floaters: false
-  verify_against: out/Park Complete.litematic
 origin_lock: false
 expensive_allowance: 1
 expensive_reason: >

@@ -45,14 +45,36 @@ def _shipped(name):
     return schem.load(lit), json.load(open(side, encoding="utf-8"))["origin"]
 
 
+#: **`PF FRONTIER CLAIM ROW` AND `PF FRONTIER MUSTER YARD` ARE RETIRED**, with the two lots they
+#: were written to dress. Jack, on the Lost Plateau: *"its just buildings, the dig zone is crappy
+#: ... i really dont like this splatter of buildings that dont look amazing and dont really do
+#: anything"* - and both of these are ground dressing for the holes the Trailhead Gate and the
+#: Prospecting Porch left INSIDE their own lots. `PF Plateau Vale` holds that ground now.
+#:
+#: The tests that BUILD them are skipped rather than deleted, and the reason is in the marker: they
+#: read `Park Complete` for the ground they stand on, and the ground has moved - the vale's turf and
+#: rock are where a claim board's post used to find a level flat, so a board is correctly refused.
+#: That is the SNAPSHOT TRAP this repo has recorded four times: a test that pins a design against a
+#: world it no longer belongs to fails the moment the world improves.
+#:
+#: The generator is SHARED - `PF Plateau Plaques` and `PF Frontier Rim` are the same module - so
+#: everything that tests `claimrow` itself, and every test of the muster yard's own contracts that
+#: does not rebuild it against the live world, still runs.
+RETIRED = ("PF Frontier Claim Row is retired with the two lots it dressed - see "
+           "tools/park_place.EXTRAS_READY and configs/pf_plateau_vale.yaml")
+
+
 @pytest.fixture(scope="module")
 def row_cfg():
-    return _load(ROW)
+    pytest.skip(RETIRED)
 
 
 @pytest.fixture(scope="module")
 def yard_cfg():
-    return _load(YARD)
+    #: Retired with the claim row and for the same reason - it dressed the Trailhead Gate's own
+    #: walled court, and the gate is gone. Rebuilt against the vale's ground its corral gate is
+    #: correctly refused, which is the snapshot trap and not a defect in the module.
+    pytest.skip(RETIRED.replace("PF Frontier Claim Row", "PF Frontier Muster Yard"))
 
 
 # --------------------------------------------------------------------------- the palette

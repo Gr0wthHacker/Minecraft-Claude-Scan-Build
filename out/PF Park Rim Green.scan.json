@@ -1,0 +1,194 @@
+{
+  "origin": {
+    "x": 97687,
+    "y": 203,
+    "z": 80300
+  },
+  "size": {
+    "x": 13,
+    "y": 16,
+    "z": 600
+  },
+  "generated_by": "parkgreen",
+  "kind": "parkgreen",
+  "lot": [
+    13,
+    600
+  ],
+  "at": [
+    187,
+    0
+  ],
+  "facing": "west",
+  "profile_axis": "u",
+  "refused": 0,
+  "parts": {
+    "pieces": 62,
+    "cells": 2398,
+    "by_kind": {
+      "meadow": 38,
+      "rock": 13,
+      "shrub": 11
+    },
+    "by_land": {
+      "reach": 348,
+      "midway": 1084,
+      "prismworks": 966
+    },
+    "open_min": 4,
+    "open_full": 9
+  },
+  "contract": "shrubbery, flowers and accents on the park's UNCLAIMED lawn: every cell stands on a column whose own ground course is moss and whose neighbourhood within `path_clear` is moss too, so nothing is placed on paving, against a kerb, or on anything anybody uses. The density is the measured distance from the column to the nearest built or planted thing, so a verge is left as a verge and the dead middles get the material. It never replaces a standing block.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "filler",
+      "style": "frontier",
+      "narrative": "Rough moor on the park's outer reserve, beyond the railway: tussocks of grass and fern, low scrub and the odd boulder, nothing over three courses and nothing paved - so the strip reads as unimproved ground rather than as a mown verge nobody finished, and the void view the reserve exists to protect is still a void view.\n"
+    },
+    "metrics": {
+      "blocks": 1814,
+      "materials": 11,
+      "dominant_material_share": 0.366,
+      "light_blocks": 0,
+      "massing": {
+        "width": 13,
+        "height": 3,
+        "depth": 424,
+        "fill_ratio": 0.1097
+      },
+      "silhouette": {
+        "top": {
+          "area": 1757,
+          "fill_ratio": 0.2253
+        },
+        "front": {
+          "area": 27,
+          "fill_ratio": 0.1298
+        },
+        "side": {
+          "area": 298,
+          "fill_ratio": 0.031
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "top_silhouette_perimeter": 2111,
+        "surface_faces_per_block": 2.6439
+      },
+      "material_counts": {
+        "moss_carpet": 664,
+        "short_grass": 511,
+        "fern": 389,
+        "cobbled_deepslate": 64,
+        "cobblestone": 53,
+        "mossy_cobblestone": 47,
+        "andesite": 36,
+        "deepslate": 27,
+        "azalea": 16,
+        "sweet_berry_bush": 4,
+        "flowering_azalea": 3
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "fd7a5989b9cb7d9ba0d3af3cc16c6d91ecc20b1b953d82a5378284b29f700ec9",
+    "generator_source_digest": "19b25a76764aca7b2de23b8405257178a3d2449f746266f1f70cf908bdd199cf",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 66.282046,
+    "blocks": 1814,
+    "blocks_per_second": 27.37
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 1814,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: deepslate"
+  ],
+  "file": "PF Park Rim Green.litematic",
+  "name": "PF Park Rim Green"
+}

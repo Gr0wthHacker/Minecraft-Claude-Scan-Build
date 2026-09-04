@@ -1711,7 +1711,12 @@ def _assay(lot: _Lot, p: dict) -> dict:
     # assay office weighing gold is supposed to look like. A whole range dressed like this is a
     # fairground with a vault in it, and a whole range dressed like the vault is a village.
     out["prize_front"] = _showfront(lot, v0, v1, wu - 8, du - 5, "-v", 8, "PRIZES",
-                                    rise=6, lines=["win at the", "range or sluice"])
+                                    rise=6, lines=["win at the", "pan or striker"])
+    # **IT SAID "range or sluice" AND NEITHER EXISTS.** The Shooting Range was tried on the
+    # Claim Line and withdrawn (Jack: "the blocks are sticking out the back"), and the Gold
+    # Sluice was never placed at all - so the one board in this land that tells a guest where
+    # to WIN what it redeems named two buildings that are not standing. The land's real games
+    # are the Pan Line, the Powder Striker and the Riffle, all three within sixty columns.
     # THE CANVAS RUNS THE WHOLE PRIZE FRONTAGE, not just the counter. Stopped at the four
     # columns of the hatch it read as a small blind over a window in a civic wall; run the full
     # fourteen it is a SHOPFRONT, which is what the building's south end is for.

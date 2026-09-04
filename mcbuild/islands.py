@@ -74,7 +74,11 @@ def add(name: str, capture: str, owner: str = "", radius: int | None = None,
     from . import plot as plot_mod
     pl = plot_mod.find(capture) if radius is None else plot_mod.find(capture, radius)
     state = load(schem_dir)
+    prior = state["islands"].get(name, {})
+    if "bounds" in prior and (prior.get("cx"), prior.get("cz")) != (pl.cx, pl.cz):
+        raise ValueError("Capture bedrock differs from registered exact plot; re-register its bounds explicitly")
     state["islands"][name] = {
+        **prior,
         "cx": pl.cx, "cz": pl.cz, "radius": pl.radius,
         "owner": owner, "capture": capture,
     }
@@ -91,6 +95,8 @@ def at(x: int, z: int, schem_dir: str | None = None) -> str | None:
     """
     best, bestd = None, None
     for name, isl in load(schem_dir).get("islands", {}).items():
+        if _plot(isl).contains(x, z):
+            return name
         d = max(abs(x - isl["cx"]), abs(z - isl["cz"]))
         if d <= NEAR and (bestd is None or d < bestd):
             best, bestd = name, d
@@ -103,7 +109,16 @@ def plot_of(name: str, schem_dir: str | None = None):
     isl = load(schem_dir).get("islands", {}).get(name)
     if not isl:
         return None
-    return Plot(isl["cx"], isl["cz"], isl.get("radius", 49))
+    return _plot(isl)
+
+
+def _plot(isl):
+    from .plot import Plot
+    explicit = isl.get("bounds")
+    bounds = None if explicit is None else (
+        explicit["min_x"], explicit["min_z"],
+        explicit["max_x_exclusive"] - 1, explicit["max_z_exclusive"] - 1)
+    return Plot(isl["cx"], isl["cz"], isl.get("radius", 49), bounds=bounds)
 
 
 def owner(name: str, schem_dir: str | None = None) -> str:
@@ -136,9 +151,9 @@ def report(schem_dir: str | None = None) -> str:
                 "  (the centre is DISCOVERED from the capture's bedrock, never typed)")
     lines = [f"{len(isls)} island(s):"]
     for name, i in sorted(isls.items()):
-        r = i.get("radius", 49)
+        x0, z0, x1, z1 = _plot(i).bounds
         lines.append(f"  {name:12s} bedrock {i['cx']} {i['cz']}  "
-                     f"X {i['cx'] - r}..{i['cx'] + r} Z {i['cz'] - r}..{i['cz'] + r}"
+                     f"X {x0}..{x1} Z {z0}..{z1}"
                      + (f"  owner {i['owner']}" if i.get("owner") else ""))
     lines.append("  ownership is a LABEL, not a permission - any alt may build on any of them")
     return "\n".join(lines)

@@ -7702,6 +7702,390 @@ Plaques` and `PF Frontier Rim`, so everything testing the module itself still ru
   Whether a 56-course tower is what that corner wants is a separate decision.
 
 
+## The Helter Skelter: the Midway's third ride, and the four machines nobody had placed (2026-09-03)
+
+Jack, standing in the lot: *"theres a strip here before the prism area that has these buildings and
+this empty plot, i think we can do more with this area thats more impactful to the player, and
+cooler."*
+
+**THE STRIP IS MIDWAY COLUMN C'S REAR AND IT WAS THE EMPTIEST GROUND OF ITS SIZE IN THE PARK.**
+Measured off `out/Park Complete.litematic` before anything was drawn - V100-153 x U345-384, with
+streets on all four sides:
+
+| | |
+|---|---|
+| columns | 2,160 |
+| blocks per column | **0.09** - 1,953 of 2,160 surface cells bare moss |
+| standing three courses tall | **0.9%** (twenty columns, all of them lamp masts) |
+| light sources | **13 lanterns**, in the whole thing |
+| tallest cell | **Y208**, against Y223 for the Skill Arcade beside it and Y276 for the wheel |
+
+Mining Square - the lot Jack had replaced in the Frontier for being a car park - measured **1.4**
+blocks per column. This was fifteen times emptier, and a hole in the skyline as well as on the
+ground. `PARK_GRID_PLAN.md`'s own lot table had already said so twice and nobody had read it: lot
+10's programme stops at V99 and lot 15 is listed *spare*.
+
+### AND THE TWO BUILDINGS IN FRONT OF IT WERE EMPTY SHELLS
+
+This is the Frontier's own recorded failure, in the Midway, eight days later. Four machines were
+built, circuit-simulated, sitting in `out/` and **absent from the shipped park**:
+
+    PF Game Target Wall  172   PF Game The Double  560
+    PF Game The Mark     389   PF Game Prize Point 197     = 1,318 blocks
+
+...while the whole land carried **four buttons across 170 columns**. A design that is built and
+unplaced is indistinguishable from one nobody wrote, and the only thing that decides it is a name
+in `park_place.EXTRAS_READY`. All four are in it now.
+
+### What a RIDE can be here, which is the constraint the design turns on
+
+A ride in this park can only be a **rail circuit**, a **bubble column** or a **walk-through**;
+anything else is a sculpture with a queue, and this repo has retired eight of those. So:
+
+    UP    a 3x3 soul-sand bubble column inside the drum, 30 courses
+    DOWN  2.75 turns of BLUE ICE helix wound round the outside
+
+**THE DESCENT IS DRY ON PURPOSE.** A helical open water chute is the shape that drained 199,959
+cells to Y-1908 the one time this repo built one, and `fluids.escapes` exists because of it. Blue
+ice carries a rider down a graded ramp with no fluid at all, and its worst case is a walkable
+spiral ramp - which is still a helter-skelter. All the water in the design is ONE sealed vertical
+shaft: **0 escapes, 0 unenclosed**, verified against the generator's own recorded envelope.
+
+**AND IT IS BOARDED FROM A POOL, WHICH IS THE ONLY LEAK-FREE WAY INTO A WATER COLUMN.** A doorway
+into the side of one at the water's own level is a hole in the side of one. There is no doorway:
+the trough IS the bottom two courses of the same body, kerbed all round, and a rider steps down off
+a boarding deck into it.
+
+**THE TWO NUMBERS THAT WERE NOT FREE:**
+
+- **The axis is V142 because of the ground layer's lamps.** Three mast lines stand at U345, U363
+  and U382 and their arms reach four courses into this lot on both promenade verges. At V141 the
+  chute's outer wall reaches (V133, U363) and takes one; at V142 it clears them. They are in
+  `blocked` as well, so wanting one RAISES rather than shipping as an overlap no render can show.
+- **`turns` must be a quarter short of a whole one.** The head is on the drum's -V face, so only
+  0.75, 1.75, 2.75... land the foot pointing +U - the opposite side of the tower from the queue.
+  `PARK_MIDWAY.md`: *"The exit cannot feed into waiting guests."* A ride whose run-out is a
+  function of wherever the arithmetic happened to land is a ride whose exit walks into its queue.
+
+### Nine things that shipped a clean audit and a wrong build
+
+Every one of these passed `problems: 0`, `overlap 0`, a correct BOM and a plausible render.
+
+- **THE DRUM HAD NO DOOR.** Thirty courses of shell, a bubble lift, a helix wrapped round it, and
+  no way out of the top onto the chute - a rider carried to the top of a tower with nowhere to go.
+  Nothing about a sealed drum looks wrong from outside, and the only check that finds it is a walk.
+- **A SPIRAL DRAWN IN THE MASS'S OWN TWO COLOURS IS NOT A SPIRAL.** The first build gave the drum
+  eight broad red bands and eight white ones and wrapped a white-walled chute round it. Every
+  bearing read as lumps of foam stuck to a barber's pole, because the one element that has to be
+  legible from across the park was the same value as the thing behind it. The tower is
+  `white_wool` with a narrow `red_wool` pinstripe now and the helix carries the red, with
+  `polished_blackstone_bricks` under it - 45 against 236, the deepest cheap step this economy has -
+  drawing the ramp's underside as one continuous shadow line.
+- **A HELIX IS NOT 6-CONNECTED TO ITSELF.** Consecutive cells along it sit one cell apart
+  horizontally AND one course apart vertically, which is a diagonal neighbour - the rule that once
+  broke a pair of ear tips off a cat. The course under the ice is what joins them.
+- **`Canvas.get_name` IS NAMESPACED.** `"minecraft:stone"` against a bare palette entry matches
+  NOTHING, so the yard's lighting loop silently placed zero lamps and reported a count of eight
+  that all came from the forecourt. A membership test that can only ever be false is invisible.
+- **A SIGN ON THE ONE COLUMN OF A WALL THAT HAS AN OPENING IN IT.** The top board hung on the cell
+  over the doorway and `_Lot.sign` refused it in silence - four of an earlier park's seven building
+  kinds shipped exactly this. The count is what is asserted, because a wall sign floating in air
+  draws exactly like one on a wall.
+- **BENCHES ON GROUND THE WALK NEVER PAVED.** The forecourt's beds sat two columns clear of the
+  walk's border and the seats went in the gap - twelve cells of free-floating stair, caught by the
+  buildability line and by nothing else.
+- **THE HAND-OFF BETWEEN THE HELIX AND THE RUN-OUT WAS A LITERAL IN TWO PLACES**, and they
+  disagreed by two courses. The join was walkable only because the run-out is built last and
+  overwrites what the helix left: a ride that works by accident. It is one parameter now.
+- **A COMPOSITE'S Y IS NOBODY'S CONSTANT.** The test file typed 190 for `Park Complete`'s origin;
+  it is 94, because another stream put a design under Prismworks. Thirteen courses of empty sky
+  read as the world, the whole lot reported as disconnected, and `tests/test_park_entrance.py`
+  already records the identical failure. It is read from the sidecar.
+- **AND THE COMPOSITE CONTAINS THE DESIGN.** The day this went into `EXTRAS_READY`, a walk test
+  over `Park Complete` would pass on the SHIPPED copy however broken the generator became. The
+  fixture takes from the park only what the park actually owns in these columns - the lawn a course
+  below, the promenade, and the masts `blocked` names - and the design under test supplies the
+  rest. **Fifth time this repo has recorded the self-reference trap.**
+
+### A LOT STANDING ONE COURSE ABOVE THE STREET IS DIAGONAL TO IT
+
+The first connectivity test demanded that the design and the park be one 6-connected solid and
+reported 3,219 of 3,953 cells. That is not a fault: every building lot in this park paves at Y203
+while the streets pave at Y202, so a lot and the street beside it are diagonal by construction -
+correct architecture and disconnected arithmetic. `tests/test_park_entrance.py` already allows for
+it by name. **The right question is a WALK**, and what is asserted now is that from the back
+promenade a guest reaches the forecourt walk, the queue, the boarding deck and the exit apron.
+
+### What it moved
+
+**5,057 blocks, 0 problems, 0 overlap in context, 0 clashes with any other module, 6 expensive**
+(the run-out's hay-bale buffer, declared).
+
+    blocks per column   0.09  ->  2.43
+    3+ courses tall     0.9%  ->  24.8%
+    tallest             Y208  ->  Y249   (clear of the Arcade's Y223, well under the wheel's Y276)
+    the Midway's rides  2     ->  3
+
+`tests/test_helter.py` (13) pins the contract by SIMULATION rather than by eye: the lift sealed,
+every water cell a SOURCE over unbroken soul sand, a walk from the queue to the boarding deck in
+context, **100% of the chute walkable from the top**, the discharge opposite the queue, no cell on
+ground the park owns, the promenade untouched, the value ladder measured, and every sign placed.
+
+### Still open
+
+- **Nothing has been placed in game.** All of it is `render3d`, which draws with the same colour DB
+  the palette picker optimises against - judge form and mass here, palette in world. In particular
+  the blue channel is only visible from above and obliquely, which is what a real helter-skelter's
+  slide does, but it has not been walked.
+- **The rear lot is 75% open ground still.** That is deliberate - a fully paved lot is a car park,
+  and this park has replaced one for being one - but whether the two yards want more than a queue
+  and an apron is a decision rather than a defect.
+- **`tests/test_park_games.py::test_no_shipped_game_takes_a_cell_the_park_already_owns` fails on
+  `PF Game Ascent Signal`**, which is PRE-EXISTING and belongs to Prismworks v2: its building is
+  `PF Prism Ascent`, one of the four modules removed for the Prism Well, so the game is orphaned
+  and now clashes with the `PF Prism Downs` terrain that replaced it. Not this pass's to fix, and
+  worth fixing before somebody places it.
+
+## PF Games Row: the Skill Arcade and the Prize Point retired, and the self-reference that gutted a machine (2026-09-03)
+
+Jack, on the two buildings at the head of Midway column C: *"i dont like these and they feel out
+of place/useless unclear."*
+
+**MEASURED BEFORE EITHER WAS RETIRED**, over the shipped park:
+
+| | | |
+|---|---|---|
+| Skill Arcade | 6,364 blocks, 51 x 33 | 84% of its footprint solid, 21 courses, **three** games inside |
+| Prize Point | 1,927 blocks, 20 x 33 | a nine-barrel counter, forty courses from the games it redeems |
+
+Both were sound - reachable, signed, 30.5% and 42.5% detail blocks against the outside corpus's
+17.3% median, 42 and 40 in palette against its 37. **Neither was broken and Jack was still right**,
+and the three reasons are all numbers:
+
+- **THE ARCADE WAS A CLOSED HALL** - the shape the Arrival Court and Boomtown Spine were both
+  retired for. Its inside was good (a lit aisle, timber trusses, three working bays, 1,160
+  standable cells) and NOTHING on the street said so. A hall reads as a building; a counter
+  reads as a game.
+- **ITS OWN MARQUEE SAID "five games" OVER THREE.** `PF Front Midway` had been advertising two
+  games that did not exist since the frontage was written.
+- **AND THE COLUMN HAD NO ROUTE THROUGH IT.** `Park Ways` paves nothing in V24-99 but the V77
+  cross walk and two door spurs, because the hall filled the column wall to wall. Every other
+  column in this park has a spine; this one had a door.
+
+**`PARK_MIDWAY.md` HAD ASKED FOR THE REPLACEMENT IN ITS OWN WORDS ALL ALONG** and nobody had read
+it: *"Merge Plinko, High Striker, and arcade functions into a single awning/facade-backed games
+frontage. Each bay has a standing spot, input, outcome, clear prize or score path, and protected
+redstone rear. Place the prize counter as the natural next step."* A FRONTAGE, not a hall.
+
+### `gen/gamesrow.py` builds no building, and that is the whole design
+
+`arcade._shell` gives every `park_games` console its own corner posts, back wall, roof beam and
+fascia, and `_signs` signs it. **They are self-contained open-fronted booths.** So the module is
+the STREET: the walk the column never had, the screen that fills the gaps between the consoles,
+the bunting over it and the planting behind it.
+
+    -U flank, front U357   TARGET WALL V26-37 . THE MARK V41-51 . THE STRIKER V55-66
+                           PRIZE POINT V85-97, past the cross walk - the natural next step
+    +U flank, front U371   THE DOUBLE V28-42 . THE SIGNAL V48-63
+    between them           the walk, U358-370, V24 -> V99, into the helter skelter's forecourt
+
+**FIVE GAMES NOW, AND THE MARQUEE STOPS LYING.** The Striker and the Signal are two kinds
+`park_games` already had and the Midway never built - and the spec names the high striker by name.
+The sign was made true rather than toned down.
+
+### THE FRONTAGE WAS BUILT BACKWARDS TWICE, AND ONE RENDER SETTLED EACH
+
+- **A COLONNADE PUTS ITS POSTS BETWEEN THE WALKER AND THE GAMES.** The first attempt carried a
+  striped canopy three cells out over the walk on posts down each kerb - and every console stands
+  BEHIND that line, so what it actually built was a covered arcade with the games hidden behind
+  its own posts. Exactly the fault being fixed, in a new material. A booth already has a roof
+  beam and a fascia; it does not need a second roof and it must not have anything in front of it.
+- **AT SIX COURSES THE SCREEN WAS A CANYON.** The replacement - a wall on the bay front line with
+  the consoles as its openings - is right, and at the consoles' own height either side of a
+  thirteen-wide walk it read as two blank walls with the games behind them. **A frontage a visitor
+  SEES OVER is a frontage; one they cannot is a fence.** Four courses, dark plinth, white field,
+  red top rail.
+
+### THE CONSOLE'S CONTEXT WAS THE COMPOSITE THAT ALREADY CONTAINED IT
+
+The worst of this session, and it shipped a clean audit. `park_games` **refuses every cell its
+`under` capture owns** - deliberately, because a console is fitted into a room that exists and a
+cell the building owns is an overlap. All six configs pointed `under` at `out/Park Complete
+.litematic`.
+
+The moment they were placed, that composite contained them. A regenerate then found each machine's
+own standing copy in its own world and refused nearly all of it:
+
+    PF Game The Double    556 blocks  ->  a 9x3x1 stub of FOUR, `problems: 0`, sidecar written
+
+**A design whose context contains itself does not fail, it evaporates** - and the sidecar, the
+audit and the BOM all agreed with the result. This repo has now recorded the self-reference trap
+six times (the ruin ring's seat, the town's door frames, the scatter's own lawn, the frog's
+plaques, the helter skelter's walk test, and this) and this is the first time it silently destroyed
+a machine rather than merely under-reporting one.
+
+**THE FIX IS THAT A CONSOLE'S CONTEXT IS THE GROUND LAYER, NOT THE COMPOSITE.** `under` is now
+`[Park Ways, PF Park Green, PF Front Midway]` - what paves, plants and signs the ground it stands
+on - and its own bay is reserved by the row, so nothing else in the park can be in the way. That is
+permanent, where holding the design out of `EXTRAS_READY` and re-shipping is a dance somebody has
+to remember.
+
+### Four more, each of which passed everything
+
+- **A DECORATION ORPHANED A MACHINE.** `PF Front Midway`'s Arcade Bunting ran up U380 from V24 to
+  V48 - which is where The Double now stands - and took four of its cells. Bunting belongs over a
+  walk in any case; the row carries its own now, and the frontage's stamp is gone.
+- **THE RESERVATION MUST BE PINNED TO THE ARTIFACT.** The six bay boxes are `blocked`, so the
+  street raises if it wants one - but a box measured off a console and left behind when the console
+  moves guards nothing at all, and it fails silently because a box round empty ground raises on
+  nothing. `test_every_bay_box_matches_the_console_it_reserves` reads the six shipped litematics.
+- **A ROW HAS NO DOOR.** The Arcade's two portal gantries stood over its entrance and exit spurs;
+  a gantry naming a door that is not there is the same orphaning, so both are removed and the
+  marquee does the naming.
+- **`verify_replaceable` AND `park_place.clashes` ASK DIFFERENT QUESTIONS.** Three of the row's
+  sixteen trees stood their trunks in `PF Park Green`'s moss carpet and ferns. The audit allowed
+  it - the row declares that ground cover replaceable - and the cross-design check counted three
+  cells shared between two designs, which is a WORK problem rather than a rendering one: you place
+  a block, the next placement says it is wrong, you break it and place it again. **A site with
+  another design's ground cover in it is not a free site.** The three are dropped; thirteen stand.
+- **AND A GAMES ROW IS NOT A FOOD ROW.** `Midway Row` is eight free-standing stalls with gaps and
+  bunting on the avenue eighty blocks away; this is a continuous frontage with openings cut into
+  it, which is the spec's own distinction and what keeps two rows in one land from reading as one
+  idea twice.
+
+### AND THEN THE ROW WAS RETIRED TOO, BECAUSE THE CONSOLES ARE SEALED CABINETS
+
+Jack, on it as built: *"the games arent playable as they are facing, theyre ugly, and just not
+working, these have been a consistent issue, either identify and make them really look good, or
+trash the idea and lets put something else there."*
+
+**THE FAULT IS IN `park_games`, NOT IN THE SITING.** Dumped block for block off
+`out/PF Game Target Wall.litematic`:
+
+    Y206   ############   the lid
+    Y205   ##B#######T#   the BELL and the TARGET - the game's own INPUT
+           ###LLLLLL###   the six score lamps
+    Y204   ############   the plinth
+           front face U357: solid at Y204, Y205 and Y206
+
+**A CONSOLE IS A THREE-COURSE SEALED CABINET.** Its score lamps - the thing that tells a player
+what happened - are buried in the lid course in EVERY kind. The `aim` and `striker` targets are
+entirely enclosed, so they cannot be shot. `pair`'s two buttons sit on top of a three-course lid,
+above a standing player's head, with their lamp buried eleven cells away at the far end. Only
+`counter`'s barrels are on a face a player can touch.
+
+**AND EVERY ONE OF THEM SIMULATES CORRECTLY.** The circuits are right, the contracts pass, the
+audit is clean. That is this repo's own cardinal sin - *a machine that looks like it works* - in
+the one subsystem written to prevent it, and it is why the games have been "a consistent issue" for
+as long as they have existed. `park_games`' own docstring states the assumption that makes it
+happen: *"a console is furniture ... it needs no ceiling because the building already has one."*
+**The Skill Arcade was that building. Retiring it did not cause the fault, it revealed it.**
+
+Three attempts to make the row read all failed for the same reason and each is worth keeping:
+
+- **A COLONNADE PUTS ITS POSTS BETWEEN THE WALKER AND THE GAMES.** Posts on the walk's kerb
+  carrying a canopy out over it - and every console stands behind that line.
+- **AT SIX COURSES A FRONTAGE SCREEN IS A CANYON.** A frontage a visitor SEES OVER is a frontage;
+  one they cannot is a fence.
+- **AND A BOOTH ROUND A SEALED CABINET IS A BOOTH ROUND A SEALED CABINET.** The third attempt
+  raised each bay on a deck so the counter would be waist high - correct, and it changes nothing
+  about lamps that are inside the lid.
+
+### What is there now
+
+`PF Midway Garden` - **2,455 blocks**, 0 problems, 0 overlap, 0 clashes, nothing expensive. The
+walk is the one thing kept from the row, because it is the one thing the column actually needed:
+a thirteen-wide spine from the east avenue to the helter skelter's forecourt, with a kerbed
+parterre either side under a clipped hedge, a lozenge motif in wool with flowers between it, a
+specimen tree at the centre of each bed, benches on the verges and four striped pergolas over the
+walk. **No building anywhere in it, and nothing that pretends to be a machine.**
+
+    the lot V24-99 x U345-384   3.5 b/col, 78% standing 3+ tall  ->  0.93 and 8%
+    the column's spine          none  ->  76 courses, avenue to the tower's forecourt
+    what a visitor can DO here  three sealed cabinets  ->  nothing, honestly
+
+**AND THE BEDS STOP AT U377 BY MEASUREMENT.** `PF Park Green` holds 105 cells in this lot and 98
+of them are at U378-384 - it dresses the outer band of the east flank. Beds drawn to the lot edge
+would have contested every one, which is a WORK problem rather than a rendering one: you place a
+block, the next placement says it is wrong, you break it and place it again. The wild edge stays
+wild, which is what a pleasure garden's outer walk looks like anyway.
+
+**A PARTERRE IS A MOTIF, NOT A SCATTER.** Hashed per cell the beds came out as random patches of
+colour - the deck floor's confetti, in wool. The lozenge is a function of the DISTANCE from each
+bed's own midline, so the pair either side of the walk mirror each other for free.
+
+### AND THEN IT WAS FIXED (2026-09-03)
+
+Jack: *"fix it"*. `mcbuild/gen/park_games.py`, and the four consoles standing in the Frontier are
+fixed with it.
+
+**THREE FAULTS, ONE CAUSE.** A console was designed as furniture for a room - its own docstring:
+*"it needs no ceiling because the building already has one"* - so its front was a wall, its works
+were sealed behind that wall, and its controls sat on the lid where a room's own lighting would
+have shown them. Nothing about that survives contact with a player standing in front of it.
+
+    THE WINDOW        the machine course's front row is GLAZED, not walled
+    THE SIGHTLINES    a channel carved from every lamp and every input out to the front
+    THE CONTROLS      moved off the lid onto the front face, at the machine course
+
+**THE WINDOW IS AT EYE LEVEL BY ARITHMETIC, NOT BY LUCK.** A player's eye is 1.62 above the floor
+they stand on, which is the console's own base course - so the machine course IS their eye line.
+Opened, they look straight into the works; the lid stays on, so the slot is one course and nobody
+can climb in.
+
+**GLAZED, NOT OPEN, AND THAT DISTINCTION IS THE WHOLE OF IT.** Left as air the window is a hole a
+hand reaches through: measured, nine of eleven consoles then had a wire, a repeater or a comparator
+with a clear line to the outside, which is the leak `_ring` is a wall to prevent. A pane stops the
+hand and not the eye - which is exactly what a shopfront is - and `_daylight` cuts it back to air
+only in the columns an ARROW has to pass through, because glass stops one of those too.
+
+**AND THE CONTROL IS THE SAME MECHANIC TURNED NINETY DEGREES.** `_press` relied on a floor button
+strongly powering the block BENEATH it with dust under that block; `_face_control` puts a wall
+button on the outside, strongly powering the block BEHIND it, with dust behind that. The machine
+stays sealed, the hand and the eye both find the control, and no kind needed rewiring.
+
+#### Five things it cost, and every one was caught by a test rather than by a render
+
+- **THE CARVE MUST WORK OFF A WHITELIST, NOT A BLOCKLIST.** Written to skip "the works" it ate the
+  counter's own call button and the striker's rules sign - neither is wire nor lamp. It removes the
+  cabinet's own wall, trim, floor and glazing and nothing else, because the next part somebody adds
+  will not be on anybody's blocklist either.
+- **A BUTTON CANNOT HANG ON A PANE.** The counter's call button ended up bolted to glass: the bell
+  it rings is an OUTPUT, and the sightline carved for that bell ran straight through the button's
+  own backing. Two passes each correct alone and wrong together. `_reattach` is the last word.
+- **A WIRE IS NOT A BARRIER.** `_seal` bailed on any occupied cell, and a long dust run points at
+  the front - so it bailed on every wire in the design and placed not one pane while the front-most
+  cell of each run was still open. Only something a hand cannot pass counts as cover.
+- **DUST DOES NOT BLOCK SIGHT.** It is a sixteenth of a block tall and you look straight over it;
+  leaving it out of the test's sight set reported five of the Signal's lamps as walled in by the
+  very wire that lights them. Sight and reach are two sets, and the pane is the difference.
+- **AND THE TEST'S OWN WALK STOPPED AT THE FIRST EMPTY CELL** and called it daylight, so a wire
+  with one course of air in front of it and a pane beyond read as exposed. A cell absent from a
+  model inside its own box is AIR. Two consoles were reported unsafe that were not.
+
+#### The check that had never existed
+
+`tests/test_park_games_visible.py` (43) asks the question `mcbuild.circuit` cannot: **a simulated
+contract is a claim about the CIRCUIT, not about the PLAYER.** For every kind - can every score
+lamp be seen from the front, can every target, button, lever and plate be reached from it, is no
+wire within a hand's reach, and is every control within one course of the floor rather than on the
+roof. All 43 pass; `tests/test_park_games.py` still passes its 144 circuit contracts, so nothing
+was traded for it.
+
+    PF Game Pan Line, course 2 (Y206)      PF Game Pan Line, course 3 (Y207)
+      z7  #...wwwwP#   the scale               z3  #####L####   the lamp
+      z8  #ooooooo.#   glazed, and OPEN        z4  #####o####   glazed channel
+                       at the scale's column    ...  out to the front
+
+#### Still open
+
+**`PF Game Ascent Signal` is orphaned and it is not this pass's**: its building is `PF Prism
+Ascent`, one of the four modules removed for the Prism Well, so it clashes with the `PF Prism
+Downs` terrain that replaced it. `tests/test_park_games.py` fails on it and on nothing else.
+
+And **the six Midway consoles stay retired** - `PF Midway Garden` holds that lot by Jack's own
+choice - but they now build correctly, so putting them back is a decision rather than a repair.
+
 ## The daily loop
 
 ```bash
@@ -10392,3 +10776,158 @@ the simulator and the emitters disagree about every circuit in the park. It rewr
 design here, so it is Jack's call and its own job - **not something to slip into a railway pass**,
 and the reason the dwell chain above is built to the existing convention: one convention in the
 tree, flipped once, everywhere.
+
+## The empty-ground cleanup: dead ground measured, and the distance IS the density (2026-09-03)
+
+Jack: *"lets do a empty ground cleanup, we want to look and locate all available spaces, make
+plans to deal with them or intentionally leave them, we can add shrubbery, flowers, or other
+accents, or new objects if appropriate, be thorough."* `tools/park_empty.py`,
+`mcbuild/gen/parkgreen.py`, `configs/pf_park_{green,rim_green}.yaml`, `PARK_EMPTY_GROUND.md`,
+`tests/test_parkgreen.py` (21).
+
+### NOTHING HAD EVER ASKED WHETHER THE GROUND BETWEEN THE DESIGNS WAS FINISHED
+
+Every check this park has measures a design AGAINST the world - legal state, support, collision,
+economy, circuit, connectivity - and **a bare lawn passes all of them, because a bare lawn is what
+`Park Ways` is supposed to lay.** The gap only appears if you ask a different question, and this
+project had already written the question down about the island: *"the plate has no dead ground -
+every walkable cell is within 4 blocks of something built or planted, median 0."* It had never
+been pointed at the park. Measured over the shipped composite:
+
+    120,000 lattice columns . 28,023 BARE LAWN (23.4%) . 6,559 four or more from anything
+    1,903 eight or more . 1,080 ten or more . the worst column in the park is THIRTEEN
+
+    threshold 630 . public floor 837 . exit 398 . service 990 . RIM RESERVE 3,704
+
+### THE DISTANCE IS THE DENSITY
+
+Every land-dressing pass here so far - `frontier_scatter`, `thicket`, `claimrow` - uses a smooth
+noise field, which spreads material evenly over ground that is **not evenly empty**: a two-cell
+verge beside a kerb gets the same treatment as the middle of a forty-cell field. `parkgreen`
+drives its density from the MEASURED openness of each column, so it puts its material exactly
+where the hole is and leaves the verges alone - and the same distance transform finds the holes
+and plants them, so the audit and the pass cannot be talking about different parks. Below
+`open_min` nothing is placed at all; the drift's SIZE scales with the room as well, because a
+dozen small beds in a forty-cell field read as spots on a lawn and three big ones read as
+planting.
+
+**Shipped: 5,490 blocks over two designs, 0 overlap, 0 new problems, 0 module clashes, all
+cheap-or-ok. Dead ground 6,559 -> 1,346 (-79%), median 2 -> 1, mean 3.21 -> 1.93.**
+
+### Three findings worth keeping
+
+- **THE PARK'S OUTERMOST TWO COURSES WERE UNPLANTABLE BY CONSTRUCTION.** The front threshold V0-5
+  measured as the third-largest hole in the park **with a dressing pass nominally covering it**:
+  `frontier_scatter.clearing` refuses any candidate whose whole `path_clear` neighbourhood is not
+  lawn, and past V0 there is no lawn because there is no lot. Every lot that stops at the plot
+  edge has this. `_Green.clearing` treats out of bounds as sky rather than as a refusal, and
+  `tests/test_parkgreen.py` pins the two behaviours side by side.
+- **RULE 15 REACHES THE DENSITY, NOT ONLY THE GROUND PROBE.** `_Ground.mine` lets a pass re-plant
+  its own standing work - without it `frontier_scatter` shipped at 428 blocks against 3,843 on its
+  second run. The same failure arrives a second way through a MEASURED density: once shipped,
+  `Park Complete` contains the pass, every column it planted reads as built, the openness under
+  every drift collapses and the ramp plants nothing. `openness()` takes `mine` and puts those
+  columns back to lawn first. Regenerated against the park that now contains it, the pass comes
+  out at 3,676 and 1,814 - bit for bit what it was before the ship.
+- **ONE DEFINITION, OR THE TOOL AND THE PASS MEASURE DIFFERENT PARKS.** The first draft counted a
+  flower or a tuft as still-bare (dressing is what the audit exists to ADD) while `--with`
+  counted a design's columns whatever they held. The two readings disagreed **by three thousand
+  columns** on the same park - 1,305 dead cells before the pass was shipped and 4,443 after, with
+  nothing changed but which file the blocks were in. A tuft counts: the standard is "built OR
+  PLANTED". And `--with` composites BLOCKS now, exactly as the shipping pipeline does, so the
+  measurement is identical on both sides of a `--ship`.
+
+### A HEDGE IS ALSO A FENCE, AND NOTHING ELSE HERE WOULD SEE IT
+
+A hedge is a legal, supported, affordable, non-colliding run of leaves; two courses of it across a
+narrow lawn is a wall. The audit checks blocks, not routes. `park_empty.py --walk` floods the
+park's standable surface with and without the dressing: **563 columns the planting occupies, 0 cut
+off behind it.** A run shorter than four cells places NOTHING, which is the deck soffit's own gate
+in leaves.
+
+### What is deliberately left
+
+- **THE RIM RESERVE V187-199** is 3,919 columns in one blob and holds every column in the park ten
+  or more from anything - and `PARK_GRID_PLAN.md` declares it *"protected rim and void reserve - 0
+  paved cells, asserted"*, for "support, terrain, void safety, sightline protection". PAVING is
+  forbidden and TERRAIN is its stated purpose, and a rail rider on the viaduct is its one
+  audience, so `PF Park Rim Green` takes it at a third of the density, **capped at three courses,
+  with no trees and no hedges in its kit**. Drop it from `EXTRAS_READY` to leave it bare moss.
+- **THE FRONTIER above V6** - five designs already dress that land, and two planting passes on one
+  strip is the clash no single design can see. 479 dead columns left there on purpose.
+- **THE VERGES** - 24,680 columns are still bare lawn and that is the design. A path only reads as
+  a path if there is something it is NOT.
+
+### Still open, and stated rather than quietly left
+
+The front approach V0-5 / U270-330 is the first ground a guest walks on and now carries rough
+meadow because that is what a sweep puts there; an avenue is the one place in this park where
+formal beats naturalistic. **The Mine Ridge's own lot has a 158-column hole** at V100-134 /
+U156-166, inside `frontier_scatter`'s keep-out and past the ridge's talus, so nobody owns it.
+And nothing here has been placed in game - judge form offline, palette in world.
+
+### The rim rookery: the strip behind the railway, and a walk under the dinosaur (2026-09-03)
+
+Jack: *"what about the area behind the railway where the dinosaur is, that whole area needs to be
+refined, i like the eggs and the idea of other small things there."* `mcbuild/gen/rookery.py`,
+`configs/pf_frontier_rim.yaml`, `tests/test_rookery.py` (18). **3,982 blocks, 0 problems, 0 module
+clashes, all cheap-or-ok.**
+
+**THE MEASUREMENT IS ONE NUMBER.** The Frontier's rim is V187-199 x U0-172, split at the sauropod:
+
+    sauropod end U0-70    923 columns . 57% carry something . tallest 50 . 504 over 6 courses
+    colony end  U71-172  1,326 columns . 37% carry something . TALLEST 5 . ZERO over 6
+
+**A hundred and two blocks of nesting colony with nothing over three courses tall**, at 0.6 blocks
+per column - and this file already had the rule about this exact land: *"on this moss, under
+ten-tall trees, architecture below ~6 courses dissolves into ground noise."* The old design (a
+3-wide walk, four scrapes, two snags) was entirely under it. After: colony end **79% / tallest 14 /
+287 columns over 6**; sauropod end 84%.
+
+What is there: six **perch stacks** 9-14 courses, guano-capped (the skyline, and isolated COLUMNS
+so they frame the void view the reserve protects rather than walling it); eight **nests, 19 eggs**,
+some full and some HATCHED with the shell still in them, so the colony reads over a season rather
+than as one photograph; three **hatchlings**; an **observation hide**; a **bone find**; a **cliff
+rail** in gaps; and a railed **deck under the sauropod's belly**.
+
+#### THE WALK GOES UNDER THE ANIMAL, AND THE LEGS DECIDE HOW WIDE IT IS
+
+Measured off `PF Sauropod`'s own artifact at the ground course, the animal occupies **U28-32 and
+U46-50 and nothing else** - two rows of feet, near leg V188-192, far leg V194-198, **V193 clear
+straight through** - and U33-45 is thirteen blocks of open lawn twenty courses under a fifty-block
+dinosaur, which was bare grass with nothing leading to it. So the middle walk segment is DECLARED
+five wide and the feet carve it to one for three rows, twice; the squeeze is what the world gives
+rather than something special-cased.
+
+**NOTHING KEEPS OUT OF THE SAUROPOD BY BOX.** Its silhouette is 11 of the band's 13 courses, so a
+keep-out would forfeit 63 blocks of strip. Every piece asks the ground probe per CELL as it rises
+and a stack demands two clear courses over its crown, so the animal stops the tall things and lets
+the low ones stand under it.
+
+#### Five that shipped clean and were wrong
+
+- **A WALK NEEDS HEADROOM, NOT SKY.** `_Ground.lawn` demands NINE clear courses - right for a tree,
+  wrong for a path. The sauropod's legs merge into its barrel as they rise, so V193 is open at the
+  ground and closed nine up: `lawn` refused it and put **a one-cell hole in the only route to half
+  the strip**. `rookery.underfoot` asks the ground course and three courses of headroom instead.
+- **A GATE IN THE WRONG WALL IS A WALL.** The belly deck's rail put its openings on the SIDES, so
+  it ran a complete fence across both ends of the walk it stands in the middle of. Only a flood
+  sees this: all 173 columns are reachable on foot now, and the test is a flood rather than a count.
+- **BOTH OF ITS SIGNS WERE REFUSED IN SILENCE** - the hide's board written at the doorway's own
+  column, which is the one column of that wall with nothing in it, and the deck's post landed in
+  the cell its own sign then needed. Fifth time in this park.
+- **A STRICT SUPPORT RULE CANNOT WIDEN A COLUMN**, so no stack ever grew a crown and every one came
+  out a spike - a one-wide shaft with a white cap, which reads as a smokestack. **The crown is
+  CORBELLED**: each course is laid centre-outward so a cell may lean on the one already placed
+  beside it. Profile is a flared foot, a waist, and a head that overhangs it.
+- **A SKELETON LAID FLAT ON MOSS IS A FLOOR DECAL.** The bones stand a course proud of a rock
+  matrix now, with the ribs arcing off the spine.
+
+...and one in the tests: counting "any solid cell" made the stack's waist read as **wider than its
+foot**, because a jungle crown from the planting sweep hangs over the shaft at exactly that height.
+That is the mane-measured-as-barrel error, in a different subsystem.
+
+**A PIECE NEVER OVERWRITES A PIECE.** `Canvas.put` overwrites, so two footprints that touch corrupt
+each other silently - a nest rim reappearing as the base course of a stack, with nothing in the
+audit, the BOM or the component count to say so. The colony is laid BEFORE the skyline and the
+skyline yields, because a scrape with eggs in it is the thing that was asked for.

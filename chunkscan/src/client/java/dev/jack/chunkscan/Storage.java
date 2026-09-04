@@ -49,7 +49,13 @@ final class Storage {
 		return false;
 	}
 
-	static boolean stores(String block) {
+	static boolean buildStorage(String block) {
+        String n = Rules.shortName(block);
+        return n.equals("chest") || n.equals("trapped_chest") || n.equals("barrel")
+            || n.equals("shulker_box") || n.endsWith("_shulker_box");
+    }
+
+    static boolean stores(String block) {
 		String n = block == null ? "" : block.substring(block.indexOf(':') + 1);
 		for (String k : STORES) if (n.contains(k)) return true;
 		return false;
@@ -121,7 +127,8 @@ final class Storage {
 		final Map<String, Integer> items = new LinkedHashMap<>();
 
 		String key() {
-			return x + "," + y + "," + z;
+			String xyz = x + "," + y + "," + z;
+            return dimension.isBlank() || dimension.equals("minecraft:overworld") ? xyz : dimension + "|" + xyz;
 		}
 
 		BlockPos pos() {
@@ -166,6 +173,8 @@ final class Storage {
 			c.label = str(o, "label");
 			c.zone = str(o, "zone");
 			c.updated = str(o, "updated");
+            c.slots = o.has("slots") ? o.get("slots").getAsInt() : 0;
+            c.used = o.has("used") ? o.get("used").getAsInt() : 0;
 			JsonObject items = o.getAsJsonObject("items");
 			if (items != null) {
 				for (String k : items.keySet()) c.items.put(k, items.get(k).getAsInt());
@@ -198,6 +207,8 @@ final class Storage {
 			o.addProperty("label", c.label);
 			o.addProperty("zone", c.zone);
 			o.addProperty("updated", c.updated);
+            o.addProperty("slots", c.slots);
+            o.addProperty("used", c.used);
 			JsonObject items = new JsonObject();
 			c.items.entrySet().stream()
 				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
@@ -216,6 +227,7 @@ final class Storage {
 		root.add("containers", arr);
 		Files.createDirectories(schematicsDir);
 		Files.writeString(file(schematicsDir), new GsonBuilder().setPrettyPrinting().create().toJson(root), StandardCharsets.UTF_8);
+        forget();
 	}
 
 	/** Insert or update the container at `c.pos()`, keeping its existing number and label. */
@@ -252,6 +264,7 @@ final class Storage {
 	 */
 	static boolean stillThere(Level level, Container c) {
 		BlockPos p = c.pos();
+		if (level != null && !c.dimension.isBlank() && !c.dimension.equals(level.dimension().identifier().toString())) return true;
 		if (level == null || !level.isLoaded(p)) return stillThere((String) null);
 		return stillThere(BuiltInRegistries.BLOCK.getKey(level.getBlockState(p).getBlock()).getPath());
 	}
@@ -415,6 +428,35 @@ final class Storage {
 		}
 		return out;
 	}
+
+    /** Restocking belongs to the schematic's island, even while travelling from another one. */
+    static Map<String, Container> forDesign(Path dir, String name, BlockPos player, Level level) throws IOException {
+        BlockPos origin;
+        if (Files.exists(ActiveBuild.inputs(dir, name).resolve(name + ".scan.json"))) origin = Designs.load(dir, name).origin();
+        else {
+            List<Work.Cell> cells = Work.load(dir, name);
+            if (cells.isEmpty()) return Map.of();
+            origin = cells.getFirst().pos();
+        }
+        return live(scoped(loadCached(dir), dir, origin, level.dimension().identifier().toString()), level);
+    }
+
+    static Map<String, Container> scoped(Map<String, Container> all, Path dir, BlockPos origin, String dimension) {
+        Map<String, Container> out = new LinkedHashMap<>();
+        Islands.Island island = Islands.at(dir, origin.getX(), origin.getZ());
+        for (var e : all.entrySet()) {
+            Container c = e.getValue();
+            // Legacy records have no dimension: they cannot safely drive automatic withdrawal.
+            if (!dimension.equals(c.dimension) || !buildStorage(c.block)) continue;
+            if (island != null) {
+                if (!island.contains(origin.getX(), origin.getZ()) || !Islands.storageOnSite(dir, island, c.x, c.z)) continue;
+            } else if (!Files.exists(ActiveBuild.siteInputs(dir).resolve(Islands.FILE)) && Islands.all(dir).isEmpty() && Plot.known() && !Plot.outside(origin.getX(), origin.getZ())) {
+                if (Plot.outside(c.x, c.z)) continue;
+            } else continue; // register the island rather than guess which storage is yours
+            out.put(e.getKey(), c);
+        }
+        return out;
+    }
 
 	/** An item id without its namespace, lowercased. */
 	static String bare(String id) {

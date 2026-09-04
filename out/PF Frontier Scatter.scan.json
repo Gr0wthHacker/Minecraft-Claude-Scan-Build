@@ -27,24 +27,24 @@
     "drifts": [
       {
         "kind": "sweep",
-        "n": 42,
-        "cells": 2403,
+        "n": 43,
+        "cells": 2409,
         "by_kind": {
           "jungle": 24,
           "debris": 5,
-          "snag": 4,
+          "snag": 5,
           "rock": 9
         }
       }
     ],
-    "pieces": 42,
+    "pieces": 43,
     "by_kind": {
       "pine": 0,
-      "snag": 4,
+      "snag": 5,
       "rock": 9,
       "debris": 5
     },
-    "cells": 2403
+    "cells": 2409
   },
   "contract": "planting and props on the Frontier's open lawn and nowhere else: every cell stands on a column whose own ground is moss and whose neighbourhood within `path_clear` is moss too, so nothing is placed on paving, against a kerb, or on anything anybody built - and every stand is a drift with a noisy edge rather than scattered cells",
   "mechanics": {
@@ -76,9 +76,9 @@
       "narrative": "The Frontier's planting and props: stands of spruce with stepped canopies on the open lawn, dead barkless snags, mossy boulders in the land's own quarried palette, and what a mine leaves lying about - cross-piled timber, tipped ore, a barrel on a cart axle.\n"
     },
     "metrics": {
-      "blocks": 2215,
+      "blocks": 2221,
       "materials": 10,
-      "dominant_material_share": 0.8713,
+      "dominant_material_share": 0.869,
       "light_blocks": 0,
       "massing": {
         "width": 170,
@@ -88,7 +88,7 @@
       },
       "silhouette": {
         "top": {
-          "area": 764,
+          "area": 766,
           "fill_ratio": 0.0225
         },
         "front": {
@@ -96,24 +96,24 @@
           "fill_ratio": 0.1022
         },
         "side": {
-          "area": 413,
-          "fill_ratio": 0.1518
+          "area": 419,
+          "fill_ratio": 0.154
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.2898,
-          0.7102,
+          0.2918,
+          0.7082,
           0.0
         ],
-        "top_silhouette_perimeter": 1040,
-        "surface_faces_per_block": 1.7896
+        "top_silhouette_perimeter": 1052,
+        "surface_faces_per_block": 1.7965
       },
       "material_counts": {
         "jungle_leaves": 1930,
         "jungle_log": 166,
         "cobblestone": 40,
-        "stripped_jungle_log": 23,
+        "stripped_jungle_log": 29,
         "andesite": 18,
         "mossy_cobblestone": 13,
         "gravel": 11,
@@ -131,7 +131,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "aee79c63e7e801c5d2ade247aa1b7d7d4d5a4725771a019d1aa682d2d2a2118d",
+    "fingerprint": "dabe769632812c993d88a5b6e9d8fa0f4904e0b8940fee2d35b74673f885eac3",
     "generator_source_digest": "e6972fcea459e1432052c1ce31d56d0d7cf57ac389814af26c3faf94524bec2d",
     "anchors": [],
     "genome": {
@@ -173,9 +173,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 54.736725,
-    "blocks": 2215,
-    "blocks_per_second": 40.47
+    "seconds": 58.411769,
+    "blocks": 2221,
+    "blocks_per_second": 38.02
   },
   "generator_contract": {
     "ok": true,
@@ -184,7 +184,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 2215,
+    "blocks": 2221,
     "mechanic_families": [
       "container",
       "rail"

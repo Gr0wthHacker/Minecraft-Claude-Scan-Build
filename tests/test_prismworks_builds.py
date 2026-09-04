@@ -497,6 +497,15 @@ def test_the_prism_ascent_is_columnar_and_planar(built):
         assert us == {cu - 1, cu, cu + 1}, f"the +V fin at y{y} is {sorted(us)}, not a 3-cell blade"
 
 
+@pytest.mark.skip(reason="THE PRISM ASCENT IS RETIRED, and this pins a contract only a placed "
+                        "module can have. Prismworks v1 was replaced by the Prism Well and the "
+                        "Ascent left `park_place.EXTRAS_READY` with the Foundry Gate, the Array, "
+                        "the Resonance Vault and the Forge Deck - so `Park Complete` no longer "
+                        "contains it, and what it is being asked to out-top is `PF Crown Descent`, "
+                        "which carries the column to Y300 and is the land's headline now. It also "
+                        "adds a hard-coded 190 for the composite's origin, which is 94 - nobody's "
+                        "constant, as `test_park_entrance.py` records after the same 96-course "
+                        "error. Delete this with the design, or re-point it at the Well.")
 def test_the_ascent_tops_out_over_the_tallest_thing_already_in_the_park(built):
     """It is a dominant, not a competitor - and the number it has to beat is measured, not recalled.
 

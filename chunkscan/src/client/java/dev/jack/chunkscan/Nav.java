@@ -207,20 +207,18 @@ final class Nav {
 	 * above a floor, which is a perfect flight plan and a walk into a hole. A walkable cell needs
 	 * FOOTING as well as headroom.
 	 *
-	 * <p>One course of slack under the floor, deliberately — that is a step DOWN, and without it
-	 * every route breaks at the lip of a stair, a doorway sill or a ledge. Anything deeper is a fall,
-	 * and a fall is not a step.
+	 * <p>Every node needs immediate support; explicit edges handle one-block height changes.
 	 */
-	static Passable standable(Level level) {
-		BlockPos.MutableBlockPos c = new BlockPos.MutableBlockPos();
-		return (x, y, z) -> {
-			if (!level.isLoaded(c.set(x, y, z))) return true;
-			if (!open(level.getBlockState(c.set(x, y, z)))) return false;
-			if (!open(level.getBlockState(c.set(x, y + 1, z)))) return false;
-			return level.getBlockState(c.set(x, y - 1, z)).blocksMotion()
-				|| level.getBlockState(c.set(x, y - 2, z)).blocksMotion();
-		};
-	}
+    static Passable standable(Level level) {
+        return new WalkingSpace((x,y,z) -> {
+            BlockPos feet = new BlockPos(x,y,z);
+            return level.isLoaded(feet) && level.isLoaded(feet.above())
+                && open(level.getBlockState(feet)) && open(level.getBlockState(feet.above()));
+        }, (x,y,z) -> {
+            BlockPos floor = new BlockPos(x,y,z);
+            return level.isLoaded(floor) && level.getBlockState(floor).blocksMotion();
+        });
+    }
 
 	private record Node(int x, int y, int z) {
 		long key() {
@@ -255,7 +253,7 @@ final class Nav {
 		// the commonest: fetch trips across this island are mostly open air. `clear` already models
 		// the player's width, so if it says yes there is nothing an A* could improve on.
 		BlockPos aim = reachable(free, to);
-		if (aim != null && clear(free, from, aim)) return List.of(aim);
+		if (!(free instanceof WalkingSpace) && aim != null && clear(free, from, aim)) return List.of(aim);
 
 		// ONE budget for the whole call, shared by every attempt below. Otherwise each staged retry
 		// gets its own 25ms and four of them is a visible hitch twice a second.
@@ -620,6 +618,7 @@ final class Nav {
 	 * and bounded by the same millisecond budget as everything else here.
 	 */
 	static boolean stepFits(Passable free, int x, int y, int z, int dx, int dy, int dz) {
+        if (free instanceof WalkingSpace walk) return walk.step(x,y,z,dx,dy,dz);
 		for (int ix = 0; ix <= Math.abs(dx); ix++) {
 			for (int iy = 0; iy <= Math.abs(dy); iy++) {
 				for (int iz = 0; iz <= Math.abs(dz); iz++) {

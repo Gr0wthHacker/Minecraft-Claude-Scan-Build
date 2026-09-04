@@ -7,10 +7,15 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,45 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Places the design's blocks itself, and — the whole point — <b>watches whether they landed</b>.
- *
- * <p>Until now this mod stated as fact that <i>"a client mod cannot place a block, and should
- * not"</i>. Only the second half was ever true, and it was a policy about the server's rules
- * rather than about the client: litematica-printer places blocks from a client exactly as this
- * does. Jack has since confirmed automation is allowed and encouraged on skyblock.net, so the
- * first half is simply wrong and the second half no longer applies.
- *
- * <p><b>THE REASON THIS MATTERS IS NOT SPEED, IT IS FEEDBACK.</b> Delegating to the printer left
- * the loop with no signal at all — this project's own note says <i>"the printer never reports
- * back, so `todo` shrinking is the only honest evidence a block was placed"</i> — and four stall
- * clocks, an abandoned-station set and a whole recovery ladder exist to paper over that silence.
- * A placement made here is verified against the world on a later tick, so the loop finally knows
- * the difference between <i>it did not work</i> and <i>I have not looked yet</i>.
- *
- * <p>Four rules, and three of them are about not making a mess that is expensive to undo:
- *
- * <ul>
- *   <li><b>THE STATE IS VERIFIED, NOT ASSUMED.</b> A stair placed the wrong way round cannot be
- *       walked up, and this repo went to real trouble to settle that convention — then found the
- *       in-game check could not see facing either. A cell whose block is right and whose state is
- *       wrong is reported as a MISMATCH, never counted as placed.</li>
- *   <li><b>It never breaks anything.</b> Placement goes into air only. Replacing is a separate,
- *       explicit job with its own dig list, because breaking the wrong block on a lived-in island
- *       is the one mistake with no undo.</li>
- *   <li><b>{@link Rules} and {@link Plot} still apply.</b> The safe set and the 99x99 boundary are
- *       the same ones every generator and the wand consult.</li>
- *   <li><b>A cell that fails twice is left alone</b> and reported. Retrying for ever is how an
- *       unattended loop spends a night achieving nothing — the lesson {@code Ignored} already
- *       encodes for places, applied to cells.</li>
- * </ul>
- *
- * <p>Aiming is not decoration. The server derives {@code facing} from where the player is LOOKING
- * at the moment of placement and {@code half}/{@code type} from where in the clicked face the hit
- * landed, so both are computed here and the look angle is set before the click. That is the only
- * way to place a stair or a top slab correctly, and it is why this can do what a naive
- * click-the-block loop cannot.
- */
+/** Normal block interactions with live support, visibility, state prediction and server acknowledgement. */
 final class Printer {
 	/** Vanilla reach is ~4.5; stay inside it so a placement is never refused for distance alone. */
 	static final double REACH = 4.2;
@@ -88,8 +55,8 @@ final class Printer {
 		// Down first: a block placed on top of another is the commonest and the least ambiguous,
 		// and it is what a player does. Sides before up, because clicking a ceiling is awkward and
 		// more likely to be out of reach from a standing spot.
-		return new Direction[] {Direction.DOWN, Direction.NORTH, Direction.SOUTH,
-			Direction.EAST, Direction.WEST, Direction.UP};
+		return new Direction[] {Direction.UP, Direction.NORTH, Direction.SOUTH,
+			Direction.EAST, Direction.WEST, Direction.DOWN};
 	}
 
 	/**
@@ -114,21 +81,6 @@ final class Printer {
 		};
 	}
 
-	/** The yaw that makes the server give a block this horizontal {@code facing}. */
-	static float yawFor(Direction facing) {
-		// A stair's `facing` is the direction its TALL side points, which is the direction the
-		// player is looking AWAY from: place while facing north and the stair faces south. The
-		// game derives it as `player.getDirection().getOpposite()` for stairs, so the yaw wanted
-		// is the one that looks at the OPPOSITE of the target facing.
-		return switch (facing) {
-			case NORTH -> 0f;      // looking south (+Z) => facing north
-			case SOUTH -> 180f;
-			case WEST -> 270f;
-			case EAST -> 90f;
-			default -> 0f;
-		};
-	}
-
 	/** Parse `stone_brick_stairs[facing=east,half=top]` into what the aiming needs to know. */
 	static Map<String, String> props(String state) {
 		Map<String, String> out = new HashMap<>();
@@ -147,6 +99,10 @@ final class Printer {
 	private static final Set<String> givenUp = new HashSet<>();
 	private static final List<Attempt> pending = new ArrayList<>();
 	private static long lastPlaceTick;
+    private static int pendingSequence;
+    private static Object pendingLevel;
+	/** Non-null only for a followed build revision. A reset leaves it unresolved on disk. */
+    private static String pendingJournal;
 	private static int placed, mismatched, failed;
 	// Since the loop last asked. THIS IS THE SIGNAL THE LOOP HAS NEVER HAD: a refusal is instant
 	// knowledge, where the five-second station clock had to wait and then guess.
@@ -156,6 +112,9 @@ final class Printer {
 		tries.clear();
 		givenUp.clear();
 		pending.clear();
+        lastPlaceTick = Long.MIN_VALUE / 2;
+        pendingLevel = null;
+        pendingJournal = null;
 		placed = mismatched = failed = 0;
 		placedSince = refusedSince = 0;
 	}
@@ -201,63 +160,210 @@ final class Printer {
 		return -1;
 	}
 
-	/**
-	 * Try to place one cell. Does NOT decide whether it worked — {@link #verify} does that on a
-	 * later tick, because the server has to answer first and a placement is not synchronous.
-	 */
-	static Verdict place(Minecraft mc, BlockPos pos, String state) {
+    static boolean support(BlockState state) {
+        String name = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+        return !state.isAir() && !state.canBeReplaced() && state.blocksMotion()
+            && !Storage.isContainer(name) && !name.endsWith("_door") && !name.endsWith("_trapdoor")
+            && !name.endsWith("_fence_gate") && !name.endsWith("_button") && !name.equals("lever")
+            && !name.endsWith("_bed") && !name.equals("note_block") && !name.equals("jukebox");
+    }
+
+    /** A normal inventory slot, never armor or offhand. */
+    static int inventorySlot(LocalPlayer p, String state) {
+        String item = ActionRecipe.itemFor(state);
+        for (int i = 0; i < 36; i++) {
+            ItemStack stack = p.getInventory().getItem(i);
+            if (!stack.isEmpty() && BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().equals(item)
+				&& (stack.getItem() instanceof BlockItem || (ActionRecipe.waterBucket(state)
+					&& stack.getItem() instanceof BucketItem))) return i;
+        }
+        return -1;
+    }
+
+    record Placement(BlockHitResult hit, float yaw, float pitch) {}
+
+    /** Check the real ray and vanilla's placement state before sending an interaction. */
+    static Placement placement(Minecraft mc, BlockPos pos, String state, int slot) {
+		if (mc.player == null || mc.level == null || slot < 0 || !mc.level.isLoaded(pos)) return null;
+        if (!Rules.inLockedProfile(state) || (Rules.serverListIsAuthoritative() && !Rules.isOnServer(state))) return null;
+        if (Islands.outside(ScanRunner.schematicsDir(mc), pos.getX(), pos.getZ())) return null;
+        LocalPlayer p = mc.player;
+        ItemStack stack = p.getInventory().getItem(slot);
+		if (ActionRecipe.waterBucket(state) && stack.getItem() instanceof BucketItem) {
+			return bucketPlacement(mc, pos);
+		}
+        if (!(stack.getItem() instanceof BlockItem item)) return null;
+		BlockState existing = mc.level.getBlockState(pos);
+		if (ActionRecipe.slabIntermediate(existing, state)) return slabUpgrade(mc, pos, state, stack, item);
+		if (ActionRecipe.vineIntermediate(existing, state)) return vineUpgrade(mc, pos, state, stack, item);
+		if (ActionRecipe.glowLichenIntermediate(existing, state)) return glowLichenUpgrade(mc, pos, state, stack, item);
+		if (!existing.isAir()) return null;
+        boolean upper = "top".equals(props(state).get("half")) || "top".equals(props(state).get("type"));
+        float oldYaw = p.getYRot(), oldPitch = p.getXRot();
+        try {
+            for (Direction face : faces()) {
+                BlockPos nb = pos.relative(face.getOpposite());
+                if (!mc.level.isLoaded(nb) || !support(mc.level.getBlockState(nb))) continue;
+                var shape = mc.level.getBlockState(nb).getShape(mc.level, nb);
+                for (var box : shape.toAabbs()) {
+                    Vec3 pt = hit(pos, face, upper);
+                    // Actual shape surface: slabs are not full cubes.
+                    double x = Math.max(nb.getX()+box.minX+0.001, Math.min(pt.x, nb.getX()+box.maxX-0.001));
+                    double y = Math.max(nb.getY()+box.minY+0.001, Math.min(pt.y, nb.getY()+box.maxY-0.001));
+                    double z = Math.max(nb.getZ()+box.minZ+0.001, Math.min(pt.z, nb.getZ()+box.maxZ-0.001));
+                    pt = switch(face) {
+                        case UP -> new Vec3(x, nb.getY()+box.maxY, z);
+                        case DOWN -> new Vec3(x, nb.getY()+box.minY, z);
+                        case EAST -> new Vec3(nb.getX()+box.maxX, y, z);
+                        case WEST -> new Vec3(nb.getX()+box.minX, y, z);
+                        case SOUTH -> new Vec3(x, y, nb.getZ()+box.maxZ);
+                        case NORTH -> new Vec3(x, y, nb.getZ()+box.minZ);
+                    };
+                    if (p.getEyePosition().distanceToSqr(pt) > REACH * REACH) continue;
+                    Vec3 inside = pt.add(-face.getStepX()*0.001, -face.getStepY()*0.001, -face.getStepZ()*0.001);
+                    BlockHitResult ray = mc.level.clip(new ClipContext(p.getEyePosition(), inside,
+                        ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, p));
+                    if (ray.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK
+                        || !ray.getBlockPos().equals(nb) || ray.getDirection() != face) continue;
+                    BlockHitResult hit = new BlockHitResult(pt, face, nb, false);
+                    for (float yaw : new float[]{oldYaw, 0, 90, 180, 270}) {
+                        for (float pitch : new float[]{oldPitch, 0, -90, 90}) {
+                            p.setYRot(yaw); p.setXRot(pitch);
+                            BlockPlaceContext context = new BlockPlaceContext(p, InteractionHand.MAIN_HAND, stack, hit);
+                            context = item.updatePlacementContext(context);
+                            if (context == null || !context.getClickedPos().equals(pos) || !context.canPlace()) continue;
+                            BlockState predicted = item.getBlock().getStateForPlacement(context);
+							if (predicted != null && (Work.matches(predicted, state) || ActionRecipe.vineProgress(existing, predicted, state)
+								|| ActionRecipe.glowLichenProgress(existing, predicted, state)) && predicted.canSurvive(mc.level, pos)
+                                && mc.level.isUnobstructed(predicted, pos, net.minecraft.world.phys.shapes.CollisionContext.empty()))
+                                return new Placement(hit, yaw, pitch);
+                        }
+                    }
+                }
+            }
+        } finally { p.setYRot(oldYaw); p.setXRot(oldPitch); }
+        return null;
+    }
+
+	/** A water bucket uses the same legal support/ray calculation as a block, but is not a BlockItem. */
+	private static Placement bucketPlacement(Minecraft mc, BlockPos pos) {
 		LocalPlayer p = mc.player;
-		if (p == null || mc.level == null) return Verdict.REFUSED;
-		if (givenUpOn(pos)) return Verdict.REFUSED;
-		if (!mc.level.getBlockState(pos).isAir()) {
-			// Something is already here. Never break it: that is the one mistake with no undo.
-			return Verdict.BLOCKED;
-		}
-		// The island UNDER THIS CELL, not whichever one was exported: alt 2 building on alt 1's
-		// island must be judged against alt 1's square.
-		if (Islands.outside(ScanRunner.schematicsDir(mc), pos.getX(), pos.getZ())) {
-			return Verdict.REFUSED;
-		}
-		if (p.getEyePosition().distanceToSqr(Vec3.atCenterOf(pos)) > REACH * REACH) {
-			return Verdict.OUT_OF_REACH;
-		}
-		int slot = hotbarSlot(p, state);
-		if (slot < 0) return Verdict.NO_ITEM;
-
-		Map<String, String> want = props(state);
-		Direction chosen = null;
-		for (Direction d : faces()) {
-			BlockPos nb = pos.relative(d.getOpposite());
-			BlockState ns = mc.level.getBlockState(nb);
-			if (ns.isAir() || Rules.isProtected(BuiltInRegistries.BLOCK.getKey(ns.getBlock()).toString())) {
-				continue;                       // nothing to click, or something not to disturb
-			}
-			if (!ns.blocksMotion()) continue;   // a vine is not a face: the rim stair's own lesson
-			chosen = d;
-			break;
-		}
-		if (chosen == null) return Verdict.NO_FACE;
-
-		boolean upper = "top".equals(want.get("half")) || "top".equals(want.get("type"));
-		String facing = want.get("facing");
-		if (facing != null) {
-			Direction f = Direction.byName(facing.toLowerCase(Locale.ROOT));
-			if (f != null && f.getAxis().isHorizontal()) {
-				p.setYRot(yawFor(f));
-				p.setXRot(0f);
+		if (!mc.level.getBlockState(pos).isAir()) return null;
+		for (Direction face : faces()) {
+			BlockPos nb = pos.relative(face.getOpposite());
+			if (!mc.level.isLoaded(nb) || !support(mc.level.getBlockState(nb))) continue;
+			for (var box : mc.level.getBlockState(nb).getShape(mc.level, nb).toAabbs()) {
+				Vec3 wanted = hit(pos, face, false);
+				double x = Math.max(nb.getX() + box.minX + 0.001, Math.min(wanted.x, nb.getX() + box.maxX - 0.001));
+				double y = Math.max(nb.getY() + box.minY + 0.001, Math.min(wanted.y, nb.getY() + box.maxY - 0.001));
+				double z = Math.max(nb.getZ() + box.minZ + 0.001, Math.min(wanted.z, nb.getZ() + box.maxZ - 0.001));
+				Vec3 point = switch (face) {
+					case UP -> new Vec3(x, nb.getY() + box.maxY, z);
+					case DOWN -> new Vec3(x, nb.getY() + box.minY, z);
+					case EAST -> new Vec3(nb.getX() + box.maxX, y, z);
+					case WEST -> new Vec3(nb.getX() + box.minX, y, z);
+					case SOUTH -> new Vec3(x, y, nb.getZ() + box.maxZ);
+					case NORTH -> new Vec3(x, y, nb.getZ() + box.minZ);
+				};
+				if (p.getEyePosition().distanceToSqr(point) > REACH * REACH) continue;
+				Vec3 inside = point.add(-face.getStepX() * 0.001, -face.getStepY() * 0.001, -face.getStepZ() * 0.001);
+				BlockHitResult ray = mc.level.clip(new ClipContext(p.getEyePosition(), inside,
+					ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, p));
+				if (ray.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK
+					&& ray.getBlockPos().equals(nb) && ray.getDirection() == face)
+					return new Placement(new BlockHitResult(point, face, nb, false), p.getYRot(), p.getXRot());
 			}
 		}
-		int was = p.getInventory().getSelectedSlot();
-		p.getInventory().setSelectedSlot(slot);
-		BlockHitResult hr = new BlockHitResult(hit(pos, chosen, upper), chosen,
-			pos.relative(chosen.getOpposite()), false);
-		mc.gameMode.useItemOn(p, InteractionHand.MAIN_HAND, hr);
-		p.swing(InteractionHand.MAIN_HAND);
-		p.getInventory().setSelectedSlot(was);
-		pending.add(new Attempt(pos, state, Verdict.STILL_AIR, ""));
-		lastPlaceTick = mc.level.getGameTime();
-		return Verdict.PLACED;
+		return null;
 	}
+
+	private static Placement slabUpgrade(Minecraft mc, BlockPos pos, String state, ItemStack stack, BlockItem item) {
+		LocalPlayer p = mc.player;
+		BlockHitResult ray = mc.level.clip(new ClipContext(p.getEyePosition(), Vec3.atCenterOf(pos),
+			ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, p));
+		if (ray.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK || !ray.getBlockPos().equals(pos)
+			|| p.getEyePosition().distanceToSqr(ray.getLocation()) > REACH * REACH) return null;
+		BlockPlaceContext context = new BlockPlaceContext(p, InteractionHand.MAIN_HAND, stack, ray);
+		context = item.updatePlacementContext(context);
+		if (context == null || !context.getClickedPos().equals(pos) || !context.canPlace()) return null;
+		BlockState predicted = item.getBlock().getStateForPlacement(context);
+		if (predicted == null || !Work.matches(predicted, state)) return null;
+		return new Placement(ray, p.getYRot(), p.getXRot());
+	}
+
+	private static Placement vineUpgrade(Minecraft mc, BlockPos pos, String state, ItemStack stack, BlockItem item) {
+		LocalPlayer p = mc.player;
+		BlockState before = mc.level.getBlockState(pos);
+		BlockHitResult ray = mc.level.clip(new ClipContext(p.getEyePosition(), Vec3.atCenterOf(pos),
+			ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, p));
+		if (ray.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK || !ray.getBlockPos().equals(pos)
+			|| p.getEyePosition().distanceToSqr(ray.getLocation()) > REACH * REACH) return null;
+		BlockPlaceContext context = new BlockPlaceContext(p, InteractionHand.MAIN_HAND, stack, ray);
+		context = item.updatePlacementContext(context);
+		if (context == null || !context.getClickedPos().equals(pos) || !context.canPlace()) return null;
+		BlockState predicted = item.getBlock().getStateForPlacement(context);
+		if (predicted == null || !ActionRecipe.vineProgress(before, predicted, state)) return null;
+		return new Placement(ray, p.getYRot(), p.getXRot());
+	}
+
+	private static Placement glowLichenUpgrade(Minecraft mc, BlockPos pos, String state, ItemStack stack, BlockItem item) {
+		LocalPlayer p = mc.player;
+		BlockState before = mc.level.getBlockState(pos);
+		BlockHitResult ray = mc.level.clip(new ClipContext(p.getEyePosition(), Vec3.atCenterOf(pos),
+			ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, p));
+		if (ray.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK || !ray.getBlockPos().equals(pos)
+			|| p.getEyePosition().distanceToSqr(ray.getLocation()) > REACH * REACH) return null;
+		BlockPlaceContext context = new BlockPlaceContext(p, InteractionHand.MAIN_HAND, stack, ray);
+		context = item.updatePlacementContext(context);
+		if (context == null || !context.getClickedPos().equals(pos) || !context.canPlace()) return null;
+		BlockState predicted = item.getBlock().getStateForPlacement(context);
+		if (predicted == null || !ActionRecipe.glowLichenProgress(before, predicted, state)) return null;
+		return new Placement(ray, p.getYRot(), p.getXRot());
+	}
+
+    static Verdict place(Minecraft mc, BlockPos pos, String state) {
+        if (busy() || !AutomationControl.enter(ActionGate.Owner.PRINT)) return Verdict.REFUSED;
+        if (mc.player == null || mc.level == null || mc.gameMode == null || givenUpOn(pos)) return Verdict.REFUSED;
+        if (Screens.container() != null) return Verdict.REFUSED;
+        LocalPlayer p = mc.player;
+        int slot = inventorySlot(p, state);
+        if (slot < 0) return Verdict.NO_ITEM;
+        Placement plan = placement(mc, pos, state, slot);
+        if (plan == null) return Verdict.NO_FACE;
+        if (slot >= 9) {
+            // Vanilla SWAP moves a main-inventory stack to the selected hotbar slot.
+            mc.gameMode.handleContainerInput(p.inventoryMenu.containerId, slot, p.getInventory().getSelectedSlot(),
+                ContainerInput.SWAP, p);
+            lastPlaceTick = mc.level.getGameTime();
+            return Verdict.NO_ITEM; // wait for the next tick, never click with the old held item
+        }
+        p.getInventory().setSelectedSlot(slot);
+        p.setYRot(plan.yaw()); p.setXRot(plan.pitch());
+        p.connection.send(new ServerboundMovePlayerPacket.Rot(plan.yaw(), plan.pitch(), p.onGround(), p.horizontalCollision));
+		// Persist before the packet. If the client dies after this point the result is UNKNOWN,
+		// which is the only safe state until a later world observation reconciles it.
+		ActiveBuild.Snapshot revision = ActiveBuild.current(ScanRunner.schematicsDir(mc), ChunkScanClient.printDesign);
+		if (revision != null) {
+			try { pendingJournal = BuildJournal.begin(revision.sourceDirectory(), revision.binding(), pos, state); }
+			catch (java.io.IOException unavailable) {
+				Hud.off();
+				return Verdict.REFUSED;
+			}
+		}
+		try {
+			mc.gameMode.useItemOn(p, InteractionHand.MAIN_HAND, plan.hit());
+			p.swing(InteractionHand.MAIN_HAND);
+			pendingSequence = ((PredictionAccess) mc.level).chunkscan$sequence();
+			pendingLevel = mc.level;
+			pending.add(new Attempt(pos, state, Verdict.STILL_AIR, ""));
+			lastPlaceTick = mc.level.getGameTime();
+		} catch (RuntimeException uncertain) {
+			// A packet may have left before a local failure. The start record intentionally remains.
+			Hud.off();
+			throw uncertain;
+		}
+        return Verdict.PLACED;
+    }
 
 	/**
 	 * Look at every pending cell and decide what actually happened.
@@ -269,6 +375,16 @@ final class Printer {
 	static List<Attempt> verify(Minecraft mc) {
 		List<Attempt> out = new ArrayList<>();
 		if (mc.level == null) return out;
+        if (pendingLevel != null && pendingLevel != mc.level) { reset(); return out; }
+        if (!pending.isEmpty() && !acknowledged(pendingSequence, ((PredictionAccess)mc.level).chunkscan$acknowledged())) {
+            if (mc.level.getGameTime() - lastPlaceTick > 100) {
+                Hud.off();
+                pending.clear();
+                if (mc.player != null) mc.player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    "[cscan] printer paused: no server placement acknowledgement after 5 seconds"));
+            }
+            return out;
+        }
 		for (Attempt a : new ArrayList<>(pending)) {
 			BlockState st = mc.level.getBlockState(a.pos());
 			if (st.isAir()) {
@@ -279,6 +395,7 @@ final class Printer {
 					refusedSince++;
 					out.add(new Attempt(a.pos(), a.want(), Verdict.STILL_AIR, "air"));
 				}
+				journal(a, Verdict.STILL_AIR, "air");
 				continue;                       // one more go before writing it off
 			}
 			String got = BuiltInRegistries.BLOCK.getKey(st.getBlock()).getPath();
@@ -294,10 +411,26 @@ final class Printer {
 				givenUp.add(key(a.pos()));      // placing over it would mean breaking it
 				out.add(new Attempt(a.pos(), a.want(), Verdict.MISMATCH, got));
 			}
+			journal(a, out.getLast().verdict(), got);
 		}
 		pending.clear();
+		pendingJournal = null;
 		return out;
 	}
+
+	private static void journal(Attempt attempt, Verdict verdict, String observed) {
+		if (pendingJournal == null || pendingLevel == null) return;
+		ActiveBuild.Snapshot revision = ActiveBuild.current(
+			ScanRunner.schematicsDir(Minecraft.getInstance()), ChunkScanClient.printDesign);
+		if (revision == null) return;
+		try { BuildJournal.finish(revision.sourceDirectory(), revision.binding(), pendingJournal, verdict, observed); }
+		catch (java.io.IOException ignored) {
+			// The start record is intentionally retained: failed completion is unknown, not success.
+			Hud.off();
+		}
+	}
+
+	static boolean acknowledged(int sequence, int ack) { return ack >= sequence; }
 
 	static boolean busy() {
 		return !pending.isEmpty();

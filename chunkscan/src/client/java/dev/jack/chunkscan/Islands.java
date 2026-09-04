@@ -39,17 +39,41 @@ final class Islands {
 	/** Islands sit far apart; the plot is 99 wide and the void between them is much larger. */
 	static final int NEAR = 256;
 
-	record Island(String name, int cx, int cz, int radius, String owner) {
-		boolean contains(int x, int z) {
-			return Math.abs(x - cx) <= radius && Math.abs(z - cz) <= radius;
-		}
+    record Bounds(int minX, int minZ, int maxXExclusive, int maxZExclusive) {
+        Bounds {
+            if (minX >= maxXExclusive || minZ >= maxZExclusive) throw new IllegalArgumentException("Empty/inverted island bounds");
+        }
+        boolean contains(int x, int z) {
+            return x >= minX && x < maxXExclusive && z >= minZ && z < maxZExclusive;
+        }
+        int over(int x, int z) {
+            long dx = Math.max(0L, Math.max((long) minX - x, (long) x - maxXExclusive + 1));
+            long dz = Math.max(0L, Math.max((long) minZ - z, (long) z - maxZExclusive + 1));
+            return (int) Math.min(Integer.MAX_VALUE, Math.max(dx, dz));
+        }
+    }
 
-		int over(int x, int z) {
-			int dx = Math.max(0, Math.abs(x - cx) - radius);
-			int dz = Math.max(0, Math.abs(z - cz) - radius);
-			return Math.max(dx, dz);
-		}
-	}
+    record Island(String name, int cx, int cz, int radius, String owner, Bounds bounds, String site) {
+        boolean contains(int x, int z) { return bounds.contains(x, z); }
+        int over(int x, int z) { return bounds.over(x, z); }
+    }
+
+    private static Island parse(String name, JsonObject o) {
+        int cx = o.get("cx").getAsInt(), cz = o.get("cz").getAsInt();
+        int radius = o.has("radius") ? o.get("radius").getAsInt() : 49;
+        if (radius < 0) throw new IllegalArgumentException("Negative island radius");
+        Bounds bounds;
+        if (o.has("bounds")) {
+            JsonObject b = o.getAsJsonObject("bounds");
+            bounds = new Bounds(b.get("min_x").getAsInt(), b.get("min_z").getAsInt(),
+                b.get("max_x_exclusive").getAsInt(), b.get("max_z_exclusive").getAsInt());
+        } else bounds = new Bounds(Math.subtractExact(cx, radius), Math.subtractExact(cz, radius),
+            Math.addExact(Math.addExact(cx, radius), 1), Math.addExact(Math.addExact(cz, radius), 1));
+        if (!bounds.contains(cx, cz)) throw new IllegalArgumentException("Bedrock outside island bounds");
+        String site = o.has("site") ? o.get("site").getAsString() : name;
+        if (site.isBlank()) throw new IllegalArgumentException("Empty island site");
+        return new Island(name, cx, cz, radius, o.has("owner") ? o.get("owner").getAsString() : "", bounds, site);
+    }
 
 	// KEYED BY DIRECTORY, not just by time. Cached on the clock alone, a second schematics folder
 	// silently gets the first one's islands — which is benign today (there is one folder) and is
@@ -60,6 +84,7 @@ final class Islands {
 	private Islands() {}
 
 	static synchronized Map<String, Island> all(Path dir) {
+        dir = ActiveBuild.siteInputs(dir);
 		// Re-read now and then rather than once: the registry is written by the Python side while
 		// the game is running, and a client that cached it at login would never see a new island.
 		String key = dir.toString();
@@ -75,14 +100,12 @@ final class Islands {
 				if (isls != null) {
 					for (var e : isls.entrySet()) {
 						JsonObject o = e.getValue().getAsJsonObject();
-						out.put(e.getKey(), new Island(e.getKey(),
-							o.get("cx").getAsInt(), o.get("cz").getAsInt(),
-							o.has("radius") ? o.get("radius").getAsInt() : 49,
-							o.has("owner") ? o.get("owner").getAsString() : ""));
+                        out.put(e.getKey(), parse(e.getKey(), o));
 					}
 				}
 			} catch (Exception e) {
 				ChunkScanClient.LOG.warn("islands.json unreadable: {}", e.toString());
+                out.clear(); // Never retain a partially parsed authorization registry.
 			}
 		}
 		cache.put(key, out);
@@ -101,6 +124,7 @@ final class Islands {
 		Island best = null;
 		int bestD = Integer.MAX_VALUE;
 		for (Island i : all(dir).values()) {
+            if (i.contains(x, z)) return i;
 			int d = Math.max(Math.abs(x - i.cx()), Math.abs(z - i.cz()));
 			if (d <= NEAR && d < bestD) {
 				best = i;
@@ -117,19 +141,16 @@ final class Islands {
 		return at(dir, p.getX(), p.getZ());
 	}
 
-	/**
-	 * Is this column off the buildable square of whatever island it belongs to.
-	 *
-	 * <p>Falls back to the single baked-in {@link Plot} when no registry exists, so a setup that
-	 * has never heard of a second island is unchanged. <b>And an unknown island is not an
-	 * off-plot one</b>: somewhere the registry has never been told about answers "I cannot say",
-	 * the same posture {@code Plot} already takes when the bedrock was never found.
-	 */
-	static boolean outside(Path dir, int x, int z) {
-		Island i = at(dir, x, z);
-		if (i == null) return all(dir).isEmpty() && Plot.outside(x, z);
-		return !i.contains(x, z);
-	}
+    /** Known registries authorize only their exact plot union. Missing registries retain legacy Plot behavior. */
+    static boolean outside(Path dir, int x, int z) {
+        Map<String, Island> islands = all(dir);
+        if (islands.isEmpty()) return Files.exists(ActiveBuild.siteInputs(dir).resolve(FILE)) || Plot.outside(x, z);
+        return islands.values().stream().noneMatch(i -> i.contains(x, z));
+    }
+
+    static boolean storageOnSite(Path dir, Island source, int x, int z) {
+        return all(dir).values().stream().anyMatch(i -> i.site().equals(source.site()) && i.contains(x, z));
+    }
 
 	static int over(Path dir, int x, int z) {
 		Island i = at(dir, x, z);
@@ -140,7 +161,7 @@ final class Islands {
 	static String describe(Minecraft mc, Path dir) {
 		Map<String, Island> all = all(dir);
 		if (all.isEmpty()) {
-			return "no island registry — falling back to the single plot: " + Plot.describe()
+			return Files.exists(ActiveBuild.siteInputs(dir).resolve(FILE)) ? "island registry empty or invalid — automatic placement disabled" : "no island registry — falling back to the single plot: " + Plot.describe()
 				+ "\n  python -m mcbuild islands --add <name> --from <capture> to record more";
 		}
 		Island h = here(mc, dir);
@@ -148,8 +169,8 @@ final class Islands {
 		if (h != null) {
 			b.append("\n  you are on ").append(h.name())
 				.append(h.owner().isBlank() ? "" : " (" + h.owner() + "'s)")
-				.append("  X ").append(h.cx() - h.radius()).append("..").append(h.cx() + h.radius())
-				.append(" Z ").append(h.cz() - h.radius()).append("..").append(h.cz() + h.radius());
+				.append("  X ").append(h.bounds().minX()).append("..").append(h.bounds().maxXExclusive() - 1)
+				.append(" Z ").append(h.bounds().minZ()).append("..").append(h.bounds().maxZExclusive() - 1);
 			if (mc.player != null) {
 				int o = h.over(mc.player.getBlockX(), mc.player.getBlockZ());
 				b.append(o > 0 ? "  — you are " + o + " OUTSIDE it" : "  — you are inside it");

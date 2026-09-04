@@ -1,0 +1,104 @@
+# PF PRISM SEAM FIELD - the vein at full size east of the mouth, and the bank you watch from.
+#
+# ---------------------------------------------------------------------------------------------
+# THE BIGGEST HOLE IN THE PARK, MEASURED
+#
+# Prismworks column C is U527-599 x V24-153: **10,658 columns, 69% of them free ground, 14.8%
+# carrying anything at all and 3.6% carrying anything twelve courses tall.** The well's mouth
+# takes its western third; the rest is a band of lawn twenty-nine wide running the whole depth of
+# the land, with the park railway behind it and nothing in it.
+#
+# This is where the seam comes out on the far side - the pieces nobody cut, because the well is
+# between them and the works. It is the one place the shards go to full height.
+#
+# ---------------------------------------------------------------------------------------------
+# AND IT IS WHERE YOU WATCH FROM
+#
+# `PF Prism Well`'s own rim gallery is the spectator stand for the descent - "standing on it you
+# are looking down at people playing" - and it is AT the plane, so a guest at the back of it sees
+# the gallery's own parapet and not much else. The bank is a raked terrace outside it, rising
+# seven courses southward away from the mouth, so the row behind looks over the row in front and
+# over the parapet into the shaft. Three benches, a flight up the middle, and a parapet at the
+# top.
+#
+# THE MOUTH IS NORTH OF IT, WHICH IS WHY IT FACES NORTH. Local u is the U axis and U increases
+# southward, so the mouth at local u0-43 is on the LOW-u side of a bank at u46-63; `facing:
+# north` puts the low bench against the mouth and the height behind it, which is a rake and not
+# a wall.
+name: PF Prism Seam Field
+gen: seam
+params:
+  kind: field
+  lot: [130, 73]
+  at: [24, 527]
+  sy: 40
+  under: out/Park Complete.litematic
+  previous: out/PF Prism Seam Field.litematic
+  # THE WELL'S GALLERY IS A WALKING SURFACE AND ITS MOUTH IS A HOLE. Both are answered by naming
+  # the artifact: over the mouth there is no floor at all so no seat is ever offered, and on the
+  # gallery there is one, which is exactly the case `surface_cells` exists for.
+  off_limits:
+    - out/Park Ways.litematic
+    - out/PF Prism Well.litematic
+    - out/Park Rail.litematic
+  axis: [20, 46, 112, 58]
+  reach: 15.0
+  falloff: 0.85
+  grow: [0.7, 1.0]
+  lobes: 8
+  lobe_r: [8.0, 15.0]
+  lobe_wander: 7.0
+  lobe_floor: 0.24
+  pitch: 3
+  density: 0.95
+  # FULL SIZE. Thirty courses is the tallest thing in this design and still under a third of the
+  # well's own column - the park keeps the two dominants it has.
+  height: [12, 30]
+  clear: 1
+  rubble: true
+  trace: 3.0
+
+  # THE RAKE. `walk: true` dresses every tread in `deepslate_tiles` so the benches read as steps
+  # rather than as a heap, and `_steps` runs a flight up the middle of it.
+  bank:
+    v: 40
+    u: 46
+    dv: 42
+    du: 18
+    rise: 7
+    run: 3
+    facing: north
+  # ...and the shards keep off the bank and its approach.
+  lanes:
+    - [38, 84, 44, 65]
+  lane_clear: 2
+  spoil:
+    - [104, 60, 7, 5]
+    - [16, 62, 6, 4]
+  seed: 63
+roles: [path]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: prismworks
+  narrative: >
+    The crystal seam at full size on the far side of the well's mouth, and a raked bank of three
+    benches climbing away from it, so a guest can look down into the shaft over the rim
+    gallery's own parapet.
+fun_contract:
+  enforce: true
+  class: scenic_support
+  player_verbs: [climb the bank, watch a run from above, walk among the shards]
+  spatial_job: >
+    It fills the largest single piece of dead ground in the park - 10,658 columns, 69% free - and
+    gives the well's descent the spectator stand its own plan asked for.
+  outcome: >
+    The east half of Prismworks stops being lawn between a hole and a railway.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

@@ -144,7 +144,7 @@
       "lines": [
         "PRIZES",
         "win at the",
-        "range or sluice"
+        "pan or striker"
       ]
     }
   ],
@@ -530,8 +530,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "a31027c845cab54b1e3b14352cbca7e9447db0ffa84c559b7351489b33a8e489",
-    "generator_source_digest": "fc1c2ee3980dc78300c593d37a60ebabc964012cd62a86f9ae71524b4f024ad9",
+    "fingerprint": "c8089857d94aa5ef761ccc96d7b4d47e8d12ddf1b4b845572e64ee4ae38a77c8",
+    "generator_source_digest": "b65a055735493a169c6ed07f824cb65cec63bb954a86f4e2f781ca4d0199f7f9",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -573,9 +573,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 60.385731,
+    "seconds": 101.385826,
     "blocks": 2248,
-    "blocks_per_second": 37.23
+    "blocks_per_second": 22.17
   },
   "generator_contract": {
     "ok": true,

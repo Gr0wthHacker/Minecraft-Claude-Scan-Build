@@ -1,0 +1,87 @@
+# PF PARK GREEN - the empty-ground cleanup. Shrubbery, flowers and accents, and NOT ONE BUILDING.
+#
+# Jack: "lets do a empty ground cleanup, we want to look and locate all available spaces, make
+# plans to deal with them or intentionally leave them, we can add shrubbery, flowers, or other
+# accents, or new objects if appropriate, be thorough."
+#
+# ---------------------------------------------------------------------------------------------
+# THE MEASUREMENT IS THE WHOLE ARGUMENT, AND IT IS ALSO THE MECHANISM
+#
+# `python tools/park_empty.py`, over the shipped `out/Park Complete.litematic`:
+#
+#     120,000 lattice columns
+#      28,474 BARE LAWN      moss at the plane, nothing standing on it            23.7%
+#       9,083 DEAD           four or more blocks from anything built or planted
+#       1,081 eight or more away.  The worst column in the park is THIRTEEN.
+#
+# The island's own recorded standard is the exact opposite - "the plate has no dead ground: every
+# walkable cell is within 4 blocks of something built or planted, median 0" - so the park was
+# failing a bar this project had already set for itself and measured once.
+#
+# **THE DISTANCE IS THE DENSITY.** Every land-dressing pass here so far has used a smooth noise
+# field, which spreads material evenly over ground that is not evenly empty. This one is driven by
+# the MEASURED openness of each column, so a two-cell verge beside a kerb keeps its verge and the
+# middle of a forty-cell field gets a stand of trees. Nothing below `open_min` is touched at all.
+#
+# ---------------------------------------------------------------------------------------------
+# WHAT IS DELIBERATELY LEFT ALONE, AND WHY
+#
+#   THE FRONTIER above V6      `PF Frontier Scatter`, `PF Frontier Overgrowth`, `PF Frontier Rim`,
+#                              `PF Plateau Vale` and `PF Plateau Bone Bed` already dress it. Two
+#                              planting passes on one strip is the clash no single design can see:
+#                              each honestly reports `overlap 0` against the capture, because the
+#                              capture does not contain the other.
+#   THE RIM RESERVE V187-199   a protected void-view reserve - `PARK_GRID_PLAN.md`: "0 paved
+#                              cells, asserted". `configs/pf_park_rim_green.yaml` takes it
+#                              SEPARATELY, at a third of this density and capped at 3 courses, so
+#                              the sightline the reserve exists to protect survives the planting.
+#   THE PAVING                 every paved cell belongs to `Park Ways`, and `path_clear` holds
+#                              every planting two off it. A shrub in a street is not dressing.
+#
+# THE FRONT THRESHOLD V0-5 IS TAKEN IN THE FRONTIER TOO, and it is the one exception on purpose.
+# `frontier_scatter.clearing` refuses any candidate whose `path_clear` neighbourhood leaves the
+# lot, so the park's outermost two courses are unplantable BY CONSTRUCTION for a lot that stops at
+# V0 - which is why V0-5 measured as the park's third-largest hole with a dressing pass nominally
+# covering it. Here the lattice IS the plot, so a neighbour past its edge is sky, not a refusal.
+name: PF Park Green
+gen: parkgreen
+params:
+  kind: green
+  lot: [187, 600]          # V0-186 - the rim reserve is its own design
+  at: [0, 0]
+  under: out/Park Complete.litematic
+  previous: out/PF Park Green.litematic
+  keep_out:
+    # THE FRONTIER, above the threshold. Five designs already dress this land.
+    - [6, 186, 0, 169]
+    # THE SIGNAL HERON'S GARDEN, with a margin of four. `lawn()` protects the bird's own
+    # footprint and `clearing()` two cells round it, which is enough to stop a tree growing
+    # THROUGH it and not enough to stop one standing in front of its silhouette. A sculpture's
+    # outline is the whole of what it has.
+    - [28, 59, 170, 214]
+    # ...and the Sky Lift Sloth's, for the same reason.
+    - [92, 145, 344, 376]
+  path_clear: 2
+  open_min: 3
+  open_full: 7
+  density: 0.75
+  step: 3
+  kinds: [meadow, meadow, bed, shrub, hedge, tree, rock]
+  seed: 41
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: filler
+  style: midway
+  narrative: >
+    Shrubbery, flower beds, clipped hedges, ornamental trees and boulders on the park's unclaimed
+    lawn - rough meadow on the verges, real planted stands in the dead middles, and each land
+    planting its own species so the greenery agrees with the paving it sits against.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

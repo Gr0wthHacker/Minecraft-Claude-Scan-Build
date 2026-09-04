@@ -62,12 +62,23 @@ params:
     # land, and the next thing they should meet is the vista down the walk to the wheel - which is
     # what this stood in. The Welcome Court carries the naming on its own threshold piers, at the
     # side of the walk rather than across it.
+    # THE ARCADE IS RETIRED AND THIS NAMES WHAT REPLACED IT. Jack: "i dont like these and they
+    # feel out of place/useless unclear." It was a 6,364-block closed hall with THREE games in it
+    # under a board that said FIVE - `PF Games Row` is the open frontage `PARK_MIDWAY.md` asks for
+    # and it carries five games and the counter, so the sign stops lying rather than being toned
+    # down. A row is entered by walking down it, so it keeps its gantry and loses its two portals.
+    # **AND THE GAMES ROW WENT IN ITS TURN (2026-09-03), SO THIS NAMES THE GARDEN.** Jack, on
+    # the row as built: "the games arent playable as they are facing, theyre ugly, and just not
+    # working." `PF Games Row` and all six of its consoles left `park_place.EXTRAS_READY` and
+    # `PF Midway Garden` holds the lot - so this gantry, and the Prize Point one below it, were
+    # left announcing a street that is no longer there. A board over the head of column C is
+    # still right; what it says had to follow the ground under it.
     - kind: marquee
-      name: Skill Arcade
+      name: Midway Garden
       at: [20, 362]
       span: 5
-      title: SKILL ARCADE
-      lines: ["five games", "prizes east"]
+      title: THE GARDEN
+      lines: ["a quiet walk", "and seats"]
     # THESE TWO FRONT ONTO A CROSS WALK, and the ground layer gives each a spur exactly ONE
     # course deep between the walk and the door. So they are gantries like the rest and not
     # boards - a board here would stand ON its own spur, which is the whole failure this design
@@ -86,14 +97,13 @@ params:
     # `test_nothing_stands_in_a_walkway` caught: measured off `Park Ways`, V79 is lawn the whole
     # way along except U361-363, and those three cells ARE the spur to the door. The board is
     # centred on them, so the opening is the walk and both piers stand on grass.
-    - kind: marquee
-      name: Prize Point
-      at: [79, 362]
-      span: 3
-      pier: 3
-      depth: 1
-      title: PRIZE POINT
-      lines: ["redeem tickets", "arcade prizes"]
+    # **THE PRIZE GANTRY IS REMOVED (2026-09-03), AND A RE-CAPTION COULD NOT SAVE IT.** It read
+    # `Prize Counter` over a counter whose own board said PRIZE POINT - two names for one thing -
+    # and the counter itself (`PF Game Prize Point`) was then retired with the Games Row. A
+    # gantry saying "redeem here" with nothing to redeem at is a sign to somewhere a guest
+    # cannot go, and unlike the gantry above it there is no honest thing left for it to name:
+    # the garden already has one board at the head of the walk and does not want a second
+    # halfway down it. The spur it straddled is now the garden path.
 
     # ---------------------------------------------------------------- the Sky Lift's approach
     # THE WHEEL IS THE ONE MIDWAY RIDE THAT GENUINELY QUEUES - it loads a car at a time - so it
@@ -153,18 +163,9 @@ params:
       mode: exit
       title: RIDE EXIT
       lines: ["", "", "mind the step"]
-    - kind: portal
-      name: Skill Arcade entrance
-      at: [21, 354]
-      mode: entrance
-      title: GAMES IN HERE
-      lines: ["five games", "", "prizes east"]
-    - kind: portal
-      name: Skill Arcade exit
-      at: [21, 374]
-      mode: exit
-      title: WAY OUT
-      lines: ["", "", "to the spine"]
+    # THE ARCADE'S TWO PORTALS ARE REMOVED WITH THE ARCADE. They were the doorway gantries over
+    # its entrance and exit spurs, and `PF Games Row` has no doorway: you walk down it. A gantry
+    # naming a door that is not there is the orphaning this park has now shipped twice.
 
     # ---------------------------------------------------------------- the Sloth garden, REMOVED
     # Jack: "I also think the sloth should be placed 'above' the railway somewhere, it can attach
@@ -186,13 +187,11 @@ params:
     # the connectivity check would report and a render would not.
     # The former bandstand at V72/U316 was a third icon wedged between the carousel and wheel.
     # This band now stays empty so the two rides read as separate destinations.
-    - kind: sight
-      name: Arcade Bunting
-      motif: bunting
-      at: [24, 380]
-      span: 3
-      step: 8
-      height: 6
+    # THE ARCADE BUNTING IS REMOVED AND `PF Games Row` CARRIES ITS OWN. It ran up U380 from V24
+    # to V48, which is where `PF Game The Double` now stands - measured, it refused four of that
+    # console's cells, and `park_games` counts a refusal as a siting error because a machine
+    # missing a cell is a machine that does nothing. Bunting belongs over a walk in any case, and
+    # the row strings it across its own.
 roles: [construction]
 design:
   purpose: path

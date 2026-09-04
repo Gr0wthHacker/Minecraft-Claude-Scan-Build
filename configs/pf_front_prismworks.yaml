@@ -19,8 +19,12 @@ params:
   seed: 43
   pieces:
     # ---------------------------------------------------------------- marquees, on the spurs
+    # RENAMED (2026-09-03). It was `Foundry Gate` - a building that left the park with
+    # Prismworks v1 - and it has been titled PRISMWORKS and doing the land's threshold job
+    # for as long as the Well has stood behind it. The stale name was the last thing in the
+    # config still pointing at the retired module.
     - kind: marquee
-      name: Foundry Gate
+      name: Prismworks Gate
       # NO WING, AND THE REASON IS THE PLAZA. The spine's round junction at the U468 avenue is
       # r11, so its paving reaches U457 - and a winged gantry's outer bay would land two piers
       # in it. The land's threshold is made grand in height and fascia instead.
@@ -82,41 +86,56 @@ params:
     # last, is a DIRECTION - and the two bands this land has to answer for are 70 and 100 courses
     # deep, which is a long way to look into. Each line ends on a lens: something you only find
     # by walking to it.
+    # **RE-SIGNED, NOT DEMOLISHED (2026-09-03).** All five named a building that is no longer
+    # in the park - `Foundry Gate`, `Prism Array` and `Prism Ascent` all left with Prismworks
+    # v1 - so a guest read "foundry relay", "array relay", "ascent relay" and there was no
+    # foundry, array or ascent to relay to. THE NUMBERING SAID IT OUT LOUD: it ran 1, 2, 3, 6,
+    # because signals 4 and 5 went with their modules.
+    #
+    # The structures stay, because they are doing measured work: SIGNAL 3 and SIGNAL 4 stand
+    # in this land's two empty bands (U520-539 carries 25 built columns against 1,668 free;
+    # U580-599 carries 168 against 1,812), and a relay LINE is what gives a seventy-course
+    # band a direction rather than an object. Only the captions were stale.
+    #
+    # THE SERIES NOW STARTS WHERE THE LAND DOES. `PF Signal Zero` is the floor of the Prism
+    # Well and it IS signal zero, so the relays march outward from it and every one names
+    # something a guest can walk to: the Well, the Rig over it, and the Crown Descent that
+    # carries the column on to Y300. The count runs 1, 2, 3, 4 with no gap left behind.
     - kind: sight
-      name: Foundry Relay One
+      name: Well Relay One
       motif: pylon
       at: [58, 435]
       height: 16
       title: SIGNAL 1
-      lines: ["foundry relay"]
+      lines: ["well relay"]
     - kind: sight
-      name: Foundry Relay Two
+      name: Well Relay Two
       motif: pylon
       at: [86, 435]
       height: 12
       title: SIGNAL 2
-      lines: ["foundry relay"]
+      lines: ["well relay"]
     - kind: sight
-      name: Foundry Lens
+      name: Well Lens
       motif: lens
       at: [110, 435]
       radius: 3
       title: SPARE LENS
-      lines: ["cast for the", "array, unused"]
+      lines: ["cast for the", "rig, unused"]
     - kind: sight
-      name: Array Relay One
+      name: Rig Relay
       motif: pylon
       at: [30, 534]
       height: 20
       title: SIGNAL 3
-      lines: ["array relay"]
+      lines: ["rig relay"]
     - kind: sight
-      name: Ascent Relay
+      name: Crown Relay
       motif: pylon
       at: [70, 590]
       height: 15
-      title: SIGNAL 6
-      lines: ["ascent relay"]
+      title: SIGNAL 4
+      lines: ["crown relay"]
 
     # ---------------------------------------------------------------- back of house
     - kind: portal

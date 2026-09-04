@@ -20,10 +20,17 @@ class _Wrap:
 from . import frontier_builds, midway_builds, prismworks_builds  # noqa: E402
 from . import minestation  # noqa: E402
 from . import park_entrance, park_frontage, park_vantage, park_water  # noqa: E402
-from . import claimrow, diggings, fossils, frontier_scatter, mineridge  # noqa: E402
-from . import mineworks, park_games, plateau, pterosaur, sauropod, seam  # noqa: E402
+from . import bonebed, claimrow, diggings, fossils, frontier_scatter, mineridge  # noqa: E402
+from . import mineworks, overgrowth, park_games, plateau, pterosaur, sauropod, seam  # noqa: E402
+from . import downs  # noqa: E402
 from . import wyrmgate  # noqa: E402
 from . import menagerie  # noqa: E402
+from . import helter  # noqa: E402
+from . import gamesrow  # noqa: E402
+from . import midgarden  # noqa: E402
+from . import parkgreen  # noqa: E402
+from . import rookery  # noqa: E402
+from . import squid  # noqa: E402
 
 
 GENERATORS = {
@@ -34,6 +41,15 @@ GENERATORS = {
     # per land, on lots that are geometrically disjoint.
     "frontier_builds": frontier_builds,
     "midwaybuild": midway_builds,
+    # the Midway's third ride - a bubble lift up the drum and a blue-ice helix down
+    # the outside, in the emptiest lot in the park. mcbuild/gen/helter.py
+    "helter": helter,
+    # the street that replaced the Skill Arcade and the Prize Point: six self-contained
+    # consoles under one colonnade, and no building in it. mcbuild/gen/gamesrow.py
+    "gamesrow": gamesrow,
+    # ...and what replaced IT, once the consoles turned out to be sealed cabinets:
+    # a pleasure garden on the same walk. mcbuild/gen/midgarden.py
+    "midgarden": midgarden,
     "prismworks_builds": prismworks_builds,
     # the lake and the water garden - see mcbuild/gen/park_water.py
     "park_water": park_water,
@@ -51,6 +67,17 @@ GENERATORS = {
     # the land dressing: pines, snags, boulders and mine debris on the open lawn -
     # mcbuild/gen/frontier_scatter.py. NOT ONE BUILDING in it, deliberately.
     "frontier_scatter": frontier_scatter,
+    # THE EMPTY-GROUND CLEANUP: shrubbery, flowers and accents on the lawn nobody
+    # claimed, with the density driven by each column's MEASURED distance to the
+    # nearest built thing - mcbuild/gen/parkgreen.py
+    "parkgreen": parkgreen,
+    # THE RIM ROOKERY - the clifftop behind the railway where the sauropod stands.
+    # Measured: 102 blocks of nesting colony with NOTHING over three courses tall.
+    # mcbuild/gen/rookery.py
+    "rookery": rookery,
+    # the colossal squid hanging in the dead void under the whole park - the one
+    # thing down there, and its own only light source
+    "squid": squid,
     # the bone skull straddling the rim railway, mouth open around the track -
     # mcbuild/gen/wyrmgate.py. It touches NOTHING the railway made and is carried
     # from the rim, because the jaw is exactly as deep as the corridor is wide.
@@ -58,6 +85,10 @@ GENERATORS = {
     # the worked-out landscape that replaced Boomtown's seven false fronts, with two
     # shops cut INTO its banks - mcbuild/gen/diggings.py
     "diggings": diggings,
+    # THE BONE BED - one excavation across the two retired building lots. Jack:
+    # "its just buildings, the dig zone is crappy ... i really dont like this
+    # splatter of buildings." mcbuild/gen/bonebed.py
+    "bonebed": bonebed,
     # THE GROUND THE MODULES NEVER BUILT. Frontier column A is 54% bare moss and the two biggest
     # holes are INSIDE its lots: the Trailhead Gate's walled court has an empty middle and the
     # Prospecting Porch is a strip on one flank with twenty columns of unbuilt back. The scatter
@@ -73,6 +104,13 @@ GENERATORS = {
     # breaking the surface: `fracture` in the reach, `yard` behind the Foundry Gate, `field`
     # east of the mouth. mcbuild/gen/seam.py
     "seam": seam,
+    # THE PRISM DOWNS. Jack, after two rejected attempts at putting objects on this land:
+    # "build sophisticated impressive terrain that fits the area appropriately ... it cant
+    # be impassable terrain, it should still feel like a park, gradual hills, small areas."
+    # The whole land as ground swelling to a crest against the well's collar, so the shaft
+    # is a hole in a HILL - and clamped to under a course per cell, so it is walkable by
+    # construction rather than by inspection. mcbuild/gen/downs.py
+    "downs": downs,
     # THE LOST PLATEAU. Measured, the Frontier used show material at 1.3% against 21-32% for every
     # other land in the park - the biggest land, the most verbs, and no identity at all, because a
     # gold-rush mining camp IS timber and stone and cannot be fixed by adding colour. This dresses
@@ -90,6 +128,12 @@ GENERATORS = {
     # medium renders best of anything - the sky bird and the bat are the two recorded successes.
     # mcbuild/gen/pterosaur.py
     "pterosaur": pterosaur,
+    # THE JUNGLE TAKES THE CAMP BACK. Measured after the re-theme: leaves are 7.0% of the plateau
+    # and 3.0% of the town, and ~35,000 exposed cells of masonry and timber carried nothing green
+    # at all - so the land read as a rainforest standing next to a grey mining town. Entirely
+    # ADDITIVE, because a printer places into air and never replaces.
+    # mcbuild/gen/overgrowth.py
+    "overgrowth": overgrowth,
     # **THE GAMES INSIDE THE PARK'S BUILDINGS, AND THIS ENTRY WAS MISSING.**
     # `mcbuild/gen/park_games.py`, `tests/test_park_games.py` and ten
     # `configs/pf_game_*.yaml` all existed and the generator was not registered, so

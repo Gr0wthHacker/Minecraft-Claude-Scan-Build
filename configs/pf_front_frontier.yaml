@@ -27,41 +27,33 @@ params:
     # THE PARK'S WESTERN THRESHOLD, so it is the land's grand one: a triple-bay gantry, seventeen
     # cells of frontage. It is the first thing anyone arriving down the spine reads.
     - kind: marquee
-      name: Trailhead Gate
+      name: Plateau Vale
       at: [20, 19]
       span: 5
       wing: 1
-      title: BASE CAMP GATE
-      lines: ["lost plateau", "camp and dig"]
-    # **RETITLED, BECAUSE THE PLACE IT NAMED IS GONE.** This read BOOMTOWN / "store - saloon /
-    # telegraph" over the spur to `Boomtown Spine` - seven false-fronted shops, 0 interactive
-    # blocks, retired. `PF Frontier Diggings` holds the lot now: a worked landscape with a trail,
-    # a working yard, two shafts and two shops cut into its banks. A marquee naming a module
-    # nobody placed is three references to somewhere a guest cannot go.
+      title: THE LOST VALE
+      lines: ["trial trenches", "walk to the dig"]
+    # **RETITLED TWICE NOW, BECAUSE THE PLACE IT NAMES KEEPS BEING REPLACED.** It read BOOMTOWN
+    # over `Boomtown Spine` (seven false fronts, 0 verbs), then THE DIGGINGS over `PF Frontier
+    # Diggings` - a 30x16 trench with a 25-block spine in a 53x46 lot, which is the "crappy dig
+    # zone". `PF Plateau Bone Bed` is one excavation across that lot, Mining Square's lot and the
+    # cross walk between them. A marquee naming a module nobody placed is a reference to somewhere
+    # a guest cannot go.
     - kind: marquee
-      name: Frontier Diggings
+      name: Plateau Bone Bed
       at: [20, 70]
       span: 7
-      title: THE DIGGINGS
-      lines: ["walk the trench", "store and shed"]
-    # THE POSTS AND THE PORCH HAVE NO SPUR, so there is no path to arch over and the same piece
-    # is built solid and stands beside the door instead. `style: board`.
-    - kind: marquee
-      name: Prospecting Porch
-      at: [70, 20]
-      style: board
-      width: 11
-      depth: 2
-      title: THE SCREENS
-      lines: ["screen hut", "sorting run"]
-    - kind: marquee
-      name: Mining Square
-      at: [80, 66]
-      style: board
-      width: 11
-      depth: 1
-      title: BASE CAMP
-      lines: ["quarry run", "and ride exit"]
+      title: THE BONE BED
+      lines: ["one animal, 44", "blocks long"]
+    # **TWO MARQUEES ARE GONE WITH THE TWO BUILDINGS THEY NAMED**, and it is not only that they
+    # named nothing: THE SCREENS stood at V70 U20 and BASE CAMP at V80 U66, which are both deep
+    # INSIDE the lots the two terrain designs now hold. A board on posts in the middle of a
+    # hillside is a clash, not a sign, and the frontage is a threshold band - V20-22 - for exactly
+    # this reason.
+    #     - kind: marquee
+    #       name: Prospecting Porch    at: [70, 20]    title: THE SCREENS
+    #     - kind: marquee
+    #       name: Mining Square        at: [80, 66]    title: BASE CAMP
     - kind: marquee
       name: Assay and Prize Office
       at: [129, 62]

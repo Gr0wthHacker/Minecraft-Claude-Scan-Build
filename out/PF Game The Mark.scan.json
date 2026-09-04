@@ -1,8 +1,8 @@
 {
   "origin": {
-    "x": 97559,
+    "x": 97541,
     "y": 204,
-    "z": 80660
+    "z": 80649
   },
   "size": {
     "x": 11,
@@ -11,7 +11,7 @@
   },
   "generated_by": "park_games",
   "kind": "mark",
-  "building": "PF Skill Arcade",
+  "building": "PF Games Row",
   "land": "midway",
   "facing": "south",
   "footprint": [
@@ -36,39 +36,39 @@
   "mark": 4,
   "band": 1,
   "plate": [
-    97568,
+    97550,
     206,
-    80667
+    80656
   ],
   "lamp": [
-    97564,
+    97546,
     207,
-    80663
+    80652
   ],
   "bell": [
-    97563,
+    97545,
     206,
-    80663
+    80652
   ],
   "signed": true,
   "leaks": [],
   "inputs": [
     [
-      97568,
+      97550,
       206,
-      80667
+      80656
     ]
   ],
   "outputs": [
     [
-      97564,
+      97546,
       207,
-      80663
+      80652
     ],
     [
-      97563,
+      97545,
       206,
-      80663
+      80652
     ]
   ],
   "stock": {},
@@ -111,15 +111,15 @@
       "narrative": "Bay two: a scale in the counter top that pays for stopping at exactly four, and goes dark again if you put a fifth on it.\n"
     },
     "metrics": {
-      "blocks": 389,
-      "materials": 10,
-      "dominant_material_share": 0.4524,
+      "blocks": 388,
+      "materials": 11,
+      "dominant_material_share": 0.4536,
       "light_blocks": 1,
       "massing": {
         "width": 11,
         "height": 7,
         "depth": 9,
-        "fill_ratio": 0.5613
+        "fill_ratio": 0.5599
       },
       "silhouette": {
         "top": {
@@ -137,17 +137,18 @@
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.6581,
-          0.2802,
-          0.0617
+          0.6572,
+          0.2809,
+          0.0619
         ],
         "top_silhouette_perimeter": 40,
-        "surface_faces_per_block": 1.4499
+        "surface_faces_per_block": 1.4639
       },
       "material_counts": {
         "stone_bricks": 176,
-        "white_wool": 100,
-        "polished_blackstone_bricks": 97,
+        "polished_blackstone_bricks": 92,
+        "white_wool": 91,
+        "glass_pane": 13,
         "redstone_wire": 8,
         "oak_wall_sign": 2,
         "repeater": 2,
@@ -166,8 +167,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "c9e96863dae3a67cacc0048b7547a650b102c15e4c20ee706231dfb6e616bcdd",
-    "generator_source_digest": "db15f9980fcfc17e03710422b01f058018a82a10067ea4c3eac1d21e161b67bc",
+    "fingerprint": "aead60ed6ed7c14e6b4178179616d151ed9138bcaf38691d901f7213a31ecef8",
+    "generator_source_digest": "961a1d442968dd53e826d5ac5bff918e97434a1892feb90ef2bf38f3fd918ed2",
     "anchors": [],
     "genome": {
       "name": "midway",
@@ -209,9 +210,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 77.200831,
-    "blocks": 389,
-    "blocks_per_second": 5.04
+    "seconds": 4.023037,
+    "blocks": 388,
+    "blocks_per_second": 96.44
   },
   "generator_contract": {
     "ok": false,
@@ -225,7 +226,7 @@
     "roles": [
       "ride"
     ],
-    "blocks": 389,
+    "blocks": 388,
     "mechanic_families": [
       "light",
       "redstone",

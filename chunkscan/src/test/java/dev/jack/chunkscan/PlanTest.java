@@ -233,11 +233,10 @@ class PlanTest {
 	}
 
 	@Test
-	void aScatterTooThinToBeWorthWalkingToIsDropped() {
+	void isolatedFinalCellsStillGetBuilt() {
 		List<Work.Cell> todo = List.of(cell(0, 100, 0, "stone_bricks"),
 			cell(500, 100, 500, "stone_bricks"));
-		assertTrue(Plan.clusters(todo, carrying("stone_bricks", 64), Set.of(), BlockPos.ZERO).isEmpty(),
-			"two cells 500 apart are not a place to go and work");
+		assertEquals(2, Plan.clusters(todo, carrying("stone_bricks", 64), Set.of(), BlockPos.ZERO).size());
 	}
 
 	// ---------------------------------------------------------------- the arrow
@@ -346,6 +345,26 @@ class PlanTest {
 		assertEquals("deepslate_bricks", r.item(), "the fetchable one must win over the bigger one");
 		assertEquals(500, r.available());
 		assertTrue(r.missing() > 0);
+	}
+
+	@Test
+	void loadPlannerRotatesAcrossMaterialsInsteadOfFillingTheFirstOne() {
+		Storage.Container stone = chest(10, 64, 0, "stone", 5000);
+		Storage.Container wood = chest(20, 64, 0, "oak_planks", 5000);
+		var targets = List.of(new Plan.Restock("stone", 2000, stone, 5000),
+			new Plan.Restock("oak_planks", 2000, wood, 5000));
+		var empty = carrying();
+		assertEquals("stone", Plan.nextLoadFetch(targets, empty, item -> 2304).item());
+		var afterStone = carrying("stone", 256);
+		assertEquals("oak_planks", Plan.nextLoadFetch(targets, afterStone, item -> 2048).item());
+		assertEquals(256, Plan.takeLoadAmount(targets.getFirst(), targets.size(), 2304));
+	}
+
+	@Test
+	void singleMaterialLoadStillUsesAllAvailableSpace() {
+		Storage.Container stone = chest(10, 64, 0, "stone", 5000);
+		var target = new Plan.Restock("stone", 5000, stone, 5000);
+		assertEquals(2304, Plan.takeLoadAmount(target, 1, 2304));
 	}
 
 	@Test

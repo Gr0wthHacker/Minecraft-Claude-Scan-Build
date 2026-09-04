@@ -62,7 +62,9 @@ params:
   facing: west
   at: [97600, 204, 80368]
   under: out/Park Complete.litematic
-  title: MINE CART ESCAPE
+  # SIXTEEN CHARACTERS CLIPS TO `MINE CART ESCAP` - a sign line is 15 and the board is the
+  # one place the ride's full name does not fit. The DESIGN is still Mine Cart Escape.
+  title: THE MINE CART
   lines: ["family ride", "mind the drop"]
   power_every: 8
   min_run: 3

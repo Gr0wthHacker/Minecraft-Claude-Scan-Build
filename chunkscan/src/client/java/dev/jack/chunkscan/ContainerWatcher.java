@@ -34,6 +34,20 @@ final class ContainerWatcher {
 	private static BlockPos lastUsed;
 	private static String lastBlock = "";
 	private static long lastUsedAt;
+    private static Object expectedLevel;
+    private static BlockPos opened;
+    private static int openedMenu = -1;
+
+    static void expect(Minecraft mc, BlockPos pos) {
+        lastUsed = pos.immutable();
+        lastUsedAt = System.currentTimeMillis();
+        expectedLevel = mc.level;
+        lastBlock = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(pos).getBlock()).getPath();
+    }
+
+    static boolean openedAt(BlockPos pos, int menuId) {
+        return pos.equals(opened) && openedMenu == menuId;
+    }
 	static boolean enabled = true;
 
 	private ContainerWatcher() {}
@@ -57,6 +71,7 @@ final class ContainerWatcher {
 				// every click is what let a sign become a chest.
 				if (opensAContainer(name)) {
 					lastUsed = p;
+                    expectedLevel = level;
 					lastBlock = name;
 					lastUsedAt = System.currentTimeMillis();
 				}
@@ -70,11 +85,15 @@ final class ContainerWatcher {
 			// as that barrel's contents.
 			if (screen instanceof net.minecraft.client.gui.screens.inventory.InventoryScreen
 				|| screen instanceof net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen) return;
-			if (lastUsed == null || System.currentTimeMillis() - lastUsedAt > 4000) return;   // not opened from a block
+			if (lastUsed == null || expectedLevel != mc.level || System.currentTimeMillis() - lastUsedAt > 4000) return;   // not opened from a block
 			// The server sends the contents AFTER the screen is built, so reading the slots here always
 			// yields an empty container. Snapshot every tick instead and write the last one out on close.
 			final BlockPos pos = lastUsed;
 			final String block = lastBlock;
+            opened = pos;
+            openedMenu = cs.getMenu().containerId;
+            lastUsed = null;
+            final Object capturedLevel = mc.level;
 			final Map<String, Integer> latest = new LinkedHashMap<>();
 			final Map<String, Integer> latestBoxed = new LinkedHashMap<>();
 			final int[] slots = {0, 0};                      // {container size, slots in use}
@@ -92,9 +111,15 @@ final class ContainerWatcher {
 				}
 			});
 			ScreenEvents.remove(screen).register(s -> {
-				if (slots[0] == 0) return;                       // crafting table / anvil / other non-storage menu
+				if (openedMenu == cs.getMenu().containerId) { opened = null; openedMenu = -1; }
+                var observed = MenuObservations.LIVE.snapshot(mc.getConnection(), cs.getMenu().containerId);
+                if (observed == null || !observed.matches(cs.getMenu())) return;
+                if (mc.level != capturedLevel || Withdraw.unconfirmed()) return;                       // crafting table / anvil / other non-storage menu
 				try {
-					write(mc, cs, pos, block, latest, latestBoxed, slots[0], slots[1]);
+                    latest.clear(); latestBoxed.clear();
+                    int[] confirmed = read(mc, cs, latest, latestBoxed);
+                    if (confirmed[0] == 0) return;
+                    write(mc, cs, pos, block, latest, latestBoxed, confirmed[0], confirmed[1]);
 				} catch (Exception e) {
 					ChunkScanClient.LOG.warn("container capture failed", e);
 				}
@@ -162,7 +187,10 @@ final class ContainerWatcher {
 	static String label(Minecraft mc, BlockPos pos, String text) throws Exception {
 		Path dir = ScanRunner.schematicsDir(mc);
 		Map<String, Storage.Container> all = Storage.load(dir);
-		Storage.Container c = all.get(pos.getX() + "," + pos.getY() + "," + pos.getZ());
+		Storage.Container lookup = new Storage.Container();
+        lookup.x = pos.getX(); lookup.y = pos.getY(); lookup.z = pos.getZ();
+        lookup.dimension = mc.level.dimension().identifier().toString();
+        Storage.Container c = all.get(lookup.key());
 		if (c == null) return null;
 		c.label = text;
 		Storage.save(dir, all);

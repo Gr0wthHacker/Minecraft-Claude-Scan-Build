@@ -672,7 +672,7 @@ def _gate(L: _Lot, p: dict) -> dict:
                       powered="false", waterlogged="false")
     # the threshold reaches the lot line, so the passage meets the spur's own last paved cell
     L.fill(0, door - 3, 0, v0, door + 3, 0, PRISM["thresh"])
-    L.sign(v0 - 1, door - 4, 6, _WEST, ["PRISMWORKS", "", "FOUNDRY GATE", "keep to the line"])
+    L.sign(v0 - 1, door - 4, 6, _WEST, ["PRISMWORKS", "", "FOUNDRY GATE", "keep to the way"])
     L.sign(v1 + 1, door + 4, 6, _EAST, ["FOUNDRY GATE", "", "the works", "beyond"])
     return {"passage_width": 7, "merlons": merlons, "arcade_piers": piers, "portal_height": 20}
 

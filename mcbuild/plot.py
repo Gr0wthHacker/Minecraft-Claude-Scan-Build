@@ -29,16 +29,26 @@ RADIUS = 49          # measured: the placed content is exactly bedrock +/- 49 on
 class Plot:
     """The buildable square, in world coordinates."""
 
-    def __init__(self, cx: int, cz: int, radius: int = RADIUS):
+    def __init__(self, cx: int, cz: int, radius: int = RADIUS, *, bounds=None):
         self.cx, self.cz, self.radius = int(cx), int(cz), int(radius)
+        self._explicit_bounds = tuple(map(int, bounds)) if bounds is not None else None
+        if self._explicit_bounds is not None:
+            if len(self._explicit_bounds) != 4:
+                raise ValueError("Plot bounds require four coordinates")
+            x0, z0, x1, z1 = self._explicit_bounds
+            if x0 > x1 or z0 > z1 or not (x0 <= self.cx <= x1 and z0 <= self.cz <= z1):
+                raise ValueError("Invalid plot bounds or bedrock outside plot")
 
     @property
     def bounds(self):
+        if self._explicit_bounds is not None:
+            return self._explicit_bounds
         return (self.cx - self.radius, self.cz - self.radius,
                 self.cx + self.radius, self.cz + self.radius)
 
     def contains(self, x: int, z: int) -> bool:
-        return abs(x - self.cx) <= self.radius and abs(z - self.cz) <= self.radius
+        x0, z0, x1, z1 = self.bounds
+        return x0 <= x <= x1 and z0 <= z <= z1
 
     def outside(self, cells) -> list:
         """Every (x, y, z, ...) in `cells` that falls off the plot."""

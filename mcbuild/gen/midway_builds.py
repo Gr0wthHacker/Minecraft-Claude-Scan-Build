@@ -1588,8 +1588,12 @@ def _welcome_court(L, p) -> dict:
             m["lamps"] += 1
     m["signs"] += bool(L.sign(v0 + 2, 3, axis - half - 3, 0, -1,
                               ["WELCOME COURT", "", "the big wheel", "straight ahead"]))
+    # **"ARCADE BEYOND" NAMED A BUILDING THAT WAS RETIRED.** The Skill Arcade - a 51 x 33 closed
+    # hall with three games in it - left `park_lots.PLACEMENT` when `PF Games Row` replaced it
+    # with an open frontage of five booths, and this sign kept sending guests to it. A threshold
+    # that names something not standing behind it is worse than one that names nothing at all.
     m["signs"] += bool(L.sign(v0 + 2, 3, axis + half + 3, 0, 1,
-                              ["WELCOME COURT", "", "carousel and", "arcade beyond"]))
+                              ["WELCOME COURT", "", "carousel and", "the garden"]))
     return m
 
 

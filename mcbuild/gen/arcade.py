@@ -750,7 +750,7 @@ def _range(w: World, p: dict, ctx) -> dict:
     title = str(p.get("title") or "THE RANGE").upper()
     signed = _sign(w, f, pal, width // 2, -1, height - 1, f.facing, [title[:SIGN_WIDTH]])
     signed &= _sign(w, f, pal, width // 2 - 3, -1, height - 1, f.facing,
-                    ["SHOOT A DISC", "centre = higher", f"all {score} lamps on", "the far one pays"])
+                    ["SHOOT A DISC", "centre = higher", f"all {score} lamps on", "far one pays"])
     for i in (0, width - 1):
         _hang_light(w, f, pal, i, -1, height - 2)
 
@@ -831,7 +831,7 @@ def _strength(w: World, p: dict, ctx) -> dict:
     title = str(p.get("title") or "STRIKER").upper()
     signed = _sign(w, f, pal, 2, -1, 4, f.facing, [title[:SIGN_WIDTH]])
     signed &= _sign(w, f, pal, 5, -1, 4, f.facing,
-                    ["HIT THE DISC", "harder = higher", f"light all {rungs}", "to ring the bell"])
+                    ["HIT THE DISC", "harder = higher", f"light all {rungs}", "rings the bell"])
 
     return {"kind": "strength", "width": width, "depth": depth, "height": height + rungs,
             "rungs": rungs, "target": list(tgt), "bell": list(bell),
@@ -974,7 +974,7 @@ def _reaction(w: World, p: dict, ctx) -> dict:
     title = str(p.get("title") or "REACTION").upper()
     signed = _sign(w, f, pal, width // 2, -1, height - 1, f.facing, [title[:SIGN_WIDTH]])
     signed &= _sign(w, f, pal, width // 2 - 3, -1, height - 1, f.facing,
-                    ["WATCH THE LIGHT", "press when it", "hits the bright", "square. no luck."])
+                    ["WATCH THE LIGHT", "press when it", "hits the bright", "square: no luck"])
     for i in (0, width - 1):
         _hang_light(w, f, pal, i, -1, height - 2)
 
@@ -1055,7 +1055,7 @@ def _weigh(w: World, p: dict, ctx) -> dict:
     title = str(p.get("title") or "THE SCALE").upper()
     signed = _sign(w, f, pal, width // 2, -1, height - 1, f.facing, [title[:SIGN_WIDTH]])
     signed &= _sign(w, f, pal, width // 2 - 3, -1, height - 1, f.facing,
-                    ["DROP ITEMS ON", "the gold plate", f"stop at {target}", "one over: no win"])
+                    ["DROP ITEMS ON", "the gold plate", f"stop at {target}", "one over: lose"])
     for i in (0, width - 1):
         _hang_light(w, f, pal, i, -1, height - 2)
 
@@ -1373,7 +1373,7 @@ def _quiet(w: World, p: dict, ctx) -> dict:
     title = str(p.get("title") or "QUIET ROOM").upper()
     signed = _sign(w, f, pal, 1, -1, 3, f.facing, [title[:SIGN_WIDTH]])
     signed &= _sign(w, f, pal, width - 2, -1, 2, f.facing,
-                    ["GET TO THE DOOR", "without a sound", "the sculk hears", "stone. not wool."])
+                    ["GET TO THE DOOR", "without a sound", "the sculk hears", "stone, not wool"])
     _hang_light(w, f, pal, width // 2, 1, height - 1)
 
     return {"kind": "quiet", "width": width, "depth": depth, "height": height + 1,
@@ -1449,7 +1449,7 @@ def _prizecounter(w: World, p: dict, ctx) -> dict:
     title = str(p.get("title") or "PRIZES").upper()
     signed = _sign(w, f, pal, width // 2, 0, height - 1, f.facing, [title[:SIGN_WIDTH]])
     signed &= _sign(w, f, pal, width // 2 - 2, 0, height - 1, f.facing,
-                    ["TRADE THEM IN", "lit = in stock", "dark = sold out", "prices at the bar"])
+                    ["TRADE THEM IN", "lit = in stock", "dark = sold out", "prices at bar"])
     _hang_light(w, f, pal, width // 2, 2, height - 1)
 
     return {"kind": "prizecounter", "width": width, "depth": depth, "height": height + 1,

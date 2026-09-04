@@ -79,6 +79,14 @@ final class Withdraw {
 	private static int timer;
 	private static int cool;
 	private static int took;
+    private static boolean requested, scanOnly, awaitingTransfer;
+    private static int menuId;
+    private static long openRevision;
+    private static InventoryTransfer transfer;
+	/** Followed-build transfer evidence; an absent completion remains an intentional hard stop. */
+	private static String transferJournal;
+    static int reserveSlots;
+    private static Object levelAtStart;
 	private static String note = "";
 
 	private Withdraw() {}
@@ -114,27 +122,45 @@ final class Withdraw {
 		took = 0;
 		note = "";
 		phase = Phase.OPENING;
+        requested = scanOnly = awaitingTransfer = false;
+        reserveSlots = 0;
+        menuId = -1;
+        transfer = null;
+		transferJournal = null;
+        levelAtStart = null;
 	}
 
-	static void cancel() {
+	static void inspect(BlockPos at) {
+        begin(at, null, 0);
+        scanOnly = true;
+    }
+
+    static boolean unconfirmed() { return awaitingTransfer; }
+
+    static void cancel() {
 		phase = Phase.IDLE;
 		chest = null;
+        awaitingTransfer = false; transfer = null;
+		transferJournal = null;
 	}
 
 	static void tick(Minecraft mc) {
+        if (!busy() || !AutomationControl.enter(ActionGate.Owner.WITHDRAW)) return;
 		try {
 			step(mc);
 		} catch (Exception e) {
 			// Clicking slots in a screen the server is still filling is the one place here that can
 			// throw, and it must cost the chest rather than the session.
 			if (chest != null) cool(chest, RETRY_AFTER_MS);
-			phase = Phase.FAILED;
-			note = String.valueOf(e);
+            fail(mc, "withdrawal error: " + e);
 		}
 	}
 
 	private static void step(Minecraft mc) {
-		if (!busy() || mc.player == null || mc.level == null) return;
+		if (!busy()) return;
+        if (mc.player == null || mc.level == null) { cancel(); return; }
+        if (levelAtStart == null) levelAtStart = mc.level;
+        if (levelAtStart != mc.level) { cancel(); return; }
 		if (--timer <= 0) {
 			fail(mc, "gave up at " + Wand.fmt(chest));
 			return;
@@ -143,36 +169,76 @@ final class Withdraw {
 		else take(mc);
 	}
 
-	private static void open(Minecraft mc) {
-		if (Screens.container() != null) {          // it opened
-			phase = Phase.TAKING;
-			cool = CLICK_EVERY * 2;                 // let the server fill it before clicking
-			return;
-		}
-		if (Math.sqrt(mc.player.blockPosition().distSqr(chest)) > REACH) return;   // still flying in
-		String n = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(chest).getBlock()).getPath();
-		if (!Storage.stores(n)) {
-			fail(mc, "no container at " + Wand.fmt(chest) + " any more (" + n + ")");
-			return;
-		}
-		mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND,
-			new BlockHitResult(Vec3.atCenterOf(chest), Direction.UP, chest, false));
-	}
+    private static void open(Minecraft mc) {
+        var cs = Screens.container();
+        if (cs != null) {
+            if (!requested || cs.getMenu() == mc.player.inventoryMenu
+                || !ContainerWatcher.openedAt(chest, cs.getMenu().containerId)) {
+                fail(mc, "unexpected container screen; withdrawal cancelled"); return;
+            }
+            var observed = MenuObservations.LIVE.snapshot(mc.getConnection(), cs.getMenu().containerId);
+            if (observed == null || observed.revision <= openRevision) return;
+            menuId = cs.getMenu().containerId;
+            phase = Phase.TAKING;
+            cool = CLICK_EVERY * 3;
+            return;
+        }
+        if (requested || !mc.level.isLoaded(chest)) return;
+        String n = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(chest).getBlock()).getPath();
+        if (!Storage.stores(n)) { fail(mc, "no container at " + Wand.fmt(chest)); return; }
+        BlockHitResult hit = ContainerInteraction.openingHit(mc, chest);
+        if (hit == null) return;
+        ContainerWatcher.expect(mc, chest);
+        openRevision = MenuObservations.LIVE.revision();
+        requested = true;
+        mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND, hit);
+    }
 
 	private static void take(Minecraft mc) {
 		AbstractContainerScreen<?> cs = Screens.container();
 		if (cs == null) {                            // closed under us; count what we got
-			finish(mc);
+            if (awaitingTransfer) fail(mc, "container closed before transfer reconciliation");
+            else finish(mc);
 			return;
 		}
-		if (want != null && carrying(mc) >= target) {
+		if (cs.getMenu().containerId != menuId) { fail(mc, "container changed during withdrawal"); return; }
+        var observed = MenuObservations.LIVE.snapshot(mc.getConnection(), menuId);
+        if (observed == null) return;
+        if (awaitingTransfer) {
+            var result = transfer.reconcile(observed);
+            if (result == InventoryTransfer.Result.CONFLICT) {
+                fail(mc, "inventory transfer could not be reconciled; inspect chest and inventory");
+                return;
+            }
+            awaitingTransfer = false;
+			if (!journalTransfer(mc, result == InventoryTransfer.Result.CONFIRMED ? "CONFIRMED" : "NO_CHANGE",
+				transfer.moved())) return;
+            if (result == InventoryTransfer.Result.NO_CHANGE) { transfer = null; close(mc); return; }
+            took += transferredUnits(transfer.item(), transfer.moved());
+            transfer = null;
+            timer = TIMEOUT;
+        }
+        if (want != null && carrying(mc) >= target) {
 			close(mc);                               // got what we came for
 			return;
 		}
 		if (cool-- > 0) return;
-		cool = CLICK_EVERY;
+        if (scanOnly) { close(mc); return; }
+        if (want != null && Work.room(mc.player, want) <= 0) { close(mc); return; }
+        cool = CLICK_EVERY;
 
+        // A slot update or manual click since the full snapshot invalidates the baseline.
+        if (observed.size() != cs.getMenu().slots.size()) { fail(mc, "container layout changed"); return; }
+        if (!cs.getMenu().getCarried().isEmpty()) { fail(mc, "cursor holds an item; withdrawal paused"); return; }
+        for (Slot slot : cs.getMenu().slots) {
+            if (!ItemStack.matches(slot.getItem(), observed.stack(slot.index))) { reopen(mc); return; }
+        }
 		Inventory inv = mc.player.getInventory();
+        if (reserveSlots > 0) {
+            int empty = 0;
+            for (int i = 0; i < 36; i++) if (inv.getItem(i).isEmpty()) empty++;
+            if (empty <= reserveSlots) { close(mc); return; }
+        }
 		for (Slot s : cs.getMenu().slots) {
 			if (s.container == inv) continue;        // that half is already ours
 			ItemStack st = s.getItem();
@@ -183,14 +249,67 @@ final class Withdraw {
 			// find sixty-four loose ones is not a fetch. Taking the box is the first half; `Work.
 			// boxed` then tells you to set it down, because a client mod cannot unpack it for you.
 			if (want != null && !item.equals(want) && !holdsWanted(st)) continue;
-			// QUICK_MOVE is the shift-click: the whole stack, straight into the pack.
+			// Record BEFORE clicking; a locally mutated stack is not evidence of a transfer.
+            var inventorySlots = cs.getMenu().slots.stream().filter(slot -> slot.container == inv)
+                .map(slot -> slot.index).toList();
+            transfer = new InventoryTransfer(observed, s.index, inventorySlots);
+			if (!journalTransferStart(mc, chest, item, st.getCount())) return;
+            awaitingTransfer = true;
+            // QUICK_MOVE is the shift-click: the whole stack, straight into the pack.
 			mc.gameMode.handleContainerInput(cs.getMenu().containerId, s.index, 0,
 				ContainerInput.QUICK_MOVE, mc.player);
-			took += st.getCount();
+            reopen(mc);
+
 			return;                                  // one stack a pass, then re-read the screen
 		}
 		close(mc);                                   // nothing of ours left in there
 	}
+
+    private static void reopen(Minecraft mc) {
+        // Successful vanilla prediction may produce no slot echo. Reopen requests a fresh full view.
+        mc.player.closeContainer();
+        phase = Phase.OPENING;
+        requested = false;
+        menuId = -1;
+    }
+
+	private static boolean journalTransferStart(Minecraft mc, BlockPos at, String item, int expected) {
+		ActiveBuild.Snapshot revision = ChunkScanClient.printDesign == null ? null
+			: ActiveBuild.current(ScanRunner.schematicsDir(mc), ChunkScanClient.printDesign);
+		if (revision == null) return true;
+		try {
+			transferJournal = BuildJournal.beginTransfer(revision.sourceDirectory(), revision.binding(), at, item, expected);
+			return true;
+		} catch (java.io.IOException unavailable) {
+			fail(mc, "withdrawal journal unavailable; automation stopped");
+			Hud.off();
+			return false;
+		}
+	}
+
+	private static boolean journalTransfer(Minecraft mc, String result, int moved) {
+		if (transferJournal == null) return true;
+		ActiveBuild.Snapshot revision = ChunkScanClient.printDesign == null ? null
+			: ActiveBuild.current(ScanRunner.schematicsDir(mc), ChunkScanClient.printDesign);
+		if (revision == null) { Hud.off(); return false; }
+		try {
+			BuildJournal.finishTransfer(revision.sourceDirectory(), revision.binding(), transferJournal, result, moved);
+			transferJournal = null;
+			return true;
+		} catch (java.io.IOException unavailable) {
+			// Start record remains. Do not let an unaccounted transfer feed a placement plan.
+			Hud.off();
+			return false;
+		}
+	}
+
+    private static int transferredUnits(ItemStack stack, int count) {
+        if (want == null || BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().equals(want)) return count;
+        return count * stack.getOrDefault(net.minecraft.core.component.DataComponents.CONTAINER,
+            net.minecraft.world.item.component.ItemContainerContents.EMPTY).nonEmptyItemCopyStream()
+            .filter(inner -> BuiltInRegistries.ITEM.getKey(inner.getItem()).getPath().equals(want))
+            .mapToInt(ItemStack::getCount).sum();
+    }
 
 	private static void close(Minecraft mc) {
 		mc.player.closeContainer();                  // public on LocalPlayer; protected on Player
@@ -209,7 +328,8 @@ final class Withdraw {
 	 * reason to come back to it this trip, and coming back is what produced the freeze.
 	 */
 	private static void finish(Minecraft mc) {
-		boolean short_ = want != null && took < target;
+		if (scanOnly) { phase = Phase.DONE; return; }
+        boolean short_ = want != null && carrying(mc) < target;
 		phase = took > 0 ? Phase.DONE : Phase.FAILED;
 		if (took == 0) note = "there was none of it in there";
 		else if (short_) note = "took " + took + " of " + target + "; the rest is elsewhere";
@@ -252,7 +372,7 @@ final class Withdraw {
 			.anyMatch(in -> BuiltInRegistries.ITEM.getKey(in.getItem()).getPath().equals(want));
 	}
 
-	private static int carrying(Minecraft mc) {
+    private static int carrying(Minecraft mc) {
 		// Boxed ones count toward the target: we have fetched them, even though setting the box
 		// down is still on the player. Without this the withdrawal keeps taking boxes for ever.
 		return Work.carrying(mc.player).getOrDefault(want, 0)
@@ -294,9 +414,17 @@ final class Withdraw {
 	}
 
 	private static void fail(Minecraft mc, String why) {
-		phase = Phase.FAILED;
-		if (chest != null) cool(chest, RETRY_AFTER_MS);
-		note = why;
-		if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] " + why));
-	}
+        boolean uncertain = awaitingTransfer;
+        BlockPos failedChest = chest;
+        if (mc.player != null && Screens.container() != null && Screens.container().getMenu().containerId == menuId)
+            mc.player.closeContainer();
+        if (uncertain) Hud.off();
+        chest = failedChest;
+        phase = Phase.FAILED;
+        awaitingTransfer = false;
+        transfer = null;
+        if (chest != null) cool(chest, RETRY_AFTER_MS);
+        note = why;
+        if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] " + why));
+    }
 }
