@@ -454,7 +454,11 @@ def check_climb(m: Model, *, max_step: float = 0.5, max_drop: float = 3.5) -> li
         base = math.ceil(h)
         return not any((x, base + k, z) in occ for k in (0, 1))
 
-    start = min((h, x, z) for (x, z), v in surf.items() for h in v)
+    # the lowest surface a player can STAND ON. A pier's bottom course has a surface too, and
+    # it is covered by the course above it; starting the walk there reports a stair that is
+    # perfectly walkable from its own pad as unclimbable.
+    standable = [(h, x, z) for (x, z), v in surf.items() for h in v if head(x, z, h)]
+    start = min(standable) if standable else min((h, x, z) for (x, z), v in surf.items() for h in v)
     seen = {(start[1], start[2], start[0])}
     q = collections.deque(seen)
     while q:
