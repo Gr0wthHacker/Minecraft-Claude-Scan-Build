@@ -7,7 +7,8 @@
   "kind": "park",
   "name": "Park Complete",
   "generated_by": "tools/park_place.py",
-  "anchor_status": "PREVIEW placement; rebase before building",
+  "anchor_status": "approved live registration",
+  "automation_approved": true,
   "contains": [
     "Park Ways",
     "Park Rail",

@@ -10932,6 +10932,157 @@ each other silently - a nest rim reappearing as the base course of a stack, with
 audit, the BOM or the component count to say so. The colony is laid BEFORE the skyline and the
 skyline yields, because a scrape with eggs in it is the thing that was asked for.
 
+## The leftovers audit: apparatus for machinery that was removed (2026-09-03)
+
+Jack: *"we have random left over arches and other objects scattered across the map, i noticed some
+near prism, etc, audit all areas and lets clean up weird left behinds."* Everything he saw was real,
+**and none of it failed a single check this repo has** - every piece is a legal, supported,
+affordable, 1.19, non-colliding block standing exactly where its config puts it.
+
+### A MODULE CAN BE RETIRED; THE THINGS THAT POINT AT IT ARE NOT
+
+That is the whole class. A building leaves `park_lots.PLACEMENT` or `park_place.EXTRAS_READY` in one
+line, and every marquee, relay, plaque and threshold that names it goes on standing - correct in
+every measurable way and describing a park that no longer exists. Prismworks had five:
+
+| piece | at | its sign said | names a module that is |
+|---|---|---|---|
+| SIGNAL 1 | V58 U435 | "foundry relay" | `Foundry Gate` - not in the park |
+| SIGNAL 2 | V86 U435 | "foundry relay" | `Foundry Gate` - not in the park |
+| SPARE LENS | V110 U435 | "cast for the array, unused" | `Prism Array` - not in the park |
+| SIGNAL 3 | V30 U534 | "array relay" | `Prism Array` - not in the park |
+| SIGNAL 6 | V70 U590 | "ascent relay" | `Prism Ascent` - **retired** for the Prism Well |
+
+**THE NUMBERING IS THE TELL, AND IT IS A GENERAL ONE.** It ran **1, 2, 3, 6** - signals 4 and 5 went
+with their modules and nothing renumbered what was left. A gap in a series is the cheapest evidence
+there is that a set has been cut down, and it costs nothing to look for.
+
+The second tell is a grammar the survivors no longer obey. `pf_front_prismworks.yaml` states its own
+rule - *"a relay is a LINE of the same thing... each line ends on a lens"* - and the foundry line is
+a proper three, while the array and ascent "lines" are single stubs. **A design that states its own
+grammar can be checked against it**, and a member that no longer satisfies it is a member whose
+siblings were deleted.
+
+**RE-SIGNED, NOT DEMOLISHED, AND THE REASON IS MEASURED.** SIGNAL 3 and SIGNAL 4 stand in this land's
+two empty bands (U520-539 carries 25 built columns against 1,668 free; U580-599 carries 168 against
+1,812) - deleting them re-opens both. Only the captions were stale, so the series now starts at `PF
+Signal Zero`, which is the Well's own floor and genuinely IS signal zero, and every relay names
+something a guest can walk to: the Well, the Rig over it, the Crown Descent that carries the column
+on to Y300. **The structure was doing real work and the words were the only thing wrong with it.**
+
+### Four more of the same shape, in the other two lands
+
+- **`Foundry Gate` marquee** (V20 U448) - retitled PRISMWORKS and doing the land's threshold job for
+  as long as the Well has stood behind it. Physically right, internally named for a retired module.
+- **`Prize Counter` marquee** (V79 U362) titled PRIZE COUNTER while the thing at the end of its own
+  walk is `PF Game Prize Point`, whose board reads PRIZE POINT. **Two names for one counter** - the
+  Prize Counter building left with the Skill Arcade.
+- **The Welcome Court's threshold** read *"carousel and arcade beyond"*. The Skill Arcade - a 51x33
+  closed hall - was replaced by `PF Games Row`, and the sign kept sending guests to it.
+- **THE ASSAY OFFICE'S PRIZE WINDOW SAID "win at the range or sluice" AND NEITHER EXISTS.** The
+  Shooting Range was tried on the Claim Line and withdrawn; the Gold Sluice was never placed. So the
+  one board that tells a guest where to WIN what it redeems named two buildings that are not
+  standing, while the land's three real games - Pan Line, Powder Striker, Riffle - sit within sixty
+  columns of it. **This is the worst of the six**: the others merely misdirect, this one breaks the
+  loop between playing and redeeming.
+
+And one stale RESERVATION rather than a stale sign: **`Signal Heron` held a 27x37 lot** while the
+bird is built by `park_ways.yaml` itself (`gen: heron, offset: [26, 1, 176]`) into the `heron garden`
+feature lot - the same ground. A lot held for a module nobody places is ground nothing else may use,
+and it is what `test_worldrender.py` already failed on.
+
+### The sweep that found them, which is worth keeping
+
+Geometry found nothing. Clustering standing columns and ranking by isolation returned the Circus
+balloon and the Signal Heron - both legitimate feature-lot pieces - because **a leftover in a park is
+not physically isolated; it is standing exactly where it was meant to stand, next to a hole where its
+reason used to be.**
+
+What worked is that **A SIGN NAMES ITS OWN PURPOSE.** Dump every sign in the shipped composite, take
+every proper noun, and check it against `contains`. That found all six in one pass, plus the
+numbering gap, and it needs no knowledge of any generator. `tools/park_place.py` already prints the
+roster; the signs are already in the artifact.
+
+### And five signs were shipped cut mid-word
+
+    MINE CART ESCAP   keep to the wal   112-cell circui   wade in and hol   prismworks: eas
+
+`park._sign` truncated at `SIGN_WIDTH` silently, and **every offline check passes a clipped sign**:
+the block is legal, supported, affordable and in 1.19, and `render3d` draws it identically to a whole
+one. The damage shows only in a screenshot of the placed build. They arrived by FOUR different
+routes - a config title, a config line an author had already shortened by hand, a computed line
+(`"%d-cell circuit" % len(track)`) that crossed the width when its number gained a digit, and two
+literals - so guarding any one route leaves the class open.
+
+`park._fit` RAISES now. **A TITLE IS STILL CLIPPED BY ITS CALLER, DELIBERATELY**: a title comes from
+a config a human wrote, twenty-three of them already run over, and making those raise is a park-wide
+decision rather than a helper's to take - `tests/test_civic.py` pins the clipping as the contract for
+exactly that case. Removing it park-wide was tried in this pass and reverted: 57 sites across 13
+generators, and it breaks designs that are working.
+
+**SO THE GUARD READS THE SHIPPED COMPOSITE, WHICH IS THE ONE PLACE EVERY ROUTE CAN BE SEEN AT ONCE.**
+`tests/test_park_signs.py` does it two ways, because neither alone is enough:
+
+- a line at exactly `SIGN_WIDTH` whose last word is a strict PREFIX of a word spelt out whole
+  somewhere else in the park - `wal` of `wall`, `eas` of `east`, `hol` of `hold`;
+- ...and the CONFIG side, for a cut word the park never spells out: nothing else says "escape", so
+  `MINE CART ESCAP` was invisible to the first check.
+
+Two things that check had to learn, both of them the same lesson - **a check that cries wolf on a
+correct build is a check nobody runs**:
+
+- **AN INFLECTION IS NOT A CLIP.** `THE CRUSHER` says "five heads", so "ran to the head" - a
+  deliberate two-line split - read as `head` cut out of `heads`. `+s`, `+es` and `+ing` are excluded.
+- **A CONFIG STRING OVER THE WIDTH IS ONLY A FAULT IF IT REACHES A BOARD CUT.**
+  `pf_lost_plateau.yaml` declares `THE LOST PLATEAU` at sixteen and its generator SPLITS it - the
+  shipped sign reads "THE LOST / PLATEAU" and nothing is lost. The test is whether the string's first
+  `SIGN_WIDTH` characters stand on a board verbatim: `MINE CART ESCAP` does, `THE LOST PLATEA` does
+  not.
+
+### A trap that cost an hour, and has nothing to do with the park
+
+**`pathlib.read_text()` / `write_text()` ROUND-TRIP THROUGH UNIVERSAL NEWLINES.** A patch script that
+reads a file, replaces a string and writes it back rewrites EVERY LINE of a file whose endings differ
+from the platform default - `git diff --stat` said *2,025 insertions, 2,025 deletions* on a file where
+one string had changed. It also silently broke every multi-line anchor in the next script, because
+the file on disk was now CRLF and the anchor had been written with bare newlines.
+
+Read and write BYTES when patching (`read_bytes().decode()` / `.encode()` back), and anchor on SINGLE
+lines rather than multi-line blocks. `git diff --ignore-cr-at-eol --numstat` is what tells a real
+content change from line-ending damage, and it is the only way to find out which files a bad patch
+actually touched.
+
+### Still open, and deliberately not changed
+
+- **The rail stations say `EXIT / DOWN TO ARCADE / PARK RETURN`** on all three platforms. That
+  "arcade" is the ARCHITECTURAL passage under the viaduct and it genuinely exists - but the park also
+  had a games Arcade until recently and no longer does, so a guest reading it on a station has no way
+  to know which is meant. Renaming it is a wayfinding decision, not a leftover.
+- **The Mine Coaster and the Rapids were not regenerated.** Their two shortened lines
+  (`board at end`, `climb the tower`) are preventive - neither sign is in the shipped park - and the
+  coaster is 31,197 blocks to rebuild for a string nobody can currently read.
+- **247 designs have a config and are not in the park.** That is the retired record and it is
+  correct; what matters is only whether something STANDING still points at one of them.
+
+- **`test_every_measured_trough_gains_something_to_look_at` FAILS ON U520-539, AND IT IS THE SAME
+  FINDING.** The band holds 37 cells against a threshold of 100, because the array relay line was
+  cut down to ONE pylon when the Prism Array was retired - signals 4 and 5, the numbers missing
+  from the series, were that line's second relay and its lens. Re-signing cannot fill a band;
+  restoring the line means BUILDING two more pieces, which is content rather than cleanup, so it is
+  left. Verified pre-existing by running the test against the unmodified config.
+- **`test_the_ascent_tops_out_over_the_tallest_thing_already_in_the_park` IS SKIPPED, SAME CLASS.**
+  It pinned a contract only a PLACED module can have, and the Prism Ascent left the park with
+  Prismworks v1 - so it was asking a retired design to out-top `PF Crown Descent`, which carries
+  the column to Y300. It also hard-codes 190 for the composite's origin, which is 94.
+- **THE MIDWAY RETIRED ITS GAMES ROW WHILE THIS AUDIT WAS RUNNING**, and reproduced the whole class
+  in twenty minutes: `PF Games Row` and its six consoles left `EXTRAS_READY`, `PF Midway Garden`
+  took the lot, and the frontage was not touched - so a GAMES ROW gantry promising "five games" and
+  a PRIZE POINT gantry saying "redeem here" stood over ground that is now a garden. Both are
+  re-pointed (the first names the garden; the second is REMOVED, because there is no honest caption
+  for a redemption sign with nothing to redeem at), and the Welcome Court's threshold now names THE
+  GROUND ("the garden") rather than whatever is standing on it this week - which is the durable
+  form, and the reason the first fix ("the games row") went stale within the hour.
+
 ## The Abyss Squid: the one thing under the theme park (2026-09-03)
 
 Jack: *"put something big underneath the theme park so the people doing parkour discover it, I
@@ -10939,9 +11090,9 @@ mean LARGE and something that could be viewed as swimming or flying through spac
 large squid, or something else intense/scary, large killer whale, etc, but has to be hyper
 detailed."* Then, on the hollowing question: *"it can be hollow, mobs do not spawn."*
 
-`configs/abyss_squid.yaml`, `mcbuild/gen/squid.py`, `tests/test_squid.py` (19). **47,532 blocks,
+`configs/abyss_squid.yaml`, `mcbuild/gen/squid.py`, `tests/test_squid.py` (19). **46,882 blocks,
 ONE connected piece, 0 problems, 0 overlap in context, 0 leaks, seven block types, all cheap.**
-274 blocks nose to tail, X97543..97657 / Y101..185 / Z80488..80762.
+275 blocks nose to tail, X97543..97657 / Y101..185 / Z80488..80762.
 
 ### THE SITE WAS ALREADY THERE AND NOTHING HAD MEASURED IT
 
@@ -11042,7 +11193,8 @@ The most transferable find of the session. `Canvas` tests a ball against cell CE
 cells, a tenth of the animal, came out different left to right**, every one of them in the arm
 crown and the tentacles, which are the only parts swept as balls. The mantle and the head are drawn
 in cell indices about XC and were exact all along. `base = XC + 0.5` fixes it: shape asymmetry
-3,521 -> 36.
+3.0% of the model -> 0.4%, and the test's bound is a FRACTION so it scales with the animal and
+still fails the fault it was written for.
 
 What is left is decoration and the enforcement owns it: an arm's stripe and its suckers are found
 by walking a ray that can start exactly on a cell boundary, and `round()` is banker's rounding,
@@ -11086,6 +11238,22 @@ the axolotl's head happened. The 450 froglights carry the light on their own at 
 - **A NEGATIVE RAISED TO A FRACTIONAL POWER IS A COMPLEX NUMBER, NOT AN ERROR.** Twice, both times
   from a fraction that came out a hair outside [0,1]: `1.0 - 0.16` is not `0.84` in binary. It
   surfaces as a comparison failure twenty lines from the cause.
+- **THE TENTACLE CLUBS WERE ORBS ON STRINGS.** Jack, on the first shipped build: *"the random
+  orbs its grabbing... doesnt seem to make sense"*. He was reading them exactly right - swept as
+  balls they are spheres on stalks, and the stalk ended at radius 2.2 while the club opened at
+  4.6, so there was no wrist either. A tentacular club is a flattened PADDLE: `_blade` sweeps an
+  ellipse that leaves the stalk's own width, swells about two thirds along and comes to a point.
+  **Its thin axis is world X exactly, and that is for the MIRROR rather than for the shape** - on
+  a general frame the section is a rotated ellipse whose rounding cannot mirror, and the shape
+  asymmetry went 36 -> 410 cells the moment it went in. A tentacle leaves the head along +-X, so
+  its paddle's face normal IS X, the thin offsets are integer steps off a rounded column, and the
+  wide ones have no X component at all.
+- **AND THE MIRROR ENFORCEMENT COULD HAVE BROKEN THE KEEP-OUT.** It writes cells straight into
+  the array, bypassing the one `put` every other cell goes through - and **the fall column is not
+  symmetric about the animal's own sagittal plane**, because the well's axis sits ten blocks off
+  it. A cell mirrored from the safe side can land inside it. Nothing does, at 58 blocks of
+  margin; the keep-out is re-applied after the mirror and the clearance re-measured from the
+  FINAL grid, because a guard that runs before the last thing to touch the model is not a guard.
 - **THE FEATURE COUNTS WERE `put()` CALLS.** The sidecar reported 251,264 arm blocks in a
   116,000-block animal, which reads as a measurement and is an artefact of how an arm is drawn.
   They are unique cells now, and they partition the total exactly.
@@ -11100,7 +11268,7 @@ holding down the entity cap - this file already records ~3,700 columns of exactl
 lowland massif. **Jack: mobs do not spawn here**, so that argument is gone and 66,000 blocks nobody
 could ever have seen go with it.
 
-    solid 116,611  .  shell 4  78,062  .  shell 3  66,532  .  shell 2  47,532
+    solid 116,611  .  shell 4  78,062  .  shell 3  66,532  .  shell 2  46,882
 
 ### The panel verdict, recorded (2026-09-03)
 
@@ -11127,5 +11295,5 @@ photophore rows and the ventral band all being structure rather than decoration.
   as its own design at its own recorded origin - `/cscan place "Abyss Squid"` - exactly as the Void
   Ladybird and the bat do. **The consequence is that the composite still reports that void as
   empty**, so anyone siting a new deep design must read this section rather than the shadow.
-- **47,532 blocks is a real trip.** 27,635 mangrove planks is about 6,900 logs; everything else is
+- **46,882 blocks is a real trip.** 27,647 mangrove planks is about 6,900 logs; everything else is
   wool off sheep and one froglight type Jack already farms.

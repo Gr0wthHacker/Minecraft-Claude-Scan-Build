@@ -226,7 +226,8 @@ final class Printer {
                     if (ray.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK
                         || !ray.getBlockPos().equals(nb) || ray.getDirection() != face) continue;
                     BlockHitResult hit = new BlockHitResult(pt, face, nb, false);
-                    for (float yaw : new float[]{oldYaw, 0, 90, 180, 270}) {
+                    float[] sweep = ActionRecipe.yawSweep(state);
+                    for (float yaw : sweep != null ? sweep : new float[]{oldYaw, 0, 90, 180, 270}) {
                         for (float pitch : new float[]{oldPitch, 0, -90, 90}) {
                             p.setYRot(yaw); p.setXRot(pitch);
                             BlockPlaceContext context = new BlockPlaceContext(p, InteractionHand.MAIN_HAND, stack, hit);

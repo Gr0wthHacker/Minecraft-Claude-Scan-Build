@@ -28,20 +28,21 @@
     "head": 8603,
     "fin": 13346,
     "arm": 20055,
-    "tentacle": 3996,
-    "club": 3710,
+    "tentacle": 4042,
+    "club": 1532,
     "funnel": 498,
     "beak": 13,
-    "coat": 25274,
+    "coat": 25314,
     "arm_stripe": 9246,
-    "sucker": 653,
+    "sucker": 681,
     "eye": 692,
     "eye_organ": 60,
     "photophore": 450,
     "lichen": 0,
-    "total": 104252,
-    "mirror_shape_fixed": 36,
-    "mirror_paint_fixed": 1151
+    "total": 102120,
+    "mirror_shape_fixed": 366,
+    "mirror_paint_fixed": 1171,
+    "keep_out_cleared": 0
   },
   "mechanics": {
     "minecraft": "java-1.19",
@@ -57,46 +58,46 @@
   "design": {
     "brief": {},
     "metrics": {
-      "blocks": 47532,
+      "blocks": 46882,
       "materials": 7,
-      "dominant_material_share": 0.5814,
+      "dominant_material_share": 0.5897,
       "light_blocks": 0,
       "massing": {
         "width": 115,
         "height": 85,
         "depth": 275,
-        "fill_ratio": 0.0177
+        "fill_ratio": 0.0174
       },
       "silhouette": {
         "top": {
-          "area": 9717,
-          "fill_ratio": 0.2203
+          "area": 9633,
+          "fill_ratio": 0.2184
         },
         "front": {
-          "area": 3778,
-          "fill_ratio": 0.2359
+          "area": 3702,
+          "fill_ratio": 0.2312
         },
         "side": {
-          "area": 5489,
-          "fill_ratio": 0.1915
+          "area": 5483,
+          "fill_ratio": 0.1913
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.4743,
-          0.4674,
-          0.0583
+          0.4809,
+          0.4734,
+          0.0457
         ],
-        "top_silhouette_perimeter": 2976,
-        "surface_faces_per_block": 1.5327
+        "top_silhouette_perimeter": 2992,
+        "surface_faces_per_block": 1.533
       },
       "material_counts": {
-        "mangrove_planks": 27635,
-        "red_wool": 7442,
+        "mangrove_planks": 27647,
+        "red_wool": 6714,
         "pink_wool": 5059,
         "magenta_wool": 4008,
-        "black_wool": 2353,
-        "bone_block": 585,
+        "black_wool": 2399,
+        "bone_block": 605,
         "ochre_froglight": 450
       }
     },
@@ -109,8 +110,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "96cd8bb6e7fbf3af2cf32e38a65b468f9370ad26597e9b74d9f2e56a1cdabd3e",
-    "generator_source_digest": "504b761734a9f2bc0bfaac50439c86794741ad9cdf6482a89a0328c7a1683a15",
+    "fingerprint": "0db7de7a453a2d47b90020e7adcd734901dd862d6ba18846d201e9040b531098",
+    "generator_source_digest": "0938e852d05e75b43a35a8f8a583734194bcfce44d5fe93b3e5689ffa881a1c0",
     "anchors": [],
     "capabilities": {
       "purpose": false,
@@ -127,9 +128,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 82.452502,
-    "blocks": 47532,
-    "blocks_per_second": 576.48
+    "seconds": 68.010916,
+    "blocks": 46882,
+    "blocks_per_second": 689.33
   },
   "generator_contract": {
     "ok": false,
@@ -138,7 +139,7 @@
     ],
     "anchors": 0,
     "roles": [],
-    "blocks": 47532,
+    "blocks": 46882,
     "mechanic_families": []
   },
   "fun_contract": {

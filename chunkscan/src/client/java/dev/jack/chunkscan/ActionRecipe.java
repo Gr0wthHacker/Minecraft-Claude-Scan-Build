@@ -15,7 +15,35 @@ final class ActionRecipe {
 
 	/** The inventory item consumed by one cell's action, rather than its final block identity. */
 	static String itemFor(String state) {
-		return Rules.shortName(state).equals("water") ? "water_bucket" : Rules.shortName(state);
+		String block = Rules.shortName(state);
+		if (block.equals("water")) return "water_bucket";
+		// A wall sign has no item of its own: you carry `oak_sign` and the FACE you click decides
+		// whether it lands standing or on a wall. Tallying `oak_wall_sign` asks a chest for an item
+		// that does not exist, so the slot is never found and the cell silently never places.
+		if (block.endsWith("_wall_hanging_sign")) return block.substring(0, block.length() - 18) + "_hanging_sign";
+		if (block.endsWith("_wall_sign")) return block.substring(0, block.length() - 10) + "_sign";
+		return block;
+	}
+
+	/** Signs, standing or on a wall - the blocks whose TEXT is a second, separate action. */
+	static boolean sign(String state) {
+		String block = Rules.shortName(state);
+		return block.endsWith("_sign") || block.endsWith("_hanging_sign");
+	}
+
+	/**
+	 * A standing sign has SIXTEEN rotations and a wall sign takes its facing from the clicked face.
+	 *
+	 * <p>The placement search sweeps yaw and asks vanilla which state it would get, so the geometry
+	 * needs no arithmetic here - it only needs the sweep to be able to REACH every rotation. Four
+	 * cardinal yaws can only ever produce rotations 0, 4, 8 and 12, so the other twelve are
+	 * unplaceable and the cell fails forever with nothing to say why.
+	 */
+	static float[] yawSweep(String state) {
+		if (!sign(state) || Rules.shortName(state).contains("_wall_")) return null;
+		float[] out = new float[16];
+		for (int i = 0; i < 16; i++) out[i] = -180f + i * 22.5f;
+		return out;
 	}
 
 	static boolean waterBucket(String state) {
@@ -32,8 +60,9 @@ final class ActionRecipe {
 		// its destructive placement and collection policy has not been approved for this builder.
 		if (block.equals("lava")) return "fluid bucket placement";
         if (block.equals("water_cauldron") || block.equals("lava_cauldron")) return "cauldron fill";
-        if (block.endsWith("_wall_sign") || block.endsWith("_wall_hanging_sign")) return "wall sign placement/configuration";
-        if (block.endsWith("_sign") || block.endsWith("_hanging_sign")) return "sign text/configuration";
+		// Signs are implemented - placed by the ordinary search, then written by Printer.signText.
+		// Their remaining gate is EVIDENCE rather than mechanism, and it needs the design's tile
+		// entities, so it lives in `missing(cells, signs)` where the text is actually in hand.
 		if (block.equals("redstone_wire") && (props(state).get("power") == null
 			|| "0".equals(props(state).get("power")))) return null;
         if (block.equals("redstone_wire") || block.endsWith("_rail") || block.equals("repeater")
@@ -131,16 +160,37 @@ final class ActionRecipe {
 	}
 
     static Map<String, Integer> missing(List<Work.Cell> cells) {
+        return missing(cells, Map.of());
+    }
+
+    /**
+     * What this design asks for that the builder cannot do, counted by reason.
+     *
+     * <p>{@code signs} is the design's own recorded text, keyed by {@link
+     * net.minecraft.core.BlockPos#asLong()}. A sign whose text is not recorded stays gated: placing
+     * the block alone leaves a BLANK BOARD, which passes every check this project has - legal
+     * state, supported, affordable, right block - and is the exact silent failure a park full of
+     * unreadable signs already cost once.
+     */
+    static Map<String, Integer> missing(List<Work.Cell> cells, Map<Long, SignText> signs) {
         Map<String, Integer> out = new LinkedHashMap<>();
         for (Work.Cell cell : cells) {
             String missing = missingFor(cell.block());
+            if (missing == null && sign(cell.block())) {
+                SignText text = signs.get(cell.pos().asLong());
+                if (text == null || text.blank()) missing = "sign text not recorded in the litematic";
+            }
             if (missing != null) out.merge(missing, 1, Integer::sum);
         }
         return out;
     }
 
     static void require(List<Work.Cell> cells) throws IOException {
-        Map<String, Integer> missing = missing(cells);
+        require(cells, Map.of());
+    }
+
+    static void require(List<Work.Cell> cells, Map<Long, SignText> signs) throws IOException {
+        Map<String, Integer> missing = missing(cells, signs);
         if (missing.isEmpty()) return;
         StringBuilder summary = new StringBuilder();
         for (var entry : missing.entrySet()) {

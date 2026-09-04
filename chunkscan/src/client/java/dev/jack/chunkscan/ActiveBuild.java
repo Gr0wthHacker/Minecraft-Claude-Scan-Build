@@ -36,8 +36,17 @@ final class ActiveBuild {
                 throw new IOException("build inputs changed while preparing the revision; start again after generation finishes");
             // Decode the private copy before publishing it; no actuator may discover corrupt input later.
 			var cells = Work.load(copy, design);
-            if (Files.exists(copy.resolve(design + ".litematic"))) Designs.load(copy, design);
-			ActionRecipe.require(cells);
+			// A sign's TEXT lives in the litematic's tile entities, never in the work list - the
+			// work list records the properties a design DECIDES, and text is not one of them. So it
+			// is read from the frozen copy, gated with the cells, and armed for the writer here,
+			// where all three are certainly the same revision.
+			java.util.Map<Long, SignText> signs = java.util.Map.of();
+            if (Files.exists(copy.resolve(design + ".litematic"))) {
+				Designs.Design registered = Designs.load(copy, design);
+				signs = LitematicReader.signs(copy.resolve(design + ".litematic"), registered.origin());
+			}
+			ActionRecipe.require(cells, signs);
+			SignWriter.arm(signs);
             var manifest = new com.google.gson.JsonObject();
             manifest.addProperty("design", design);
             manifest.addProperty("source_directory", sourceDir.toString());

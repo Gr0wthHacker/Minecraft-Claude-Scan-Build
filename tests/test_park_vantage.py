@@ -19,6 +19,7 @@ file the slowest thing in the suite.
 from __future__ import annotations
 
 import collections
+import json
 import os
 import sys
 
@@ -42,6 +43,12 @@ CONFIGS = ["pf_vantage_frontier_lookout", "pf_vantage_midway_belvedere",
 #: `out/Park Complete.litematic`'s own frame: V -> world X, U -> world Z, and park y counts up
 #: from world Y190. The lawn's top course is park y12, so a visitor standing on it has their feet
 #: in park y13 - which is canvas y0 of every design in this file.
+#: **KNOWN-WRONG AND LEFT ALONE: 190 IS NOT THE COMPOSITE'S ORIGIN ANY MORE.** `Park Complete`
+#: begins at y94 since a design went in under Prismworks, so this frame is ninety-six courses out
+#: and every check in this file that indexes the composite is measuring the wrong courses.
+#: `tests/test_park_entrance.py` records the identical failure and reads the Y from the sidecar.
+#: Deriving it here was TRIED and took the file from 10 failures to 12 - the expectations below
+#: are tuned to this frame in ways that need their owner, not a passing audit. See CLAUDE.md.
 PARK_ORIGIN = (97500, 190, 80300)
 LAWN = 12
 GROUND_Y = LAWN + 1
@@ -59,7 +66,24 @@ SPINE_SEEDS = [(GROUND_Y, u, 12) for u in (20, 100, 235, 300, 380, 500, 560)]
 
 
 def _cfg(stem: str) -> dict:
-    with open(os.path.join(ROOT, "configs", f"{stem}.yaml"), encoding="utf-8") as fh:
+    """A config, from `configs/` or from the ARCHIVE a retired design was moved to.
+
+    **`pf_vantage_midway_belvedere` IS RETIRED AND ITS CONFIG MOVED** - Jack, standing on its
+    crown: "there is a large building/tower right next to the air balloon design... its squished
+    between the balloon and the railway." Commit ad49844 took it out of `park_place.EXTRAS_READY`
+    and put it in `archive/pf_vantage_midway_belvedere/`, and left this file opening it from
+    `configs/` - so every test in it has been erroring on `FileNotFoundError` ever since, which
+    reads as a broken suite rather than as a retired design.
+
+    It is KEPT as a fixture rather than dropped, because three of these tests use it to pin the
+    GENERATOR's refusals - the rim reserve, either reach, and a stringer that would climb the
+    wrong wall - and those contracts belong to `park_vantage`, not to whether this particular
+    tower is standing. What is retired is the SITING; the geometry is still worth a test.
+    """
+    here = os.path.join(ROOT, "configs", f"{stem}.yaml")
+    if not os.path.exists(here):
+        here = os.path.join(ROOT, "archive", stem, "configs", f"{stem}.yaml")
+    with open(here, encoding="utf-8") as fh:
         return yaml.safe_load(fh)
 
 

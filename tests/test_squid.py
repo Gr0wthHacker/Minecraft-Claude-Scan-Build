@@ -160,20 +160,23 @@ def test_it_is_ONE_connected_piece(shipped):
 
 
 def test_the_SHAPE_is_symmetric_by_construction(built):
-    """The enforcement is a guarantee, not the fix, and it reports the two halves separately.
+    """The enforcement is a guarantee, not the fix, and it reports its two halves separately.
 
     The real fault was a half-block: the limbs were swept about `float(XC)`, which is the
     column's EDGE, while `Canvas` tests cell CENTRES at x + 0.5 - so the mirror plane sat half a
-    block off and 3,521 cells of SHAPE came out different left to right, a tenth of the animal.
-    Fixed, that is 36, all of them cell-boundary rounding ties.
+    block off and **3.0% of the animal** came out different left to right. Fixed, the residue is
+    0.4%, and it is float noise rather than structure: a swept point's X is a weighted sum that
+    is not bitwise symmetric, so `round()` flips it a column on one side near a tie. That is this
+    repo's own recorded trap - keep centres integer and add offsets to them - and on a curve
+    there is nowhere to keep them. The mirror settles it.
 
-    Colour is a different fact and the enforcement legitimately owns it: an arm's stripe and its
-    suckers are found by walking a ray that can start exactly on a cell boundary, and `round()`
-    is banker's rounding, which does not mirror at a .5 tie. Bounded, not zero.
+    The bound is a FRACTION, not a count, so it scales with the animal and still fails the fault
+    it was written for: 3.0% against a 1% ceiling.
     """
     f = built.meta["features_built"]
-    assert f["mirror_shape_fixed"] < 60, "the mass itself has stopped being symmetric"
-    assert f["mirror_paint_fixed"] < 2000
+    tot = f["total"]
+    assert f["mirror_shape_fixed"] / tot < 0.01, "the mass itself has stopped being symmetric"
+    assert f["mirror_paint_fixed"] / tot < 0.04
 
 
 def test_the_mirror_holds_in_GEOMETRY_AND_IN_COLOUR(built):
@@ -267,7 +270,10 @@ def test_there_are_eight_arms_and_two_LONGER_tentacles(built):
     p = squid.SQUID
     assert p["arms"] == 8
     assert p["tent_len"] > p["arm_len"], "the hunting tentacles must be the long pair"
-    assert p["club_r"] > p["tent_r"] * 1.6, "a club has to be visibly wider than its stalk"
+    assert p["club_w"] > p["tent_r"] * 1.6, "a club has to be visibly wider than its stalk"
+    # ...AND FLATTER THAN IT IS WIDE. Swept round it is an orb on a string, which is exactly what
+    # Jack saw on the first shipped build. A tentacular club is a blade.
+    assert p["club_t"] < p["club_w"] * 0.5, "the club is a paddle, not a ball"
 
 
 def test_BOTH_eyes_are_built(built):

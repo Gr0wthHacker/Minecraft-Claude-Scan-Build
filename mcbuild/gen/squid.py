@@ -126,8 +126,9 @@ SQUID = {
     "tent_r": 3.4,
     "tent_up": 0.22,        # the club's rise, as a fraction of tent_len. This is what sets the
                             # design's ceiling, and the ceiling is the park's own underside
-    "club_frac": 0.16,      # the last sixth of a tentacle is the club
-    "club_r": 7.0,
+    "club_frac": 0.20,      # the last fifth of a tentacle is the club
+    "club_w": 7.5,          # ACROSS the paddle...
+    "club_t": 2.8,          # ...and through it. A club is a blade, never a ball - see `_blade`
 
     "eye_r": 10.0,
     "eye_at": 0.34,         # fraction along the head
@@ -233,6 +234,34 @@ def _core(b, pts, blk, part) -> int:
                     n += b_put(b, x, y, z, blk, part)
         prev = cell
     return n
+
+
+def _blade(b, p, tang, wide, thin, blk, part) -> int:
+    """One flattened section across a path - a PADDLE, not a ball.
+
+    A tentacular club swept as a sphere comes out as an ORB ON A STRING, which is exactly how it
+    read: Jack, on the first shipped build, *"the random orbs its grabbing... doesnt seem to make
+    sense"*. The real thing is a flattened blade carrying suckers on ONE face.
+
+    THE THIN AXIS IS WORLD X, EXACTLY, AND THAT IS FOR THE MIRROR RATHER THAN FOR THE SHAPE.
+    Built on a general frame - `cross(tang, inw)` and its perpendicular - the section is a
+    rotated ellipse whose rounding cannot mirror, and the shape asymmetry went 36 -> 410 cells
+    the moment it went in. A tentacle leaves the head along +-X, so its paddle's face normal IS
+    X: the thin offsets are integer steps from a rounded centre column, and the wide ones have
+    no X component at all, so both sides are identical by construction rather than by luck.
+    """
+    ty, tz = float(tang[1]), float(tang[2])
+    n = math.hypot(ty, tz) or 1.0
+    uy, uz = -tz / n, ty / n                 # across the paddle, within the YZ plane
+    cx, out = int(round(p[0])), 0
+    for k in range(-int(thin) - 1, int(thin) + 2):
+        fk = (abs(k) / max(0.6, thin)) ** 2
+        if fk > 1.0:
+            continue
+        for a in range(-int(wide) - 1, int(wide) + 2):
+            if fk + (abs(a) / max(0.6, wide)) ** 2 <= 1.0:
+                out += b_put(b, cx + k, p[1] + uy * a, p[2] + uz * a, blk, part)
+    return out
 
 
 class _Body:
@@ -366,7 +395,7 @@ def build_squid(cfg: dict, donors=None) -> Canvas:
     YT = float(p["tip_y"]) * sc + floor
     YC += floor
     YA += floor
-    SY = int(max(YA + crown_up, YA + TL * up_f + float(p["club_r"]) * sc)) + 8
+    SY = int(max(YA + crown_up, YA + TL * up_f + float(p["club_w"]) * sc)) + 8
 
     c = Canvas(SX, SY, SZ, donors)
     st = c.state
@@ -544,14 +573,23 @@ def build_squid(cfg: dict, donors=None) -> Canvas:
                 r = float(p["tent_r"]) * sc * lerp(TK, t / (1.0 - cf))[0]
                 n += b.ball(q, max(0.55, r), S["deep"], P_TENT)
             else:
-                # CLAMPED, for the reason the fin's own u is: 1.0 - 0.16 is not 0.84 in
-                # binary, so v comes out a hair over 1, sin goes negative, and a negative
-                # raised to a fractional power is a COMPLEX number - which fails as a
-                # comparison error twenty lines away from the cause.
+                # THE CLUB IS A PADDLE. Swept as a ball it is an orb on a string, and it also
+                # DOUBLED in one step - the stalk ends at 2.2 and the old club opened at 4.6,
+                # so there was no wrist at all. The profile now leaves the stalk's own width,
+                # swells to full about two thirds along and comes to a point.
+                #
+                # CLAMPED, for the reason the fin's own u is: 1.0 - 0.16 is not 0.84 in binary,
+                # so v comes out a hair over 1, sin goes negative, and a negative raised to a
+                # fractional power is a COMPLEX number - which fails as a comparison error
+                # twenty lines away from the cause.
                 v = max(0.0, min(1.0, (t - (1.0 - cf)) / cf))
-                bulge = max(0.0, math.sin(math.pi * (0.16 + 0.84 * v)))
-                r = float(p["club_r"]) * sc * max(0.34, bulge ** 0.55)
-                ncl += b.ball(q, max(0.6, r), S["mid"], P_CLUB)
+                stalk = float(p["tent_r"]) * sc * lerp(TK, 1.0)[0]
+                grow = max(0.0, math.sin(math.pi * min(1.0, 0.62 * v + 0.06))) ** 0.7
+                wide = stalk + (float(p["club_w"]) * sc - stalk) * grow
+                thin = stalk + (float(p["club_t"]) * sc - stalk) * grow
+                tang = _unit(np.array(pts[min(k + 1, len(pts) - 1)], float)
+                             - np.array(pts[max(k - 1, 0)], float))
+                ncl += _blade(b, np.array(q, float), tang, wide, thin, S["mid"], P_CLUB)
     counts["tentacle"] = n
     counts["club"] = ncl
 
@@ -651,7 +689,7 @@ def build_squid(cfg: dict, donors=None) -> Canvas:
         L = len(pts)
         for k in range(int(L * (1.0 - cf)), L - 1, 2):
             for d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1)):
-                cell, _ = b.surface(pts[k], d, int(float(p["club_r"]) * sc) + 4)
+                cell, _ = b.surface(pts[k], d, int(float(p["club_w"]) * sc) + 4)
                 if cell is None:
                     continue
                 if hash01(seed, 9, abs(int(cell[0]) - XC), int(cell[1]), int(cell[2])) < 0.42:
@@ -756,6 +794,24 @@ def build_squid(cfg: dict, donors=None) -> Canvas:
     counts["mirror_shape_fixed"] = int(((lo > 0) != (hi > 0)).sum())
     counts["mirror_paint_fixed"] = int(((lo > 0) & (hi > 0) & (lo != hi)).sum())
     c.ids[:, :, XC - half:XC] = hi
+
+    # THE KEEP-OUT IS RE-APPLIED AFTER THE MIRROR, AND THE CLEARANCE IS RE-MEASURED FROM THE
+    # FINAL GRID. The enforcement writes cells straight into the array, so it bypasses the one
+    # `put` every other cell in this design goes through - and **the fall column is not
+    # symmetric about this animal's own sagittal plane** (the well's axis is ten blocks off it),
+    # so a cell mirrored from the safe side can land inside it. Nothing does today, at 58 blocks
+    # of margin; the guard is here because the day something does, the only symptom would be a
+    # runner landing on a tentacle sixty blocks out in the void.
+    if ko:
+        gz, gx = np.meshgrid(np.arange(c.sz) + at[2], np.arange(c.sx) + at[0], indexing="ij")
+        far = np.hypot(gx - ko[0], gz - ko[1])
+        inside = far < ko[2]
+        bad = int(((c.ids > 0) & inside[None, :, :]).sum())
+        if bad:
+            c.ids[:, inside] = 0
+        counts["keep_out_cleared"] = bad
+        d = np.where(c.ids > 0, np.broadcast_to(far[None, :, :], c.ids.shape), np.inf)
+        b.closest = float(d.min())
 
     if p.get("at"):
         c.world_origin = at

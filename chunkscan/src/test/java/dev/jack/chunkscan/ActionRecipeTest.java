@@ -26,7 +26,11 @@ class ActionRecipeTest {
 		assertEquals("fluid flow shaping", ActionRecipe.missingFor("water[level=3]"));
 		assertEquals("fluid bucket placement", ActionRecipe.missingFor("lava"));
 		assertNull(ActionRecipe.missingFor("redstone_wall_torch[facing=north]"));
-        assertEquals("wall sign placement/configuration", ActionRecipe.missingFor("oak_wall_sign[facing=north]"));
+		// Signs are IMPLEMENTED now: placed by the ordinary search, written by SignWriter. What is
+		// still gated is the EVIDENCE - see textIsTheSignsRemainingGate - and that needs the
+		// design's tile entities, so it cannot be answered by the state alone.
+		assertNull(ActionRecipe.missingFor("oak_wall_sign[facing=north]"));
+		assertNull(ActionRecipe.missingFor("oak_sign[rotation=7]"));
 		assertNull(ActionRecipe.missingFor("redstone_wire[north=side,power=0]"));
 		assertEquals("redstone/rail commissioning", ActionRecipe.missingFor("redstone_wire[power=4]"));
 		assertNull(ActionRecipe.missingFor("stone_slab[type=double]"));

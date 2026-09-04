@@ -1469,6 +1469,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Withdraw.cancel();
 		Autopilot.halt(mc);                              // also lets go of any key it was holding
 		Hud.off();
+		// Disarm the sign writer with everything else, or the next editor a HUMAN opens on one of
+		// this design's positions gets cancelled out from under them.
+		SignWriter.clear();
 		// EVERY layer, not the three the loop happens to use. `find`, `check`, `dig`, `dark`, `mark`
 		// and `marks` are all still drawing after a stop, and a panic button that leaves the screen
 		// covered in particles reads as one that did not work.
@@ -2246,6 +2249,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 	private static void printerTick() {
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             if (Screens.container() != null) Digger.pause(mc);
+            // A sign we placed owes the server exactly one text update, and it must go out on the
+            // client thread. One per tick: these land on a block the server has just created.
+            SignWriter.pump(mc);
             // Farm placements also need their acknowledgements processed without a print design.
             if (printDesign == null && mc.level != null && mc.player != null && Printer.busy()) {
                 try { Printer.verify(mc); }

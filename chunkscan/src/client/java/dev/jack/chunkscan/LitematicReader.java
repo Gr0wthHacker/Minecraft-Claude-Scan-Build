@@ -67,6 +67,44 @@ final class LitematicReader {
 		return List.copyOf(cells.values());
 	}
 
+	/**
+	 * What every sign in this design READS, keyed by {@link BlockPos#asLong()} in world coordinates.
+	 *
+	 * <p>Kept apart from {@link #decode} on purpose: the cells are what the printer PLACES and this
+	 * is what it then has to say, and a design with an unreadable tile entity must still build its
+	 * other cells. A region with no {@code TileEntities} list is a design with no signs, not an
+	 * error - most of them have none.
+	 */
+	static Map<Long, SignText> signs(Path file, BlockPos origin) throws IOException {
+		return signs(NbtIo.readCompressed(file, NbtAccounter.create(256L * 1024 * 1024)), origin);
+	}
+
+	static Map<Long, SignText> signs(CompoundTag root, BlockPos origin) throws IOException {
+		CompoundTag regions = root.getCompound("Regions").orElseThrow(() -> new IOException("Missing Regions"));
+		Map<Long, SignText> out = new LinkedHashMap<>();
+		for (String key : regions.keySet()) {
+			CompoundTag r = regions.getCompound(key).orElseThrow(() -> new IOException("Invalid region " + key));
+			ListTag tiles = r.getList("TileEntities").orElse(null);
+			if (tiles == null || tiles.isEmpty()) continue;
+			CompoundTag size = r.getCompound("Size").orElseThrow(() -> new IOException("Missing Size"));
+			CompoundTag pos = r.getCompound("Position").orElseThrow(() -> new IOException("Missing Position"));
+			int sx = integer(size, "x"), sy = integer(size, "y"), sz = integer(size, "z");
+			// The same corner the cells are decoded against, or the text lands on the wrong blocks.
+			BlockPos base = origin.offset(integer(pos, "x") + Math.min(0, sx + 1),
+				integer(pos, "y") + Math.min(0, sy + 1), integer(pos, "z") + Math.min(0, sz + 1));
+			for (Tag tag : tiles) {
+				CompoundTag tile = tag.asCompound().orElse(null);
+				if (tile == null) continue;
+				SignText text = SignText.of(tile);
+				if (text == null) continue;
+				var x = tile.getInt("x"); var y = tile.getInt("y"); var z = tile.getInt("z");
+				if (x.isEmpty() || y.isEmpty() || z.isEmpty()) continue;
+				out.put(base.offset(x.get(), y.get(), z.get()).asLong(), text);
+			}
+		}
+		return Map.copyOf(out);
+	}
+
 	private static int integer(CompoundTag tag, String key) throws IOException {
 		return tag.getInt(key).orElseThrow(() -> new IOException("Missing integer " + key));
 	}
