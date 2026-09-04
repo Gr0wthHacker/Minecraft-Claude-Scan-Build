@@ -1196,7 +1196,13 @@ final class Autopilot {
 			if (path.isEmpty()) step = unstick(mc, p, step);
 			// ---- LINE UP FOR A TIGHT GAP BEFORE ENTERING IT. See align().
 			boolean[] lock = boxedAxes(mc, aim);
-			if (lock[0] || lock[1] || lock[2]) {
+			// ---- AND SLOW FOR A GAP ONLY WHILE ACTUALLY CORRECTING IN IT.
+			//
+			// Being in a one-wide lane is not a reason to crawl; being OFF CENTRE in one is, because
+			// creeping forward off to one side is how you catch the lip you were threading. Once
+			// lined up, align() already hands the step straight back unchanged - and the flight was
+			// still being held at a fifteenth of cruise for the whole passage anyway.
+			if ((lock[0] || lock[1] || lock[2]) && offCentre(me, aim, lock) > ALIGN_TOL) {
 				if (speed > TIGHT_SPEED) slowBecause = "threading";
 				speed = Math.min(speed, TIGHT_SPEED);
 				step = align(me, aim, lock, dir.scale(speed), ALIGN_TOL, speed);
@@ -1639,11 +1645,19 @@ final class Autopilot {
 	 * @param lock which axes are boxed in — {x, y, z}
 	 * @return the step to take: a pure correction while off-centre, otherwise the step asked for
 	 */
+	/** How far off the middle of the LOCKED lanes we are. The question align() asks first. */
+	static double offCentre(Vec3 me, Vec3 centre, boolean[] lock) {
+		double dx = lock[0] ? centre.x - me.x : 0;
+		double dy = lock[1] ? centre.y - me.y : 0;
+		double dz = lock[2] ? centre.z - me.z : 0;
+		return Math.sqrt(dx * dx + dy * dy + dz * dz);
+	}
+
 	static Vec3 align(Vec3 me, Vec3 centre, boolean[] lock, Vec3 step, double tol, double speed) {
 		double dx = lock[0] ? centre.x - me.x : 0;
 		double dy = lock[1] ? centre.y - me.y : 0;
 		double dz = lock[2] ? centre.z - me.z : 0;
-		double off = Math.sqrt(dx * dx + dy * dy + dz * dz);
+		double off = offCentre(me, centre, lock);        // one source: the gate above asks the same
 		if (off <= tol) return step;
 		// Nothing along the passage until the lanes line up. Creeping forward while still off to one
 		// side is exactly how you catch the lip you were trying to thread.
@@ -1683,7 +1697,20 @@ final class Autopilot {
 	static double cruiseSpeed(double cruise, double toTarget, double toWaypoint, double near,
 	                          boolean bend, boolean lastLeg) {
 		double v = Math.min(cruise, toTarget / 8.0 + 0.05);
-		if (bend) v = Math.min(v, CORNER_SPEED);
+		// ---- A CORNER SLOWS YOU DOWN NEAR THE CORNER, NOT FOR THE WHOLE LEG UP TO IT.
+		//
+		// `bend` is the angle between the leg being flown and the one after it, and that angle
+		// barely changes as you travel the leg - so it was true from the moment the leg started.
+		// A sixty-block run toward a corner ran all sixty at CORNER_SPEED: at cruise 1.5 that is
+		// thirty seconds to cross a room, which is what "it goes hyper slow" looks like. This is the
+		// THIRD time a taper in this function has been applied to the whole journey instead of the
+		// end of it, and it is the same mistake each time: the thing being approached is not the
+		// thing being measured against.
+		//
+		// It is also floored at a fraction of cruise rather than pinned to a constant. 0.10 was a
+		// seventh of the old cruise and is a fifteenth of this one; a corner does not get sharper
+		// because the dial went up.
+		if (bend && toWaypoint < near * 2) v = Math.min(v, Math.max(CORNER_SPEED, cruise * 0.30));
 		if (lastLeg && toWaypoint < near * 3) v = Math.min(v, Math.max(0.06, toWaypoint / 12.0));
 		return v;
 	}
@@ -1734,7 +1761,16 @@ final class Autopilot {
 		BlockPos c = BlockPos.containing(at.x, at.y, at.z);
 		return new boolean[] {
 			solidAt(mc, c.east()) && solidAt(mc, c.west()),
-			solidAt(mc, c.above(2)) && solidAt(mc, c.below()),
+			// ---- THE VERTICAL IS NOT A LANE YOU THREAD.
+			//
+			// It used to be: floor below, ceiling two above, which is a two-course corridor - and a
+			// two-course corridor is what Nav.Passable guarantees EVERYWHERE. So the check fired on
+			// every route through anything with a roof, which on this island is the whole deck, the
+			// undercroft, the store hall and every doorway; the flight then crawled at TIGHT_SPEED
+			// through all of it. A gap you have to line up for is a gap that is TIGHT, and the
+			// vertical never is: flyTo already puts the feet a tenth of a block off the floor of the
+			// cell, which is as lined up as it is possible to be.
+			false,
 			solidAt(mc, c.south()) && solidAt(mc, c.north()),
 		};
 	}

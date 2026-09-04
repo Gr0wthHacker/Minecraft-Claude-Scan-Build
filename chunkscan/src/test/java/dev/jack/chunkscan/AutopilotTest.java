@@ -701,13 +701,17 @@ class AutopilotTest {
 	}
 
 	@Test
-	void itStillSlowsForTheDestinationAndForABend() {
+	void itSlowsForTheDestinationAndForACORNERITHASREACHED() {
 		double near = Autopilot.waypointRadius(Autopilot.SPEED);
 		assertTrue(Autopilot.cruiseSpeed(Autopilot.SPEED, 2, 40, near, false) < Autopilot.SPEED,
 			"arrived at the destination at full speed");
-		assertEquals(Autopilot.CORNER_SPEED,
-			Autopilot.cruiseSpeed(Autopilot.SPEED, 200, 40, near, true), 1e-9,
-			"took a corner at cruise");
+		// The corner is FORTY blocks off. The angle at a waypoint barely changes as you fly the leg
+		// up to it, so slowing on the angle alone ran the whole leg at corner speed - thirty seconds
+		// to cross a room at cruise 1.5, which is what "it goes hyper slow" was.
+		assertEquals(Autopilot.SPEED, Autopilot.cruiseSpeed(Autopilot.SPEED, 200, 40, near, true),
+			1e-9, "crawled the whole leg because there is a corner at the end of it");
+		assertTrue(Autopilot.cruiseSpeed(Autopilot.SPEED, 200, 1, near, true) < Autopilot.SPEED,
+			"took the corner itself at cruise");
 	}
 
 	@Test
@@ -808,11 +812,23 @@ class AutopilotTest {
 
 	@Test
 	void aCornerIsStillTakenSlowly() {
-		// Turning is handled by the bend, which is about the ANGLE rather than the distance - so
-		// dropping the per-waypoint taper does not put it back to cutting corners at cruise.
+		// Dropping the per-waypoint taper must not put it back to cutting corners at cruise: at the
+		// corner it still brakes, and it brakes to a FRACTION of cruise rather than to a constant.
+		// 0.10 was a seventh of the old cruise and is a fifteenth of this one - a corner does not
+		// get sharper because the dial went up.
 		double near = Autopilot.waypointRadius(Autopilot.SPEED);
-		assertEquals(Autopilot.CORNER_SPEED,
-			Autopilot.cruiseSpeed(Autopilot.SPEED, 200, 4, near, true, false), 1e-9);
+		double atCorner = Autopilot.cruiseSpeed(Autopilot.SPEED, 200, 1, near, true, false);
+		assertTrue(atCorner < Autopilot.SPEED, "took the corner at cruise");
+		assertTrue(atCorner >= Autopilot.CORNER_SPEED, "slower than the floor");
+		assertTrue(atCorner > Autopilot.SPEED / 8,
+			"braking to " + atCorner + " from " + Autopilot.SPEED + " is a stop, not a corner");
+	}
+
+	@Test
+	void theCornerBrakeScalesWithTheDial() {
+		double slow = Autopilot.cruiseSpeed(0.4, 200, 1, Autopilot.waypointRadius(0.4), true, false);
+		double fast = Autopilot.cruiseSpeed(2.0, 200, 1, Autopilot.waypointRadius(2.0), true, false);
+		assertTrue(fast > slow, "the same corner speed whatever the cruise");
 	}
 
 	// ---------------------------------------------------------------- the shaft loop

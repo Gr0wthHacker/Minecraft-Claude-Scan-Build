@@ -200,4 +200,58 @@ class NavGeometryTest {
 		}
 		assertTrue(Plan.ring(air(solid), java.util.List.of(cell(0, 100, 0)), 4.2, 4).isEmpty());
 	}
+
+	// ------------------------------------------------------------------ not slowing for nothing
+
+	private static final boolean[] SHAFT = {true, false, true};
+	private static final boolean[] NOTHING = {false, false, false};
+
+	@Test
+	void anORDINARYCORRIDORIsNotATightGap() throws java.io.IOException {
+		// The clamp that actually caused it. boxedAxes used to lock the VERTICAL on a floor below
+		// and a ceiling two above - which is a two-course corridor, and a two-course corridor is
+		// exactly what Nav.Passable guarantees everywhere. So it fired on every route through
+		// anything with a roof, which on this island is the deck, the undercroft, the store hall and
+		// every doorway, and the flight crawled at a fifteenth of cruise through all of it.
+		//
+		// Asserted against the SOURCE because it is the absence of a check, and there is no state to
+		// look at.
+		String src = new String(java.nio.file.Files.readAllBytes(java.nio.file.Path.of(
+			"src/client/java/dev/jack/chunkscan/Autopilot.java")), java.nio.charset.StandardCharsets.UTF_8);
+		assertFalse(src.contains("solidAt(mc, c.above(2)) && solidAt(mc, c.below())"),
+			"a floor and a ceiling are being read as a gap to thread again");
+	}
+
+	@Test
+	void beingInALaneIsNotAReasonToCrawlOnlyBeingOFFCENTREIs() {
+		// align() already hands the step straight back once you are lined up - and the flight was
+		// still being held at TIGHT_SPEED for the whole passage anyway.
+		Vec3 centre = new Vec3(10.5, 100.1, 10.5);
+		assertTrue(Autopilot.offCentre(new Vec3(10.5, 100.1, 10.5), centre, SHAFT)
+			<= Autopilot.ALIGN_TOL, "dead centre reads as needing a correction");
+		assertTrue(Autopilot.offCentre(new Vec3(9.9, 100.1, 10.5), centre, SHAFT)
+			> Autopilot.ALIGN_TOL, "half a block off centre reads as lined up");
+	}
+
+	@Test
+	void anUnlockedAxisNeverCountsTowardsBeingOffCentre() {
+		// The vertical is not locked any more, so a flight legitimately a course above its aim must
+		// not read as needing to thread.
+		assertEquals(0.0, Autopilot.offCentre(new Vec3(0, 50, 0), new Vec3(0, 100, 0), SHAFT), 1e-9);
+		assertEquals(0.0, Autopilot.offCentre(new Vec3(0, 0, 0), new Vec3(9, 9, 9), NOTHING), 1e-9);
+	}
+
+	@Test
+	void theGateAndTheCORRECTIONAgreeAboutBeingLinedUp() {
+		// Two thresholds for one question is how a flight ends up slowed for a correction that is
+		// not being made. align() is the correction; offCentre is the gate; they share the sum.
+		Vec3 centre = new Vec3(10.5, 100.1, 10.5);
+		Vec3 me = new Vec3(10.45, 100.1, 10.5);
+		Vec3 wanted = new Vec3(0.3, 0, 0);
+		boolean gateSaysCorrect = Autopilot.offCentre(me, centre, SHAFT) > Autopilot.ALIGN_TOL;
+		boolean alignCorrects = Autopilot.align(me, centre, SHAFT, wanted, Autopilot.ALIGN_TOL, 0.5)
+			!= wanted;
+		assertEquals(gateSaysCorrect, alignCorrects,
+			"the speed gate and the correction disagree about whether we are lined up");
+	}
 }
