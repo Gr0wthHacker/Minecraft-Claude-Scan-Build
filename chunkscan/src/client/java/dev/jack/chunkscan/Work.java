@@ -49,8 +49,14 @@ final class Work {
 	 * @param nearestUnseen a cell in an unloaded chunk to go and look at, or null
 	 */
 	record Split(String name, List<Cell> todo, List<Cell> wrong, int built, int unseen,
-	             BlockPos nearestUnseen, List<BlockPos> dig) {
-		int total() { return todo.size() + wrong.size() + built + unseen; }
+	             BlockPos nearestUnseen, List<BlockPos> dig, List<Cell> manual) {
+		/** The arity before declined work existed; a design with none reads exactly as it did. */
+		Split(String name, List<Cell> todo, List<Cell> wrong, int built, int unseen,
+		      BlockPos nearestUnseen, List<BlockPos> dig) {
+			this(name, todo, wrong, built, unseen, nearestUnseen, dig, List.of());
+		}
+
+		int total() { return todo.size() + wrong.size() + built + unseen + manual.size(); }
 
 		/**
 		 * Nothing left to place, nothing hiding in a chunk we do not have, AND nothing left to break.
@@ -64,7 +70,9 @@ final class Work {
 		 * <p>`/cscan dig` has always been able to SHOW the list. Showing is not the same as knowing:
 		 * the number that ends a session has to include it.
 		 */
-		boolean complete() { return todo.isEmpty() && wrong.isEmpty() && unseen == 0 && dig.isEmpty(); }
+		boolean complete() {
+			return todo.isEmpty() && wrong.isEmpty() && unseen == 0 && dig.isEmpty() && manual.isEmpty();
+		}
 
 		/**
 		 * Everything the LOOP can finish: placements only.
@@ -83,6 +91,16 @@ final class Work {
 
 		/** Cells still to break, for the report and the highlight. */
 		int digLeft() { return dig.size(); }
+
+		/** Cells handed back to a human, by reason, for the report. Never a reason to wait. */
+		Map<String, Integer> manualLeft() {
+			Map<String, Integer> out = new java.util.LinkedHashMap<>();
+			for (Cell c : manual) {
+				String why = ActionRecipe.manual(c.block());
+				out.merge(why == null ? "manual" : why, 1, Integer::sum);
+			}
+			return out;
+		}
 	}
 
 	private Work() {}
@@ -170,7 +188,7 @@ final class Work {
 	}
 
 	static Split split(Level level, Path schematicsDir, String name, BlockPos near, int radius) throws IOException {
-		List<Cell> todo = new ArrayList<>(), wrong = new ArrayList<>();
+		List<Cell> todo = new ArrayList<>(), wrong = new ArrayList<>(), manual = new ArrayList<>();
 		int built = 0;
 		long r2 = (long) radius * radius;
 		int unseen = 0;
@@ -191,6 +209,9 @@ final class Work {
 			}
 			BlockState st = level.getBlockState(c.pos());
 			if (matches(st, c.block())) built++;
+			// Declined BEFORE the replaceable test, or it lands in `todo` and the printer spends
+			// its tries on a cell it can never satisfy - which reads exactly like a stall.
+			else if (ActionRecipe.manual(c.block()) != null) manual.add(c);
 			else if (isReplaceable(st) || ActionRecipe.slabIntermediate(st, c.block())
 				|| ActionRecipe.vineIntermediate(st, c.block()) || ActionRecipe.glowLichenIntermediate(st, c.block())) todo.add(c);
 			else wrong.add(c);
@@ -209,7 +230,7 @@ final class Work {
 			if (radius > 0 && d.distSqr(near) > r2) continue;
 			dig.add(d);
 		}
-		return new Split(name, todo, wrong, built, unseen, nearestUnseen, dig);
+		return new Split(name, todo, wrong, built, unseen, nearestUnseen, dig, manual);
 	}
 
 	private static boolean isReplaceable(BlockState st) {

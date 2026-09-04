@@ -140,6 +140,25 @@ class SignRecipeTest {
 		assertTrue(LitematicReader.signs(root, BlockPos.ZERO).isEmpty());
 	}
 
+	@Test void aDeclinedCellIsHandedBackRatherThanBlockingOrStalling() {
+		// Cauldrons are DECLINED, not unimplemented: preflight must not refuse a design for two
+		// cells a human will place, the way it refused Park Complete's 350,000 for them.
+		assertEquals("cauldron fill", ActionRecipe.manual("water_cauldron[level=3]"));
+		assertNull(ActionRecipe.manual("stone"));
+		assertNull(ActionRecipe.missingFor("water_cauldron[level=3]"));
+		var cells = List.of(new Work.Cell(BlockPos.ZERO, "water_cauldron[level=3]"));
+		assertDoesNotThrow(() -> ActionRecipe.require(cells));
+
+		// ...and it must leave the todo, or the printer burns its tries on a cell it can never
+		// satisfy, which from the outside is indistinguishable from a stall.
+		var split = new Work.Split("x", List.of(), List.of(), 0, 0, null, List.of(),
+			List.of(new Work.Cell(BlockPos.ZERO, "water_cauldron[level=3]")));
+		assertTrue(split.placementComplete(), "the loop's own part is finished, so it must advance");
+		assertFalse(split.complete(), "the DESIGN is not finished, and must not claim to be");
+		assertEquals(1, split.manualLeft().get("cauldron fill"));
+		assertEquals(1, split.total(), "declined work is still work, and still counted");
+	}
+
 	@Test void onlyASignThisBuildKnowsIsIntercepted() {
 		SignWriter.clear();
 		BlockPos mine = new BlockPos(5, 70, 5), theirs = new BlockPos(9, 70, 9);

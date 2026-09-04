@@ -25,6 +25,25 @@ final class ActionRecipe {
 		return block;
 	}
 
+	/**
+	 * Work this builder DECLINES and hands back, rather than work it cannot do.
+	 *
+	 * <p>The distinction is the same one {@code Split.digLeft} already draws and is load-bearing
+	 * for the same reason: a litematic cannot express removal, so breaking is Jack's, and if the
+	 * loop's advance condition waited on it the loop would sit for ever on something it can never
+	 * satisfy. A declined cell is REPORTED, excluded from the todo, and never blocks preflight.
+	 *
+	 * <p>A filled cauldron is here by decision, not by difficulty. It is the only cell that needs
+	 * two different items - a {@code cauldron}, then a {@code water_bucket} - so it would make
+	 * {@code itemFor} world-aware and touch the slot search and the bill of materials, to automate
+	 * two blocks in a park of three hundred and fifty thousand.
+	 */
+	static String manual(String state) {
+		String block = Rules.shortName(state);
+		if (block.equals("water_cauldron") || block.equals("lava_cauldron")) return "cauldron fill";
+		return null;
+	}
+
 	/** Signs, standing or on a wall - the blocks whose TEXT is a second, separate action. */
 	static boolean sign(String state) {
 		String block = Rules.shortName(state);
@@ -59,7 +78,8 @@ final class ActionRecipe {
 		// A water bucket is a direct, acknowledged item use. Lava remains an explicit gate because
 		// its destructive placement and collection policy has not been approved for this builder.
 		if (block.equals("lava")) return "fluid bucket placement";
-        if (block.equals("water_cauldron") || block.equals("lava_cauldron")) return "cauldron fill";
+		// A filled cauldron is DECLINED, not unimplemented - see `manual`. It is the only recipe
+		// needing two different items for one cell, and it is two blocks in a park of 350,000.
 		// Signs are implemented - placed by the ordinary search, then written by Printer.signText.
 		// Their remaining gate is EVIDENCE rather than mechanism, and it needs the design's tile
 		// entities, so it lives in `missing(cells, signs)` where the text is actually in hand.
