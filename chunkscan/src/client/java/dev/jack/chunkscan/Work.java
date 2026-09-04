@@ -97,6 +97,7 @@ final class Work {
 			Map<String, Integer> out = new java.util.LinkedHashMap<>();
 			for (Cell c : manual) {
 				String why = ActionRecipe.manual(c.block());
+				if (why == null && ActionRecipe.sign(c.block())) why = "sign text not recorded";
 				out.merge(why == null ? "manual" : why, 1, Integer::sum);
 			}
 			return out;
@@ -211,7 +212,7 @@ final class Work {
 			if (matches(st, c.block())) built++;
 			// Declined BEFORE the replaceable test, or it lands in `todo` and the printer spends
 			// its tries on a cell it can never satisfy - which reads exactly like a stall.
-			else if (ActionRecipe.manual(c.block()) != null) manual.add(c);
+			else if (ActionRecipe.manual(c.block()) != null || textlessSign(c)) manual.add(c);
 			else if (isReplaceable(st) || ActionRecipe.slabIntermediate(st, c.block())
 				|| ActionRecipe.vineIntermediate(st, c.block()) || ActionRecipe.glowLichenIntermediate(st, c.block())) todo.add(c);
 			else wrong.add(c);
@@ -231,6 +232,18 @@ final class Work {
 			dig.add(d);
 		}
 		return new Split(name, todo, wrong, built, unseen, nearestUnseen, dig, manual);
+	}
+
+	/**
+	 * A sign this build would place blank.
+	 *
+	 * <p>Only while a build is ARMED with a roster: outside one we know nothing about any sign's
+	 * text, and declining them all would make `/cscan check` and `need` quietly forget every board
+	 * in the park. Placing it anyway is the one thing that is never right - a blank sign passes
+	 * every check we have and is exactly the failure this park already shipped 177 of.
+	 */
+	private static boolean textlessSign(Cell c) {
+		return ActionRecipe.sign(c.block()) && SignWriter.armed() && SignWriter.textFor(c.pos()) == null;
 	}
 
 	private static boolean isReplaceable(BlockState st) {

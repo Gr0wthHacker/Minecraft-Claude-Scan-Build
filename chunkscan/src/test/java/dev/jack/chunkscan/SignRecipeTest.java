@@ -56,13 +56,14 @@ class SignRecipeTest {
 		assertNull(ActionRecipe.yawSweep("stone"));
 	}
 
-	@Test void textIsTheSignsRemainingGate() {
+	@Test void aTextlessSignIsDeclinedRatherThanRefusingTheDesign() {
 		var cells = List.of(new Work.Cell(BlockPos.ZERO, "oak_wall_sign[facing=north]"),
 			new Work.Cell(new BlockPos(1, 0, 0), "oak_sign[rotation=4]"));
-		// No recorded text: a blank board passes every other check this project has, so it is the
-		// one thing that must still refuse.
-		assertEquals(2, ActionRecipe.missing(cells).get("sign text not recorded in the litematic"));
-		assertThrows(java.io.IOException.class, () -> ActionRecipe.require(cells));
+		// NINE unreadable boards must not refuse the 350,000 blocks around them. Preflight exists
+		// to stop the builder attempting what it cannot do, not to hold a park hostage - the cell
+		// is skipped by Work.split and reported, so it still never places a blank board.
+		assertTrue(ActionRecipe.missing(cells).isEmpty());
+		assertDoesNotThrow(() -> ActionRecipe.require(cells));
 
 		Map<Long, SignText> known = Map.of(
 			BlockPos.ZERO.asLong(), new SignText(List.of("THE MIDWAY", "", "", ""), List.of("", "", "", ""), false, "black"),
@@ -74,11 +75,25 @@ class SignRecipeTest {
 	@Test void aSignWhoseEveryLineIsEmptyIsStillBlank() {
 		var empty = new SignText(List.of("", "", "", ""), List.of("", "", "", ""), false, "black");
 		assertTrue(empty.blank());
-		var cells = List.of(new Work.Cell(BlockPos.ZERO, "oak_sign[rotation=0]"));
-		// Recorded-but-empty must fail exactly like unrecorded, or a design can satisfy the gate
-		// with four empty strings and place a blank board anyway.
-		assertEquals(1, ActionRecipe.missing(cells, Map.of(BlockPos.ZERO.asLong(), empty))
-			.get("sign text not recorded in the litematic"));
+		// Recorded-but-empty reads exactly like unrecorded, or a design satisfies the writer with
+		// four empty strings and a blank board goes up anyway.
+		SignWriter.clear();
+		SignWriter.arm(Map.of(BlockPos.ZERO.asLong(), empty));
+		assertFalse(SignWriter.intercept(BlockPos.ZERO, true), "nothing to write is not a write");
+		SignWriter.clear();
+	}
+
+	@Test void aBuildThatIsNotArmedDoesNotForgetEverySignInThePark() {
+		// The distinction that keeps `/cscan check` and `need` honest: "this design records no text
+		// for that board" and "nobody has told us anything yet" are different answers, and only the
+		// first is a reason to decline a cell.
+		SignWriter.clear();
+		assertFalse(SignWriter.armed());
+		SignWriter.arm(Map.of(BlockPos.ZERO.asLong(),
+			new SignText(List.of("A", "", "", ""), List.of("", "", "", ""), false, "black")));
+		assertTrue(SignWriter.armed());
+		SignWriter.clear();
+		assertFalse(SignWriter.armed());
 	}
 
 	@Test void aMessageIsReadAsTheCharactersAPlayerSees() {

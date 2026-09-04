@@ -49,6 +49,15 @@ public final class SignWriter {
 
 	static int written() { return written; }
 
+	/**
+	 * Is a build armed with a sign roster at all?
+	 *
+	 * <p>The difference between "this design records no text for that sign" and "nobody has told us
+	 * anything yet" - and only the first is a reason to decline a cell. Without this, every sign in
+	 * every design reads as textless to `/cscan check` and `need` before a build ever starts.
+	 */
+	static boolean armed() { return !wanted.isEmpty(); }
+
 	static int pendingCount() { return queue.size(); }
 
 	/** Is this a sign THIS BUILD placed and knows the words for? */

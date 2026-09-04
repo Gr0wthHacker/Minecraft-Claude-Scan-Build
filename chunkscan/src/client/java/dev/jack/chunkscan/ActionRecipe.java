@@ -205,11 +205,11 @@ final class ActionRecipe {
     static Map<String, Integer> missing(List<Work.Cell> cells, Map<Long, SignText> signs) {
         Map<String, Integer> out = new LinkedHashMap<>();
         for (Work.Cell cell : cells) {
+            // A sign with no recorded text is DECLINED, not refused: it is skipped and handed back
+            // by `Work.split`, so it still never places a blank board - but nine unreadable boards
+            // must not refuse the three hundred and fifty thousand blocks around them. Preflight
+            // exists to stop the builder attempting what it cannot do, not to hold a park hostage.
             String missing = missingFor(cell.block());
-            if (missing == null && sign(cell.block())) {
-                SignText text = signs.get(cell.pos().asLong());
-                if (text == null || text.blank()) missing = "sign text not recorded in the litematic";
-            }
             if (missing != null) out.merge(missing, 1, Integer::sum);
         }
         return out;
