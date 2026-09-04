@@ -180,6 +180,91 @@ final class Printer {
         return -1;
     }
 
+	/**
+	 * Could this cell EVER be placed from somewhere, given the world as it stands?
+	 *
+	 * <p>The loop asks {@link Work#placeableNow} where to go, and that asks one question: is any of
+	 * the six neighbours solid. {@link #placement} - the thing that actually places - asks five more,
+	 * and any of them can say no: the item's own {@code getStateForPlacement} has to yield the state
+	 * the design wants, the result has to {@code canSurvive} there, the cell has to be unobstructed,
+	 * and the block has to be one this profile and this server allow at all.
+	 *
+	 * <p><b>So the loop was choosing spots by the loose test and the printer was refusing them by the
+	 * strict one.</b> A torch whose only solid neighbour is the wrong face, a plant over the wrong
+	 * soil, a vine with nothing to cling to: every one of them has a solid neighbour, so every one of
+	 * them stayed in the frontier for ever - clustered, flown to, stalled at, abandoned, and picked
+	 * again on the next recount. That is <i>"it still seeks out blocks that it cant possibly place
+	 * because theres nothing around them"</i>, and it is this repo's own rule about one source
+	 * broken in the one place it costs a whole session: two tests, drifting, and the WRONG one
+	 * steering.
+	 *
+	 * <p>This is {@link #placement} with the two things that depend on WHERE YOU STAND removed - the
+	 * reach and the eye ray - so it answers about the cell rather than about the moment. Everything
+	 * else is the same code path, which is what stops the two drifting again.
+	 *
+	 * <p>The stack is built from the registry rather than the inventory: whether you are carrying it
+	 * is {@code carrying}'s question, and answering it here would call a cell unplaceable for being
+	 * out of stock.
+	 */
+	/**
+	 * An item by its registry path.
+	 *
+	 * <p>Everything else here goes the other way - a state to its key - so there was no forward
+	 * lookup to borrow, and the registry has no by-path index. Built once and kept: this is asked
+	 * per cell per recount, and walking twelve hundred items twice a second to answer it would be
+	 * exactly the per-node cost this file has already paid for twice.
+	 */
+	private static Map<String, net.minecraft.world.item.Item> byPath;
+
+	static net.minecraft.world.item.Item itemNamed(String path) {
+		if (byPath == null) {
+			byPath = new HashMap<>();
+			for (var it : BuiltInRegistries.ITEM) {
+				byPath.putIfAbsent(BuiltInRegistries.ITEM.getKey(it).getPath(), it);
+			}
+		}
+		return byPath.get(path);
+	}
+
+	static boolean everPlaceable(Minecraft mc, BlockPos pos, String state) {
+		if (mc.player == null || mc.level == null || !mc.level.isLoaded(pos)) return true;
+		if (!Rules.inLockedProfile(state)) return false;
+		if (Rules.serverListIsAuthoritative() && !Rules.isOnServer(state)) return false;
+		var stackItem = itemNamed(ActionRecipe.itemFor(state));
+		// A bucket, a vine upgrade, anything that is not a plain BlockItem: not this check's
+		// business. Say yes and let the placement path answer for it - a false NO here writes work
+		// off for good, which is much worse than a wasted trip.
+		if (!(stackItem instanceof BlockItem item2)) return true;
+		BlockState existing = mc.level.getBlockState(pos);
+		if (!existing.isAir()) return true;              // an upgrade path owns this cell
+		ItemStack stack = new ItemStack(item2);
+		boolean upper = "top".equals(props(state).get("half")) || "top".equals(props(state).get("type"));
+		LocalPlayer p = mc.player;
+		float oldYaw = p.getYRot(), oldPitch = p.getXRot();
+		try {
+			for (Direction face : faces()) {
+				BlockPos nb = pos.relative(face.getOpposite());
+				if (!mc.level.isLoaded(nb) || !support(mc.level.getBlockState(nb))) continue;
+				BlockHitResult hit = new BlockHitResult(hit(pos, face, upper), face, nb, false);
+				float[] sweep = ActionRecipe.yawSweep(state);
+				for (float yaw : sweep != null ? sweep : new float[]{0, 90, 180, 270}) {
+					for (float pitch : new float[]{0, -90, 90}) {
+						p.setYRot(yaw); p.setXRot(pitch);
+						BlockPlaceContext ctx = new BlockPlaceContext(p, InteractionHand.MAIN_HAND, stack, hit);
+						ctx = item2.updatePlacementContext(ctx);
+						if (ctx == null || !ctx.getClickedPos().equals(pos) || !ctx.canPlace()) continue;
+						BlockState predicted = item2.getBlock().getStateForPlacement(ctx);
+						if (predicted != null && Work.matches(predicted, state)
+							&& predicted.canSurvive(mc.level, pos)
+							&& mc.level.isUnobstructed(predicted, pos,
+								net.minecraft.world.phys.shapes.CollisionContext.empty())) return true;
+					}
+				}
+			}
+		} finally { p.setYRot(oldYaw); p.setXRot(oldPitch); }
+		return false;
+	}
+
     record Placement(BlockHitResult hit, float yaw, float pitch) {}
 
     /** Check the real ray and vanilla's placement state before sending an interaction. */

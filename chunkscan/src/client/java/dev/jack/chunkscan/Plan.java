@@ -494,6 +494,19 @@ final class Plan {
 	 * block, and a bin of that size has corners further away than its own width. Rounding down is
 	 * the same conservatism the rest of this file uses about reach.
 	 */
+	/**
+	 * The printer's real range, unfloored.
+	 *
+	 * <p>{@link #reach} floors it to an int because bins and keys are integers. Anything that then
+	 * SUBTRACTS from it - a standoff, an arrival allowance - must not pay the flooring as well, or a
+	 * 4.2-block reach is spent down to 2.8 and the only way to cover a cluster is to stand in it.
+	 */
+	static double reachExact() {
+		if (Printer.driving()) return Printer.REACH;
+		double real = Litematica.printerRange();
+		return real > 0 ? real : PRINTER_REACH;
+	}
+
 	static int reach() {
         if (Printer.driving()) return (int)Math.floor(Printer.REACH);
 		double real = Litematica.printerRange();
@@ -558,14 +571,91 @@ final class Plan {
 	 *
 	 * @param slack how far short of the chosen spot the flight is expected to stop
 	 */
-	static BlockPos bestStand(Nav.Passable free, List<Work.Cell> cells, int reach, BlockPos from,
+	/**
+	 * A RING of standing spots around the work, ordered so that walking it circles the cells.
+	 *
+	 * <p><b>A hovering body is the one that loses flight.</b> {@link #bestStand} answers "where is
+	 * the single best place to float", and the loop then held that place while the printer worked -
+	 * so the flight spent every build parked a block or two off a wall, holding station against
+	 * drift, for as long as the bin took. Jack: <i>"it also flies and hovers when realistically it
+	 * can just keep circling areas and going"</i>. He is right twice over: standing still is where
+	 * the contact happens, and one vantage only ever reaches the faces that vantage can see.
+	 *
+	 * <p>So the spot is not a POINT, it is an ORBIT. Every cell that passes the same clearance rules
+	 * {@link #bestStand} applies is a candidate; they are bucketed into eight bearings around the
+	 * cluster and the best-covering one from each is kept. Flying that ring keeps the printer inside
+	 * its own reach the whole way round, presents a different face of the work every leg, and never
+	 * asks the body to hold a position.
+	 *
+	 * <p>Only stops that carry real work are kept: a bearing from which the printer can reach barely
+	 * anything is a detour, not a vantage. Returns an empty list when the geometry gives no ring at
+	 * all - a cell in a slot, a bin against a ceiling - and the caller falls back to standing still,
+	 * which is worse and is still better than not building.
+	 */
+	static final int ARCS = 8;
+
+	static List<BlockPos> ring(Nav.Passable free, List<Work.Cell> cells, double reach, int maxOut) {
+		List<BlockPos> out = new ArrayList<>();
+		if (cells.isEmpty()) return out;
+		BlockPos mid = centroid(cells);
+		double r = Math.max(1.0, reach - 1.2);
+		double r2 = r * r;
+		BlockPos[] bestAt = new BlockPos[ARCS];
+		int[] bestCover = new int[ARCS];
+		int mostAnywhere = 0;
+		for (int dx = -maxOut; dx <= maxOut; dx++) {
+			for (int dy = -maxOut; dy <= maxOut; dy++) {
+				for (int dz = -maxOut; dz <= maxOut; dz++) {
+					if (dx == 0 && dz == 0) continue;      // no bearing: that is the centre, not a stop
+					BlockPos c = mid.offset(dx, dy, dz);
+					if (!free.at(c.getX(), c.getY(), c.getZ())) continue;
+					if (!Nav.airBelow(free, c, Nav.AIR_BELOW)) continue;
+					if (!Nav.headroom(free, c, Nav.AIR_ABOVE)) continue;
+					int covered = 0;
+					for (Work.Cell w : cells) if (w.pos().distSqr(c) <= r2) covered++;
+					if (covered == 0) continue;
+					mostAnywhere = Math.max(mostAnywhere, covered);
+					int arc = arcOf(dx, dz);
+					if (covered > bestCover[arc]) {
+						bestCover[arc] = covered;
+						bestAt[arc] = c;
+					}
+				}
+			}
+		}
+		// A vantage worth flying to has to be able to work from. Half of the best is generous - the
+		// point is to keep moving, not to insist every leg is the best leg.
+		int floor = Math.max(1, mostAnywhere / 2);
+		for (int a = 0; a < ARCS; a++) {
+			if (bestAt[a] != null && bestCover[a] >= floor) out.add(bestAt[a]);
+		}
+		return out;
+	}
+
+	/** Which of the eight bearings round the cluster a horizontal offset falls in. */
+	static int arcOf(int dx, int dz) {
+		double a = Math.atan2(dz, dx);                     // -PI..PI
+		int k = (int) Math.floor((a + Math.PI) / (2 * Math.PI) * ARCS);
+		return Math.max(0, Math.min(ARCS - 1, k));
+	}
+
+	static BlockPos bestStand(Nav.Passable free, List<Work.Cell> cells, double reach, BlockPos from,
 	                          int maxOut, double slack) {
 		if (cells.isEmpty()) return null;
 		BlockPos mid = centroid(cells);
-		double r = Math.max(1, reach - slack);
+		// ---- SCORE AT THE REACH WE ACTUALLY HAVE.
+		//
+		// `reach` used to arrive here already FLOORED to an int, and the slack was then taken off
+		// that - so a 4.2-block reach was being scored as 2.8. A radius of 2.8 round a cluster is
+		// maximised by standing IN it, which is what the flight then did: it threaded its way into
+		// the middle of the work, spent the whole approach at low speed between the very blocks it
+		// had come to place, and touched one. Jack: "we have a 4-5 block reach so we dont need to be
+		// on top".
+		double r = Math.max(1.0, reach - slack);
 		double r2 = r * r;
 		BlockPos best = null;
 		int bestCovered = -1;
+		double bestStandBack = -1.0;
 		double bestNear = Double.MAX_VALUE;
 		for (int dx = -maxOut; dx <= maxOut; dx++) {
 			for (int dy = -maxOut; dy <= maxOut; dy++) {
@@ -575,13 +665,28 @@ final class Plan {
 					if (!Nav.airBelow(free, c, Nav.AIR_BELOW)) continue;
 					if (!Nav.headroom(free, c, Nav.AIR_ABOVE)) continue;
 					int covered = 0;
+					double nearestCell = Double.MAX_VALUE;
 					for (Work.Cell w : cells) {
-						if (w.pos().distSqr(c) <= r2) covered++;
+						double d2 = w.pos().distSqr(c);
+						if (d2 <= r2) covered++;
+						nearestCell = Math.min(nearestCell, d2);
 					}
 					if (covered == 0) continue;
 					double near = c.distSqr(from);
-					if (covered > bestCovered || (covered == bestCovered && near < bestNear)) {
+					// ---- COVERAGE FIRST, THEN STAND BACK.
+					//
+					// Two spots that place the same blocks are the same spot to the printer and are
+					// not the same spot to the FLIGHT: one of them is a block off a wall it is about
+					// to build, and on this server touching that wall ends the session. So among
+					// equal coverage, take the one furthest from the nearest cell - the reach is
+					// already paid for, and the air is free.
+					boolean better = covered > bestCovered
+						|| (covered == bestCovered && nearestCell > bestStandBack + 1.0e-9)
+						|| (covered == bestCovered && Math.abs(nearestCell - bestStandBack) <= 1.0e-9
+							&& near < bestNear);
+					if (better) {
 						bestCovered = covered;
+						bestStandBack = nearestCell;
 						bestNear = near;
 						best = c;
 					}

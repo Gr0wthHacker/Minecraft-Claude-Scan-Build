@@ -113,6 +113,16 @@ final class Hud {
 	 */
 	static final long DWELL_MS = 4_000;
 	/**
+	 * How long to work one bearing before moving round to the next. See {@link Plan#ring}.
+	 *
+	 * <p>Long enough that the printer empties what it can see from there - Jack measures it at
+	 * roughly seven placements a second - and short enough that the body is never asked to hold a
+	 * position, which is when it drifts into something and the flight ends.
+	 */
+	static final long ORBIT_MS = 3_000;
+	private static int orbitLeg = 0;
+	private static long orbitSince = 0;
+	/**
 	 * How far out of the work a standing spot may be.
 	 *
 	 * <p>Tight on purpose, and tighter now. A bin's far corner is already about 3.5 from its middle
@@ -347,10 +357,25 @@ final class Hud {
         // Re-evaluate actual support each recount: other players/chunk loads can change it
         // without changing this design's remaining count.
         Map<String, Integer> carrying = Work.carrying(mc.player);
-        java.util.List<Work.Cell> frontier = Work.placeableNow(mc.level, sp.todo()).stream()
+        // Cells with a face to click and not written off. This is the LOOSE test: it asks only
+        // whether a neighbour is solid.
+        java.util.List<Work.Cell> supported = Work.placeableNow(mc.level, sp.todo()).stream()
             .filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
             .filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
             .toList();
+        // ---- AND THEN ASK THE PRINTER, NOT AN APPROXIMATION OF IT.
+        //
+        // A solid neighbour is necessary and it is not sufficient: the item has to yield the state
+        // the design wants, it has to survive there, and the cell has to be unobstructed. The loop
+        // was choosing spots by the loose test while the printer refused them by the strict one, so
+        // a cell that can never go in stayed in the frontier for ever - clustered, flown to,
+        // stalled at, abandoned, and picked again on the next recount. See Printer.everPlaceable.
+        java.util.List<Work.Cell> frontier = supported.stream()
+            .filter(c -> Printer.everPlaceable(mc, c.pos(), c.block()))
+            .toList();
+        // Counted, never merely dropped: work quietly removed from the plan is work the design
+        // never completes and nothing explains.
+        int refusedByState = supported.size() - frontier.size();
         java.util.List<Plan.Cluster> cl = Plan.clusters(frontier, carrying, java.util.Set.of(), java.util.Set.of(), me);
 		spotsLeft = cl.size();
 
@@ -450,7 +475,11 @@ final class Hud {
 				if (target != null || !said) {
 					said = true;
 					mc.player.sendSystemMessage(Component.literal(phase == Loop.Phase.DEAD_END
-						? "[cscan] no usable support/material combination; check floating cells, state mismatches, island registry and indexed stock"
+						? "[cscan] no usable support/material combination"
+							+ (refusedByState > 0 ? " — " + refusedByState + " cell(s) the printer"
+								+ " cannot place at all (state will not survive there, or the cell is"
+								+ " obstructed): /cscan check " + sp.name() : "")
+							+ "; check floating cells, state mismatches, island registry and indexed stock"
 							+ " to fetch — /cscan bom " + sp.name()
 						: "[cscan] pack is full of what you cannot place here — store something, or"
 							+ " /cscan bom " + sp.name()));
@@ -630,6 +659,28 @@ final class Hud {
 				// close when adjusting and then stopping flight" half of the report. The question is
 				// not whether the aim is still IDEAL, it is whether the printer can still REACH what
 				// is left. While it can, holding still beats improving.
+				// ---- KEEP CIRCLING RATHER THAN HOLDING STATION.
+				//
+				// Holding still was the right answer to a different question - "do not re-approach
+				// every two seconds", which was costing flights. It is the wrong answer to this one:
+				// a parked body still drifts, still has to correct, and only ever reaches the faces
+				// one vantage can see. The ring gives a bearing to move ON to rather than a point to
+				// hold, so the correction becomes travel and the far side of the bin gets built.
+				List<BlockPos> lap = Plan.ring(Nav.of(mc.level), here, Plan.reachExact(), STANDOFF + 2);
+				if (lap.size() >= 2) {
+					if (now - orbitSince >= ORBIT_MS || target == null) {
+						orbitSince = now;
+						orbitLeg = (orbitLeg + 1) % lap.size();
+					}
+					BlockPos stop = lap.get(orbitLeg);
+					if (!stop.equals(target)) {
+						Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
+						guide(stop, here.size() + " here");
+					}
+					return;
+				}
+				// No ring - a cell in a slot, a bin against a ceiling. Then holding still is the
+				// only thing left, and it is still better than not building.
 				if (allWithinReach(me, here, Plan.reach())) return;
 
 				// ---- MOVE AROUND THE WORK AS IT GETS BUILT. The bin is a 4-cube, so its far corner
@@ -637,7 +688,7 @@ final class Hud {
 				// printer's reach. Re-aiming at the centroid of what is LEFT walks you round the
 				// group from a new angle every time some of it goes in — which is the difference
 				// between finishing a station and placing the near face of it and stopping.
-				BlockPos re = Plan.bestStand(Nav.of(mc.level), here, Plan.reach(),
+				BlockPos re = Plan.bestStand(Nav.of(mc.level), here, Plan.reachExact(),
 					mc.player.blockPosition(), STANDOFF + 2, Autopilot.ARRIVE_MIN);
 				if (re != null && !re.equals(target)) {
 					Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
@@ -684,9 +735,11 @@ final class Hud {
 		stationTodo = here.size();
 		stationRetry = 0;
 		stationArrivedAt = 0;                            // not there yet; the dwell starts on arrival
+		orbitLeg = 0;
+		orbitSince = now;                            // a new bin is a new lap
 		// COVERAGE, not proximity. See Plan.bestStand: the spot is chosen by how many of these cells
 		// the printer can touch from it, discounted by how far short the flight parks.
-		BlockPos at = Plan.bestStand(Nav.of(mc.level), here, Plan.reach(), me, STANDOFF + 2,
+		BlockPos at = Plan.bestStand(Nav.of(mc.level), here, Plan.reachExact(), me, STANDOFF + 2,
 			Autopilot.ARRIVE_MIN);
 		if (at == null) at = Nav.standoff(Nav.of(mc.level), st.where(), me, STANDOFF);
 		if (at == null) at = st.where();

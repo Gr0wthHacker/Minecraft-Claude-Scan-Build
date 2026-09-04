@@ -384,6 +384,30 @@ final class Autopilot {
 	static final double CLIMB_DEADZONE = 0.05;
 
 	/** The step, with the vertical scaled to survive flight friction. */
+	/**
+	 * Where in a waypoint cell to put the BODY.
+	 *
+	 * <p><b>A player is 1.8 tall and stands on its feet.</b> Every waypoint here was flown to
+	 * {@code atCenterOf}, which is the cell's MIDDLE - so the feet sat at y+0.5 and the head at
+	 * y+2.3, and the body occupied THREE cells: y, y+1 and y+2. {@link Nav.Passable} checks TWO.
+	 *
+	 * <p>So the router and the flight disagreed about the shape of the thing being routed, on every
+	 * cell of every path, permanently. A corridor exactly two courses high - which is most of the
+	 * deck, the store hall, the undercroft and every doorway on this island - is routable and
+	 * unflyable: the search says yes and the head is in the ceiling. That is the structural cause of
+	 * <i>"we bump our head a lot"</i>, and no amount of climbing, sliding or unsticking can fix a
+	 * body that does not fit the hole it was sent through.
+	 *
+	 * <p>Aimed at the feet instead, a hair off the floor of the cell, the box spans y+0.1 to y+1.9
+	 * and occupies exactly the two cells the search checked. The two agree BY CONSTRUCTION rather
+	 * than by a margin somebody chose.
+	 */
+	static final double FOOT_OFFSET = 0.1;
+
+	static Vec3 flyTo(BlockPos cell) {
+		return new Vec3(cell.getX() + 0.5, cell.getY() + FOOT_OFFSET, cell.getZ() + 0.5);
+	}
+
 	static Vec3 liftFor(Vec3 step, double cap) {
 		double y = step.y * VERTICAL_GAIN;
 		return new Vec3(step.x, Math.max(-cap, Math.min(cap, y)), step.z);
@@ -775,7 +799,10 @@ final class Autopilot {
 		// hour-long unattended loop and left it parked. `/cscan stop` and `/cscan autofly off` are
 		// the off switch, they are one word each, and they cannot be pressed by accident.
 		Vec3 me = p.position();
-		Vec3 to = Vec3.atCenterOf(target);
+		// A SOLID target is a thing to LOOK AT, so its middle is the right point. An empty one is a
+		// place to PUT THE BODY, and a body stands on its feet - see flyTo.
+		boolean solidTarget = mc.level.getBlockState(target).blocksMotion();
+		Vec3 to = solidTarget ? Vec3.atCenterOf(target) : flyTo(target);
 		double dist = me.distanceTo(to);
 		// A SOLID DESTINATION IS ARRIVED AT FROM OUTSIDE IT. A chest is a block, so the tight radius
 		// can never be satisfied and the flight would hover against its face trying — inside reach
@@ -799,7 +826,7 @@ final class Autopilot {
 		} else {
 			sinceCloser++;
 		}
-		double ceiling = mc.level.getBlockState(target).blocksMotion() ? ARRIVED_SOLID : ARRIVED;
+		double ceiling = solidTarget ? ARRIVED_SOLID : ARRIVED;
 		// ...and whether closing any further would mean touching something. See SAFE_GAP: reach is
 		// worth having and it is not worth the flight.
 		boolean wall = surfaceAhead(mc, p, to.subtract(me), SAFE_GAP);
@@ -1022,9 +1049,9 @@ final class Autopilot {
 		// between going through the door and pressing on the wall beside it.
 		Vec3 aim = to;
 		double near = waypointRadius(flying ? speed : WALK_SPEED);
-		while (!path.isEmpty() && (flying ? me.distanceTo(Vec3.atCenterOf(path.get(0))) <= near
+		while (!path.isEmpty() && (flying ? me.distanceTo(flyTo(path.get(0))) <= near
 			: WalkingSpace.arrived(me, path.get(0)))) {
-			legFrom = Vec3.atCenterOf(path.get(0));       // the leg we are on starts where we passed
+			legFrom = flyTo(path.get(0));                 // the leg we are on starts where we passed
 			path.remove(0);
 		}
 		if (!flying) {
@@ -1058,7 +1085,7 @@ final class Autopilot {
 			//
 			// So: steer at the nearest point on the validated segment, a little way ahead. Off the
 			// line it pulls back onto it; on the line it is the same as before.
-			aim = pursue(me, legFrom == null ? me : legFrom, Vec3.atCenterOf(path.get(0)),
+			aim = pursue(me, legFrom == null ? me : legFrom, flyTo(path.get(0)),
 				LOOKAHEAD);
 		}
 
@@ -1085,11 +1112,11 @@ final class Autopilot {
 		// of 0.75. The bend check read off the same point and saw a permanent corner on top of it.
 		//
 		// The waypoint is the thing being approached. The aim is only where to point.
-		Vec3 wp = path.isEmpty() ? to : Vec3.atCenterOf(path.get(0));
+		Vec3 wp = path.isEmpty() ? to : flyTo(path.get(0));
 		boolean bend = false;
 		if (path.size() >= 2) {
 			Vec3 thisLeg = wp.subtract(me);
-			Vec3 nextLeg = Vec3.atCenterOf(path.get(1)).subtract(wp);
+			Vec3 nextLeg = flyTo(path.get(1)).subtract(wp);
 			if (thisLeg.lengthSqr() > 1.0e-6 && nextLeg.lengthSqr() > 1.0e-6) {
 				bend = thisLeg.normalize().dot(nextLeg.normalize()) < CORNER_COS;
 			}
@@ -1162,6 +1189,9 @@ final class Autopilot {
 			step = liftFor(step, Math.max(speed, RISE) * 1.5);
 			// Going down is the half that can safely use a key: sneak toggles nothing.
 			sink(mc, step.y < -CLIMB_DEADZONE);
+			// ---- AND DO NOT SEND A STEP THAT TOUCHES ANYTHING. Last, after every other rule has
+			// had its say, because it is the only one that is about the world rather than the plan.
+			step = avoid(p, step);
 			p.setDeltaMovement(step);
 		} else {
 			release(mc);                               // on foot the vertical is the ground's job
@@ -1328,6 +1358,61 @@ final class Autopilot {
 	 * arriving at a floor, the second gets you off one you have already met, including the case
 	 * where the ground came up to you because the terrain rose.
 	 */
+	/**
+	 * Air to leave between the body and a block when clipping a step. Under a tick of travel, so it
+	 * can never stop a flight short of somewhere it has to get to, and enough that the server's own
+	 * rounding cannot land the box flush against a face.
+	 */
+	static final double SKIN = 0.12;
+
+	/**
+	 * THE STEP THAT IS SENT MUST NOT TOUCH ANYTHING.
+	 *
+	 * <p>Everything else in this file reacts to contact - climb over it, slide round it, ease off
+	 * the corner, get flight back, tap it on again, rescue the fall. All of it is downstream of one
+	 * decision made here: a heading is normalised, scaled by the speed and WRITTEN, and whatever
+	 * that vector runs into is Minecraft's problem. Minecraft solves it by clipping the movement
+	 * against the block - which is to say BY TOUCHING IT - and on this server touching a block ends
+	 * flight. Every heuristic above is standing in for a velocity that should never have been sent.
+	 *
+	 * <p>Baritone never has this problem, and not because its search is better: it does not write
+	 * velocities at all. It presses movement keys along a path of cells it has already proved a body
+	 * fits through, and re-proves each one as it goes. We cannot press keys to fly - the jump key is
+	 * a flight TOGGLE, which this mod has already revoked its own flight with once - so the
+	 * equivalent is to do the collision test OURSELVES, before sending, and drop whatever would land
+	 * us against a face.
+	 *
+	 * <p>Per axis, so a step into a wall SLIDES along it rather than stopping dead: that is the same
+	 * resolution the game does, arrived at a tick earlier, while there is still something to be done
+	 * about it. The box is inflated by {@link #SKIN} so it stops SHORT of the block rather than
+	 * flush against it.
+	 *
+	 * <p><b>An already-touching body must still be able to move.</b> Inflated, a flight legitimately
+	 * parked a block off a wall fails every axis and freezes - which is a worse failure than the one
+	 * being fixed, because it is silent. So when the cushion is already occupied the axis is judged
+	 * on the real box, which lets it move away from what it is against.
+	 */
+	static Vec3 avoid(LocalPlayer p, Vec3 step) {
+		net.minecraft.world.phys.AABB body = p.getBoundingBox();
+		boolean roomy = p.level().noCollision(p, body.inflate(SKIN, SKIN, SKIN));
+		net.minecraft.world.phys.AABB box = roomy ? body.inflate(SKIN, SKIN, SKIN) : body;
+		return avoid(step, d -> p.level().noCollision(p, box.move(d.x, d.y, d.z)));
+	}
+
+	/**
+	 * The axis rule on its own, so it can be argued with without a client.
+	 *
+	 * @param fits whether the body may be displaced by that offset without meeting anything
+	 */
+	static Vec3 avoid(Vec3 step, java.util.function.Predicate<Vec3> fits) {
+		if (step.lengthSqr() < 1.0e-9) return step;
+		double x = step.x, y = step.y, z = step.z;
+		if (x != 0 && !fits.test(new Vec3(x, 0, 0))) x = 0;
+		if (y != 0 && !fits.test(new Vec3(0, y, 0))) y = 0;
+		if (z != 0 && !fits.test(new Vec3(0, 0, z))) z = 0;
+		return new Vec3(x, y, z);
+	}
+
 	private static Vec3 keepAirborne(Minecraft mc, LocalPlayer p, Vec3 step) {
 		// ...unless there is a ceiling. Indoors — the store hall, the entrance, the undercroft — a
 		// room can be two courses high, and forcing a climb there just grinds you along the ceiling.
@@ -1383,6 +1468,25 @@ final class Autopilot {
 	 * void until you are standing on it.
 	 */
 	static double clearanceBelow(View w, double px, double py, double pz, int depth) {
+		// ---- ALL FOUR CORNERS OF THE BODY, AND THE WORST OF THEM.
+		//
+		// The centre column alone is not what a flight lands on. The player is 0.6 wide, so half a
+		// block either side of the point this used to sample is the box that actually meets the
+		// floor - and over a LEDGE those disagree completely: the centre reads open void while a
+		// corner is over the deck. The flight then descends happily onto the corner it never
+		// looked at, touches down, and the plugin takes the flight away. That is what dropping
+		// flight at an edge is, and it is the same 'sampled the centre line' fault that once let
+		// simplify() straighten a route between two blocks.
+		double best = depth;
+		for (double ox : new double[]{-0.31, 0.31}) {
+			for (double oz : new double[]{-0.31, 0.31}) {
+				best = Math.min(best, column(w, px + ox, py, pz + oz, depth));
+			}
+		}
+		return best;
+	}
+
+	private static double column(View w, double px, double py, double pz, int depth) {
 		for (int d = 0; d <= depth; d++) {
 			int by = (int) Math.floor(py - 0.1 - d);
 			int bx = (int) Math.floor(px), bz = (int) Math.floor(pz);

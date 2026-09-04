@@ -484,7 +484,15 @@ final class Nav {
 	}
 
 	/** How many clear cells a standing spot must have under it. See the note in standoff. */
-	static final int AIR_BELOW = 2;
+	/**
+	 * <p><b>THREE, because {@link Autopilot#GROUND_CLEAR} is 2.5.</b> At two, a standing spot
+	 * guarantees about 2.1 blocks of air under the feet and the autopilot refuses to descend inside
+	 * 2.5 - so the flight could not settle at a spot this very function had chosen for it. It hovered
+	 * above its own destination, stopped getting nearer, and 'arrived' at whatever height it had
+	 * stalled at, with the work now out of reach. Two correct rules, contradicting each other, and
+	 * the only symptom was a printer that placed nothing.
+	 */
+	static final int AIR_BELOW = 3;
 	/**
 	 * ...and how much over its head.
 	 *
