@@ -540,4 +540,56 @@ class LoopTest {
 		java.util.List<Work.Cell> stack = java.util.List.of(c(0, 99, 0), c(0, 100, 0));
 		assertEquals(1, Loop.layer(stack, 100, Loop.LAYER_BAND).size());
 	}
+
+	// ---------------------------------------------------------------- what is around me
+
+	@Test
+	void itNEVERLooksPastWhatIsAtItsFeet() {
+		// The whole complaint. A two-hundred block area whose clusters were RANKED meant the best
+		// spot in a region the size of a small town won - and having flown there, the next recount
+		// could rank something else top and send it back. With a near radius nothing further away
+		// is CONSIDERED while there is a block at your feet, so nothing can send it across the map.
+		java.util.List<Work.Cell> spread = java.util.List.of(
+			c(3, 100, 0), c(150, 100, 0), c(199, 100, 0));
+		java.util.List<Work.Cell> near = Loop.focus(spread, new BlockPos(0, 100, 0), Loop.NEAR_RADIUS);
+		assertEquals(1, near.size(), "it is still looking across the whole area");
+		assertEquals(new BlockPos(3, 100, 0), near.get(0).pos());
+	}
+
+	@Test
+	void theRadiusOpensONLYWhenThereIsNothingNear() {
+		java.util.List<Work.Cell> far = java.util.List.of(c(70, 100, 0));
+		double d = Loop.nearestDistance(far, new BlockPos(0, 100, 0));
+		assertEquals(70.0, d, 0.001);
+		int r = Loop.radiusReaching(d);
+		assertTrue(r >= 70, "opened to " + r + ", which does not reach the work");
+		assertTrue(r <= Loop.WORK_RADIUS);
+		// ...and it is the SMALLEST rung that reaches, not the widest available.
+		assertTrue(r / 2 < 70, "opened wider than it had to: " + r);
+	}
+
+	@Test
+	void theLadderTerminatesAndIsCapped() {
+		assertEquals(Loop.WORK_RADIUS, Loop.radiusReaching(1_000_000));
+		assertEquals(Loop.NEAR_RADIUS, Loop.radiusReaching(0));
+		int r = Loop.NEAR_RADIUS;
+		for (int i = 0; i < 64; i++) r = Loop.grow(r);
+		assertEquals(Loop.WORK_RADIUS, r, "the ladder does not settle");
+	}
+
+	@Test
+	void anImmediateRadiusIsActuallyIMMEDIATE() {
+		// It is a number that decides whether the loop reads as autonomous, so it is pinned rather
+		// than left to whoever next thinks a bigger one would find more work. It will; that is the
+		// problem.
+		assertTrue(Loop.NEAR_RADIUS <= 32, "an 'immediate' radius of " + Loop.NEAR_RADIUS
+			+ " blocks is a region, not arm's length");
+		assertTrue(Loop.NEAR_RADIUS < Loop.WORK_RADIUS);
+	}
+
+	@Test
+	void nothingLeftAtAllIsNotADistance() {
+		assertEquals(Double.MAX_VALUE,
+			Loop.nearestDistance(java.util.List.of(), new BlockPos(0, 0, 0)), 0.0);
+	}
 }

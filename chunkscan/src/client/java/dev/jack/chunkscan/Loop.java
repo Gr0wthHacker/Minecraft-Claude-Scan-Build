@@ -125,6 +125,56 @@ final class Loop {
 	 * <p>It bounds the BUILD only. A container three hundred blocks away is still a legitimate trip:
 	 * that is one journey to fill a pack, not a hundred journeys to place a hundred blocks.
 	 */
+	/**
+	 * WHAT IS WITHIN ARM'S REACH OF WHERE I AM STANDING.
+	 *
+	 * <p>This is the radius the loop actually works at, and it is small on purpose. What it replaced
+	 * was a two-hundred block AREA whose clusters were then RANKED - doable discounted by distance -
+	 * so the best spot in a region the size of a small town won, and having flown there the next
+	 * recount could rank something else top and send it back. Two hundred blocks is not an immediate
+	 * radius, it is a region, and calling it an area did not make the flying stop. Jack:
+	 * <i>"its still flying all over the damn place to find where to place blocks"</i>.
+	 *
+	 * <p>The rule he asked for is simpler than any ranking and it is monotonic: look at what is
+	 * around you, build that out, and only when there is nothing left near you do you look further.
+	 * Nothing can send the loop across the map while there is a block at its feet, because nothing
+	 * further away is ever considered.
+	 */
+	static final int NEAR_RADIUS = 16;
+
+	/**
+	 * ...and how far it is willing to look once the near work is genuinely finished.
+	 *
+	 * <p>Doubling, so a design with a sparse patch does not creep outward one block at a time, and
+	 * capped: past this it is not looking around, it is choosing a new place to work.
+	 */
+	static int grow(int radius) {
+		return Math.min(WORK_RADIUS, Math.max(NEAR_RADIUS, radius * 2));
+	}
+
+	/**
+	 * How far the nearest remaining cell is, in one pass.
+	 *
+	 * <p>Growing by re-scanning is five passes over the whole design every recount while there is
+	 * nothing near - and on 540,862 cells that is millions of distance checks for an answer one
+	 * pass already contains. Ask how far the work IS, then open the radius to it in a single step.
+	 */
+	static double nearestDistance(List<Work.Cell> cells, BlockPos from) {
+		double best = Double.MAX_VALUE;
+		for (Work.Cell c : cells) best = Math.min(best, c.pos().distSqr(from));
+		return best == Double.MAX_VALUE ? best : Math.sqrt(best);
+	}
+
+	/** The smallest radius on the doubling ladder that reaches {@code want}, or WORK_RADIUS. */
+	static int radiusReaching(double want) {
+		int r = NEAR_RADIUS;
+		while (r < WORK_RADIUS && r < want) r = grow(r);
+		return r;
+	}
+
+	/** Back to arm's length. Called the moment there is work in front of you again. */
+	static int nearAgain() { return NEAR_RADIUS; }
+
 	static final int WORK_RADIUS = 200;
 
 	/**

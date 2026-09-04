@@ -64,10 +64,11 @@ final class Hud {
 	 * only when the area is FINISHED - never because somewhere else looks better, which is the
 	 * behaviour it exists to stop.
 	 */
-	private static BlockPos workAnchor = null;
 	private static boolean saidFarFetch = false;
 	/** The course being built. See Loop.LAYER_BAND - a design is worked upward, one at a time. */
 	private static int workLayer = Integer.MIN_VALUE;
+	/** How far the loop is currently willing to look. See Loop.NEAR_RADIUS. */
+	private static int workRadius = Loop.NEAR_RADIUS;
 	private static boolean saidIndexBroken = false;
 	/** Items whose unboxing failed here, and when to try them again. A site is a place, not a fact. */
 	private static final Map<String, Long> unboxRetryAt = new java.util.HashMap<>();
@@ -142,13 +143,8 @@ final class Hud {
 	 * area moves; the next recount then works out from there.
 	 */
 	private static void goLook(Minecraft mc, BlockPos at, String why) {
-		if (workAnchor != null
-			&& at.distSqr(workAnchor) > (double) Loop.WORK_RADIUS * Loop.WORK_RADIUS) {
-			workAnchor = at;
-			if (mc.player != null) mc.player.sendSystemMessage(Component.literal(
-				"[cscan] nothing left in view here — moving the working area to "
-					+ Wand.fmt(at)));
-		}
+		// Going to look is a move, so the radius starts again at arm's length when we get there.
+		workRadius = Loop.nearAgain();
 		guide(at, why);
 	}
 	/** A dead end is worth saying once. Every two seconds it is a reason to turn the loop off. */
@@ -508,6 +504,10 @@ final class Hud {
 			if (gone > 0) {
 				placedTotal += gone;
 				lastProgressMs = now;
+				// ---- AND BACK TO ARM'S LENGTH. The radius grew because there was nothing near;
+				// something just went in, so there is. Left wide it would keep ranking the whole
+				// two hundred blocks and the flying starts again.
+				workRadius = Loop.nearAgain();
 			}
 		}
 		lastTodo = sp.todo().size();
@@ -553,24 +553,35 @@ final class Hud {
         // without changing this design's remaining count.
         Printer.refreshPlaceability();       // one budget per look at the world
         Map<String, Integer> carrying = Work.carrying(mc.player);
-        // ---- THE AREA FIRST, THEN THE EXPENSIVE QUESTIONS.
+        // ---- WHAT IS AROUND ME, AND ONLY THAT.
         //
-        // Every per-cell check below costs world lookups, and `Park Complete` is 540,862 cells.
-        // Asking them all and THEN throwing away everything outside the working area is millions of
-        // block lookups a recount for an answer about a couple of hundred blocks of ground - which
-        // is most of the lag. The area is a cheap distance test; it goes first.
-        if (workAnchor == null) workAnchor = me;
-        java.util.List<Work.Cell> here = Loop.focus(sp.todo(), workAnchor, Loop.WORK_RADIUS);
+        // The radius starts at arm's length and grows only when there is genuinely nothing left
+        // near enough to build. See Loop.NEAR_RADIUS: what this replaced was a two-hundred block
+        // area whose clusters were RANKED, so the best spot in a region the size of a small town
+        // won - and having flown there, the next recount could rank something else top and send it
+        // straight back. Nothing further away is considered now while there is a block at my feet,
+        // so nothing CAN send the loop across the map.
+        //
+        // Centred on the player rather than on a remembered anchor, because "immediate" means
+        // immediate: as it builds, the circle comes with it.
+        // Opened in ONE step rather than by re-scanning at each rung: how far the work is is an
+        // answer a single pass already contains, and re-scanning is five passes over half a million
+        // cells every recount for as long as there is nothing near.
+        double nearest = Loop.nearestDistance(sp.todo(), me);
+        if (nearest > workRadius) workRadius = Loop.radiusReaching(nearest);
+        java.util.List<Work.Cell> here = Loop.focus(sp.todo(), me, workRadius);
         if (here.isEmpty() && !sp.todo().isEmpty()) {
-            // The area is finished. Move it to the NEAREST remaining work rather than the best-
-            // looking, so it walks across the design instead of touring it.
+            // Nothing within the widest look. That is not a bigger radius, it is a different place
+            // to work: go to the nearest remaining cell and start again at arm's length there.
             BlockPos moved = Loop.reanchor(sp.todo(), me);
-            if (moved != null) {
-                workAnchor = moved;
-                here = Loop.focus(sp.todo(), workAnchor, Loop.WORK_RADIUS);
-                mc.player.sendSystemMessage(Component.literal("[cscan] area finished — moving to "
-                    + Wand.fmt(workAnchor) + " (" + here.size() + " cells within "
-                    + Loop.WORK_RADIUS + ")"));
+            if (moved != null && (target == null || !target.equals(moved))) {
+                workRadius = Loop.nearAgain();
+                mc.player.sendSystemMessage(Component.literal(
+                    "[cscan] nothing left within " + Loop.WORK_RADIUS + " — moving to "
+                        + Wand.fmt(moved)));
+                guide(moved, "next work");
+                lastProgressMs = now;
+                return;
             }
         }
         // ---- ONE COURSE AT A TIME, FROM THE BOTTOM. See Loop.LAYER_BAND.
@@ -666,7 +677,7 @@ final class Hud {
 				.filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
 				.toList();
 			java.util.List<Work.Cell> demand = Plan.nearDemand(everWork, frontier,
-				workAnchor == null ? me : workAnchor, Work.loadCapacity(mc.player));
+				me, Work.loadCapacity(mc.player));
 			targets = Plan.fetchTargets(demand, carrying, index, me,
 				Withdraw.coolingOff(System.currentTimeMillis()));
 			// ---- WHAT YOU ALREADY HAVE IN A BOX IS NOT WORTH A TRIP. It is not placeable either —
@@ -1551,7 +1562,7 @@ final class Hud {
         topUp = true;
         saidFarFetch = false;
         workLayer = Integer.MIN_VALUE;
-        workAnchor = null;                           // a new design is a new area
+        workRadius = Loop.nearAgain();
         watch(name);
 		following = true;
 		placementWarned = false;
