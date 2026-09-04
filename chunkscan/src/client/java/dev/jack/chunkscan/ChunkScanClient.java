@@ -63,11 +63,11 @@ public final class ChunkScanClient implements ClientModInitializer {
 	 * `clear` got here. `MenuTest` keeps the real literals inside it.
 	 */
 	static final java.util.Set<String> RESERVED = java.util.Set.of(
-		"all", "around", "auto", "autofly", "bom", "check", "chests", "chunks", "clear", "clips",
+		"all", "around", "auto", "autofly", "bom", "bounds", "check", "chests", "chunks", "clear", "clips",
 		"copy", "dark", "dig", "done", "fetch", "fill", "find", "follow", "goto", "help", "hud",
 		"ignore", "label", "list", "mark", "marks", "mat", "move", "need", "next", "off", "on",
 		"paste", "place", "plan", "progress", "prune", "replace", "reset", "scaffold", "scan",
-		"sel", "speed", "stack", "status", "stop", "take", "tidy", "undo", "undos", "unmark",
+		"sel", "set", "speed", "stack", "status", "stop", "take", "tidy", "undo", "undos", "unmark",
 		"wand", "why",
 		// the skyblock set
 		"add", "autodig", "buy", "craft", "farm", "forget", "income", "make", "photo", "plot",
@@ -112,6 +112,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Screens.register();
 		Autopilot.register();
 		Ignored.register();
+		Bounds.register();
 		printerTick();
 		// EVERY PIECE OF COORDINATE STATE GOES ON DISCONNECT. `Wand` has always done this and stated
 		// the rule - "a selection is a pair of coordinates and coordinates mean nothing without a
@@ -279,7 +280,27 @@ public final class ChunkScanClient implements ClientModInitializer {
 										+ " which is the only speed anyone here has evidence"
 										+ " about.");
 								}
-								return 1; }))))
+								return 1; })))
+					// ---- THE FENCE. Two corners, and the flight stays between them. See Bounds.
+					.then(literal("bounds")
+						.executes(ctx -> { ok(ctx.getSource(), Bounds.describe() + (Bounds.active()
+							? whereAmI(ctx.getSource()) + "  /cscan autofly bounds off lifts them."
+							: ". Mark two corners with the wand, then /cscan autofly bounds set;"
+								+ " or /cscan autofly bounds <x1> <y1> <z1> <x2> <y2> <z2>."));
+							return 1; })
+						.then(literal("set").executes(ChunkScanClient::boundsFromWand))
+						.then(literal("off").executes(ctx -> {
+							Bounds.clear();
+							Hud.remember(ctx.getSource().getClient());
+							ok(ctx.getSource(), "autofly bounds off - flight goes anywhere again");
+							return 1; }))
+						.then(argument("x1", IntegerArgumentType.integer())
+							.then(argument("y1", IntegerArgumentType.integer())
+								.then(argument("z1", IntegerArgumentType.integer())
+									.then(argument("x2", IntegerArgumentType.integer())
+										.then(argument("y2", IntegerArgumentType.integer())
+											.then(argument("z2", IntegerArgumentType.integer())
+												.executes(ChunkScanClient::boundsExplicit)))))))))
 				.then(literal("fetch")
 					.executes(ctx -> {
 						Hud.stopFetching(ctx.getSource().getClient());
@@ -478,6 +499,45 @@ public final class ChunkScanClient implements ClientModInitializer {
 
 	private static Path dir(FabricClientCommandSource src) {
 		return ScanRunner.schematicsDir(src.getClient());
+	}
+
+	/** `/cscan autofly bounds set`: the wand's box becomes the flight fence. */
+	private static int boundsFromWand(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		if (!Wand.complete()) {
+			ok(src, "no box: /cscan wand on, right-click two corners, then /cscan autofly bounds set."
+				+ " (Or give six numbers: /cscan autofly bounds <x1> <y1> <z1> <x2> <y2> <z2>.)");
+			return 0;
+		}
+		return setBounds(src, Wand.pos1(), Wand.pos2());
+	}
+
+	private static int boundsExplicit(CommandContext<FabricClientCommandSource> ctx) {
+		BlockPos a = new BlockPos(IntegerArgumentType.getInteger(ctx, "x1"),
+			IntegerArgumentType.getInteger(ctx, "y1"), IntegerArgumentType.getInteger(ctx, "z1"));
+		BlockPos b = new BlockPos(IntegerArgumentType.getInteger(ctx, "x2"),
+			IntegerArgumentType.getInteger(ctx, "y2"), IntegerArgumentType.getInteger(ctx, "z2"));
+		return setBounds(ctx.getSource(), a, b);
+	}
+
+	private static int setBounds(FabricClientCommandSource src, BlockPos a, BlockPos b) {
+		Minecraft mc = src.getClient();
+		String dim = mc.level == null ? "" : mc.level.dimension().identifier().toString();
+		Bounds.set(a, b, dim);
+		Hud.remember(mc);
+		// Drawn, because a fence you cannot see is a fence you get wrong - the wand's own rule.
+		Highlight.show("bounds", Wand.outline(a, b), 0xFFB040, 3600);
+		ok(src, Bounds.describe() + whereAmI(src) + "  autofly stays inside it: no work, chest or"
+			+ " route outside. /cscan autofly bounds off lifts it.");
+		return 1;
+	}
+
+	/** "...and you are inside it" / "...and you are OUTSIDE it", for the bounds messages. */
+	private static String whereAmI(FabricClientCommandSource src) {
+		LocalPlayer p = src.getClient().player;
+		if (p == null || !Bounds.active()) return "";
+		return Bounds.holds(p.position()) ? " - you are inside it."
+			: " - you are OUTSIDE it, so autofly will first pull you back in.";
 	}
 
 	private static void ok(FabricClientCommandSource src, String msg) {

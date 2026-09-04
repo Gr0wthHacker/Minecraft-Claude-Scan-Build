@@ -236,6 +236,7 @@ final class Autopilot {
 		return Math.max(0, (guardUntil - System.currentTimeMillis()) / 1000);
 	}
 	private static boolean warnedNoRoute = false;
+	private static boolean warnedOutside = false;
 	private static boolean idleSaid = false;
 	private static boolean announcedArrival = false;
 	/** Ticks to wait before re-attempting a route that failed. See noRouteBackoff. */
@@ -410,6 +411,7 @@ final class Autopilot {
 		// is the one case where carrying on is actively wrong.
 		if (Screens.container() != null) return "a container is open";
 		if (Hud.target() == null) return "no destination — use goto or follow";
+		if (!Bounds.contains(Hud.target())) return "destination " + Wand.fmt(Hud.target()) + " is outside the autofly bounds";
 		return null;
 	}
 
@@ -733,6 +735,7 @@ final class Autopilot {
 				+ "   speed " + String.format("%.2f", speed)
 				+ (bumps > 0 ? "   BUMPING (" + bumps + " ticks)" : ""));
 		}
+		if (Bounds.active()) out.add("  " + Bounds.describe());
 		out.add("  route: " + (path.isEmpty() ? "none — flying direct"
 			: (escaping ? "a way ROUND, " : "") + path.size() + " waypoint(s), next "
 				+ Wand.fmt(path.get(0))));
@@ -754,6 +757,7 @@ final class Autopilot {
 		String tail = appliedSpeed > 0 && appliedSpeed < speed - 1.0e-6
 			? String.format(" @%.2f/%.2f %s", appliedSpeed, speed, slowBecause)
 			: String.format(" @%.2f", speed);
+		if (Bounds.active()) tail += " fenced";
 		if (path.isEmpty()) return (flying ? "direct" : "walk direct") + tail;
 		// `tight` is worth seeing: it is the difference between a route that keeps a block of air
 		// off everything and one that has to thread something.
@@ -764,6 +768,7 @@ final class Autopilot {
 		// Every warning below is a once-per-arming shot. Without this reset, turning autofly off and
 		// on again after it has already complained gets you silence instead of the reason.
 		warnedNoRoute = false;
+		warnedOutside = false;
 		idleSaid = false;
 		announcedArrival = false;
 		warnedFalling = false;
@@ -855,6 +860,20 @@ final class Autopilot {
 			return;
 		}
 		idleSaid = false;
+		if (!Bounds.contains(target)) {
+			// ---- OUTSIDE THE FENCE. The loop filters its own work and its chests by the bounds, so
+			// a destination past them is a goto, a photo bearing or a tidy source somebody pointed
+			// there by hand. Hold - pulled back in if we are already past the fence - and say once.
+			if (!warnedOutside) {
+				warnedOutside = true;
+				p.sendSystemMessage(Component.literal("[cscan] " + Wand.fmt(target)
+					+ " is outside the autofly bounds - not going. /cscan autofly bounds off to lift them."));
+			}
+			if (p.getAbilities().flying) p.setDeltaMovement(Bounds.clamp(p.position(), Vec3.ZERO));
+			release(mc);
+			return;
+		}
+		warnedOutside = false;
 
 		// ---- NO KEY STOPS THIS, and that is deliberate. The earlier rule was "any movement key
 		// hands control back", which read as a safety property and behaved as a fault: a key left
@@ -1083,7 +1102,8 @@ final class Autopilot {
 		if (needsRepath(pathTo, target, repathIn, routedFlying, flying, sinceRepath)) {
 			// A WALKING ROUTE IS A DIFFERENT ROUTE. Clearance alone sends you along a line of air
 			// above a floor, which flies beautifully and walks into a hole.
-			Nav.Passable free = flying ? Nav.of(mc.level) : Nav.standable(mc.level);
+			// ...AND NEVER A ROUTE THAT LEAVES THE FENCE, even to go round something: see Bounds.
+			Nav.Passable free = Bounds.within(flying ? Nav.of(mc.level) : Nav.standable(mc.level));
 			BlockPos here = p.blockPosition();
 			// ONE CLOCK FOR THE WHOLE DECISION. The roomy search, the tight search and the escape
 			// flood each had their own budget, so an indoor repath — where the roomy search FAILS
@@ -1097,7 +1117,7 @@ final class Autopilot {
 				// that never tests whether this server ends flight on contact. Only when there is no
 				// such route — a one-wide shaft, a doorway, the taproot — do we accept one that has
 				// to touch, and then the alignment and the tight speed take over.
-				Nav.Passable roomy = Nav.roomyBetween(mc.level, here, target);
+				Nav.Passable roomy = Bounds.within(Nav.roomyBetween(mc.level, here, target));
 				Nav.Route r = Nav.routeEx(roomy, here, target, deadline);
 				raw = r.path();
 				roomyRoute = !raw.isEmpty();
@@ -1152,7 +1172,7 @@ final class Autopilot {
 			boolean valid = !path.isEmpty();
 			if (valid && p.onGround()) {
 				BlockPos start = p.blockPosition(), next = path.get(0);
-				Nav.Passable ground = Nav.standable(mc.level);
+				Nav.Passable ground = Bounds.within(Nav.standable(mc.level));
 				valid = start.equals(next) ? ground.at(next.getX(), next.getY(), next.getZ())
 					: Nav.stepFits(ground, start.getX(), start.getY(), start.getZ(),
 						next.getX()-start.getX(), next.getY()-start.getY(), next.getZ()-start.getZ());
@@ -1304,6 +1324,9 @@ final class Autopilot {
 			// ---- AND DO NOT SEND A STEP THAT TOUCHES ANYTHING. Last, after every other rule has
 			// had its say, because it is the only one that is about the world rather than the plan.
 			step = avoid(p, step);
+			// ---- AND NEVER PAST THE FENCE. After everything, for the same reason as avoid: it is
+			// about where the body may BE, and every rule above is about where it wants to go.
+			step = Bounds.clamp(me, step);
 			p.setDeltaMovement(step);
 		} else {
 			release(mc);                               // on foot the vertical is the ground's job
@@ -1402,7 +1425,8 @@ final class Autopilot {
 		double y = v.y;
 		boolean stepUp = aim.y > p.getY() + 0.6;
 		if (p.onGround() && (p.horizontalCollision || stepUp)) y = JUMP;
-		p.setDeltaMovement(flat.x * speed, y, flat.z * speed);
+		Vec3 fenced = Bounds.clamp(p.position(), new Vec3(flat.x * speed, 0, flat.z * speed));
+		p.setDeltaMovement(fenced.x, y, fenced.z);
 	}
 
 	/**
@@ -1930,8 +1954,8 @@ final class Autopilot {
 					breadcrumb = null;                  // used it; if that was not enough, climb
 					return false;
 				}
-				p.setDeltaMovement(keepAirborne(mc, p,
-					back.subtract(p.position()).normalize().scale(BLIND_SPEED * 2), GROUND_CLEAR));
+				p.setDeltaMovement(Bounds.clamp(p.position(), keepAirborne(mc, p,
+					back.subtract(p.position()).normalize().scale(BLIND_SPEED * 2), GROUND_CLEAR)));
 				return true;
 			}
 			case CLIMB_OUT -> {
@@ -1944,10 +1968,21 @@ final class Autopilot {
 					trouble = Recovery.BACK_OFF_AT;     // give the normal flight another go
 					return false;
 				}
-				p.setDeltaMovement(new Vec3(0, Math.min(SPEED, 0.4), 0));
+				p.setDeltaMovement(Bounds.clamp(p.position(), new Vec3(0, Math.min(SPEED, 0.4), 0)));
 				return true;
 			}
 			case GO_HOME -> {
+				if (Bounds.active()) {
+					// A TELEPORT CANNOT BE FENCED, and this rung is convenience rather than safety
+					// (the fall rescue keeps its /is). Give the spot up instead and stay inside.
+					p.sendSystemMessage(Component.literal("[cscan] stuck, and /is would leave the"
+						+ " autofly bounds - giving this spot up instead."));
+					trouble = 0;
+					stage = Recovery.Stage.NONE;
+					forget();
+					Hud.abandonSpot();
+					return true;
+				}
 				if (p.connection != null && rescueCool == 0) {
 					rescueCool = RESCUE_COOLDOWN;
 					p.connection.sendCommand("is");

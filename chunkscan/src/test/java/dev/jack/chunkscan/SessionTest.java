@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -27,6 +28,21 @@ class SessionTest {
 		assertTrue(got.autofly());
 		assertTrue(got.all());
 		assertEquals(0.42, got.speed(), 0.0001);
+	}
+
+	@Test
+	void theFenceTravelsWithTheIntentAndAnOldNoteHasNone() throws Exception {
+		// The autofly bounds are part of what an unattended loop was told; losing them on a
+		// resume is the dangerous direction. And a note written before they existed reads as
+		// "no fence", never as a fence at the origin.
+		Path d = Files.createTempDirectory("cscan-session");
+		Session.save(d, new Session.State("Deck Floor", true, false, 0.5, null,
+			new int[]{-5, 60, 7, 12, 70, -3}, "minecraft:overworld"));
+		Session.State got = Session.load(d);
+		assertArrayEquals(new int[]{-5, 60, 7, 12, 70, -3}, got.bounds());
+		assertEquals("minecraft:overworld", got.boundsDim());
+		Session.save(d, new Session.State("Deck Floor", true, false, 0.5));
+		assertNull(Session.load(d).bounds(), "no fence was set, so none comes back");
 	}
 
 	@Test

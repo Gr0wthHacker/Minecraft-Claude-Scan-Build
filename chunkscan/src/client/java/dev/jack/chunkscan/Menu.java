@@ -98,6 +98,7 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan hud ", "<design>  a progress readout on screen"));
 		r.add(new Row("/cscan autofly on", "fly or walk to the arrow. no key stops it"));
 		r.add(new Row("/cscan autofly speed ", "<n>  blocks per tick; 1.0 is a sprint-fly"));
+		r.add(new Row("/cscan autofly bounds set", "fence flight inside the wand's two corners; bounds off lifts it"));
 		r.add(new Row("/cscan follow all", "work every tracked design, one after another"));
 		r.add(new Row("/cscan why", "what the loop is doing, and why it is not moving"));
 		r.add(new Row("/cscan progress", "every tracked design: how far, what is left, what to break"));

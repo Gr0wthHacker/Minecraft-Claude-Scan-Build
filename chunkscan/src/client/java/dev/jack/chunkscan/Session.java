@@ -36,9 +36,13 @@ final class Session {
 		return schematicsDir.resolve("session.json");
 	}
 
-	record State(String design, boolean autofly, boolean all, double speed, ResumeBinding binding) {
+	record State(String design, boolean autofly, boolean all, double speed, ResumeBinding binding,
+	             int[] bounds, String boundsDim) {
         State(String design, boolean autofly, boolean all, double speed) {
-            this(design, autofly, all, speed, null);
+            this(design, autofly, all, speed, null, null, "");
+        }
+        State(String design, boolean autofly, boolean all, double speed, ResumeBinding binding) {
+            this(design, autofly, all, speed, binding, null, "");
         }
     }
 
@@ -49,6 +53,13 @@ final class Session {
 			o.addProperty("autofly", s.autofly());
 			o.addProperty("all", s.all());
 			o.addProperty("speed", s.speed());
+			// THE FENCE IS PART OF THE INTENT. Restored only when the dimension matches - see Hud.
+			if (s.bounds() != null && s.bounds().length == 6) {
+				com.google.gson.JsonArray b = new com.google.gson.JsonArray();
+				for (int v : s.bounds()) b.add(v);
+				o.add("bounds", b);
+				o.addProperty("boundsDim", s.boundsDim() == null ? "" : s.boundsDim());
+			}
 			if (s.binding() != null) {
                 JsonObject binding = new JsonObject();
                 binding.addProperty("world", s.binding().world());
@@ -84,10 +95,16 @@ final class Session {
                 binding = new ResumeBinding(b.get("world").getAsString(),
                     b.get("dimension").getAsString(), b.get("inputs").getAsString());
             }
+            int[] bounds = null;
+            if (o.has("bounds") && o.get("bounds").isJsonArray() && o.getAsJsonArray("bounds").size() == 6) {
+                bounds = new int[6];
+                for (int i = 0; i < 6; i++) bounds[i] = o.getAsJsonArray("bounds").get(i).getAsInt();
+            }
             return new State(o.has("design") ? o.get("design").getAsString() : null,
 				o.has("autofly") && o.get("autofly").getAsBoolean(),
 				o.has("all") && o.get("all").getAsBoolean(),
-				o.has("speed") ? o.get("speed").getAsDouble() : Autopilot.SPEED, binding);
+				o.has("speed") ? o.get("speed").getAsDouble() : Autopilot.SPEED, binding,
+				bounds, o.has("boundsDim") ? o.get("boundsDim").getAsString() : "");
 		} catch (Exception e) {
 			return null;
 		}

@@ -396,6 +396,14 @@ final class Hud {
 			&& !unseenGivenUp.contains(sp.name())) {
 			long t = System.currentTimeMillis();
 			BlockPos look = sp.nearestUnseen();
+			if (!Bounds.contains(look)) {
+				// Out of view AND outside the fence: the flight would refuse it, the look watchdog
+				// would strike it twice and write the design off - so write it off now and say why.
+				unseenGivenUp.add(sp.name());
+				mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.unseen() + " cell(s) of "
+					+ sp.name() + " are out of view and outside the autofly bounds - not going to look"));
+				return;
+			}
 			if (target != null && target.equals(lookTarget)) {
 				// ---- THE LOOK WATCHDOG. Neither the stall clock nor the going-nowhere clock
 				// could see this phase (the target is reset every time it is re-guided), so a
@@ -599,6 +607,7 @@ final class Hud {
             java.util.List<Work.Cell> ok = Work.placeableNow(mc.level, course).stream()
                 .filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
                 .filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
+                .filter(c -> Bounds.contains(c.pos()))   // the autofly fence: not this session's work
                 .toList();
             // ---- AND THEN ASK THE PRINTER, NOT AN APPROXIMATION OF IT. A solid neighbour is
             // necessary and not sufficient: the item has to yield the state the design wants, it
@@ -625,7 +634,7 @@ final class Hud {
 			// a file read and a JSON parse; and LIVE, because the index only ever grows — it is
 			// written when you OPEN a container and cannot be told about one you broke. 179 of 339
 			// records were dead when it was last measured, and `fetch` navigates to these.
-			index = Storage.forDesign(ScanRunner.schematicsDir(mc), sp.name(), me, mc.level);
+			index = fenced(Storage.forDesign(ScanRunner.schematicsDir(mc), sp.name(), me, mc.level));
 			saidIndexBroken = false;
 		} catch (Exception e) {
 			// SAID ONCE. A corrupt index or a missing sidecar used to make every recount report
@@ -675,6 +684,7 @@ final class Hud {
 			java.util.List<Work.Cell> everWork = sp.todo().stream()
 				.filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
 				.filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
+                .filter(c -> Bounds.contains(c.pos()))   // the autofly fence: not this session's work
 				.toList();
 			java.util.List<Work.Cell> demand = Plan.nearDemand(everWork, frontier,
 				me, Work.loadCapacity(mc.player));
@@ -1105,6 +1115,16 @@ final class Hud {
 	private static int spotsAbandoned = 0;
 	private static int placedWhenAbandoned = 0;
 
+	/** The container index with everything outside the autofly fence removed. */
+	private static Map<String, Storage.Container> fenced(Map<String, Storage.Container> index) {
+		if (!Bounds.active()) return index;
+		Map<String, Storage.Container> out = new java.util.LinkedHashMap<>();
+		for (Map.Entry<String, Storage.Container> e : index.entrySet()) {
+			if (Bounds.contains(e.getValue().pos())) out.put(e.getKey(), e.getValue());
+		}
+		return java.util.Collections.unmodifiableMap(out);
+	}
+
 	static void abandonSpot() {
 		abandonSpot(true);
 	}
@@ -1491,7 +1511,8 @@ final class Hud {
 		try {
 			Session.save(ScanRunner.schematicsDir(mc),
 				new Session.State(following ? design : null, Autopilot.on(), followAll,
-					Autopilot.speed(), following ? ActiveBuild.binding(ScanRunner.schematicsDir(mc), design) : null));
+					Autopilot.speed(), following ? ActiveBuild.binding(ScanRunner.schematicsDir(mc), design) : null,
+					Bounds.corners(), Bounds.dimension()));
         } catch (Exception failure) {
             Session.clear(ScanRunner.schematicsDir(mc));
             if (mc.player != null) mc.player.sendSystemMessage(Component.literal(
@@ -1521,6 +1542,19 @@ final class Hud {
 		Session.State st = Session.load(ScanRunner.schematicsDir(mc));
 		if (st == null) return;
 		Autopilot.setSpeed(st.speed());
+		// THE FENCE COMES BACK FIRST, and only in the dimension it was drawn in. Losing it on a
+		// resume is the dangerous direction: an unattended loop that was fenced flies unfenced.
+		if (st.bounds() != null && mc.level != null) {
+			String dim = mc.level.dimension().identifier().toString();
+			if (dim.equals(st.boundsDim())) {
+				int[] b = st.bounds();
+				Bounds.set(new BlockPos(b[0], b[1], b[2]), new BlockPos(b[3], b[4], b[5]), dim);
+				if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] " + Bounds.describe()));
+			} else if (mc.player != null) {
+				mc.player.sendSystemMessage(Component.literal("[cscan] the saved autofly bounds were in "
+					+ st.boundsDim() + ", not here - dropped"));
+			}
+		}
 		followAll = st.all();
         if (st.design() == null) return;
         String mismatch;
