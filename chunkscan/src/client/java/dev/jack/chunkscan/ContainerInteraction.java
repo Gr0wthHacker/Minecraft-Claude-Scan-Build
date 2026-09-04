@@ -8,26 +8,85 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Comparator;
+import java.util.Set;
 import java.util.stream.Stream;
 
-/** One arrival predicate shared by chest navigation and the interaction executor. */
+/**
+ * Where to stand to open a container, and whether you can open it from where you are.
+ *
+ * <p>Jack: <i>"it doesnt get close enough to chests, chests need to be within 2 blocks"</i>. The
+ * first version of {@link #approach} chose the candidate NEAREST THE PLAYER that had a clear line to
+ * the chest inside {@link Withdraw#REACH} — which is a cell up to four and a half blocks from the
+ * chest, and the flight then parked up to three short of THAT. Two other things followed from it:
+ *
+ * <ul>
+ * <li>the candidate could stand ON THE FLOOR beside the chest. The autopilot never descends inside
+ *     {@link Autopilot#GROUND_CLEAR} of a floor (touching it ends flight on this server), so it
+ *     hovered two blocks over the cell it was sent to and the opening test never passed;</li>
+ * <li>and because the choice was relative to the player, it moved as the player moved, so the
+ *     destination changed under the flight.</li>
+ * </ul>
+ *
+ * <p>An approach cell now has to have a CLEAR CELL UNDER IT, so a body hovering in it keeps more
+ * than a block of air beneath — see {@link #HOVER_CLEAR} — and candidates are ranked by how close
+ * they are to the CHEST, with {@link #CLOSE} blocks preferred outright, and only then by how far
+ * they are from the player. Cells that have already been tried and failed to open from are passed
+ * in and skipped, so a chest with an awkward face gets a second angle rather than an infinite wait.
+ */
 final class ContainerInteraction {
     private ContainerInteraction() {}
+
+	/** Horizontal distance from the chest inside which an approach cell is preferred outright. */
+	static final int CLOSE = 2;
+	/** Clear cells required under an approach cell, so hovering in it is not standing on a floor. */
+	static final int HOVER_CLEAR = 1;
 
     static BlockHitResult openingHit(Minecraft mc, BlockPos target) {
         if (mc.player == null || mc.level == null || !mc.level.isLoaded(target)) return null;
 		return openingHit(mc, target, mc.player.getEyePosition());
     }
 
-	/** A loaded, body-clear point from which the actual chest ray is valid. */
 	static BlockPos approach(Minecraft mc, BlockPos target) {
+		return approach(mc, target, Set.of());
+	}
+
+	static BlockPos approach(Minecraft mc, BlockPos target, Set<Long> tried) {
 		if (mc.player == null || mc.level == null || !mc.level.isLoaded(target)) return null;
-		var space = mc.player.getAbilities().flying ? Nav.of(mc.level) : Nav.standable(mc.level);
+		boolean flying = mc.player.getAbilities().flying;
+		var space = flying ? Nav.of(mc.level) : Nav.standable(mc.level);
 		double eyeHeight = mc.player.getEyePosition().y - mc.player.getY();
-		return approachCells(target).filter(p -> mc.level.isLoaded(p) && mc.level.isLoaded(p.above())
-			&& space.at(p.getX(), p.getY(), p.getZ())
-			&& openingHit(mc, target, new Vec3(p.getX() + .5, p.getY() + eyeHeight, p.getZ() + .5)) != null)
-			.min(Comparator.comparingDouble(p -> p.distSqr(mc.player.blockPosition()))).orElse(null);
+		BlockPos me = mc.player.blockPosition();
+		return approachCells(target)
+			.filter(p -> !tried.contains(p.asLong()))
+			.filter(p -> mc.level.isLoaded(p) && mc.level.isLoaded(p.above())
+				&& space.at(p.getX(), p.getY(), p.getZ())
+				&& (!flying || hoverable(mc, p))
+				&& openingHit(mc, target, eyeAt(p, eyeHeight)) != null)
+			.min(Comparator.comparingInt((BlockPos p) -> rank(p, target))
+				.thenComparingDouble(p -> p.distSqr(target))
+				.thenComparingDouble(p -> p.distSqr(me)))
+			.orElse(null);
+	}
+
+	/** Where the eyes are when the body hovers in a cell — the same point the flight aims at. */
+	static Vec3 eyeAt(BlockPos p, double eyeHeight) {
+		Vec3 feet = Autopilot.flyTo(p);
+		return new Vec3(feet.x, feet.y + eyeHeight, feet.z);
+	}
+
+	/** A cell a flight can hover in without standing on anything: air under it, and loaded. */
+	private static boolean hoverable(Minecraft mc, BlockPos p) {
+		for (int d = 1; d <= HOVER_CLEAR; d++) {
+			BlockPos b = p.below(d);
+			if (!mc.level.isLoaded(b) || mc.level.getBlockState(b).blocksMotion()) return false;
+		}
+		return true;
+	}
+
+	/** 0 for a cell within {@link #CLOSE} of the chest horizontally, 1 for anything further. */
+	static int rank(BlockPos p, BlockPos target) {
+		int dx = Math.abs(p.getX() - target.getX()), dz = Math.abs(p.getZ() - target.getZ());
+		return Math.max(dx, dz) <= CLOSE ? 0 : 1;
 	}
 
 	static Stream<BlockPos> approachCells(BlockPos target) {

@@ -199,7 +199,19 @@ final class Plan {
 	static List<Cluster> clusters(List<Work.Cell> todo, Map<String, Integer> carrying,
 	                              java.util.Set<Long> blockedCells, java.util.Set<Long> sealedCells,
 	                              BlockPos from) {
-		// Only cells whose material is on you. Everything else is `need`'s problem, not this one.
+		return clusters(todo, carrying, blockedCells, sealedCells, from, null);
+	}
+
+	/**
+	 * @param keep the spot being worked, if any: its seed is clustered FIRST so the cap on
+	 *             clusters can never eject the region the loop is standing in. As cells there are
+	 *             placed its bin shrinks, and sorted by size alone it dropped out of the top six
+	 *             while still holding work — the loop then announced a "next spot" and reset its
+	 *             stations for a region it had never left.
+	 */
+	static List<Cluster> clusters(List<Work.Cell> todo, Map<String, Integer> carrying,
+	                              java.util.Set<Long> blockedCells, java.util.Set<Long> sealedCells,
+	                              BlockPos from, BlockPos keep) {
 		List<Work.Cell> mine = new ArrayList<>();
 		for (Work.Cell c : todo) {
 			if (carrying.getOrDefault(c.item(), 0) > 0) mine.add(c);
@@ -224,6 +236,10 @@ final class Plan {
 		// densest first, then nearest: a big pile beats a near one, but a tie goes to your feet
 		seeds.sort(Comparator.<List<Work.Cell>>comparingInt(List::size).reversed()
 			.thenComparingDouble(l -> l.get(0).pos().distSqr(from)));
+		if (keep != null) {
+			long k2 = (long) MAX_RADIUS * MAX_RADIUS;
+			seeds.sort(Comparator.comparingInt(l -> centroid(l).distSqr(keep) <= k2 ? 0 : 1)); // stable
+		}
 
 		Map<String, Integer> stock = new LinkedHashMap<>(carrying);
 		java.util.Set<Long> taken = new java.util.HashSet<>();
@@ -284,7 +300,9 @@ final class Plan {
 			z += c.pos().getZ();
 		}
 		int n = cells.size();
-		return new BlockPos((int) (x / n), (int) (y / n), (int) (z / n));
+		// floorDiv, not truncation: the island is at X -24200, and truncating toward zero biased
+		// every centroid a block toward the origin — bins, "same spot" distances and ignore keys.
+		return new BlockPos((int) Math.floorDiv(x, n), (int) Math.floorDiv(y, n), (int) Math.floorDiv(z, n));
 	}
 
 	/**
@@ -491,6 +509,33 @@ final class Plan {
 	 *
 	 * @param say called once per material, so the loop explains rather than silently doing nothing
 	 */
+	/**
+	 * THE WORK NEAREST THE AREA, up to about one pack's worth — what a fetch should be sized to.
+	 *
+	 * <p>Jack: <i>"it also seems to stack up with random resources vs things it logically might
+	 * need based on the radius around it"</i>. The shortfall was totalled over the WHOLE design, so
+	 * on a design of forty materials the pack filled with two hundred and fifty-six of whatever the
+	 * far end wanted, and the loop then flew to a spot it could place none of it at. A trip is still
+	 * bounded by the pack (see {@link #fetchTargets}), but what goes in the pack is decided from
+	 * where the work IS: cells sorted by distance from the working anchor, taken until they would
+	 * fill the pack. {@code mustInclude} is the frontier — whatever can be placed right now goes in
+	 * whatever its distance, because that is the reason the trip is being made at all.
+	 */
+	static List<Work.Cell> nearDemand(List<Work.Cell> todo, List<Work.Cell> mustInclude,
+	                                  BlockPos anchor, int cap) {
+		List<Work.Cell> sorted = new ArrayList<>(todo);
+		if (anchor != null) sorted.sort(Comparator.comparingDouble(c -> c.pos().distSqr(anchor)));
+		Set<Long> seen = new java.util.HashSet<>();
+		List<Work.Cell> out = new ArrayList<>();
+		for (Work.Cell c : mustInclude) if (seen.add(c.pos().asLong())) out.add(c);
+		int limit = Math.max(1, cap);
+		for (Work.Cell c : sorted) {
+			if (out.size() >= limit) break;
+			if (seen.add(c.pos().asLong())) out.add(c);
+		}
+		return out;
+	}
+
 	static List<Restock> notInAPack(List<Restock> targets, Map<String, Integer> boxed,
 	                                java.util.function.Consumer<String> say) {
 		if (boxed.isEmpty()) return targets;

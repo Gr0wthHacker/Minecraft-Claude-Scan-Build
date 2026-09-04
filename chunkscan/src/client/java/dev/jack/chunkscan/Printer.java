@@ -104,6 +104,10 @@ final class Printer {
 	/** Non-null only for a followed build revision. A reset leaves it unresolved on disk. */
     private static String pendingJournal;
 	private static int placed, mismatched, failed;
+	/** Consecutive placements the server never acknowledged. One is lag; a run is a dead link. */
+	private static int ackTimeouts;
+	static final int ACK_TIMEOUT_LIMIT = 5;
+	static final int INTERVAL_MIN = 2, INTERVAL_MAX = 12;
 	// Since the loop last asked. THIS IS THE SIGNAL THE LOOP HAS NEVER HAD: a refusal is instant
 	// knowledge, where the five-second station clock had to wait and then guess.
 	private static int placedSince, refusedSince;
@@ -118,6 +122,21 @@ final class Printer {
         pendingJournal = null;
 		placed = mismatched = failed = 0;
 		placedSince = refusedSince = 0;
+		ackTimeouts = 0;
+		interval = INTERVAL_MIN;
+	}
+
+	/**
+	 * Forget every verdict that was about the world AS IT WAS. `everCache` says a cell can never be
+	 * placed — true until the wall it needed goes in. `givenUp` says a cell refused twice — true
+	 * until the lag that refused it passes. Neither was ever re-asked while a design was followed,
+	 * so a cell written off in the first minute stayed written off all night, and the design could
+	 * never complete. Called on a slow timer from the loop; the caches refill within their budget.
+	 */
+	static void relax() {
+		everCache.clear();
+		givenUp.clear();
+		tries.clear();
 	}
 
 	/** True while this printer is the thing placing blocks, so the loop knows to trust its report. */
@@ -170,10 +189,22 @@ final class Printer {
     }
 
     /** A normal inventory slot, never armor or offhand. */
+	/**
+	 * A stack that is somebody's STORAGE, not a building block: a shulker box with things in it, or
+	 * anything with a name somebody gave it. A design cell of {@code white_shulker_box} must never
+	 * be filled with a box full of the player's redstone.
+	 */
+	static boolean keepsake(ItemStack stack) {
+		if (stack.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME)) return true;
+		var contents = stack.get(net.minecraft.core.component.DataComponents.CONTAINER);
+		return contents != null && contents.nonEmptyItemCopyStream().findAny().isPresent();
+	}
+
     static int inventorySlot(LocalPlayer p, String state) {
         String item = ActionRecipe.itemFor(state);
         for (int i = 0; i < 36; i++) {
             ItemStack stack = p.getInventory().getItem(i);
+            if (!stack.isEmpty() && keepsake(stack)) continue;
             if (!stack.isEmpty() && BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().equals(item)
 				&& (stack.getItem() instanceof BlockItem || (ActionRecipe.waterBucket(state)
 					&& stack.getItem() instanceof BucketItem))) return i;
@@ -384,9 +415,29 @@ final class Printer {
     }
 
 	/** A water bucket uses the same legal support/ray calculation as a block, but is not a BlockItem. */
+	/**
+	 * Water only goes where it cannot go anywhere else: every horizontal neighbour and the cell
+	 * below must already be solid in the WORLD, or already water. A source poured before its basin
+	 * exists runs across the design and turns every neighbouring cell into a deviation nothing can
+	 * place into. The world, not the design — a design cell that is not built yet holds nothing.
+	 */
+	static boolean contained(net.minecraft.world.level.Level level, BlockPos pos) {
+		for (Direction d : new Direction[] {Direction.NORTH, Direction.SOUTH, Direction.EAST,
+			Direction.WEST, Direction.DOWN}) {
+			BlockPos nb = pos.relative(d);
+			if (!level.isLoaded(nb)) return false;
+			BlockState st = level.getBlockState(nb);
+			if (st.blocksMotion()) continue;
+			if (st.getFluidState().isSource()) continue;
+			return false;
+		}
+		return true;
+	}
+
 	private static Placement bucketPlacement(Minecraft mc, BlockPos pos) {
 		LocalPlayer p = mc.player;
 		if (!mc.level.getBlockState(pos).isAir()) return null;
+		if (!contained(mc.level, pos)) return null;
 		for (Direction face : faces()) {
 			BlockPos nb = pos.relative(face.getOpposite());
 			if (!mc.level.isLoaded(nb) || !support(mc.level.getBlockState(nb))) continue;
@@ -408,8 +459,16 @@ final class Printer {
 				BlockHitResult ray = mc.level.clip(new ClipContext(p.getEyePosition(), inside,
 					ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, p));
 				if (ray.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK
-					&& ray.getBlockPos().equals(nb) && ray.getDirection() == face)
-					return new Placement(new BlockHitResult(point, face, nb, false), p.getYRot(), p.getXRot());
+					&& ray.getBlockPos().equals(nb) && ray.getDirection() == face) {
+					// A bucket is USED, not used-on: BucketItem overrides only use(), which casts
+					// its own ray from the player's look. So the look must be set to the point the
+					// ray above found, and the placement records the angles that put it there.
+					Vec3 eye = p.getEyePosition();
+					Vec3 dir = point.subtract(eye).normalize();
+					float yaw = (float) Math.toDegrees(Math.atan2(-dir.x, dir.z));
+					float pitch = (float) Math.toDegrees(-Math.asin(dir.y));
+					return new Placement(new BlockHitResult(point, face, nb, false), yaw, pitch);
+				}
 			}
 		}
 		return null;
@@ -489,7 +548,11 @@ final class Printer {
 			}
 		}
 		try {
-			mc.gameMode.useItemOn(p, InteractionHand.MAIN_HAND, plan.hit());
+			if (ActionRecipe.waterBucket(state) && p.getInventory().getItem(slot).getItem() instanceof BucketItem) {
+				mc.gameMode.useItem(p, InteractionHand.MAIN_HAND);
+			} else {
+				mc.gameMode.useItemOn(p, InteractionHand.MAIN_HAND, plan.hit());
+			}
 			p.swing(InteractionHand.MAIN_HAND);
 			pendingSequence = ((PredictionAccess) mc.level).chunkscan$sequence();
 			pendingLevel = mc.level;
@@ -516,17 +579,33 @@ final class Printer {
         if (pendingLevel != null && pendingLevel != mc.level) { reset(); return out; }
         if (!pending.isEmpty() && !acknowledged(pendingSequence, ((PredictionAccess)mc.level).chunkscan$acknowledged())) {
             if (mc.level.getGameTime() - lastPlaceTick > 100) {
-                Hud.off();
+                // ONE MISSING ACK IS LAG, NOT A VERDICT. It used to end the whole follow session,
+                // which turned every five-second server hitch into a night of nothing. The
+                // attempt counts as a refusal of that cell and the pace backs off; only a RUN of
+                // them says the link is dead.
+                for (Attempt a : pending) journal(a, Verdict.STILL_AIR, "no ack");
                 pending.clear();
-                if (mc.player != null) mc.player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                    "[cscan] printer paused: no server placement acknowledgement after 5 seconds"));
+                pendingJournal = null;
+                interval = Math.min(INTERVAL_MAX, interval * 2);
+                if (++ackTimeouts >= ACK_TIMEOUT_LIMIT) {
+                    ackTimeouts = 0;
+                    if (mc.player != null) mc.player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "[cscan] printer: " + ACK_TIMEOUT_LIMIT + " placements in a row got no server"
+                        + " acknowledgement — stopping until the server answers"));
+                    Hud.stopForSafety(mc);
+                } else if (mc.player != null && ackTimeouts == 1) {
+                    mc.player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "[cscan] printer: no placement acknowledgement in 5s — slowing down"));
+                }
             }
             return out;
         }
+        ackTimeouts = 0;
 		for (Attempt a : new ArrayList<>(pending)) {
 			BlockState st = mc.level.getBlockState(a.pos());
 			if (st.isAir()) {
 				int n = tries.merge(key(a.pos()), 1, Integer::sum);
+				interval = Math.min(INTERVAL_MAX, interval + 1);   // the server is saying no: ease off
 				if (n >= MAX_TRIES) {
 					givenUp.add(key(a.pos()));
 					failed++;
@@ -542,6 +621,7 @@ final class Printer {
 			if (Work.matches(st, a.want())) {
 				placed++;
 				placedSince++;
+				interval = INTERVAL_MIN;                            // it is taking them: full pace
 				out.add(new Attempt(a.pos(), a.want(), Verdict.PLACED, got));
 			} else {
 				mismatched++;

@@ -66,6 +66,64 @@ final class Hud {
 	 */
 	private static BlockPos workAnchor = null;
 	private static boolean saidFarFetch = false;
+	private static boolean saidIndexBroken = false;
+	/** Items whose unboxing failed here, and when to try them again. A site is a place, not a fact. */
+	private static final Map<String, Long> unboxRetryAt = new java.util.HashMap<>();
+	static final long UNBOX_RETRY_MS = 60_000;
+
+	private static boolean unboxWorthTrying(String item) {
+		Long at = unboxRetryAt.get(item);
+		return at == null || System.currentTimeMillis() >= at;
+	}
+
+	private static void noteUnboxOutcome(String item) {
+		if (!Unbox.running() && Unbox.phase() == Unbox.Phase.FAILED) {
+			unboxRetryAt.put(item, System.currentTimeMillis() + UNBOX_RETRY_MS);
+		}
+	}
+	/** Designs this session has SEEN complete, with their cells in view. Never returned to. */
+	private static final java.util.Set<String> doneThisSession = new java.util.HashSet<>();
+	/** Designs handed back unfinished — dead end, full pack, every spot ignored — under follow all. */
+	private static final java.util.Set<String> parked = new java.util.HashSet<>();
+	/** Designs whose out-of-view cells could not be loaded twice: treated as out of reach. */
+	private static final java.util.Set<String> unseenGivenUp = new java.util.HashSet<>();
+	private static BlockPos lookTarget = null;
+	private static long lookSince = 0;
+	private static int lookFailures = 0;
+	static final long LOOK_STUCK_MS = 8_000;
+	static final int LOOK_STRIKES = 2;
+	/** Consecutive recounts whose work list could not be read. */
+	private static int splitFailures = 0;
+	static final int SPLIT_FAILURE_LIMIT = 3;
+	private static int lastUnseen = -1;
+	/** The printer's report for this recount, drained ONCE at the top so it is never attributed twice. */
+	private static int[] lastReport = {0, 0};
+	private static int recounts = 0;
+	/** Every this many recounts the printer forgets its "never" verdicts and re-asks the world. */
+	static final int RELAX_EVERY = 15;
+
+	/**
+	 * Stop everything AND forget the intent, so the next join does not resume movement automation
+	 * the code has just decided was unsafe to continue. {@link #off} alone leaves session.json
+	 * saying "following, with autofly", which is right for a disconnect and wrong for a box that
+	 * did not come back.
+	 */
+	static void stopForSafety(Minecraft mc) {
+		off();
+		try { Session.clear(ScanRunner.schematicsDir(mc)); } catch (Exception ignored) { }
+		Autopilot.set(false);
+		if (mc != null && mc.player != null) mc.player.sendSystemMessage(Component.literal(
+			"[cscan] automation STOPPED and will not resume on its own — /cscan follow to start again"));
+	}
+
+	/**
+	 * The key a routing failure is struck against. The loop filters spots by their CENTRE, so a
+	 * strike must land on that centre or it lands on nothing anybody ever looks up. During a
+	 * fetch there is no spot, and the failing place is the approach cell itself.
+	 */
+	static BlockPos strikeKeyFor(BlockPos target) {
+		return following && !fetching && spotCentre != null ? spotCentre : target;
+	}
 
 	/**
 	 * Go and look at a cell in a chunk we do not have - and MOVE THE AREA to it rather than making
@@ -236,12 +294,33 @@ final class Hud {
 	 * translate while walking; an arrow that swings as you turn is one you follow.
 	 */
 	static void guide(BlockPos where, String note) {
+		guide(where, note, false);
+	}
+
+	/**
+	 * Guide to a cell the body must actually occupy. See {@link Autopilot#EXACT_MIN}: a station is
+	 * a place to hover NEAR, a chest's approach cell is a place to BE.
+	 */
+	static void guideExact(BlockPos where, String note) {
+		guide(where, note, true);
+	}
+
+	private static void guide(BlockPos where, String note, boolean mustReach) {
 		target = where;
+		exact = mustReach;
 		targetNote = note == null ? "" : note;
+	}
+
+	private static boolean exact = false;
+
+	/** Whether the current target is one the flight must actually reach, not merely approach. */
+	static boolean targetExact() {
+		return target != null && exact;
 	}
 
 	static void stopGuiding() {
 		target = null;
+		exact = false;
 		targetNote = "";
 	}
 
@@ -266,21 +345,50 @@ final class Hud {
 		// `follow all` walks the whole list announcing victory in about a second.
 		//
 		// Go and look instead. Flying there loads the chunks, and the next recount has real work.
-		if (sp.todo().isEmpty() && sp.unseen() > 0 && sp.nearestUnseen() != null) {
-			if (target == null || !target.equals(sp.nearestUnseen())) {
-				fetching = false;
-				// Flying to the far side of the island is not a stall. Without this the 90s watch
-				// counts through the trip and reports a stall for doing exactly the right thing.
-				lastProgressMs = System.currentTimeMillis();
-				Highlight.clear("goto");
-				goLook(mc, sp.nearestUnseen(), sp.unseen() + " cells out of view");
-				mc.player.sendSystemMessage(Component.literal("[cscan] nothing left in sight, but "
-					+ sp.unseen() + " cells are in chunks I do not have — going to look at "
-					+ Wand.fmt(sp.nearestUnseen())));
+		if (sp.todo().isEmpty() && sp.unseen() > 0 && sp.nearestUnseen() != null
+			&& !unseenGivenUp.contains(sp.name())) {
+			long t = System.currentTimeMillis();
+			BlockPos look = sp.nearestUnseen();
+			if (target != null && target.equals(lookTarget)) {
+				// ---- THE LOOK WATCHDOG. Neither the stall clock nor the going-nowhere clock
+				// could see this phase (the target is reset every time it is re-guided), so a
+				// cell in a chunk that never loads — beyond render distance from anywhere the
+				// flight can get, or somewhere it cannot reach at all — was flown at for ever,
+				// re-announced every few seconds. Arrived, or parked, and the count has not
+				// moved: that is one strike; two and the design's unseen cells are written off
+				// for this session, which is what lets `follow all` move on.
+				boolean parked = Autopilot.arrivedAt(target)
+					|| t - Math.max(movedAt, lookSince) > LOOK_STUCK_MS;
+				if (parked) {
+					lookFailures++;
+					if (lookFailures >= LOOK_STRIKES) {
+						unseenGivenUp.add(sp.name());
+						mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.unseen()
+							+ " cell(s) of " + sp.name() + " sit in chunks that will not load from"
+							+ " anywhere I can get to — treating them as out of reach this session"));
+					} else {
+						mc.player.sendSystemMessage(Component.literal("[cscan] could not get the"
+							+ " chunks at " + Wand.fmt(target) + " to load — one more try"));
+					}
+					lookTarget = null;
+					stopGuiding();
+					Highlight.clear("goto");
+				}
+				return;
 			}
+			fetching = false;
+			lastProgressMs = t;
+			lookTarget = look;
+			lookSince = t;
+			Highlight.clear("goto");
+			goLook(mc, look, sp.unseen() + " cells out of view");
+			mc.player.sendSystemMessage(Component.literal("[cscan] nothing left in sight, but "
+				+ sp.unseen() + " cells are in chunks I do not have — going to look at "
+				+ Wand.fmt(look)));
 			return;
 		}
-		if (sp.placementComplete()) {
+		if (sp.placementComplete() || (sp.todo().isEmpty() && unseenGivenUp.contains(sp.name()))) {
+			doneThisSession.add(sp.name());
             if (!sp.wrong().isEmpty()) mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.wrong().size() + " mismatches remain; this design is NOT complete."));
 			if (target != null) {
 				// THE LOOP CANNOT DIG, so it says what it is handing back rather than calling a
@@ -299,10 +407,7 @@ final class Hud {
 			if (followAll) {
 				String next = nextDesign(mc, sp.name());
 				if (next != null) {
-					mc.player.sendSystemMessage(Component.literal("[cscan] moving on to " + next));
-					follow(next);
-					followAll = true;
-					remember(mc);
+					if (!switchTo(mc, next)) return;
 					return;
 				}
 				mc.player.sendSystemMessage(Component.literal(
@@ -343,20 +448,28 @@ final class Hud {
 		// ---- PROGRESS. `todo` shrinking is the only honest evidence a block was placed: the
 		// printer does the placing and never tells us, so the world is the report.
 		long now = System.currentTimeMillis();
-		if (lastTodo >= 0 && sp.todo().size() < lastTodo) {
-			placedTotal += lastTodo - sp.todo().size();
-			lastProgressMs = now;
+		// A CHUNK UNLOADING IS NOT A PLACEMENT. Flying off to fetch moves hundreds of cells from
+		// todo to unseen; counted as placed they inflated the session report, reset the stall
+		// clock, and blinded the thrash detector at exactly the moment spots were being abandoned.
+		// Only the part of a shrink that unseen does not account for is progress.
+		if (lastTodo >= 0 && lastUnseen >= 0) {
+			int gone = (lastTodo - sp.todo().size()) - (sp.unseen() - lastUnseen);
+			if (gone > 0) {
+				placedTotal += gone;
+				lastProgressMs = now;
+			}
 		}
 		lastTodo = sp.todo().size();
+		lastUnseen = sp.unseen();
+		lastReport = Printer.driving() ? Printer.drainReport() : new int[] {0, 0};
+		if (lastReport[0] > 0) lastProgressMs = now;      // a placement is progress, whatever the count says
+		if (++recounts % RELAX_EVERY == 0) Printer.relax();
 		if (Loop.stalled(now, lastProgressMs, fetching, STALL_MS)) {
 			stalls++;
 			lastProgressMs = now;
 			mc.player.sendSystemMessage(Component.literal("[cscan] STALLED — nothing placed in "
 				+ (STALL_MS / 1000) + "s at " + (target == null ? "?" : Wand.fmt(target))
 				+ ". Printer off, out of reach, or the spot cannot be built. " + sessionReport()));
-			// NEVER placed anything, twice over: that is not a bad spot, that is nothing printing.
-			// Worth saying plainly and once - it is the difference between a wasted ten minutes and
-			// a wasted night, and it is the one thing this loop cannot check for itself.
 			if (placedTotal == 0 && stalls == 2) {
 				Boolean live = Litematica.enabled(sp.name());
 				mc.player.sendSystemMessage(Component.literal("[cscan] nothing has been placed at"
@@ -366,14 +479,7 @@ final class Hud {
 						: "The placement is loaded, so check that litematica-printer is switched"
 							+ " on and that you are in survival with the blocks in hand.")));
 			}
-			// Give up on this SPOT rather than sitting against it: the next recount picks another.
-			// Dropping only the arrow left `spotCentre` set, so the hysteresis above chose the same
-			// region straight back again and the stall repeated for as long as you left it.
-			spotCentre = null;
-			stationBin = Long.MIN_VALUE;
-			stationsTried.clear();
-			stopGuiding();
-			Highlight.clear("goto");
+			abandonSpot(true);                             // it counts, and it is passed over
 			return;
 		}
 
@@ -381,18 +487,13 @@ final class Hud {
 		// only one that fires while there is still somewhere to be.
 		boolean travelling = target != null
 			&& me.distSqr(target) > (double) (Plan.reach() + STANDOFF) * (Plan.reach() + STANDOFF);
-		if (Loop.goingNowhere(now, movedAt, lastProgressMs, travelling, fetching, NOWHERE_MS)) {
+		// ONLY WHEN THE AUTOPILOT IS DRIVING. A player following the arrow by hand who stops to
+		// read chat for three seconds is not a stuck flight, and this used to give up their spot
+		// every three seconds for as long as they stood there.
+		if (Autopilot.on() && Loop.goingNowhere(now, movedAt, lastProgressMs, travelling, fetching, NOWHERE_MS)) {
 			mc.player.sendSystemMessage(Component.literal("[cscan] not moving and not placing at "
 				+ Wand.fmt(target) + " — giving up on this spot and taking the next one"));
-			avoidSpot = spotCentre;
-			avoidUntil = now + AVOID_MS;
-			spotCentre = null;
-			stationBin = Long.MIN_VALUE;
-			stationRetry = 0;
-			stationsTried.clear();
-			movedAt = now;                                 // one report per stick, not one per tick
-			stopGuiding();
-			Highlight.clear("goto");
+			abandonSpot(false);                            // counted, not struck: three seconds is a moment
 			Autopilot.forget();
 			return;
 		}
@@ -439,7 +540,7 @@ final class Hud {
         // Counted, never merely dropped: work quietly removed from the plan is work the design
         // never completes and nothing explains.
         int refusedByState = supported.size() - frontier.size();
-        java.util.List<Plan.Cluster> cl = Plan.clusters(frontier, carrying, java.util.Set.of(), java.util.Set.of(), me);
+        java.util.List<Plan.Cluster> cl = Plan.clusters(frontier, carrying, java.util.Set.of(), java.util.Set.of(), me, spotCentre);
 		spotsLeft = cl.size();
 
 		Map<String, Storage.Container> index;
@@ -449,8 +550,17 @@ final class Hud {
 			// written when you OPEN a container and cannot be told about one you broke. 179 of 339
 			// records were dead when it was last measured, and `fetch` navigates to these.
 			index = Storage.forDesign(ScanRunner.schematicsDir(mc), sp.name(), me, mc.level);
+			saidIndexBroken = false;
 		} catch (Exception e) {
+			// SAID ONCE. A corrupt index or a missing sidecar used to make every recount report
+			// "nothing indexed to fetch" with no hint that the index could not be read at all.
 			index = java.util.Map.of();
+			if (!saidIndexBroken) {
+				saidIndexBroken = true;
+				mc.player.sendSystemMessage(Component.literal("[cscan] the storage index cannot be"
+					+ " read (" + e.getMessage() + ") — every fetch will report nothing to fetch"
+					+ " until it can"));
+			}
 		}
 
 		// ---- FILL THE PACK, THEN BUILD UNTIL IT IS DRY.
@@ -481,7 +591,18 @@ final class Hud {
 		boolean askedToFetch = (fetching || !canWork || topUp) && (!frontier.isEmpty() || topUp);
 		if (askedToFetch) {
 			// Skip chests in their cooling-off period, or the loop is guided at one it will not open.
-			targets = Plan.fetchTargets(sp.todo(), carrying, index, me,
+			// WHAT GOES IN THE PACK IS DECIDED FROM WHERE THE WORK IS. See Plan.nearDemand: the
+			// frontier first, then the nearest remaining cells out to about a pack's worth — not
+			// the whole design's shortfall, which filled the pack with the far end's materials.
+			// ...and never for a cell nothing can ever place: outside the profile, off the plot, or
+			// given up on. Shopping for those is a trip to a dead end.
+			java.util.List<Work.Cell> everWork = sp.todo().stream()
+				.filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
+				.filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
+				.toList();
+			java.util.List<Work.Cell> demand = Plan.nearDemand(everWork, frontier,
+				workAnchor == null ? me : workAnchor, Work.loadCapacity(mc.player));
+			targets = Plan.fetchTargets(demand, carrying, index, me,
 				Withdraw.coolingOff(System.currentTimeMillis()));
 			// ---- WHAT YOU ALREADY HAVE IN A BOX IS NOT WORTH A TRIP. It is not placeable either —
 			// see Work.boxed — so it cannot simply be added to `carrying`; the loop would fly to a
@@ -489,8 +610,10 @@ final class Hud {
 			Map<String, Integer> boxes = Work.boxed(mc.player);
             for (Work.Cell c : frontier) {
                 if (carrying.getOrDefault(c.item(), 0) == 0 && boxes.getOrDefault(c.item(), 0) > 0
-                    && Work.room(mc.player, c.item()) > 0 && !Unbox.running()) {
+                    && Work.room(mc.player, c.item()) > 0 && !Unbox.running()
+                    && unboxWorthTrying(c.item())) {
                     String result = Unbox.start(mc, c.item(), boxes.get(c.item()));
+                    noteUnboxOutcome(c.item());
                     if (saidBoxed.add(c.item())) mc.player.sendSystemMessage(Component.literal("[cscan] " + result));
                     if (Unbox.running()) return;
                 }
@@ -501,8 +624,9 @@ final class Hud {
 				// a policy written as a fact. Unboxing is placing, opening, emptying and breaking,
 				// and this mod already does all four. If it cannot be done safely — nowhere to
 				// stand the box that is not over the void — Unbox refuses and the message stands.
-				if (!Unbox.running() && Unbox.boxWith(mc.player, item) >= 0) {
+				if (!Unbox.running() && Unbox.boxWith(mc.player, item) >= 0 && unboxWorthTrying(item)) {
 					String said = Unbox.start(mc, item, boxes.get(item));
+					noteUnboxOutcome(item);
 					if (saidBoxed.add(item)) {
 						mc.player.sendSystemMessage(Component.literal("[cscan] " + said));
 					}
@@ -534,11 +658,22 @@ final class Hud {
 			}
 			targets = Loop.byTrip(targets, r -> r.where().pos(), me, Loop.FETCH_RADIUS);
 			want = Plan.nextLoadFetch(targets, carrying, it -> Work.room(mc.player, it));
+			// STAY ON THE CHEST YOU ARE GOING TO. The nearest source is re-picked every recount,
+			// so two chests at nearly the same distance took turns being the target mid-flight.
+			if (want != null && fetchChest != null && !want.where().pos().equals(fetchChest)) {
+				for (Plan.Restock r : targets) {
+					if (r.where().pos().equals(fetchChest) && Work.room(mc.player, r.item()) > 0) {
+						want = r;
+						break;
+					}
+				}
+			}
 		}
 
 		Loop.Phase phase = Loop.phase(sp.todo().size(), sp.unseen(), canWork, fetching,
 			want != null, !targets.isEmpty(), topUp);
 		fetching = phase == Loop.Phase.FETCH;
+		if (fetching != wasFetching) lastProgressMs = now;   // a trip's clock and a build's are two clocks
 		// THE TOP-UP IS OVER WHEN THERE IS NOTHING LEFT TO FETCH, which is what a full pack and a
 		// fully-stocked design both look like. Ending it on a timer or on the first container would
 		// be ending it on something other than the thing it is for.
@@ -561,8 +696,8 @@ final class Hud {
 				return;
 			}
 			case DEAD_END, PACK_FULL -> {
+				lastProgressMs = now;                      // parked is not stalled: say it once, not every 90s
                 if (phase == Loop.Phase.DEAD_END && !frontier.isEmpty() && ChestScan.advance(mc, sp.name(), index)) {
-                    lastProgressMs = now;
                     return;
                 }
                 if (sp.unseen() > 0 && sp.nearestUnseen() != null) {
@@ -587,6 +722,18 @@ final class Hud {
 				}
 				stopGuiding();
 				Highlight.clear("goto");
+				// A DEAD END IS A REASON TO MOVE ON, not a place to spend the night. Under
+				// `follow all` the design is handed back unfinished, with the reason said, and
+				// the next one is taken. It is not returned to this session.
+				if (followAll) {
+					parked.add(sp.name());
+					String other = nextDesign(mc, sp.name());
+					if (other != null) {
+						mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.name()
+							+ " handed back unfinished; moving on to " + other));
+						switchTo(mc, other);
+					}
+				}
 				return;
 			}
 			default -> { }
@@ -609,10 +756,7 @@ final class Hud {
 			if (followAll) {
 				String other = nextDesign(mc, sp.name());
 				if (other != null) {
-					mc.player.sendSystemMessage(Component.literal("[cscan] moving on to " + other));
-					follow(other);
-					followAll = true;
-					remember(mc);
+					if (!switchTo(mc, other)) return;
 					return;
 				}
 			}
@@ -661,6 +805,15 @@ final class Hud {
 						+ " /cscan ignore clear to try them again."));
 				}
 				stopGuiding();
+				lastProgressMs = now;
+				if (followAll) {
+					parked.add(sp.name());
+					String other = nextDesign(mc, sp.name());
+					if (other != null) {
+						mc.player.sendSystemMessage(Component.literal("[cscan] moving on to " + other));
+						switchTo(mc, other);
+					}
+				}
 				return;
 			}
 			if (spotCentre != null && !wasFetching) spotsDone++;
@@ -702,16 +855,14 @@ final class Hud {
 		if (live.isEmpty()) { stopGuiding(); spotCentre = null; return; }
 		Plan.Station st = Plan.station(live, Plan.reach(), me, stationsTried);
 		if (st == null) {
-			// Every bin here has been tried. Start again rather than stranding the spot: the world
-			// has moved since, and the alternative is a spot that can never be worked.
-			stationsTried.clear();
-			st = Plan.station(live, Plan.reach(), me, stationsTried);
-			if (st == null) return;
-			// ...and give the re-offered bin a FRESH clock. Without this it kept the timestamp from
-			// the round that abandoned it, so it stalled again on the very next recount and the spot
-			// span through its bins as fast as the loop could count them.
-			if (st.bin() == stationBin) stationSince = now;
-			stationRetry = 0;
+			// EVERY BIN HERE HAS BEEN TRIED AND NONE TOOK A BLOCK. Retrying them from the top was
+			// a loop with a message every five seconds. The spot is given up on, counted, and
+			// passed over for a minute — the world may have changed by then, and if not the
+			// second strike writes it off.
+			mc.player.sendSystemMessage(Component.literal("[cscan] every angle on this spot has"
+				+ " been tried and nothing was placed — giving up on it"));
+			abandonSpot(true);
+			return;
 		}
 
 		// ---- the per-station stall, measured on this station's OWN cell count
@@ -740,13 +891,15 @@ final class Hud {
 		// used to be silent; with a real report a placement is progress immediately and a refusal
 		// is proof immediately, where five seconds of nothing could only ever be a guess. Silence
 		// still falls through to the clock, because nothing attempted is not evidence of anything.
-		int[] rep = Printer.driving() ? Printer.drainReport() : new int[] {0, 0};
+		int[] rep = lastReport;
+		// WHILE OUR OWN PRINTER DRIVES, THE REPORT IS THE EVIDENCE AND THE COUNT IS NOT. `here`
+		// shrinks when a neighbour's chunk unloads or somebody else breaks a support, and each
+		// such shrink read as "it is placing" and restarted the stall ladder from the top.
 		Loop.Station what = Printer.driving()
-			? Loop.stationFromReport(st.bin() == stationBin, arrived, here.size(), stationTodo,
+			? Loop.stationFromReport(st.bin() == stationBin, arrived, here.size(), -1,
 				now - stationSince, STATION_MS, stationRetry, rep[0], rep[1])
 			: Loop.station(st.bin() == stationBin, arrived, here.size(), stationTodo,
 				now - stationSince, STATION_MS, stationRetry);
-		if (rep[0] > 0) lastProgressMs = now;   // a placement is progress, whatever the count says
 		if (what != Loop.Station.NEW) {
 			if (what == Loop.Station.RECENTRE) {
 				stationSince = now;
@@ -869,10 +1022,25 @@ final class Hud {
 	private static int placedWhenAbandoned = 0;
 
 	static void abandonSpot() {
+		abandonSpot(true);
+	}
+
+	static void abandonSpot(boolean strike) {
+		if (fetching) {
+			// THERE IS NO SPOT DURING A FETCH. What failed is the chest: cool it, so the next
+			// recount picks another source, and do not count it toward "this design is not
+			// buildable" — four unreachable chests were switching designs under follow all.
+			if (fetchChest != null) Withdraw.noteFailure(fetchChest);
+			fetchChest = null;
+			approachTried.clear();
+			stopGuiding();
+			Highlight.clear("goto");
+			return;
+		}
 		// A strike against the PLACE, not just a minute of avoiding it. Two and the loop stops
 		// coming back at all — a timer forgets, and a place that has beaten it twice will not be
-		// different in a minute.
-		if (spotCentre != null && Ignored.strike(spotCentre)) {
+		// different in a minute. Not for a three-second pause, though: see the NOWHERE clock.
+		if (strike && spotCentre != null && Ignored.strike(spotCentre)) {
 			Highlight.show("ignore", Ignored.marks(), 0xFF3030, 600);
 		}
 		// Count the giving-up, and remember what had been placed at the time: several abandonments
@@ -911,37 +1079,81 @@ final class Hud {
 	 * wall; taking {@link Plan#takeHowMany} of it — the design's whole remaining need, capped by the
 	 * room in the pack and by what the chest is believed to hold — makes it one trip per pack.
 	 */
+	/** The chest the current fetch is about, and the approach cells already tried for it. */
+	private static BlockPos fetchChest = null;
+	private static final java.util.Set<Long> approachTried = new java.util.HashSet<>();
+	private static long fetchTargetSince = 0;
+
+	/**
+	 * A fetch that is neither moving nor opening for this long has stopped, whatever the flight
+	 * says. Longer than the flight needs to close the last few blocks, shorter than a player would
+	 * wait watching it hover.
+	 */
+	static final long FETCH_STUCK_MS = 6_000;
+
 	private static void fetchTo(Minecraft mc, BlockPos me, Plan.Restock want, int take,
 	                            Map<String, Integer> carrying) {
+		long now = System.currentTimeMillis();
 		BlockPos at = want.where().pos();
-		BlockPos approach = ContainerInteraction.approach(mc, at);
-		BlockPos guideAt = approach == null ? at : approach;
-		int room = Work.room(mc.player, want.item());
-		// Navigation must not yield to withdrawal until the executor can click the chest.
-		// Use the same eye-distance and visibility predicate as Withdraw.open.
-		boolean here = ContainerInteraction.openingHit(mc, at) != null;
-		if (target == null || !target.equals(guideAt)) {
+		if (!at.equals(fetchChest)) {
+			fetchChest = at;
+			approachTried.clear();
 			fetches++;
+		}
+		boolean here = ContainerInteraction.openingHit(mc, at) != null;
+		if (here) {
+			// Wherever we are, the chest can be opened from it: do that, and do not move.
+			guideExact(target != null && target.distSqr(me) <= 4 ? target : me,
+				"take " + take + "x " + want.item());
+			if (!Withdraw.busy() && !Withdraw.recentlyFailed(at, now)) {
+				// The withdrawal stops when the PACK holds the target and it counts boxed stock
+				// in the pack; a target computed from loose stock alone was already met the
+				// moment a shulker held some, so it took nothing and blacklisted a full chest.
+				int have = carrying.getOrDefault(want.item(), 0)
+					+ Work.boxed(mc.player).getOrDefault(want.item(), 0);
+				Withdraw.begin(at, want.item(), take + have);
+			}
+			return;
+		}
+		BlockPos approach = ContainerInteraction.approach(mc, at, approachTried);
+		if (approach == null) {
+			// ---- NO CELL TO OPEN IT FROM. Every candidate is solid, unloaded, or has been tried
+			// and failed. This is the chest's problem, not the trip's: cool it off exactly as an
+			// empty one is, so the next recount picks another source instead of hovering here.
+			Withdraw.noteFailure(at);
+			mc.player.sendSystemMessage(Component.literal("[cscan] cannot find anywhere to open "
+				+ want.where().describe() + " from — skipping it for a minute"));
+			stopGuiding();
+			Highlight.clear("goto");
+			return;
+		}
+		if (target == null || !target.equals(approach)) {
+			fetchTargetSince = now;
 			Highlight.show("goto", java.util.List.of(at), 0xFFC000, 900);
 			int inBoxes = Storage.boxedCount(want.where(), want.item());
+			int room = Work.room(mc.player, want.item());
 			mc.player.sendSystemMessage(Component.literal("[cscan] fetch: " + take + "x "
 				+ want.item() + " from " + want.where().describe() + " (" + want.available()
 				+ " there, " + want.missing() + " still wanted, room for " + room + ")"
 				+ (inBoxes > 0 ? "  — " + inBoxes + " of them are inside shulker boxes; it will"
 					+ " take the box and you set it down" : "")));
+		} else {
+			// ---- THE FETCH WATCHDOG. Neither the stall clock nor the going-nowhere clock runs
+			// while fetching, so a flight parked at an approach cell it cannot open the chest
+			// from used to sit there for ever, silently. Arrived and still not opening, or not
+			// moved for FETCH_STUCK_MS: that cell is no good, try the next angle.
+			boolean parked = Autopilot.arrivedAt(approach)
+				|| (now - Math.max(movedAt, fetchTargetSince) > FETCH_STUCK_MS);
+			if (parked) {
+				approachTried.add(approach.asLong());
+				mc.player.sendSystemMessage(Component.literal("[cscan] cannot open "
+					+ want.where().describe() + " from " + Wand.fmt(approach)
+					+ " — trying another angle"));
+				stopGuiding();                           // next recount picks the next cell
+				return;
+			}
 		}
-		// Arrived and still short: you are standing at the chest, so say what to take rather than
-		// repeating where it is.
-		// Route to an eye-valid open cell, rather than to the solid chest. If no pose is currently
-		// visible, the chest remains a diagnostic target but opening cannot start.
-		guide(guideAt, (here ? "take " : approach == null ? "find approach for " : "go to chest for ")
-			+ take + "x " + want.item());
-		// ARRIVED: take it. This is the step that closes the loop — without it `follow` flies you to
-		// the chest and waits for a human to shift-click. It fires once per trip, because
-		// Withdraw.busy() gates it and the next recount sees the fuller pack.
-		if (here && !Withdraw.busy() && !Withdraw.recentlyFailed(at, System.currentTimeMillis())) {
-			Withdraw.begin(at, want.item(), take + carrying.getOrDefault(want.item(), 0));
-		}
+		guideExact(approach, "go to chest for " + take + "x " + want.item());
 	}
 
 	/**
@@ -953,33 +1165,52 @@ final class Hud {
 	 * sidecar must not end an overnight run.
 	 */
 	static String nextDesign(Minecraft mc, String after) {
+		// NEVER BACK TO A DESIGN SEEN COMPLETE OR HANDED BACK. A finished design on the far side
+		// of the island has cells out of view, which reads as "has work", and two such designs
+		// shuttled the loop between them all night. Real work — cells in view — beats a design
+		// that merely has cells nobody has looked at. IN BUILD ORDER, as before: mcbuild settles
+		// which design owes ground to which, and the order carries that.
 		try {
 			java.nio.file.Path dir = ScanRunner.schematicsDir(mc);
 			java.util.List<String> all = Designs.tracked(dir);
 			if (all == null) return null;
-			// IN BUILD ORDER. `follow all` used to walk the tracked list as written, so it could
-			// start a design whose ground another one still owes - mcbuild settles that with
-			// `finish.defer_to` and CLAUDE.md states the sequences in prose, and none of it reached
-			// the mod. A design with no `after` in its sidecar keeps its place, so a folder written
-            // before this existed is ordered exactly as it was.
 			all = Designs.inBuildOrder(dir, all);
+			String unseenOnly = null;
 			for (String name : all) {
-				if (name.equals(after)) continue;
+				if (name.equals(after) || doneThisSession.contains(name) || parked.contains(name)
+					|| unseenGivenUp.contains(name)) continue;
 				try {
 					Work.Split sp = Work.split(mc.level, dir, name, mc.player.blockPosition(), 0);
-					// ...including what it cannot see. Otherwise standing at one end of the island
-					// makes every design look finished and the run ends before it starts.
-					// placementComplete, not complete: a design whose only remainder is a dig list
-					// is not work the loop can do, and choosing it means choosing to stall.
-					if (!sp.placementComplete()) return name;
+					if (!sp.todo().isEmpty()) return name;
+					if (sp.unseen() > 0 && unseenOnly == null) unseenOnly = name;
+					if (sp.placementComplete()) doneThisSession.add(name);
 				} catch (Exception skip) {
-					// no work.json yet, or it will not parse: not this run's problem
 				}
 			}
+			return unseenOnly;
 		} catch (Exception e) {
 			return null;
 		}
-		return null;
+	}
+
+	/**
+	 * Move the loop to another design, or say why it could not and park that one. Thrown from
+	 * inside {@link #advance} the old way, a design whose journal could not be opened was three
+	 * "recovered from" messages, seventeen silent recounts and then a dead loop.
+	 */
+	private static boolean switchTo(Minecraft mc, String name) {
+		mc.player.sendSystemMessage(Component.literal("[cscan] moving on to " + name));
+		try {
+			follow(name);
+		} catch (Exception e) {
+			parked.add(name);
+			mc.player.sendSystemMessage(Component.literal("[cscan] cannot start " + name + ": "
+				+ e.getMessage() + " — skipping it"));
+			return false;
+		}
+		followAll = true;
+		remember(mc);
+		return true;
 	}
 
 	/**
@@ -1126,6 +1357,14 @@ final class Hud {
 		stationsTried.clear();
 		avoidSpot = null;
 		scaffoldFor = -1;
+		fetchChest = null;
+		approachTried.clear();
+		lookTarget = null;
+		lookFailures = 0;
+		doneThisSession.clear();
+		parked.clear();
+		unseenGivenUp.clear();
+		splitFailures = 0;
 		hiccups = 0;
 		grace = 0;
 		stopGuiding();
@@ -1184,8 +1423,9 @@ final class Hud {
 		try {
 			restore(mc);
 		} catch (Exception e) {
-			// This runs on the JOIN event. Throwing here takes the mod down at the one moment you
-			// cannot see why, for the sake of a convenience.
+			// Swallowed, this was a loop that silently did not come back after a disconnect.
+			if (mc.player != null) mc.player.sendSystemMessage(Component.literal(
+				"[cscan] could not resume the saved session: " + e.getMessage()));
 		}
 	}
 
@@ -1257,6 +1497,14 @@ final class Hud {
 		spotsAbandoned = 0;
 		placedWhenAbandoned = 0;
 		scaffoldFor = -1;
+		fetchChest = null;
+		approachTried.clear();
+		lookTarget = null;
+		lookFailures = 0;
+		lastUnseen = -1;
+		splitFailures = 0;
+		avoidSpot = null;
+		Ignored.clear();                              // written-off places were THIS design's spots
 	}
 
 	/** What the loop has done since `follow` started — the report for a session you were not watching. */
@@ -1330,9 +1578,25 @@ final class Hud {
 			out.add(second);
 			lines = out;
 		} catch (Exception e) {
-			// A missing work.json is a normal thing to be told once, not sixty times a second.
+			// ONE UNREADABLE RECOUNT IS A FILE BEING WRITTEN — `mcbuild sync` mid-rewrite, a
+			// half-written sidecar. It used to null the design on the first, which left
+			// `following` true, the HUD blank, and nothing in chat: the loop was dead and looked
+			// idle. Three in a row is a broken design; say so and stop properly.
 			lines = List.of(design + ": " + e.getMessage());
-			design = null;
+			if (++splitFailures >= SPLIT_FAILURE_LIMIT) {
+				if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] "
+					+ design + ": cannot read its work list (" + e.getMessage() + ") — stopping."
+					+ " Regenerate it and /cscan follow again."));
+				following = false;
+				ActiveBuild.clear();
+				ChunkScanClient.printDesign = null;
+				stopGuiding();
+				remember(mc);
+				design = null;
+				splitFailures = 0;
+			}
+			return;
 		}
+		splitFailures = 0;
 	}
 }

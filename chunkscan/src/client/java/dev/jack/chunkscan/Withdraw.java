@@ -72,7 +72,21 @@ final class Withdraw {
 
 	private static Phase phase = Phase.IDLE;
 	/** Position -> the time it becomes worth trying again. An EXPIRY, because the wait now varies. */
+	/**
+	 * TWO WINDOWS, TWO FACTS. A chest that FAILED (empty, short, would not open) is off the table
+	 * for targeting for {@link #RETRY_AFTER_MS}. A chest that WORKED is only kept from being
+	 * re-OPENED for {@link #RETRY_AFTER_OK_MS} — it stays a perfectly good target, and the trip
+	 * waits those few seconds rather than flying to the second-nearest chest of the same thing.
+	 * One map for both made the recount two seconds later route past the chest that had just
+	 * handed over a stack.
+	 */
 	private static final java.util.Map<Long, Long> coolUntil = new java.util.HashMap<>();
+	private static final java.util.Map<Long, Long> okUntil = new java.util.HashMap<>();
+	/** What the pack held of {@code want} when the current transfer was asked for. */
+	private static int packBefore;
+	/** Consecutive uncertain transfers this session: the reason to stop, if there is one. */
+	private static int uncertainRuns;
+	static final int UNCERTAIN_LIMIT = 3;
 	private static BlockPos chest;
 	private static String want;          // null = take everything
 	private static int target;
@@ -138,11 +152,24 @@ final class Withdraw {
     static boolean unconfirmed() { return awaitingTransfer; }
 
     static void cancel() {
-		closeJournal(Minecraft.getInstance(), "CANCELLED");
+		Minecraft mc = Minecraft.getInstance();
+		closeJournal(mc, "CANCELLED");
+		closeOurScreen(mc);
 		phase = Phase.IDLE;
 		chest = null;
         awaitingTransfer = false; transfer = null;
 		transferJournal = null;
+	}
+
+	/**
+	 * Close a container screen WE asked for. Left open, a chest GUI halts the autopilot, the loop
+	 * and the printer until a human presses Escape — and an OPENING-phase failure used to leave
+	 * exactly that, because it only closed a screen whose menu id it had already recorded.
+	 */
+	private static void closeOurScreen(Minecraft mc) {
+		if (mc == null || mc.player == null || !requested) return;
+		var cs = Screens.container();
+		if (cs != null && cs.getMenu() != mc.player.inventoryMenu) mc.player.closeContainer();
 	}
 
 	/**
@@ -187,6 +214,7 @@ final class Withdraw {
         if (levelAtStart == null) levelAtStart = mc.level;
         if (levelAtStart != mc.level) { cancel(); return; }
 		if (--timer <= 0) {
+			if (awaitingTransfer) { settleFromPack(mc); close(mc); return; }
 			fail(mc, "gave up at " + Wand.fmt(chest));
 			return;
 		}
@@ -211,6 +239,11 @@ final class Withdraw {
         if (requested || !mc.level.isLoaded(chest)) return;
         String n = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(chest).getBlock()).getPath();
         if (!Storage.stores(n)) { fail(mc, "no container at " + Wand.fmt(chest)); return; }
+        if ((n.equals("chest") || n.equals("trapped_chest"))
+            && net.minecraft.world.level.block.ChestBlock.isChestBlockedAt(mc.level, chest)) {
+            fail(mc, "the chest at " + Wand.fmt(chest) + " is blocked (something on its lid)");
+            return;
+        }
         BlockHitResult hit = ContainerInteraction.openingHit(mc, chest);
         if (hit == null) return;
         ContainerWatcher.expect(mc, chest);
@@ -222,8 +255,8 @@ final class Withdraw {
 	private static void take(Minecraft mc) {
 		AbstractContainerScreen<?> cs = Screens.container();
 		if (cs == null) {                            // closed under us; count what we got
-            if (awaitingTransfer) fail(mc, "container closed before transfer reconciliation");
-            else finish(mc);
+            if (awaitingTransfer) settleFromPack(mc);
+            finish(mc);
 			return;
 		}
 		if (cs.getMenu().containerId != menuId) { fail(mc, "container changed during withdrawal"); return; }
@@ -232,7 +265,12 @@ final class Withdraw {
         if (awaitingTransfer) {
             var result = transfer.reconcile(observed);
             if (result == InventoryTransfer.Result.CONFLICT) {
-                fail(mc, "inventory transfer could not be reconciled; inspect chest and inventory");
+                // Something else moved items while we were not looking — litematica-printer
+                // taking from the pack, a hopper under the chest. The PACK is still the truth
+                // about what we hold, so count from it and cool the chest rather than ending
+                // the night over a bookkeeping disagreement.
+                settleFromPack(mc);
+                close(mc);
                 return;
             }
             awaitingTransfer = false;
@@ -242,6 +280,7 @@ final class Withdraw {
             took += transferredUnits(transfer.item(), transfer.moved());
             transfer = null;
             timer = TIMEOUT;
+            uncertainRuns = 0;
         }
         if (want != null && carrying(mc) >= target) {
 			close(mc);                               // got what we came for
@@ -264,30 +303,85 @@ final class Withdraw {
             for (int i = 0; i < 36; i++) if (inv.getItem(i).isEmpty()) empty++;
             if (empty <= reserveSlots) { close(mc); return; }
         }
+		// LOOSE STACKS FIRST, and a box only when it is worth the trip through Unbox: a box is a
+		// slot, a place-open-take-break cycle, and a risk, so one holding a handful of what we
+		// want is not a source. And a box needs an EMPTY slot to land in — a partial stack of the
+		// wanted item is room for the item and no room at all for a box.
+		Slot boxed = null;
 		for (Slot s : cs.getMenu().slots) {
 			if (s.container == inv) continue;        // that half is already ours
 			ItemStack st = s.getItem();
 			if (st.isEmpty()) continue;
 			String item = BuiltInRegistries.ITEM.getKey(st.getItem()).getPath();
-			// A SHULKER BOX THAT HOLDS WHAT WE CAME FOR IS WHAT WE CAME FOR. Bulk storage on this
-			// island is boxes in chests, and a fetch that walks past six shulkers of stone brick to
-			// find sixty-four loose ones is not a fetch. Taking the box is the first half; `Work.
-			// boxed` then tells you to set it down, because a client mod cannot unpack it for you.
-			if (want != null && !item.equals(want) && !holdsWanted(st)) continue;
-			// Record BEFORE clicking; a locally mutated stack is not evidence of a transfer.
-            var inventorySlots = cs.getMenu().slots.stream().filter(slot -> slot.container == inv)
-                .map(slot -> slot.index).toList();
-            transfer = new InventoryTransfer(observed, s.index, inventorySlots);
-			if (!journalTransferStart(mc, chest, item, st.getCount())) return;
-            awaitingTransfer = true;
-            // QUICK_MOVE is the shift-click: the whole stack, straight into the pack.
-			mc.gameMode.handleContainerInput(cs.getMenu().containerId, s.index, 0,
-				ContainerInput.QUICK_MOVE, mc.player);
-            reopen(mc);
-
+			if (want != null && !item.equals(want)) {
+				if (boxed == null && holdsWanted(st) && boxedCount(st) >= BOX_WORTH
+					&& emptySlots(inv) > 0) boxed = s;
+				continue;
+			}
+			startTransfer(mc, cs, inv, s, item, st.getCount());
 			return;                                  // one stack a pass, then re-read the screen
 		}
+		if (boxed != null) {
+			ItemStack st = boxed.getItem();
+			startTransfer(mc, cs, inv, boxed, BuiltInRegistries.ITEM.getKey(st.getItem()).getPath(),
+				st.getCount());
+			return;
+		}
 		close(mc);                                   // nothing of ours left in there
+	}
+
+	/** Ask the server to move one stack to us, and remember what the pack held when we asked. */
+	private static void startTransfer(Minecraft mc, AbstractContainerScreen<?> cs, Inventory inv,
+	                                  Slot s, String item, int count) {
+		var observed = MenuObservations.LIVE.snapshot(mc.getConnection(), menuId);
+		var inventorySlots = cs.getMenu().slots.stream().filter(slot -> slot.container == inv)
+			.map(slot -> slot.index).toList();
+		transfer = new InventoryTransfer(observed, s.index, inventorySlots);
+		packBefore = carrying(mc);
+		if (!journalTransferStart(mc, chest, item, count)) return;
+		awaitingTransfer = true;
+		mc.gameMode.handleContainerInput(cs.getMenu().containerId, s.index, 0,
+			ContainerInput.QUICK_MOVE, mc.player);
+		reopen(mc);
+	}
+
+	/** A box is only a source of {@code want} if it holds at least this much of it. */
+	static final int BOX_WORTH = 64;
+
+	private static int boxedCount(ItemStack st) {
+		return st.getOrDefault(net.minecraft.core.component.DataComponents.CONTAINER,
+				net.minecraft.world.item.component.ItemContainerContents.EMPTY)
+			.nonEmptyItemCopyStream()
+			.filter(in -> BuiltInRegistries.ITEM.getKey(in.getItem()).getPath().equals(want))
+			.mapToInt(ItemStack::getCount).sum();
+	}
+
+	private static int emptySlots(Inventory inv) {
+		int empty = 0;
+		for (int i = 0; i < 36; i++) if (inv.getItem(i).isEmpty()) empty++;
+		return empty;
+	}
+
+	/**
+	 * The transfer's answer never came, or came back inconsistent. The pack did not lie: whatever
+	 * it holds more of than it did when the click went out is what arrived. Counted, journalled as
+	 * UNCERTAIN, and the chest cooled — the session goes on. Only a RUN of these is evidence that
+	 * something is wrong with the world rather than with one click.
+	 */
+	private static void settleFromPack(Minecraft mc) {
+		int gained = Math.max(0, carrying(mc) - packBefore);
+		took += gained;
+		awaitingTransfer = false;
+		transfer = null;
+		journalTransfer(mc, "UNCERTAIN", gained);
+		if (chest != null) cool(chest, RETRY_AFTER_MS);
+		if (++uncertainRuns >= UNCERTAIN_LIMIT) {
+			uncertainRuns = 0;
+			if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] "
+				+ UNCERTAIN_LIMIT + " withdrawals in a row could not be confirmed — the server is"
+				+ " not answering container clicks; stopping so nothing is lost"));
+			Hud.stopForSafety(mc);
+		}
 	}
 
     private static void reopen(Minecraft mc) {
@@ -372,7 +466,8 @@ final class Withdraw {
 		if (chest != null) {
 			// Emptied or short: it has no more, leave it alone properly. Gave us what we asked for:
 			// just long enough not to open it again on the next recount.
-			cool(chest, took == 0 || short_ ? RETRY_AFTER_MS : RETRY_AFTER_OK_MS);
+			if (took == 0 || short_) cool(chest, RETRY_AFTER_MS);
+			else okUntil.put(chest.asLong(), System.currentTimeMillis() + RETRY_AFTER_OK_MS);
 		}
 		if (took > 0 || want == null) {
 			mc.player.sendSystemMessage(Component.literal("[cscan] took " + took
@@ -411,9 +506,12 @@ final class Withdraw {
 	 * The window has to expire either way — a chest can be refilled and a timeout can be lag, so a
 	 * permanent mark turns a hiccup into a dead session.
 	 */
+	/** Not to be OPENED now: it failed recently, or it was used moments ago and needs a beat. */
 	static boolean recentlyFailed(BlockPos at, long now) {
 		Long until = coolUntil.get(at.asLong());
-		return until != null && now < until;
+		if (until != null && now < until) return true;
+		Long ok = okUntil.get(at.asLong());
+		return ok != null && now < ok;
 	}
 
 	private static void cool(BlockPos at, long ms) {
@@ -431,27 +529,35 @@ final class Withdraw {
 
 	static void clearFailures() {
 		coolUntil.clear();
+		okUntil.clear();
+		uncertainRuns = 0;
 	}
 
 	/** Record a failure without a live client, so the cooldown itself can be tested. */
 	static void noteFailureForTest(BlockPos at) {
+		noteFailure(at);
+	}
+
+	/**
+	 * Record that this container could not be used — a chest with no cell to open it from is as
+	 * useless to a trip as an empty one, and must be passed over for the same window.
+	 */
+	static void noteFailure(BlockPos at) {
 		cool(at, RETRY_AFTER_MS);
 	}
 
 	private static void fail(Minecraft mc, String why) {
 		// The record this attempt opened is closed here, whatever went wrong. See closeJournal.
 		closeJournal(mc, "FAILED");
-        boolean uncertain = awaitingTransfer;
-        BlockPos failedChest = chest;
-        if (mc.player != null && Screens.container() != null && Screens.container().getMenu().containerId == menuId)
-            mc.player.closeContainer();
-        if (uncertain) Hud.off();
-        chest = failedChest;
-        phase = Phase.FAILED;
-        awaitingTransfer = false;
-        transfer = null;
-        if (chest != null) cool(chest, RETRY_AFTER_MS);
-        note = why;
-        if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] " + why));
-    }
+		BlockPos failedChest = chest;
+		if (awaitingTransfer) settleFromPack(mc);
+		closeOurScreen(mc);
+		chest = failedChest;
+		phase = Phase.FAILED;
+		awaitingTransfer = false;
+		transfer = null;
+		if (chest != null) cool(chest, RETRY_AFTER_MS);
+		note = why;
+		if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] " + why));
+	}
 }

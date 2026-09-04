@@ -1510,7 +1510,11 @@ public final class ChunkScanClient implements ClientModInitializer {
 			src.sendError(Component.literal("[cscan] too far — get within " + (int) Withdraw.REACH));
 			return 0;
 		}
-		Withdraw.begin(at, item, count);
+		// The withdrawal stops when the PACK holds the target, so an amount has to be added to
+		// what is already carried — or "take 64" with 64 in hand takes nothing and cools the chest.
+		int have = item == null ? 0 : Work.carrying(mc.player).getOrDefault(Rules.shortName(item), 0)
+			+ Work.boxed(mc.player).getOrDefault(Rules.shortName(item), 0);
+		Withdraw.begin(at, item, count + have);
 		ok(src, item == null ? "emptying " + n + " at " + Wand.fmt(at)
 			: "taking " + count + "x " + item + " from " + n);
 		return 1;
@@ -2300,21 +2304,25 @@ public final class ChunkScanClient implements ClientModInitializer {
                 if (Fleet.heldByOther(ScanRunner.schematicsDir(mc), printDesign, Fleet.me(mc))) return;
 				Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), printDesign,
 					mc.player.blockPosition(), (int) Printer.REACH + 2);
+				// IN THE DESIGN'S ORDER — bottom-up, doors first — not nearest-first. Placing a
+				// ceiling cell before the wall under it takes away the face the lower cell was
+				// going to be placed against, and the station then stalled on a cell that still
+				// had a support and no ray to it.
 				Work.Cell next = null;
-				double best = Double.MAX_VALUE;
+				double reach2 = (Printer.REACH + 1) * (Printer.REACH + 1);
+				net.minecraft.world.phys.Vec3 eye = mc.player.getEyePosition();
 				for (Work.Cell c : sp.todo()) {
 					if (Printer.givenUpOn(c.pos())) continue;
+					if (eye.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(c.pos())) > reach2) continue;
                     int slot = Printer.inventorySlot(mc.player, c.block());
                     if (slot < 0) continue;
-					double d = mc.player.getEyePosition().distanceToSqr(
-						net.minecraft.world.phys.Vec3.atCenterOf(c.pos()));
-					if (d < best && d <= (Printer.REACH + 1) * (Printer.REACH + 1)
-                        && Printer.placement(mc, c.pos(), c.block(), slot) != null) {
-						best = d;
+					if (Printer.placement(mc, c.pos(), c.block(), slot) != null) {
 						next = c;
+						break;
 					}
 				}
-				if (next == null) return;                 // nothing in reach: the loop moves you
+				if (next == null) return;
+                 // nothing in reach: the loop moves you
 				Printer.Verdict v = Printer.place(mc, next.pos(), next.block());
 				if (v == Printer.Verdict.NO_ITEM) {
 					// Said once per material rather than per tick: a message on a tick timer is a

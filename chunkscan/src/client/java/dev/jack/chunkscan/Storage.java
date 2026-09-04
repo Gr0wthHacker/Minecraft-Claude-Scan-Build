@@ -57,6 +57,7 @@ final class Storage {
 
     static boolean stores(String block) {
 		String n = block == null ? "" : block.substring(block.indexOf(':') + 1);
+		if (n.equals("ender_chest")) return false;   // a window on the PLAYER's pack, not a chest
 		for (String k : STORES) if (n.contains(k)) return true;
 		return false;
 	}

@@ -124,11 +124,18 @@ final class Unbox {
 		LocalPlayer p = mc.player;
 		if (p == null || mc.level == null) return null;
 		BlockPos me = p.blockPosition();
-		for (int r = 1; r <= 3; r++) {
+		// ADJACENT, AT FOOT LEVEL, AND NOTHING ELSE. The drop from a broken box lands where the box
+		// stood, and a player picks up what is within about a block of their own body: a box three
+		// cells away comes off the ground three cells away and stays there, and the body may not
+		// move to it because movement is frozen for exactly as long as the box is out. A box one
+		// cell away at foot level is inside pickup range before it is even broken. And its LID
+		// must be able to open, which is the cell above it.
+		for (int r = 1; r <= 1; r++) {
 			for (Direction d : Direction.Plane.HORIZONTAL) {
-				for (int dy = 0; dy >= -1; dy--) {
+				for (int dy = 0; dy >= 0; dy--) {
 					BlockPos c = me.relative(d, r).offset(0, dy, 0);
 					if (!mc.level.getBlockState(c).isAir()) continue;
+					if (!mc.level.getBlockState(c.above()).isAir()) continue;   // the lid
 					BlockPos below = c.below();
 					if (!mc.level.getBlockState(below).blocksMotion()) continue;
 					if (Rules.isProtected(BuiltInRegistries.BLOCK
@@ -199,9 +206,17 @@ final class Unbox {
         }
 		if (++waited > GIVE_UP_TICKS) {
 			phase = Phase.FAILED;
-            Hud.off();
 			why = "took too long";
-			return "unbox gave up at " + Wand.fmt(where) + " — check the box is not still on the ground";
+			if (placedByUs && !mc.level.getBlockState(where).getBlock().equals(
+					net.minecraft.world.level.block.Blocks.AIR)
+				|| count(mc.player, boxItem) < boxesBefore) {
+				// The box is out in the world, placed or dropped. That is an inventory at risk,
+				// and the one failure here that is worth ending the night over.
+				Hud.stopForSafety(mc);
+				return "unbox gave up at " + Wand.fmt(where) + " — THE BOX IS STILL OUT THERE."
+					+ " Go and get it before anything else.";
+			}
+			return "unbox gave up at " + Wand.fmt(where) + " — the box is back in the pack";
 		}
 		LocalPlayer p = mc.player;
 		return switch (phase) {
@@ -219,22 +234,28 @@ final class Unbox {
             if (!Printer.acknowledged(sequence, ((PredictionAccess)mc.level).chunkscan$acknowledged())) return null;
             String gotBlock = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(where).getBlock()).getPath();
             if (!gotBlock.equals(boxItem) || count(p, boxItem) >= boxesBefore) {
-                phase = Phase.FAILED; Hud.off();
+                phase = Phase.FAILED;                    // the box is still in the pack: nothing lost
                 return "unbox stopped: server did not confirm placement of our box";
             }
             placedByUs = true; phase = Phase.OPENING; return null;
         }
         if (!mc.level.getBlockState(where).isAir()) {
-            phase = Phase.FAILED; Hud.off(); return "unbox stopped: destination became occupied";
+            phase = Phase.FAILED; return "unbox stopped: destination became occupied";
         }
         int slot = boxWith(p, want);
-        if (slot < 0) { phase = Phase.FAILED; Hud.off(); return "unbox stopped: box is missing"; }
+        if (slot < 0) { phase = Phase.FAILED; return "unbox stopped: box is missing"; }
         if (slot >= 9) {
             mc.gameMode.handleContainerInput(p.inventoryMenu.containerId, slot, p.getInventory().getSelectedSlot(), ContainerInput.SWAP, p);
             return null;
         }
         Printer.Placement plan = Printer.placement(mc, where, boxItem, slot);
-        if (plan == null) { phase = Phase.FAILED; Hud.off(); return "unbox stopped: no reachable visible support face"; }
+        if (plan == null) { phase = Phase.FAILED; return "unbox stopped: no reachable visible support face"; }
+        // A SHULKER BOX OPENS UPWARD, so it is placed on the block under it and nowhere else. Set
+        // against a wall by its side face it faces that wall and its lid is jammed against the
+        // block it hangs from: it never opens, the withdrawal times out, and the box is left placed.
+        if (plan.hit().getDirection() != Direction.UP) {
+            phase = Phase.FAILED; return "unbox stopped: could only set the box against a wall";
+        }
         p.getInventory().setSelectedSlot(slot);
         mc.gameMode.useItemOn(p, InteractionHand.MAIN_HAND, plan.hit());
         placementSent = true;
@@ -243,7 +264,7 @@ final class Unbox {
     }
 
     private static String open(Minecraft mc, LocalPlayer p) {
-        if (!placedByUs) { phase = Phase.FAILED; Hud.off(); return "unbox stopped: box ownership not verified"; }
+        if (!placedByUs) { phase = Phase.FAILED; return "unbox stopped: box ownership not verified"; }
         if (!withdrawalStarted) {
             beforeTake = count(p, want);
             Withdraw.begin(where, want, beforeTake + wanted);
@@ -258,10 +279,12 @@ final class Unbox {
     private static String take(Minecraft mc, LocalPlayer p) {
         if (Withdraw.busy()) return null;
         if (Withdraw.phase() != Withdraw.Phase.DONE) {
-            phase = Phase.FAILED;
-            why = "withdrawal failed; box remains at " + Wand.fmt(where) + ": " + Withdraw.note();
-            Hud.off();
-            return "unbox stopped: " + why;
+            // Nothing came out, but the box is OURS and it is standing where we put it: get it
+            // back rather than abandoning it. The loop stops asking for this item afterwards.
+            why = "withdrawal failed (" + Withdraw.note() + "); recovering the box";
+            got = 0;
+            phase = Phase.BREAKING;
+            return "unbox: " + why;
         }
         got = Math.max(0, count(p, want) - beforeTake);
         phase = Phase.BREAKING;
@@ -273,6 +296,7 @@ final class Unbox {
 			phase = Phase.RECOVERING;
 			return null;
 		}
+		Digger.holdBestTool(mc, where);              // a box by hand is seconds; with an axe, one
 		// ONLY THE CELL WE PLACED INTO. The island is full of shulker boxes that are somebody's
 		// storage, and "a shulker box nearby" is not a thing this may ever break.
 		String n = BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(where).getBlock()).getPath();
@@ -298,7 +322,7 @@ final class Unbox {
 		}
 		if (waited > GIVE_UP_TICKS - 40) {
 			phase = Phase.FAILED;
-            Hud.off();
+            Hud.stopForSafety(mc);
 			why = "THE BOX DID NOT COME BACK";
 			return "unbox: " + why + " — it is on the ground at " + Wand.fmt(where)
 				+ ". Go and pick it up before anything else.";

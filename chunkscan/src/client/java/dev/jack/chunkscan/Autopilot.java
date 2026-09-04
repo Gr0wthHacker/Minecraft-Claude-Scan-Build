@@ -123,6 +123,28 @@ final class Autopilot {
 	 * guessed in advance, which is the point.
 	 */
 	static final double ARRIVE_MIN = 1.2;
+
+	/**
+	 * An EXACT target is a place the body has to actually be — a chest's approach cell, chosen so
+	 * the eyes have a line to the chest from THAT cell and no other. Jack: <i>"it doesnt get close
+	 * enough to chests, chests need to be within 2 blocks"</i>. The ordinary ceiling lets a flight
+	 * call itself arrived three blocks short of a spot, which is right for a station (the printer
+	 * reaches) and wrong here: three blocks short of the approach cell is out of reach of the chest,
+	 * and the loop then waited for an opening test that could never pass.
+	 *
+	 * <p>{@link #EXACT_MIN} is inside the cell; {@link #EXACT_ARRIVED} is the most it may stop
+	 * short, and only when something is physically in the way or it has stopped closing.
+	 */
+	static final double EXACT_MIN = 0.6;
+	static final double EXACT_ARRIVED = 1.6;
+	/**
+	 * How much air an exact target keeps under the feet. The approach cell is chosen with at least
+	 * one clear cell beneath it (see {@link ContainerInteraction#HOVER_CLEAR}), so the feet sit just
+	 * over a block of air above whatever floor the chest stands on — more than the one block that
+	 * ends flight on this server, and low enough to open a chest on that floor. {@link #GROUND_CLEAR}
+	 * would hold the body two and a half blocks up, which is exactly where it could not.
+	 */
+	static final double EXACT_CLEAR = 1.05;
 	/** Ticks of getting no nearer before "this is as close as it gets" is the honest reading. */
 	static final int CLOSING_PATIENCE = 12;
 	/**
@@ -236,6 +258,10 @@ final class Autopilot {
 	private static boolean routedFlying = false;
 	/** Is the current path a way AROUND something rather than a way to the goal? For the HUD. */
 	private static boolean escaping = false;
+	/** The route in hand stops short of the target (a stage, or a way round): exhausting it is not arriving. */
+	private static boolean partialRoute = false;
+	/** The last search found NOTHING — not a stage, not a way round. Only this earns a strike. */
+	private static boolean noRoute = false;
 	/** Was the current route found in the world that keeps its distance? For the HUD and `why`. */
 	private static boolean roomyRoute = false;
 	/**
@@ -765,6 +791,8 @@ final class Autopilot {
 		pathTo = null;
 		legFrom = null;
 		bumps = 0;
+		partialRoute = false;
+		noRoute = false;
 		bestDist = Double.MAX_VALUE;
 		sinceCloser = 0;
 	}
@@ -834,6 +862,7 @@ final class Autopilot {
 		// A SOLID target is a thing to LOOK AT, so its middle is the right point. An empty one is a
 		// place to PUT THE BODY, and a body stands on its feet - see flyTo.
 		boolean solidTarget = mc.level.getBlockState(target).blocksMotion();
+		boolean exact = !solidTarget && Hud.targetExact();
 		Vec3 to = solidTarget ? Vec3.atCenterOf(target) : flyTo(target);
 		double dist = me.distanceTo(to);
 		// A SOLID DESTINATION IS ARRIVED AT FROM OUTSIDE IT. A chest is a block, so the tight radius
@@ -849,6 +878,7 @@ final class Autopilot {
 		// from a third direction.
 		if (!target.equals(approaching)) {
 			approaching = target;
+			arrivedAt = null;
 			bestDist = Double.MAX_VALUE;
 			sinceCloser = 0;
 		}
@@ -858,11 +888,12 @@ final class Autopilot {
 		} else {
 			sinceCloser++;
 		}
-		double ceiling = solidTarget ? ARRIVED_SOLID : ARRIVED;
+		double ceiling = solidTarget ? ARRIVED_SOLID : exact ? EXACT_ARRIVED : ARRIVED;
+		double floor = exact ? EXACT_MIN : ARRIVE_MIN;
 		// ...and whether closing any further would mean touching something. See SAFE_GAP: reach is
 		// worth having and it is not worth the flight.
 		boolean wall = surfaceAhead(mc, p, to.subtract(me), SAFE_GAP);
-		if (hasArrived(dist, sinceCloser, ARRIVE_MIN, ceiling, CLOSING_PATIENCE, wall)) {
+		if (hasArrived(dist, sinceCloser, floor, ceiling, CLOSING_PATIENCE, wall)) {
 			// ARRIVING IS NOT DISARMING. The first version called stop(), which sets on=false — so
 			// autofly switched itself off at the first chest and the unattended loop never flew
 			// again. Hold still and stay armed; the next `guide()` moves the target and this
@@ -956,7 +987,8 @@ final class Autopilot {
 			} else if (bumps % BUMP_LOOK_EVERY == 1) {
 				Nav.Passable free = Nav.of(mc.level);
 				BlockPos here = p.blockPosition();
-				java.util.List<BlockPos> round = Nav.escape(free, here, target, BUMP_LOOK);
+				java.util.List<BlockPos> round = Nav.escape(free, here, target, BUMP_LOOK,
+					System.nanoTime() + Nav.MAX_MILLIS * 1_000_000L / 2);
 				if (!round.isEmpty()) {
 					path = new java.util.ArrayList<>(Nav.simplify(free, here, round));
 					pathTo = target;
@@ -964,6 +996,7 @@ final class Autopilot {
 					sinceRepath = 0;
 					repathIn = REPATH_TICKS;
 					escaping = true;
+					partialRoute = true;
 					bumps = 1;                          // it has a plan: let it fly the plan
 				}
 			}
@@ -1041,39 +1074,48 @@ final class Autopilot {
 			// above a floor, which flies beautifully and walks into a hole.
 			Nav.Passable free = flying ? Nav.of(mc.level) : Nav.standable(mc.level);
 			BlockPos here = p.blockPosition();
+			// ONE CLOCK FOR THE WHOLE DECISION. The roomy search, the tight search and the escape
+			// flood each had their own budget, so an indoor repath — where the roomy search FAILS
+			// as a matter of course — cost three budgets on the client thread every half second.
+			long deadline = System.nanoTime() + Nav.MAX_MILLIS * 1_000_000L;
 			java.util.List<BlockPos> raw = java.util.List.of();
+			Nav.Passable used = free;
+			boolean partial = false;
 			if (flying) {
 				// ---- ROOMY FIRST. A route that keeps a block of air off every surface is a route
 				// that never tests whether this server ends flight on contact. Only when there is no
 				// such route — a one-wide shaft, a doorway, the taproot — do we accept one that has
 				// to touch, and then the alignment and the tight speed take over.
-				raw = Nav.route(Nav.roomyBetween(mc.level, here, target), here, target);
+				Nav.Passable roomy = Nav.roomyBetween(mc.level, here, target);
+				Nav.Route r = Nav.routeEx(roomy, here, target, deadline);
+				raw = r.path();
 				roomyRoute = !raw.isEmpty();
+				if (roomyRoute) {
+					used = roomy;                  // simplified with the predicate that FOUND it, or
+					partial = !r.complete();       // the chords throw the elbow room straight away
+				}
 			}
-			if (raw.isEmpty()) raw = Nav.route(free, here, target);
-
-			// NO ROUTE IS NOT A REASON TO FLY AT THE WALL. Getting round an obstacle is a search,
-			// not a nudge: flood outward and take the reachable cell that gets closest to the goal —
-			// up, down, left, right, behind, whichever actually helps. Re-run every repath it is a
-			// wall-follower that keeps making progress, and this island is nothing but walls.
+			if (raw.isEmpty()) {
+				Nav.Route r = Nav.routeEx(free, here, target, deadline);
+				raw = r.path();
+				partial = !r.complete();
+			}
 			escaping = false;
 			if (raw.isEmpty()) {
-				raw = Nav.escape(free, here, target, Nav.ESCAPE_RADIUS);
+				raw = Nav.escape(free, here, target, Nav.ESCAPE_RADIUS, deadline);
 				escaping = !raw.isEmpty();
 			}
+			noRoute = raw.isEmpty();
+			partialRoute = !noRoute && (partial || escaping);
 			path = raw.isEmpty() ? new java.util.ArrayList<>()
-				: new java.util.ArrayList<>(flying ? Nav.loosen(free, here, Nav.simplify(free, here, raw)) : raw);
+				: new java.util.ArrayList<>(flying ? Nav.loosen(used, here, Nav.simplify(used, here, raw)) : raw);
 			legFrom = p.position();                        // the first leg starts where we are
 			pathTo = target;
 			routedFlying = flying;
 			sinceRepath = 0;
-			// A FAILED SEARCH IS THE EXPENSIVE ONE. When a route exists A* finds it in a few
-			// hundred nodes; when there is none it burns the whole 12,000-node budget, and at
-			// REPATH_TICKS that is millions of block lookups a second on the client thread for as
-			// long as the target stays unreachable. Back off hard on failure, stay responsive on
-			// success.
-			// An ESCAPE is stale as soon as you have flown it: the whole point is to look again from
-			// somewhere new. Only a total failure earns the long backoff.
+			// A FAILED SEARCH IS THE EXPENSIVE ONE: back off hard on failure, stay responsive on
+			// success. An ESCAPE or a STAGE is stale as soon as it has been flown — the whole
+			// point is to look again from somewhere new — so only a total failure earns the wait.
 			repathIn = raw.isEmpty() ? NO_ROUTE_BACKOFF : repathFor(flying ? speed : WALK_SPEED);
 		}
 
@@ -1085,6 +1127,13 @@ final class Autopilot {
 			: WalkingSpace.arrived(me, path.get(0)))) {
 			legFrom = flyTo(path.get(0));                 // the leg we are on starts where we passed
 			path.remove(0);
+		}
+		if (path.isEmpty() && partialRoute) {
+			// THE END OF A STAGE IS NOT THE END OF THE ROUTE. Search again from here, now, rather
+			// than flying direct at whatever the stage was going round.
+			partialRoute = false;
+			repathIn = 0;
+			sinceRepath = MIN_REPATH_TICKS;
 		}
 		if (!flying) {
 			// Ground travel must never fall through to direct steering after a failed search.
@@ -1157,13 +1206,18 @@ final class Autopilot {
 		slowBecause = speed >= cruise - 1.0e-6 ? ""
 			: bend ? "corner" : path.size() <= 1 ? "arriving" : "?";
 
-		if (path.isEmpty()) {
+		if (path.isEmpty() && noRoute) {
 			// ---- NO ROUTE AND NO WAY ROUND. Said ONCE PER PLACE, and counted: the second time a
 			// place beats the router it is written off rather than reported again. Repeating the
-			// message is the same fault as returning to the spot — see Ignored.
+			// message is the same fault as returning to the spot — see Ignored. `noRoute`, not an
+			// empty path: a stage or a way round that has just been flown to its end is an empty
+			// path too, and used to earn the strike for a route that was working.
 			if (!warnedNoRoute) {
 				warnedNoRoute = true;
-				if (Ignored.strike(target)) {
+				// STRIKE THE THING THE LOOP CHOOSES BY. It filters spots by their centre; a strike
+				// on the stand position — up to fifty blocks from that centre — landed on a key
+				// nothing ever looked up, and no spot was ever actually ignored.
+				if (Ignored.strike(Hud.strikeKeyFor(target))) {
 					p.sendSystemMessage(Component.literal("[cscan] no route to " + Wand.fmt(target)
 						+ " again — marking it IGNORED (red) and taking another spot."));
 					Highlight.show("ignore", Ignored.marks(), 0xFF3030, 600);
@@ -1229,7 +1283,7 @@ final class Autopilot {
 			// forward. That is the head grinding. The route was checked by Nav and avoid below now
 			// guarantees no step touches anything, so the clamp has nothing to add while there is a
 			// route; it is for the direct guess and for holding still at a spot.
-			if (path.isEmpty()) step = keepAirborne(mc, p, step);
+			if (path.isEmpty()) step = keepAirborne(mc, p, step, exact ? EXACT_CLEAR : GROUND_CLEAR);
 			// Scaled, not pressed — for the CLIMB. See the note on VERTICAL_GAIN and, more
 			// importantly, the one above it about what the jump key actually does.
 			step = liftFor(step, Math.max(speed, RISE) * 1.5);
@@ -1492,7 +1546,7 @@ final class Autopilot {
 		return new Vec3(x, y, z);
 	}
 
-	private static Vec3 keepAirborne(Minecraft mc, LocalPlayer p, Vec3 step) {
+	private static Vec3 keepAirborne(Minecraft mc, LocalPlayer p, Vec3 step, double clear) {
 		// ...unless there is a ceiling. Indoors — the store hall, the entrance, the undercroft — a
 		// room can be two courses high, and forcing a climb there just grinds you along the ceiling.
 		// Landing on a floor inside a building is not the failure this guards against: that failure
@@ -1506,9 +1560,9 @@ final class Autopilot {
 		if (!headroom) step = new Vec3(step.x, Math.min(step.y, 0), step.z);
 		if (p.onGround()) return headroom ? new Vec3(step.x, RISE, step.z) : step;
 		double air = clearanceBelow(view(mc), p.getX(), p.getY(), p.getZ(),
-			(int) Math.ceil(GROUND_CLEAR) + 1);
-		if (air > GROUND_CLEAR) return step;
-		double lift = headroom && air < GROUND_CLEAR * 0.6 ? RISE : 0.0;
+			(int) Math.ceil(clear) + 1);
+		if (air > clear) return step;
+		double lift = headroom && air < clear * 0.6 ? RISE : 0.0;
 		return new Vec3(step.x, Math.max(step.y, lift), step.z);
 	}
 
@@ -1863,7 +1917,7 @@ final class Autopilot {
 					return false;
 				}
 				p.setDeltaMovement(keepAirborne(mc, p,
-					back.subtract(p.position()).normalize().scale(BLIND_SPEED * 2)));
+					back.subtract(p.position()).normalize().scale(BLIND_SPEED * 2), GROUND_CLEAR));
 				return true;
 			}
 			case CLIMB_OUT -> {
@@ -1907,7 +1961,16 @@ final class Autopilot {
 	}
 
 	/** At the target: kill the drift but stay armed for the next leg. */
+	/** The target the flight last called itself arrived at, or null while it is still going. */
+	private static BlockPos arrivedAt = null;
+
+	/** Has the flight arrived at THIS target? False for any other, and false while still closing. */
+	static boolean arrivedAt(BlockPos t) {
+		return t != null && t.equals(arrivedAt);
+	}
+
 	private static void arrive(Minecraft mc) {
+		arrivedAt = approaching;
 		release(mc);                                   // holding jump at the destination is a climb
 		bumps = 0;                                     // whatever we brushed on the way is history
 		wedged = 0;

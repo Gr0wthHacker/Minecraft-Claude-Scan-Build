@@ -237,7 +237,7 @@ class AutopilotTest {
 		assertTrue(Autopilot.GROUND_CLEAR >= 1.0, "less than a block of air is a landing waiting");
 		assertTrue(Autopilot.RISE > 0, "it can sink onto a floor and never climb off");
 		String src = source();
-		assertTrue(src.contains("keepAirborne(mc, p, step)"),
+		assertTrue(src.contains("keepAirborne(mc, p, step, exact ? EXACT_CLEAR : GROUND_CLEAR)"),
 			"the flying step no longer goes through the no-landing clamp");
 		// The BEHAVIOUR cannot be tested without a client, so what is pinned is that the clamp is
 		// still in the flying path and still reacts to the ground. Pinning the exact line was worse
@@ -495,7 +495,7 @@ class AutopilotTest {
 	@Test
 	void aBumpLooksForARouteRoundBeforeReachingForAnInstinct() throws IOException {
 		String src = source();
-		assertTrue(src.contains("Nav.escape(free, here, target, BUMP_LOOK)"),
+		assertTrue(src.contains("Nav.escape(free, here, target, BUMP_LOOK,"),
 			"a bump no longer asks the geometry for a way round");
 		assertTrue(Autopilot.BUMP_LOOK_EVERY > 1,
 			"a flood on every tick of contact is the cost this file has already paid twice");
@@ -673,7 +673,7 @@ class AutopilotTest {
 		assertTrue(src.contains("Nav.roomyBetween(mc.level, here, target)"),
 			"no longer tries for a route that keeps off the surfaces");
 		int roomy = src.indexOf("Nav.roomyBetween(mc.level");
-		int tight = src.indexOf("if (raw.isEmpty()) raw = Nav.route(free, here, target);");
+		int tight = src.indexOf("Nav.Route r = Nav.routeEx(free, here, target, deadline);");
 		assertTrue(tight > roomy, "the tight route is no longer the FALLBACK");
 	}
 
@@ -843,7 +843,7 @@ class AutopilotTest {
 		assertTrue(src.contains("if (threading && bumps < WEDGED_TICKS)"),
 			"a bump in a tight gap goes straight back to looking for a detour");
 		int guard = src.indexOf("if (threading && bumps < WEDGED_TICKS)");
-		int escape = src.indexOf("Nav.escape(free, here, target, BUMP_LOOK)");
+		int escape = src.indexOf("Nav.escape(free, here, target, BUMP_LOOK,");
 		assertTrue(guard < escape, "the escape is still reached first while threading");
 	}
 

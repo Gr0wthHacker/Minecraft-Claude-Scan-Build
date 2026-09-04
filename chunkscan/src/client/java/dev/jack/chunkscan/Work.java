@@ -391,6 +391,24 @@ final class Work {
 	}
 
 	/** The arithmetic of {@link #room}, without a client to hold it. */
+	/**
+	 * How many blocks a fetch trip can bring back at all: the empty slots of the pack, at a stack
+	 * each. Partial stacks are not counted — they only take one material, and which one is a
+	 * question {@link #room} answers per item. Never under a stack, so a full pack still sizes a
+	 * fetch to SOMETHING rather than to nothing.
+	 */
+	static int loadCapacity(net.minecraft.client.player.LocalPlayer player) {
+		if (player == null) return 64;
+		var inv = player.getInventory();
+		int empty = 0;
+		int slots = Math.min(36, inv.getContainerSize());
+		for (int i = 0; i < slots; i++) {
+			net.minecraft.world.item.ItemStack st = inv.getItem(i);
+			if (st == null || st.isEmpty()) empty++;
+		}
+		return Math.max(64, empty * 64);
+	}
+
 	static int roomIn(int emptySlots, int[] partials, int max) {
 		int n = emptySlots * max;
 		for (int c : partials) if (c < max) n += max - c;

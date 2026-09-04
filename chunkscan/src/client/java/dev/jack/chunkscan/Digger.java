@@ -45,6 +45,10 @@ final class Digger {
 	static final double REACH = 4.2;
 	/** Ticks of swinging at one block before deciding it is not going to break. */
 	static final int GIVE_UP_TICKS = 120;
+	/** Ticks past the block's own expected break time before it is written off. */
+	static final int GIVE_UP_SLACK = 60;
+	static final int GIVE_UP_MAX = 1200;
+	private static int giveUpAt = GIVE_UP_MAX;
 
 	enum Verdict { BROKE, PROTECTED, OVER_VOID, OFF_PLOT, OUT_OF_REACH, ALREADY_AIR, STUCK, WORKING }
 
@@ -135,7 +139,7 @@ final class Digger {
                 target = null; swings = 0;
                 return null;
             }
-			if (++swings > GIVE_UP_TICKS) {
+			if (++swings > giveUpAt) {
 				givenUp.add(key(target));
 				refusals.add(new Refusal(target, Verdict.STUCK,
 					BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(target).getBlock()).getPath()));
@@ -149,12 +153,23 @@ final class Digger {
 			return null;
 		}
 
+		// IN THE LIST'S ORDER, not nearest-first. A dig list is a sequence: the Falls' own contract
+		// is "the notch is the plug — cut it LAST", and nearest-first cuts whatever you happen to be
+		// standing beside. Within reach the first undug cell in order is taken; and THE LAST CELL
+		// OF THE LIST IS NEVER DUG WHILE ANY OTHER REMAINS, whatever is in reach.
 		BlockPos best = null;
-		double bd = Double.MAX_VALUE;
+		int remaining = 0;
 		for (BlockPos p : list) {
 			if (givenUp.contains(key(p))) continue;
+			if (mc.level.isLoaded(p) && mc.level.getBlockState(p).isAir()) continue;
+			remaining++;
+		}
+		BlockPos last = list.isEmpty() ? null : list.get(list.size() - 1);
+		for (BlockPos p : list) {
+			if (givenUp.contains(key(p))) continue;
+			if (remaining > 1 && p.equals(last)) continue;
 			double d = mc.player.getEyePosition().distanceToSqr(Vec3.atCenterOf(p));
-			if (d >= bd || d > REACH * REACH) continue;
+			if (d > REACH * REACH) continue;
 			Verdict v = judge(mc, p);
 			if (v == Verdict.ALREADY_AIR) continue;
 			if (v != Verdict.WORKING) {
@@ -165,13 +180,42 @@ final class Digger {
 				continue;
 			}
 			best = p;
-			bd = d;
+			break;
 		}
 		if (best == null) return null;
 		target = best;
 		swings = 0;
+		holdBestTool(mc, best);
+		giveUpAt = giveUpFor(mc, best);
 		mc.gameMode.startDestroyBlock(best, Direction.UP);
 		return null;
+	}
+
+	/**
+	 * Select the hotbar slot that breaks this block fastest. Swinging whatever happened to be held
+	 * — the printer's stone, or the steak — took deepslate past the old fixed give-up and wrote the
+	 * cell off as "wrong tool", which it was, and which nothing had tried to fix.
+	 */
+	static void holdBestTool(Minecraft mc, BlockPos at) {
+		if (mc.player == null || mc.level == null) return;
+		BlockState st = mc.level.getBlockState(at);
+		var inv = mc.player.getInventory();
+		int bestSlot = inv.getSelectedSlot();
+		float bestSpeed = inv.getItem(bestSlot).getDestroySpeed(st);
+		for (int i = 0; i < 9; i++) {
+			float s = inv.getItem(i).getDestroySpeed(st);
+			if (s > bestSpeed + 1.0e-3f) { bestSpeed = s; bestSlot = i; }
+		}
+		if (bestSlot != inv.getSelectedSlot()) inv.setSelectedSlot(bestSlot);
+	}
+
+	/** How long this block should take with what is now held, plus slack — never a flat number. */
+	static int giveUpFor(Minecraft mc, BlockPos at) {
+		if (mc.player == null || mc.level == null) return GIVE_UP_MAX;
+		float perTick = mc.level.getBlockState(at).getDestroyProgress(mc.player, mc.level, at);
+		if (perTick <= 0) return GIVE_UP_SLACK;                 // unbreakable: give up fast
+		int expected = (int) Math.ceil(1.0 / perTick);
+		return Math.min(GIVE_UP_MAX, expected * 2 + GIVE_UP_SLACK);
 	}
 
 	/** The refusals, grouped, for one honest line rather than a hundred. */

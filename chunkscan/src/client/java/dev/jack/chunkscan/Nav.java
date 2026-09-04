@@ -130,8 +130,8 @@ final class Nav {
 		BlockPos.MutableBlockPos c = new BlockPos.MutableBlockPos();
 		return (x, y, z) -> {
 			if (!level.isLoaded(c.set(x, y, z))) return true;       // not a wall: just unseen
-			if (!open(level.getBlockState(c.set(x, y, z)))) return false;
-			return open(level.getBlockState(c.set(x, y + 1, z)));
+			if (!open(level, c.set(x, y, z))) return false;
+			return open(level, c.set(x, y + 1, z));
 		};
 	}
 
@@ -143,8 +143,14 @@ final class Nav {
 	 * somewhere it did not intend. Both are cheap to route around on this island — the water here is
 	 * ponds and a tank — so both are simply not passable.
 	 */
-	static boolean open(net.minecraft.world.level.block.state.BlockState st) {
-		return !st.blocksMotion() && st.getFluidState().isEmpty();
+	static boolean open(Level level, BlockPos pos) {
+		// THE COLLISION SHAPE, NOT blocksMotion(). The shape is what a body meets. The difference
+		// is exactly the blocks a flight loses its footing on: a carpet, a snow layer and a moss
+		// carpet have no "motion blocking" flag and a collision box the feet land on; an open door
+		// has the flag and nothing in the doorway. On a server where touching a block ends flight
+		// the shape is the only honest answer. Lava and water stay impassable: see above.
+		net.minecraft.world.level.block.state.BlockState st = level.getBlockState(pos);
+		return st.getFluidState().isEmpty() && st.getCollisionShape(level, pos).isEmpty();
 	}
 
 	/**
@@ -213,7 +219,7 @@ final class Nav {
         return new WalkingSpace((x,y,z) -> {
             BlockPos feet = new BlockPos(x,y,z);
             return level.isLoaded(feet) && level.isLoaded(feet.above())
-                && open(level.getBlockState(feet)) && open(level.getBlockState(feet.above()));
+                && open(level, feet) && open(level, feet.above());
         }, (x,y,z) -> {
             BlockPos floor = new BlockPos(x,y,z);
             return level.isLoaded(floor) && level.getBlockState(floor).blocksMotion();
@@ -246,38 +252,57 @@ final class Nav {
 	 *       walked in stages is linear in its length where one search is cubic.</li>
 	 * </ol>
 	 */
+	/** A COMPLETE route to the destination, or nothing. Stages are only for callers who ask (routeEx). */
 	static List<BlockPos> route(Passable free, BlockPos from, BlockPos to) {
-		if (from.distSqr(to) > (double) MAX_RANGE * MAX_RANGE) return List.of();
+		Route r = routeEx(free, from, to, System.nanoTime() + MAX_MILLIS * 1_000_000L);
+		return r.complete() ? r.path() : List.of();
+	}
 
-		// ---- 2. LINE OF SIGHT. The cheapest route is the one you do not search for, and it is also
-		// the commonest: fetch trips across this island are mostly open air. `clear` already models
-		// the player's width, so if it says yes there is nothing an A* could improve on.
-		BlockPos aim = reachable(free, to);
-		if (!(free instanceof WalkingSpace) && aim != null && clear(free, from, aim)) return List.of(aim);
+	/**
+	 * A route, and whether it goes all the way. A STAGED route ends at a sub-goal part way along the
+	 * line — the honest form of "keep going and search again from closer in" — and it must say so:
+	 * consumed as if it were complete, the flight reached its last waypoint and then flew DIRECT at
+	 * the thing that had just had no route, and struck the target for it. Two of those wrote a spot
+	 * off in red for what was the router working exactly as designed.
+	 */
+	record Route(List<BlockPos> path, boolean complete) {
+		static final Route NONE = new Route(List.of(), false);
+	}
 
-		// ONE budget for the whole call, shared by every attempt below. Otherwise each staged retry
-		// gets its own 25ms and four of them is a visible hitch twice a second.
-		long deadline = System.nanoTime() + MAX_MILLIS * 1_000_000L;
+	/** The direct search's share of one route call's budget when the goal is far; stages get the rest. */
+	static final double DIRECT_SHARE = 0.6;
 
-		List<BlockPos> direct = search(free, from, to, deadline);
-		if (!direct.isEmpty()) return direct;
-
-		// ---- 3. STAGE. Long searches fail by exhausting a budget, not by proving anything, so
-		// getting closer and asking again is a better answer than giving up. Shortening on each try,
-		// because a sub-goal can land inside the island as easily as in front of it.
-		// STAGE OR HALF THE WAY, WHICHEVER IS SHORTER. Written `for (stage = STAGE; stage >= 16 &&
-		// stage < d; ...)`, the loop simply did not run for anything shorter than STAGE — the
-		// condition failed on the first evaluation and never got to 64 or 32. So staging, which
-		// exists for searches that fail, was unavailable for every distance between 16 and 128:
-		// exactly the range this island's routes live in.
+	static Route routeEx(Passable free, BlockPos from, BlockPos to, long deadline) {
+		if (from.distSqr(to) > (double) MAX_RANGE * MAX_RANGE) return Route.NONE;
+		// A START CELL THE BODY DOES NOT FIT IN — standing on a slab, a carpet, a lip — made every
+		// search fail from the first step, because the box every step spans included the cell it
+		// leaves. The body is there whether the predicate likes it or not; search from the nearest
+		// cell it does fit in.
+		if (!free.at(from.getX(), from.getY(), from.getZ())) {
+			BlockPos alt = reachable(free, from, from);
+			if (alt == null) return Route.NONE;
+			from = alt;
+		}
+		BlockPos aim = reachable(free, to, from);
+		if (aim == null) return Route.NONE;
+		if (from.equals(aim)) return new Route(List.of(aim), true);   // there already: not "no route"
+		if (!(free instanceof WalkingSpace) && clear(free, from, aim)) return new Route(List.of(aim), true);
+		long now = System.nanoTime();
 		double d = Math.sqrt(from.distSqr(to));
+		// THE DIRECT SEARCH MAY NOT SPEND THE STAGES' TIME. One deadline shared by both meant a
+		// direct search that failed by budget — the only way a long search in open sky fails — had
+		// used the whole of it, and staging then broke on its first iteration. Staging was dead
+		// code for exactly the case it exists for.
+		long directBy = d > STAGE ? now + (long) ((deadline - now) * DIRECT_SHARE) : deadline;
+		List<BlockPos> direct = search(free, from, to, directBy);
+		if (!direct.isEmpty()) return new Route(direct, true);
 		int first = (int) Math.min(STAGE, d / 2);
 		for (int stage = first; stage >= 16; stage /= 2) {
 			if (System.nanoTime() > deadline) break;
 			List<BlockPos> staged = search(free, from, along(from, to, stage), deadline);
-			if (!staged.isEmpty()) return staged;
+			if (!staged.isEmpty()) return new Route(staged, false);
 		}
-		return List.of();
+		return Route.NONE;
 	}
 
 	/**
@@ -305,9 +330,13 @@ final class Nav {
 					for (int dz = -1; dz <= 1; dz++) {
 						if (dx == 0 && dy == 0 && dz == 0) continue;
 						BlockPos b = c.offset(dx, dy, dz);
-						if (!seen.add(b.asLong())) continue;
-						if (!free.at(b.getX(), b.getY(), b.getZ())) continue;
+						if (seen.contains(b.asLong())) continue;
+						if (!free.at(b.getX(), b.getY(), b.getZ())) { seen.add(b.asLong()); continue; }
+						// A cell first met through an ILLEGAL diagonal must stay unseen: it may be
+						// perfectly reachable by the orthogonal step round the corner, and marking
+						// it here made an L-bend read as the end of the world — and "shut in".
 						if (!stepFits(free, c.getX(), c.getY(), c.getZ(), dx, dy, dz)) continue;
+						seen.add(b.asLong());
 						q.add(b);
 					}
 				}
@@ -331,42 +360,63 @@ final class Nav {
 	 * answer that you are shut in.
 	 */
 	static List<BlockPos> escape(Passable free, BlockPos from, BlockPos to, int radius) {
+		return escape(free, from, to, radius, System.nanoTime() + MAX_MILLIS * 1_000_000L);
+	}
+
+	/** A cell has to get at least this much nearer the goal to count as a way out. */
+	static final double ESCAPE_GAIN = 1.0;
+
+	/**
+	 * Flood outward and take the reachable cell that gets closest to the goal — WITH A BLOCK OF AIR
+	 * ROUND IT where any such cell improves at all. Scored on distance alone, the winner for any
+	 * obstacle between here and the goal is the cell flush against that obstacle, which on this
+	 * server is the one place a flight must not go: it flew there, touched, and lost flight. A cell
+	 * one block back from the wall gets nearly as close and touches nothing. Inside a corridor no
+	 * cell is roomy, and the best tight one is taken as before.
+	 */
+	static List<BlockPos> escape(Passable free, BlockPos from, BlockPos to, int radius, long deadline) {
 		Map<Long, Node> came = new HashMap<>();
 		java.util.ArrayDeque<Node> queue = new java.util.ArrayDeque<>();
 		java.util.Set<Long> seen = new java.util.HashSet<>();
 		Node start = new Node(from.getX(), from.getY(), from.getZ());
 		queue.add(start);
 		seen.add(start.key());
-
-		Node best = null;
-		double bestD = Math.sqrt(from.distSqr(to));
+		Node bestAny = null, bestRoomy = null;
+		double startD = Math.sqrt(from.distSqr(to));
+		double anyD = startD, roomyD = startD;
 		long r2 = (long) radius * radius;
 		int visited = 0;
-
 		while (!queue.isEmpty() && visited < ESCAPE_CELLS) {
 			Node cur = queue.poll();
 			visited++;
+			if ((visited & 63) == 0 && System.nanoTime() > deadline) break;
 			for (int dx = -1; dx <= 1; dx++) {
 				for (int dy = -1; dy <= 1; dy++) {
 					for (int dz = -1; dz <= 1; dz++) {
 						if (dx == 0 && dy == 0 && dz == 0) continue;
 						int nx = cur.x + dx, ny = cur.y + dy, nz = cur.z + dz;
 						Node nb = new Node(nx, ny, nz);
-						if (!seen.add(nb.key())) continue;
-						if (from.distSqr(new BlockPos(nx, ny, nz)) > r2) continue;
-						if (!free.at(nx, ny, nz)) continue;
+						if (seen.contains(nb.key())) continue;
+						BlockPos at = new BlockPos(nx, ny, nz);
+						if (from.distSqr(at) > r2) { seen.add(nb.key()); continue; }
+						if (!free.at(nx, ny, nz)) { seen.add(nb.key()); continue; }
 						if (!stepFits(free, cur.x, cur.y, cur.z, dx, dy, dz)) continue;
+						seen.add(nb.key());
 						came.put(nb.key(), cur);
 						queue.add(nb);
-						double d = Math.sqrt(new BlockPos(nx, ny, nz).distSqr(to));
-						if (d < bestD - 0.5) {          // must actually IMPROVE, not tie
-							bestD = d;
-							best = nb;
+						double d = Math.sqrt(at.distSqr(to));
+						if (d < startD - ESCAPE_GAIN) {
+							if (d < anyD) { anyD = d; bestAny = nb; }
+							if (d < roomyD && openness(free, at) == 6) {
+								roomyD = d;
+								bestRoomy = nb;
+							}
 						}
 					}
 				}
 			}
 		}
+		Node best = bestRoomy != null ? bestRoomy : bestAny;
 		return best == null ? List.of() : rebuild(came, best);
 	}
 
@@ -388,20 +438,31 @@ final class Nav {
 	 * hovering under it, and the sort is by true distance so the six faces come before the corners.
 	 */
 	static BlockPos reachable(Passable free, BlockPos goal) {
+		return reachable(free, goal, null);
+	}
+
+	/**
+	 * The cell to aim at for a goal that may itself be solid: the goal, or the nearest free cell
+	 * within {@link #GOAL_SLACK}. Ties — and a chest set into a wall has two, one each side — go to
+	 * the side the player is on; broken by iteration order they went to whichever came first, which
+	 * was the far side about half the time, and the search then spent its whole budget looking for
+	 * a way round the building the chest was in.
+	 */
+	static BlockPos reachable(Passable free, BlockPos goal, BlockPos from) {
 		if (free.at(goal.getX(), goal.getY(), goal.getZ())) return goal;
 		BlockPos best = null;
-		double bestD = Double.MAX_VALUE;
+		double bestD = Double.MAX_VALUE, bestFrom = Double.MAX_VALUE;
 		for (int dx = -GOAL_SLACK; dx <= GOAL_SLACK; dx++) {
 			for (int dy = -GOAL_SLACK; dy <= GOAL_SLACK; dy++) {
 				for (int dz = -GOAL_SLACK; dz <= GOAL_SLACK; dz++) {
 					if (dx == 0 && dy == 0 && dz == 0) continue;
 					int x = goal.getX() + dx, y = goal.getY() + dy, z = goal.getZ() + dz;
 					if (!free.at(x, y, z)) continue;
-					// a hair of bias for staying level, so a chest in a wall hands you the cell in
-					// front of it rather than the one on the ceiling above it
 					double d = dx * dx + dy * dy * 1.6 + dz * dz;
-					if (d < bestD) {
+					double f = from == null ? 0 : from.distSqr(new BlockPos(x, y, z));
+					if (d < bestD - 1.0e-9 || (Math.abs(d - bestD) <= 1.0e-9 && f < bestFrom)) {
 						bestD = d;
+						bestFrom = f;
 						best = new BlockPos(x, y, z);
 					}
 				}
@@ -530,45 +591,60 @@ final class Nav {
 	 * the line is the thing you are looking at, so it does not count against you.
 	 */
 	static boolean sees(Passable free, BlockPos from, BlockPos to) {
-		double dx = to.getX() - from.getX(), dy = to.getY() - from.getY(), dz = to.getZ() - from.getZ();
+		// FROM THE EYES. A body standing in a cell looks out of its upper half; a line from the
+		// feet misses a lip at head height beside the stand and is stopped by a kerb the eyes are
+		// well above. Each cell on the line is tested on its own: a one-cell window you can look
+		// through is a sightline, whatever a two-cell body could do with it.
+		double sx = from.getX() + 0.5, sy = from.getY() + EYE, sz = from.getZ() + 0.5;
+		double dx = to.getX() + 0.5 - sx, dy = to.getY() + 0.5 - sy, dz = to.getZ() + 0.5 - sz;
 		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-		if (len <= 1.5) return true;                       // adjacent: nothing can be between
+		if (len <= 1.6) return true;                       // adjacent: nothing can be between
 		int steps = (int) Math.ceil(len * 4);
 		for (int i = 1; i <= steps; i++) {
 			double t = (double) i / steps;
-			double px = from.getX() + dx * t, py = from.getY() + dy * t, pz = from.getZ() + dz * t;
-			int cx = (int) Math.floor(px + 0.5), cy = (int) Math.floor(py + 0.5),
-				cz = (int) Math.floor(pz + 0.5);
+			int cx = (int) Math.floor(sx + dx * t), cy = (int) Math.floor(sy + dy * t),
+				cz = (int) Math.floor(sz + dz * t);
 			if (cx == to.getX() && cy == to.getY() && cz == to.getZ()) continue;   // the target
-			if (!free.at(cx, cy, cz)) return false;
+			if (cx == from.getX() && cy == from.getY() + 1 && cz == from.getZ()) continue; // own head
+			// A single cell is open if a body would fit with it as its feet OR as its head.
+			if (!free.at(cx, cy, cz) && !free.at(cx, cy - 1, cz)) return false;
 		}
 		return true;
 	}
 
+	/** Where the eyes are above the feet cell's floor. */
+	static final double EYE = 1.62;
+
 	/** The A* itself. `to` may block motion; see {@link #reachable}. */
 	private static List<BlockPos> search(Passable free, BlockPos from, BlockPos to, long deadline) {
-		BlockPos aim = reachable(free, to);
+		BlockPos aim = reachable(free, to, from);
 		if (aim == null) return List.of();          // the destination is buried: no route exists
 		Node start = new Node(from.getX(), from.getY(), from.getZ());
 		Node goal = new Node(aim.getX(), aim.getY(), aim.getZ());
-		if (start.equals(goal)) return List.of();
+		if (start.equals(goal)) return List.of(aim);   // there already is a route of one step
 
 		Map<Long, Node> came = new HashMap<>();
 		Map<Long, Double> g = new HashMap<>();
 		PriorityQueue<Object[]> open = new PriorityQueue<>((a, b) ->
 			Double.compare((Double) a[0], (Double) b[0]));
 		g.put(start.key(), 0.0);
-		open.add(new Object[]{start.dist(goal) * GREED, start});
+		open.add(new Object[]{start.dist(goal) * GREED, start, 0.0});
 
 		int expanded = 0;
 
 		while (!open.isEmpty() && expanded < MAX_NODES) {
-			Node cur = (Node) open.poll()[1];
+			Object[] top = open.poll();
+			Node cur = (Node) top[1];
 			if (cur.equals(goal)) return rebuild(came, cur);
+			// A STALE ENTRY: this node was reached more cheaply after this was queued, and the
+			// better entry has been or will be expanded. Expanding it again is budget spent on
+			// nothing, and with a greedy heuristic improvements are common.
+			if ((Double) top[2] > g.get(cur.key()) + 1.0e-9) continue;
 			expanded++;
-			// Checked in blocks: nanoTime is not free either, and the frontier does not change
-			// character between one expansion and the next.
-			if ((expanded & 255) == 0 && System.nanoTime() > deadline) break;
+			// Checked in blocks: nanoTime is not free either. Thirty-two, not two hundred and
+			// fifty-six — with the roomy predicate's seven lookups a cell, 256 expansions could
+			// overshoot the deadline by tens of milliseconds.
+			if ((expanded & 31) == 0 && System.nanoTime() > deadline) break;
 
 			for (int dx = -1; dx <= 1; dx++) {
 				for (int dy = -1; dy <= 1; dy++) {
@@ -585,25 +661,13 @@ final class Nav {
 						if (old != null && ng >= old) continue;
 						g.put(nb.key(), ng);
 						came.put(nb.key(), cur);
-						open.add(new Object[]{ng + nb.dist(goal) * GREED, nb});
+						open.add(new Object[]{ng + nb.dist(goal) * GREED, nb, ng});
 					}
 				}
 			}
 		}
-		// NO PARTIAL ROUTES. An earlier version handed back the best progress it had made when the
-		// node budget ran out, on the theory that half a route beats none. It does not:
-		//
-		//   - in open sky the search NEVER exhausts, because there is always more air to expand
-		//     into, so the budget always runs out and the partial always fired - including when the
-		//     destination was sealed and there was no route at all;
-		//   - and a partial route reads to the caller as a real one, which switches off the
-		//     straight-line fallback that might actually have got there.
-		//
-		// Empty means "I could not find a way", and the caller says so and flies direct instead.
-		// That is a worse route honestly labelled, rather than a wrong one confidently followed.
-		//
-		// STAGING is the honest version of the same instinct, and it lives in route(): a shorter
-		// search that SUCCEEDS, rather than a long one that half-failed.
+		// NO PARTIAL ROUTES from the search itself: see the note that follows in the file's
+		// history. A stage is a COMPLETE route to a sub-goal, reported as partial by routeEx.
 		return List.of();
 	}
 
@@ -630,6 +694,7 @@ final class Nav {
 		for (int ix = 0; ix <= Math.abs(dx); ix++) {
 			for (int iy = 0; iy <= Math.abs(dy); iy++) {
 				for (int iz = 0; iz <= Math.abs(dz); iz++) {
+					if (ix == 0 && iy == 0 && iz == 0) continue;   // the origin: the body is there
 					if (!free.at(x + ix * dx, y + iy * dy, z + iz * dz)) return false;
 				}
 			}
@@ -736,11 +801,16 @@ final class Nav {
 		for (int i = 1; i <= steps; i++) {
 			double t = (double) i / steps;
 			double px = a.getX() + dx * t, py = a.getY() + dy * t, pz = a.getZ() + dz * t;
-			int y = (int) Math.floor(py + 0.5);
+			// THE BODY IS THREE CELLS TALL WHENEVER IT IS BETWEEN COURSES. Feet at py+0.1 and head
+			// at py+1.9 (see Autopilot.FOOT_OFFSET) span cells floor(py+0.1)..floor(py+1.9); one
+			// rounded y checked only two of them, so a sloped leg could be declared clear with a
+			// ceiling block sitting exactly where the head passes.
+			int lo = (int) Math.floor(py + 0.1), hi = (int) Math.floor(py + 1.9);
 			for (double ox : new double[]{-0.35, 0.35}) {
 				for (double oz : new double[]{-0.35, 0.35}) {
-					if (!free.at((int) Math.floor(px + ox + 0.5), y,
-						(int) Math.floor(pz + oz + 0.5))) return false;
+					int cx = (int) Math.floor(px + ox + 0.5), cz = (int) Math.floor(pz + oz + 0.5);
+					if (!free.at(cx, lo, cz)) return false;
+					if (hi > lo + 1 && !free.at(cx, hi - 1, cz)) return false;
 				}
 			}
 		}
