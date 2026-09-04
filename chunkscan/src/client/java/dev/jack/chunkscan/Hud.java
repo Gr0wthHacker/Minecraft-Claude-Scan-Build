@@ -441,7 +441,15 @@ final class Hud {
 		// inventory scan, and while there is work in front of you the question is not asked.
 		java.util.List<Plan.Restock> targets = java.util.List.of();
 		Plan.Restock want = null;
-		if ((fetching || !canWork || topUp) && !frontier.isEmpty()) {
+		// ---- A TOP-UP ASKS EVEN WITH NOTHING PLACEABLE IN FRONT OF IT.
+		//
+		// The frontier is empty at the start of most sessions - the design is across the island and
+		// its chunks are not loaded, so Work.split can see none of it. Gated on a non-empty frontier
+		// the fetch question was never asked, the phase came back BUILD, and the top-up was cleared
+		// having done nothing. The shortfall is computed from the whole TODO, not from the frontier,
+		// so there was never a reason to need one.
+		boolean askedToFetch = (fetching || !canWork || topUp) && (!frontier.isEmpty() || topUp);
+		if (askedToFetch) {
 			// Skip chests in their cooling-off period, or the loop is guided at one it will not open.
 			targets = Plan.fetchTargets(sp.todo(), carrying, index, me,
 				Withdraw.coolingOff(System.currentTimeMillis()));
@@ -490,10 +498,18 @@ final class Hud {
 		// THE TOP-UP IS OVER WHEN THERE IS NOTHING LEFT TO FETCH, which is what a full pack and a
 		// fully-stocked design both look like. Ending it on a timer or on the first container would
 		// be ending it on something other than the thing it is for.
-		if (topUp && phase != Loop.Phase.FETCH) {
+		if (topUp && Loop.topUpOver(phase, askedToFetch)) {
+			// ...and ONLY once it has been asked. Cleared on any non-fetch phase, a top-up ended on
+			// the first recount of a session that begins away from the work - which is most of them.
 			topUp = false;
-			if (mc.player != null) mc.player.sendSystemMessage(Component.literal(
-				"[cscan] pack loaded — building."));
+			if (mc.player != null) {
+				// WHICH answer it got. "Nothing to fetch" and "nowhere to fetch it from" are
+				// different facts and only one of them is good news.
+				mc.player.sendSystemMessage(Component.literal(targets.isEmpty()
+					? "[cscan] nothing indexed to fetch — building with what you have."
+						+ " /cscan bom " + sp.name() + " for what it will need"
+					: "[cscan] pack loaded — building."));
+			}
 		}
 		switch (phase) {
 			case FETCH -> {

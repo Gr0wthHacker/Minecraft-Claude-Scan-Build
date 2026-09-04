@@ -41,7 +41,7 @@ final class Plan {
 	 * The largest. Past this it is not a trip, it is the island — and a "spot" you cannot see the
 	 * far side of is not guidance, it is a compass bearing to a region.
 	 */
-	static final int MAX_RADIUS = 96;
+	static final int MAX_RADIUS = 48;
 	/** Kept for callers that just want the old reach figure. */
 	static final int WORK_RADIUS = MIN_RADIUS;
 	/** More than this and the report is a list to read rather than a plan to follow. */
@@ -129,6 +129,51 @@ final class Plan {
 	 * <p>Carrying 64 bricks it stays at {@link #MIN_RADIUS} and behaves as before. Carrying six
 	 * shulkers it opens out until the trip is worth making.
 	 */
+	/**
+	 * How much bigger a sphere has to get before growing it is worth it.
+	 *
+	 * <p>Doubling a radius is EIGHT TIMES the volume. If that only finds half again as many cells,
+	 * the work is not out there and the extra reach is just distance.
+	 */
+	static final double DENSITY_GAIN = 1.5;
+
+	/**
+	 * The radius this PARTICULAR pile of work needs, which is not the same as the one the pack
+	 * could pay for.
+	 *
+	 * <p><b>{@link #radiusFor} is a function of the INVENTORY and nothing else.</b> That is right
+	 * about the ceiling - there is no sense gathering more cells than you can place - and it was
+	 * being used as the answer. Carrying six shulkers it returned 48 whether the work was a wall
+	 * twelve blocks across or a scatter over the whole deck, so a dense pile at your feet was
+	 * treated as a region half the size of the island and the loop flew about inside its own spot.
+	 * Jack: <i>"its flying crazy far for no reason"</i> - and the reason really was nothing to do
+	 * with the work, it was how much he happened to be carrying.
+	 *
+	 * <p>So the pack sets the CAP and the geometry sets the number: grow from {@link #MIN_RADIUS}
+	 * only while a bigger sphere actually finds meaningfully more to do. A wall stays tight; a
+	 * scatter opens out as far as it has to and no further.
+	 */
+	static int fitRadius(List<Work.Cell> cells, BlockPos centre, int budget) {
+		int cap = radiusFor(budget);
+		int r = MIN_RADIUS;
+		int have = within(cells, centre, r);
+		while (r * 2 <= cap) {
+			if (have >= budget) break;                     // the pack is the ceiling
+			int bigger = within(cells, centre, r * 2);
+			if (bigger < have * DENSITY_GAIN) break;       // eight times the volume, no more work
+			r *= 2;
+			have = bigger;
+		}
+		return Math.min(r, cap);
+	}
+
+	static int within(List<Work.Cell> cells, BlockPos centre, int r) {
+		long r2 = (long) r * r;
+		int n = 0;
+		for (Work.Cell c : cells) if (c.pos().distSqr(centre) <= r2) n++;
+		return n;
+	}
+
 	static int radiusFor(int budget) {
 		int r = MIN_RADIUS;
 		// cells scale with the cube of the radius, so double it rather than creeping
@@ -163,7 +208,11 @@ final class Plan {
 
 		// Bin at the working radius to find dense spots cheaply - an all-pairs density scan over a
 		// few thousand cells is not worth the wait for a number this coarse.
-		int bin = Math.max(MIN_RADIUS, radiusFor(budget(mine, carrying)));
+		// A SEEDING GRAIN IS NOT A TRIP SIZE. This used to be the trip radius, so a big pack binned
+		// the whole design into a handful of boxes and every spot came out the size of a box. The
+		// grain only has to be fine enough to find where the work IS; how far a spot then reaches is
+		// fitRadius's question, asked per seed.
+		int bin = Math.max(MIN_RADIUS, Math.min(24, radiusFor(budget(mine, carrying))));
 		Map<Long, List<Work.Cell>> bins = new LinkedHashMap<>();
 		for (Work.Cell c : mine) {
 			long key = BlockPos.asLong(Math.floorDiv(c.pos().getX(), bin),
@@ -179,14 +228,17 @@ final class Plan {
 		Map<String, Integer> stock = new LinkedHashMap<>(carrying);
 		java.util.Set<Long> taken = new java.util.HashSet<>();
 		List<Cluster> out = new ArrayList<>();
-		// Sized to the inventory, not to arm's length. One trip, not one standing spot.
-		int radius = radiusFor(budget(mine, carrying));
-		long r2 = (long) radius * radius;
+		int budget = budget(mine, carrying);
+
 
 		for (List<Work.Cell> seed : seeds) {
 			if (out.size() >= MAX_CLUSTERS) break;
             if (seed.stream().allMatch(c -> taken.contains(c.pos().asLong()))) continue;
 			BlockPos centre = centroid(seed);
+			// ---- AND THIS SPOT GETS THE RADIUS THIS SPOT NEEDS. See fitRadius: the pack is the
+			// ceiling, the work decides the number, and two spots in one plan may differ.
+			int radius = fitRadius(mine, centre, budget);
+			long r2 = (long) radius * radius;
 			// gather every unclaimed cell within reach of that one standing spot
 			List<Work.Cell> group = new ArrayList<>();
 			for (Work.Cell c : mine) {

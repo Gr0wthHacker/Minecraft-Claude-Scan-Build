@@ -90,6 +90,24 @@ final class Loop {
 		return Phase.BUILD;
 	}
 
+	/**
+	 * Is the start-of-session top-up finished?
+	 *
+	 * <p><b>Only once the question has actually been ASKED.</b> The first version ended it on any
+	 * phase that was not a fetch, and the frontier is empty at the start of most sessions - the
+	 * design is across the island and its chunks are not loaded, so nothing is placeable and the
+	 * fetch question was skipped. The phase came back BUILD, the top-up was cleared having done
+	 * nothing at all, and the pack was never filled. Reported as: it is not filling inventory.
+	 *
+	 * <p>Which is this file's own recurring shape - a thing that does nothing, quietly - arriving
+	 * in the one place whose whole job is to happen before anything else.
+	 *
+	 * @param asked whether the shortfall was actually worked out this recount
+	 */
+	static boolean topUpOver(Phase phase, boolean asked) {
+		return asked && phase != Phase.FETCH;
+	}
+
 	// ---------------------------------------------------------------- the working area
 
 	/**

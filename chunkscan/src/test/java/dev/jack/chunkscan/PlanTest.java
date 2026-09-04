@@ -871,4 +871,77 @@ class PlanTest {
 			"the dwell outlasts the stall, so a blocked station is held anyway");
 		assertTrue(Hud.DWELL_MS >= 2_000, "not long enough for the printer to take anything");
 	}
+
+	// ---------------------------------------------------------------- how big a spot really is
+
+	private static java.util.List<Work.Cell> ballOf(int n, int spread) {
+		java.util.List<Work.Cell> out = new java.util.ArrayList<>();
+		java.util.Random rnd = new java.util.Random(7);
+		for (int i = 0; i < n; i++) {
+			out.add(cell(rnd.nextInt(spread * 2 + 1) - spread, 100 + rnd.nextInt(5),
+				rnd.nextInt(spread * 2 + 1) - spread, "stone_bricks"));
+		}
+		return out;
+	}
+
+	@Test
+	void aDensePileIsASMALLSpotHOWEVERMuchYouAreCarrying() {
+		// The bug: radiusFor is a function of the INVENTORY and nothing else, and it was being used
+		// as the answer. Carrying six shulkers it returned the maximum whether the work was a wall
+		// twelve blocks across or a scatter over the whole deck - so a pile at your feet was treated
+		// as a region half the size of the island and the loop flew about inside its own spot.
+		java.util.List<Work.Cell> tight = ballOf(400, 6);
+		int huge = Plan.fitRadius(tight, new BlockPos(0, 100, 0), 20_000);
+		assertTrue(huge <= Plan.MIN_RADIUS * 2,
+			"a six-block pile came out as a " + huge + "-block spot");
+	}
+
+	@Test
+	void aScatterStillOpensOutAsFarAsItHasTo() {
+		// The other half, and the reason the radius is not simply pinned to arm's length: on a
+		// thirty-thousand cell design one standing radius is a plan made of five hundred trips.
+		java.util.List<Work.Cell> wide = ballOf(3000, 40);
+		assertTrue(Plan.fitRadius(wide, new BlockPos(0, 100, 0), 20_000) > Plan.MIN_RADIUS,
+			"a scatter over eighty blocks is being worked at arm's length");
+	}
+
+	@Test
+	void thePackIsStillTheCeiling() {
+		// There is no sense gathering more cells than you could place if you got there.
+		java.util.List<Work.Cell> wide = ballOf(3000, 40);
+		assertEquals(Plan.MIN_RADIUS, Plan.fitRadius(wide, new BlockPos(0, 100, 0), 1),
+			"opened out a spot for a pack with one block in it");
+		for (int budget : new int[]{1, 64, 1728, 30_000}) {
+			assertTrue(Plan.fitRadius(wide, new BlockPos(0, 100, 0), budget)
+				<= Plan.radiusFor(budget), "reached past what the pack can pay for");
+		}
+	}
+
+	@Test
+	void aSpotIsNeverBiggerThanItsOwnMaximum() {
+		java.util.List<Work.Cell> wide = ballOf(6000, 300);
+		assertTrue(Plan.fitRadius(wide, new BlockPos(0, 100, 0), 1_000_000) <= Plan.MAX_RADIUS);
+	}
+
+	@Test
+	void aSpotYouCannotSeeTheFarSideOfIsNotGuidance() {
+		// It is a compass bearing to a region. MAX_RADIUS bounds ONE spot; Loop.WORK_RADIUS bounds
+		// the AREA those spots are chosen from, and a spot the size of the area is not a spot.
+		assertTrue(Plan.MAX_RADIUS < Loop.WORK_RADIUS / 2,
+			"one spot is more than half the whole working area");
+	}
+
+	@Test
+	void twoSpotsInOnePlanMayBeDifferentSizes() {
+		// Which is the whole of what "variable" means: the radius belongs to the pile of work, not
+		// to the session.
+		java.util.List<Work.Cell> tight = ballOf(300, 5);
+		java.util.List<Work.Cell> spread = new java.util.ArrayList<>(tight);
+		for (Work.Cell c : ballOf(3000, 40)) {
+			spread.add(cell(c.pos().getX() + 500, c.pos().getY(), c.pos().getZ(), "stone_bricks"));
+		}
+		int near = Plan.fitRadius(spread, new BlockPos(0, 100, 0), 20_000);
+		int far = Plan.fitRadius(spread, new BlockPos(500, 100, 0), 20_000);
+		assertTrue(far > near, "every spot came out the same size: " + near + " and " + far);
+	}
 }

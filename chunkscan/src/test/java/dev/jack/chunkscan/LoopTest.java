@@ -396,4 +396,22 @@ class LoopTest {
 	void nothingLeftAnywhereIsNotAFocusProblem() {
 		assertNull(Loop.reanchor(java.util.List.of(), new BlockPos(0, 200, 0)));
 	}
+
+	@Test
+	void aTopUpSURVIVESARecountThatCouldNotAsk() {
+		// The bug: the frontier is empty at the start of most sessions, because the design is across
+		// the island and its chunks have not loaded. Gated on a non-empty frontier the fetch
+		// question was never asked, the phase came back BUILD, and the top-up was cleared having
+		// done nothing. It is not over until it has been answered.
+		assertFalse(Loop.topUpOver(Loop.Phase.BUILD, false), "ended before it was asked");
+		assertFalse(Loop.topUpOver(Loop.Phase.LOOK, false));
+		assertFalse(Loop.topUpOver(Loop.Phase.DEAD_END, false));
+	}
+
+	@Test
+	void aTopUpEndsOnceItHasBeenAnswered() {
+		assertTrue(Loop.topUpOver(Loop.Phase.BUILD, true));
+		assertTrue(Loop.topUpOver(Loop.Phase.DEAD_END, true));
+		assertFalse(Loop.topUpOver(Loop.Phase.FETCH, true), "ended mid-trip");
+	}
 }
