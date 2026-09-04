@@ -76,6 +76,7 @@ final class Menu extends Screen {
 		r.add(new Row(null, "BUILD INTO THE SELECTION"));
 		r.add(new Row("/cscan fill solid ", "<name>  also: hollow walls outline"));
 		r.add(new Row("/cscan fill ball ", "<name>  also: sphere dome cylinder tube disc ring"));
+		r.add(new Row("/cscan fill spiral ", "<name>  stair round a post, cw up; also: spiralccw helix helixccw. Hold stairs or slabs to walk it"));
 		r.add(new Row("/cscan replace ", "<from> <to>  swap one block for another in the box"));
 		r.add(new Row("/cscan copy ", "<name>  capture the box as a reusable clip"));
 		r.add(new Row("/cscan paste ", "<name> [90|180|270]  place a clip where you look"));

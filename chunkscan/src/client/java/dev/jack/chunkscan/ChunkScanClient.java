@@ -201,6 +201,10 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(shapeArg("tube", Fill.Mode.TUBE))
 					.then(shapeArg("disc", Fill.Mode.DISC))
 					.then(shapeArg("ring", Fill.Mode.RING))
+					.then(shapeArg("spiral", Fill.Mode.SPIRAL))
+					.then(shapeArg("spiralccw", Fill.Mode.SPIRAL_CCW))
+					.then(shapeArg("helix", Fill.Mode.HELIX))
+					.then(shapeArg("helixccw", Fill.Mode.HELIX_CCW))
 					.then(argument("name", StringArgumentType.greedyString())
 						.executes(ctx -> fill(ctx, StringArgumentType.getString(ctx, "name"), Fill.Mode.SOLID, null))))
 				.then(literal("copy")
@@ -1219,7 +1223,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 		}
 		Wand.setBox(c.offset(-r, -r, -r), c.offset(r, r, r), mc.level.dimension().identifier().toString());
 		ok(src, "selection set to " + (2 * r + 1) + "\u00b3 around " + Wand.fmt(c)
-			+ " — /cscan fill sphere|ball|dome|cylinder|tube|disc|ring <name>");
+			+ " — /cscan fill sphere|ball|dome|cylinder|tube|disc|ring|spiral|helix <name>");
 		return 1;
 	}
 

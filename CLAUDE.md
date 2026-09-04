@@ -1470,6 +1470,42 @@ reach for `tube` to build is a chimney or a well.
 the box, and silently repurposing a live alias is a behaviour change for anyone who typed it
 yesterday. `orb` is the sphere alias.
 
+#### `/cscan fill spiral` — a staircase out of the same predicate (2026-09-04)
+
+```
+/cscan fill spiral <name>       treads winding clockwise-up round a central post
+/cscan fill spiralccw <name>    the mirror twin
+/cscan fill helix <name>        the same flight round an OPEN core (a well, or a root)
+/cscan fill helixccw <name>
+```
+
+Hold **stairs** and every tread faces the ascent (the stair convention, asserted rather than
+eyeballed — our renderer draws a backwards flight identically); hold **slabs** and each tread is a
+bottom half and a top half, so the flight rises half a block a course and can be WALKED. Any other
+material is a jump staircase. The post takes the material exactly as held.
+
+Three things that decided the shape:
+
+- **A TREAD IS A SECTOR, AND EVERY RING CELL BELONGS TO EXACTLY ONE COURSE PER TURN.** A cell's
+  angle round the post picks its course modulo courses-per-turn, so consecutive treads tile the
+  ring with no gap and no overlap and the flight touches itself at the rim by construction.
+  Courses per turn is derived so a tread is ~2 cells at the rim (a 5x5 is the classic 8-step
+  spiral round a 1x1 post) — ~3 for slabs, because each HALF has to land at least one cell on a
+  grid that samples a wedge unevenly, or one course somewhere is a whole-block rise and the
+  "walkable" flight has a jump in it. `SpiralTest` climbs every size from 3 to 15 with a 0.5
+  rise and fails on the first one that needs a jump.
+- **THE FIRST SHAPE WHOSE CELLS ARE NOT INTERCHANGEABLE**, so `Mode.state(material, cell)`
+  replaced the bare `wants` in plan, capture and undo, and the palette is first-use order rather
+  than `{air, material}`. A standing tread with the RIGHT facing is built; the same block facing
+  the wrong way is work — which `/cscan check` could not see before states were recorded.
+- **AN OPEN CORE IS STILL A CORE.** Written as "no post", the centre cell of a helix became a
+  tread. The core is the same footprint either way; `post` only says whether it is filled.
+
+And one that cost 41 red tests in ten files: **a `static final BlockState` in a test class loads
+the registries at class-load time, before `@BeforeAll` bootstraps them**, and every test class
+that runs after it in the same JVM fails with *Not bootstrapped*. Block states in tests are
+read lazily.
+
 #### `/cscan dark` — the one question only the client can answer
 
 The desktop has always approximated lighting by DISTANCE: *"95% of the deck is within 7 of a

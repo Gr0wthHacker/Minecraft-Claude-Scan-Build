@@ -69,7 +69,7 @@ class MenuTest {
 		// ...and the fill MODES are argument values, not literals: `/cscan fill ball <name>` passes
 		// "ball" as a string to one command. Same case as `island`, which is a scan NAME.
 		menu.removeAll(Set.of("solid", "hollow", "walls", "outline", "ball", "sphere", "dome",
-			"cylinder", "tube", "disc", "ring"));
+			"cylinder", "tube", "disc", "ring", "spiral", "spiralccw", "helix", "helixccw"));
 		menu.removeAll(real);
 		assertTrue(menu.isEmpty(), "the sheet offers commands that do not exist: " + menu);
 	}
@@ -89,8 +89,8 @@ class MenuTest {
 		Set<String> real = registered();
 		Set<String> menu = offered();
 		Set<String> modifiers = Set.of("cscan", "on", "off", "clear", "solid", "hollow", "walls",
-			"outline", "ball", "sphere", "dome", "cylinder", "tube", "disc", "ring", "done",
-			"reset", "next", "all", "speed");
+			"outline", "ball", "sphere", "dome", "cylinder", "tube", "disc", "ring", "spiral",
+			"spiralccw", "helix", "helixccw", "done", "reset", "next", "all", "speed");
 		real.removeAll(modifiers);
 		real.removeAll(menu);
 		assertTrue(real.isEmpty(), "verbs missing from the sheet: " + real);
