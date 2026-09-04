@@ -65,6 +65,31 @@ final class Hud {
 	 * behaviour it exists to stop.
 	 */
 	private static BlockPos workAnchor = null;
+
+	/**
+	 * Go and look at a cell in a chunk we do not have - and MOVE THE AREA to it rather than making
+	 * a round trip out of it.
+	 *
+	 * <p>This is the flight that was crossing the map. `Park Complete` is 540,862 cells over six
+	 * hundred blocks and a render distance is under two hundred, so there are ALWAYS cells out of
+	 * view: `unseen > 0` is permanently true, and every dead end sent the loop to the nearest one,
+	 * wherever in the park that was. The working area bounded the FRONTIER and this went round it.
+	 *
+	 * <p>Looking is legitimate - out of view is not finished, and a loop that stops at the edge of
+	 * its own render distance would report half a design complete. What is not legitimate is doing
+	 * it as an excursion. If the place to look is outside the area, the area is finished, so the
+	 * area moves; the next recount then works out from there.
+	 */
+	private static void goLook(Minecraft mc, BlockPos at, String why) {
+		if (workAnchor != null
+			&& at.distSqr(workAnchor) > (double) Loop.WORK_RADIUS * Loop.WORK_RADIUS) {
+			workAnchor = at;
+			if (mc.player != null) mc.player.sendSystemMessage(Component.literal(
+				"[cscan] nothing left in view here — moving the working area to "
+					+ Wand.fmt(at)));
+		}
+		guide(at, why);
+	}
 	/** A dead end is worth saying once. Every two seconds it is a reason to turn the loop off. */
 	private static boolean said = false;
 	// ---- WHERE TO STAND INSIDE A SPOT. A spot is sized to an inventory load and can be 96 blocks
@@ -247,7 +272,7 @@ final class Hud {
 				// counts through the trip and reports a stall for doing exactly the right thing.
 				lastProgressMs = System.currentTimeMillis();
 				Highlight.clear("goto");
-				guide(sp.nearestUnseen(), sp.unseen() + " cells out of view");
+				goLook(mc, sp.nearestUnseen(), sp.unseen() + " cells out of view");
 				mc.player.sendSystemMessage(Component.literal("[cscan] nothing left in sight, but "
 					+ sp.unseen() + " cells are in chunks I do not have — going to look at "
 					+ Wand.fmt(sp.nearestUnseen())));
@@ -522,7 +547,7 @@ final class Hud {
                     return;
                 }
                 if (sp.unseen() > 0 && sp.nearestUnseen() != null) {
-                    guide(sp.nearestUnseen(), "look for remaining schematic support");
+                    goLook(mc, sp.nearestUnseen(), "look for remaining schematic support");
                     lastProgressMs = now;
                     return;
                 }

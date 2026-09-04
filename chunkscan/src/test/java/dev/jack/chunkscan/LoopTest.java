@@ -414,4 +414,27 @@ class LoopTest {
 		assertTrue(Loop.topUpOver(Loop.Phase.DEAD_END, true));
 		assertFalse(Loop.topUpOver(Loop.Phase.FETCH, true), "ended mid-trip");
 	}
+
+	@Test
+	void aCompositeSpanningSeveralPlotsHasAnOriginOnNoneOfThem() {
+		// The evidence, kept because it is what made the storage index vanish. `Park Complete`
+		// origins at (97500, 80300) - the corner of its bounding box - and the three park plots
+		// start at 97551 and 80351, so the origin is on no island at all. Anything that decides
+		// 'whose ground is this' from a litematic's origin is deciding it from a padding corner.
+		int[][] plots = {{97600, 80400}, {97600, 80600}, {97600, 80800}};
+		int ox = 97500, oz = 80300;
+		for (int[] c : plots) {
+			assertFalse(Math.abs(ox - c[0]) <= 49 && Math.abs(oz - c[1]) <= 49,
+				"the fixture is wrong: the origin is inside a plot after all");
+		}
+		// ...while the design itself plainly stands on all three.
+		int[][] cells = {{97600, 80400}, {97600, 80600}, {97600, 80800}};
+		for (int[] cell : cells) {
+			boolean any = false;
+			for (int[] c : plots) {
+				if (Math.abs(cell[0] - c[0]) <= 49 && Math.abs(cell[1] - c[1]) <= 49) any = true;
+			}
+			assertTrue(any, "a cell of the design is on no plot");
+		}
+	}
 }

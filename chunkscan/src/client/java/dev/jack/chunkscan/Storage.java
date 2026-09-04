@@ -438,18 +438,80 @@ final class Storage {
             if (cells.isEmpty()) return Map.of();
             origin = cells.getFirst().pos();
         }
-        return live(scoped(loadCached(dir), dir, origin, level.dimension().identifier().toString()), level);
+        // ---- SCOPE BY WHERE THE WORK IS, NOT BY THE PADDING CORNER.
+        //
+        // The origin of a litematic is the corner of its box, and for a composite spanning several
+        // plots that corner is on NONE of them. `Park Complete` origins at (97500, 80300); the three
+        // park islands start at 97551 / 80351, so Islands.at returned null, the "register the island
+        // rather than guess" branch fired, and ALL 262 indexed containers were dropped in silence.
+        // Reported as: nothing indexed to fetch, having opened tons of chests.
+        //
+        // The rule is right and the evidence was wrong. Which storage is yours is decided by where
+        // the design STANDS, and a design stands wherever its cells are.
+        return live(scoped(loadCached(dir), dir, sites(dir, name, origin),
+            level.dimension().identifier().toString()), level);
     }
 
-    static Map<String, Container> scoped(Map<String, Container> all, Path dir, BlockPos origin, String dimension) {
+    /**
+     * The islands a design actually occupies, cached per design file.
+     *
+     * <p>Walking half a million cells is a millisecond once and far too much every two seconds, so
+     * it is keyed on the work list's own modification time - the one thing that changes when the
+     * design does.
+     */
+    private static final Map<String, long[]> siteStamp = new LinkedHashMap<>();
+    private static final Map<String, List<BlockPos>> siteCache = new LinkedHashMap<>();
+
+    static synchronized List<BlockPos> sites(Path dir, String name, BlockPos origin) {
+        long stamp;
+        try { stamp = Files.getLastModifiedTime(Work.file(dir, name)).toMillis(); }
+        catch (Exception ignored) { stamp = -1; }
+        long[] seen = siteStamp.get(name);
+        if (seen != null && seen[0] == stamp && siteCache.containsKey(name)) return siteCache.get(name);
+        List<BlockPos> out = new ArrayList<>();
+        out.add(origin);                                  // always, so nothing is worse off
+        try {
+            // One point per island-sized cell of the design, which is all `scoped` needs to ask
+            // "does this design touch that plot".
+            java.util.Set<Long> grid = new java.util.HashSet<>();
+            for (Work.Cell c : Work.load(dir, name)) {
+                long k = ((long) Math.floorDiv(c.pos().getX(), 64) << 32)
+                    ^ (Math.floorDiv(c.pos().getZ(), 64) & 0xFFFFFFFFL);
+                if (grid.add(k)) out.add(c.pos());
+            }
+        } catch (Exception ignored) { }
+        siteStamp.put(name, new long[] {stamp});
+        siteCache.put(name, out);
+        return out;
+    }
+
+    static Map<String, Container> scoped(Map<String, Container> all, Path dir, BlockPos origin,
+                                         String dimension) {
+        return scoped(all, dir, List.of(origin), dimension);
+    }
+
+    /** @param where every place the design stands. Storage on ANY of their islands is on site. */
+    static Map<String, Container> scoped(Map<String, Container> all, Path dir, List<BlockPos> where,
+                                         String dimension) {
+        BlockPos origin = where.isEmpty() ? BlockPos.ZERO : where.get(0);
         Map<String, Container> out = new LinkedHashMap<>();
-        Islands.Island island = Islands.at(dir, origin.getX(), origin.getZ());
+        // Every island this design touches, not just the one its box corner happens to land in.
+        java.util.LinkedHashSet<Islands.Island> islands = new java.util.LinkedHashSet<>();
+        for (BlockPos p : where) {
+            Islands.Island i = Islands.at(dir, p.getX(), p.getZ());
+            if (i != null) islands.add(i);
+        }
+        Islands.Island island = islands.isEmpty() ? null : islands.iterator().next();
         for (var e : all.entrySet()) {
             Container c = e.getValue();
             // Legacy records have no dimension: they cannot safely drive automatic withdrawal.
             if (!dimension.equals(c.dimension) || !buildStorage(c.block)) continue;
             if (island != null) {
-                if (!island.contains(origin.getX(), origin.getZ()) || !Islands.storageOnSite(dir, island, c.x, c.z)) continue;
+                boolean onSite = false;
+                for (Islands.Island i : islands) {
+                    if (Islands.storageOnSite(dir, i, c.x, c.z)) { onSite = true; break; }
+                }
+                if (!onSite) continue;
             } else if (!Files.exists(ActiveBuild.siteInputs(dir).resolve(Islands.FILE)) && Islands.all(dir).isEmpty() && Plot.known() && !Plot.outside(origin.getX(), origin.getZ())) {
                 if (Plot.outside(c.x, c.z)) continue;
             } else continue; // register the island rather than guess which storage is yours
