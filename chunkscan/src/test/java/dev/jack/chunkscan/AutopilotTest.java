@@ -49,12 +49,47 @@ class AutopilotTest {
 	}
 
 	@Test
-	void theSpeedIsUnderSprintFlight() {
-		// Still bounded, just not timid. Vanilla sprint-flight is about 1.0 blocks a tick, and the
-		// ceiling that matters is "no faster than a player can go", not "as slow as possible" — an
-		// island 240 blocks tall at 0.35 was a long time watching yourself travel.
-		assertTrue(Autopilot.SPEED <= 1.0, "faster than a player sprint-flying");
+	void everythingThatMakesSpeedSafeIsAFunctionOfIt() {
+		// The cap used to be 1.0 "because vanilla sprint-flight is about 1.0", which measured
+		// nothing - vanilla creative sprint-flight is 0.545 a tick - and rested on not knowing the
+		// server's rules, which are now known. What replaced the number is the arithmetic: every
+		// guard that keeps a fast flight honest scales with the speed rather than sitting beside it.
+		assertTrue(Autopilot.SPEED > 0 && Autopilot.SPEED <= Autopilot.MAX_SPEED);
 		assertTrue(Autopilot.ARRIVED >= 1.0, "it must stop before it is inside the target");
+		assertTrue(Autopilot.sightFor(Autopilot.MAX_SPEED) > Autopilot.sightFor(Autopilot.SPEED),
+			"it looks no further ahead when it goes faster");
+		assertTrue(Autopilot.repathFor(Autopilot.MAX_SPEED) <= Autopilot.repathFor(Autopilot.SPEED),
+			"the route is allowed to go further stale the faster it travels");
+		assertTrue(Autopilot.waypointRadius(Autopilot.MAX_SPEED)
+			> Autopilot.waypointRadius(Autopilot.SPEED), "the corner radius does not scale");
+	}
+
+	@Test
+	void aFastStepIsTESTEDOVERITSWHOLEPATH() throws IOException {
+		// The one thing that genuinely breaks at speed, and it was already latent at 0.75: a body
+		// 0.6 wide displaced by 1.5 leaves 0.9 of its path untested, which is room for a whole block
+		// to sit in unseen. Tested at the destination only, a fast step tunnels - the check says
+		// clear, the game says otherwise, and the faster it goes the wider the hole.
+		String src = source();
+		assertTrue(src.contains("expandTowards"),
+			"the collision clip tests where the step ENDS rather than where it GOES");
+		assertFalse(src.contains("box.move(d.x, d.y, d.z)"),
+			"the destination-only test is back");
+	}
+
+	@Test
+	void theSightAheadIsNeverShorterThanItWas() {
+		assertTrue(Autopilot.sightFor(0.05) >= Autopilot.SIGHT, "crawling sees less than it used to");
+	}
+
+	@Test
+	void theRepathTimerNeverRunsAwayWithTheClientThread() {
+		// A per-tick A* is the cost this file has already paid for twice, once as one frame a
+		// second. However fast the dial goes, the floor holds.
+		for (double v = 0.05; v <= Autopilot.MAX_SPEED + 1; v += 0.05) {
+			assertTrue(Autopilot.repathFor(v) >= Autopilot.MIN_REPATH_TICKS,
+				"repath floor breached at " + v);
+		}
 	}
 
 	@Test
@@ -212,9 +247,15 @@ class AutopilotTest {
 	}
 
 	@Test
-	void theSpeedDialIsBoundedByWhatAPlayerCanDo() {
-		assertTrue(Autopilot.MAX_SPEED <= 1.0, "faster than a player sprint-flying");
+	void theSpeedDialStillHasBothEnds() {
+		// The cap is no longer "what a player can do" - see MAX_SPEED - but a dial with no warning
+		// and no floor is not a dial. RISKY_SPEED has to be reachable or it is decoration.
 		assertTrue(Autopilot.RISKY_SPEED < Autopilot.MAX_SPEED, "the warning can never fire");
+		assertTrue(Autopilot.MIN_SPEED > 0 && Autopilot.MIN_SPEED < Autopilot.SPEED);
+		assertEquals(Autopilot.MAX_SPEED, Autopilot.setSpeed(Autopilot.MAX_SPEED + 5), 1.0e-9,
+			"the dial can be set past its own cap");
+		assertEquals(Autopilot.MIN_SPEED, Autopilot.setSpeed(0), 1.0e-9);
+		Autopilot.setSpeed(Autopilot.SPEED);
 	}
 
 	@Test

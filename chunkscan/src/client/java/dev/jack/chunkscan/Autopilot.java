@@ -53,17 +53,34 @@ final class Autopilot {
 	 * waypoint radius, the approach taper and the corner crawl all scale, or going faster just means
 	 * missing every turn.
 	 */
-	static final double SPEED = 0.75;
+	static final double SPEED = 1.5;
 	/** Slowest worth having: below this you are watching a progress bar. */
 	static final double MIN_SPEED = 0.10;
 	/**
-	 * Fastest that can be asked for. Vanilla sprint-flight is about 1.0, and this is movement
-	 * automation on a live server: "no faster than a player can actually go" is the one bound that
-	 * is defensible without knowing the server's rules.
+	 * Fastest that can be asked for.
+	 *
+	 * <p><b>The old cap was 1.0 for a reason that no longer holds, and the reason was also wrong.</b>
+	 * It read "vanilla sprint-flight is about 1.0, and this is movement automation on a live server:
+	 * no faster than a player can actually go is the one bound defensible without knowing the
+	 * server's rules." Vanilla creative sprint-flight is about 10.9 blocks a second, which is 0.545
+	 * a tick - so 1.0 was already twice it and the sentence justifying it was measuring nothing. And
+	 * the rules ARE known now: automation is allowed and encouraged on skyblock.net, which retires
+	 * the argument the number rested on.
+	 *
+	 * <p>What actually bounds it is arithmetic, and all of it is now a function of the speed rather
+	 * than a constant beside it: the swept-volume test in {@link #avoid} (which is what makes a fast
+	 * step honest rather than a tunnel), {@link #sightFor}, {@link #repathFor}, the waypoint radius,
+	 * the approach taper and the corner crawl. 2.5 is fifty blocks a second and crosses this island
+	 * in five.
 	 */
-	static final double MAX_SPEED = 1.0;
-	/** Past this the dial says that this is a server nobody has measured. */
-	static final double RISKY_SPEED = 0.80;
+	static final double MAX_SPEED = 2.5;
+	/**
+	 * Past this the dial says that this is a server nobody has measured.
+	 *
+	 * <p>Not a safety limit - the safety is the swept test - but the point past which rubber-banding
+	 * becomes the server's opinion rather than ours, and a rubber-band into terrain is contact.
+	 */
+	static final double RISKY_SPEED = 2.0;
 
 	private static double speed = SPEED;
 
@@ -271,6 +288,21 @@ final class Autopilot {
 	private static int sinceRepath = 0;
 	/** Recompute about twice a second: chunks load, doors open, and you drift. */
 	static final int REPATH_TICKS = 10;
+
+	/**
+	 * ...and the same argument as {@link #sightFor}: a route recomputed every ten ticks is a route
+	 * that goes seven and a half blocks stale at 0.75 and fifteen at 1.5. What matters is the
+	 * DISTANCE it is allowed to go stale over, not the time - so the timer is that distance divided
+	 * by the speed, floored by {@link #MIN_REPATH_TICKS} because a per-tick A* is the one cost this
+	 * file has already paid for twice.
+	 */
+	static final double REPATH_BLOCKS = 7.0;
+
+	static int repathFor(double speed) {
+		if (speed <= 0) return REPATH_TICKS;
+		return Math.max(MIN_REPATH_TICKS, Math.min(REPATH_TICKS,
+			(int) Math.round(REPATH_BLOCKS / speed)));
+	}
 	/**
 	 * Waypoint reached. TIGHT, because the opposite is what clips walls: at full speed the flight
 	 * covers 1.75 blocks in five ticks, so a loose radius let it cut the corner it was steering to.
@@ -1042,7 +1074,7 @@ final class Autopilot {
 			// success.
 			// An ESCAPE is stale as soon as you have flown it: the whole point is to look again from
 			// somewhere new. Only a total failure earns the long backoff.
-			repathIn = raw.isEmpty() ? NO_ROUTE_BACKOFF : REPATH_TICKS;
+			repathIn = raw.isEmpty() ? NO_ROUTE_BACKOFF : repathFor(flying ? speed : WALK_SPEED);
 		}
 
 		// Steer at the next waypoint rather than at the destination: that is the whole difference
@@ -1147,7 +1179,7 @@ final class Autopilot {
 		}
 
 		// ---- DO NOT FLY INTO WHAT YOU CANNOT SEE. See BLIND_SPEED.
-		boolean blind = flying && !loadedAhead(view(mc), p.position(), dir, SIGHT);
+		boolean blind = flying && !loadedAhead(view(mc), p.position(), dir, sightFor(speed));
 		if (blind) {
 			if (speed > BLIND_SPEED) slowBecause = "chunks not loaded";
 			speed = Math.min(speed, BLIND_SPEED);
@@ -1351,6 +1383,18 @@ final class Autopilot {
 	static final int SIGHT = 8;
 
 	/**
+	 * ...and it has to grow with the speed, or the guard stops guarding.
+	 *
+	 * <p>Eight blocks is five ticks of travel at 1.5 and a whole second at 0.4. A lookahead measured
+	 * in BLOCKS is a lookahead that shrinks as you go faster, which is backwards: the whole point is
+	 * to see the unloaded world before arriving in it. Six tenths of a second of travel, floored at
+	 * the old eight so nothing got shorter.
+	 */
+	static int sightFor(double speed) {
+		return Math.max(SIGHT, (int) Math.ceil(speed * 12.0));
+	}
+
+	/**
 	 * Never touch down.
 	 *
 	 * <p>Applied to the flying step only, and it does two things: it refuses to DESCEND inside the
@@ -1396,7 +1440,14 @@ final class Autopilot {
 		net.minecraft.world.phys.AABB body = p.getBoundingBox();
 		boolean roomy = p.level().noCollision(p, body.inflate(SKIN, SKIN, SKIN));
 		net.minecraft.world.phys.AABB box = roomy ? body.inflate(SKIN, SKIN, SKIN) : body;
-		return avoid(step, d -> p.level().noCollision(p, box.move(d.x, d.y, d.z)));
+		// ---- THE VOLUME SWEPT, NOT THE BOX AT THE FAR END.
+		//
+		// A body 0.6 wide displaced by 0.75 leaves 0.15 of its path untested; displaced by 1.5 it
+		// leaves 0.9, which is room for a whole block to sit in unseen. Tested at the destination
+		// only, a fast step TUNNELS: the check says clear, the game says otherwise, and the faster
+		// it goes the wider the hole. expandTowards is the swept volume, so the test is about the
+		// journey rather than about the arrival and holds at any speed.
+		return avoid(step, d -> p.level().noCollision(p, box.expandTowards(d.x, d.y, d.z)));
 	}
 
 	/**
