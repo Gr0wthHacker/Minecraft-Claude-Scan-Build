@@ -437,4 +437,40 @@ class LoopTest {
 			assertTrue(any, "a cell of the design is on no plot");
 		}
 	}
+
+	// ---------------------------------------------------------------- a fetch is a trip
+
+	private static BlockPos at(int x, int z) { return new BlockPos(x, 200, z); }
+
+	@Test
+	void aFetchTakesWhatIsINRANGEBeforeWhatIsBiggest() {
+		// Ranked by shortfall size alone the biggest pile won however far away it was - and an index
+		// spanning two worlds 120,000 blocks apart made that a flight no route can even be searched
+		// for, so it fell through to going direct and simply kept going.
+		java.util.List<BlockPos> targets = java.util.List.of(at(120_000, 0), at(30, 0), at(90_000, 0));
+		java.util.List<BlockPos> ranked = Loop.byTrip(targets, p -> p, at(0, 0), Loop.FETCH_RADIUS);
+		assertEquals(at(30, 0), ranked.get(0), "crossed two worlds past a chest thirty blocks away");
+	}
+
+	@Test
+	void anOutOfRangeTripIsKeptRatherThanDropped() {
+		// If the only stock in the world is far away, going is still better than stopping. It is
+		// the ORDER that changes, not the offer.
+		java.util.List<BlockPos> only = java.util.List.of(at(120_000, 0));
+		assertEquals(1, Loop.byTrip(only, p -> p, at(0, 0), Loop.FETCH_RADIUS).size());
+		assertTrue(Loop.allFar(only, p -> p, at(0, 0), Loop.FETCH_RADIUS),
+			"a trip across two worlds is not being reported as one");
+	}
+
+	@Test
+	void nothingToFetchIsNotAFarFetch() {
+		assertFalse(Loop.allFar(java.util.List.<BlockPos>of(), p -> p, at(0, 0), Loop.FETCH_RADIUS));
+	}
+
+	@Test
+	void aFetchMayTravelFurtherThanTheBuildEverDoes() {
+		// One journey to fill a pack is worth more than a hundred journeys to place a hundred
+		// blocks - so the two bounds are deliberately different, and the fetch is the looser.
+		assertTrue(Loop.FETCH_RADIUS > Loop.WORK_RADIUS);
+	}
 }

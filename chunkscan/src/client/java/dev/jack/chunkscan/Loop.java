@@ -127,6 +127,55 @@ final class Loop {
 	 */
 	static final int WORK_RADIUS = 200;
 
+	/**
+	 * ...and how far a FETCH may go for it.
+	 *
+	 * <p>The build was bounded and the fetch deliberately was not: one journey to fill a pack is
+	 * worth more than a hundred journeys to place a hundred blocks. That reasoning is right and the
+	 * absence of any bound at all was not - a container index spanning two worlds 120,000 blocks
+	 * apart made "the biggest shortfall that has an address" into a trip no route can even be
+	 * searched for (Nav.MAX_RANGE is 512), so the flight fell through to going direct and simply
+	 * kept going. Reported as: still going infinite far radiuses for no reason.
+	 *
+	 * <p>Twice the working area. A fetch is allowed to be a real trip and is not allowed to be an
+	 * expedition, and anything past this is a sign the materials are not where the build is - which
+	 * is worth being TOLD rather than worth flying.
+	 */
+	static final int FETCH_RADIUS = 400;
+
+	/**
+	 * The trips worth making, nearest-first among those in range.
+	 *
+	 * <p>Ranking was by shortfall SIZE alone, so the biggest pile won however far away it was. Size
+	 * still decides between two trips you would both make; being out of range decides whether it is
+	 * a trip at all. Everything in range comes first, and out-of-range targets are kept at the back
+	 * rather than dropped - if the only stock in the world is far away, going is still better than
+	 * stopping, and the caller says so.
+	 */
+	static <T> List<T> byTrip(List<T> targets, java.util.function.Function<T, BlockPos> where,
+	                          BlockPos from, int radius) {
+		double r2 = (double) radius * radius;
+		List<T> near = new ArrayList<>(), far = new ArrayList<>();
+		for (T t : targets) {
+			BlockPos p = where.apply(t);
+			(p != null && p.distSqr(from) <= r2 ? near : far).add(t);
+		}
+		near.addAll(far);
+		return near;
+	}
+
+	/** Is every trip on offer out of reasonable range? Worth saying once. */
+	static <T> boolean allFar(List<T> targets, java.util.function.Function<T, BlockPos> where,
+	                          BlockPos from, int radius) {
+		if (targets.isEmpty()) return false;
+		double r2 = (double) radius * radius;
+		for (T t : targets) {
+			BlockPos p = where.apply(t);
+			if (p != null && p.distSqr(from) <= r2) return false;
+		}
+		return true;
+	}
+
 	/** The cells of `all` inside `radius` of `anchor`. */
 	static List<Work.Cell> focus(List<Work.Cell> all, BlockPos anchor, int radius) {
 		if (anchor == null) return all;

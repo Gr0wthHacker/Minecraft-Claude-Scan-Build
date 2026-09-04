@@ -111,6 +111,7 @@ final class Printer {
 	static void reset() {
 		tries.clear();
 		givenUp.clear();
+		everCache.clear();
 		pending.clear();
         lastPlaceTick = Long.MIN_VALUE / 2;
         pendingLevel = null;
@@ -226,6 +227,40 @@ final class Printer {
 		return byPath.get(path);
 	}
 
+	/**
+	 * Verdicts already reached, and a budget on fresh ones.
+	 *
+	 * <p>Even at one evaluation a cell this is asked about every remaining cell every recount, and
+	 * the cells it says NO to are by definition the ones that stay in the list for ever - so the
+	 * expensive answer is the one paid for again and again. Cached, and bounded: a cell not yet
+	 * looked at is treated as placeable, which is the safe direction (a wasted trip beats silently
+	 * dropping real work) and converges over a few recounts.
+	 */
+	private static final Map<Long, Boolean> everCache = new HashMap<>();
+	private static int everBudget;
+	static final int EVER_PER_RECOUNT = 400;
+
+	/** Called once per recount: a new look at the world is a new budget. */
+	static void refreshPlaceability() {
+		everBudget = EVER_PER_RECOUNT;
+	}
+
+	/** The world changed under us in a way no per-cell answer survives. */
+	static void forgetPlaceability() {
+		everCache.clear();
+	}
+
+	static boolean everPlaceableCached(Minecraft mc, BlockPos pos, String state) {
+		Long key = pos.asLong();
+		Boolean seen = everCache.get(key);
+		if (seen != null) return seen;
+		if (everBudget <= 0) return true;                 // not looked at yet: assume work
+		everBudget--;
+		boolean ok = everPlaceable(mc, pos, state);
+		everCache.put(key, ok);
+		return ok;
+	}
+
 	static boolean everPlaceable(Minecraft mc, BlockPos pos, String state) {
 		if (mc.player == null || mc.level == null || !mc.level.isLoaded(pos)) return true;
 		if (!Rules.inLockedProfile(state)) return false;
@@ -238,7 +273,25 @@ final class Printer {
 		BlockState existing = mc.level.getBlockState(pos);
 		if (!existing.isAir()) return true;              // an upgrade path owns this cell
 		ItemStack stack = new ItemStack(item2);
-		boolean upper = "top".equals(props(state).get("half")) || "top".equals(props(state).get("type"));
+		Map<String, String> want = props(state);
+		boolean upper = "top".equals(want.get("half")) || "top".equals(want.get("type"));
+		// ---- AND DO NOT SWEEP AN ORIENTATION A BLOCK DOES NOT HAVE.
+		//
+		// A sign sweeps sixteen yaws; everything else swept five yaws by four pitches by six faces,
+		// which is a hundred and twenty getStateForPlacement calls PER CELL. Run over the whole
+		// frontier every recount that is hundreds of thousands of block-state computations on the
+		// client thread twice a second - the client stutters, the approach never completes, and it
+		// reads as the loop freezing in front of a chest two blocks away. It was my own doing.
+		//
+		// Most of this park is stone brick, moss and wool: blocks with no directional property at
+		// all, whose placement cannot depend on where the player is looking. One evaluation answers
+		// for them.
+		float[] sweep = ActionRecipe.yawSweep(state);
+		boolean directional = sweep != null || want.containsKey("facing") || want.containsKey("axis")
+			|| want.containsKey("rotation") || want.containsKey("half") || want.containsKey("type")
+			|| want.containsKey("face") || want.containsKey("hinge") || want.containsKey("attachment");
+		float[] yaws = sweep != null ? sweep : directional ? new float[]{0, 90, 180, 270} : new float[]{0};
+		float[] pitches = directional ? new float[]{0, -90, 90} : new float[]{0};
 		LocalPlayer p = mc.player;
 		float oldYaw = p.getYRot(), oldPitch = p.getXRot();
 		try {
@@ -246,9 +299,8 @@ final class Printer {
 				BlockPos nb = pos.relative(face.getOpposite());
 				if (!mc.level.isLoaded(nb) || !support(mc.level.getBlockState(nb))) continue;
 				BlockHitResult hit = new BlockHitResult(hit(pos, face, upper), face, nb, false);
-				float[] sweep = ActionRecipe.yawSweep(state);
-				for (float yaw : sweep != null ? sweep : new float[]{0, 90, 180, 270}) {
-					for (float pitch : new float[]{0, -90, 90}) {
+				for (float yaw : yaws) {
+					for (float pitch : pitches) {
 						p.setYRot(yaw); p.setXRot(pitch);
 						BlockPlaceContext ctx = new BlockPlaceContext(p, InteractionHand.MAIN_HAND, stack, hit);
 						ctx = item2.updatePlacementContext(ctx);

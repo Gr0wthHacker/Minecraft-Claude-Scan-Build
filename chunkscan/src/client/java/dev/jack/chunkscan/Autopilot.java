@@ -1221,7 +1221,15 @@ final class Autopilot {
 					step = new Vec3(step.x * 0.4, step.y, step.z * 0.4);   // easing round a corner
 				}
 			}
-			step = keepAirborne(mc, p, step);
+			// ---- AND THE GROUND CLEARANCE DOES NOT ARGUE WITH A ROUTE.
+			//
+			// It refuses to descend inside 2.5 blocks of a floor, and a two-course corridor has about
+			// one - so on a route through anything indoors the vertical was clamped to zero and the
+			// flight rode the ceiling of wherever it happened to be while the pursuit point pulled it
+			// forward. That is the head grinding. The route was checked by Nav and avoid below now
+			// guarantees no step touches anything, so the clamp has nothing to add while there is a
+			// route; it is for the direct guess and for holding still at a spot.
+			if (path.isEmpty()) step = keepAirborne(mc, p, step);
 			// Scaled, not pressed — for the CLIMB. See the note on VERTICAL_GAIN and, more
 			// importantly, the one above it about what the jump key actually does.
 			step = liftFor(step, Math.max(speed, RISE) * 1.5);
@@ -1444,8 +1452,6 @@ final class Autopilot {
 	 */
 	static Vec3 avoid(LocalPlayer p, Vec3 step) {
 		net.minecraft.world.phys.AABB body = p.getBoundingBox();
-		boolean roomy = p.level().noCollision(p, body.inflate(SKIN, SKIN, SKIN));
-		net.minecraft.world.phys.AABB box = roomy ? body.inflate(SKIN, SKIN, SKIN) : body;
 		// ---- THE VOLUME SWEPT, NOT THE BOX AT THE FAR END.
 		//
 		// A body 0.6 wide displaced by 0.75 leaves 0.15 of its path untested; displaced by 1.5 it
@@ -1453,7 +1459,23 @@ final class Autopilot {
 		// only, a fast step TUNNELS: the check says clear, the game says otherwise, and the faster
 		// it goes the wider the hole. expandTowards is the swept volume, so the test is about the
 		// journey rather than about the arrival and holds at any speed.
-		return avoid(step, d -> p.level().noCollision(p, box.expandTowards(d.x, d.y, d.z)));
+		//
+		// ---- AND THE CUSHION IS PER AXIS, WITH ALMOST NONE OF IT VERTICAL.
+		//
+		// Inflated on all three, a body 1.8 tall in a two-course corridor is 2.04 and collides with
+		// the corridor itself - so the "already touching, use the real box" fallback fired EVERYWHERE
+		// indoors and the horizontal cushion was silently switched off in exactly the places it was
+		// for. A two-course gap cannot afford a vertical cushion by construction; it can afford a
+		// horizontal one, and that is the one that keeps a flight off walls.
+		return avoid(step, d -> {
+			double px = d.x != 0 ? SKIN : 0, pz = d.z != 0 ? SKIN : 0;
+			double py = d.y != 0 ? Math.min(SKIN, 0.02) : 0;
+			net.minecraft.world.phys.AABB box = body.inflate(px, py, pz);
+			// Already inside the cushion on this axis: judge on the real box, so a flight parked
+			// against something can still move away from it.
+			if (!p.level().noCollision(p, box)) box = body;
+			return p.level().noCollision(p, box.expandTowards(d.x, d.y, d.z));
+		});
 	}
 
 	/**

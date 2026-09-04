@@ -65,6 +65,7 @@ final class Hud {
 	 * behaviour it exists to stop.
 	 */
 	private static BlockPos workAnchor = null;
+	private static boolean saidFarFetch = false;
 
 	/**
 	 * Go and look at a cell in a chunk we do not have - and MOVE THE AREA to it rather than making
@@ -398,10 +399,30 @@ final class Hud {
 
         // Re-evaluate actual support each recount: other players/chunk loads can change it
         // without changing this design's remaining count.
+        Printer.refreshPlaceability();       // one budget per look at the world
         Map<String, Integer> carrying = Work.carrying(mc.player);
-        // Cells with a face to click and not written off. This is the LOOSE test: it asks only
-        // whether a neighbour is solid.
-        java.util.List<Work.Cell> supported = Work.placeableNow(mc.level, sp.todo()).stream()
+        // ---- THE AREA FIRST, THEN THE EXPENSIVE QUESTIONS.
+        //
+        // Every per-cell check below costs world lookups, and `Park Complete` is 540,862 cells.
+        // Asking them all and THEN throwing away everything outside the working area is millions of
+        // block lookups a recount for an answer about a couple of hundred blocks of ground - which
+        // is most of the lag. The area is a cheap distance test; it goes first.
+        if (workAnchor == null) workAnchor = me;
+        java.util.List<Work.Cell> here = Loop.focus(sp.todo(), workAnchor, Loop.WORK_RADIUS);
+        if (here.isEmpty() && !sp.todo().isEmpty()) {
+            // The area is finished. Move it to the NEAREST remaining work rather than the best-
+            // looking, so it walks across the design instead of touring it.
+            BlockPos moved = Loop.reanchor(sp.todo(), me);
+            if (moved != null) {
+                workAnchor = moved;
+                here = Loop.focus(sp.todo(), workAnchor, Loop.WORK_RADIUS);
+                mc.player.sendSystemMessage(Component.literal("[cscan] area finished — moving to "
+                    + Wand.fmt(workAnchor) + " (" + here.size() + " cells within "
+                    + Loop.WORK_RADIUS + ")"));
+            }
+        }
+        // Cells with a face to click and not written off. The LOOSE test: is a neighbour solid.
+        java.util.List<Work.Cell> supported = Work.placeableNow(mc.level, here).stream()
             .filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
             .filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
             .toList();
@@ -413,27 +434,11 @@ final class Hud {
         // a cell that can never go in stayed in the frontier for ever - clustered, flown to,
         // stalled at, abandoned, and picked again on the next recount. See Printer.everPlaceable.
         java.util.List<Work.Cell> frontier = supported.stream()
-            .filter(c -> Printer.everPlaceable(mc, c.pos(), c.block()))
+            .filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block()))
             .toList();
         // Counted, never merely dropped: work quietly removed from the plan is work the design
         // never completes and nothing explains.
         int refusedByState = supported.size() - frontier.size();
-        // ---- WORK ONE AREA OUT BEFORE TRAVELLING. See Loop.WORK_RADIUS.
-        if (workAnchor == null) workAnchor = me;
-        java.util.List<Work.Cell> near = Loop.focus(frontier, workAnchor, Loop.WORK_RADIUS);
-        if (near.isEmpty() && !frontier.isEmpty()) {
-            // The area is finished. Move it to the NEAREST remaining work rather than the best-
-            // looking, so it walks across the design instead of touring it.
-            BlockPos moved = Loop.reanchor(frontier, me);
-            if (moved != null) {
-                workAnchor = moved;
-                near = Loop.focus(frontier, workAnchor, Loop.WORK_RADIUS);
-                mc.player.sendSystemMessage(Component.literal("[cscan] area finished — moving to "
-                    + Wand.fmt(workAnchor) + " (" + near.size() + " cells within "
-                    + Loop.WORK_RADIUS + ")"));
-            }
-        }
-        frontier = near;
         java.util.List<Plan.Cluster> cl = Plan.clusters(frontier, carrying, java.util.Set.of(), java.util.Set.of(), me);
 		spotsLeft = cl.size();
 
@@ -514,6 +519,20 @@ final class Hud {
             for (Work.Cell c : frontier) frontierItems.add(c.item());
             targets = new java.util.ArrayList<>(targets);
             targets.sort(java.util.Comparator.comparingInt(r -> frontierItems.contains(r.item()) ? 0 : 1));
+			// ---- A FETCH IS A TRIP, NOT AN EXPEDITION. See Loop.FETCH_RADIUS: ranked by shortfall
+			// size alone, the biggest pile won however far away it was, and an index spanning two
+			// worlds made that a flight no route can be searched for at all.
+			if (Loop.allFar(targets, r -> r.where().pos(), me, Loop.FETCH_RADIUS)) {
+				if (!saidFarFetch) {
+					saidFarFetch = true;
+					mc.player.sendSystemMessage(Component.literal("[cscan] the nearest indexed stock"
+						+ " is over " + Loop.FETCH_RADIUS + " blocks away — going, but the materials"
+						+ " are not where the build is."));
+				}
+			} else {
+				saidFarFetch = false;
+			}
+			targets = Loop.byTrip(targets, r -> r.where().pos(), me, Loop.FETCH_RADIUS);
 			want = Plan.nextLoadFetch(targets, carrying, it -> Work.room(mc.player, it));
 		}
 
@@ -1213,6 +1232,7 @@ final class Hud {
         fetching = false;
         // ---- FILL THE PACK FIRST. See topUp.
         topUp = true;
+        saidFarFetch = false;
         workAnchor = null;                           // a new design is a new area
         watch(name);
 		following = true;
