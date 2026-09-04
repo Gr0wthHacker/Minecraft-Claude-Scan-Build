@@ -48,6 +48,23 @@ final class Hud {
 	static final long STALL_MS = 90_000;
 	/** Guiding to a container rather than to work. */
 	private static boolean fetching = false;
+	/**
+	 * Fill the pack before the first block, not after it.
+	 *
+	 * <p>Set by {@link #follow} and cleared the moment there is nothing left to fetch. See
+	 * {@link Loop#phase}: build-before-shop is the right policy in the middle of a session and the
+	 * wrong one at the start of it, where it sets off with whatever was in the pack and makes the
+	 * trip anyway once that runs out - having already flown to the work and back.
+	 */
+	private static boolean topUp = false;
+	/**
+	 * The middle of the area being worked. See {@link Loop#WORK_RADIUS}.
+	 *
+	 * <p>Null until the first recount, which anchors it wherever the loop actually started. It moves
+	 * only when the area is FINISHED - never because somewhere else looks better, which is the
+	 * behaviour it exists to stop.
+	 */
+	private static BlockPos workAnchor = null;
 	/** A dead end is worth saying once. Every two seconds it is a reason to turn the loop off. */
 	private static boolean said = false;
 	// ---- WHERE TO STAND INSIDE A SPOT. A spot is sized to an inventory load and can be 96 blocks
@@ -376,6 +393,22 @@ final class Hud {
         // Counted, never merely dropped: work quietly removed from the plan is work the design
         // never completes and nothing explains.
         int refusedByState = supported.size() - frontier.size();
+        // ---- WORK ONE AREA OUT BEFORE TRAVELLING. See Loop.WORK_RADIUS.
+        if (workAnchor == null) workAnchor = me;
+        java.util.List<Work.Cell> near = Loop.focus(frontier, workAnchor, Loop.WORK_RADIUS);
+        if (near.isEmpty() && !frontier.isEmpty()) {
+            // The area is finished. Move it to the NEAREST remaining work rather than the best-
+            // looking, so it walks across the design instead of touring it.
+            BlockPos moved = Loop.reanchor(frontier, me);
+            if (moved != null) {
+                workAnchor = moved;
+                near = Loop.focus(frontier, workAnchor, Loop.WORK_RADIUS);
+                mc.player.sendSystemMessage(Component.literal("[cscan] area finished — moving to "
+                    + Wand.fmt(workAnchor) + " (" + near.size() + " cells within "
+                    + Loop.WORK_RADIUS + ")"));
+            }
+        }
+        frontier = near;
         java.util.List<Plan.Cluster> cl = Plan.clusters(frontier, carrying, java.util.Set.of(), java.util.Set.of(), me);
 		spotsLeft = cl.size();
 
@@ -408,7 +441,7 @@ final class Hud {
 		// inventory scan, and while there is work in front of you the question is not asked.
 		java.util.List<Plan.Restock> targets = java.util.List.of();
 		Plan.Restock want = null;
-		if ((fetching || !canWork) && !frontier.isEmpty()) {
+		if ((fetching || !canWork || topUp) && !frontier.isEmpty()) {
 			// Skip chests in their cooling-off period, or the loop is guided at one it will not open.
 			targets = Plan.fetchTargets(sp.todo(), carrying, index, me,
 				Withdraw.coolingOff(System.currentTimeMillis()));
@@ -452,8 +485,16 @@ final class Hud {
 		}
 
 		Loop.Phase phase = Loop.phase(sp.todo().size(), sp.unseen(), canWork, fetching,
-			want != null, !targets.isEmpty());
+			want != null, !targets.isEmpty(), topUp);
 		fetching = phase == Loop.Phase.FETCH;
+		// THE TOP-UP IS OVER WHEN THERE IS NOTHING LEFT TO FETCH, which is what a full pack and a
+		// fully-stocked design both look like. Ending it on a timer or on the first container would
+		// be ending it on something other than the thing it is for.
+		if (topUp && phase != Loop.Phase.FETCH) {
+			topUp = false;
+			if (mc.player != null) mc.player.sendSystemMessage(Component.literal(
+				"[cscan] pack loaded — building."));
+		}
 		switch (phase) {
 			case FETCH -> {
 				fetchTo(mc, me, want, Plan.takeLoadAmount(want, targets.size(), Work.room(mc.player, want.item())), carrying);
@@ -1129,6 +1170,9 @@ final class Hud {
         ChunkScanClient.printDesign = name;
         Withdraw.cancel();
         fetching = false;
+        // ---- FILL THE PACK FIRST. See topUp.
+        topUp = true;
+        workAnchor = null;                           // a new design is a new area
         watch(name);
 		following = true;
 		placementWarned = false;

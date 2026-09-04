@@ -323,4 +323,77 @@ class LoopTest {
 		assertTrue(Hud.NOWHERE_MS < Hud.STATION_MS, "a travel stall must beat a station stall");
 		assertTrue(Hud.STATION_MS < Hud.STALL_MS, "a station stall must beat the session stall");
 	}
+
+	// ---------------------------------------------------------------- filling the pack first
+
+	@Test
+	void aStartFETCHESBeforeItBuilds() {
+		// Build-before-shop is right in the middle of a session and wrong at the start of one: it
+		// sets off with whatever was in the pack and makes the trip anyway once that runs out,
+		// having already flown to the work and back.
+		assertEquals(Loop.Phase.FETCH,
+			Loop.phase(500, 0, true, false, true, true, true));
+	}
+
+	@Test
+	void aStartWithNothingToFetchGetsStraightOnWithIt() {
+		// A full pack and a fully-stocked design look identical from here, and both mean build.
+		assertEquals(Loop.Phase.BUILD,
+			Loop.phase(500, 0, true, false, false, false, true));
+	}
+
+	@Test
+	void theTopUpDoesNotChangeWhatHappensLaterInASession() {
+		// Off, every answer is exactly what it was before the flag existed.
+		for (int t : new int[]{0, 500}) {
+			for (boolean w : new boolean[]{true, false}) {
+				for (boolean f : new boolean[]{true, false}) {
+					for (boolean h : new boolean[]{true, false}) {
+						for (boolean a : new boolean[]{true, false}) {
+							assertEquals(Loop.phase(t, 0, w, f, h, a),
+								Loop.phase(t, 0, w, f, h, a, false),
+									"the flag changed a decision it was off for");
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// ---------------------------------------------------------------- one area at a time
+
+	private static Work.Cell at(int x, int y, int z) {
+		return new Work.Cell(new BlockPos(x, y, z), "stone_bricks");
+	}
+
+	@Test
+	void workAcrossTheIslandIsNotThisAreasWork() {
+		java.util.List<Work.Cell> all = java.util.List.of(
+			at(0, 200, 0), at(30, 200, 10), at(900, 200, 0));
+		java.util.List<Work.Cell> here = Loop.focus(all, new BlockPos(0, 200, 0), Loop.WORK_RADIUS);
+		assertEquals(2, here.size(), "the far end of the island came along");
+	}
+
+	@Test
+	void theAreaMovesToTheNEARESTRemainingWorkNotTheBiggestPile() {
+		// So it walks across a design rather than touring it: the biggest pile is exactly the
+		// criterion that sent it back and forth in the first place.
+		java.util.List<Work.Cell> all = new java.util.ArrayList<>();
+		all.add(at(400, 200, 0));
+		for (int i = 0; i < 50; i++) all.add(at(900 + i, 200, 0));
+		assertEquals(new BlockPos(400, 200, 0), Loop.reanchor(all, new BlockPos(0, 200, 0)));
+	}
+
+	@Test
+	void anAreaWithNoAnchorIsTheWholeDesign() {
+		// Before the first recount there is nowhere to be focused on, and refusing everything would
+		// be a loop that does nothing on its first tick and says why on none of them.
+		java.util.List<Work.Cell> all = java.util.List.of(at(0, 200, 0), at(9000, 200, 0));
+		assertEquals(2, Loop.focus(all, null, Loop.WORK_RADIUS).size());
+	}
+
+	@Test
+	void nothingLeftAnywhereIsNotAFocusProblem() {
+		assertNull(Loop.reanchor(java.util.List.of(), new BlockPos(0, 200, 0)));
+	}
 }

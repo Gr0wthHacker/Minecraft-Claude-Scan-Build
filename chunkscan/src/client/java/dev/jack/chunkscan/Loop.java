@@ -2,6 +2,7 @@ package dev.jack.chunkscan;
 
 import net.minecraft.core.BlockPos;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -64,12 +65,74 @@ final class Loop {
 	 */
 	static Phase phase(int todo, int unseen, boolean canWork, boolean fetching, boolean haveTarget,
 	                   boolean anyShortfall) {
+		return phase(todo, unseen, canWork, fetching, haveTarget, anyShortfall, false);
+	}
+
+	/**
+	 * @param topUp the loop has just STARTED and the pack has not been filled yet.
+	 *
+	 * <p>The standing policy is build-before-shop: anything placeable with what you are holding, and
+	 * the trip does not start. That is right in the middle of a session and wrong at the beginning
+	 * of one, where it means setting off with whatever happened to be in the pack, placing it, and
+	 * then making the trip anyway - having already flown to the work and back.
+	 *
+	 * <p>So a start is a FETCH, on the same terms as any other: it runs until the pack is full or
+	 * the design is covered, never until one spot's shortfall is met. Nothing to fetch and it falls
+	 * straight through to building, which is what a full pack or a fully-stocked design looks like.
+	 */
+	static Phase phase(int todo, int unseen, boolean canWork, boolean fetching, boolean haveTarget,
+	                   boolean anyShortfall, boolean topUp) {
 		if (todo == 0) return unseen > 0 ? Phase.LOOK : Phase.COMPLETE;
-		if (fetching || !canWork) {
+		if (fetching || !canWork || topUp) {
 			if (haveTarget) return Phase.FETCH;
 			if (!canWork) return anyShortfall ? Phase.PACK_FULL : Phase.DEAD_END;
 		}
 		return Phase.BUILD;
+	}
+
+	// ---------------------------------------------------------------- the working area
+
+	/**
+	 * How far from the anchor a cell counts as this session's work.
+	 *
+	 * <p><b>A design is not a work area.</b> The clusters were ranked over every remaining cell the
+	 * client could see, so on a 240-block island the "best spot" was routinely at the other end of
+	 * it - and having flown there, the next recount could just as well send you back. Jack:
+	 * <i>"it shouldnt go across any range to reach blocks, we should be doing focused radius"</i>.
+	 *
+	 * <p>Two hundred blocks is a working AREA rather than a trip: it comfortably holds the deck, or
+	 * the lowland, or the plate, and it does not hold two of them. The area is worked out before
+	 * anything else is considered, which is what makes progress legible instead of a tour.
+	 *
+	 * <p>It bounds the BUILD only. A container three hundred blocks away is still a legitimate trip:
+	 * that is one journey to fill a pack, not a hundred journeys to place a hundred blocks.
+	 */
+	static final int WORK_RADIUS = 200;
+
+	/** The cells of `all` inside `radius` of `anchor`. */
+	static List<Work.Cell> focus(List<Work.Cell> all, BlockPos anchor, int radius) {
+		if (anchor == null) return all;
+		double r2 = (double) radius * radius;
+		List<Work.Cell> out = new ArrayList<>();
+		for (Work.Cell c : all) if (c.pos().distSqr(anchor) <= r2) out.add(c);
+		return out;
+	}
+
+	/**
+	 * Where to move the working area to, once the old one is finished.
+	 *
+	 * <p>The NEAREST remaining cell, so the area walks across the design rather than jumping about
+	 * it. Null when there is nothing left, which is the caller's cue that the focus is not what is
+	 * wrong.
+	 */
+	static BlockPos reanchor(List<Work.Cell> all, BlockPos from) {
+		BlockPos best = null;
+		double bestD = Double.MAX_VALUE;
+		for (Work.Cell c : all) {
+			double d = c.pos().distSqr(from);
+			if (d < bestD) { bestD = d; best = c.pos(); }
+		}
+		return best;
 	}
 
 	// ---------------------------------------------------------------- the spot
