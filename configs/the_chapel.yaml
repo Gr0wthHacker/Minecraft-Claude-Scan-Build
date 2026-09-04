@@ -1,0 +1,15 @@
+name: The Chapel
+gen: attractions
+params:
+  land: hollow
+  facing: north
+  at:
+  - 97616
+  - 203
+  - 80816
+  kind: chapel
+  title: The Chapel
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

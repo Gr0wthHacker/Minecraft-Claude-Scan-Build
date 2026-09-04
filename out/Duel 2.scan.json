@@ -1,0 +1,99 @@
+{
+  "origin": {
+    "x": 97600,
+    "y": 197,
+    "z": 80633
+  },
+  "size": {
+    "x": 18,
+    "y": 12,
+    "z": 10
+  },
+  "generated_by": "casino",
+  "kind": "casino/duel",
+  "facing": "east",
+  "contract": "press once; you win ties - 6 in 9",
+  "inputs": [
+    [
+      97605,
+      204,
+      80637
+    ]
+  ],
+  "outputs": [
+    [
+      97617,
+      199,
+      80640
+    ]
+  ],
+  "unverified": [
+    "the odds come from the ITEM MIX, not the wiring: a dropper ejects a uniformly random one of its occupied slots. The mix is recorded in `stock` and MUST be loaded exactly - the simulator has no entities and cannot check it for you."
+  ],
+  "budget": {},
+  "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "concealed": 75,
+  "visible_redstone": 0,
+  "rng_hopper": [
+    97610,
+    199,
+    80640
+  ],
+  "house_hopper": [
+    97611,
+    199,
+    80639
+  ],
+  "stock": {
+    "dropper": [
+      "a 64-stackable item (e.g. cobblestone)",
+      "a 16-stackable item (e.g. an egg)",
+      "a non-stackable item (e.g. a sword)"
+    ],
+    "house dropper": [
+      "a 64-stackable item (e.g. cobblestone)",
+      "a 16-stackable item (e.g. an egg)",
+      "a non-stackable item (e.g. a sword)"
+    ]
+  },
+  "reads": "duel",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel",
+        "dropper",
+        "hopper"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "file": "Duel 2.litematic",
+  "name": "Duel 2"
+}

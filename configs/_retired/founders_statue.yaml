@@ -1,0 +1,15 @@
+name: Founders Statue
+gen: civic
+params:
+  land: midway
+  facing: north
+  at:
+  - 97617
+  - 203
+  - 80617
+  kind: statue
+  title: Founders Statue
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

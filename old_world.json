@@ -1,0 +1,8884 @@
+{
+  "format": 1,
+  "name": "Skyblock Park Final Free-First Build",
+  "seed": 17,
+  "server_profile": "skyblock-1.19",
+  "style_packs": [
+    "frontier",
+    "midway",
+    "prismworks"
+  ],
+  "site": {
+    "mode": "skyblock",
+    "anchor": [
+      97500,
+      203,
+      80300
+    ],
+    "build_plane": 203,
+    "bounds": [
+      0,
+      0,
+      199,
+      599
+    ],
+    "entry_points": [
+      [
+        12,
+        215
+      ]
+    ],
+    "protected": [],
+    "anchor_note": "Derived by tools/park_anchor.py from the island registry, NOT typed. The three plots expand to 200x200 about their own bedrock and their union is X97500..97699 Z80300..80899 - exactly 200x600, so the anchor is forced and there is no slack on any edge. The previous value [97500, 203, 80349] put U599 forty-nine blocks past the last plot."
+  },
+  "regions": [
+    {
+      "name": "frontier",
+      "bounds": [
+        0,
+        0,
+        199,
+        169
+      ]
+    },
+    {
+      "name": "frontier_reach",
+      "bounds": [
+        0,
+        170,
+        199,
+        214
+      ]
+    },
+    {
+      "name": "midway",
+      "bounds": [
+        0,
+        215,
+        199,
+        384
+      ]
+    },
+    {
+      "name": "prism_reach",
+      "bounds": [
+        0,
+        385,
+        199,
+        429
+      ]
+    },
+    {
+      "name": "prismworks",
+      "bounds": [
+        0,
+        430,
+        199,
+        599
+      ]
+    }
+  ],
+  "plots": [
+    {
+      "name": "trailhead_gate",
+      "region": "frontier",
+      "bounds": [
+        18,
+        0,
+        62,
+        38
+      ],
+      "zone": "landmark",
+      "style": "frontier"
+    },
+    {
+      "name": "signal_heron",
+      "region": "frontier_reach",
+      "bounds": [
+        82,
+        170,
+        133,
+        214
+      ],
+      "zone": "sculpture",
+      "style": "frontier"
+    },
+    {
+      "name": "boomtown_spine",
+      "region": "frontier",
+      "bounds": [
+        18,
+        40,
+        70,
+        85
+      ],
+      "zone": "building",
+      "style": "frontier"
+    },
+    {
+      "name": "mining_square",
+      "region": "frontier",
+      "bounds": [
+        75,
+        40,
+        130,
+        85
+      ],
+      "zone": "path",
+      "style": "frontier"
+    },
+    {
+      "name": "prospecting_porch",
+      "region": "frontier",
+      "bounds": [
+        85,
+        0,
+        135,
+        39
+      ],
+      "zone": "ride",
+      "style": "frontier"
+    },
+    {
+      "name": "mine_coaster",
+      "region": "frontier",
+      "bounds": [
+        30,
+        90,
+        140,
+        160
+      ],
+      "zone": "ride",
+      "style": "frontier"
+    },
+    {
+      "name": "assay_and_prize_office",
+      "region": "frontier",
+      "bounds": [
+        132,
+        40,
+        151,
+        85
+      ],
+      "zone": "building",
+      "style": "frontier"
+    },
+    {
+      "name": "works_yard",
+      "region": "frontier",
+      "bounds": [
+        152,
+        125,
+        169,
+        160
+      ],
+      "zone": "service",
+      "style": "frontier"
+    },
+    {
+      "name": "arrival_court",
+      "region": "midway",
+      "bounds": [
+        18,
+        220,
+        65,
+        260
+      ],
+      "zone": "arrival",
+      "style": "midway"
+    },
+    {
+      "name": "welcome_court",
+      "region": "midway",
+      "bounds": [
+        70,
+        220,
+        120,
+        260
+      ],
+      "zone": "path",
+      "style": "midway"
+    },
+    {
+      "name": "snack_window",
+      "region": "midway",
+      "bounds": [
+        125,
+        220,
+        151,
+        260
+      ],
+      "zone": "service",
+      "style": "midway"
+    },
+    {
+      "name": "carousel_court",
+      "region": "midway",
+      "bounds": [
+        18,
+        270,
+        85,
+        340
+      ],
+      "zone": "ride",
+      "style": "midway"
+    },
+    {
+      "name": "sky_lift",
+      "region": "midway",
+      "bounds": [
+        90,
+        270,
+        151,
+        345
+      ],
+      "zone": "landmark",
+      "style": "midway"
+    },
+    {
+      "name": "skill_arcade",
+      "region": "midway",
+      "bounds": [
+        20,
+        348,
+        70,
+        380
+      ],
+      "zone": "ride",
+      "style": "midway"
+    },
+    {
+      "name": "prize_point",
+      "region": "midway",
+      "bounds": [
+        75,
+        348,
+        94,
+        380
+      ],
+      "zone": "building",
+      "style": "midway"
+    },
+    {
+      "name": "wyrm_s_crossing",
+      "region": "prism_reach",
+      "bounds": [
+        18,
+        390,
+        80,
+        425
+      ],
+      "zone": "path",
+      "style": "prismworks"
+    },
+    {
+      "name": "foundry_gate",
+      "region": "prismworks",
+      "bounds": [
+        18,
+        435,
+        70,
+        470
+      ],
+      "zone": "arrival",
+      "style": "prismworks"
+    },
+    {
+      "name": "prism_array",
+      "region": "prismworks",
+      "bounds": [
+        75,
+        435,
+        127,
+        485
+      ],
+      "zone": "ride",
+      "style": "prismworks"
+    },
+    {
+      "name": "resonance_vault",
+      "region": "prismworks",
+      "bounds": [
+        75,
+        486,
+        127,
+        526
+      ],
+      "zone": "ride",
+      "style": "prismworks"
+    },
+    {
+      "name": "prism_ascent",
+      "region": "prismworks",
+      "bounds": [
+        24,
+        528,
+        116,
+        599
+      ],
+      "zone": "landmark",
+      "style": "prismworks"
+    },
+    {
+      "name": "forge_deck",
+      "region": "prismworks",
+      "bounds": [
+        128,
+        495,
+        151,
+        560
+      ],
+      "zone": "path",
+      "style": "prismworks"
+    },
+    {
+      "name": "service_gallery",
+      "region": "prismworks",
+      "bounds": [
+        152,
+        550,
+        169,
+        590
+      ],
+      "zone": "service",
+      "style": "prismworks"
+    },
+    {
+      "name": "sky_lift_sloth",
+      "region": "midway",
+      "bounds": [
+        96,
+        348,
+        141,
+        372
+      ],
+      "zone": "sculpture",
+      "style": "midway"
+    },
+    {
+      "name": "claim_line",
+      "region": "frontier_reach",
+      "bounds": [
+        6,
+        172,
+        80,
+        212
+      ],
+      "zone": "path",
+      "style": "frontier"
+    },
+    {
+      "name": "line_frontier",
+      "region": "frontier",
+      "bounds": [
+        0,
+        0,
+        5,
+        169
+      ],
+      "zone": "path",
+      "style": "frontier"
+    },
+    {
+      "name": "line_frontier_reach",
+      "region": "frontier_reach",
+      "bounds": [
+        0,
+        170,
+        5,
+        214
+      ],
+      "zone": "path",
+      "style": "frontier"
+    },
+    {
+      "name": "line_midway",
+      "region": "midway",
+      "bounds": [
+        0,
+        215,
+        5,
+        384
+      ],
+      "zone": "path",
+      "style": "midway"
+    },
+    {
+      "name": "line_prism_reach",
+      "region": "prism_reach",
+      "bounds": [
+        0,
+        385,
+        5,
+        429
+      ],
+      "zone": "path",
+      "style": "prismworks"
+    },
+    {
+      "name": "line_prismworks",
+      "region": "prismworks",
+      "bounds": [
+        0,
+        430,
+        5,
+        599
+      ],
+      "zone": "path",
+      "style": "prismworks"
+    }
+  ],
+  "routes": [
+    {
+      "name": "park_floor",
+      "kind": "path",
+      "width": 151,
+      "points": [
+        [
+          75,
+          76
+        ],
+        [
+          75,
+          523
+        ]
+      ]
+    },
+    {
+      "name": "park_backstage",
+      "kind": "service",
+      "width": 17,
+      "points": [
+        [
+          160,
+          9
+        ],
+        [
+          160,
+          590
+        ]
+      ]
+    },
+    {
+      "name": "park_spine",
+      "kind": "path",
+      "width": 5,
+      "points": [
+        [
+          12,
+          2
+        ],
+        [
+          12,
+          597
+        ]
+      ]
+    },
+    {
+      "name": "service_spine",
+      "kind": "service",
+      "width": 3,
+      "points": [
+        [
+          160,
+          1
+        ],
+        [
+          160,
+          598
+        ]
+      ]
+    },
+    {
+      "name": "access_trailhead_gate",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          19
+        ],
+        [
+          18,
+          19
+        ]
+      ]
+    },
+    {
+      "name": "access_signal_heron",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          79,
+          192
+        ],
+        [
+          82,
+          192
+        ]
+      ]
+    },
+    {
+      "name": "access_boomtown_spine",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          63
+        ],
+        [
+          18,
+          63
+        ]
+      ]
+    },
+    {
+      "name": "access_mining_square",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          63
+        ],
+        [
+          18,
+          63
+        ]
+      ]
+    },
+    {
+      "name": "access_prospecting_porch",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          82,
+          20
+        ],
+        [
+          85,
+          20
+        ]
+      ]
+    },
+    {
+      "name": "access_mine_coaster",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          125
+        ],
+        [
+          18,
+          125
+        ]
+      ]
+    },
+    {
+      "name": "access_assay_and_prize_office",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          63
+        ],
+        [
+          18,
+          63
+        ]
+      ]
+    },
+    {
+      "name": "access_works_yard",
+      "kind": "service",
+      "width": 3,
+      "points": [
+        [
+          149,
+          143
+        ],
+        [
+          152,
+          143
+        ]
+      ]
+    },
+    {
+      "name": "access_arrival_court",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          240
+        ],
+        [
+          18,
+          240
+        ]
+      ]
+    },
+    {
+      "name": "access_welcome_court",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          240
+        ],
+        [
+          18,
+          240
+        ]
+      ]
+    },
+    {
+      "name": "access_snack_window",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          240
+        ],
+        [
+          18,
+          240
+        ]
+      ]
+    },
+    {
+      "name": "access_carousel_court",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          305
+        ],
+        [
+          18,
+          305
+        ]
+      ]
+    },
+    {
+      "name": "access_sky_lift",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          320
+        ],
+        [
+          18,
+          320
+        ]
+      ]
+    },
+    {
+      "name": "access_skill_arcade",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          17,
+          360
+        ],
+        [
+          20,
+          360
+        ]
+      ]
+    },
+    {
+      "name": "access_prize_point",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          358
+        ],
+        [
+          18,
+          358
+        ]
+      ]
+    },
+    {
+      "name": "access_wyrm_s_crossing",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          408
+        ],
+        [
+          18,
+          408
+        ]
+      ]
+    },
+    {
+      "name": "access_foundry_gate",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          453
+        ],
+        [
+          18,
+          453
+        ]
+      ]
+    },
+    {
+      "name": "access_prism_array",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          72,
+          460
+        ],
+        [
+          75,
+          460
+        ]
+      ]
+    },
+    {
+      "name": "access_resonance_vault",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          72,
+          506
+        ],
+        [
+          75,
+          506
+        ]
+      ]
+    },
+    {
+      "name": "access_prism_ascent",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          21,
+          560
+        ],
+        [
+          24,
+          560
+        ]
+      ]
+    },
+    {
+      "name": "access_forge_deck",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          125,
+          528
+        ],
+        [
+          128,
+          528
+        ]
+      ]
+    },
+    {
+      "name": "access_service_gallery",
+      "kind": "service",
+      "width": 3,
+      "points": [
+        [
+          149,
+          570
+        ],
+        [
+          152,
+          570
+        ]
+      ]
+    },
+    {
+      "name": "access_claim_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          190
+        ],
+        [
+          18,
+          190
+        ]
+      ]
+    },
+    {
+      "name": "access_sky_lift_sloth",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          15,
+          358
+        ],
+        [
+          18,
+          358
+        ]
+      ]
+    },
+    {
+      "name": "access_frontier_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          85
+        ],
+        [
+          5,
+          85
+        ]
+      ]
+    },
+    {
+      "name": "access_frontier_reach_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          192
+        ],
+        [
+          5,
+          192
+        ]
+      ]
+    },
+    {
+      "name": "access_midway_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          300
+        ],
+        [
+          5,
+          300
+        ]
+      ]
+    },
+    {
+      "name": "access_prism_reach_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          407
+        ],
+        [
+          5,
+          407
+        ]
+      ]
+    },
+    {
+      "name": "access_prismworks_line",
+      "kind": "path",
+      "width": 3,
+      "points": [
+        [
+          2,
+          515
+        ],
+        [
+          5,
+          515
+        ]
+      ]
+    }
+  ],
+  "view_corridors": [],
+  "modules": [
+    {
+      "name": "Trailhead Gate",
+      "plot": "trailhead_gate",
+      "generator": "compose",
+      "role": "landmark",
+      "footprint": [
+        45,
+        39
+      ],
+      "at": [
+        18,
+        0
+      ],
+      "access_points": [
+        [
+          18,
+          19
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            19
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            19
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            27
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            44,
+            1,
+            36
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 6000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 38,
+              "depth": 38
+            },
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 37,
+              "depth": 27,
+              "height": 18
+            },
+            "offset": [
+              4,
+              -1,
+              8
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 15,
+              "height": 12
+            },
+            "offset": [
+              2,
+              -1,
+              2
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 15,
+              "height": 12
+            },
+            "offset": [
+              2,
+              -1,
+              22
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              26,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              26,
+              -1,
+              22
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "trestlebridge",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              30,
+              -1,
+              10
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "watertower",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              12,
+              -1,
+              20
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "mapboard",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              -1,
+              4
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "noticeboard",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              -1,
+              18
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Signal Heron",
+      "plot": "signal_heron",
+      "generator": "compose",
+      "role": "sculpture",
+      "footprint": [
+        20,
+        38
+      ],
+      "at": [
+        34,
+        174
+      ],
+      "access_points": [
+        [
+          82,
+          192
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            22
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "support_root",
+          "kind": "support",
+          "position": [
+            26,
+            0,
+            22
+          ],
+          "facing": "down",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Trailhead Gate"
+      ],
+      "budget": {
+        "blocks": 7900
+      },
+      "scenarios": [
+        "visual_review"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 42,
+              "depth": 44
+            },
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "trestlebridge",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              8,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "trestlebridge",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              8,
+              -1,
+              9
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "trestlebridge",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              8,
+              -1,
+              17
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              30,
+              -1,
+              2
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              30,
+              -1,
+              20
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "watertower",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              24,
+              -1,
+              12
+            ]
+          },
+          {
+            "gen": "heron",
+            "params": {
+              "variant": "heron",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "scale": 1.0,
+              "seed": 0
+            },
+            "offset": [
+              3,
+              6,
+              1
+            ]
+          }
+        ]
+      },
+      "resized_note": "52 x 45 reached U218 - four columns into the Midway, overlapping Arrival Court by 152 cells, and crossing both midway walk 1 and the U213 threshold. THE BIRD MEASURES 14 x 32. The garden is sized to the sculpture plus a viewing margin, which is what it was always meant to be, and it now sits inside the Claim Line reach it is sited on."
+    },
+    {
+      "name": "Boomtown Spine",
+      "plot": "boomtown_spine",
+      "generator": "compose",
+      "role": "building",
+      "footprint": [
+        53,
+        46
+      ],
+      "at": [
+        18,
+        40
+      ],
+      "access_points": [
+        [
+          18,
+          63
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            23
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            23
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            31
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            52,
+            1,
+            43
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Trailhead Gate"
+      ],
+      "budget": {
+        "blocks": 8000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "plaza",
+              "width": 45,
+              "depth": 52,
+              "obstacles": [
+                [
+                  0,
+                  5,
+                  52,
+                  21
+                ],
+                [
+                  2,
+                  24,
+                  52,
+                  44
+                ]
+              ],
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              1,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "land": "frontier",
+              "facing": "south",
+              "kind": "falsefront",
+              "shops": 5,
+              "title": "MAIN STREET",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              2,
+              -1,
+              10
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "land": "frontier",
+              "facing": "south",
+              "kind": "watertower",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              41,
+              -1,
+              8
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "land": "frontier",
+              "facing": "north",
+              "kind": "saloon",
+              "title": "SALOON",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              4,
+              -1,
+              23
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "land": "frontier",
+              "facing": "north",
+              "kind": "minehead",
+              "title": "COASTER STATION",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              28,
+              -11,
+              27
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              2,
+              -1,
+              2
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              2,
+              -1,
+              19
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              2,
+              -1,
+              34
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              22,
+              -1,
+              19
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              42,
+              -1,
+              19
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "bench",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              14,
+              -1,
+              20
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "bench",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              34,
+              -1,
+              20
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "arch",
+              "width": 5,
+              "height": 5,
+              "title": "MINING SQUARE",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              48,
+              -1,
+              20
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "noticeboard",
+              "title": "BOOMTOWN",
+              "rules": [
+                "assay office east",
+                "coaster station"
+              ],
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              3,
+              -1,
+              11
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Mining Square",
+      "plot": "mining_square",
+      "generator": "compose",
+      "role": "path",
+      "footprint": [
+        41,
+        46
+      ],
+      "at": [
+        80,
+        47
+      ],
+      "access_points": [
+        [
+          18,
+          63
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            23
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            23
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            31
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            55,
+            1,
+            43
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Boomtown Spine"
+      ],
+      "budget": {
+        "blocks": 4000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "plaza",
+              "width": 45,
+              "depth": 55,
+              "obstacles": [
+                [
+                  39,
+                  0,
+                  55,
+                  45
+                ]
+              ],
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              1,
+              -2,
+              1
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "trestlebridge",
+              "length": 26,
+              "deck": 7,
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              42,
+              -1,
+              8
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "arch",
+              "width": 7,
+              "height": 6,
+              "title": "COASTER QUEUE",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              51,
+              -1,
+              4
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "arch",
+              "width": 7,
+              "height": 6,
+              "title": "RIDE EXIT",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              51,
+              -1,
+              34
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "arch",
+              "width": 7,
+              "height": 6,
+              "title": "MINING SQUARE",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              3,
+              -1,
+              20
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "mapboard",
+              "zone": "frontier",
+              "title": "MINING SQUARE",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              3,
+              -1,
+              32
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "marker",
+              "name": "MINE COASTER",
+              "does": [
+                "queue north",
+                "exit south"
+              ],
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              35,
+              -1,
+              21
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "noticeboard",
+              "title": "MINE COASTER",
+              "rules": [
+                "queue at the north arch",
+                "riders leave south"
+              ],
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              3,
+              -1,
+              7
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              6,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              6,
+              -1,
+              39
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              32,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              32,
+              -1,
+              39
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              18,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              18,
+              -1,
+              39
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "bench",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              14,
+              -1,
+              9
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "bench",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              14,
+              -1,
+              31
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "bench",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              28,
+              -1,
+              9
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "bench",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              28,
+              -1,
+              31
+            ]
+          }
+        ]
+      },
+      "resized_note": "56 deep ran V78-133: through the back promenade and 184 cells into the Assay office, including the cell that is Assay's own front door. Frontier B owes 53 + 56 = 109 into a 97-deep column. At 41 the column reads Boomtown V24-76 (53) + a 3-wide walk V77-79 + Mining Square V80-120 (41) = EXACTLY 97, and its front door then addresses a real street instead of the back of Boomtown Spine. It is an open square, not a building."
+    },
+    {
+      "name": "Mine Coaster",
+      "plot": "mine_coaster",
+      "generator": "coaster",
+      "role": "ride",
+      "footprint": [
+        111,
+        71
+      ],
+      "at": [
+        30,
+        90
+      ],
+      "access_points": [
+        [
+          18,
+          125
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            35
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            43
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            110,
+            1,
+            68
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            27
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            55,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            47
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Mining Square"
+      ],
+      "budget": {
+        "blocks": 30000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics",
+        "safety"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "kind": "coaster",
+        "land": "frontier",
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "facing": "west",
+        "span": 92,
+        "span_i": 58,
+        "top": 38,
+        "queue_rows": 22,
+        "ridge": true
+      }
+    },
+    {
+      "name": "Prospecting Porch",
+      "plot": "prospecting_porch",
+      "generator": "compose",
+      "role": "ride",
+      "footprint": [
+        51,
+        40
+      ],
+      "at": [
+        85,
+        0
+      ],
+      "access_points": [
+        [
+          85,
+          20
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            50,
+            1,
+            37
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            12
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            25,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            32
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Mining Square"
+      ],
+      "budget": {
+        "blocks": 6000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 38,
+              "depth": 39
+            },
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "arcade",
+            "params": {
+              "kind": "range",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              6,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "minehead",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              4,
+              -1,
+              13
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "sluice",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              6,
+              -1,
+              20
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "watertower",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              30,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "powderhouse",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              26,
+              -1,
+              20
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              34,
+              -1,
+              10
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 15,
+              "height": 12
+            },
+            "offset": [
+              1,
+              -1,
+              14
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "noticeboard",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              -1,
+              4
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Assay and Prize Office",
+      "plot": "assay_and_prize_office",
+      "generator": "compose",
+      "role": "building",
+      "footprint": [
+        20,
+        46
+      ],
+      "at": [
+        132,
+        40
+      ],
+      "access_points": [
+        [
+          18,
+          63
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            23
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            23
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            31
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            19,
+            1,
+            43
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Prospecting Porch"
+      ],
+      "budget": {
+        "blocks": 3000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "plaza",
+              "width": 44,
+              "depth": 19,
+              "obstacles": [
+                [
+                  1,
+                  0,
+                  19,
+                  40
+                ]
+              ],
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              1,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "saloon",
+              "title": "ASSAY OFFICE",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              3,
+              -1,
+              2
+            ]
+          },
+          {
+            "gen": "arcade",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "prizecounter",
+              "lanes": 5,
+              "title": "PRIZE OFFICE",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              3,
+              -1,
+              23
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "land": "frontier",
+              "facing": "east",
+              "kind": "arch",
+              "width": 5,
+              "height": 5,
+              "title": "SERVICE",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              15,
+              -1,
+              29
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "noticeboard",
+              "title": "RESULTS",
+              "rules": [
+                "range and sluice",
+                "collected here"
+              ],
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              1,
+              -1,
+              39
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              2,
+              -1,
+              21
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              13,
+              -1,
+              21
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Works Yard",
+      "plot": "works_yard",
+      "generator": "compose",
+      "role": "service",
+      "footprint": [
+        13,
+        36
+      ],
+      "at": [
+        157,
+        125
+      ],
+      "access_points": [
+        [
+          152,
+          143
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            18
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            18
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            26
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            17,
+            1,
+            33
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Mine Coaster"
+      ],
+      "budget": {
+        "blocks": 2000
+      },
+      "scenarios": [
+        "service_access"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "plaza",
+              "width": 34,
+              "depth": 17,
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              1,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "trestlebridge",
+              "length": 20,
+              "deck": 6,
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              0,
+              -1,
+              5
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "walkthrough",
+              "width": 9,
+              "depth": 9,
+              "title": "WORKS SHED",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              7,
+              -1,
+              7
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "noticeboard",
+              "title": "WORKS YARD",
+              "rules": [
+                "staff only",
+                "cart reset in progress"
+              ],
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              1,
+              -1,
+              30
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "land": "frontier",
+              "facing": "west",
+              "kind": "lamppost",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            },
+            "offset": [
+              10,
+              -1,
+              23
+            ]
+          }
+        ]
+      },
+      "resized_note": "18 deep from V157 reached V174 - across the rim edge and four courses into the protected reserve V170-199. The service band is EXACTLY 18 (V152-169) and the service lane takes V154-156, so 13 is all there is behind it: a lane inside the band and an 18-deep yard behind the lane cannot both exist. It gains 5 of width instead, which the band has."
+    },
+    {
+      "name": "Claim Line",
+      "plot": "claim_line",
+      "generator": "compose",
+      "role": "path",
+      "footprint": [
+        75,
+        41
+      ],
+      "at": [
+        6,
+        172
+      ],
+      "access_points": [
+        [
+          18,
+          190
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            74,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Trailhead Gate"
+      ],
+      "budget": {
+        "blocks": 8000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 40,
+              "depth": 70
+            },
+            "offset": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 19,
+              "depth": 15,
+              "height": 18
+            },
+            "offset": [
+              1,
+              0,
+              10
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "land": "midway",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 19,
+              "depth": 15,
+              "height": 18
+            },
+            "offset": [
+              54,
+              0,
+              10
+            ]
+          },
+          {
+            "gen": "frontiertown",
+            "params": {
+              "kind": "trestlebridge",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              24,
+              0,
+              4
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "frontier",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              28,
+              0,
+              26
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Arrival Court",
+      "plot": "arrival_court",
+      "generator": "compose",
+      "role": "arrival",
+      "footprint": [
+        48,
+        41
+      ],
+      "at": [
+        18,
+        220
+      ],
+      "access_points": [
+        [
+          18,
+          240
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            47,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 7000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "at": [
+                11,
+                0,
+                11
+              ],
+              "facing": "west",
+              "land": "midway",
+              "lanes": 3,
+              "width": 17,
+              "title": "MIDWAY"
+            },
+            "offset": [
+              9,
+              -1,
+              9
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "turnstile",
+              "at": [
+                43,
+                0,
+                2
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "PARK ENTRY",
+              "lanes": 3
+            },
+            "offset": [
+              29,
+              -3,
+              1
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "turnstile",
+              "at": [
+                43,
+                0,
+                16
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "RE-ENTRY",
+              "lanes": 2
+            },
+            "offset": [
+              29,
+              -3,
+              15
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "boxoffice",
+              "at": [
+                37,
+                0,
+                28
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "GUEST OFFICE",
+              "windows": 3
+            },
+            "offset": [
+              36,
+              -1,
+              27
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "lockers",
+              "at": [
+                30,
+                0,
+                30
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "STAFF ONLY",
+              "bays": 6
+            },
+            "offset": [
+              29,
+              -1,
+              29
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "queue",
+              "at": [
+                30,
+                0,
+                2
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "ENTRY QUEUE"
+            },
+            "offset": [
+              29,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "queue",
+              "at": [
+                30,
+                0,
+                16
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "RE-ENTRY QUEUE"
+            },
+            "offset": [
+              29,
+              -1,
+              15
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "at": [
+                15,
+                0,
+                3
+              ],
+              "facing": "north",
+              "land": "midway",
+              "width": 11,
+              "depth": 9,
+              "title": "RE-ENTRY",
+              "lines": [
+                "Keep your pass",
+                "Free to re-enter"
+              ]
+            },
+            "offset": [
+              14,
+              -1,
+              2
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "at": [
+                15,
+                0,
+                37
+              ],
+              "facing": "south",
+              "land": "midway",
+              "title": "PARK INFORMATION",
+              "lines": [
+                "Three lands",
+                "All rides free",
+                "Grass = optional"
+              ]
+            },
+            "offset": [
+              6,
+              -1,
+              30
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "at": [
+                26,
+                0,
+                29
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 11,
+              "depth": 9,
+              "title": "STAFF ROUTE",
+              "lines": [
+                "Staff route",
+                "No public entry"
+              ]
+            },
+            "offset": [
+              25,
+              -1,
+              28
+            ]
+          },
+          {
+            "gen": "arrival",
+            "params": {
+              "at": [
+                21,
+                0,
+                20
+              ],
+              "land": "midway",
+              "kind": "court",
+              "radius": 11,
+              "chamfer": 5,
+              "spur": 3,
+              "gate": "west",
+              "title": "ARRIVAL COURT",
+              "arms": [
+                {
+                  "direction": "east",
+                  "dest": "MIDWAY",
+                  "length": 4
+                },
+                {
+                  "direction": "north",
+                  "dest": "FRONTIER",
+                  "length": 4
+                },
+                {
+                  "direction": "west",
+                  "dest": "PARK GATE",
+                  "length": 4
+                }
+              ],
+              "rules": [
+                "Entry is free",
+                "Rides are free",
+                "Grass challenges",
+                "are optional"
+              ],
+              "dig_radius": 0
+            },
+            "offset": [
+              7,
+              -1,
+              6
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "mapboard",
+              "at": [
+                2,
+                0,
+                6
+              ],
+              "facing": "west",
+              "land": "midway",
+              "zone": "midway",
+              "title": "PARK MAP"
+            },
+            "offset": [
+              1,
+              -1,
+              5
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "noticeboard",
+              "at": [
+                2,
+                0,
+                33
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "PARK RULES",
+              "rules": [
+                "All rides free",
+                "Grass chest =",
+                "optional replay",
+                "Ask staff"
+              ]
+            },
+            "offset": [
+              1,
+              -1,
+              32
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                3,
+                0,
+                14
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              3,
+              -1,
+              13
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                3,
+                0,
+                24
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              3,
+              -1,
+              23
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                24,
+                0,
+                3
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              22,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                24,
+                0,
+                36
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              22,
+              -1,
+              34
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                6,
+                0,
+                20
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              4,
+              -1,
+              18
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                1,
+                0,
+                18
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "TO FRONTIER"
+            },
+            "offset": [
+              0,
+              -1,
+              17
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                8,
+                0,
+                1
+              ],
+              "facing": "north",
+              "land": "midway",
+              "title": "ARRIVAL"
+            },
+            "offset": [
+              7,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                9,
+                0,
+                39
+              ],
+              "facing": "south",
+              "land": "midway",
+              "title": "PARK RULES"
+            },
+            "offset": [
+              0,
+              -1,
+              36
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                10,
+                0,
+                16
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              10,
+              -1,
+              15
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                10,
+                0,
+                24
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              10,
+              -1,
+              23
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "planter",
+              "at": [
+                12,
+                0,
+                32
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              11,
+              -1,
+              31
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "topiary",
+              "at": [
+                12,
+                0,
+                8
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              11,
+              -1,
+              7
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                20,
+                0,
+                1
+              ],
+              "facing": "north",
+              "land": "midway",
+              "title": "TO FRONTIER"
+            },
+            "offset": [
+              19,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                20,
+                0,
+                39
+              ],
+              "facing": "south",
+              "land": "midway",
+              "title": "TO PRISMWORKS"
+            },
+            "offset": [
+              11,
+              -1,
+              36
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                12,
+                0,
+                20
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              10,
+              -1,
+              18
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "at": [
+                1,
+                0,
+                7
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 9,
+              "depth": 9,
+              "title": "PARK MAP",
+              "lines": [
+                "Three lands",
+                "All rides free"
+              ]
+            },
+            "offset": [
+              0,
+              -1,
+              6
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "at": [
+                1,
+                0,
+                25
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 9,
+              "depth": 9,
+              "title": "PARK RULES",
+              "lines": [
+                "Grass chests are",
+                "optional replays"
+              ]
+            },
+            "offset": [
+              0,
+              -1,
+              24
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 41,
+              "depth": 48,
+              "obstacles": [
+                [
+                  28,
+                  0,
+                  47,
+                  27
+                ],
+                [
+                  24,
+                  26,
+                  47,
+                  40
+                ],
+                [
+                  0,
+                  4,
+                  8,
+                  38
+                ],
+                [
+                  9,
+                  0,
+                  26,
+                  12
+                ],
+                [
+                  9,
+                  30,
+                  26,
+                  40
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Welcome Court",
+      "plot": "welcome_court",
+      "generator": "compose",
+      "role": "path",
+      "footprint": [
+        56,
+        61
+      ],
+      "at": [
+        70,
+        220
+      ],
+      "access_points": [
+        [
+          18,
+          240
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            50,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Arrival Court"
+      ],
+      "budget": {
+        "blocks": 5000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway",
+      "params": {
+        "parts": [
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "fingerpost",
+              "at": [
+                25,
+                0,
+                20
+              ],
+              "facing": "west",
+              "land": "midway",
+              "post_h": 6,
+              "title": "WELCOME COURT",
+              "arms": [
+                {
+                  "direction": "east",
+                  "dest": "CAROUSEL",
+                  "length": 4
+                },
+                {
+                  "direction": "north",
+                  "dest": "THE BIG WHEEL",
+                  "length": 4
+                },
+                {
+                  "direction": "west",
+                  "dest": "FRONTIER",
+                  "length": 4
+                },
+                {
+                  "direction": "south",
+                  "dest": "PARK GATE",
+                  "length": 4
+                }
+              ]
+            },
+            "offset": [
+              21,
+              -1,
+              16
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "marker",
+              "at": [
+                9,
+                0,
+                20
+              ],
+              "facing": "west",
+              "land": "midway",
+              "name": "CAROUSEL",
+              "number": 3,
+              "does": "Family ride"
+            },
+            "offset": [
+              8,
+              -1,
+              19
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "marker",
+              "at": [
+                41,
+                0,
+                20
+              ],
+              "facing": "west",
+              "land": "midway",
+              "name": "THE BIG WHEEL",
+              "number": 4,
+              "does": "Sky Lift ride"
+            },
+            "offset": [
+              40,
+              -1,
+              19
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "mapboard",
+              "at": [
+                2,
+                0,
+                12
+              ],
+              "facing": "west",
+              "land": "midway",
+              "zone": "midway",
+              "title": "YOU ARE HERE"
+            },
+            "offset": [
+              1,
+              -1,
+              11
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "noticeboard",
+              "at": [
+                2,
+                0,
+                28
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "TODAY",
+              "rules": [
+                "All rides free",
+                "Grass chests are",
+                "optional replays"
+              ]
+            },
+            "offset": [
+              1,
+              -1,
+              27
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                1,
+                0,
+                16
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "TO FRONTIER"
+            },
+            "offset": [
+              0,
+              -1,
+              15
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                49,
+                0,
+                24
+              ],
+              "facing": "east",
+              "land": "midway",
+              "title": "TO PRISMWORKS"
+            },
+            "offset": [
+              46,
+              -1,
+              15
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                20,
+                0,
+                1
+              ],
+              "facing": "north",
+              "land": "midway",
+              "title": "TO CAROUSEL"
+            },
+            "offset": [
+              19,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                30,
+                0,
+                39
+              ],
+              "facing": "south",
+              "land": "midway",
+              "title": "TO SKY LIFT"
+            },
+            "offset": [
+              21,
+              -1,
+              36
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                5,
+                0,
+                4
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              5,
+              -1,
+              3
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                5,
+                0,
+                30
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              5,
+              -1,
+              29
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                42,
+                0,
+                8
+              ],
+              "facing": "east",
+              "land": "midway"
+            },
+            "offset": [
+              36,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                42,
+                0,
+                30
+              ],
+              "facing": "east",
+              "land": "midway"
+            },
+            "offset": [
+              39,
+              -1,
+              21
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                16,
+                0,
+                4
+              ],
+              "facing": "north",
+              "land": "midway"
+            },
+            "offset": [
+              15,
+              -1,
+              4
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                34,
+                0,
+                4
+              ],
+              "facing": "north",
+              "land": "midway"
+            },
+            "offset": [
+              33,
+              -1,
+              4
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                16,
+                0,
+                36
+              ],
+              "facing": "south",
+              "land": "midway"
+            },
+            "offset": [
+              7,
+              -1,
+              29
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                34,
+                0,
+                36
+              ],
+              "facing": "south",
+              "land": "midway"
+            },
+            "offset": [
+              28,
+              -1,
+              28
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "planter",
+              "at": [
+                12,
+                0,
+                8
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              11,
+              -1,
+              7
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "planter",
+              "at": [
+                12,
+                0,
+                32
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              11,
+              -1,
+              31
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "planter",
+              "at": [
+                38,
+                0,
+                8
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              37,
+              -1,
+              7
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "planter",
+              "at": [
+                38,
+                0,
+                32
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              37,
+              -1,
+              31
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "planter",
+              "at": [
+                20,
+                0,
+                6
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              19,
+              -1,
+              5
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "planter",
+              "at": [
+                30,
+                0,
+                6
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              29,
+              -1,
+              5
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "planter",
+              "at": [
+                20,
+                0,
+                34
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              19,
+              -1,
+              33
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "planter",
+              "at": [
+                30,
+                0,
+                34
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              29,
+              -1,
+              33
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "topiary",
+              "at": [
+                7,
+                0,
+                16
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              6,
+              -1,
+              15
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "topiary",
+              "at": [
+                7,
+                0,
+                24
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              6,
+              -1,
+              23
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "topiary",
+              "at": [
+                43,
+                0,
+                15
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              42,
+              -1,
+              14
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "topiary",
+              "at": [
+                43,
+                0,
+                25
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              42,
+              -1,
+              24
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "topiary",
+              "at": [
+                17,
+                0,
+                16
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              16,
+              -1,
+              15
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "topiary",
+              "at": [
+                33,
+                0,
+                24
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              32,
+              -1,
+              23
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "flagpole",
+              "at": [
+                7,
+                0,
+                7
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              6,
+              -1,
+              6
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "flagpole",
+              "at": [
+                42,
+                0,
+                31
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              41,
+              -1,
+              30
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                11,
+                0,
+                20
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              9,
+              -1,
+              18
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                39,
+                0,
+                20
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              37,
+              -1,
+              18
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                25,
+                0,
+                8
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              23,
+              -1,
+              6
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                25,
+                0,
+                32
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              23,
+              -1,
+              30
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 41,
+              "depth": 51,
+              "obstacles": [
+                [
+                  18,
+                  14,
+                  32,
+                  26
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              -2,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Midway Row",
+      "plot": "welcome_court",
+      "generator": "midwaybuild",
+      "role": "building",
+      "footprint": [
+        41,
+        71
+      ],
+      "at": [
+        80,
+        266
+      ],
+      "access_points": [
+        [
+          80,
+          300
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            34
+          ],
+          "facing": "west",
+          "width": 13
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            34
+          ],
+          "facing": "west",
+          "width": 13
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            40,
+            1,
+            34
+          ],
+          "facing": "east",
+          "width": 13
+        }
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 6000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade"
+      ],
+      "style": "midway"
+    },
+    {
+      "name": "Snack Window",
+      "plot": "snack_window",
+      "generator": "compose",
+      "role": "building",
+      "footprint": [
+        27,
+        41
+      ],
+      "at": [
+        125,
+        220
+      ],
+      "access_points": [
+        [
+          18,
+          240
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            26,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Welcome Court"
+      ],
+      "budget": {
+        "blocks": 2000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "stall",
+              "at": [
+                14,
+                0,
+                16
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 9,
+              "depth": 7,
+              "title": "SNACK WINDOW",
+              "lines": [
+                "One counter",
+                "Four seats",
+                "No table service"
+              ]
+            },
+            "offset": [
+              13,
+              -1,
+              15
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                7,
+                0,
+                13
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              7,
+              -1,
+              12
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                7,
+                0,
+                24
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              7,
+              -1,
+              23
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                8,
+                0,
+                33
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              6,
+              -1,
+              31
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                2,
+                0,
+                16
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "SNACK WINDOW"
+            },
+            "offset": [
+              1,
+              -1,
+              15
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "planter",
+              "at": [
+                8,
+                0,
+                8
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              7,
+              -1,
+              7
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                8,
+                0,
+                7
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              6,
+              -1,
+              5
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 41,
+              "depth": 27,
+              "obstacles": [
+                [
+                  12,
+                  14,
+                  26,
+                  28
+                ],
+                [
+                  0,
+                  14,
+                  8,
+                  28
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Carousel Court",
+      "plot": "carousel_court",
+      "generator": "compose",
+      "role": "ride",
+      "footprint": [
+        48,
+        41
+      ],
+      "at": [
+        18,
+        270
+      ],
+      "access_points": [
+        [
+          18,
+          305
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            35
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            43
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            67,
+            1,
+            68
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            27
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            34,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            47
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Welcome Court"
+      ],
+      "budget": {
+        "blocks": 9000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics",
+        "safety"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway",
+      "params": {
+        "parts": [
+          {
+            "gen": "bigwheel",
+            "params": {
+              "kind": "carousel",
+              "at": [
+                12,
+                0,
+                14
+              ],
+              "facing": "west",
+              "land": "midway",
+              "diameter": 45,
+              "mounts": 12,
+              "title": "THE CAROUSEL"
+            },
+            "offset": [
+              7,
+              -1,
+              14
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "queue",
+              "at": [
+                3,
+                0,
+                19
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "CAROUSEL QUEUE"
+            },
+            "offset": [
+              2,
+              -1,
+              18
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "ridegate",
+              "at": [
+                17,
+                0,
+                19
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "BOARDING"
+            },
+            "offset": [
+              3,
+              -3,
+              18
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "ridegate",
+              "at": [
+                17,
+                0,
+                43
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "RIDE EXIT"
+            },
+            "offset": [
+              3,
+              -3,
+              42
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "at": [
+                60,
+                0,
+                30
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "OPERATOR",
+              "lines": [
+                "Ride control",
+                "Staff only"
+              ]
+            },
+            "offset": [
+              59,
+              -1,
+              29
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                4,
+                0,
+                7
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              4,
+              -1,
+              6
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                4,
+                0,
+                58
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              4,
+              -1,
+              57
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "marker",
+              "at": [
+                3,
+                0,
+                34
+              ],
+              "facing": "west",
+              "land": "midway",
+              "name": "CAROUSEL",
+              "number": 3,
+              "does": "Free family ride"
+            },
+            "offset": [
+              2,
+              -1,
+              33
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                3,
+                0,
+                2
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              1,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                3,
+                0,
+                63
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              1,
+              -1,
+              61
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                1,
+                0,
+                32
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "THE CAROUSEL"
+            },
+            "offset": [
+              0,
+              -1,
+              31
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                62,
+                0,
+                12
+              ],
+              "facing": "east",
+              "land": "midway"
+            },
+            "offset": [
+              59,
+              -1,
+              5
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                62,
+                0,
+                52
+              ],
+              "facing": "east",
+              "land": "midway"
+            },
+            "offset": [
+              59,
+              -1,
+              44
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "at": [
+                1,
+                0,
+                1
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 69,
+              "depth": 13,
+              "obstacles": [
+                [
+                  6,
+                  12,
+                  60,
+                  62
+                ],
+                [
+                  57,
+                  26,
+                  67,
+                  42
+                ]
+              ]
+            },
+            "offset": [
+              1,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "at": [
+                1,
+                0,
+                62
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 8,
+              "depth": 66,
+              "obstacles": [
+                [
+                  6,
+                  12,
+                  60,
+                  62
+                ],
+                [
+                  57,
+                  26,
+                  67,
+                  42
+                ]
+              ]
+            },
+            "offset": [
+              1,
+              -1,
+              62
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "at": [
+                1,
+                0,
+                1
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 12,
+              "depth": 66,
+              "obstacles": [
+                [
+                  6,
+                  12,
+                  60,
+                  62
+                ],
+                [
+                  57,
+                  26,
+                  67,
+                  42
+                ]
+              ]
+            },
+            "offset": [
+              1,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "at": [
+                59,
+                0,
+                1
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 69,
+              "depth": 8,
+              "obstacles": [
+                [
+                  6,
+                  12,
+                  60,
+                  62
+                ],
+                [
+                  57,
+                  26,
+                  67,
+                  42
+                ]
+              ]
+            },
+            "offset": [
+              59,
+              -1,
+              1
+            ]
+          }
+        ]
+      },
+      "resized_note": "the RIDE alone at diameter 39 - 46 x 41 - in the Midway's column A lot (48 x 41), which the Arrival Court held until 2026-09-03. At diameter 45 it was 52 x 47 and column B was the only column wide enough."
+    },
+    {
+      "name": "Sky Lift",
+      "plot": "sky_lift",
+      "generator": "compose",
+      "role": "ride",
+      "footprint": [
+        22,
+        71
+      ],
+      "at": [
+        90,
+        270
+      ],
+      "access_points": [
+        [
+          18,
+          320
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            35
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            43
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            65,
+            1,
+            68
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            27
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            33,
+            1,
+            35
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            47
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Welcome Court"
+      ],
+      "budget": {
+        "blocks": 14000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics",
+        "safety"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway",
+      "params": {
+        "parts": [
+          {
+            "gen": "bigwheel",
+            "params": {
+              "kind": "wheel",
+              "at": [
+                14,
+                0,
+                2
+              ],
+              "facing": "west",
+              "land": "midway",
+              "diameter": 57,
+              "cars": 12,
+              "title": "THE SKY LIFT"
+            },
+            "offset": [
+              8,
+              -4,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "at": [
+                2,
+                0,
+                26
+              ],
+              "facing": "west",
+              "land": "midway",
+              "lanes": 3,
+              "width": 15,
+              "title": "SKY LIFT"
+            },
+            "offset": [
+              0,
+              -1,
+              24
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "queue",
+              "at": [
+                3,
+                0,
+                13
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "SKY LIFT QUEUE"
+            },
+            "offset": [
+              2,
+              -1,
+              12
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "ridegate",
+              "at": [
+                17,
+                0,
+                13
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "LIFT ENTRY"
+            },
+            "offset": [
+              3,
+              -3,
+              12
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "ridegate",
+              "at": [
+                17,
+                0,
+                51
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "LIFT EXIT"
+            },
+            "offset": [
+              3,
+              -3,
+              50
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "at": [
+                30,
+                0,
+                26
+              ],
+              "facing": "east",
+              "land": "midway",
+              "width": 11,
+              "depth": 9,
+              "title": "RETURN",
+              "lines": [
+                "To Welcome Court",
+                "and Prize Point"
+              ]
+            },
+            "offset": [
+              21,
+              -1,
+              15
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "at": [
+                46,
+                0,
+                20
+              ],
+              "facing": "east",
+              "land": "midway",
+              "title": "LIFT CONTROL",
+              "lines": [
+                "Ride control",
+                "Staff only"
+              ]
+            },
+            "offset": [
+              39,
+              -1,
+              11
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "lockers",
+              "at": [
+                44,
+                0,
+                38
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "STAFF ONLY",
+              "bays": 6
+            },
+            "offset": [
+              43,
+              -1,
+              37
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                1,
+                0,
+                4
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "SKY LIFT"
+            },
+            "offset": [
+              0,
+              -1,
+              3
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                1,
+                0,
+                44
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "SKY LIFT"
+            },
+            "offset": [
+              0,
+              -1,
+              43
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                1,
+                0,
+                60
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "SKY LIFT"
+            },
+            "offset": [
+              0,
+              -1,
+              59
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                44,
+                0,
+                4
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "SKY LIFT"
+            },
+            "offset": [
+              43,
+              -1,
+              3
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                44,
+                0,
+                18
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "SKY LIFT"
+            },
+            "offset": [
+              43,
+              -1,
+              17
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                44,
+                0,
+                46
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "SKY LIFT"
+            },
+            "offset": [
+              43,
+              -1,
+              45
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                44,
+                0,
+                60
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "SKY LIFT"
+            },
+            "offset": [
+              43,
+              -1,
+              59
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                46,
+                0,
+                30
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              46,
+              -1,
+              29
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                50,
+                0,
+                12
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              48,
+              -1,
+              10
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                50,
+                0,
+                52
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              48,
+              -1,
+              50
+            ]
+          },
+          {
+            "gen": "wayfinding",
+            "params": {
+              "kind": "marker",
+              "at": [
+                3,
+                0,
+                34
+              ],
+              "facing": "west",
+              "land": "midway",
+              "name": "THE BIG WHEEL",
+              "number": 4,
+              "does": "Sky Lift ride"
+            },
+            "offset": [
+              2,
+              -1,
+              33
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                4,
+                0,
+                20
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              4,
+              -1,
+              19
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                4,
+                0,
+                56
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              4,
+              -1,
+              55
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                28,
+                0,
+                34
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              28,
+              -1,
+              33
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                28,
+                0,
+                2
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              26,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                28,
+                0,
+                66
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              26,
+              -1,
+              64
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "flagpole",
+              "at": [
+                52,
+                0,
+                30
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              51,
+              -1,
+              29
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "at": [
+                28,
+                0,
+                1
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 68,
+              "depth": 33,
+              "obstacles": [
+                [
+                  2,
+                  0,
+                  27,
+                  70
+                ],
+                [
+                  28,
+                  4,
+                  44,
+                  22
+                ],
+                [
+                  28,
+                  42,
+                  44,
+                  60
+                ],
+                [
+                  42,
+                  0,
+                  60,
+                  70
+                ],
+                [
+                  28,
+                  24,
+                  42,
+                  36
+                ]
+              ]
+            },
+            "offset": [
+              28,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "at": [
+                1,
+                0,
+                1
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 68,
+              "depth": 20,
+              "obstacles": [
+                [
+                  2,
+                  0,
+                  27,
+                  70
+                ],
+                [
+                  28,
+                  4,
+                  44,
+                  22
+                ],
+                [
+                  28,
+                  42,
+                  44,
+                  60
+                ],
+                [
+                  42,
+                  0,
+                  60,
+                  70
+                ],
+                [
+                  28,
+                  24,
+                  42,
+                  36
+                ]
+              ]
+            },
+            "offset": [
+              1,
+              -1,
+              1
+            ]
+          }
+        ]
+      },
+      "resized_note": "the WHEEL alone; 19 deep as built, 22 declared for its own clearance"
+    },
+    {
+      "name": "Sky Lift Sloth",
+      "plot": "sky_lift_sloth",
+      "generator": "sloth",
+      "role": "sculpture",
+      "footprint": [
+        46,
+        25
+      ],
+      "at": [
+        96,
+        348
+      ],
+      "access_points": [
+        [
+          18,
+          358
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            12
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "support_root",
+          "kind": "support",
+          "position": [
+            23,
+            0,
+            12
+          ],
+          "facing": "down",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Sky Lift"
+      ],
+      "budget": {
+        "blocks": 4500
+      },
+      "scenarios": [
+        "visual_review"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway",
+      "params": {
+        "hero": true
+      }
+    },
+    {
+      "name": "Skill Arcade",
+      "plot": "skill_arcade",
+      "generator": "compose",
+      "role": "ride",
+      "footprint": [
+        51,
+        33
+      ],
+      "at": [
+        20,
+        348
+      ],
+      "access_points": [
+        [
+          20,
+          360
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            16
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            16
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            24
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            50,
+            1,
+            30
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            8
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            25,
+            1,
+            16
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Welcome Court"
+      ],
+      "budget": {
+        "blocks": 6000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway",
+      "params": {
+        "parts": [
+          {
+            "gen": "arcade",
+            "params": {
+              "kind": "strength",
+              "at": [
+                9,
+                0,
+                2
+              ],
+              "facing": "west",
+              "land": "midway",
+              "rungs": 14,
+              "title": "HIGH STRIKER"
+            },
+            "offset": [
+              8,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "arcade",
+            "params": {
+              "kind": "range",
+              "at": [
+                22,
+                0,
+                2
+              ],
+              "facing": "west",
+              "land": "midway",
+              "score": 9,
+              "win": 6,
+              "title": "TARGET LINE"
+            },
+            "offset": [
+              21,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "arcade",
+            "params": {
+              "kind": "plinko",
+              "at": [
+                22,
+                0,
+                17
+              ],
+              "facing": "west",
+              "land": "midway",
+              "lanes": 3,
+              "board": 20,
+              "title": "PLINKO BOARD"
+            },
+            "offset": [
+              21,
+              -1,
+              16
+            ]
+          },
+          {
+            "gen": "ticketing",
+            "params": {
+              "kind": "lockers",
+              "at": [
+                38,
+                0,
+                18
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "STAFF ONLY",
+              "bays": 6
+            },
+            "offset": [
+              37,
+              -1,
+              17
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "at": [
+                9,
+                0,
+                23
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "ATTENDANT",
+              "lines": [
+                "Resets and prizes",
+                "Staff only"
+              ]
+            },
+            "offset": [
+              8,
+              -1,
+              22
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                3,
+                0,
+                3
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              3,
+              -1,
+              2
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                3,
+                0,
+                14
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              3,
+              -1,
+              13
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "bench",
+              "at": [
+                3,
+                0,
+                25
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              3,
+              -1,
+              24
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "at": [
+                2,
+                0,
+                7
+              ],
+              "facing": "west",
+              "land": "midway",
+              "lanes": 3,
+              "width": 15,
+              "title": "SKILL ARCADE"
+            },
+            "offset": [
+              0,
+              -1,
+              5
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                38,
+                0,
+                2
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "SERVICE"
+            },
+            "offset": [
+              37,
+              -1,
+              1
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "at": [
+                38,
+                0,
+                29
+              ],
+              "facing": "south",
+              "land": "midway",
+              "title": "RESET BAY",
+              "lines": [
+                "Bay resets",
+                "Staff only"
+              ]
+            },
+            "offset": [
+              29,
+              -1,
+              22
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                5,
+                0,
+                2
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              3,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "lamppost",
+              "at": [
+                5,
+                0,
+                27
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              3,
+              -1,
+              25
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                21,
+                0,
+                31
+              ],
+              "facing": "south",
+              "land": "midway",
+              "title": "TO PRIZE POINT"
+            },
+            "offset": [
+              12,
+              -1,
+              28
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "at": [
+                39,
+                0,
+                20
+              ],
+              "facing": "east",
+              "land": "midway",
+              "width": 9,
+              "depth": 9,
+              "title": "SERVICE",
+              "lines": [
+                "Service way",
+                "No public entry"
+              ]
+            },
+            "offset": [
+              30,
+              -1,
+              11
+            ]
+          },
+          {
+            "gen": "streetfurniture",
+            "params": {
+              "kind": "planter",
+              "at": [
+                17,
+                0,
+                26
+              ],
+              "facing": "west",
+              "land": "midway"
+            },
+            "offset": [
+              16,
+              -1,
+              25
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 33,
+              "depth": 51,
+              "obstacles": [
+                [
+                  8,
+                  0,
+                  49,
+                  32
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Prize Point",
+      "plot": "prize_point",
+      "generator": "compose",
+      "role": "building",
+      "footprint": [
+        20,
+        33
+      ],
+      "at": [
+        75,
+        348
+      ],
+      "access_points": [
+        [
+          18,
+          358
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            16
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            16
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            24
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            19,
+            1,
+            30
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Skill Arcade"
+      ],
+      "budget": {
+        "blocks": 1600
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway",
+      "params": {
+        "parts": [
+          {
+            "gen": "arcade",
+            "params": {
+              "kind": "prizecounter",
+              "at": [
+                4,
+                0,
+                3
+              ],
+              "facing": "west",
+              "land": "midway",
+              "lanes": 9,
+              "title": "PRIZE POINT"
+            },
+            "offset": [
+              1,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "at": [
+                12,
+                0,
+                1
+              ],
+              "facing": "west",
+              "land": "midway",
+              "title": "RESULT WINDOW",
+              "lines": [
+                "Show your score",
+                "Collect here",
+                "Nothing to buy"
+              ]
+            },
+            "offset": [
+              11,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "at": [
+                10,
+                0,
+                11
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 9,
+              "depth": 9,
+              "title": "COLLECTION",
+              "lines": [
+                "Collect and",
+                "rejoin the loop"
+              ]
+            },
+            "offset": [
+              9,
+              -1,
+              10
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "arch",
+              "at": [
+                16,
+                0,
+                11
+              ],
+              "facing": "east",
+              "land": "midway",
+              "title": "PRIZE POINT"
+            },
+            "offset": [
+              13,
+              -1,
+              2
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "west",
+              "land": "midway",
+              "width": 23,
+              "depth": 20,
+              "obstacles": [
+                [
+                  0,
+                  0,
+                  19,
+                  22
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Wyrm's Crossing",
+      "plot": "wyrm_s_crossing",
+      "generator": "compose",
+      "role": "path",
+      "footprint": [
+        58,
+        44
+      ],
+      "at": [
+        18,
+        390
+      ],
+      "access_points": [
+        [
+          18,
+          408
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            18
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            18
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            26
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            62,
+            1,
+            33
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Prize Point"
+      ],
+      "budget": {
+        "blocks": 10000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "prismworks",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 36,
+              "depth": 63
+            },
+            "offset": [
+              0,
+              -1,
+              0
+            ]
+          },
+          {
+            "gen": "asset",
+            "params": {
+              "source": "reference/bone_ruins.litematic",
+              "downscale": 3,
+              "rotate": 180
+            },
+            "offset": [
+              13,
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      "resized_note": "THE SKULL IS THE 54x66x40 REFERENCE AT FULL RESOLUTION. Halving it turns every curve into a two-block step and thirding it is worse - that is what read as flat. The Prism Reach is U385-429, forty-five columns, so a 44-wide module only fits starting at U385, and the whole `bone_ruins` library build (105x111) cannot fit here at any resolution that keeps its detail. The skull is the part that reads."
+    },
+    {
+      "name": "Foundry Gate",
+      "plot": "foundry_gate",
+      "generator": "compose",
+      "role": "arrival",
+      "footprint": [
+        53,
+        36
+      ],
+      "at": [
+        18,
+        435
+      ],
+      "access_points": [
+        [
+          18,
+          453
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            18
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            18
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            26
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            52,
+            1,
+            33
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Wyrm's Crossing"
+      ],
+      "budget": {
+        "blocks": 8000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 34,
+              "depth": 50
+            },
+            "offset": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 35,
+              "depth": 25,
+              "height": 26
+            },
+            "offset": [
+              1,
+              0,
+              8
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              22
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              36,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              36,
+              0,
+              22
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              32,
+              0,
+              12
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              20,
+              0,
+              12
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Prism Array",
+      "plot": "prism_array",
+      "generator": "prismworks",
+      "role": "ride",
+      "footprint": [
+        53,
+        51
+      ],
+      "at": [
+        75,
+        435
+      ],
+      "access_points": [
+        [
+          75,
+          460
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            25
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            25
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            33
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            52,
+            1,
+            48
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            17
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            26,
+            1,
+            25
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            37
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Foundry Gate"
+      ],
+      "budget": {
+        "blocks": 9000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "kind": "array"
+      }
+    },
+    {
+      "name": "Resonance Vault",
+      "plot": "resonance_vault",
+      "generator": "prismworks",
+      "role": "ride",
+      "footprint": [
+        53,
+        41
+      ],
+      "at": [
+        75,
+        486
+      ],
+      "access_points": [
+        [
+          75,
+          506
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            52,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            12
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            26,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            32
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Foundry Gate"
+      ],
+      "budget": {
+        "blocks": 9000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "kind": "vault"
+      }
+    },
+    {
+      "name": "Prism Ascent",
+      "plot": "prism_ascent",
+      "generator": "prismworks",
+      "role": "ride",
+      "footprint": [
+        93,
+        72
+      ],
+      "at": [
+        24,
+        528
+      ],
+      "access_points": [
+        [
+          24,
+          560
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            36
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            36
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            44
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            92,
+            1,
+            69
+          ],
+          "facing": "east",
+          "width": 1
+        },
+        {
+          "name": "queue_entry",
+          "kind": "queue",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "boarding",
+          "kind": "board",
+          "position": [
+            46,
+            1,
+            36
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "ride_exit",
+          "kind": "ride_exit",
+          "position": [
+            0,
+            1,
+            48
+          ],
+          "facing": "west",
+          "width": 3
+        }
+      ],
+      "depends_on": [
+        "Foundry Gate"
+      ],
+      "budget": {
+        "blocks": 36000
+      },
+      "scenarios": [
+        "public_visit",
+        "mechanics",
+        "safety"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "kind": "ascent",
+        "height": 130,
+        "radius": 26
+      }
+    },
+    {
+      "name": "Forge Deck",
+      "plot": "forge_deck",
+      "generator": "compose",
+      "role": "path",
+      "footprint": [
+        24,
+        66
+      ],
+      "at": [
+        128,
+        495
+      ],
+      "access_points": [
+        [
+          128,
+          528
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            33
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            33
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            41
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            23,
+            1,
+            63
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Prism Ascent"
+      ],
+      "budget": {
+        "blocks": 10000
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "parts": [
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 62,
+              "depth": 22
+            },
+            "offset": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              1
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              17
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              33
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "tower",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              1,
+              0,
+              50
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              2,
+              0,
+              10
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              2,
+              0,
+              26
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "walkthrough",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              2,
+              0,
+              42
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              2,
+              0,
+              53
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              9,
+              0,
+              53
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "gate",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 19,
+              "depth": 15,
+              "height": 18
+            },
+            "offset": [
+              3,
+              0,
+              44
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Service Gallery",
+      "plot": "service_gallery",
+      "generator": "compose",
+      "role": "service",
+      "footprint": [
+        13,
+        41
+      ],
+      "at": [
+        157,
+        550
+      ],
+      "access_points": [
+        [
+          152,
+          570
+        ]
+      ],
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            0,
+            6,
+            20
+          ],
+          "facing": "west",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            0,
+            1,
+            20
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            0,
+            1,
+            28
+          ],
+          "facing": "west",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            17,
+            1,
+            38
+          ],
+          "facing": "east",
+          "width": 1
+        }
+      ],
+      "depends_on": [
+        "Prism Ascent",
+        "Resonance Vault"
+      ],
+      "budget": {
+        "blocks": 6000
+      },
+      "scenarios": [
+        "service_access"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "parts": [
+          {
+            "gen": "undercroft",
+            "params": {
+              "land": "frontier",
+              "kind": "crypt",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "south",
+              "width": 5,
+              "height": 5,
+              "chambers": [
+                [
+                  "Bubble Sources",
+                  11,
+                  11,
+                  "water"
+                ],
+                [
+                  "Catch Racks",
+                  9,
+                  9,
+                  "niches"
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "gen": "undercroft",
+            "params": {
+              "land": "frontier",
+              "kind": "crypt",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "south",
+              "width": 5,
+              "height": 5,
+              "chambers": [
+                [
+                  "Reset Control",
+                  11,
+                  11,
+                  "puzzle"
+                ],
+                [
+                  "Chest Recovery",
+                  9,
+                  9,
+                  "reward"
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              -9,
+              0
+            ]
+          },
+          {
+            "gen": "undercroft",
+            "params": {
+              "land": "frontier",
+              "kind": "crypt",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "south",
+              "width": 5,
+              "height": 5,
+              "chambers": [
+                [
+                  "Checkpoint Wiring",
+                  11,
+                  11,
+                  "scene"
+                ],
+                [
+                  "Storage",
+                  9,
+                  9,
+                  "niches"
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              -18,
+              0
+            ]
+          },
+          {
+            "gen": "undercroft",
+            "params": {
+              "land": "frontier",
+              "kind": "crypt",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "south",
+              "width": 5,
+              "height": 5,
+              "chambers": [
+                [
+                  "Catch Sump",
+                  11,
+                  11,
+                  "water"
+                ],
+                [
+                  "Spares",
+                  9,
+                  9,
+                  "niches"
+                ]
+              ]
+            },
+            "offset": [
+              0,
+              -27,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "plaza",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east",
+              "width": 38,
+              "depth": 16
+            },
+            "offset": [
+              0,
+              8,
+              0
+            ]
+          },
+          {
+            "gen": "park",
+            "params": {
+              "kind": "booth",
+              "land": "hollow",
+              "at": [
+                0,
+                0,
+                0
+              ],
+              "facing": "east"
+            },
+            "offset": [
+              2,
+              8,
+              4
+            ]
+          }
+        ]
+      },
+      "resized_note": "Same arithmetic as the Works Yard, same resolution."
+    },
+    {
+      "name": "Frontier Line",
+      "plot": "line_frontier",
+      "generator": "transit",
+      "role": "path",
+      "footprint": [
+        6,
+        170
+      ],
+      "at": [
+        0,
+        0
+      ],
+      "access_points": [
+        [
+          5,
+          85
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 2800
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "kind": "line",
+        "land": "frontier",
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "axis": "z",
+        "forward": 1,
+        "length": 168,
+        "title": "FRONTIER LINE"
+      },
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            5,
+            6,
+            85
+          ],
+          "facing": "east",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            5,
+            1,
+            85
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            5,
+            1,
+            93
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            0,
+            1,
+            167
+          ],
+          "facing": "west",
+          "width": 1
+        }
+      ]
+    },
+    {
+      "name": "Frontier Reach Line",
+      "plot": "line_frontier_reach",
+      "generator": "transit",
+      "role": "path",
+      "footprint": [
+        6,
+        45
+      ],
+      "at": [
+        0,
+        170
+      ],
+      "access_points": [
+        [
+          5,
+          192
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 800
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "frontier",
+      "params": {
+        "kind": "line",
+        "land": "frontier",
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "axis": "z",
+        "forward": 1,
+        "length": 43,
+        "title": "FRONTIER REACH LINE"
+      },
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            5,
+            6,
+            22
+          ],
+          "facing": "east",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            5,
+            1,
+            22
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            5,
+            1,
+            30
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            0,
+            1,
+            42
+          ],
+          "facing": "west",
+          "width": 1
+        }
+      ]
+    },
+    {
+      "name": "Midway Line",
+      "plot": "line_midway",
+      "generator": "transit",
+      "role": "path",
+      "footprint": [
+        6,
+        170
+      ],
+      "at": [
+        0,
+        215
+      ],
+      "access_points": [
+        [
+          5,
+          300
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 2800
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "midway",
+      "params": {
+        "kind": "line",
+        "land": "midway",
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "axis": "z",
+        "forward": 1,
+        "length": 168,
+        "title": "MIDWAY LINE"
+      },
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            5,
+            6,
+            85
+          ],
+          "facing": "east",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            5,
+            1,
+            85
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            5,
+            1,
+            93
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            0,
+            1,
+            167
+          ],
+          "facing": "west",
+          "width": 1
+        }
+      ]
+    },
+    {
+      "name": "Prism Reach Line",
+      "plot": "line_prism_reach",
+      "generator": "transit",
+      "role": "path",
+      "footprint": [
+        6,
+        45
+      ],
+      "at": [
+        0,
+        385
+      ],
+      "access_points": [
+        [
+          5,
+          407
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 800
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "kind": "line",
+        "land": "hollow",
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "axis": "z",
+        "forward": 1,
+        "length": 43,
+        "title": "PRISM REACH LINE"
+      },
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            5,
+            6,
+            22
+          ],
+          "facing": "east",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            5,
+            1,
+            22
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            5,
+            1,
+            30
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            0,
+            1,
+            42
+          ],
+          "facing": "west",
+          "width": 1
+        }
+      ]
+    },
+    {
+      "name": "Prismworks Line",
+      "plot": "line_prismworks",
+      "generator": "transit",
+      "role": "path",
+      "footprint": [
+        6,
+        170
+      ],
+      "at": [
+        0,
+        430
+      ],
+      "access_points": [
+        [
+          5,
+          515
+        ]
+      ],
+      "depends_on": [],
+      "budget": {
+        "blocks": 2800
+      },
+      "scenarios": [
+        "public_visit"
+      ],
+      "review_views": [
+        "arrival",
+        "facade",
+        "skyline",
+        "interior",
+        "night"
+      ],
+      "style": "prismworks",
+      "params": {
+        "kind": "line",
+        "land": "hollow",
+        "at": [
+          0,
+          0,
+          0
+        ],
+        "axis": "z",
+        "forward": 1,
+        "length": 168,
+        "title": "PRISMWORKS LINE"
+      },
+      "anchors": [
+        {
+          "name": "visual_front",
+          "kind": "visual_front",
+          "position": [
+            5,
+            6,
+            85
+          ],
+          "facing": "east",
+          "width": 16
+        },
+        {
+          "name": "public_entry",
+          "kind": "entry",
+          "position": [
+            5,
+            1,
+            85
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "public_exit",
+          "kind": "exit",
+          "position": [
+            5,
+            1,
+            93
+          ],
+          "facing": "east",
+          "width": 3
+        },
+        {
+          "name": "service_access",
+          "kind": "maintenance",
+          "position": [
+            0,
+            1,
+            167
+          ],
+          "facing": "west",
+          "width": 1
+        }
+      ]
+    }
+  ],
+  "build_notes": {
+    "coordinate_mapping": "local x is plan V depth; local z is plan U length",
+    "anchor_status": "provisional; rebase against current capture before paste",
+    "target_block_budget": 275000,
+    "budget_policy": "78-86% cheap structure/detail; 10-16% okay accents; 2-5% declared functional expensive; no decorative terracotta/concrete/quartz/glass bulk",
+    "visual_spec": "PARK_VISUAL_AND_BUDGET_SPEC.md",
+    "gated_systems": [
+      "runtime minecart/projectile policy",
+      "grass-payment adapter acceptance",
+      "Prism Ascent live physics",
+      "Vault and Wyrm state machines"
+    ],
+    "module_count": 24,
+    "reserve_blocks": 11000,
+    "budget_note": "265,000 was the visual spec's programme. The transit railway is five segments the spec never costed - Jack: 'our transportation railway which made sense is completely gone' - so the target carries them rather than a reserve meant for review-led detail paying for them."
+  }
+}

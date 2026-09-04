@@ -1,0 +1,221 @@
+# PF FRONT FRONTIER - the grammar that turns the Frontier's buildings into attractions.
+#
+# Jack, on the placed park: "they are visually great - but all serve no actual defined purpose -
+# it feels more like multiple villages or towns than a theme park or amusement destination."
+#
+# Nothing here is a building. Everything here is what stands IN FRONT OF and BETWEEN them: a name
+# board over every attraction's own approach, a queue line at the ride, entrance and exit
+# thresholds that read as thresholds, and sight pieces in the land's measured empty bands.
+#
+# THE SITES ARE MEASURED, NOT CHOSEN. Every `at` below was placed against a free-lawn mask built
+# from the shipped `Park Ways` and `Park Complete`: a cell is available only if the ground layer
+# paved nothing there, put no lamp or bench there, and no module stands there.
+#   marquees   V20-22, the verge band, straddling the 3-wide SPUR the ground layer already lays
+#              from the street to that attraction's front door - which is what an entrance arch
+#              IS, and it costs no walkable ground: every cell over the paving is 5 courses up
+#   queue      V26-63 x U160-167, the 9-wide strip of open lawn down the Mine Coaster's east
+#              flank. 106 x 10 of nothing, on the largest lot in the park
+#   sights     the same strip further back, and the empty U0-19 lawn under the Prospecting Porch
+name: PF Front Frontier
+gen: park_frontage
+params:
+  land: frontier
+  anchor: [97500, 203, 80300]
+  seed: 41
+  pieces:
+    # ---------------------------------------------------------------- marquees, on the spurs
+    # THE PARK'S WESTERN THRESHOLD, so it is the land's grand one: a triple-bay gantry, seventeen
+    # cells of frontage. It is the first thing anyone arriving down the spine reads.
+    - kind: marquee
+      name: Plateau Vale
+      at: [20, 19]
+      span: 5
+      wing: 1
+      title: THE LOST VALE
+      lines: ["trial trenches", "walk to the dig"]
+    # **RETITLED TWICE NOW, BECAUSE THE PLACE IT NAMES KEEPS BEING REPLACED.** It read BOOMTOWN
+    # over `Boomtown Spine` (seven false fronts, 0 verbs), then THE DIGGINGS over `PF Frontier
+    # Diggings` - a 30x16 trench with a 25-block spine in a 53x46 lot, which is the "crappy dig
+    # zone". `PF Plateau Bone Bed` is one excavation across that lot, Mining Square's lot and the
+    # cross walk between them. A marquee naming a module nobody placed is a reference to somewhere
+    # a guest cannot go.
+    - kind: marquee
+      name: Plateau Bone Bed
+      at: [20, 70]
+      span: 7
+      title: THE BONE BED
+      lines: ["one animal, 44", "blocks long"]
+    # **TWO MARQUEES ARE GONE WITH THE TWO BUILDINGS THEY NAMED**, and it is not only that they
+    # named nothing: THE SCREENS stood at V70 U20 and BASE CAMP at V80 U66, which are both deep
+    # INSIDE the lots the two terrain designs now hold. A board on posts in the middle of a
+    # hillside is a clash, not a sign, and the frontage is a threshold band - V20-22 - for exactly
+    # this reason.
+    #     - kind: marquee
+    #       name: Prospecting Porch    at: [70, 20]    title: THE SCREENS
+    #     - kind: marquee
+    #       name: Mining Square        at: [80, 66]    title: BASE CAMP
+    - kind: marquee
+      name: Assay and Prize Office
+      at: [129, 62]
+      style: board
+      width: 11
+      depth: 2
+      title: THE FOSSIL LAB
+      lines: ["log finds here", "claim prizes"]
+
+    # ---------------------------------------------------------------- the ride's own thresholds
+    # A SHOP DOOR IS A HOLE IN A WALL; A RIDE THRESHOLD IS A FRAME YOU PASS THROUGH WITH NOTHING
+    # EITHER SIDE OF IT. Entrance and exit flank the coaster's approach so the two halves of a
+    # ride are told apart before anybody reads a word - the entrance carries the land's accent
+    # across its head and a lamp each side, the exit carries neither.
+    #
+    # **THE MINE COASTER'S FRONTAGE IS ONE BUILDING NOW, NOT THREE OBJECTS.** Jack, on the
+    # arch, the depot front and the exit gate strung along twenty cells of verge: "it just feels
+    # bad and disconnected and cheap." He is right. A free-standing timber arch, a building, and
+    # a free-standing stone gate, with lawn between them, is three thin things on a strip - and
+    # adding a fourth was never going to fix it.
+    #
+    # The marquee and both portals are RETIRED here. The way in and the way out are OPENINGS IN
+    # THE DEPOT'S OWN COLONNADE, each with its own sign over the head beam, under one parapet
+    # that runs the whole width. That is what a station frontage is, and it is the same rule the
+    # void tower settled: what reads as architecture is regularity and openings.
+    #
+    # Measured, so the openings land on the doors that exist: the station's front wall opens at
+    # U106-108 (the way in, on the arch's old axis and the spur's) and the concourse's east end
+    # at U118-120 (the way out, over the platform's new gates). The colonnade spans U103-121,
+    # which is the wall's own width carried east to reach that exit and one further for the
+    # pylon that ends it.
+    # ---------------------------------------------------------------- the station's own front
+    # **THE SIGN WAS RIGHT AND THE THING IT POINTED AT WAS A BOX.** Jack, on the moved signage:
+    # "that entrance looks like shit still, you havent fixed a damn thing." Measured off
+    # `out/Park Complete.litematic`, the coaster's station is a floor and a roof SEVEN COURSES
+    # UP - h2 to h6 is air but for two one-cell posts - so a guest sees a 16 x 5 slab of one
+    # brown material with two unframed holes in it under an overhanging lid.
+    #
+    # A ride station is a COVERED PLATFORM, and what makes one read is the timber holding the
+    # roof up. This is that timber: posts on the concourse at V25, a head beam under the eaves at
+    # h6, knee braces at every post head, a fascia a cell forward so the flat lid gets a shadow
+    # line, and a lantern hung in each bay.
+    #
+    #
+    # **AND A FALSE FRONT, BECAUSE A FLAT LID IS WHAT MAKES A BUILDING READ AS A BOX.** Jack, on
+    # the porch alone: "we need this entry to be something real not a strange brown blob of
+    # crap." The station's wall is `spruce_planks` and its roof is a flat plate of
+    # `spruce_planks` and `stripped_oak_log` with a bare edge - 16 x 5 of one brown under a lid.
+    # Measured, V24-25 above h7 is EMPTY across the whole front, which is a 2 x 6 x 21 envelope
+    # sitting exactly where a gold-rush depot puts its false front. So: a parapet across the
+    # width at h8-h10, a bay over the DOOR rising to h12 carrying the name, and a red band
+    # tying it to the arch below.
+    #
+    # **IT IS MASONRY AND THE FIRST ONE WAS NOT.** Built in the verandah's own timber it
+    # disappeared: `spruce_planks` is L88.8 and `stripped_spruce_log` L92.8, four apart, so
+    # against a spruce wall under a spruce roof the whole entrance was one brown mass. The
+    # ladder is across families - blackstone plinth 44.6, spruce name panel 88.8, stone
+    # brick field 122.0, smooth stone coping 159.0.
+    #
+    # **THE BAY IS CENTRED ON THE BUILDING, NOT ON THE DOOR.** Put on the door at U107 it stood
+    # three cells behind the arch and carried a red band and a name of its own - two name boards
+    # on one axis, and from the promenade the arch's fascia covered the depot's. The axis that
+    # has to line up is the WAY IN (spur, arch, door, all U107); a building's name goes on the
+    # middle of the building. At U111 the two read as a gate in front of a depot rather than as
+    # one lumpy stack, and the arch is timber against the front's masonry.
+    #
+    # `pylon: true` puts the only thing on this frontage that is NOT brown. The wall, the roof
+    # and this colonnade are three browns; `stone_bricks` (L122) and `smooth_stone` (L159) are
+    # the one real value step this land's palette has at cheap tier, and two piers at the ends
+    # are what stop a colonnade reading as a fence.
+    - kind: porch
+      name: Mine Coaster
+      # NINETEEN WIDE, AND THE LAST CELL IS WHY. At 18 the run ends at U120 and the east PYLON
+      # lands on the exit opening's own last cell, so the way out came out ONE CELL WIDE with a
+      # stone pier standing in it. The pylon needs a column of its own past the opening.
+      at: [25, 112]
+      width: 19
+      height: 6
+      bay: 4
+      # THE TWO WAYS THROUGH, in frontage offsets from U112: the door at U106-108 and the exit at
+      # U119-120. Each keeps its jambs, the openings divide the run, and every bay between them is
+      # spaced on its own - stepping one rhythm outward from both put posts a cell apart.
+      doors:
+        - {at: [-6, -4], title: this way in}
+        - {at: [6, 8], title: way out}
+      pylon: true
+      roof: 7
+      parapet: 3
+      bay_at: 0
+      bay_width: 7
+      bay_rise: 5
+      title: Mine Coaster
+      lines: ["depot"]
+
+    # ---------------------------------------------------------------- the queue: DELETED
+    # **THE RIDE ALREADY HAS ONE, AND THIS WAS A SECOND ONE IN THE WRONG PLACE.**
+    # `Mine Coaster.scan.json`: `queue_rows: 22`, `queue_cells: 67`, `queue_covered: 12`, and its
+    # own contract reads "the queue is 3 wide and 22 rows" leading to a platform whose board and
+    # unload are opposite flanks. The coaster builds its own.
+    #
+    # What stood here was a 7 x 30 switchback at world V27-33 / U161-190: thirty-five cells south
+    # of the ride's own queue entry at U126, on the far side of the ride from all four of its guest
+    # anchors, and **half of it past U169, which is outside the Frontier altogether** and into the
+    # Claim Line reach.
+    #
+    # The comment that justified it said it stood on "the open lawn down the Mine Coaster's EAST
+    # flank" - and V27 is its WEST flank. The site was picked from the biggest empty strip in the
+    # land rather than from where the ride's door is, which is exactly how a queue ends up
+    # pointing away from the thing it queues for.
+
+    # ---------------------------------------------------------------- sight pieces
+    # THE MEASURED TROUGHS ARE THE PRIORITY, and 95.5% of everywhere a guest can stand in this
+    # park is in the bottom ten courses - so a sight piece three blocks tall does not carry
+    # twenty blocks of walking. The tower is twenty.
+    - kind: sight
+      name: Ridge Water Tower
+      motif: water_tower
+      at: [72, 161]
+      height: 12
+      title: WATER No.2
+    - kind: sight
+      name: Ore Road
+      motif: ore_cart
+      at: [92, 165]
+      length: 5
+      title: THE HAUL ROAD
+      lines: ["ran to the head", "of the cutting"]
+    - kind: sight
+      name: Trail Ore Cart
+      motif: ore_cart
+      at: [117, 155]
+      length: 7
+      title: MATRIX TIP
+      lines: ["spoil and rock", "keep clear"]
+
+    # ---------------------------------------------------------------- back of house
+    # A THEME PARK DOES NOT MARQUEE ITS SERVICE YARD; IT MARKS IT. An exit-mode portal with no
+    # accent and no lamp is the right shape for a door guests are meant to walk past.
+    - kind: portal
+      name: Works Yard staff gate
+      at: [151, 136]
+      facing: west
+      mode: exit
+      title: STAFF ONLY
+      lines: ["works yard", "", "no admittance"]
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: frontier
+  narrative: >
+    The Frontier's frontage: a name board over every attraction's own spur, entrance and exit
+    thresholds flanking the Mine Coaster's approach, a switchback queue down the coaster's east
+    flank, a water tower and two ore-cart props in the land's empty bands, and a staff gate on
+    the works yard. Nothing below the build plane, nothing in a walkway, no street furniture.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  # The lawn's own scatter. `Park Ways` lays moss carpet across every lot at the course this
+  # design builds on; it is what a builder clears with one swing before placing.
+  verify_replaceable: [moss_carpet]
+origin_lock: false

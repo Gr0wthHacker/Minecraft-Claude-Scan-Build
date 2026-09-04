@@ -1,0 +1,167 @@
+{
+  "origin": {
+    "x": 97552,
+    "y": 146,
+    "z": 80750
+  },
+  "size": {
+    "x": 88,
+    "y": 62,
+    "z": 99
+  },
+  "generated_by": "park",
+  "kind": "paths",
+  "land": "hollow",
+  "facing": "east",
+  "contract": "every declared public interface is joined to the network, queues are fenced and off the through-route, and the service road runs behind the buildings unlit",
+  "unverified": [],
+  "routes": 83,
+  "cells": 4839,
+  "lamps": 63,
+  "queue_rails": 0,
+  "roles": {
+    "main_spine": 2,
+    "secondary": 42,
+    "exit": 5,
+    "shaft": 2,
+    "service": 32
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "Hollow Paths serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 3881,
+      "materials": 6,
+      "dominant_material_share": 0.4128,
+      "light_blocks": 63,
+      "massing": {
+        "width": 88,
+        "height": 62,
+        "depth": 99,
+        "fill_ratio": 0.0072
+      },
+      "silhouette": {
+        "top": {
+          "area": 3492,
+          "fill_ratio": 0.4008
+        },
+        "front": {
+          "area": 232,
+          "fill_ratio": 0.0425
+        },
+        "side": {
+          "area": 391,
+          "fill_ratio": 0.0637
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 1602,
+        "deepslate_bricks": 1280,
+        "cobbled_deepslate": 742,
+        "blackstone": 189,
+        "soul_lantern": 63,
+        "purple_wool": 5
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "0e83f0810427cb97294cd4ca3606c70303156bc16fa3b255b6e51aaaf2ec3622",
+    "generator_source_digest": "6ae0a771d0ec58869f44d0c0b698d8dce8edb12711f6ec3463b97785d17a0147",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "path",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 3881,
+    "mechanic_families": [
+      "light"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: purple_wool"
+  ],
+  "file": "Hollow Paths.litematic",
+  "name": "Hollow Paths"
+}

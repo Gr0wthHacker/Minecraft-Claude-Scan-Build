@@ -5,9 +5,9 @@
     "z": 29949
   },
   "size": {
-    "x": 64,
-    "y": 50,
-    "z": 81
+    "x": 63,
+    "y": 49,
+    "z": 82
   },
   "generated_by": "storehall",
   "kind": "storehall",
@@ -18,9 +18,102 @@
     30029
   ],
   "floor_y": 194,
-  "chests": 68,
-  "signs": 4,
-  "lanterns": 3,
+  "chests": 0,
+  "signs": 0,
+  "lanterns": 0,
+  "shell": 1,
+  "doorway": 1,
+  "tiers": 4,
+  "banks": {
+    "north": {
+      "label": "ore and stone",
+      "cells": [
+        [
+          -24193,
+          30023
+        ],
+        [
+          -24192,
+          30023
+        ],
+        [
+          -24191,
+          30023
+        ],
+        [
+          -24190,
+          30023
+        ],
+        [
+          -24189,
+          30023
+        ]
+      ]
+    },
+    "south": {
+      "label": "wood and saplings",
+      "cells": [
+        [
+          -24193,
+          30029
+        ],
+        [
+          -24192,
+          30029
+        ],
+        [
+          -24191,
+          30029
+        ],
+        [
+          -24190,
+          30029
+        ],
+        [
+          -24189,
+          30029
+        ]
+      ]
+    },
+    "west": {
+      "label": "moss and plants",
+      "cells": [
+        [
+          -24194,
+          30024
+        ],
+        [
+          -24194,
+          30028
+        ]
+      ]
+    },
+    "east": {
+      "label": "food and crops",
+      "cells": [
+        [
+          -24188,
+          30024
+        ],
+        [
+          -24188,
+          30025
+        ],
+        [
+          -24188,
+          30026
+        ],
+        [
+          -24188,
+          30027
+        ],
+        [
+          -24188,
+          30028
+        ]
+      ]
+    }
+  },
   "interior": 25,
   "file": "Store Hall.litematic",
   "name": "Store Hall"

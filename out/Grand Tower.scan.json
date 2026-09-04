@@ -1,0 +1,23 @@
+{
+  "origin": {
+    "x": 97577,
+    "y": 202,
+    "z": 80593
+  },
+  "size": {
+    "x": 13,
+    "y": 30,
+    "z": 13
+  },
+  "generated_by": "park",
+  "kind": "tower",
+  "land": "midway",
+  "facing": "south",
+  "contract": "a climbable landmark: a ladder to a crenellated deck, visible across the zone",
+  "unverified": [],
+  "side": 9,
+  "tiers": 5,
+  "height": 28,
+  "file": "Grand Tower.litematic",
+  "name": "Grand Tower"
+}

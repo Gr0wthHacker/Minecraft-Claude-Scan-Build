@@ -1,0 +1,17 @@
+name: Tin Can Alley 3
+gen: park
+params:
+  land: frontier
+  width: 7
+  depth: 5
+  facing: west
+  at:
+  - 97608
+  - 203
+  - 80372
+  kind: booth
+  title: Tin Can Alley 3
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

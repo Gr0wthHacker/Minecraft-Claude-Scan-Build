@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": 97637,
+    "y": 202,
+    "z": 80757
+  },
+  "size": {
+    "x": 7,
+    "y": 12,
+    "z": 27
+  },
+  "generated_by": "hollowmanor",
+  "kind": "irongate",
+  "land": "hollow",
+  "facing": "east",
+  "contract": "an iron railing on a stone plinth with piers on a rhythm, spear finials, and one arched walk-through gate lit from both sides",
+  "unverified": [],
+  "length": 23,
+  "piers": 8,
+  "bars": 36,
+  "spikes": 6,
+  "signs": 1,
+  "file": "Iron Railing.litematic",
+  "name": "Iron Railing"
+}

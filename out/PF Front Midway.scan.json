@@ -1,0 +1,348 @@
+{
+  "origin": {
+    "x": 97519,
+    "y": 203,
+    "z": 80525
+  },
+  "size": {
+    "x": 112,
+    "y": 13,
+    "z": 142
+  },
+  "generated_by": "park_frontage",
+  "kind": "park_frontage",
+  "land": "midway",
+  "pieces": [
+    {
+      "kind": "marquee",
+      "title": "THE CAROUSEL",
+      "signs": 2,
+      "lamps": 4,
+      "span": 7,
+      "piers": 2,
+      "frontage": [
+        -5,
+        5
+      ],
+      "height": 12,
+      "at": [
+        20,
+        235
+      ],
+      "facing": "west",
+      "land": "midway",
+      "name": "Carousel Court"
+    },
+    {
+      "kind": "marquee",
+      "title": "THE GARDEN",
+      "signs": 2,
+      "lamps": 4,
+      "span": 5,
+      "piers": 2,
+      "frontage": [
+        -4,
+        4
+      ],
+      "height": 10,
+      "at": [
+        20,
+        362
+      ],
+      "facing": "west",
+      "land": "midway",
+      "name": "Midway Garden"
+    },
+    {
+      "kind": "marquee",
+      "title": "SNACK WINDOW",
+      "signs": 1,
+      "lamps": 4,
+      "span": 7,
+      "piers": 2,
+      "frontage": [
+        -6,
+        6
+      ],
+      "height": 10,
+      "at": [
+        76,
+        235
+      ],
+      "facing": "west",
+      "land": "midway",
+      "name": "Snack Window"
+    },
+    {
+      "kind": "marquee",
+      "title": "THE SKY LIFT",
+      "signs": 2,
+      "lamps": 4,
+      "span": 3,
+      "piers": 2,
+      "frontage": [
+        -3,
+        3
+      ],
+      "height": 10,
+      "at": [
+        128,
+        274
+      ],
+      "facing": "west",
+      "land": "midway",
+      "name": "Sky Lift"
+    },
+    {
+      "kind": "queue",
+      "width": 9,
+      "depth": 10,
+      "legs": 4,
+      "lamps": 4,
+      "turns": [
+        [
+          8,
+          2
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          8,
+          6
+        ],
+        [
+          0,
+          8
+        ]
+      ],
+      "contract": "a switchback line on open lawn: one entrance at the near end, one exit at the far end, every leg open at the end it turns at, a canopy over the back, and no floor of its own",
+      "entrance": {
+        "kind": "portal/entrance",
+        "title": "WHEEL LINE",
+        "signs": 1,
+        "lamps": 2,
+        "height": 6
+      },
+      "exit": {
+        "kind": "portal/exit",
+        "title": "WAY OUT",
+        "signs": 1,
+        "lamps": 0,
+        "height": 6
+      },
+      "at": [
+        111,
+        270
+      ],
+      "facing": "west",
+      "land": "midway",
+      "name": "Sky Lift queue"
+    },
+    {
+      "kind": "portal/entrance",
+      "title": "RIDE ENTRANCE",
+      "signs": 1,
+      "lamps": 2,
+      "height": 6,
+      "at": [
+        21,
+        227
+      ],
+      "facing": "west",
+      "land": "midway",
+      "name": "Carousel entrance"
+    },
+    {
+      "kind": "portal/exit",
+      "title": "RIDE EXIT",
+      "signs": 1,
+      "lamps": 0,
+      "height": 6,
+      "at": [
+        21,
+        243
+      ],
+      "facing": "west",
+      "land": "midway",
+      "name": "Carousel exit"
+    }
+  ],
+  "piece_count": 7,
+  "signs": 11,
+  "refused_signs": [],
+  "contract": "everything in front of and between the park's attractions: a name board on every one, queues at the rides, entrance and exit thresholds, and sight pieces in the measured empty bands - none of it below the build plane, and nothing over a paved column below head height",
+  "unverified": [
+    "not placed in game: every judgement here is off the shipped litematics and the repo's own renderer, which draws a fence, a wall and an end rod as full cubes"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "The Midway's frontage: name gantries over the Welcome Court, Carousel and Arcade spurs, boards on the two counters that front a cross walk, a queue for the wheel with its own entrance and way out, walk-on thresholds at the Carousel and Arcade, and a separate Sloth garden behind the Prize Point, away from the wheel's silhouette; bunting animates the arcade flank while the band between the carousel and wheel remains deliberately open.\n"
+    },
+    "metrics": {
+      "blocks": 879,
+      "materials": 12,
+      "dominant_material_share": 0.2105,
+      "light_blocks": 22,
+      "massing": {
+        "width": 112,
+        "height": 13,
+        "depth": 142,
+        "fill_ratio": 0.0043
+      },
+      "silhouette": {
+        "top": {
+          "area": 221,
+          "fill_ratio": 0.0139
+        },
+        "front": {
+          "area": 141,
+          "fill_ratio": 0.0968
+        },
+        "side": {
+          "area": 285,
+          "fill_ratio": 0.1544
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.4482,
+          0.4118,
+          0.1399
+        ],
+        "top_silhouette_perimeter": 440,
+        "surface_faces_per_block": 2.3914
+      },
+      "material_counts": {
+        "stripped_oak_log": 185,
+        "stone_brick_stairs": 130,
+        "white_wool": 124,
+        "red_wool": 115,
+        "stone_bricks": 113,
+        "polished_blackstone_bricks": 54,
+        "chiseled_stone_bricks": 53,
+        "oak_fence": 48,
+        "lantern": 22,
+        "cracked_stone_bricks": 16,
+        "oak_wall_sign": 11,
+        "ochre_froglight": 8
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "635a124a7fbee7e7872c750dd39d68c825a9c28378a24209adbace5bd8e2d63f",
+    "generator_source_digest": "a489ef6ff8b881cb9b7606057100aabb1fac48a1ef3fd3114f5bc41a4e7b2ae8",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 72.97284,
+    "blocks": 879,
+    "blocks_per_second": 12.05
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 879,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Front Midway.litematic",
+  "name": "PF Front Midway"
+}

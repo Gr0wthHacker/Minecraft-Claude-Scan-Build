@@ -1,0 +1,15 @@
+name: One In Three 1
+gen: casino
+params:
+  outcomes: 3
+  pit: 2
+  at:
+  - 97629
+  - 203
+  - 80613
+  kind: double_or_none
+  title: One In Three 1
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

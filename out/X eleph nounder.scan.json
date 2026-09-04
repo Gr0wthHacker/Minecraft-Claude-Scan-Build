@@ -1,0 +1,67 @@
+{
+  "origin": {
+    "x": -24228,
+    "y": 100,
+    "z": 29966
+  },
+  "size": {
+    "x": 21,
+    "y": 39,
+    "z": 49
+  },
+  "generated_by": "quadruped",
+  "kind": "elephant",
+  "pose": "standing",
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 38,
+  "top_y": 138,
+  "features_built": {
+    "crown": 132,
+    "face": 17,
+    "trunk": 385,
+    "tail": 16,
+    "eyes": 4
+  },
+  "anat_top_y": 138,
+  "asymmetry": {
+    "leg_phase": 0,
+    "head_turn": 1
+  },
+  "belly_y": 117,
+  "withers_y": 128.04,
+  "rump_y": 117,
+  "chest_y": 117,
+  "back_y": 131,
+  "neck_top_y": 130.04,
+  "shoulder_at": [
+    -24218.0,
+    128.0,
+    29995.0
+  ],
+  "neck_top_at": [
+    -24219.0,
+    130.0,
+    29999.2
+  ],
+  "along": {
+    "body": [
+      -15,
+      15
+    ],
+    "head": [
+      17,
+      26
+    ]
+  },
+  "collisions": 63,
+  "file": "X eleph nounder.litematic",
+  "name": "X eleph nounder"
+}

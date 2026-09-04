@@ -1,0 +1,415 @@
+{
+  "origin": {
+    "x": 97500,
+    "y": 203,
+    "z": 80570
+  },
+  "size": [
+    19,
+    61
+  ],
+  "generated_by": "park_entrance",
+  "kind": "park_entrance",
+  "land": "midway",
+  "lot": [
+    0,
+    270,
+    18,
+    330
+  ],
+  "height": 28,
+  "facing": "west",
+  "spawn": {
+    "park": [
+      1,
+      302
+    ],
+    "world": [
+      97501,
+      203,
+      80602
+    ],
+    "yaw": -90.0,
+    "pitch": 0.0,
+    "faces": "+V (world +X, east) - down the park's own axis toward the railway"
+  },
+  "price_level": 1,
+  "price_blocks": 1,
+  "currency": "grass_block",
+  "lanes": [
+    {
+      "lane_u": 298,
+      "door": [
+        97518,
+        203,
+        80598
+      ],
+      "door_upper": [
+        97518,
+        204,
+        80598
+      ],
+      "till": [
+        97517,
+        203,
+        80591
+      ],
+      "mouth": [
+        97517,
+        204,
+        80591
+      ],
+      "payment_chest": [
+        97517,
+        204,
+        80591
+      ],
+      "receipt_hopper": [
+        97517,
+        203,
+        80591
+      ],
+      "comparator": [
+        97517,
+        203,
+        80592
+      ],
+      "torches": [
+        [
+          97517,
+          203,
+          80597
+        ],
+        [
+          97517,
+          203,
+          80595
+        ]
+      ],
+      "threshold": [
+        [
+          97517,
+          203,
+          80593
+        ]
+      ]
+    },
+    {
+      "lane_u": 302,
+      "door": [
+        97518,
+        203,
+        80602
+      ],
+      "door_upper": [
+        97518,
+        204,
+        80602
+      ],
+      "till": [
+        97517,
+        203,
+        80609
+      ],
+      "mouth": [
+        97517,
+        204,
+        80609
+      ],
+      "payment_chest": [
+        97517,
+        204,
+        80609
+      ],
+      "receipt_hopper": [
+        97517,
+        203,
+        80609
+      ],
+      "comparator": [
+        97517,
+        203,
+        80608
+      ],
+      "torches": [
+        [
+          97517,
+          203,
+          80603
+        ],
+        [
+          97517,
+          203,
+          80605
+        ]
+      ],
+      "threshold": [
+        [
+          97517,
+          203,
+          80607
+        ]
+      ]
+    }
+  ],
+  "outputs": [
+    [
+      97518,
+      203,
+      80598
+    ],
+    [
+      97518,
+      203,
+      80602
+    ]
+  ],
+  "lights": 35,
+  "signs": 6,
+  "outside_lot_refused": 0,
+  "ground_layer_refused": 6,
+  "ground_layer_checked": true,
+  "detail": {
+    "sea_wall": {
+      "cells": 119
+    },
+    "flanks": {
+      "cells": 304
+    },
+    "building": {
+      "cells": 2455,
+      "cornice_y": 12,
+      "panel": [
+        3,
+        6
+      ]
+    },
+    "portico": {
+      "cells": 343
+    },
+    "towers": {
+      "cells": 1308,
+      "top": 23
+    },
+    "queue": {
+      "rails": 13,
+      "posts": 18,
+      "beams": 24,
+      "roof": 66
+    },
+    "signs": 6
+  },
+  "adapter_contract": {
+    "trigger": "right-click either CLICK TO ENTER sign",
+    "debit": {
+      "item": "grass_block",
+      "count": 1,
+      "from": "player inventory"
+    },
+    "deposit": "put the debited grass into that lane's payment_chest",
+    "success_probe": "wait until that grass reaches the receipt_hopper below the chest",
+    "success": "open both halves of that lane's iron door for 5 seconds",
+    "reset": "move the receipt grass to the park collection store and close the door",
+    "failure": "if debit or hopper receipt fails, keep the door closed and refund once"
+  },
+  "contract": "a sealed arrival compound at the park's void edge: a visitor spawns at X97501 Y203 Z80602 facing east and cannot reach any other land on foot until the sign adapter debits 1 grass, deposits it in the lane chest, observes it in the receipt hopper, and opens both halves of that lane's iron door for five seconds",
+  "hazards": [],
+  "requires_in_game": [
+    "the hopper transfer rate is ENTITY behaviour and this simulator has none: how long a fare takes to fall from the mouth into the till is the game's number, not ours",
+    "colour, and whether the gate reads as a front rather than as a wall, can only be judged in world",
+    "the self-resetting version of this machine - a latch set by the threshold and reset by an empty till, unlocking a drain hopper into a collection barrel - is designed and NOT built, because the drain is a hopper transfer and cannot be asserted here"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "iron_door"
+      ],
+      "container": [
+        "chest",
+        "hopper"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_wire"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "The arrival compound at the centre island's void edge: a sea wall over the drop, a forecourt with the spawn on the park's own axis, a stanchion queue under a lit oak canopy, and a 61-wide gate building whose ceremonial arch is barred so the park can be seen and not entered. Two turnstile lanes carry iron doors whose local preview opens on one deposited item; the server adapter validates and consumes exactly one grass block. With the doors shut the compound is sealed: the void closes it in front, flank walls close it sideways, and the gate closes it behind.\n"
+    },
+    "metrics": {
+      "blocks": 3951,
+      "materials": 22,
+      "dominant_material_share": 0.3622,
+      "light_blocks": 27,
+      "massing": {
+        "width": 19,
+        "height": 25,
+        "depth": 61,
+        "fill_ratio": 0.1364
+      },
+      "silhouette": {
+        "top": {
+          "area": 389,
+          "fill_ratio": 0.3356
+        },
+        "front": {
+          "area": 215,
+          "fill_ratio": 0.4352
+        },
+        "side": {
+          "area": 1127,
+          "fill_ratio": 0.7106
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.5209,
+          0.3748,
+          0.1043
+        ],
+        "top_silhouette_perimeter": 468,
+        "surface_faces_per_block": 1.2528
+      },
+      "material_counts": {
+        "white_wool": 1431,
+        "polished_blackstone_bricks": 862,
+        "smooth_stone": 735,
+        "stone_bricks": 323,
+        "red_wool": 200,
+        "stone_brick_wall": 59,
+        "stone_brick_stairs": 55,
+        "iron_bars": 48,
+        "oak_slab": 44,
+        "stone_brick_slab": 38,
+        "oak_fence": 31,
+        "chiseled_stone_bricks": 30
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "ef8b27bfe5112c5fee79a4091925d368358ce25f2724425eda2b8d7381e20173",
+    "generator_source_digest": "c442e80c02fb458e8e441578da66f28ecde7573ab00f7ee2bb31cf9e3b61420e",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 71.544601,
+    "blocks": 3951,
+    "blocks_per_second": 55.22
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "building"
+    ],
+    "blocks": 3951,
+    "mechanic_families": [
+      "access",
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: iron_bars",
+    "not in the provisional skyblock-1.19 list: iron_door",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Entry Gate.litematic",
+  "name": "PF Entry Gate"
+}

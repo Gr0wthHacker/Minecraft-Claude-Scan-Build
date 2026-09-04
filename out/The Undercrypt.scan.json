@@ -1,0 +1,231 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 146,
+    "z": 80754
+  },
+  "size": {
+    "x": 17,
+    "y": 8,
+    "z": 90
+  },
+  "generated_by": "undercroft",
+  "kind": "undercroft/crypt",
+  "land": "hollow",
+  "facing": "south",
+  "chambers": [
+    {
+      "name": "Catacombs",
+      "holds": "niches",
+      "at": [
+        97559,
+        147,
+        80764
+      ]
+    },
+    {
+      "name": "Ossuary Branch",
+      "holds": "puzzle",
+      "at": [
+        97559,
+        147,
+        80782
+      ]
+    },
+    {
+      "name": "Train Chamber",
+      "holds": "scene",
+      "at": [
+        97559,
+        147,
+        80801
+      ]
+    },
+    {
+      "name": "Drowned Crypt",
+      "holds": "water",
+      "at": [
+        97559,
+        147,
+        80820
+      ]
+    },
+    {
+      "name": "Founders Vault",
+      "holds": "reward",
+      "at": [
+        97559,
+        147,
+        80837
+      ]
+    }
+  ],
+  "spine_length": 89,
+  "lights": 10,
+  "dig": [],
+  "contract": "one continuous spine with a doorway into every chamber, each chamber doing exactly one thing, lit end to end so nothing spawns behind you",
+  "unverified": [
+    "NOTHING HERE IS A RIDE. The chambers are the rooms a ride or a walkthrough happens IN; what moves through them is the module that owns the journey, and its own mechanics are its own contract."
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "soul_lantern"
+      ],
+      "rail": [
+        "rail"
+      ]
+    },
+    "verifiers": {
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Undercrypt serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 3708,
+      "materials": 7,
+      "dominant_material_share": 0.6332,
+      "light_blocks": 10,
+      "massing": {
+        "width": 17,
+        "height": 8,
+        "depth": 90,
+        "fill_ratio": 0.3029
+      },
+      "silhouette": {
+        "top": {
+          "area": 1008,
+          "fill_ratio": 0.6588
+        },
+        "front": {
+          "area": 136,
+          "fill_ratio": 1.0
+        },
+        "side": {
+          "area": 642,
+          "fill_ratio": 0.8917
+        }
+      },
+      "material_counts": {
+        "deepslate_bricks": 2348,
+        "polished_deepslate": 720,
+        "cracked_deepslate_bricks": 560,
+        "chiseled_deepslate": 44,
+        "water": 14,
+        "rail": 12,
+        "soul_lantern": 10
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "f4284d396e003a6027ddac9f92a6679908fb5a51ca0deb8f250242843248cf62",
+    "generator_source_digest": "a655d457a21fd82cc007a6bd3782b1347047f905d16334e019eedb5eda205fcf",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "fluid",
+        "hazard",
+        "light",
+        "rail"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97559,
+        148,
+        80845
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 3708,
+    "mechanic_families": [
+      "fluid",
+      "hazard",
+      "light",
+      "rail"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: chiseled_deepslate",
+    "unsupported on skyblock-1.19: cracked_deepslate_bricks",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_deepslate"
+  ],
+  "file": "The Undercrypt.litematic",
+  "name": "The Undercrypt"
+}

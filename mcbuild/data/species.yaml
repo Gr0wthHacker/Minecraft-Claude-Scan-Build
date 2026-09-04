@@ -22,6 +22,7 @@
 
 # ---------------------------------------------------------------- felids
 jaguar:
+  retired: true          # see the RETIRED note at the foot of this file
   family: felid
   height: 27
   build: {ring_radius: 0.60, ring_thickness: 0.34, ring_broken: 0.34}
@@ -39,6 +40,7 @@ jaguar:
   features: [rosettes, pale_belly]
 
 leopard:
+  retired: true          # see the RETIRED note at the foot of this file
   family: felid
   height: 26                             # lighter and smaller than a jaguar (27); same animal
                                          # otherwise. It was 22, which is UNDER the felid floor of
@@ -58,6 +60,7 @@ leopard:
   features: [rosettes, pale_belly]
 
 lion:
+  retired: true          # see the RETIRED note at the foot of this file
   family: felid
   height: 32
   # the mane is the whole difference, so it has to be BOTH a silhouette break and a tonal one.
@@ -65,7 +68,11 @@ lion:
   build: {mane_volume: 3.0, head_r_ratio: 0.46}
   coat:
     coat_pattern: shaded
-    coat_ramp: [spruce_planks, stripped_spruce_wood, acacia_log, oak_log, stripped_oak_log]
+    # REBUILT 2026-08-27 by `tools/ladder.py --audit`. The hand-written ramp was OUT OF ORDER (89,93,98,88,147) with four rungs inside ten luminance.
+    # Rungs are now ordered dark->light and no two are closer than 15 luminance, which is
+    # where `coat.shade` stops shading and starts painting one colour.
+    # Three rungs, not five: the oak browns cannot supply five tones 15 apart at any setting.
+    coat_ramp: [dark_oak_wood, oak_log, oak_planks]
     shade_strength: 1.1
     coat_block: oak_log
     patch: oak_log
@@ -80,12 +87,16 @@ lion:
 
 # ---------------------------------------------------------------- ursids
 bear:
+  retired: true          # see the RETIRED note at the foot of this file
   family: ursid
   height: 30
   build: {head_turn: 1}
   coat:
     coat_pattern: shaded
-    coat_ramp: [dark_oak_planks, stripped_dark_oak_wood, mangrove_wood, spruce_planks, acacia_log]
+    # REBUILT 2026-08-27 by `tools/ladder.py --audit`. The hand-written ramp was ordered but flat - minimum step 8.8.
+    # Rungs are now ordered dark->light and no two are closer than 15 luminance, which is
+    # where `coat.shade` stops shading and starts painting one colour.
+    coat_ramp: [dark_oak_wood, mangrove_wood, stripped_spruce_log, oak_planks]
     shade_strength: 1.1
     coat_block: mangrove_wood
     patch: mangrove_wood
@@ -95,6 +106,7 @@ bear:
     hoof_block: black_wool
 
 polar_bear:
+  retired: true          # see the RETIRED note at the foot of this file
   family: ursid
   height: 32                             # the largest bear, so TALLER than the brown bear at 30.
                                          # It was 26 - which is the ursid floor exactly, every
@@ -115,7 +127,13 @@ polar_bear:
     coat_pattern: shaded
     # a NARROW ramp. Spanning tan to white made the shading paint the back snow and the
     # legs oak, so it read as two different animals joined together.
-    coat_ramp: [bone_block, bone_block, birch_wood, white_wool, snow_block]
+    # REBUILT 2026-08-27 by `tools/ladder.py --audit`. The hand-written ramp was `bone_block` TWICE and out of order (225,225,215,236,253).
+    # Rungs are now ordered dark->light and no two are closer than 15 luminance, which is
+    # where `coat.shade` stops shading and starts painting one colour.
+    # The narrow-ramp note above still holds and is why this stops at andesite rather than
+    # reaching for deepslate: a white animal must go down into grey to shade at all, but not
+    # so far that the legs read as a different animal.
+    coat_ramp: [andesite, smooth_stone, bone_block, snow_block]
     shade_strength: 1.2                  # a white animal lives or dies on its shading
     coat_block: bone_block
     patch: bone_block
@@ -131,7 +149,11 @@ elephant:
   build: {head_turn: 1}
   coat:
     coat_pattern: shaded
-    coat_ramp: [deepslate, tuff, stone, andesite, smooth_stone]
+    # REBUILT 2026-08-27 by `tools/ladder.py --audit`. The hand-written ramp was one rung pair 10.1 apart - the least bad of the five, and the elephant is the only
+    # animal that passes both panels.
+    # Rungs are now ordered dark->light and no two are closer than 15 luminance, which is
+    # where `coat.shade` stops shading and starts painting one colour.
+    coat_ramp: [deepslate, tuff, stone, light_gray_wool, smooth_stone]
     shade_strength: 1.15
     coat_block: stone
     patch: stone
@@ -148,7 +170,14 @@ capybara:
   build: {head_turn: 1}
   coat:
     coat_pattern: shaded
-    coat_ramp: [spruce_planks, stripped_spruce_wood, acacia_log, jungle_log, stripped_jungle_log]
+    # REBUILT 2026-08-27 by `tools/ladder.py --audit`. The hand-written ramp was OUT OF ORDER (89,93,98,69,138).
+    # Rungs are now ordered dark->light and no two are closer than 15 luminance, which is
+    # where `coat.shade` stops shading and starts painting one colour.
+    # A WASH on the rubric (form 0.80 -> 0.68, total 0.84 -> 0.83) and taken anyway: the old
+    # ramp painted the crevice tone onto lit cells, and its apparent advantage was an accident
+    # - the muddle produced speckle that `form`'s tonal-range term liked. Sorting it alone,
+    # which fixes nothing else, scores 0.63. A capybara's identity is hardware anyway.
+    coat_ramp: [spruce_log, jungle_log, stripped_spruce_log, oak_planks]
     shade_strength: 1.1
     coat_block: jungle_log
     patch: jungle_log
@@ -172,3 +201,24 @@ giraffe:
     dark: black_wool
     hoof_block: dark_oak_wood
   features: [patches]
+
+# ---------------------------------------------------------------- RETIRED
+#
+# The three cats and both bears are RETIRED, and the reason is not that they score badly - they
+# score GOOD, 0.79 to 0.86, on every dimension the rubric has. The panel review is what retired
+# them, twice, and the scores are what failed to notice:
+#
+#   "You cannot name it from the silhouette - it reads as a low table, or a bull."
+#   "why does your jaguar have four table legs and a flat back?"
+#
+# The line this system actually has is PLANAR/COLUMNAR against VOLUMETRIC. A spread wing, a neck, a
+# stilt leg, a splayed limb: flat sheets and straight tapers, which is what voxels render natively.
+# A cat's shoulder or a bear's haunch is compound volumetric muscle, which voxels render worst of
+# anything - and SCALE DOES NOT RESCUE IT. The jaguar at 2.6x and 60,000 blocks failed exactly as
+# the 27-block one did.
+#
+# They stay in the table as a record and they still BUILD - nothing is deleted, and `retired` is a
+# flag rather than a removal, so `X jaguar` in `out/` keeps resolving. What they no longer do is
+# appear as live work in `compare`, or invite the next session to tune them. The elephant, giraffe
+# and capybara are NOT retired: their identity is hardware - a trunk, a neck, a genuinely blocky
+# rodent - which is the half of the line that works.

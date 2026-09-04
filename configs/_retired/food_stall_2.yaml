@@ -1,0 +1,17 @@
+name: Food Stall 2
+gen: park
+params:
+  land: midway
+  width: 7
+  depth: 5
+  facing: west
+  at:
+  - 97608
+  - 203
+  - 80620
+  kind: stall
+  title: Food Stall 2
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

@@ -1,0 +1,262 @@
+{
+  "origin": {
+    "x": 97630,
+    "y": 201,
+    "z": 80473
+  },
+  "size": {
+    "x": 24,
+    "y": 19,
+    "z": 39
+  },
+  "generated_by": "menagerie",
+  "kind": "menagerie",
+  "footprint": [
+    39,
+    24
+  ],
+  "land": "midway",
+  "facing": "west",
+  "habitats": [
+    "barn",
+    "pond",
+    "meadow",
+    "aviary",
+    "lookout"
+  ],
+  "paved": 306,
+  "barn": {
+    "stalls": 4,
+    "hay": 4,
+    "signed": true
+  },
+  "pond": {
+    "water": 58,
+    "shore": 40,
+    "lily": 5,
+    "reeds": 1
+  },
+  "meadow": {
+    "trees": 2,
+    "planting": 49
+  },
+  "aviary": {
+    "height": 16,
+    "mesh": 52,
+    "perches": 22,
+    "planting": 21
+  },
+  "lookout": {
+    "deck": 3,
+    "height": 8
+  },
+  "signed": true,
+  "contract": "a walk-through zoo filling its whole lot: a barn with four railed stalls off a cross aisle, a sunken pond, an open paddock, a cage aviary and a raised lookout, joined by a T of paths from a gated frontage; no animal is placed by this generator - a litematic is blocks, not entities",
+  "unverified": [
+    "NOTHING HERE IS LIVE STOCK. Every enclosure is empty on paste; each gate sign names what to lead in and with what."
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_fence_gate",
+        "oak_trapdoor"
+      ],
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "terrain",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "A walk-through farmyard zoo on the Claim Lake's south side, filling the whole exit and observation lot: a gated frontage with two capped towers, a red timber barn you walk through with four railed stalls off its cross aisle, a sunken duck pond with a canopied jetty, an open sheep meadow with a shelter and a trough, a cage aviary under a lattice roof with a cupola on top, and a raised lookout terminating the spine - built empty, gated and signed for what to lead into each enclosure.\n"
+    },
+    "metrics": {
+      "blocks": 2933,
+      "materials": 35,
+      "dominant_material_share": 0.1609,
+      "light_blocks": 24,
+      "massing": {
+        "width": 24,
+        "height": 19,
+        "depth": 39,
+        "fill_ratio": 0.1649
+      },
+      "silhouette": {
+        "top": {
+          "area": 936,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 241,
+          "fill_ratio": 0.5285
+        },
+        "side": {
+          "area": 448,
+          "fill_ratio": 0.6046
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.7385,
+          0.208,
+          0.0535
+        ],
+        "top_silhouette_perimeter": 126,
+        "surface_faces_per_block": 2.0546
+      },
+      "material_counts": {
+        "oak_fence": 472,
+        "polished_blackstone_bricks": 439,
+        "oak_log": 369,
+        "moss_block": 359,
+        "white_wool": 214,
+        "stone": 183,
+        "red_wool": 174,
+        "oak_stairs": 150,
+        "stone_bricks": 92,
+        "oak_leaves": 72,
+        "oak_planks": 68,
+        "stone_brick_stairs": 54
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "784dbd7af22aab129110d9ae0c0f880977caddbc13857859f5e2147f53c9867d",
+    "generator_source_digest": "0f4662109ac18dd98e2124358ca8ef7fd2f011ae426708348ce809083a752198",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "fluid",
+        "hazard",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "terrain",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97629,
+        204,
+        80492
+      ]
+    ]
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 53.235628,
+    "blocks": 2933,
+    "blocks_per_second": 55.09
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 2933,
+    "mechanic_families": [
+      "access",
+      "fluid",
+      "hazard",
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: cornflower",
+    "not in the provisional skyblock-1.19 list: hay_block",
+    "not in the provisional skyblock-1.19 list: oak_fence_gate",
+    "not in the provisional skyblock-1.19 list: oxeye_daisy",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: sugar_cane",
+    "not in the provisional skyblock-1.19 list: water_cauldron"
+  ],
+  "file": "PF Claim Lake Menagerie.litematic",
+  "name": "PF Claim Lake Menagerie"
+}

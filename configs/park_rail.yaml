@@ -1,0 +1,119 @@
+name: Park Rail
+gen: parkrail
+params:
+  bounds:
+  - 172
+  - 0
+  - 186
+  - 599
+  lands:
+  - name: frontier
+    u0: 0
+    u1: 169
+  - name: midway
+    u0: 215
+    u1: 384
+  - name: prismworks
+    u0: 430
+    u1: 599
+  park_side: -1
+  deck_y: 12
+  ground_y: 1
+  bay: 15
+  pier_u: 3
+  spring_y: 4
+  crown_gap: 2
+  gate_k: 5
+  gate_h: 4
+  portal_every: 4
+  power_every: 8
+  light_every: 12
+  arch_light_every: 2
+  bay_half: 0
+  track_inset: 3
+  station_half: 13
+  stair_w: 3
+  head_half: 5
+  head_v: 8
+  canopy_h: 5
+  band_blend: 30
+  stations:
+  - at_u: 77
+    land: frontier
+    title: FRONTIER HALT
+    stair: 1
+    board:
+    - FRONTIER HALT
+    - '> MIDWAY'
+    - '> PRISMWORKS'
+    - DEPARTS ITSELF
+  - at_u: 279
+    land: midway
+    title: MIDWAY CENTRAL
+    stair: -1
+    board:
+    - MIDWAY CENTRAL
+    - < FRONTIER
+    - '> PRISMWORKS'
+    - DEPARTS ITSELF
+  - at_u: 505
+    land: prismworks
+    title: PRISMWORKS END
+    stair: 1
+    board:
+    - PRISMWORKS END
+    - < MIDWAY
+    - < FRONTIER
+    - DEPARTS ITSELF
+  seed: 0
+  renewal: true
+roles:
+- ride
+- path
+- bridge
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: midway
+  narrative: Three distinct free stations on a two-track rim railway with independent
+    exit stairs, sloped dispatch and approach holding.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+origin_lock: false
+server_profile: skyblock-1.19
+world_contract: true
+cache_dir: out/railway_v2/cache
+anchors:
+- name: queue_entry
+  kind: queue
+  position:
+  - 4
+  - 13
+  - 286
+- name: boarding
+  kind: board
+  position:
+  - 4
+  - 13
+  - 279
+- name: ride_exit
+  kind: ride_exit
+  position:
+  - 7
+  - 13
+  - 295
+- name: service_access
+  kind: maintenance
+  position:
+  - 10
+  - 1
+  - 256
+source_revisions:
+  mcbuild/gen/parkrail.py: 4c086f138bdb7dfe2673c03e699bd963987cfb3a5e999f2d7a5cbc82b23556f5
+  mcbuild/gen/parkrail_v2.py: 516dccf435b21016a0e8c2fab70bb23430f5db155b311c1d1262de5ae1c1b4ae
+  mcbuild/gen/parkrail_signals.py: 287132f0c7ca68dc792639157916ea373be4edcd99002b89f4d73f79c84e1678
+  mcbuild/gen/canvas.py: 2ad44a5c0fa9c08f9f91f00301b1a557aacd19450462a2846a2461988060ddf0
+  mcbuild/circuit.py: 297d4e57de157b42504a71890b4ef22f630c5fb4e2810e1e8352fb71de8d15f5

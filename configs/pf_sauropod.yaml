@@ -1,0 +1,71 @@
+# PF SAUROPOD - the Lost Plateau's landmark, on the rim against the void.
+#
+# Jack: "we can put it somewhere on the far left side; against the void where the tower and other
+# frontier objects currently are."
+#
+# ---------------------------------------------------------------------------------------------
+# THE LAND HAS NO OTHER SITE, AND THAT IS MEASURED
+#
+# The animal is 48 x 11 x 36. Searched over the whole Frontier band plus the Claim Line reach,
+# with water allowed and roll tolerated up to ten courses:
+#
+#     open lawn with 36 courses of sky            8,724 columns
+#     LARGEST CLEAR RECTANGLE IN ALL OF IT          6 x 49
+#     sites holding 50 x 14                              0
+#     sites holding 42 x 13 (its true footprint)         0
+#     ...on the plateau's own soil, roll <= 10           0
+#
+# The land is FULL: its open ground is verges and strips six wide. The one band with real room is
+# the outer rim past the railway - **V187-199, which rolls two courses in its entire length** - and
+# it is exactly where Jack put it: outside everything, against the void, on the Vantage Lookout's
+# side of the land. 132 windows of 13 x 42 fit there; this is the lowest-U one, which is the corner
+# the tower stands in.
+#
+# ---------------------------------------------------------------------------------------------
+# THE GEOMETRY, EXACTLY
+#
+# `at` is the FRAME ORIGIN - between the front feet. Facing north, the animal runs from `at_u - 22`
+# to `at_u + 25` and `at_v - 5` to `at_v + 5`, so this occupies **V188-198 x U30-77** on ground at
+# Y203, inside a rim band of V187-199. Eleven wide in a thirteen-wide band, one clear column a side.
+#
+# **IT FACES NORTH, WHICH IS INTO THE PARK.** Facing east or west would run its length along V,
+# where there are thirteen rows and it needs forty-eight. North puts its head and neck toward the
+# land's own low-U end - the Vantage Lookout's corner - so a guest anywhere in the Frontier is
+# looking at the head rather than the tail, and the tail sweeps away down the rim.
+name: PF Sauropod
+gen: sauropod
+params:
+  kind: brachiosaur
+  facing: north
+  # **48, NOT 34 - AND THE LEGS ARE WHY IT COULD GROW.** Jack: "i think it can be a bit bigger."
+  # The rim band is thirteen rows deep and the animal's width is 2 x (stance + leg radius), so it
+  # was the LEGS that capped it, not the body: at 0.0853H of radius a leg was 0.17H in diameter
+  # where a real graviportal limb is nearer 0.12H. Slimmed to a true gauge it is 11 wide at h=48
+  # instead of 15 - a clear column of rim each side - and half again as tall. 63 long, 50 tall,
+  # 5,036 blocks against 2,323.
+  #
+  # `at` is the FRAME ORIGIN, between the front feet: the animal runs V(at-5..+5) and
+  # U(at-30..+32), so this is **V188-198 x U8-70** on ground at Y203-204, inside a rim of V187-199.
+  at: [193, 38]
+  height: 48
+  under: out/Park Complete.litematic
+  ground: true
+  seed: 3
+  title: THE SAUROPOD
+roles: [construction]
+design:
+  purpose: sculpture
+  hierarchy: landmark
+  style: frontier
+  narrative: >
+    A brachiosaur on the plateau's rim: four columnar tapered legs with the front pair longer, a
+    spindle barrel falling away to the hip, a neck rising nearly vertical to a crested head, and a
+    tail as long as the neck. Countershaded off its own built form and blotched along the spine.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet, fern, jungle_leaves, vine, coal_ore, rail]
+origin_lock: false

@@ -1,0 +1,227 @@
+{
+  "origin": {
+    "x": 97577,
+    "y": 203,
+    "z": 80515
+  },
+  "size": {
+    "x": 27,
+    "y": 20,
+    "z": 41
+  },
+  "generated_by": "midwaybuild",
+  "kind": "midway_build",
+  "build": "snack_window",
+  "name": "PF Snack Window",
+  "lot": [
+    77,
+    215,
+    103,
+    255
+  ],
+  "facing": "west",
+  "signs": 3,
+  "lamps": 6,
+  "seats": 6,
+  "openings": 78,
+  "floor": 430,
+  "awning": 13,
+  "ceiling": 315,
+  "roof": 414,
+  "contract": "one connected building inside lot V77-103 U215-255, fronting west, with a real doorway, a lit interior, a named sign, and no street furniture",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_door",
+        "oak_trapdoor"
+      ],
+      "container": [
+        "barrel"
+      ],
+      "hazard": [
+        "campfire"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "shop",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "An ordering counter under a red-and-white awning on midway walk 1, a kitchen behind it with a chimney that actually smokes, and a covered loggia with an eating shelf and exactly six seats. A rear service door, and nothing outside the building but the three courses of threshold that join it to the walk's own spur.\n"
+    },
+    "metrics": {
+      "blocks": 1998,
+      "materials": 31,
+      "dominant_material_share": 0.1151,
+      "light_blocks": 6,
+      "massing": {
+        "width": 21,
+        "height": 17,
+        "depth": 25,
+        "fill_ratio": 0.2239
+      },
+      "silhouette": {
+        "top": {
+          "area": 495,
+          "fill_ratio": 0.4472
+        },
+        "front": {
+          "area": 231,
+          "fill_ratio": 0.4278
+        },
+        "side": {
+          "area": 392,
+          "fill_ratio": 0.478
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.6977,
+          0.2407,
+          0.0616
+        ],
+        "top_silhouette_perimeter": 171,
+        "surface_faces_per_block": 2.3383
+      },
+      "material_counts": {
+        "stone": 230,
+        "white_wool": 201,
+        "oak_planks": 192,
+        "polished_diorite_stairs": 192,
+        "crimson_stairs": 175,
+        "stone_brick_stairs": 166,
+        "stone_bricks": 164,
+        "stripped_oak_log": 138,
+        "red_wool": 96,
+        "polished_blackstone_bricks": 93,
+        "smooth_stone": 81,
+        "stone_brick_slab": 77
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "79c97e0c4f65423a7c83dbd4ea2e10788406225bd7213886e6d30998c4fcf794",
+    "generator_source_digest": "b8fe94c691bbe04dbcd09fd44afb07393831b480222b7e6d9233acf872ace88f",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "hazard",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 66.258806,
+    "blocks": 1998,
+    "blocks_per_second": 30.15
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "building"
+    ],
+    "blocks": 1998,
+    "mechanic_families": [
+      "access",
+      "container",
+      "hazard",
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: crimson_slab",
+    "not in the provisional skyblock-1.19 list: crimson_stairs",
+    "not in the provisional skyblock-1.19 list: oak_door",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_diorite_slab",
+    "not in the provisional skyblock-1.19 list: polished_diorite_stairs",
+    "not in the provisional skyblock-1.19 list: smoker"
+  ],
+  "file": "PF Snack Window.litematic"
+}

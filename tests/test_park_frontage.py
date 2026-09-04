@@ -1,0 +1,751 @@
+"""What the park's frontage must never do, and what it must always be.
+
+**THE ONE RULE WHOSE BREACH PRODUCED THE "CHAOS" VERDICT** is that nothing in front of or between
+the park's buildings may collide with the ground layer or with a building. The earlier attempt at
+this work was thrown away for exactly that, not for existing - so the first four tests here are
+cell-by-cell measurements against the two shipped litematics rather than assertions about the
+generator's own arithmetic.
+
+Everything else pins a CONTRACT rather than a block count. A snapshot test on a design whose whole
+nature is "remaining work beside somebody else's build" fails the moment either neighbour moves,
+which this repo has been bitten by three times.
+"""
+from __future__ import annotations
+
+import glob
+import os
+import sys
+
+import numpy as np
+import pytest
+import yaml
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from mcbuild import blocks, palette, schem                      # noqa: E402
+from mcbuild.gen import park_frontage as pf                     # noqa: E402
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+WAYS = os.path.join(ROOT, "out", "Park Ways.litematic")
+COMPLETE = os.path.join(ROOT, "out", "Park Complete.litematic")
+CONFIGS = sorted(glob.glob(os.path.join(ROOT, "configs", "pf_front_*.yaml")))
+
+#: `Park Ways` lays a moss carpet over every lot at the course this design builds on. It is what
+#: a builder clears with one swing, and every `pf_front_*` config declares it replaceable - so it
+#: is not a collision, here or in the pipeline's own `verify_against`.
+REPLACEABLE = {"moss_carpet"}
+
+#: The eighteen placed modules. A theme park names EVERYTHING at the front; the complaint that
+#: started this work was that not one of them did.
+#: THE ARRIVAL COURT IS NOT ONE OF THEM ANY MORE (2026-09-03). It was retired - `PF Entry Gate`
+#: already did its job on the park's own axis - and the Carousel took its lot in Midway column A.
+#: This list pins a DECISION about which modules exist, so it moves with the decision rather than
+#: keeping a name that would now fail for a building nobody placed.
+MODULES = [
+    # **`Boomtown Spine` IS RETIRED AND `Frontier Diggings` NAMES ITS LOT NOW.** Jack, three
+    # times: "they are visually great - but all serve no actual defined purpose"; "i dont want a
+    # bunch of buildings to go into, this is just a village then"; "we can have a small amount of
+    # buildings, but the rest should be other things." It was 53 x 46 of false fronts with 0
+    # interactive blocks. A marquee naming a module nobody places is a sign to somewhere a guest
+    # cannot go, so the marquee was retitled in the same commit as the retirement.
+    #: **AND FOUR MORE WENT WITH THE LOST PLATEAU'S WEST HALF.** Jack, on the re-themed land:
+    #: "its just buildings, the dig zone is crappy ... i really dont like this splatter of
+    #: buildings that dont look amazing and dont really do anything." Measured, columns A and B
+    #: carried six buildings, 17,857 blocks and ONE interactive block; `PF Plateau Vale` and
+    #: `PF Plateau Bone Bed` hold that ground now and each has a marquee of its own on the spur.
+    #: `Trailhead Gate`, `Prospecting Porch`, `Frontier Diggings` and `Mining Square` are out of
+    #: `tools/park_lots.PLACEMENT` and `park_place.EXTRAS_READY` - and a marquee naming a module
+    #: nobody places is a sign to somewhere a guest cannot go, which is the rule this list already
+    #: learned from Boomtown.
+    #:
+    #: TWO OF THE FOUR WERE NOT ONLY STALE, THEY WERE IN THE WAY: THE SCREENS stood at V70 U20 and
+    #: BASE CAMP at V80 U66, both deep INSIDE the lots the terrain designs hold, and a board on
+    #: posts in the middle of a hillside is a clash rather than a sign.
+    "Plateau Vale", "Plateau Bone Bed",
+    "Assay and Prize Office", "Mine Coaster", "Works Yard",
+    #: ...AND `Prize Point` WENT WITH THE GAMES ROW, hours after the six above. `PF Midway
+    #: Garden` holds that lot, so the gantry at the head of column C names the garden and the
+    #: one that said "redeem here" is gone - there was nothing left to redeem at.
+    "Snack Window", "Carousel Court", "Sky Lift", "Midway Garden",
+    #: **AND SIX MORE, AND THIS LIST HAD NOT LEARNED ITS OWN LESSON (2026-09-03).** `Skill
+    #: Arcade` went when `PF Games Row` replaced it, and `Foundry Gate`, `Prism Array`,
+    #: `Resonance Vault`, `Prism Ascent` and `Forge Deck` all went with Prismworks v1 - so
+    #: this roster was asking for a marquee over six buildings that are not in the park, and
+    #: it had already been hand-corrected twice before (Boomtown, then the Lost Plateau four).
+    #: A hand-copied roster goes stale in exactly the way a marquee does, so it is CHECKED
+    #: against the two lists that decide placement now rather than only edited when someone
+    #: notices - see `test_this_roster_only_names_modules_the_park_actually_places`.
+    "Service Gallery",
+]
+
+#: Which piece answers for which module. A marquee names it; a staff gate marks a back-of-house
+#: yard, which is what a park does instead of marqueeing its service road.
+NAMED_BY = {
+    "Plateau Vale": "Plateau Vale", "Plateau Bone Bed": "Plateau Bone Bed",
+    "Assay and Prize Office": "Assay and Prize Office", "Mine Coaster": "Mine Coaster",
+    "Works Yard": "Works Yard staff gate",
+    "Snack Window": "Snack Window",
+    #: THE CAROUSEL HAS A GANTRY AGAIN, AND IT IS NOT ACROSS THE WALK. It used to be named by its
+    #: threshold alone: it stood behind the wheel with no spur of its own, and the one gantry near
+    #: it was the Circus Gate at V20 - a cell of lawn behind the entry gate's back face and a cell
+    #: in front of the Welcome Court, which is exactly what Jack called *"gates and a board etc all
+    #: overlapping and chaotic with the entrance to the main center."* That gate is still gone.
+    #: In column A the ride has its own 3-wide spur at U234-236 with a gantry over it, off the
+    #: entrance axis entirely, so it is named the way every other lot is - plus the two thresholds,
+    #: which are what a walk-on ride gets instead of a queue.
+    "Carousel Court": "Carousel Court", "Sky Lift": "Sky Lift",
+    "Midway Garden": "Midway Garden",
+    "Service Gallery": "Service Gallery staff gate",
+}
+
+#: THE FOUR MEASURED TROUGHS. Built columns per 20-wide U band across the public floor swing from
+#: near 2,000 down to near 250, and that alternation is what reads as "clusters then empty space".
+#: These four are the emptiest bands a visitor actually walks through; the two reaches are being
+#: filled by another stream (a lake and the Wyrm) and are not this design's to answer for.
+# U320-339 is now deliberate negative space between the Midway's three large silhouettes.  Filling
+# every low-density band was the metric that clustered the Sloth around the wheel in the first
+# place; the other three remain destinations rather than visual breathing room.
+TROUGHS = [(420, 439), (520, 539), (580, 599)]
+
+
+# --------------------------------------------------------------------------- fixtures
+
+
+def _named(model):
+    return {i: e.value["Name"].value.split(":")[-1] for i, e in enumerate(model.palette)}
+
+
+@pytest.fixture(scope="module")
+def ground():
+    """The shipped ground layer and the whole placed park, as cell lookups in PARK coordinates.
+
+    `Park Ways` starts at Y202 - its surface course, which is every path, plaza, verge, spur and
+    kerb in the park - and `Park Complete` at Y190.
+    """
+    if not (os.path.exists(WAYS) and os.path.exists(COMPLETE)):
+        pytest.skip("the shipped park litematics are not in out/")
+    W, C = schem.load(WAYS), schem.load(COMPLETE)
+    wn, cn = _named(W), _named(C)
+    lawn_ids = [i for i, n in wn.items() if n == "moss_block"]
+    top = W.ids[0]
+    lawn = np.isin(top, lawn_ids).T                       # [V, U]
+    paved = (top.T != 0) & ~lawn
+    return {"W": W, "C": C, "wn": wn, "cn": cn, "paved": paved, "lawn": lawn,
+            "wy0": 202, "cy0": 190}
+
+
+def _occupant(g, V, Y, U):
+    """What the GROUND LAYER holds at this PARK cell, or None. Carpet is not an occupant.
+
+    IT READ `Park Complete` AND THAT IS THE SNAPSHOT TRAP AT PARK SCALE. The composite is built
+    BY placing these designs, so once the park ships every frontage cell is in it and each design
+    reports its own entire body as a collision - `PF Front Frontier shares 2406 cells`, which is
+    all 2,406 of them. A test whose evidence contains the thing it is testing measures nothing,
+    and it fails only after the work succeeds.
+
+    The ground layer is the honest evidence for the rule this file names - street, plaza, verge,
+    spur, kerb, lamp - because `Park Ways` is generated from the grid and never from a placement.
+    MODULE-AGAINST-MODULE IS A DIFFERENT QUESTION AND IT ALREADY HAS A BETTER ANSWER:
+    `tools/park_place.py` compares all thirty placed modules pairwise in world coordinates and
+    prints `module clashes`, which covers frontage against building AND frontage against
+    frontage, neither of which a composite can be asked about after the fact.
+    """
+    for model, names, y0 in ((g["W"], g["wn"], g["wy0"]),):
+        ly = Y - y0
+        if 0 <= ly < model.ids.shape[0] and 0 <= U < model.ids.shape[1] and 0 <= V < model.ids.shape[2]:
+            i = int(model.ids[ly, U, V])
+            if i and names[i] not in REPLACEABLE:
+                return names[i]
+    return None
+
+
+@pytest.fixture(scope="module")
+def designs():
+    """Every shipped `pf_front_*` design, as (name, canvas, cells) with cells in PARK coords."""
+    assert CONFIGS, "no configs/pf_front_*.yaml - this design ships as one config per land"
+    out = []
+    for path in CONFIGS:
+        cfg = yaml.safe_load(open(path, encoding="utf-8"))
+        c = pf.build(cfg["params"])
+        ox, oy, oz = c.world_origin
+        names = _named(c)
+        cells = {}
+        ys, zs, xs = (c.ids != 0).nonzero()
+        for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist()):
+            cells[(ox - 97500 + x, oy + y, oz - 80300 + z)] = names[int(c.ids[y, z, x])]
+        out.append((cfg["name"], cfg, c, cells))
+    return out
+
+
+# --------------------------------------------------------------------------- the collision rules
+
+
+def test_not_one_cell_is_emitted_below_the_build_plane(designs):
+    """Y202 IS THE GROUND LAYER'S OWN SURFACE - every path, plaza, verge, spur and kerb in the
+    park is that one course. This design's h=0 is Y203, so a paved cell cannot be touched BY
+    CONSTRUCTION rather than by care, and the generator raises rather than emitting one."""
+    for name, _cfg, _c, cells in designs:
+        low = min(Y for _V, Y, _U in cells)
+        assert low >= 203, f"{name} emits at Y{low}, inside the ground layer"
+
+
+def test_nothing_touches_a_street_a_plaza_a_verge_a_lamp_or_a_building(ground, designs):
+    """THE RULE WHOSE BREACH PRODUCED THE 'CHAOS' VERDICT, measured cell by cell against both
+    shipped litematics rather than reasoned about."""
+    for name, _cfg, _c, cells in designs:
+        hits = {}
+        for (V, Y, U), _mine in cells.items():
+            theirs = _occupant(ground, V, Y, U)
+            if theirs:
+                hits.setdefault(theirs, []).append((V, Y, U))
+        assert not hits, (
+            f"{name} shares {sum(len(v) for v in hits.values())} cells with the placed park: "
+            + "; ".join(f"{k} x{len(v)} eg {v[0]}" for k, v in sorted(hits.items())))
+
+
+def test_nothing_stands_in_a_walkway(ground, designs):
+    """A marquee is an ARCH over the spur that already leads to the door it names, so it crosses
+    paving on purpose - and a guest has to be able to walk under it. Every cell of this design
+    standing over a paved column is at or above `HEAD_CLEAR`, which is measured here rather than
+    trusted: three clear courses is a player who does not flinch."""
+    assert pf.HEAD_CLEAR >= 3, "two courses is a player; three is a player with room"
+    paved = ground["paved"]
+    for name, _cfg, _c, cells in designs:
+        bad = [(V, Y, U, n) for (V, Y, U), n in cells.items()
+               if 0 <= V < paved.shape[0] and 0 <= U < paved.shape[1]
+               and paved[V, U] and Y - 203 < pf.HEAD_CLEAR]
+        assert not bad, f"{name} blocks a walkway at {bad[:5]}"
+
+
+def test_nothing_reaches_the_protected_rim_reserve_or_leaves_the_plot(designs):
+    """V171-199 is the protected rim and void reserve and NOTHING is placed in it - a rule the
+    ground layer asserts about itself, and one a design standing on its lawn inherits."""
+    for name, _cfg, _c, cells in designs:
+        for (V, Y, U) in cells:
+            assert 0 <= V <= 169, f"{name} reaches V{V}, outside the buildable depth band"
+            assert 0 <= U <= 599, f"{name} reaches U{U}, off the plot"
+
+
+def test_the_three_lands_do_not_share_a_cell(designs):
+    """Three configs, one park. Cross-design overlap is a DIFFERENT question from overlap with
+    the capture, and it needs its own check: `verify_against` audits each design against the
+    world, and the world does not contain its siblings."""
+    seen = {}
+    for name, _cfg, _c, cells in designs:
+        for pos in cells:
+            other = seen.get(pos)
+            assert other is None, f"{name} and {other} both claim {pos}"
+            seen[pos] = name
+
+
+# --------------------------------------------------------------------------- materials
+
+
+def test_every_material_is_legal_cheap_and_spendable():
+    """ASK THE REGISTRY, NEVER A MEMORY. The palettes here are copied from the three land builders
+    rather than imported, because three streams are editing this park at once - so what keeps them
+    honest is this, not the copying: every entry must exist, be in the 1.19 SERVER's list, not be
+    currency (dirt and grass are money here), not be expensive, and not be cobblestone."""
+    for land, table in pf.PAL.items():
+        for key, name in table.items():
+            if key == "wood":                       # a sign prefix, not a block
+                name = f"{name}_wall_sign"
+            assert blocks.exists(name), f"{land}.{key}: {name} is not a block"
+            assert blocks.available(name), f"{land}.{key}: {name} is not on the 1.19 server"
+            assert blocks.spendable(name), f"{land}.{key}: {name} is CURRENCY on this server"
+            assert palette.tier(name) in ("cheap", "ok"), \
+                f"{land}.{key}: {name} is {palette.tier(name)} tier"
+            assert "cobblestone" not in name, f"{land}.{key}: {name} is cobblestone"
+            assert not blocks.falls(name), f"{land}.{key}: {name} falls"
+
+
+def test_every_land_can_actually_draw_a_line():
+    """A VALUE LADDER CANNOT EXIST INSIDE ONE MATERIAL FAMILY, and this repo has concluded four
+    separate times that the economy has no contrast after searching inside one. Across families
+    the rungs are real, and a marquee's fascia has to read against its own piers from the spine."""
+    for land, table in pf.PAL.items():
+        lum = {}
+        for key in ("plinth", "pier", "band", "board", "accent"):
+            r, g, b = blocks.color(table[key], "side")
+            lum[key] = 0.2126 * r + 0.7152 * g + 0.0722 * b
+        assert abs(lum["board"] - lum["pier"]) >= 15, \
+            f"{land}: the fascia is {abs(lum['board'] - lum['pier']):.0f} off its own piers"
+        assert abs(lum["plinth"] - lum["pier"]) >= 15, \
+            f"{land}: the plinth course does not read as a line under the pier"
+
+
+def test_a_property_the_block_does_not_have_is_a_typo_and_raises():
+    """A palette key is an abstraction - one land's `post` is a log and another's is basalt - so
+    `axis` may be asked for and not got. Every OTHER unknown property is a typo, and a silently
+    dropped `facing` is a stair pointing the wrong way, which this renderer draws identically to
+    a right one."""
+    assert pf._state("smooth_basalt", {"axis": "y"}) == {}
+    assert pf._state("spruce_log", {"axis": "y"}) == {"axis": "y"}
+    with pytest.raises(ValueError):
+        pf._state("stone_bricks", {"facing": "west"})
+
+
+# --------------------------------------------------------------------------- what a park has
+
+
+def test_this_roster_only_names_modules_the_park_actually_places():
+    """**A HAND-COPIED ROSTER GOES STALE IN EXACTLY THE WAY A MARQUEE DOES.**
+
+    `MODULES` has been hand-corrected three times - Boomtown, then the Lost Plateau four, then six
+    more in Prismworks and the Midway - and each time it was noticed only because the test started
+    failing with `nothing announces [...]`, which reads as a MISSING SIGN rather than as a RETIRED
+    BUILDING and sends the next reader looking for the wrong thing.
+
+    `tools/park_lots.PLACEMENT` and `park_place.EXTRAS_READY` are the two lists that actually decide
+    what is placed, so the roster is checked against them. This is the same rule the park applies to
+    its own signage: a name that points at something not standing is the defect, wherever it is
+    written down.
+    """
+    import sys
+    sys.path.insert(0, ROOT)
+    from tools.park_lots import PLACEMENT
+    from tools.park_place import EXTRAS_READY
+    placed = set(PLACEMENT)
+    placed |= {n[3:] if n.startswith("PF ") else n for n in EXTRAS_READY}
+    #: A GAME CONSOLE IS PLACED UNDER ITS OWN `PF Game <name>` KEY, and the module a marquee names
+    #: is the counter rather than the console, so the two spellings are reconciled here.
+    placed |= {n.replace("Game ", "") for n in placed}
+    stale = [m for m in MODULES if m not in placed]
+    assert not stale, ("this roster names modules the park does not place, so the naming test "
+                       "reports them as unsigned rather than as retired: %s" % stale)
+
+
+def test_every_one_of_the_nineteen_modules_is_named(designs):
+    """THE COMPLAINT THAT STARTED THIS WORK: not one of the park's modules said what it was from
+    outside. The roster moves as modules are retired and replaced - it is nineteen no longer - and
+    what is pinned is that every module `PLACEMENT` and `EXTRAS_READY` actually place has a piece
+    of frontage announcing it."""
+    built = set()
+    for _name, _cfg, c, _cells in designs:
+        built |= {p.get("name") for p in c.meta["pieces"]}
+    missing = [m for m in MODULES if NAMED_BY[m] not in built]
+    assert not missing, f"nothing announces {missing}"
+
+
+def test_a_sign_line_never_clips(designs):
+    """Fifteen characters. A line that clips only shows in a screenshot taken after the thing is
+    placed, which is the most expensive place in this pipeline to find a typo."""
+    for name, _cfg, c, _cells in designs:
+        for pos, tile in c.tiles.items():
+            for side in ("front", "back"):
+                for line in tile[side]:
+                    text = line.split('"text":')[-1].strip('}" ')
+                    assert len(text) <= pf.SIGN_WIDTH, f"{name} {pos}: {text!r}"
+
+
+def test_the_generator_refuses_a_sign_line_that_would_clip():
+    """...and it is checked in the BUILD, not only here, because a config is where the typo is."""
+    with pytest.raises(ValueError, match="chars"):
+        pf.build({"land": "midway", "pieces": [
+            {"kind": "marquee", "at": [20, 40], "title": "A NAME FAR TOO LONG TO FIT"}]})
+
+
+def test_not_one_sign_was_refused(designs):
+    """A REFUSED SIGN IS SILENT. `_sign` will not hang a board on a cell that does not exist -
+    the game refuses one too, and a wall sign floating in air draws exactly like one on a wall in
+    every render this repo has. So each refusal is RECORDED, and this is the check that reads the
+    record. It caught eight the first time it ran: four back signs on one-course pieces whose own
+    building stood behind them, a bandstand whose plaque was placed before the board that carries
+    it, and two lens plaques facing the wrong way off their plinth."""
+    for name, _cfg, c, _cells in designs:
+        assert c.meta["refused_signs"] == [], \
+            f"{name} silently dropped {len(c.meta['refused_signs'])} name boards: " \
+            f"{c.meta['refused_signs']}"
+
+
+def test_every_sign_hangs_on_a_block_of_this_design(designs):
+    """A WALL SIGN FLOATING IN AIR DRAWS EXACTLY LIKE ONE ON A WALL, and the game simply refuses
+    to place it - so a silently-refused sign is this project's most-repeated failure shape. Every
+    sign this design places must have its own support, not somebody else's."""
+    for name, _cfg, c, cells in designs:
+        ox, oy, oz = c.world_origin
+        for (x, y, z), _tile in c.tiles.items():
+            V, Y, U = ox - 97500 + x, oy + y, oz - 80300 + z
+            props = c.palette[int(c.ids[y, z, x])]
+            facing = None
+            for k, v in (props.value.get("Properties").value.items()
+                         if props.value.get("Properties") else {}.items()):
+                if k == "facing":
+                    facing = v.value
+            assert facing, f"{name}: a wall sign at {(V, Y, U)} has no facing"
+            dv, du = pf._STEP[facing]
+            assert (V - dv, Y, U - du) in cells, \
+                f"{name}: the sign at {(V, Y, U)} facing {facing} hangs on nothing"
+
+
+def test_every_attraction_with_a_queue_also_has_a_way_out(designs):
+    """A SWITCHBACK WHOSE LAST LEG IS CLOSED IS A PEN, and it looks identical. Every queue in this
+    design declares an entrance at the near end and an exit at the far one, and the two are
+    different KINDS of portal - which is what tells them apart at a distance, where the words
+    cannot be read."""
+    queues = 0
+    for _name, _cfg, c, _cells in designs:
+        for piece in c.meta["pieces"]:
+            if piece.get("kind") != "queue":
+                continue
+            queues += 1
+            assert piece["entrance"]["kind"] == "portal/entrance"
+            assert piece["exit"]["kind"] == "portal/exit"
+            assert piece["legs"] >= 3, "a two-leg switchback is a corridor"
+            assert piece["lamps"] >= piece["legs"], "every turn carries its own light"
+    # **AND THE MINE COASTER'S IS ITS OWN, WHICH IS WHY THIS IS TWO AND NOT THREE.**
+    # `Mine Coaster.scan.json` declares `queue_rows: 22`, `queue_cells: 67` and a contract reading
+    # "the queue is 3 wide and 22 rows" - the ride builds its own line to its own platform. The
+    # frontage used to add a SECOND one at V27-33 / U161-190: thirty-five cells south of the
+    # ride's own queue entry at U126, on the far flank from all four of its guest anchors, and
+    # half of it past U169 and outside the Frontier altogether. Jack: "the 'queue' area is weird,
+    # in the wrong area." A frontage queue is for a ride that does not build one.
+    assert queues >= 2, "the rides that build no queue of their own each need a line"
+
+
+def test_a_queue_leg_is_open_at_the_end_it_turns_at(designs):
+    """THE GAP IS THE FEATURE. Each leg leaves a gap at the OPPOSITE end from the last, so the
+    walk folds instead of stopping; drawn without it, every leg is a closed rail and the queue is
+    a set of pens that audits perfectly."""
+    for _name, _cfg, c, _cells in designs:
+        for piece in c.meta["pieces"]:
+            if piece.get("kind") != "queue":
+                continue
+            ends = [i for i, _d in piece["turns"]]
+            assert len(set(ends)) == 2, f"the turns do not alternate: {piece['turns']}"
+            for a, b in zip(ends, ends[1:]):
+                assert a != b, f"two legs turn at the same end: {piece['turns']}"
+
+
+def test_an_entrance_does_not_look_like_an_exit():
+    """At twenty blocks the word is unreadable and the shape is not, so the two are told apart by
+    COLOUR: an entrance carries the land's accent across its head and a lamp each side, an exit
+    carries neither. Colour is the whole of the distinction and it is asserted, not hoped for."""
+    pal = pf.PAL["midway"]
+    got = {}
+    for mode in ("entrance", "exit"):
+        c = pf.build({"land": "midway",
+                      "pieces": [{"kind": "portal", "at": [40, 40], "mode": mode}]})
+        names = {i: e.value["Name"].value.split(":")[-1] for i, e in enumerate(c.palette)}
+        got[mode] = {names[int(v)] for v in np.unique(c.ids) if v}
+    assert pal["accent"] in got["entrance"] and pal["accent"] not in got["exit"]
+    assert pal["light"] in got["entrance"] and pal["light"] not in got["exit"]
+
+
+def test_a_marquee_is_symmetric_about_its_own_opening():
+    """A GANTRY WHOSE TWO PIERS ARE DIFFERENT DISTANCES FROM THE PATH IT STRADDLES is the exact
+    asymmetry the park railway had to be rebuilt to cure. Here it cannot happen by arithmetic -
+    every offset is mirrored - and this measures the emitted cells rather than the arithmetic."""
+    c = pf.build({"land": "frontier", "pieces": [
+        {"kind": "marquee", "at": [20, 100], "span": 5, "pier": 2, "wing": 1, "title": "X"}]})
+    ox, _oy, oz = c.world_origin
+    solid = {(int(x), int(z)) for _y, z, x in zip(*(c.ids != 0).nonzero())}
+    centre = 2 * (100 - (oz - 80300))
+    unmirrored = [(x, z) for (x, z) in solid if (x, centre - z) not in solid]
+    # the two SIGNS are single cells on the centre line and mirror onto themselves; everything
+    # else is structure and must have a twin.
+    assert not unmirrored, f"{len(unmirrored)} cells have no mirror image: {unmirrored[:6]}"
+
+
+def test_a_stair_leans_the_way_it_was_built():
+    """A STAIR'S TALL SIDE IS ITS `facing`, and this repo's renderer draws a backwards flight
+    identically to a right one - so the convention is asserted here rather than eyeballed. A
+    marquee's front cornice leans INTO its own fascia, which means it faces the way the piece's
+    BACK looks."""
+    c = pf.build({"land": "frontier", "pieces": [
+        {"kind": "marquee", "at": [20, 100], "facing": "west", "depth": 3, "title": "X"}]})
+    names = {i: e.value["Name"].value.split(":")[-1] for i, e in enumerate(c.palette)}
+    ox, _oy, _oz = c.world_origin
+    by_v = {}
+    for y, z, x in zip(*(c.ids != 0).nonzero()):
+        e = c.palette[int(c.ids[y, z, x])]
+        if names[int(c.ids[y, z, x])].endswith("_stairs"):
+            by_v.setdefault(ox - 97500 + x, set()).add(e.value["Properties"].value["facing"].value)
+    # a west-facing marquee stands at V20-22: the cornice on its FRONT face leans back into the
+    # fascia (east) and the one on its BACK face leans forward (west). Both must be present, and
+    # each must be on the right face - which is what a render cannot show.
+    assert by_v.get(20) == {pf._LEAN["west"]}, f"the front cornice faces {by_v.get(20)}"
+    assert by_v.get(22) == {pf._LEAN["east"]}, f"the back cornice faces {by_v.get(22)}"
+
+
+# --------------------------------------------------------------------------- the station porch
+
+
+def _porch_cells(**kw):
+    """Every cell one porch emits, as {(V, h, U): (block name, properties)}."""
+    spec = {"kind": "porch", "at": [25, 112], "facing": "west", "width": 19, "height": 6,
+            "bay": 4, "doors": [{"at": [-6, -4], "title": "this way in"},
+                                {"at": [6, 8], "title": "way out"}]}
+    spec.update(kw)
+    c = pf.build({"land": "frontier", "pieces": [spec]})
+    ox, oy, oz = c.world_origin
+    out = {}
+    for y, z, x in zip(*(c.ids != 0).nonzero()):
+        e = c.palette[int(c.ids[y, z, x])]
+        props = e.value.get("Properties")
+        out[(int(ox - 97500 + x), int(oy - 203 + y), int(oz - 80300 + z))] = (
+            e.value["Name"].value.split(":")[-1],
+            {k: v.value for k, v in props.value.items()} if props else {})
+    return out
+
+
+def _posts(cells):
+    return sorted({u for (_v, h, u), (n, _p) in cells.items()
+                   if n == "spruce_log" and h >= 1})
+
+
+def test_a_porch_post_never_stands_in_the_doorway():
+    """THE OPENING IS THE ONE PLACE A POST MAY NOT GO - nor a PYLON. At width 18 the run ended at
+    U120 and the east pylon landed on the exit opening's own last cell, so the way out came out
+    ONE CELL WIDE with a stone pier standing in it, which only a walk-through measurement showed.
+    The Mine Coaster's two openings are U106-108 and U118-120."""
+    posts = _posts(_porch_cells())
+    assert posts, "the porch built no posts at all"
+    # the Mine Coaster's two openings, in world U: the way in at U106-108 and the way out at
+    # U119-120 - a post in either is a column down the middle of a doorway
+    assert not set(posts) & {106, 107, 108, 118, 119, 120}, f"a post stands in a doorway: U{posts}"
+    assert {105, 109, 117} <= set(posts), f"an opening has no jamb: U{posts}"
+
+
+def test_a_porch_bay_is_never_one_cell_wide():
+    """SPACING THE POSTS FROM THE END OF THE RUN AND THEN DROPPING WHICHEVER FELL IN THE DOORWAY
+    leaves a jamb two cells from its neighbour, and both of them brace into the single cell
+    between - the second write wins, so one brace leans the wrong way. The opening sets the
+    rhythm instead, so every bay comes out the same width."""
+    posts = _posts(_porch_cells())
+    gaps = [b - a for a, b in zip(posts, posts[1:])]
+    assert gaps, f"one post is not a rhythm: U{posts}"
+    assert min(gaps) >= 3, f"a bay is {min(gaps) - 1} cells wide: posts at U{posts}"
+    # THE OPENINGS DIVIDE THE RUN, so the bays are not all one width - what matters is that none
+    # is a cell wide and none is twice another, which is what a rhythm stepped outward from two
+    # openings produced: posts at U109/U110, U113/U114 and U117/U118.
+    assert max(gaps) <= 2 * min(gaps), f"the bays are lopsided: {gaps} for posts U{posts}"
+
+
+def test_every_porch_brace_leans_back_at_its_own_post():
+    """A KNEE BRACE IS WHAT SEPARATES A VERANDAH FROM A ROW OF STICKS, and a stair's TALL side is
+    its `facing` - so a brace springing from a post into the bay beside it leans BACK AT that
+    post. Drawn the other way it is a step hanging off the beam, and this repo's renderer draws
+    both identically, so it is asserted here rather than looked at."""
+    cells = _porch_cells()
+    posts = set(_posts(cells))
+    braces = {u: p["facing"] for (_v, _h, u), (n, p) in cells.items() if n == "spruce_stairs"}
+    assert braces, "the porch built no braces"
+    for u, facing in sorted(braces.items()):
+        assert (u - 1) in posts or (u + 1) in posts, f"a brace at U{u} springs from no post"
+        # for a west-facing piece the frontage runs with U, so a brace whose post is the
+        # higher-U neighbour must lean that way, and vice versa
+        want = "south" if (u + 1) in posts else "north"
+        assert facing == want, f"the brace at U{u} faces {facing}, not {want}"
+
+
+def test_a_porch_lays_no_plinth_on_somebody_elses_paving():
+    """The posts stand on the concourse of the building they front - the coaster's own - so a
+    plinth course is a cell taken off another design rather than a foundation. Nothing at all is
+    emitted on the course a guest walks on."""
+    floor = [k for k in _porch_cells() if k[1] == 0]
+    assert not floor, f"the porch laid {len(floor)} cells on the walking course: {floor[:4]}"
+
+
+def test_a_porch_carries_a_beam_the_whole_width_and_an_eave_in_front_of_it():
+    """The beam is what the roof appears to land on and the fascia is what gives a flat lid a
+    shadow line; a beam with a hole in it reads as a broken one."""
+    cells = _porch_cells()
+    beam = {u for (v, h, u), (n, _p) in cells.items()
+            if v == 25 and h == 6 and n not in ("lantern",)}
+    eave = {u for (v, h, u), (n, _p) in cells.items()
+            if v == 24 and h == 6 and not n.endswith("wall_sign")}
+    assert beam == set(range(103, 122)), f"the beam is not continuous: U{sorted(beam)}"
+    assert eave == beam, "the fascia does not run the beam's own width"
+
+
+def _front_cells():
+    return _porch_cells(pylon=True, roof=7, parapet=3, bay_at=0, bay_width=7, bay_rise=5,
+                        title="Mine Coaster", lines=["depot"])
+
+
+def _lum(name):
+    r, g, b = blocks.color(name, "side")
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def test_the_false_front_is_not_another_brown():
+    """**A VALUE LADDER IS FOUND ACROSS FAMILIES, NEVER INSIDE ONE**, and the first false front
+    here was built in the verandah's own timber: `spruce_planks` is L88.8 and
+    `stripped_spruce_log` L92.8 - FOUR APART - so a board field coped with a log had no coping,
+    and against a spruce wall under a spruce roof the whole entrance was one brown mass. Jack:
+    "we need this entry to be something real not a strange brown blob of crap."
+
+    This repo has drawn the same wrong conclusion three times from measuring inside one family.
+    The rungs are asserted rather than trusted, against the ~15 below which a course stops being
+    a line at all."""
+    cells = _front_cells()
+    above = [n for (_v, h, _u), (n, _p) in cells.items() if h > 7]
+    below = [n for (_v, h, _u), (n, _p) in cells.items() if 1 <= h <= 6]
+    assert above and below, "the porch built no false front, or no verandah under it"
+    field = max(set(above), key=above.count)
+    timber = max(set(below), key=below.count)
+    assert _lum(field) - _lum(timber) >= 25, (
+        f"the false front's {field} (L{_lum(field):.0f}) is the same value as the verandah's "
+        f"{timber} (L{_lum(timber):.0f}) - it will not read as a separate element")
+
+
+def test_the_false_front_stands_on_a_dark_line_and_wears_a_coping():
+    """A field of one material with a straight top is a hoarding. The plinth is what separates
+    the front from the roof it stands on and the coping is what finishes it, and both have to be
+    a real step off the field or they are decoration nobody can see."""
+    cells = _front_cells()
+    base = {u: n for (v, h, u), (n, _p) in cells.items() if h == 8 and v == 25}
+    assert base, "the false front has no base course"
+    assert len(set(base.values())) == 1, f"the plinth line is not one material: {set(base.values())}"
+    plinth = next(iter(base.values()))
+    # EVERY COLUMN'S OWN TOP COURSE IS ITS COPING, and the wings and the bay stop at different
+    # heights - so the field is what is left once the plinth and each column's own top are taken
+    # out. Sampling a fixed pair of courses instead picks up the wings' coping and reports the
+    # coping as the field, which is a test measuring its own confusion.
+    tops = {}
+    for (v, h, u), (n, _p) in cells.items():
+        if v == 25 and h > 7:
+            tops[u] = max(tops.get(u, (0, "")), (h, n))
+    field = [n for (v, h, u), (n, _p) in cells.items()
+             if v == 25 and 8 < h < tops.get(u, (0,))[0]]
+    common = max(set(field), key=field.count)
+    assert _lum(common) - _lum(plinth) >= 25, (
+        f"the plinth {plinth} (L{_lum(plinth):.0f}) does not draw a line under the field "
+        f"{common} (L{_lum(common):.0f})")
+    copings = {n for _h, n in tops.values()}
+    assert len(copings) == 1, f"the coping is not one material: {copings}"
+    cop = next(iter(copings))
+    assert _lum(cop) - _lum(common) >= 20, (
+        f"the coping {cop} (L{_lum(cop):.0f}) is the same value as the field "
+        f"{common} (L{_lum(common):.0f})")
+
+
+def test_the_name_bay_stands_clear_of_the_parapet_and_carries_a_sign():
+    """The bay is what a false front is FOR - a name you can read from the street - so it has to
+    stand above the wall either side of it, and its sign has to be on a block rather than
+    silently refused, which is this project's most-repeated failure shape."""
+    c = pf.build({"land": "frontier", "pieces": [
+        {"kind": "porch", "at": [25, 112], "facing": "west", "width": 19, "height": 6, "bay": 4,
+         "doors": [{"at": [-6, -4]}, {"at": [6, 8]}], "pylon": True, "roof": 7, "parapet": 3,
+         "bay_at": 0, "bay_width": 7, "bay_rise": 5, "title": "Mine Coaster",
+         "lines": ["depot"]}]})
+    assert not getattr(c, "refused_signs", None), "a name board was refused"
+    cells = _front_cells()
+    tall = {}
+    for (v, h, u), (_n, _p) in cells.items():
+        if v == 25 and h > 7:
+            tall[u] = max(tall.get(u, 0), h)
+    # DERIVED, never typed out again - the bay moves with `at` and `bay_at`, and a test that
+    # pins the old centre reports the wings as the bay and fails on a correct build.
+    lo = 112 - 7 // 2
+    bay_u = set(range(lo, lo + 7))
+    bay = [tall[u] for u in bay_u if u in tall]
+    wing = [tall[u] for u in tall if u not in bay_u]
+    assert bay and wing, f"no bay or no wing: {sorted(tall)}"
+    assert min(bay) > max(wing), f"the bay ({min(bay)}) does not clear the parapet ({max(wing)})"
+    signs = [k for k, (n, _p) in cells.items() if n.endswith("wall_sign")]
+    # ONE ON THE BAY AND ONE OVER EACH OPENING. The bay's names the ride from down the promenade;
+    # the two on the head beam say which way through is which, which is what tells a way in from
+    # a way out at twenty blocks - the job the two free-standing gates used to do badly.
+    high = [k for k in signs if k[1] > 7]
+    low = [k for k in signs if k[1] <= 7]
+    assert len(high) == 1, f"the name bay carries {len(high)} signs"
+    assert len(low) == 2, f"{len(low)} openings are signed, not two"
+    assert {k[2] for k in low} == {107, 119}, (  # each opening's own middle
+        f"the opening signs are at U{sorted(k[2] for k in low)}, not over the two ways through")
+
+
+# --------------------------------------------------------------------------- the sloth's home
+
+
+def test_the_arbour_piers_stand_under_solid_cells_of_the_piece_they_carry(designs):
+    """`Sky Lift Sloth` is a 46 x 22 lattice, and a lattice is mostly HOLES: its two long rails
+    run at its own U1-2 and U21-22 and everything between them is open air. A pier under a hole
+    carries nothing and reads as a post standing beside a sculpture, so every pier top is measured
+    against the cell above it."""
+    for name, _cfg, c, cells in designs:
+        for piece in c.meta["pieces"]:
+            if piece.get("kind") != "pergola":
+                continue
+            top = piece["top"]
+            for (v, u) in piece["piers"]:
+                V, U = piece["at"][0] + v, piece["at"][1] + u
+                assert (V, 203 + top, U) in cells, f"{name}: pier at {(V, U)} is not a pier"
+                assert (V, 203 + top + 1, U) in cells, \
+                    f"{name}: the pier at {(V, U)} carries nothing - the frame above it is a hole"
+
+
+def test_you_can_walk_under_the_sloth(designs):
+    """A five-thousand-block animal two courses off the lawn is a wall. The whole point of hanging
+    it is the space beneath, so every column of its body keeps at least four clear courses."""
+    for name, _cfg, c, cells in designs:
+        for piece in c.meta["pieces"]:
+            if piece.get("kind") != "stamp":
+                continue
+            v0, u0 = piece["at"]
+            floor = min(Y for (V, Y, U) in cells
+                        if v0 <= V < v0 + piece["size"][0] and u0 <= U < u0 + piece["size"][2]
+                        and not _is_pier(c, V, U))
+            assert floor >= 203 + 4, f"{name}: the sloth's lowest cell is at Y{floor}"
+
+
+def test_the_sloth_is_a_separate_garden_not_part_of_the_ride_cluster(designs):
+    """The Sloth must not share the Carousel/Sky Lift U band or consume the service reserve."""
+    for name, _cfg, c, _cells in designs:
+        for piece in c.meta["pieces"]:
+            if piece.get("name") != "Sky Lift Sloth":
+                continue
+            v0, u0 = piece["at"]
+            dv, _dy, du = piece["size"]
+            assert v0 + dv <= 152, f"{name}: Sloth reaches the service band at V{v0 + dv}"
+            assert u0 >= 360, f"{name}: Sloth has drifted onto the balloon or ride court"
+            assert u0 - 335 >= 25, "Sloth needs a readable gap after the wheel court"
+
+
+def _is_pier(c, V, U) -> bool:
+    for piece in c.meta["pieces"]:
+        if piece.get("kind") != "pergola":
+            continue
+        for (v, u) in piece["piers"]:
+            if (piece["at"][0] + v, piece["at"][1] + u) == (V, U):
+                return True
+    return False
+
+
+# --------------------------------------------------------------------------- the empty bands
+
+
+def test_every_measured_trough_gains_something_to_look_at(designs):
+    """Built columns per 20-wide U band swing from near 2,000 to near 250, and that alternation IS
+    what reads as clusters and then empty space. These four bands are the emptiest a visitor walks
+    through, and a sight piece three blocks tall cannot carry twenty blocks of walking - so each
+    is checked for BOTH: that something stands there, and that it stands tall enough to see."""
+    cols, tall = {}, {}
+    for _name, _cfg, _c, cells in designs:
+        for (V, Y, U) in cells:
+            if 24 <= V <= 127:
+                cols.setdefault(U, set()).add(V)
+                tall[U] = max(tall.get(U, 203), Y)
+    for (u0, u1) in TROUGHS:
+        placed = sum(len(cols.get(u, ())) for u in range(u0, u1 + 1))
+        height = max([tall.get(u, 203) for u in range(u0, u1 + 1)] or [203]) - 203
+        assert placed >= 100, f"U{u0}-{u1} is still empty: only {placed} cells"
+        assert height >= 12, f"U{u0}-{u1} gains only {height} courses - too low to walk toward"
+
+
+def test_no_street_furniture_is_duplicated(designs):
+    """`Park Ways` draws every lamp, bench, kerb and paved cell in the park and a second copy of
+    somebody else's street furniture is precisely the chaos that was thrown away. Nothing here is
+    laid in the walking course over a path, and nothing here is a floor: a queue's floor is the
+    lawn, which is why it can never be mistaken for a street."""
+    for name, _cfg, c, cells in designs:
+        for piece in c.meta["pieces"]:
+            if piece.get("kind") != "queue":
+                continue
+            v0, u0 = piece["at"]
+            floor = [(V, U) for (V, Y, U) in cells if Y == 203
+                     and v0 <= V < v0 + piece["depth"] and u0 <= U < u0 + piece["width"]]
+            # only the fence rails and the turn posts sit in the walking course, never a pavement
+            assert len(floor) < piece["width"] * piece["depth"] // 2, \
+                f"{name}: the queue at {piece['at']} has laid itself a floor"

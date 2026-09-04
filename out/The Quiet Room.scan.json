@@ -1,0 +1,297 @@
+{
+  "origin": {
+    "x": 97601,
+    "y": 200,
+    "z": 80787
+  },
+  "size": {
+    "x": 19,
+    "y": 9,
+    "z": 13
+  },
+  "generated_by": "arcade",
+  "kind": "quiet",
+  "footprint": [
+    13,
+    19
+  ],
+  "courses": [
+    -3,
+    5
+  ],
+  "land": "hollow",
+  "facing": "east",
+  "contract": "the door is HELD OPEN while every sensor is quiet; a vibration of 4 or more at any one of them lights the alarm and shuts it",
+  "unverified": [
+    "WHAT MAKES A VIBRATION, and how strong, is the game's own table - the simulator has no entities and cannot walk down the corridor. That wool absorbs vibrations is vanilla behaviour and is the whole trick."
+  ],
+  "budget": {
+    "redstone_lamp": 3
+  },
+  "concealed": 60,
+  "visible_redstone": 0,
+  "width": 11,
+  "depth": 17,
+  "height": 6,
+  "sensors": [
+    [
+      97615,
+      201,
+      80797
+    ],
+    [
+      97612,
+      201,
+      80797
+    ],
+    [
+      97609,
+      201,
+      80797
+    ]
+  ],
+  "lamps": [
+    [
+      97615,
+      202,
+      80789
+    ],
+    [
+      97612,
+      202,
+      80789
+    ],
+    [
+      97609,
+      202,
+      80789
+    ]
+  ],
+  "door": [
+    97603,
+    203,
+    80789
+  ],
+  "torch": [
+    97603,
+    201,
+    80789
+  ],
+  "trip": 4,
+  "signed": true,
+  "inputs": [
+    [
+      97615,
+      201,
+      80797
+    ],
+    [
+      97612,
+      201,
+      80797
+    ],
+    [
+      97609,
+      201,
+      80797
+    ]
+  ],
+  "outputs": [
+    [
+      97603,
+      203,
+      80789
+    ],
+    [
+      97615,
+      202,
+      80789
+    ],
+    [
+      97612,
+      202,
+      80789
+    ],
+    [
+      97609,
+      202,
+      80789
+    ]
+  ],
+  "stock": {},
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "iron_door"
+      ],
+      "light": [
+        "redstone_lamp",
+        "soul_lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater",
+        "sculk_sensor"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Quiet Room serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 1142,
+      "materials": 14,
+      "dominant_material_share": 0.3669,
+      "light_blocks": 4,
+      "massing": {
+        "width": 19,
+        "height": 9,
+        "depth": 13,
+        "fill_ratio": 0.5137
+      },
+      "silhouette": {
+        "top": {
+          "area": 247,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 159,
+          "fill_ratio": 0.9298
+        },
+        "side": {
+          "area": 104,
+          "fill_ratio": 0.8889
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 419,
+        "black_wool": 299,
+        "deepslate_bricks": 249,
+        "cobbled_deepslate": 66,
+        "white_wool": 65,
+        "redstone_wire": 26,
+        "comparator": 3,
+        "redstone_lamp": 3,
+        "repeater": 3,
+        "sculk_sensor": 3,
+        "dark_oak_wall_sign": 2,
+        "iron_door": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "33b783085503cbfc374725089526349a3faec65ab2f64d114ca5bc1d2a67a478",
+    "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97621,
+        204,
+        80793
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1142,
+    "mechanic_families": [
+      "access",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: iron_door",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: redstone_lamp"
+  ],
+  "file": "The Quiet Room.litematic",
+  "name": "The Quiet Room"
+}

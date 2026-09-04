@@ -1,0 +1,15 @@
+name: Windmill
+gen: frontiertown
+params:
+  land: frontier
+  facing: east
+  at:
+  - 97563
+  - 203
+  - 80427
+  kind: windmill
+  title: Windmill
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

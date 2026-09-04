@@ -1,0 +1,31 @@
+name: Mirror Maze
+gen: attractions
+params:
+  land: hollow
+  facing: west
+  maze_w: 4
+  maze_d: 4
+  at:
+  - 97603
+  - 203
+  - 80775
+  kind: mirrormaze
+  title: Mirror Maze
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+park_contract:
+  purpose: ride
+  hierarchy: landmark
+  land: hollow
+  requires_path: true
+  access_candidates:
+  - - 97599
+    - 204
+    - 80779
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: hollow
+  narrative: Mirror Maze serves the hollow visitor journey.
+origin_lock: false

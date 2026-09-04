@@ -1,0 +1,66 @@
+# PF MINING SQUARE - the choice point. AN OPEN SQUARE, NOT A BUILDING.
+#
+# 41 x 46 at V80 U47. Its role in `park_final.world.json` is `path`, and the grid re-specced it
+# from 56 x 46 to 41 for a measured reason: at 56 it ran through the back promenade and 184 cells
+# into the Assay office, including the cell that is Assay's own front door. At 41, column B reads
+# Boomtown 53 + the V77-79 walk + this 41 = EXACTLY 97, and its front addresses a real street.
+#
+# PAVING IT IS THE ASSIGNMENT, not furniture added to somebody else's ground: a square with no
+# floor is a lawn. It stands one course proud of the moss, so it carries its own kerb and a
+# seven-wide flight up onto it on the face the cross walk delivers a guest to.
+#
+# THE QUEUE AND THE EXIT ARE TWENTY COURSES APART ON THE EAST FLANK, which faces the U95-97 alley
+# and, past it, the Mine Coaster's own column. `PARK_FULL_BUILD_SPEC` F3 requires the coaster
+# queue entrance to be visibly separated from its exit; two arches on one face is what the old
+# module got wrong.
+#
+# THE SHOW LAYER (2026-09-02). Jack: "we need this to be a theme park, and amusement area,
+# beautiful, not just full of buildings." Measured, the whole Frontier ran 0.0-2.6% coloured or
+# lit blocks - stone brick, spruce and dark oak with a plinth, a string course and a cornice,
+# which is a correct way to build a VILLAGE. What was added is announcement rather than
+# ornament: a SHAPED show front with a name board and a painted cornice on every guest-facing
+# frontage, striped canvas awnings, bunting, and a mast with a pennant on the skyline. The rise
+# of every show front is DERIVED from its own ridge, because a false front that does not clear
+# its roof is invisible from every bearing but straight down the street - which is how the
+# first build passed a head-on render and read as a village from everywhere else.
+name: PF Mining Square
+gen: frontier_builds
+params:
+  kind: square
+  lot: [41, 46]
+  at: [80, 47]
+  # **THE RIDE'S GROUND.** `PF Mine Cart Escape` stands here - world V98-120 / U66-91, local
+  # v18-40 / u19-44 - and it brings its own apron and its own piers. Paving under it would be two
+  # designs on one surface, which is exactly what the casino was sliced into layers to avoid.
+  # The square's two arches sit on this box's own edge and are its queue and its exit.
+  reserve:
+    - [18, 40, 19, 44]
+  # **PAVED BUT NEVER RAISED.** `PF Game Powder Striker` is a console standing on this square's
+  # own floor at world V83-96 / U57-60 (local v3-16 / u10-13). Reserve it and the console floats;
+  # terrace it and the console is buried. It needs the floor exactly where it already is.
+  flat:
+    - [1, 17, 8, 15]
+  # THE TERRACE, and it is the whole fix for 1.4 blocks a column: one plane of paving reads as a
+  # car park however well it is inlaid. Two courses, on the west third - the side the V77-79 cross
+  # walk delivers a guest to - so the arrival is the high ground and the ride's forecourt is the
+  # low, with one seven-wide flight between them.
+  terrace: 2
+  terrace_v: 13
+  seed: 51
+roles: [path]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: frontier
+  narrative: >
+    The mine district's decision point: a bordered stone square with an inlaid cross and flush
+    lights, a show board facing the walk, a claim marker on a stub of rail pointing east, and the
+    coaster's queue and exit arches twenty courses apart on the flank toward the ride.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

@@ -1,0 +1,35 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 20,
+    "z": 29949
+  },
+  "size": {
+    "x": 101,
+    "y": 48,
+    "z": 101
+  },
+  "generated_by": "thicket",
+  "kind": "thicket",
+  "profile_view": "top",
+  "facing": [
+    0,
+    1
+  ],
+  "features_built": {
+    "vines": 501,
+    "berries": 207,
+    "spore": 12,
+    "stalactite": 64,
+    "stalagmite": 42,
+    "bush": 71,
+    "fern": 98,
+    "grass": 78,
+    "carpet": 454,
+    "lily": 20,
+    "seagrass": 64,
+    "dripleaf": 14
+  },
+  "file": "Lowland Thicket.litematic",
+  "name": "Lowland Thicket"
+}

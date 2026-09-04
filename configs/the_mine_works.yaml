@@ -1,0 +1,29 @@
+name: The Mine Works
+gen: undercroft
+params:
+  land: frontier
+  kind: mine
+  facing: east
+  at:
+  - 97562
+  - 143
+  - 80359
+  title: The Mine Works
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: building
+  hierarchy: supporting
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97638
+    - 144
+    - 80359
+design:
+  purpose: building
+  hierarchy: supporting
+  style: frontier
+  narrative: The Mine Works serves the frontier visitor journey.
+origin_lock: false

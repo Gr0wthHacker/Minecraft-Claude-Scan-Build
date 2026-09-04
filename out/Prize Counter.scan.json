@@ -1,0 +1,316 @@
+{
+  "origin": {
+    "x": 97622,
+    "y": 202,
+    "z": 80639
+  },
+  "size": {
+    "x": 17,
+    "y": 7,
+    "z": 11
+  },
+  "generated_by": "arcade",
+  "kind": "prizecounter",
+  "footprint": [
+    17,
+    11
+  ],
+  "courses": [
+    -1,
+    5
+  ],
+  "land": "midway",
+  "facing": "north",
+  "contract": "each barrel's lamp is lit while that barrel holds anything and dark when it is empty",
+  "unverified": [],
+  "budget": {
+    "redstone_lamp": 5
+  },
+  "concealed": 9,
+  "visible_redstone": 0,
+  "width": 11,
+  "depth": 5,
+  "height": 6,
+  "lanes": 5,
+  "barrels": [
+    [
+      97626,
+      204,
+      80645
+    ],
+    [
+      97628,
+      204,
+      80645
+    ],
+    [
+      97630,
+      204,
+      80645
+    ],
+    [
+      97632,
+      204,
+      80645
+    ],
+    [
+      97634,
+      204,
+      80645
+    ]
+  ],
+  "lamps": [
+    [
+      97626,
+      204,
+      80643
+    ],
+    [
+      97628,
+      204,
+      80643
+    ],
+    [
+      97630,
+      204,
+      80643
+    ],
+    [
+      97632,
+      204,
+      80643
+    ],
+    [
+      97634,
+      204,
+      80643
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97626,
+      204,
+      80645
+    ],
+    [
+      97628,
+      204,
+      80645
+    ],
+    [
+      97630,
+      204,
+      80645
+    ],
+    [
+      97632,
+      204,
+      80645
+    ],
+    [
+      97634,
+      204,
+      80645
+    ]
+  ],
+  "outputs": [
+    [
+      97626,
+      204,
+      80643
+    ],
+    [
+      97628,
+      204,
+      80643
+    ],
+    [
+      97630,
+      204,
+      80643
+    ],
+    [
+      97632,
+      204,
+      80643
+    ],
+    [
+      97634,
+      204,
+      80643
+    ]
+  ],
+  "stock": {
+    "each barrel": "the prizes it hands out"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern",
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_lamp"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Prize Counter serves the midway visitor journey."
+    },
+    "metrics": {
+      "blocks": 458,
+      "materials": 12,
+      "dominant_material_share": 0.4389,
+      "light_blocks": 8,
+      "massing": {
+        "width": 17,
+        "height": 7,
+        "depth": 11,
+        "fill_ratio": 0.3499
+      },
+      "silhouette": {
+        "top": {
+          "area": 187,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 85,
+          "fill_ratio": 0.7143
+        },
+        "side": {
+          "area": 48,
+          "fill_ratio": 0.6234
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 201,
+        "oak_planks": 90,
+        "oak_log": 52,
+        "white_wool": 45,
+        "blackstone": 37,
+        "stone_brick_stairs": 9,
+        "barrel": 5,
+        "comparator": 5,
+        "redstone_lamp": 5,
+        "stone_brick_slab": 4,
+        "lantern": 3,
+        "oak_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "1cde81f104cb66f7ca76455218fd25d5a69a318ebc8546700f0b5affababbbd5",
+    "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97630,
+        204,
+        80637
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 458,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: redstone_lamp"
+  ],
+  "file": "Prize Counter.litematic",
+  "name": "Prize Counter"
+}

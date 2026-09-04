@@ -1,0 +1,17 @@
+name: Grand Tower
+gen: park
+params:
+  land: midway
+  width: 9
+  tiers: 5
+  facing: south
+  at:
+  - 97587
+  - 203
+  - 80603
+  kind: tower
+  title: Grand Tower
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

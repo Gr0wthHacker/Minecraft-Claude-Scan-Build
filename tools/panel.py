@@ -46,6 +46,7 @@ from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mcbuild import scan                                    # noqa: E402
+from mcbuild.gen.park import _STEP as _COMPASS               # noqa: E402
 
 VISUAL = [
     "Name the animal from the SILHOUETTE alone. If you cannot, nothing else matters.",
@@ -76,10 +77,19 @@ def main() -> None:
     # THE PROFILE AXIS COMES FROM THE BUILD, never from a guess. An animal facing +z shows its
     # profile to a viewer looking along x (`side`); one facing +x shows it along z (`face`).
     #
+    # A STRUCTURE (`gen/park.py` and everything built on it) records `facing` as a COMPASS WORD,
+    # not a vector - the same fact `tools/look.py.facing_yaw` converts, via the same source
+    # (`park._STEP`), so the two tools cannot disagree about what "east" means. Indexing a word
+    # like a two-element vector does not raise - `"east"[1]` is a truthy character - so this was
+    # silently WRONG for every east/west-facing structure rather than crashing on one: their
+    # z-component is 0 (falsy, "face" is right) and the string index is truthy regardless.
+    #
     # A build may also name its own best view outright, which some have to: a bat hanging with its
     # wings spread across x has no meaningful "facing" - its head points at the floor - and the
     # facing rule rendered it edge-on as a sliver two blocks wide.
     facing = meta.get("facing") or [0, 1]
+    if isinstance(facing, str):
+        facing = _COMPASS.get(facing, (0, 1))
     profile = meta.get("profile_view") or ("side" if facing[1] else "face")
     name = os.path.splitext(os.path.basename(a.design))[0]
     out = a.out or f"out/panel_{name.replace(' ', '_')}.png"

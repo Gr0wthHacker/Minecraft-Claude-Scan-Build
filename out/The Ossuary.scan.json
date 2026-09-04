@@ -1,0 +1,322 @@
+{
+  "origin": {
+    "x": 97588,
+    "y": 182,
+    "z": 80788
+  },
+  "size": {
+    "x": 23,
+    "y": 10,
+    "z": 25
+  },
+  "generated_by": "hollowmanor",
+  "concealed": 0,
+  "visible_redstone": 0,
+  "kind": "ossuary",
+  "land": "hollow",
+  "facing": "south",
+  "contract": "an AND of three: the vault doors are shut and the vault lamp dark while any of the three shroud-levers is down, and open and lit only while all three are up - and each lever lights its own lamp on the way",
+  "unverified": [
+    "WHAT IS IN THE PRIZE BARRELS is the operator's business; the barrels are placed here and stocked by hand."
+  ],
+  "width": 15,
+  "depth": 17,
+  "height": 4,
+  "levers": [
+    [
+      97604,
+      185,
+      80802
+    ],
+    [
+      97602,
+      185,
+      80802
+    ],
+    [
+      97600,
+      185,
+      80802
+    ]
+  ],
+  "pull_lamps": [
+    [
+      97604,
+      186,
+      80802
+    ],
+    [
+      97602,
+      186,
+      80802
+    ],
+    [
+      97600,
+      186,
+      80802
+    ]
+  ],
+  "vault_lamp": [
+    97595,
+    184,
+    80800
+  ],
+  "lamps": 4,
+  "doors": [
+    [
+      97595,
+      185,
+      80801
+    ],
+    [
+      97594,
+      185,
+      80801
+    ]
+  ],
+  "prizes": 2,
+  "lanterns": 2,
+  "signs": 3,
+  "inputs": [
+    [
+      97604,
+      185,
+      80802
+    ],
+    [
+      97602,
+      185,
+      80802
+    ],
+    [
+      97600,
+      185,
+      80802
+    ]
+  ],
+  "outputs": [
+    [
+      97595,
+      185,
+      80801
+    ],
+    [
+      97594,
+      185,
+      80801
+    ],
+    [
+      97604,
+      186,
+      80802
+    ],
+    [
+      97602,
+      186,
+      80802
+    ],
+    [
+      97600,
+      186,
+      80802
+    ],
+    [
+      97595,
+      184,
+      80800
+    ]
+  ],
+  "entry_at": [
+    97599,
+    184,
+    80808
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "iron_door"
+      ],
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "redstone_lamp",
+        "soul_lantern"
+      ],
+      "redstone": [
+        "lever",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Ossuary serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 2266,
+      "materials": 22,
+      "dominant_material_share": 0.3826,
+      "light_blocks": 6,
+      "massing": {
+        "width": 23,
+        "height": 10,
+        "depth": 25,
+        "fill_ratio": 0.3941
+      },
+      "silhouette": {
+        "top": {
+          "area": 575,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 162,
+          "fill_ratio": 0.7043
+        },
+        "side": {
+          "area": 194,
+          "fill_ratio": 0.776
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 867,
+        "cobbled_deepslate": 364,
+        "deepslate_bricks": 342,
+        "deepslate_tile_stairs": 306,
+        "deepslate_tiles": 218,
+        "black_wool": 57,
+        "redstone_wire": 23,
+        "cracked_polished_blackstone_bricks": 19,
+        "blackstone": 18,
+        "chiseled_polished_blackstone": 10,
+        "chiseled_deepslate": 4,
+        "deepslate_brick_wall": 4
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "2c9beacecf8d576ff231984f0aa22887bc1156effa46f1f71aadcfdb360c4b86",
+    "generator_source_digest": "78432afd2c7f6c1b4c0c207ee2d8627157b89361046036feb47bea0b3a0e0fe4",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97599,
+        184,
+        80814
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 2266,
+    "mechanic_families": [
+      "access",
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: chiseled_deepslate",
+    "unsupported on skyblock-1.19: chiseled_polished_blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: cracked_polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_brick_wall",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: deepslate_tile_slab",
+    "unsupported on skyblock-1.19: deepslate_tile_stairs",
+    "unsupported on skyblock-1.19: deepslate_tiles",
+    "unsupported on skyblock-1.19: iron_door",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: redstone_lamp"
+  ],
+  "file": "The Ossuary.litematic",
+  "name": "The Ossuary"
+}

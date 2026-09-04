@@ -1,0 +1,1015 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80515
+  },
+  "size": {
+    "x": 46,
+    "y": 34,
+    "z": 41
+  },
+  "generated_by": "bigwheel",
+  "kind": "bigwheel/carousel",
+  "ride": "minecart circuit",
+  "land": "midway",
+  "facing": "west",
+  "contract": "a raised disc ringed by rail with four gated steps, a banded column, a wedge-striped cone whose every ring carries its riser, twenty mounts in two rings - and A RIDE: a closed minecart circuit of 112 cells running between the two rings. Every direction change is a plain rail because a powered rail has no curved state; every straight run between corners carries a redstone_block at both ends, because an unpowered powered rail is a brake. 68 corners, 44 powered rails: about 25.5 iron and 44 gold.",
+  "unverified": [
+    "nobody has ridden it in game. The circuit's geometry, its power chain and its clearances are asserted here; whether a cart holds speed round a corner every other cell is reasoning until someone rides it."
+  ],
+  "width": 41,
+  "depth": 46,
+  "diameter": 39,
+  "top": 32,
+  "mounts": 20,
+  "colours": 11,
+  "shapes": 18,
+  "mount_arcs": [
+    9.42,
+    8.64
+  ],
+  "gates": 4,
+  "rail": 92,
+  "lamps": 8,
+  "signs": 3,
+  "track_r": 14,
+  "track": 112,
+  "corners": 68,
+  "powered": 44,
+  "sources": 27,
+  "iron_ingots": 25.5,
+  "gold_ingots": 44,
+  "rail_path": [
+    [
+      97549,
+      205,
+      80549
+    ],
+    [
+      97550,
+      205,
+      80549
+    ],
+    [
+      97551,
+      205,
+      80549
+    ],
+    [
+      97552,
+      205,
+      80549
+    ],
+    [
+      97552,
+      205,
+      80548
+    ],
+    [
+      97553,
+      205,
+      80548
+    ],
+    [
+      97554,
+      205,
+      80548
+    ],
+    [
+      97555,
+      205,
+      80548
+    ],
+    [
+      97555,
+      205,
+      80547
+    ],
+    [
+      97556,
+      205,
+      80547
+    ],
+    [
+      97557,
+      205,
+      80547
+    ],
+    [
+      97557,
+      205,
+      80546
+    ],
+    [
+      97558,
+      205,
+      80546
+    ],
+    [
+      97558,
+      205,
+      80545
+    ],
+    [
+      97559,
+      205,
+      80545
+    ],
+    [
+      97559,
+      205,
+      80544
+    ],
+    [
+      97560,
+      205,
+      80544
+    ],
+    [
+      97560,
+      205,
+      80543
+    ],
+    [
+      97561,
+      205,
+      80543
+    ],
+    [
+      97561,
+      205,
+      80542
+    ],
+    [
+      97561,
+      205,
+      80541
+    ],
+    [
+      97562,
+      205,
+      80541
+    ],
+    [
+      97562,
+      205,
+      80540
+    ],
+    [
+      97562,
+      205,
+      80539
+    ],
+    [
+      97563,
+      205,
+      80539
+    ],
+    [
+      97563,
+      205,
+      80538
+    ],
+    [
+      97563,
+      205,
+      80537
+    ],
+    [
+      97563,
+      205,
+      80536
+    ],
+    [
+      97563,
+      205,
+      80535
+    ],
+    [
+      97563,
+      205,
+      80534
+    ],
+    [
+      97563,
+      205,
+      80533
+    ],
+    [
+      97563,
+      205,
+      80532
+    ],
+    [
+      97563,
+      205,
+      80531
+    ],
+    [
+      97562,
+      205,
+      80531
+    ],
+    [
+      97562,
+      205,
+      80530
+    ],
+    [
+      97562,
+      205,
+      80529
+    ],
+    [
+      97561,
+      205,
+      80529
+    ],
+    [
+      97561,
+      205,
+      80528
+    ],
+    [
+      97561,
+      205,
+      80527
+    ],
+    [
+      97560,
+      205,
+      80527
+    ],
+    [
+      97560,
+      205,
+      80526
+    ],
+    [
+      97559,
+      205,
+      80526
+    ],
+    [
+      97559,
+      205,
+      80525
+    ],
+    [
+      97558,
+      205,
+      80525
+    ],
+    [
+      97558,
+      205,
+      80524
+    ],
+    [
+      97557,
+      205,
+      80524
+    ],
+    [
+      97557,
+      205,
+      80523
+    ],
+    [
+      97556,
+      205,
+      80523
+    ],
+    [
+      97555,
+      205,
+      80523
+    ],
+    [
+      97555,
+      205,
+      80522
+    ],
+    [
+      97554,
+      205,
+      80522
+    ],
+    [
+      97553,
+      205,
+      80522
+    ],
+    [
+      97553,
+      205,
+      80521
+    ],
+    [
+      97552,
+      205,
+      80521
+    ],
+    [
+      97551,
+      205,
+      80521
+    ],
+    [
+      97550,
+      205,
+      80521
+    ],
+    [
+      97549,
+      205,
+      80521
+    ],
+    [
+      97548,
+      205,
+      80521
+    ],
+    [
+      97547,
+      205,
+      80521
+    ],
+    [
+      97546,
+      205,
+      80521
+    ],
+    [
+      97545,
+      205,
+      80521
+    ],
+    [
+      97545,
+      205,
+      80522
+    ],
+    [
+      97544,
+      205,
+      80522
+    ],
+    [
+      97543,
+      205,
+      80522
+    ],
+    [
+      97543,
+      205,
+      80523
+    ],
+    [
+      97542,
+      205,
+      80523
+    ],
+    [
+      97541,
+      205,
+      80523
+    ],
+    [
+      97541,
+      205,
+      80524
+    ],
+    [
+      97540,
+      205,
+      80524
+    ],
+    [
+      97540,
+      205,
+      80525
+    ],
+    [
+      97539,
+      205,
+      80525
+    ],
+    [
+      97539,
+      205,
+      80526
+    ],
+    [
+      97538,
+      205,
+      80526
+    ],
+    [
+      97538,
+      205,
+      80527
+    ],
+    [
+      97537,
+      205,
+      80527
+    ],
+    [
+      97537,
+      205,
+      80528
+    ],
+    [
+      97537,
+      205,
+      80529
+    ],
+    [
+      97536,
+      205,
+      80529
+    ],
+    [
+      97536,
+      205,
+      80530
+    ],
+    [
+      97536,
+      205,
+      80531
+    ],
+    [
+      97535,
+      205,
+      80531
+    ],
+    [
+      97535,
+      205,
+      80532
+    ],
+    [
+      97535,
+      205,
+      80533
+    ],
+    [
+      97535,
+      205,
+      80534
+    ],
+    [
+      97535,
+      205,
+      80535
+    ],
+    [
+      97535,
+      205,
+      80536
+    ],
+    [
+      97535,
+      205,
+      80537
+    ],
+    [
+      97535,
+      205,
+      80538
+    ],
+    [
+      97535,
+      205,
+      80539
+    ],
+    [
+      97536,
+      205,
+      80539
+    ],
+    [
+      97536,
+      205,
+      80540
+    ],
+    [
+      97536,
+      205,
+      80541
+    ],
+    [
+      97537,
+      205,
+      80541
+    ],
+    [
+      97537,
+      205,
+      80542
+    ],
+    [
+      97537,
+      205,
+      80543
+    ],
+    [
+      97538,
+      205,
+      80543
+    ],
+    [
+      97538,
+      205,
+      80544
+    ],
+    [
+      97539,
+      205,
+      80544
+    ],
+    [
+      97539,
+      205,
+      80545
+    ],
+    [
+      97540,
+      205,
+      80545
+    ],
+    [
+      97540,
+      205,
+      80546
+    ],
+    [
+      97541,
+      205,
+      80546
+    ],
+    [
+      97541,
+      205,
+      80547
+    ],
+    [
+      97542,
+      205,
+      80547
+    ],
+    [
+      97542,
+      205,
+      80548
+    ],
+    [
+      97543,
+      205,
+      80548
+    ],
+    [
+      97544,
+      205,
+      80548
+    ],
+    [
+      97545,
+      205,
+      80548
+    ],
+    [
+      97545,
+      205,
+      80549
+    ],
+    [
+      97546,
+      205,
+      80549
+    ],
+    [
+      97547,
+      205,
+      80549
+    ],
+    [
+      97548,
+      205,
+      80549
+    ]
+  ],
+  "rail_corners": [
+    3,
+    4,
+    7,
+    8,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    20,
+    21,
+    23,
+    24,
+    32,
+    33,
+    35,
+    36,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    48,
+    49,
+    51,
+    52,
+    60,
+    61,
+    63,
+    64,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    76,
+    77,
+    79,
+    80,
+    88,
+    89,
+    91,
+    92,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    107,
+    108
+  ],
+  "rail_power": [
+    [
+      97549,
+      204,
+      80549
+    ],
+    [
+      97551,
+      204,
+      80549
+    ],
+    [
+      97553,
+      204,
+      80548
+    ],
+    [
+      97554,
+      204,
+      80548
+    ],
+    [
+      97556,
+      204,
+      80547
+    ],
+    [
+      97561,
+      204,
+      80542
+    ],
+    [
+      97562,
+      204,
+      80540
+    ],
+    [
+      97563,
+      204,
+      80538
+    ],
+    [
+      97563,
+      204,
+      80532
+    ],
+    [
+      97562,
+      204,
+      80530
+    ],
+    [
+      97561,
+      204,
+      80528
+    ],
+    [
+      97556,
+      204,
+      80523
+    ],
+    [
+      97554,
+      204,
+      80522
+    ],
+    [
+      97552,
+      204,
+      80521
+    ],
+    [
+      97546,
+      204,
+      80521
+    ],
+    [
+      97544,
+      204,
+      80522
+    ],
+    [
+      97542,
+      204,
+      80523
+    ],
+    [
+      97537,
+      204,
+      80528
+    ],
+    [
+      97536,
+      204,
+      80530
+    ],
+    [
+      97535,
+      204,
+      80532
+    ],
+    [
+      97535,
+      204,
+      80538
+    ],
+    [
+      97536,
+      204,
+      80540
+    ],
+    [
+      97537,
+      204,
+      80542
+    ],
+    [
+      97543,
+      204,
+      80548
+    ],
+    [
+      97544,
+      204,
+      80548
+    ],
+    [
+      97546,
+      204,
+      80549
+    ],
+    [
+      97548,
+      204,
+      80549
+    ]
+  ],
+  "board": [
+    97535,
+    205,
+    80535
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_fence_gate"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "rail": [
+        "powered_rail",
+        "rail"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "A raised disc ringed by rail with four gated steps, a banded column and a wedge-striped cone, twenty mounts in two rings, and a closed minecart circuit running between them - the ride a rider actually takes, because nothing in vanilla turns a canopy. It fills the Midway's first lot, between the Claim Lake and the walk up to the wheel.\n"
+    },
+    "metrics": {
+      "blocks": 5999,
+      "materials": 23,
+      "dominant_material_share": 0.2649,
+      "light_blocks": 10,
+      "massing": {
+        "width": 46,
+        "height": 34,
+        "depth": 41,
+        "fill_ratio": 0.0936
+      },
+      "silhouette": {
+        "top": {
+          "area": 1310,
+          "fill_ratio": 0.6946
+        },
+        "front": {
+          "area": 787,
+          "fill_ratio": 0.5032
+        },
+        "side": {
+          "area": 775,
+          "fill_ratio": 0.556
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.5331,
+          0.3459,
+          0.121
+        ],
+        "top_silhouette_perimeter": 354,
+        "surface_faces_per_block": 1.951
+      },
+      "material_counts": {
+        "stone_bricks": 1589,
+        "yellow_wool": 1550,
+        "red_wool": 1277,
+        "stone": 461,
+        "polished_blackstone_bricks": 363,
+        "oak_log": 266,
+        "oak_fence": 95,
+        "stone_brick_stairs": 92,
+        "rail": 68,
+        "powered_rail": 44,
+        "lime_wool": 29,
+        "pink_wool": 27
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "f6814701f8cc44d52e79a97a456b54d6534d95109c68ae780f9b21fb9de22af3",
+    "generator_source_digest": "aeb88dfa39aebd74e63611607fe4c08849ebb024ceec37edae55b29e992c050e",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97524,
+        204,
+        80535
+      ]
+    ]
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 122.2496,
+    "blocks": 5999,
+    "blocks_per_second": 49.07
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 5999,
+    "mechanic_families": [
+      "access",
+      "light",
+      "rail",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: magenta_wool",
+    "not in the provisional skyblock-1.19 list: oak_fence_gate",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: purple_wool",
+    "not in the provisional skyblock-1.19 list: redstone_block"
+  ],
+  "file": "Carousel.litematic",
+  "name": "Carousel"
+}

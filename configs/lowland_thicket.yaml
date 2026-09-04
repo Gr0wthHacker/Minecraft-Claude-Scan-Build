@@ -1,0 +1,39 @@
+# THE LOWLAND THICKET - planting the cave that was only ever quarried (2026-08-23).
+#
+# THE AUDIT: the lowland is called "Minecraft's lush-caves palette - moss, azalea, fern,
+# dripstone" everywhere in CLAUDE.md. Measured against the 15:54 scan it holds 38 block types
+# and its entire flora is moss_block 3986, dripstone_block 4141, vine 1098, moss_carpet 56 -
+# and ZERO azalea, fern, grass, dripleaf, spore blossom, cave vine, lily pad, or (despite
+# 4,141 dripstone blocks) pointed dripstone. A cave of rock and moss, not a LUSH cave.
+#
+# It is unbuilt work, not something cleared away: the `Lowland` ground design's own cell list
+# contains moss_block and vine and no other plant. The 32,369 vines Jack purged were vines.
+#
+# RESTRAINT IS THE WHOLE PROBLEM - there are 11,478 ceiling cells, 6,803 floor cells and 617
+# shallow water columns available. So nothing is sprinkled: every plant belongs to a DRIFT
+# with a centre, one dominant species and a falloff, and the centres are spaced apart. That is
+# the deck floor's lesson said in green (127 vine blobs of under two cells each were noise).
+#
+# The cave vines are deliberately moderate and clustered: Jack has just removed 32,369 vines
+# and this must not read as the vines coming back. They earn their place by carrying GLOW
+# BERRIES - light 14 - so the hanging gardens light themselves.
+#
+# Build BEFORE the night pass: pointed dripstone is the one plant here that is not passable,
+# so a stalagmite can move the surface classifier down a course. The night pass is re-solved
+# against a world that already has this in it.
+name: Lowland Thicket
+gen: thicket
+params:
+  under: out/island_full.litematic
+  y_lo: 22
+  y_hi: 74
+  seed: 11
+
+origin_lock: [-24251, 20, 29949]
+
+finish:
+  cheapen: false        # every species is chosen by habit, not by colour
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: [out/island_full.litematic]

@@ -1,0 +1,48 @@
+# PF BOOMTOWN SPINE - Main Street, and the street IS the module.
+#
+# 53 x 46 at V24 U47, Frontier column B. The spur at V19-23 / U69-71 lands on U23 of this lot,
+# which is the street's own mouth; the street then runs the whole 53 courses east and comes out
+# on the V77-79 cross walk that the grid cut for exactly this purpose. A street with a place at
+# both ends is the whole difference between a street and a row of false fronts.
+#
+# `PARK_GRID_PLAN` §6.5(c): "the Boomtown street is inside the module and belongs to whoever
+# builds it. *No grid change wanted*." So the boardwalk between the two terraces is the building
+# and not a second layer of paving over the ground design - which is the one thing rule 11 bars.
+#
+# EVERY FALSE FRONT HAS A REAL USE BEHIND IT, which `PARK_FRONTIER` requires by name: seven sheds,
+# each with a framed door onto the boardwalk, glazing, a name and an interior.
+#
+# THE SHOW LAYER (2026-09-02). Jack: "we need this to be a theme park, and amusement area,
+# beautiful, not just full of buildings." Measured, the whole Frontier ran 0.0-2.6% coloured or
+# lit blocks - stone brick, spruce and dark oak with a plinth, a string course and a cornice,
+# which is a correct way to build a VILLAGE. What was added is announcement rather than
+# ornament: a SHAPED show front with a name board and a painted cornice on every guest-facing
+# frontage, striped canvas awnings, bunting, and a mast with a pennant on the skyline. The rise
+# of every show front is DERIVED from its own ridge, because a false front that does not clear
+# its roof is invisible from every bearing but straight down the street - which is how the
+# first build passed a head-on render and read as a village from everywhere else.
+name: PF Boomtown Spine
+gen: frontier_builds
+params:
+  kind: boomtown
+  lot: [53, 46]
+  at: [24, 47]
+  entry_u: 23          # world U70 - the spur's own column
+  seed: 37
+roles: [building]
+design:
+  purpose: building
+  hierarchy: landmark
+  style: frontier
+  narrative: >
+    A boom-town main street: a five-wide boardwalk between two terraces of false-fronted timber
+    shops with awnings over the walk, a water tower behind the north terrace, and a portal at the
+    east end onto the cross walk to Mining Square.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

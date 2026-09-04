@@ -1,0 +1,321 @@
+{
+  "origin": {
+    "x": 97595,
+    "y": 202,
+    "z": 80828
+  },
+  "size": {
+    "x": 11,
+    "y": 7,
+    "z": 17
+  },
+  "generated_by": "arcade",
+  "kind": "prizecounter",
+  "footprint": [
+    17,
+    11
+  ],
+  "courses": [
+    -1,
+    5
+  ],
+  "land": "hollow",
+  "facing": "west",
+  "contract": "each barrel's lamp is lit while that barrel holds anything and dark when it is empty",
+  "unverified": [],
+  "budget": {
+    "redstone_lamp": 5
+  },
+  "concealed": 9,
+  "visible_redstone": 0,
+  "width": 11,
+  "depth": 5,
+  "height": 6,
+  "lanes": 5,
+  "barrels": [
+    [
+      97601,
+      204,
+      80832
+    ],
+    [
+      97601,
+      204,
+      80834
+    ],
+    [
+      97601,
+      204,
+      80836
+    ],
+    [
+      97601,
+      204,
+      80838
+    ],
+    [
+      97601,
+      204,
+      80840
+    ]
+  ],
+  "lamps": [
+    [
+      97599,
+      204,
+      80832
+    ],
+    [
+      97599,
+      204,
+      80834
+    ],
+    [
+      97599,
+      204,
+      80836
+    ],
+    [
+      97599,
+      204,
+      80838
+    ],
+    [
+      97599,
+      204,
+      80840
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97601,
+      204,
+      80832
+    ],
+    [
+      97601,
+      204,
+      80834
+    ],
+    [
+      97601,
+      204,
+      80836
+    ],
+    [
+      97601,
+      204,
+      80838
+    ],
+    [
+      97601,
+      204,
+      80840
+    ]
+  ],
+  "outputs": [
+    [
+      97599,
+      204,
+      80832
+    ],
+    [
+      97599,
+      204,
+      80834
+    ],
+    [
+      97599,
+      204,
+      80836
+    ],
+    [
+      97599,
+      204,
+      80838
+    ],
+    [
+      97599,
+      204,
+      80840
+    ]
+  ],
+  "stock": {
+    "each barrel": "the prizes it hands out"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "redstone_lamp",
+        "soul_lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_lamp"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Reliquary serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 458,
+      "materials": 12,
+      "dominant_material_share": 0.4389,
+      "light_blocks": 8,
+      "massing": {
+        "width": 11,
+        "height": 7,
+        "depth": 17,
+        "fill_ratio": 0.3499
+      },
+      "silhouette": {
+        "top": {
+          "area": 187,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 48,
+          "fill_ratio": 0.6234
+        },
+        "side": {
+          "area": 85,
+          "fill_ratio": 0.7143
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 201,
+        "dark_oak_planks": 90,
+        "blackstone": 52,
+        "black_wool": 45,
+        "deepslate_bricks": 37,
+        "polished_blackstone_brick_stairs": 9,
+        "barrel": 5,
+        "comparator": 5,
+        "redstone_lamp": 5,
+        "polished_blackstone_brick_slab": 4,
+        "soul_lantern": 3,
+        "dark_oak_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "c68b7a4a246a437c194879ef7f4c22369ee07b077acd9efad71551f422671343",
+    "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97593,
+        204,
+        80836
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 458,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: dark_oak_planks",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_slab",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_stairs",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: redstone_lamp"
+  ],
+  "file": "The Reliquary.litematic",
+  "name": "The Reliquary"
+}

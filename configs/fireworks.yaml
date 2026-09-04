@@ -1,0 +1,29 @@
+name: Fireworks
+gen: spectacle
+params:
+  land: midway
+  facing: east
+  at:
+  - 97563
+  - 203
+  - 80648
+  kind: fireworks
+  title: Fireworks
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+park_contract:
+  purpose: landmark
+  hierarchy: landmark
+  land: midway
+  requires_path: true
+  access_candidates:
+  - - 97570
+    - 204
+    - 80637
+design:
+  purpose: landmark
+  hierarchy: landmark
+  style: midway
+  narrative: Fireworks serves the midway visitor journey.
+origin_lock: false

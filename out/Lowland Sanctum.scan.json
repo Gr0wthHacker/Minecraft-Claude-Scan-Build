@@ -1,0 +1,35 @@
+{
+  "origin": {
+    "x": -24193,
+    "y": 39,
+    "z": 29963
+  },
+  "size": {
+    "x": 16,
+    "y": 17,
+    "z": 54
+  },
+  "generated_by": "sanctum",
+  "kind": "sanctum",
+  "profile_view": "face",
+  "facing": [
+    0,
+    1
+  ],
+  "floor_y": 41,
+  "features_built": {
+    "threshold": 6,
+    "floor": 257,
+    "apse": 54,
+    "walls": 130,
+    "facade": 110,
+    "columns": 6,
+    "altar": 9,
+    "lanterns": 2,
+    "bench": 3,
+    "drum": 3,
+    "approach": 63
+  },
+  "file": "Lowland Sanctum.litematic",
+  "name": "Lowland Sanctum"
+}

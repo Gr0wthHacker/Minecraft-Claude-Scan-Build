@@ -1,0 +1,17 @@
+name: Kiosk 3
+gen: park
+params:
+  land: midway
+  width: 7
+  depth: 5
+  facing: east
+  at:
+  - 97600
+  - 203
+  - 80638
+  kind: stall
+  title: Kiosk 3
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

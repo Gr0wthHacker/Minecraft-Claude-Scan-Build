@@ -1,0 +1,54 @@
+# THE PARK'S FRONT DOOR - spawn, forecourt, queue, and the gate you pay grass at.
+#
+# The compound is U270..U330 and not one cell wider, and that is a MEASUREMENT off
+# `out/Park Ways.litematic` rather than a choice: V0-V5 is lawn across exactly that run, and
+# U251-269 and U332-350 are the round plazas at the U260 and U341 avenues - streets. The apron's
+# own lamp masts stand at U269, U300 and U332; the one at U300 is on the axis and is NOT moved,
+# it stands inside the ceremonial portico as the gate's own lamp. Every cell `Park Ways` owns is
+# refused by the generator and counted in `ground_layer_refused`.
+#
+# THE SPAWN is V1/U302 = world X97501 Y203 Z80602, yaw -90 (facing +V, world east), aligned with
+# the right-hand iron door in the V5 grille.
+#
+# THE PRICE is one grass block. Local redstone detects the first item in the till; the server
+# adapter must validate that it is grass and consume exactly one fare.
+name: PF Entry Gate
+gen: park_entrance
+params:
+  kind: gate
+  land: midway
+  at: [0, 270]          # V0, U270
+  # NINETEEN DEEP, EIGHTEEN OF IT APPROACH. At six the sealed compound measured 143 standable
+  # cells - five deep by fifty-nine wide - so a visitor spawned three steps from the doors. Jack
+  # asked for a spawn at the void edge and a WALK to a central entrance; V0-5 is the arrival apron
+  # and V6-18 is the spine's own paving, which the approach walks on because the ways mask only
+  # protects what stands ABOVE the floor course.
+  size: [19, 61]        # V0..V18 by U270..U330
+  front: 13             # the gate composition sets back to V13..V18; V1..V12 is the walk
+  axis: 30              # U300 - the park's own centre line
+  lanes: [28, 32]       # paired iron doors inside the barred arch, U298 and U302
+  arch: [26, 34]        # U296..U304 grille, with iron doors at U298/U302
+  towers: [6, 54]       # U276 and U324
+  spawn: [1, 32]        # V1, U302 - aligned with the right-hand iron door
+  price_level: 1        # one grass block; exact item validation is a live-server gate
+  ways: out/Park Ways.litematic
+  title: THE MIDWAY
+roles: [building]
+design:
+  purpose: arrival
+  hierarchy: landmark
+  style: midway
+  narrative: >
+    The arrival compound at the centre island's void edge: a sea wall over the drop, a forecourt
+    with the spawn on the park's own axis, a stanchion queue under a lit oak canopy, and a
+    61-wide gate building whose ceremonial arch is barred so the park can be seen and not
+    entered. Two turnstile lanes carry iron doors whose local preview opens on one deposited item;
+    the server adapter validates and consumes exactly one grass block. With the doors shut the compound is sealed: the
+    void closes it in front, flank walls close it sideways, and the gate closes it behind.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+origin_lock: false

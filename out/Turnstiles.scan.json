@@ -1,0 +1,255 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 200,
+    "z": 80583
+  },
+  "size": {
+    "x": 19,
+    "y": 9,
+    "z": 11
+  },
+  "generated_by": "ticketing",
+  "kind": "ticketing/turnstile",
+  "land": "midway",
+  "facing": "east",
+  "contract": "a press opens that lane's door for about 13 redstone ticks and it closes by itself",
+  "unverified": [],
+  "budget": {},
+  "concealed": 65,
+  "visible_redstone": 0,
+  "width": 9,
+  "depth": 2,
+  "height": 5,
+  "lanes": 2,
+  "stages": 4,
+  "lane_i": [
+    1,
+    5
+  ],
+  "span": 12,
+  "fore": 14,
+  "doors": [
+    [
+      97555,
+      203,
+      80591
+    ],
+    [
+      97555,
+      203,
+      80587
+    ]
+  ],
+  "slots": [
+    [
+      97556,
+      204,
+      80589
+    ],
+    [
+      97556,
+      204,
+      80585
+    ]
+  ],
+  "lamps": [],
+  "inputs": [
+    [
+      97556,
+      204,
+      80589
+    ],
+    [
+      97556,
+      204,
+      80585
+    ]
+  ],
+  "outputs": [
+    [
+      97555,
+      203,
+      80591
+    ],
+    [
+      97555,
+      203,
+      80587
+    ]
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "iron_door"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "Turnstiles serves the midway visitor journey."
+    },
+    "metrics": {
+      "blocks": 649,
+      "materials": 13,
+      "dominant_material_share": 0.4499,
+      "light_blocks": 1,
+      "massing": {
+        "width": 19,
+        "height": 9,
+        "depth": 11,
+        "fill_ratio": 0.345
+      },
+      "silhouette": {
+        "top": {
+          "area": 209,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 70,
+          "fill_ratio": 0.4094
+        },
+        "side": {
+          "area": 86,
+          "fill_ratio": 0.8687
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 292,
+        "stone": 187,
+        "redstone_wire": 42,
+        "blackstone": 34,
+        "white_wool": 34,
+        "repeater": 18,
+        "stone_brick_stairs": 18,
+        "oak_log": 12,
+        "iron_door": 4,
+        "redstone_wall_torch": 4,
+        "stone_button": 2,
+        "lantern": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "e4547226af52f4b05cd9f3031b69ee4cffbaa99c6a79aeaf8c7ad427b5af45cc",
+    "generator_source_digest": "627eace157c64c64c1860ff4d05c35aa4e7f15394fa471826c6a93746f593b6b",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "arrival",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97571,
+        204,
+        80588
+      ],
+      [
+        97549,
+        204,
+        80588
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 649,
+    "mechanic_families": [
+      "access",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: iron_door"
+  ],
+  "file": "Turnstiles.litematic",
+  "name": "Turnstiles"
+}

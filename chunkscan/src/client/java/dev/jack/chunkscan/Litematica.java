@@ -19,6 +19,78 @@ final class Litematica {
 
 	/** Load `file` and add an enabled placement whose origin corner sits at `origin`. */
 	static void place(Path file, BlockPos origin, String name) throws Exception {
+		place(file, origin, name, "NONE");
+	}
+
+	/**
+	 * As {@link #place}, rotated. `rotation` is a {@code net.minecraft.world.level.block.Rotation}
+	 * constant name — NONE, CLOCKWISE_90, CLOCKWISE_180, COUNTERCLOCKWISE_90.
+	 *
+	 * <p>Litematica's setters take an {@code IMessageConsumer} for feedback and there is no public
+	 * no-op to hand them, so one is synthesised with a {@link java.lang.reflect.Proxy}. Passing null
+	 * is the obvious alternative and risks an NPE deep inside a soft dependency, which would surface
+	 * as "paste silently did nothing".
+	 */
+	static void place(Path file, BlockPos origin, String name, String rotation) throws Exception {
+		Object placement = placementFor(file, origin, name);
+		if (rotation != null && !rotation.equals("NONE")) {
+			Class<?> rotC = Class.forName("net.minecraft.world.level.block.Rotation");
+			Object rot = Enum.valueOf((Class<Enum>) rotC.asSubclass(Enum.class), rotation);
+			Class<?> consumerC = Class.forName("fi.dy.masa.malilib.gui.interfaces.IMessageConsumer");
+			Object noop = java.lang.reflect.Proxy.newProxyInstance(
+				Litematica.class.getClassLoader(), new Class<?>[]{consumerC},
+				(p, m, a) -> m.getReturnType() == boolean.class ? Boolean.FALSE : null);
+			placement.getClass().getMethod("setRotation", rotC, consumerC).invoke(placement, rot, noop);
+		}
+		register(placement);
+	}
+
+	/**
+	 * Is a placement of this name loaded, and is it switched on?
+	 *
+	 * <p>Three answers, not two: {@code null} means we could not ask (Litematica missing, or the API
+	 * moved under us), and that must not be reported as "your placement is missing" - a soft
+	 * dependency that has changed shape is a different problem from a placement you forgot to make.
+	 *
+	 * <p>Checked by NAME, which is what {@code /cscan place} sets it to and what the design is called
+	 * everywhere else in this mod.
+	 */
+	static Boolean enabled(String name) {
+		if (!present()) return null;
+		try {
+			Class<?> dataC = Class.forName("fi.dy.masa.litematica.data.DataManager");
+			Object manager = dataC.getMethod("getSchematicPlacementManager").invoke(null);
+			Object all = manager.getClass().getMethod("getAllSchematicsPlacements").invoke(manager);
+			for (Object p : (java.util.List<?>) all) {
+				String n = (String) p.getClass().getMethod("getName").invoke(p);
+				if (!name.equals(n)) continue;
+				return (Boolean) p.getClass().getMethod("isEnabled").invoke(p);
+			}
+			return Boolean.FALSE;                       // no placement of that name at all
+		} catch (Throwable t) {
+			return null;                                // could not ask; say nothing
+		}
+	}
+
+	/**
+	 * How far litematica-printer will actually place, or 0 when we cannot ask.
+	 *
+	 * <p>`Plan.PRINTER_REACH` was a guess — 4 — and everything about where the loop stands was
+	 * budgeted against it. The number is sitting in the printer's own config
+	 * ({@code Configs.PRINTING_RANGE}), which is the same "ask the game, not your memory" rule this
+	 * project applies to blocks and then forgot to apply to the mod it is driving.
+	 */
+	static double printerRange() {
+		try {
+			Class<?> c = Class.forName("me.aleksilassila.litematica.printer.config.Configs");
+			Object cfg = c.getField("PRINTING_RANGE").get(null);
+			return (Double) cfg.getClass().getMethod("getDoubleValue").invoke(cfg);
+		} catch (Throwable t) {
+			return 0;                                       // printer absent, or the config moved
+		}
+	}
+
+	private static Object placementFor(Path file, BlockPos origin, String name) throws Exception {
 		Class<?> holderC = Class.forName("fi.dy.masa.litematica.data.SchematicHolder");
 		Object holder = holderC.getMethod("getInstance").invoke(null);
 		Object schematic = holderC.getMethod("getOrLoad", Path.class).invoke(holder, file);
@@ -29,10 +101,26 @@ final class Litematica {
 		Method createFor = placementC.getMethod("createFor", schemC, BlockPos.class, String.class, boolean.class, boolean.class);
 		Object placement = createFor.invoke(null, schematic, origin, name, true, true);
 
+		return placement;
+	}
+
+	private static void register(Object placement) throws Exception {
+		Class<?> placementC = Class.forName("fi.dy.masa.litematica.schematic.placement.SchematicPlacement");
 		Class<?> dataC = Class.forName("fi.dy.masa.litematica.data.DataManager");
 		Object manager = dataC.getMethod("getSchematicPlacementManager").invoke(null);
-		Class<?> managerC = manager.getClass();
-		managerC.getMethod("addSchematicPlacement", placementC, boolean.class).invoke(manager, placement, false);
+		manager.getClass().getMethod("addSchematicPlacement", placementC, boolean.class)
+			.invoke(manager, placement, false);
+	}
+
+	/** The rotation names `/cscan paste` accepts, in the order they are offered. */
+	static String rotationOf(String word) {
+		if (word == null) return "NONE";
+		return switch (word.trim().toLowerCase(java.util.Locale.ROOT)) {
+			case "90", "cw", "rot90", "clockwise_90" -> "CLOCKWISE_90";
+			case "180", "rot180", "clockwise_180" -> "CLOCKWISE_180";
+			case "270", "ccw", "rot270", "counterclockwise_90" -> "COUNTERCLOCKWISE_90";
+			default -> "NONE";
+		};
 	}
 
 	/** Current area selection as {minX, minY, minZ, maxX, maxY, maxZ}, or null if there is none. */

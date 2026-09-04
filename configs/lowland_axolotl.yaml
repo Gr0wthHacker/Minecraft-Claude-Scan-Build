@@ -1,0 +1,46 @@
+# AS BUILT (2026-08-21, 19:28 scan). Jack placed the axolotl himself - on the pond's WEST bank,
+# rotated 180, head east over the water - and the placed animal is the design now: the out/ files
+# are re-derived from the capture (tools: see CLAUDE.md, the lowland scene). DO NOT REGENERATE
+# from this config: a regen conforms to the east-bank site below and would fight the placed copy
+# cell by cell. The params are kept as the record of how the animal was designed.
+#
+# AN AXOLOTL on the pond's north bank, head over the shallows, tail sweeping the moss.
+#
+# Chosen over the otter and the beaver on the planar/columnar rule (2026-08-21): an otter's
+# identity is a pose needing water it cannot legally occupy, a beaver is a rodent barrel four
+# blocks from a fifty-block rodent - and an axolotl is all hardware: six flat gill fronds, a
+# tail fin, a wide flat head, splayed limbs. The gecko category. It is also THE lush-caves mob,
+# so the naming test is instant, and the one candidate that gets to be pink - pale leucistic,
+# deliberately paler than the flamingo so the two do not twin across the pond.
+#
+# The site: pad measured free at (-24207, 29992), spread 3, 60-70% land - genuinely waterfront.
+# The head aims south-west at the open water; not one water cell is replaced (the pond and its
+# guard lanterns are protected) - the snout and gills OVERHANG the shallows instead.
+name: Lowland Axolotl
+gen: axolotl
+params:
+  under: out/lowland_planned.litematic
+  at: [-24202, 29992]
+  look_at: [-24218, 29992]   # DUE WEST, at the pond - a cardinal gaze on purpose: the head is
+                             # straight and the face lies on the block grid, so head-on it is a
+                             # true flat plane instead of a diagonal staircase of corners. All
+                             # the body's curve lives in the tail. Sited east of the oak canopy
+                             # (X-24210..-24206 / Z29981..29985, measured) that severed flank
+                             # cells at two earlier sites - the body must clear it, not thread it
+  length: 26
+  body_w: 9
+  body_h: 6.5
+  curve: 40                  # a salamander mid-turn; a straight spine is the jaguar's table.
+                             # All of it is in the tail now (the head must stay grid-straight),
+                             # so it is stronger to keep the same visible bend - and it swings
+                             # the tail tip north, clear of the capybara's hindquarters
+  seed: 0
+origin_lock: false           # LOUD: lies on the lowland bank at Y40-49
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  context_clear: [vine, short_grass, tall_grass, fern, large_fern, moss_carpet, azalea,
+                  flowering_azalea, poppy, dandelion]
+  verify_against: out/lowland_planned.litematic

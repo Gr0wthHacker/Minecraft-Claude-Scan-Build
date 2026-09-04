@@ -1,0 +1,54 @@
+# PF SNACK WINDOW - a counter under a striped awning, and six seats behind it.
+#
+# THE LOT IS 27 x 41 AT V77, U215 and it fronts WEST onto midway walk 1 (V73-75), whose spur
+# `Park Ways` already draws to V76. The building's own threshold carries that paving the last
+# three courses to the counter, so a guest never crosses lawn to order.
+#
+# THE ENVELOPE IS V80-96 x U224-246 - seventeen deep and twenty-three wide, a third of the lot,
+# because the build card is explicit that this is the small one: "build last; max 6 seats", a
+# recovery node with an ordering frontage and seating behind it, not a second attraction. Eaves at
+# six courses and a ridge at nine; the tallest thing on the lot is its chimney.
+#
+# THE MARGIN IS WHAT KEEPS IT OFF THE GROUND LAYER. The lamp arms on walk 1 reach V77-78 at
+# U232 and U247, three to five courses up, and one more at V83/U254-255 - so the awning stops at
+# V79 and the envelope stops at U246. The threshold is at Y0, three courses under all of them.
+#
+# THE SHOW LAYER (2026-09-02). Rendered from eight bearings, the first build of this land read
+# as CIVIC ARCHITECTURE - dressed grey stone, white pilasters, one red band and a plain dark
+# grey roof. The roof is the biggest surface a building has and it was the greyest thing here,
+# so it is striped canvas now: `crimson_stairs` (L62) against `polished_diorite_stairs` (L193),
+# both cheap, both 1.19, both with a matching slab - which a roof needs. The gable END takes
+# the land's own two wool tones banded upright, because that is the view a guest walking up the
+# spine actually gets; and each hall carries masts with pennants, which is the only part of a
+# building that survives to a quarter scale.
+name: PF Snack Window
+gen: midwaybuild
+params:
+  kind: snack_window
+  lot: [77, 215, 103, 255]
+  at: [97577, 203, 80515]
+  height: 20
+  blocked:
+    - [77, 3, 232, 78, 6, 232]
+    - [77, 3, 247, 78, 6, 247]
+    - [83, 3, 254, 83, 6, 255]
+  seed: 0
+roles: [building]
+design:
+  purpose: shop
+  hierarchy: supporting
+  style: midway
+  narrative: >
+    An ordering counter under a red-and-white awning on midway walk 1, a kitchen behind it with a
+    chimney that actually smokes, and a covered loggia with an eating shelf and exactly six seats.
+    A rear service door, and nothing outside the building but the three courses of threshold that
+    join it to the walk's own spur.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  ground_block: moss_block
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

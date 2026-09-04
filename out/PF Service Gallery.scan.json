@@ -1,0 +1,258 @@
+{
+  "origin": {
+    "x": 97657,
+    "y": 203,
+    "z": 80850
+  },
+  "size": [
+    13,
+    41
+  ],
+  "generated_by": "prismworks_builds",
+  "kind": "prismworks_gallery",
+  "land": "prismworks",
+  "lot": [
+    157,
+    550,
+    169,
+    590
+  ],
+  "height": 20,
+  "facing": "west",
+  "lamp_arms_refused": 0,
+  "outside_lot_refused": 0,
+  "lights": 4,
+  "signs": 1,
+  "shutters": 11,
+  "monitor_y": 12,
+  "stack_top": 17,
+  "shed_h": 7,
+  "contract": "a plain service shed with a monitor roof, shutters onto the lane and one vent stack - inside V157-169 / U550-590 and not one cell outside it",
+  "requires_in_game": [
+    "colour and the read of the value ladder can only be judged in world",
+    "no mechanism is claimed by this geometry: the Ascent's timing, the Array's route lights and the Vault's completion circuit are separate redstone tickets"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "warped_trapdoor"
+      ],
+      "signage": [
+        "warped_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "filler",
+      "style": "prismworks",
+      "focal_face": "west",
+      "narrative": "A plain plant shed on the service lane: a bay-rhythm wall with high slit windows, roller shutters, a monitor roof whose raised ridge carries barred louvres on both flanks, and one vent stack standing a course clear of the ridge.\n"
+    },
+    "metrics": {
+      "blocks": 2231,
+      "materials": 19,
+      "dominant_material_share": 0.3115,
+      "light_blocks": 0,
+      "massing": {
+        "width": 11,
+        "height": 18,
+        "depth": 37,
+        "fill_ratio": 0.3045
+      },
+      "silhouette": {
+        "top": {
+          "area": 399,
+          "fill_ratio": 0.7486
+        },
+        "front": {
+          "area": 140,
+          "fill_ratio": 0.5385
+        },
+        "side": {
+          "area": 485,
+          "fill_ratio": 0.5915
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.4939,
+          0.4899,
+          0.0161
+        ],
+        "top_silhouette_perimeter": 192,
+        "surface_faces_per_block": 1.7893
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 695,
+        "smooth_basalt": 250,
+        "blackstone_slab": 180,
+        "polished_deepslate_slab": 172,
+        "waxed_cut_copper_stairs": 157,
+        "chiseled_deepslate": 120,
+        "deepslate_tiles": 111,
+        "black_wool": 110,
+        "iron_bars": 107,
+        "blackstone_stairs": 84,
+        "gray_wool": 62,
+        "blackstone": 57
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "ea5b7b3f8f5d2a38a88c6c9486a7e39f08c18374babed23845bab26664a83cf5",
+    "generator_source_digest": "29dba607ce9fde5225e15d716ee2145093a22ebad36ae82707cc0eb07d162cfb",
+    "anchors": [
+      {
+        "name": "service_access",
+        "kind": "maintenance",
+        "position": [
+          0,
+          1,
+          20
+        ],
+        "facing": "west",
+        "width": 3
+      },
+      {
+        "name": "staff_entry",
+        "kind": "door",
+        "position": [
+          1,
+          1,
+          20
+        ],
+        "facing": "west",
+        "width": 3
+      },
+      {
+        "name": "lane_front",
+        "kind": "visual_front",
+        "position": [
+          0,
+          1,
+          20
+        ],
+        "facing": "west",
+        "width": 41
+      }
+    ],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": true,
+      "mechanics": [
+        "access",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 63.174313,
+    "blocks": 2231,
+    "blocks_per_second": 35.31
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 3,
+    "roles": [
+      "building"
+    ],
+    "blocks": 2231,
+    "mechanic_families": [
+      "access",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "scenic_support",
+    "player_verbs": [
+      "pass it on the service lane"
+    ],
+    "outcome": "The land's back-of-house has a building rather than a gap, so the service lane reads as the back of somewhere instead of as an unfinished edge.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: blackstone",
+    "not in the provisional skyblock-1.19 list: blackstone_slab",
+    "not in the provisional skyblock-1.19 list: blackstone_stairs",
+    "not in the provisional skyblock-1.19 list: chiseled_deepslate",
+    "not in the provisional skyblock-1.19 list: cracked_polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: deepslate_tiles",
+    "not in the provisional skyblock-1.19 list: iron_bars",
+    "not in the provisional skyblock-1.19 list: pearlescent_froglight",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_deepslate_slab",
+    "not in the provisional skyblock-1.19 list: polished_deepslate_stairs",
+    "not in the provisional skyblock-1.19 list: smooth_basalt",
+    "not in the provisional skyblock-1.19 list: warped_trapdoor",
+    "not in the provisional skyblock-1.19 list: warped_wall_sign",
+    "not in the provisional skyblock-1.19 list: waxed_cut_copper_stairs"
+  ],
+  "file": "PF Service Gallery.litematic",
+  "name": "PF Service Gallery"
+}

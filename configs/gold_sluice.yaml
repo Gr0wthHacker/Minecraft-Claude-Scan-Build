@@ -1,0 +1,29 @@
+name: Gold Sluice
+gen: frontiertown
+params:
+  land: frontier
+  facing: east
+  at:
+  - 97570
+  - 203
+  - 80369
+  kind: sluice
+  title: Gold Sluice
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: shop
+  hierarchy: supporting
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97573
+    - 204
+    - 80361
+design:
+  purpose: shop
+  hierarchy: supporting
+  style: frontier
+  narrative: Gold Sluice serves the frontier visitor journey.
+origin_lock: false

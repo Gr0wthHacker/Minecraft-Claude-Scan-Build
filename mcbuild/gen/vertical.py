@@ -25,9 +25,19 @@ class World:
 
     def __init__(self):
         self.cells: dict[tuple[int, int, int], tuple[str, dict]] = {}
+        # Sign TEXT, in world coordinates, carried across to the canvas at export. Kept apart from
+        # `cells` because a sign is two things in two halves of the file: a palette entry for the
+        # block and a tile entity for what it reads.
+        self.signs: dict[tuple[int, int, int], dict] = {}
 
     def put(self, x, y, z, name, **props):
         self.cells[(int(x), int(y), int(z))] = (name, props)
+
+    def sign(self, x, y, z, front=(), back=(), colour="black", glowing=False):
+        """Say what the sign at this cell READS. Place the block with `put` as usual."""
+        self.signs[(int(x), int(y), int(z))] = {
+            "front": list(front), "back": list(back),
+            "colour": colour, "glowing": bool(glowing)}
 
     def has(self, x, y, z):
         return (int(x), int(y), int(z)) in self.cells
@@ -44,6 +54,13 @@ class World:
         c = Canvas(max(xs) - x0 + 1, max(ys) - y0 + 1, max(zs) - z0 + 1)
         for (x, y, z), (name, props) in self.cells.items():
             c.put(x - x0, y - y0, z - z0, c.raw_state(name, **props))
+        for (x, y, z), t in self.signs.items():
+            # ONLY IF THE BLOCK SURVIVED. A design is remaining work and cells get deferred or
+            # trimmed, so a sign's text can outlive its sign - and a tile entity with no block is
+            # a corrupt region, not a harmless leftover.
+            if (x, y, z) in self.cells:
+                c.sign_text(x - x0, y - y0, z - z0, t["front"], t["back"],
+                            t["colour"], t["glowing"])
         c.world_origin = (x0, y0, z0)
         c.meta = meta or {}
         return c
@@ -71,18 +88,44 @@ def resolve_capture(path: str) -> str:
 
 
 class Ctx:
-    """Capture + optional belly, queried in world coordinates."""
+    """Capture + optional belly, queried in world coordinates.
 
-    def __init__(self, under: str, belly: str | None = None):
+    `under` may be a LIST, and when it is, later captures WIN where they have content.
+
+    THE GENERATOR MUST ASK THE SAME WORLD THE AUDIT VERIFIES AGAINST. The shop islet asked
+    `island_deep` (which reads air at Y150) while `verify_against` used `island_deep` AND
+    `island_now` (which holds Jack's cobblestone there). So it planted short_grass on what it
+    believed was its own moss - and the moss is never placed, because `ROCK_FAMILY` counts
+    cobblestone as satisfying it, so the grass ends up rooted in stone. One design, two worlds,
+    two answers: the same drift `proportions` and `rubric` share an entry point to avoid.
+    """
+
+    def __init__(self, under, belly: str | None = None):
+        extra = []
+        if isinstance(under, (list, tuple)):
+            under, extra = under[0], list(under[1:])
         self.m, (self.ox, self.oy, self.oz) = load_capture(under)
         self.names = np.array([n.split(":")[-1] for n in self.m.names])
         self.solid = (self.m.ids != 0) & ~np.isin(self.names[self.m.ids], ["vine", "water", "bubble_column"])
+        self._extra = []
+        for e in extra:
+            if os.path.exists(e):
+                em, eo = load_capture(e)
+                self._extra.append((em, eo, np.array([n.split(":")[-1] for n in em.names])))
         self.b = None
         if belly and os.path.exists(belly):
             self.b, (self.bx, self.by, self.bz) = load_capture(belly)
             self.bsolid = self.b.ids > 0
 
     def name_at(self, x, y, z) -> str:
+        # LATER CAPTURES WIN where they hold something: they are newer, and a stale capture that
+        # still reads air is exactly how the islet planted grass on Jack's cobblestone.
+        for em, (ex, ey, ez), enames in reversed(getattr(self, "_extra", [])):
+            lx, ly, lz = x - ex, y - ey, z - ez
+            if 0 <= ly < em.ids.shape[0] and 0 <= lz < em.ids.shape[1] and 0 <= lx < em.ids.shape[2]:
+                n = str(enames[em.ids[ly, lz, lx]])
+                if n not in ("air", "cave_air", "void_air"):
+                    return n
         lx, ly, lz = x - self.ox, y - self.oy, z - self.oz
         if 0 <= ly < self.m.ids.shape[0] and 0 <= lz < self.m.ids.shape[1] and 0 <= lx < self.m.ids.shape[2]:
             return str(self.names[self.m.ids[ly, lz, lx]])

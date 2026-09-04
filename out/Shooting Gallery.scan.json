@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 202,
+    "z": 80412
+  },
+  "size": {
+    "x": 11,
+    "y": 9,
+    "z": 17
+  },
+  "generated_by": "attractions",
+  "kind": "shootinggallery",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "architecture: a false-fronted range whose backboard is real `target` blocks, odds printed on its own sign",
+  "unverified": [],
+  "width": 15,
+  "depth": 9,
+  "height": 8,
+  "targets": 11,
+  "signed": true,
+  "file": "Shooting Gallery.litematic",
+  "name": "Shooting Gallery"
+}

@@ -9,6 +9,8 @@ Example configs live in ../configs/.
 from __future__ import annotations
 
 import os
+import shutil
+import time
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -41,19 +43,149 @@ def _load_donors(paths: list[str], schem_dir: str) -> list[schem.Model]:
 
 def run_config(path: str, *, settings: Settings | None = None, overrides: dict | None = None,
                ship: bool = False, render_sheet: bool = True, verbose: bool = True) -> tuple[schem.Model, audit_mod.Result]:
+    started = time.perf_counter()
     with open(path, encoding="utf-8") as fh:
         cfg = yaml.safe_load(fh) or {}
     for k, v in (overrides or {}).items():
         _deep_set(cfg, k, v)
+    # Blueprint adoption is deliberately non-invasive: it adds a verified architectural contract
+    # to legacy configs without changing their bespoke geometry until that generator is migrated.
+    from .blueprint_adapter import apply as apply_blueprint
+    cfg, blueprint_plan = apply_blueprint(cfg)
     st = settings or Settings()
     st.schem_dir = cfg.get("schem_dir", st.schem_dir)
     name = cfg.get("name") or os.path.splitext(os.path.basename(path))[0]
+    # Optional content-addressed reuse: it is opt-in because a user may deliberately be comparing
+    # a generator change, but when enabled it prevents expensive identical regeneration.
+    cache_root = cfg.get("cache_dir")
+    cache_key = None
+    if cache_root and not ship:
+        from .cache import artifact_paths, key as cache_key_for
+        from .design_compiler import source_digest
+        import inspect
+        source = ""
+        if cfg.get("gen") in GENERATORS:
+            source = source_digest(inspect.getsourcefile(GENERATORS[cfg["gen"]].build))
+        cache_key = cache_key_for(cfg, source_digest=source)
+        cached_lit, cached_side = artifact_paths(cache_root, cache_key)
+        if cached_lit.exists():
+            os.makedirs(st.out_dir, exist_ok=True)
+            out_lit = os.path.join(st.out_dir, f"{name}.litematic")
+            shutil.copy2(cached_lit, out_lit)
+            if cached_side.exists(): shutil.copy2(cached_side, out_lit.replace(".litematic", ".scan.json"))
+            m = schem.load(out_lit)
+            res = audit_mod.audit(m, ground=False)
+            if verbose: print(f"{name}: reused cache {cache_key[:12]}")
+            return m, res
     donors = _load_donors(cfg.get("donors", []), st.schem_dir)
 
-    m, world_origin, gen_meta = _source_model(cfg, st, donors)
+    try:
+        m, world_origin, gen_meta = _source_model(cfg, st, donors)
+    except ValueError as e:
+        if "nothing built" in str(e):
+            # A FINISHED design reports complete, it does not raise - the store hall hit
+            # this first (100% built, emitted nothing, crashed the pipeline), then the
+            # Reaching Root the day Jack finished placing it.
+            if verbose:
+                print(f"{name}: complete - the world already holds every cell of this design")
+            res = audit_mod.Result()
+            res.complete = True
+            return None, res
+        raise
     _polish(m, cfg)
     res = _finish(m, cfg, world_origin, gen_meta, verbose)
+    # Every generated sidecar records the mechanics that survived the finish chain.  It is derived
+    # from the finished model, not declared by the config, so cheapening/hollowing cannot leave a
+    # stale claim about a component that no longer exists.
+    from .mechanics import manifest as mechanics_manifest
+    from .design import assess as design_assess
+    from .journey import evaluate as journey_evaluate
+    gen_meta = {**gen_meta, "mechanics": mechanics_manifest(
+        m, generator=cfg.get("gen"), roles=cfg.get("roles"))}
+    brief = cfg.get("design")
+    design = design_assess(m, brief)
+    if design["brief"].get("journey"):
+        design["journey"] = journey_evaluate(m, design["brief"]["journey"], world_origin)
+        if design["brief"].get("enforce") and not design["journey"]["ok"]:
+            raise ValueError("design journey contract failed")
+    from .scenario import evaluate as scenario_evaluate
+    design["scenarios"] = scenario_evaluate(cfg.get("scenarios"), design, gen_meta["mechanics"])
+    if design["brief"].get("enforce") and not design["scenarios"]["ok"]:
+        raise ValueError("design scenario contract failed")
+    if design["brief"].get("visual_review"):
+        from .design import render_packet
+        review_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in name)
+        design["visual_packet"] = render_packet(m, os.path.join(st.out_dir, "design_reviews"), review_name)
+    from dataclasses import asdict
+    from .design_compiler import anchors as compile_anchors, capability_matrix, fingerprint, genome, source_digest, variation
+    declared_anchors = compile_anchors(cfg.get("anchors"))
+    genome_name = design["brief"].get("style")
+    generator_source = ""
+    if cfg.get("gen"):
+        import inspect
+        try:
+            generator_source = source_digest(inspect.getsourcefile(GENERATORS[cfg["gen"]].build))
+        except (KeyError, TypeError):
+            pass
+    system = {"fingerprint": fingerprint(cfg, generator_source=generator_source),
+              "generator_source_digest": generator_source, "anchors": [asdict(anchor) for anchor in declared_anchors]}
+    if genome_name:
+        profile = genome(genome_name)
+        system["genome"] = profile
+        if profile["facades"]:
+            system["variation"] = {"facade": variation(cfg.get("name", name), "facade", profile["facades"])}
+    system["capabilities"] = capability_matrix(mechanics=gen_meta["mechanics"], design=design,
+                                                  anchors_=declared_anchors)
+    gen_meta = {**gen_meta, "design": design, "design_system": system,
+                **({"blueprint": blueprint_plan} if blueprint_plan else {}),
+                **({"park_contract": cfg["park_contract"]} if cfg.get("park_contract") else {})}
+    from .efficiency import assess as assess_efficiency
+    efficiency = assess_efficiency(m, time.perf_counter() - started, cfg.get("efficiency"))
+    gen_meta["efficiency"] = efficiency
+    if cfg.get("efficiency", {}).get("enforce") and not efficiency["ok"]:
+        raise ValueError("efficiency budget failed: " + "; ".join(efficiency["failures"]))
+    from .generator_contract import assess as assess_contract
+    from .fun_contract import assess as assess_fun_contract
+    from .animal_quality import assess as assess_animal_quality
+    from .server_profile import advise_model, current as server_profile, validate_model
+    contract = assess_contract(cfg, m, mechanics=gen_meta["mechanics"], design=design)
+    fun_contract = assess_fun_contract(cfg.get("fun_contract"))
+    animal_spec = cfg.get("animal_contract")
+    if animal_spec:
+        animal_spec = {**animal_spec, "_visual_review": bool(brief.get("visual_review"))}
+    animal_quality = assess_animal_quality(m, generator=cfg.get("gen"), meta=gen_meta,
+                                           spec=animal_spec)
+    compatibility = validate_model(m)
+    # A name a curated capture list happens not to contain is not evidence the server cannot
+    # place it - so it is REPORTED, with the list it failed against named, rather than refusing
+    # a build. See mcbuild/server_profile.py and CLAUDE.md rule 12.
+    unlisted = advise_model(m)
+    gen_meta["generator_contract"] = contract
+    gen_meta["fun_contract"] = fun_contract
+    gen_meta["animal_quality"] = animal_quality
+    gen_meta["server_profile"] = server_profile()
+    gen_meta["server_compatibility"] = compatibility
+    gen_meta["server_unlisted"] = unlisted
+    if unlisted and verbose:
+        print(f"{name}: {len(unlisted)} block(s) not in the provisional 1.19 list - "
+              f"{', '.join(u.rsplit(': ', 1)[-1] for u in unlisted[:8])}"
+              f"{' ...' if len(unlisted) > 8 else ''}")
+    if cfg.get("world_contract") and (not contract["ok"] or compatibility):
+        raise ValueError("world contract failed: " + "; ".join(contract["failures"] + compatibility))
+    if cfg.get("fun_contract", {}).get("enforce") and not fun_contract["ok"]:
+        raise ValueError("fun contract failed: " + "; ".join(fun_contract["failures"]))
+    if cfg.get("animal_contract", {}).get("enforce") and not animal_quality["ok"]:
+        raise ValueError("animal quality failed: " + "; ".join(animal_quality["failures"]))
     _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, verbose)
+    if cache_root and cache_key:
+        from .cache import artifact_paths
+        cached_lit, cached_side = artifact_paths(cache_root, cache_key)
+        cached_lit.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(os.path.join(st.out_dir, f"{name}.litematic"), cached_lit)
+        side = os.path.join(st.out_dir, f"{name}.scan.json")
+        if os.path.exists(side): shutil.copy2(side, cached_side)
+    if verbose:
+        print(f"performance: {time.perf_counter() - started:.3f}s, {int(m.solid().sum())} blocks")
     return m, res
 
 
@@ -126,11 +258,36 @@ def _finish(m, cfg, world_origin, gen_meta, verbose):
     # DEFER_TO: drop any cell another design already claims, so two designs never ask the player
     # to place - or break - the same block twice. Precedence is stated by the config that yields,
     # which means the order you generate in matters: build the winner first.
+    if fin.get("carve_for"):
+        n = _carve_for(m, world_origin, fin["carve_for"])
+        if verbose and n:
+            print(f"carved {n} cells out for " + ", ".join(
+                os.path.basename(q["design"] if isinstance(q, dict) else q)
+                for q in (fin["carve_for"] if isinstance(fin["carve_for"], (list, tuple))
+                          else [fin["carve_for"]])))
     if fin.get("defer_to"):
         n = _defer_to(m, world_origin, fin["defer_to"])
         if verbose and n:
             print(f"deferred {n} cells to " + ", ".join(
                 os.path.basename(q) for q in fin["defer_to"]))
+        # deferral orphans: a cell whose every design neighbour went to another design and
+        # which the world does not touch either can never be placed and never looks right.
+        # Swept to a FIXPOINT, because orphans cascade - a rail wall kept for its lateral
+        # neighbour is orphaned the moment that neighbour's own post defers.
+        if n and fin.get("verify_against") and world_origin is not None:
+            dropped = _drop_defer_orphans(m, world_origin, fin["verify_against"])
+            if verbose and dropped:
+                print(f"dropped {dropped} deferral orphan(s) - no neighbour left to place against")
+    # TRIM_BURIED: drop design cells the terrain already owns. A cell inside a ground rise can
+    # never be placed (a litematica printer places into air only), would be invisible if it were,
+    # and stands as permanent amber in /cscan check - the Court Hall's unbuildable-cells problem,
+    # solved at the seam instead of reported forever. Opt-in, because for a REPAVING design
+    # "the world holds something different" is the work, not an obstruction.
+    if fin.get("trim_buried") and fin.get("verify_against") and world_origin is not None:
+        n = _trim_buried(m, world_origin, fin["verify_against"],
+                         set(gen_meta.get("clear", [])) | set(fin.get("context_clear", [])))
+        if verbose and n:
+            print(f"trim_buried: {n} cells yielded to existing terrain")
     if fin.get("drop_floaters", True):
         n = _drop_floaters(m, max_size=int(fin.get("floater_max", 3)))
         if verbose and n:
@@ -142,6 +299,19 @@ def _finish(m, cfg, world_origin, gen_meta, verbose):
                           ground_block=fin.get("ground_block"))
     if verbose:
         print(res.report())
+    # A REDSTONE DESIGN CANNOT SHIP UNEXAMINED. The audit answers whether every block is legal,
+    # supported and affordable, and a circuit passes all of that while doing nothing at all - the
+    # one subsystem whose wrongness is invisible in every render, every audit and every BOM. This
+    # is a SMELL check, not a proof: it catches dead wire runs, orphaned dust and components
+    # nothing can drive. A machine with a contract gets simulated properly by `mcbuild.circuit`.
+    # ...but only when there is no CONTEXT coming. A DESIGN HERE IS REMAINING WORK, so half a
+    # circuit may already be standing in the world and inspecting the design alone reports every
+    # comparator as reading nothing. The first version of this hook did exactly that to the item
+    # sorter - four false alarms on a design that is fine - which is the same "verify in context,
+    # never in isolation" rule as rule 2, arriving from a new direction.
+    from . import circuit as circuit_mod
+    if verbose and circuit_mod.has_redstone(m) and not fin.get("verify_against"):
+        print(circuit_mod.report(circuit_mod.inspect(m, world_origin or (0, 0, 0))))
     if fin.get("verify_against") and world_origin is not None:
         res = _verify_in_context(m, res, fin["verify_against"], world_origin, verbose,
                                  ignore=set(fin.get("verify_replaceable", [])),
@@ -169,6 +339,34 @@ def _lock_origin(m, world_origin, lock):
     return m, (lx, ly, lz)
 
 
+def _after(cfg: dict) -> list[str]:
+    """Design names this one must be built AFTER, for the sidecar's `after` list.
+
+    Derived from `finish.defer_to` rather than restated: deferring IS the ordering. A design that
+    yields a shared cell to another one cannot be built first - the cell it dropped is the other
+    design's, and placing round a hole nobody has filled yet is how you build twice.
+
+    This only ever existed in Python. `finish.defer_to` settled precedence at generation time and
+    CLAUDE.md stated the sequences in prose ("portal first, ruinway defers to it"), and none of it
+    reached the mod - so `/cscan follow all` walked the tracked list as written. `finish.after` is
+    the escape hatch for an order that is real but not expressed as a shared cell, which is what
+    the Falls needs: its notch is the plug, and it has to be cut last.
+    """
+    fin = cfg.get("finish") or {}
+    out = []
+    for q in fin.get("defer_to") or []:
+        base = os.path.basename(str(q))
+        for ext in (".litematic", ".scan.json"):
+            if base.endswith(ext):
+                base = base[: -len(ext)]
+        if base and base not in out:
+            out.append(base)
+    for q in fin.get("after") or []:
+        if q not in out:
+            out.append(str(q))
+    return out
+
+
 def _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, verbose):
     lock = cfg.get("origin_lock", _profile().get("origin_lock"))
     if world_origin is not None and lock and cfg.get("origin_lock") is not False:
@@ -182,7 +380,8 @@ def _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, 
         sx, sy, sz = m.shape_xyz
         side_path = scan_mod.save_pair(out_path, m, {
             "origin": {"x": world_origin[0], "y": world_origin[1], "z": world_origin[2]},
-            "size": {"x": sx, "y": sy, "z": sz}, "generated_by": cfg.get("gen"), **gen_meta}, name=name)
+            "size": {"x": sx, "y": sy, "z": sz}, "generated_by": cfg.get("gen"),
+            **({"after": _after(cfg)} if _after(cfg) else {}), **gen_meta}, name=name)
         from . import work as work_mod
         work_path = work_mod.write(out_path, m, world_origin, name, gen_meta.get("dig", []))
         if verbose:
@@ -199,6 +398,37 @@ def _save_outputs(m, cfg, st, name, world_origin, gen_meta, ship, render_sheet, 
             print("shipped ->", os.path.join(st.schem_dir, f"{name}.litematic"))
     if verbose:
         print("wrote", out_path)
+
+
+def _trim_buried(m, origin, capture, context_clear: set) -> int:
+    """Zero design cells where the capture holds a DIFFERENT block that is not air and not in
+    the clear list. Same-state cells stay: they are the design's own built progress."""
+    import numpy as np
+    from . import nbt, scan as scan_mod
+    files = capture if isinstance(capture, (list, tuple)) else [capture]
+    s = scan_mod.load(files[0])
+    ox, oy, oz = s.origin
+    wnames = [n.split(":")[-1] for n in s.model.names]
+    passable = np.array([n in ("air", "cave_air", "void_air") or n in context_clear
+                         for n in wnames])
+    wkeys = [nbt.state_key(e) for e in s.model.palette]
+    dkeys = [nbt.state_key(e) for e in m.palette]
+    mx, my, mz = origin
+    trimmed = 0
+    ys, zs, xs = np.where(m.ids > 0)
+    for y, z, x in zip(ys, zs, xs):
+        wy, wz, wx = y + my - oy, z + mz - oz, x + mx - ox
+        if not (0 <= wy < s.model.ids.shape[0] and 0 <= wz < s.model.ids.shape[1]
+                and 0 <= wx < s.model.ids.shape[2]):
+            continue
+        wi = int(s.model.ids[wy, wz, wx])
+        if passable[wi]:
+            continue
+        if wkeys[wi] == dkeys[int(m.ids[y, z, x])]:
+            continue                                   # already built correctly - keep
+        m.ids[y, z, x] = 0
+        trimmed += 1
+    return trimmed
 
 
 def _verify_in_context(m, res, capture, origin, verbose: bool, ignore: set | None = None, ignore_boxes=(),
@@ -239,17 +469,39 @@ def _verify_in_context(m, res, capture, origin, verbose: bool, ignore: set | Non
     # Audit the context ALONE first. Every finite cut truncates vines, chains and lanterns at its
     # edges, so a capture has problems of its own - island_deep has 42, island_void 72 - and reporting
     # them against the design sends you hunting faults you did not cause.
-    baseline = {(pr.kind, pr.x, pr.y, pr.z) for pr in audit_mod.audit(s.model, ground=False).problems}
+    # IN WORLD COORDINATES, AND THAT IS NOT A TIDY-UP. `merge` sizes the composite to the UNION
+    # of both boxes, so a design that reaches outside its capture - anything hanging below a
+    # floating park, every void build in this repo - shifts the merged frame's origin and every
+    # local coordinate with it. Compared locally the baseline then matches NOTHING, and the
+    # capture's own problems are all reported as new: the Prism Well made `Park Complete`'s 28
+    # pre-existing state problems look like 28 of its own, and the design exited non-zero for
+    # them. A check that cries wolf is a check nobody runs, which this repo has now written down
+    # about the audit, the soffit and the circuit inspection.
+    bo = s.origin
+    baseline = {(pr.kind, pr.x + bo[0], pr.y + bo[1], pr.z + bo[2])
+                for pr in audit_mod.audit(s.model, ground=False).problems}
     merged, overlap = scan_mod.merge(s, m, origin)
     overlap -= _already_built_cells(m, origin, s)   # a cell the world already holds correctly is built, not a collision
     ctx = audit_mod.audit(merged, ground=False)
-    ctx.problems = [pr for pr in ctx.problems if (pr.kind, pr.x, pr.y, pr.z) not in baseline]
+    mo = (min(bo[0], origin[0]), min(bo[1], origin[1]), min(bo[2], origin[2]))
+    ctx.problems = [pr for pr in ctx.problems
+                    if (pr.kind, pr.x + mo[0], pr.y + mo[1], pr.z + mo[2]) not in baseline]
     if verbose:
         print(f"in context of {', '.join(os.path.basename(f) for f in files)}: overlap {overlap} cells, "
               f"NEW problems {len(ctx.problems)} (capture already had {len(baseline)}), "
               f"cavity cells {ctx.cavity_cells}, leaks {ctx.leaks}")
         for pr in ctx.problems[:15]:
             print("  ", pr)
+    from . import circuit as circuit_mod
+    if verbose and circuit_mod.has_redstone(m):
+        # Inspect the design AS IT WILL STAND: the composite, not the remainder. And diff against
+        # the context ALONE, exactly as the audit's `baseline` above does - the island already has
+        # twelve quasi-connectivity risks and seven orphaned dust groups of its own, and reporting
+        # those against a new design sends you hunting faults you did not cause.
+        before = {(k, tuple(pos)) for k, pos, _ in circuit_mod.inspect(s.model, s.origin)}
+        new = [f for f in circuit_mod.inspect(merged, s.origin)
+               if (f[0], tuple(f[1])) not in before]
+        print(circuit_mod.report(new).replace("circuit:", "circuit (new):"))
     n_cl, n_cells = _floating(m, origin, s)
     if verbose and n_cl:
         print(f"buildability: {n_cl} free-floating cluster(s), {n_cells} cells - need temporary scaffold (nothing adjacent to place against)")
@@ -283,6 +535,60 @@ def _floating(m, origin, s):
     return n_cl, n_cells
 
 
+def _carve_for(m: schem.Model, world_origin, specs) -> int:
+    """Zero every cell inside another design's WALKING ENVELOPE - its dig list and the headroom
+    over the things you stand on.
+
+    `defer_to` handles two designs wanting the same CELL. This handles the other case: a design
+    that must leave a HOLE for another one to pass through. The shop islet's lens fill sits exactly
+    where the Lowland Stair screws down through it, and the well was cut by hand once - with a note
+    in the config saying *"regenerating this design re-fills the well and must be followed by
+    re-carving"* and a test as the tripwire.
+
+    THAT NOTE IS THE BUG. A step that has to be remembered is a step that gets lost, and it was:
+    regenerating the islet to fix an unrelated grass problem re-filled the well and the tripwire
+    fired. It is part of the pipeline now, so the carve survives every regeneration by construction.
+
+    Each spec is `{design: <path>, headroom: 4, over: slab}` - the dig cells always, plus
+    `headroom` courses above every cell of `over` (a substring of the block name).
+    """
+    if world_origin is None:
+        return 0
+    from . import scan as scan_mod
+    ox, oy, oz = world_origin
+    hit = 0
+    for spec in (specs if isinstance(specs, (list, tuple)) else [specs]):
+        if isinstance(spec, str):
+            spec = {"design": spec}
+        try:
+            other = scan_mod.load(spec["design"])
+        except Exception:                                        # noqa: BLE001
+            continue
+        head = int(spec.get("headroom", 4))
+        over = spec.get("over", "slab")
+        env = set()
+        for d in (other.meta.get("dig") or []):
+            if isinstance(d, dict):
+                env.add((int(d["x"]), int(d["y"]), int(d["z"])))
+            elif isinstance(d, (list, tuple)) and len(d) >= 3:
+                env.add((int(d[0]), int(d[1]), int(d[2])))
+        om = other.model
+        names = [n.split(":")[-1] for n in om.names]
+        bx, by, bz = other.origin
+        for y, z, x in zip(*np.nonzero(om.ids != 0)):
+            if over and over not in names[om.ids[y, z, x]]:
+                continue
+            for k in range(head):
+                env.add((int(bx + x), int(by + y + k), int(bz + z)))
+        for (wx, wy, wz) in env:
+            lx, ly, lz = wx - ox, wy - oy, wz - oz
+            if (0 <= lx < m.ids.shape[2] and 0 <= ly < m.ids.shape[0]
+                    and 0 <= lz < m.ids.shape[1] and m.ids[ly, lz, lx]):
+                m.ids[ly, lz, lx] = 0
+                hit += 1
+    return hit
+
+
 def _defer_to(m: schem.Model, world_origin, paths) -> int:
     """Zero every cell that one of `paths` also fills.
 
@@ -308,7 +614,69 @@ def _defer_to(m: schem.Model, world_origin, paths) -> int:
                     and 0 <= lz < m.ids.shape[1] and m.ids[ly, lz, lx]):
                 m.ids[ly, lz, lx] = 0
                 hit += 1
+                # a deferred cell takes its dependants with it: a lantern, torch or rail
+                # wall standing on a cell that just went to another design is this design's
+                # cell standing on air - the Lowland Stair shipped both kinds once
+                if ly + 1 < m.ids.shape[0] and m.ids[ly + 1, lz, lx]:
+                    above = m.names[m.ids[ly + 1, lz, lx]].split(":")[-1].split("[")[0]
+                    if above in ("lantern", "soul_lantern", "torch") \
+                            or above.endswith("_wall"):
+                        nbrs = 0
+                        for ddx, ddy, ddz in ((1, 0, 0), (-1, 0, 0), (0, 1, 0),
+                                              (0, 0, 1), (0, 0, -1)):
+                            ax2, ay2, az2 = lx + ddx, ly + 1 + ddy, lz + ddz
+                            if (0 <= ax2 < m.ids.shape[2] and 0 <= ay2 < m.ids.shape[0]
+                                    and 0 <= az2 < m.ids.shape[1]
+                                    and m.ids[ay2, az2, ax2]):
+                                nbrs += 1
+                        if nbrs == 0:
+                            m.ids[ly + 1, lz, lx] = 0
+                            hit += 1
     return hit
+
+
+_ORPHAN_PASSABLE = {"air", "cave_air", "void_air", "vine", "glow_lichen", "moss_carpet",
+                    "short_grass", "tall_grass", "fern", "large_fern", "azalea",
+                    "flowering_azalea", "hanging_roots", "water"}
+
+
+def _drop_defer_orphans(m: schem.Model, origin, capture) -> int:
+    """After defer_to: remove cells with no design neighbour AND no world contact."""
+    from . import scan as scan_mod
+    files = capture if isinstance(capture, (list, tuple)) else [capture]
+    s = scan_mod.load(files[0])
+    snames = [n.split(":")[-1].split("[")[0] for n in s.model.names]
+    sox, soy, soz = s.origin
+    ox, oy, oz = origin
+
+    def world_solid(wx, wy, wz):
+        ly, lz, lx = wy - soy, wz - soz, wx - sox
+        if not (0 <= ly < s.model.ids.shape[0] and 0 <= lz < s.model.ids.shape[1]
+                and 0 <= lx < s.model.ids.shape[2]):
+            return False
+        return snames[s.model.ids[ly, lz, lx]] not in _ORPHAN_PASSABLE
+
+    dropped = 0
+    changed = True
+    while changed:
+        changed = False
+        for y, z, x in zip(*np.nonzero(m.ids != 0)):
+            alone = True
+            for dx, dy, dz in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0),
+                               (0, 0, 1), (0, 0, -1)):
+                ny, nz, nx = y + dy, z + dz, x + dx
+                if (0 <= ny < m.ids.shape[0] and 0 <= nz < m.ids.shape[1]
+                        and 0 <= nx < m.ids.shape[2] and m.ids[ny, nz, nx]):
+                    alone = False
+                    break
+                if world_solid(ox + nx, oy + ny, oz + nz):
+                    alone = False
+                    break
+            if alone:
+                m.ids[y, z, x] = 0
+                dropped += 1
+                changed = True
+    return dropped
 
 
 def _drop_floaters(m: schem.Model, max_size: int = 3) -> int:

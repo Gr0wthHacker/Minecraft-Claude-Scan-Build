@@ -1,0 +1,15 @@
+name: Lucky Two 1
+gen: casino
+params:
+  outcomes: 3
+  pit: 2
+  at:
+  - 97567
+  - 203
+  - 80625
+  kind: lucky_number
+  title: Lucky Two 1
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

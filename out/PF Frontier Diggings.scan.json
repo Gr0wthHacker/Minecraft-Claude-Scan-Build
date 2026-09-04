@@ -1,0 +1,342 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80347
+  },
+  "size": {
+    "x": 53,
+    "y": 28,
+    "z": 46
+  },
+  "generated_by": "diggings",
+  "kind": "frontier_diggings",
+  "lot": [
+    53,
+    46
+  ],
+  "at": [
+    24,
+    47
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "signs": [
+    {
+      "at": [
+        11,
+        6,
+        19
+      ],
+      "facing": "south",
+      "lines": [
+        "THE STORE",
+        "picks, brushes",
+        "plaster, crates",
+        "cash only"
+      ]
+    },
+    {
+      "at": [
+        36,
+        6,
+        25
+      ],
+      "facing": "north",
+      "lines": [
+        "THE BONE SHED",
+        "we log finds",
+        "no credit"
+      ]
+    }
+  ],
+  "refused": 0,
+  "parts": {
+    "mass": 3580,
+    "trail": {
+      "u": [
+        21,
+        23
+      ],
+      "cells": 208,
+      "yard": 192
+    },
+    "shops": [
+      {
+        "at": [
+          8,
+          18
+        ],
+        "side": -1,
+        "w": 7,
+        "d": 5,
+        "signed": true
+      },
+      {
+        "at": [
+          33,
+          26
+        ],
+        "side": 1,
+        "w": 7,
+        "d": 5,
+        "signed": true
+      }
+    ],
+    "workings": {
+      "shaft": 2,
+      "crib": 2,
+      "ore": 2,
+      "pine": 8,
+      "refused": 0
+    },
+    "bone_bed": {
+      "floor": {
+        "cells": 467,
+        "kerb": 96,
+        "box": [
+          12,
+          5,
+          33,
+          15
+        ]
+      },
+      "skeleton": {
+        "spine": {
+          "cells": 32,
+          "vertebrae": 11
+        },
+        "ribs": {
+          "cells": 114,
+          "pairs": 8
+        },
+        "girdles": 36,
+        "skull": {
+          "cells": 30,
+          "at": [
+            37.0,
+            12.0
+          ]
+        },
+        "neck": 5,
+        "loose": 24
+      },
+      "furniture": {
+        "stakes": 56,
+        "jackets": 0,
+        "crates": 4,
+        "lights": 6
+      },
+      "shelter": {
+        "cells": 108,
+        "canvas": 64,
+        "box": [
+          36,
+          9,
+          8,
+          8
+        ]
+      }
+    }
+  },
+  "contract": "a worked-out landscape carrying the walk the old module carried: a three-wide trail dead straight west to east at the same courses, banks that rise AWAY from it and fall to the lot's own edges so neither cross avenue is walled, two shops cut into the banks with rock forced over them before anything is filled, and gravel only ever on a crust that is solid to the ground",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "spruce_trapdoor"
+      ],
+      "container": [
+        "barrel"
+      ],
+      "rail": [
+        "rail"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The diggings: a trodden trail west to east between spoil banks and cut rock, two shops dug into the banks with timber shopfronts and striped awnings over their counters, two collared shafts under windlasses, stacked cribbing holding the banks back, tipped ore and a few pines.\n"
+    },
+    "metrics": {
+      "blocks": 5577,
+      "materials": 31,
+      "dominant_material_share": 0.198,
+      "light_blocks": 0,
+      "massing": {
+        "width": 53,
+        "height": 17,
+        "depth": 44,
+        "fill_ratio": 0.1407
+      },
+      "silhouette": {
+        "top": {
+          "area": 2240,
+          "fill_ratio": 0.9188
+        },
+        "front": {
+          "area": 430,
+          "fill_ratio": 0.2898
+        },
+        "side": {
+          "area": 346,
+          "fill_ratio": 0.2686
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.9139,
+          0.0861,
+          0.0
+        ],
+        "top_silhouette_perimeter": 434,
+        "surface_faces_per_block": 1.5406
+      },
+      "material_counts": {
+        "stone": 1104,
+        "cobblestone": 868,
+        "jungle_leaves": 744,
+        "gravel": 576,
+        "cobbled_deepslate": 423,
+        "andesite": 385,
+        "tuff": 162,
+        "bone_block": 157,
+        "mossy_cobblestone": 154,
+        "dripstone_block": 126,
+        "cobblestone_slab": 106,
+        "cobbled_deepslate_slab": 96
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "ebc3578030aad9c67e10fa6bc9375151ada3c4525ac34ce9e017b47e6cb279c4",
+    "generator_source_digest": "12292b90c4cf9b9478d47ead8c71bf9ce242b0a998ad7b5d568ba7ee7fc1613b",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 56.150173,
+    "blocks": 5577,
+    "blocks_per_second": 99.32
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "path"
+    ],
+    "blocks": 5577,
+    "mechanic_families": [
+      "access",
+      "container",
+      "rail",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "route",
+    "player_verbs": [
+      "walk the trail",
+      "look down a shaft",
+      "stop at a counter"
+    ],
+    "outcome": "The middle of the Frontier stops being a street of false fronts and becomes ground that was worked, with two shops in it rather than seven.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: coal_ore",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate_slab",
+    "not in the provisional skyblock-1.19 list: deepslate",
+    "not in the provisional skyblock-1.19 list: diorite",
+    "not in the provisional skyblock-1.19 list: dripstone_block",
+    "not in the provisional skyblock-1.19 list: gold_ore",
+    "not in the provisional skyblock-1.19 list: granite",
+    "not in the provisional skyblock-1.19 list: jungle_log",
+    "not in the provisional skyblock-1.19 list: tuff"
+  ],
+  "file": "PF Frontier Diggings.litematic",
+  "name": "PF Frontier Diggings"
+}

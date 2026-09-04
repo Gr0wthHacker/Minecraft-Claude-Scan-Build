@@ -1,0 +1,32 @@
+name: Midway Post
+gen: wayfinding
+params:
+  land: midway
+  facing: east
+  arms:
+  - direction: north
+    dest: Frontier
+  - direction: south
+    dest: Hollow
+  - direction: west
+    dest: Park Gate
+  at:
+  - 97573
+  - 203
+  - 80630
+  kind: fingerpost
+  title: Midway Post
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+park_contract:
+  purpose: service
+  hierarchy: supporting
+  land: midway
+  requires_path: false
+design:
+  purpose: service
+  hierarchy: supporting
+  style: midway
+  narrative: Midway Post serves the midway visitor journey.
+origin_lock: false

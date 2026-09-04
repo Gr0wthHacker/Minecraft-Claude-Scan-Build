@@ -1,0 +1,56 @@
+# THE RUINS QUARTER - the blackstone way and its fragments, measured off the 19:28 capture.
+#
+# One walk, five fragments, one hand with the ring: ruined pavement from the pond's south-east
+# bank THROUGH the portal to a broken overlook at the rim's true edge (ground ends at X-24151).
+# The way crosses UNDER the sprinting capybara - its only low cells are the two diagonal leg
+# pairs, and the corridor between them at z30019-21 is clear below Y47 all the way across.
+# The pavement decays with distance from the ring: whole at the gate, moss-bitten at both ends.
+#
+# The fragments are PARTS of buildings, never buildings: a gatehouse whose door outlived its
+# walls (from the west bank, the ring sits inside its opening), a four-pier colonnade on the
+# overlook approach, a bridge stub ending over open water, and an apse half-ring in the NORTH
+# skylight - the second beam of daylight gets its own ruin, so the two shafts answer each other.
+name: Lowland Ruinway
+gen: ruinway
+params:
+  under: out/lowland_planned.litematic
+  # THE WAY NOW BEGINS AT THE WATER (2026-08-21, second pass on the pond end): Jack read the
+  # first version right - a door to nowhere and a jetty from nowhere. The pond is the HARBOR:
+  # the way starts at the quay landing, passes the watergate, and runs east under the capybara.
+  path: [[-24200, 30011], [-24195, 30013], [-24191, 30017], [-24187, 30020], [-24182, 30022],
+         [-24179, 30023], [-24176, 30024], [-24171, 30025], [-24165, 30026], [-24159, 30027],
+         [-24154, 30027]]
+  decay_from: [-24171, 30025]      # whole at the ring, ruined at the edges
+  gatehouse: {at: [-24198, 30011]} # the WATERGATE: mid-arc on the quay, opening facing the
+                                   # landing - you step out of the boat, up the steps, and
+                                   # through the door onto the way
+  colonnade:                        # flanking the overlook approach, four heights - decay is
+    - {at: [-24162, 30024], h: 6}   # uneven or it reads as design, not time. The visual audit
+    - {at: [-24162, 30029], h: 3}   # set the floor: under ten-tall trees a pier below ~5 reads
+    - {at: [-24158, 30024], h: 4}   # as a fence post, so the tall ones carry the line and only
+    - {at: [-24158, 30030], h: 5}   # one is allowed to be a stump
+  overlook: {at: [-24153, 30027], r: 3}
+  # the bridge stub is GONE - it read as a fishing jetty, which is exactly what Jack called
+  # it. The quay is the waterfront now: the pond's SE shore is a clean diagonal of dry edge
+  # columns at exact water level (measured), and the lip follows the water's own line.
+  bridge: null
+  quay: {from: [-24197, 30004], to: [-24204, 30016]}
+  # the apse fragment YIELDED ITS GROUND to the Lowland Sanctum (2026-08-21): the north
+  # skylight is the only zone that can hold a complete structure, and the fragment became the
+  # surviving back wall of the building it was always a fragment of. See lowland_sanctum.yaml.
+  apse: null
+  lanterns: [[-24192, 30017], [-24176, 30021], [-24160, 30030]]
+  seed: 0
+origin_lock: false                  # LOUD: lies on the lowland at Y37-52
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  # shared cells are the other designs' to place - the way passes through the portal's own
+  # threshold, and the order you generate in matters: the portal was built first
+  defer_to: [out/Lowland Portal.litematic, out/Lowland Capybara Flee.litematic,
+             out/Lowland Flamingo.litematic, out/Lowland Axolotl.litematic]
+  context_clear: [vine, short_grass, tall_grass, fern, large_fern, moss_carpet, azalea,
+                  flowering_azalea, poppy, dandelion]
+  verify_against: out/lowland_planned.litematic

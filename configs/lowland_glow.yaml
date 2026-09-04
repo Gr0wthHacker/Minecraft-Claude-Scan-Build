@@ -1,0 +1,76 @@
+# THE LOWLAND GLOW - the lighting pass, solved rather than sprinkled (2026-08-22).
+#
+# Jack: find a way to add more light in smart ways; everything as built is final, mismatches
+# accepted. Block light was PROPAGATED through the whole assumed-final composite (capture +
+# every tracked design) and the walking surface classified: 250 spawnable columns, and the
+# dark was ON TOP OF THINGS - the axolotl's back, the ring's crown, the sanctum's crests,
+# house A's roof, four stair treads - not on the floor, which the lantern grid and Jack's 39
+# ochre froglights already carry. The 29 fixtures below are the minimum the solver found
+# that takes the surface to ZERO spawnable cells, verified by re-propagation, pinned in
+# tests/test_lowland_glow.py. One idiom per surface: froglight flush in turf, soul flames on
+# ruin crests, glow lichen on canopies and the axolotl (a lush cave grows light on what
+# stands still - nothing else ever lands on an animal), pickles in the harbor shallows, one
+# warm chimney lamp, one soul lantern hung in the watergate arch.
+#
+# Also measured, reported, out of scope: ~3,700 columns hide dark buried seams UNDER the
+# massif fill - sealed mob-cap leaks no surface fixture can reach.
+name: Lowland Glow
+gen: lowglow
+params:
+  under: out/island_full.litematic
+  froglights: [[-24196, 37, 29951]]
+  lichen: [[-24233, 44, 30003],
+               [-24241, 42, 30004],
+               [-24236, 41, 30000],
+               [-24230, 44, 30006],
+               [-24242, 46, 30007],
+               [-24230, 47, 29996],
+               [-24206, 47, 30028],
+               [-24200, 64, 29978],
+               [-24231, 42, 29999],
+               [-24238, 45, 30005]]
+  souls: [[-24198, 59, 29975],
+               [-24172, 69, 30024],
+               [-24190, 50, 29963],
+               [-24172, 66, 30031],
+               [-24172, 59, 30013],
+               [-24190, 51, 29982],
+               [-24193, 55, 29977],
+               [-24182, 50, 29966],
+               [-24172, 61, 30036],
+               [-24185, 56, 29982],
+               [-24200, 69, 30010]]
+  lanterns: [[-24186, 57, 30040]]
+  hanging: [[-24197, 44, 30012]]
+  pickles: [[-24206, 36, 30007],
+               [-24207, 36, 30009],
+               [-24205, 36, 30005],
+               [-24205, 37, 29993],
+               [-24206, 36, 29995]]
+  # fixtures standing on cells these designs have not built yet wait for them
+  # (named "footing", not "on" - YAML 1.1 parses on/off as booleans and the key vanished)
+  footing: [out/Lowland Stair.litematic, out/Lowland Campanile.litematic,
+       out/Lowland Hamlet.litematic, out/Lowland.litematic,
+       out/Lowland Sanctum.litematic, out/Lowland Portal.litematic,
+       out/Lowland Ruinway.litematic]
+  seed: 0
+origin_lock: false             # LOUD: scattered over the lowland at Y36-70
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  # NO defer_to, deliberately. This is a fixture overlay SOLVED against the composite of
+  # every design - nothing here contests live work. The cells it does share with the ground
+  # design are dead letters: the ground planned a FROZEN pond (1,007 ice, 92 lanterns under
+  # the ice) and Jack built the open-water harbor instead - mismatch accepted, the ice
+  # scheme superseded. The pickles light the water those under-ice lanterns never will,
+  # and the one froglight replaces built turf through its own dig entry.
+  context_clear: [vine]
+  # a waterlogged pickle DISPLACES water and the flush froglight replaces turf through its
+  # own dig entry - both are the legal in-game operation, not a collision
+  verify_replaceable: [water, moss_block, mossy_cobblestone, cobblestone, stone]
+  verify_against: [out/island_full.litematic, out/Lowland Stair.litematic,
+                   out/Lowland Campanile.litematic, out/Lowland Hamlet.litematic,
+                   out/Lowland Sanctum.litematic, out/Lowland Portal.litematic,
+                   out/Lowland Ruinway.litematic, out/Lowland.litematic]

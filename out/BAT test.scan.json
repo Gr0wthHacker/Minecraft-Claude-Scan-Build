@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": -24200,
+    "y": 100,
+    "z": 29990
+  },
+  "size": {
+    "x": 56,
+    "y": 40,
+    "z": 22
+  },
+  "generated_by": "bat",
+  "kind": "bat",
+  "scale": 1.0,
+  "spread": 0.75,
+  "features_built": {
+    "wings": 2,
+    "fingers": 8,
+    "ears": 2,
+    "claws": 6,
+    "eyes": 2
+  },
+  "file": "BAT test.litematic",
+  "name": "BAT test"
+}

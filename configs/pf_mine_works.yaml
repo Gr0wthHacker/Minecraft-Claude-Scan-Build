@@ -1,0 +1,99 @@
+# PF MINE WORKS - the ore line, the stamp mill and the dock. The Frontier's only working machine.
+#
+# Jack: "figure out what we can build that supports the coaster, and is interesting + visual."
+#
+# ---------------------------------------------------------------------------------------------
+# THE SITE WAS MEASURED, COLUMN BY COLUMN
+#
+# V148-169 x U6-105, against `Park Ways` and `Park Complete`:
+#
+#     V154-156   the service lane, the full length of the land - NOTHING here may touch it
+#     V157-169   thirteen wide and empty from U0 to U125: 114 blocks in 13 x 126 of lawn,
+#                all of them moss carpet and one fence. The largest free run in the Frontier
+#     V172-187   the park railway, already built and running past this corridor at 19 courses
+#     U94-98     the guest cross walk, which crosses the corridor - crossed OVER, never across
+#
+# A works belongs at the back of a town, on the railway, and this is the only place in the land
+# that is both. The lot deliberately CONTAINS the lane and the walk so the crossings can be
+# built; nothing is placed in either, and `tests/test_mineworks.py` asserts it.
+#
+# ---------------------------------------------------------------------------------------------
+# WHAT IT IS FOR
+#
+# The land's whole interactive inventory is 646 rails, 2 buttons, 2 bells and 2 detector rails,
+# and every one of them belongs to the coaster. This is the second thing in the Frontier a guest
+# can operate: a five-head stamp battery on a button, its contract asserted by SIMULATION in
+# `tests/test_mineworks.py` - which is the only reason it is allowed to exist here at all. Two
+# finished casino games were cut for failing that test.
+#
+# And it is what ties the ride to the town: ore leaves the adit in the ridge, runs the line over
+# the guest walk and the service lane, is stamped in the mill, and goes out on the park railway.
+# A guest walking the corridor passes under the line twice.
+#
+# ---------------------------------------------------------------------------------------------
+# THE EXPENSIVE ALLOWANCE, DECLARED RATHER THAN SMUGGLED
+#
+# `redstone_lamp` is `expensive` on this economy and `ochre_froglight` is cheap - but a froglight
+# cannot be switched, and the whole point of a machine a guest fires is that something CHANGES.
+# One running lamp is the entire allowance and it is stated here so the trade is visible.
+expensive_allowance: 2
+name: PF Mine Works
+gen: mineworks
+params:
+  kind: works
+  lot: [22, 100]
+  at: [148, 6]
+  sy: 40
+  # local v6-8 is world V154-156, the service lane; local u88-92 is world U94-98, the cross walk
+  lane: [6, 8]
+  walk: [88, 92]
+  # **V165, NOT V160, AND THE REASON IS THE CIRCUIT.** The line carries a `redstone_block` in its
+  # deck every eight cells to keep its powered rail alive, and at V160 those sources ran four
+  # cells from the stamp battery's own climb - close enough to feed it. Measured, the machine
+  # latched ON for as long as the button was held, which is the one failure a park must not ship,
+  # and nothing but the simulator could see it: the build audits clean and renders identically.
+  # At V165 the nearest source is five cells from the nearest dust, which is out of reach.
+  line_v: 17          # world V165 - east of the lane, west of the railway
+  line_y: 5           # a guest walks under it twice
+  spur_v: 2           # world V150 - the stub at the ridge's east foot
+  corner_u: 86        # the turn east onto the main run, clear of the walk at u88-92
+  mill: [9, 21, 34, 70]
+  dock: [9, 21, 8, 30]
+  # THE LINE IS OFF - see `mineworks.WORKSDEF`. A third elevated railway in a land that already
+  # has the coaster and the park line, and it pierced the mill's own wall five courses up.
+  line: false
+  power_every: 8
+  seed: 53
+roles: [ride]
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: frontier
+  narrative: >
+    The mine's works: an elevated ore railway on timber trestles from the ridge's east foot,
+    crossing the guest walk and the service lane over them; a three-step stamp mill stepping down
+    the way the ore travels, with a five-head battery a guest fires from a console in its own
+    plinth; and a tipple over a stone loading bank beside the park railway.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [press the mill's button, watch the battery drop, walk under the ore line]
+  outcome: >
+    One press - however long it is held - drops every stamp head once, rings the bell over the
+    battery and lights the running lamp. It is the only mechanism in the Frontier that moves.
+  reset: >
+    The pulse is a monostable, so a held button gives exactly one stroke and the battery returns
+    to rest by itself. Nothing is consumed and no stock is held.
+  service_access: >
+    The machine course is inside the mill's own plinth and reached from the works' floor; the
+    service lane runs past the whole corridor at V154-156.
+  bypass: >
+    The mill is entered off the lane side and walked past entirely; the line is overhead.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

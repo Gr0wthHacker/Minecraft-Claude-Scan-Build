@@ -1,0 +1,569 @@
+{
+  "origin": {
+    "x": 97558,
+    "y": 195,
+    "z": 80758
+  },
+  "size": {
+    "x": 35,
+    "y": 52,
+    "z": 42
+  },
+  "generated_by": "hollowmanor",
+  "concealed": 41,
+  "visible_redstone": 0,
+  "kind": "manor",
+  "land": "hollow",
+  "facing": "east",
+  "contract": "a WALKTHROUGH WITH THINGS IN IT: in at the front door, through the hall, up the grand stair to the library, across the first floor, down the back stair, down again into a lit cellar of niches, and out of the back door on the far side - every leg of it walkable, the rooms named on signs, and THREE SET PIECES on the way: a plate in the hall, a lever at the head of the cellar stair and a button on the sarcophagus, each firing a piston, a lamp and a dispenser ONCE and resetting, however long it is held down",
+  "unverified": [
+    "WHAT A DISPENSER SPITS OUT is an entity and the simulator has none. That it fires exactly once per trigger IS verified; what comes out of it is whatever `stock` was loaded with."
+  ],
+  "width": 32,
+  "depth": 24,
+  "storeys": 3,
+  "wall_top": 15,
+  "ridge": 27,
+  "tower_top": 43,
+  "windows": 49,
+  "chimneys": 2,
+  "signs": 10,
+  "route": [
+    [
+      "front door",
+      [
+        97584,
+        204,
+        80781
+      ]
+    ],
+    [
+      "the hall",
+      [
+        97581,
+        204,
+        80781
+      ]
+    ],
+    [
+      "grand stair foot",
+      [
+        97583,
+        204,
+        80795
+      ]
+    ],
+    [
+      "first landing",
+      [
+        97577,
+        209,
+        80795
+      ]
+    ],
+    [
+      "the library",
+      [
+        97582,
+        209,
+        80781
+      ]
+    ],
+    [
+      "first floor, back half",
+      [
+        97570,
+        209,
+        80767
+      ]
+    ],
+    [
+      "back stair foot",
+      [
+        97567,
+        204,
+        80767
+      ]
+    ],
+    [
+      "the back hall",
+      [
+        97571,
+        204,
+        80792
+      ]
+    ],
+    [
+      "the cellar",
+      [
+        97563,
+        198,
+        80792
+      ]
+    ],
+    [
+      "back door",
+      [
+        97561,
+        204,
+        80781
+      ]
+    ]
+  ],
+  "entry_at": [
+    97584,
+    204,
+    80781
+  ],
+  "exit_at": [
+    97561,
+    204,
+    80781
+  ],
+  "niches": 4,
+  "vault_lamps": 4,
+  "shelves": 30,
+  "props": 9,
+  "cobwebs": 7,
+  "rails": 18,
+  "scares": [
+    {
+      "where": "the hall",
+      "sign": [
+        "MIND THE FLOOR",
+        "it is not",
+        "as sound as",
+        "it looks"
+      ],
+      "trigger": [
+        97581,
+        204,
+        80782
+      ],
+      "kind": "plate",
+      "pad": [
+        97581,
+        203,
+        80782
+      ],
+      "vents": {
+        "piston": [
+          [
+            97581,
+            203,
+            80775
+          ]
+        ],
+        "lamp": [
+          [
+            97581,
+            203,
+            80774
+          ]
+        ],
+        "dispenser": [
+          [
+            97581,
+            203,
+            80773
+          ]
+        ]
+      },
+      "cells": 18,
+      "lamps": 1,
+      "dispensers": [
+        [
+          97581,
+          203,
+          80773
+        ]
+      ]
+    },
+    {
+      "where": "the cellar stair foot",
+      "sign": [
+        "PULL IT",
+        "the house",
+        "answers once",
+        "then forgets"
+      ],
+      "trigger": [
+        97569,
+        198,
+        80788
+      ],
+      "kind": "lever",
+      "pad": [
+        97569,
+        197,
+        80788
+      ],
+      "vents": {
+        "piston": [
+          [
+            97569,
+            197,
+            80781
+          ]
+        ],
+        "lamp": [
+          [
+            97569,
+            197,
+            80780
+          ]
+        ],
+        "dispenser": [
+          [
+            97569,
+            197,
+            80779
+          ]
+        ]
+      },
+      "cells": 18,
+      "lamps": 1,
+      "dispensers": [
+        [
+          97569,
+          197,
+          80779
+        ]
+      ]
+    },
+    {
+      "where": "the sarcophagus",
+      "sign": [
+        "KNOCK",
+        "something",
+        "down here",
+        "keeps count"
+      ],
+      "trigger": [
+        97566,
+        198,
+        80783
+      ],
+      "kind": "button",
+      "pad": [
+        97566,
+        197,
+        80783
+      ],
+      "vents": {
+        "piston": [
+          [
+            97566,
+            197,
+            80776
+          ]
+        ],
+        "lamp": [
+          [
+            97566,
+            197,
+            80775
+          ]
+        ],
+        "dispenser": [
+          [
+            97566,
+            197,
+            80774
+          ]
+        ]
+      },
+      "cells": 18,
+      "lamps": 1,
+      "dispensers": [
+        [
+          97566,
+          197,
+          80774
+        ]
+      ]
+    }
+  ],
+  "inputs": [
+    [
+      97581,
+      204,
+      80782
+    ],
+    [
+      97569,
+      198,
+      80788
+    ],
+    [
+      97566,
+      198,
+      80783
+    ]
+  ],
+  "outputs": [
+    [
+      97581,
+      203,
+      80775
+    ],
+    [
+      97581,
+      203,
+      80774
+    ],
+    [
+      97581,
+      203,
+      80773
+    ],
+    [
+      97569,
+      197,
+      80781
+    ],
+    [
+      97569,
+      197,
+      80780
+    ],
+    [
+      97569,
+      197,
+      80779
+    ],
+    [
+      97566,
+      197,
+      80776
+    ],
+    [
+      97566,
+      197,
+      80775
+    ],
+    [
+      97566,
+      197,
+      80774
+    ]
+  ],
+  "lamps": 3,
+  "stock": {
+    "dispenser": [
+      "anything the house should spit out of the floor - a firework, a snowball, an arrow. The dispenser fires ONE item per trigger, so what is in it decides the scare."
+    ]
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "dark_oak_door",
+        "dark_oak_trapdoor"
+      ],
+      "container": [
+        "barrel",
+        "dispenser"
+      ],
+      "hazard": [
+        "soul_campfire"
+      ],
+      "light": [
+        "redstone_lamp",
+        "soul_lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "dispenser",
+        "lever",
+        "piston",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater",
+        "stone_button",
+        "stone_pressure_plate"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ],
+      "traversal": [
+        "ladder"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks",
+      "traversal": "mcbuild.walk / audit.check_climb"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "Haunted Manor serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 11184,
+      "materials": 34,
+      "dominant_material_share": 0.1994,
+      "light_blocks": 16,
+      "massing": {
+        "width": 35,
+        "height": 52,
+        "depth": 42,
+        "fill_ratio": 0.1463
+      },
+      "silhouette": {
+        "top": {
+          "area": 1374,
+          "fill_ratio": 0.9347
+        },
+        "front": {
+          "area": 868,
+          "fill_ratio": 0.4769
+        },
+        "side": {
+          "area": 1400,
+          "fill_ratio": 0.641
+        }
+      },
+      "material_counts": {
+        "dark_oak_planks": 2230,
+        "polished_blackstone_bricks": 2110,
+        "deepslate_bricks": 1935,
+        "deepslate_tile_stairs": 1286,
+        "cobbled_deepslate": 944,
+        "deepslate_tiles": 799,
+        "black_wool": 520,
+        "glass_pane": 436,
+        "chiseled_polished_blackstone": 374,
+        "cracked_polished_blackstone_bricks": 195,
+        "blackstone": 91,
+        "ladder": 47
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "6b41db9022fd9043808924db4fdae9faded82f00c30370283b458677ffff19b2",
+    "generator_source_digest": "78432afd2c7f6c1b4c0c207ee2d8627157b89361046036feb47bea0b3a0e0fe4",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "hazard",
+        "light",
+        "redstone",
+        "signage",
+        "traversal"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97594,
+        204,
+        80778
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 11184,
+    "mechanic_families": [
+      "access",
+      "container",
+      "hazard",
+      "light",
+      "redstone",
+      "signage",
+      "traversal"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: chiseled_polished_blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: cobweb",
+    "unsupported on skyblock-1.19: cracked_polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: dark_oak_door",
+    "unsupported on skyblock-1.19: dark_oak_fence",
+    "unsupported on skyblock-1.19: dark_oak_planks",
+    "unsupported on skyblock-1.19: dark_oak_trapdoor",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: deepslate_tile_slab",
+    "unsupported on skyblock-1.19: deepslate_tile_stairs",
+    "unsupported on skyblock-1.19: deepslate_tiles",
+    "unsupported on skyblock-1.19: iron_bars",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: redstone_lamp",
+    "unsupported on skyblock-1.19: skeleton_skull",
+    "unsupported on skyblock-1.19: stone_pressure_plate"
+  ],
+  "file": "Haunted Manor.litematic",
+  "name": "Haunted Manor"
+}

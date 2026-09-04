@@ -1,0 +1,51 @@
+{
+  "origin": {
+    "x": 97611,
+    "y": 196,
+    "z": 80752
+  },
+  "size": {
+    "x": 23,
+    "y": 19,
+    "z": 27
+  },
+  "generated_by": "hollowmanor",
+  "kind": "graveyard",
+  "land": "hollow",
+  "facing": "west",
+  "contract": "a railed enclosure with one gate, a crossing of paths, a lit monument at the centre, at least twelve grave markers of which no two share a shape, a height and a material - guaranteed by construction up to the 110 markers the vocabulary holds (six shapes, their real heights, ten stones), which a field of 37x33 does not reach - and a VAULT under it, walkable down from the gate and back",
+  "unverified": [],
+  "width": 25,
+  "depth": 21,
+  "stones": 21,
+  "shapes": {
+    "slab": 4,
+    "broken": 5,
+    "lean": 3,
+    "cross": 1,
+    "obelisk": 5,
+    "round": 3
+  },
+  "looks": 21,
+  "signs": 2,
+  "vault": true,
+  "niches": 4,
+  "vault_lamps": 2,
+  "gate_at": [
+    97612,
+    203,
+    80765
+  ],
+  "vault_at": [
+    97631,
+    197,
+    80765
+  ],
+  "sarcophagus_at": [
+    97629,
+    197,
+    80769
+  ],
+  "file": "The Graveyard.litematic",
+  "name": "The Graveyard"
+}

@@ -1,0 +1,487 @@
+{
+  "origin": {
+    "x": 97648,
+    "y": 203,
+    "z": 80306
+  },
+  "size": {
+    "x": 22,
+    "y": 40,
+    "z": 100
+  },
+  "generated_by": "mineworks",
+  "kind": "mine_works",
+  "lot": [
+    22,
+    100
+  ],
+  "at": [
+    148,
+    6
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "signs": [
+    {
+      "at": [
+        8,
+        6,
+        37
+      ],
+      "facing": "west",
+      "lines": [
+        "THE CRUSHER",
+        "five heads",
+        "press to run",
+        "matrix from"
+      ]
+    },
+    {
+      "at": [
+        8,
+        6,
+        67
+      ],
+      "facing": "west",
+      "lines": [
+        "MATRIX FROM",
+        "THE CUTTING",
+        "crushed here",
+        "shipped by rail"
+      ]
+    },
+    {
+      "at": [
+        14,
+        4,
+        17
+      ],
+      "facing": "west",
+      "lines": [
+        "THE LOADING",
+        "loads for the",
+        "plateau line"
+      ]
+    }
+  ],
+  "refused": 0,
+  "parts": {
+    "mill": {
+      "bin_top": 27,
+      "battery_top": 21,
+      "tables_top": 16,
+      "steps": [
+        [
+          "bin",
+          34,
+          45,
+          19
+        ],
+        [
+          "battery",
+          46,
+          57,
+          13
+        ],
+        [
+          "tables",
+          58,
+          70,
+          8
+        ]
+      ],
+      "machine": {
+        "heads": [
+          [
+            10,
+            7,
+            48
+          ],
+          [
+            10,
+            7,
+            50
+          ],
+          [
+            10,
+            7,
+            52
+          ],
+          [
+            10,
+            7,
+            54
+          ]
+        ],
+        "drive_v": 11,
+        "button": [
+          11,
+          4,
+          46
+        ],
+        "bell": [
+          10,
+          7,
+          57
+        ],
+        "lamp": [
+          12,
+          7,
+          57
+        ],
+        "n": 4,
+        "laid": 19,
+        "drive": [
+          [
+            11,
+            7,
+            35
+          ],
+          [
+            11,
+            7,
+            36
+          ],
+          [
+            11,
+            7,
+            37
+          ],
+          [
+            11,
+            7,
+            38
+          ],
+          [
+            11,
+            7,
+            39
+          ],
+          [
+            11,
+            7,
+            40
+          ],
+          [
+            11,
+            7,
+            41
+          ],
+          [
+            11,
+            7,
+            42
+          ],
+          [
+            11,
+            7,
+            43
+          ],
+          [
+            11,
+            7,
+            44
+          ],
+          [
+            11,
+            7,
+            45
+          ],
+          [
+            11,
+            7,
+            46
+          ],
+          [
+            11,
+            7,
+            47
+          ],
+          [
+            11,
+            7,
+            48
+          ],
+          [
+            11,
+            7,
+            49
+          ],
+          [
+            11,
+            7,
+            50
+          ],
+          [
+            11,
+            7,
+            51
+          ],
+          [
+            11,
+            7,
+            52
+          ],
+          [
+            11,
+            7,
+            53
+          ],
+          [
+            11,
+            7,
+            54
+          ],
+          [
+            11,
+            7,
+            55
+          ],
+          [
+            11,
+            7,
+            56
+          ],
+          [
+            11,
+            7,
+            57
+          ]
+        ],
+        "contract": "one press - however long it is held - drops all 4 heads once, rings the bell and lights the running lamp, and the battery resets"
+      },
+      "launder": [
+        13,
+        64,
+        70
+      ],
+      "awning": 31,
+      "signs": 2
+    },
+    "dock": {
+      "bank": [
+        9,
+        21,
+        8,
+        30
+      ],
+      "tipple": [
+        17,
+        19
+      ],
+      "signs": 1
+    }
+  },
+  "contract": "an ore line whose every corner is plain rail and whose every powered run carries a source before the chain dies, level for its whole length, with no trestle leg in the service lane or the guest walk; a stamp mill whose battery fires once per press however long the button is held; and a dock on the park railway",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "spruce_trapdoor"
+      ],
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "piston",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The mine's works: an elevated ore railway on timber trestles from the ridge's east foot, crossing the guest walk and the service lane over them; a three-step stamp mill stepping down the way the ore travels, with a five-head battery a guest fires from a console in its own plinth; and a tipple over a stone loading bank beside the park railway.\n"
+    },
+    "metrics": {
+      "blocks": 4779,
+      "materials": 25,
+      "dominant_material_share": 0.3896,
+      "light_blocks": 1,
+      "massing": {
+        "width": 14,
+        "height": 28,
+        "depth": 63,
+        "fill_ratio": 0.1935
+      },
+      "silhouette": {
+        "top": {
+          "area": 811,
+          "fill_ratio": 0.3686
+        },
+        "front": {
+          "area": 327,
+          "fill_ratio": 0.3716
+        },
+        "side": {
+          "area": 920,
+          "fill_ratio": 0.23
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.8062,
+          0.1913,
+          0.0025
+        ],
+        "top_silhouette_perimeter": 296,
+        "surface_faces_per_block": 1.669
+      },
+      "material_counts": {
+        "stone_bricks": 1862,
+        "spruce_planks": 1629,
+        "dark_oak_stairs": 464,
+        "stripped_spruce_log": 206,
+        "spruce_log": 188,
+        "polished_blackstone_bricks": 135,
+        "spruce_trapdoor": 94,
+        "dark_oak_slab": 42,
+        "redstone_wire": 35,
+        "white_wool": 25,
+        "red_wool": 20,
+        "coal_ore": 19
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "0e274ba61c4823aa15f5c49d3a84fb6efb38fd44df3d1a4224dc008d77cd65b6",
+    "generator_source_digest": "4f7eef70feaf925456b2bda002ace98b7eb19436891f43d943a9bb8fd7294096",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 57.910151,
+    "blocks": 4779,
+    "blocks_per_second": 82.52
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "ride"
+    ],
+    "blocks": 4779,
+    "mechanic_families": [
+      "access",
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "experience",
+    "player_verbs": [
+      "press the mill's button",
+      "watch the battery drop",
+      "walk under the ore line"
+    ],
+    "outcome": "One press - however long it is held - drops every stamp head once, rings the bell over the battery and lights the running lamp. It is the only mechanism in the Frontier that moves.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: coal_ore",
+    "not in the provisional skyblock-1.19 list: dark_oak_slab",
+    "not in the provisional skyblock-1.19 list: dark_oak_stairs",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: redstone_lamp"
+  ],
+  "file": "PF Mine Works.litematic",
+  "name": "PF Mine Works"
+}

@@ -1,0 +1,158 @@
+{
+  "origin": {
+    "x": 97557,
+    "y": 147,
+    "z": 80844
+  },
+  "size": {
+    "x": 5,
+    "y": 58,
+    "z": 5
+  },
+  "generated_by": "stairwell",
+  "kind": "stairwell",
+  "center": [
+    97559,
+    80846
+  ],
+  "y_bottom": 147,
+  "y_top": 203,
+  "treads": 143,
+  "dig": [],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Undercrypt Stair serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 1069,
+      "materials": 5,
+      "dominant_material_share": 0.8279,
+      "light_blocks": 14,
+      "massing": {
+        "width": 5,
+        "height": 58,
+        "depth": 5,
+        "fill_ratio": 0.7372
+      },
+      "silhouette": {
+        "top": {
+          "area": 24,
+          "fill_ratio": 0.96
+        },
+        "front": {
+          "area": 290,
+          "fill_ratio": 1.0
+        },
+        "side": {
+          "area": 290,
+          "fill_ratio": 1.0
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 885,
+        "stone_brick_slab": 104,
+        "mossy_stone_brick_slab": 54,
+        "lantern": 14,
+        "stone_brick_wall": 12
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "6c8634577c1c73639ca7570d8650adf479b8ac1c47852b3eaf6fea94de063f2e",
+    "generator_source_digest": "8fd66f92fdb6c55682e140d4ed54e017cb8750f2fa6593c5ab4fbba58b632713",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97564,
+        148,
+        80846
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1069,
+    "mechanic_families": [
+      "light"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [],
+  "file": "The Undercrypt Stair.litematic",
+  "name": "The Undercrypt Stair"
+}

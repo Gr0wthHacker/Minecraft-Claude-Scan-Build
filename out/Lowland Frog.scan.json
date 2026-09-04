@@ -1,0 +1,39 @@
+{
+  "origin": {
+    "x": -24175,
+    "y": 38,
+    "z": 29969
+  },
+  "size": {
+    "x": 13,
+    "y": 22,
+    "z": 15
+  },
+  "generated_by": "frog",
+  "after": [
+    "Lowland Sanctum",
+    "Lowland Ruinway",
+    "Island Night"
+  ],
+  "kind": "frog",
+  "facing": [
+    -1,
+    0
+  ],
+  "base_y": 40,
+  "features_built": {
+    "body": 1430,
+    "forelegs": 26,
+    "toes": 46,
+    "plinth": 23,
+    "eyes": 74,
+    "mouth": 15,
+    "throat": 73,
+    "marks": 199,
+    "glow": 7,
+    "relief": 127
+  },
+  "dig": [],
+  "file": "Lowland Frog.litematic",
+  "name": "Lowland Frog"
+}

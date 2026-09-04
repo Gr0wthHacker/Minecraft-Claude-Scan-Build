@@ -1,0 +1,19 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 146,
+    "z": 80750
+  },
+  "size": {
+    "x": 92,
+    "y": 127,
+    "z": 100
+  },
+  "generated_by": "mcbuild.layers",
+  "kind": "casino-layer",
+  "dig": [],
+  "slice": false,
+  "note": "the whole thing, nothing deferred",
+  "file": "Park_Right Complete.litematic",
+  "name": "Park_Right Complete"
+}

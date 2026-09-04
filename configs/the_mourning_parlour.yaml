@@ -1,0 +1,29 @@
+name: The Mourning Parlour
+gen: spectacle
+params:
+  land: hollow
+  facing: east
+  at:
+  - 97574
+  - 203
+  - 80818
+  kind: foodcourt
+  title: The Mourning Parlour
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+park_contract:
+  purpose: shop
+  hierarchy: supporting
+  land: hollow
+  requires_path: true
+  access_candidates:
+  - - 97577
+    - 204
+    - 80810
+design:
+  purpose: shop
+  hierarchy: supporting
+  style: hollow
+  narrative: The Mourning Parlour serves the hollow visitor journey.
+origin_lock: false

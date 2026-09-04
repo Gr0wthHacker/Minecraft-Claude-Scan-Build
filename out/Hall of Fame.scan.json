@@ -1,0 +1,103 @@
+{
+  "origin": {
+    "x": 97563,
+    "y": 202,
+    "z": 80595
+  },
+  "size": {
+    "x": 21,
+    "y": 14,
+    "z": 18
+  },
+  "generated_by": "civic",
+  "kind": "hallofame",
+  "land": "midway",
+  "facing": "north",
+  "contract": "an open-fronted hall whose every fitting is something a visitor DOES: a railed colonnade with one bay left open as the door, a back wall of trophies under named record plaques, lecterns to write a record down, a three-step winners' podium you can stand on and a bell you can ring - and not one block in it carries a signal",
+  "unverified": [],
+  "width": 15,
+  "depth": 11,
+  "height": 12,
+  "hipped": true,
+  "door": [
+    6,
+    7
+  ],
+  "rails": 8,
+  "piers": 5,
+  "trophies": 4,
+  "plaques": 4,
+  "lecterns": 3,
+  "signs": 7,
+  "signs_placed": 7,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 1186,
+      "materials": 14,
+      "dominant_material_share": 0.2656,
+      "light_blocks": 6,
+      "massing": {
+        "width": 21,
+        "height": 14,
+        "depth": 18,
+        "fill_ratio": 0.2241
+      },
+      "silhouette": {
+        "top": {
+          "area": 378,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 198,
+          "fill_ratio": 0.6735
+        },
+        "side": {
+          "area": 139,
+          "fill_ratio": 0.5516
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 315,
+        "white_wool": 303,
+        "blackstone": 224,
+        "stone_brick_stairs": 212,
+        "oak_log": 43,
+        "stone": 42,
+        "stone_brick_slab": 13,
+        "oak_fence": 8,
+        "oak_wall_sign": 7,
+        "lantern": 6,
+        "yellow_wool": 5,
+        "end_rod": 4
+      }
+    },
+    "checks": [],
+    "ok": true
+  },
+  "file": "Hall of Fame.litematic",
+  "name": "Hall of Fame"
+}

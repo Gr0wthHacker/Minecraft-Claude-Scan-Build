@@ -1,0 +1,63 @@
+# PF PRISM RIG - the gantry the descent hangs under.
+#
+# IT EXISTS BECAUSE OF A RENDER. `PF Prism Descent` is 167 blocks and every one of the checks it
+# has passes: 86 moves, 100 courses, 1.84 turns, 81% of the jumps at full sprint distance, no
+# gap under 2.8, zero placement problems. Looked at, in the middle of a hundred-wide mouth, it
+# is CONFETTI - a dusting of single cells over a void with nothing behind them. The Island Run
+# gets away with this because it winds around an island and every landing reads against terrain.
+#
+# This repo has written the same rule down twice, both times about lines: the deck soffit drew
+# 215 grid runs of which 184 were one or two cells, and the conclusion was that a block is only
+# as good as the LINE it is part of. The fix is not more landings or brighter ones.
+#
+# DERIVED FROM BOTH COURSES' OWN SIDECARS, so nothing can drift. One gantry serves the sky run
+# and the deck run: it is the line every landing of either belongs to. Regenerate either
+# course and this must follow - build order is descent, crown, then rig.
+name: PF Prism Rig
+gen: prismrig
+params:
+  under: out/prism_deck.litematic   # the well and the deck run: what is already there
+  # BOTH RUNS, and the config is what actually decides it - the generator's default gained the
+  # sky run and this line kept overriding it with one, so the gantry came out 101 courses tall
+  # over a well that is now 200. A default nobody reads is not a default.
+  route:
+    - out/PF Crown Descent.scan.json
+    - out/PF Prism Descent.scan.json
+  centre: [97590, 80815]
+  hang: 4                 # the parkour's headroom is 3, so nothing here is in a jump's way
+  light_every: 7
+  seed: 13
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: prismworks
+  narrative: >
+    A lit copper gantry following the descent's own line from the rim to the floor, one cell of
+    beam with an iron-bar web outboard of it, carried on a post at each of the eight rests.
+fun_contract:
+  enforce: true
+  class: scenic_support
+  spatial_job: >
+    It is the line the course's eighty-six landings belong to: from the gallery it reads as one
+    helix falling into the dark, and from on the course it is what tells you where the next
+    landing is before you jump at it.
+  player_verbs: [read the line from the gallery, sight the next landing]
+  outcome: >
+    The descent reads as a spiral from anywhere on the rim instead of as scattered blocks.
+  reset: nothing is consumed and no state is held.
+  service_access: >
+    It is reached only from the course or the return column; nothing hangs over public floor.
+  bypass: >
+    It carries nobody and blocks nothing - it is overhead of the run by four courses and cannot
+    be walked, which is deliberate: a walkable ribbon at this radius is a way to reach the
+    bottom without jumping, and that would retire the course it exists to explain.
+requires_in_game:
+  - no beam or web cell can be clipped mid-jump on any move of the course
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: [out/prism_site.litematic]
+origin_lock: false

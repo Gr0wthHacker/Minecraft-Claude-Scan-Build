@@ -1,0 +1,105 @@
+{
+  "origin": {
+    "x": 97592,
+    "y": 203,
+    "z": 80583
+  },
+  "size": {
+    "x": 3,
+    "y": 4,
+    "z": 9
+  },
+  "generated_by": "casino",
+  "kind": "casino/prize_wall",
+  "facing": "east",
+  "contract": "5 prizes, one button each, one item per press",
+  "inputs": [
+    [
+      97594,
+      205,
+      80591
+    ],
+    [
+      97594,
+      205,
+      80589
+    ],
+    [
+      97594,
+      205,
+      80587
+    ],
+    [
+      97594,
+      205,
+      80585
+    ],
+    [
+      97594,
+      205,
+      80583
+    ]
+  ],
+  "outputs": [
+    [
+      97593,
+      204,
+      80591
+    ],
+    [
+      97593,
+      204,
+      80589
+    ],
+    [
+      97593,
+      204,
+      80587
+    ],
+    [
+      97593,
+      204,
+      80585
+    ],
+    [
+      97593,
+      204,
+      80583
+    ]
+  ],
+  "unverified": [],
+  "budget": {},
+  "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "concealed": 0,
+  "visible_redstone": 0,
+  "stock": {
+    "each dispenser": "the prize it hands out"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel",
+        "dispenser"
+      ],
+      "redstone": [
+        "dispenser",
+        "stone_button"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "redstone": "mcbuild.circuit"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "file": "Prize Wall 4.litematic",
+  "name": "Prize Wall 4"
+}

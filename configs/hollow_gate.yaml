@@ -1,0 +1,34 @@
+name: Hollow Gate
+gen: park
+params:
+  land: hollow
+  width: 7
+  height: 6
+  facing: north
+  at:
+  - 97592
+  - 203
+  - 80752
+  kind: arch
+  title: Hollow Gate
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+park_contract:
+  purpose: arrival
+  hierarchy: landmark
+  land: hollow
+  requires_path: true
+  access_candidates:
+  - - 97595
+    - 204
+    - 80749
+  - - 97595
+    - 204
+    - 80757
+design:
+  purpose: arrival
+  hierarchy: landmark
+  style: hollow
+  narrative: Hollow Gate serves the hollow visitor journey.
+origin_lock: false

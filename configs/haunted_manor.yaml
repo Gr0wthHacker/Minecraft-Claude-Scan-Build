@@ -1,0 +1,33 @@
+name: Haunted Manor
+gen: hollowmanor
+params:
+  land: hollow
+  facing: east
+  at:
+  - 97584
+  - 203
+  - 80796
+  kind: manor
+  title: Haunted Manor
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+park_contract:
+  purpose: building
+  hierarchy: supporting
+  land: hollow
+  requires_path: true
+  access_candidates:
+  - - 97594
+    - 204
+    - 80778
+design:
+  purpose: building
+  hierarchy: supporting
+  style: hollow
+  narrative: Haunted Manor serves the hollow visitor journey.
+origin_lock: false
+expensive_allowance: 3
+expensive_reason: 3x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

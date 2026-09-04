@@ -1,0 +1,62 @@
+# PF CLAIM LAKE MENAGERIE - a walk-through farmyard zoo, filling its whole lot.
+#
+# Replaces `PF Vantage Midway Belvedere` (withdrawn - squeezed between the balloon's Circus and
+# the railway) and `PF Claim Lake Range` (withdrawn - `arcade._range`'s concealed award floor
+# left a bare service slab trailing off its own back). Jack: "we should probably find something
+# else to put in this area, maybe a small zoo where we put actual MC animals."
+#
+# REBUILT 2026-09-03. Jack, on the first version: "the zoo on the park is tiny and doesnt look
+# good, we want to use the full space and make it much more visually interesting." Both halves
+# measured: it was four IDENTICAL 7x10 pens in one row, 455 columns of a 1,014-column lot and
+# three courses tall at its highest point. It now fills 936 of them - the whole lot bar the
+# frontage verge - with four DIFFERENT habitats round a T of paths, and a skyline that runs from
+# the aviary's cupola down through the barn ridge to an open pond.
+#
+# NO HIDDEN MACHINE, ON PURPOSE - the reason this design got the lot in the first place. Every
+# course of it is something a visitor can see, so there is nothing behind it to trail off the
+# back the way the range's pit did.
+#
+# THE SITE: V130-153 / U173-211, the whole `frontier|midway / exit-observation` lot
+# `tools/park_lots.py` measures here (26 deep x 39 wide, walks on all four sides), less the
+# V128-129 frontage verge. THAT VERGE IS NOT SPARE GROUND - `Park Ways` stands three of its own
+# lamp standards on V129 at U175, U192 and U209, and the middle one is dead on the lot's own
+# midline. Built one row further forward, the gateway would have had a lamp post in its doorway;
+# left alone, those three lamps light the frontage for nothing.
+#
+# THE ANIMALS ARE NOT IN THE SCHEMATIC. A litematic places blocks, not entities - the enclosures
+# are built empty, gated and signed for what to lead in (`gen/menagerie.py`'s own docstring says
+# so plainly). Stocking them with real sheep, cows, pigs, hens and fish is a job for Jack, in
+# world.
+name: PF Claim Lake Menagerie
+gen: menagerie
+params:
+  land: midway
+  facing: west
+  at: [97630, 203, 80473]
+  title: CLAIM LAKE
+  subtitle: MENAGERIE
+  width: 39
+  depth: 24
+  under: out/Park Complete.litematic
+finish:
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_block, moss_carpet]
+park_contract:
+  purpose: terrain
+  hierarchy: supporting
+  land: midway
+  requires_path: true
+  access_candidates:
+    - [97629, 204, 80492]
+design:
+  purpose: terrain
+  hierarchy: supporting
+  style: midway
+  narrative: >
+    A walk-through farmyard zoo on the Claim Lake's south side, filling the whole exit and
+    observation lot: a gated frontage with two capped towers, a red timber barn you walk through
+    with four railed stalls off its cross aisle, a sunken duck pond with a canopied jetty, an
+    open sheep meadow with a shelter and a trough, a cage aviary under a lattice roof with a
+    cupola on top, and a raised lookout terminating the spine - built empty, gated and signed for
+    what to lead into each enclosure.
+origin_lock: false

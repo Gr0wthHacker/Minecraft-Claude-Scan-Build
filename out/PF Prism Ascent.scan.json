@@ -1,0 +1,308 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80827
+  },
+  "size": [
+    93,
+    72
+  ],
+  "generated_by": "prismworks_builds",
+  "kind": "prismworks_ascent",
+  "land": "prismworks",
+  "lot": [
+    24,
+    527,
+    116,
+    598
+  ],
+  "height": 86,
+  "facing": "west",
+  "lamp_arms_refused": 0,
+  "outside_lot_refused": 0,
+  "lights": 6,
+  "signs": 1,
+  "top": 84,
+  "fin_cells": 1384,
+  "causeway_piers": 10,
+  "stages": 4,
+  "podium_h": 11,
+  "contract": "a columnar spire: a four-stage tapering core with four planar fin blades and a lit crown, standing in a ring podium reached by a colonnaded causeway - inside V24-116 / U527-598 and not one cell outside it",
+  "requires_in_game": [
+    "colour and the read of the value ladder can only be judged in world",
+    "no mechanism is claimed by this geometry: the Ascent's timing, the Array's route lights and the Vault's completion circuit are separate redstone tickets"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "warped_trapdoor"
+      ],
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "warped_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "prismworks",
+      "focal_face": "west",
+      "narrative": "A spire: a square core tapering through four stages from thirteen across to seven, each stage landing on its own corbelled setback, four planar fin blades on the cardinal faces whose reach shortens from twelve to two as they rise, and an open crown of posts, bars and froglight with five end-rod finials. It stands in the court of a ring podium, reached from the spine by a colonnaded causeway on the spur's own axis.\n"
+    },
+    "metrics": {
+      "blocks": 14908,
+      "materials": 24,
+      "dominant_material_share": 0.4662,
+      "light_blocks": 6,
+      "massing": {
+        "width": 68,
+        "height": 84,
+        "depth": 42,
+        "fill_ratio": 0.0621
+      },
+      "silhouette": {
+        "top": {
+          "area": 2023,
+          "fill_ratio": 0.3021
+        },
+        "front": {
+          "area": 1958,
+          "fill_ratio": 0.2448
+        },
+        "side": {
+          "area": 1804,
+          "fill_ratio": 0.2913
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.7341,
+          0.1976,
+          0.0683
+        ],
+        "top_silhouette_perimeter": 431,
+        "surface_faces_per_block": 1.6456
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 6950,
+        "smooth_basalt": 2989,
+        "iron_bars": 684,
+        "deepslate_tiles": 513,
+        "chiseled_deepslate": 510,
+        "polished_deepslate_slab": 501,
+        "waxed_cut_copper_stairs": 424,
+        "cyan_wool": 392,
+        "light_blue_wool": 387,
+        "black_wool": 246,
+        "cracked_polished_blackstone_bricks": 216,
+        "gray_wool": 204
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "980f94964b42dceff53e76043e4ffa355bdfcf458e79bca767eff432e8c2b8bd",
+    "generator_source_digest": "8692c5c805011a8ce4f28a9d27df733eba5cac16b34d69fe889bdeb33b7ae81e",
+    "anchors": [
+      {
+        "name": "queue_entry",
+        "kind": "queue",
+        "position": [
+          0,
+          1,
+          36
+        ],
+        "facing": "west",
+        "width": 7
+      },
+      {
+        "name": "boarding",
+        "kind": "entry",
+        "position": [
+          26,
+          1,
+          36
+        ],
+        "facing": "west",
+        "width": 7
+      },
+      {
+        "name": "ride_exit",
+        "kind": "ride_exit",
+        "position": [
+          66,
+          1,
+          36
+        ],
+        "facing": "east",
+        "width": 7
+      },
+      {
+        "name": "service_access",
+        "kind": "maintenance",
+        "position": [
+          66,
+          1,
+          40
+        ],
+        "facing": "east",
+        "width": 3
+      },
+      {
+        "name": "street_front",
+        "kind": "visual_front",
+        "position": [
+          0,
+          1,
+          36
+        ],
+        "facing": "west",
+        "width": 9
+      },
+      {
+        "name": "crown",
+        "kind": "deck",
+        "position": [
+          46,
+          80,
+          36
+        ],
+        "facing": "up",
+        "width": 9
+      }
+    ],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": true,
+      "mechanics": [
+        "access",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 60.962388,
+    "blocks": 14908,
+    "blocks_per_second": 244.54
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 6,
+    "roles": [
+      "building",
+      "ride"
+    ],
+    "blocks": 14908,
+    "mechanic_families": [
+      "access",
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "experience",
+    "player_verbs": [
+      "walk the causeway",
+      "enter the podium court",
+      "stand under the spire",
+      "watch the crown"
+    ],
+    "outcome": "The crown's signal ring stands eighty-four courses over the lawn and reads from the whole park; from inside the podium court the four fins and the four setbacks are all visible at once, which is the thing a photograph of it will show.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: blackstone_slab",
+    "not in the provisional skyblock-1.19 list: blackstone_stairs",
+    "not in the provisional skyblock-1.19 list: chiseled_deepslate",
+    "not in the provisional skyblock-1.19 list: cracked_polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: deepslate_tiles",
+    "not in the provisional skyblock-1.19 list: end_rod",
+    "not in the provisional skyblock-1.19 list: iron_bars",
+    "not in the provisional skyblock-1.19 list: lightning_rod",
+    "not in the provisional skyblock-1.19 list: pearlescent_froglight",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_brick_wall",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_deepslate_slab",
+    "not in the provisional skyblock-1.19 list: polished_deepslate_stairs",
+    "not in the provisional skyblock-1.19 list: smooth_basalt",
+    "not in the provisional skyblock-1.19 list: warped_fence",
+    "not in the provisional skyblock-1.19 list: warped_trapdoor",
+    "not in the provisional skyblock-1.19 list: warped_wall_sign",
+    "not in the provisional skyblock-1.19 list: waxed_cut_copper_slab",
+    "not in the provisional skyblock-1.19 list: waxed_cut_copper_stairs"
+  ],
+  "file": "PF Prism Ascent.litematic",
+  "name": "PF Prism Ascent"
+}

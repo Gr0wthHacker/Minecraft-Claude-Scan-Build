@@ -1,0 +1,273 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80300
+  },
+  "size": {
+    "x": 99,
+    "y": 26,
+    "z": 47
+  },
+  "generated_by": "bonebed",
+  "kind": "bonebed",
+  "lot": [
+    99,
+    47
+  ],
+  "at": [
+    24,
+    0
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "signs": [
+    {
+      "at": [
+        3,
+        6,
+        43
+      ],
+      "facing": "west",
+      "lines": [
+        "THE LOST",
+        "PLATEAU",
+        "dig, ride,",
+        "and look up"
+      ]
+    },
+    {
+      "at": [
+        20,
+        12,
+        21
+      ],
+      "facing": "south",
+      "lines": [
+        "TRIAL TRENCH",
+        "no. 4",
+        "nothing yet -",
+        "keep looking"
+      ]
+    },
+    {
+      "at": [
+        46,
+        3,
+        28
+      ],
+      "facing": "south",
+      "lines": [
+        "TRIAL TRENCH",
+        "no. 7",
+        "shell, mostly",
+        "and one tooth"
+      ]
+    }
+  ],
+  "refused": 0,
+  "parts": {
+    "mass": {
+      "rock": 17138,
+      "turf": 2944
+    },
+    "floor": {
+      "floor": 488,
+      "road": 0,
+      "kerb": 0
+    },
+    "ramps": [],
+    "grid": {
+      "stake": 14,
+      "walk": 12
+    },
+    "spoil": 598,
+    "skeletons": [],
+    "skulls": [],
+    "jackets": 0,
+    "arch": {
+      "pier": 42,
+      "lintel": 35,
+      "lamp": 2,
+      "sign": 1,
+      "brace": 4
+    },
+    "crates": 3,
+    "plant": {
+      "tree": 1980,
+      "fern": 522,
+      "vine": 173,
+      "carpet": 514
+    },
+    "light": 2,
+    "boards": 2
+  },
+  "contract": "one excavation across two retired building lots: a floor at the park's own plane with the relief made of SPOIL rather than of a dig list, benched walls stepped by construction, the park's own V77-79 cross walk kept level and used as the causeway into it, a timber gallery on the avenue bank that reads the skeleton in plan, and not one building with a door in it",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ],
+      "traversal": [
+        "vine"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks",
+      "traversal": "mcbuild.walk / audit.check_climb"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 23678,
+      "materials": 27,
+      "dominant_material_share": 0.2048,
+      "light_blocks": 2,
+      "massing": {
+        "width": 94,
+        "height": 18,
+        "depth": 45,
+        "fill_ratio": 0.311
+      },
+      "silhouette": {
+        "top": {
+          "area": 3576,
+          "fill_ratio": 0.7685
+        },
+        "front": {
+          "area": 1222,
+          "fill_ratio": 0.4747
+        },
+        "side": {
+          "area": 561,
+          "fill_ratio": 0.4591
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.8889,
+          0.1111,
+          0.0
+        ],
+        "top_silhouette_perimeter": 597,
+        "surface_faces_per_block": 0.732
+      },
+      "material_counts": {
+        "stone": 4849,
+        "cobblestone": 3851,
+        "cobbled_deepslate": 3428,
+        "moss_block": 2662,
+        "jungle_leaves": 1545,
+        "andesite": 1476,
+        "deepslate": 1445,
+        "tuff": 1050,
+        "granite": 530,
+        "fern": 522,
+        "moss_carpet": 514,
+        "coal_ore": 379
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "5d70aa73c2bdf9f54b4b74223d97464d9e5f27165ed95c912ebf5e4a17b9de1a",
+    "generator_source_digest": "6a30d787f840b6290ced550b41057d1f20e225a25e692c019155412fdcbbe8d2",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "signage",
+        "traversal"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 71.248488,
+    "blocks": 23678,
+    "blocks_per_second": 332.33
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 23678,
+    "mechanic_families": [
+      "container",
+      "light",
+      "signage",
+      "traversal"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: coal_ore",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: deepslate",
+    "not in the provisional skyblock-1.19 list: dripstone_block",
+    "not in the provisional skyblock-1.19 list: gold_ore",
+    "not in the provisional skyblock-1.19 list: granite",
+    "not in the provisional skyblock-1.19 list: jungle_fence",
+    "not in the provisional skyblock-1.19 list: jungle_log",
+    "not in the provisional skyblock-1.19 list: jungle_planks",
+    "not in the provisional skyblock-1.19 list: jungle_slab",
+    "not in the provisional skyblock-1.19 list: jungle_stairs",
+    "not in the provisional skyblock-1.19 list: stripped_jungle_log",
+    "not in the provisional skyblock-1.19 list: tuff"
+  ],
+  "file": "PF Plateau Vale.litematic",
+  "name": "PF Plateau Vale"
+}

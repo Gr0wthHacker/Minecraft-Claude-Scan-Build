@@ -1,0 +1,15 @@
+name: Topiary 4
+gen: streetfurniture
+params:
+  land: midway
+  facing: west
+  at:
+  - 97605
+  - 203
+  - 80634
+  kind: topiary
+  title: Topiary 4
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

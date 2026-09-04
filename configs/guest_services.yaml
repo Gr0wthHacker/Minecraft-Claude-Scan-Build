@@ -1,0 +1,15 @@
+name: Guest Services
+gen: civic
+params:
+  land: midway
+  facing: west
+  at:
+  - 97604
+  - 203
+  - 80565
+  kind: guestservices
+  title: Guest Services
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

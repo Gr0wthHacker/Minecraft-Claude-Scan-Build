@@ -1,0 +1,29 @@
+name: The Vault
+gen: arcade
+params:
+  land: hollow
+  facing: east
+  at:
+  - 97592
+  - 203
+  - 80847
+  kind: safe
+  title: The Vault
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+park_contract:
+  purpose: ride
+  hierarchy: supporting
+  land: hollow
+  requires_path: true
+  access_candidates:
+  - - 97595
+    - 204
+    - 80835
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: hollow
+  narrative: The Vault serves the hollow visitor journey.
+origin_lock: false

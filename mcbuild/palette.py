@@ -150,7 +150,7 @@ def _derive(short: str) -> tuple[int, int, int] | None:
     return None
 
 
-def color_of(name: str) -> tuple[int, int, int]:
+def color_of(name: str, face: str = "top") -> tuple[int, int, int]:
     """Hand-tuned entry, then the block's REAL texture colour, then the cut-from rule.
 
     `COLORS` stays first because a few entries here are deliberate render choices (water reads better
@@ -158,13 +158,23 @@ def color_of(name: str) -> tuple[int, int, int]:
     `blocks.color`, which has all 1193 blocks straight from the client jar - so a design using a
     block outside this table renders in its true colour instead of magenta. Three renders in one
     session came back magenta before this was wired up.
+
+    `face` picks which surface is being drawn. An ELEVATION must ask for "side": a log's top is end
+    grain and its side is bark, and drawing a statue's flank in end grain is 46% of the giraffe -
+    whose whole coat is `bone_block` - rendered in the wrong colour. A plan view keeps "top".
     """
     short = name.split(":")[-1].split("[")[0]
+    from . import blocks
+    real = blocks.color(short, face)
     got = COLORS.get(short)
     if got is not None:
-        return got
-    from . import blocks
-    real = blocks.color(short)
+        # THE HAND TABLE HAS NO CONCEPT OF FACES, so it may only speak for blocks that look the
+        # same from every side. On a log or a `bone_block` it was shadowing the measured side
+        # colour entirely - `color_of(n, "side")` returned the top value and the whole per-face
+        # split did nothing. Where the two faces agree there is no face question and the
+        # deliberate render choices (water, a little brighter than its average) still stand.
+        if blocks.color(short, "top") == blocks.color(short, "side"):
+            return got
     if real:
         return real
     return _derive(short) or FALLBACK_COLOR
@@ -183,15 +193,29 @@ def missing_colors(names) -> list[str]:
 
 # ------------------------------------------------------------- cost tiers
 
+# JACK, 2026-09-03: "slime blocks are not expensive, glass panes are also not expensive."
+# He is the authority on his own server's economy and this table is INVENTED - CLAUDE.md has
+# said so from the start. Two corrections, and both change designs rather than only a number:
+#
+#   slime_block           expensive -> cheap. It is the only block in the game that cancels a
+#                         fall outright, so every parkour plunge and every catch floor here was
+#                         being rationed against a price that is not real. `Island Run` carries
+#                         `expensive_allowance: 13` purely for this and no longer needs it.
+#   _stained_glass_pane   expensive -> cheap. Plain `glass_pane` was already `ok`; a coloured
+#                         pane is the same item dyed, and dye is not what is dear here.
+#
+# Plain `glass`, `tinted_glass` and the SOLID `_stained_glass` blocks are deliberately NOT
+# moved: nothing Jack said touches them, and a table that quietly widens past its evidence is
+# how four separate palette conclusions in this repo have already gone wrong.
 EXPENSIVE_SUFFIXES = ("_terracotta", "_concrete", "_concrete_powder", "_stained_glass",
-                      "_stained_glass_pane", "_glazed_terracotta")
+                      "_glazed_terracotta")
 EXPENSIVE_NAMES = {"terracotta", "quartz_block", "smooth_quartz", "quartz_pillar", "chiseled_quartz_block",
                    "quartz_bricks", "glass", "tinted_glass", "prismarine", "prismarine_bricks",
                    "dark_prismarine", "sea_lantern", "purpur_block", "purpur_pillar", "end_stone",
                    "end_stone_bricks", "copper_block", "netherite_block", "diamond_block", "gold_block",
                    "emerald_block", "lapis_block", "amethyst_block", "calcite", "obsidian", "crying_obsidian",
                    "shroomlight", "glowstone", "redstone_lamp", "beacon", "sponge", "wet_sponge",
-                   "honey_block", "slime_block", "hay_block", "bookshelf", "note_block", "jukebox"}
+                   "honey_block", "hay_block", "bookshelf", "note_block", "jukebox"}
 OK_NAMES = {"iron_bars", "glass_pane", "smooth_stone", "smooth_stone_slab", "andesite", "polished_andesite",
             "diorite", "polished_diorite", "granite", "polished_granite", "tuff", "tuff_bricks",
             "polished_tuff", "deepslate", "cobbled_deepslate", "deepslate_bricks", "deepslate_tiles",
@@ -298,3 +322,64 @@ class Registry:
 
     def raw(self, name: str, **props) -> int:
         return self._add(nbt.block_state(name, **props))
+
+
+# ---------------------------------------------------------------------- affordable look-alikes
+
+def witnessed(capture: str | None = "out/island_full.litematic") -> frozenset:
+    """Every block this server has actually been SEEN to hold.
+
+    RULE 12, AND THE TIER TABLE IS NOT ENOUGH ON ITS OWN. Asked for a cheap stand-in for quartz,
+    the plain colour picker offered `pearlescent_froglight` - cheap by the table, and this island
+    holds ZERO of them, so it is a material you cannot spend. The allowlist plus what the capture
+    actually contains is the honest pool, which is the same union `ladder.py` uses.
+    """
+    import json
+    import pathlib as _p
+    out = set()
+    try:
+        d = json.loads((_p.Path(__file__).resolve().parent / "data/server_blocks.json")
+                       .read_text(encoding="utf-8"))
+        out |= set(d.get("blocks", ()))
+    except Exception:                                        # noqa: BLE001
+        pass
+    if capture:
+        try:
+            from . import scan as _scan
+            out |= {n.split(":")[-1] for n in _scan.load(capture).model.names}
+        except Exception:                                    # noqa: BLE001
+            pass
+    return frozenset(out)
+
+
+def affordable_like(name: str, face: str = "side", capture: str | None = "out/island_full.litematic"):
+    """The closest block to `name` that is CHEAP, WITNESSED here, and not a machine.
+
+    Three gates, because each one on its own gives an answer you cannot build with:
+
+      * cheap by the economy table          - or it is a material you will not spend
+      * witnessed on this server            - or it is a material you cannot GET (rule 12)
+      * not functional                      - or it is a container with a face on it, which is the
+                                              `bee_nest` trap and, this session, `black_shulker_box`
+
+    Returns (block, distance) or (None, None) when nothing close survives all three - which is a
+    real answer and better than a bad substitute.
+    """
+    import sys as _sys
+    import pathlib as _p
+    _sys.path.insert(0, str(_p.Path(__file__).resolve().parent.parent / "tools"))
+    from rubric import FUNCTIONAL                            # noqa: E402
+    from . import blocks as _b
+
+    rgb = _b.color(name, face)
+    if not rgb:
+        return None, None
+    seen = witnessed(capture)
+    pool = [b for b in _b.candidates(full_only=True)
+            if tier("minecraft:" + b) == "cheap"
+            and b in seen
+            and not any(f in b for f in FUNCTIONAL)]
+    best = _b.nearest(rgb, pool=pool, face=face)
+    if not best:
+        return None, None
+    return best, _b._dist(rgb, _b.color(best, face))

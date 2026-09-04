@@ -1,39 +1,22 @@
-# One command after each /cscan:  python -m mcbuild sync
 scan: island
-cut: [-24251, 150, 29949, -24149, 270, 30051]
+cut:
+- -24251
+- 150
+- 29949
+- -24149
+- 270
+- 30051
 world_out: out/island_now.litematic
-deep_out: out/island_deep.litematic   # Y130-200: below-island designs verify against this
-deep_cut: [-24251, 130, 29949, -24149, 215, 30051]   # top must clear the plate: cutting at 200
-                                                     # truncates vines whose anchor is above it
-regen:                              # regenerated against the new scan (they key off ground state, so they self-heal)
-  - configs/belly.yaml
-  - configs/hem.yaml
-  - configs/footings.yaml
-  - configs/paths.yaml
-  - configs/lightposts.yaml
-  - configs/apiary.yaml
-  - configs/entrance.yaml
-progress:                           # designs reported (% built, left, shop list)
-  - out/Island Belly Full.litematic
-  - out/Taproot.litematic
-  - out/Shed Shard.litematic
-  - out/Chimneys.litematic
-  - out/Statue Footings.litematic
-  - out/Rim Hem.litematic
-  - out/Path Network.litematic
-  - out/Light Posts.litematic
-  - out/Deck Entrance.litematic
-  - out/Ride Lights.litematic
-  - out/Apiary Flowers.litematic
-  - out/Bird Lanterns.litematic
-  - out/Deck Vault.litematic     # NOT in regen: `under` is pinned to the pre-vault capture (see configs/vault.yaml)
-  - out/Sky Well Court.litematic # same - pinned to out/court_before.litematic
-  - out/Store Hall.litematic
-  - out/Undercroft Store.litematic
-  - out/Entry Hall.litematic
-  - out/Atelier Court.litematic  # below-island origin -24251 130 29949
-  - out/Void Giraffe.litematic   # Y99-150, its own origin
-  - out/Void Isle.litematic      # Y86-108, its own origin (origin_lock: false)
-  - out/Shop Islet.litematic     # below-island: its own locked origin -24251 130 29949
-  - out/Root Stair.litematic     # same origin as the islet
+deep_out: out/island_deep.litematic
+deep_cut:
+- -24251
+- 130
+- 29949
+- -24149
+- 215
+- 30051
+full_out: out/island_full.litematic
+regen: []
+progress:
+- Park Complete
 learn: true

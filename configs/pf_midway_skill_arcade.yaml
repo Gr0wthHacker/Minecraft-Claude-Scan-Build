@@ -1,0 +1,59 @@
+# PF SKILL ARCADE - one hall, three game bays, and a side to watch from.
+#
+# THE LOT IS 51 x 33 AT V24, U346 and it fronts WEST onto the spine, whose spur `Park Ways` draws
+# to V23 at U361-363. The building's gateway is centred on U362, so the spur runs into the door.
+#
+# THE ENVELOPE IS V25-70 x U349-375. The margin is a cell of trim on every side, and it is also
+# what clears the ground layer's lamp arms: V62 at U346-347, and V73-74 at U357 and U371, all
+# three to five courses above the lawn. `blocked` names them.
+#
+# EXACTLY THREE BAYS, which is what the build card allows, and one roof over all three. Three
+# separate booths would have been three of everything with a plaza between them, which is the
+# arrangement Jack threw away as chaos; one hall gives them a shared aisle to queue in and one
+# frontage on the spine that says what the building is from the far side of it. Each bay has a
+# stated action, a visible result, a counter, a service hatch and a spectator edge opposite.
+#
+# THE ROOF IS PITCHED 1:2, NOT 1:1. At one course per cell a 27-wide hall puts its ridge thirteen
+# courses over its eaves - taller than the building under it, and past the park's own landmark
+# rule, which reserves the crown for the Sky Lift and one ride in each of the other two lands.
+#
+# THE SHOW LAYER (2026-09-02). Rendered from eight bearings, the first build of this land read
+# as CIVIC ARCHITECTURE - dressed grey stone, white pilasters, one red band and a plain dark
+# grey roof. The roof is the biggest surface a building has and it was the greyest thing here,
+# so it is striped canvas now: `crimson_stairs` (L62) against `polished_diorite_stairs` (L193),
+# both cheap, both 1.19, both with a matching slab - which a roof needs. The gable END takes
+# the land's own two wool tones banded upright, because that is the view a guest walking up the
+# spine actually gets; and each hall carries masts with pennants, which is the only part of a
+# building that survives to a quarter scale.
+name: PF Skill Arcade
+gen: midwaybuild
+params:
+  kind: skill_arcade
+  lot: [24, 346, 74, 378]
+  at: [97524, 203, 80646]
+  height: 26
+  blocked:
+    - [62, 3, 346, 62, 6, 347]
+    - [73, 3, 357, 74, 6, 357]
+    - [73, 3, 371, 74, 6, 371]
+  seed: 0
+roles: [building]
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: midway
+  narrative: >
+    A single gabled hall on the spine with a 7-wide gateway, three game bays down its north side -
+    high striker, target wall, ring toss - a central aisle to queue in, a glazed spectator side
+    opposite with stepped seating and a rail, roof trusses carrying the lanterns, and a service
+    door at the back onto midway walk 2. No wagers and no chance payouts: each bay states its
+    action, its result and its reset on its own sign.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  ground_block: moss_block
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

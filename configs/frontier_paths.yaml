@@ -1,0 +1,871 @@
+name: Frontier Paths
+gen: park
+params:
+  land: frontier
+  facing: east
+  routes:
+  - a:
+    - 97553
+    - 80400
+    b:
+    - 97637
+    - 80400
+    width: 5
+    role: main_spine
+    lamps: true
+    name: east-west spine
+  - a:
+    - 97595
+    - 80353
+    b:
+    - 97595
+    - 80447
+    width: 5
+    role: main_spine
+    lamps: true
+    name: north-south spine
+  - a:
+    - 97620
+    - 80373
+    b:
+    - 97620
+    - 80375
+    width: 3
+    role: exit
+    name: Mine Coaster east frontage
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97620
+    - 80374
+    b:
+    - 97620
+    - 80400
+    width: 3
+    role: secondary
+    name: Mine Coaster east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97580
+    - 80399
+    b:
+    - 97610
+    - 80399
+    width: 3
+    role: secondary
+    name: Mine Coaster south frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97594
+    - 80443
+    b:
+    - 97596
+    - 80443
+    width: 3
+    role: secondary
+    name: Frontier Gate north frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97638
+    - 143
+    - 80355
+    b:
+    - 97638
+    - 143
+    - 80360
+    width: 3
+    role: secondary
+    name: The Mine Works z landing
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97638
+    - 143
+    - 80357
+    b:
+    - 97639
+    - 143
+    - 80359
+    width: 3
+    role: secondary
+    name: The Mine Works landing join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97560
+    - 143
+    - 80361
+    b:
+    - 97560
+    - 143
+    - 80363
+    width: 3
+    role: secondary
+    name: The Mine Works z landing
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97560
+    - 143
+    - 80362
+    b:
+    - 97639
+    - 143
+    - 80359
+    width: 3
+    role: secondary
+    name: The Mine Works landing join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97638
+    - 179
+    - 80364
+    b:
+    - 97638
+    - 179
+    - 80381
+    width: 3
+    role: secondary
+    name: Mine Cart Escape z landing
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97638
+    - 179
+    - 80372
+    b:
+    - 97639
+    - 179
+    - 80372
+    width: 3
+    role: secondary
+    name: Mine Cart Escape landing join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97624
+    - 179
+    - 80358
+    b:
+    - 97626
+    - 179
+    - 80358
+    width: 3
+    role: secondary
+    name: Mine Cart Escape x landing
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97625
+    - 179
+    - 80358
+    b:
+    - 97639
+    - 179
+    - 80372
+    width: 3
+    role: secondary
+    name: Mine Cart Escape landing join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97601
+    - 80403
+    b:
+    - 97601
+    - 80417
+    width: 3
+    role: secondary
+    name: The Mine Head east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97601
+    - 80410
+    b:
+    - 97601
+    - 80400
+    width: 3
+    role: secondary
+    name: The Mine Head east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97615
+    - 80444
+    b:
+    - 97617
+    - 80444
+    width: 3
+    role: exit
+    name: Frontier Rapids south frontage
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97616
+    - 80444
+    b:
+    - 97595
+    - 80444
+    width: 3
+    role: secondary
+    name: Frontier Rapids south join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97598
+    - 80419
+    b:
+    - 97598
+    - 80438
+    width: 3
+    role: secondary
+    name: Frontier Rapids west frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97598
+    - 80428
+    b:
+    - 97598
+    - 80400
+    width: 3
+    role: secondary
+    name: Frontier Rapids west join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97583
+    - 80432
+    b:
+    - 97583
+    - 80445
+    width: 3
+    role: secondary
+    name: Assay Office east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97583
+    - 80438
+    b:
+    - 97583
+    - 80400
+    width: 3
+    role: secondary
+    name: Assay Office east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97574
+    - 80403
+    b:
+    - 97574
+    - 80416
+    width: 3
+    role: secondary
+    name: The Saloon east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97574
+    - 80409
+    b:
+    - 97574
+    - 80400
+    width: 3
+    role: secondary
+    name: The Saloon east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97595
+    - 80429
+    b:
+    - 97595
+    - 80441
+    width: 3
+    role: secondary
+    name: Prize Office east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97595
+    - 80435
+    b:
+    - 97595
+    - 80400
+    width: 3
+    role: secondary
+    name: Prize Office east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97637
+    - 80370
+    b:
+    - 97637
+    - 80385
+    width: 3
+    role: secondary
+    name: The Nugget Chute east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97637
+    - 80377
+    b:
+    - 97637
+    - 80400
+    width: 3
+    role: secondary
+    name: The Nugget Chute east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97627
+    - 80399
+    b:
+    - 97627
+    - 80409
+    width: 3
+    role: secondary
+    name: Shooting Range east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97627
+    - 80404
+    b:
+    - 97627
+    - 80400
+    width: 3
+    role: secondary
+    name: Shooting Range east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97573
+    - 80354
+    b:
+    - 97573
+    - 80367
+    width: 3
+    role: secondary
+    name: Gold Sluice east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97573
+    - 80360
+    b:
+    - 97573
+    - 80400
+    width: 3
+    role: secondary
+    name: Gold Sluice east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97627
+    - 80389
+    b:
+    - 97636
+    - 80389
+    width: 3
+    role: secondary
+    name: The Powder House north frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97631
+    - 80389
+    b:
+    - 97595
+    - 80389
+    width: 3
+    role: secondary
+    name: The Powder House north join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97569
+    - 80391
+    b:
+    - 97569
+    - 80393
+    width: 3
+    role: secondary
+    name: Frontier Post east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97569
+    - 80392
+    b:
+    - 97569
+    - 80400
+    width: 3
+    role: secondary
+    name: Frontier Post east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97573
+    - 80387
+    b:
+    - 97573
+    - 80389
+    width: 3
+    role: secondary
+    name: Frontier Map east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97573
+    - 80388
+    b:
+    - 97573
+    - 80400
+    width: 3
+    role: secondary
+    name: Frontier Map east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97639
+    - 203
+    - 80359
+    b:
+    - 97639
+    - 143
+    - 80359
+    width: 3
+    role: shaft
+    vertical: stairs
+    name: The Mine Works shaft
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97639
+    - 203
+    - 80372
+    b:
+    - 97639
+    - 179
+    - 80372
+    width: 3
+    role: shaft
+    vertical: stairs
+    name: Mine Cart Escape shaft
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97553
+    - 80353
+    b:
+    - 97571
+    - 80353
+    width: 3
+    role: service
+    name: service road north
+  - a:
+    - 97575
+    - 80353
+    b:
+    - 97592
+    - 80353
+    width: 3
+    role: service
+    name: service road north
+  - a:
+    - 97598
+    - 80353
+    b:
+    - 97637
+    - 80353
+    width: 3
+    role: service
+    name: service road north
+  - a:
+    - 97553
+    - 80447
+    b:
+    - 97592
+    - 80447
+    width: 3
+    role: service
+    name: service road south
+  - a:
+    - 97598
+    - 80447
+    b:
+    - 97637
+    - 80447
+    width: 3
+    role: service
+    name: service road south
+  - a:
+    - 97553
+    - 80353
+    b:
+    - 97553
+    - 80397
+    width: 3
+    role: service
+    name: service road west
+  - a:
+    - 97553
+    - 80403
+    b:
+    - 97553
+    - 80447
+    width: 3
+    role: service
+    name: service road west
+  - a:
+    - 97637
+    - 80353
+    b:
+    - 97637
+    - 80354
+    width: 3
+    role: service
+    name: service road east
+  - a:
+    - 97637
+    - 80403
+    b:
+    - 97637
+    - 80447
+    width: 3
+    role: service
+    name: service road east
+  - a:
+    - 97570
+    - 80374
+    b:
+    - 97570
+    - 80390
+    width: 3
+    role: service
+    name: Mine Coaster service yard
+  - a:
+    - 97570
+    - 80374
+    b:
+    - 97570
+    - 80364
+    width: 3
+    role: service
+    name: Mine Coaster service yard
+  - a:
+    - 97570
+    - 80374
+    b:
+    - 97553
+    - 80374
+    width: 3
+    role: service
+    name: Mine Coaster service link
+  - a:
+    - 97599
+    - 80368
+    b:
+    - 97636
+    - 80368
+    width: 3
+    role: service
+    name: The Mine Works service yard
+  - a:
+    - 97599
+    - 80368
+    b:
+    - 97598
+    - 80368
+    width: 3
+    role: service
+    name: The Mine Works service yard
+  - a:
+    - 97612
+    - 80372
+    b:
+    - 97612
+    - 80384
+    width: 3
+    role: service
+    name: Mine Cart Escape service yard
+  - a:
+    - 97612
+    - 80372
+    b:
+    - 97612
+    - 80364
+    width: 3
+    role: service
+    name: Mine Cart Escape service yard
+  - a:
+    - 97579
+    - 80411
+    b:
+    - 97579
+    - 80421
+    width: 3
+    role: service
+    name: The Mine Head service yard
+  - a:
+    - 97579
+    - 80411
+    b:
+    - 97579
+    - 80403
+    width: 3
+    role: service
+    name: The Mine Head service yard
+  - a:
+    - 97633
+    - 80429
+    b:
+    - 97633
+    - 80442
+    width: 3
+    role: service
+    name: Frontier Rapids service yard
+  - a:
+    - 97633
+    - 80429
+    b:
+    - 97633
+    - 80416
+    width: 3
+    role: service
+    name: Frontier Rapids service yard
+  - a:
+    - 97633
+    - 80429
+    b:
+    - 97637
+    - 80429
+    width: 3
+    role: service
+    name: Frontier Rapids service link
+  - a:
+    - 97566
+    - 80428
+    b:
+    - 97580
+    - 80428
+    width: 3
+    role: service
+    name: Assay Office service yard
+  - a:
+    - 97566
+    - 80428
+    b:
+    - 97553
+    - 80428
+    width: 3
+    role: service
+    name: Assay Office service yard
+  - a:
+    - 97566
+    - 80428
+    b:
+    - 97566
+    - 80447
+    width: 3
+    role: service
+    name: Assay Office service link
+  - a:
+    - 97554
+    - 80410
+    b:
+    - 97554
+    - 80419
+    width: 3
+    role: service
+    name: The Saloon service yard
+  - a:
+    - 97554
+    - 80410
+    b:
+    - 97554
+    - 80403
+    width: 3
+    role: service
+    name: The Saloon service yard
+  - a:
+    - 97554
+    - 80410
+    b:
+    - 97553
+    - 80410
+    width: 3
+    role: service
+    name: The Saloon service link
+  - a:
+    - 97617
+    - 80379
+    b:
+    - 97617
+    - 80387
+    width: 3
+    role: service
+    name: The Nugget Chute service yard
+  - a:
+    - 97617
+    - 80379
+    b:
+    - 97617
+    - 80368
+    width: 3
+    role: service
+    name: The Nugget Chute service yard
+  - a:
+    - 97612
+    - 80396
+    b:
+    - 97618
+    - 80396
+    width: 3
+    role: service
+    name: Shooting Range service yard
+  - a:
+    - 97612
+    - 80396
+    b:
+    - 97600
+    - 80396
+    width: 3
+    role: service
+    name: Shooting Range service yard
+  - a:
+    - 97553
+    - 80361
+    b:
+    - 97553
+    - 80370
+    width: 3
+    role: service
+    name: Gold Sluice service yard
+  - a:
+    - 97553
+    - 80361
+    b:
+    - 97553
+    - 80353
+    width: 3
+    role: service
+    name: Gold Sluice service yard
+  - a:
+    - 97632
+    - 80415
+    b:
+    - 97637
+    - 80415
+    width: 3
+    role: service
+    name: The Powder House service yard
+  - a:
+    - 97632
+    - 80415
+    b:
+    - 97626
+    - 80415
+    width: 3
+    role: service
+    name: The Powder House service yard
+  - a:
+    - 97632
+    - 80415
+    b:
+    - 97632
+    - 80447
+    width: 3
+    role: service
+    name: The Powder House service link
+  obstacles:
+  - - 97572
+    - 80351
+    - 97618
+    - 80397
+  - - 97591
+    - 80445
+    - 97599
+    - 80449
+  - - 97562
+    - 80352
+    - 97636
+    - 80366
+  - - 97614
+    - 80360
+    - 97636
+    - 80385
+  - - 97581
+    - 80401
+    - 97599
+    - 80421
+  - - 97601
+    - 80415
+    - 97631
+    - 80442
+  - - 97552
+    - 80430
+    - 97581
+    - 80448
+  - - 97556
+    - 80401
+    - 97572
+    - 80419
+  - - 97583
+    - 80428
+    - 97593
+    - 80444
+  - - 97619
+    - 80368
+    - 97635
+    - 80390
+  - - 97600
+    - 80398
+    - 97625
+    - 80412
+  - - 97553
+    - 80352
+    - 97571
+    - 80370
+  - - 97626
+    - 80391
+    - 97638
+    - 80413
+  - - 97562
+    - 80390
+    - 97567
+    - 80395
+  - - 97569
+    - 80383
+    - 97571
+    - 80393
+  at:
+  - 97595
+  - 203
+  - 80400
+  kind: paths
+  title: Frontier Paths
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: path
+  hierarchy: supporting
+  land: frontier
+  requires_path: false
+design:
+  purpose: path
+  hierarchy: supporting
+  style: frontier
+  narrative: Frontier Paths serves the frontier visitor journey.
+origin_lock: false

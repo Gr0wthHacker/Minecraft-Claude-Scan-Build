@@ -1,0 +1,62 @@
+# PF GAME THE RIFFLE - the Prospecting Porch's second bay finally gets a mechanism.
+#
+# `frontier_builds._porch_lot`'s own docstring says it: "THE BAYS ARE SHELLS ... both bays are
+# built with their counter, backboard, result panel and reset hatch in place and NO circuit
+# behind them." One of the two has since been wired - `PF Game Pan Line` stands in the shooting
+# range bay - and the gold sluice bay had nothing at all.
+#
+# **IT IS ON THE VERANDA, NOT IN THE BAY, AND BOTH HALVES OF THAT ARE MEASURED.**
+# Standable-and-clear columns inside the sluice shed (world V97597-97613 / U80320-80332, over the
+# shipped `Park Complete`): a walkable ring one to two cells wide round the settling pool and the
+# launder, with no rectangle in it bigger than 15 x 1. A console needs a footprint the room does
+# not have.
+#
+# And the veranda is not uniformly clear either - `_porch_run` stands a colonnade every third
+# cell and rails its outer edge, so the first six sites tried refused between 26 and 110 cells,
+# and **a console missing forty-two cells is a machine that does nothing** while auditing clean.
+# The site is the one that measured ZERO refusals: V97588 / U80333, facing north, on the shared
+# veranda between the two bays - which `_porch_lot`'s own docstring calls the one place in the lot
+# worth dressing, because it is where a guest queues for both.
+#
+# **A TARGET IS THE RIGHT MECHANIC FOR A SLUICE**, not a borrowed one: `park_games`' `aim` reads
+# a `target` block's own output, which is proportional to how central the hit was, and runs it
+# down a decaying dust line so the last lamp lights only on a full reading. "How rich was the
+# wash" is the same shape of question as "how central was the shot", and it needs no new circuit
+# - which is this repo's rule, because a mechanism with no asserted contract does not ship.
+name: PF Game The Riffle
+gen: park_games
+params:
+  kind: aim
+  land: frontier
+  facing: north          # the shooter stands under the veranda and faces the sluice shed
+  at: [97580, 204, 80361]
+  building: PF Plateau Bone Bed
+  # **A CONSOLE'S CONTEXT IS THE GROUND LAYER, NOT THE COMPOSITE IT ENDS UP IN.** Pointed at
+  # `Park Complete` this design reads a world that ALREADY CONTAINS ITSELF the moment it is placed:
+  # `park_games` refuses every cell the capture owns, so a regenerate finds its own standing copy
+  # and ships a stub of a machine, silently, with 0 problems. `PF Game The Riffle` lost its disc,
+  # its comparator and its whole lamp row that way and still audited clean.
+  under:
+    - out/Park Ways.litematic
+    - out/PF Park Green.litematic
+  score: 6
+  title: 'THE RIFFLE'
+roles: [ride]
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: frontier
+  narrative: >
+    The gold sluice's own game, on the porch veranda: a riffle plate at counter height and a
+    six-lamp wash meter on the board beside it, with the bell for a clean run.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+origin_lock: false
+expensive_allowance: 6
+expensive_reason: >
+  6x redstone_lamp - a light cannot be substituted by colour (the nearest cheap match is a lamp
+  that does not light), and the lamp IS the reading this game shows, so the cost is declared
+  rather than hidden.

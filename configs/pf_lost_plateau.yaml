@@ -1,0 +1,83 @@
+# PF LOST PLATEAU - the jungle that turns the Mine Ridge into a land.
+#
+# Jack: "I just think this theme is boring and dull and doesnt represent well - its confusing to
+# the end user ... lets take the same color schemes potentially so we dont change the coaster, but
+# I think 'frontier' needs to change and we need to represent something more interesting here -
+# looking at the rest of the park, this falls so short."
+#
+# ---------------------------------------------------------------------------------------------
+# THE NUMBER THAT IS THE WHOLE COMPLAINT
+#
+# Show material - wool, concrete, copper, glass, lamps, carpet, anything MADE and coloured - as a
+# share of each land, measured over the shipped park:
+#
+#     Midway       87,967 blocks   24.0%
+#     Prismworks   96,576          21.7%
+#     Wyrm reach   31,738          31.7%
+#     FRONTIER    144,620           1.3%
+#
+# The Frontier is the BIGGEST land in the park and the one with the MOST to do - 349 interactive
+# blocks against the Midway's 335 - so it was never short on effort. It is short on IDENTITY: 54%
+# of it is moss, stone, stone brick and cobblestone. **And a gold-rush mining camp cannot be fixed
+# by adding colour, because timber and stone IS the theme**, which is why the theme changed rather
+# than the execution.
+#
+# ---------------------------------------------------------------------------------------------
+# NOTHING THE COASTER OR THE MOUNTAIN OWNS IS TOUCHED
+#
+# `Mine Coaster` (56,635) and `PF Mine Ridge` (41,948) are 98,583 blocks - **72% of the land's
+# mass** - and a mountain with a rail ride cut through it works under any story: a cave tunnel and
+# a mine tunnel are the same tunnel, and a timber trestle over a gorge is a timber trestle. Every
+# cell this design places goes into AIR above the ridge's own surface, so the pass is reversible by
+# breaking what it placed and neither the ride nor the mountain is regenerated.
+#
+# ---------------------------------------------------------------------------------------------
+# THE LOT, AND WHY THE BASE IS 206
+#
+# The ridge's lot is V24-147 x U99-169: 8,804 columns running Y202-256. **5,776 of them stand at
+# Y206 or above** - that is the MASS rather than the lawn around it, and it is the biggest single
+# grey object in the park. Its top surface measures stone 14%, gravel 13%, cobblestone 9%,
+# andesite 4%, with cracked stone brick 15% and spruce fence 4% that belong to the coaster and are
+# refused by `ROCK`.
+name: PF Lost Plateau
+gen: plateau
+params:
+  kind: canopy
+  lot: [124, 71]
+  at: [24, 99]
+  under: out/Park Complete.litematic
+  previous: out/PF Lost Plateau.litematic
+  sy: 64
+  base: 206
+  # THE MOSS CAP is the colour AND the soil - a fern roots in the dirt family and nowhere else,
+  # and the Lowland Thicket returned 173 placement problems for treating mossy cobble as ground.
+  # 0.72 leaves rock showing through in drifts rather than furring the whole mountain.
+  turf: 0.72
+  # THE CANOPY. A jungle crown is WIDE AND FLAT and carried clear of the ground on a bare trunk -
+  # a spruce narrows in steps and reads as a fir. The clearance test is not optional here: the
+  # coaster's trestles are 14.9% of this lot's top surface, so a tree on a bench beside the track
+  # grows straight through it.
+  trees: {step: 5, density: 0.5}
+  # VINE CURTAINS on the faces the ridge already has. A face is FOUND, not drawn: a column whose
+  # neighbour is three or more courses lower shows that much rock, and the curtain hangs on it.
+  vines: {density: 0.55, drop: 7, min_face: 3}
+  ferns: 0.30
+  lichen: 0.06
+  seed: 71
+  title: THE LOST PLATEAU
+roles: [construction]
+design:
+  purpose: terrain
+  hierarchy: landmark
+  style: frontier
+  narrative: >
+    The jungle over the plateau: a moss cap one course above the rock, jungle and azalea canopies
+    on the crest and the benches, vine curtains down the faces, and ferns and glow lichen beneath.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

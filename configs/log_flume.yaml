@@ -1,0 +1,18 @@
+name: Log Flume
+gen: coaster
+params:
+  land: frontier
+  flume_span: 29
+  flume_top: 20
+  pool: 4
+  facing: east
+  at:
+  - 97569
+  - 203
+  - 80401
+  kind: flume
+  title: Log Flume
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

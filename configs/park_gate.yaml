@@ -1,0 +1,34 @@
+name: Park Gate
+gen: park
+params:
+  land: midway
+  lanes: 3
+  depth: 6
+  facing: west
+  at:
+  - 97553
+  - 203
+  - 80565
+  kind: gate
+  title: Park Gate
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+park_contract:
+  purpose: arrival
+  hierarchy: landmark
+  land: midway
+  requires_path: true
+  access_candidates:
+  - - 97549
+    - 204
+    - 80572
+  - - 97562
+    - 204
+    - 80572
+design:
+  purpose: arrival
+  hierarchy: landmark
+  style: midway
+  narrative: Park Gate serves the midway visitor journey.
+origin_lock: false

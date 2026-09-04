@@ -1,0 +1,24 @@
+{
+  "origin": {
+    "x": 97583,
+    "y": 202,
+    "z": 80419
+  },
+  "size": {
+    "x": 7,
+    "y": 7,
+    "z": 9
+  },
+  "generated_by": "park",
+  "kind": "stall",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "an open-fronted shop: you can see in, the counter is reachable, and the name hangs on a fascia that actually exists",
+  "unverified": [],
+  "width": 7,
+  "depth": 5,
+  "height": 5,
+  "signed": true,
+  "file": "Trading Post 1.litematic",
+  "name": "Trading Post 1"
+}

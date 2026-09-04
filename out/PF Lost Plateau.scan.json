@@ -1,0 +1,204 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80399
+  },
+  "size": {
+    "x": 124,
+    "y": 64,
+    "z": 71
+  },
+  "generated_by": "plateau",
+  "kind": "lost_plateau",
+  "lot": [
+    124,
+    71
+  ],
+  "at": [
+    24,
+    99
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "signs": [],
+  "refused": 0,
+  "parts": {
+    "turf": {
+      "cells": 3517
+    },
+    "trees": {
+      "trees": 63,
+      "cells": 6026
+    },
+    "vines": {
+      "cells": 6421,
+      "curtains": 1502
+    },
+    "undergrowth": {
+      "ferns": 1167,
+      "lichen": 36
+    }
+  },
+  "contract": "the jungle that turns the Mine Ridge from the biggest grey object in the park into the Lost Plateau: a moss cap one course over the rock, jungle and azalea canopies on the crest, vine curtains down the faces the ridge already has, and ferns and lichen under them. Every cell goes into AIR above the ridge's own surface, so the mountain and the coaster are untouched and the pass is reversible by breaking what it placed.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "traversal": [
+        "vine"
+      ]
+    },
+    "verifiers": {
+      "traversal": "mcbuild.walk / audit.check_climb"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "terrain",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "The jungle over the plateau: a moss cap one course above the rock, jungle and azalea canopies on the crest and the benches, vine curtains down the faces, and ferns and glow lichen beneath.\n"
+    },
+    "metrics": {
+      "blocks": 15374,
+      "materials": 9,
+      "dominant_material_share": 0.3622,
+      "light_blocks": 0,
+      "massing": {
+        "width": 118,
+        "height": 58,
+        "depth": 71,
+        "fill_ratio": 0.0316
+      },
+      "silhouette": {
+        "top": {
+          "area": 4632,
+          "fill_ratio": 0.5261
+        },
+        "front": {
+          "area": 3181,
+          "fill_ratio": 0.4008
+        },
+        "side": {
+          "area": 2450,
+          "fill_ratio": 0.5392
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.591,
+          0.3396,
+          0.0694
+        ],
+        "top_silhouette_perimeter": 4387,
+        "surface_faces_per_block": 2.8451
+      },
+      "material_counts": {
+        "vine": 5568,
+        "jungle_leaves": 4309,
+        "moss_block": 2924,
+        "fern": 892,
+        "azalea_leaves": 763,
+        "jungle_log": 357,
+        "moss_carpet": 275,
+        "flowering_azalea_leaves": 250,
+        "glow_lichen": 36
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "4508f7cddc4189989f996d88f3ac31c4060e16121478129693dc6c67a7c89b74",
+    "generator_source_digest": "f4f4e5a2460a867670b193630ae1cb04ef73da391c45c4c22949bbc7b03e943e",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "traversal"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 57.974507,
+    "blocks": 15374,
+    "blocks_per_second": 265.19
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 15374,
+    "mechanic_families": [
+      "traversal"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: jungle_log"
+  ],
+  "file": "PF Lost Plateau.litematic",
+  "name": "PF Lost Plateau"
+}

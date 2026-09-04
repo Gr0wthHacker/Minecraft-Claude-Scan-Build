@@ -1,0 +1,737 @@
+{
+  "Foundry Gate": {
+    "generator": "compose",
+    "params": {
+      "parts": [
+        {
+          "gen": "park",
+          "params": {
+            "kind": "plaza",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east",
+            "width": 34,
+            "depth": 50
+          },
+          "offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "gate",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east",
+            "width": 35,
+            "depth": 25,
+            "height": 26
+          },
+          "offset": [
+            1,
+            0,
+            8
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "tower",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "tower",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            1,
+            0,
+            22
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "tower",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            36,
+            0,
+            0
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "tower",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            36,
+            0,
+            22
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "walkthrough",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            32,
+            0,
+            12
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "booth",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            20,
+            0,
+            12
+          ]
+        }
+      ]
+    }
+  },
+  "Prism Array": {
+    "generator": "prismworks",
+    "params": {
+      "kind": "array"
+    }
+  },
+  "Resonance Vault": {
+    "generator": "prismworks",
+    "params": {
+      "kind": "vault"
+    }
+  },
+  "Prism Ascent": {
+    "generator": "prismworks",
+    "params": {
+      "kind": "ascent",
+      "height": 130,
+      "radius": 26
+    }
+  },
+  "Forge Deck": {
+    "generator": "compose",
+    "params": {
+      "parts": [
+        {
+          "gen": "park",
+          "params": {
+            "kind": "plaza",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east",
+            "width": 62,
+            "depth": 22
+          },
+          "offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "tower",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            1,
+            0,
+            1
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "tower",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            1,
+            0,
+            17
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "tower",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            1,
+            0,
+            33
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "tower",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            1,
+            0,
+            50
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "walkthrough",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            2,
+            0,
+            10
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "walkthrough",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            2,
+            0,
+            26
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "walkthrough",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            2,
+            0,
+            42
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "booth",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            2,
+            0,
+            53
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "booth",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            9,
+            0,
+            53
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "gate",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east",
+            "width": 19,
+            "depth": 15,
+            "height": 18
+          },
+          "offset": [
+            3,
+            0,
+            44
+          ]
+        }
+      ]
+    }
+  },
+  "Service Gallery": {
+    "generator": "compose",
+    "params": {
+      "parts": [
+        {
+          "gen": "undercroft",
+          "params": {
+            "land": "frontier",
+            "kind": "crypt",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "south",
+            "width": 5,
+            "height": 5,
+            "chambers": [
+              [
+                "Bubble Sources",
+                11,
+                11,
+                "water"
+              ],
+              [
+                "Catch Racks",
+                9,
+                9,
+                "niches"
+              ]
+            ]
+          },
+          "offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "gen": "undercroft",
+          "params": {
+            "land": "frontier",
+            "kind": "crypt",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "south",
+            "width": 5,
+            "height": 5,
+            "chambers": [
+              [
+                "Reset Control",
+                11,
+                11,
+                "puzzle"
+              ],
+              [
+                "Chest Recovery",
+                9,
+                9,
+                "reward"
+              ]
+            ]
+          },
+          "offset": [
+            0,
+            -9,
+            0
+          ]
+        },
+        {
+          "gen": "undercroft",
+          "params": {
+            "land": "frontier",
+            "kind": "crypt",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "south",
+            "width": 5,
+            "height": 5,
+            "chambers": [
+              [
+                "Checkpoint Wiring",
+                11,
+                11,
+                "scene"
+              ],
+              [
+                "Storage",
+                9,
+                9,
+                "niches"
+              ]
+            ]
+          },
+          "offset": [
+            0,
+            -18,
+            0
+          ]
+        },
+        {
+          "gen": "undercroft",
+          "params": {
+            "land": "frontier",
+            "kind": "crypt",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "south",
+            "width": 5,
+            "height": 5,
+            "chambers": [
+              [
+                "Catch Sump",
+                11,
+                11,
+                "water"
+              ],
+              [
+                "Spares",
+                9,
+                9,
+                "niches"
+              ]
+            ]
+          },
+          "offset": [
+            0,
+            -27,
+            0
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "plaza",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east",
+            "width": 38,
+            "depth": 16
+          },
+          "offset": [
+            0,
+            8,
+            0
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "booth",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            2,
+            8,
+            4
+          ]
+        }
+      ]
+    }
+  },
+  "Claim Line": {
+    "generator": "compose",
+    "params": {
+      "parts": [
+        {
+          "gen": "park",
+          "params": {
+            "kind": "plaza",
+            "land": "frontier",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east",
+            "width": 40,
+            "depth": 70
+          },
+          "offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "gate",
+            "land": "frontier",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east",
+            "width": 19,
+            "depth": 15,
+            "height": 18
+          },
+          "offset": [
+            1,
+            0,
+            10
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "gate",
+            "land": "midway",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east",
+            "width": 19,
+            "depth": 15,
+            "height": 18
+          },
+          "offset": [
+            54,
+            0,
+            10
+          ]
+        },
+        {
+          "gen": "frontiertown",
+          "params": {
+            "kind": "trestlebridge",
+            "land": "frontier",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            24,
+            0,
+            4
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "tower",
+            "land": "frontier",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east"
+          },
+          "offset": [
+            28,
+            0,
+            26
+          ]
+        }
+      ]
+    }
+  },
+  "Wyrm's Crossing": {
+    "generator": "compose",
+    "params": {
+      "parts": [
+        {
+          "gen": "park",
+          "params": {
+            "kind": "plaza",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east",
+            "width": 34,
+            "depth": 50
+          },
+          "offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "gen": "wyrm",
+          "params": {
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "scale": 1.0
+          },
+          "offset": [
+            16,
+            0,
+            1
+          ]
+        },
+        {
+          "gen": "park",
+          "params": {
+            "kind": "arch",
+            "land": "hollow",
+            "at": [
+              0,
+              0,
+              0
+            ],
+            "facing": "east",
+            "width": 17,
+            "height": 14
+          },
+          "offset": [
+            46,
+            0,
+            8
+          ]
+        }
+      ]
+    }
+  }
+}

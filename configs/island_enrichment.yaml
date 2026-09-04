@@ -1,0 +1,51 @@
+# ISLAND ENRICHMENT - the architectural detail our buildings have never had (2026-08-23).
+#
+# MEASURED against tools/corpus.py's 31 outside builds. On the two numbers that describe how
+# detailed a building is we lose consistently: their architecture runs a palette of 37 and
+# 17.3% detail blocks, ours 14 and 11.4% - and per building it is far worse. The Campanile is
+# 575 cells of 12 types at 1.4% detail, a bell tower of three blackstone variants stacked;
+# their comparable watchtower is 45 types at 48.9%. The Sanctum is nine block types.
+#
+# The missing vocabulary is specific. Per thousand cells, ours vs theirs: stairs 0.64 vs 4.51,
+# fences 0.07 vs 2.22, trapdoors 0.00 vs 1.07 - while we OVER-use walls (1.8x) and carpet
+# (9.9x). We build in full blocks, slabs and walls and skip the families that make a surface
+# read as built. And the economy is not the constraint: 350 detail blocks are 1.19-legal and
+# spendable, 38 of them already in the quarter's own palette.
+#
+# ADDITIVE ONLY. Every one of these is 89-97% built, so the pass writes into AIR and never
+# over anything standing - the deck floor's rule that a remedial design's damage is what it
+# REPLACES. The cost is that it cannot deepen the palette of an existing wall, only of the
+# detail hung on it.
+#
+# RUNS, NOT CELLS. The deck soffit drew a coffer grid per cell and got 215 runs of which 184
+# were one or two cells - confetti. A run under `min_run` here gets nothing at all.
+name: Island Enrichment
+gen: enrich
+params:
+  under: out/island_full.litematic
+  min_run: 4
+  cornice: true
+  plinth: true
+  sill: true
+  rail: false        # a rail on the wrong edge reads as a fence in a field; wants its own pass
+  see_out: 2         # a face with one cell of air in front of it is a crevice, not a facade
+  zones:
+    - {name: Lowland Campanile, box: [-24202, 40, 29967, -24191, 65, 29979]}
+    - {name: Lowland Sanctum,   box: [-24194, 38, 29962, -24177, 56, 30017]}
+    - {name: Lowland Hamlet,    box: [-24194, 42, 30024, -24174, 57, 30042]}
+    - {name: Lowland Ruinway,   box: [-24206, 37, 30002, -24150, 57, 30031]}
+    - {name: Lowland Portal,    box: [-24177, 42, 30013, -24165, 68, 30035]}
+    - {name: Atelier Court,     box: [-24213, 149, 30006, -24186, 153, 30028]}
+    - {name: Taproot Entrance,  box: [-24208, 189, 29993, -24197, 200, 30013]}
+    - {name: Court Hall,        box: [-24234, 191, 30008, -24221, 202, 30029]}
+    - {name: Deck Vault,        box: [-24216, 194, 29991, -24178, 201, 30034]}
+    - {name: Entry Hall,        box: [-24207, 193, 30004, -24192, 197, 30027]}
+
+origin_lock: [-24251, 20, 29949]
+
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: [out/island_full.litematic]

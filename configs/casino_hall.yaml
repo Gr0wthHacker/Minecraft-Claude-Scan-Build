@@ -1,0 +1,16 @@
+name: Casino Hall
+gen: casino
+params:
+  width: 88
+  depth: 88
+  gate: 3
+  at:
+  - 97643
+  - 203
+  - 80643
+  kind: hall
+  title: Casino Hall
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

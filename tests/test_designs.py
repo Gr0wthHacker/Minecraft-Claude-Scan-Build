@@ -15,6 +15,8 @@ CONFIGS = [c for c in glob.glob(os.path.join(os.path.dirname(__file__), "..", "c
 
 def _run(cfg):
     m, r = run_config(cfg, settings=Settings(out_dir="out/_test"), render_sheet=False, verbose=False)
+    if getattr(r, "complete", False):
+        return                     # 100% built: nothing to emit is success, not failure
     # Overlap against a design you have started building is a DEVIATION (you placed something else
     # there), which is `mcbuild progress`'s business, not a defect in the design. Gate on everything
     # else, so rule 2 still catches a brand-new design that collides with the island.
@@ -22,8 +24,17 @@ def _run(cfg):
     assert not probs, f"{os.path.basename(cfg)}: {[str(p) for p in probs][:5]}"
     assert r.blocks > 0
     exp = {k: v for k, v in r.bom.items() if __import__("mcbuild").palette.tier(k) == "expensive"}
-    # tiny accents (e.g. a beak) may be kept on purpose; anything bulk is a regression
-    assert sum(exp.values()) <= 8, f"{os.path.basename(cfg)}: expensive blocks {exp}"
+    # tiny accents (e.g. a beak) may be kept on purpose; anything bulk is a regression.
+    # A design may raise its own ceiling with `expensive_allowance`, but only in its config and
+    # only with the reason written beside it - the Island Run needs 13 slime blocks because
+    # slime IS the jump pad it was asked for, and there is no cheap block that cancels a fall.
+    # Declaring it in the config keeps the gate honest for everything else and puts the
+    # exception somewhere a reader will meet it.
+    import yaml as _yaml
+    with open(cfg, encoding="utf-8") as fh:
+        _cfg = _yaml.safe_load(fh) or {}
+    cap = int(_cfg.get("expensive_allowance", 8))
+    assert sum(exp.values()) <= cap, f"{os.path.basename(cfg)}: expensive blocks {exp}"
 
 
 def test_all_configs():

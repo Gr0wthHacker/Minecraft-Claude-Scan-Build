@@ -1,0 +1,35 @@
+name: The Big Wheel
+gen: bigwheel
+params:
+  land: midway
+  diameter: 65
+  spokes: 16
+  cars: 16
+  facing: west
+  at:
+  - 97627
+  - 203
+  - 80564
+  kind: wheel
+  title: The Big Wheel
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+park_contract:
+  purpose: ride
+  hierarchy: landmark
+  land: midway
+  requires_path: true
+  access_candidates:
+  - - 97619
+    - 204
+    - 80600
+  - - 97641
+    - 204
+    - 80600
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: midway
+  narrative: The Big Wheel serves the midway visitor journey.
+origin_lock: false

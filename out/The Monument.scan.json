@@ -1,0 +1,540 @@
+{
+  "origin": {
+    "x": 97579,
+    "y": 202,
+    "z": 80617
+  },
+  "size": {
+    "x": 33,
+    "y": 53,
+    "z": 33
+  },
+  "generated_by": "monument",
+  "kind": "monument",
+  "land": "midway",
+  "facing": "north",
+  "contract": "five tiers, each narrower and taller than the one below: a four-step base you can sit on, a panelled podium, a colonnade you can see through, a fluted taper with a gilded collar, and a planar winged figure at least 45 courses up - and an OBSERVATION TOWER anyone can find: a lit, signed portal on the flank facing the approach, a marked route to it across the apron, a spiral stair lit every four courses, a railed landing, a fenced bridge, and a railed gallery with a bell and a plaque naming the view - walkable from the door to the deck",
+  "unverified": [],
+  "height": 51,
+  "base": 29,
+  "pad": 2365,
+  "steps": 4,
+  "columns": 8,
+  "bays": 8,
+  "panels": 0,
+  "wingspan": 21,
+  "wing_cells": 158,
+  "lanterns": 35,
+  "posts": 7,
+  "posts_skipped": 1,
+  "door": [
+    97580,
+    203,
+    80630
+  ],
+  "portal_lanterns": 2,
+  "forecourt": 9,
+  "marked_route": 48,
+  "landing_floor": 23,
+  "landing_rails": 15,
+  "stair_mouth": [
+    [
+      -15,
+      0
+    ],
+    [
+      -15,
+      1
+    ]
+  ],
+  "climb_treads": [
+    [
+      [
+        97581,
+        203,
+        80632
+      ],
+      "east"
+    ],
+    [
+      [
+        97582,
+        204,
+        80632
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        205,
+        80633
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        206,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97581,
+        207,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97580,
+        208,
+        80634
+      ],
+      "north"
+    ],
+    [
+      [
+        97580,
+        209,
+        80633
+      ],
+      "north"
+    ],
+    [
+      [
+        97580,
+        210,
+        80632
+      ],
+      "east"
+    ],
+    [
+      [
+        97581,
+        211,
+        80632
+      ],
+      "east"
+    ],
+    [
+      [
+        97582,
+        212,
+        80632
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        213,
+        80633
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        214,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97581,
+        215,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97580,
+        216,
+        80634
+      ],
+      "north"
+    ],
+    [
+      [
+        97580,
+        217,
+        80633
+      ],
+      "north"
+    ],
+    [
+      [
+        97580,
+        218,
+        80632
+      ],
+      "east"
+    ],
+    [
+      [
+        97581,
+        219,
+        80632
+      ],
+      "east"
+    ],
+    [
+      [
+        97582,
+        220,
+        80632
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        221,
+        80633
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        222,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97581,
+        223,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97580,
+        224,
+        80634
+      ],
+      "north"
+    ],
+    [
+      [
+        97580,
+        225,
+        80633
+      ],
+      "north"
+    ],
+    [
+      [
+        97580,
+        226,
+        80632
+      ],
+      "east"
+    ],
+    [
+      [
+        97581,
+        227,
+        80632
+      ],
+      "east"
+    ],
+    [
+      [
+        97582,
+        228,
+        80632
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        229,
+        80633
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        230,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97581,
+        231,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97580,
+        232,
+        80634
+      ],
+      "north"
+    ],
+    [
+      [
+        97580,
+        233,
+        80633
+      ],
+      "north"
+    ],
+    [
+      [
+        97580,
+        234,
+        80632
+      ],
+      "east"
+    ],
+    [
+      [
+        97581,
+        235,
+        80632
+      ],
+      "east"
+    ],
+    [
+      [
+        97582,
+        236,
+        80632
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        237,
+        80633
+      ],
+      "south"
+    ],
+    [
+      [
+        97582,
+        238,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97581,
+        239,
+        80634
+      ],
+      "west"
+    ],
+    [
+      [
+        97580,
+        240,
+        80634
+      ],
+      "north"
+    ],
+    [
+      [
+        97580,
+        241,
+        80633
+      ],
+      "north"
+    ]
+  ],
+  "climb_length": 39,
+  "climb_rails": 55,
+  "climb_lanterns": 20,
+  "bridge": 8,
+  "gallery_height": 39,
+  "gallery_radius": 5,
+  "gallery_floor": 113,
+  "gallery_rails": 31,
+  "gallery_soffit_lanterns": 4,
+  "turret_at": [
+    -14,
+    0
+  ],
+  "signs": 8,
+  "signs_placed": 8,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "sculpture"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "sculpture": "connected, supported silhouette with deliberate material hierarchy"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "landmark",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "The Monument serves the midway visitor journey."
+    },
+    "metrics": {
+      "blocks": 5840,
+      "materials": 14,
+      "dominant_material_share": 0.3397,
+      "light_blocks": 35,
+      "massing": {
+        "width": 33,
+        "height": 53,
+        "depth": 33,
+        "fill_ratio": 0.1012
+      },
+      "silhouette": {
+        "top": {
+          "area": 807,
+          "fill_ratio": 0.741
+        },
+        "front": {
+          "area": 789,
+          "fill_ratio": 0.4511
+        },
+        "side": {
+          "area": 585,
+          "fill_ratio": 0.3345
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 1984,
+        "blackstone": 1555,
+        "stone_brick_stairs": 665,
+        "stone": 610,
+        "white_wool": 509,
+        "oak_log": 198,
+        "stone_brick_slab": 135,
+        "yellow_wool": 70,
+        "oak_fence": 38,
+        "lantern": 35,
+        "stone_brick_wall": 31,
+        "oak_wall_sign": 8
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "9883b6e81f289a7c763632efe7a454d1344af6bbefef55cbc11102e74698107c",
+    "generator_source_digest": "628e3673dc621476fc2cf4cc81006890798c0898b79607ca40cf1f2f58f5ac12",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "landmark",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97595,
+        204,
+        80615
+      ],
+      [
+        97595,
+        204,
+        80651
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 5840,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: bell",
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: end_rod"
+  ],
+  "file": "The Monument.litematic",
+  "name": "The Monument"
+}

@@ -1,0 +1,46 @@
+{
+  "origin": {
+    "x": -24193,
+    "y": 43,
+    "z": 30025
+  },
+  "size": {
+    "x": 19,
+    "y": 14,
+    "z": 17
+  },
+  "generated_by": "hamlet",
+  "kind": "hamlet",
+  "profile_view": "face",
+  "facing": [
+    0,
+    -1
+  ],
+  "features_built": {
+    "house_0_whole": {
+      "floor": 10,
+      "walls": 85,
+      "door_frame": 0,
+      "gables": 17,
+      "roof": 77,
+      "chimney": 4,
+      "hearth": 1,
+      "bench": 3
+    },
+    "house_1_roofless": {
+      "floor": 22,
+      "walls": 82,
+      "door_frame": 0,
+      "gables": 11
+    },
+    "house_2_fallen": {
+      "floor": 73,
+      "walls": 19,
+      "door_frame": 5,
+      "tumble": 1
+    },
+    "lane": 28
+  },
+  "file": "Lowland Hamlet.litematic",
+  "name": "Lowland Hamlet"
+}

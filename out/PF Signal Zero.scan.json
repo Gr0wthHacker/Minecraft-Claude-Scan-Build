@@ -1,0 +1,215 @@
+{
+  "origin": {
+    "x": 97546,
+    "y": 94,
+    "z": 80771
+  },
+  "size": {
+    "x": 89,
+    "y": 9,
+    "z": 89
+  },
+  "generated_by": "prismfloor",
+  "kind": "prismfloor",
+  "profile_view": "top",
+  "facing": [
+    -1,
+    0
+  ],
+  "features_built": {
+    "bed": 5016,
+    "water": 3756,
+    "apron": 1260,
+    "wall": 4348,
+    "light": 28,
+    "rail": 0,
+    "bell": 23
+  },
+  "centre": [
+    97590,
+    80815
+  ],
+  "y_floor": 95,
+  "pool_r": 38,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ]
+    },
+    "verifiers": {
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "prismworks",
+      "focal_face": "west",
+      "narrative": "A lit chamber a hundred courses under the park: a pearl-lit pool thirty-four across that catches every fall on the course, a dry apron and a wall round it so the floor is a room and not a ledge, and a bell on a copper frame at the head of the pool.\n"
+    },
+    "metrics": {
+      "blocks": 14393,
+      "materials": 9,
+      "dominant_material_share": 0.3091,
+      "light_blocks": 0,
+      "massing": {
+        "width": 89,
+        "height": 9,
+        "depth": 89,
+        "fill_ratio": 0.2019
+      },
+      "silhouette": {
+        "top": {
+          "area": 5556,
+          "fill_ratio": 0.7014
+        },
+        "front": {
+          "area": 727,
+          "fill_ratio": 0.9076
+        },
+        "side": {
+          "area": 727,
+          "fill_ratio": 0.9076
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.8098,
+          0.1132,
+          0.077
+        ],
+        "top_silhouette_perimeter": 892,
+        "surface_faces_per_block": 1.139
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 4449,
+        "deepslate_bricks": 3807,
+        "water": 3756,
+        "cobbled_deepslate": 1086,
+        "smooth_stone": 733,
+        "waxed_copper_block": 291,
+        "stone": 241,
+        "pearlescent_froglight": 29,
+        "bell": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "96f4b858e1acb41018111e3467ff48390ba6c3d63858d5b6032a7146d995b628",
+    "generator_source_digest": "3d1245049ba34e923e7149fdd6c2256ebd40c41d7ce0e2d869eb88a4f1d05189",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "fluid",
+        "hazard"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 55.878877,
+    "blocks": 14393,
+    "blocks_per_second": 257.57
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "blocks": 14393,
+    "mechanic_families": [
+      "fluid",
+      "hazard"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "experience",
+    "player_verbs": [
+      "land in the pool",
+      "walk out onto the apron",
+      "ring the bell",
+      "take the column back up"
+    ],
+    "outcome": "You arrive at the bottom of the well - by finishing the course or by missing it - without taking damage, and the bell says so to everyone on the gallery a hundred courses above.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: deepslate_bricks",
+    "not in the provisional skyblock-1.19 list: pearlescent_froglight",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: waxed_copper_block"
+  ],
+  "file": "PF Signal Zero.litematic",
+  "name": "PF Signal Zero"
+}

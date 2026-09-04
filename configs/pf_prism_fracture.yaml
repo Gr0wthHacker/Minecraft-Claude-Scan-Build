@@ -1,0 +1,135 @@
+# PF PRISM FRACTURE - the seam breaking through the Prism Reach's dead plate.
+#
+# Jack, looking at this exact ground: "we need to find something to actually place in these areas,
+# they dont fit well especially now with our awesome prism tower."
+#
+# ---------------------------------------------------------------------------------------------
+# WHAT WAS HERE, MEASURED OFF out/Park Complete.litematic
+#
+# The Prism Reach is 45 x 150 columns between the Midway and Prismworks, and **96.3% of it stands
+# 0-2 courses tall with NOTHING AT ALL in the 12-24 band.** Its only content is `Wyrm's Crossing`
+# - 2,839 blocks of which **2,650 are three dark greys of bare paving**, a 58 x 43 plate at V24
+# U385 - and the skull it was built to carry moved to the rim gate months ago. It is the floor of
+# a building that is not there, and it is what Jack photographed.
+#
+# THE PLATE IS KEPT AND WORKED RATHER THAN REPLACED. It is already the right stone, it is already
+# a course proud of the lawn, and a seam bursting through a dark dressed floor reads far better
+# than one coming out of moss. So `Wyrm's Crossing` is deliberately NOT in `off_limits`: this is
+# the one walking surface in the park that this design is allowed to stand on, and that choice is
+# written here rather than inferred from a material.
+#
+# ---------------------------------------------------------------------------------------------
+# THE AXIS RUNS TOWARD PRISMWORKS AND COMES FORWARD AS IT GOES
+#
+# From local (38, 1) to (10, 43): it enters at the Midway end deep in the lot and arrives at the
+# Prismworks end hard against the spine. A guest walking the spine east therefore has the seam
+# approach them AND grow - splinters at the Midway edge, full shards at the threshold - which is
+# the whole reason the field is a line and not a scatter.
+#
+# NOTHING PASSES 26 COURSES. PRISMWORKS_V2_PLAN holds the well's own mast ring to eighteen so
+# "the park keeps the two dominants it has rather than gaining a competing third", and a field of
+# spikes taller than the collar would take the mouth's silhouette. This fills the 6-26 band the
+# land measured at 3.0% against the Frontier's 19.5%, and stops.
+name: PF Prism Fracture
+gen: seam
+params:
+  kind: fracture
+  lot: [146, 45]
+  at: [24, 385]
+  sy: 34
+  under: out/Park Complete.litematic
+  previous: out/PF Prism Fracture.litematic
+  # THE PARK'S OWN STREETS ARE OFF LIMITS AND THE CROSSING'S PLATE IS NOT. `Park Ways` owns the
+  # spine, both boundary avenues, every verge, lamp mast and bench in this lot; read off its own
+  # artifact rather than guessed from a material, because this design, the plate and the streets
+  # are all drawn from the same four dark stones.
+  off_limits:
+    - out/Park Ways.litematic
+    - out/PF Water Wyrm Garden.litematic
+  axis: [145, 1, 10, 43]
+  reach: 16.0
+  falloff: 0.85
+  grow: [0.45, 1.0]
+  # FIVE OUTCROPS, NOT AN EVEN DUSTING. The first build spread its shards evenly down the axis
+  # and the plan read as blue confetti on a dark floor - the thicket's and the deck soffit's own
+  # failure, arriving a third time. A vein surfaces in a few places and the ground between them
+  # is what makes those places read.
+  lobes: 11
+  lobe_r: [7.0, 15.0]
+  lobe_wander: 5.0
+  lobe_floor: 0.26
+  pitch: 3
+  density: 1.0
+  # **NOTHING UNDER TEN IS A SHARD, IT IS A SPLINTER**, and splinters are `_rubble`'s job. The
+  # first build's heights ran 5-9 and they read as bollards: at six courses the three-tone
+  # gradient is two cells a band, which is a stripe rather than a crystal.
+  height: [11, 30]
+  clear: 1
+  rubble: true
+  # THE CRACK ITSELF, three cells wide and running the whole lot. Without it the five outcrops
+  # read as five unrelated clumps of crystal standing on a floor rather than as five places on
+  # one line - and it is what makes the seam visibly enter from the Midway and leave into
+  # Prismworks instead of beginning and ending inside its own lot. Slabs and stairs, so it is
+  # walked over rather than round.
+  trace: 3.0
+
+  # THE LANE OFF THE SPINE, AS AN L. Leg A comes in off the spine's verge at the plate's front
+  # edge; leg B turns east along the plate and ends at the lookout's gate. Only the moss half of
+  # it is paved - see `_walk`: the plate is already a floor and a strip laid over it would be a
+  # second surface on a finished one.
+  walk:
+    - {v: 0, u: 33, dv: 40, du: 4}
+
+  # ...and the shards keep off it. `lanes` is the walk plus a cell of tolerance and the lookout's
+  # own box; `lane_clear` then holds a shard's FOOT two further cells back, because a shard leans
+  # up to a fifth of its height and a foot beside the walk is a crystal over it.
+  lanes:
+    - [0, 40, 32, 37]
+    - [39, 51, 30, 42]
+  lane_clear: 2
+
+  # THE END OF THE LANE IS A PLACE, which is this repo's own rule for when a path is real. Entry
+  # on the low-u side, so the rail is on the far edge and a guest arrives facing the seam, the
+  # Prismworks threshold and the tower beyond it.
+  # v21-31 x u28-38 is the largest square of unbroken plate at this end of the lot - the three
+  # planters and the sunken basin the crossing already carries are measured around, not paved
+  # over. A deck with holes in it where somebody else's fern stands is not a deck.
+  lookout:
+    v: 40
+    u: 31
+    dv: 11
+    du: 11
+    entry: west
+    lines: ["THE SEAM", "strike it", "it answers"]
+  seed: 41
+roles: [path]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: prismworks
+  narrative: >
+    The crystal vein the prism well was cut to reach, breaking through the reach's dark plate:
+    splinters at the Midway edge growing to leaning, lit shards at the Prismworks threshold, the
+    deck heaved and broken at every foot, and a lane off the spine to a note-block rail among the
+    biggest of them.
+fun_contract:
+  enforce: true
+  class: route
+  player_verbs: [walk into the seam, strike a crystal, look down the reach]
+  spatial_job: >
+    It gives the Prism Reach the only mass it has ever had between ankle height and the well's
+    collar, and turns 2,494 columns of bare plate into the ground a set piece stands on.
+  outcome: >
+    The walk from the Midway into Prismworks stops being a car park with a railway behind it.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+# note blocks are `expensive` in the invented tier table and are the design's only verb; seven of
+# them, stated here rather than smuggled - the same declaration `configs/island_run.yaml` makes
+# for the slime that IS its jump pads.
+expensive_allowance: 12
+origin_lock: false

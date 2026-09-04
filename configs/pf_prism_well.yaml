@@ -1,0 +1,137 @@
+# PF PRISM WELL - the hole, and the rim you watch it from.
+#
+# Jack, 2026-09-03: "prism in its current state is not a theme park, its a collection of
+# buildings; this is a failure of design." v1 is archived whole in archive/prismworks_v1/ with
+# the measured post-mortem; PRISMWORKS_V2_PLAN.md is the replacement.
+#
+# THE SITE IS FOUND, NOT TYPED. A search over every centre in the band for the largest circle
+# clear of Park Rail (X97500-07, the full length of the west edge) and Park Line (X97640-49,
+# Z80730-82) returned r68 at (97580, 80822). r50 is taken instead, at (97590, 80815), because a
+# 137-wide mouth leaves fifteen blocks of margin and the margin has to carry the arrival, the
+# gallery and the service edge. At r50 the margins are 28 / 32 / 37 / 31 and the mouth still
+# clears the transit line by ten.
+#
+# THE DECK IS ONE COURSE OF MOSS AT Y202. Measured, and it is why the cut is LINED rather than
+# left raw: a hole in a one-block sheet has a one-block edge, and this repo's own rule - learned
+# on the void tower, then again on the ruined gateways - is that what makes voxels read as
+# architecture is regularity and openings, not damage.
+#
+# IT IS VERIFIED AGAINST park_future, NOT Park Complete. The v1 buildings stand in the world
+# today and are coming out; verifying against them would report the whole mouth as a collision
+# with something that will not be there. park_future is Park Complete minus the twelve v1
+# Prismworks designs - the park as it will be, which is the honest context. `under` is the same
+# capture, so the cut sees the real deck and nothing else.
+#
+# THE LIFT IS GEOMETRY AND IS NOT CLAIMED TO WORK. A bubble column is one of the three things
+# the plan lists as uncertifiable offline, along with whether a legal jump is a makeable one and
+# any timer or payment. This repo cut two finished casino games rather than ship a machine it
+# could not judge.
+name: PF Prism Well
+gen: prismwell
+params:
+  under: out/park_future.litematic
+  centre: [97590, 80815]
+  deck_y: 202
+  r_mouth: 50
+  collar: 3
+  collar_depth: 15
+  gallery: 9
+  bays: 8
+  bay_half: 3
+  bay_reach: 3
+  entry_deg: 180          # west: the course starts facing the park spine
+  # TWO CONCENTRIC RUNS, AND THE PIERS ARE WHAT SEPARATE THEM. Jack: "should we be building this
+  # straight up as well so its a really complete big circuit" - so the column carries on to Y300
+  # and the sky run comes down the OUTSIDE of the void at r30, through the mouth, into the pool.
+  # The deck run keeps its own shorter pier and its own tighter helix inside it. Above the deck
+  # there is one spiral; below it there are two, concentric and clearly apart, both landing in
+  # the same water. That is what makes each half separately runnable without the two lines of
+  # landings interleaving into something nobody can follow.
+  # THE TOWER. Above the deck the shaft was 9 wide over 98 courses - eleven to one, a stick -
+  # and everything around it read as thin bits at incompatible scales. A stepped drum tapering
+  # 12 -> 4 through four setbacks, walls two thick, opened by four tall slots a stage, gives
+  # the land the mass it was missing and gives the helix something to read against. Below the
+  # deck it stays a lattice: a drum there would block the one view the land is composed around.
+  tower: true
+  # A DEEPER TAPER, AND THE FIRST ATTEMPT AT IT SILENTLY DID NOTHING. Jack: "taper should be
+  # more dramatic slightly". The generator's defaults were moved to 12 -> 6 when the shaft was
+  # rebuilt and THESE TWO LINES stayed at 10 -> 7, so what shipped tapered five blocks over
+  # ninety-eight courses - measured off the artifact, r13.5 at the base to r8.5 at the crown.
+  # A config overriding a default it was written before is invisible: both files look right.
+  # This repo wrote that rule down about the rig's route list two commits ago.
+  #
+  # 12 -> 4 is 2.7 blocks a setback and a crown that reads NINE wide against a twenty-five
+  # wide base. The base stays at 12 rather than growing: widening it pushes the base cornice
+  # to r15.5 against a sky helix whose inner flex is r17, and every radius in this land is
+  # now load-bearing on some other one.
+  tower_r: 12
+  tower_top: 4
+  tower_stages: 4
+  tower_open: 4
+  mast_h: 36              # was 18, which is noise beside a 98-course tower. Tower / pylon / rail.
+  y_crown: 300            # the park's tallest, Jack's call: +98 over the deck, 20 under the limit
+  crown_r: 7          # inside the parapet's reach, which the narrower top brings in
+  crown_pier_to: 23       # the sky run is the INNER helix: it starts at r21
+  pier_to: 35             # ...and the deck run is the OUTER one, at r33, off a long pier
+  y_floor: 95
+  seed: 7
+roles: [construction, building]
+design:
+  purpose: path
+  hierarchy: landmark
+  style: prismworks
+  focal_face: west
+  narrative: >
+    A hundred-wide mouth cut clean through the park deck, lined fifteen courses deep with a
+    collar that darkens as it falls and carries a corbel at its foot, ringed by a nine-wide
+    gallery, and overhung by eight balconies that oversail the void on their own brackets. A lit
+    return column stands at the centre, floor to rim, which is the spine the descent winds around.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [walk the gallery, lean out over a balcony, watch a runner, take the column back up]
+  outcome: >
+    From any balcony the whole descent is visible at once, hanging free thirty blocks clear of
+    the collar; from under the park the mouth is a lit ring in the belly with a helix falling
+    out of it.
+  reset: >
+    Nothing is consumed and no state is held. The gallery is a ring and is re-enterable at any
+    time by any number of people at once.
+  service_access: >
+    The gallery meets the existing deck on all sides; the column's head deck at the mouth's
+    centre is reached only from the descent's floor, which is what keeps a walkway from cutting
+    the view in half.
+  bypass: >
+    The gallery can be walked round without entering the course. Only the west gap at entry_deg
+    opens onto the run.
+requires_in_game:
+  - the bubble column ascends floor to rim, and the exit at the top is dry
+  - the eight balcony brackets read as carried rather than floating from the gallery
+  - the cut leaves no ragged deck cell the collar does not cover
+finish:
+  cheapen: false          # the ladder is measured across families on purpose; do not re-pick it
+  hollow: false
+  ground: false
+  drop_floaters: false    # the collar and the column both hang in void: that is the design
+  verify_against: [out/park_future.litematic]
+  # WHAT THE GALLERY IS ALLOWED TO REPAVE, NAMED AND MEASURED - never a blanket ignore.
+  #
+  # 4,621 moss_block, 230 deepslate_tiles and 348 cells of Park Ways' own lamp-mast and path
+  # materials. That is the park's ground layer, and the gallery becoming the land's new surface
+  # is the design rather than an accident: laying it a course ABOVE instead would leave a step
+  # all the way round the mouth.
+  #
+  # It is stated rather than waved through because this repo has a scar about exactly this
+  # number. The deck floor's rule: a remedial design's damage is measured in what it REPLACES,
+  # not in what it places - 492 replacements read as vandalism where 84 read as a repair. This
+  # is not a repair, it is a land being rebuilt, and five thousand blocks of moss coming up is
+  # the honest cost of that. Anything NOT on this list still fails the audit, which is the point:
+  # if the mouth ever moves onto something that matters, the build stops.
+  verify_replaceable: [moss_block, moss_carpet, deepslate_tiles, polished_blackstone_bricks,
+                       light_blue_wool, cyan_wool, polished_deepslate_slab, chiseled_deepslate,
+                       smooth_basalt, polished_deepslate, black_wool, waxed_cut_copper_stairs,
+                       waxed_cut_copper_slab, deepslate_brick_slab, blackstone_slab,
+                       stone, smooth_stone, cobbled_deepslate, deepslate_bricks, iron_bars,
+                       soul_lantern, end_rod, waxed_copper_block,
+                       blackstone_stairs, polished_deepslate_stairs, pearlescent_froglight]
+origin_lock: false

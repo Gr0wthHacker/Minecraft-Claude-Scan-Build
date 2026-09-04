@@ -1,0 +1,34 @@
+name: Hollow Arch
+gen: park
+params:
+  land: hollow
+  width: 7
+  height: 6
+  facing: south
+  at:
+  - 97576
+  - 203
+  - 80648
+  kind: arch
+  title: Hollow Arch
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+park_contract:
+  purpose: arrival
+  hierarchy: landmark
+  land: hollow
+  requires_path: true
+  access_candidates:
+  - - 97573
+    - 204
+    - 80651
+  - - 97573
+    - 204
+    - 80643
+design:
+  purpose: arrival
+  hierarchy: landmark
+  style: hollow
+  narrative: Hollow Arch serves the hollow visitor journey.
+origin_lock: false

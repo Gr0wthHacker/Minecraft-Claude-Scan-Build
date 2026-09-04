@@ -1,0 +1,15 @@
+name: Duel 3
+gen: casino
+params:
+  outcomes: 3
+  pit: 2
+  at:
+  - 97565
+  - 203
+  - 80562
+  kind: duel
+  title: Duel 3
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

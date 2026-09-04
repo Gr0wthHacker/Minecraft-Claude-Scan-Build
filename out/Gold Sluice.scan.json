@@ -1,0 +1,872 @@
+{
+  "origin": {
+    "x": 97553,
+    "y": 202,
+    "z": 80352
+  },
+  "size": {
+    "x": 19,
+    "y": 9,
+    "z": 19
+  },
+  "generated_by": "frontiertown",
+  "kind": "sluice",
+  "concealed": 7,
+  "visible_redstone": 0,
+  "land": "frontier",
+  "facing": "east",
+  "contract": "a stepped launder of FLOWING water (`fluids.carries`) that cannot leak (`fluids.escapes` against its own declared basin), a hopper row in the tail floor feeding a barrel, and a comparator on that barrel that raises a gold block and rings a bell when anything lands in it - dark when the poke is empty, both proven with `circuit.Circuit`",
+  "unverified": [
+    "nothing here simulates an ITEM. The water is proven to flow and the detector is proven to fire on a stocked poke and to stay dark on an empty one; that an entity riding the current reaches the hoppers is the game business, not this simulator. Throw a stack in before anyone is told it pays."
+  ],
+  "width": 17,
+  "depth": 19,
+  "height": 9,
+  "riffles": 6,
+  "water": 2,
+  "run": 10,
+  "signs": 2,
+  "barrel": [
+    97560,
+    203,
+    80361
+  ],
+  "bell": [
+    97556,
+    203,
+    80360
+  ],
+  "piston": [
+    97555,
+    203,
+    80361
+  ],
+  "comparator": [
+    97559,
+    203,
+    80361
+  ],
+  "basin": [
+    [
+      97560,
+      205,
+      80360
+    ],
+    [
+      97560,
+      205,
+      80361
+    ],
+    [
+      97560,
+      205,
+      80362
+    ],
+    [
+      97560,
+      206,
+      80360
+    ],
+    [
+      97560,
+      206,
+      80361
+    ],
+    [
+      97560,
+      206,
+      80362
+    ],
+    [
+      97560,
+      207,
+      80360
+    ],
+    [
+      97560,
+      207,
+      80361
+    ],
+    [
+      97560,
+      207,
+      80362
+    ],
+    [
+      97560,
+      208,
+      80360
+    ],
+    [
+      97560,
+      208,
+      80361
+    ],
+    [
+      97560,
+      208,
+      80362
+    ],
+    [
+      97560,
+      209,
+      80360
+    ],
+    [
+      97560,
+      209,
+      80361
+    ],
+    [
+      97560,
+      209,
+      80362
+    ],
+    [
+      97560,
+      210,
+      80360
+    ],
+    [
+      97560,
+      210,
+      80361
+    ],
+    [
+      97560,
+      210,
+      80362
+    ],
+    [
+      97561,
+      205,
+      80360
+    ],
+    [
+      97561,
+      205,
+      80361
+    ],
+    [
+      97561,
+      205,
+      80362
+    ],
+    [
+      97561,
+      206,
+      80360
+    ],
+    [
+      97561,
+      206,
+      80361
+    ],
+    [
+      97561,
+      206,
+      80362
+    ],
+    [
+      97561,
+      207,
+      80360
+    ],
+    [
+      97561,
+      207,
+      80361
+    ],
+    [
+      97561,
+      207,
+      80362
+    ],
+    [
+      97561,
+      208,
+      80360
+    ],
+    [
+      97561,
+      208,
+      80361
+    ],
+    [
+      97561,
+      208,
+      80362
+    ],
+    [
+      97561,
+      209,
+      80360
+    ],
+    [
+      97561,
+      209,
+      80361
+    ],
+    [
+      97561,
+      209,
+      80362
+    ],
+    [
+      97561,
+      210,
+      80360
+    ],
+    [
+      97561,
+      210,
+      80361
+    ],
+    [
+      97561,
+      210,
+      80362
+    ],
+    [
+      97562,
+      206,
+      80360
+    ],
+    [
+      97562,
+      206,
+      80361
+    ],
+    [
+      97562,
+      206,
+      80362
+    ],
+    [
+      97562,
+      207,
+      80360
+    ],
+    [
+      97562,
+      207,
+      80361
+    ],
+    [
+      97562,
+      207,
+      80362
+    ],
+    [
+      97562,
+      208,
+      80360
+    ],
+    [
+      97562,
+      208,
+      80361
+    ],
+    [
+      97562,
+      208,
+      80362
+    ],
+    [
+      97562,
+      209,
+      80360
+    ],
+    [
+      97562,
+      209,
+      80361
+    ],
+    [
+      97562,
+      209,
+      80362
+    ],
+    [
+      97562,
+      210,
+      80360
+    ],
+    [
+      97562,
+      210,
+      80361
+    ],
+    [
+      97562,
+      210,
+      80362
+    ],
+    [
+      97563,
+      206,
+      80360
+    ],
+    [
+      97563,
+      206,
+      80361
+    ],
+    [
+      97563,
+      206,
+      80362
+    ],
+    [
+      97563,
+      207,
+      80360
+    ],
+    [
+      97563,
+      207,
+      80361
+    ],
+    [
+      97563,
+      207,
+      80362
+    ],
+    [
+      97563,
+      208,
+      80360
+    ],
+    [
+      97563,
+      208,
+      80361
+    ],
+    [
+      97563,
+      208,
+      80362
+    ],
+    [
+      97563,
+      209,
+      80360
+    ],
+    [
+      97563,
+      209,
+      80361
+    ],
+    [
+      97563,
+      209,
+      80362
+    ],
+    [
+      97563,
+      210,
+      80360
+    ],
+    [
+      97563,
+      210,
+      80361
+    ],
+    [
+      97563,
+      210,
+      80362
+    ],
+    [
+      97564,
+      207,
+      80360
+    ],
+    [
+      97564,
+      207,
+      80361
+    ],
+    [
+      97564,
+      207,
+      80362
+    ],
+    [
+      97564,
+      208,
+      80360
+    ],
+    [
+      97564,
+      208,
+      80361
+    ],
+    [
+      97564,
+      208,
+      80362
+    ],
+    [
+      97564,
+      209,
+      80360
+    ],
+    [
+      97564,
+      209,
+      80361
+    ],
+    [
+      97564,
+      209,
+      80362
+    ],
+    [
+      97564,
+      210,
+      80360
+    ],
+    [
+      97564,
+      210,
+      80361
+    ],
+    [
+      97564,
+      210,
+      80362
+    ],
+    [
+      97565,
+      207,
+      80360
+    ],
+    [
+      97565,
+      207,
+      80361
+    ],
+    [
+      97565,
+      207,
+      80362
+    ],
+    [
+      97565,
+      208,
+      80360
+    ],
+    [
+      97565,
+      208,
+      80361
+    ],
+    [
+      97565,
+      208,
+      80362
+    ],
+    [
+      97565,
+      209,
+      80360
+    ],
+    [
+      97565,
+      209,
+      80361
+    ],
+    [
+      97565,
+      209,
+      80362
+    ],
+    [
+      97565,
+      210,
+      80360
+    ],
+    [
+      97565,
+      210,
+      80361
+    ],
+    [
+      97565,
+      210,
+      80362
+    ],
+    [
+      97566,
+      208,
+      80360
+    ],
+    [
+      97566,
+      208,
+      80361
+    ],
+    [
+      97566,
+      208,
+      80362
+    ],
+    [
+      97566,
+      209,
+      80360
+    ],
+    [
+      97566,
+      209,
+      80361
+    ],
+    [
+      97566,
+      209,
+      80362
+    ],
+    [
+      97566,
+      210,
+      80360
+    ],
+    [
+      97566,
+      210,
+      80361
+    ],
+    [
+      97566,
+      210,
+      80362
+    ],
+    [
+      97567,
+      208,
+      80360
+    ],
+    [
+      97567,
+      208,
+      80361
+    ],
+    [
+      97567,
+      208,
+      80362
+    ],
+    [
+      97567,
+      209,
+      80360
+    ],
+    [
+      97567,
+      209,
+      80361
+    ],
+    [
+      97567,
+      209,
+      80362
+    ],
+    [
+      97567,
+      210,
+      80360
+    ],
+    [
+      97567,
+      210,
+      80361
+    ],
+    [
+      97567,
+      210,
+      80362
+    ],
+    [
+      97568,
+      209,
+      80360
+    ],
+    [
+      97568,
+      209,
+      80361
+    ],
+    [
+      97568,
+      209,
+      80362
+    ],
+    [
+      97568,
+      210,
+      80360
+    ],
+    [
+      97568,
+      210,
+      80361
+    ],
+    [
+      97568,
+      210,
+      80362
+    ],
+    [
+      97569,
+      209,
+      80360
+    ],
+    [
+      97569,
+      209,
+      80361
+    ],
+    [
+      97569,
+      209,
+      80362
+    ],
+    [
+      97569,
+      210,
+      80360
+    ],
+    [
+      97569,
+      210,
+      80361
+    ],
+    [
+      97569,
+      210,
+      80362
+    ]
+  ],
+  "head_box": [
+    97569,
+    210,
+    80361
+  ],
+  "inputs": [
+    [
+      97569,
+      210,
+      80361
+    ]
+  ],
+  "outputs": [
+    [
+      97556,
+      203,
+      80360
+    ],
+    [
+      97555,
+      203,
+      80361
+    ],
+    [
+      97560,
+      203,
+      80361
+    ]
+  ],
+  "flow": {
+    "cells": 8,
+    "wet": 8,
+    "dry": 0,
+    "still": 0,
+    "moving": 8,
+    "stops_at": null,
+    "carries": true
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel",
+        "hopper"
+      ],
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "redstone_wire",
+        "repeater",
+        "sticky_piston"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "shop",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "Gold Sluice serves the frontier visitor journey."
+    },
+    "metrics": {
+      "blocks": 733,
+      "materials": 18,
+      "dominant_material_share": 0.502,
+      "light_blocks": 4,
+      "massing": {
+        "width": 19,
+        "height": 9,
+        "depth": 19,
+        "fill_ratio": 0.2256
+      },
+      "silhouette": {
+        "top": {
+          "area": 361,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 130,
+          "fill_ratio": 0.7602
+        },
+        "side": {
+          "area": 69,
+          "fill_ratio": 0.4035
+        }
+      },
+      "material_counts": {
+        "cobblestone": 368,
+        "spruce_planks": 204,
+        "spruce_log": 81,
+        "stone_bricks": 50,
+        "spruce_slab": 6,
+        "lantern": 4,
+        "spruce_stairs": 4,
+        "hopper": 3,
+        "redstone_wire": 2,
+        "spruce_wall_sign": 2,
+        "water": 2,
+        "barrel": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "6a11dd94c0bb0f47bf4bc8e4e6bb1cb97460c8c5cc46bf3c18f82b7f8f59df7c",
+    "generator_source_digest": "73f071a42a113b02f1bd2b3cf5caf31c5998401474b891a676aea41708a2a95c",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "fluid",
+        "hazard",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "shop",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97573,
+        204,
+        80361
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 733,
+    "mechanic_families": [
+      "container",
+      "fluid",
+      "hazard",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: bell",
+    "unsupported on skyblock-1.19: raw_gold_block"
+  ],
+  "file": "Gold Sluice.litematic",
+  "name": "Gold Sluice"
+}

@@ -1,0 +1,191 @@
+# PF PLATEAU BONE BED - one excavation where six buildings used to stand.
+#
+# Jack, on the re-themed Lost Plateau: "its just buildings, the dig zone is crappy ... i like the
+# dinosaurs sculptures, i like the roller coaster, i just really dont like this splatter of
+# buildings that dont look amazing and dont really do anything."
+#
+# ---------------------------------------------------------------------------------------------
+# THE MEASUREMENT THAT DECIDED IT
+#
+# Over the shipped park, the Frontier's west half - columns A and B, U0-93, 11,310 columns, 40% of
+# the land's ground - carried SIX BUILDINGS, 17,857 BLOCKS AND ONE INTERACTIVE BLOCK:
+#
+#     Trailhead Gate 4,260 / 0 verbs    Prospecting Porch 3,499 / 0    Mining Square 2,469 / 0
+#     Assay & Prize  2,248 / 0          Works Yard        1,227 / 0    Vantage Lookout 4,154 / 1
+#
+# ...at 4.3 and 3.1 blocks per column against column C's 10.8, which is the mountain and the
+# coaster. What Jack likes - Mine Coaster, Mine Ridge, Lost Plateau and the two dinosaurs - is
+# 119,684 blocks, 74% of the land. The land's identity is entirely in its east half.
+#
+# ---------------------------------------------------------------------------------------------
+# THE LOT IS TWO LOTS, AND THAT IS THE POINT
+#
+# V24-122 x U47-92 is `PF Frontier Diggings` (V24-76) plus `PF Mining Square` (V80-120) plus the
+# park's own cross walk between them. Both are retired from `tools/park_lots.PLACEMENT`; this is
+# ONE MASS across all 4,554 columns of them, because a single mass is the only thing that has
+# ever read in this park and eight objects on a lawn is the thing that never has.
+#
+# ---------------------------------------------------------------------------------------------
+# THE STREET IS THE WAY IN, NOT AN OBSTACLE
+#
+# `Park Ways` paves V77-79 from U41 to U97 - measured, not assumed - straight through this lot. It
+# is a guest street and stays at the plane, so it is USED: local v53-55 is `level_v`, the pit floor
+# is the same course, and the walk delivers a guest into the BOTTOM of the excavation.
+#
+# The lot's four edges are level too (`margin: 2`): u0-1 is the U41-45 avenue's verge, u44-45 the
+# U92-99 cross avenue's, v0-1 the spine band at V23 and v97-98 the V123-127 cross avenue. All four
+# are guest streets and none of them may be walled.
+name: PF Plateau Bone Bed
+gen: bonebed
+params:
+  kind: bonebed
+  lot: [99, 46]
+  at: [24, 47]
+  sy: 30
+  seed: 5
+  title: THE BONE BED
+
+  # V77-79 -> local v53-55. The one street inside the lot.
+  level_v: [[53, 55]]
+  margin: 2
+
+  # **SLOPE 0.85, NOT `downs.py`'s 0.62.** That number is downland - a whole land of gradual
+  # hills. This is SPOIL: what came out of a hundred-column excavation, tipped beside it. At 0.62
+  # the bank between the avenue verge and the pit lip crests at 6 courses and the gallery has
+  # nothing to stand on; at 0.85 it crests at 9, which is a real overlook, and it is still under
+  # the 1.25 a player climbs so every crest is reachable on foot.
+  slope: 0.85
+  cap: 13
+  # **RUN 1, RISE 4 - A STEEP STEPPED FACE, NOT A FLIGHT OF SHALLOW TERRACES.** The bench zone
+  # eats the pit from both sides, so at run 2 / rise 3 a twenty-four-wide pit had sixteen cells of
+  # bench and eight of floor - narrower than the rib cage that has to lie on it. One cell of tread
+  # to four of riser is what a worked quarry face looks like at this scale and it leaves the floor
+  # eighteen wide.
+  bench_run: 1
+  bench_rise: 4
+  roll: {grain: 15, amp: 1.8}
+  # A LITERAL RECTANGLE READS IN PLAN AS A SWIMMING POOL. The first build's north bay was four
+  # straight benched edges inside a green rectangular frame; a dig is worked outward from where the
+  # bones are, so its edge wanders.
+  wobble: {amp: 2.8, grain: 9}
+
+  # THE NORTH BAY IS THE EXCAVATION AND THE SOUTH BAY IS THE CAMP.
+  #
+  # north: v6-52 x u13-36 (47 x 24), walled to 10. Twenty-four wide because the skeleton's rib
+  # cage spans six each side of the spine and a guest has to be able to walk round it; forty-seven
+  # long because the animal is 44 and a dig is read along its length.
+  #
+  # south: v56-94 x u8-38, walled to 6 - a shallow working floor rather than a second pit, so the
+  # gantry, the shelter and the spoil stand IN a worked depression instead of on a lawn. Its own
+  # trench (v62-84 x u16-30) is where the second animal is still coming out.
+  #   north: v4-50 x u13-37, walled to 12 - the excavation. Twenty-four wide because the rib cage
+  #     spans seven each side of the spine and a guest has to be able to walk round it.
+  #   camp:  v56-70 x u3-41, walled to 5 - the working floor, north of the ride's own ground.
+  #   trench: v58-68 x u23-33, walled to 9 - the second animal, still coming out.
+  pits:
+    - [4, 50, 13, 37, 12]
+    - [56, 70, 3, 41, 5]
+    - [57, 69, 22, 34, 9]
+
+  # THE RAMP IS A DESIGNED CUT, BECAUSE A BENCHED WALL IS DELIBERATELY UNCLIMBABLE. It runs out of
+  # the north bay's west wall onto the avenue bank, so a guest who has walked the gallery can come
+  # down into the pit rather than doubling back to the causeway.
+  # **AND THE HAUL ROAD IS A LEVEL CUT, NOT A SLOPE.** The causeway and the pit floor are both at
+  # the plane; what stands between them is four courses of BANK, because the soft limit makes the
+  # ground rise away from a street in every direction. Measured on the built canvas, 0 of the north
+  # bay's 754 floor cells were reachable from the walk the config's own story says you enter by.
+  # `step: 0` cuts a level five-wide slot through the hump - which is what a dig road is.
+  ramps:
+    - {v: 30, u: 13, axis: u, sign: -1, length: 12, width: 3, step: 2}
+    - {v: 52, u: 21, axis: v, sign: -1, length: 8, width: 5, step: 0}
+
+  # THE GALLERY IS THE MONEY VIEW AND IT IS ON THE MAIN ROUTE. A timber deck on the crest of the
+  # avenue bank, railed on the pit side only - a rail on the street side would fence the deck off
+  # the avenue it is entered from - with two flights down to the street.
+  gallery: {v0: 8, v1: 48, u: 9, w: 3, steps: [14, 40]}
+
+  # THE ANIMALS. Both are `gen/fossils.py` sauropods, which is deliberate: the same animal stands
+  # complete on the rim two hundred blocks away (`PF Sauropod`), and the dig is where it came from.
+  # `bounds` keeps every bone inside its own pit - a bone outside its trench does not overflow, it
+  # VANISHES, which cost the first diggings half a skull.
+  skeletons:
+    # **THE SPINE MUST STOP SEVEN CELLS SHORT OF THE BOUND, BECAUSE THE SKULL IS AFTER IT.**
+    # `fossils.skull` is laid from the spine's last point onward; at length 40 in a pit ending at
+    # v52 it reached v52-58 and the bound clipped it to THREE CELLS - a 450-cell skeleton with no
+    # head, which is the one part a stranger looks for, and which nothing but the sidecar's own
+    # `skull.cells` reports. The diggings recorded this trap once already.
+    - {v: 8, u: 24, length: 34, bow: 4.0, bounds: [6, 13, 47, 25],
+       ribs: {from: 5, to: 26, span: 7.0, every: 2},
+       loose: [[-1, 9, 8, 0.5], [14, -9, 9, 2.2], [28, 8, 7, 1.1], [34, -7, 6, 2.6]]}
+  # ...and the camp's trench is thirteen deep, which will not hold a second one: a skeleton needs
+  # its spine PLUS seven cells for the skull, so what fits is three vertebrae and one pair of ribs,
+  # which is a scatter rather than an animal. A SKULL is what a working trench has in it anyway -
+  # the part a stranger looks for, and the thing the gantry is rigged over.
+  skulls:
+    - {v: 61, u: 28, facing_v: 1, neck: 5, bow: true}
+
+  # THE GANTRY IS THE ONE TALL THING IN THE SOUTH BAY, and it is what says the dig is WORKING
+  # rather than finished: four legs, two head beams, a chain and a jacketed block on the end of it.
+  gantry: {v: 59, u: 24, w: 7, d: 9, h: 9, drop: 5}
+
+  # An open canvas fly on four posts. NOT A BUILDING - you can see through it from every bearing,
+  # which is the whole reason it is a tent and not a shed.
+  # ON THE EXCAVATION'S OWN EAST BANK, not in the camp: the camp band is fifteen deep and it
+  # already carries the second trench, the gantry and three games. A tent over the lip is
+  # also where a field shelter actually goes - beside the cut, looking into it.
+  shelter: [8, 36, 6, 6]
+
+  spoil:
+    - [40, 8, 5, 4]
+    - [16, 6, 4, 3]
+    - [30, 41, 5, 4]
+  crates: [[62, 20], [63, 22], [66, 35], [20, 40]]
+  jackets: [[61, 33], [65, 21], [12, 40]]
+
+  # THE SURVEY GRID AND THE WALK. A pit with a skeleton in it and nowhere to stand is a diorama;
+  # the plank walk runs from the causeway up the pit's east side, past the animal, to the ramp.
+  # GROUND THE THREE FRONTIER GAMES STAND ON. They were built into the Prospecting Porch's bays
+  # and Mining Square, both retired here, and a game whose building is gone is a game nobody can
+  # reach - so they move into the working camp, which is where a washing line, a riffle table and
+  # a striker actually belong. The mass and the floor still form under each; nothing this design
+  # DRESSES does, because a survey stake in the middle of a console is a console that does not work.
+  # **AND THE LAND'S SECOND RIDE STANDS INSIDE THIS LOT.** `PF Mine Cart Escape` is 23 x 26 of
+  # track at V98-120 / U66-91, sited when Mining Square held that ground; the first build of this
+  # design put 646 cells of excavation through it. It is a RIDE, which is the half of this land
+  # Jack likes, so the pit gives way and not the ride: its footprint plus two cells of margin is
+  # reserved AND LEVEL, so the camp ends at v70 and the ground south of it stays at the plane.
+  reserve:
+    - [72, 98, 17, 45]      # PF Mine Cart Escape    -> V96-122 U64-92
+    - [57, 68, 3, 12]       # PF Game Pan Line       -> V81-92  U50-59
+    - [56, 69, 14, 18]      # PF Game The Riffle     -> V80-93  U61-65
+    - [55, 70, 36, 41]      # PF Game Powder Striker -> V79-94  U83-88
+
+  grid: {step: 7}
+  walks:
+    - [6, 50, 33, 2]
+    - [58, 68, 20, 1]
+
+  plant: {tree: 0.014, fern: 0.14, vine: 0.24}
+  light: 10
+
+  # FIFTEEN CHARACTERS IS THE LINE. This park has shipped "MINE CART ESCAP", "and prize windo" and
+  # "ore from the ad"; `_Lot.sign` refuses a board with nothing behind it rather than hanging one
+  # in the air, and the post is built for it because a dig floor has no wall to hang on.
+  boards:
+    - {v: 12, u: 12, y: 2, facing: south, lines: ["THE BONE BED", "one animal,", "44 blocks long", "still emerging"]}
+    - {v: 51, u: 19, y: 2, facing: south, lines: ["INTO THE DIG", "mind the step", "hard hats", "would be nice"]}
+    - {v: 57, u: 21, y: 2, facing: south, lines: ["THE LIFT", "jacketed in", "plaster, then", "up on the chain"]}
+
+# THE DESIGN ALONE IS TWO PIECES AND THAT IS CORRECT. The north bay and the working camp are joined
+# by the park's own cross walk, which this design deliberately does NOT repave - `Park Ways` already
+# paves V77-79 and it is a guest street, so laying a dig road over it would be two designs on one
+# surface. In isolation the causeway is therefore three empty columns and the two bays are separate;
+# in the composite they are one walk. The Mine Ridge and the Lowland Stair both record the same
+# situation: THE COMPOSITE IS THE TRUTH, and `tests/test_bonebed.py` walks it with the world's own
+# floor under the level band.
+finish:
+  verify_against: out/Park Complete.litematic
+
+# The park lattice anchors every module itself; the island's origin lock is not this
+# design's frame - see `at` and `anchor`.
+origin_lock: false

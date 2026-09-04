@@ -1,0 +1,319 @@
+{
+  "origin": {
+    "x": 97561,
+    "y": 202,
+    "z": 80801
+  },
+  "size": {
+    "x": 15,
+    "y": 6,
+    "z": 19
+  },
+  "generated_by": "spectacle",
+  "kind": "foodcourt",
+  "footprint": [
+    19,
+    15
+  ],
+  "land": "hollow",
+  "facing": "east",
+  "when": "9pm nightly",
+  "contract": "a served counter with 3 blocks of staff room behind it, 3 tables with 12 seats under cover, a bin at each end, and a lantern over every table",
+  "unverified": [],
+  "budget": {},
+  "width": 17,
+  "depth": 13,
+  "height": 5,
+  "stalls": 4,
+  "tables": 3,
+  "seats": 12,
+  "seat_cells": [
+    [
+      97572,
+      203,
+      80817
+    ],
+    [
+      97572,
+      203,
+      80815
+    ],
+    [
+      97573,
+      203,
+      80816
+    ],
+    [
+      97571,
+      203,
+      80816
+    ],
+    [
+      97572,
+      203,
+      80813
+    ],
+    [
+      97572,
+      203,
+      80811
+    ],
+    [
+      97573,
+      203,
+      80812
+    ],
+    [
+      97571,
+      203,
+      80812
+    ],
+    [
+      97572,
+      203,
+      80809
+    ],
+    [
+      97572,
+      203,
+      80807
+    ],
+    [
+      97573,
+      203,
+      80808
+    ],
+    [
+      97571,
+      203,
+      80808
+    ]
+  ],
+  "hearth": false,
+  "signs": 5,
+  "service": [
+    {
+      "pos": [
+        97563,
+        203,
+        80816
+      ],
+      "facing": "east",
+      "use": "barrel"
+    },
+    {
+      "pos": [
+        97563,
+        203,
+        80812
+      ],
+      "facing": "east",
+      "use": "smoker"
+    },
+    {
+      "pos": [
+        97563,
+        203,
+        80808
+      ],
+      "facing": "east",
+      "use": "barrel"
+    },
+    {
+      "pos": [
+        97563,
+        203,
+        80804
+      ],
+      "facing": "east",
+      "use": "smoker"
+    },
+    {
+      "pos": [
+        97574,
+        203,
+        80818
+      ],
+      "facing": null,
+      "use": "composter"
+    },
+    {
+      "pos": [
+        97574,
+        203,
+        80802
+      ],
+      "facing": null,
+      "use": "composter"
+    }
+  ],
+  "work_room": 3,
+  "stock": {
+    "barrels": "stock them with whatever the park sells",
+    "smokers": "coal or charcoal for fuel"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "sculpture"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "sculpture": "connected, supported silhouette with deliberate material hierarchy"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "shop",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Mourning Parlour serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 707,
+      "materials": 11,
+      "dominant_material_share": 0.4031,
+      "light_blocks": 3,
+      "massing": {
+        "width": 15,
+        "height": 6,
+        "depth": 19,
+        "fill_ratio": 0.4135
+      },
+      "silhouette": {
+        "top": {
+          "area": 285,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 66,
+          "fill_ratio": 0.7333
+        },
+        "side": {
+          "area": 104,
+          "fill_ratio": 0.9123
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 285,
+        "black_wool": 192,
+        "deepslate_bricks": 152,
+        "polished_blackstone_brick_stairs": 29,
+        "blackstone": 19,
+        "polished_blackstone_brick_slab": 16,
+        "dark_oak_wall_sign": 5,
+        "soul_lantern": 3,
+        "barrel": 2,
+        "composter": 2,
+        "smoker": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "33764d79901e9eb0ba87a6147a9e048c3521306d57a0fdfe36235c1eaf643da8",
+    "generator_source_digest": "40d540514d223304885b929bb573e25179bfd6f730bc9c6fd3c7716bec77b0b5",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "shop",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97577,
+        204,
+        80810
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 707,
+    "mechanic_families": [
+      "container",
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_slab",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_stairs",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks",
+    "unsupported on skyblock-1.19: smoker"
+  ],
+  "file": "The Mourning Parlour.litematic",
+  "name": "The Mourning Parlour"
+}

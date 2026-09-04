@@ -1,0 +1,79 @@
+{
+  "name": "islandright",
+  "file": "islandright.litematic",
+  "format": "litematic",
+  "created": "2026-08-31T18:56:02.840106Z",
+  "player": "Enrozi",
+  "server": {
+    "name": "Unknown Server",
+    "ip": "skyblock.net"
+  },
+  "dimension": "minecraft:overworld",
+  "data_version": 4903,
+  "origin": {
+    "x": 97592,
+    "y": 198,
+    "z": 80749
+  },
+  "size": {
+    "x": 12,
+    "y": 14,
+    "z": 58
+  },
+  "player_pos": {
+    "x": 97599,
+    "y": 203,
+    "z": 80801
+  },
+  "chunk_radius": 8,
+  "chunk_aligned": false,
+  "air_margin": 2,
+  "total_volume": 9744,
+  "non_air_blocks": 192,
+  "palette_size": 9,
+  "tile_entities": 1,
+  "entities": 0,
+  "chunks_included": [
+    [
+      6099,
+      5046
+    ],
+    [
+      6099,
+      5047
+    ],
+    [
+      6099,
+      5048
+    ],
+    [
+      6099,
+      5049
+    ],
+    [
+      6099,
+      5050
+    ],
+    [
+      6100,
+      5046
+    ],
+    [
+      6100,
+      5047
+    ],
+    [
+      6100,
+      5048
+    ],
+    [
+      6100,
+      5049
+    ],
+    [
+      6100,
+      5050
+    ]
+  ],
+  "chunks_missing_in_bounds": []
+}

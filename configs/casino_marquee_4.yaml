@@ -1,0 +1,18 @@
+name: Casino Marquee 4
+gen: casino
+params:
+  length: 16
+  at:
+  - 97561
+  - 203
+  - 80574
+  kind: marquee
+  title: Casino Marquee 4
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false
+expensive_allowance: 16
+expensive_reason: 16x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

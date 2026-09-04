@@ -1,0 +1,52 @@
+{
+  "origin": {
+    "x": 97562,
+    "y": 202,
+    "z": 80559
+  },
+  "size": {
+    "x": 16,
+    "y": 17,
+    "z": 23
+  },
+  "generated_by": "civic",
+  "kind": "shopstreet",
+  "land": "midway",
+  "facing": "east",
+  "contract": "shops on one shared frontage, no two of them the same building - width, storeys, roof, awning, jetty, door, windows, field material and accent all vary by a hash of the shop's index - and every one of them is a ROOM you can walk into: a counter, its own trade's workstation at the end of it, stock on the floor or on flat-laid shelves, a back window, two lamps and its name on the wall inside",
+  "unverified": [],
+  "shops": 2,
+  "frontage": 19,
+  "depth": 8,
+  "pavement": 368,
+  "lamps": 2,
+  "benches": 1,
+  "roofs": [
+    "gable",
+    "hip"
+  ],
+  "widths": [
+    11,
+    9
+  ],
+  "tools": [
+    "loom",
+    "cartography_table"
+  ],
+  "stock": 6,
+  "shelves": 6,
+  "doors": [
+    [
+      1,
+      2
+    ],
+    [
+      13,
+      14
+    ]
+  ],
+  "signs": 5,
+  "signs_placed": 5,
+  "file": "Shop Street.litematic",
+  "name": "Shop Street"
+}

@@ -1,0 +1,161 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 201,
+    "z": 80551
+  },
+  "size": {
+    "x": 89,
+    "y": 6,
+    "z": 99
+  },
+  "generated_by": "park",
+  "kind": "plaza",
+  "land": "midway",
+  "facing": "east",
+  "contract": "the ground between attractions: a paved grid that changes near the heart, planting beds and trees rooted in moss, a sunken seating court, and a bedded pool - never a flat slab, and never dirt or grass",
+  "unverified": [],
+  "width": 99,
+  "depth": 89,
+  "posts": 0,
+  "trees": 0,
+  "beds": 0,
+  "terrace": true,
+  "pool": false,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "terrain",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Grand Plaza serves the midway visitor journey."
+    },
+    "metrics": {
+      "blocks": 8879,
+      "materials": 7,
+      "dominant_material_share": 0.3667,
+      "light_blocks": 4,
+      "massing": {
+        "width": 89,
+        "height": 6,
+        "depth": 99,
+        "fill_ratio": 0.168
+      },
+      "silhouette": {
+        "top": {
+          "area": 8811,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 111,
+          "fill_ratio": 0.2079
+        },
+        "side": {
+          "area": 121,
+          "fill_ratio": 0.2037
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 3256,
+        "stone": 3052,
+        "blackstone": 2503,
+        "stone_brick_slab": 28,
+        "stone_brick_stairs": 24,
+        "oak_log": 12,
+        "lantern": 4
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "7ea6336a43329e7fe6f358a926fe604b35c51d85155cdc14bdfea49a23279df2",
+    "generator_source_digest": "6ae0a771d0ec58869f44d0c0b698d8dce8edb12711f6ec3463b97785d17a0147",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "terrain",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 8879,
+    "mechanic_families": [
+      "light"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone"
+  ],
+  "file": "Grand Plaza.litematic",
+  "name": "Grand Plaza"
+}

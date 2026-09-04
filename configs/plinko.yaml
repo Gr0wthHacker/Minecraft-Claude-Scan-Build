@@ -1,0 +1,29 @@
+name: Plinko
+gen: arcade
+params:
+  land: midway
+  facing: east
+  at:
+  - 97586
+  - 203
+  - 80573
+  kind: plinko
+  title: Plinko
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+park_contract:
+  purpose: ride
+  hierarchy: supporting
+  land: midway
+  requires_path: true
+  access_candidates:
+  - - 97589
+    - 204
+    - 80563
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: midway
+  narrative: Plinko serves the midway visitor journey.
+origin_lock: false

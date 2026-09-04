@@ -1,0 +1,64 @@
+{
+  "origin": {
+    "x": 97600,
+    "y": 202,
+    "z": 80609
+  },
+  "size": {
+    "x": 20,
+    "y": 4,
+    "z": 5
+  },
+  "generated_by": "casino",
+  "kind": "casino/marquee",
+  "facing": "east",
+  "contract": "16 lamps, all of them, blinking on a 4-tick clock",
+  "inputs": [
+    [
+      97602,
+      203,
+      80611
+    ]
+  ],
+  "outputs": [
+    [
+      97618,
+      204,
+      80610
+    ]
+  ],
+  "unverified": [],
+  "budget": {
+    "redstone_lamp": 16
+  },
+  "palette_source": "reference/casino_chirurg.litematic via palette.affordable_like",
+  "concealed": 55,
+  "visible_redstone": 0,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "file": "Casino Marquee 1.litematic",
+  "name": "Casino Marquee 1"
+}

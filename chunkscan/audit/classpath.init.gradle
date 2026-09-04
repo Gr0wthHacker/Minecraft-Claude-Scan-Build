@@ -1,0 +1,8 @@
+allprojects {
+    tasks.register('autonomyAuditClasspath') {
+        doLast {
+            file('build/audit/autonomy').mkdirs()
+            file('build/audit/autonomy/classpath.txt').text = sourceSets.test.runtimeClasspath.asPath
+        }
+    }
+}

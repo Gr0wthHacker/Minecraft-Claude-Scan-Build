@@ -1,0 +1,120 @@
+# PF VANTAGE PRISM SUMMIT - the park's summit, and the highest place a visitor can stand.
+#
+# 15 x 16 at V44 / U526, on the Prismworks avenue at U523-525, two cells west of the Prism
+# Ascent's podium. Five flights of thirteen treads; the deck's walking surface is 65 courses
+# over the lawn at world Y268.
+#
+# ------------------------------------------------------------------------------------------
+# THE SITE WAS MEASURED, NOT CHOSEN. Every column of V44-58 / U526-541 is free lawn: nothing
+# built stands in it, no paving, no verge, no lamp and no lamp ARM (the park's avenue lamps
+# throw an iron-bars cross at world Y209 that reaches a cell into the lot beside them - fourteen
+# such cells fall inside the six Prismworks lots, and none of them falls in this one). The
+# nearest street cell is the U523-525 avenue at U525, one cell off the tower's north face,
+# which is where its door is.
+#
+# ------------------------------------------------------------------------------------------
+# WHY HERE AND NOT SOMEWHERE WITH MORE ROOM
+#
+# The brief for `PF Prism Ascent` says its crown "reads from the whole park" and its name is a
+# promise of a climb - and it has none, and cannot be given one without cutting its own setback
+# slabs, which are another stream's design and a dig list a printer cannot execute. What it DOES
+# have is a podium roof at park y25: a solid annular slab seven cells wide, ringing the spire's
+# court, with a post-and-rail balustrade already standing on it and two clear courses over it.
+# 498 standable cells of finished architecture, and no way to any of them.
+#
+# So the Summit stands beside it and hands it over. `rise: 13` is not a proportion, it is the
+# podium's own course: storey one's floor lands at canvas y12 - park y25 - and one cell of deck
+# at U541 puts a visitor on the Ascent's roof at U542 at exactly the same level. The Summit is
+# subordinate on purpose: 65 courses against the Ascent's 83 and the Sky Lift's 76, so the two
+# skyline dominants stay dominant and what this adds is the way UP, not another silhouette.
+#
+# ------------------------------------------------------------------------------------------
+# WHAT YOU SEE FROM IT
+#
+# The deck looks WEST, straight down the park's own axis: Prismworks' avenues and the Prism
+# Array, the U385-429 reach, the whole of the Midway with the Sky Lift and the Circus balloon,
+# the U170-214 reach, and the Frontier's coaster 470 blocks away with the Frontier Lookout's
+# cabin at the far end of it. It is one of the two ends of the park, and the Lookout is the
+# other; the pair face each other down 520 blocks of spine.
+#
+# Turn round and the Prism Ascent's spire is 24 courses over your head at eleven blocks - which
+# is the photograph. Nothing else in the park gets that close to a skyline dominant at height.
+#
+# ------------------------------------------------------------------------------------------
+# THE CLIMB
+#
+#   ground   in through the north door off the avenue, under a lit jamb
+#   S1  y13  the bridge storey - out east onto the Prism Ascent's podium roof, or on up
+#   S2  y26  a room, a bench, a lantern, four barred window slots
+#   S3  y39  ...and again, turned 180 degrees
+#   S4  y52  THE LOGGIA: the whole west face open, a balustrade at the sill, the park below
+#   S5  y65  the deck: an open crown, four lit piers, a mast, and no roof at all
+#
+# `origin_lock: false` for the reason every park module carries it: this design is placed at its
+# own lot corner, not at the island's origin lock.
+name: PF Vantage Prism Summit
+gen: park_vantage
+params:
+  kind: tower
+  land: prismworks
+  # FIVE COLUMNS FORWARD. At V44 the tower's back three columns (V56-58) ran into the frontage
+  # marquee standing over the Prism Ascent's spur at U531-537 - 69 cells, which is why it was
+  # built and then held out of the assembly. It keeps its bridge to the Ascent's podium roof,
+  # which is a U relationship and untouched by moving in V.
+  at: [39, 526]
+  size: [15, 16]        # the LOT; the shaft is 15 x 15 and U541 is the bridge column
+  shaft: [15, 15]
+  rise: 13              # THE PODIUM'S OWN COURSE - see above; this number is not free
+  storeys: 5
+  door: north           # onto the U523-525 avenue
+  stair_from: east      # so the level-4 flight is on the EAST wall and the WEST face is free
+                        # to be opened as a loggia - see _check_loggia
+  crown: gallery
+  look: west
+  loggia:
+    - {level: 4, face: west}
+  bridge: {level: 1, face: east, v0: 7, v1: 11, reach: 1}
+  seed: 11
+roles: [building]
+anchors:
+  - {name: street_front, kind: visual_front, position: [7, 1, 0], facing: north, width: 3}
+  - {name: entry, kind: entry, position: [7, 1, 0], facing: north, width: 3}
+  - {name: summit, kind: deck, position: [7, 65, 7], facing: up, width: 13}
+design:
+  purpose: landmark
+  hierarchy: landmark
+  style: prismworks
+  focal_face: north
+  narrative: >
+    A stair tower of polished blackstone and smooth basalt beside the Prism Ascent: a pier
+    rhythm broken by four courses of barred window at every storey, a string course at every
+    floor, a corbelled oversail under the crown, an open loggia on the west face at the fourth
+    storey, and a deck sixty-five courses over the lawn with a parapet, four lit corner piers
+    and open sky. At the first storey a single cell of deck crosses onto the Prism Ascent's
+    podium roof, which has been standing unreachable since it was built.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [climb the stair, cross to the podium roof, stop at the loggia, stand on the deck]
+  outcome: >
+    The highest place a visitor can stand in the park - 65 courses over the lawn against a
+    previous best of 40, and the previous best was coaster structure rather than a place. From
+    the deck the whole 600 of the park is in one view; from the loggia the Prismworks avenues
+    are; and the Prism Ascent's podium roof, 498 standable cells, becomes reachable on foot.
+  reset: >
+    Nothing is consumed and no state is held. The stair is walkable in both directions and the
+    deck holds a dozen people at once.
+  service_access: >
+    None is needed and none is claimed: there is no plant, no mechanism and nothing to maintain.
+  bypass: >
+    The tower is entered from the avenue and can be walked past entirely; nothing about the
+    park's own circulation passes through it.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  # the lawn's own trim, which every park module stands over - see the Prism Ascent's config
+  verify_replaceable: [moss_carpet]
+origin_lock: false

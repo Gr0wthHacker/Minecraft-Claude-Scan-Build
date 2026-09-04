@@ -1,0 +1,197 @@
+{
+  "origin": {
+    "x": 97500,
+    "y": 203,
+    "z": 80300
+  },
+  "size": {
+    "x": 200,
+    "y": 40,
+    "z": 170
+  },
+  "generated_by": "overgrowth",
+  "kind": "overgrowth",
+  "lot": [
+    200,
+    170
+  ],
+  "at": [
+    0,
+    0
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "refused": 0,
+  "parts": {
+    "vines": {
+      "cells": 9222,
+      "curtains": 2712
+    },
+    "roofs": {
+      "cells": 1900,
+      "leaves": 125
+    },
+    "ferns": {
+      "cells": 0
+    },
+    "roots": {
+      "cells": 437
+    }
+  },
+  "contract": "the jungle taking the camp back: vine curtains down the walls from above head height, moss and azalea creeping over the roofs, ferns at the foot of a wall where the ground is soil, and hanging roots under the overhangs. Every cell goes into AIR beside or above a standing block, so nothing is replaced, a printer can place all of it, and it can be undone by breaking what it placed.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "traversal": [
+        "vine"
+      ]
+    },
+    "verifiers": {
+      "traversal": "mcbuild.walk / audit.check_climb"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "terrain",
+      "hierarchy": "filler",
+      "style": "frontier",
+      "narrative": "Vine curtains down the camp's walls from above head height, moss and azalea creeping over the roofs, ferns at the foot of a wall where the ground is soil, and hanging roots under the overhangs - the jungle reclaiming an expedition camp.\n"
+    },
+    "metrics": {
+      "blocks": 6585,
+      "materials": 4,
+      "dominant_material_share": 0.6451,
+      "light_blocks": 0,
+      "massing": {
+        "width": 181,
+        "height": 39,
+        "depth": 170,
+        "fill_ratio": 0.0055
+      },
+      "silhouette": {
+        "top": {
+          "area": 2430,
+          "fill_ratio": 0.0715
+        },
+        "front": {
+          "area": 1401,
+          "fill_ratio": 0.1751
+        },
+        "side": {
+          "area": 2326,
+          "fill_ratio": 0.3421
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.6774,
+          0.2345,
+          0.0881
+        ],
+        "top_silhouette_perimeter": 6759,
+        "surface_faces_per_block": 3.5812
+      },
+      "material_counts": {
+        "vine": 4248,
+        "moss_carpet": 1775,
+        "hanging_roots": 437,
+        "azalea_leaves": 125
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "28c7f52909b854e1e5560ba5fa374c9c6582b5f54be902dbdb2cc744bcdf7d45",
+    "generator_source_digest": "67e73b720d1040cbb2ef4e8e9b6c30bcec53965bdd7768f8ea6ae7ccf55653de",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "traversal"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 66.445649,
+    "blocks": 6585,
+    "blocks_per_second": 99.1
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 6585,
+    "mechanic_families": [
+      "traversal"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: hanging_roots"
+  ],
+  "file": "PF Frontier Overgrowth.litematic",
+  "name": "PF Frontier Overgrowth"
+}

@@ -11,6 +11,21 @@ params:
   seed: 0
 finish:
   cheapen: true
-  hollow: {shell: 1, ground: false, keep_floor: false}
+  hollow: false
   drop_floaters: false
   ground: false
+design:
+  purpose: sculpture
+  hierarchy: landmark
+  style: natural
+  narrative: A close-view underside sloth with a readable face, hooked claws, and a supported branch.
+  quality:
+    min_blocks: 650
+    min_materials: 5
+  enforce: true
+  visual_review: true
+animal_contract:
+  enforce: true
+  min_blocks: 650
+  min_materials: 5
+  required_features: [branch, face, eyes, mask, limbs, claws, shag]

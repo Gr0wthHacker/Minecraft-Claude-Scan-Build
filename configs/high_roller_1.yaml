@@ -1,0 +1,19 @@
+name: High Roller 1
+gen: casino
+params:
+  outcomes: 3
+  pit: 2
+  at:
+  - 97588
+  - 203
+  - 80627
+  kind: high_roller
+  title: High Roller 1
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false
+expensive_allowance: 4
+expensive_reason: 4x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

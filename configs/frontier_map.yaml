@@ -1,0 +1,26 @@
+name: Frontier Map
+gen: wayfinding
+params:
+  land: frontier
+  zone: frontier
+  title: Frontier Map
+  facing: east
+  at:
+  - 97570
+  - 203
+  - 80392
+  kind: mapboard
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: service
+  hierarchy: supporting
+  land: frontier
+  requires_path: false
+design:
+  purpose: service
+  hierarchy: supporting
+  style: frontier
+  narrative: Frontier Map serves the frontier visitor journey.
+origin_lock: false
