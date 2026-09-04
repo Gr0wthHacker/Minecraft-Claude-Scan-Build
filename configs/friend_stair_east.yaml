@@ -1,0 +1,38 @@
+# Friend island (2026-09-04): twin slab helices off the EAST arm's two alcoves, meeting under
+# the log spoke in one stair. See mcbuild/gen/twinspiral.py for the shape and the rules.
+#
+# The deck is one course of spruce top slabs at Y198 (surface 199.0) over open void; the rim
+# waterfalls fall from Y198 to bedrock along the diagonals two cells off each notch, and every
+# cell they hold is refused. Materials are the platform's own: spruce slabs and logs, stone brick.
+name: Friend Stair East
+gen: twinspiral
+params:
+  under: out/friendisland.litematic
+  deck_surface: 199.0
+  pairs:
+    - a: [-22383, -97406]                 # post at the north notch's outer (NE) corner
+      a_hole: [-22385, -22384, -97405, -97404]
+      b: [-22383, -97394]                 # post at the south notch's outer (SE) corner
+      b_hole: [-22385, -22384, -97396, -97395]
+      tail: [-22383, -97400]              # under the spoke's own log
+  width: 2
+  tail_width: 3
+  meet_turns: 2
+  tail_courses: 10                        # the single stair ends on a pad; nothing is below yet
+  slab: spruce_slab
+  slab_alt: stone_brick_slab
+  alt_rate: 0.3
+  post: spruce_log
+  tail_post: spruce_log
+  landing: stone_bricks
+  newel: 0
+  torch_every: 4
+  seed: 0
+origin_lock: [-22426, 150, -97421]        # this island's own corner, not the main island's lock
+finish:
+  climb: true
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: [out/friendisland.litematic]

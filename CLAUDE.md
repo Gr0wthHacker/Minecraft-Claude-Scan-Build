@@ -11556,3 +11556,48 @@ is not a floor; reach is the eyes' reach; the walk-or-fly rule.
 body to have a line to each cell's face, and `groundStand` checks the eye line to the cell
 centre, not to a face — a landing beside a cell whose only open face is away from it will stall
 the station the usual way. And nothing here has been flown in game.
+
+## The friend island's twin stairs (2026-09-04)
+
+`configs/friend_stair_{west,east}.yaml`, `mcbuild/gen/twinspiral.py`, `tests/test_twinspiral.py`
+(15). Jack: *"theres alcoves cut with slabs, want to put spiral staircases on each end of the
+slab which then meet at a lower center point combining into a single staircase"* - and the
+materials are the platform's own: spruce slabs and logs, stone brick.
+
+**The site, measured off `friendisland` (bedrock at -22421 -64 -97421 in the sidecar's box):** a
+one-course round platform of spruce TOP slabs at Y198 (surface 199.0) over open void, a
+cobblestone house on it, four log spokes, and a 2x2 notch framed in stone-brick top slabs at
+each end of the east and west arms - x -22416..-22415 (mirror -22385..-22384), z -97405..-97404
+and -97396..-97395. **The rim waterfalls fall from Y198 to bedrock** along two-wide diagonals
+starting two cells off each notch; 70 columns, and every one is refused at every course, because
+a tread under falling water catches it and spreads it seven cells over the stair. The east-north
+notch is missing its three outer deck cells at z=-97405 in this capture.
+
+**Per arm: 520 blocks, 0 problems, 0 overlap, one piece with the platform, all cheap, and it WALKS
+from the pad to the deck under the audit's own rules.** The four notch cells become bottom slabs a
+half step down; a 1x1 spruce-log post stands at each notch's outer corner in open air beyond the
+rim with an eight-sector slab helix round it (0.5 a tread); after two turns the tread that points
+at the arm's middle bridges into a stone-brick landing hung under the spoke's own log; a wider
+helix round a 3x5 stone-brick pier continues ten courses and ends on a quarter-turn stone pad,
+because nothing is below it yet. `/cscan place "Friend Stair West"` by NAME - they are not in
+`sync.yaml`, whose captures are the main island's.
+
+Four things that shipped `problems: 0` and were wrong, all caught by a walk or a component count:
+
+- **THE COURSES JUST UNDER A TOP-SLAB DECK HAVE NO HEADROOM.** The audit wants two clear cells over
+  ceil(surface), so a tread under the deck needs surface <= 196.0 and the top five half-steps must
+  be in open sky - which is why the post is at the notch's OUTER corner and the spin is MEASURED
+  (the one whose first turn lays more treads), never declared.
+- **A SLAB HELIX IS CONNECTED ONLY THROUGH ITS POST**, in course-mate pairs (top slab, bottom slab
+  at one Y): a bridge slab and a landing one course down are diagonal neighbours - walkable, and
+  the twin shipped as its own piece. The column under the bridge runs the pier's full height.
+- **THE TAIL'S NORTH AND SOUTH WEDGES SAT UNDER THE HAND-OFFS**, which took their inner cells'
+  headroom and left them nothing to anchor to, so the walk died three half-steps below the
+  landing while every cell audited clean. The pier's end faces are what they lean on now, and the
+  tail's start and spin are probed for the longest WALKABLE chain - a probe that scored cell
+  counts chose a start whose third wedge was empty.
+- **A WEDGE CELL PAST THE WATERFALL FLOATED** (its inner neighbours refused). Every cell must touch
+  something standing - design or non-water world - and each wedge is laid to a fixpoint so a cell
+  may lean on a wedge-mate placed after it (the east-north notch has no deck beside it yet).
+
+`render3d` cannot judge the palette; judge form here (`out/friend_orbit.png`) and colour in world.

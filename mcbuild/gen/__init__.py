@@ -24,6 +24,7 @@ from . import bonebed, claimrow, diggings, fossils, frontier_scatter, mineridge 
 from . import mineworks, overgrowth, park_games, plateau, pterosaur, sauropod, seam  # noqa: E402
 from . import downs  # noqa: E402
 from . import wyrmgate  # noqa: E402
+from . import twinspiral  # noqa: E402
 from . import menagerie  # noqa: E402
 from . import helter  # noqa: E402
 from . import gamesrow  # noqa: E402
@@ -82,6 +83,7 @@ GENERATORS = {
     # mcbuild/gen/wyrmgate.py. It touches NOTHING the railway made and is carried
     # from the rim, because the jaw is exactly as deep as the corridor is wide.
     "wyrmgate": wyrmgate,
+    "twinspiral": _Wrap(twinspiral.build_twinspiral, twinspiral.TWINSPIRAL),
     # the worked-out landscape that replaced Boomtown's seven false fronts, with two
     # shops cut INTO its banks - mcbuild/gen/diggings.py
     "diggings": diggings,
