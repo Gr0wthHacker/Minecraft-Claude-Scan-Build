@@ -388,6 +388,29 @@ RETIRED = {
     #: `PF Games Row` replaces both with the frontage `PARK_MIDWAY.md` asks for by name and
     #: carries all four machines in the open. See the notes in `PLACEMENT` above.
     "Skill Arcade", "Prize Point",
+    #: 2026-09-03. **SUPERSEDED RATHER THAN RETIRED, AND THE DISTINCTION IS THE POINT.** The bird
+    #: still stands - `park_ways.yaml` builds it itself, `- gen: heron, offset: [26, 1, 176]`, into
+    #: the `heron garden` feature lot - so what left is the old `park_final` ARTIFACT and the lot
+    #: this table held for it, which was the same ground twice. A lot reserved for a module nobody
+    #: places is ground nothing else may use, and it is what `test_worldrender.py` failed on.
+    "Signal Heron",
+    #: 2026-09-03. **BOOMTOWN SPINE**, retired when the Lost Plateau took its ground. Jack, three
+    #: times: "they are visually great - but all serve no actual defined purpose"; "i dont want a
+    #: bunch of buildings to go into, this is just a village then"; "we can have a small amount of
+    #: buildings, but the rest should be other things." 53 x 46 of false fronts, 0 interactive
+    #: blocks - the biggest lot in the land. `PF Frontier Diggings` named its lot and was itself
+    #: retired for the Bone Bed; `gen/diggings.py` and the artifacts stand as the record.
+    "Boomtown Spine",
+    #: 2026-09-03. **PRISMWORKS v1, ALL FOUR OF IT.** The Prism Well replaced the land wholesale -
+    #: see `park_place.EXTRAS_READY` and PRISMWORKS_V2_PLAN.md - and these four left with it. They
+    #: were unfiled here until the leftovers audit, which is why this test has been reporting them
+    #: as "no lot and no reason": a module retired in one list and not in the other reads as one
+    #: nobody noticed, which is the same failure the audit found in the frontage signs.
+    #:
+    #: `PF Vantage Prism Summit` went with them and is archived; the Foundry Gate's own marquee
+    #: had been announcing it on the spine ever since, retitled PRISMWORKS and named for a
+    #: building that is not there. See `configs/pf_front_prismworks.yaml`.
+    "Foundry Gate", "Prism Array", "Prism Ascent", "Resonance Vault", "Forge Deck",
 }
 
 #: MODULES THE GRID ALREADY IS, or that hang off another build. None of them wants a lot:

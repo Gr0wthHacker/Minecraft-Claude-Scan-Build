@@ -11052,6 +11052,62 @@ lines rather than multi-line blocks. `git diff --ignore-cr-at-eol --numstat` is 
 content change from line-ending damage, and it is the only way to find out which files a bad patch
 actually touched.
 
+### The suite already knew, and nobody had read it
+
+Run across the whole park selection the audit came to **58 failures and 28 errors**, and the useful
+part is not the number - it is that **THE SAME CLASS ACCOUNTS FOR MOST OF THEM.** A retirement is
+made in one list and the other places that name it are left standing, and a test naming a retired
+module fails in a way that reads as a MISSING BUILDING rather than as a RETIRED one, which sends the
+next reader looking for the wrong thing.
+
+**`test_parkways::test_every_module_is_either_placed_or_declared_not_to_need_ground` IS THIS AUDIT,
+ALREADY WRITTEN.** Its own docstring names the three ways a module may be accounted for - it has a
+lot, the grid draws it, or it is RETIRED with a reason written beside it - and it was failing on
+seven modules with no lot and no reason:
+
+    Boomtown Spine · Foundry Gate · Prism Array · Prism Ascent · Resonance Vault · Forge Deck
+
+...which is, to the name, the retired roster the frontage signs were still announcing. They are
+filed in `park_lots.RETIRED` now with what happened to each. `Signal Heron` joined them - it is
+SUPERSEDED rather than retired, because the bird still stands and what left is the artifact and the
+lot this table held for it, and the set keeps that distinction.
+
+**What this session fixed in the suite**, all of it the same defect:
+
+| | |
+|---|---|
+| 28 errors | `test_park_vantage` could not load `pf_vantage_midway_belvedere.yaml` - commit ad49844 moved it to `archive/` and left the test opening it from `configs/`, so EVERY test in the file had been erroring on `FileNotFoundError`. It reads the archive now: 21 pass |
+| 7 | `test_parkways`, above - down to one (`Wyrm's Crossing`, another stream's in-flight siting) |
+| 1 | `test_park_frontage`'s roster, which named six retired modules |
+| 1 | `test_prismworks_builds`'s ascent test, skipped with its reason |
+
+**And what is PRE-EXISTING, each verified by running the same test with this session's changes
+stashed** - the discipline matters, because three of them looked like mine at first glance:
+
+| | |
+|---|---|
+| 16 | `test_park.py::test_every_kind_is_one_connected_piece[*-paths]`, already recorded above |
+| 10 | `test_park_vantage`, once it runs: two of its three vantages are retired, and `PARK_ORIGIN` is typed as 190 where the composite now starts at 94 |
+| 9 | `test_worldrender` - identical with and without the `park_lots` change |
+| 8 | `test_isthmus` + `test_overgrowth`: `wayfinding.known_destinations()` has no PRISMWORKS zone |
+| 7 | `test_evidence` - identical at baseline |
+| 6 | `test_frontier`: `KeyError: 'prismworks'` in `frontiertown.py`, and 109 cells of escaping water |
+| 5 | `test_park_final_worldplan` |
+| 1 | `test_wayfinding`: 'Haunted Manor' names no real module |
+| 1 | `test_park_games`: `PF Game Ascent Signal`, already recorded above |
+
+**THE WAYFINDING ROSTER IS THE NEXT ONE TO FIX AND IT IS THE SAME SHAPE.**
+`wayfinding.known_destinations()` still answers FRONTIER / MIDWAY / HOLLOW when the third land has
+been Prismworks for weeks, and it does not know the Haunted Manor - so `_check_dest` RAISES, which
+is the right instinct wired to a stale list. It is nine failures across three files and it was not
+touched here because the roster is `planner.THEMES`'s to fix, not a signage pass's.
+
+**And a working-practice note, because it cost most of the time.** `pytest tests/ -q -k "..."` over
+this selection takes **sixteen minutes**, and a background task is reaped before it finishes - so
+the result was read three times from a run that had been killed at 38%. Run it per FILE, or in
+batches small enough to finish inside a foreground call, and never conclude "green" from a subset:
+the first report of this session said green off targeted runs, and the broad run said 58.
+
 ### Still open, and deliberately not changed
 
 - **The rail stations say `EXIT / DOWN TO ARCADE / PARK RETURN`** on all three platforms. That
@@ -11061,6 +11117,15 @@ actually touched.
 - **The Mine Coaster and the Rapids were not regenerated.** Their two shortened lines
   (`board at end`, `climb the tower`) are preventive - neither sign is in the shipped park - and the
   coaster is 31,197 blocks to rebuild for a string nobody can currently read.
+- **`wayfinding.known_destinations()` HAS NO PRISMWORKS ZONE**, and it is the same defect one
+  level up: the roster answers FRONTIER / MIDWAY / HOLLOW when the third land has been Prismworks
+  for weeks, and does not know the Haunted Manor - so `_check_dest` RAISES, which is the right
+  instinct wired to a stale list. Nine failures across `test_isthmus`, `test_wayfinding` and
+  `test_overgrowth`. It belongs to `planner.THEMES`, not to a signage pass.
+- **`Wyrm's Crossing` IS THE ONE MODULE LEFT WITH NO LOT AND NO REASON.** It is in
+  `park_place.KEEP` so somebody intends it, it is not in `PLACEMENT`, and `PF Wyrm Gate` now
+  carries the skull - another stream's in-flight siting, so it is not filed here.
+
 - **247 designs have a config and are not in the park.** That is the retired record and it is
   correct; what matters is only whether something STANDING still points at one of them.
 

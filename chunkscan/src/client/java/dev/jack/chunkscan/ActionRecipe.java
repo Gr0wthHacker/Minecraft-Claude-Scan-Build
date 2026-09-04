@@ -41,6 +41,17 @@ final class ActionRecipe {
 	static String manual(String state) {
 		String block = Rules.shortName(state);
 		if (block.equals("water_cauldron") || block.equals("lava_cauldron")) return "cauldron fill";
+		// COMMISSIONING IS A DELIBERATE PASS, NOT A SIDE EFFECT OF A BUILD LOOP. A repeater's and a
+		// comparator's `facing` convention is an OPEN known-wrong in this project - the wiki and the
+		// reference builds both say `facing` names the INPUT, and our own simulator treats it as the
+		// output - and our renderer draws both directions identically. Placing 1868 of them
+		// unattended would stamp a possibly-inverted convention across the whole park, invisibly,
+		// and a circuit that looks right and does nothing is this repo's most expensive failure.
+		// `equals("rail")` as well as the suffix: plain `rail` does not end in "_rail", so the
+		// original gate missed the commonest track block in the game entirely.
+		if (block.equals("rail") || block.endsWith("_rail") || block.equals("repeater")
+			|| block.equals("comparator") || block.equals("redstone_wire"))
+			return "redstone/rail commissioning";
 		return null;
 	}
 
@@ -83,10 +94,9 @@ final class ActionRecipe {
 		// Signs are implemented - placed by the ordinary search, then written by Printer.signText.
 		// Their remaining gate is EVIDENCE rather than mechanism, and it needs the design's tile
 		// entities, so it lives in `missing(cells, signs)` where the text is actually in hand.
-		if (block.equals("redstone_wire") && (props(state).get("power") == null
-			|| "0".equals(props(state).get("power")))) return null;
-        if (block.equals("redstone_wire") || block.endsWith("_rail") || block.equals("repeater")
-            || block.equals("comparator")) return "redstone/rail commissioning";
+		// Redstone and rails are DECLINED rather than unimplemented - see `manual`. Dust goes with
+		// them, though it is an ordinary block: a circuit half-laid by the loop and half by hand is
+		// worse than one pass owning the whole thing.
 		return null;
 	}
 

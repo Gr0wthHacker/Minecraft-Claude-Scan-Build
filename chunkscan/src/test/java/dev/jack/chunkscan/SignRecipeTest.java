@@ -159,6 +159,23 @@ class SignRecipeTest {
 		assertEquals(1, split.total(), "declined work is still work, and still counted");
 	}
 
+	@Test void aWholeCircuitIsHandedToACommissioningPass() {
+		// Rails, repeaters, comparators AND dust, together. A circuit half-laid by the loop and
+		// half by hand is worse than one pass owning all of it - and a repeater's facing convention
+		// is an open known-wrong here, which 1868 unattended placements would stamp in invisibly.
+		for (String state : List.of("powered_rail[shape=north_south]", "detector_rail", "rail",
+				"repeater[facing=east,delay=2]", "comparator[facing=north,mode=compare]",
+				"redstone_wire[power=4]", "redstone_wire[power=0]")) {
+			assertEquals("redstone/rail commissioning", ActionRecipe.manual(state), state);
+			assertNull(ActionRecipe.missingFor(state), state + " must not REFUSE the design");
+		}
+		// A redstone TORCH is an ordinary block and stays automated - it is not part of the gate.
+		assertNull(ActionRecipe.manual("redstone_wall_torch[facing=north]"));
+		assertNull(ActionRecipe.manual("redstone_block"));
+		var cells = List.of(new Work.Cell(BlockPos.ZERO, "repeater[facing=east,delay=2]"));
+		assertDoesNotThrow(() -> ActionRecipe.require(cells));
+	}
+
 	@Test void onlyASignThisBuildKnowsIsIntercepted() {
 		SignWriter.clear();
 		BlockPos mine = new BlockPos(5, 70, 5), theirs = new BlockPos(9, 70, 9);

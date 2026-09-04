@@ -31,8 +31,10 @@ class ActionRecipeTest {
 		// design's tile entities, so it cannot be answered by the state alone.
 		assertNull(ActionRecipe.missingFor("oak_wall_sign[facing=north]"));
 		assertNull(ActionRecipe.missingFor("oak_sign[rotation=7]"));
+		// Redstone is DECLINED now, not unimplemented: it leaves the todo and is handed back rather
+		// than refusing the design. See aWholeCircuitIsHandedToACommissioningPass.
 		assertNull(ActionRecipe.missingFor("redstone_wire[north=side,power=0]"));
-		assertEquals("redstone/rail commissioning", ActionRecipe.missingFor("redstone_wire[power=4]"));
+		assertNull(ActionRecipe.missingFor("redstone_wire[power=4]"));
 		assertNull(ActionRecipe.missingFor("stone_slab[type=double]"));
 		assertNull(ActionRecipe.missingFor("oak_door[half=lower]"));
     }
@@ -46,11 +48,11 @@ class ActionRecipeTest {
     @Test void reportCountsRecipeFamiliesAndPreflightFailsClosed() {
         var cells = List.of(new Work.Cell(BlockPos.ZERO, "lava"),
             new Work.Cell(new BlockPos(1,0,0), "lava"),
-            new Work.Cell(new BlockPos(2,0,0), "redstone_wire[power=4]"));
+            new Work.Cell(new BlockPos(2,0,0), "water[level=3]"));
         assertEquals(2, ActionRecipe.missing(cells).get("fluid bucket placement"));
         var error = assertThrows(java.io.IOException.class, () -> ActionRecipe.require(cells));
         assertTrue(error.getMessage().contains("2 fluid bucket placement"));
-        assertTrue(error.getMessage().contains("1 redstone/rail commissioning"));
+        assertTrue(error.getMessage().contains("1 fluid flow shaping"));
     }
 
 	@Test void halfSlabIsARepairableIntermediateButOtherBlocksAreNot() {
