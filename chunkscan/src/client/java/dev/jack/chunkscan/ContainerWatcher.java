@@ -159,9 +159,10 @@ final class ContainerWatcher {
 		Path dir = ScanRunner.schematicsDir(mc);
 		Map<String, Storage.Container> all = Storage.load(dir);
 		Storage.Container c = new Storage.Container();
-		c.x = lastUsed.getX();
-		c.y = lastUsed.getY();
-		c.z = lastUsed.getZ();
+		BlockPos filedAt = Storage.canonical(mc.level, lastUsed);    // a double chest is ONE record
+		c.x = filedAt.getX();
+		c.y = filedAt.getY();
+		c.z = filedAt.getZ();
 		c.dimension = mc.level.dimension().identifier().toString();
 		c.block = lastBlock;
 		String zone = Markers.nearestLabel(Markers.load(dir), lastUsed, 24.0);

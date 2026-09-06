@@ -7,6 +7,7 @@ import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -38,5 +39,11 @@ abstract class ClientPacketListenerMixin {
     @Inject(method = "handleContainerSetSlot", at = @At("RETURN"))
     private void chunkscan$slot(ClientboundContainerSetSlotPacket packet, CallbackInfo ci) {
         MenuObservations.LIVE.slot(this, packet.getContainerId(), packet.getSlot(), packet.getItem());
+    }
+
+    /** A sent sign packet is only evidence; matching server block-entity data confirms its text. */
+    @Inject(method = "handleBlockEntityData", at = @At("RETURN"))
+    private void chunkscan$signData(ClientboundBlockEntityDataPacket packet, CallbackInfo ci) {
+        SignWriter.observe(packet.getPos(), packet.getTag());
     }
 }

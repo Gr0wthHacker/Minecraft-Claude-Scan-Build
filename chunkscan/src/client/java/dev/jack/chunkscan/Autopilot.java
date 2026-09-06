@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -138,13 +139,15 @@ final class Autopilot {
 	static final double EXACT_MIN = 0.6;
 	static final double EXACT_ARRIVED = 1.6;
 	/**
-	 * How much air an exact target keeps under the feet. The approach cell is chosen with at least
-	 * one clear cell beneath it (see {@link ContainerInteraction#HOVER_CLEAR}), so the feet sit just
-	 * over a block of air above whatever floor the chest stands on — more than the one block that
-	 * ends flight on this server, and low enough to open a chest on that floor. {@link #GROUND_CLEAR}
-	 * would hold the body two and a half blocks up, which is exactly where it could not.
+	 * How much air an exact target keeps under the feet. The approach cell is chosen with
+	 * {@link ContainerInteraction#HOVER_CLEAR} clear cells beneath it, so the feet sit just over TWO
+	 * blocks of air above whatever floor the chest stands on. It was one, on the reasoning that two
+	 * and a half is "exactly where it could not" open a chest on that floor — and one block of air
+	 * is the distance this server has been measured to end flight at, so every fetch approach was
+	 * a chance to lose it. From two blocks up the eyes still reach a chest one block over
+	 * (Withdraw.REACH is 4.5), and the opening ray is tested from the cell before it is chosen.
 	 */
-	static final double EXACT_CLEAR = 1.05;
+	static final double EXACT_CLEAR = 2.05;
 	/** Ticks of getting no nearer before "this is as close as it gets" is the honest reading. */
 	static final int CLOSING_PATIENCE = 12;
 	/**
@@ -297,8 +300,9 @@ final class Autopilot {
 
 	// ---- THE RECOVERY LADDER. See Recovery: when every specific handler has had its turn and the
 	// flight is still going nowhere, the reason stops mattering and only the escalation does.
-	private static int trouble = 0;
-	private static Recovery.Stage stage = Recovery.Stage.NONE;
+	private static int trouble = 0;private static Recovery.Stage stage = Recovery.Stage.NONE;
+	/** A climb-out has already been spent on this destination. The next one is a give-up. */
+	private static boolean climbedOut = false;
 	/** Somewhere we were definitely fine, to back off to. */
 	private static BlockPos breadcrumb = null;
 	private static int breadcrumbAge = 0;
@@ -343,9 +347,30 @@ final class Autopilot {
 	 * every corner: at 0.75 blocks a tick you cross a 1.0 radius in under two ticks, so you are past
 	 * the turn before the next waypoint is even selected. Two ticks of travel, floored at the old
 	 * value.
-	 */
-	static double waypointRadius(double speed) {
+	 */static double waypointRadius(double speed) {
 		return Math.max(WAYPOINT, speed * 2.5);
+	}
+
+	/**
+	 * Has this waypoint been passed? Inside {@link #WAYPOINT} of it, yes. Inside the speed-scaled
+	 * radius, only once the body is PAST the corner - on the far side of the plane through the
+	 * waypoint perpendicular to the next leg. Popped before that, `legFrom` jumps ahead of the body
+	 * and the pursuit aims LOOKAHEAD along a leg the body has not reached: a chord across the very
+	 * corner the waypoint was there to round, on a line `clear` never validated. At cruise that
+	 * chord began nearly two blocks before the corner, which is a shop's own width.
+	 */
+	static boolean popped(Vec3 me, Vec3 legFrom, Vec3 wp, Vec3 nextWp, double near) {
+		double d = me.distanceTo(wp);
+		if (d <= WAYPOINT) return true;
+		if (d > near) return false;
+		if (nextWp == null || legFrom == null) return true;    // the last one: nothing to round
+		Vec3 in = wp.subtract(legFrom), out = nextWp.subtract(wp);
+		if (in.lengthSqr() < 1e-9 || out.lengthSqr() < 1e-9) return true;
+		// A DRIFT MAY BE POPPED EARLY, A CORNER MAY NOT: the same bend test the speed uses. Through a
+		// right angle the plane through the corner contains the whole leg being flown, so "past the
+		// plane" is no test at all there - the chord is what has to be avoided, and it only exists
+		// where the route actually turns.
+		return in.normalize().dot(out.normalize()) >= CORNER_COS;
 	}
 	/** Speed through a bend. A corridor turn taken at cruise is a corner clipped. */
 	static final double CORNER_SPEED = 0.10;
@@ -367,7 +392,7 @@ final class Autopilot {
 		// nothing; losing the session is the thing being avoided.
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
 			try {
-				tick(mc);
+				Perf.run("autofly", () -> tick(mc));
 			} catch (Exception e) {
 				if (mc.player != null && !crashed) {
 					crashed = true;
@@ -474,7 +499,7 @@ final class Autopilot {
 	}
 
 	private static void hold(Minecraft mc, boolean up, boolean down) {
-		if (mc.options == null) return;
+		if (mc == null || mc.options == null) return;
 		if (up != holdUp) {
 			holdUp = up;
 			mc.options.keyJump.setDown(up);
@@ -550,6 +575,9 @@ final class Autopilot {
 	static final int REGAIN_EVERY = 60;
 	/** After this many failed attempts, stop trying and say so once. */
 	static final int REGAIN_GIVE_UP = 4;
+	/** How many times /fly is sent for one destination before it is left to a human. */
+	static final int FLY_COMMANDS = 3;
+	private static int flyCommands = 0;
 
 	private static int regainCool = 0;
 	private static int regainTries = 0;
@@ -586,10 +614,24 @@ final class Autopilot {
 		boolean wanted = goal != null && needsFlight(Hud.targetLand(), groundNoRoute,
 			Math.sqrt(p.blockPosition().distSqr(goal)));
 		if (!canRegainFlight(false, p.getAbilities().mayfly, wanted)) {
-			if (!p.getAbilities().mayfly && !regainSaid) {
+			if (!p.getAbilities().mayfly && wanted && p.connection != null && regainCool == 0
+				&& flyCommands < FLY_COMMANDS) {
+				// ---- THE SERVER TOOK IT: ASK FOR IT BACK. On this server flight is a plugin grant
+				// and touching a block ends it, so a landing was one-way - the taps cannot toggle
+				// what the server has revoked, and the loop was on foot for the rest of the night.
+				// `/fly` is a TOGGLE, which is exactly why it is only ever sent while mayfly is
+				// FALSE: then the one direction it can go is on. Bounded, like the taps.
+				flyCommands++;
+				regainCool = REGAIN_EVERY;
+				p.connection.sendCommand("fly");
+				p.sendSystemMessage(Component.literal("[cscan] flight was revoked — sent /fly ("
+					+ flyCommands + "/" + FLY_COMMANDS + "), then the double tap."));
+				return true;
+			}
+			if (!p.getAbilities().mayfly && !regainSaid && flyCommands >= FLY_COMMANDS) {
 				regainSaid = true;
-				p.sendSystemMessage(Component.literal("[cscan] flight is off and the server will"
-					+ " not give it back on its own — /fly, then double-tap jump."));
+				p.sendSystemMessage(Component.literal("[cscan] flight is off and /fly did not bring"
+					+ " it back " + FLY_COMMANDS + " times — do it by hand: /fly, then double-tap jump."));
 			}
 			return false;
 		}
@@ -811,6 +853,23 @@ final class Autopilot {
 		sinceCloser = 0;
 	}
 
+	/**
+	 * Stop the current leg without disarming autofly.
+	 *
+	 * <p>A build can abandon a chest approach or an unbuildable spot while leaving autofly armed for
+	 * its replacement. Clearing only the HUD target made the next movement tick return early, with
+	 * the previous route and delta velocity still alive. That is not a pause: it is a player drifting
+	 * in the direction of work the scheduler has already rejected.
+	 */
+	static void pauseGuidance(Minecraft mc) {
+		forget();
+		approaching = null;
+		arrivedAt = null;
+		announcedArrival = false;
+		if (mc != null && mc.player != null) mc.player.setDeltaMovement(Vec3.ZERO);
+		release(mc);
+	}
+
 	/** How many waypoints are left, for the HUD. */
 	static int waypoints() {
 		return path.size();
@@ -852,6 +911,12 @@ final class Autopilot {
 		// ---- FALLING BEATS EVERY OTHER CONSIDERATION, including having no destination: the whole
 		// point is that it fires when the loop is not in control of what is happening.
 		if (rescue(mc, p)) return;
+
+		// ---- ...AND SO DOES BEING WALLED IN, for the same reason: it happens while the loop is
+		// standing exactly where it means to stand, so every clock in this mod reads it as success.
+		// Above the destination check on purpose — a bot digging itself into a pit usually has
+		// nowhere it is trying to go, which is precisely why nothing noticed. See Burial.
+		if (Burial.lift(mc)) return;
 
 		// ...and the quieter version of the same thing: on the ground, not flying, with somewhere to
 		// be. See regain — the loop should get flight back rather than stand there being safe.
@@ -913,6 +978,17 @@ final class Autopilot {
 			groundNoRoute = false;
 			bestDist = Double.MAX_VALUE;
 			sinceCloser = 0;
+			// ...AND THE LADDER STARTS AGAIN. Carried over, one spot's wedge fired "not getting
+			// anywhere (5s) - backing off" within a second of arriving at a brand-new station.
+			trouble = 0;
+			stage = Recovery.Stage.NONE;
+			climbTo = null;
+			climbedOut = false;
+			// ...AND SO DOES THE TAKE-OFF. Four failed taps at one station wrote flight off for the
+			// whole session; a new destination gets its own tries.
+			regainTries = 0;
+			flyCommands = 0;
+			regainSaid = false;
 		}
 		if (dist < bestDist - 0.05) {
 			bestDist = dist;
@@ -1084,8 +1160,21 @@ final class Autopilot {
 		}
 		if (trouble >= Recovery.BACK_OFF_AT) {
 			boolean sealed = Nav.pocket(Nav.of(mc.level), p.blockPosition(),
-				Recovery.SEALED_CELLS) < Recovery.SEALED_CELLS;
-			Recovery.Stage want = Recovery.stageFor(trouble, sealed);
+				Recovery.SEALED_CELLS) < Recovery.SEALED_CELLS;Recovery.Stage want = Recovery.stageFor(trouble, sealed);
+			if (want == Recovery.Stage.CLIMB_OUT && climbedOut) {
+				// A SECOND CLIMB IS NOT A RUNG. The first ended by handing the flight back at
+				// BACK_OFF_AT, so the ladder re-entered at back-off, climbed again, backed off again
+				// - 25 blocks up each time and never GO_HOME, because trouble never reached it.
+				// Climbed out once and still going nowhere: the spot beyond is not worth this.
+				p.sendSystemMessage(Component.literal("[cscan] climbed out and still not getting"
+					+ " anywhere toward " + Wand.fmt(target) + " — giving up on this spot"));
+				trouble = 0;
+				stage = Recovery.Stage.NONE;
+				climbedOut = false;
+				forget();
+				Hud.abandonSpot();
+				return;
+			}
 			if (want != stage) {
 				stage = want;
 				climbTo = null;
@@ -1117,18 +1206,54 @@ final class Autopilot {
 			BlockPos here = p.blockPosition();
 			// ONE CLOCK FOR THE WHOLE DECISION. The roomy search, the tight search and the escape
 			// flood each had their own budget, so an indoor repath — where the roomy search FAILS
-			// as a matter of course — cost three budgets on the client thread every half second.
-			long deadline = System.nanoTime() + Nav.MAX_MILLIS * 1_000_000L;
+			// as a matter of course — cost three budgets on the client thread every half second.// ...BUT EACH TIER GETS ITS OWN SLICE OF IT. One deadline handed to every tier in turn
+			// let the first search that FAILS BY BUDGET spend the whole 25ms: beside a row of shops
+			// the cruise and roomy searches fail that way as a matter of course, the tight search
+			// that would have found the indoor route got about thirty nodes, and "no route and no
+			// way round" was the clock, not the geometry. A tier that finishes early hands its
+			// remainder on; a tier that runs out leaves the next one its own share.
+			long start = System.nanoTime();
+			long total = Nav.MAX_MILLIS * 1_000_000L;
+			long deadline = start + total;
 			java.util.List<BlockPos> raw = java.util.List.of();
 			Nav.Passable used = free;
 			boolean partial = false;
+			boolean overTopRoute = false;
 			if (flying) {
-				// ---- ROOMY FIRST. A route that keeps a block of air off every surface is a route
+				// ---- OVER THE TOP, BEFORE ANY SEARCH. See OVERTOP_CLEAR: up, across, down. Three
+				// waypoints, no search, and nothing in the crossing by construction. Only when this
+				// is not the right tool - a short hop, a roof over the ascent - does a search run.
+				java.util.List<BlockPos> ot = overTop(mc, free, here, target);
+				if (!ot.isEmpty()) {
+					raw = ot;
+					overTopRoute = true;
+					roomyRoute = true;
+				}
+			}
+			if (raw.isEmpty() && flying) {
+				// ---- CRUISE FIRST. A roomy route keeps ONE block of air off every surface, and
+				// this server has ended flight at a block's distance from a floor - which is why
+				// GROUND_CLEAR is two and a half and not one. A route was the one thing that
+				// bypassed that clearance (see the routed step: the clamp has nothing to add while
+				// there is a route), so a routed flight over the plate skimmed its paving at the
+				// height the clamp forbids everywhere else. Cruise asks for the same clearance the
+				// hover keeps, relaxed within ENDS of either end where the work and the chests are.
+				Nav.Passable cruise = Bounds.within(Nav.cruiseBetween(mc.level, here, target, CRUISE_BELOW));
+				Nav.Route r = Nav.routeEx(cruise, here, target, start + (long) (total * CRUISE_SHARE));
+				if (!r.path().isEmpty()) {
+					raw = r.path();
+					used = cruise;
+					partial = !r.complete();
+					roomyRoute = true;
+				}
+			}
+			if (raw.isEmpty() && flying) {
+				// ---- ROOMY SECOND. A route that keeps a block of air off every surface is a route
 				// that never tests whether this server ends flight on contact. Only when there is no
 				// such route — a one-wide shaft, a doorway, the taproot — do we accept one that has
 				// to touch, and then the alignment and the tight speed take over.
 				Nav.Passable roomy = Bounds.within(Nav.roomyBetween(mc.level, here, target));
-				Nav.Route r = Nav.routeEx(roomy, here, target, deadline);
+				Nav.Route r = Nav.routeEx(roomy, here, target, start + (long) (total * ROOMY_SHARE));
 				raw = r.path();
 				roomyRoute = !raw.isEmpty();
 				if (roomyRoute) {
@@ -1144,12 +1269,10 @@ final class Autopilot {
 				// under the feet the whole way. Indoors this fails at once (a two-course room has
 				// no such cell) and costs almost nothing; in open air it keeps the ride off the deck.
 				Nav.Passable base = free;
-				Nav.Passable lifted = (x, y, z) -> base.at(x, y, z) && base.at(x, y - 1, z);
-				Nav.Route r = Nav.routeEx(lifted, here, target, deadline);
+				Nav.Passable lifted = (x, y, z) -> base.at(x, y, z) && base.at(x, y - 1, z);Nav.Route r = Nav.routeEx(lifted, here, target, start + (long) (total * LIFTED_SHARE));
 				if (!r.path().isEmpty()) { raw = r.path(); used = lifted; partial = !r.complete(); }
-			}
-			if (raw.isEmpty()) {
-				Nav.Route r = Nav.routeEx(free, here, target, deadline);
+			}if (raw.isEmpty()) {
+				Nav.Route r = Nav.routeEx(free, here, target, start + (long) (total * TIGHT_SHARE));
 				raw = r.path();
 				partial = !r.complete();
 			}
@@ -1159,10 +1282,16 @@ final class Autopilot {
 				escaping = !raw.isEmpty();
 			}
 			noRoute = raw.isEmpty();
+			// A new bounded route search is a new observation. Keep one strike per SEARCH, never one
+			// per tick, so two independent failures abandon the spot without flying at the wall.
+			if (noRoute) warnedNoRoute = false;
 			if (!flying && noRoute && Hud.targetLand()) groundNoRoute = true;   // cannot walk it: fly
 			partialRoute = !noRoute && (partial || escaping);
 			path = raw.isEmpty() ? new java.util.ArrayList<>()
-				: new java.util.ArrayList<>(flying ? Nav.loosen(used, here, Nav.simplify(used, here, raw)) : raw);
+				// ...AND AN OVER-THE-TOP ROUTE IS NEVER SIMPLIFIED: its three legs are the point, and
+				// a chord from the ascent's foot to the descent's head is the diagonal through the
+				// buildings this route exists to fly over.
+				: new java.util.ArrayList<>(flying && !overTopRoute ? Nav.loosen(used, here, Nav.simplify(used, here, raw)) : raw);
 			legFrom = p.position();                        // the first leg starts where we are
 			pathTo = target;
 			routedFlying = flying;
@@ -1179,8 +1308,8 @@ final class Autopilot {
 		// From the speed actually being flown (last tick's), not the dial: at dial 1.5 crawling
 		// through a bend at 0.45, the dial's radius popped a waypoint 3.75 blocks early and the
 		// pursuit chord cut the corner that waypoint was there to round.
-		double near = waypointRadius(flying ? Math.min(speed, Math.max(appliedSpeed, CORNER_SPEED)) : WALK_SPEED);
-		while (!path.isEmpty() && (flying ? me.distanceTo(flyTo(path.get(0))) <= near
+		double near = waypointRadius(flying ? Math.min(speed, Math.max(appliedSpeed, CORNER_SPEED)) : WALK_SPEED);while (!path.isEmpty() && (flying
+			? popped(me, legFrom, flyTo(path.get(0)), path.size() > 1 ? flyTo(path.get(1)) : null, near)
 			: WalkingSpace.arrived(me, path.get(0)))) {
 			legFrom = flyTo(path.get(0));                 // the leg we are on starts where we passed
 			path.remove(0);
@@ -1283,8 +1412,15 @@ final class Autopilot {
 					return;
 				}
 				p.sendSystemMessage(Component.literal("[cscan] no route and no way round to "
-					+ Wand.fmt(target) + " — going direct. Twice and it is ignored."));
+					+ Wand.fmt(target) + " — holding position; one more failed search marks it ignored."));
 			}
+			// Direct flight after a failed search is not a fallback: it is an instruction to collide
+			// with the obstacle the search just proved it cannot pass. Hold for the bounded re-search.
+			release(mc);
+			p.setDeltaMovement(Vec3.ZERO);
+			appliedSpeed = 0;
+			slowBecause = "no route";
+			return;
 		} else {
 			warnedNoRoute = false;
 		}
@@ -1340,7 +1476,13 @@ final class Autopilot {
 			// forward. That is the head grinding. The route was checked by Nav and avoid below now
 			// guarantees no step touches anything, so the clamp has nothing to add while there is a
 			// route; it is for the direct guess and for holding still at a spot.
-			if (path.isEmpty() && !landing) step = keepAirborne(mc, p, step, exact ? EXACT_CLEAR : GROUND_CLEAR);
+			// ...EXCEPT THAT A ROUTE WHICH STAYS HIGH IS HELD HIGH TOO. The bypass exists for routes
+			// that genuinely go low - a doorway, a two-course room - where the clamp would refuse the
+			// descent the route needs. When the next waypoint has the clearance under it anyway, the
+			// clamp changes nothing about the route and everything about the drift toward the floor
+			// between waypoints, which is where a flight over the plate has been ending.
+			boolean routeLow = !path.isEmpty() && !routeStaysHigh(mc, path.get(0), exact ? EXACT_CLEAR : GROUND_CLEAR);
+			if (!routeLow && !landing) step = keepAirborne(mc, p, step, exact ? EXACT_CLEAR : GROUND_CLEAR);
 			// Scaled, not pressed — for the CLIMB. See the note on VERTICAL_GAIN and, more
 			// importantly, the one above it about what the jump key actually does.
 			step = liftFor(step, Math.max(speed, RISE) * 1.5);
@@ -1495,8 +1637,108 @@ final class Autopilot {
 	 *
 	 * <p>It is bought out of the printer's reach budget, which is why the station moves in CLOSER on
 	 * its first stall rather than giving up: altitude first, reach second.
+	 */static final double GROUND_CLEAR = 2.5;
+
+	/**
+	 * OVER THE TOP. Jack, after a day of router fixes: <i>"its path finding and flying is still
+	 * really bad, constant collisions, running right into objects."</i> Every one of those was a
+	 * flight THROUGH built space - a route threaded between shops, under awnings, past corners - and
+	 * every fix made the threading a little better without making it safe. A player with /fly does
+	 * not thread anything: they go UP, cross in open sky, and come DOWN on the spot. Three legs, two
+	 * of them vertical, the third with nothing in it by construction.
+	 *
+	 * <p>{@link #OVERTOP_CLEAR} is how far over the corridor's highest surface the crossing runs
+	 * (more than GROUND_CLEAR, so the clamp never argues with it); {@link #OVERTOP_MARGIN} widens
+	 * the corridor for drift; {@link #OVERTOP_MIN} is the horizontal distance under which a hop is
+	 * left to the router - a station's orbit stops, a chest two blocks away. Where the descent
+	 * column is roofed - a target indoors - the descent stops on the roof and the router does the
+	 * last few blocks, which is the one place it has ever been good.
 	 */
-	static final double GROUND_CLEAR = 2.5;
+	static final int OVERTOP_CLEAR = 3, OVERTOP_MARGIN = 2, OVERTOP_MIN = 4;
+
+	/** The crossing height: over the corridor's top, never below where we already are, inside the world. */
+	static int cruiseHeight(int corridorTop, int hereY, int worldMaxY) {
+		return Math.min(Math.max(corridorTop + OVERTOP_CLEAR, hereY), worldMaxY);
+	}
+
+	/** Up to the crossing height, across to the target's column, down to the target. Degenerate legs dropped. */
+	static java.util.List<BlockPos> overTopLegs(BlockPos here, BlockPos target, int cruise) {
+		java.util.List<BlockPos> legs = new java.util.ArrayList<>();
+		BlockPos up = new BlockPos(here.getX(), cruise, here.getZ());
+		BlockPos over = new BlockPos(target.getX(), cruise, target.getZ());
+		if (!up.equals(here)) legs.add(up);
+		if (!over.equals(up)) legs.add(over);
+		if (!target.equals(over)) legs.add(target);
+		return legs;
+	}
+
+	/** Highest MOTION_BLOCKING surface over the corridor from a to b, or MIN_VALUE if none of it is loaded. */
+	private static int corridorTop(Minecraft mc, BlockPos a, BlockPos b) {
+		int dx = b.getX() - a.getX(), dz = b.getZ() - a.getZ();
+		int n = Math.max(Math.abs(dx), Math.abs(dz));
+		double len = Math.max(1e-9, Math.hypot(dx, dz));
+		double px = -dz / len, pz = dx / len;                // the perpendicular, for the margin
+		int top = Integer.MIN_VALUE;
+		for (int i = 0; i <= n; i++) {
+			double t = n == 0 ? 0 : (double) i / n;
+			double x = a.getX() + 0.5 + dx * t, z = a.getZ() + 0.5 + dz * t;
+			for (int m = -OVERTOP_MARGIN; m <= OVERTOP_MARGIN; m++) {
+				int cx = (int) Math.floor(x + px * m), cz = (int) Math.floor(z + pz * m);
+				if (!mc.level.hasChunk(cx >> 4, cz >> 4)) continue;
+				top = Math.max(top, mc.level.getHeight(Heightmap.Types.MOTION_BLOCKING, cx, cz));
+			}
+		}
+		return top;
+	}
+
+	/** The lowest cell on the way down from `from` toward `to` that the body can still reach in a straight line. */
+	private static BlockPos lowestClear(Nav.Passable free, BlockPos from, BlockPos to) {
+		BlockPos best = null;
+		for (int y = from.getY() - 1; y >= to.getY(); y--) {
+			BlockPos c = new BlockPos(to.getX(), y, to.getZ());
+			if (!Nav.clear(free, from, c)) break;
+			best = c;
+		}
+		return best;
+	}
+
+	/**
+	 * The over-the-top route, or empty when it is not the right tool: too short a hop, nothing of
+	 * the corridor loaded, a ceiling over the ascent, or a fence that forbids the height.
+	 */
+	private static java.util.List<BlockPos> overTop(Minecraft mc, Nav.Passable free, BlockPos here, BlockPos target) {
+		if (Math.hypot(target.getX() - here.getX(), target.getZ() - here.getZ()) < OVERTOP_MIN) return java.util.List.of();
+		int top = corridorTop(mc, here, target);
+		if (top == Integer.MIN_VALUE) return java.util.List.of();
+		int cruise = cruiseHeight(top, here.getY(), mc.level.getMaxY() - 2);
+		java.util.List<BlockPos> legs = overTopLegs(here, target, cruise);
+		java.util.List<BlockPos> out = new java.util.ArrayList<>();
+		BlockPos prev = here;
+		for (int i = 0; i < legs.size(); i++) {
+			BlockPos wp = legs.get(i);
+			if (!Bounds.contains(wp)) return java.util.List.of();
+			if (!Nav.clear(free, prev, wp)) {
+				if (i == legs.size() - 1 && !out.isEmpty()) {
+					// A ROOFED DESCENT stops on the roof; the router takes it from there.
+					BlockPos low = lowestClear(free, prev, wp);
+					if (low != null) out.add(low);
+					return out;
+				}
+				return java.util.List.of();               // a ceiling over the ascent, or a wall at the crossing height
+			}
+			out.add(wp);
+			prev = wp;
+		}
+		return out;
+	}
+	/** Clear cells a CRUISE route keeps under the body in its middle: the hover's own clearance. */
+	static final int CRUISE_BELOW = (int) Math.ceil(GROUND_CLEAR);
+	/**
+	 * Where each route tier's deadline falls as a fraction of {@link Nav#MAX_MILLIS}. Cruise, roomy,
+	 * lifted, tight, and the escape flood takes what is left. The order is the safety order; the
+	 * shares are what stops a safe tier that cannot succeed from starving the one that can.
+	 */
+	static final double CRUISE_SHARE = 0.25, ROOMY_SHARE = 0.45, LIFTED_SHARE = 0.60, TIGHT_SHARE = 0.90;
 	/** How briskly to climb off a floor it has got too close to. */
 	static final double RISE = 0.18;
 	/**
@@ -1621,6 +1863,12 @@ final class Autopilot {
 			if (!fits.test(new Vec3(x, y, z))) y = 0;
 		}
 		return new Vec3(x, y, z);
+	}
+
+	/** Does the next waypoint itself keep `clear` air under the body? Then the route is not going low. */
+	private static boolean routeStaysHigh(Minecraft mc, BlockPos wp, double clear) {
+		Vec3 at = flyTo(wp);
+		return clearanceBelow(view(mc), at.x, at.y, at.z, (int) Math.ceil(clear) + 1) > clear;
 	}
 
 	private static Vec3 keepAirborne(Minecraft mc, LocalPlayer p, Vec3 step, double clear) {
@@ -2008,10 +2256,10 @@ final class Autopilot {
 			case CLIMB_OUT -> {
 				// Straight up until there is nothing overhead. Above this island there is nothing to
 				// be stuck on, and from open sky every route is findable again.
-				if (climbTo == null) climbTo = p.blockPosition().above(CLIMB_HEIGHT);
-				if (p.getY() >= climbTo.getY() || !p.getAbilities().flying) {
+				if (climbTo == null) climbTo = p.blockPosition().above(CLIMB_HEIGHT);if (p.getY() >= climbTo.getY() || !p.getAbilities().flying) {
 					climbTo = null;
 					stage = Recovery.Stage.NONE;
+					climbedOut = true;                  // once; the next time it is a give-up
 					trouble = Recovery.BACK_OFF_AT;     // give the normal flight another go
 					return false;
 				}

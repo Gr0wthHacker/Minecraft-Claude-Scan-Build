@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -19,6 +20,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * is the part that would send you spinning the long way round a heading for no reason.
  */
 class AutopilotTest {
+	@Test void aNoRouteHasABoundedRetryInsteadOfADirectFlightFallback() {
+		String source = AutomationTest.src(java.nio.file.Path.of("src/client/java/dev/jack/chunkscan/Autopilot.java"));
+		int noRoute = source.indexOf("no route and no way round to");
+		assertTrue(noRoute > 0);
+		String window = source.substring(noRoute, Math.min(source.length(), noRoute + 900));
+		assertTrue(window.contains("holding position"));
+		assertTrue(window.contains("setDeltaMovement(Vec3.ZERO)"));
+		assertFalse(window.contains("going direct"));
+	}
+	@Test void clearingGuidanceAlsoForgetsTheRejectedRoute() {
+		// `stopGuiding` is used for abandoned chests and spots. It must not leave the route to the
+		// rejected destination alive until some later target happens to replace it.
+		Autopilot.forget();
+		Hud.guide(new BlockPos(10, 64, 10), "test");
+		Hud.stopGuiding();
+		assertNull(Hud.target());
+		assertEquals(0, Autopilot.waypoints());
+	}
 	@Test
 	void theTurnTakesTheShortWayRound() {
 		// 350 -> 10 is twenty degrees clockwise, not three hundred and forty back the other way.
@@ -62,6 +81,51 @@ class AutopilotTest {
 			"the route is allowed to go further stale the faster it travels");
 		assertTrue(Autopilot.waypointRadius(Autopilot.MAX_SPEED)
 			> Autopilot.waypointRadius(Autopilot.SPEED), "the corner radius does not scale");
+	}@Test
+	void everyRouteTierGetsItsOwnSliceOfTheClock() {
+		// One deadline for all tiers let the first that fails BY BUDGET spend everything, and beside
+		// buildings the safe tiers fail that way as a matter of course. Ordered by safety; each
+		// strictly later so a tier that runs out still leaves the next one its own share.
+		assertTrue(0 < Autopilot.CRUISE_SHARE && Autopilot.CRUISE_SHARE < Autopilot.ROOMY_SHARE);
+		assertTrue(Autopilot.ROOMY_SHARE < Autopilot.LIFTED_SHARE);
+		assertTrue(Autopilot.LIFTED_SHARE < Autopilot.TIGHT_SHARE);
+		assertTrue(Autopilot.TIGHT_SHARE < 1.0, "the escape flood must keep a share too");
+		assertTrue(Autopilot.CRUISE_BELOW >= Math.ceil(Autopilot.GROUND_CLEAR),
+			"a cruise route keeps at least the clearance the hover keeps");
+	}
+
+	@Test
+	void aWaypointIsNotPoppedEarlyFromBehindTheCorner() {
+		Vec3 from = new Vec3(0, 5, 10), corner = new Vec3(10, 5, 10);
+		Vec3 north = new Vec3(10, 5, 20);                      // the route turns 90 degrees at the corner
+		Vec3 drift = new Vec3(20, 5, 11);                      // ...or barely bends at all
+		double near = Autopilot.waypointRadius(Autopilot.SPEED);
+		assertTrue(near > Autopilot.WAYPOINT, "the early pop exists at cruise");
+		Vec3 behind = new Vec3(10 - (near - 0.1), 5, 10);      // inside the radius, short of the corner
+		assertFalse(Autopilot.popped(behind, from, corner, north, near),
+			"a corner is rounded, not chorded: it is passed only inside WAYPOINT");
+		assertTrue(Autopilot.popped(behind, from, corner, drift, near),
+			"a drift may be popped at the speed radius - there is no corner to cut");
+		assertTrue(Autopilot.popped(new Vec3(10 - 0.9, 5, 10), from, corner, north, near),
+			"inside WAYPOINT it is passed whatever the angle");
+		assertTrue(Autopilot.popped(behind, from, corner, null, near), "the last waypoint has no corner");
+	}
+
+	@Test
+	void aLongLegGoesUpAcrossAndDown() {
+		// Up, across in open sky, down: two vertical legs and one with nothing in it by construction.
+		BlockPos here = new BlockPos(0, 204, 0), there = new BlockPos(60, 204, 30);
+		int cruise = Autopilot.cruiseHeight(240, here.getY(), 318);   // a 36-tall building in the corridor
+		assertEquals(243, cruise);
+		assertTrue(cruise - 240 >= Autopilot.GROUND_CLEAR, "the crossing clears the top by more than the hover clamp asks");
+		var legs = Autopilot.overTopLegs(here, there, cruise);
+		assertEquals(java.util.List.of(new BlockPos(0, 243, 0), new BlockPos(60, 243, 30), there), legs);
+		assertEquals(here.getX(), legs.get(0).getX(), "the ascent is dead vertical");
+		assertEquals(legs.get(1).getY(), legs.get(0).getY(), "the crossing is level");
+		assertEquals(Autopilot.cruiseHeight(200, 260, 318), 260, "already above it: cross from here, do not dip first");
+		assertEquals(Autopilot.cruiseHeight(316, 200, 318), 318, "never past the top of the world");
+		assertEquals(2, Autopilot.overTopLegs(new BlockPos(0, 243, 0), there, 243).size(), "already at height: no ascent leg");
+		assertTrue(Autopilot.OVERTOP_MIN <= 6, "stations a few blocks apart are still flown over the top, not through the shop between them");
 	}
 
 	@Test
@@ -237,7 +301,7 @@ class AutopilotTest {
 		assertTrue(Autopilot.GROUND_CLEAR >= 1.0, "less than a block of air is a landing waiting");
 		assertTrue(Autopilot.RISE > 0, "it can sink onto a floor and never climb off");
 		String src = source();
-		assertTrue(src.contains("keepAirborne(mc, p, step, exact ? EXACT_CLEAR : GROUND_CLEAR)"),
+		assertTrue(src.contains("if (!routeLow && !landing) step = keepAirborne(mc, p, step, exact ? EXACT_CLEAR : GROUND_CLEAR)"),
 			"the flying step no longer goes through the no-landing clamp");
 		// The BEHAVIOUR cannot be tested without a client, so what is pinned is that the clamp is
 		// still in the flying path and still reacts to the ground. Pinning the exact line was worse
@@ -675,8 +739,10 @@ class AutopilotTest {
 		assertTrue(src.contains("Nav.roomyBetween(mc.level, here, target)"),
 			"no longer tries for a route that keeps off the surfaces");
 		int roomy = src.indexOf("Nav.roomyBetween(mc.level");
-		int tight = src.indexOf("Nav.Route r = Nav.routeEx(free, here, target, deadline);");
+		int tight = src.indexOf("Nav.Route r = Nav.routeEx(free, here, target, start + (long) (total * TIGHT_SHARE));");
 		assertTrue(tight > roomy, "the tight route is no longer the FALLBACK");
+		int cruise = src.indexOf("Nav.cruiseBetween(mc.level, here, target, CRUISE_BELOW)");
+		assertTrue(cruise > 0 && cruise < roomy, "the cruise route - the hover's own clearance - is tried first");
 	}
 
 	// ---------------------------------------------------------------- how fast, and why not faster

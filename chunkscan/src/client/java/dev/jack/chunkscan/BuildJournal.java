@@ -196,7 +196,10 @@ final class BuildJournal {
 		try (FileChannel channel = FileChannel.open(file, StandardOpenOption.CREATE,
 			StandardOpenOption.WRITE, StandardOpenOption.APPEND)) {
 			channel.write(ByteBuffer.wrap(bytes));
-			channel.force(true);
+			// NO FSYNC. Two disk syncs per placed block - one on the attempt, one on the verdict -
+			// was up to forty milliseconds of stutter on the client thread per block, and the
+			// journal already survives a torn last line: reconcile() closes an open record on the
+			// next resume. The OS flushes on close; only a machine crash loses the last line.
 		}
     }
 }

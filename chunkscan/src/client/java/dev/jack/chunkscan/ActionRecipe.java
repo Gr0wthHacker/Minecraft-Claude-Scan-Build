@@ -17,6 +17,7 @@ final class ActionRecipe {
 	static String itemFor(String state) {
 		String block = Rules.shortName(state);
 		if (block.equals("water")) return "water_bucket";
+		if (block.equals("water_cauldron") || block.equals("lava_cauldron")) return "cauldron";
 		// A wall sign has no item of its own: you carry `oak_sign` and the FACE you click decides
 		// whether it lands standing or on a wall. Tallying `oak_wall_sign` asks a chest for an item
 		// that does not exist, so the slot is never found and the cell silently never places.
@@ -33,14 +34,11 @@ final class ActionRecipe {
 	 * loop's advance condition waited on it the loop would sit for ever on something it can never
 	 * satisfy. A declined cell is REPORTED, excluded from the todo, and never blocks preflight.
 	 *
-	 * <p>A filled cauldron is here by decision, not by difficulty. It is the only cell that needs
-	 * two different items - a {@code cauldron}, then a {@code water_bucket} - so it would make
-	 * {@code itemFor} world-aware and touch the slot search and the bill of materials, to automate
-	 * two blocks in a park of three hundred and fifty thousand.
+	 * <p>Filled cauldrons are now a sequenced automatic action: an empty cauldron is placed, then
+	 * the matching bucket is used on the observed intermediate state.
 	 */
 	static String manual(String state) {
 		String block = Rules.shortName(state);
-		if (block.equals("water_cauldron") || block.equals("lava_cauldron")) return "cauldron fill";
 		// COMMISSIONING IS A DELIBERATE PASS, NOT A SIDE EFFECT OF A BUILD LOOP. A repeater's and a
 		// comparator's `facing` convention is an OPEN known-wrong in this project - the wiki and the
 		// reference builds both say `facing` names the INPUT, and our own simulator treats it as the
@@ -80,6 +78,19 @@ final class ActionRecipe {
 		return Rules.shortName(state).equals("water");
 	}
 
+	static boolean cauldronFill(String state) {
+		String block = Rules.shortName(state);
+		return block.equals("water_cauldron") || block.equals("lava_cauldron");
+	}
+
+	static String cauldronBucket(String state) {
+		return Rules.shortName(state).equals("lava_cauldron") ? "lava_bucket" : "water_bucket";
+	}
+
+	static boolean cauldronIntermediate(BlockState state, String wanted) {
+		return cauldronFill(wanted) && BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath().equals("cauldron");
+	}
+
     static String missingFor(String state) {
         String block = Rules.shortName(state);
 		// A bucket creates a source. A litematic can also encode a flowing level, which requires a
@@ -89,8 +100,7 @@ final class ActionRecipe {
 		// A water bucket is a direct, acknowledged item use. Lava remains an explicit gate because
 		// its destructive placement and collection policy has not been approved for this builder.
 		if (block.equals("lava")) return "fluid bucket placement";
-		// A filled cauldron is DECLINED, not unimplemented - see `manual`. It is the only recipe
-		// needing two different items for one cell, and it is two blocks in a park of 350,000.
+		// Filled cauldrons are sequenced by the live-state printer path.
 		// Signs are implemented - placed by the ordinary search, then written by Printer.signText.
 		// Their remaining gate is EVIDENCE rather than mechanism, and it needs the design's tile
 		// entities, so it lives in `missing(cells, signs)` where the text is actually in hand.
@@ -104,8 +114,31 @@ final class ActionRecipe {
 		return Printer.props(state);
 	}
 
-	/** Vanilla creates the secondary door/bed cell; this puts its initiating cell first. */
+	/**
+	 * Vanilla creates the secondary door/bed cell; this puts its initiating cell first.
+	 *
+	 * <p><b>MEMOISED, BECAUSE IT IS A SORT KEY.</b> `Work.split` sorts its whole todo list with this
+	 * in the comparator, so on `Park Complete` - 540,862 cells, a hundred thousand of them still to
+	 * place - it was called about three and a half MILLION times per recount, and each call did two
+	 * string scans and allocated a HashMap. That is the recount that froze the client for seconds at
+	 * a time, twice a second, and nothing about the call site looked expensive: a comparator is one
+	 * line. A design has a few hundred distinct block states, so the cache is the whole cost.
+	 */
+	private static final java.util.concurrent.ConcurrentHashMap<String, Integer> ORDER =
+		new java.util.concurrent.ConcurrentHashMap<>();
+
 	static int order(String state) {
+		Integer cached = ORDER.get(state);
+		if (cached != null) return cached;
+		int computed = computeOrder(state);
+		// Bounded rather than evicting: an LRU costs a write on every READ, which is exactly the
+		// mistake this is fixing one file over. A world with more than this many distinct states
+		// simply stops caching, which is no worse than before.
+		if (ORDER.size() < 16384) ORDER.put(state, computed);
+		return computed;
+	}
+
+	private static int computeOrder(String state) {
 		String block = Rules.shortName(state);
 		Map<String, String> props = Printer.props(state);
 		if (block.endsWith("_door")) return "upper".equals(props.get("half")) ? 2 : 0;

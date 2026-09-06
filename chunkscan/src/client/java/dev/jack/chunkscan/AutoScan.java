@@ -17,9 +17,16 @@ final class AutoScan {
 		ClientTickEvents.END_CLIENT_TICK.register(AutoScan::tick);
 	}
 
+	/** The shortest interval worth having. A world capture is not a thing to do on a tick. */
+	static final int MIN_MINUTES = 1;
+
 	static void start(String scanName, int minutes, int scanRadius) {
 		name = scanName;
-		everyMs = minutes * 60_000L;
+		// A ZERO INTERVAL IS A CAPTURE EVERY TICK, and a capture walks every loaded chunk: the
+		// timer would be satisfied on the tick it was set and on every tick after it, which reads
+		// exactly like the client hanging. Clamped rather than refused, so a typo costs a slower
+		// scan and never the session.
+		everyMs = Math.max(MIN_MINUTES, minutes) * 60_000L;
 		radius = scanRadius;
 		nextAt = System.currentTimeMillis() + everyMs;
 	}

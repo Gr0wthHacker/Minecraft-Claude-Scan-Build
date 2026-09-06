@@ -50,7 +50,6 @@ final class ActiveBuild {
 				signs = LitematicReader.signs(copy.resolve(design + ".litematic"), registered.origin());
 			}
 			ActionRecipe.require(cells, signs);
-			SignWriter.arm(signs);
             var manifest = new com.google.gson.JsonObject();
             manifest.addProperty("design", design);
             manifest.addProperty("source_directory", sourceDir.toString());
@@ -58,6 +57,9 @@ final class ActiveBuild {
             manifest.addProperty("dimension", copied.dimension());
             manifest.addProperty("inputs", copied.inputs());
             Files.writeString(copy.resolve("revision.json"), manifest.toString());
+			// This is the commit boundary. A failed decode/write above has no active revision, and
+			// therefore must not own future sign-editor packets.
+			SignWriter.arm(signs);
             accepted = true;
             return new Snapshot(sourceDir, copy, design, copied);
         } finally {
@@ -101,5 +103,9 @@ final class ActiveBuild {
     }
 
     static void activate(Snapshot snapshot) { current = snapshot; }
-    static void clear() { current = null; }
+    /** End the revision's ownership of both immutable inputs and sign-editor packets. */
+    static void clear() {
+        current = null;
+        SignWriter.clear();
+    }
 }

@@ -2,6 +2,7 @@ package dev.jack.chunkscan;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 
 import java.util.ArrayDeque;
@@ -32,9 +33,16 @@ public final class SignWriter {
 	private static Map<Long, SignText> wanted = Map.of();
 	/** Editors we cancelled and owe an update, drained on the client thread. */
 	private static final Deque<Pending> queue = new ArrayDeque<>();
-	private static int written, refused;
+	/** Updates sent to the server but not yet reflected in an inbound block-entity packet. */
+	private static final Map<Long, Pending> awaiting = new HashMap<>();
+	/** Per-cell evidence; aggregate counters alone cannot drive a schematic completion decision. */
+	private static final java.util.Set<Long> confirmed = new java.util.HashSet<>();
+	private static final java.util.Set<Long> timedOut = new java.util.HashSet<>();
+	private static final int CONFIRM_TICKS = 200;
+	private static long tick;
+	private static int written, refused, unconfirmed;
 
-	private record Pending(BlockPos pos, boolean front, SignText text) {}
+	private record Pending(BlockPos pos, boolean front, SignText text, long sentAt) {}
 
 	static void arm(Map<Long, SignText> signs) {
 		wanted = signs == null ? Map.of() : Map.copyOf(signs);
@@ -43,8 +51,13 @@ public final class SignWriter {
 	static void clear() {
 		wanted = Map.of();
 		queue.clear();
+		awaiting.clear();
+		confirmed.clear();
+		timedOut.clear();
+		tick = 0;
 		written = 0;
 		refused = 0;
+		unconfirmed = 0;
 	}
 
 	static int written() { return written; }
@@ -58,7 +71,18 @@ public final class SignWriter {
 	 */
 	static boolean armed() { return !wanted.isEmpty(); }
 
-	static int pendingCount() { return queue.size(); }
+	static int pendingCount() { return queue.size() + awaiting.size(); }
+
+	enum Verification { NONE, PENDING, CONFIRMED, UNCONFIRMED }
+
+	static Verification verification(BlockPos pos) {
+		if (pos == null) return Verification.NONE;
+		long key = pos.asLong();
+		if (confirmed.contains(key)) return Verification.CONFIRMED;
+		if (timedOut.contains(key)) return Verification.UNCONFIRMED;
+		return awaiting.containsKey(key) || queue.stream().anyMatch(p -> p.pos().asLong() == key)
+			? Verification.PENDING : Verification.NONE;
+	}
 
 	/** Is this a sign THIS BUILD placed and knows the words for? */
 	static SignText textFor(BlockPos pos) {
@@ -72,8 +96,21 @@ public final class SignWriter {
 	public static boolean intercept(BlockPos pos, boolean front) {
 		SignText text = textFor(pos);
 		if (text == null || text.blank()) return false;
-		queue.add(new Pending(pos.immutable(), front, text));
+		queue.add(new Pending(pos.immutable(), front, text, -1));
 		return true;
+	}
+
+	/** Called after the client applies a server-provided block-entity update. */
+	public static void observe(BlockPos pos, CompoundTag tag) {
+		if (pos == null) return;
+		Pending pending = awaiting.get(pos.asLong());
+		if (pending == null) return;
+		java.util.List<String> expected = pending.front() ? pending.text().front() : pending.text().back();
+		if (SignText.matches(tag, pending.front(), expected)) {
+			awaiting.remove(pos.asLong());
+			confirmed.add(pos.asLong());
+			written++;
+		}
 	}
 
 	/**
@@ -83,6 +120,13 @@ public final class SignWriter {
 	 * burst of them is both the least testable thing here and the easiest to have throttled.
 	 */
 	static void pump(Minecraft mc) {
+		tick++;
+		awaiting.entrySet().removeIf(entry -> {
+			if (tick - entry.getValue().sentAt() < CONFIRM_TICKS) return false;
+			timedOut.add(entry.getKey());
+			unconfirmed++;
+			return true;
+		});
 		if (queue.isEmpty()) return;
 		if (mc.getConnection() == null) { queue.clear(); return; }
 		Pending next = queue.poll();
@@ -90,7 +134,7 @@ public final class SignWriter {
 		try {
 			mc.getConnection().send(new ServerboundSignUpdatePacket(next.pos(), next.front(),
 				lines.get(0), lines.get(1), lines.get(2), lines.get(3)));
-			written++;
+			awaiting.put(next.pos().asLong(), new Pending(next.pos(), next.front(), next.text(), tick));
 		} catch (Exception failed) {
 			// A refused update is a blank sign standing in the world, so it is COUNTED rather than
 			// swallowed: `/cscan why` is where a build that placed boards nobody can read shows up.
@@ -99,8 +143,10 @@ public final class SignWriter {
 	}
 
 	static String report() {
-		if (written == 0 && refused == 0 && queue.isEmpty()) return "";
+		if (written == 0 && refused == 0 && unconfirmed == 0 && queue.isEmpty() && awaiting.isEmpty()) return "";
 		return "signs written " + written + (refused > 0 ? ", " + refused + " refused" : "")
-			+ (queue.isEmpty() ? "" : ", " + queue.size() + " pending");
+			+ (unconfirmed > 0 ? ", " + unconfirmed + " unconfirmed" : "")
+			+ (queue.isEmpty() ? "" : ", " + queue.size() + " pending")
+			+ (awaiting.isEmpty() ? "" : ", " + awaiting.size() + " awaiting server");
 	}
 }

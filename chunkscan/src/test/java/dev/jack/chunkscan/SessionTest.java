@@ -28,6 +28,14 @@ class SessionTest {
 		assertTrue(got.autofly());
 		assertTrue(got.all());
 		assertEquals(0.42, got.speed(), 0.0001);
+		assertEquals("IDLE", got.jobPhase());
+	}
+
+	@Test
+	void itRecordsTheLastJobPhaseWithoutUsingItAsAResumeCommand() throws Exception {
+		Path d = Files.createTempDirectory("cscan-session");
+		Session.save(d, new Session.State("Deck Floor", true, false, 0.5, null, null, "", "FETCH"));
+		assertEquals("FETCH", Session.load(d).jobPhase());
 	}
 
 	@Test

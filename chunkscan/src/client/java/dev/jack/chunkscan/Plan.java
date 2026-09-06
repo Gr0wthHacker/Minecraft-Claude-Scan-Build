@@ -458,13 +458,6 @@ final class Plan {
 		return (double) have / Math.max(1, have + r.missing());
 	}
 
-	/** Four stacks per material before the load planner rotates to another needed material. */
-	static int takeLoadAmount(Restock r, int materialKinds, int room) {
-		int ordinary = takeHowMany(r, room);
-		if (materialKinds <= 1) return ordinary;
-		return Math.min(ordinary, 4 * 64);
-	}
-
 	/**
 	 * What the WHOLE remaining design is short of, biggest shortfall first, with an address.
 	 *
@@ -481,6 +474,20 @@ final class Plan {
 	                                  Set<Long> skip) {
 		Map<String, Integer> want = new LinkedHashMap<>();
 		for (Work.Cell c : todo) want.merge(c.item(), 1, Integer::sum);
+		return shortfalls(want, carrying, index, from, skip);
+	}
+
+	/**
+	 * What a SHOPPING LIST is still short of, biggest shortfall first, with an address.
+	 *
+	 * <p>The list is {@link #loadPlan}: what the pack should hold when the trip is over. Subtracting
+	 * what is carried gives what is still to be fetched, and a material with nowhere to fetch it
+	 * from is dropped here for the same reason {@link #fetchTargets} drops it - this is a list of
+	 * places to fly to.
+	 */
+	static List<Restock> shortfalls(Map<String, Integer> want, Map<String, Integer> carrying,
+	                                Map<String, Storage.Container> index, BlockPos from,
+	                                Set<Long> skip) {
 		List<Restock> out = new ArrayList<>();
 		for (var e : want.entrySet()) {
 			int miss = e.getValue() - carrying.getOrDefault(e.getKey(), 0);
@@ -500,6 +507,106 @@ final class Plan {
 	}
 
 	/**
+	 * THE SHOPPING LIST OF ONE TRIP: what the pack should hold when it comes back.
+	 *
+	 * <p>Jack: <i>"it stacks up with random resources vs things it logically might need based on
+	 * the radius around it"</i>, and then: <i>"doesnt check inventory, area, or fill inventory
+	 * based on needs at all"</i>. Two things were wrong with the load and both are answered here.
+	 *
+	 * <p><b>It is sized to the area, in BUILD ORDER.</b> The loop lays a design one course at a
+	 * time from the bottom, so the next cells to be placed are the next courses of the area being
+	 * worked - not the cells nearest in three dimensions, which are mostly courses that cannot be
+	 * placed until the ones under them exist. Sorted by nearest, a pack filled with roof for a
+	 * wall whose ground course still wanted stone. The frontier (placeable now) comes first
+	 * whatever its distance, because it is the reason for the trip; then the area's cells lowest
+	 * course first, nearest the anchor within a course; up to {@code cap} cells, which is what
+	 * the pack can hold.
+	 *
+	 * <p><b>And it is made ONCE, at the work, and kept for the trip.</b> Recomputed every recount
+	 * from wherever the player happened to be, the demand was re-sized at the CHEST to the cells
+	 * nearest the chest - a different part of the design entirely - and the loop then flew back to
+	 * those. The caller holds the returned map until the trip ends.
+	 *
+	 * @param area     the cells of the area being worked (the anchor's radius), loaded
+	 * @param frontier the cells placeable right now
+	 * @param anchor   the middle of the work
+	 * @param cap      how many cells the pack can bring back, at a stack a slot
+	 * @return item -> how many the pack should hold, in the order they will be needed
+	 */
+	static Map<String, Integer> loadPlan(List<Work.Cell> area, List<Work.Cell> frontier,
+	                                     BlockPos anchor, int cap) {
+		List<Work.Cell> sorted = new ArrayList<>(area);
+		Comparator<Work.Cell> byCourse = Comparator.comparingInt(c -> c.pos().getY());
+		if (anchor != null) byCourse = byCourse.thenComparingDouble(c -> c.pos().distSqr(anchor));
+		sorted.sort(byCourse);
+		Set<Long> seen = new java.util.HashSet<>();
+		Map<String, Integer> out = new LinkedHashMap<>();
+		int n = 0;
+		int limit = Math.max(1, cap);
+		for (Work.Cell c : frontier) {
+			if (seen.add(c.pos().asLong())) {
+				out.merge(c.item(), 1, Integer::sum);
+				n++;
+			}
+		}
+		for (Work.Cell c : sorted) {
+			if (n >= limit) break;
+			if (seen.add(c.pos().asLong())) {
+				out.merge(c.item(), 1, Integer::sum);
+				n++;
+			}
+		}
+		// A BUCKET DOES NOT STACK. A 200-cell pool asked for 200 water buckets, which is 200 slots
+		// - the whole pack, slot by slot, of a thing the loop places one cell at a time and never
+		// refills. A few per trip; the rest of the pool is the next trip's.
+		for (Map.Entry<String, Integer> e : out.entrySet()) {
+			if (e.getKey().endsWith("_bucket") && e.getValue() > BUCKETS_PER_TRIP) e.setValue(BUCKETS_PER_TRIP);
+		}
+		return out;
+	}
+
+	/**
+	 * Materials ranked by how many of their remaining cells can be placed against what stands
+	 * TODAY - a face to click, in the world, now - not by how many the design is made of. Jack:
+	 * <i>"identify most used materials, and most placeable based on no air blocks around it based
+	 * on currently placed, so we can efficiently spread resources in large builds."</i> A pack of
+	 * the commonest block is a pack with nothing to place against if the commonest block is the
+	 * roof; a trip for the top of this list places the most.
+	 */
+	record Usable(String item, int placeable, int remaining) {}
+
+	static List<Usable> usable(List<Work.Cell> todo, List<Work.Cell> placeable) {
+		Map<String, Integer> left = Work.tally(todo), now = Work.tally(placeable);
+		List<Usable> out = new ArrayList<>();
+		for (Map.Entry<String, Integer> e : left.entrySet()) {
+			out.add(new Usable(e.getKey(), now.getOrDefault(e.getKey(), 0), e.getValue()));
+		}
+		out.sort(Comparator.comparingInt((Usable u) -> -u.placeable()).thenComparingInt(u -> -u.remaining())
+			.thenComparing(Usable::item));
+		return out;
+	}
+
+	/** Buckets a shopping list may ask for at once: they take a slot each. */
+	static final int BUCKETS_PER_TRIP = 4;
+
+	/** How many cells a shopping list covers. */
+	static int cells(Map<String, Integer> plan) {
+		int n = 0;
+		for (int v : plan.values()) n += v;
+		return n;
+	}
+
+	/** The list as a sentence: "320x stone_bricks, 12x lantern". */
+	static String describe(Map<String, Integer> plan) {
+		StringBuilder sb = new StringBuilder();
+		for (var e : plan.entrySet()) {
+			if (sb.length() > 0) sb.append(", ");
+			sb.append(e.getValue()).append("x ").append(e.getKey());
+		}
+		return sb.toString();
+	}
+
+	/**
 	 * Drop the shortfalls you are already carrying, in a box.
 	 *
 	 * <p>A trip is a navigation instruction, and flying across the island for something on your own
@@ -509,33 +616,6 @@ final class Plan {
 	 *
 	 * @param say called once per material, so the loop explains rather than silently doing nothing
 	 */
-	/**
-	 * THE WORK NEAREST THE AREA, up to about one pack's worth — what a fetch should be sized to.
-	 *
-	 * <p>Jack: <i>"it also seems to stack up with random resources vs things it logically might
-	 * need based on the radius around it"</i>. The shortfall was totalled over the WHOLE design, so
-	 * on a design of forty materials the pack filled with two hundred and fifty-six of whatever the
-	 * far end wanted, and the loop then flew to a spot it could place none of it at. A trip is still
-	 * bounded by the pack (see {@link #fetchTargets}), but what goes in the pack is decided from
-	 * where the work IS: cells sorted by distance from the working anchor, taken until they would
-	 * fill the pack. {@code mustInclude} is the frontier — whatever can be placed right now goes in
-	 * whatever its distance, because that is the reason the trip is being made at all.
-	 */
-	static List<Work.Cell> nearDemand(List<Work.Cell> todo, List<Work.Cell> mustInclude,
-	                                  BlockPos anchor, int cap) {
-		List<Work.Cell> sorted = new ArrayList<>(todo);
-		if (anchor != null) sorted.sort(Comparator.comparingDouble(c -> c.pos().distSqr(anchor)));
-		Set<Long> seen = new java.util.HashSet<>();
-		List<Work.Cell> out = new ArrayList<>();
-		for (Work.Cell c : mustInclude) if (seen.add(c.pos().asLong())) out.add(c);
-		int limit = Math.max(1, cap);
-		for (Work.Cell c : sorted) {
-			if (out.size() >= limit) break;
-			if (seen.add(c.pos().asLong())) out.add(c);
-		}
-		return out;
-	}
-
 	static List<Restock> notInAPack(List<Restock> targets, Map<String, Integer> boxed,
 	                                java.util.function.Consumer<String> say) {
 		if (boxed.isEmpty()) return targets;

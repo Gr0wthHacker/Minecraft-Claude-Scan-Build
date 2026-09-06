@@ -36,6 +36,60 @@ class LoopTest {
 	}
 
 	@Test
+	void aPackFullOfOneMaterialIsPlacedBeforeAnyChestIsOpened() {
+		// Jack: "it shouldn't be pulling things out of chests if it has a 90% inventory of a single
+		// item, just find where to place that item and do it." Four stacks of stone brick with a
+		// slab course in front of it used to be a trip for one stack of slabs.
+		Map<String, Integer> pack = new LinkedHashMap<>();
+		pack.put("stone_bricks", 1984);
+		pack.put("stone_brick_slab", 12);                       // a handful: not a load
+		List<Work.Cell> cells = List.of(
+			new Work.Cell(new BlockPos(0, 203, 0), "stone_brick_slab[type=bottom]"),
+			new Work.Cell(new BlockPos(0, 205, 0), "stone_bricks"),
+			new Work.Cell(new BlockPos(9, 205, 0), "stone_bricks"),
+			new Work.Cell(new BlockPos(0, 206, 0), "lantern[hanging=false]"));
+		List<Work.Cell> mine = Loop.carriedWork(pack, cells, Loop.WORK_LOAD);
+		assertEquals(2, mine.size(), "only the material carried as a LOAD counts");
+		assertTrue(mine.stream().allMatch(c -> c.item().equals("stone_bricks")));
+		assertEquals("1984x stone_bricks", Loop.describeCarried(pack, cells, Loop.WORK_LOAD));
+		assertTrue(Loop.buildWhatYouCarry(false, false, true), "cannot work here, carrying work: go and place it");
+		assertFalse(Loop.buildWhatYouCarry(false, true, true), "a trip in progress is finished first");
+		assertFalse(Loop.buildWhatYouCarry(true, false, true), "if it can work here it does");
+		assertFalse(Loop.buildWhatYouCarry(false, false, false), "nothing carried is placeable: a chest is right");
+		assertTrue(Loop.WORK_LOAD >= 64 && Loop.WORK_LOAD % 64 == 0, "a load is whole stacks");
+	}
+
+	@Test
+	void aMaterialFilterMakesEveryOtherCellNotThisSessionsWork() {
+		// Jack: "if i type moss_block it only does that material and does it until its filled every
+		// potential place of that material on the schematic."
+		List<Work.Cell> todo = List.of(
+			new Work.Cell(new BlockPos(0, 203, 0), "stone_brick_slab[type=bottom]"),
+			new Work.Cell(new BlockPos(1, 203, 0), "minecraft:moss_block"));
+		assertFalse(Loop.noneWanted(todo, Set.of("moss_block")));
+		assertTrue(Loop.noneWanted(todo, Set.of("oak_planks")), "two thousand slabs and no planks is nothing to do");
+		assertFalse(Loop.noneWanted(todo, null), "no filter: the list itself decides");
+		assertTrue(Loop.noneWanted(List.of(), null));
+		assertEquals("moss_block", Loop.itemName("minecraft:moss_block"));
+		assertEquals("moss_block", Loop.itemName(" MOSS_BLOCK[snowy=false] "));
+		assertEquals("stone_brick_slab", Loop.itemName("stone_brick_slab[type=top,waterlogged=false]"));
+	}
+
+	@Test
+	void itStaysWhereverSomethingIsPlaceableFromRightHere() {
+		// Jack: "sometimes it has a massive patch, will place 5, then go fly away from it" / "it
+		// should look in its immediate vicinity and just keep placing as much as possible always".
+		long now = 100_000, stall = 5_000;
+		assertTrue(Loop.holdHere(12, 0, now, 0, 0, stall), "work in reach, just arrived: stay");
+		assertTrue(Loop.holdHere(7, 5, now, now - 60_000, 0, stall), "placing: stay however long it has been");
+		assertTrue(Loop.holdHere(7, 0, now, now - 3_000, 0, stall), "a pause shorter than the stall is a pause");
+		assertFalse(Loop.holdHere(7, 0, now, now - 6_000, 0, stall), "held past the stall with nothing placed: let the station logic move");
+		assertFalse(Loop.holdHere(7, 0, now, 0, now + 1, stall), "disarmed after a stall until it cools");
+		assertFalse(Loop.holdHere(0, 0, now, 0, 0, stall), "nothing in reach: nothing to stay for");
+		assertTrue(Loop.VICINITY >= (int) Printer.REACH, "the vicinity is at least the printer's reach");
+	}
+
+	@Test
 	void aTripKeepsGoingUntilThePackIsFull() {
 		// ...and the other half: once started, the trip does not stop at the first stack. `fetching`
 		// carries between calls, or the loop flip-flops at the boundary - one stack, fly back, find
@@ -70,6 +124,20 @@ class LoopTest {
 		assertEquals(Loop.Phase.LOOK, Loop.phase(0, 4000, false, false, false, false),
 			"called a design finished with 4,000 cells out of view");
 		assertEquals(Loop.Phase.COMPLETE, Loop.phase(0, 0, false, false, false, false));
+	}
+
+	@Test
+	void aTripInProgressIsNotInterruptedByTheWorkGoingOutOfView() {
+		// THE PING-PONG. The chunks under the work unload on the way to the chest, todo reads
+		// empty, and the loop used to turn round to LOOK at them - then turn round again to finish
+		// the trip. A trip with somewhere still to go keeps going; only a design with nothing
+		// hidden at all is complete.
+		assertEquals(Loop.Phase.FETCH, Loop.phase(0, 40, false, true, true, true),
+			"the trip was interrupted by the work being out of view");
+		assertEquals(Loop.Phase.LOOK, Loop.phase(0, 40, false, true, false, false),
+			"...but a trip with nowhere left to go looks at the work");
+		assertEquals(Loop.Phase.LOOK, Loop.phase(0, 40, false, false, true, true),
+			"and not fetching at all, out of view is a look, not a shopping trip");
 	}
 
 	@Test

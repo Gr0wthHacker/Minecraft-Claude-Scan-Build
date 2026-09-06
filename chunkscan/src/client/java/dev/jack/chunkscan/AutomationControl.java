@@ -22,6 +22,12 @@ final class AutomationControl {
     }
 
     static boolean enter(ActionGate.Owner owner) {
+		// THE JOB PHASE GATES THE PRINTER AND NOTHING ELSE. A withdrawal is started by ChestScan at
+        // a dead end and by Unbox mid-build - both legitimately outside FETCH - and a gate that
+        // refused them here never let Withdraw.tick run its own timer: busy() stayed true for ever,
+        // Hud.advance returned early above every clock, and the body hovered at the chest in
+        // silence until /cscan stop. See BuildJob.permits.
+        if (Hud.following() && owner == ActionGate.Owner.PRINT && !BuildJob.permits(owner)) return false;
         if (Printer.busy() && owner != ActionGate.Owner.PRINT) return false;
         if (caller == ActionGate.Owner.FARM && Digger.busy() && owner == ActionGate.Owner.PRINT) return false;
         boolean delegated = (GATE.owner() == ActionGate.Owner.UNBOX && Unbox.phase() == Unbox.Phase.TAKING)

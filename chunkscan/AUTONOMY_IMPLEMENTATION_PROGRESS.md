@@ -117,7 +117,7 @@ The read-only production preflight probe against the frozen `Park Complete` side
 
 ## 2026-09-03: candidate package verification
 
-The candidate was rebuilt after subsequent source changes. The current uninstalled `build/libs/chunkscan-0.8.1.jar` has SHA-256 `40f9f01ada7ddb8a2aac257d4ea82540c478c3e00338bf5ff96e16b23a37d968`. Archive inspection confirmed the earlier package contains `ActiveBuild`, `BuildJournal`, the packet listener mixin and the mixin manifest; the current build is produced by the same verified Gradle jar task. The running LiquidLauncher profile still contains only the original `mods/chunkscan-0.8.0.jar`; it was read-only inspected and not replaced. A Fabric launched-client/server test remains required before this candidate is usable as evidence of a working autonomous builder.
+The candidate was rebuilt after subsequent source changes. The current `build/libs/chunkscan-0.8.1.jar` has SHA-256 `bb48f7b06c0fbdd622be171c8cfdf0e4af45dd66e757082e0c0e0a802b64df23`. Archive inspection confirmed it contains `ActiveBuild`, `BuildJournal`, `BuildJob`, `SignWriter`, the packet listener mixin and the mixin manifest; the current build is produced by the verified Gradle jar task. This candidate also treats an empty cauldron as valid intermediate progress toward a filled schematic cauldron, so the second bucket action is not discarded as a mismatch. A Fabric launched-client/server fixture test remains required before this candidate is usable as evidence of a working autonomous builder.
 
 ## 2026-09-03: action-recipe preflight coverage
 
@@ -186,3 +186,9 @@ Glow lichen now follows the same acknowledged multi-use action model as vines ac
 The frozen Park Complete report removes all 76 glow-lichen attachment cells. Remaining unsupported actions are 1,703 redstone/rail commissioning cells, 161 wall-sign configuration cells, one cauldron fill and one sign configuration: **1,866** blocked cells. Evidence: `build/audit/action-recipes/park-complete.json`.
 
 Validation: **515 Java tests, zero failures/errors/skips** in `build/audit/glow-lichen-tests.log`, including partial, progress and exact-final lichen states. This still needs a launched-client fixture for the actual face/ray sequence. No JAR/profile was installed. Full autonomy remains incomplete.
+
+## 2026-09-04: the trip leaves from the work and comes back to it
+
+Implemented the inventory load planning and unloading that earlier entries list as remaining. `Hud.workAnchor` fixes the working area to the spot being built rather than to the player's position, so a fetch no longer re-centres the build on the chest. `Plan.loadPlan` makes one shopping list per trip at the work, in build order (frontier, then the area's next courses) and sized to the pack; `Plan.shortfalls` subtracts what is carried. `Loop.phase` continues a trip whose target still stands when the work's chunks unload. `Work.dumpable` names the stacks the whole design has no use for; `Withdraw` deposits them into the chest before taking, reconciled through the same `InventoryTransfer` as a take, and those slots count as room when the list is sized. A trip that ends with the anchor out of view flies back to it before deciding anything.
+
+Validation: **652 Java tests, zero failures/errors/skips.** New: `PackTest` (5), three build-order and shortfall tests in `AuditFixesTest`, one phase test in `LoopTest`. `chunkscan-0.8.1.jar` built; not installed. The deposit path and the return-to-anchor flight have not been exercised in a launched client. See CLAUDE.md, "The trip leaves from the work and comes back to it".

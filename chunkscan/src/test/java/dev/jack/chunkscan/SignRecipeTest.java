@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.world.level.block.Blocks;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -139,6 +140,15 @@ class SignRecipeTest {
 		assertFalse(text.blank());
 	}
 
+	@Test void onlyAuthoritativeMatchingTextConfirmsASignWrite() {
+		CompoundTag accepted = signTile(0, 0, 0, "THE MIDWAY", "OPEN");
+		CompoundTag altered = signTile(0, 0, 0, "THE MIDWAY", "CLOSED");
+		assertTrue(SignText.matches(accepted, true, List.of("THE MIDWAY", "OPEN", "", "")));
+		assertFalse(SignText.matches(altered, true, List.of("THE MIDWAY", "OPEN", "", "")));
+		assertFalse(SignText.matches(accepted, false, List.of("THE MIDWAY", "OPEN", "", "")),
+			"front text is not confirmation for a requested back-side update");
+	}
+
 	@Test void aRegionWithNoTileEntitiesIsADesignWithNoSigns() throws Exception {
 		CompoundTag region = new CompoundTag();
 		CompoundTag size = new CompoundTag();
@@ -155,23 +165,26 @@ class SignRecipeTest {
 		assertTrue(LitematicReader.signs(root, BlockPos.ZERO).isEmpty());
 	}
 
-	@Test void aDeclinedCellIsHandedBackRatherThanBlockingOrStalling() {
-		// Cauldrons are DECLINED, not unimplemented: preflight must not refuse a design for two
-		// cells a human will place, the way it refused Park Complete's 350,000 for them.
-		assertEquals("cauldron fill", ActionRecipe.manual("water_cauldron[level=3]"));
+	@Test void anAutomaticCauldronStillCountsAsUnfinishedUntilFilled() {
 		assertNull(ActionRecipe.manual("stone"));
 		assertNull(ActionRecipe.missingFor("water_cauldron[level=3]"));
 		var cells = List.of(new Work.Cell(BlockPos.ZERO, "water_cauldron[level=3]"));
 		assertDoesNotThrow(() -> ActionRecipe.require(cells));
+		assertNull(ActionRecipe.manual("water_cauldron[level=3]"));
+		assertTrue(ActionRecipe.cauldronIntermediate(Blocks.CAULDRON.defaultBlockState(), "water_cauldron[level=3]"));
+	}
 
-		// ...and it must leave the todo, or the printer burns its tries on a cell it can never
-		// satisfy, which from the outside is indistinguishable from a stall.
-		var split = new Work.Split("x", List.of(), List.of(), 0, 0, null, List.of(),
-			List.of(new Work.Cell(BlockPos.ZERO, "water_cauldron[level=3]")));
-		assertTrue(split.placementComplete(), "the loop's own part is finished, so it must advance");
-		assertFalse(split.complete(), "the DESIGN is not finished, and must not claim to be");
-		assertEquals(1, split.manualLeft().get("cauldron fill"));
-		assertEquals(1, split.total(), "declined work is still work, and still counted");
+	@Test void aFilledCauldronIsASequencedAutomaticAction() {
+		assertNull(ActionRecipe.manual("water_cauldron[level=3]"));
+		assertNull(ActionRecipe.manual("lava_cauldron[level=3]"));
+		assertEquals("cauldron", ActionRecipe.itemFor("water_cauldron[level=3]"));
+		assertEquals("water_bucket", ActionRecipe.cauldronBucket("water_cauldron[level=3]"));
+		assertEquals("lava_bucket", ActionRecipe.cauldronBucket("lava_cauldron[level=3]"));
+		assertTrue(ActionRecipe.cauldronIntermediate(Blocks.CAULDRON.defaultBlockState(), "water_cauldron[level=3]"));
+		assertFalse(ActionRecipe.cauldronIntermediate(Blocks.STONE.defaultBlockState(), "water_cauldron[level=3]"));
+		// `Printer.everPlaceable` must defer this multi-stage action to its live executor, rather
+		// than comparing stage one's empty cauldron to the filled final state.
+		assertTrue(ActionRecipe.cauldronFill("water_cauldron[level=3]"));
 	}
 
 	@Test void aWholeCircuitIsHandedToACommissioningPass() {
@@ -197,12 +210,34 @@ class SignRecipeTest {
 		SignWriter.arm(Map.of(mine.asLong(),
 			new SignText(List.of("BASE CAMP", "", "", ""), List.of("", "", "", ""), false, "black")));
 		assertTrue(SignWriter.intercept(mine, true));
+		assertEquals(SignWriter.Verification.PENDING, SignWriter.verification(mine));
 		// A PLAYER's own sign must still open its editor. Swallowing that would be far worse than
 		// doing nothing: they would type into a screen that never appears.
 		assertFalse(SignWriter.intercept(theirs, true));
 		assertEquals(1, SignWriter.pendingCount());
 		SignWriter.clear();
 		assertFalse(SignWriter.intercept(mine, true), "a stopped build owns no positions");
+		assertEquals(SignWriter.Verification.NONE, SignWriter.verification(mine));
 		assertEquals(0, SignWriter.pendingCount());
+	}
+
+	@Test void ordinaryStopDisarmsTheSignWriterToo() {
+		SignWriter.clear();
+		BlockPos mine = new BlockPos(5, 70, 5);
+		SignWriter.arm(Map.of(mine.asLong(),
+			new SignText(List.of("BASE CAMP", "", "", ""), List.of("", "", "", ""), false, "black")));
+		Hud.off();
+		assertFalse(SignWriter.intercept(mine, true), "disconnect and safety paths use Hud.off");
+	}
+
+	@Test void completingOrAbandoningARevisionDisarmsTheSignWriterToo() {
+		SignWriter.clear();
+		BlockPos mine = new BlockPos(5, 70, 5);
+		SignWriter.arm(Map.of(mine.asLong(),
+			new SignText(List.of("BASE CAMP", "", "", ""), List.of("", "", "", ""), false, "black")));
+		// Several normal completion paths clear the revision directly instead of going through
+		// Hud.off. They must release the editor just as a disconnect does.
+		ActiveBuild.clear();
+		assertFalse(SignWriter.intercept(mine, true), "a completed revision owns no positions");
 	}
 }

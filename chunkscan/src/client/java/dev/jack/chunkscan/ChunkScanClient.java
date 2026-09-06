@@ -63,15 +63,15 @@ public final class ChunkScanClient implements ClientModInitializer {
 	 * `clear` got here. `MenuTest` keeps the real literals inside it.
 	 */
 	static final java.util.Set<String> RESERVED = java.util.Set.of(
-		"all", "around", "auto", "autofly", "bom", "bounds", "check", "chests", "chunks", "clear", "clips",
+		"all", "analyze", "around", "auto", "autofly", "bom", "bounds", "check", "chests", "chunks", "clear", "clips",
 		"copy", "dark", "dig", "done", "fetch", "fill", "find", "follow", "goto", "help", "hud",
-		"ignore", "label", "list", "mark", "marks", "mat", "move", "need", "next", "off", "on",
+		"ignore", "label", "list", "mark", "marks", "mat", "move", "need", "next", "off", "on", "only",
 		"paste", "place", "plan", "progress", "prune", "replace", "reset", "scaffold", "scan",
 		"sel", "set", "speed", "stack", "status", "stop", "take", "tidy", "undo", "undos", "unmark",
 		"wand", "why",
 		// the skyblock set
 		"add", "autodig", "buy", "craft", "farm", "forget", "income", "make", "photo", "plot",
-		"prices", "print", "sample", "smelt", "warp", "fleet", "unbox", "work");
+		"prices", "print", "sample", "smelt", "warp", "fleet", "unbox", "work", "perf");
 
 	/**
 	 * A design or clip name that is about to become a FILE PATH.
@@ -318,6 +318,31 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(literal("all").executes(ChunkScanClient::followAll))
 					.then(argument("design", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::follow)))
+				.then(literal("only")
+					.executes(ctx -> {
+						var o = Hud.only();
+						ok(ctx.getSource(), o == null ? "only: off — follow places every material"
+							: "only " + String.join(", ", o) + " — /cscan only off to place everything");
+						return 1; })
+					.then(literal("off").executes(ctx -> {
+						Hud.setOnly(null);
+						ok(ctx.getSource(), "only off — follow places every material again");
+						return 1; }))
+					.then(argument("material", StringArgumentType.greedyString())
+						.executes(ctx -> {
+							// ONE OR MORE ITEM NAMES, as the design's work list names them:
+							// `stone_brick_slab` is both halves, `torch` is the wall one too.
+							java.util.Set<String> items = new java.util.LinkedHashSet<>();
+							for (String s : StringArgumentType.getString(ctx, "material").split("[ ,]+")) {
+								String n = Loop.itemName(s);
+								if (!n.isEmpty()) items.add(n);
+							}
+							Hud.setOnly(items);
+							ok(ctx.getSource(), "only " + String.join(", ", items) + " — follow now"
+								+ " places just that, until the schematic has it everywhere it can go;"
+								+ " /cscan follow <design> to start, /cscan only off to lift it");
+							return 1;
+						})))
 				.then(literal("hud")
 					.executes(ctx -> { ok(ctx.getSource(), Hud.watching() == null ? "hud off"
 						: "hud watching " + Hud.watching()); return 1; })
@@ -337,6 +362,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 				.then(literal("bom")
 					.then(argument("design", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::bom)))
+				.then(literal("analyze")
+					.then(argument("design", StringArgumentType.greedyString())
+						.executes(ChunkScanClient::analyze)))
 				.then(literal("around")
 					.then(argument("radius", IntegerArgumentType.integer(1, 64))
 						.executes(ChunkScanClient::around)))
@@ -346,6 +374,26 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(argument("name", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::undo)))
 				.then(literal("progress").executes(ChunkScanClient::progress))
+				.then(literal("perf")
+					.executes(ctx -> {
+						// WHAT THIS MOD COSTS THE CLIENT THREAD. Written after a frame-rate report was
+						// answered by reading the code three times: every subsystem looked affordable
+						// alone and the arithmetic between them was the problem.
+						FabricClientCommandSource src = ctx.getSource();
+						for (String line : Perf.report()) ok(src, line);
+						return 1; })
+					.then(literal("on").executes(ctx -> {
+						Perf.enabled(true);
+						ok(ctx.getSource(), "perf ON — play for ten seconds, then /cscan perf");
+						return 1; }))
+					.then(literal("off").executes(ctx -> {
+						Perf.enabled(false);
+						ok(ctx.getSource(), "perf OFF");
+						return 1; }))
+					.then(literal("reset").executes(ctx -> {
+						Perf.reset();
+						ok(ctx.getSource(), "perf counters cleared");
+						return 1; })))
 				.then(literal("ignore")
 					.executes(ctx -> {
 						// Seeing the red is half of it; being able to take it back is the other.
@@ -1225,6 +1273,39 @@ public final class ChunkScanClient implements ClientModInitializer {
 	}
 
 	/** The whole design's materials in shulkers, for packing before a trip. */
+	/**
+	 * `/cscan analyze <design>`: the materials ranked by how much of each can be placed against
+	 * what stands today, in loaded chunks - so a trip is spent on what the build can take.
+	 */
+	private static int analyze(CommandContext<FabricClientCommandSource> ctx) {
+		FabricClientCommandSource src = ctx.getSource();
+		String name = StringArgumentType.getString(ctx, "design");
+		try {
+			Minecraft mc = src.getClient();
+			Work.Split sp = Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
+			if (sp.todo().isEmpty()) { ok(src, sp.name() + " has nothing left to place in a loaded chunk"
+				+ digNote(sp)); return 1; }
+			java.util.List<Work.Cell> now = Work.placeableNow(mc.level, sp.todo());
+			Map<String, Integer> have = Work.carrying(mc.player);
+			Map<String, Storage.Container> index = Storage.load(dir(src));
+			ok(src, sp.name() + ": " + sp.todo().size() + " left in loaded chunks, " + now.size()
+				+ " placeable against what stands, " + sp.unseen() + " out of view");
+			ok(src, "  placeable / left / carrying / indexed  — fill the pack top-down");
+			int shown = 0;
+			for (Plan.Usable u : Plan.usable(sp.todo(), now)) {
+				if (shown++ >= 15) break;
+				int indexed = 0;
+				for (Storage.Hit h : Storage.findExact(index, u.item(), mc.player.blockPosition(), true)) indexed += h.count();
+				ok(src, "  " + u.placeable() + " / " + u.remaining() + " / " + have.getOrDefault(u.item(), 0)
+					+ " / " + indexed + "  " + u.item() + (u.placeable() == 0 ? "  (nothing to place against yet)" : ""));
+			}
+			return 1;
+		} catch (Exception e) {
+			src.sendError(Component.literal("[cscan] " + e.getMessage()));
+			return 0;
+		}
+	}
+
 	private static int bom(CommandContext<FabricClientCommandSource> ctx) {
 		FabricClientCommandSource src = ctx.getSource();
 		String name = StringArgumentType.getString(ctx, "design");
@@ -1538,9 +1619,6 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Withdraw.cancel();
 		Autopilot.halt(mc);                              // also lets go of any key it was holding
 		Hud.off();
-		// Disarm the sign writer with everything else, or the next editor a HUMAN opens on one of
-		// this design's positions gets cancelled out from under them.
-		SignWriter.clear();
 		// EVERY layer, not the three the loop happens to use. `find`, `check`, `dig`, `dark`, `mark`
 		// and `marks` are all still drawing after a stop, and a panic button that leaves the screen
 		// covered in particles reads as one that did not work.
@@ -2371,8 +2449,10 @@ public final class ChunkScanClient implements ClientModInitializer {
                     || Withdraw.busy() || Unbox.running()) return;
                 if (Hud.following() && !printDesign.equals(Hud.watching())) return;
                 if (Fleet.heldByOther(ScanRunner.schematicsDir(mc), printDesign, Fleet.me(mc))) return;
+				long pt0 = System.nanoTime();
 				Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), printDesign,
 					mc.player.blockPosition(), (int) Printer.REACH + 2);
+				Perf.record("printer scan", System.nanoTime() - pt0);
 				// IN THE DESIGN'S ORDER — bottom-up, doors first — not nearest-first. Placing a
 				// ceiling cell before the wall under it takes away the face the lower cell was
 				// going to be placed against, and the station then stalled on a cell that still
@@ -2381,15 +2461,18 @@ public final class ChunkScanClient implements ClientModInitializer {
 				double reach2 = (Printer.REACH + 1) * (Printer.REACH + 1);
 				net.minecraft.world.phys.Vec3 eye = mc.player.getEyePosition();
 				for (Work.Cell c : sp.todo()) {
+					if (!Hud.wanted(c)) continue;                                        // /cscan only <material>
 					if (Printer.givenUpOn(c.pos())) continue;
 					if (!Printer.everPlaceableCached(mc, c.pos(), c.block())) continue;   // the sweep is the stutter
 					if (eye.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(c.pos())) > reach2) continue;
-                    int slot = Printer.inventorySlot(mc.player, c.block());
+                    if (Printer.recentlyUnplaceable(mc.level, c.pos())) continue;
+                    int slot = Printer.inventorySlot(mc.player, c.block(), mc.level.getBlockState(c.pos()));
                     if (slot < 0) continue;
 					if (Printer.placement(mc, c.pos(), c.block(), slot) != null) {
 						next = c;
 						break;
 					}
+					Printer.noteNoPlacement(mc.level, c.pos());
 				}
 				if (next == null) return;
                  // nothing in reach: the loop moves you

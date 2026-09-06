@@ -48,6 +48,13 @@ record SignText(List<String> front, List<String> back, boolean glowing, String c
 		return new SignText(lines(front), lines(back), glowing, colour);
 	}
 
+	/** Whether an authoritative block-entity packet contains the four expected visible lines. */
+	static boolean matches(CompoundTag tile, boolean front, List<String> expected) {
+		if (tile == null || expected == null || expected.size() != 4) return false;
+		CompoundTag side = tile.getCompound(front ? "front_text" : "back_text").orElse(null);
+		return lines(side).equals(expected);
+	}
+
 	/** The four lines of one side, padded, as PLAIN text rather than as JSON components. */
 	private static List<String> lines(CompoundTag side) {
 		List<String> out = new ArrayList<>(4);

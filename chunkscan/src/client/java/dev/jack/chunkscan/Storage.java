@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -263,10 +264,35 @@ final class Storage {
 	 * treating it as such would delete your whole index the first time you ran this from the far
 	 * side of the island. Same rule `Work.split` follows.
 	 */
+	/**
+	 * The one position a double chest is filed under: its lower-coordinate half. Both halves open
+	 * the same 54 slots, and indexed under whichever half was clicked the index held 151 pairs
+	 * twice over - and after emptying one half the other still advertised the old count and sent
+	 * the loop back to a chest it had just emptied. Anything else answers its own position.
+	 */
+	static BlockPos canonical(Level level, BlockPos pos) {
+		if (level == null || !level.isLoaded(pos)) return pos;
+		BlockState st = level.getBlockState(pos);
+		if (!(st.getBlock() instanceof net.minecraft.world.level.block.ChestBlock)) return pos;
+		net.minecraft.world.level.block.state.properties.ChestType type = st.getValue(net.minecraft.world.level.block.ChestBlock.TYPE);
+		if (type == net.minecraft.world.level.block.state.properties.ChestType.SINGLE) return pos;
+		net.minecraft.core.Direction facing = st.getValue(net.minecraft.world.level.block.ChestBlock.FACING);
+		BlockPos other = pos.relative(type == net.minecraft.world.level.block.state.properties.ChestType.LEFT
+			? facing.getClockWise() : facing.getCounterClockWise());
+		return lower(pos, other);
+	}
+
+	/** The lower of two positions, by x then z: the same answer from either half. */
+	static BlockPos lower(BlockPos a, BlockPos b) {
+		if (a.getX() != b.getX()) return a.getX() < b.getX() ? a : b;
+		return a.getZ() <= b.getZ() ? a : b;
+	}
+
 	static boolean stillThere(Level level, Container c) {
 		BlockPos p = c.pos();
 		if (level != null && !c.dimension.isBlank() && !c.dimension.equals(level.dimension().identifier().toString())) return true;
 		if (level == null || !level.isLoaded(p)) return stillThere((String) null);
+		if (!canonical(level, p).equals(p)) return false;   // the other half of a double chest: the twin record
 		return stillThere(BuiltInRegistries.BLOCK.getKey(level.getBlockState(p).getBlock()).getPath());
 	}
 

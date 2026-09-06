@@ -6,11 +6,13 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -82,16 +84,61 @@ class AuditFixesTest {
 	}
 
 	@Test
+	void onlyDecidedPropertiesAreRequiredToMatch() {
+		// The Python side's work.INTENTIONAL, applied on the Java read: a litematic carries every
+		// property, and the game derives most of them from the neighbourhood.
+		assertEquals(StateContract.Role.REQUIRED, StateContract.role("stone_brick_stairs", "facing"));
+		assertEquals(StateContract.Role.REQUIRED, StateContract.role("stone_brick_slab", "type"));
+		assertEquals(StateContract.Role.DERIVED, StateContract.role("stone_brick_stairs", "shape"));
+		assertEquals(StateContract.Role.REQUIRED, StateContract.role("stone_brick_stairs", "waterlogged"), "a bucket after the stair: a completion requirement");
+		assertEquals(StateContract.Role.REQUIRED, StateContract.role("rail", "shape"));
+		assertEquals(StateContract.Role.DERIVED, StateContract.role("sugar_cane", "age"));
+		assertEquals(StateContract.Role.DERIVED, StateContract.role("grass_block", "snowy"));
+		assertEquals(StateContract.Role.DERIVED, StateContract.role("cave_vines", "berries"));
+		assertEquals(StateContract.Role.DERIVED, StateContract.role("chest", "type"), "which half of a double chest is the game's call");
+		assertEquals(StateContract.Role.REQUIRED, StateContract.role("pointed_dripstone", "vertical_direction"));
+		assertEquals(StateContract.Role.REQUIRED, StateContract.role("vine", "north"), "a vine's faces ARE the decision");
+		assertEquals(StateContract.Role.DERIVED, StateContract.role("oak_fence", "north"));
+		assertEquals(StateContract.Role.DERIVED, StateContract.role("stone_brick_wall", "up"));
+	}
+
+	@Test
+	void aDoubleChestIsFiledUnderOneHalf() {
+		var a = new BlockPos(10, 64, 20);
+		var b = new BlockPos(11, 64, 20);
+		assertEquals(a, Storage.lower(a, b));
+		assertEquals(a, Storage.lower(b, a), "the same answer from either half");
+		assertEquals(new BlockPos(5, 64, 3), Storage.lower(new BlockPos(5, 64, 3), new BlockPos(5, 64, 4)));
+	}
+
+	@Test
+	void aPoolAsksForAFewBucketsNotOnePerCell() {
+		java.util.List<Work.Cell> pool = new java.util.ArrayList<>();
+		for (int i = 0; i < 40; i++) pool.add(new Work.Cell(new BlockPos(i, 200, 0), "water[level=0]"));
+		pool.add(new Work.Cell(new BlockPos(0, 201, 0), "stone_bricks"));
+		var plan = Plan.loadPlan(pool, java.util.List.of(), new BlockPos(0, 200, 0), 2000);
+		assertEquals(Plan.BUCKETS_PER_TRIP, plan.get("water_bucket"));
+		assertEquals(1, plan.get("stone_bricks"));
+		assertTrue(Autopilot.FLY_COMMANDS > 0 && Autopilot.FLY_COMMANDS <= Autopilot.REGAIN_GIVE_UP);
+	}
+
+	@Test
 	void anExactTargetIsReachedNotApproached() {
 		// A station is somewhere to hover NEAR; a chest's approach cell is somewhere to BE.
 		assertTrue(Autopilot.EXACT_MIN < Autopilot.ARRIVE_MIN);
 		assertTrue(Autopilot.EXACT_ARRIVED < Autopilot.ARRIVED);
 		// ...and hovering in it keeps more than the block of air this server ends flight inside
 		// of, while staying low enough to open a chest on the floor the cell was chosen over.
-		assertTrue(Autopilot.EXACT_CLEAR > 1.0, "a block or less under the feet is a landing");
+		assertTrue(Autopilot.EXACT_CLEAR > 2.0, "one block of air under the feet is where this server ends flight");
 		assertTrue(Autopilot.EXACT_CLEAR < Autopilot.GROUND_CLEAR,
 			"the ordinary clearance is what held the flight out of reach of every chest on a floor");
-		assertTrue(ContainerInteraction.HOVER_CLEAR >= 1, "the cell must have air under it to hover in");
+		assertTrue(ContainerInteraction.HOVER_CLEAR >= 2, "the approach cell keeps two clear cells under it");
+		assertTrue(Autopilot.EXACT_CLEAR < ContainerInteraction.HOVER_CLEAR + Autopilot.FOOT_OFFSET,
+			"the clearance the flight holds must fit under the air the cell was chosen for");
+		// ...and the eyes still reach a chest on that floor from one block over: feet two cells up,
+		// eye height 1.62, chest centre half a block up.
+		double dy = 2 + Autopilot.FOOT_OFFSET + 1.62 - 0.5, dx = ContainerInteraction.CLOSE - 1;
+		assertTrue(Math.sqrt(dx * dx + dy * dy) < Withdraw.REACH, "hovering two up puts the chest out of reach");
 	}
 
 	@Test
@@ -103,37 +150,71 @@ class AuditFixesTest {
 	// ------------------------------------------------------------------ what goes in the pack
 
 	@Test
-	void theFetchIsSizedToTheAreaOutwardNotToTheWholeDesign() {
-		// Jack: "it stacks up with random resources vs things it logically might need based on
-		// the radius around it". Two hundred far cells of wool must not beat ten near stone.
-		List<Work.Cell> todo = new java.util.ArrayList<>();
-		for (int i = 0; i < 10; i++) todo.add(cell(i, 200, 0, "stone_bricks"));
-		for (int i = 0; i < 200; i++) todo.add(cell(300 + i, 200, 0, "white_wool"));
-		List<Work.Cell> near = Plan.nearDemand(todo, List.of(), new BlockPos(0, 200, 0), 64);
-		assertEquals(64, near.size(), "sized to the pack");
-		assertEquals(10, near.stream().filter(c -> c.block().equals("stone_bricks")).count(),
-			"everything near comes first");
-		assertEquals(54, near.stream().filter(c -> c.block().equals("white_wool")).count(),
-			"...and the rest of the load is the NEXT nearest work, not a random slice of the design");
+	void theLoadIsTheAreasNextCoursesNotTheNearestCellsInThreeDimensions() {
+		// Jack: "it stacks up with random resources vs things it logically might need". The loop
+		// lays one course at a time from the bottom, so the next cells to be placed are the next
+		// COURSES - not the nearest cells, which are mostly courses that cannot be placed until
+		// the ones under them exist. Ten stone on the ground course, two hundred wool a course up,
+		// a pack of 64: ten stone and fifty-four wool, and nothing of the roof.
+		List<Work.Cell> area = new java.util.ArrayList<>();
+		for (int i = 0; i < 10; i++) area.add(cell(i, 200, 0, "stone_bricks"));
+		for (int i = 0; i < 200; i++) area.add(cell(i % 20, 201, i / 20, "white_wool"));
+		for (int i = 0; i < 100; i++) area.add(cell(i % 10, 210, i / 10, "oak_planks"));
+		var plan = Plan.loadPlan(area, List.of(), new BlockPos(0, 200, 0), 64);
+		assertEquals(64, Plan.cells(plan), "sized to the pack");
+		assertEquals(10, plan.get("stone_bricks"), "the lowest course comes first, all of it");
+		assertEquals(54, plan.get("white_wool"), "...then the course above it");
+		assertNull(plan.get("oak_planks"), "the roof is not this trip's business");
 	}
 
 	@Test
-	void theFrontierIsAlwaysInTheDemandWhateverItsDistance() {
+	void withinACourseTheNearestCellsToTheAnchorComeFirst() {
+		List<Work.Cell> area = new java.util.ArrayList<>();
+		for (int i = 0; i < 5; i++) area.add(cell(i, 200, 0, "stone_bricks"));
+		for (int i = 14; i < 19; i++) area.add(cell(i, 200, 0, "glass"));
+		var plan = Plan.loadPlan(area, List.of(), new BlockPos(0, 200, 0), 8);
+		assertEquals(5, plan.get("stone_bricks"));
+		assertEquals(3, plan.get("glass"));
+	}
+
+	@Test
+	void theFrontierIsAlwaysInTheLoadWhateverItsDistanceOrCourse() {
 		// The cells that can be placed right now are the reason for the trip.
-		List<Work.Cell> todo = new java.util.ArrayList<>();
-		for (int i = 0; i < 100; i++) todo.add(cell(i, 200, 0, "stone_bricks"));
-		Work.Cell far = cell(500, 200, 0, "lantern");
-		todo.add(far);
-		List<Work.Cell> near = Plan.nearDemand(todo, List.of(far), new BlockPos(0, 200, 0), 16);
-		assertTrue(near.contains(far), "the frontier cell was dropped for being far");
-		assertEquals(16, near.size(), "the frontier counts toward the load, it is not on top of it");
+		List<Work.Cell> area = new java.util.ArrayList<>();
+		for (int i = 0; i < 100; i++) area.add(cell(i, 200, 0, "stone_bricks"));
+		Work.Cell far = cell(500, 230, 0, "lantern");
+		area.add(far);
+		var plan = Plan.loadPlan(area, List.of(far), new BlockPos(0, 200, 0), 16);
+		assertEquals(1, plan.get("lantern"), "the frontier cell was dropped for being far");
+		assertEquals(16, Plan.cells(plan), "the frontier counts toward the load, it is not on top of it");
 	}
 
 	@Test
 	void aCellIsNeverDemandedTwice() {
 		Work.Cell c = cell(1, 200, 1, "stone");
-		List<Work.Cell> near = Plan.nearDemand(List.of(c), List.of(c), new BlockPos(0, 200, 0), 64);
-		assertEquals(1, near.size());
+		var plan = Plan.loadPlan(List.of(c), List.of(c), new BlockPos(0, 200, 0), 64);
+		assertEquals(1, Plan.cells(plan));
+	}
+
+	@Test
+	void theShoppingListIsWhatIsStillShortOfItWithAnAddress() {
+		// Subtracting what is carried gives what is still to fetch; a material nobody indexed is
+		// dropped, because this list is flown to.
+		Map<String, Integer> plan = new java.util.LinkedHashMap<>();
+		plan.put("stone_bricks", 300);
+		plan.put("lantern", 12);
+		Map<String, Integer> carrying = new java.util.LinkedHashMap<>();
+		carrying.put("stone_bricks", 100);
+		Storage.Container c = new Storage.Container();
+		c.x = 20; c.y = 200; c.z = 0; c.block = "chest";
+		c.items.put("stone_bricks", 500);
+		Map<String, Storage.Container> index = new java.util.LinkedHashMap<>();
+		index.put(c.key(), c);
+		List<Plan.Restock> out = Plan.shortfalls(plan, carrying, index, new BlockPos(0, 200, 0), Set.of());
+		assertEquals(1, out.size(), "the lantern has no address and is not a trip");
+		assertEquals("stone_bricks", out.get(0).item());
+		assertEquals(200, out.get(0).missing(), "what is carried is subtracted");
+		assertEquals(500, out.get(0).available());
 	}
 
 	@Test

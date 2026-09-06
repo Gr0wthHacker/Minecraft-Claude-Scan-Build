@@ -190,10 +190,28 @@ final class Nav {
 			if (c.distSqr(from) <= e2 || c.distSqr(to) <= e2) return tight.at(x, y, z);
 			return open.at(x, y, z);
 		};
-	}
-
-	/** How close to either end the clearance rule is dropped. */
+	}/** How close to either end the clearance rule is dropped. */
 	static final int ENDS = 6;
+
+	/**
+	 * Roomy, and with `below` clear cells under the body as well, except within ENDS of either
+	 * end. A roomy route keeps one block of air off a floor; this keeps the hover's own clearance,
+	 * because a routed flight was the one thing that could descend below it.
+	 */
+	static Passable cruiseBetween(Level level, BlockPos from, BlockPos to, int below) {
+		Passable tight = of(level);
+		Passable open = roomy(level);
+		long e2 = (long) ENDS * ENDS;
+		return (x, y, z) -> {
+			BlockPos c = new BlockPos(x, y, z);
+			if (c.distSqr(from) <= e2 || c.distSqr(to) <= e2) return tight.at(x, y, z);
+			if (!open.at(x, y, z)) return false;
+			for (int k = 2; k <= below; k++) {           // roomy already checked y - 1
+				if (!tight.at(x, y - k, z)) return false;
+			}
+			return true;
+		};
+	}
 
 	static Passable roomy(Level level) {
 		Passable tight = of(level);

@@ -50,7 +50,8 @@ final class Digger {
 	static final int GIVE_UP_MAX = 1200;
 	private static int giveUpAt = GIVE_UP_MAX;
 
-	enum Verdict { BROKE, PROTECTED, OVER_VOID, OFF_PLOT, FENCED, OUT_OF_REACH, ALREADY_AIR, STUCK, WORKING }
+	enum Verdict { BROKE, PROTECTED, OVER_VOID, OFF_PLOT, FENCED, OUT_OF_REACH, ALREADY_AIR, STUCK,
+		UNDERFOOT, WORKING }
 
 	record Refusal(BlockPos pos, Verdict why, String block) {}
 
@@ -91,6 +92,24 @@ final class Digger {
 	}
 
 	/**
+	 * Is this cell holding the player up?
+	 *
+	 * <p>The cell under the feet, and the two the body's own 0.6-wide box can overhang when it is
+	 * standing on an edge - taking either of those drops you just the same. Tested on the BODY's
+	 * footprint rather than on `blockPosition()` alone, which is a rounded centre and says nothing
+	 * about which blocks are actually carrying it.
+	 */
+	static boolean underfoot(net.minecraft.world.entity.player.Player player, BlockPos p) {
+		int fy = net.minecraft.util.Mth.floor(player.getY() - 0.05);
+		if (p.getY() != fy) return false;
+		double half = player.getBbWidth() / 2.0 + 0.02;
+		return p.getX() >= net.minecraft.util.Mth.floor(player.getX() - half)
+			&& p.getX() <= net.minecraft.util.Mth.floor(player.getX() + half)
+			&& p.getZ() >= net.minecraft.util.Mth.floor(player.getZ() - half)
+			&& p.getZ() <= net.minecraft.util.Mth.floor(player.getZ() + half);
+	}
+
+	/**
 	 * May this cell be broken? Pure enough to test: everything it consults is a rule or a lookup.
 	 *
 	 * <p>Order matters only for the message — a cell can fail several of these at once and the
@@ -106,6 +125,12 @@ final class Digger {
 			return Verdict.OFF_PLOT;
 		}
 		if (!Bounds.contains(p)) return Verdict.FENCED;    // the autofly fence, at the actuator
+		// THE FLOOR YOU ARE STANDING ON IS NOT A CELL TO BREAK. Jack: "its multiple times now sat
+		// still and dug completely around itself." Breaking the block under your own feet drops you
+		// a course into the hole you are making, and the next cell of the list is then at head
+		// height with walls on every side. POSITIONAL, not a fault in the cell: it is skipped from
+		// HERE and dug from anywhere else, so it never joins the given-up set.
+		if (!mc.player.getAbilities().flying && underfoot(mc.player, p)) return Verdict.UNDERFOOT;
 		VoidRisk.Cell under = VoidRisk.under(mc.level, p, mc.level.getMinY());
 		if (under.verdict() == VoidRisk.Verdict.VOID) return Verdict.OVER_VOID;
 		if (mc.player.getEyePosition().distanceToSqr(Vec3.atCenterOf(p)) > REACH * REACH) {
@@ -173,6 +198,10 @@ final class Digger {
 			if (d > REACH * REACH) continue;
 			Verdict v = judge(mc, p);
 			if (v == Verdict.ALREADY_AIR) continue;
+			// SKIPPED, NOT WRITTEN OFF. Standing on it is a fact about where the BODY is, not
+			// about the cell: given up here, the loop could never come back and dig it from the
+			// side, and the design would carry a cell nobody may ever break.
+			if (v == Verdict.UNDERFOOT) continue;
 			if (v != Verdict.WORKING) {
 				if (givenUp.add(key(p))) {
 					refusals.add(new Refusal(p, v,

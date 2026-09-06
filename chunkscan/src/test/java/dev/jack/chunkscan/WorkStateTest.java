@@ -12,6 +12,9 @@ import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import net.minecraft.core.BlockPos;
+import java.util.List;
+import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -27,6 +30,32 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * neighbourhood, and a check that flags those is a check nobody runs.
  */
 class WorkStateTest {
+	@org.junit.jupiter.api.Test
+	void theWorkListIsBinnedByChunkAndARadiusTouchesOnlyNearbyBins() {
+		// The printer's tick used to walk every cell of the design to find the few within reach.
+		var a = new Work.Cell(new net.minecraft.core.BlockPos(3, 200, 3), "stone");
+		var b = new Work.Cell(new net.minecraft.core.BlockPos(17, 200, 3), "stone");     // next chunk east
+		var c = new Work.Cell(new net.minecraft.core.BlockPos(-1, 200, -1), "stone");    // chunk (-1,-1)
+		var bins = Work.bin(java.util.List.of(a, b, c));
+		org.junit.jupiter.api.Assertions.assertEquals(3, bins.size());
+		org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of(a), bins.get(Work.binKey(0, 0)));
+		org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of(b), bins.get(Work.binKey(1, 0)));
+		org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of(c), bins.get(Work.binKey(-1, -1)));
+		var near = new net.minecraft.core.BlockPos(8, 200, 8);
+		org.junit.jupiter.api.Assertions.assertTrue(Work.binNear(0, 0, near, 1), "the bin I stand in is always near");
+		org.junit.jupiter.api.Assertions.assertTrue(Work.binNear(1, 0, near, 8), "eight blocks reaches the next chunk's west edge");
+		org.junit.jupiter.api.Assertions.assertFalse(Work.binNear(1, 0, near, 7), "...seven does not");
+		org.junit.jupiter.api.Assertions.assertFalse(Work.binNear(5, 5, near, 40), "a chunk five away is not within forty");
+		org.junit.jupiter.api.Assertions.assertTrue(Work.binNear(5, 5, near, 120));
+		org.junit.jupiter.api.Assertions.assertEquals(Work.binKey(-1, -1), Work.binKey(-1, -1));
+		org.junit.jupiter.api.Assertions.assertNotEquals(Work.binKey(-1, 0), Work.binKey(0, -1), "the two coordinates must not fold into each other");
+	}
+
+	@Test
+	void aFilledCauldronBudgetsBothActionItems() {
+		assertEquals(Map.of("cauldron", 1, "water_bucket", 1), Work.tally(List.of(
+			new Work.Cell(BlockPos.ZERO, "water_cauldron[level=3]"))));
+	}
 	@BeforeAll
 	static void boot() {
 		SharedConstants.tryDetectVersion();

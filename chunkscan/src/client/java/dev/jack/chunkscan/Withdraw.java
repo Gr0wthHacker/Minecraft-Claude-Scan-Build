@@ -102,6 +102,18 @@ final class Withdraw {
     static int reserveSlots;
     private static Object levelAtStart;
 	private static String note = "";
+	/**
+	 * Items to put INTO the chest before anything is taken out of it - see {@link Work#dumpable}:
+	 * the stacks in the pack that no cell of the design wants. The pack was never emptied of
+	 * anything, so a trip could only ever bring back what fitted round the leftovers.
+	 */
+	private static java.util.Set<String> dump = java.util.Set.of();
+	/** The transfer in flight is a deposit rather than a take. */
+	private static boolean depositing;
+	/** A deposit moved nothing: the chest is full, and the rest stays in the pack. */
+	private static boolean dumpBlocked;
+	/** Items put away this withdrawal. */
+	private static int putAway;
 
 	private Withdraw() {}
 
@@ -128,6 +140,18 @@ final class Withdraw {
 	 * @param count stop once carrying this many; ignored when `item` is null
 	 */
 	static void begin(BlockPos at, String item, int count) {
+		begin(at, item, count, java.util.Set.of());
+	}
+
+	/**
+	 * @param dump items to put INTO the chest first - the stacks the design has no use for, so the
+	 *             pack has room for what it is here to take. Put away, never dropped: the chest is
+	 *             indexed and nothing is lost.
+	 */
+	static void begin(BlockPos at, String item, int count, java.util.Set<String> dump) {
+		Withdraw.dump = dump == null ? java.util.Set.of() : java.util.Set.copyOf(dump);
+		depositing = dumpBlocked = false;
+		putAway = 0;
 		chest = at;
 		want = item == null ? null : Rules.shortName(item);
 		target = count;
@@ -279,11 +303,27 @@ final class Withdraw {
             awaitingTransfer = false;
 			if (!journalTransfer(mc, result == InventoryTransfer.Result.CONFIRMED ? "CONFIRMED" : "NO_CHANGE",
 				transfer.moved())) return;
-            if (result == InventoryTransfer.Result.NO_CHANGE) { transfer = null; close(mc); return; }
-            took += transferredUnits(transfer.item(), transfer.moved());
-            transfer = null;
-            timer = TIMEOUT;
-            uncertainRuns = 0;
+            if (depositing) {
+                // A DEPOSIT THAT MOVED NOTHING IS A FULL CHEST, not a reason to leave: the rest
+                // of the pack stays as it is and the taking goes ahead with the room there is.
+                depositing = false;
+                if (result == InventoryTransfer.Result.NO_CHANGE) {
+                    dumpBlocked = true;
+                    if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] "
+                        + Wand.fmt(chest) + " has no room for what I wanted to put away - keeping it"));
+                } else {
+                    putAway += transfer.moved();
+                }
+                transfer = null;
+                timer = TIMEOUT;
+                uncertainRuns = 0;
+            } else {
+                if (result == InventoryTransfer.Result.NO_CHANGE) { transfer = null; close(mc); return; }
+                took += transferredUnits(transfer.item(), transfer.moved());
+                transfer = null;
+                timer = TIMEOUT;
+                uncertainRuns = 0;
+            }
         }
         if (want != null && carrying(mc) >= target) {
 			close(mc);                               // got what we came for
@@ -291,7 +331,6 @@ final class Withdraw {
 		}
 		if (cool-- > 0) return;
         if (scanOnly) { close(mc); return; }
-        if (want != null && Work.room(mc.player, want) <= 0) { close(mc); return; }
         cool = CLICK_EVERY;
 
         // A slot update or manual click since the full snapshot invalidates the baseline.
@@ -301,6 +340,22 @@ final class Withdraw {
             if (!ItemStack.matches(slot.getItem(), observed.stack(slot.index))) { reopen(mc); return; }
         }
 		Inventory inv = mc.player.getInventory();
+        // ---- PUT AWAY FIRST. What the design has no use for goes into this chest before anything
+        // comes out of it, one stack a pass exactly as taking is - and BEFORE the room check below,
+        // because a pack full of the wrong thing is precisely when there is no room.
+        if (!dump.isEmpty() && !dumpBlocked) {
+            for (Slot s : cs.getMenu().slots) {
+                if (s.container != inv) continue;
+                ItemStack st = s.getItem();
+                if (st.isEmpty()) continue;
+                String item = BuiltInRegistries.ITEM.getKey(st.getItem()).getPath();
+                if (!dump.contains(item)) continue;
+                depositing = true;
+                startTransfer(mc, cs, inv, s, item, st.getCount(), true);
+                return;
+            }
+        }
+        if (want != null && Work.room(mc.player, want) <= 0) { close(mc); return; }
         if (reserveSlots > 0) {
             int empty = 0;
             for (int i = 0; i < 36; i++) if (inv.getItem(i).isEmpty()) empty++;
@@ -321,25 +376,32 @@ final class Withdraw {
 					&& emptySlots(inv) > 0) boxed = s;
 				continue;
 			}
-			startTransfer(mc, cs, inv, s, item, st.getCount());
+			startTransfer(mc, cs, inv, s, item, st.getCount(), false);
 			return;                                  // one stack a pass, then re-read the screen
 		}
 		if (boxed != null) {
 			ItemStack st = boxed.getItem();
 			startTransfer(mc, cs, inv, boxed, BuiltInRegistries.ITEM.getKey(st.getItem()).getPath(),
-				st.getCount());
+				st.getCount(), false);
 			return;
 		}
 		close(mc);                                   // nothing of ours left in there
 	}
 
-	/** Ask the server to move one stack to us, and remember what the pack held when we asked. */
+	/**
+	 * Ask the server to move one stack, and remember what the pack held when we asked.
+	 *
+	 * @param toChest a DEPOSIT: the stack is one of ours and the destination is the chest's half of
+	 *                the menu. A shift-click is the same gesture either way; only the slots it is
+	 *                reconciled against differ.
+	 */
 	private static void startTransfer(Minecraft mc, AbstractContainerScreen<?> cs, Inventory inv,
-	                                  Slot s, String item, int count) {
+	                                  Slot s, String item, int count, boolean toChest) {
 		var observed = MenuObservations.LIVE.snapshot(mc.getConnection(), menuId);
-		var inventorySlots = cs.getMenu().slots.stream().filter(slot -> slot.container == inv)
+		var destination = cs.getMenu().slots.stream()
+			.filter(slot -> (slot.container == inv) != toChest)
 			.map(slot -> slot.index).toList();
-		transfer = new InventoryTransfer(observed, s.index, inventorySlots);
+		transfer = new InventoryTransfer(observed, s.index, destination);
 		packBefore = carrying(mc);
 		if (!journalTransferStart(mc, chest, item, count)) return;
 		awaitingTransfer = true;
@@ -474,15 +536,16 @@ final class Withdraw {
 			if (took == 0 || short_) cool(chest, RETRY_AFTER_MS);
 			else okUntil.put(chest.asLong(), System.currentTimeMillis() + RETRY_AFTER_OK_MS);
 		}
+		String stored = putAway > 0 ? " — put away " + putAway + " item(s) the design has no use for" : "";
 		if (took > 0 || want == null) {
 			mc.player.sendSystemMessage(Component.literal("[cscan] took " + took
 				+ (want == null ? " item(s)" : "x " + want)
-				+ (short_ ? " of " + target + " — looking elsewhere for the rest" : "")));
+				+ (short_ ? " of " + target + " — looking elsewhere for the rest" : "") + stored));
 		} else {
 			// Nothing taken is worth saying, but not as "took 0": say WHY, or it reads as a failure
 			// of the taking rather than of the index that sent you here.
 			mc.player.sendSystemMessage(Component.literal("[cscan] no " + want + " in "
-				+ Wand.fmt(chest) + " — the index was out of date. Trying elsewhere."));
+				+ Wand.fmt(chest) + " — the index was out of date. Trying elsewhere." + stored));
 		}
 	}
 

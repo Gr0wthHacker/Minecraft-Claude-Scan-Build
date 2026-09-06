@@ -24,5 +24,13 @@ public final class ActionRecipeProbe {
 			}
 			Files.writeString(Path.of(args[3]), new GsonBuilder().setPrettyPrinting().create().toJson(detail));
 		}
+		if (args.length > 4) {
+			var manual = new LinkedHashMap<String, Integer>();
+			for (var cell : cells) {
+				String family = ActionRecipe.manual(cell.block());
+				if (family != null) manual.merge(family, 1, Integer::sum);
+			}
+			Files.writeString(Path.of(args[4]), new GsonBuilder().setPrettyPrinting().create().toJson(manual));
+		}
     }
 }

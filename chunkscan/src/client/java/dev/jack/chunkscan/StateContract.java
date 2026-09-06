@@ -11,11 +11,17 @@ import net.minecraft.world.level.block.state.properties.Property;
 final class StateContract {
     enum Role { REQUIRED, DERIVED }
     private static final Set<String> SIDES = Set.of("north", "south", "east", "west");
-    private static final Map<String, StateContract> CACHE = new LinkedHashMap<>(128, .75f, true) {
-        @Override protected boolean removeEldestEntry(Map.Entry<String, StateContract> entry) {
-            return size() > 2048;
-        }
-    };
+    /**
+     * <b>A PLAIN CONCURRENT MAP, AND NEITHER LOCKED NOR ACCESS-ORDERED.</b> This was an LRU
+     * {@code LinkedHashMap(128, .75f, true)} behind a {@code synchronized} method, and both halves
+     * were costing more than the parse they were saving: an access-ordered map REWRITES ITS LINKED
+     * LIST ON EVERY GET, so every lookup was a structural mutation under a monitor - and
+     * {@code Work.matches} calls this once per cell, which on `Park Complete` is a quarter of a
+     * million times per recount. A design has a few hundred distinct block states; the cache never
+     * needed evicting at all, so it is bounded and stops filling rather than churning.
+     */
+    private static final Map<String, StateContract> CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final int CACHE_MAX = 16384;
     final String block;
     final Map<String, String> properties;
     final boolean valid;
@@ -26,8 +32,12 @@ final class StateContract {
         this.valid = valid;
     }
 
-    static synchronized StateContract parse(String spec) {
-        return CACHE.computeIfAbsent(spec, StateContract::decode);
+    static StateContract parse(String spec) {
+        StateContract hit = CACHE.get(spec);
+        if (hit != null) return hit;
+        StateContract made = decode(spec);
+        if (CACHE.size() < CACHE_MAX) CACHE.put(spec, made);
+        return made;
     }
 
     private static StateContract decode(String spec) {
@@ -46,14 +56,35 @@ final class StateContract {
         return new StateContract(block, properties, valid && !block.isBlank());
     }
 
+    /**
+     * The properties a design DECIDES - the Python side's `work.INTENTIONAL`, applied here on the
+     * Java read. A litematic's state string carries every property, and treating the rest as
+     * required meant `sugar_cane[age=7]`, `cave_vines[berries=true]`, `chest[type=left]`,
+     * `grass_block[snowy=false]`, `campfire[lit=true]` all had to match exactly: the placement
+     * predicted a state the world would never yield and the cell silently left the frontier, or it
+     * placed, the server derived the other value, and a correct block was reported WRONG STATE and
+     * given up on. Most of a block state is the game reacting to the neighbourhood.
+     */
+    static final Set<String> INTENTIONAL = Set.of("facing", "half", "type", "axis", "rotation",
+        "hanging", "face", "orientation", "hinge", "part", "attachment", "vertical_direction", "tilt",
+        // ...and four this side keeps as COMPLETION requirements that the Python side does not
+        // record: a waterlogged stair needs a bucket after the stair, a powered rail needs its
+        // signal, a leaf a player placed is persistent, and an open trapdoor is a click the
+        // printer cannot make - all of them amber in /cscan check for a hand, never "built".
+        "waterlogged", "powered", "persistent", "open");
+    /** ...except that for these the direction flags ARE the decision: which face the thing clings to. */
+    static final Set<String> MULTIFACE = Set.of("vine", "glow_lichen", "sculk_vein", "resin_clump");
+    private static final Set<String> FACES = Set.of("north", "south", "east", "west", "up", "down");
+
     static Role role(String block, String property) {
-        if (block.endsWith("_leaves") && property.equals("distance")) return Role.DERIVED;
-        if (block.endsWith("_stairs") && property.equals("shape")) return Role.DERIVED;
-        boolean connections = block.endsWith("_fence") || block.endsWith("_wall")
-            || block.endsWith("_pane") || block.equals("iron_bars") || block.equals("redstone_wire");
-        if (connections && SIDES.contains(property)) return Role.DERIVED;
-        if (block.endsWith("_wall") && property.equals("up")) return Role.DERIVED;
-        return Role.REQUIRED;
+        if (MULTIFACE.contains(block)) return FACES.contains(property) ? Role.REQUIRED : Role.DERIVED;
+        // A chest's `type` is which half of a double chest it is - the game's decision, made when
+        // the neighbour was placed. Every other `type` (slabs) is the design's.
+        if (block.endsWith("chest") && property.equals("type")) return Role.DERIVED;
+        // A rail's shape is the line's geometry - straight, ascending, a curve - and a curve is
+        // laid on purpose; a stair's shape is the game's corner rule.
+        if (block.endsWith("rail") && property.equals("shape")) return Role.REQUIRED;
+        return INTENTIONAL.contains(property) ? Role.REQUIRED : Role.DERIVED;
     }
 
     boolean propertiesMatch(BlockState state) {

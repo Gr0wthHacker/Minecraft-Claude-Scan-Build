@@ -102,6 +102,20 @@ final class Work {
 			}
 			return out;
 		}
+
+		/** One compact, deterministic handoff for an automatic pass that has reached deferred work. */
+		String manualSummary() {
+			Map<String, Integer> byReason = manualLeft();
+			if (byReason.isEmpty()) return "";
+			StringBuilder out = new StringBuilder("; deferred: ");
+			boolean first = true;
+			for (var entry : byReason.entrySet()) {
+				if (!first) out.append(", ");
+				first = false;
+				out.append(entry.getValue()).append(" ").append(entry.getKey());
+			}
+			return out.toString();
+		}
 	}
 
 	private Work() {}
@@ -120,11 +134,45 @@ final class Work {
 		return schematicsDir.resolve(name + ".work.json");
 	}
 
+	/**
+	 * A loaded design, BINNED BY CHUNK. Jack: <i>"it scans too frequently, i think it uses a full
+	 * radius based on current position"</i> - and it did: the printer's tick asked `split` for the
+	 * cells within reach of the body and `split` walked all 540,862 cells of the park to answer,
+	 * twenty times a second, re-parsing the design's sidecar for the dig list on every call. A
+	 * radius question touches only the chunks the radius covers now, and an unloaded chunk costs
+	 * one `hasChunk` rather than a world lookup per cell.
+	 */
 	private record Cached(java.nio.file.attribute.FileTime dataTime, long dataSize,
-        java.nio.file.attribute.FileTime originTime, List<Cell> cells) {}
+        java.nio.file.attribute.FileTime originTime, List<Cell> cells,
+        Map<Long, List<Cell>> bins, List<BlockPos> dig) {}
     private static final Map<Path, Cached> cache = new LinkedHashMap<>();
 
+    static long binKey(int cx, int cz) {
+        return ((long) cx & 0xFFFFFFFFL) | ((long) cz << 32);
+    }
+
+    static Map<Long, List<Cell>> bin(List<Cell> cells) {
+        Map<Long, List<Cell>> bins = new java.util.HashMap<>();
+        for (Cell c : cells) {
+            bins.computeIfAbsent(binKey(c.pos().getX() >> 4, c.pos().getZ() >> 4), k -> new ArrayList<>()).add(c);
+        }
+        for (Map.Entry<Long, List<Cell>> e : bins.entrySet()) e.setValue(List.copyOf(e.getValue()));
+        return Map.copyOf(bins);
+    }
+
+    /** Is any cell of the chunk (cx, cz) within `radius` of `near`? A box test, so a bin is skipped whole. */
+    static boolean binNear(int cx, int cz, BlockPos near, int radius) {
+        int x0 = cx << 4, z0 = cz << 4;
+        int dx = Math.max(0, Math.max(x0 - near.getX(), near.getX() - (x0 + 15)));
+        int dz = Math.max(0, Math.max(z0 - near.getZ(), near.getZ() - (z0 + 15)));
+        return (long) dx * dx + (long) dz * dz <= (long) radius * radius;
+    }
+
     static synchronized List<Cell> load(Path schematicsDir, String name) throws IOException {
+        return cached(schematicsDir, name).cells();
+    }
+
+    private static synchronized Cached cached(Path schematicsDir, String name) throws IOException {
         schematicsDir = ActiveBuild.inputs(schematicsDir, name);
         Path work = file(schematicsDir, name);
         Path lit = schematicsDir.resolve(name + ".litematic");
@@ -137,13 +185,23 @@ final class Work {
         long size = Files.size(source);
         Cached old = cache.get(source);
         if (old != null && old.dataTime().equals(time) && old.dataSize() == size
-            && java.util.Objects.equals(old.originTime(), originTime)) return old.cells();
-        List<Cell> cells = schematic ? LitematicReader.read(lit, Designs.load(schematicsDir, name).origin())
-            : loadWork(schematicsDir, name);
+            && java.util.Objects.equals(old.originTime(), originTime)) return old;
+        List<BlockPos> dig = List.of();
+        List<Cell> cells;
+        if (schematic) {
+            Designs.Design d = Designs.load(schematicsDir, name);
+            cells = LitematicReader.read(lit, d.origin());
+            dig = List.copyOf(d.dig());
+        } else {
+            cells = loadWork(schematicsDir, name);
+            try { dig = List.copyOf(Designs.load(schematicsDir, name).dig()); }
+            catch (Exception ignored) { /* no sidecar, or not a design: no dig list */ }
+        }
         cells = List.copyOf(cells);
+        Cached fresh = new Cached(time, size, originTime, cells, bin(cells), dig);
         if (cache.size() >= 8) cache.remove(cache.keySet().iterator().next());
-        cache.put(source, new Cached(time, size, originTime, cells));
-        return cells;
+        cache.put(source, fresh);
+        return fresh;
     }
 
     private static List<Cell> loadWork(Path schematicsDir, String name) throws IOException {
@@ -176,9 +234,24 @@ final class Work {
 	 * breaking when you cannot see it sends you across the island to look at air.
 	 */
 	static List<BlockPos> digLeft(Level level, Path schematicsDir, String name) {
+		return digLeft(level, schematicsDir, name, null, 0);
+	}
+
+	/**
+	 * The dig cells still standing, <b>bounded before the world is asked</b>.
+	 *
+	 * <p>The radius used to be applied by the CALLER, after this had already run `isLoaded` and
+	 * `getBlockState` on every entry: `Park Complete` carries 9,846 dig cells and `split` runs on
+	 * every printer tick, so a bound that exists to keep the work local was costing two hundred
+	 * thousand world lookups a second to produce a list of nothing. A distance test is free and a
+	 * chunk lookup is not, so the cheap one goes first.
+	 */
+	static List<BlockPos> digLeft(Level level, Path schematicsDir, String name, BlockPos near, int radius) {
 		List<BlockPos> out = new ArrayList<>();
+		long r2 = (long) radius * radius;
 		try {
-			for (BlockPos p : Designs.load(schematicsDir, name).dig()) {
+			for (BlockPos p : cached(schematicsDir, name).dig()) {         // cached with the list, not re-parsed
+				if (radius > 0 && near != null && p.distSqr(near) > r2) continue;
 				if (!level.isLoaded(p)) continue;
 				if (!level.getBlockState(p).isAir()) out.add(p);
 			}
@@ -195,9 +268,15 @@ final class Work {
 		int unseen = 0;
 		BlockPos nearestUnseen = null;
 		double unseenD = Double.MAX_VALUE;
-		for (Cell c : load(schematicsDir, name)) {
+		// BY CHUNK, and only the chunks the radius reaches. An unloaded chunk is one `hasChunk`
+		// and its cells are unseen without a world lookup each; a loaded one is diffed cell by cell.
+		for (Map.Entry<Long, List<Cell>> bin : cached(schematicsDir, name).bins().entrySet()) {
+			int cx = (int) (bin.getKey() & 0xFFFFFFFFL), cz = (int) (bin.getKey() >> 32);
+			if (radius > 0 && !binNear(cx, cz, near, radius)) continue;
+			boolean loaded = level.hasChunk(cx, cz);
+		for (Cell c : bin.getValue()) {
 			if (radius > 0 && c.pos().distSqr(near) > r2) continue;
-			if (!level.isLoaded(c.pos())) {
+			if (!loaded) {
 				// COUNTED, not skipped. See the note on Split: absent and finished look identical
 				// from here, and only one of them should end a session.
 				unseen++;
@@ -213,24 +292,41 @@ final class Work {
 			// Declined BEFORE the replaceable test, or it lands in `todo` and the printer spends
 			// its tries on a cell it can never satisfy - which reads exactly like a stall.
 			else if (ActionRecipe.manual(c.block()) != null || textlessSign(c)) manual.add(c);
-			else if (isReplaceable(st) || ActionRecipe.slabIntermediate(st, c.block())
+			else if (isReplaceable(st) || ActionRecipe.slabIntermediate(st, c.block()) || ActionRecipe.cauldronIntermediate(st, c.block())
 				|| ActionRecipe.vineIntermediate(st, c.block()) || ActionRecipe.glowLichenIntermediate(st, c.block())) todo.add(c);
 			else wrong.add(c);
 		}
-		todo.sort((a, b) -> {
-			int recipe = Integer.compare(ActionRecipe.order(a.block()), ActionRecipe.order(b.block()));
+		}
+		// DECORATE, SORT, UNDECORATE. The comparator asked `ActionRecipe.order` and `distSqr` on
+		// BOTH sides of every comparison, so a hundred thousand cells cost about three and a half
+		// million of each - and `order` used to parse a string and allocate a map every time. The
+		// keys are a property of the cell, not of the comparison, so they are computed once.
+		int n = todo.size();
+		Object[] keyed = new Object[n];
+		int[] recipeKey = new int[n];
+		double[] distKey = new double[n];
+		Integer[] idx = new Integer[n];
+		for (int i = 0; i < n; i++) {
+			Cell c = todo.get(i);
+			keyed[i] = c;
+			recipeKey[i] = ActionRecipe.order(c.block());
+			distKey[i] = c.pos().distSqr(near);
+			idx[i] = i;
+		}
+		java.util.Arrays.sort(idx, (a, b) -> {
+			int recipe = Integer.compare(recipeKey[a], recipeKey[b]);
 			if (recipe != 0) return recipe;
-			int dy = Integer.compare(a.pos().getY(), b.pos().getY());       // bottom-up: always reachable
+			int dy = Integer.compare(((Cell) keyed[a]).pos().getY(),
+				((Cell) keyed[b]).pos().getY());                             // bottom-up: always reachable
 			if (dy != 0) return dy;
-			return Double.compare(a.pos().distSqr(near), b.pos().distSqr(near));
+			return Double.compare(distKey[a], distKey[b]);
 		});
+		List<Cell> sorted = new ArrayList<>(n);
+		for (int i = 0; i < n; i++) sorted.add((Cell) keyed[idx[i]]);
+		todo = sorted;
 		// Scoped by the same radius as the placements, so `need`/`next` stay about what is in reach
 		// while `bom`/`follow` (radius 0) see the whole design.
-		List<BlockPos> dig = new ArrayList<>();
-		for (BlockPos d : digLeft(level, schematicsDir, name)) {
-			if (radius > 0 && d.distSqr(near) > r2) continue;
-			dig.add(d);
-		}
+		List<BlockPos> dig = digLeft(level, schematicsDir, name, near, radius);
 		return new Split(name, todo, wrong, built, unseen, nearestUnseen, dig, manual);
 	}
 
@@ -268,10 +364,25 @@ final class Work {
      * Raw properties remain in StateContract; orientation, fluids and mechanism state stay required.
      * A legacy bare block specification compares identity only.
      */
+	/**
+	 * The registry path of a block, memoised on the BLOCK.
+	 *
+	 * <p>{@code BuiltInRegistries.BLOCK.getKey(b).getPath()} is a registry lookup and a substring,
+	 * and {@link #matches} runs it once per CELL - a quarter of a million times per recount on the
+	 * park. There are about twelve hundred blocks in the game, so this is asked once per block for
+	 * the life of the session and never again.
+	 */
+	private static final Map<net.minecraft.world.level.block.Block, String> PATHS =
+		new java.util.concurrent.ConcurrentHashMap<>();
+
+	static String path(BlockState st) {
+		return PATHS.computeIfAbsent(st.getBlock(), b -> BuiltInRegistries.BLOCK.getKey(b).getPath());
+	}
+
 	static boolean matches(BlockState st, String spec) {
         StateContract contract = StateContract.parse(spec);
         if (!contract.valid) return false;
-        String have = BuiltInRegistries.BLOCK.getKey(st.getBlock()).getPath();
+        String have = path(st);
         if (!have.equals(contract.block)) return BECOMES.getOrDefault(contract.block, Set.of()).contains(have);
         return contract.propertiesMatch(st);
     }
@@ -283,7 +394,13 @@ final class Work {
 	 */
 	static Map<String, Integer> tally(List<Cell> cells) {
 		Map<String, Integer> out = new LinkedHashMap<>();
-		for (Cell c : cells) out.merge(c.item(), 1, Integer::sum);
+		for (Cell c : cells) {
+			out.merge(c.item(), 1, Integer::sum);
+			// A filled cauldron is one scheduled cell but two inventory actions. Buckets are consumed
+			// into empty buckets by the fill, and this builder has no source-refill action, so budget
+			// one filled bucket per cauldron rather than stranding an otherwise complete run at stage two.
+			if (ActionRecipe.cauldronFill(c.block())) out.merge(ActionRecipe.cauldronBucket(c.block()), 1, Integer::sum);
+		}
 		return out;
 	}
 
@@ -418,6 +535,66 @@ final class Work {
 		return Math.max(64, empty * 64);
 	}
 
+	/**
+	 * THE STACKS IN THE PACK THAT ARE NOT THIS DESIGN'S BUSINESS, by item and count.
+	 *
+	 * <p>Jack: <i>"doesnt check inventory ... or fill inventory based on needs at all"</i>. The
+	 * pack was never emptied of anything: leftovers from the last design, whatever was picked up
+	 * on the way, a stack of dirt to pillar with - all of it sat in slots the fetch could not use,
+	 * so {@link #loadCapacity} shrank, the trip brought back a stack or two, and the loop went
+	 * shopping again an hour later for the same thing. A pack full of the wrong material read as
+	 * PACK_FULL, and the loop parked.
+	 *
+	 * <p>A stack is dumpable when it places a block (so no tool, food, armour or bucket ever
+	 * leaves the pack), holds nothing itself (a shulker box is somebody's storage, whatever it
+	 * says on the outside), and is wanted by NO cell of the design - the whole design, not only
+	 * the part in view, so a material for the far end is not put away and fetched back later.
+	 * It goes into the chest the trip is at, which is indexed, so nothing is lost: it is put
+	 * away, and the message says what.
+	 *
+	 * @param needed every item the design still wants anywhere; null means "not known", and
+	 *               nothing is dumpable when the design's needs are not known
+	 */
+	static Map<String, Integer> dumpable(net.minecraft.client.player.LocalPlayer player,
+	                                     java.util.Set<String> needed) {
+		Map<String, Integer> out = new LinkedHashMap<>();
+		if (player == null || needed == null) return out;
+		for (net.minecraft.world.item.ItemStack st : player.getInventory().getNonEquipmentItems()) {
+			if (st == null || st.isEmpty()) continue;
+			String item = BuiltInRegistries.ITEM.getKey(st.getItem()).getPath();
+			boolean holdsItems = Storage.isBox(item)
+				|| st.has(net.minecraft.core.component.DataComponents.CONTAINER)
+				|| st.has(net.minecraft.core.component.DataComponents.BUNDLE_CONTENTS);
+			if (dumpableItem(item, st.getItem() instanceof net.minecraft.world.item.BlockItem,
+				holdsItems, needed)) {
+				out.merge(item, st.getCount(), Integer::sum);
+			}
+		}
+		return out;
+	}
+
+	/** The rule of {@link #dumpable}, without a client to hold the pack. */
+	static boolean dumpableItem(String item, boolean placesABlock, boolean holdsItems,
+	                            java.util.Set<String> needed) {
+		return needed != null && placesABlock && !holdsItems && !needed.contains(item);
+	}
+
+	/** How many slots {@link #dumpable} would free: what a fetch may count as room once it has put them away. */
+	static int dumpableSlots(net.minecraft.client.player.LocalPlayer player, java.util.Set<String> needed) {
+		if (player == null || needed == null) return 0;
+		int n = 0;
+		for (net.minecraft.world.item.ItemStack st : player.getInventory().getNonEquipmentItems()) {
+			if (st == null || st.isEmpty()) continue;
+			String item = BuiltInRegistries.ITEM.getKey(st.getItem()).getPath();
+			boolean holdsItems = Storage.isBox(item)
+				|| st.has(net.minecraft.core.component.DataComponents.CONTAINER)
+				|| st.has(net.minecraft.core.component.DataComponents.BUNDLE_CONTENTS);
+			if (dumpableItem(item, st.getItem() instanceof net.minecraft.world.item.BlockItem,
+				holdsItems, needed)) n++;
+		}
+		return n;
+	}
+
 	static int roomIn(int emptySlots, int[] partials, int max) {
 		int n = emptySlots * max;
 		for (int c : partials) if (c < max) n += max - c;
@@ -487,11 +664,50 @@ final class Work {
 	static List<Cell> unreachable(Solid solid, List<Cell> todo) {
 		Set<Long> earlier = new java.util.HashSet<>();
 		List<Cell> out = new ArrayList<>();
+		if (todo.isEmpty()) return out;
+		// The exact exterior flood is intentionally a small-design proof. Re-running a volume flood
+		// for every cell in Park Complete would turn `plan` into a client freeze; the large-design
+		// scheduler needs an incremental exterior-air cache before it can make this stronger claim.
+		if (todo.size() > 2048) {
+			for (Cell c : todo) {
+				if (enclosed(solid, c, earlier)) out.add(c);
+				earlier.add(c.pos().asLong());
+			}
+			return out;
+		}
+		int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+		int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
 		for (Cell c : todo) {
-			if (enclosed(solid, c, earlier)) out.add(c);
+			BlockPos p = c.pos();
+			minX = Math.min(minX, p.getX() - 1); minY = Math.min(minY, p.getY() - 1); minZ = Math.min(minZ, p.getZ() - 1);
+			maxX = Math.max(maxX, p.getX() + 1); maxY = Math.max(maxY, p.getY() + 1); maxZ = Math.max(maxZ, p.getZ() + 1);
+		}
+		for (Cell c : todo) {
+			if (!hasExteriorApproach(solid, c.pos(), earlier, minX, minY, minZ, maxX, maxY, maxZ)) out.add(c);
 			earlier.add(c.pos().asLong());
 		}
 		return out;
+	}
+
+	/** An approach face must connect through air to the outside of the ordered design volume. */
+	private static boolean hasExteriorApproach(Solid solid, BlockPos cell, Set<Long> earlier,
+	                                          int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+		java.util.ArrayDeque<BlockPos> queue = new java.util.ArrayDeque<>();
+		Set<Long> seen = new java.util.HashSet<>();
+		for (net.minecraft.core.Direction d : net.minecraft.core.Direction.values()) {
+			BlockPos n = cell.relative(d);
+			if (!solid.at(n) && !earlier.contains(n.asLong()) && seen.add(n.asLong())) queue.add(n);
+		}
+		while (!queue.isEmpty()) {
+			BlockPos p = queue.removeFirst();
+			if (p.getX() == minX || p.getX() == maxX || p.getY() == minY || p.getY() == maxY || p.getZ() == minZ || p.getZ() == maxZ) return true;
+			for (net.minecraft.core.Direction d : net.minecraft.core.Direction.values()) {
+				BlockPos n = p.relative(d);
+				if (n.getX() < minX || n.getX() > maxX || n.getY() < minY || n.getY() > maxY || n.getZ() < minZ || n.getZ() > maxZ) continue;
+				if (!solid.at(n) && !earlier.contains(n.asLong()) && seen.add(n.asLong())) queue.add(n);
+			}
+		}
+		return false;
 	}
 
 	/**

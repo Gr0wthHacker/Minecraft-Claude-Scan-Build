@@ -82,15 +82,33 @@ final class Printer {
 	}
 
 	/** Parse `stone_brick_stairs[facing=east,half=top]` into what the aiming needs to know. */
+	/**
+	 * A state string's properties.
+	 *
+	 * <p><b>MEMOISED, AND THE RETURNED MAP IS UNMODIFIABLE FOR THAT REASON.</b> This parses a string
+	 * and allocates a map, and it sits under `ActionRecipe.order`, `doubleSlab` and the placement
+	 * sweep - all of which run per CELL over a design that is half a million cells. A design has a
+	 * few hundred distinct states, so parsing each one once is the whole of the cost; sharing the
+	 * map is only safe because nobody may now write to it, which the wrapper enforces rather than
+	 * trusts.
+	 */
+	private static final java.util.concurrent.ConcurrentHashMap<String, Map<String, String>> PROPS =
+		new java.util.concurrent.ConcurrentHashMap<>();
+
 	static Map<String, String> props(String state) {
+		Map<String, String> hit = PROPS.get(state);
+		if (hit != null) return hit;
 		Map<String, String> out = new HashMap<>();
 		int b = state.indexOf('[');
-		if (b < 0 || !state.endsWith("]")) return out;
-		for (String part : state.substring(b + 1, state.length() - 1).split(",")) {
-			int eq = part.indexOf('=');
-			if (eq > 0) out.put(part.substring(0, eq).trim(), part.substring(eq + 1).trim());
+		if (b >= 0 && state.endsWith("]")) {
+			for (String part : state.substring(b + 1, state.length() - 1).split(",")) {
+				int eq = part.indexOf('=');
+				if (eq > 0) out.put(part.substring(0, eq).trim(), part.substring(eq + 1).trim());
+			}
 		}
-		return out;
+		Map<String, String> shared = java.util.Collections.unmodifiableMap(out);
+		if (PROPS.size() < 16384) PROPS.put(state, shared);
+		return shared;
 	}
 
 	// ---------------------------------------------------------------- the pass
@@ -110,12 +128,12 @@ final class Printer {
 	static final int INTERVAL_MIN = 2, INTERVAL_MAX = 12;
 	// Since the loop last asked. THIS IS THE SIGNAL THE LOOP HAS NEVER HAD: a refusal is instant
 	// knowledge, where the five-second station clock had to wait and then guess.
-	private static int placedSince, refusedSince;
-
-	static void reset() {
+	private static int placedSince, refusedSince;	static void reset() {
 		tries.clear();
 		givenUp.clear();
+		noPlacementUntil.clear();
 		everCache.clear();
+		everStale.clear();
 		pending.clear();
         lastPlaceTick = Long.MIN_VALUE / 2;
         pendingLevel = null;
@@ -132,8 +150,15 @@ final class Printer {
 	 * until the lag that refused it passes. Neither was ever re-asked while a design was followed,
 	 * so a cell written off in the first minute stayed written off all night, and the design could
 	 * never complete. Called on a slow timer from the loop; the caches refill within their budget.
-	 */
-	static void relax() {
+	 */	static void relax() {
+		// THE OLD ANSWERS ARE KEPT AS A FALLBACK, NOT THROWN AWAY. Cleared outright, every cell past
+		// the 400-per-recount budget read as placeable again (everPlaceableCached's "assume work"
+		// default), so a course of cells the printer had already proved impossible came back as the
+		// frontier every thirty seconds: a station chosen on it, nothing placed, the spot abandoned
+		// and struck - the hovering over unplaceable groups Jack watched. A stale verdict stands
+		// until the budget re-asks it.
+		everStale.clear();
+		everStale.putAll(everCache);
 		everCache.clear();
 		givenUp.clear();
 		tries.clear();
@@ -217,14 +242,14 @@ final class Printer {
 		return contents != null && contents.nonEmptyItemCopyStream().findAny().isPresent();
 	}
 
-    static int inventorySlot(LocalPlayer p, String state) {
-        String item = ActionRecipe.itemFor(state);
+    static int inventorySlot(LocalPlayer p, String state, BlockState existing) {
+        String item = ActionRecipe.cauldronIntermediate(existing, state) ? ActionRecipe.cauldronBucket(state) : ActionRecipe.itemFor(state);
         for (int i = 0; i < 36; i++) {
             ItemStack stack = p.getInventory().getItem(i);
             if (!stack.isEmpty() && keepsake(stack)) continue;
             if (!stack.isEmpty() && BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().equals(item)
-				&& (stack.getItem() instanceof BlockItem || (ActionRecipe.waterBucket(state)
-					&& stack.getItem() instanceof BucketItem))) return i;
+				&& (stack.getItem() instanceof BlockItem || ((ActionRecipe.waterBucket(state)
+					|| ActionRecipe.cauldronIntermediate(existing, state)) && stack.getItem() instanceof BucketItem))) return i;
         }
         return -1;
     }
@@ -283,8 +308,27 @@ final class Printer {
 	 * expensive answer is the one paid for again and again. Cached, and bounded: a cell not yet
 	 * looked at is treated as placeable, which is the safe direction (a wasted trip beats silently
 	 * dropping real work) and converges over a few recounts.
+	 */	private static final Map<Long, Boolean> everCache = new HashMap<>();
+	/** Verdicts from before the last relax(): the answer while a cell waits for the budget. */
+	private static final Map<Long, Boolean> everStale = new HashMap<>();
+	/**
+	 * Cells whose placement sweep found no angle, and the game tick until which they are not asked
+	 * again. The sweep is the expensive half of a tick - yaw by pitch by face for every in-reach
+	 * cell that fails - and a cell that had no angle from here a moment ago has none now. Half a
+	 * second, because the body moves and the answer with it.
 	 */
-	private static final Map<Long, Boolean> everCache = new HashMap<>();
+	private static final Map<Long, Long> noPlacementUntil = new HashMap<>();
+	static final int NO_PLACEMENT_TICKS = 10;
+
+	static boolean recentlyUnplaceable(net.minecraft.world.level.Level level, BlockPos pos) {
+		Long until = noPlacementUntil.get(pos.asLong());
+		return until != null && level.getGameTime() < until;
+	}
+
+	static void noteNoPlacement(net.minecraft.world.level.Level level, BlockPos pos) {
+		if (noPlacementUntil.size() > 4096) noPlacementUntil.clear();
+		noPlacementUntil.put(pos.asLong(), level.getGameTime() + NO_PLACEMENT_TICKS);
+	}
 	private static int everBudget;
 	static final int EVER_PER_RECOUNT = 400;
 
@@ -296,13 +340,14 @@ final class Printer {
 	/** The world changed under us in a way no per-cell answer survives. */
 	static void forgetPlaceability() {
 		everCache.clear();
+		everStale.clear();
 	}
 
 	static boolean everPlaceableCached(Minecraft mc, BlockPos pos, String state) {
 		Long key = pos.asLong();
 		Boolean seen = everCache.get(key);
 		if (seen != null) return seen;
-		if (everBudget <= 0) return true;                 // not looked at yet: assume work
+		if (everBudget <= 0) return everStale.getOrDefault(key, true);   // not re-asked yet: the last answer, else assume work
 		everBudget--;
 		boolean ok = everPlaceable(mc, pos, state);
 		everCache.put(key, ok);
@@ -313,6 +358,10 @@ final class Printer {
 		if (mc.player == null || mc.level == null || !mc.level.isLoaded(pos)) return true;
 		if (!Rules.inLockedProfile(state)) return false;
 		if (Rules.serverListIsAuthoritative() && !Rules.isOnServer(state)) return false;
+		// A filled cauldron deliberately has an empty-cauldron intermediate. Predicting stage one
+		// against the FINAL state would cache every such cell as impossible before its dedicated
+		// live-state executor can place the cauldron and use the bucket.
+		if (ActionRecipe.cauldronFill(state)) return true;
 		var stackItem = itemNamed(ActionRecipe.itemFor(state));
 		// A bucket, a vine upgrade, anything that is not a plain BlockItem: not this check's
 		// business. Say yes and let the placement path answer for it - a false NO here writes work
@@ -368,7 +417,7 @@ final class Printer {
     record Placement(BlockHitResult hit, float yaw, float pitch) {}
 
     /** Check the real ray and vanilla's placement state before sending an interaction. */
-    static Placement placement(Minecraft mc, BlockPos pos, String state, int slot) {
+	static Placement placement(Minecraft mc, BlockPos pos, String state, int slot) {
 		if (mc.player == null || mc.level == null || slot < 0 || !mc.level.isLoaded(pos)) return null;
         if (!Rules.inLockedProfile(state) || (Rules.serverListIsAuthoritative() && !Rules.isOnServer(state))) return null;
         if (Islands.outside(ScanRunner.schematicsDir(mc), pos.getX(), pos.getZ())) return null;
@@ -378,12 +427,24 @@ final class Printer {
 		if (ActionRecipe.waterBucket(state) && stack.getItem() instanceof BucketItem) {
 			return bucketPlacement(mc, pos);
 		}
+		if (ActionRecipe.cauldronIntermediate(mc.level.getBlockState(pos), state) && stack.getItem() instanceof BucketItem) {
+			BlockHitResult ray = mc.level.clip(new ClipContext(mc.player.getEyePosition(), Vec3.atCenterOf(pos),
+				ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, mc.player));
+			return ray.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK && ray.getBlockPos().equals(pos)
+				&& mc.player.getEyePosition().distanceToSqr(ray.getLocation()) <= REACH * REACH
+				? new Placement(ray, mc.player.getYRot(), mc.player.getXRot()) : null;
+		}
         if (!(stack.getItem() instanceof BlockItem item)) return null;
 		BlockState existing = mc.level.getBlockState(pos);
 		if (ActionRecipe.slabIntermediate(existing, state)) return slabUpgrade(mc, pos, state, stack, item);
 		if (ActionRecipe.vineIntermediate(existing, state)) return vineUpgrade(mc, pos, state, stack, item);
 		if (ActionRecipe.glowLichenIntermediate(existing, state)) return glowLichenUpgrade(mc, pos, state, stack, item);
-		if (!existing.isAir()) return null;
+		// A REPLACEABLE BLOCK IS PLACED INTO, not refused. The frontier put a cell holding grass, a
+		// fern or a snow layer into todo (Work.isReplaceable) and this refused it, so the cell was
+		// "doable" for ever, nothing was placed, and no refusal was ever reported: a silent
+		// station stall. Vanilla's own BlockPlaceContext replaces a replaceable clicked-through
+		// block, so the prediction agrees with the server now.
+		if (!existing.isAir() && !existing.canBeReplaced()) return null;
         boolean upper = "top".equals(props(state).get("half")) || "top".equals(props(state).get("type"));
         float oldYaw = p.getYRot(), oldPitch = p.getXRot();
         try {
@@ -439,6 +500,23 @@ final class Printer {
 	 * exists runs across the design and turns every neighbouring cell into a deviation nothing can
 	 * place into. The world, not the design — a design cell that is not built yet holds nothing.
 	 */
+	/**
+	 * The design's own water cells. A pool two cells wide could never be placed: each cell's
+	 * neighbour was the other, still air, and `contained` refused both. A neighbour the design
+	 * itself will fill with water is not a leak - the source spreads into it, and its own source
+	 * follows. The pool's RIM still has to be solid, which is what `fluids.escapes` verified at
+	 * generation.
+	 */
+	private static java.util.Set<Long> designWater = java.util.Set.of();
+
+	static void setDesignWater(java.util.List<Work.Cell> cells) {
+		java.util.Set<Long> out = new java.util.HashSet<>();
+		for (Work.Cell c : cells) {
+			if (ActionRecipe.waterBucket(c.block())) out.add(c.pos().asLong());
+		}
+		designWater = out;
+	}
+
 	static boolean contained(net.minecraft.world.level.Level level, BlockPos pos) {
 		for (Direction d : new Direction[] {Direction.NORTH, Direction.SOUTH, Direction.EAST,
 			Direction.WEST, Direction.DOWN}) {
@@ -447,6 +525,7 @@ final class Printer {
 			BlockState st = level.getBlockState(nb);
 			if (st.blocksMotion()) continue;
 			if (st.getFluidState().isSource()) continue;
+			if (designWater.contains(nb.asLong())) continue;    // the pool's own next cell
 			return false;
 		}
 		return true;
@@ -454,7 +533,12 @@ final class Printer {
 
 	private static Placement bucketPlacement(Minecraft mc, BlockPos pos) {
 		LocalPlayer p = mc.player;
-		if (!mc.level.getBlockState(pos).isAir()) return null;
+		BlockState here = mc.level.getBlockState(pos);
+		// FLOWING WATER IS NOT A BLOCK IN THE WAY. The first source of a pool flows into the pool's
+		// other cells before their own sources go in; refusing "not air" there deadlocked every
+		// pool wider than one cell after its first bucket.
+		if (!here.isAir() && !(here.getFluidState().is(net.minecraft.world.level.material.Fluids.FLOWING_WATER)
+			&& !here.getFluidState().isSource())) return null;
 		if (!contained(mc.level, pos)) return null;
 		for (Direction face : faces()) {
 			BlockPos nb = pos.relative(face.getOpposite());
@@ -563,7 +647,7 @@ final class Printer {
         if (mc.player == null || mc.level == null || mc.gameMode == null || givenUpOn(pos)) return Verdict.REFUSED;
         if (Screens.container() != null) return Verdict.REFUSED;
         LocalPlayer p = mc.player;
-        int slot = inventorySlot(p, state);
+        int slot = inventorySlot(p, state, mc.level.getBlockState(pos));
         if (slot < 0) return Verdict.NO_ITEM;
         Placement plan = placement(mc, pos, state, slot);
         if (plan == null) return Verdict.NO_FACE;
@@ -667,7 +751,8 @@ final class Printer {
 				placedSince++;
 				interval = INTERVAL_MIN;                            // it is taking them: full pace
 				out.add(new Attempt(a.pos(), a.want(), Verdict.PLACED, got));
-			} else if (ActionRecipe.slabIntermediate(st, a.want()) || ActionRecipe.vineIntermediate(st, a.want())
+			} else if (ActionRecipe.slabIntermediate(st, a.want()) || ActionRecipe.cauldronIntermediate(st, a.want())
+				|| ActionRecipe.vineIntermediate(st, a.want())
 				|| ActionRecipe.glowLichenIntermediate(st, a.want())) {
 				// HALF WAY IS NOT WRONG. A double slab is two clicks and a many-faced vine is one per
 				// face; placement() builds them that way on purpose, and this then called the first

@@ -78,7 +78,7 @@ final class Highlight {
 		// busiest of the lot - every highlight layer redraws here on every tick, over block lists
 		// the caller supplied. Drawing is never worth taking the client down for.
 		try {
-			draw(mc);
+			Perf.run("highlight", () -> draw(mc));
 		} catch (Exception e) {
 			BATCHES.clear();                       // whatever was malformed, stop redrawing it
 		}

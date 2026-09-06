@@ -148,4 +148,24 @@ class ScaffoldTest {
 		assertTrue(Work.floating(ground, onGround).isEmpty(),
 			"a column on the ground needs no scaffolding");
 	}
+
+	@Test
+	void anOpenNeighbourInsideAClosedRoomIsStillUnreachable() {
+		// The old six-neighbour check called the centre reachable because the cell above was air.
+		// Once the walls and roof are earlier build cells, that air pocket has no route to a body.
+		List<Work.Cell> order = new ArrayList<>();
+		for (int x = -1; x <= 1; x++) for (int y = 99; y <= 101; y++) for (int z = -1; z <= 1; z++)
+			if (x != 0 || y != 100 || z != 0) order.add(cell(x, y, z));
+		order.add(cell(0, 100, 0));
+		List<Work.Cell> trapped = Work.unreachable(world(), order);
+		assertTrue(trapped.stream().anyMatch(c -> c.pos().equals(new BlockPos(0, 100, 0))),
+			"a room sealed by earlier design cells must not be offered as reachable work");
+	}
+
+	@Test
+	void aLargePlanUsesTheBoundedSafetyCheckInsteadOfFloodingPerCell() {
+		List<Work.Cell> cells = new ArrayList<>();
+		for (int i = 0; i < 2050; i++) cells.add(cell(i, 100, 0));
+		assertTrue(Work.unreachable(world(), cells).isEmpty(), "open-air large designs remain cheap to inspect");
+	}
 }

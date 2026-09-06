@@ -93,6 +93,7 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan next ", "<design>  the next few cells, marked green"));
 		r.add(new Row("/cscan need ", "<design>  materials in reach and which chest holds them"));
 		r.add(new Row("/cscan bom ", "<design>  the whole design in stacks and shulkers"));
+		r.add(new Row("/cscan analyze ", "<design>  materials ranked by how much can be placed against what stands today"));
 		r.add(new Row("/cscan check ", "<design>  cells where the world holds something else"));
 		r.add(new Row("/cscan scaffold ", "<design>  cells with nothing to place against"));
 		r.add(new Row("/cscan hud ", "<design>  a progress readout on screen"));
@@ -100,7 +101,9 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan autofly speed ", "<n>  blocks per tick; 1.0 is a sprint-fly"));
 		r.add(new Row("/cscan autofly bounds set", "fence flight inside the wand's two corners; bounds off lifts it"));
 		r.add(new Row("/cscan follow all", "work every tracked design, one after another"));
+		r.add(new Row("/cscan only ", "<material>  follow places just this, everywhere the schematic wants it; only off lifts it"));
 		r.add(new Row("/cscan why", "what the loop is doing, and why it is not moving"));
+		r.add(new Row("/cscan perf", "what this mod costs the client thread, per subsystem"));
 		r.add(new Row("/cscan progress", "every tracked design: how far, what is left, what to break"));
 		r.add(new Row("/cscan ignore", "places written off after failing twice, marked red"));
 		r.add(new Row("/cscan stop", "everything off: fetch, fly, follow, highlights, auto-scan"));

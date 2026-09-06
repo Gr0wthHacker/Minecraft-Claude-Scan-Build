@@ -37,13 +37,21 @@ final class Session {
 	}
 
 	record State(String design, boolean autofly, boolean all, double speed, ResumeBinding binding,
-	             int[] bounds, String boundsDim) {
+	             int[] bounds, String boundsDim, String jobPhase, String only) {
         State(String design, boolean autofly, boolean all, double speed) {
-            this(design, autofly, all, speed, null, null, "");
+			this(design, autofly, all, speed, null, null, "", "IDLE", null);
         }
         State(String design, boolean autofly, boolean all, double speed, ResumeBinding binding) {
-            this(design, autofly, all, speed, binding, null, "");
+			this(design, autofly, all, speed, binding, null, "", "IDLE", null);
         }
+		State(String design, boolean autofly, boolean all, double speed, ResumeBinding binding,
+		      int[] bounds, String boundsDim) {
+			this(design, autofly, all, speed, binding, bounds, boundsDim, "IDLE", null);
+		}
+		State(String design, boolean autofly, boolean all, double speed, ResumeBinding binding,
+		      int[] bounds, String boundsDim, String jobPhase) {
+			this(design, autofly, all, speed, binding, bounds, boundsDim, jobPhase, null);
+		}
     }
 
 	static void save(Path schematicsDir, State s) {
@@ -53,6 +61,8 @@ final class Session {
 			o.addProperty("autofly", s.autofly());
 			o.addProperty("all", s.all());
 			o.addProperty("speed", s.speed());
+			o.addProperty("jobPhase", s.jobPhase() == null ? "IDLE" : s.jobPhase());
+			if (s.only() != null && !s.only().isBlank()) o.addProperty("only", s.only());
 			// THE FENCE IS PART OF THE INTENT. Restored only when the dimension matches - see Hud.
 			if (s.bounds() != null && s.bounds().length == 6) {
 				com.google.gson.JsonArray b = new com.google.gson.JsonArray();
@@ -104,7 +114,9 @@ final class Session {
 				o.has("autofly") && o.get("autofly").getAsBoolean(),
 				o.has("all") && o.get("all").getAsBoolean(),
 				o.has("speed") ? o.get("speed").getAsDouble() : Autopilot.SPEED, binding,
-				bounds, o.has("boundsDim") ? o.get("boundsDim").getAsString() : "");
+				bounds, o.has("boundsDim") ? o.get("boundsDim").getAsString() : "",
+				o.has("jobPhase") ? o.get("jobPhase").getAsString() : "IDLE",
+				o.has("only") ? o.get("only").getAsString() : null);
 		} catch (Exception e) {
 			return null;
 		}

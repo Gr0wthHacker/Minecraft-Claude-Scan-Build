@@ -69,6 +69,48 @@ final class Hud {
 	private static int workLayer = Integer.MIN_VALUE;
 	/** How far the loop is currently willing to look. See Loop.NEAR_RADIUS. */
 	private static int workRadius = Loop.NEAR_RADIUS;
+	/**
+	 * THE MIDDLE OF THE WORK, and it does not move because the player does.
+	 *
+	 * <p>Everything about where the loop builds and what it fetches was measured from {@code me},
+	 * the player's position this recount. In the middle of a fetch that position is the CHEST: the
+	 * shopping list was re-sized to the cells nearest the store hall, the working area re-centred
+	 * on it, and when the trip ended the loop built whatever happened to be closest to the chest
+	 * rather than going back to where it had been. Jack: <i>"infinitely wanders fetching small
+	 * amounts of shit, finding somewhere to put it, often failing to put it, coming back,
+	 * repeating"</i>. A trip leaves from the work and comes back to it; the anchor is what it
+	 * comes back to.
+	 *
+	 * <p>Set to the nearest work on the first recount, moved to the spot being built as it drifts,
+	 * moved deliberately when the area is finished or when the loop goes to look at unseen cells -
+	 * and never while fetching.
+	 */
+	private static BlockPos workAnchor = null;
+	/**
+	 * The shopping list of the trip in progress. See {@link Plan#loadPlan}: made at the work when
+	 * the trip starts, held until it ends, so a chest across the island cannot rewrite it.
+	 */
+	private static Map<String, Integer> loadPlan = null;
+	/** Every item the followed design wants anywhere, cached per design. Null: could not be read. */
+	private static java.util.Set<String> designItems = null;
+	private static String designItemsFor = null;
+
+	/**
+	 * What the WHOLE design still wants, so a fetch can tell a leftover from a material for the
+	 * far end. Read once per design - the work list is half a million cells on the park.
+	 */
+	private static java.util.Set<String> designItems(Minecraft mc, String name) {
+		if (name.equals(designItemsFor)) return designItems;
+		designItemsFor = name;
+		try {
+			java.util.Set<String> items = new java.util.HashSet<>();
+			for (Work.Cell c : Work.load(ScanRunner.schematicsDir(mc), name)) items.add(c.item());
+			designItems = items;
+		} catch (Exception e) {
+			designItems = null;                        // unknown needs: nothing is dumpable
+		}
+		return designItems;
+	}
 	private static boolean saidIndexBroken = false;
 	/** Items whose unboxing failed here, and when to try them again. A site is a place, not a fact. */
 	private static final Map<String, Long> unboxRetryAt = new java.util.HashMap<>();
@@ -97,7 +139,41 @@ final class Hud {
 	private static long screenWaitSince = 0;
 	static final long SCREEN_WAIT_SAY_MS = 60_000;
 	/** When the loop parked at a dead end with nothing else to do; 0 while it has work. */
+	/**
+	 * ONE MATERIAL, UNTIL THE SCHEMATIC HAS IT EVERYWHERE. `/cscan only moss_block`: every cell of
+	 * any other material is not this session's work - not for the frontier, not for the shopping
+	 * list, not for the printer - and the design is complete for this session when no loaded cell
+	 * of the material is left and every chunk has been seen. Jack: <i>"if i type moss_block it only
+	 * does that material and does it until its filled every potential place of that material on
+	 * the schematic."</i> Item names, so `stone_brick_slab` covers both halves and every facing.
+	 * Null means everything, which is what `follow` has always meant.
+	 */
+	private static java.util.Set<String> only = null;
+	private static boolean onlySaid = false;
+
+	static java.util.Set<String> only() { return only; }
+
+	static void setOnly(java.util.Set<String> items) {
+		only = items == null || items.isEmpty() ? null : java.util.Set.copyOf(items);
+		onlySaid = false;
+	}
+
+	/** Is this cell this session's work under the material filter? */
+	static boolean wanted(Work.Cell c) {
+		return only == null || only.contains(c.item());
+	}
+
+	/** When the vicinity hold began (0: not holding), and until when it is disarmed after a stall. */
+	private static long holdSince = 0, holdCoolUntil = 0;
+	private static boolean holdSaid = false;
+	static final long HOLD_COOL_MS = 10_000;
 	private static long deadEndSince = 0;
+	/** Said once per redirect: the frontier course is being skipped for one I carry material for. */
+	private static boolean carryFirstSaid = false;
+	/** When the loop started flying back to an unloaded work anchor; 0 when it is not. */
+	private static long returnSince = 0;
+	/** How long a return to the work may take before the anchor is dropped and re-chosen. */
+	static final long RETURN_MS = 45_000;
 	/** Parked that long with nothing to do, the loop stops and says so rather than idling all night. */
 	static final long DEAD_END_STOP_MS = 120_000;
 	static final long LOOK_STUCK_MS = 8_000;
@@ -194,6 +270,7 @@ final class Hud {
 			return true;
 		}
 		fetching = false;
+		loadPlan = null;
 		lastProgressMs = t;
 		lookTarget = look;
 		lookSince = t;
@@ -205,8 +282,10 @@ final class Hud {
 	}
 
 	private static void goLook(Minecraft mc, BlockPos at, String why) {
-		// Going to look is a move, so the radius starts again at arm's length when we get there.
+		// Going to look is a move, so the radius starts again at arm's length when we get there -
+		// and the work is wherever we are going to look, or the next recount there sends us back.
 		workRadius = Loop.nearAgain();
+		workAnchor = at;
 		guide(at, why);
 	}
 	/** A dead end is worth saying once. Every two seconds it is a reason to turn the loop off. */
@@ -217,9 +296,11 @@ final class Hud {
 	/** Where the player was, and when they were last somewhere else. Sampled every TICK. */
 	private static BlockPos lastAt = null;
 	private static long movedAt;
-	/** A spot that went nowhere, and until when to pass over it. */
-	private static BlockPos avoidSpot = null;
-	private static long avoidUntil;
+	/** A spot that went nowhere, and until when to pass over it. *//**
+	 * Spots that went nowhere, each with until when to pass over it. A MAP: held as one spot, B's
+	 * abandonment un-avoided A the moment it happened, and A-B-A ran until the thrash limit.
+	 */
+	private static final Map<BlockPos, Long> avoided = new java.util.HashMap<>();
 
 	/** The last todo count the scaffold/seal probe was run for. See advance(). */
 	private static int scaffoldFor = -1;
@@ -398,6 +479,9 @@ final class Hud {
 		target = null;
 		mode = Mode.NEAR;
 		targetNote = "";
+		// This must stop the old leg as well as hiding its arrow. A later `guide` re-arms the
+		// destination without turning autofly off, but an abandoned chest or spot owns no velocity.
+		Autopilot.pauseGuidance(Minecraft.getInstance());
 	}
 
 	/** Slack off the printer's reach for a stand whose position is exact — a landing. */
@@ -460,7 +544,16 @@ final class Hud {
 		}
         if (Withdraw.busy() || Unbox.running() || Screens.container() != null || AutomationControl.ownsGuidance()) return;
 		BlockPos me = mc.player.blockPosition();
-		if (lookTarget != null && !sp.todo().isEmpty()) {
+		// WHAT THIS SESSION WANTS OF THE TODO. With a material filter the list can be long and hold
+		// nothing to do; every "is there work" question below asks this count, not the list's size.
+		int wantedTodo = only == null ? sp.todo().size() : (int) sp.todo().stream().filter(Hud::wanted).count();
+		if (only != null && !onlySaid) {
+			onlySaid = true;
+			mc.player.sendSystemMessage(Component.literal("[cscan] only " + String.join(", ", only)
+				+ ": " + wantedTodo + " cell(s) of it to place in loaded chunks, " + sp.unseen()
+				+ " cells of the design out of view. /cscan only off to place everything."));
+		}
+		if (lookTarget != null && wantedTodo > 0) {
 			// THE LOOK WORKED: the chunks loaded and there is work in them. Forget the look now, or
 			// its strikes accumulate for the whole session and its start time reads as a 90s stall
 			// the moment the first recount with work in it arrives.
@@ -475,7 +568,32 @@ final class Hud {
 		// `follow all` walks the whole list announcing victory in about a second.
 		//
 		// Go and look instead. Flying there loads the chunks, and the next recount has real work.
-		if (sp.todo().isEmpty() && lookForUnseen(mc, sp, sp.unseen() + " cells out of view")) return;
+		// ...but NOT in the middle of a trip. The work is out of view because the trip went to the
+		// chest and its chunks unloaded on the way; looking at it now, then coming back to finish
+		// the trip, is the ping-pong. See Loop.phase, which continues a trip with a target.
+		// ...and NOT while the work is merely out of view because a trip took us away from it.
+		// goLook moves the anchor to the unseen cell nearest the PLAYER - which, standing at the
+		// store hall, is the store hall's neighbourhood - and the shopping list sized at the work
+		// then came back somewhere else. The back-to-the-work block below owns this case.
+		if (wantedTodo == 0 && !(fetching && loadPlan != null)
+			&& !(workAnchor != null && !mc.level.isLoaded(workAnchor))
+			&& lookForUnseen(mc, sp, sp.unseen() + " cells out of view")) return;
+		if (only != null && wantedTodo == 0 && (sp.unseen() == 0 || unseenGivenUp.contains(sp.name()))) {
+			// ---- THE FILTER IS DONE. Every loaded cell of the material is placed and every chunk
+			// has been seen; what is left of the design is other materials, which this session
+			// was told not to touch. Said, and stopped - not "complete", because it is not.
+			mc.player.sendSystemMessage(Component.literal("[cscan] only " + String.join(", ", only)
+				+ ": nothing of it left to place in " + sp.name() + ". " + sp.todo().size()
+				+ " cell(s) of other materials remain. " + sessionReport()
+				+ "  /cscan only off, then /cscan follow " + sp.name() + " for the rest."));
+			following = false;
+			ActiveBuild.clear();
+			ChunkScanClient.printDesign = null;
+			stopGuiding();
+			Highlight.clear("goto");
+			remember(mc);
+			return;
+		}
 		if (sp.placementComplete() || (sp.todo().isEmpty() && unseenGivenUp.contains(sp.name()))) {
 			doneThisSession.add(sp.name());
             if (!sp.wrong().isEmpty()) mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.wrong().size() + " mismatches remain; this design is NOT complete."));
@@ -488,7 +606,7 @@ final class Hud {
 					: "  " + sp.digLeft() + " cell(s) still to BREAK by hand — /cscan dig " + sp.name();
 				mc.player.sendSystemMessage(Component.literal(
 					"[cscan] " + sp.name() + ": nothing left to place in a loaded chunk. "
-						+ sessionReport() + dig));
+						+ sessionReport() + dig + sp.manualSummary()));
 			}
 			// ON TO THE NEXT ONE. A loop that finishes the deck floor at 2am and then idles until
 			// morning is half a loop, and `plan` with no argument already ranks work across all the
@@ -500,7 +618,7 @@ final class Hud {
 					return;
 				}
 				mc.player.sendSystemMessage(Component.literal(
-					"[cscan] no further automatic placements; check remaining mismatches and dig lists."));
+					"[cscan] no further automatic placements; check deferred actions, mismatches and dig lists."));
 			}
 			following = false;
         ActiveBuild.clear();
@@ -625,25 +743,108 @@ final class Hud {
         // has to be asked of the same list. Asked of the whole todo, the eight-course lookahead
         // was spent on courses the fence excludes and the loop moved to cells it may not reach.
         java.util.List<Work.Cell> eligible = sp.todo().stream()
+            .filter(Hud::wanted)                          // /cscan only <material>
             .filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
             .filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
             .filter(c -> Bounds.contains(c.pos()))
             .toList();
-        double nearest = Loop.nearestDistance(eligible, me);
-        if (nearest > workRadius) workRadius = Loop.radiusReaching(nearest);
-        java.util.List<Work.Cell> here = Loop.focus(eligible, me, workRadius);
-        if (here.isEmpty() && !eligible.isEmpty()) {
-            // Nothing within the widest look. That is not a bigger radius, it is a different place
-            // to work: go to the nearest remaining cell and start again at arm's length there.
-            BlockPos moved = Loop.reanchor(eligible, me);
-            if (moved != null && (target == null || !target.equals(moved))) {
-                workRadius = Loop.nearAgain();
-                mc.player.sendSystemMessage(Component.literal(
-                    "[cscan] nothing left within " + Loop.WORK_RADIUS + " — moving to "
-                        + Wand.fmt(moved)));
-                guide(moved, "next work");
-                lastProgressMs = now;
+        // ---- STAY WHERE THE WORK IS. See Loop.holdHere. Before any question about anchors, courses,
+        // spots or stations: is there anything placeable, that I am carrying, within reach of where
+        // I am? Then this is the place, and the only thing to do is let the printer place it.
+        java.util.List<Work.Cell> inReach = Work.placeableNow(mc.level, Loop.focus(eligible, me, Loop.VICINITY)).stream()
+            .filter(c -> carrying.getOrDefault(c.item(), 0) > 0)
+            .filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block()))
+            .toList();
+        if (inReach.isEmpty()) {
+            holdSince = 0;
+            holdSaid = false;
+        } else if (!fetching && Loop.holdHere(inReach.size(), placedNow, now, holdSince, holdCoolUntil, STATION_MS)) {
+            if (placedNow > 0 || holdSince == 0) holdSince = now;
+            if (target == null || target.distSqr(me) > 4) {
+                // HOLD HERE, as a target: the body's own cell. The flight arrives at once and
+                // keeps its clearance - or stays landed if it landed - and the autopilot does not
+                // read "no target" as idle and say so every time a hold begins.
+                Highlight.clear("goto");
+                guide(me, "placing here", mc.player.onGround() ? Mode.LAND : Mode.NEAR);
+            }
+            Highlight.show("goto", Work.positions(inReach, 200), 0x40FF60, 900);
+            if (!holdSaid) {
+                holdSaid = true;
+                mc.player.sendSystemMessage(Component.literal("[cscan] " + inReach.size()
+                    + " cell(s) placeable from right here — staying until they are in"));
+            }
+            workAnchor = me;                         // the work is where I am
+            return;
+        } else if (!fetching && holdSince != 0 && now - holdSince > STATION_MS) {
+            // Held, in reach, and nothing went in: the printer is refusing what I can see. Let the
+            // station logic move in closer or find another angle, and do not re-arm the hold for a
+            // while or it wins the next recount straight back.
+            holdCoolUntil = now + HOLD_COOL_MS;
+            holdSince = 0;
+            holdSaid = false;
+            mc.player.sendSystemMessage(Component.literal("[cscan] " + inReach.size()
+                + " cell(s) in reach but nothing placed for " + (STATION_MS / 1000) + "s — moving"));
+        }
+        // ---- AROUND THE WORK, NOT AROUND ME. See workAnchor: the first recount anchors on the
+        // nearest work to wherever the loop started; after that the anchor is the spot being
+        // built, and a fetch does not move it.
+        if (workAnchor == null && !eligible.isEmpty()) workAnchor = Loop.reanchor(eligible, me);
+        BlockPos anchor = workAnchor != null ? workAnchor : me;
+        double nearest = Loop.nearestDistance(eligible, anchor);
+        // ...but never while the anchor's own chunks are unloaded: the only cells "near" then are
+        // whatever happens to be loaded round the CHEST, and a radius grown to reach them forms a
+        // spot there and moves the anchor to it. The trip goes back first.
+        if (nearest > workRadius && (workAnchor == null || mc.level.isLoaded(workAnchor))) {
+            workRadius = Loop.radiusReaching(nearest);
+        }
+        java.util.List<Work.Cell> here = Loop.focus(eligible, anchor, workRadius);
+        if (here.isEmpty() && !fetching) {
+            if (workAnchor != null && !mc.level.isLoaded(workAnchor) && sp.unseen() > 0) {
+                // ---- BACK TO THE WORK. The area has nothing loaded in it because we are not
+                // there - a trip just ended, or a look did. Going back loads it; deciding
+                // anything from here decides it about the wrong place.
+                if (target == null || !target.equals(workAnchor)) {
+                    workRadius = Loop.nearAgain();
+                    returnSince = now;
+                    mc.player.sendSystemMessage(Component.literal("[cscan] back to the work at "
+                        + Wand.fmt(workAnchor)));
+                    guide(workAnchor, "back to the work");
+                    lastProgressMs = now;
+                } else if (Loop.returnGivenUp(now, returnSince, RETURN_MS, Ignored.has(workAnchor))) {
+                    // ---- AND A RETURN THAT NEVER ARRIVES IS GIVEN UP. The anchor was the one
+                    // destination with no watchdog, no strike and no avoid: an anchor whose chunk
+                    // never loads (no route, out of range, autofly off) was guided to every two
+                    // seconds for ever, and the 90s stall then struck nothing because there is no
+                    // spot. Re-anchor on whatever is loaded near me instead.
+                    mc.player.sendSystemMessage(Component.literal("[cscan] the work at "
+                        + Wand.fmt(workAnchor) + " will not load from here - re-anchoring on the"
+                        + " nearest work to me"));
+                    workAnchor = null;
+                    returnSince = 0;
+                    stopGuiding();
+                    Highlight.clear("goto");
+                    lastProgressMs = now;
+                }
                 return;
+            }
+            if (!eligible.isEmpty()) {
+                // Nothing within the widest look of an area we can see. That is not a bigger
+                // radius, it is a different place to work: the nearest remaining cell to the
+                // area just finished, so the work walks across the design rather than jumping
+                // about it, and the anchor moves with it.
+                BlockPos moved = Loop.reanchor(eligible, anchor);
+                if (moved != null) {
+                    workAnchor = moved;
+                    workRadius = Loop.nearAgain();
+                    if (target == null || !target.equals(moved)) {
+                        mc.player.sendSystemMessage(Component.literal(
+                            "[cscan] nothing left within " + Loop.WORK_RADIUS + " — moving to "
+                                + Wand.fmt(moved)));
+                        guide(moved, "next work");
+                        lastProgressMs = now;
+                    }
+                    return;
+                }
             }
         }
         // ---- ONE COURSE AT A TIME, FROM THE BOTTOM. See Loop.LAYER_BAND.
@@ -656,9 +857,15 @@ final class Hud {
         java.util.List<Work.Cell> frontier = java.util.List.of();
         int layerY = Integer.MIN_VALUE;
         java.util.List<Integer> courses = Loop.layers(here);
-        for (int i = 0; i < courses.size() && i < Loop.LAYER_LOOKAHEAD; i++) {
+        // EVERY COURSE, not the first eight. Capped, eight consecutive courses whose cells the
+        // printer refuses (lanterns waiting on posts, vines, state-refused stairs) emptied the
+        // frontier and read as a DEAD_END with real work one course higher - and on a design with
+        // unseen cells a dead end goes to LOOK somewhere else, which is the wandering. The cost is
+        // bounded by the placeability budget, not by the design.
+        for (int i = 0; i < courses.size(); i++) {
             java.util.List<Work.Cell> course = Loop.layer(here, courses.get(i), Loop.LAYER_BAND);
             java.util.List<Work.Cell> ok = Work.placeableNow(mc.level, course).stream()
+                .filter(Hud::wanted)
                 .filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
                 .filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
                 .filter(c -> Bounds.contains(c.pos()))   // the autofly fence: not this session's work
@@ -716,6 +923,60 @@ final class Hud {
 		boolean canWork = Plan.anyDoable(cl);
 		boolean wasFetching = fetching;
 
+		// ---- BUILD WHAT YOU ARE CARRYING FIRST. See Loop.WORK_LOAD. Three cases, in order:
+		//   the frontier course has cells for a load I carry  -> no top-up; build
+		//   a higher course near the anchor has them          -> that course is the frontier
+		//   they are somewhere else in the loaded design      -> go there, not to a chest
+		// Only when none of that holds is a chest worth opening.
+		if (!fetching) {
+			java.util.List<Work.Cell> onFrontier = Loop.carriedWork(carrying, frontier, Loop.WORK_LOAD);
+			if (!onFrontier.isEmpty() && topUp) {
+				topUp = false;
+				mc.player.sendSystemMessage(Component.literal("[cscan] carrying "
+					+ Loop.describeCarried(carrying, onFrontier, Loop.WORK_LOAD)
+					+ " — building with it first, no top-up trip"));
+			}
+			if (Loop.buildWhatYouCarry(canWork, fetching, true)) {
+				java.util.List<Work.Cell> mine = Work.placeableNow(mc.level,
+						Loop.carriedWork(carrying, eligible, Loop.WORK_LOAD)).stream()
+					.filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block()))
+					.toList();
+				java.util.List<Work.Cell> near = Loop.focus(mine, anchor, workRadius);
+				if (!near.isEmpty()) {
+					// A HIGHER COURSE WITH WHAT I HOLD BEATS A TRIP FOR THE LOWER ONE. Every cell
+					// here has a face to click now, so it is buildable; the course rule yields.
+					frontier = near;
+					cl = Plan.clusters(frontier, carrying, java.util.Set.of(), java.util.Set.of(), me, spotCentre);
+					spotsLeft = cl.size();
+					canWork = Plan.anyDoable(cl);
+					topUp = false;
+					if (!carryFirstSaid) {
+						carryFirstSaid = true;
+						mc.player.sendSystemMessage(Component.literal("[cscan] course Y" + workLayer
+							+ " has nothing I carry — placing " + Loop.describeCarried(carrying, near, Loop.WORK_LOAD)
+							+ " on the courses above it first (" + near.size() + " cells)"));
+					}
+				} else if (!mine.isEmpty()) {
+					BlockPos moved = Loop.reanchor(mine, anchor);
+					if (moved != null) {
+						topUp = false;
+						workAnchor = moved;
+						workRadius = Loop.nearAgain();
+						if (target == null || !target.equals(moved)) {
+							mc.player.sendSystemMessage(Component.literal("[cscan] carrying "
+								+ Loop.describeCarried(carrying, mine, Loop.WORK_LOAD) + " — placing that"
+								+ " before any trip: " + mine.size() + " cells, nearest at " + Wand.fmt(moved)));
+							guide(moved, "placing what I carry");
+							lastProgressMs = now;
+						}
+						return;
+					}
+				}
+			} else if (canWork) {
+				carryFirstSaid = false;
+			}
+		}
+
 		// Only worked out when the answer can matter — a fetch costs a container index walk and an
 		// inventory scan, and while there is work in front of you the question is not asked.
 		java.util.List<Plan.Restock> targets = java.util.List.of();
@@ -727,18 +988,40 @@ final class Hud {
 		// the fetch question was never asked, the phase came back BUILD, and the top-up was cleared
 		// having done nothing. The shortfall is computed from the whole TODO, not from the frontier,
 		// so there was never a reason to need one.
-		boolean askedToFetch = (fetching || !canWork || topUp) && (!frontier.isEmpty() || topUp);
+		// ---- THE PACK IS CHECKED, AND WHAT IT HOLDS FOR NO REASON COUNTS AS ROOM. See
+		// Work.dumpable: a fetch puts those stacks into the chest before it takes anything, so
+		// the room a trip can bring back is the empty slots PLUS the ones it will empty there.
+		java.util.Set<String> needed = designItems(mc, sp.name());
+		final int dumpFree = Work.dumpableSlots(mc.player, needed) * 64;
+		Plan.Room room = it -> Work.room(mc.player, it) + dumpFree;
+		// A trip that has a shopping list keeps asking until the list is covered - wherever the
+		// player is and whether or not anything is placeable there.
+		boolean askedToFetch = (fetching || !canWork || topUp)
+			&& (!frontier.isEmpty() || topUp || loadPlan != null);
 		if (askedToFetch) {
+			if (loadPlan == null) {
+				// ---- THE SHOPPING LIST IS MADE HERE, AT THE WORK, ONCE. See Plan.loadPlan: the
+				// frontier first, then the area's next courses, up to what the pack can hold -
+				// and held until the trip ends, so a chest across the island cannot re-size it
+				// to the cells nearest the chest. ...and never for a cell nothing can ever place:
+				// outside the profile, off the plot, or given up on.
+				java.util.List<Work.Cell> area = here.isEmpty() ? eligible : here;
+				// ...LED BY WHAT CAN GO IN TODAY, on every course near the anchor, not only the
+				// frontier course. See Plan.usable: ranked by placeable cells the list fills the
+				// pack with the materials the build can take, so the trip that comes back places
+				// the most and opens the most - the walls before anyone fetches the roof.
+				java.util.List<Work.Cell> usableNow = Work.placeableNow(mc.level, area).stream()
+					.filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block())).toList();
+				loadPlan = Plan.loadPlan(area, usableNow.isEmpty() ? frontier : usableNow, anchor,
+					Work.loadCapacity(mc.player) + dumpFree);
+				Map<String, Integer> away = Work.dumpable(mc.player, needed);
+				mc.player.sendSystemMessage(Component.literal("[cscan] shopping list for "
+					+ Plan.cells(loadPlan) + " cells around " + Wand.fmt(anchor) + ": "
+					+ Plan.describe(loadPlan)
+					+ (away.isEmpty() ? "" : "  (putting away " + Plan.describe(away) + ")")));
+			}
 			// Skip chests in their cooling-off period, or the loop is guided at one it will not open.
-			// WHAT GOES IN THE PACK IS DECIDED FROM WHERE THE WORK IS. See Plan.nearDemand: the
-			// frontier first, then the nearest remaining cells out to about a pack's worth — not
-			// the whole design's shortfall, which filled the pack with the far end's materials.
-			// ...and never for a cell nothing can ever place: outside the profile, off the plot, or
-			// given up on. Shopping for those is a trip to a dead end.
-			java.util.List<Work.Cell> everWork = eligible;
-			java.util.List<Work.Cell> demand = Plan.nearDemand(everWork, frontier,
-				me, Work.loadCapacity(mc.player));
-			targets = Plan.fetchTargets(demand, carrying, index, me,
+			targets = Plan.shortfalls(loadPlan, carrying, index, me,
 				Withdraw.coolingOff(System.currentTimeMillis()));
 			// ---- WHAT YOU ALREADY HAVE IN A BOX IS NOT WORTH A TRIP. It is not placeable either —
 			// see Work.boxed — so it cannot simply be added to `carrying`; the loop would fly to a
@@ -793,12 +1076,12 @@ final class Hud {
 				saidFarFetch = false;
 			}
 			targets = Loop.byTrip(targets, r -> r.where().pos(), me, Loop.FETCH_RADIUS);
-			want = Plan.nextLoadFetch(targets, carrying, it -> Work.room(mc.player, it));
+			want = Plan.nextLoadFetch(targets, carrying, room);
 			// STAY ON THE CHEST YOU ARE GOING TO. The nearest source is re-picked every recount,
 			// so two chests at nearly the same distance took turns being the target mid-flight.
 			if (want != null && fetchChest != null && !want.where().pos().equals(fetchChest)) {
 				for (Plan.Restock r : targets) {
-					if (r.where().pos().equals(fetchChest) && Work.room(mc.player, r.item()) > 0) {
+					if (r.where().pos().equals(fetchChest) && room.of(r.item()) > 0) {
 						want = r;
 						break;
 					}
@@ -806,10 +1089,12 @@ final class Hud {
 			}
 		}
 
-		Loop.Phase phase = Loop.phase(sp.todo().size(), sp.unseen(), canWork, fetching,
+		Loop.Phase phase = Loop.phase(wantedTodo, sp.unseen(), canWork, fetching,
 			want != null, !targets.isEmpty(), topUp);
+		BuildJob.decide(phase);
 		fetching = phase == Loop.Phase.FETCH;
 		if (fetching != wasFetching) lastProgressMs = now;   // a trip's clock and a build's are two clocks
+		if (!fetching) loadPlan = null;                      // the list belongs to the trip
 		// THE TOP-UP IS OVER WHEN THERE IS NOTHING LEFT TO FETCH, which is what a full pack and a
 		// fully-stocked design both look like. Ending it on a timer or on the first container would
 		// be ending it on something other than the thing it is for.
@@ -826,9 +1111,22 @@ final class Hud {
 					: "[cscan] pack loaded — building."));
 			}
 		}
+		if (wasFetching && !fetching && workAnchor != null && !mc.level.isLoaded(workAnchor)) {
+			// ---- THE TRIP IS OVER AND THE WORK IS OUT OF VIEW. Whatever the phase says from here
+			// it says about the chest's surroundings, not the work's: "nothing placeable" at a
+			// store hall is not a dead end. Go back, and decide there.
+			workRadius = Loop.nearAgain();
+			returnSince = now;
+			mc.player.sendSystemMessage(Component.literal("[cscan] pack loaded — back to the work at "
+				+ Wand.fmt(workAnchor)));
+			guide(workAnchor, "back to the work");
+			lastProgressMs = now;
+			return;
+		}
 		switch (phase) {
 			case FETCH -> {
-				fetchTo(mc, me, want, Plan.takeLoadAmount(want, targets.size(), Work.room(mc.player, want.item())), carrying);
+				java.util.Set<String> dump = Work.dumpable(mc.player, needed).keySet();
+				fetchTo(mc, me, want, Plan.takeHowMany(want, room.of(want.item())), carrying, dump);
 				return;
 			}
 			case DEAD_END, PACK_FULL -> {
@@ -898,7 +1196,7 @@ final class Hud {
 		// ---- THRASHING. Abandon spot A, take B, abandon B, take A again when its minute expires,
 		// for ever: every decision correct, the sequence a machine going nowhere. The evidence is
 		// the pair — several spots given up on, and nothing placed while it happened.
-		if (Loop.thrashing(spotsAbandoned, placedTotal - placedWhenAbandoned, THRASH_LIMIT)) {
+		if (Loop.thrashing(spotsAbandoned, placedTotal - placedWhenAbandoned, THRASH_LIMIT, THRASH_TRICKLE)) {
 			spotsAbandoned = 0;
 			mc.player.sendSystemMessage(Component.literal("[cscan] " + THRASH_LIMIT + " spots given"
 				+ " up on with nothing placed — this design is not buildable from here right now."));
@@ -926,11 +1224,7 @@ final class Hud {
 			// same region — it is still the best one — flies at the same wall, and sticks again.
 			next = null;
 			for (Plan.Cluster c : cl) {
-				if (Ignored.has(c.centre())) continue;         // written off: never again this session
-				if (avoidSpot != null && now < avoidUntil
-					&& c.centre().distSqr(avoidSpot) <= (double) Plan.MAX_RADIUS * Plan.MAX_RADIUS) {
-					continue;                                   // still cooling off
-				}
+				if (Ignored.has(c.centre())) continue;         // written off: never again this session				if (Loop.avoided(avoided, c.centre(), now, Plan.MAX_RADIUS)) continue;   // still cooling off
 				next = c;
 				break;
 			}
@@ -938,7 +1232,7 @@ final class Hud {
 			// take it anyway rather than idling until the minute expires. An IGNORED spot is
 			// different — it has failed twice and is not on the table at all.
 			if (next == null) {
-				avoidSpot = null;
+				avoided.clear();
 				for (Plan.Cluster c : cl) {
 					if (!Ignored.has(c.centre())) {
 						next = c;
@@ -974,6 +1268,7 @@ final class Hud {
 				+ " cells around " + Wand.fmt(next.centre()) + ", " + (cl.size() - 1)
 				+ " more after it"));
 		}
+		workAnchor = next.centre();                     // the anchor is the spot being built
 		stand(mc, next, me, cl.size());
 	}
 
@@ -1173,8 +1468,9 @@ final class Hud {
 	 * without that the next recount picks the same region — it is still the best one — and flies at
 	 * the same gap again.
 	 */
-	/** How many spots may be given up on with nothing placed before the design is the problem. */
-	static final int THRASH_LIMIT = 4;
+	/** How many spots may be given up on with nothing placed before the design is the problem. */	static final int THRASH_LIMIT = 4;
+	/** Fewer blocks than this between two abandonments is a trickle, not building. */
+	static final int THRASH_TRICKLE = 5;
 
 	private static int spotsAbandoned = 0;
 	private static int placedWhenAbandoned = 0;
@@ -1210,17 +1506,21 @@ final class Hud {
 		// different in a minute. Not for a three-second pause, though: see the NOWHERE clock.
 		if (strike && spotCentre != null && Ignored.strike(spotCentre)) {
 			Highlight.show("ignore", Ignored.marks(), 0xFF3030, 600);
+		} else if (strike && spotCentre == null && target != null && Ignored.strike(target)) {
+			// NO SPOT, BUT A DESTINATION: a return to the anchor or a look. Struck as a place, or
+			// the stall fires every ninety seconds against a target it never marks.
+			Highlight.show("ignore", Ignored.marks(), 0xFF3030, 600);
 		}
 		// Count the giving-up, and remember what had been placed at the time: several abandonments
-		// with NOTHING built between them is thrashing, which no single watchdog can see.
-		if (placedTotal == placedWhenAbandoned) {
+		// with NOTHING built between them is thrashing, which no single watchdog can see.		// A TRICKLE IS NOT PROGRESS. One block placed per leg of an A-B-A ping-pong reset this
+		// count every time, so the thrash detector never fired and the pair ran all night.
+		if (placedTotal - placedWhenAbandoned < THRASH_TRICKLE) {
 			spotsAbandoned++;
 		} else {
 			spotsAbandoned = 1;
 			placedWhenAbandoned = placedTotal;
 		}
-		avoidSpot = spotCentre;
-		avoidUntil = System.currentTimeMillis() + AVOID_MS;
+		if (spotCentre != null) avoided.put(spotCentre, System.currentTimeMillis() + AVOID_MS);
 		spotCentre = null;
 		stationBin = Long.MIN_VALUE;
 		stationRetry = 0;
@@ -1264,7 +1564,7 @@ final class Hud {
 	static final long FETCH_STUCK_MS = 6_000;
 
 	private static void fetchTo(Minecraft mc, BlockPos me, Plan.Restock want, int take,
-	                            Map<String, Integer> carrying) {
+	                            Map<String, Integer> carrying, java.util.Set<String> dump) {
 		long now = System.currentTimeMillis();
 		BlockPos at = want.where().pos();
 		if (!at.equals(fetchChest)) {
@@ -1283,7 +1583,22 @@ final class Hud {
 				// moment a shulker held some, so it took nothing and blacklisted a full chest.
 				int have = carrying.getOrDefault(want.item(), 0)
 					+ Work.boxed(mc.player).getOrDefault(want.item(), 0);
-				Withdraw.begin(at, want.item(), take + have);
+				Withdraw.begin(at, want.item(), take + have, dump);
+			}
+			return;
+		}
+		if (!mc.level.isLoaded(at)) {
+			// ---- OUT OF VIEW IS NOT NOWHERE TO STAND. `approach` answers null for an unloaded
+			// chunk, and that null was read as "no cell to open it from" and cooled the chest for
+			// a minute - so every chest beyond render distance was blacklisted before the flight
+			// started, and the loop could only ever fetch from chests already loaded near the
+			// work. Fly toward the chest; the approach cell is chosen once its chunk is here.
+			if (target == null || !target.equals(at)) {
+				fetchTargetSince = now;
+				Highlight.show("goto", java.util.List.of(at), 0xFFC000, 900);
+				mc.player.sendSystemMessage(Component.literal("[cscan] fetch: " + take + "x "
+					+ want.item() + " from " + want.where().describe() + " — flying there first"));
+				guide(at, "to " + want.where().describe());
 			}
 			return;
 		}
@@ -1401,6 +1716,7 @@ final class Hud {
 		}
 		out.add(design + (following ? (followAll ? "  (following all)" : "  (following)")
 			: "  (watching only — /cscan follow " + design + " to work it)"));
+		if (only != null) out.add("  ONLY " + String.join(", ", only) + " — every other material is not this session's work");
 		try {
 			Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), design,
 				mc.player.blockPosition(), 0);
@@ -1432,6 +1748,14 @@ final class Hud {
 		}
 		out.add(fetching ? "  phase: FETCHING" : "  phase: building");
 		if (spotCentre != null) out.add("  spot around " + Wand.fmt(spotCentre));
+		if (workAnchor != null) out.add("  work anchor " + Wand.fmt(workAnchor)
+			+ (mc.level != null && mc.level.isLoaded(workAnchor) ? "" : " (not loaded)"));
+		if (loadPlan != null) out.add("  shopping list: " + Plan.describe(loadPlan));
+		if (following && mc.player != null) {
+			Map<String, Integer> away = Work.dumpable(mc.player, designItems(mc, design));
+			if (!away.isEmpty()) out.add("  in the pack for no reason: " + Plan.describe(away)
+				+ " — put away at the next chest");
+		}
 		if (target != null) out.add("  arrow at " + Wand.fmt(target) + " — " + targetNote);
 		if (Ignored.count() > 0) {
 			out.add("  " + Ignored.count() + " place(s) IGNORED after failing twice — /cscan ignore");
@@ -1507,6 +1831,7 @@ final class Hud {
 	 */
 	static void off() {
         ActiveBuild.clear();
+		BuildJob.stop();
         ChestScan.reset();
         ChunkScanClient.printDesign = null;
         Printer.reset();
@@ -1514,9 +1839,12 @@ final class Hud {
 		design = null;
 		lines = new ArrayList<>();
 		following = false;
-        ActiveBuild.clear();
 		followAll = false;
 		fetching = false;
+		loadPlan = null;
+		workAnchor = null;
+		designItemsFor = null;
+		designItems = null;
 		said = false;
 		placementWarned = false;
 		deviationsSaid = false;
@@ -1526,8 +1854,7 @@ final class Hud {
 		stationTodo = -1;
 		stationRetry = 0;
 		stationArrivedAt = 0;
-		stationsTried.clear();
-		avoidSpot = null;
+		stationsTried.clear();		avoided.clear();
 		scaffoldFor = -1;
 		fetchChest = null;
 		approachTried.clear();
@@ -1576,7 +1903,8 @@ final class Hud {
 			Session.save(ScanRunner.schematicsDir(mc),
 				new Session.State(following ? design : null, Autopilot.on(), followAll,
 					Autopilot.speed(), following ? ActiveBuild.binding(ScanRunner.schematicsDir(mc), design) : null,
-					Bounds.corners(), Bounds.dimension()));
+					Bounds.corners(), Bounds.dimension(), BuildJob.phase().name(),
+					only == null ? null : String.join(",", only)));
         } catch (Exception failure) {
             Session.clear(ScanRunner.schematicsDir(mc));
             if (mc.player != null) mc.player.sendSystemMessage(Component.literal(
@@ -1620,6 +1948,12 @@ final class Hud {
 			}
 		}
 		followAll = st.all();
+		// THE FILTER COMES BACK WITH THE SESSION. Resumed without it, a `follow` that was told to
+		// place one material would place everything - the dangerous direction.
+		if (st.only() != null && !st.only().isBlank()) {
+			setOnly(new java.util.HashSet<>(java.util.Arrays.asList(st.only().split(","))));
+			if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] only " + st.only()));
+		}
         if (st.design() == null) return;
         String mismatch;
         try {
@@ -1653,9 +1987,13 @@ final class Hud {
         }
         ChestScan.reset();
         Printer.reset();
+        try { Printer.setDesignWater(Work.load(ScanRunner.schematicsDir(Minecraft.getInstance()), name)); }
+        catch (Exception ignored) { Printer.setDesignWater(java.util.List.of()); }
         ChunkScanClient.printDesign = name;
         Withdraw.cancel();
         fetching = false;
+        loadPlan = null;
+        workAnchor = null;
         // ---- FILL THE PACK FIRST. See topUp.
         topUp = true;
         saidFarFetch = false;
@@ -1663,6 +2001,7 @@ final class Hud {
         workRadius = Loop.nearAgain();
         watch(name);
 		following = true;
+		BuildJob.start();
 		placementWarned = false;
 		deviationsSaid = false;
 		saidBoxed.clear();
@@ -1689,8 +2028,16 @@ final class Hud {
 		lookTarget = null;
 		lookFailures = 0;
 		lastUnseen = -1;
-		splitFailures = 0;
-		avoidSpot = null;
+		splitFailures = 0;		avoided.clear();
+		holdSince = 0;
+		holdCoolUntil = 0;
+		holdSaid = false;
+		carryFirstSaid = false;
+		deadEndSince = 0;
+		returnSince = 0;
+		unboxRetryAt.clear();
+		orbitLeg = 0;
+		orbitSince = 0;
 		Ignored.clear();                              // written-off places were THIS design's spots
 	}
 
@@ -1726,8 +2073,13 @@ final class Hud {
 		}
 		if (tick++ % EVERY_TICKS != 0) return;
 		try {
+			// THE WHOLE DESIGN - on `Park Complete` that is 540,862 cells, every two seconds. Timed,
+			// because it is the most expensive thing this mod does and it reads as one line: see
+			// Perf, and the memoisation in ActionRecipe/Printer/StateContract behind it.
+			long t0 = System.nanoTime();
 			Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), design,
 				mc.player.blockPosition(), 0);
+			Perf.record("recount", System.nanoTime() - t0);
 			// A THROW INSIDE THE DECISION IS NOT A REASON TO END THE SESSION. Reading the work list
 			// can fail permanently - no work.json, bad JSON - and the catch below is right to stop
 			// for that. Everything after it is a judgement about a world that is being changed

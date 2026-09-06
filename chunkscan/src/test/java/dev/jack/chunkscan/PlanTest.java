@@ -26,6 +26,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * one leaves it.
  */
 class PlanTest {
+	@org.junit.jupiter.api.Test
+	void materialsAreRankedByWhatCanBePlacedTodayNotByCount() {
+		// A roof of 300 wool with nothing under it yet ranks below 20 planks that can go in now.
+		java.util.List<Work.Cell> todo = new java.util.ArrayList<>(), now = new java.util.ArrayList<>();
+		for (int i = 0; i < 300; i++) todo.add(new Work.Cell(new net.minecraft.core.BlockPos(i, 210, 0), "red_wool"));
+		for (int i = 0; i < 20; i++) {
+			Work.Cell c = new Work.Cell(new net.minecraft.core.BlockPos(i, 204, 0), "oak_planks");
+			todo.add(c); now.add(c);
+		}
+		todo.add(new Work.Cell(new net.minecraft.core.BlockPos(0, 205, 0), "stone_bricks"));
+		var ranked = Plan.usable(todo, now);
+		org.junit.jupiter.api.Assertions.assertEquals("oak_planks", ranked.get(0).item());
+		org.junit.jupiter.api.Assertions.assertEquals(20, ranked.get(0).placeable());
+		org.junit.jupiter.api.Assertions.assertEquals("red_wool", ranked.get(1).item(), "then the biggest of what cannot go in yet");
+		org.junit.jupiter.api.Assertions.assertEquals(0, ranked.get(1).placeable());
+		org.junit.jupiter.api.Assertions.assertEquals(300, ranked.get(1).remaining());
+	}
+
 	private static Work.Cell cell(int x, int y, int z, String block) {
 		return new Work.Cell(new BlockPos(x, y, z), block);
 	}
@@ -396,14 +414,16 @@ class PlanTest {
 		assertEquals("stone", Plan.nextLoadFetch(targets, empty, item -> 2304).item());
 		var afterStone = carrying("stone", 256);
 		assertEquals("oak_planks", Plan.nextLoadFetch(targets, afterStone, item -> 2048).item());
-		assertEquals(256, Plan.takeLoadAmount(targets.getFirst(), targets.size(), 2304));
+		// ...and the amount is the LIST's, not a fixed four stacks: the list is already sized to
+		// the pack across every material, so there is nothing left to rotate for.
+		assertEquals(2000, Plan.takeHowMany(targets.getFirst(), 2304));
 	}
 
 	@Test
 	void singleMaterialLoadStillUsesAllAvailableSpace() {
 		Storage.Container stone = chest(10, 64, 0, "stone", 5000);
 		var target = new Plan.Restock("stone", 5000, stone, 5000);
-		assertEquals(2304, Plan.takeLoadAmount(target, 1, 2304));
+		assertEquals(2304, Plan.takeHowMany(target, 2304));
 	}
 
 	@Test

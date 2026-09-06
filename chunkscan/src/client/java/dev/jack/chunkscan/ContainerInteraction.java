@@ -39,7 +39,13 @@ final class ContainerInteraction {
 	/** Horizontal distance from the chest inside which an approach cell is preferred outright. */
 	static final int CLOSE = 2;
 	/** Clear cells required under an approach cell, so hovering in it is not standing on a floor. */
-	static final int HOVER_CLEAR = 1;
+	// TWO, NOT ONE. Jack: "it can't be within 1 block beneath when flying to place because it will
+	// auto stop flying" - that is why GROUND_CLEAR is two and a half everywhere else, and the chest
+	// approach was the one place the body was flown to a block of air over a floor. Every fetch
+	// was therefore a chance to lose flight, and "within 2 blocks" is a HORIZONTAL ask: from a cell
+	// two clear cells over the chest's own floor the eyes are ~3.4 from a chest one block over,
+	// inside Withdraw.REACH, and the opening ray is still tested from exactly that cell.
+	static final int HOVER_CLEAR = 2;
 
     static BlockHitResult openingHit(Minecraft mc, BlockPos target) {
         if (mc.player == null || mc.level == null || !mc.level.isLoaded(target)) return null;

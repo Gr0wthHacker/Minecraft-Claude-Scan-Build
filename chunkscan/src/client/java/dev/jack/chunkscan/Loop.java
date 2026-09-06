@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The build loop's decisions, with the world taken out of them.
@@ -82,7 +83,15 @@ final class Loop {
 	 */
 	static Phase phase(int todo, int unseen, boolean canWork, boolean fetching, boolean haveTarget,
 	                   boolean anyShortfall, boolean topUp) {
-		if (todo == 0) return unseen > 0 ? Phase.LOOK : Phase.COMPLETE;
+		if (todo == 0) {
+			// A TRIP IN PROGRESS IS NOT INTERRUPTED BY THE WORK BEING OUT OF VIEW. The work is out
+			// of view BECAUSE of the trip: the chunks under the anchor unloaded on the way to the
+			// chest. Turning round to look at them and then turning round again to finish the
+			// trip is the ping-pong Jack watched. Nothing hidden at all means nothing to carry the
+			// materials to, and complete still beats everything.
+			if (unseen > 0 && fetching && haveTarget) return Phase.FETCH;
+			return unseen > 0 ? Phase.LOOK : Phase.COMPLETE;
+		}
 		if (fetching || !canWork || topUp) {
 			if (haveTarget) return Phase.FETCH;
 			if (!canWork) return anyShortfall ? Phase.PACK_FULL : Phase.DEAD_END;
@@ -218,9 +227,6 @@ final class Loop {
 	 */
 	static final int LAYER_BAND = 1;
 
-	/** How many courses to look up through in one recount before giving the answer we have. */
-	static final int LAYER_LOOKAHEAD = 8;
-
 	/** The distinct courses that still hold work, lowest first. */
 	static List<Integer> layers(List<Work.Cell> cells) {
 		java.util.TreeSet<Integer> ys = new java.util.TreeSet<>();
@@ -293,6 +299,89 @@ final class Loop {
 	 * it. Null when there is nothing left, which is the caller's cue that the focus is not what is
 	 * wrong.
 	 */
+	/**
+	 * A WORKING LOAD of one material: four stacks. Carrying this much of something the design still
+	 * wants, the loop goes and places it before it opens a chest for anything else.
+	 *
+	 * <p>Jack: <i>"it shouldn't be pulling things out of chests if it has for example a 90% inventory
+	 * of a single item, just find where to place that item and do it, it doesn't need to go fill up
+	 * with 1 stack of a random item."</i> The fetch decision asked only about the lowest course near
+	 * the anchor; a pack full of stone brick beside a course of slabs read as "nothing I can place"
+	 * and became a trip for one stack of slabs, and the top-up at every session start asked no
+	 * question about the pack at all.
+	 */
+	static final int WORK_LOAD = 256;
+
+	/** The cells whose material the pack holds at least `minLoad` of. */
+	static List<Work.Cell> carriedWork(Map<String, Integer> carrying, List<Work.Cell> cells, int minLoad) {
+		List<Work.Cell> out = new ArrayList<>();
+		for (Work.Cell c : cells) {
+			if (carrying.getOrDefault(c.item(), 0) >= minLoad) out.add(c);
+		}
+		return out;
+	}
+
+	/** What is carried for these cells, for a message: "1984x stone_bricks, 320x stone_brick_slab". */
+	static String describeCarried(Map<String, Integer> carrying, List<Work.Cell> cells, int minLoad) {
+		java.util.LinkedHashMap<String, Integer> seen = new java.util.LinkedHashMap<>();
+		for (Work.Cell c : cells) {
+			int n = carrying.getOrDefault(c.item(), 0);
+			if (n >= minLoad) seen.putIfAbsent(c.item(), n);
+		}
+		StringBuilder sb = new StringBuilder();
+		for (var e : seen.entrySet()) sb.append(sb.length() == 0 ? "" : ", ").append(e.getValue()).append("x ").append(e.getKey());
+		return sb.toString();
+	}
+
+	/**
+	 * Should the loop turn toward cells it already carries the material for instead of fetching?
+	 * Only when it is not already on a trip, cannot work where it stands, and there is such a cell.
+	 */
+	static boolean buildWhatYouCarry(boolean canWork, boolean fetching, boolean carriedAnywhere) {
+		return !fetching && !canWork && carriedAnywhere;
+	}
+
+	/**
+	 * Is there nothing in this list the session wants? With no filter that is simply "empty"; with
+	 * `/cscan only moss_block` set, a list of two thousand slabs and no moss is nothing to do.
+	 */
+	static boolean noneWanted(List<Work.Cell> todo, java.util.Set<String> only) {
+		if (only == null) return todo.isEmpty();
+		for (Work.Cell c : todo) {
+			if (only.contains(c.item())) return false;
+		}
+		return true;
+	}
+
+	/** `minecraft:moss_block`, `moss_block[snowy=false]`, `MOSS_BLOCK` -> `moss_block`. */
+	static String itemName(String typed) {
+		String s = typed.trim().toLowerCase(java.util.Locale.ROOT);
+		int b = s.indexOf('[');
+		if (b >= 0) s = s.substring(0, b);
+		int c = s.indexOf(':');
+		if (c >= 0) s = s.substring(c + 1);
+		return s;
+	}
+
+	/** Cells this far from the body's own cell are within the printer's reach, give or take the eye. */
+	static final int VICINITY = 5;
+
+	/**
+	 * Stay put and keep placing? Jack: <i>"it should look in its immediate vicinity and just keep
+	 * placing as much as possible always"</i> - and, of the old behaviour, <i>"sometimes it has a
+	 * massive patch, will place 5, then go fly away from it."</i> The station was re-chosen every
+	 * recount as the FULLEST bin, so placing five blocks made another bin the fullest and the
+	 * flight left with work still in reach. While anything placeable is within reach of where the
+	 * body is, the answer is to stay: the printer places on its own tick, and moving is a chance
+	 * to touch something. The hold ends only when nothing in reach is left, or when it has held
+	 * for `stallMs` with nothing placed - then the station machinery gets its turn, and the hold
+	 * is not re-armed until `coolUntil`.
+	 */
+	static boolean holdHere(int inReach, int placedNow, long now, long heldSince, long coolUntil, long stallMs) {
+		if (inReach <= 0 || now < coolUntil) return false;
+		return placedNow > 0 || heldSince == 0 || now - heldSince <= stallMs;
+	}
+
 	static BlockPos reanchor(List<Work.Cell> all, BlockPos from) {
 		BlockPos best = null;
 		double bestD = Double.MAX_VALUE;
@@ -435,9 +524,23 @@ final class Loop {
 	 *
 	 * <p>The evidence is the pair: several spots given up on, and NOTHING placed while that happened.
 	 * Either alone is normal — a design has awkward corners, and a slow printer is still a printer.
-	 */
-	static boolean thrashing(int spotsAbandoned, int placedSince, int limit) {
-		return spotsAbandoned >= limit && placedSince == 0;
+	 */	static boolean thrashing(int spotsAbandoned, int placedSince, int limit) {
+		return thrashing(spotsAbandoned, placedSince, limit, 1);
+	}
+
+	/** ...where fewer than `trickle` blocks between abandonments counts as nothing placed. */
+	static boolean thrashing(int spotsAbandoned, int placedSince, int limit, int trickle) {
+		return spotsAbandoned >= limit && placedSince < trickle;
+	}
+
+	/** Is this centre inside a spot still being passed over? Expired entries are dropped on the way. */
+	static boolean avoided(Map<BlockPos, Long> avoided, BlockPos centre, long now, int radius) {
+		avoided.values().removeIf(until -> now >= until);
+		double r2 = (double) radius * radius;
+		for (BlockPos a : avoided.keySet()) {
+			if (a.distSqr(centre) <= r2) return true;
+		}
+		return false;
 	}
 
 	// ---------------------------------------------------------------- the session stall
@@ -449,7 +552,15 @@ final class Loop {
 	 * placing and never tells us, so the world is the report. A fetch trip is not a stall, and
 	 * neither is flying across the island to look at chunks we do not have: both reset the clock at
 	 * the point they start.
+	 *//**
+	 * A flight back to the work anchor that has not got there. Ignored means the autopilot struck
+	 * it twice already; otherwise it is a clock, because the anchor is a destination like any other
+	 * and was the only one without a give-up.
 	 */
+	static boolean returnGivenUp(long now, long sinceMs, long limitMs, boolean ignored) {
+		return ignored || (sinceMs > 0 && now - sinceMs > limitMs);
+	}
+
 	static boolean stalled(long now, long lastProgressMs, boolean fetching, long stallMs) {
 		return !fetching && now - lastProgressMs > stallMs;
 	}
