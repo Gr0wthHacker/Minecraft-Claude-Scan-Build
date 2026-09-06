@@ -34,7 +34,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from mcbuild import nbt, profile as mcprofile, scan, schem  # noqa: E402
+from mcbuild import nbt, printable, profile as mcprofile, scan, schem  # noqa: E402
 from tools.park_lots import PLACEMENT  # noqa: E402
 
 ARTIFACTS = ROOT / "out" / "park_final" / "artifacts"
@@ -692,6 +692,14 @@ def main() -> int:
         print(f"\nshipped -> {dest / out.name}")
 
         whole, worigin, contested = complete(items)
+        # A DIAGONAL JOIN IS NOT A JOIN. A printer clicks a FACE, so two cells that meet only at a
+        # corner leave everything behind them unreachable - and a break BETWEEN two modules belongs
+        # to neither of them, so nothing upstream of this merge can see it. Measured before this
+        # ran: 18,721 cells of the shipped composite could never have been printed, 16,062 of them
+        # orphaned by a corner. Closed here, where the composite exists.
+        stitch, stitched = printable.stitch_model(
+            whole, (ANCHOR[0] + worigin[0], ANCHOR[1] + worigin[1], ANCHOR[2] + worigin[2]),
+            name="Park Complete")
         wout = ROOT / "out" / "Park Complete.litematic"
         wmeta = {"origin": {"x": ANCHOR[0] + worigin[0], "y": ANCHOR[1] + worigin[1],
                             "z": ANCHOR[2] + worigin[2]},
@@ -712,6 +720,10 @@ def main() -> int:
         wy, wz, wx = whole.ids.shape
         print("")
         print(f"Park Complete   {wx}x{wy}x{wz}  {int(whole.solid().sum()):,} blocks")
+        print(f"   printable: {stitched} corner fills close diagonal joins and return "
+              f"{stitch.returned} cells the printer could not have reached; "
+              f"{sum(c.n for c in stitch.unfixable)} left in {len(stitch.unfixable)} clumps "
+              f"(see `python -m mcbuild printable \"Park Complete\"`)")
         print(f"   contested cells yielded to the winner: {dict(contested)}")
         print(f"shipped -> {dest / wout.name}")
     return 0

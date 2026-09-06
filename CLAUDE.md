@@ -11712,3 +11712,415 @@ Five things that shipped `problems: 0` and were wrong, each caught by a walk or 
   under the landing. Scored by the longest walkable chain, it does not.
 
 `render3d` cannot judge the palette; judge form here (`out/friend_orbit.png`) and colour in world.
+
+## The trip leaves from the work and comes back to it (2026-09-04)
+
+Jack: *"autofly etc basically infinitely wanders fetching small amounts of shit, finding
+somewhere to put it, often failing to put it, coming back, repeating infinitely, its highly
+inefficient, chaotic, and doesnt check inventory, area, or fill inventory based on needs at
+all."* Every clause of that is one defect, and they were all the same defect: **the loop had no
+idea where the work was once it left it.**
+
+    the working area      focus(eligible, ME, radius)        me = the chest, mid-fetch
+    the shopping list     nearDemand(eligible, frontier, ME) re-sized every recount, at the chest
+    the trip's end        canWork, measured where I stand    "nothing placeable" at a store hall
+    out of view           todo empty -> LOOK                 mid-trip, then back to the trip
+    the pack              loadCapacity = empty slots         never emptied of anything
+
+So a fetch flew to the store hall, re-planned the load for the cells nearest the STORE HALL,
+came back to those cells rather than to the spot it had left, found nothing placeable, read
+that as a dead end or a reason to shop again, and did it all with a pack that a previous design's
+leftovers had shrunk to a stack or two of room. Nothing in `LoopTest` could see it, because the
+phase function is right for every combination of its inputs and the inputs were being measured
+in the wrong place.
+
+- **`Hud.workAnchor`.** Set to the nearest work on the first recount, moved to the spot being
+  built as it drifts, moved deliberately when an area is finished (to the nearest remaining cell
+  to the AREA, so the work walks across the design) or when the loop goes to look at unseen
+  cells - and never by a fetch. The working area is `focus(eligible, anchor, radius)`. When the
+  anchor's chunk is not loaded and the loop is not mid-trip, it goes BACK there and decides
+  nothing until it arrives.
+- **`Plan.loadPlan`: the shopping list is made ONCE, at the work, and held for the trip.** In
+  BUILD ORDER: the frontier first, then the area's cells lowest course first and nearest the
+  anchor within a course, up to what the pack can hold. Sorted by 3D distance instead, the pack
+  filled with roof for a wall whose ground course still wanted stone. `Plan.shortfalls` is the
+  list minus what is carried, with addresses; the amount taken is the list's, not four stacks.
+- **`Loop.phase`: a trip with somewhere still to go is not interrupted by the work going out of
+  view.** `todo == 0` with cells unseen used to mean LOOK, mid-trip too: the chunks under the
+  anchor unloaded on the way to the chest, the loop turned round to look at them, then turned
+  round again to finish the trip. That is the ping-pong.
+- **`Work.dumpable`: the pack is CHECKED, and what it holds for no reason is put away.** A stack
+  that places a block, holds nothing itself, and is wanted by no cell of the WHOLE design goes
+  into the chest the trip is at before anything comes out of it (`Withdraw` deposits by the same
+  shift-click and reconciles it the same way, one stack a pass). Never a tool, food, a bucket or
+  a shulker box; never a material for the far end. Those slots count as room when the list is
+  sized, so a pack full of the last design reads as a full trip rather than as PACK_FULL. A full
+  chest stops the putting-away and says so; nothing is ever dropped.
+- **The trip ends where it ends, and then goes home.** When the phase leaves FETCH with the
+  anchor out of view, the loop flies back to the anchor rather than deciding anything about the
+  chest's surroundings.
+
+`/cscan why` now says the anchor (and whether it is loaded), the shopping list of the trip in
+progress, and what is in the pack for no reason. `PackTest` (5) pins the dumping rule,
+`AuditFixesTest` the build-order list and the shortfalls, `LoopTest` the uninterrupted trip.
+**652 Java tests, 0 failures.** `chunkscan-0.8.1.jar` is built and not uploaded.
+
+**Not flown in game**, and two things to watch when it is: the deposit is a shift-click INTO a
+chest through the same reconciliation as taking, which has been exercised offline only; and
+"often failing to put it" is the printer's refusal path, which this pass does not touch beyond
+sending the loop back to the spot it left - if refusals persist AT the anchor, that is the next
+audit and it is a different subsystem.
+
+## Baritone reads a litematic's air as MUST-BE-AIR, and the loop's three audits (2026-09-05)
+
+Jack, trying Baritone's builder on a design: *"baritone says the schematic has 101 air blocks
+treated as physical"*. The exact wording is not in any installed jar or in `latest.log` (client
+messages are not logged), so the number is unexplained; the MECHANISM is not, and it is worse than
+the message.
+
+**A LITEMATIC CANNOT EXPRESS "DON'T CARE", AND BARITONE READS EVERY AIR CELL INSIDE A REGION AS A
+PLACEMENT TO SATISFY.** Read off `BuilderProcess.valid()` and `assemble()` rather than remembered:
+only a cell outside every sub-region is `null` (skipped); a desired `air` with a world block under
+it goes into `breakable`. Our designs are REMAINING WORK padded to `origin_lock` - one region of
+mostly air lying over the finished island - so fed as they stand Baritone digs the world back to
+the design's air. Measured with `mcbuild baritone <design> --world <capture>`: the four Friend
+Stairs sit over **1,064 / 2,159 / 2,118 / 4,111** blocks of the platform they hang off.
+
+```
+python -m mcbuild baritone "Friend Stair NW" --world friendisland --copy
+```
+prints the three settings that make the design additive, off Baritone's own `Settings.java`:
+`#buildSkipBlocks air` ("a list of blocks to be treated as correct"), `#buildIgnoreExisting true`
+("will only place new blocks"), `#allowBreak false` (the guarantee under the other two) - plus
+`#buildInLayers true`, `#layerOrder false` and `#startAtLayer <lowest unbuilt course>`, the exact
+`#build <file> x y z` line from the sidecar's origin (every region we write sits at Position
+0,0,0, so the min corner IS the origin), and the dig count. Two things it had to know:
+**`startAtLayer` is schematic-relative** (Jack's `settings.txt` had 199, which on `Park Complete`
+- origin Y94 - is world Y293), and **`#build` reads ONE token as the file**, so `Park
+Complete.litematic` is looked up as `Park`; `--copy` writes a space-free twin. Baritone itself
+lives in the LiquidLauncher profile's `mods/` (`Baritone.jar`, 26.2-1.11.1), not in `custom_mods`.
+`tests/test_baritone.py` (3) pins the dig count, the settings and the copy.
+
+### The audit: three readers over 20k lines, 23 fixes, and what a printer would look like
+
+Jack: *"so many issues with its item seeking, movement, etc, it needs to be a printer - we need
+to be organized, and not get stuck."* Three parallel read-only audits (decision layer, movement,
+materials) against the in-flight tree, each finding verified in the code before it was touched.
+**The single worst finding was in that day's uncommitted work**: `AutomationControl.enter`
+refused any WITHDRAW unless `BuildJob.phase == FETCH`, and ChestScan (at a DEAD_END) and Unbox
+(mid-BUILD) both open chests outside FETCH - so `Withdraw.tick` never ran its own timer, `busy()`
+was true for ever, `Hud.advance` returned early ABOVE every clock, and the body hovered at the
+chest in silence until `/cscan stop` (Unbox worse: the shulker left on the ground). **The job
+phase gates the PRINTER and nothing else now.**
+
+Fixed, each with the reason in the code:
+
+- **The anchor did not survive a trip.** Back at the store hall with the work unloaded, the
+  look-for-unseen ran first and `goLook` re-anchored on the unseen cell nearest the PLAYER; or
+  the radius grew to reach whatever was loaded round the chest and a spot formed there. The
+  shopping list sized at the work then came back somewhere else - "fetches, comes back, fails
+  to place". The look and the radius growth both wait while the anchor is unloaded.
+- **"Back to the work" had no give-up**: an anchor whose chunk never loads was guided to every
+  two seconds for ever, and the 90s stall struck nothing because there was no spot. `RETURN_MS`
+  (45s) or an Ignored anchor drops it and re-anchors; a stall with no spot strikes the target.
+- **`Printer.relax()` manufactured a false frontier every 30s**: clearing the placeability cache
+  outright made every cell past the 400-per-recount budget read as placeable again, so cells the
+  printer had proved impossible came back as the frontier, a station was chosen on them, nothing
+  placed, the spot struck. The old verdicts are kept as the fallback until re-asked.
+- **`LAYER_LOOKAHEAD = 8` turned real work into a DEAD_END**: eight courses of printer-refused
+  cells (lanterns waiting on posts, vines) emptied the frontier with work one course higher, and a
+  dead end on a design with unseen cells goes to LOOK elsewhere - the wandering. Every course.
+- **A-B-A ping-pong ran all night**: `avoidSpot` held ONE spot so B's abandonment un-avoided A,
+  and one block placed per leg reset the thrash count. It is a map with expiry, and fewer than
+  `THRASH_TRICKLE` (5) blocks between abandonments is nothing placed.
+- **One 25ms clock for every route tier** let the first search that fails BY BUDGET spend it all:
+  beside a row of shops the safe tiers fail that way as a matter of course, the tight search that
+  finds the indoor route got ~30 nodes, and "no route and no way round" was the clock. Each tier
+  has its own slice (`CRUISE_SHARE`..`TIGHT_SHARE`, ordered and pinned).
+- **A ROUTE WAS THE ONE THING THAT BYPASSED THE GROUND CLEARANCE.** Roomy keeps one block of air
+  off a floor; this server has ended flight at a block's distance, which is why `GROUND_CLEAR` is
+  2.5 - and the routed step skips that clamp on purpose (indoors it grinds the ceiling). A CRUISE
+  tier is searched first: roomy AND `CRUISE_BELOW` (3) clear under the body, relaxed within `ENDS`
+  of either end, so a flight over the plate stays at the hover's own height.
+- **A waypoint popped early chorded the corner it was there to round**: at cruise the radius is
+  ~1.9, `legFrom` jumped ahead of the body, and the pursuit aimed along a leg the body had not
+  reached - a line `clear` never validated, at every shop corner. `popped()` pops early only once
+  the body is PAST the plane through the waypoint perpendicular to the next leg.
+- **The recovery ladder belonged to no destination**: `trouble` was never reset when the target
+  changed, so a new station inherited the last wedge; and CLIMB_OUT ended at `trouble =
+  BACK_OFF_AT`, so it re-entered at back-off, climbed again, and never reached GO_HOME - 25 blocks
+  up each time. Reset per destination; a second climb gives the spot up instead.
+- Stale state on `follow`: `deadEndSince`, `unboxRetryAt`, the orbit leg.
+
+**Still open, from the same audits and NOT guessed at** - each is a decision or a subsystem:
+
+- **The chest approach hovers at 1.1 blocks of air** (`HOVER_CLEAR + FOOT_OFFSET`) against the
+  2.5 the plugin has been measured to need, because Jack asked for "within 2 blocks". Either the
+  fetch becomes a deliberate LANDING beside the chest, or the number is his to confirm in game.
+- **Landing is one-way unless the server keeps `mayfly`**: `regain` gives up after four taps and
+  never types `/fly`. `/fly` is a TOGGLE, so it is only safe when `!mayfly` - untested here.
+- **A chest outside render distance is blacklisted before the flight starts** (`fetchTo` asks
+  `approach()` of an unloaded chunk and reads null as "nowhere to open it from") - so the loop
+  only ever fetches from chests already loaded near the work.
+- **The frontier and the printer disagree about three block kinds**: replaceable plants (in todo,
+  refused by `placement()`), water pools two cells wide (`contained()` deadlocks), door hinges.
+  Each is a silent station stall, not a refusal.
+- **Litematic state strings carry every property and `StateContract` treats world-derived ones
+  as REQUIRED** (`age`, `berries`, `thickness`, `chest type`, `snowy`...) - the Python side's
+  `work.INTENTIONAL` filter, not applied on the Java read.
+- **The shopping list is sized to the lowest course within a radius that can grow to 200**, so
+  in a three-level park it fills with the undercroft's blackstone while the surface is paved; and
+  `loadCapacity` counts every slot as 64 (a pool of water asks for one bucket per cell).
+- **Double chests are indexed twice** (151 pairs live); the stale twin sends the loop back.
+- **`Work.split` runs over all 540,862 cells every TICK while printing**, and the journal fsyncs
+  twice per placement. That stutter is part of what reads as freezing at chests.
+- **A printer-mode rewrite of the spot logic** - one ordered queue per course, next bin in sweep
+  order rather than fullest, refusals per bin, the shopping list = the next N bins - is the shape
+  all three audits converged on. It replaces `Plan.clusters`/`Loop.sameSpot`/`stand` and is a
+  session of its own.
+
+**Nothing here has been flown in game.** 654 Java tests green (652 at the start of the session); `chunkscan-0.8.1.jar` not rebuilt.
+
+Two working-practice notes: **the Bash tool fails with `unexpected EOF` on scripts past ~100
+lines** - write the script with the Write tool and run the file; and **a whitespace-tolerant
+patch anchor must start at its first TOKEN**, or `\s+` swallows the newline before it and the code
+lands on the end of the comment above - twice in one session, both compile errors.
+
+### Two more, on Jack's next two notes (same day)
+
+**"It shouldn't be pulling things out of chests if it has a 90% inventory of a single item."**
+The fetch decision asked only about the LOWEST COURSE near the anchor, so a pack of stone brick
+beside a course of slabs read as "nothing I can place" and became a trip for one stack of slabs;
+and the top-up at every session start asked no question about the pack at all. `Loop.WORK_LOAD`
+(four stacks) is a working load: carrying that much of a material the design still wants, the loop
+builds it first - no top-up if the frontier course has cells for it, a higher course near the
+anchor becomes the frontier if that is where they are, and if they are elsewhere in the loaded
+design it re-anchors there rather than opening a chest. Only when nothing carried can be placed
+anywhere loaded is a chest worth the trip. `LoopTest` pins the predicate.
+
+**"If I type moss_block it only does that material until it's filled every potential place of
+it on the schematic."** `/cscan only moss_block` (one or more item names; `off` lifts it). Every
+cell of another material is not the session's work: filtered out of the frontier, the shopping
+list and the PRINTER's own in-reach pick, so a pack of slabs places nothing while the filter is
+set. The session ends - stopped, and said, never "complete" - when no loaded cell of the material
+is left and every chunk has been seen. The filter rides in `session.json` and is restored FIRST on
+resume, because a resumed `follow` that forgot it would place everything. `Loop.itemName`
+normalises `minecraft:`, case and a `[state]`; it is the ITEM name, so `stone_brick_slab` is both
+halves and every facing.
+
+**And the chest approach hovered at one block of air** (`HOVER_CLEAR` 1, `EXACT_CLEAR` 1.05) -
+the one place the body was flown to exactly the height this server ends flight at, on the
+reasoning that 2.5 would put a floor chest out of reach. It would not: from two clear cells up the
+eyes are ~3.4 from a chest one block over, inside `Withdraw.REACH`. Two now, and a routed step
+keeps the ground clearance whenever the next waypoint itself has it - the bypass stays only for
+routes that genuinely go low. `AuditFixesTest` re-derives the reach arithmetic.
+
+**`chunkscan-0.8.2.jar` is built** (`build/libs/`), 656 Java tests green, not uploaded - Jack
+uploads through the launcher himself. Nothing in it has been flown yet.
+
+### 0.8.3: it stays where the work is, and it flies over the top (same night)
+
+Jack flew 0.8.2 - every fix above was in it - and reported the same two things in sharper words:
+*"its path finding and flying is still really bad, constant collisions, running right into
+objects"*, and *"if its actively placing idk why it keeps instantly seeking and then flies off ...
+sometimes it has a massive patch, will place 5, then go fly away from it ... it should look in
+its immediate vicinity and just keep placing as much as possible always."*
+
+**THE STATION WAS RE-CHOSEN EVERY RECOUNT AS THE FULLEST BIN.** Place five blocks and another bin
+is the fullest; the flight left with work still in reach, and every flight is a chance to touch
+something. `Loop.holdHere` runs BEFORE any question about anchors, courses, spots or stations:
+while anything placeable that I carry is within `Loop.VICINITY` of the body, guidance is dropped
+and the printer places on its own tick. The hold ends only when nothing in reach is left, or when
+it has held for `STATION_MS` with nothing placed - then the station machinery gets its turn and the
+hold is disarmed for `HOLD_COOL_MS`, or it wins the next recount straight back.
+
+**AND THE ROUTER IS NO LONGER HOW A LONG LEG IS FLOWN.** Every collision in a day of router fixes
+was a flight THROUGH built space - between shops, under awnings, past corners - and each fix made
+the threading a little better without making it safe. A player with /fly goes UP, crosses in open
+sky, and comes DOWN. `Autopilot.overTop` builds exactly that for any leg over `OVERTOP_MIN` (4)
+blocks: the corridor's highest MOTION_BLOCKING surface (heightmap, margin 2 each side) plus
+`OVERTOP_CLEAR` (3) is the crossing height, never below where the body already is; three
+waypoints, each leg verified with `Nav.clear`; NEVER simplified (the chord from the ascent's foot
+to the descent's head is the diagonal through the buildings it exists to fly over). A roofed
+descent stops on the roof and the router does the last few blocks, which is the one place it has
+ever been good; a ceiling over the ascent hands the whole leg to the router. The heightmap answers
+the world's own minimum for an unloaded chunk, so an unseen tall building raises the crossing as
+its chunk arrives, and the blind-speed rule still covers the approach.
+
+`AutopilotTest` pins the legs and the height arithmetic; `LoopTest` the hold. 658 Java tests
+green, `chunkscan-0.8.3.jar` built, not flown.
+
+### 0.8.4: the scan that ran twenty times a second (2026-09-06)
+
+Jack: *"it also scans too frequently, i think it uses a full radius based on current position vs
+set positions."* It did. The printer's tick asked `Work.split` for the cells within reach of the
+body, and `split` answered by walking ALL 540,862 cells of the park - a distance test each - and
+re-parsing the design's sidecar JSON for the dig list, on every call, twenty times a second. That
+is the stutter that reads as freezing at chests and as jerky flight.
+
+- **The work list is BINNED BY CHUNK when it is loaded**, cached with the list and the dig list.
+  A radius question touches only the chunks the radius covers (`Work.binNear`, a box test per
+  bin), and an unloaded chunk costs one `hasChunk` with its cells counted unseen, rather than a
+  world lookup per cell. The HUD's full recount every two seconds skips the unloaded 80% of the
+  park the same way.
+- **A placement sweep that found no angle is not re-run every tick** for ten ticks
+  (`Printer.recentlyUnplaceable`): yaw by pitch by face for every in-reach cell that fails was the
+  other half of the tick.
+- **No fsync per placement.** Two disk syncs per block (attempt, verdict) were up to forty
+  milliseconds on the client thread each time; `reconcile()` already survives a torn last line.
+- **And the vicinity hold targets the body's own cell**, not "no target": with no target the
+  autopilot said "autofly is ON but has nowhere to go" at every hold, and would have lifted a
+  landed body off good paving.
+
+659 Java tests green, `chunkscan-0.8.4.jar` built, not flown.
+
+### 0.8.5: the open list, closed (2026-09-06)
+
+Jack: *"fix all."* The items the audits had left as decisions, each now taken:
+
+- **A chest out of view is flown to, not blacklisted.** `fetchTo` asked `approach()` of an
+  unloaded chunk, read null as "nowhere to open it from" and cooled the chest for a minute - so
+  the loop could only ever fetch from chests already loaded near the work. It flies toward the
+  chest now and picks the approach cell once the chunk is here.
+- **Only DECIDED properties have to match.** `StateContract.role` is the Python side's
+  `work.INTENTIONAL` on the Java read, plus four this side keeps as completion requirements
+  (`waterlogged`, `powered`, `persistent`, `open`) and a rail's `shape`. Before, `sugar_cane
+  [age=7]`, `cave_vines[berries]`, `chest[type=left]`, `grass_block[snowy]` had to match exactly:
+  the cell silently left the frontier, or placed correctly and was reported WRONG STATE.
+- **A double chest is one record**, filed under its lower half (`Storage.canonical`, from
+  `ChestBlock.FACING`/`TYPE`); the stale twin of an old record is dropped by `stillThere`.
+- **Flight revoked by the server is asked back**: `regain` sends `/fly` (bounded to three per
+  destination) while `mayfly` is FALSE - the one state in which a toggle can only go on - then
+  double-taps as before; and the tries reset per destination rather than per session.
+- **A replaceable block is placed into**: grass, ferns and snow layers were in todo and refused by
+  `placement()`, a silent station stall with no refusal ever reported.
+- **A pool wider than one cell can be placed**: `contained()` accepts a neighbour that is the
+  design's own water (`Printer.setDesignWater`, from the followed design), and flowing water in
+  the cell is not "a block in the way". The rim still has to be solid.
+- **A bucket is not a stack**: a shopping list asks for at most `Plan.BUCKETS_PER_TRIP` (4).
+
+662 Java tests green, `chunkscan-0.8.5.jar` built, not flown. The one thing here that touches
+a server command is `/fly`, and it is only ever sent while the server itself says flight is off.
+
+### `analyze`: what a build can TAKE today, not what it is made of (2026-09-06)
+
+Jack: *"analyze schematics automatically, identify most used materials, and most placeable based on
+no air blocks around it based on currently placed, so we can efficiently spread resources in large
+builds."* A bill of materials answers the wrong question for a trip: a pack of the commonest block
+is a pack with nothing to place against, if the commonest block is the roof.
+
+```
+python -m mcbuild analyze "Park Complete" --world newisle --have     # offline, against a capture
+/cscan analyze <design>                                              # in game, against the live world
+```
+
+Per material: **placeable** (remaining cells with a clickable face-neighbour standing), **unlocks**
+(cells that cannot go in yet which a placeable cell of this material would give a face to), left,
+stacks, have/short against the container index, and the 16-region holding the most placeable
+cells. Ranked placeable first. On a fresh Friend Stair the answer is eight slab cells - the notches
+- and nothing else, which is exactly right: everything else hangs off them.
+
+**And the loop's shopping list is led by it.** `Plan.loadPlan` used to lead with the frontier
+course only; it leads with EVERY placeable cell near the anchor on any course now (`Plan.usable`
+is the same ranking as a list), so the trip that comes back places the most and opens the most.
+
+**Clickable is the printer's rule, not the audit's.** The first offline pass counted only full
+cubes as something to place against and called every cell of the stair unplaceable: the friend
+platform is top slabs. `analyze.clickable` mirrors `Printer.support` by name - a slab, a stair, a
+wall, a chest is a face; a vine, a tuft, a torch, a carpet, a rail, water is not. `tests/test_
+analyze.py` (2) and `PlanTest` pin the ranking: 20 placeable planks outrank 300 wool of roof.
+
+663 Java tests green, `chunkscan-0.8.5.jar` includes the command.
+
+## A DIAGONAL JOIN IS NOT A JOIN: `printable` (2026-09-06)
+
+Jack: *"a lot of the schematic has blocks that are diagonal to each other but hollow, meaning it's
+impossible to print on them since there's nothing attached to any one side of them ... they may
+have a line of things, but the entire line is diagonal so nothing reaches it when printed below or
+from above."* Every word of that was measurable and none of it was measured.
+
+    python -m mcbuild printable "Park Complete"                # what a printer can never reach
+    python -m mcbuild printable "Park Complete" --fix          # ...and close the corners
+
+**A PRINTER CLICKS A FACE, SO PRINTABILITY IS A CLOSURE OVER 6-CONNECTIVITY, SEEDED BY THE WORLD.**
+That is a different question from every check this project had. `audit.check_supports` asks whether
+a block can EXIST; `pipeline._floating` asks whether a cell has anything under it; `analyze` asks
+what can go in TODAY. None of them asks whether the chain ever arrives, and a design can pass all
+three while being unbuildable.
+
+Measured on the shipped `Park Complete` - 540,862 cells:
+
+| | |
+|---|---|
+| separate printing islands | **2,009** - each one a block a human must place by hand |
+| cells a printer could NEVER reach | **18,721 (3.5%)** |
+| ...orphaned by a DIAGONAL rather than genuinely floating | **16,062** |
+| the largest single casualty | the **14,393-cell undercrypt**, whose only contacts with the rest of the park are (1,1,1) corners |
+
+**THE FAULT IS TINY AND THE DAMAGE IS NOT**, which is the whole reason this is a pass rather than
+something to eyeball: **889 corner fills returned 15,597 cells**, and the undercrypt came back for
+about ten blocks. 18,721 unreachable -> 3,129, islands 2,009 -> 1,913.
+
+### What a stitch is allowed to be
+
+- **A CORNER FILL, NEVER A SCAFFOLD.** `REACH` is 2 because a two-axis diagonal needs ONE cell and
+  a three-axis one needs TWO. Anything further is a bridge, and a lump of blocks alone in the void
+  is REPORTED rather than reached - that one is a person with a stack of dirt, and inventing it
+  here would hide the finding that matters under a pile of invented terrain.
+- **It never covers anything.** Only cells empty in BOTH the design and the world, which is the one
+  property that makes it safe to run over a build somebody is halfway through.
+- **Its material is the commonest clickable, NON-FALLING material already touching it** -
+  `deckfloor`'s heal rule, so a stitch cannot introduce a block the design was not already
+  spending, and rule 13 cannot be broken by a fill that is over air by construction.
+- **Of the two corners that close a step, it takes the one UNDER the upper block.** That is a
+  STRINGER - the course the arc stair and every flight in this project build by hand - and not a
+  lump on a finished surface. 615 of 889 land that way; the rest have only one legal corner.
+- **A cell a player could stand in is a last resort and is COUNTED.** A fill in a doorway is the
+  fault this repo has shipped three times (a timber set on a live rail, an adit's post bricking up
+  its own corridor, two pines in the one walk a module exists to carry). 121 landed in one, so the
+  walk was flooded before and after: **105,397 cells reachable from the gate, both times.**
+
+**AND IT IS INVISIBLE IN PRACTICE, WHICH IS NOT THE SAME AS BURIED.** Jack asked for the fills to
+be *"pretty much always invisible... placed on the inside of hollow objects"*, and measured
+literally only 44 of 889 are sealed inside the build - the park is 95% open air, and a diagonal
+join is by its nature on a SURFACE (a helix's rim, a stair's corner), so there is usually no buried
+option to choose. What settles it is a render: the densest cluster - **175 fills in one 44-cube** -
+is indistinguishable from the original at all eight bearings, because a one-block fill in the notch
+of a rough surface reads as nothing. Judge this one by looking, not by the exposure count.
+
+### What is left, and why it is not stitched
+
+    1,062  the Prism Well descent, Y105-205    hanging in an open shaft, 3,409 air neighbours
+       35  a birch at X97500 Y204-210          a tree whose trunk never reaches the ground
+      ~12  x6 lamp standards, Y203-210         a base at Y203 with no lawn under it at Y202
+    1,716  pond and plant dressing             lily pads, seagrass, vines, water surfaces
+
+**THE DRESSING IS REPORTED APART AND MUST BE.** A lily pad is placed against WATER and a vine
+against a leaf, so the closure cannot chain through either - correctly - and calling two thousand
+single cells of pond furniture "unprintable masses" would bury the one real finding. `DECOR` names
+them and `Survey.split_unfixable` separates them; **a solid block filled into a pond is not a
+repair, it is a filled pond.**
+
+The descent is the one structural hole left and it is a DESIGN decision, not a stitch: a helix in
+an open shaft whose lining stops at Y187 has nothing to attach to at any reach.
+
+### Where it runs
+
+**`tools/park_place.py` stitches the composite at the moment it writes it**, because a break
+BETWEEN two modules belongs to neither and no generator or per-design pass can see it - the same
+reason `finish.carve_for` became a pipeline step rather than a note. A step that has to be
+remembered is a step that gets lost, and this file has recorded that once already.
+
+`tests/test_printable.py` (18) pins the shape rather than a snapshot: a diagonal line is one island
+per block, a straight one is one island, a carpet carries nothing onward, a stitch never covers,
+never falls, and hides under its tread - and **the shipped composite has no diagonal break a corner
+fill could still close**. Asserting a cell COUNT would be the snapshot trap this repo has now
+recorded five times; asserting "nothing the pass could fix is still open" cannot go stale.
+
+**Two things worth keeping for whoever runs this next.** The three park plot captures
+(`islandleft`, `newisle`, `islandright`) are **bare starter pads - 189, 144 and 192 blocks** - so
+the park prints onto void and a survey against any one of them reads the other two lands as
+unreachable; composite them with `coop.merge_scans` first, or run with no world at all, which seeds
+from the design's own largest mass and answers in ISLANDS. And a per-module survey is the wrong
+context by construction: `PF Park Green` reads as 2,599 islands alone because every flower stands
+on `Park Ways`' ground, which is a different design. Rule 2, in a new place.

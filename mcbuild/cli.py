@@ -339,6 +339,37 @@ def cmd_layers(a):
         print("shipped to", st.schem_dir)
 
 
+def cmd_printable(a):
+    from . import printable
+    s = printable.survey(a.design, a.world, reach=a.reach or printable.REACH)
+    print(s.report(top=a.top))
+    if a.fix and s.stitches:
+        written, outside, side = printable.apply(a.design, s.stitches)
+        print(f"stitched {written} cells into {side}"
+              + (f" ({outside} landed outside the model box and were dropped)" if outside else ""))
+        after = printable.survey(a.design, a.world, stitch=False)
+        print(f"re-measured: {len(after.orphans)} unprintable "
+              f"({len(s.orphans)} before)")
+    elif a.fix:
+        print("nothing to stitch")
+    return 0 if s.ok or (a.fix and not s.unfixable) else 1
+
+
+def cmd_analyze(a):
+    from . import analyze
+    r = analyze.analyze(a.design, a.world)
+    print(analyze.render(r, have=coop.load_storage() if a.have else None, top=a.top))
+    return 0
+
+
+def cmd_baritone(a):
+    from . import baritone
+    st = Settings()
+    b = baritone.brief(a.design, world=a.world, schem_dir=st.schem_dir, copy=a.copy)
+    print(baritone.render(b))
+    return 0
+
+
 def cmd_parallel(a):
     from . import parallel
     if a.prepare:
@@ -633,6 +664,20 @@ def main(argv=None):
     p.add_argument("--prefix", help="name prefix for the layers (default: the plan's name)")
     p.add_argument("--ship", action="store_true", help="copy them to the schematics folder")
     p.set_defaults(fn=cmd_layers)
+    p = sub.add_parser("analyze", help="materials ranked by how much of each can be placed against what stands in a capture today")
+    p.add_argument("design"); p.add_argument("--world", default="island")
+    p.add_argument("--have", action="store_true", help="also show what your indexed containers hold and the shortfall")
+    p.add_argument("--top", type=int, default=15); p.set_defaults(fn=cmd_analyze)
+    p = sub.add_parser("printable", help="cells a printer can never reach, because their only join to the build is a DIAGONAL")
+    p.add_argument("design"); p.add_argument("--world", help="a capture the design is printed onto")
+    p.add_argument("--fix", action="store_true", help="write the corner fills into the design")
+    p.add_argument("--reach", type=int, default=None, help="how far a stitch may cross empty space (default 2)")
+    p.add_argument("--top", type=int, default=8)
+    p.set_defaults(fn=cmd_printable)
+    p = sub.add_parser("baritone", help="the settings and #build line that let Baritone place a design WITHOUT digging the world under its air")
+    p.add_argument("design"); p.add_argument("--world", help="a capture: also count what an unguarded Baritone would break")
+    p.add_argument("--copy", action="store_true", help="write a space-free copy of the file, which #build needs")
+    p.set_defaults(fn=cmd_baritone)
     p = sub.add_parser("parallel", help="agent-safe staged generation and deterministic assembly for an approved plan")
     group = p.add_mutually_exclusive_group(required=True)
     group.add_argument("--prepare", help="freeze an approved plan into isolated lane configs")
