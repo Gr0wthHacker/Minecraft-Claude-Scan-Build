@@ -91,6 +91,23 @@ final class Hud {
 	 * the trip starts, held until it ends, so a chest across the island cannot rewrite it.
 	 */
 	private static Map<String, Integer> loadPlan = null;
+
+	/**
+	 * The shopping list as it was last ANNOUNCED - the item NAMES, never the counts.
+	 *
+	 * <p>Jack: <i>"shopping list keeps getting spammed."</i> The list is cleared at the end of
+	 * every recount that is not a fetch - <i>the list belongs to the trip</i> - so whenever the loop
+	 * WANTED to fetch and could not (nothing indexed holds the material, no room in the pack, every
+	 * chest still cooling off) it rebuilt an identical list and announced it again, every two
+	 * seconds, for as long as that stayed true. It shouted loudest exactly while achieving nothing,
+	 * which is the failure mode this file already has a rule about: a message on a two-second timer
+	 * is a reason to turn the loop off.
+	 *
+	 * <p>Keyed on the item SET and not the whole line, because the counts drift by a few every
+	 * recount as the pack changes, and a signature carrying them is a signature that always differs.
+	 * What a trip IS, is what it is going to fetch.
+	 */
+	private static String saidLoadPlan = null;
 	/** Every item the followed design wants anywhere, cached per design. Null: could not be read. */
 	private static java.util.Set<String> designItems = null;
 	private static String designItemsFor = null;
@@ -1015,10 +1032,15 @@ final class Hud {
 				loadPlan = Plan.loadPlan(area, usableNow.isEmpty() ? frontier : usableNow, anchor,
 					Work.loadCapacity(mc.player) + dumpFree);
 				Map<String, Integer> away = Work.dumpable(mc.player, needed);
-				mc.player.sendSystemMessage(Component.literal("[cscan] shopping list for "
-					+ Plan.cells(loadPlan) + " cells around " + Wand.fmt(anchor) + ": "
-					+ Plan.describe(loadPlan)
-					+ (away.isEmpty() ? "" : "  (putting away " + Plan.describe(away) + ")")));
+				// SAID WHEN THE TRIP CHANGES, NOT WHEN THE LIST IS REBUILT. See saidLoadPlan.
+				String signature = new java.util.TreeSet<>(loadPlan.keySet()).toString();
+				if (!signature.equals(saidLoadPlan)) {
+					saidLoadPlan = signature;
+					mc.player.sendSystemMessage(Component.literal("[cscan] shopping list for "
+						+ Plan.cells(loadPlan) + " cells around " + Wand.fmt(anchor) + ": "
+						+ Plan.describe(loadPlan)
+						+ (away.isEmpty() ? "" : "  (putting away " + Plan.describe(away) + ")")));
+				}
 			}
 			// Skip chests in their cooling-off period, or the loop is guided at one it will not open.
 			targets = Plan.shortfalls(loadPlan, carrying, index, me,
@@ -1842,6 +1864,7 @@ final class Hud {
 		followAll = false;
 		fetching = false;
 		loadPlan = null;
+		saidLoadPlan = null;
 		workAnchor = null;
 		designItemsFor = null;
 		designItems = null;
@@ -1993,6 +2016,7 @@ final class Hud {
         Withdraw.cancel();
         fetching = false;
         loadPlan = null;
+        saidLoadPlan = null;
         workAnchor = null;
         // ---- FILL THE PACK FIRST. See topUp.
         topUp = true;

@@ -12225,3 +12225,29 @@ site costs multiplied by how often it runs, and the memoisation is certain to he
 subsystem dominates has not been measured in game. Run `/cscan perf` while it is laggy; if
 `recount` is still the top line, the next move is to stop building a fully-materialised todo list
 for the whole design on every recount and give `Split` a global COUNT with a bounded cell list.
+
+### The shopping list shouted loudest while achieving nothing (2026-09-06, chunkscan 0.8.7)
+
+Jack: *"shopping list keeps getting spammed."*
+
+`loadPlan` is cleared at the end of every recount that is not a fetch — *the list belongs to the
+trip*, which is correct and is what stops a chest across the island re-sizing a list that was made
+at the work. But the ANNOUNCEMENT was tied to the list being BUILT, and the list is rebuilt every
+time it is missing. So whenever the loop wanted to fetch and could not — nothing indexed holds the
+material, no room in the pack, every candidate chest still cooling off — it rebuilt an identical
+list and said it again, **every two seconds, for as long as that stayed true.**
+
+**IT WAS LOUDEST EXACTLY WHILE IT WAS ACHIEVING NOTHING**, which is this file's own rule about a
+message on a two-second timer being a reason to turn the loop off, arrived at from a new direction:
+the guard was on the wrong event. Building a list is not news; a trip changing is.
+
+`saidLoadPlan` holds the last announced list and it is keyed on the **item SET, never the counts** —
+the counts drift by a few every recount as the pack changes, so a signature carrying them is a
+signature that always differs. What a trip IS, is what it is going to fetch. Reset when a new job
+starts (`off`, a new design), never on the per-recount trip end, or the guard would clear itself on
+exactly the tick it exists for.
+
+**And the rest of the recount's messages were audited rather than assumed.** Every
+`sendSystemMessage` inside `advance` was checked for a guard: three read as unguarded and all three
+are one-shot state transitions that clear the condition as they fire (`topUp = false`, the
+re-anchor, the design-complete hand-off). This was the only one that could repeat.
