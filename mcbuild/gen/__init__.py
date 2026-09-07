@@ -22,6 +22,7 @@ from . import minestation  # noqa: E402
 from . import park_entrance, park_frontage, park_vantage, park_water  # noqa: E402
 from . import bonebed, claimrow, diggings, fossils, frontier_scatter, mineridge  # noqa: E402
 from . import mineworks, overgrowth, park_games, plateau, pterosaur, sauropod, seam  # noqa: E402
+from . import stegosaur  # noqa: E402
 from . import downs  # noqa: E402
 from . import wyrmgate  # noqa: E402
 from . import arcstair  # noqa: E402
@@ -151,6 +152,10 @@ GENERATORS = {
     "menagerie": menagerie,
     "balloon": balloon,
     "wyrm": wyrm,
+    # THE CAUSEWAY'S FRONTIER-END SCULPTURE - mcbuild/gen/stegosaur.py. Registered so it can be
+    # built and looked at on its own; `isthmus.py` sites it through `creature_canvas` rather
+    # than through this table, exactly as it does the balloon and the wyrm.
+    "stegosaur": stegosaur,
     "arrival": arrival,
     "attractions": attractions,
     "ticketing": ticketing,

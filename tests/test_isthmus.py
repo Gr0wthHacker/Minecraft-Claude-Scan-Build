@@ -382,7 +382,20 @@ def test_the_rim_carries_a_fence_wherever_the_ground_actually_ends(built):
         caps.setdefault((x, z), []).append((y, base))
     for (x, z), entries in caps.items():
         entries.sort()
-        cap_y, cap_base = entries[-1]
+        # **THE GROUND'S CAP IS THE TOP OF THE COLUMN'S OWN UNBROKEN RUN, NOT THE HIGHEST CELL
+        # IN IT.** A sited creature is free to reach out over open air past its plinth - that is
+        # `_site_footed`'s whole rule, and a heron's bill, a wyrm's head and a stegosaur's tail
+        # all do it - so a rim column can carry the ground, its fence, then several courses of
+        # sky, then a bone spike hanging seven above. Read as "the highest cell", the spike is
+        # the cap and the fence four courses below it looks missing: the causeway was reported
+        # unfenced at the one place it is most obviously fenced. Anything with a gap under it
+        # belongs to something else and is not this column's ground.
+        run = [entries[0]]
+        for e in entries[1:]:
+            if e[0] != run[-1][0] + 1:
+                break
+            run.append(e)
+        cap_y, cap_base = run[-1]
         missing = []
         for gap in isthmus.GAPS:
             if gap["z_lo"] <= z <= gap["z_hi"]:

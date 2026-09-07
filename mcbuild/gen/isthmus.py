@@ -18,7 +18,7 @@ span named at both of its own ends by a REAL threshold, not a pair of stair bloc
 lamppost, topiary, flagpole, signpost, bin) and `gen/wayfinding.py` (mapboard, fingerpost, marker,
 archway, noticeboard) are both tested generators of their own, and pasting their output is the
 same siting job a heron or a gecko already is here - `_site_bench` and `_site_archway` do it
-exactly the way `_site_heron` does. Two things had to be added for it to work at all: `_paste` only
+exactly the way `_site_footed` does. Two things had to be added for it to work at all: `_paste` only
 ever read block STATES (`_canvas_cells` walks `canvas.ids`/`canvas.palette`), so a pasted
 `wayfinding.archway` shipped its own wall-sign block with nothing behind it - a sign is two things
 in two halves of the file, and the TEXT half lives in `canvas.tiles`, JSON-encoded, keyed in the
@@ -35,19 +35,23 @@ species, it is PLANAR/COLUMNAR against VOLUMETRIC - a spread wing, a neck, a spl
 pattern on one convex mass all read; four legs standing on the ground never do, at any scale
 (see CLAUDE.md's ANIMALS section). Everything on this causeway is chosen on that line.
 
-Two of the four are SITED - `heron.py` and `sloth.py`, tested generators of their own, pasted
-exactly the way `streetfurniture`'s bench and `wayfinding`'s archway are. Two are BESPOKE and
-were written for these two stops: `balloon.py` and `wyrm.py`, which replaced a sited bat and a
-sited gecko on Jack's own instruction - *"those are used assets, we want NEW things"*. See
-`_SITERS` for what each of the four has to be given to stand up at all, and `GAPS` for why no
-two may be the same generator.
+ONE of the four is SITED - `sloth.py`, a tested generator of its own, pasted exactly the way
+`streetfurniture`'s bench and `wayfinding`'s archway are. THREE are BESPOKE and were written for
+these stops: `balloon.py` and `wyrm.py` replaced a sited bat and a sited gecko on Jack's own
+instruction - *"those are used assets, we want NEW things"* - and `stegosaur.py` replaced the
+sited heron on the same rule when he asked for a dinosaur there, because BOTH dinosaurs this
+park already owns stand within sight of that plinth (see `GAPS`). See `_SITERS` for what each of
+the four has to be given to stand up at all, and `GAPS` for why no two may be the same
+generator.
 
-**AND THE TWO NEW ONES CARRY THEIR OWN GROUND, WHICH IS THE POINT OF WRITING THEM.** A heron
-wants a pedestal, a gecko a stele, a bat a gantry, a sloth a bough: every one of those is
-masonry THIS file has to lay on terraced ground before the creature exists at all, and every
-one of them is somewhere a pier can miss its footing - a gantry shipped with one leg and only a
-render caught it. A balloon brings its own basket and a wyrm its own milestone, so `_site_standing`
-is one paste and there is nothing left to get wrong.
+**AND WHAT A SCULPTURE NEEDS FROM THIS FILE IS THE THING THAT GOES WRONG.** A gecko wants a
+stele, a bat a gantry, a sloth a bough: every one of those is masonry THIS file has to lay on
+terraced ground before the creature exists at all, and every one is somewhere a pier can miss
+its footing - a gantry shipped with one leg and only a render caught it. A balloon brings its
+own basket and a wyrm its own milestone, so `_site_standing` is one paste and there is nothing
+left to get wrong. A stegosaur is the middle case and the cheap one: it needs a PEDESTAL and
+nothing else, sized off its own ground course rather than its bounding box, which is
+`_site_footed`'s whole argument.
 
 `turtle.py`, `frog.py` and `axolotl.py` remain out on the standing grounds: all three take a
 `Ctx` world capture and probe a ground band that assumes the lowland's own Y, and patching a
@@ -174,13 +178,13 @@ BASE_Y = 202               # the park's own floor course; flush ends must land e
 # birds", and the ladybird had to go for its own reasons (see `_delight`). What replaces them is
 # chosen on CLAUDE.md's own measured line, PLANAR/COLUMNAR against VOLUMETRIC, not on taste:
 #
-#   heron   an upright column - stilt legs, an S-neck, a dagger bill, a layered planar wing
+#   stegosaur ONE convex arched mass carrying a row of PLANAR PLATES, on columnar tapers
 #   sloth   a body slung UNDER a line - four columnar limbs hooked over a branch
 #   balloon ONE convex dome carrying a pattern, on a column of rigging over a box
 #   wyrm    a free S-curve topped by a flared PLATE, off a coil at the ground
 #
-# THE BAT AND THE GECKO WERE REPLACED, and by two BESPOKE generators rather than by two more
-# borrowed ones. Jack: "get rid of the gecko and bat - those are used assets, we want NEW
+# THE HERON, THE BAT AND THE GECKO WERE ALL REPLACED, and by BESPOKE generators rather than by
+# more borrowed ones. Jack: "get rid of the gecko and bat - those are used assets, we want NEW
 # things". Both replacements are written to the same measured line and neither is an animal
 # this repo had a body plan for; the balloon is not an animal at all, which a theme park's
 # landmarks are under no obligation to be and which nothing here had ever tried.
@@ -207,8 +211,25 @@ GAPS = [
     {"z_lo": 80450, "z_hi": 80550, "land_a": "frontier", "land_b": "midway",
      "title": "THE FRONTIER REACH",
      "creatures": [
-         {"kind": "heron", "variant": "heron", "t": 0.14, "side": 1, "scale": 0.9,
-          "title": "GREY HERON", "lines": ["stands in the", "frontier marsh"]},
+         # THE FRONTIER END OF THE REACH GETS THE ANIMAL OF THE LAND IT LEADS TO. This stood a
+         # GREY HERON until Jack asked for a dinosaur, and the ask was a repair as much as a
+         # preference: the land was re-themed to the LOST PLATEAU and the plaque still read
+         # "stands in the frontier marsh" - a land that is gone and a marsh that never existed,
+         # the same class as the five Prismworks relays that outlived the modules they named.
+         #
+         # AND IT IS A NEW GENERATOR BECAUSE BOTH DINOSAURS THIS PARK ALREADY OWNS ARE IN SIGHT
+         # OF THIS PLINTH. Measured off their own sidecars, `PF Pterosaur` stands at
+         # x97604-97637 / z80406-80449 - one block off this causeway's own frontier end and
+         # fifteen from where the heron stood - and `PF Sauropod` at x97681 / z80290-80370, 117
+         # blocks away on the same rim walk. Pasting either is what retired the gecko and the
+         # bat: "those are used assets, we want NEW things".
+         #
+         # `t` IS 0.24 RATHER THAN THE HERON'S 0.14 BECAUSE THE ANIMAL IS LONGER THAN THE STOP
+         # WAS. It reaches 22 rows back and 19 forward, against a heron's 7, so at 0.14 its tail
+         # would have been clamped - and a clamped stop is a stop whose far end lands where
+         # `cols` has no column at all. Moved rather than shortened: it clears z_lo by five.
+         {"kind": "stegosaur", "t": 0.24, "side": 1, "facing": "north",
+          "title": "STEGOSAUR", "lines": ["plated, and", "bound for the", "lost plateau"]},
          # brown fur and moss against spruce and cobble, hung in the air so its own outline is
          # read against the sky rather than against the ground it never touches.
          {"kind": "sloth", "t": 0.82, "side": -1, "clear": 5,
@@ -546,7 +567,7 @@ def _plaque(w, cx, cz, plinth_top, pal, facing, title, lines):
 # and THE STRUCTURE EACH ONE NEEDS TO EXIST AT ALL.
 #
 # A CREATURE IS SITED WITH THE THING IT STANDS ON, HANGS FROM OR CLINGS TO, and that is the whole
-# of the work here. `heron.py` wants a pedestal and nothing else. `bat.py` and `sloth.py` are
+# of the work here. `heron.py` and `stegosaur.py` want a pedestal and nothing else. `bat.py` and `sloth.py` are
 # HANGING animals - a bat's own docstring places it under a cave roof and a sloth's says to paste
 # it "with the top layer touching the underside" - and a causeway has no ceiling anywhere, so each
 # is given a beam of the land's own masonry to grip. `gecko.py` clings to a vertical face and its
@@ -669,6 +690,18 @@ def creature_canvas(spec: dict, place=None) -> Canvas:
     if kind == "balloon":
         from . import balloon as m
         return m.build_balloon({"seed": seed, "stand": list(place or [0, 0, 0])})
+    if kind == "stegosaur":
+        from . import stegosaur as m
+        # THE FLANK FACES THE WALKWAY, AND ON THIS CAUSEWAY THAT IS NOT A STYLE CHOICE. The walk
+        # runs along Z and every creature stop is offset in X, so a viewer stands to one SIDE of
+        # the animal - and a stegosaur's plates exist only in profile. Turned to face the walk it
+        # is a blue lump with two orange ears. So its long axis runs along the walk (north or
+        # south) and the spec says which way it looks; north points the head at the land it
+        # introduces. This is the same trap that shipped a 39-block wingspan and a 28-block bough
+        # EDGE-ON from the only place anybody stands, and only a render caught those.
+        return m.build_stegosaur({"seed": seed, "length": float(spec.get("length", 34)),
+                                  "facing": str(spec.get("facing", "north")),
+                                  "stand": list(place or [0, 0, 0])})
     if kind == "wyrm":
         from . import wyrm as m
         # THE HEAD FACES THE WALKWAY, and that is a function of which side of the spine the stop
@@ -687,14 +720,16 @@ def creature_canvas(spec: dict, place=None) -> Canvas:
     raise ValueError(f"unknown creature kind {kind!r}; have {sorted(_SITERS)}")
 
 
-def _site_heron(w, cols, top, cx, cz, spec, pal, side, record):
-    """A heron planted foot-first on the plinth.
+def _site_footed(w, cols, top, cx, cz, spec, pal, side, record):
+    """An animal planted foot-first on the plinth - a heron once, a stegosaur now.
 
-    ONLY THE FEET NEED TO STAND ON SOMETHING - the neck, the wings and the tail coverts are
-    already one connected piece with the legs inside `heron.py`'s own geometry (verified at
-    this scale by flood fill, not assumed), so they are free to reach out over open air past
-    the plinth's own edge exactly as a real heron's silhouette does. What the plinth has to get
-    right is the two leg columns, not the whole bird's footprint.
+    ONLY THE FEET NEED TO STAND ON SOMETHING - a neck, a wing, a tail or a beak is already one
+    connected piece with the legs inside the creature's own geometry (verified at the sited scale
+    by flood fill, not assumed), so they are free to reach out over open air past the plinth's
+    own edge exactly as a real animal's silhouette does. What the plinth has to get right is the
+    LEG COLUMNS, not the whole footprint - which is why `_PLINTH_HALF` is measured off the
+    creature's own GROUND COURSE and not off its bounding box. A stegosaur is 34 rows long and
+    its four feet touch down across 13 of them.
     """
     return _paste(w, creature_canvas(spec, [cx, top + 1, cz]), keep_largest=True, record=record)
 
@@ -833,7 +868,7 @@ def _site_standing(w, cols, top, cx, cz, spec, pal, side, record):
     return _paste(w, creature_canvas(spec, [cx, top + 1, cz]), keep_largest=True, record=record)
 
 
-_SITERS = {"heron": _site_heron, "gecko": _site_gecko,
+_SITERS = {"heron": _site_footed, "stegosaur": _site_footed, "gecko": _site_gecko,
            "bat": _site_bat, "sloth": _site_sloth,
            "balloon": _site_standing, "wyrm": _site_standing}
 
@@ -898,7 +933,7 @@ def _site_archway(w, at, facing, land, entering):
     return _paste(w, c, keep_largest=True), bbox
 
 # The plinth only has to be wide enough for a creature's own feet, or for the foot of whatever
-# it hangs from or clings to - see `_site_heron`'s own note. The bulge asks for a good deal more
+# it hangs from or clings to - see `_site_footed`'s own note. The bulge asks for a good deal more
 # than that, because a gantry's piers and a stele's own footing stand well outside it and each
 # one seats on its own real ground (`_ground_pier`), which only exists where the shape does.
 #
@@ -911,10 +946,12 @@ def _site_archway(w, at, facing, land, entering):
 # five-block plinth the bat and the sloth each stood over a two-course disc of the
 # land's own trim with nothing on it - an empty plinth reads as a statue somebody has
 # taken away. Three is enough to carry the name plaque and no more.
-_PLINTH_HALF = {"heron": 5, "gecko": 5, "bat": 3, "sloth": 3, "balloon": 4, "wyrm": 5}
-_CREATURE_ROOM = {"heron": 13, "gecko": 15, "bat": 18, "sloth": 16,
+_PLINTH_HALF = {"heron": 5, "stegosaur": 8, "gecko": 5, "bat": 3, "sloth": 3,
+                "balloon": 4, "wyrm": 5}
+_CREATURE_ROOM = {"heron": 13, "stegosaur": 15, "gecko": 15, "bat": 18, "sloth": 16,
                   "balloon": 11, "wyrm": 13}
-_FLATTEN = {"heron": 8, "gecko": 18, "bat": 21, "sloth": 16, "balloon": 11, "wyrm": 11}
+_FLATTEN = {"heron": 8, "stegosaur": 11, "gecko": 18, "bat": 21, "sloth": 16,
+            "balloon": 11, "wyrm": 11}
 # HOW FAR A STOP'S OWN STRUCTURE REACHES ALONG THE WALK, either side of its own centre.
 #
 # THIS EXISTS BECAUSE A GANTRY SHIPPED WITH ONE LEG. A span is 101 rows and a stele is 33 of
@@ -928,7 +965,12 @@ _FLATTEN = {"heron": 8, "gecko": 18, "bat": 21, "sloth": 16, "balloon": 11, "wyr
 # THE TWO SELF-CARRYING PIECES ARE THE SMALL NUMBERS HERE, and that is the point of them: a
 # stop's reach is set by the STRUCTURE this file has to build for a creature, not by the
 # creature. A stele is 33 rows of a 101-row span; a balloon's basket is five.
-_CREATURE_ZHALF = {"heron": 7, "gecko": 18, "bat": 22, "sloth": 16, "balloon": 9, "wyrm": 7}
+# **AND FOR A SELF-SUPPORTED ANIMAL THE ANIMAL IS THE STRUCTURE.** A stegosaur needs no
+# gantry and no stele, so nothing this file lays reaches past its plinth - and it is still forty
+# rows long, so its own tail is what would land where `cols` has no column. Measured off the
+# built model: 19 rows forward of the plinth's centre and 22 back.
+_CREATURE_ZHALF = {"heron": 7, "stegosaur": 22, "gecko": 18, "bat": 22, "sloth": 16,
+                   "balloon": 9, "wyrm": 7}
 
 
 # ------------------------------------------------------------------------------------ one gap
@@ -964,7 +1006,7 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
     garden_cx = xs + int(p["garden_side"]) * goff
     stops.append((garden_cx, garden_cz, 10, gextra, "garden", None))
 
-    creature_stops = []          # (cx, cz, PLINTH half, spec) - see `_site_heron`'s own note:
+    creature_stops = []          # (cx, cz, PLINTH half, spec) - see `_site_footed`'s note:
                                   # the plinth only has to carry the feet or the clod, so this
                                   # is deliberately much smaller than the room the bulge opens.
     for spec in (gap.get("creatures") or []):
