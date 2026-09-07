@@ -543,7 +543,20 @@ final class Plan {
 		Map<String, Integer> out = new LinkedHashMap<>();
 		int n = 0;
 		int limit = Math.max(1, cap);
+		// A TRIP IS A HANDFUL OF MATERIALS, NOT WHATEVER FALLS INSIDE A CELL BUDGET. Two things
+		// come out of capping the MATERIALS, and the second is why the list used to change every
+		// two seconds:
+		//   - Jack, on the pack: "it stacks up with random resources vs things it logically might
+		//     need". A cell budget of `empty slots x 64` reaches deep into an area holding forty
+		//     materials, so a trip fetched forty things and finished none of them.
+		//   - and the cut point of a CELL budget is UNSTABLE. The tail is ordered by distance to
+		//     an anchor that drifts as cells go in, and the budget itself shrinks as the pack
+		//     fills, so which materials fell either side of the line moved on every recount - a
+		//     different shopping list, announced, every two seconds. See Hud.saidLoadPlan.
+		// Capped at materials, the list is a decision rather than an accident, and it changes only
+		// when the WORK does.
 		for (Work.Cell c : frontier) {
+			if (!out.containsKey(c.item()) && out.size() >= MAX_MATERIALS) continue;
 			if (seen.add(c.pos().asLong())) {
 				out.merge(c.item(), 1, Integer::sum);
 				n++;
@@ -551,6 +564,9 @@ final class Plan {
 		}
 		for (Work.Cell c : sorted) {
 			if (n >= limit) break;
+			// A material past the cap is SKIPPED rather than ending the list: the cells under it
+			// are still the next courses of this area, and their materials are still this trip's.
+			if (!out.containsKey(c.item()) && out.size() >= MAX_MATERIALS) continue;
 			if (seen.add(c.pos().asLong())) {
 				out.merge(c.item(), 1, Integer::sum);
 				n++;
@@ -588,6 +604,23 @@ final class Plan {
 
 	/** Buckets a shopping list may ask for at once: they take a slot each. */
 	static final int BUCKETS_PER_TRIP = 4;
+
+	/**
+	 * How many DIFFERENT materials one trip may be for. See {@link #loadPlan}.
+	 *
+	 * <p>Six is about a working load: enough that a course of masonry with its trim and its
+	 * lighting is one journey, and few enough that the list is legible, stable between recounts,
+	 * and can be finished before the next one is planned.
+	 */
+	static final int MAX_MATERIALS = 6;
+
+	/** Is this list already in the pack? Then the trip is over, wherever the player is. */
+	static boolean covered(Map<String, Integer> plan, Map<String, Integer> carrying) {
+		for (Map.Entry<String, Integer> e : plan.entrySet()) {
+			if (carrying.getOrDefault(e.getKey(), 0) < e.getValue()) return false;
+		}
+		return true;
+	}
 
 	/** How many cells a shopping list covers. */
 	static int cells(Map<String, Integer> plan) {

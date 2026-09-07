@@ -190,6 +190,58 @@ class AuditFixesTest {
 	}
 
 	@Test
+	void aTripIsAHandfulOfMaterialsAndNotWhateverFallsInsideACellBudget() {
+		// Jack: "shopping list is getting constantly spammed and stopping all progress."
+		// Twenty materials on one course and a generous budget used to make one trip for all
+		// twenty - which finishes none of them, and whose tail moved every recount as the budget
+		// and the anchor drifted, so the list was a different list every two seconds.
+		List<Work.Cell> area = new java.util.ArrayList<>();
+		for (int m = 0; m < 20; m++) {
+			for (int i = 0; i < 40; i++) area.add(cell(i, 200, m, "material_" + m));
+		}
+		var plan = Plan.loadPlan(area, List.of(), new BlockPos(0, 200, 0), 2000);
+		assertEquals(Plan.MAX_MATERIALS, plan.size(), "one trip, a handful of materials");
+		assertEquals(40 * Plan.MAX_MATERIALS, Plan.cells(plan),
+			"and all of each of them, not a slice cut by a cell budget");
+	}
+
+	@Test
+	void aMaterialPastTheCapIsSkippedRatherThanEndingTheList() {
+		// The cells under a capped-out material are still the next courses of this area, and their
+		// materials are still this trip's. Ending the walk there would make the list depend on the
+		// order the area happened to arrive in.
+		List<Work.Cell> area = new java.util.ArrayList<>();
+		for (int m = 0; m < Plan.MAX_MATERIALS; m++) area.add(cell(m, 200, 0, "material_" + m));
+		area.add(cell(0, 201, 0, "over_the_cap"));
+		for (int i = 1; i < 20; i++) area.add(cell(i, 201, 0, "material_0"));
+		var plan = Plan.loadPlan(area, List.of(), new BlockPos(0, 200, 0), 64);
+		assertNull(plan.get("over_the_cap"), "the seventh material is not this trip's");
+		assertEquals(20, plan.get("material_0"), "and the walk carried on past it");
+	}
+
+	@Test
+	void theListDoesNotChangeWhenTheBUDGETWOBBLES() {
+		// The pack fills and empties as a session runs, so the cap moves; the SHOPPING LIST must
+		// not, or the loop announces a new trip - and re-picks a target chest - every recount.
+		List<Work.Cell> area = new java.util.ArrayList<>();
+		for (int m = 0; m < 12; m++) {
+			for (int i = 0; i < 20; i++) area.add(cell(i, 200 + m, m, "material_" + m));
+		}
+		BlockPos at = new BlockPos(0, 200, 0);
+		assertEquals(Plan.loadPlan(area, List.of(), at, 900).keySet(),
+			Plan.loadPlan(area, List.of(), at, 1600).keySet(),
+			"the same work, two budgets, one shopping list");
+	}
+
+	@Test
+	void aListThePackAlreadyHoldsIsATripThatIsOver() {
+		var plan = java.util.Map.of("stone_bricks", 64, "lantern", 4);
+		assertFalse(Plan.covered(plan, java.util.Map.of("stone_bricks", 64)));
+		assertFalse(Plan.covered(plan, java.util.Map.of("stone_bricks", 63, "lantern", 9)));
+		assertTrue(Plan.covered(plan, java.util.Map.of("stone_bricks", 70, "lantern", 4)));
+	}
+
+	@Test
 	void aCellIsNeverDemandedTwice() {
 		Work.Cell c = cell(1, 200, 1, "stone");
 		var plan = Plan.loadPlan(List.of(c), List.of(c), new BlockPos(0, 200, 0), 64);

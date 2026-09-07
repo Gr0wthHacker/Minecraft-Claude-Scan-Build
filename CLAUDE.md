@@ -12252,6 +12252,43 @@ exactly the tick it exists for.
 are one-shot state transitions that clear the condition as they fire (`topUp = false`, the
 re-anchor, the design-complete hand-off). This was the only one that could repeat.
 
+### ...and it was still spamming, because the list itself was never the same twice (chunkscan 0.8.9)
+
+Jack, on 0.8.7: *"shopping list is getting constantly spammed and stopping all progress."* The
+guard was right and it was guarding a thing that genuinely changed on every recount, and **the
+same line that made it change is what stopped the progress**:
+
+    if (!fetching) loadPlan = null;                      // the list belongs to the trip
+
+**A TRIP IS NOT ONE RECOUNT.** Cleared on any phase that was not a FETCH, the list was thrown away
+and remade every two seconds in exactly the states where the loop is oscillating — PACK_FULL, a
+DEAD_END, every candidate chest still cooling off. A remade list is a DIFFERENT list, and the list
+picks the chest: a new target every two seconds, a flight redirected before it arrives, and the
+announcement again each time. One line, both halves of the report.
+
+**AND THE CUT POINT OF A CELL BUDGET IS UNSTABLE BY CONSTRUCTION.** `loadPlan` filled to
+`empty slots x 64` cells, ordered by course and then by distance to the anchor — and the anchor
+drifts as cells go in while the budget shrinks as the pack fills, so **which materials fell either
+side of the line moved on every recount.** The signature is the item SET, so it changed too. A
+budget that reaches into forty materials is also the "stacks up with random resources" complaint
+from two sessions ago: a trip for forty things finishes none of them.
+
+Three changes, in that order of importance:
+
+- **A trip is a handful of materials.** `Plan.MAX_MATERIALS` is 6 — enough that a course of
+  masonry with its trim and its lighting is one journey. A material past the cap is SKIPPED rather
+  than ending the walk, or the list would depend on the order the area happened to arrive in.
+  Capped at MATERIALS the list is a decision rather than an accident, and it changes only when the
+  WORK does: the same area at two different budgets is now the same list.
+- **The list is kept until the trip is actually over** — `Hud.tripOver`: the pack holds it
+  (`Plan.covered`), the anchor moved more than 24, the design changed, or it is five minutes old.
+  Plus the healthy case, which is what the old line was reaching for: the phase came back BUILD
+  with something to place, so the trip was declined.
+- **And it is said at most once a minute** whatever else happens. A signature is a guard against
+  repeating yourself; a clock is a guard against a future list finding a new way to differ.
+
+675 Java tests, `chunkscan-0.8.9.jar` built, not flown.
+
 ## The autonomy audit (2026-09-06) — and the thing underneath all of it
 
 Jack: *"audit carefully and identify how we improve this all functionally."* Four parallel read-only

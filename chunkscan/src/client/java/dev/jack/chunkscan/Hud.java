@@ -91,6 +91,13 @@ final class Hud {
 	 * the trip starts, held until it ends, so a chest across the island cannot rewrite it.
 	 */
 	private static Map<String, Integer> loadPlan = null;
+	/** Where the work was when {@link #loadPlan} was made, and for which design. */
+	private static BlockPos loadPlanAt = null;
+	private static String loadPlanFor = null;
+	/** When it was made: the backstop that stops a list outliving the world it was made for. */
+	private static long loadPlanMadeAt = 0;
+	/** When the shopping list was last said out loud. See {@link #saidLoadPlan}. */
+	private static long saidLoadPlanAt = 0;
 
 	/**
 	 * The shopping list as it was last ANNOUNCED - the item NAMES, never the counts.
@@ -108,6 +115,40 @@ final class Hud {
 	 * What a trip IS, is what it is going to fetch.
 	 */
 	private static String saidLoadPlan = null;
+
+	/** How often the shopping list may be read out, however often it is remade. */
+	private static final long SAY_LOAD_PLAN_MS = 60_000;
+	/** How far the work may move before the trip it was planned for is a different trip. */
+	private static final int LOAD_PLAN_MOVE = 24;
+	/** A list older than this is about a world that has moved on. */
+	private static final long LOAD_PLAN_MAX_MS = 5 * 60_000;
+
+	/**
+	 * Is the trip this shopping list was made for finished?
+	 *
+	 * <p>Four ways, and NOT "the phase this recount was not a fetch", which is what it used to be:
+	 * the pack holds the list, the work moved somewhere else, the design changed, or the list is
+	 * old enough that the world it was planned against has moved. Anything else - a chest cooling
+	 * off, a full pack, a dead end - is the same trip, still unfinished, and remaking the list
+	 * there is what changed the target chest mid-flight.
+	 */
+	private static boolean tripOver(Map<String, Integer> carrying, String design, BlockPos anchor,
+	                                long now) {
+		if (loadPlan == null) return false;
+		if (!design.equals(loadPlanFor)) return true;
+		if (Plan.covered(loadPlan, carrying)) return true;
+		if (now - loadPlanMadeAt > LOAD_PLAN_MAX_MS) return true;
+		return anchor != null && loadPlanAt != null
+			&& anchor.distSqr(loadPlanAt) > (double) LOAD_PLAN_MOVE * LOAD_PLAN_MOVE;
+	}
+
+	/** Drop the list, and with it the chest it was flying to. */
+	private static void forgetLoadPlan() {
+		loadPlan = null;
+		loadPlanAt = null;
+		loadPlanFor = null;
+		loadPlanMadeAt = 0;
+	}
 	/** Every item the followed design wants anywhere, cached per design. Null: could not be read. */
 	private static java.util.Set<String> designItems = null;
 	private static String designItemsFor = null;
@@ -287,7 +328,7 @@ final class Hud {
 			return true;
 		}
 		fetching = false;
-		loadPlan = null;
+		forgetLoadPlan();
 		lastProgressMs = t;
 		lookTarget = look;
 		lookSince = t;
@@ -759,12 +800,22 @@ final class Hud {
         // question below - how far is the nearest cell, which course is lowest, where to move to -
         // has to be asked of the same list. Asked of the whole todo, the eight-course lookahead
         // was spent on courses the fence excludes and the loop moved to cells it may not reach.
-        java.util.List<Work.Cell> eligible = sp.todo().stream()
+        //
+        // HOISTED, AND CHEAPEST FIRST. This runs over EVERY cell of the design - `Park Complete`
+        // is 541,764 of them - and it used to resolve the schematics directory, normalise an
+        // absolute path, take two class monitors and allocate a stream PER CELL, on the same tick
+        // that prints the chat line. That is why the lag and the message arrive together. The
+        // directory and the plot gate are one answer for the whole pass; the predicates are
+        // ordered by what they cost, so the free ones (a fence that is not set, a material filter
+        // that is not set) decide most cells before anything expensive is asked.
+        java.nio.file.Path schemDir = ScanRunner.schematicsDir(mc);
+        Islands.Gate plot = Islands.gate(schemDir);
+        java.util.List<Work.Cell> eligible = Perf.time("loop filter", () -> sp.todo().stream()
+            .filter(c -> Bounds.contains(c.pos()))        // the autofly fence: free when none is set
             .filter(Hud::wanted)                          // /cscan only <material>
+            .filter(c -> !plot.outside(c.pos().getX(), c.pos().getZ()))
             .filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
-            .filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
-            .filter(c -> Bounds.contains(c.pos()))
-            .toList();
+            .toList());
         // ---- STAY WHERE THE WORK IS. See Loop.holdHere. Before any question about anchors, courses,
         // spots or stations: is there anything placeable, that I am carrying, within reach of where
         // I am? Then this is the place, and the only thing to do is let the printer place it.
@@ -889,10 +940,10 @@ final class Hud {
         for (int i = 0; i < courses.size(); i++) {
             java.util.List<Work.Cell> course = Loop.layer(here, courses.get(i), Loop.LAYER_BAND);
             java.util.List<Work.Cell> ok = Work.placeableNow(mc.level, course).stream()
-                .filter(Hud::wanted)
-                .filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
-                .filter(c -> !Islands.outside(ScanRunner.schematicsDir(mc), c.pos().getX(), c.pos().getZ()))
                 .filter(c -> Bounds.contains(c.pos()))   // the autofly fence: not this session's work
+                .filter(Hud::wanted)
+                .filter(c -> !plot.outside(c.pos().getX(), c.pos().getZ()))
+                .filter(c -> Rules.inLockedProfile(c.block()) && !Printer.givenUpOn(c.pos()))
                 .toList();
             // ---- AND THEN ASK THE PRINTER, NOT AN APPROXIMATION OF IT. A solid neighbour is
             // necessary and not sufficient: the item has to yield the state the design wants, it
@@ -1040,9 +1091,17 @@ final class Hud {
 					Work.loadCapacity(mc.player) + dumpFree);
 				Map<String, Integer> away = Work.dumpable(mc.player, needed);
 				// SAID WHEN THE TRIP CHANGES, NOT WHEN THE LIST IS REBUILT. See saidLoadPlan.
+				loadPlanAt = anchor;
+				loadPlanFor = sp.name();
+				loadPlanMadeAt = now;
 				String signature = new java.util.TreeSet<>(loadPlan.keySet()).toString();
-				if (!signature.equals(saidLoadPlan)) {
+				// SAID AT MOST ONCE A LIST, AND NEVER MORE THAN ONCE A MINUTE. The signature alone
+				// was not enough: a list that legitimately changes as one material is covered and
+				// the next comes into range still has nothing to gain from being read out every
+				// recount. A cap in seconds cannot be defeated by anything a future list does.
+				if (!signature.equals(saidLoadPlan) && now - saidLoadPlanAt >= SAY_LOAD_PLAN_MS) {
 					saidLoadPlan = signature;
+					saidLoadPlanAt = now;
 					mc.player.sendSystemMessage(Component.literal("[cscan] shopping list for "
 						+ Plan.cells(loadPlan) + " cells around " + Wand.fmt(anchor) + ": "
 						+ Plan.describe(loadPlan)
@@ -1123,7 +1182,22 @@ final class Hud {
 		BuildJob.decide(phase);
 		fetching = phase == Loop.Phase.FETCH;
 		if (fetching != wasFetching) lastProgressMs = now;   // a trip's clock and a build's are two clocks
-		if (!fetching) loadPlan = null;                      // the list belongs to the trip
+		// ---- THE LIST BELONGS TO THE TRIP, AND A TRIP IS NOT ONE RECOUNT.
+		//
+		// Cleared on any phase that was not a FETCH, it was thrown away and remade every two
+		// seconds in exactly the states where the loop is oscillating - PACK_FULL, DEAD_END, a
+		// chest still cooling off - and a remade list is a different list: a different target
+		// chest, a flight redirected before it arrives, and the announcement again. Jack:
+		// "shopping list is getting constantly spammed and stopping all progress". Both halves
+		// of that are this one line.
+		//
+		// It is kept until the trip is genuinely over: the pack holds it, the work has moved on,
+		// the design changed, or it is old enough to be about a world that has moved. See
+		// tripOver.
+		// ...and a trip you have decided not to make is over too: the phase came back BUILD,
+		// which means there is something in front of you to place.
+		if (!fetching && canWork) forgetLoadPlan();
+		else if (tripOver(carrying, sp.name(), anchor, now)) forgetLoadPlan();
 		// THE TOP-UP IS OVER WHEN THERE IS NOTHING LEFT TO FETCH, which is what a full pack and a
 		// fully-stocked design both look like. Ending it on a timer or on the first container would
 		// be ending it on something other than the thing it is for.
@@ -1878,8 +1952,9 @@ final class Hud {
 		following = false;
 		followAll = false;
 		fetching = false;
-		loadPlan = null;
+		forgetLoadPlan();
 		saidLoadPlan = null;
+		saidLoadPlanAt = 0;
 		workAnchor = null;
 		designItemsFor = null;
 		designItems = null;
@@ -2030,8 +2105,9 @@ final class Hud {
         ChunkScanClient.printDesign = name;
         Withdraw.cancel();
         fetching = false;
-        loadPlan = null;
+        forgetLoadPlan();
         saidLoadPlan = null;
+        saidLoadPlanAt = 0;
         workAnchor = null;
         // ---- FILL THE PACK FIRST. See topUp.
         topUp = true;
@@ -2125,7 +2201,11 @@ final class Hud {
 			// underneath us by another mod, and a transient failure there should cost one tick.
 			if (following) {
 				try {
-					advance(mc, sp);
+					// TIMED SEPARATELY FROM THE DIFF, because they are separate costs and the
+					// profiler measured only the first: `recount` is the world diff, `loop decide`
+					// is the half-dozen passes over the todo list that follow it. A report that
+					// names one of them blames whichever it happens to name.
+					Perf.run("loop decide", () -> advance(mc, sp));
 					hiccups = 0;
 				} catch (Exception e) {
 					if (++hiccups <= 3) {
