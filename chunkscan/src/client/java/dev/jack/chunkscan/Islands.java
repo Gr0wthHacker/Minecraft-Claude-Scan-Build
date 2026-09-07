@@ -141,11 +141,52 @@ final class Islands {
 		return at(dir, p.getX(), p.getZ());
 	}
 
-    /** Known registries authorize only their exact plot union. Missing registries retain legacy Plot behavior. */
-    static boolean outside(Path dir, int x, int z) {
+    /**
+     * The plot gate, RESOLVED ONCE, for a caller that has to ask about a great many cells.
+     *
+     * <p><b>Jack, on the frame rate: <i>"every time there's a chat update there's major lag"</i>.
+     * The chat line and the hitch arrive together because both come out of the same recount, and
+     * most of the hitch was here.</b> {@code outside(dir, x, z)} is a per-CELL question and it
+     * answered it the expensive way every time: {@link ActiveBuild#siteInputs} normalises an
+     * absolute path, {@link #all} takes a class monitor and reads the clock, and the containment
+     * test allocated a stream. The recount asks it of every cell of the design and then again per
+     * course - on `Park Complete` that is some hundreds of thousands of path normalisations,
+     * monitor acquisitions and stream allocations in ONE tick, twice a second. Nothing at the call
+     * site said so: it reads as a boolean.
+     *
+     * <p>A gate is the same answer with the lookup hoisted out of the loop. It is AS FRESH AS THE
+     * MOMENT IT WAS MADE and carries no staleness window of its own, which is exactly what one
+     * pass over one design wants - and is why it is an explicit object the caller holds rather
+     * than a hidden cache that would have to guess when to expire.
+     */
+    record Gate(Island[] islands, boolean registryPresent) {
+        boolean outside(int x, int z) {
+            if (islands.length == 0) return registryPresent || Plot.outside(x, z);
+            for (Island i : islands) {
+                if (i.contains(x, z)) return false;
+            }
+            return true;
+        }
+    }
+
+    /** Resolve the gate. Do this ONCE per pass over a cell list, never per cell. */
+    static synchronized Gate gate(Path dir) {
         Map<String, Island> islands = all(dir);
-        if (islands.isEmpty()) return Files.exists(ActiveBuild.siteInputs(dir).resolve(FILE)) || Plot.outside(x, z);
-        return islands.values().stream().noneMatch(i -> i.contains(x, z));
+        // The registry FILE is consulted only when the registry is empty, which is the one case
+        // whose answer turns on whether it is missing or merely unparseable. Asking otherwise
+        // would put a filesystem stat behind a boolean - and an unparseable registry would then
+        // take every cell of the design down that branch, turning laggy into unplayable with
+        // nothing but the lag to say why.
+        boolean present = islands.isEmpty() && Files.exists(ActiveBuild.siteInputs(dir).resolve(FILE));
+        return new Gate(islands.values().toArray(new Island[0]), present);
+    }
+
+    /**
+     * Known registries authorize only their exact plot union; a missing registry keeps the legacy
+     * single-plot behaviour. ONE-SHOT — for a list of cells, hold a {@link #gate} instead.
+     */
+    static boolean outside(Path dir, int x, int z) {
+        return gate(dir).outside(x, z);
     }
 
     static boolean storageOnSite(Path dir, Island source, int x, int z) {

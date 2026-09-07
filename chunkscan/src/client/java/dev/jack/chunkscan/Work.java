@@ -48,15 +48,28 @@ final class Work {
 	 *
 	 * @param nearestUnseen a cell in an unloaded chunk to go and look at, or null
 	 */
+	/**
+	 * @param todoTotal  every cell left to place, WHEREVER it is - see the note on `detail`.
+	 * @param nearestTodo the nearest of those to `near`, so "nothing near, move" is still a global
+	 *                   question when the list itself is local.
+	 */
 	record Split(String name, List<Cell> todo, List<Cell> wrong, int built, int unseen,
-	             BlockPos nearestUnseen, List<BlockPos> dig, List<Cell> manual) {
+	             BlockPos nearestUnseen, List<BlockPos> dig, List<Cell> manual,
+	             int todoTotal, BlockPos nearestTodo) {
 		/** The arity before declined work existed; a design with none reads exactly as it did. */
 		Split(String name, List<Cell> todo, List<Cell> wrong, int built, int unseen,
 		      BlockPos nearestUnseen, List<BlockPos> dig) {
 			this(name, todo, wrong, built, unseen, nearestUnseen, dig, List.of());
 		}
 
-		int total() { return todo.size() + wrong.size() + built + unseen + manual.size(); }
+		/** The arity before the list could be capped: the list IS everything, as it used to be. */
+		Split(String name, List<Cell> todo, List<Cell> wrong, int built, int unseen,
+		      BlockPos nearestUnseen, List<BlockPos> dig, List<Cell> manual) {
+			this(name, todo, wrong, built, unseen, nearestUnseen, dig, manual,
+				todo.size(), todo.isEmpty() ? null : todo.get(0).pos());
+		}
+
+		int total() { return todoTotal + wrong.size() + built + unseen + manual.size(); }
 
 		/**
 		 * Nothing left to place, nothing hiding in a chunk we do not have, AND nothing left to break.
@@ -71,7 +84,7 @@ final class Work {
 		 * the number that ends a session has to include it.
 		 */
 		boolean complete() {
-			return todo.isEmpty() && wrong.isEmpty() && unseen == 0 && dig.isEmpty() && manual.isEmpty();
+			return todoTotal == 0 && wrong.isEmpty() && unseen == 0 && dig.isEmpty() && manual.isEmpty();
 		}
 
 		/**
@@ -211,6 +224,16 @@ final class Work {
 		}
 		JsonObject root = JsonParser.parseString(Files.readString(p, StandardCharsets.UTF_8)).getAsJsonObject();
 		JsonArray arr = root.getAsJsonArray("cells");
+		// A MANIFEST IS NOT AN EMPTY DESIGN. `work.json` carries the origin, the dig list and the
+		// count; the CELLS live in the schematic beside it, and this fallback exists only for a
+		// work list with no schematic. Read as zero cells it would report the design complete -
+		// which is the one failure worse than not reading it at all.
+		if (arr == null || arr.isEmpty()) {
+			String lit = root.has("schematic") ? root.get("schematic").getAsString() : name + ".litematic";
+			throw new IOException(name + ".work.json is a manifest — its cells live in " + lit
+				+ ", which is missing. Restore the schematic, or regenerate both with:"
+				+ " python -m mcbuild gen <config> --ship");
+		}
 		List<Cell> out = new ArrayList<>(arr.size());
 		for (var e : arr) {
 			JsonArray c = e.getAsJsonArray();
@@ -262,14 +285,77 @@ final class Work {
 	}
 
 	static Split split(Level level, Path schematicsDir, String name, BlockPos near, int radius) throws IOException {
+		return split(level, schematicsDir, name, near, radius, 0);
+	}
+
+	/** How many cells the packed sort key can address: 23 bits of index. */
+	static final int SORT_INDEX_MAX = 1 << 23;
+
+	/** The order the packed key encodes, spelled out - the fallback, and what the test compares against. */
+	static List<Cell> sortSlowly(List<Cell> todo, BlockPos near) {
+		List<Cell> out = new ArrayList<>(todo);
+		out.sort((a, b) -> {
+			int recipe = Integer.compare(ActionRecipe.order(a.block()), ActionRecipe.order(b.block()));
+			if (recipe != 0) return recipe;
+			int dy = Integer.compare(a.pos().getY(), b.pos().getY());     // bottom-up: always reachable
+			if (dy != 0) return dy;
+			return Double.compare(a.pos().distSqr(near), b.pos().distSqr(near));
+		});
+		return out;
+	}
+
+	private static Split finish(String name, List<Cell> todo, List<Cell> wrong, int built, int unseen,
+	                            BlockPos nearestUnseen, List<BlockPos> dig, List<Cell> manual,
+	                            int todoTotal, BlockPos nearestTodo, long sortT0) {
+		Perf.record("split sort", System.nanoTime() - sortT0);
+		return new Split(name, todo, wrong, built, unseen, nearestUnseen, dig, manual,
+			todoTotal, nearestTodo);
+	}
+
+	/**
+	 * @param detail how far from `near` a cell has to be to appear in the todo LIST. 0 means all of
+	 *               them, which is what every command wants; the loop's own recount passes its
+	 *               working radius.
+	 *
+	 * <p><b>COUNT GLOBALLY, LIST LOCALLY.</b> Measured in game with `/cscan perf`, this call was
+	 * <b>262 ms on average and 427 at worst</b> - a quarter-second freeze twice a second, and by
+	 * far the largest thing this mod does. It built and SORTED a list of every remaining cell of
+	 * `Park Complete` - some two hundred thousand of them - so that {@code Hud.advance} could
+	 * immediately narrow it to the sixteen blocks around the body and throw the rest away.
+	 *
+	 * <p>The counts still cover the whole design, because completion and progress are global
+	 * questions and getting those wrong ends a session early. What is bounded is the LIST, and the
+	 * one global question the loop asks of it - where is the nearest work when there is none here -
+	 * is answered by {@code nearestTodo}, computed in the same pass for nothing.
+	 */
+	static Split split(Level level, Path schematicsDir, String name, BlockPos near, int radius,
+	                   int detail) throws IOException {
 		List<Cell> todo = new ArrayList<>(), wrong = new ArrayList<>(), manual = new ArrayList<>();
+		// ---- BREAK IT FIRST, THEN PLACE IT. 2,970 cells of `Park Complete` are in the design AND
+		// on its dig list - 2,933 of them the ground plane a lake and a well are cut through - and
+		// nothing expressed which comes first: `split` put the cell in `todo` while `digLeft`
+		// returned it as still standing, on the same tick, under the same radius, so an unattended
+		// session could place a block and break it again for ever.
+		//
+		// It needs no ordering token, only the two rules that follow from what the lists MEAN. A
+		// dig cell that is still solid is an obstruction, so it is not placeable yet; once broken
+		// it leaves the dig list by itself and becomes ordinary work. The other half of the rule
+		// is in `Digger.judge`: a cell already holding what the design wants is the finished
+		// build, not the obstruction, and is never broken - without that the pair would loop.
+		List<BlockPos> digNow = digLeft(level, schematicsDir, name, near, radius);
+		Set<BlockPos> owedToTheDigger = digNow.isEmpty() ? Set.of() : new java.util.HashSet<>(digNow);
 		int built = 0;
 		long r2 = (long) radius * radius;
+		long d2 = (long) detail * detail;
 		int unseen = 0;
+		int todoTotal = 0;
+		BlockPos nearestTodo = null;
+		double todoD = Double.MAX_VALUE;
 		BlockPos nearestUnseen = null;
 		double unseenD = Double.MAX_VALUE;
 		// BY CHUNK, and only the chunks the radius reaches. An unloaded chunk is one `hasChunk`
 		// and its cells are unseen without a world lookup each; a loaded one is diffed cell by cell.
+		long diffT0 = System.nanoTime();
 		for (Map.Entry<Long, List<Cell>> bin : cached(schematicsDir, name).bins().entrySet()) {
 			int cx = (int) (bin.getKey() & 0xFFFFFFFFL), cz = (int) (bin.getKey() >> 32);
 			if (radius > 0 && !binNear(cx, cz, near, radius)) continue;
@@ -288,12 +374,28 @@ final class Work {
 				continue;
 			}
 			BlockState st = level.getBlockState(c.pos());
-			if (matches(st, c.block())) built++;
+			// A BLANK BOARD IS NOT A BUILT SIGN. The block lands, `matches` says yes, and the text
+			// update is a second action that can time out - so a sign whose words never arrived
+			// counted as finished and `SignWriter.verification` had no caller at all. Only while a
+			// roster is ARMED: outside one we know nothing about any sign's words, and declining
+			// them all would quietly forget every board in the park.
+			if (matches(st, c.block()) && !awaitingText(c)) built++;
+			// ...and a board still waiting for its words is a second ACTION outstanding, not a
+			// deviation: it goes to `manual` with the rest of the work handed back, never to
+			// `wrong`, which would report a correct sign as the world holding something else.
+			else if (matches(st, c.block())) manual.add(c);
+			// Still owed to the digger: an obstruction, not work the printer may take.
+			else if (owedToTheDigger.contains(c.pos())) manual.add(c);
 			// Declined BEFORE the replaceable test, or it lands in `todo` and the printer spends
 			// its tries on a cell it can never satisfy - which reads exactly like a stall.
 			else if (ActionRecipe.manual(c.block()) != null || textlessSign(c)) manual.add(c);
 			else if (isReplaceable(st) || ActionRecipe.slabIntermediate(st, c.block()) || ActionRecipe.cauldronIntermediate(st, c.block())
-				|| ActionRecipe.vineIntermediate(st, c.block()) || ActionRecipe.glowLichenIntermediate(st, c.block())) todo.add(c);
+				|| ActionRecipe.vineIntermediate(st, c.block()) || ActionRecipe.glowLichenIntermediate(st, c.block())) {
+				todoTotal++;
+				double d = c.pos().distSqr(near);
+				if (d < todoD) { todoD = d; nearestTodo = c.pos(); }
+				if (detail <= 0 || d <= d2) todo.add(c);
+			}
 			else wrong.add(c);
 		}
 		}
@@ -301,33 +403,43 @@ final class Work {
 		// BOTH sides of every comparison, so a hundred thousand cells cost about three and a half
 		// million of each - and `order` used to parse a string and allocate a map every time. The
 		// keys are a property of the cell, not of the comparison, so they are computed once.
+		// ...AND SORTED WITHOUT BOXING. A comparator over an `Integer[]` allocates one box per cell
+		// and compares through a lambda: two hundred thousand objects and three and a half million
+		// virtual calls, twice a second. The order is (recipe, then course, then distance), and all
+		// three fit in one primitive key, so `Arrays.sort(long[])` does it with no allocation at
+		// all. Distance is quantised to a quarter of a block, which only ever reorders cells that
+		// are the same material on the same course within a quarter block of each other.
+		Perf.record("split diff", System.nanoTime() - diffT0);
+		long sortT0 = System.nanoTime();
 		int n = todo.size();
-		Object[] keyed = new Object[n];
-		int[] recipeKey = new int[n];
-		double[] distKey = new double[n];
-		Integer[] idx = new Integer[n];
+		// ...and 23 bits of index is 8.4 million cells, against 526,385 in the largest design here.
+		// Past that the index would wrap into the distance field and the order would be quietly
+		// wrong, so it falls back rather than being trusted.
+		if (n >= SORT_INDEX_MAX) return finish(name, sortSlowly(todo, near), wrong, built, unseen,
+			nearestUnseen, digNow, manual, todoTotal, nearestTodo, sortT0);
+		long[] key = new long[n];
+		Cell[] flat = todo.toArray(new Cell[0]);
+		// THE KEY MUST STAY POSITIVE. Laid out as 8+12+20+24 bits it needs 64, and the top one is
+		// the SIGN: a recipe of 128 or more would sort before everything else, silently, and
+		// `ActionRecipe.order` returning anything but 0-2 would be the day a build came out in the
+		// wrong order with nothing to say why. 63 bits, and every field clamped to its own width.
 		for (int i = 0; i < n; i++) {
-			Cell c = todo.get(i);
-			keyed[i] = c;
-			recipeKey[i] = ActionRecipe.order(c.block());
-			distKey[i] = c.pos().distSqr(near);
-			idx[i] = i;
+			Cell c = flat[i];
+			long recipe = Math.min(255, Math.max(0, ActionRecipe.order(c.block())));   //  8 bits
+			long y = Math.min(4095, Math.max(0, c.pos().getY() + 2048L));              // 12 bits
+			long dist = Math.min(1_048_575L, (long) (Math.sqrt(c.pos().distSqr(near)) * 4));  // 20
+			key[i] = (recipe << 55) | (y << 43) | (dist << 23) | i;                   // 23 bits
 		}
-		java.util.Arrays.sort(idx, (a, b) -> {
-			int recipe = Integer.compare(recipeKey[a], recipeKey[b]);
-			if (recipe != 0) return recipe;
-			int dy = Integer.compare(((Cell) keyed[a]).pos().getY(),
-				((Cell) keyed[b]).pos().getY());                             // bottom-up: always reachable
-			if (dy != 0) return dy;
-			return Double.compare(distKey[a], distKey[b]);
-		});
+		java.util.Arrays.sort(key);
 		List<Cell> sorted = new ArrayList<>(n);
-		for (int i = 0; i < n; i++) sorted.add((Cell) keyed[idx[i]]);
+		for (long k : key) sorted.add(flat[(int) (k & 0xFFFFFF)]);
 		todo = sorted;
+		Perf.record("split sort", System.nanoTime() - sortT0);
 		// Scoped by the same radius as the placements, so `need`/`next` stay about what is in reach
-		// while `bom`/`follow` (radius 0) see the whole design.
-		List<BlockPos> dig = digLeft(level, schematicsDir, name, near, radius);
-		return new Split(name, todo, wrong, built, unseen, nearestUnseen, dig, manual);
+		// while `bom`/`follow` (radius 0) see the whole design. Computed ONCE, at the top, because
+		// the classification above depends on it.
+		return new Split(name, todo, wrong, built, unseen, nearestUnseen, digNow, manual,
+			todoTotal, nearestTodo);
 	}
 
 	/**
@@ -338,6 +450,21 @@ final class Work {
 	 * in the park. Placing it anyway is the one thing that is never right - a blank sign passes
 	 * every check we have and is exactly the failure this park already shipped 177 of.
 	 */
+	/**
+	 * A sign whose board is standing and whose words have not arrived.
+	 *
+	 * <p>A BLANK BOARD IS NOT A BUILT SIGN. The block lands, `matches` says yes, and the text is a
+	 * second action that can time out - so a sign that never got its words counted as finished,
+	 * and `SignWriter.verification`, `written` and `report` had no callers at all. Only while a
+	 * roster is ARMED: outside one we know nothing about any board's words, and treating them all
+	 * as unfinished would quietly reopen every sign in the park.
+	 */
+	static boolean awaitingText(Cell c) {
+		return SignWriter.armed() && ActionRecipe.sign(c.block())
+			&& SignWriter.textFor(c.pos()) != null
+			&& SignWriter.verification(c.pos()) != SignWriter.Verification.CONFIRMED;
+	}
+
 	private static boolean textlessSign(Cell c) {
 		return ActionRecipe.sign(c.block()) && SignWriter.armed() && SignWriter.textFor(c.pos()) == null;
 	}
@@ -392,10 +519,27 @@ final class Work {
 	 * list that says "12x stone_brick_stairs[facing=east,half=bottom]" is not a shopping list, and
 	 * four facings of one stair are one stack of one item.
 	 */
+	/**
+	 * A cell that is the SECOND half of a two-cell block: the same item placed once.
+	 *
+	 * <p>A door, a bed and a tall plant are one item and two cells, so counting a cell each asked
+	 * for twice what the build needs. It is small on this park - 6 door cells, 97 two-cell plants
+	 * - and it is wrong in the direction that sends you shopping for things you already have.
+	 */
+	static boolean secondHalf(String state) {
+		return state.contains("half=upper") || state.contains("part=head");
+	}
+
+	/** A DOUBLE slab is two slabs, not one. Wrong in the other direction: a trip that comes up short. */
+	static boolean doubleSlab(String state) {
+		return state.contains("type=double");
+	}
+
 	static Map<String, Integer> tally(List<Cell> cells) {
 		Map<String, Integer> out = new LinkedHashMap<>();
 		for (Cell c : cells) {
-			out.merge(c.item(), 1, Integer::sum);
+			if (secondHalf(c.block())) continue;               // its other half already paid for it
+			out.merge(c.item(), doubleSlab(c.block()) ? 2 : 1, Integer::sum);
 			// A filled cauldron is one scheduled cell but two inventory actions. Buckets are consumed
 			// into empty buckets by the fill, and this builder has no source-refill action, so budget
 			// one filled bucket per cauldron rather than stranding an otherwise complete run at stage two.
@@ -495,13 +639,27 @@ final class Work {
 	 * {@code getContainerSize()} minus armour and offhand comes to. Armour slots are empty on this
 	 * account and would otherwise read as 320 blocks of room that does not exist.
 	 */
+	/**
+	 * How many of this item fit in one slot, asked of the GAME rather than assumed.
+	 *
+	 * <p>{@link #room} defaulted to 64 for any item the pack was not already carrying, so a trip
+	 * for buckets, shulker boxes, signs or eggs was sized at up to sixty-four times the truth: the
+	 * withdrawal over-asked, took what was there, and then blacklisted the chest that actually had
+	 * the material for a minute. Rule 11 - ask the game, not your memory - applied to a number
+	 * nobody thought of as a block property.
+	 */
+	static int maxStack(String item) {
+		var it = BuiltInRegistries.ITEM.getOptional(net.minecraft.resources.Identifier.withDefaultNamespace(item));
+		return it.map(i -> new net.minecraft.world.item.ItemStack(i).getMaxStackSize()).orElse(64);
+	}
+
 	static int room(net.minecraft.client.player.LocalPlayer player, String item) {
 		if (player == null) return 0;
 		var inv = player.getInventory();
 		int empty = 0;
 		int[] partial = new int[36];
 		int n = 0;
-		int max = 64;
+		int max = maxStack(item);
 		int slots = Math.min(36, inv.getContainerSize());
 		for (int i = 0; i < slots; i++) {
 			net.minecraft.world.item.ItemStack st = inv.getItem(i);

@@ -32,7 +32,24 @@ final class Perf {
 	private static final Map<String, long[]> RING = new LinkedHashMap<>();
 	private static final Map<String, Integer> AT = new LinkedHashMap<>();
 	private static final Map<String, long[]> WORST = new LinkedHashMap<>();
+	/** Total nanos and calls since the last reset, per section: the LOAD, as against the spike. */
+	private static final Map<String, long[]> TOTAL = new LinkedHashMap<>();
+	private static long ticks = 0;
 	private static boolean on = true;
+
+	/**
+	 * One client tick has passed.
+	 *
+	 * <p><b>A MEAN PER CALL AND A SHARE OF A TICK ARE DIFFERENT NUMBERS, and the report used to
+	 * print one and label it the other.</b> The ring holds the last {@link #WINDOW} CALLS, so for
+	 * `autofly` - called every tick - the mean is per tick and the label was right; for `recount` -
+	 * called every fortieth - it is per call, and summing those into "692% of a 50ms tick" said the
+	 * mod was using seven client threads. It was not: it was one 262 ms freeze twice a second,
+	 * which is a much more specific complaint and the one Jack could feel.
+	 */
+	static void tick() {
+		if (on) ticks++;
+	}
 
 	private Perf() {}
 
@@ -49,6 +66,8 @@ final class Perf {
 		RING.clear();
 		AT.clear();
 		WORST.clear();
+		TOTAL.clear();
+		ticks = 0;
 	}
 
 	/**
@@ -83,6 +102,9 @@ final class Perf {
 		AT.put(section, (at + 1) % WINDOW);
 		long[] worst = WORST.computeIfAbsent(section, k -> new long[]{0});
 		if (nanos > worst[0]) worst[0] = nanos;
+		long[] tot = TOTAL.computeIfAbsent(section, k -> new long[2]);
+		tot[0] += nanos;
+		tot[1]++;
 	}
 
 	/**
@@ -99,18 +121,30 @@ final class Perf {
 		if (RING.isEmpty()) return List.of("perf: nothing measured yet");
 		List<String> out = new ArrayList<>();
 		List<String> names = new ArrayList<>(RING.keySet());
-		names.sort((a, b) -> Double.compare(mean(b), mean(a)));
-		double total = 0;
-		for (String n : names) total += mean(n);
-		out.add(String.format("perf over the last %d ticks — %.2f ms/tick total (%.0f%% of a 50ms tick)",
-			WINDOW, total, 100.0 * total / 50.0));
+		names.sort((a, b) -> Double.compare(load(b), load(a)));
+		double load = 0;
+		for (String n : names) load += load(n);
+		out.add(String.format("perf over %d ticks — %.1f%% of the client thread (%.2f ms per tick)",
+			ticks, load, load * 0.5));
 		for (String n : names) {
-			double m = mean(n);
-			if (m < 0.005 && WORST.get(n)[0] < 2_000_000L) continue;      // below a hundredth of a ms and never spiked
-			out.add(String.format("  %-18s mean %6.2f ms   worst %7.2f ms", n, m,
-				WORST.get(n)[0] / 1_000_000.0));
+			if (load(n) < 0.05 && WORST.get(n)[0] < 2_000_000L) continue;   // idle and never spiked
+			long[] t = TOTAL.getOrDefault(n, new long[2]);
+			// PER CALL, and then what it costs OVERALL - because a quarter-second freeze twice a
+			// second and a millisecond every tick are the same load and completely different to
+			// play with. The freeze is the one you feel; the share is the one that runs you out of
+			// frame budget.
+			out.add(String.format("  %-14s %7.1f ms/call  worst %7.1f  %5.1f%% of thread  (%d calls)",
+				n, t[1] == 0 ? 0 : t[0] / 1_000_000.0 / t[1], WORST.get(n)[0] / 1_000_000.0,
+				load(n), t[1]));
 		}
 		return out;
+	}
+
+	/** What this section costs the client thread, as a percentage: total time over time elapsed. */
+	private static double load(String section) {
+		long[] t = TOTAL.get(section);
+		if (t == null || ticks == 0) return 0;
+		return 100.0 * (t[0] / 1_000_000.0) / (ticks * 50.0);
 	}
 
 	private static double mean(String section) {

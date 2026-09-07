@@ -300,6 +300,8 @@ final class Autopilot {
 
 	// ---- THE RECOVERY LADDER. See Recovery: when every specific handler has had its turn and the
 	// flight is still going nowhere, the reason stops mattering and only the escalation does.
+	/** How far a destination may move and still be the same destination. See the drift note below. */
+	static final double SAME_TARGET = 4.0;
 	private static int trouble = 0;private static Recovery.Stage stage = Recovery.Stage.NONE;
 	/** A climb-out has already been spent on this destination. The next one is a give-up. */
 	private static boolean climbedOut = false;
@@ -985,8 +987,16 @@ final class Autopilot {
 		// like something that had stopped getting nearer, `sinceCloser` ran up, and it "arrived" at
 		// the ceiling instead of closing in. That is the "not getting close enough" half, again,
 		// from a third direction.
+		// A TARGET THAT HAS DRIFTED IS THE SAME DESTINATION. A station re-centres on the cells
+		// still to place, so in follow mode the target moves a block or two on EVERY recount -
+		// and compared with `equals`, that zeroed `trouble` twice a second, before it could ever
+		// reach the first rung. The whole escalation was dead code in exactly the mode it was
+		// written for. Same hysteresis, and the same reason, as `Loop.sameSpot`.
+		boolean elsewhere = approaching == null || target.distSqr(approaching) > SAME_TARGET * SAME_TARGET;
 		if (!target.equals(approaching)) {
 			approaching = target;
+		}
+		if (elsewhere) {
 			arrivedAt = null;
 			groundNoRoute = false;
 			bestDist = Double.MAX_VALUE;
@@ -1236,7 +1246,8 @@ final class Autopilot {
 				// ---- OVER THE TOP, BEFORE ANY SEARCH. See OVERTOP_CLEAR: up, across, down. Three
 				// waypoints, no search, and nothing in the crossing by construction. Only when this
 				// is not the right tool - a short hop, a roof over the ascent - does a search run.
-				java.util.List<BlockPos> ot = overTop(mc, free, here, target);
+				java.util.List<BlockPos> ot = overTop(mc, free, here, target,
+					start + (long) (total * OVERTOP_SHARE));
 				if (!ot.isEmpty()) {
 					raw = ot;
 					overTopRoute = true;
@@ -1686,13 +1697,19 @@ final class Autopilot {
 	}
 
 	/** Highest MOTION_BLOCKING surface over the corridor from a to b, or MIN_VALUE if none of it is loaded. */
-	private static int corridorTop(Minecraft mc, BlockPos a, BlockPos b) {
+	private static int corridorTop(Minecraft mc, BlockPos a, BlockPos b, long deadline) {
 		int dx = b.getX() - a.getX(), dz = b.getZ() - a.getZ();
 		int n = Math.max(Math.abs(dx), Math.abs(dz));
 		double len = Math.max(1e-9, Math.hypot(dx, dz));
 		double px = -dz / len, pz = dx / len;                // the perpendicular, for the margin
 		int top = Integer.MIN_VALUE;
-		for (int i = 0; i <= n; i++) {
+		// SAMPLED, not walked cell by cell. A 600-block corridor was 600 steps of five heightmap
+		// lookups before anything else happened. Under-sampling cannot produce a collision, only a
+		// crossing height that is too low - and `Nav.clear` then rejects those legs and the search
+		// tiers get their turn, which is the outcome an honest failure should have.
+		int step = Math.max(1, n / CORRIDOR_SAMPLES);
+		for (int i = 0; i <= n; i += step) {
+			if ((i & 15) == 0 && System.nanoTime() > deadline) return Integer.MIN_VALUE;
 			double t = n == 0 ? 0 : (double) i / n;
 			double x = a.getX() + 0.5 + dx * t, z = a.getZ() + 0.5 + dz * t;
 			for (int m = -OVERTOP_MARGIN; m <= OVERTOP_MARGIN; m++) {
@@ -1719,15 +1736,25 @@ final class Autopilot {
 	 * The over-the-top route, or empty when it is not the right tool: too short a hop, nothing of
 	 * the corridor loaded, a ceiling over the ascent, or a fence that forbids the height.
 	 */
-	private static java.util.List<BlockPos> overTop(Minecraft mc, Nav.Passable free, BlockPos here, BlockPos target) {
-		if (Math.hypot(target.getX() - here.getX(), target.getZ() - here.getZ()) < OVERTOP_MIN) return java.util.List.of();
-		int top = corridorTop(mc, here, target);
+	private static java.util.List<BlockPos> overTop(Minecraft mc, Nav.Passable free, BlockPos here,
+	                                               BlockPos target, long deadline) {
+		double flat = Math.hypot(target.getX() - here.getX(), target.getZ() - here.getZ());
+		if (flat < OVERTOP_MIN) return java.util.List.of();
+		// ---- BUDGETED AND RANGED. This ran before any tier deadline was consulted and was gated
+		// only on being further than four blocks, so a cross-park hop walked thousands of heightmap
+		// lookups and tens of thousands of `Nav.clear` samples FIRST - and every tier then "failed"
+		// on a deadline that had already passed, reporting no route where the geometry was never
+		// examined. It gets its own slice, and past `Nav.MAX_RANGE` there is no route to find
+		// anyway, so there is nothing to fly over.
+		if (flat > Nav.MAX_RANGE) return java.util.List.of();
+		int top = corridorTop(mc, here, target, deadline);
 		if (top == Integer.MIN_VALUE) return java.util.List.of();
 		int cruise = cruiseHeight(top, here.getY(), mc.level.getMaxY() - 2);
 		java.util.List<BlockPos> legs = overTopLegs(here, target, cruise);
 		java.util.List<BlockPos> out = new java.util.ArrayList<>();
 		BlockPos prev = here;
 		for (int i = 0; i < legs.size(); i++) {
+			if (System.nanoTime() > deadline) return java.util.List.of();
 			BlockPos wp = legs.get(i);
 			if (!Bounds.contains(wp)) return java.util.List.of();
 			if (!Nav.clear(free, prev, wp)) {
@@ -1744,6 +1771,11 @@ final class Autopilot {
 		}
 		return out;
 	}
+	/** How many points along a corridor the heightmap is sampled at, however long it is. */
+	static final int CORRIDOR_SAMPLES = 128;
+	/** The share of one route call's budget the over-the-top check may spend before any search. */
+	static final double OVERTOP_SHARE = 0.15;
+
 	/** Clear cells a CRUISE route keeps under the body in its middle: the hover's own clearance. */
 	static final int CRUISE_BELOW = (int) Math.ceil(GROUND_CLEAR);
 	/**

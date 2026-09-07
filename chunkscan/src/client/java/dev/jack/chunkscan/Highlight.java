@@ -34,7 +34,13 @@ final class Highlight {
 	private Highlight() {}
 
 	static void register() {
-		ClientTickEvents.END_CLIENT_TICK.register(Highlight::tick);
+		// TIMED. Perf's own docstring promised a `highlight` section and there was never one, so
+		// the busiest tick in the mod - every layer redrawn every tick over whatever block lists
+		// the callers supplied - was invisible in the report that exists to find it.
+		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+			Perf.tick();                                 // one tick, however many sections ran in it
+			Perf.run("highlight", () -> tick(mc));
+		});
 	}
 
 	/** Replace the batch with this id. Keyed by id, not colour: two designs sharing a colour used to

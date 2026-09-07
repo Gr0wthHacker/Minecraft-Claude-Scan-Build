@@ -146,7 +146,18 @@ def _shift_entities(ents: list, x0, y0, z0, x1, y1, z1) -> list:
 
 
 def save_pair(path_litematic: str, m: schem.Model, meta: dict, name: str | None = None) -> str:
-    """Write <x>.litematic and <x>.scan.json; returns the sidecar path."""
+    """Write <x>.litematic, <x>.scan.json and <x>.work.json; returns the sidecar path.
+
+    **THE MANIFEST IS WRITTEN HERE BECAUSE A STEP THAT HAS TO BE REMEMBERED IS A STEP THAT GETS
+    LOST.** `work.write` was called at 2 of the 21 places a design is written, so the mod's own
+    view of a design could be a day older than the design - and the failure is silent, because a
+    stale origin or dig list reads as a design that is simply somewhere else. This is the same
+    move `finish.carve_for` made when re-carving the shop islet stopped being a note in a config
+    and became a pipeline step.
+
+    A generator that declares no world origin still gets no manifest: an origin nobody stated
+    cannot be guessed, and a guessed one places a design in the wrong place.
+    """
     schem.save(path_litematic, m, name=name)
     side = path_litematic[: -len(".litematic")] + ".scan.json" if path_litematic.endswith(".litematic") else path_litematic + ".scan.json"
     meta = dict(meta)
@@ -155,6 +166,21 @@ def save_pair(path_litematic: str, m: schem.Model, meta: dict, name: str | None 
         meta["name"] = name
     with open(side, "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
+    o = meta.get("origin")
+    # A CAPTURE IS NOT A DESIGN. The markers tested are the CAPTURE's, never a positive design
+    # marker - the same asymmetry `Designs.isDesign` settled: absence of evidence that a file is a
+    # capture is good evidence it is a design, and the reverse does not hold (`Lowland Axolotl`'s
+    # hand-written as-built sidecar carries no design marker at all).
+    capture = any(k in meta for k in ("chunks_included", "chunk_radius", "chunks_missing_in_bounds"))
+    if o and not capture and path_litematic.endswith(".litematic"):
+        from . import work as work_mod                 # here, not at module scope: work imports us
+        try:
+            work_mod.write(path_litematic, m, (o["x"], o["y"], o["z"]),
+                           meta.get("name", os.path.basename(path_litematic)), meta.get("dig", []))
+        except Exception as e:                          # noqa: BLE001
+            # REPORTED, NEVER FATAL. The manifest is for the mod; losing it must not lose the
+            # design that has just been computed.
+            print(f"  manifest not written for {os.path.basename(path_litematic)}: {e}")
     return side
 
 
@@ -175,4 +201,27 @@ def merge(s: Scan, m: schem.Model, origin: tuple[int, int, int]) -> tuple[schem.
     overlap = int(((cap > 0) & (s.model.ids > 0)).sum())
     ids[oy - y0:oy - y0 + csy, oz - z0:oz - z0 + csz, ox - x0:ox - x0 + csx] = np.where(s.model.ids > 0, s.model.ids, cap)
     merged = schem.Model(ids, list(s.model.palette) + list(m.palette))
+    # ---- AND THE TILE ENTITIES WITH THEM. A merge that keeps every block and drops every sign's
+    # text produces a composite whose boards are blank - and a blank sign renders identically to a
+    # written one, so nothing downstream can tell. Only those whose BLOCK survived the merge: a
+    # tile entity with no block is a corrupt region rather than a lost line, which is the rule
+    # `layers.slice_plan` and `park_place` both already follow.
+    tiles = []
+    for src, (sx0, sy0, sz0) in ((s.model, (ox, oy, oz)), (m, (mx, my, mz))):
+        for t in (getattr(src, "tile_entities", None) or []):
+            try:
+                v = t.value
+                lx, ly, lz = int(v["x"].value), int(v["y"].value), int(v["z"].value)
+            except Exception:                                    # noqa: BLE001
+                continue
+            X, Y, Z = lx + sx0 - x0, ly + sy0 - y0, lz + sz0 - z0
+            if not (0 <= Y < ids.shape[0] and 0 <= Z < ids.shape[1] and 0 <= X < ids.shape[2]):
+                continue
+            if ids[Y, Z, X] == 0:
+                continue
+            v = dict(t.value)
+            from .nbt import Tag, TAG_COMPOUND, TAG_INT
+            v["x"], v["y"], v["z"] = Tag(TAG_INT, X), Tag(TAG_INT, Y), Tag(TAG_INT, Z)
+            tiles.append(Tag(TAG_COMPOUND, v))
+    merged.tile_entities = tiles
     return merged, overlap

@@ -604,7 +604,7 @@ final class Hud {
 		BlockPos me = mc.player.blockPosition();
 		// WHAT THIS SESSION WANTS OF THE TODO. With a material filter the list can be long and hold
 		// nothing to do; every "is there work" question below asks this count, not the list's size.
-		int wantedTodo = only == null ? sp.todo().size() : (int) sp.todo().stream().filter(Hud::wanted).count();
+		int wantedTodo = only == null ? sp.todoTotal() : (int) sp.todo().stream().filter(Hud::wanted).count();
 		if (only != null && !onlySaid) {
 			onlySaid = true;
 			mc.player.sendSystemMessage(Component.literal("[cscan] only " + String.join(", ", only)
@@ -641,7 +641,7 @@ final class Hud {
 			// has been seen; what is left of the design is other materials, which this session
 			// was told not to touch. Said, and stopped - not "complete", because it is not.
 			mc.player.sendSystemMessage(Component.literal("[cscan] only " + String.join(", ", only)
-				+ ": nothing of it left to place in " + sp.name() + ". " + sp.todo().size()
+				+ ": nothing of it left to place in " + sp.name() + ". " + sp.todoTotal()
 				+ " cell(s) of other materials remain. " + sessionReport()
 				+ "  /cscan only off, then /cscan follow " + sp.name() + " for the rest."));
 			following = false;
@@ -652,7 +652,7 @@ final class Hud {
 			remember(mc);
 			return;
 		}
-		if (sp.placementComplete() || (sp.todo().isEmpty() && unseenGivenUp.contains(sp.name()))) {
+		if (sp.placementComplete() || (sp.todoTotal() == 0 && unseenGivenUp.contains(sp.name()))) {
 			doneThisSession.add(sp.name());
             if (!sp.wrong().isEmpty()) mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.wrong().size() + " mismatches remain; this design is NOT complete."));
 			if (target != null) {
@@ -689,7 +689,7 @@ final class Hud {
 		// ---- CELLS THE WORLD HAS SOMETHING ELSE IN. The printer places into air; it does not
 		// replace. So a design whose remaining work is mostly deviations will never finish however
 		// long the loop runs, and the loop cannot tell you that by getting quieter. Said once.
-		if (!deviationsSaid && !sp.wrong().isEmpty() && sp.todo().size() < sp.wrong().size()) {
+		if (!deviationsSaid && !sp.wrong().isEmpty() && sp.todoTotal() < sp.wrong().size()) {
 			deviationsSaid = true;
 			mc.player.sendSystemMessage(Component.literal("[cscan] " + sp.wrong().size()
 				+ " cells hold a DIFFERENT block from the design — the printer places into air and"
@@ -728,7 +728,7 @@ final class Hud {
 		} else if (lastTodo >= 0 && lastUnseen >= 0 && sp.unseen() == lastUnseen) {
 			// Inferred, for litematica-printer, and only while no chunk moved: a recount in which
 			// unseen changed at all is not evidence about placement either way.
-			placedNow = Math.max(0, lastTodo - sp.todo().size());
+			placedNow = Math.max(0, lastTodo - sp.todoTotal());
 		} else {
 			placedNow = 0;
 		}
@@ -740,7 +740,7 @@ final class Hud {
 			// two hundred blocks and the flying starts again.
 			workRadius = Loop.nearAgain();
 		}
-		lastTodo = sp.todo().size();
+		lastTodo = sp.todoTotal();
 		lastUnseen = sp.unseen();
 		if (++recounts % RELAX_EVERY == 0) Printer.relax();
 		if (Loop.stalled(now, lastProgressMs, fetching, STALL_MS)) {
@@ -902,12 +902,17 @@ final class Hud {
                 }
                 return;
             }
-            if (!eligible.isEmpty()) {
+            if (!eligible.isEmpty() || sp.nearestTodo() != null) {
                 // Nothing within the widest look of an area we can see. That is not a bigger
                 // radius, it is a different place to work: the nearest remaining cell to the
                 // area just finished, so the work walks across the design rather than jumping
                 // about it, and the anchor moves with it.
-                BlockPos moved = Loop.reanchor(eligible, anchor);
+                //
+                // ...AND PAST THE DETAIL RADIUS THE SPLIT ITSELF ANSWERS IT. The listed cells stop
+                // at the working radius now, so an area genuinely finished leaves `eligible` empty
+                // rather than merely distant - and without this fallback that reads as a dead end
+                // on a design with plenty left.
+                BlockPos moved = eligible.isEmpty() ? sp.nearestTodo() : Loop.reanchor(eligible, anchor);
                 if (moved != null) {
                     workAnchor = moved;
                     workRadius = Loop.nearAgain();
@@ -948,8 +953,14 @@ final class Hud {
             // ---- AND THEN ASK THE PRINTER, NOT AN APPROXIMATION OF IT. A solid neighbour is
             // necessary and not sufficient: the item has to yield the state the design wants, it
             // has to survive there, and the cell has to be unobstructed. See Printer.everPlaceable.
+            // ---- NEAREST FIRST, AND ONLY AS MANY AS IT TAKES. See Loop.FRONTIER_ENOUGH: this
+            // question is the most expensive one the loop asks, and it was asked of every cell of
+            // the course in whatever order they came - so inside a wide working radius the budget
+            // was spent a hundred blocks away and the work underfoot was found by accident.
             java.util.List<Work.Cell> real = ok.stream()
+                .sorted(java.util.Comparator.comparingDouble(c -> c.pos().distSqr(me)))
                 .filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block()))
+                .limit(Loop.FRONTIER_ENOUGH)
                 .toList();
             if (!real.isEmpty()) { supported = ok; frontier = real; layerY = courses.get(i); break; }
             supported = ok;                              // the best answer so far, if none yields
@@ -960,7 +971,9 @@ final class Hud {
                     + " (" + frontier.size() + " cells)"));
             workLayer = layerY;
         }
-        int refusedByState = supported.size() - frontier.size();
+        // ONLY MEANINGFUL WHEN THE FRONTIER IS EMPTY, now that the frontier is capped: with cells
+        // found, the difference is mostly cells nobody looked at rather than cells refused.
+        int refusedByState = frontier.isEmpty() ? supported.size() : 0;
         java.util.List<Plan.Cluster> cl = Plan.clusters(frontier, carrying, java.util.Set.of(), java.util.Set.of(), me, spotCentre);
 		spotsLeft = cl.size();
 
@@ -2192,8 +2205,20 @@ final class Hud {
 			// because it is the most expensive thing this mod does and it reads as one line: see
 			// Perf, and the memoisation in ActionRecipe/Printer/StateContract behind it.
 			long t0 = System.nanoTime();
+			// COUNT GLOBALLY, LIST LOCALLY. Measured in game with `/cscan perf`, this call was
+			// 262 ms on average and 427 at worst - a quarter-second freeze twice a second, and by
+			// far the largest thing this mod does. It built and SORTED every remaining cell of the
+			// design - some two hundred thousand of them - so that `advance` could narrow it to
+			// the sixteen blocks round the body and throw the rest away. The counts still cover
+			// the whole design, because completion is a global question; only the LIST is bounded,
+			// and `nearestTodo` answers the one thing the loop asks beyond it.
+			// ...AND CENTRED ON THE WORK, NOT ON THE BODY. `advance` focuses on the ANCHOR, so a
+			// detail sphere round the player empties the moment the two are apart - which is every
+			// fetch. The loop would then read its own area as finished and re-anchor on whatever
+			// is nearest the CHEST, and go on building wherever it last shopped.
+			BlockPos detailAt = workAnchor != null ? workAnchor : mc.player.blockPosition();
 			Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), design,
-				mc.player.blockPosition(), 0);
+				detailAt, 0, workRadius + Loop.NEAR_RADIUS);
 			Perf.record("recount", System.nanoTime() - t0);
 			// A THROW INSIDE THE DECISION IS NOT A REASON TO END THE SESSION. Reading the work list
 			// can fail permanently - no work.json, bad JSON - and the catch below is right to stop
@@ -2227,13 +2252,13 @@ final class Hud {
 			int pct = sp.total() == 0 ? 0 : Math.round(100f * sp.built() / sp.total());
 			List<String> out = new ArrayList<>();
 			out.add(sp.name() + "  " + sp.built() + "/" + sp.total() + "  " + pct + "%");
-			String second = sp.todo().size() + " to place";
+			String second = sp.todoTotal() + " to place";
 			if (!sp.wrong().isEmpty()) second += "   " + sp.wrong().size() + " deviating";
 			// The nearest thing left, because "247 to place" does not tell you where to stand.
-			if (!sp.todo().isEmpty()) {
-				Work.Cell f = sp.todo().get(0);
-				second += "   next " + (int) Math.sqrt(f.pos().distSqr(mc.player.blockPosition()))
-					+ "m " + Storage.direction(mc.player.blockPosition(), f.pos());
+			BlockPos next = sp.todo().isEmpty() ? sp.nearestTodo() : sp.todo().get(0).pos();
+			if (next != null) {
+				second += "   next " + (int) Math.sqrt(next.distSqr(mc.player.blockPosition()))
+					+ "m " + Storage.direction(mc.player.blockPosition(), next);
 			}
 			out.add(second);
 			lines = out;

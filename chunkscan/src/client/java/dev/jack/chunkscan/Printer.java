@@ -51,12 +51,15 @@ final class Printer {
 	 * Returns null when the cell is floating — which is the scaffolding question the loop already
 	 * asks, answered here from the same evidence.
 	 */
+	/** Allocated once: this is asked per CELL, and a fresh six-element array each time is waste. */
+	private static final Direction[] FACES = {Direction.UP, Direction.NORTH, Direction.SOUTH,
+		Direction.EAST, Direction.WEST, Direction.DOWN};
+
 	static Direction[] faces() {
 		// Down first: a block placed on top of another is the commonest and the least ambiguous,
 		// and it is what a player does. Sides before up, because clicking a ceiling is awkward and
 		// more likely to be out of reach from a standing spot.
-		return new Direction[] {Direction.UP, Direction.NORTH, Direction.SOUTH,
-			Direction.EAST, Direction.WEST, Direction.DOWN};
+		return FACES;
 	}
 
 	/**
@@ -343,6 +346,29 @@ final class Printer {
 		everStale.clear();
 	}
 
+	/**
+	 * A block just landed here, so its NEIGHBOURS may now be placeable.
+	 *
+	 * <p>`everCache` is keyed on the position of the cell being judged, and the judgement is about
+	 * the world AROUND that cell - so placing a block never invalidated the verdicts that placing
+	 * it had just changed. The wall a lantern was waiting for went in and the lantern stayed
+	 * written off until the thirty-second `relax`, which is thirty seconds of a station standing
+	 * over work it had already unblocked. Six cells, on the one event that can change the answer.
+	 *
+	 * <p>`forgetPlaceability` is the blunt version and had no callers at all; it stays as the way
+	 * to drop everything when a design changes.
+	 */
+	static void forgetNear(BlockPos pos) {
+		everCache.remove(pos.asLong());
+		everStale.remove(pos.asLong());
+		for (Direction d : Direction.values()) {
+			long k = pos.relative(d).asLong();
+			everCache.remove(k);
+			everStale.remove(k);
+			noPlacementUntil.remove(k);
+		}
+	}
+
 	static boolean everPlaceableCached(Minecraft mc, BlockPos pos, String state) {
 		Long key = pos.asLong();
 		Boolean seen = everCache.get(key);
@@ -352,6 +378,34 @@ final class Printer {
 		boolean ok = everPlaceable(mc, pos, state);
 		everCache.put(key, ok);
 		return ok;
+	}
+
+	/**
+	 * Would placing here brick the player in?
+	 *
+	 * <p><b>Jack: <i>"its also still building completely around itself and getting fully stuck".</b></i>
+	 * Every gate here was about the BLOCK - is it legal, supported, affordable, on the plot, inside
+	 * the fence - and none of them was about the person holding the item. A station chosen inside
+	 * its own work builds the last wall of a box around itself, and then nothing can reach anything.
+	 *
+	 * <p>The cell stays in `todo`: this is not a refusal for ever, it is a refusal FROM HERE. The
+	 * station moves on its own clock and the block goes in from outside, which is how a person
+	 * would have built it. That is why it lives in `placement` rather than in `everPlaceable` -
+	 * a false NO cached against the cell would write the work off for good.
+	 */
+	static boolean wouldBoxIn(Minecraft mc, BlockPos pos) {
+		if (mc.player == null || mc.level == null) return false;
+		BlockPos feet = mc.player.blockPosition();
+		// Only a cell touching the body's own two-cell column can close it in; everything else is
+		// somebody else's wall and none of this check's business.
+		int dx = Math.abs(pos.getX() - feet.getX()), dz = Math.abs(pos.getZ() - feet.getZ());
+		int dy = pos.getY() - feet.getY();
+		if (dx + dz > 1 || dy < -1 || dy > 2) return false;
+		Burial.Solid world = Burial.of(mc.level);
+		Burial.Solid after = (x, y, z) ->
+			(x == pos.getX() && y == pos.getY() && z == pos.getZ()) || world.at(x, y, z);
+		// Walled on every side and no way up is a box. Three sides is a corner you can still leave.
+		return Burial.walled(after, feet) >= Burial.SIDES_BUILDING && !Burial.canRise(after, feet);
 	}
 
 	static boolean everPlaceable(Minecraft mc, BlockPos pos, String state) {
@@ -388,7 +442,16 @@ final class Printer {
 			|| want.containsKey("rotation") || want.containsKey("half") || want.containsKey("type")
 			|| want.containsKey("face") || want.containsKey("hinge") || want.containsKey("attachment");
 		float[] yaws = sweep != null ? sweep : directional ? new float[]{0, 90, 180, 270} : new float[]{0};
-		float[] pitches = directional ? new float[]{0, -90, 90} : new float[]{0};
+		// ---- AND PITCH ONLY WHERE IT CAN CHANGE THE ANSWER.
+		//
+		// Where the player is LOOKING vertically decides a facing of up or down, and which of
+		// floor/wall/ceiling a button or lever takes. It decides nothing about a stair, a slab or
+		// a wall: a stair's `half` and a slab's `type` come from WHERE IN THE FACE the click lands,
+		// which `upper` already sets on the hit vector. Swept anyway it tripled the cost of the
+		// most expensive question the loop asks, on the blocks this park is mostly made of.
+		boolean vertical = "up".equals(want.get("facing")) || "down".equals(want.get("facing"))
+			|| want.containsKey("face") || want.containsKey("vertical_direction");
+		float[] pitches = vertical ? new float[]{0, -90, 90} : new float[]{0};
 		LocalPlayer p = mc.player;
 		float oldYaw = p.getYRot(), oldPitch = p.getXRot();
 		try {
@@ -421,6 +484,7 @@ final class Printer {
 		if (mc.player == null || mc.level == null || slot < 0 || !mc.level.isLoaded(pos)) return null;
         if (!Rules.inLockedProfile(state) || (Rules.serverListIsAuthoritative() && !Rules.isOnServer(state))) return null;
         if (Islands.outside(ScanRunner.schematicsDir(mc), pos.getX(), pos.getZ())) return null;
+        if (wouldBoxIn(mc, pos)) return null;            // never brick yourself in - see below
         if (!Bounds.contains(pos)) return null;           // the fence, at the one place every caller passes
         LocalPlayer p = mc.player;
         ItemStack stack = p.getInventory().getItem(slot);
@@ -749,6 +813,8 @@ final class Printer {
 			if (Work.matches(st, a.want())) {
 				placed++;
 				placedSince++;
+				forgetNear(a.pos());        // the neighbours it just gave a face to
+				
 				interval = INTERVAL_MIN;                            // it is taking them: full pace
 				out.add(new Attempt(a.pos(), a.want(), Verdict.PLACED, got));
 			} else if (ActionRecipe.slabIntermediate(st, a.want()) || ActionRecipe.cauldronIntermediate(st, a.want())

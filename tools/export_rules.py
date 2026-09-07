@@ -27,6 +27,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from mcbuild import blocks                      # noqa: E402
+from mcbuild import items                       # noqa: E402
+from mcbuild import work                        # noqa: E402
 from mcbuild.gen import protect                 # noqa: E402
 
 # ---------------------------------------------------------------- storage categories
@@ -127,6 +129,15 @@ def payload() -> dict:
         "categories": {k: sorted(v, key=len, reverse=True) for k, v in CATEGORIES.items()},
         # the buildable square, derived from the bedrock - see plot_payload()
         "plot": plot_payload(),
+        # WHAT ITEM PLACES WHAT BLOCK, and the properties a design DECIDES. Both were written
+        # TWICE - once in Python and once in Java - and both had drifted: Python had no item map
+        # at all, so 7,965 cells of the park reported as unobtainable raw material, and the two
+        # INTENTIONAL sets differed by four properties. One source, exactly as the protection and
+        # economy rules already are.
+        "items": items.exceptions(),
+        "intentional": sorted(work.INTENTIONAL),
+        "completion": sorted(work.COMPLETION),
+        "multiface": sorted(work.MULTIFACE),
     }
 
 

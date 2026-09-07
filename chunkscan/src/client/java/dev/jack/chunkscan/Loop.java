@@ -227,6 +227,24 @@ final class Loop {
 	 */
 	static final int LAYER_BAND = 1;
 
+	/**
+	 * How many placeable cells a recount needs to find before it stops looking.
+	 *
+	 * <p><b>Jack: <i>"long gaps where its searching and cant find anything, then suddenly will find
+	 * things just below it".</b></i> The frontier was built by asking `Printer.everPlaceable` about
+	 * EVERY cell of a course - and a course inside a 200-block working radius is tens of thousands
+	 * of them, each costing up to seventy-two `getStateForPlacement` calls. The 400-per-recount
+	 * budget was therefore spent in COURSE order on cells that happened to come first, most of them
+	 * a hundred blocks away, and the work at the body's own feet was reached by luck. Several
+	 * recounts of that is the gap; the recount that happens to reach the near cells is the sudden
+	 * find.
+	 *
+	 * <p>Nearest first, and stop once there is enough to choose a station and fill a trip. Enough
+	 * is a few bins - the printer re-scans what is actually in reach on its own tick every tick, so
+	 * this only has to be good enough to decide WHERE TO STAND.
+	 */
+	static final int FRONTIER_ENOUGH = 96;
+
 	/** The distinct courses that still hold work, lowest first. */
 	static List<Integer> layers(List<Work.Cell> cells) {
 		java.util.TreeSet<Integer> ys = new java.util.TreeSet<>();

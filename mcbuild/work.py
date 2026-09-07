@@ -54,6 +54,20 @@ INTENTIONAL = {
     "vertical_direction",   # pointed dripstone
     "tilt",
 }
+
+# DECIDED and COMPLETE are two different questions, and conflating them was the drift.
+#
+# `INTENTIONAL` is what a design CHOSE, and it is what gets written into a cell string: a stair's
+# facing is a decision, its `waterlogged` is whether anyone has poured water in. But the mod needs
+# a second set for a different purpose - what must ALSO be true before a cell counts as finished.
+# A waterlogged stair needs a bucket after the stair, a powered rail needs its signal, a leaf a
+# player placed is persistent, and an open trapdoor is a click no printer makes. All four should
+# stand amber in `/cscan check` waiting for a hand, never be reported as built.
+#
+# The Java side carried these four inside its own INTENTIONAL and this file carried none of them,
+# so the same list written twice had quietly diverged. Both sets ship through
+# `tools/export_rules.py` now, and `tests/test_items.py` fails if the file and these disagree.
+COMPLETION = {"waterlogged", "powered", "persistent", "open"}
 # ...and for these the direction flags ARE the decision, not a connection the game made: a vine
 # clings to the face BEHIND it, and which face that is decides whether it hangs at all.
 MULTIFACE = {"vine", "glow_lichen", "sculk_vein", "resin_clump"}
@@ -87,9 +101,30 @@ def build(m, origin: tuple[int, int, int], name: str, dig=()) -> dict:
 
 
 def write(litematic_path: str, m, origin, name: str, dig=()) -> str:
+    """Write the manifest beside a design.
+
+    **IT IS A MANIFEST NOW, NOT A COPY OF THE DESIGN.** `<name>.work.json` used to carry every cell
+    of the build - 21 MB across the folder - and nothing read them: the mod's `Work.cached` takes
+    the LITEMATIC whenever one exists beside the sidecar, which is always, and `loadWork` is the
+    fallback for a work list with no schematic. So the cell list was megabytes written on every
+    generation, parsed by nobody, and free to go stale - `Park Buildings.work.json` was a day older
+    than its own litematic, because this was called at 2 of the 21 places a design gets written.
+
+    What the mod cannot get from a litematic is written instead: the world ORIGIN, the dig list,
+    and the count. The cells are emitted only when there is no schematic to read them from, which
+    is the one case `loadWork` exists for.
+    """
     out = path_for(litematic_path)
+    data = build(m, origin, name, dig)
+    if os.path.exists(litematic_path):
+        # THE CELLS LIVE IN THE SCHEMATIC. Dropping them is only safe because their absence is an
+        # ERROR on the Java side rather than an empty design - an empty `cells` array read as "no
+        # work" would report every design complete, which is the one failure mode worse than a
+        # stale file.
+        data["schematic"] = os.path.basename(litematic_path)
+        data.pop("cells", None)
     with open(out, "w", encoding="utf-8") as f:
-        json.dump(build(m, origin, name, dig), f)
+        json.dump(data, f)
     return out
 
 

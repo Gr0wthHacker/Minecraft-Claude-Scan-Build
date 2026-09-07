@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
 
@@ -35,6 +36,21 @@ final class Rules {
 	private static Set<String> serverBlocks = Set.of();
 	/** category name -> substring patterns, longest first so a specific match beats a generic one */
 	private static java.util.LinkedHashMap<String, List<String>> categories = new java.util.LinkedHashMap<>();
+	/**
+	 * block -> the item that places it, and the properties a design DECIDES.
+	 *
+	 * <p>BOTH WERE WRITTEN TWICE and both had drifted. `ActionRecipe.itemFor` knew a wall sign is
+	 * placed from `oak_sign` and the Python side had no such map at all, so `craft` and `shop`
+	 * reported 7,965 cells of the park as unobtainable raw material - `water`, `oak_wall_sign`,
+	 * `redstone_wire` - which are not materials, they are the wrong NAME for one. And the two
+	 * INTENTIONAL sets differed by four properties. Both now come from `mcbuild/items.py` and
+	 * `mcbuild/work.py` through `tools/export_rules.py`, exactly as the protection and economy
+	 * rules already do. The Java constants remain as the fallback for a jar newer than its file.
+	 */
+	private static java.util.Map<String, String> items = java.util.Map.of();
+	private static Set<String> intentional = Set.of();
+	private static Set<String> completion = Set.of();
+	private static Set<String> multiface = Set.of();
 	private static boolean serverAuthoritative = false;
 	private static boolean loaded = false;
 
@@ -50,6 +66,14 @@ final class Rules {
 			economy = strings(root, "economy");
 			serverBlocks = strings(root, "server_blocks");
 			serverAuthoritative = root.has("server_authoritative") && root.get("server_authoritative").getAsBoolean();
+			intentional = strings(root, "intentional");
+			completion = strings(root, "completion");
+			multiface = strings(root, "multiface");
+			if (root.has("items")) {
+				java.util.Map<String, String> m = new java.util.LinkedHashMap<>();
+				for (var e : root.getAsJsonObject("items").entrySet()) m.put(e.getKey(), e.getValue().getAsString());
+				items = java.util.Collections.unmodifiableMap(m);
+			}
 			Plot.load(root);          // the buildable square, derived from the island's own bedrock
 			if (root.has("categories")) {
 				categories = new java.util.LinkedHashMap<>();
@@ -69,6 +93,35 @@ final class Rules {
 		if (!root.has(key)) return out;
 		for (var e : root.getAsJsonArray(key)) out.add(e.getAsString());
 		return Collections.unmodifiableSet(out);
+	}
+
+	/** The item that places this block, or null when the shipped map does not name one. */
+	static String itemFor(String block) {
+		load();
+		return items.get(block);
+	}
+
+	/**
+	 * The exported `work.INTENTIONAL` plus `work.COMPLETION` - what must MATCH before a cell counts.
+	 *
+	 * <p>They are two questions on the Python side and one here on purpose. INTENTIONAL is what a
+	 * design DECIDED and is what gets written into a cell string; COMPLETION is what must also be
+	 * true before the cell is finished - a bucket after the stair, a signal on the rail, a click on
+	 * the trapdoor. `role` only ever asks the second question, so it takes the union; the split
+	 * matters where the cell strings are written, which is the other side.
+	 */
+	static Set<String> intentional() {
+		load();
+		if (completion.isEmpty()) return intentional;
+		Set<String> both = new HashSet<>(intentional);
+		both.addAll(completion);
+		return java.util.Collections.unmodifiableSet(both);
+	}
+
+	/** The exported `work.MULTIFACE`, or an empty set when the file predates it. */
+	static Set<String> multiface() {
+		load();
+		return multiface;
 	}
 
 	/** Strip namespace and block state, as the Python does before matching. */
@@ -113,7 +166,31 @@ final class Rules {
 
     private static Set<String> vanilla119;
     /** Version availability, independent of the provisional island's observed inventory list. */
-    static synchronized boolean inLockedProfile(String block) {
+    /**
+     * Is this block in the server's own 1.19 profile?
+     *
+     * <p>MEMOISED ON THE BLOCK, because the callers ask it about CELLS. The recount asks it of
+     * every cell of the design and again per course, and the answer underneath was a class monitor
+     * plus a string switch plus a substring - so half a million monitor acquisitions a tick to
+     * answer a question with about four hundred distinct inputs. The registry is a static resource
+     * that cannot change while the game runs, so the memo can never be stale.
+     *
+     * <p>Bounded, and it simply stops filling: a world with more distinct states than the cap gets
+     * exactly what it had before. An unbounded cache on a hot path is the shape of bug this mod
+     * has already shipped once, as an access-ordered LRU that rewrote its list on every read.
+     */
+    private static final Map<String, Boolean> LOCKED = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final int LOCKED_CAP = 8192;
+
+    static boolean inLockedProfile(String block) {
+        Boolean seen = LOCKED.get(block);
+        if (seen != null) return seen;
+        boolean r = computeLockedProfile(block);
+        if (LOCKED.size() < LOCKED_CAP) LOCKED.put(block, r);
+        return r;
+    }
+
+    private static synchronized boolean computeLockedProfile(String block) {
         if (vanilla119 == null) {
             vanilla119 = Set.of();
             try (InputStream in = Rules.class.getResourceAsStream("/chunkscan_1_19.json")) {

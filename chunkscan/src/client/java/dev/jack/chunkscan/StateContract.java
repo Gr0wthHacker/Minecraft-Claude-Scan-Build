@@ -76,15 +76,26 @@ final class StateContract {
     static final Set<String> MULTIFACE = Set.of("vine", "glow_lichen", "sculk_vein", "resin_clump");
     private static final Set<String> FACES = Set.of("north", "south", "east", "west", "up", "down");
 
+    /** The shipped sets when there are any, else the constants above. See Rules.intentional(). */
+    private static Set<String> intentional() {
+        Set<String> s = Rules.intentional();
+        return s.isEmpty() ? INTENTIONAL : s;
+    }
+
+    private static Set<String> multiface() {
+        Set<String> s = Rules.multiface();
+        return s.isEmpty() ? MULTIFACE : s;
+    }
+
     static Role role(String block, String property) {
-        if (MULTIFACE.contains(block)) return FACES.contains(property) ? Role.REQUIRED : Role.DERIVED;
+        if (multiface().contains(block)) return FACES.contains(property) ? Role.REQUIRED : Role.DERIVED;
         // A chest's `type` is which half of a double chest it is - the game's decision, made when
         // the neighbour was placed. Every other `type` (slabs) is the design's.
         if (block.endsWith("chest") && property.equals("type")) return Role.DERIVED;
         // A rail's shape is the line's geometry - straight, ascending, a curve - and a curve is
         // laid on purpose; a stair's shape is the game's corner rule.
         if (block.endsWith("rail") && property.equals("shape")) return Role.REQUIRED;
-        return INTENTIONAL.contains(property) ? Role.REQUIRED : Role.DERIVED;
+        return intentional().contains(property) ? Role.REQUIRED : Role.DERIVED;
     }
 
     boolean propertiesMatch(BlockState state) {

@@ -1139,7 +1139,24 @@ up against nothing. `Canvas.world_origin` exists for this. The same test was als
 `room_plinth` cells — deepslate, on the floor course, isolated by design — and calling them grid
 confetti.
 
-#### Still open
+#### Two traps in the tooling, both of which corrupted a source file
+
+- **A UNICODE ESCAPE IN A PATCH PAYLOAD BECOMES THE CHARACTER.** A separator written as a
+  backslash-u-0000 escape landed in `Digger.java` as a real NUL byte - which compiles, passes
+  every test, and makes git treat the file as BINARY, so the diff reads `Bin 12017 -> 13942 bytes`
+  and nobody can review it. The same mechanism turned a backslash-n into a real newline
+  mid-string-literal in `cli.py` and broke the parse - and then broke the script written to record
+  this note, which is as clear a demonstration as the trap deserves. Patch payloads carry no
+  escapes; a sweep for NUL bytes over every source file is two lines and is worth running after
+  any scripted edit.
+- **`pathlib.read_text()` / `write_text()` ROUND-TRIP THROUGH UNIVERSAL NEWLINES**, so a script
+  that reads a CRLF file, replaces one string and writes it back rewrites EVERY LINE. This file
+  already records it; it happened again this session in a parallel stream, where
+  `mcbuild/gen/isthmus.py` shows 3,006 changed lines and `git diff --ignore-cr-at-eol --numstat`
+  says 76. Read and write BYTES when patching, and use that flag to tell a real content change
+  from line-ending damage.
+
+### Still open
 
 - ~~**Bare `/cscan place` now places 61 designs.**~~ FIXED — `designs.json` gave it the tracked
   list, and the 2026-08-27 audit stopped `Designs.list` offering world CAPTURES as designs.
@@ -9779,6 +9796,294 @@ their own tests; deleting them narrows what the file can do without fixing anyth
 either back into `GAPS` is a decision about reusing an asset, not maintenance.
 
 
+## The causeway's heron became a stegosaur (2026-09-07)
+
+Jack: *"i think the heron should be switched to a dinosaure."* Then, on the first build:
+***"i dont think this steogasur is acceptable, it feels bad, its asymmetric, theres issues."***
+He was right on every count and the second half of this section is worth more than the first.
+
+**THE HERON WAS A LEFTOVER AS WELL AS A PREFERENCE, AND NOTHING WOULD EVER HAVE REPORTED IT.** It
+stood at the frontier end of the Frontier Reach under a plaque reading *"stands in the frontier
+marsh"* - a land re-themed to the LOST PLATEAU weeks earlier, and a marsh that has never existed
+anywhere on this causeway. Physically correct, legal, affordable, one piece, and describing a park
+that is gone: the same class as the five Prismworks relays that outlived the modules they named.
+
+**BOTH DINOSAURS THIS PARK ALREADY OWNS ARE IN SIGHT OF THAT PLINTH, so the answer was a new
+generator rather than a paste.** Measured off their own sidecars rather than guessed:
+
+| | |
+|---|---|
+| `PF Pterosaur` | x97604-97637 / z80406-**80449** - ONE BLOCK off the causeway's frontier end, fifteen from where the heron stood |
+| `PF Sauropod` | x97681 / z80290-80370 - 117 blocks away, on the same rim walk |
+
+Pasting either is exactly what retired the gecko and the bat from the hollow reach - *"those are
+used assets, we want NEW things"* - so `gen/stegosaur.py` is the third bespoke piece written for
+these two stops, beside `balloon.py` and `wyrm.py`.
+
+**AND IT IS A STEGOSAUR BECAUSE THIS FILE'S OWN LIST SAYS SO.** The download corpus's amendment
+names it directly - *"a stegosaur is a convex mass with planar plates (the ladybird category)"* -
+and every part of it lands on the good side of PLANAR/COLUMNAR against VOLUMETRIC: one convex
+arched mass, a row of one-block sheets, four columnar tapers, four more off the tail. No joint
+anywhere has to be modelled. **1,508 blocks at length 34, one piece, seven materials, all cheap
+tier, all 1.19, zero cells asymmetric in shape OR in colour.**
+
+### THE FIRST BUILD WAS REJECTED, AND THE MEASUREMENT AGREED WITH HIM EXACTLY
+
+Told it "feels bad, it's asymmetric", the useful move was to measure rather than guess - and
+"asymmetric" turned out to be one number:
+
+    left-right mismatches, block by block:  99 in SHAPE, 0 in COLOUR
+    ...and all 99 were CREST cells
+
+**THE CREST ALTERNATED, WHICH IS WHAT THE REAL ANIMAL DOES AND WHICH IS WRONG HERE.** A real
+stegosaur is two metres wide and staggers its plates by a hand's breadth. A voxel one nine cells
+wide has ONE CELL to say it with, and one cell does not read as a stagger, it reads as a mistake:
+head-on the two rows are two chimneys at different depths, and in plan they are a drunk zigzag.
+The generator's own docstring had argued the alternation was "6-connectivity and legibility
+agreeing". It was 6-connectivity and legibility disagreeing, and only a render said so.
+
+**THE ANSWER IS TWO ROWS PAIRED, NOT ONE ROW CENTRED AND NOT TWO ROWS STAGGERED**, and all three
+were built before that was obvious. Centred on the sagittal plane every plate is its own mirror -
+symmetric, and head-on the crest becomes a single one-block blade standing out of the spine, which
+is a MAST. Paired at the same station either side of the midline is symmetric AND is what the
+animal looks like from the front: two pale blades flanking a ridge with the spine between them. In
+profile the pair superimposes into one plate, so nothing is lost in the view the walkway gives.
+
+Two more faults came out of the same look, and both are recorded failures of this repo arriving
+in a new body:
+
+- **THE PLAN WAS A SLAB.** `_body` swept SPHERES, so a station's width in plan and its depth in
+  profile were the same number by construction - there was no way to say "widest at the shoulder
+  and the haunch" at all, and the plan came out as one constant-width mass from shoulder to rump.
+  That is the jaguar's retirement verbatim. The spine carries a half-DEPTH and a half-WIDTH
+  separately now and the body is lofted station by station: plan width runs 5-9-5-11-5, which is
+  a spindle.
+- **A LEG WAS BEING COUNTERSHADED AS IF IT WERE ITS OWN ANIMAL.** `_coat` measures each column
+  between its own lowest and highest cell, which is right for a barrel and absurd for a leg: four
+  courses got the full ladder, pale at the foot and dark at the top, so the animal stood on four
+  grey posts and read as a barrel on a stone plinth. Everything below the body's own belly line at
+  its station takes the flank tone and nothing else.
+
+**AND THE PALETTE WAS THE "FEELS BAD".** Navy / teal / light blue with traffic-orange plates is
+what a saturated primary reads as at this size: a toy. It is a desaturated earth body now with the
+one thing on it that is not flesh being the one thing that is not an earth tone - `brown_wool` 79 /
+`acacia_planks` 104 / `light_gray_wool` 141 under a `white_wool` 236 crest, which is 157 luminance
+clear of the back it stands on and a bigger step than the orange ever gave. The skull and the tail
+spikes are `bone_block`, so crest, skull and spikes read as one material family, which is what
+they are in life. **And it turned out to unlock the surfacing pass as well** - `shell.slab_for`
+refuses a `rotated_pillar`, so a log-coated animal can never be given half blocks, and wool,
+planks and stone are uniform on every face. See "super blocky and rough" below.
+
+### FIVE TRAPS, EVERY ONE ALREADY WRITTEN DOWN IN THIS FILE, EVERY ONE FALLEN INTO ANYWAY
+
+- **`round()` IS BANKER'S ROUNDING AND THE FEET CAME OUT AS COMBS.** The legs stand at 0.150 of
+  the length, which at length 30 is exactly 4.5 - and `round(4.5) == 4` while `round(5.5) == 6`,
+  so every foot sphere skipped alternate columns. Four feet read as EIGHT ground patches, at that
+  length and not at its neighbours. **The `_ball` docstring in the same file warns about this trap
+  by name while the frame under it was doing it.** Rounding is half away from zero now (`_r`), not
+  toward +inf: `floor(v + 0.5)` sends 2.5 to 3 and -2.5 to -2, a shape one cell wider on one
+  flank, which is the squid's own mirror fault from a new direction.
+- **A TAPER THAT ENDS UNDER ONE CELL CANNOT BE SWEPT INTO EXISTENCE.** The tail spikes detached at
+  lengths 26 and 34 and **at neither of their neighbours, and not at the one being looked at**. A
+  fine step is not a guarantee, it is a hope that scales; `_thread` lays a one-cell 6-connected
+  core first, filling every corner ONE AXIS AT A TIME, and the sweep hangs on that.
+- **THE PLATES STACKED ON THEMSELVES.** Probed live, the second course of a plate finds the FIRST
+  course of that same plate as its own top and lands one higher again: every plate shipped as
+  alternate courses with a hole between them, fifty four-cell strays, and only a component count
+  could see it. The back is SNAPSHOTTED before any plate is laid. Same shape as the frog's
+  `flank_v`: MEASURE THE MASS, NEVER THE ACCUMULATING BUFFER.
+- **THE CREST'S SPACING HAD TO BECOME EXACT INTEGER GEOMETRY, AND TWO TRIES GOT IT WRONG.** Left
+  to the width curve, `plate_half` scaled to 2.54 for the plate nearest the peak, `floor(2.54 +
+  0.5)` is 3, and that ONE plate went from five cells across to SEVEN and fused with its
+  neighbour - four plates read as three. Capping the width against `run / count` fixed that length
+  and not the next, because the stations are floats and `_r` rounds them together about half the
+  time. The WIDTH is chosen first and the PITCH derived from it as `2 * wi + 2`, which leaves
+  exactly one cell of sky between neighbours at any length, count or curve; too many to fit and
+  the plates get narrower and then fewer, never closer. **A crest that can merge under any tuning
+  is a sail waiting to happen.**
+- **THE ANIMAL SHIPPED WITH NO EYES AT LENGTH 24.** The nominal course was one cell above the
+  widest part of a small skull, so neither side had anything to sit on; the wyrm shipped with ONE
+  eye twice for the neighbouring reason. The probe walks DOWN from the crown for the first course
+  carrying a solid cell at the same offset both sides, and RAISES if there is none.
+
+And one instrument rather than a trap: **a refusal below the ground plane is not the same fault as
+one off the end.** A foot pad is a sphere centred on the course the animal stands on, so its lower
+half is always outside the box; a refusal in f or s is the sauropod's disaster - clipped to 22
+blocks of 48 facing north, with a plausible small dinosaur still in the render. `refused` and
+`clipped` are counted separately, and `clipped` is 0 at every facing and every length.
+
+**A SCALE SWEEP IS THE ONLY THING THAT FINDS ANY OF THAT.** Lengths 22 to 54, all four facings:
+one piece, two eyes, the crest exactly `2 x plates` separate pieces, zero clipped, and zero
+asymmetry in shape and in colour. Four of the five traps above were invisible at the length being
+looked at and visible two lengths either side of it.
+
+### "Super blocky and rough" - and it was NOT the resolution (2026-09-07)
+
+Jack, on the symmetric rebuild: *"it feels super blocky and rough, how do we make it smooth and
+clean."* Four answers, and the order they were found in is the useful part: the two I expected to
+be the fix were worth little, and the two that mattered were both bugs.
+
+**THE OBVIOUS ANSWER WAS WRONG, AND MEASURING IT IS WHAT FOUND THE REAL ONE.** "Size sets a
+ceiling; tuning sets the plateau" is this file's own rule, so the first move was to build the same
+animal at length 44 and compare at the same framing. It is not smoother. It is slightly WORSE -
+the lumps scale with it, so they arrive bigger rather than finer. **A defect that survives a 30%
+increase in resolution is not a resolution problem**, and that single comparison redirected the
+whole session.
+
+#### The lumps were the LEGS, sticking out through the flank
+
+The half-width at the shoulder and the hip was a number chosen by eye. Measured against what has
+to fit inside it:
+
+    hip:       stance 2.65 + thigh 2.38 = 5.03      flank half-width 3.67      1.36 PROUD
+    shoulder:  stance 2.65 + thigh 1.77 = 4.42      flank half-width 3.57      0.85 PROUD
+
+So every leg pushed a cell and a half out through the side of the animal and read as a lump stuck
+on it - four lumps, at the four places a quadruped is supposed to be smoothest. Sized as
+`stance + leg radius` the same cells become the HAUNCH and the SHOULDER, which is rule 1 of the
+panel review said forward: *"legs must merge into the body as a haunch and a shoulder"*. The flank
+goes continuous and the plan keeps its waist (5-9-7-11-5), because the widths are still bimodal -
+they are just big enough now.
+
+#### The "roughness" was mostly the COAT, and it was not geometry at all
+
+`_coat` measured every cell's height as a fraction between ITS OWN COLUMN'S lowest and highest
+cell. That is right for a barrel of constant section and absurd for a lofted body, where every
+column is a different height: the band boundaries follow whatever each column happens to be, so
+the three tones come out as **grey blotches wandering a course up and down across the flank**. A
+close render reads it as mould on the animal. No amount of smoothing the mass touches it.
+
+Measured against the belly and back lines the keyframes actually describe, the bands are
+continuous by construction. Three rules came out of fixing it and all three generalise:
+
+- **A LEG IS NOT ITS OWN ANIMAL.** Countershaded per column, a leg's four courses got the full
+  ladder - pale at the foot, dark at the top - so it stood on four grey posts and read as a barrel
+  on a stone plinth. Everything below the belly line is one tone.
+- **COUNTERSHADING NEEDS THICKNESS.** Three bands want a section deep enough to hold three, and a
+  tail two or three cells thick has room for none: every cell lands in a different band and the
+  tail comes out as an alternating brown-grey chain, which reads as damage. Below five cells of
+  depth a part is one tone.
+- **AND THE DITHER MUST BE HASHED ON THE DISTANCE FROM THE MIDLINE.** Keyed on the column, the
+  jitter is a different number on each flank, so the boundary wobbles independently either side
+  and the animal came out **sixteen cells asymmetric IN COLOUR while its shape was exact** - the
+  frog's own recorded fault, where each coat drift carried its own signed offset.
+
+#### The two passes this repo already had, that this animal never ran
+
+CLAUDE.md's ANIMALS section states the order as `mass -> relax -> features -> face -> coat` and
+every quadruped here runs it. The stegosaur went straight from a lofted mass to its features.
+
+- **`relax` is now step 2**, with both recorded guards: legs, neck and tail as `protect` (the rule
+  that shaves a pimple off a shoulder eats a limb whole), and every air cell below the belly line
+  as `forbid` EXCEPT the air inside a leg's own cylinder - because a dent in a leg is worth
+  filling, and barring those would keep the legs as lumpy as they were. It is worth less here than
+  on a smoothed loft: this mass measured **zero notches before and after**, which is the tell that
+  it was never dented, only stepped.
+- **`shell.slab_shell` halves every cell that sits proud of its neighbours**, and **`_chamfer`
+  turns every one-course step into a ramp with a stair**. 99 shape blocks on a 1,570-block animal,
+  which against the download corpus's 4.51 stairs per thousand cells is the first build in this
+  repo to be in the right order of magnitude.
+
+**AND THE HALF-BLOCK PASS REPORTED ZERO FOR AN HOUR WHILE LOOKING LIKE A PASS WITH NOTHING TO
+DO.** A palette entry is an NBT Tag, and `str(Tag(10, {'Name': ...}))` is a repr - so every block
+name read that way matched nothing, every colour lookup failed and `slab_shell` returned an empty
+dict. `nbt.state_name` is the accessor and every test in this repo already uses it.
+
+**IT WORKS HERE ONLY BECAUSE THE PALETTE CHANGED.** `shell.slab_for` refuses any `rotated_pillar`,
+because the colour DB samples a block's TOP face and a log's top is end grain - matching
+`acacia_log`'s orange top to `acacia_slab` once drew a bright orange line down a bear's back. Six
+of this repo's eight quadrupeds are coated in LOGS and get no half blocks at all, and CLAUDE.md's
+own note says the unlock is to build coats out of uniform-textured blocks instead. This animal's
+coat became wool, planks and stone in the palette rebuild one complaint earlier, so the match is
+not merely legal but close: `acacia_planks -> acacia_slab` at distance **0**, `stone -> stone_slab`
+at **0**, `light_gray_wool -> andesite_slab` at 9, `brown_wool -> spruce_slab` at 15.
+
+Every shape block actually placed is acacia or spruce - both witnessed in bulk on this server -
+because `trusted_slabs` already makes rule 12's inference rather than trusting a table: Minecraft
+ships a material family COMPLETE, so a server that has `acacia_planks` has `acacia_slab`.
+
+#### What it measures
+
+    body-skin spike_rate   28.7 -> 9.4      "a limb that seems to have gravel stuck to it"
+    notches                0                no one-block dents anywhere
+    shape blocks           0 -> 99          slabs 64, stairs 35
+    left-right asymmetry   0 shape, 0 colour, comparing FULL states with the facing mirrored
+    Isthmus                41,230 blocks, 0 problems, 0 leaks, 0 expensive
+
+`tests/test_causeway_sculptures.py` gained `test_the_SURFACE_IS_SMOOTHED_and_not_merely_stacked`
+(the three passes all fail SILENTLY - a build with every one switched off is legal, one piece,
+correctly proportioned and audits clean) and `test_the_LEGS_do_not_stick_out_THROUGH_the_flank`,
+which asserts the arithmetic rather than the picture. `_lr` compares full block states with the
+facing mirrored now, not bare names: a stair facing the wrong way is a real defect and a bare-name
+comparison cannot see it - the frog shipped 60 of 134 that way.
+
+**Still open:** the chamfer only reaches the BACK. Its rule is one step and one direction, and on a
+flank the inward neighbour and the along-body neighbour are usually both higher, so the cell is an
+inside corner and is skipped. A convex diagonal corner wants an OUTER-CORNER stair, which the game
+derives from `shape` on placement - so it is available and simply not attempted here. That is the
+next pass, and it is where the remaining blockiness lives.
+
+### The panel verdict, recorded (2026-09-07)
+
+Cut out of the FINISHED causeway as well as alone, at the bearings the walkway actually gives.
+
+**SILHOUETTE - PASSES, and it is the only question that finally matters.** With the colour taken
+away it is an arched back carrying four separated plates, four columnar legs, a tail held clear of
+the ground with spikes on it, and a small head low at the front. A stranger names it.
+
+**PROFILE - PASSES, and it is the view the stop is built for.** The walk runs along Z and every
+creature stop is offset in X, so a visitor stands ABREAST of this animal at about twenty blocks -
+which is exactly the view a stegosaur's plates exist for. Both profiles are mirror images.
+
+**PLAN - PASSES, and it is the second view rather than a spare one.** The skyway passes overhead,
+and from there the two plate rows, the four splayed pads and the thagomizer all read. That is the
+ladybird's own argument for this category: the plan is the view voxels give away free.
+
+**HEAD-ON - MARGINAL, and honestly so.** Eleven cells wide, so head-on it is a narrow mass with two
+pale blades over it. That is what a stegosaur looks like from the front and it is not a bearing
+anybody is routed to here - but it is the weakest of the four and no arrangement of a paired crest
+improves it further.
+
+**At half distance it still reads. At a fifth it is a low dark mass with a bumpy pale crest** -
+still a plated dinosaur and nothing else.
+
+**The one real gap: there is not a single shape block in it.** The download corpus measures us at
+0.64 stairs per thousand cells against their 4.51, and this animal is full cubes throughout. A
+stair under each plate's outer wing and at the toes is the obvious next pass, and `render3d` can
+now draw both - which is the argument for doing it rather than against.
+
+### What it cost, and what is still open
+
+    Isthmus  39,903 -> 41,171 blocks, 0 problems, 0 leaks, 0 expensive, 0 lamps in any coat
+    the stop moved t 0.14 -> 0.24, because the animal reaches 22 rows back and 19 forward
+             against a heron's 7, and at 0.14 its tail would have been CLAMPED - a clamped stop
+             is one whose far end lands where `cols` has no column at all
+
+`_site_heron` is `_site_footed` now and serves both; `SELF_CARRYING` in
+`tests/test_causeway_sculptures.py` keeps the stegosaur out of the balloon's and the wyrm's
+own-ground contract, because it stands on four feet on the causeway's plinth and its lowest course
+is four separate pads.
+
+**Two TESTS were wrong where the build was right, and both are worth keeping.**
+`test_the_rim_carries_a_fence_wherever_the_ground_actually_ends` read the highest cell in a column
+as its cap - and a sited creature is free to reach out over open air past its plinth, so a rim
+column carries the ground, its fence, several courses of sky, then a bone spike hanging seven
+above. Read that way the fence four courses below looked missing and **the causeway was reported
+unfenced at the one place it is most obviously fenced**; the ground's cap is the top of the
+column's own UNBROKEN RUN. And the plate-rooting test was written per COLUMN, where a kite's outer
+wings legitimately overhang - it is per PLATE now. The right way round to discover a contract had
+been written as "nothing overhangs" when what was meant was "nothing floats".
+
+**Still open:** nothing here has been placed in game - `render3d` draws with the same colour DB the
+palette picker optimises against, so judge form and mass off the sheets and the palette in world.
+The night pass hangs **23 `glow_lichen` in the air over the animal** (`delight_in_coat` is 0, so
+not one coat cell was eaten) and on a bone-white plate those read as green flecks rather than as
+the patina they read as on a dark coat - correct by the causeway's own rule, and a causeway-wide
+decision to change. And the seven pre-existing
+`test_isthmus.py::test_every_land_pair_builds_legally[*-prismworks]` failures are still the stale
+`wayfinding.known_destinations()` roster, unrelated and unfixed.
+
+
 ## The park overhaul: typed interfaces, capacity-aware streets, and a vertical park (2026-09-01)
 
 Two briefs landed together - `PARK_OVERHAUL.md` with the three land specs, and
@@ -12523,3 +12828,327 @@ as the lake's context and that composite CONTAINS the lake - 4,699 of its 5,530 
 lake's own water, bed and froglights, the self-reference trap for the seventh time - and
 `test_overgrowth`'s three vines name a face at (97622, 204..206, 80316), which is air in a composite
 built with the pass switched off.
+
+## All six: the audit's plan, done (2026-09-07)
+
+Jack: *"do all"*, against the six-point list the 2026-09-06 autonomy audit closed with. Every claim
+below was re-measured after the change, not reasoned.
+
+### 1. Provisioning — `mcbuild/provision.py`
+
+**THE LOOP WAS A LAST MILE WITH NO SUPPLY CHAIN**, and its only way to say so was to fly to the
+work, find nothing placeable and report a dead end. `mcbuild provision <design>` answers the
+question nothing asked: what must be acquired, and how.
+
+    Park Complete: 308,229 of 526,385 cells have their material (59%)
+    materials short, by how they can be got: craft 20, smelt 3, farm 13, none 18
+      CRAFT   cobblestone 11,041 . waxed_copper_block 9,048 . black_wool 4,907 ...
+      SMELT   stone 2,580
+      FARM    moss_block 99,253 . vine 9,609 . jungle_leaves 8,872 ...
+      NONE    blackstone 35,415 . basalt 7,022 . tuff 6,408 ...
+
+The audit measured 76% with no reachable source; it is 41% now, and the difference is not new
+material — it is the item-name fix in §3 and resolving the SHORTFALL through the recipe tree rather
+than the whole design. What is left is CLASSIFIED, which is the part a person can act on.
+
+- **`--package` writes the buildable subset as its own design, at the parent's own origin.**
+  `/cscan follow "Park Complete Ready"` can finish; `follow` on the parent cannot and had no way to
+  say so. Same origin because a package is a VIEW of one design, not a second thing to keep
+  aligned — which is the trap `origin_lock` exists for.
+- **IT NEVER GUESSES A SOURCE.** A material with no recipe, no price and no stock is reported as
+  having NONE, rather than folded into "farm it" because that sounds like an answer. `FARMED` is
+  deliberately short and evidence-based; a long guessed list would turn *we do not know* into a
+  confident wrong answer. Same posture as the ten park gates, where a gate with no evidence blocks.
+- **Coverage is counted in CELLS, not materials.** A design one block short of one material is not
+  half short, and the number that decides whether a session is worth starting is how many cells can
+  actually go in.
+
+`prices.json` is still empty, so `buy` can never be the answer yet — the shop has never been
+walked, and `/cscan prices on` is what fills it.
+
+### 2. The craft cost model — 3,358 iron pickaxes became 376 ingots
+
+`craft "Park Complete"` proposed smelting **3,358 iron pickaxes** into nuggets for 426 lanterns —
+10,074 ingots where 379 would do, on the island whose scarce metal is iron. Three faults, and the
+first two compounded:
+
+- **A LEAF PRICE OF 1 WAS A FLOOR UNDER EVERYTHING.** `best` started at the leaf cost and only came
+  down, so any item whose recipe cost more than one unit stayed at one: `iron_nugget`, `iron_ingot`
+  and `iron_pickaxe` all priced identically and a crafted tool was as cheap as the metal in it. An
+  item with a recipe is worth what the recipe costs; a leaf is something you cannot make.
+- **THE ARBITRAGE GUARD BARRED THE ONLY SANE ROUTE.** `mark_reversible` bars packing pairs from
+  cost-minimisation, which is right for `raw_gold_block` — costing every leaf at 1 makes a block a
+  cheaper source of raw gold than raw gold is. But `iron_ingot -> 9 iron_nugget` is a packing pair
+  too, so unpacking an ingot was barred as well and smelting a tool was left as the winner. **A
+  guard against arbitrage produced arbitrage.**
+- **AND THE WASH TEST WAS NOT THE PROBLEM, WHICH TOOK TWO WRONG FIXES TO ESTABLISH.** It looked
+  like one - it fires on any stock at all of any ingredient, so a single pickaxe in a chest passes
+  it. Bounding it by what the held stock can actually feed reported *"short 424 lantern"* while
+  hiding the 379 ingots that make them; replacing it with a margin against extravagance let
+  `gold_ingot` be answered with 522 deepslate gold ore again, which is the exact failure it was
+  written for. Both were reverted. **With the cost model fixed the absurd route cannot be chosen
+  at all**: `_best_recipe(iron_nugget)` picks unpacking an ingot at 0.111 over smelting a pickaxe
+  at 3.25, however permissive the guard downstream of it is. Two regressions caught by tests that
+  already existed, which is the argument for the guard's own tests being about the ROUTE rather
+  than about the guard.
+
+**The two are told apart by where the packed form's price comes from.** An ingot has a real recipe
+(smelt raw iron), so unpacking prices a nugget at a ninth of that and the arithmetic is true. A
+`raw_gold_block` has no recipe but packing raw gold — the cycle we are inside — so its price falls
+back to a leaf, and dividing a made-up number by nine is where the free gold came from. `_cost`
+returns *(price, was it DERIVED)* and a reversible recipe is usable exactly when its input's price
+was derived.
+
+    iron_nugget 0.111 . iron_ingot 1.0 . iron_pickaxe 3.25 . raw_gold 1.0 (was 1/9)
+
+One more thing it cost:
+
+- **ONE UNPACKING HOP PER CHAIN, or the resolver does not finish.** A packing pair is an edge in
+  BOTH directions, so admitting them doubled the branching of a search already exponential in its
+  path set: individually every material resolved in under a tenth of a second and the fourteen
+  together did not finish in ninety-five. One hop is all any real chain needs, and it is bounded
+  back to what it was. `_cost`, `_best_recipe` and `_per_unit` are memoised on top of that.
+
+### 3. One block-identity source — `mcbuild/items.py`
+
+Three things were written twice, once in each language, and all three had drifted.
+
+- **THE ITEM NAME.** `ActionRecipe.itemFor` knew a wall sign is placed from `oak_sign`; Python had
+  no such map at all, so `craft`, `shop` and `analyze` asked chests for `water`, `oak_wall_sign` and
+  `redstone_wire` — **7,965 cells reported as unobtainable raw material**, which is not a material
+  shortage, it is the wrong NAME for a material. `items.item_for` is the rule, `exceptions()`
+  derives the map from the registry (128 blocks) so a family added to the game cannot be silently
+  missing, and `tools/export_rules.py` ships it into `chunkscan_rules.json` beside the protection
+  and economy rules. Java consults the file first and keeps its own rules as the fallback for a jar
+  older than its file.
+- **THE PROPERTY SET, and the split that fixes it.** Java's `INTENTIONAL` carried four properties
+  Python's did not. Adding them to Python broke six tests immediately, which is the finding:
+  **DECIDED and COMPLETE are two different questions.** `INTENTIONAL` is what a design chose and is
+  what gets written into a cell string; `COMPLETION` — `waterlogged`, `powered`, `persistent`,
+  `open` — is what must ALSO be true before a cell is finished. Both ship; `role()` takes the union
+  because it only ever asks whether a property must match.
+- **AND 147 CELLS COULD NEVER MATCH.** Nothing in the mod opens a trapdoor, so `open=true` kept
+  `todo` non-empty for ever, `placementComplete()` was never true and `follow all` never moved on.
+  It is DECLINED now, like the redstone commissioning pass: work the builder hands back, reported
+  and excluded, never retried.
+
+`analyze.clickable` was already ported from `Printer.support` by the audit itself.
+
+### 4. Dig and place, ordered — and it needed no token
+
+2,970 cells of `Park Complete` are in the design AND on its dig list (2,933 of them the ground plane
+a lake and a well are cut through), and nothing expressed which came first: `split` put the cell in
+`todo` while `digLeft` returned it as still standing, on the same tick, under the same radius. An
+unattended session could place a block and break it again for ever.
+
+**Two rules, both of which follow from what the lists MEAN:**
+
+- a dig cell that is still solid is an obstruction, so it is not placeable yet — it goes to
+  `manual` and leaves by itself the moment it is broken;
+- a cell already holding what the design wants is the FINISHED BUILD, not the obstruction, and is
+  never dug. Without the second the pair loops.
+
+`Digger.design()` gives the digger the design's own cells so it can tell one from the other.
+
+### 5. `sync` measures a world the design is actually in
+
+`sync.yaml` tracked `Park Complete` and scanned `island` — the old island, 121,000 blocks away — and
+printed `0/541753 built (0%)` every day for the life of the park. Every cell was out of the box, and
+the honest word for that is UNKNOWN; but `oob` was the last clause of a line whose first clause was
+a percentage, so the lie led and the reason trailed, and `history.json` recorded the zero into the
+velocity slope.
+
+- **`Progress.measured`**: under half its cells inside the world and it prints NOT MEASURED with the
+  count, rather than a number nobody can compute. Same rule as a park gate with no evidence.
+- **`worlds:`** in `sync.yaml` is the list of captures available; `world_for` picks the one whose box
+  holds each design's origin. **A heuristic on purpose** — getting it exactly right means loading
+  half a million cells to compute a box, and the honest check is downstream and free.
+- **An unmeasured design is never recorded in history**, and is shopped WHOLE, because "we do not
+  know what is built" is not "nothing is left" and the safe direction for a shopping list is to
+  assume the work.
+
+**THE PARK IS STILL NOT MEASURABLE, AND THAT IS NOW THE REPORT RATHER THAN A ZERO.** The only park
+captures are the three bare starter pads from 2026-08-31 — 189, 144 and 192 blocks. Scan the plots
+at plot scale and add them to `worlds:`.
+
+#### ...and `work.json` became a manifest
+
+21 MB of cell lists that nothing read: `Work.cached` takes the LITEMATIC whenever one exists beside
+the sidecar, which is always. It was also written at 2 of the 21 places a design gets written, so
+`Park Buildings.work.json` was a day older than its own litematic.
+
+- **`scan.save_pair` emits it**, so it cannot go stale — the same move `finish.carve_for` made when
+  re-carving stopped being a note in a config and became a pipeline step. **A step that has to be
+  remembered is a step that gets lost.**
+- **It carries what the mod cannot get from a litematic** — origin, dig list, count — and the cells
+  only when there is no schematic to read them from. `Casino Complete.work.json` is 142 bytes.
+- **An absent cell list is an ERROR on the Java side, never an empty design.** Read as "no work" it
+  would report every design complete, which is the one failure worse than a stale file.
+- **A CAPTURE IS NOT A DESIGN**, and the markers tested are the CAPTURE's — `Designs.isDesign`'s own
+  asymmetry: absence of evidence that a file is a capture is good evidence it is a design, and the
+  reverse does not hold.
+
+The 367 existing fat work lists are left to shrink as their designs regenerate; converting them in
+one pass is 92 MB of churn in tracked files and is Jack's call, not a silent one.
+
+### 6. The movement and accounting list
+
+- **`overTop` was unbudgeted and unranged.** It ran before any tier deadline was consulted, so a
+  cross-park hop walked thousands of heightmap lookups and tens of thousands of `Nav.clear` samples
+  FIRST — and every tier then "failed" on a deadline that had already passed, reporting no route
+  where the geometry was never examined. It has its own share (15%), stops past `Nav.MAX_RANGE`, and
+  samples the corridor at 128 points however long it is. **Under-sampling cannot cause a collision**,
+  only a crossing height too low, which `Nav.clear` then rejects — an honest failure.
+- **`Ignored` had no expiry**, and two of the three paths that strike it are not about the place: a
+  search that runs out of its millisecond budget returns the same empty list as one that proved
+  there is no way through. Two slow ticks deleted an eight-block cube of the park for the session.
+  Ten minutes, expiring lazily.
+- **A moving destination reset the recovery ladder.** A station re-centres on the cells still to
+  place, so in follow mode the target drifts on every recount and `trouble` was zeroed twice a
+  second — the whole escalation was dead code in the one mode it was written for. A target inside
+  `SAME_TARGET` is the same destination, which is `Loop.sameSpot`'s hysteresis and its reasoning.
+- **`Work.room` assumed a 64 stack** for any item the pack was not already carrying, so a trip for
+  buckets, signs or shulker boxes was sized at up to sixty-four times the truth: the withdrawal
+  over-asked, took what was there, and blacklisted the chest that actually had the material.
+  `maxStack` asks the game (rule 11, applied to a number nobody thought of as a block property).
+- **`Work.tally` was wrong in both directions**: a door and a bed are two cells and one item, a
+  double slab is one cell and two slabs. One sends you shopping for what you have, the other sends
+  you back for what you ran out of.
+- **A blank board counted as a built sign.** The block lands, `matches` says yes, and the text is a
+  second action that can time out — so `SignWriter.verification`, `written` and `report` had no
+  callers at all. A board still waiting for its words goes to `manual`, never to `wrong`: it is an
+  outstanding ACTION, not the world holding something else.
+- **`everCache` is keyed on the cell being judged and the judgement is about the world AROUND it**,
+  so placing a block never invalidated the verdicts that placing it had just changed. A lantern
+  waiting on a wall stayed written off until the thirty-second `relax`. `Printer.forgetNear` drops
+  six neighbours on the one event that can change the answer; `forgetPlaceability` had no callers
+  at all and stays as the blunt version.
+- **Slicing a plan dropped the back of every sign, its colour, and every non-sign tile entity**, and
+  `scan.merge` dropped tile entities entirely. Both carry the whole compound now, re-addressed
+  rather than mutated, and only where the BLOCK survived — a tile entity with no block is a corrupt
+  region rather than a lost line.
+
+### And the frame rate, which the audit could not see
+
+Four parallel readers went through the loop's decisions and none of them measured what a decision
+COSTS. Two per-cell filters in `Hud.advance` were doing a path normalisation, two monitor
+acquisitions and a stream allocation on every one of half a million cells, twice a second — on the
+tick that also prints the chat line, which is why *"every time there's a chat update there's major
+lag"* is a precise diagnosis. It survived four readings because it reads as a boolean.
+
+`Islands.Gate` resolves the plot lookup once per pass, `Rules.inLockedProfile` is memoised per
+block, and the predicates are ordered by what they cost. `Perf` now times `loop decide` and
+`loop filter` as well as the diff — it timed only `Work.split`, so the report would have blamed the
+wrong half.
+
+**An audit that reads the logic should include a measurement pass over the hot ticks.**
+
+### Still open
+
+- **Nothing here has been flown or placed in game.** 687 Java tests and the Python suite pass; the
+  jar is built and not uploaded.
+- **`prices.json` is empty**, so `buy` is never an available source and `cheapen --by-price` is
+  inert. One shop walk fixes it.
+- **The park has no capture at plot scale**, so its progress is honestly unknown rather than zero.
+- **Eight of the nine lot modules still have no sidecar**, so they exist only inside the composite.
+  Untouched: `park_lots` is another session's live area.
+- **`tests/test_frontier.py` fails with `KeyError: 'prismworks'`** in `frontiertown.py`, and
+  `test_worldrender` / `test_park_vantage` / `test_evidence` / `test_park_games` carry their own
+  pre-existing failures. All verified against a clean tree before this work and none of them touched.
+
+## The frame rate, measured at last (2026-09-07)
+
+Jack: *"the game still is incredibly spazzy/laggy, it twitches and stops and gets stuck and then
+jerks out ... will have long gaps where its searching i guess and cant find anything and then
+suddenly will find things just below it"*. Then, on the same jar: *"its also still building
+completely around itself and getting fully stuck"*.
+
+`/cscan perf`, in game, on the design that is actually being printed:
+
+    recount        mean 262.39 ms   worst 426.74 ms      <- Work.split alone
+    loop decide    mean  47.04 ms   worst 260.04 ms
+    loop filter    mean  35.39 ms   worst  62.51 ms
+    printer scan   mean   1.02 ms   worst   2.74 ms
+    autofly        mean   0.02 ms   worst  98.19 ms
+    highlight      mean   0.01 ms   worst   1.68 ms
+
+**TWO ROUNDS OF PERFORMANCE WORK WENT TO THE SECOND-BIGGEST COST, AND THE INSTRUMENT THAT WOULD
+HAVE SAID SO HAD ALREADY BEEN BUILT.** `Islands.Gate` and the memoised `inLockedProfile` were a real
+fault and a real fix - they are `loop filter`, 35 ms - and the thing that freezes the client is the
+262 ms next to them. The profiler was written in the round before, specifically so this would not be
+argued from reading, and then not run for two more rounds of reading. **A measurement that exists
+and is not taken is worth exactly as much as one that does not exist.**
+
+### The instrument was itself wrong, in the direction that hides the truth
+
+The report said `345.86 ms/tick total (692% of a 50ms tick)`, which cannot be true of one thread.
+The ring holds the last {@code WINDOW} **CALLS**, not ticks: for `autofly`, called every tick, the
+mean is per tick and the label was right; for `recount`, called every fortieth, it is per call, and
+summing those into a share of one tick is nonsense. Worse, it flattens the one number that matters
+here - a quarter-second freeze twice a second and a millisecond every tick are the same LOAD and
+completely different to play with.
+
+It reports **ms per call, the worst call, and a true share of the client thread** now, over a
+counted number of ticks. `Perf.tick()` is called once per client tick from the highlight hook.
+
+### Count globally, list locally
+
+`Work.split` at radius 0 built AND SORTED a list of every remaining cell of `Park Complete` - about
+two hundred thousand - so that `Hud.advance` could narrow it to the sixteen blocks around the body
+and throw the rest away. Twice a second.
+
+- The **counts** still cover the whole design: completion and progress are global questions and
+  getting them wrong ends a session early. `Split.todoTotal` carries the real number and everything
+  that counts uses it.
+- The **list** stops at the loop's own working radius.
+- The one global question the loop asks of the list - *where is the nearest work when there is none
+  here* - is `Split.nearestTodo`, computed in the same counting pass for nothing.
+- **And the sort no longer boxes.** It was `Arrays.sort(Integer[], comparator)`: two hundred
+  thousand `Integer` allocations and about three and a half million virtual calls, per call. The
+  order is (recipe, course, distance) and all three fit in one primitive key, so it is
+  `Arrays.sort(long[])` with no allocation at all. Distance is quantised to a quarter block, which
+  can only reorder cells of the same material on the same course within a quarter block.
+
+`split diff` and `split sort` are timed separately, so the next reading says which half is left
+rather than costing another round trip.
+
+### The searching gaps were the placeability sweep, spent on the wrong cells
+
+`Printer.everPlaceable` costs up to **seventy-two `getStateForPlacement` calls per cell** - six
+faces by four yaws by three pitches - and the frontier asked it about EVERY cell of a course. A
+course inside the 200-block working radius is tens of thousands of them, so the 400-per-recount
+budget was spent **in course order** on cells a hundred blocks away, and cells past the budget
+default to *assume placeable*: the loop went to work that was not there, placed nothing, stalled and
+abandoned. The work at the body's own feet was reached by luck, on whichever recount happened to
+cover it. Several recounts of that is the gap; the one that reaches the near cells is the sudden
+find.
+
+**AND THE FAILING CASE IS THE EXPENSIVE ONE**, which makes it a vicious circle: a cell with
+supporting faces and no matching state pays all seventy-two, and that is exactly what a stuck loop
+is looking at.
+
+- Nearest first, and stop at `Loop.FRONTIER_ENOUGH` (96) - enough to choose a station, and the
+  printer re-scans what is actually in reach on its own tick anyway.
+- **Pitch only where it can change the answer.** Looking up or down decides a facing of up or down
+  and which of floor/wall/ceiling a button takes. It decides nothing about a stair, a slab or a
+  wall: a stair's `half` and a slab's `type` come from WHERE IN THE FACE the click lands, which the
+  hit vector already sets. Swept anyway it tripled the cost on the blocks this park is made of.
+
+### Building a box around itself
+
+Every gate in the printer was about the BLOCK - is it legal, supported, affordable, on the plot,
+inside the fence - and **none of them was about the person holding the item.** A station chosen
+inside its own work builds the last wall of a box around itself, and then nothing can reach
+anything.
+
+- `Printer.wouldBoxIn` refuses a placement that would leave the body walled on all four sides with
+  no way up. **The cell stays in `todo`**: it is a refusal FROM HERE, not for ever - the station
+  moves on its own clock and the block goes in from outside, which is how a person would have built
+  it. That is why it lives in `placement` and not in `everPlaceable`, where a false NO would be
+  cached against the cell and write the work off for good.
+- **And `Burial` can see it now.** It was gated out of building entirely last session, because at
+  two walled sides it fired at every station the loop picks - standing beside the wall you are
+  putting up - and bounced. That gate then made the one case it exists for invisible: **a printer
+  walls its own STATION in, and a station is a destination.** The honest fix is a different
+  THRESHOLD, not a blind spot: two sides while digging or idle, all four while building. Four is not
+  a doorway, a corridor or a wall going up. It is a box.

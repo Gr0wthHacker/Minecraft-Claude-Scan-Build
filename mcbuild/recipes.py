@@ -87,6 +87,14 @@ def mark_reversible(d: dict) -> None:
                         r["reversible"] = True
 
 
+def _reset_cost_cache() -> None:
+    """Drop the memos. Call after loading a different recipe database."""
+    _cost.cache_clear()
+    _per_unit_id.cache_clear()
+    _best_recipe_id.cache_clear()
+    _index.cache_clear()
+
+
 def available() -> bool:
     """False if nobody has run `tools/extract_recipes.py` yet - callers say so rather than
     silently reporting every block as a raw material."""
@@ -123,32 +131,80 @@ def _leaf_cost(item: str) -> float:
     return 1.0
 
 
-def raw_cost(item: str, _path: frozenset = frozenset(), _depth: int = 0) -> float:
-    """Base units one of `item` costs by the cheapest recipe chain. A leaf costs 1.
+# MEMOISED. The same (item, path) is reached over and over inside one resolution - a design with
+# 158 kinds walks the same plank and stick chains for most of them - and admitting unpacking as a
+# route doubled the branching. Sound because the answer depends on nothing but its arguments and
+# the recipe file, which does not change while a command runs; `_reset_cost_cache` exists for the
+# tests that swap the database underneath it.
+@functools.lru_cache(maxsize=200_000)
+def _cost(item: str, _path: frozenset = frozenset(), _depth: int = 0,
+          _unpacked: bool = False) -> tuple[float, bool]:
+    """(base units one of `item` costs, whether that came from a RECIPE rather than a leaf).
 
     Per OUTPUT unit, so a stonecutter recipe (1 -> 1) beats a crafting one (6 -> 4) by the ratio
     that actually matters rather than by ingredient count.
+
+    **A LEAF IS SOMETHING YOU CANNOT MAKE, NOT A FLOOR UNDER EVERYTHING.** `best` used to start at
+    the leaf cost and only ever come down, so any item whose recipe cost more than one unit stayed
+    at one: `iron_nugget`, `iron_ingot` and `iron_pickaxe` all priced identically, a crafted tool
+    was as cheap as the metal in it, and "smelt a pickaxe for a nugget" therefore looked free. That
+    is how `craft "Park Complete"` came to plan **3,358 iron pickaxes** - 10,074 ingots where 379
+    would do - on the island whose scarce metal is iron. An item with a recipe is worth what the
+    recipe costs.
+
+    **AND UNPACKING IS ALLOWED WHEN IT IS HONEST.** `mark_reversible` bars packing pairs from
+    cost-minimisation, which is right for `raw_gold_block` - costing every leaf at 1 makes a block
+    a cheaper source of raw gold than raw gold is. But `iron_ingot -> 9 iron_nugget` is a packing
+    pair too, so the correct and only sane route to a nugget was barred as well, leaving smelting
+    a tool as the winner: a guard against arbitrage that produced arbitrage.
+
+    The two are told apart by where the packed form's own price comes from. An ingot has a REAL
+    recipe (smelt raw iron), so unpacking it prices a nugget at a ninth of that and the arithmetic
+    is true. A `raw_gold_block` has no recipe but packing raw gold, which is the cycle we are
+    inside, so its price falls back to a leaf - and dividing a made-up number by nine is where the
+    free gold came from. So a reversible recipe is usable exactly when its input's cost was
+    DERIVED, which is what the second half of this return value is for.
     """
     item = _short(item)
     if item in _path or _depth > MAX_DEPTH:
-        return math.inf
-    best = _leaf_cost(item)
+        return math.inf, False
+    leaf = _leaf_cost(item)
+    best, derived = math.inf, False
     path = _path | {item}
     for r in ways(item):
-        if r.get("reversible"):
+        # ONE UNPACKING HOP PER CHAIN. A packing pair is an edge in BOTH directions, so admitting
+        # them doubled the branching of a search that is already exponential in its path set - the
+        # whole resolver went from seconds to not finishing. One hop is all any real chain needs
+        # (a nugget from an ingot); unpack-into-unpack-into-unpack is not a route anybody takes,
+        # and refusing it bounds the cost back to what it was.
+        if r.get("reversible") and _unpacked:
             continue
         tot = 0.0
+        ok = True
         for slot in r["needs"]:
-            alt = min((raw_cost(a, path, _depth + 1) for a in slot["alts"]), default=math.inf)
+            alt, alt_derived = min(((_cost(a, path, _depth + 1, _unpacked or bool(r.get("reversible"))))
+                                    for a in slot["alts"]),
+                                   key=lambda c: c[0], default=(math.inf, False))
             if alt is math.inf:
-                tot = math.inf
+                ok = False
+                break
+            # A PACKING RECIPE IS ONLY HONEST OVER A DERIVED PRICE. See above.
+            if r.get("reversible") and not alt_derived:
+                ok = False
                 break
             tot += alt * slot["n"]
-        if tot is not math.inf:
+        if ok:
             per = tot / max(1, r["count"])
             if per < best:
-                best = per
-    return best
+                best, derived = per, True
+    if not derived:
+        return leaf, False
+    return best, True
+
+
+def raw_cost(item: str, _path: frozenset = frozenset(), _depth: int = 0) -> float:
+    """Base units one of `item` costs by the cheapest recipe chain. A leaf costs 1."""
+    return _cost(item, _path, _depth)[0]
 
 
 class Plan:
@@ -208,6 +264,20 @@ def _pick(alts: list[str], have: collections.Counter) -> str:
     return max(real, key=lambda a: (have.get(a, 0), -raw_cost(a)))
 
 
+@functools.lru_cache(maxsize=100_000)
+def _per_unit_id(rid: str, path: frozenset) -> float:
+    return _per_unit(_by_id(rid), path)
+
+
+@functools.lru_cache(maxsize=1)
+def _index() -> dict:
+    return {r["id"]: r for rs in _db().get("recipes", {}).values() for r in rs}
+
+
+def _by_id(rid: str) -> dict:
+    return _index()[rid]
+
+
 def _per_unit(r: dict, path: frozenset) -> float:
     """Base units one OUTPUT of this recipe costs, or inf if any ingredient is unreachable."""
     tot = 0.0
@@ -219,10 +289,30 @@ def _per_unit(r: dict, path: frozenset) -> float:
     return tot / max(1, r["count"])
 
 
+@functools.lru_cache(maxsize=100_000)
+def _best_recipe_id(item: str, path: frozenset) -> str | None:
+    """Memoised `_best_recipe`, by id because a recipe dict is not hashable.
+
+    The same (item, path) is asked over and over inside one resolution - a design with 158 kinds
+    walks the same plank and stick chains for most of them - and every miss is a full recursive
+    price. Sound for the same reason `_cost`'s memo is: nothing but the arguments and the recipe
+    file decides the answer.
+    """
+    r = _best_recipe(item, path)
+    return None if r is None else r["id"]
+
+
 def _best_recipe(item: str, path: frozenset) -> dict | None:
+    """The cheapest way to make one, by the same rule `_cost` prices with.
+
+    IT MUST BE THE SAME RULE. Priced one way and routed another, the resolver reports a number it
+    then refuses to act on - which is how `iron_nugget` came out costing a ninth of an ingot and
+    was still planned as three thousand smelted pickaxes.
+    """
     best, best_cost = None, math.inf
     for r in ways(item):
-        if r.get("reversible"):
+        if r.get("reversible") and not all(
+                any(_cost(a, path)[1] for a in slot["alts"]) for slot in r["needs"]):
             continue
         tot = 0.0
         for slot in r["needs"]:
@@ -290,14 +380,22 @@ def plan(want: dict | collections.Counter, have: dict | collections.Counter | No
         if depth > MAX_DEPTH:
             p.short[item] += qty
             return depth
-        r = _best_recipe(item, path)
+        rid = _best_recipe_id(item, path)
+        r = None if rid is None else _by_id(rid)
         # CRAFTING IS NOT ALWAYS THE ANSWER. A recipe that costs the same as the thing it makes
         # is a wash, and following it anyway sends you shopping for its ingredients instead:
         # the first version answered "518 powered rails" with "smelt 522 deepslate gold ore",
         # which is not a material this server has in any chest. So craft when it is genuinely
         # cheaper, or when you ALREADY HOLD an ingredient - otherwise say you are short of the
         # item itself, which is the thing you would actually go and buy.
-        if r is not None and _per_unit(r, path) >= _leaf_cost(item):
+        # KEPT AS IT WAS, and it is the COST MODEL that fixes the pickaxes. Two attempts to make
+        # this test cleverer both regressed something real: a margin against "extravagance" let
+        # `gold_ingot` be answered with 522 deepslate gold ore again, and bounding the escape by
+        # the stock actually held reported *"short 424 lantern"* while hiding the 379 ingots that
+        # make them. Neither was needed - with `_cost` no longer flooring a crafted tool at one
+        # unit, `_best_recipe(iron_nugget)` picks unpacking an ingot (0.111) over smelting a
+        # pickaxe (3.25), so the absurd route cannot be chosen however permissive this is.
+        if r is not None and _per_unit_id(r["id"], path) >= _leaf_cost(item):
             if not any(stock[a] > 0 for slot in r["needs"] for a in slot["alts"]):
                 r = None
         if r is None:

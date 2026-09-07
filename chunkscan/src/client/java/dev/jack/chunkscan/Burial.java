@@ -37,6 +37,20 @@ final class Burial {
 	static final int SIDES = 2;
 
 	/**
+	 * ...and how many while the printer is BUILDING.
+	 *
+	 * <p><b>Jack: <i>"its also still building completely around itself and getting fully stuck".</b></i>
+	 * Two walled sides while building is standing beside the wall you are putting up, which is where
+	 * the loop is supposed to be - fired there it rose, the sides opened, it flew back down and did
+	 * it again, which is why this was gated out of building altogether. That gate then made the one
+	 * case it exists for invisible: a printer walls its own station in, and a station is a target,
+	 * and a target meant this never looked.
+	 *
+	 * <p>All four is not a doorway, a corridor or a wall being built. It is a box.
+	 */
+	static final int SIDES_BUILDING = 4;
+
+	/**
 	 * How long the walls have to stay up before rising.
 	 *
 	 * <p><b>A DOORWAY IS TWO WALLED SIDES.</b> So is a corridor, a trench between two spoil heaps
@@ -100,7 +114,16 @@ final class Burial {
 	 * landing on a floor inside a building is not the failure being guarded against.
 	 */
 	static boolean boxedIn(Solid solid, BlockPos feet) {
-		return walled(solid, feet) >= SIDES && canRise(solid, feet);
+		return boxedIn(solid, feet, SIDES);
+	}
+
+	static boolean boxedIn(Solid solid, BlockPos feet, int sides) {
+		return walled(solid, feet) >= sides && canRise(solid, feet);
+	}
+
+	/** How many walled sides count as boxed in right now. See SIDES_BUILDING. */
+	static int sidesNow() {
+		return (Digger.busy() || Hud.target() == null) ? SIDES : SIDES_BUILDING;
 	}
 
 	/** The world's own answer, for the caller that has one. */
@@ -112,23 +135,24 @@ final class Burial {
 	}
 
 	/**
-	 * Is this the situation this class was written for?
+	 * It looks everywhere now, and the THRESHOLD is what changes. See {@link #sidesNow}.
 	 *
 	 * <p><b>IT IS NOT A GENERAL "AM I NEAR WALLS" CHECK, AND MAKING IT ONE BREAKS THE LOOP.</b>
-	 * {@code Nav.standoff} prefers a standing spot with {@code headroom(free, c, AIR_ABOVE)} — the
-	 * cell over the head clear — so {@link #canRise} is true at EVERY station it picks, by
-	 * construction; and standing beside a wall you are building is two walled sides, which is the
-	 * normal case rather than the exotic one. Fired there, this outranks arrival and steering: the
-	 * body rises, the sides open, {@code held} clears, the autopilot flies it back down to the same
-	 * station, and it bounces there for ever placing nothing.
+	 * {@code Nav.standoff} prefers a standing spot with the cell over the head clear, so
+	 * {@link #canRise} is true at EVERY station it picks; and standing beside a wall you are
+	 * building is two walled sides, which is the normal case rather than the exotic one. At two,
+	 * this outranks arrival and steering: the body rises, the sides open, {@code held} clears, the
+	 * autopilot flies it back down to the same station, and it bounces there placing nothing.
 	 *
-	 * <p>So it runs only where nothing else is watching: while the DIGGER is working (which is what
-	 * Jack reported — <i>"sat still and dug completely around itself"</i>), or with no destination
-	 * at all. A body that is walled in while it HAS somewhere to go is the recovery ladder's case,
-	 * and that already escalates from not-moving.
+	 * <p>That was first answered by refusing to look at all while there was a destination - which
+	 * made the one case this exists for invisible, because a printer walls its own STATION in and a
+	 * station is a destination. Jack, on that: <i>"its also still building completely around itself
+	 * and getting fully stuck"</i>. The honest fix is a different threshold, not a blind spot: two
+	 * sides while digging or idle, all four while building. Four is not a doorway, a corridor or a
+	 * wall going up. It is a box.
 	 */
 	static boolean applies() {
-		return Digger.busy() || Hud.target() == null;
+		return true;
 	}
 
 	/**
@@ -150,7 +174,7 @@ final class Burial {
 			return false;
 		}
 		BlockPos feet = p.blockPosition();
-		if (!boxedIn(of(mc.level), feet)) {
+		if (!boxedIn(of(mc.level), feet, sidesNow())) {
 			held = 0;
 			return false;
 		}

@@ -99,15 +99,21 @@ def _read(design: str, out_dir: str = "out"):
             continue
         cells[(ox + int(x), oy + int(y), oz + int(z))] = (names[i], props[i])
 
+    # ---- THE WHOLE TILE ENTITY, NOT THE FRONT TEXT OF IT.
+    #
+    # This read `front_text` and dropped everything else on the floor: the BACK of every sign, the
+    # dye colour, whether it glows, and every tile entity that is not a sign at all. A slice was
+    # therefore not the design - it was the design with its second faces blank - and nothing said
+    # so, because a blank back renders exactly like a written one. Carried verbatim and
+    # re-addressed on the way out, exactly as `park_place._shift_tile` does it for the composite.
     signs = {}
     for t in mo.tile_entities:
         v = t.value
         try:
             pos = (ox + int(v["x"].value), oy + int(v["y"].value), oz + int(v["z"].value))
-            front = [j.value for j in v["front_text"].value["messages"].value]
-            signs[pos] = front
         except Exception:                                        # noqa: BLE001
             continue
+        signs[pos] = t
     # `Scan` does not surface `dig` as an attribute, so read the sidecar's own JSON.
     import json as _json
     with open(os.path.join(out_dir, f"{design}.scan.json"), encoding="utf-8") as fh:
@@ -201,6 +207,18 @@ def slice_plan(plan_name: str, floor_y: int, out_dir: str = "out",
     return written
 
 
+def _shift_tile(tag, x: int, y: int, z: int):
+    """The same tile entity, re-addressed into this layer's frame.
+
+    Rewritten rather than mutated: one design is sliced into several layers in a single run, and a
+    tile entity moved in place would carry the first layer's coordinates into the second.
+    """
+    from .nbt import Tag, TAG_COMPOUND, TAG_INT
+    v = dict(tag.value)
+    v["x"], v["y"], v["z"] = Tag(TAG_INT, int(x)), Tag(TAG_INT, int(y)), Tag(TAG_INT, int(z))
+    return Tag(TAG_COMPOUND, v)
+
+
 def _write_layer(name: str, cells: dict, signs: dict, out_dir: str, whole: bool = False,
                  dig=None) -> int:
     xs = [p[0] for p in cells]
@@ -208,14 +226,18 @@ def _write_layer(name: str, cells: dict, signs: dict, out_dir: str, whole: bool 
     zs = [p[2] for p in cells]
     x0, y0, z0 = min(xs), min(ys), min(zs)
     c = Canvas(max(xs) - x0 + 1, max(ys) - y0 + 1, max(zs) - z0 + 1)
+    tiles: list = []
     for (x, y, z), (blk, props) in cells.items():
         c.put(x - x0, y - y0, z - z0, c.raw_state(blk, **props))
         # A SIGN'S TEXT FOLLOWS ITS BLOCK into whichever layer the block landed in. Left behind it
         # would be a tile entity with no block, which is a corrupt region rather than a lost line.
+        # A TILE ENTITY FOLLOWS ITS BLOCK into whichever layer the block landed in. Left behind it
+        # would be a tile entity with no block, which is a corrupt region rather than a lost line.
         if (x, y, z) in signs:
-            c.sign_text(x - x0, y - y0, z - z0, signs[(x, y, z)])
+            tiles.append(_shift_tile(signs[(x, y, z)], x - x0, y - y0, z - z0))
     c.world_origin = (x0, y0, z0)
     m = c.to_model()
+    m.tile_entities = tiles
 
     path = os.path.join(out_dir, f"{name}.litematic")
     scan_mod.save_pair(path, m, {

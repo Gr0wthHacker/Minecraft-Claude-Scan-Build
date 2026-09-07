@@ -16,6 +16,11 @@ final class ActionRecipe {
 	/** The inventory item consumed by one cell's action, rather than its final block identity. */
 	static String itemFor(String state) {
 		String block = Rules.shortName(state);
+		// THE SHIPPED MAP FIRST. `mcbuild/items.py` is the source for both languages now; what
+		// follows is the fallback for a jar whose rules file predates it, and it must keep
+		// agreeing with the map - `ItemNameTest` fails if it does not.
+		String mapped = Rules.itemFor(block);
+		if (mapped != null) return mapped;
 		if (block.equals("water")) return "water_bucket";
 		if (block.equals("water_cauldron") || block.equals("lava_cauldron")) return "cauldron";
 		// A wall sign has no item of its own: you carry `oak_sign` and the FACE you click decides
@@ -50,6 +55,15 @@ final class ActionRecipe {
 		if (block.equals("rail") || block.endsWith("_rail") || block.equals("repeater")
 			|| block.equals("comparator") || block.equals("redstone_wire"))
 			return "redstone/rail commissioning";
+		// AN OPEN DOOR OR TRAPDOOR IS A CLICK, AND THE PRINTER DOES NOT CLICK. A door places shut,
+		// so `open=true` can never match however many times it is tried - and that is not a stall,
+		// it is a design that can never finish: 147 such cells in the park kept `todo` non-empty
+		// for ever, so `placementComplete()` was never true and `follow all` never moved on. It is
+		// the same distinction the dig list draws - work this builder hands back, not work it
+		// failed at - and it is why declined cells are reported and excluded rather than retried.
+		if (state.contains("open=true")
+			&& (block.endsWith("_trapdoor") || block.endsWith("_door") || block.endsWith("_fence_gate")))
+			return "open by hand";
 		return null;
 	}
 

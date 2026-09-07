@@ -2426,6 +2426,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 				// inside Fleet: a lease exists to recover from a DEAD client, not to punish a slow one.
 				if (printDesign != null || digDesign != null) Fleet.heartbeat(mc);
 				if (digDesign != null && mc.level != null) {
+					// ...and tell it which design, so a cell already holding what the design wants
+					// is finished work rather than the next thing to break. See Digger.design.
+					Digger.design(ScanRunner.schematicsDir(mc), digDesign);
 					String line = Digger.tick(mc,
 						Work.digLeft(mc.level, ScanRunner.schematicsDir(mc), digDesign));
 					say(mc, line);

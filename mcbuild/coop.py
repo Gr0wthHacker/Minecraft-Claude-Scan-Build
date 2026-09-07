@@ -86,11 +86,37 @@ class Progress:
     remaining_cells: list = field(default_factory=list)          # ((x,y,z), name)
     clear_first: collections.Counter = field(default_factory=collections.Counter)   # world blocks in the way
 
+    #: A design with less than this share of its cells inside the world was not measured at all.
+    COVERAGE = 0.5
+
     @property
     def pct(self) -> float:
         return 100.0 * self.built / self.total if self.total else 0.0
 
+    @property
+    def coverage(self) -> float:
+        """The share of this design's cells the world could actually answer about."""
+        return (self.total - self.oob) / self.total if self.total else 0.0
+
+    @property
+    def measured(self) -> bool:
+        """Was this a measurement, or a report about a world the design is not in?
+
+        **`sync` tracked `Park Complete` and scanned the OLD ISLAND, 121,000 blocks away, and
+        printed `0/541753 built (0%)` every day for the life of the park.** Every cell was out of
+        the box, and the honest word for that is UNKNOWN - but `oob` was the last clause of a line
+        whose first clause was a percentage, so the lie led and the reason trailed. `history.json`
+        then recorded the zero and the velocity slope was computed from it.
+
+        A number nobody can compute must not be printed as a number. It is the rule the ten park
+        gates already follow, where a gate with no evidence BLOCKS rather than passing."""
+        return self.total > 0 and self.coverage >= self.COVERAGE
+
     def report(self, top: int = 12) -> str:
+        if not self.measured:
+            return (f"{self.design}: NOT MEASURED - {self.oob} of {self.total} cells lie outside "
+                    f"the world it was compared against. Point sync at a capture that contains "
+                    f"this design (sync.yaml `worlds:`); its progress is unknown, not zero.")
         lines = [f"{self.design}: {self.built}/{self.total} built ({self.pct:.0f}%), {self.wrong} cells hold a different block, "
                  f"{self.oob} outside the scan box (unknown)",
                  "left: " + ", ".join(f"{k}:{v}" for k, v in self.missing_by.most_common(top))]
@@ -192,6 +218,48 @@ def diff_report(d: dict, top: int = 10) -> str:
 
 
 # ------------------------------------------------------------------ merge
+
+def world_box(path: str, schem_dir: str = scan.DEFAULT_SCHEM_DIR):
+    """A capture's box, read from its SIDECAR ALONE - never loads the model.
+
+    Returns (x0, y0, z0, x1, y1, z1), or None for a sidecar with no recorded size (designs written
+    by some generators have an origin and no size; a capture written by `/cscan` always has both)."""
+    _, side = scan.resolve(path, schem_dir)
+    with open(side, encoding="utf-8") as f:
+        meta = json.load(f)
+    o, s = meta.get("origin"), meta.get("size")
+    if not o or not s:
+        return None
+    return (o["x"], o["y"], o["z"], o["x"] + s["x"] - 1, o["y"] + s["y"] - 1, o["z"] + s["z"] - 1)
+
+
+def world_for(design: str, worlds: list[str], schem_dir: str = scan.DEFAULT_SCHEM_DIR) -> str:
+    """Which capture to measure this design against: the one whose box holds the design's origin.
+
+    **A HEURISTIC, AND DELIBERATELY SO.** Getting this exactly right means loading half a million
+    cells to compute a box; the honest check is downstream and costs nothing extra, because
+    `progress` counts every out-of-box cell as it goes and `Progress.measured` refuses to print a
+    percentage when most of them were. So this picks cheaply and the measurement tells the truth
+    about whether the pick was any good - which is the same split as siting a design by a fast
+    search and letting the audit judge the result.
+
+    With nothing matching it returns the FIRST world, so a setup that has never heard of a second
+    world behaves exactly as it did.
+    """
+    if not worlds:
+        raise ValueError("no world to measure against")
+    o = scan.resolve(design, schem_dir)[1]
+    with open(o, encoding="utf-8") as f:
+        og = json.load(f).get("origin") or {}
+    x, y, z = og.get("x"), og.get("y"), og.get("z")
+    if x is None:
+        return worlds[0]
+    for w in worlds:
+        b = world_box(w, schem_dir)
+        if b and b[0] <= x <= b[3] and b[1] <= y <= b[4] and b[2] <= z <= b[5]:
+            return w
+    return worlds[0]
+
 
 def merge_scans(paths: list[str], out: str) -> str:
     """Union of captures. Ordered oldest -> newest by 'created'; a newer scan is authoritative (air included)
@@ -301,15 +369,19 @@ def load_prices(path: str = "prices.yaml") -> dict:
 
 
 def shop(designs: list[str], world: str | None = None, prices: dict | None = None, have: collections.Counter | None = None) -> str:
+    from . import items as items_mod
     prices = load_prices() if prices is None else prices
     need = collections.Counter()
     for dpath in designs:
+        # BY ITEM, NOT BY BLOCK. A shopping list naming `oak_wall_sign` sends you looking for an
+        # item that does not exist; the sign you carry is `oak_sign` and the face you click decides
+        # how it lands. See mcbuild/items.py.
         if world:
             for _, n in progress(dpath, world).remaining_cells:
-                need[n] += 1
+                need[items_mod.item_for(n)] += 1
         else:
             for _, n in Grid(scan.load(dpath)).cells():
-                need[n] += 1
+                need[items_mod.item_for(n)] += 1
     lines = [f"{'block':26s} {'count':>6s} {'stacks':>7s} {'shulk':>6s}  tier" + ("      have  short" if have is not None else "") + ("   coins" if prices else "")]
     total_coins = 0.0
     for name, n in need.most_common():
@@ -422,16 +494,48 @@ def sync(cfg_path: str = "sync.yaml", verbose: bool = True) -> str:
     prog_world = full_out if full_out and os.path.exists(full_out) else world_out
     if prog_world != world_out:
         lines.append(f"progress measured against {prog_world} (full depth)")
+    # ---- AND A DESIGN IS MEASURED AGAINST A WORLD THAT CONTAINS IT.
+    #
+    # One `world_out` can never cover everything this repo tracks: the park is three islands
+    # 121,000 blocks from the original one, and tracking `Park Complete` against `island` printed
+    # `0/541753 built (0%)` every day for the life of the park. `worlds:` is the list of captures
+    # available; each design takes the one whose box holds it, and `Progress.measured` says so
+    # when none of them does rather than reporting the ignorance as a zero.
+    worlds = [w for w in (cfg.get("worlds") or []) if os.path.exists(scan.resolve(w)[0])]
+    worlds = worlds or [prog_world]
     rows = {}
+    unmeasured = []
+    by_world: dict[str, list] = {}
     for d in cfg.get("progress", []):
-        pr = progress(d, prog_world)
-        rows[os.path.basename(d)] = (pr.built, pr.total)
+        w = world_for(d, worlds)
+        pr = progress(d, w)
+        if pr.measured:
+            rows[os.path.basename(d)] = (pr.built, pr.total)
+            by_world.setdefault(w, []).append(d)
+        else:
+            unmeasured.append(d)
+        if len(worlds) > 1:
+            lines.append(f"measured against {os.path.basename(w)}")
         lines.append(pr.report(top=8))
     if cfg.get("progress"):
-        lines.append(shop(cfg["progress"], prog_world))
+        # ONE LIST PER WORLD, because a shopping list is a list you go and BUY: totals across the
+        # designs measured against one capture are what you carry, and designs in two different
+        # worlds are two trips. A design nobody could measure is shopped WHOLE - "we do not know
+        # what is built" is not "nothing is left", and assuming the work is the safe direction.
+        for w, group in by_world.items():
+            lines.append(shop(group, w))
+        if unmeasured:
+            lines.append(shop(unmeasured, None))
         from . import history as history_mod
-        history_mod.record(rows)                       # one row per sync: gives progress a slope
-        lines.append(history_mod.report())
+        # NEVER RECORD AN UNMEASURED DESIGN. A zero written because the wrong world was scanned is
+        # indistinguishable in `history.json` from a zero because nothing was built, and the
+        # velocity slope is computed from both.
+        if rows:
+            history_mod.record(rows)                   # one row per sync: gives progress a slope
+            lines.append(history_mod.report())
+        if unmeasured:
+            lines.append("NOT recorded in history (not measurable against any world given): "
+                         + ", ".join(os.path.basename(d) for d in unmeasured))
     if cfg.get("learn", True):
         lines.append(learn_mod.learn([world_out]).splitlines()[0])
     tracked = write_tracked(cfg, prof["schem_dir"])

@@ -16,6 +16,25 @@ deep_cut:
 - 215
 - 30051
 full_out: out/island_full.litematic
+# WHICH WORLD EACH TRACKED DESIGN IS MEASURED AGAINST.
+#
+# One capture can never cover everything tracked here: the park sits on three islands ~121,000
+# blocks from the original one, and tracking `Park Complete` against `island` printed
+# `0/541753 built (0%)` every day for the life of the park - every cell out of the box, reported
+# as a zero rather than as "unknown", and recorded into the velocity slope. Each design now takes
+# the world whose box holds it, and `Progress.measured` refuses to print a percentage when none
+# of them does.
+#
+# THE PARK IS NOT IN THIS LIST YET, AND THAT IS THE HONEST STATE: the only park captures are the
+# three bare starter pads from 2026-08-31 (189, 144 and 192 blocks). Scan the plots at plot scale
+# and add them here:
+#     /cscan newisle          ...on each island, then
+#     python -m mcbuild sync
+worlds:
+- out/island_full.litematic
+- out/island_now.litematic
+- out/island_deep.litematic
+
 regen: []
 progress:
 - Park Complete

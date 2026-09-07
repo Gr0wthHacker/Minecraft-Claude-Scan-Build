@@ -241,6 +241,35 @@ def cmd_sync(a):
     print(coop.sync(a.config))
 
 
+def cmd_provision(a):
+    """What must be made, bought or farmed - and the subset the loop can actually finish."""
+    import shutil
+    from . import provision as prov
+    boxed = not a.loose_only
+    if a.package is None:
+        p = prov.plan(a.design, a.world, boxed=boxed)
+        print(p.report())
+        print()
+        print("--package writes the buildable subset as its own design; `/cscan follow`"
+              " that one can finish, where the parent could not and could not say so.")
+        return
+    out = a.package or os.path.join("out", f"{os.path.basename(a.design)} Ready.litematic")
+    if not out.endswith(".litematic"):
+        out += ".litematic"
+    side, p = prov.write_package(a.design, out, a.world, boxed=boxed)
+    print(p.report())
+    print()
+    print(f"package -> {out}  ({p.cells_ready:,} cells)")
+    if a.ship:
+        from .profile import load as load_profile
+        dest = load_profile()["schem_dir"]
+        for ext in (".litematic", ".scan.json", ".work.json"):
+            src = out[: -len(".litematic")] + ext
+            if os.path.exists(src):
+                shutil.copy2(src, os.path.join(dest, os.path.basename(src)))
+        print(f"shipped -> {dest}")
+
+
 def cmd_craft(a):
     """Resolve a design (or a bare item list) down to raw materials against your containers."""
     import collections
@@ -248,15 +277,19 @@ def cmd_craft(a):
     if not recipes_mod.available():
         print("no recipe data - run: python tools/extract_recipes.py")
         return
+    from . import items as items_mod
     want = collections.Counter()
     for t in a.targets:
         if "=" in t:                                   # craft gold_ingot=64 powered_rail=518
             k, _, v = t.partition("=")
             want[k.split(":")[-1]] += int(v)
             continue
+        # ---- A BLOCK NAME IS NOT AN ITEM NAME. Asked for by block, 7,965 cells of `Park Complete`
+        # came back as unobtainable raw material - `water`, `oak_wall_sign`, `redstone_wire` - not
+        # because the island lacks them but because no chest has ever held an item by those names.
         for _, n in (coop.progress(t, a.world).remaining_cells if a.world
                      else coop.Grid(scan_mod.load(t)).cells()):
-            want[n.split(":")[-1]] += 1
+            want[items_mod.item_for(n)] += 1
     have = collections.Counter() if a.no_have else coop.load_storage(boxed=not a.loose_only)
     plan = recipes_mod.plan(want, have)
     print(f"target: {sum(want.values())} items across {len(want)} kinds"
@@ -669,6 +702,14 @@ def main(argv=None):
     p.add_argument("--no-have", action="store_true", help="ignore your containers; price it from nothing")
     p.add_argument("--loose-only", action="store_true", help="do not count items inside shulker boxes")
     p.set_defaults(fn=cmd_craft)
+    p = sub.add_parser("provision", help="what a design needs before anyone can build it, and the part that is buildable today")
+    p.add_argument("design")
+    p.add_argument("--world", help="only the UNBUILT cells, measured against this capture")
+    p.add_argument("--package", nargs="?", const="", metavar="OUT",
+                   help="write the buildable subset as its own design (default: '<design> Ready')")
+    p.add_argument("--ship", action="store_true", help="copy the package into the schematics folder")
+    p.add_argument("--loose-only", action="store_true", help="do not count items inside shulker boxes")
+    p.set_defaults(fn=cmd_provision)
     p = sub.add_parser("plan", help="brief -> a sited, costed, circuit-verified island plan you approve")
     p.add_argument("brief", nargs="?", help='e.g. "redstone casino"')
     p.add_argument("--world", default="out/island_now.litematic")

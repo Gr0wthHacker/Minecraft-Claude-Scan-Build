@@ -42,8 +42,25 @@ final class Ignored {
 	static final int AREA = 8;
 	/** Failures before a place is written off. */
 	static final int STRIKES = 2;
+	/**
+	 * How long a write-off lasts.
+	 *
+	 * <p><b>IT HAD NO EXPIRY AT ALL, and the two strikes that spend it are not always about the
+	 * place.</b> A search that runs out of its millisecond budget returns the same empty list as a
+	 * search that proved there is no way through, and three unrelated give-up paths all strike the
+	 * same key - so two slow ticks could delete an eight-block cube of the park for the rest of
+	 * the session, with the only symptom being work that never gets done.
+	 *
+	 * <p>Ten minutes is long enough that a genuinely unreachable place is not retried every two
+	 * seconds, and short enough that a place written off by accident comes back inside one
+	 * session. It is the same reasoning as the chest cooling-off: a timer forgets, which is wrong
+	 * for a property of a place and right for a judgement made from one bad moment.
+	 */
+	static final long FORGET_MS = 10 * 60_000L;
 
 	private static final Map<Long, Integer> strikes = new LinkedHashMap<>();
+	/** When each place was last struck, so a write-off can expire. */
+	private static final Map<Long, Long> struckAt = new LinkedHashMap<>();
 
 	private Ignored() {}
 
@@ -59,18 +76,33 @@ final class Ignored {
 	 */
 	static boolean strike(BlockPos at) {
 		long k = key(at);
+		expire(k);
+		struckAt.put(k, System.currentTimeMillis());
 		int n = strikes.merge(k, 1, Integer::sum);
 		return n == STRIKES;
 	}
 
 	/** Is this place written off? */
 	static boolean has(BlockPos at) {
-		return strikes.getOrDefault(key(at), 0) >= STRIKES;
+		long k = key(at);
+		expire(k);
+		return strikes.getOrDefault(k, 0) >= STRIKES;
 	}
 
 	/** How many failures this place has, for the report. */
 	static int strikesAt(BlockPos at) {
-		return strikes.getOrDefault(key(at), 0);
+		long k = key(at);
+		expire(k);
+		return strikes.getOrDefault(k, 0);
+	}
+
+	/** Drop a write-off older than {@link #FORGET_MS}. Lazy, so it costs nothing while nothing asks. */
+	private static void expire(long k) {
+		Long when = struckAt.get(k);
+		if (when != null && System.currentTimeMillis() - when > FORGET_MS) {
+			strikes.remove(k);
+			struckAt.remove(k);
+		}
 	}
 
     /** One block in each ignored area, to draw. */
@@ -99,5 +131,6 @@ final class Ignored {
 
 	static void clear() {
 		strikes.clear();
+		struckAt.clear();
 	}
 }

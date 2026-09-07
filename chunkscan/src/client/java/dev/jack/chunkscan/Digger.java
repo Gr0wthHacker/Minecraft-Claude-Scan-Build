@@ -50,7 +50,7 @@ final class Digger {
 	static final int GIVE_UP_MAX = 1200;
 	private static int giveUpAt = GIVE_UP_MAX;
 
-	enum Verdict { BROKE, PROTECTED, OVER_VOID, OFF_PLOT, FENCED, OUT_OF_REACH, ALREADY_AIR, STUCK,
+	enum Verdict { BROKE, PROTECTED, OVER_VOID, OFF_PLOT, FENCED, OUT_OF_REACH, ALREADY_AIR, ALREADY_BUILT, STUCK,
 		UNDERFOOT, WORKING }
 
 	record Refusal(BlockPos pos, Verdict why, String block) {}
@@ -58,6 +58,38 @@ final class Digger {
 	private static BlockPos target;
 	private static int swings;
 	private static int broke;
+
+	/**
+	 * What the design being dug WANTS at each cell.
+	 *
+	 * <p>2,970 cells of `Park Complete` are on its dig list and in its block list - the ground
+	 * plane a lake and a well are cut through - and without this the pair loops: the printer
+	 * places the cell, the digger sees a solid block on its list and breaks it, for as long as
+	 * the session runs. Once the design's own block stands there the dig has done its job.
+	 * Rebuilt only when the design changes, because it is a map over the whole design.
+	 */
+	private static java.util.Map<BlockPos, String> wanted = java.util.Map.of();
+	private static String wantedFor;
+
+	/** Tell the digger which design it is working, so it can tell finished from obstructing. */
+	static void design(java.nio.file.Path schematicsDir, String name) {
+		String key = schematicsDir + "::" + name;
+		if (key.equals(wantedFor)) return;
+		wantedFor = key;
+		java.util.Map<BlockPos, String> m = new java.util.HashMap<>();
+		try {
+			for (Work.Cell c : Work.load(schematicsDir, name)) m.put(c.pos(), c.block());
+		} catch (Exception ignored) {
+			// No design behind this dig list - `/cscan dig` on a bare sidecar. Then every cell on
+			// the list is an obstruction, which is the old behaviour and the safe one.
+		}
+		wanted = m;
+	}
+
+	/** What the design wants at this cell, or null. */
+	private static String wantedHere(BlockPos p) {
+		return wanted.get(p);
+	}
 	private static final Set<String> givenUp = new HashSet<>();
 	private static final List<Refusal> refusals = new ArrayList<>();
 
@@ -119,6 +151,12 @@ final class Digger {
 		if (mc.level == null || mc.player == null || !mc.level.isLoaded(p)) return Verdict.STUCK;
 		BlockState st = mc.level.getBlockState(p);
 		if (st.isAir()) return Verdict.ALREADY_AIR;
+		// A CELL ALREADY HOLDING WHAT THE DESIGN WANTS IS THE FINISHED BUILD, NOT THE OBSTRUCTION.
+		// The other half of the rule in `Work.split`: a cell that is both dug and placed would
+		// otherwise be broken, placed, broken and placed for as long as the session ran. Once the
+		// design's own block stands there the dig has done its job.
+		String want = wantedHere(p);
+		if (want != null && Work.matches(st, want)) return Verdict.ALREADY_BUILT;
 		String name = BuiltInRegistries.BLOCK.getKey(st.getBlock()).toString();
 		if (Rules.isProtected(name)) return Verdict.PROTECTED;
 		if (Islands.outside(ScanRunner.schematicsDir(mc), p.getX(), p.getZ())) {
@@ -197,7 +235,7 @@ final class Digger {
 			double d = mc.player.getEyePosition().distanceToSqr(Vec3.atCenterOf(p));
 			if (d > REACH * REACH) continue;
 			Verdict v = judge(mc, p);
-			if (v == Verdict.ALREADY_AIR) continue;
+			if (v == Verdict.ALREADY_AIR || v == Verdict.ALREADY_BUILT) continue;
 			// SKIPPED, NOT WRITTEN OFF. Standing on it is a fact about where the BODY is, not
 			// about the cell: given up here, the loop could never come back and dig it from the
 			// side, and the design would carry a cell nobody may ever break.

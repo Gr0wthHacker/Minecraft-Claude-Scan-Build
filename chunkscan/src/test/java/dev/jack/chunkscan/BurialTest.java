@@ -96,4 +96,28 @@ class BurialTest {
 		// one direction that is always right in a pit, and one course of it re-opens the sides.
 		assertTrue(Burial.RISE > 0);
 	}
+	@Test
+	void buildingBesideAWallIsNotBeingBoxedIn() {
+		// THE GATE THAT REPLACED A BLIND SPOT. At two sides this fired at every station the loop
+		// picks - standing beside the wall you are putting up - so it rose, the sides opened, the
+		// autopilot flew it back down and it bounced there placing nothing. The first answer was to
+		// stop looking whenever there was a destination, which hid the one case it exists for: a
+		// printer walls its own STATION in, and a station is a destination.
+		Set<String> two = cells("1,0,0", "1,1,0", "-1,0,0", "-1,1,0");
+		assertTrue(Burial.boxedIn(world(two), BlockPos.ZERO, Burial.SIDES),
+			"two sides is a doorway, a corridor, or a wall going up");
+		assertFalse(Burial.boxedIn(world(two), BlockPos.ZERO, Burial.SIDES_BUILDING),
+			"...and while building it is exactly where the loop is supposed to be");
+	}
+
+	@Test
+	void allFourSidesIsABoxWhateverIsBeingDone() {
+		assertTrue(Burial.boxedIn(world(pit()), BlockPos.ZERO, Burial.SIDES_BUILDING));
+	}
+
+	@Test
+	void theBuildingThresholdIsStricterAndBothAreStated() {
+		assertTrue(Burial.SIDES_BUILDING > Burial.SIDES);
+		assertEquals(4, Burial.SIDES_BUILDING, "four horizontal sides is all of them");
+	}
 }
