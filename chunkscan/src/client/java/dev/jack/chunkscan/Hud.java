@@ -791,6 +791,13 @@ final class Hud {
                     + " cell(s) placeable from right here — staying until they are in"));
             }
             workAnchor = me;                         // the work is where I am
+            // ...AND SAY SO TO THE JOB, or the hold forbids its own printer. BuildJob.decide lives
+            // past the end of this method, so returning here left the phase as whatever the LAST
+            // recount set - PARKED after a dead end or a look - and AutomationControl.enter(PRINT)
+            // refuses unless the phase is BUILD. The loop announced it was staying until the
+            // cells were in, placed nothing because it had forbidden itself, and blamed the
+            // world five seconds later.
+            BuildJob.decide(Loop.Phase.BUILD);
             return;
         } else if (!fetching && holdSince != 0 && now - holdSince > STATION_MS) {
             // Held, in reach, and nothing went in: the printer is refusing what I can see. Let the
@@ -1246,7 +1253,15 @@ final class Hud {
 			// same region — it is still the best one — flies at the same wall, and sticks again.
 			next = null;
 			for (Plan.Cluster c : cl) {
-				if (Ignored.has(c.centre())) continue;         // written off: never again this session				if (Loop.avoided(avoided, c.centre(), now, Plan.MAX_RADIUS)) continue;   // still cooling off
+				// written off: never again this session
+				if (Ignored.has(c.centre())) continue;
+				// ...and still cooling off after being given up on. THIS LINE WAS SWALLOWED BY THE
+				// COMMENT ABOVE IT - both statements were on one line, so everything after the first
+				// `//` was a comment and the whole AVOID_MS cooling-off never ran. `abandonSpot`
+				// nulls spotCentre, so the next recount re-picked the SAME best cluster, flew at the
+				// same wall and stuck again - abandon, re-pick, abandon, every two seconds, until
+				// THRASH_LIMIT killed a design that had one awkward spot in it.
+				if (Loop.avoided(avoided, c.centre(), now, Plan.MAX_RADIUS)) continue;
 				next = c;
 				break;
 			}

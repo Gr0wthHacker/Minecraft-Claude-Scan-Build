@@ -414,6 +414,7 @@ final class Autopilot {
 	static void halt(Minecraft mc) {
 		if (on) guardUntil = System.currentTimeMillis() + GUARD_MS;
 		on = false;
+		Burial.reset();
 		release(mc);
 		rescueStage = 0;
 		path = new java.util.ArrayList<>();
@@ -824,6 +825,7 @@ final class Autopilot {
 		bumps = 0;
 		rescueStage = 0;
 		rescueCool = 0;
+		Burial.reset();
 		regainCool = 0;
 		regainTries = 0;
 		regainSaid = false;
@@ -915,8 +917,19 @@ final class Autopilot {
 		// ---- ...AND SO DOES BEING WALLED IN, for the same reason: it happens while the loop is
 		// standing exactly where it means to stand, so every clock in this mod reads it as success.
 		// Above the destination check on purpose — a bot digging itself into a pit usually has
-		// nowhere it is trying to go, which is precisely why nothing noticed. See Burial.
-		if (Burial.lift(mc)) return;
+		// nowhere it is trying to go, which is precisely why nothing noticed.
+		//
+		// THE STEP GOES THROUGH THE FENCE AND THEN THE WORLD, like every other one in this file. A
+		// rise that set its own velocity would be the single movement path never tested against a
+		// block, and contact ends flight — see Burial.wants, which owns the decision and no more.
+		if (Burial.wants(mc)) {
+			if (p.getAbilities().flying) {
+				p.setDeltaMovement(avoid(p, Bounds.clamp(p.position(), Burial.step(p))));
+			} else {
+				Burial.hop(p);
+			}
+			return;
+		}
 
 		// ...and the quieter version of the same thing: on the ground, not flying, with somewhere to
 		// be. See regain — the loop should get flight back rather than stand there being safe.

@@ -112,15 +112,43 @@ final class Burial {
 	}
 
 	/**
-	 * Notice, and climb out. Returns true when it acted, so the caller stops steering this tick.
+	 * Is this the situation this class was written for?
 	 *
-	 * <p>It only ever RISES. Working out which way is out is a search, and a search is what the
-	 * recovery ladder is for; the one direction that is always right in a pit is up, and one course
-	 * of it re-opens the sides, which ends this by itself.
+	 * <p><b>IT IS NOT A GENERAL "AM I NEAR WALLS" CHECK, AND MAKING IT ONE BREAKS THE LOOP.</b>
+	 * {@code Nav.standoff} prefers a standing spot with {@code headroom(free, c, AIR_ABOVE)} — the
+	 * cell over the head clear — so {@link #canRise} is true at EVERY station it picks, by
+	 * construction; and standing beside a wall you are building is two walled sides, which is the
+	 * normal case rather than the exotic one. Fired there, this outranks arrival and steering: the
+	 * body rises, the sides open, {@code held} clears, the autopilot flies it back down to the same
+	 * station, and it bounces there for ever placing nothing.
+	 *
+	 * <p>So it runs only where nothing else is watching: while the DIGGER is working (which is what
+	 * Jack reported — <i>"sat still and dug completely around itself"</i>), or with no destination
+	 * at all. A body that is walled in while it HAS somewhere to go is the recovery ladder's case,
+	 * and that already escalates from not-moving.
 	 */
-	static boolean lift(Minecraft mc) {
+	static boolean applies() {
+		return Digger.busy() || Hud.target() == null;
+	}
+
+	/**
+	 * Notice a pit. Returns true when the caller should RISE this tick.
+	 *
+	 * <p>It only ever asks to rise. Working out which way is out is a search, and a search is what
+	 * the recovery ladder is for; the one direction always right in a pit is up, and one course of
+	 * it re-opens the sides, which ends this by itself.
+	 *
+	 * <p><b>It sets no velocity of its own.</b> Every other movement path in this mod ends with
+	 * {@code Bounds.clamp} and then {@code avoid} — the fence, then the world — and a step that
+	 * skipped both would be the one place the body can be pushed into a block, which on this server
+	 * ends flight. The caller owns the step; this owns the decision.
+	 */
+	static boolean wants(Minecraft mc) {
 		Player p = mc.player;
-		if (p == null || mc.level == null) return false;
+		if (p == null || mc.level == null || !applies()) {
+			held = 0;
+			return false;
+		}
 		BlockPos feet = p.blockPosition();
 		if (!boxedIn(of(mc.level), feet)) {
 			held = 0;
@@ -132,17 +160,23 @@ final class Burial {
 			saidAt = now;
 			p.sendSystemMessage(net.minecraft.network.chat.Component.literal(
 				"[cscan] walled in on " + walled(of(mc.level), feet) + " sides at " + Wand.fmt(feet)
-				+ " — climbing out before it becomes a hole"));
-		}
-		if (p.getAbilities().flying) {
-			Vec3 v = p.getDeltaMovement();
-			p.setDeltaMovement(v.x * 0.5, Math.max(v.y, RISE), v.z * 0.5);
-		} else {
-			// NOT THE JUMP KEY. Driving it is a double tap inside seven ticks, which toggles flight
-			// off - the mistake that once revoked Jack's flight in mid-air. `jumpFromGround` is the
-			// jump itself, with no key and no toggle anywhere near it.
-			if (p.onGround()) p.jumpFromGround();
+				+ " - climbing out before it becomes a hole"));
 		}
 		return true;
+	}
+
+	/** The step this wants, before the fence and the world have had their say. */
+	static Vec3 step(Player p) {
+		Vec3 v = p.getDeltaMovement();
+		return new Vec3(v.x * 0.5, Math.max(v.y, RISE), v.z * 0.5);
+	}
+
+	/**
+	 * On foot, the climb is a JUMP and never the jump KEY. Driving that key is a double tap inside
+	 * seven ticks, which toggles flight off - the mistake that once revoked Jack's flight in
+	 * mid-air. {@code jumpFromGround} is the jump itself, with no toggle anywhere near it.
+	 */
+	static void hop(Player p) {
+		if (p.onGround()) p.jumpFromGround();
 	}
 }

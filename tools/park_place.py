@@ -655,6 +655,28 @@ def complete(items):
     return out, (0, min(0, origin[1]), 0), contested
 
 
+
+#: Keys that record a HUMAN's decision about this design rather than anything the merge computed.
+#: They are read back off the shipped sidecar and re-stated, because a rebuild of the blocks is not
+#: a withdrawal of approval - and because no other code in this repo can put them back.
+APPROVAL_KEYS = ("anchor_status", "automation_approved")
+
+
+def _carry_approval(out_path) -> dict:
+    """The approval keys already on disk, or the cautious default for a design nobody has approved."""
+    side = str(out_path)[: -len(".litematic")] + ".scan.json"
+    keep = {"anchor_status": "PREVIEW placement; rebase before building"}
+    try:
+        with open(side, encoding="utf-8") as f:
+            prev = json.load(f)
+    except (OSError, ValueError):
+        return keep
+    for k in APPROVAL_KEYS:
+        if k in prev:
+            keep[k] = prev[k]
+    return keep
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--ship", action="store_true")
@@ -705,7 +727,14 @@ def main() -> int:
                             "z": ANCHOR[2] + worigin[2]},
                  "kind": "park", "name": "Park Complete",
                  "generated_by": "tools/park_place.py",
-                 "anchor_status": "PREVIEW placement; rebase before building",
+                 # ---- APPROVAL SURVIVES A RE-SHIP. `Designs.requireAutonomousApproval` refuses
+                 # any design whose `anchor_status` says "preview"/"provisional"/"rebase", and
+                 # demands `automation_approved: true`. NOTHING IN PYTHON EVER WROTE EITHER - they
+                 # were set by hand - and `save_pair` replaces the sidecar rather than merging, so
+                 # every `--ship` silently reverted them and the mod then refused to build the park
+                 # with a message about a status string nobody had set. Carried forward from the
+                 # sidecar on disk: a ship re-states the geometry, it does not withdraw consent.
+                 **_carry_approval(wout),
                  "contains": ["Park Ways", "Park Rail"] + [i[0] for i in items],
                  # A LITEMATIC CANNOT EXPRESS REMOVAL, so every "break this first" cell lives in
                  # a sidecar - and this file writes a FRESH sidecar on every ship, which silently

@@ -34,14 +34,48 @@ FACES = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
 
 _NOT_CLICKABLE = {"vine", "water", "lava", "snow", "redstone_wire", "tripwire", "ladder", "repeater",
                   "comparator", "lever", "scaffolding", "moss_carpet", "lily_pad", "sea_pickle", "kelp",
-                  "seagrass", "tall_seagrass", "glow_lichen", "sculk_vein", "cave_vines", "cave_vines_plant"}
+                  "seagrass", "tall_seagrass", "glow_lichen", "sculk_vein", "cave_vines", "cave_vines_plant",
+                  # ...and `torch` itself, which `endswith("_torch")` does not catch - the commonest
+                  # light in the game read as a face to build on.
+                  "torch"}
 _NOT_CLICKABLE_SUFFIX = ("_torch", "_button", "_pressure_plate", "rail", "_sign", "_carpet", "_banner",
                          "_sapling", "_propagule", "_bush", "_fungus", "_roots", "_flower", "_tulip")
 
+#: `Storage.CONTAINERS`, matched as a SUBSTRING exactly as the mod matches it - so `white_shulker_box`
+#: and `trapped_chest` are covered by `shulker_box` and `chest`. A right-click on one of these OPENS
+#: it; nothing is placed.
+_CONTAINERS = ("chest", "barrel", "shulker_box", "hopper", "dispenser", "dropper", "furnace",
+               "blast_furnace", "smoker", "brewing_stand", "chiseled_bookshelf", "decorated_pot",
+               "crafter", "campfire", "lectern", "beacon", "cartography_table", "loom",
+               "smithing_table", "grindstone", "stonecutter", "enchanting_table", "anvil",
+               "crafting_table")
+
+#: `Printer.toggles` - blocks whose own `use()` runs FIRST, so a right-click cycles a repeater,
+#: feeds a composter or rings a bell and places nothing.
+_TOGGLES = {"repeater", "comparator", "daylight_detector", "composter", "bell", "flower_pot",
+            "target", "lectern", "dragon_egg", "respawn_anchor", "beehive", "bee_nest", "tnt",
+            "chiseled_bookshelf", "decorated_pot", "note_block", "jukebox"}
+_TOGGLE_SUFFIX = ("cake", "cauldron", "candle", "redstone_ore", "sign")
+#: ...and the families `Printer.support` names outright.
+_USE_SUFFIX = ("_door", "_trapdoor", "_fence_gate", "_button", "_bed")
+
 
 def clickable(name: str) -> bool:
-    """A face to place against: the printer's `support` rule, by name, for a capture."""
+    """A face to place against: `Printer.support`, ported rather than paraphrased.
+
+    THE TWO WERE A HAND-WRITTEN LIST EACH AND HAD DRIFTED. This said yes to every chest, barrel,
+    furnace, hopper, door, trapdoor, fence gate, bed, note block, jukebox, cauldron, lectern, bell
+    and flower pot in the game - all of which the printer refuses, because a right-click USES them.
+    That is not a reporting nicety: `printable.closure` chains print-reachability through this, and
+    `printable.stitch_model` WRITES THE RESULT into the shipped composite, so every false yes is an
+    orphan mass reported as reachable and left unstitched. Rule 11, across a language boundary, in
+    the one pass that edits an artifact.
+    """
     if name in AIRY or name == "OOB" or name in GROUND_PLANTS or name in _NOT_CLICKABLE:
+        return False
+    if name in _TOGGLES or name.endswith(_TOGGLE_SUFFIX) or name.endswith(_USE_SUFFIX):
+        return False
+    if name == "lever" or any(c in name for c in _CONTAINERS):
         return False
     return not name.endswith(_NOT_CLICKABLE_SUFFIX)
 
