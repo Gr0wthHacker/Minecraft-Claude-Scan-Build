@@ -35,6 +35,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from mcbuild import nbt, printable, profile as mcprofile, scan, schem  # noqa: E402
+from mcbuild.ops import declutter as declutter_op  # noqa: E402
+from mcbuild.ops.declutter import report as declutter_report  # noqa: E402
 from tools.park_lots import PLACEMENT  # noqa: E402
 
 ARTIFACTS = ROOT / "out" / "park_final" / "artifacts"
@@ -700,6 +702,13 @@ def main() -> int:
     print(f"cells also claimed by the ground layer: {against_ground(model, origin)}")
 
     if args.ship:
+        # The buildings-only composite is SHIPPED too, so it gets the same clutter pass as the
+        # whole park - a design that lands in the schematics folder must not behave differently
+        # from the one beside it. The full report is printed once, under Park Complete.
+        b_removed, b_swapped = declutter_op(model)
+        print("")
+        print(f"Park Buildings: {sum(b_removed.values()):,} clutter cells hidden, "
+              f"{sum(b_swapped.values()):,} swapped")
         out = ROOT / "out" / "Park Buildings.litematic"
         meta = {"origin": {"x": ANCHOR[0] + origin[0], "y": ANCHOR[1] + origin[1],
                            "z": ANCHOR[2] + origin[2]},
@@ -714,6 +723,17 @@ def main() -> int:
         print(f"\nshipped -> {dest / out.name}")
 
         whole, worigin, contested = complete(items)
+        # GROUND CLUTTER IS HIDDEN AT THE COMPOSITE, not turned off a config at a time. A dozen
+        # passes plant it (`parkgreen`, `frontier_scatter`, `thicket`, `plateau`, every `_Ground`
+        # helper), so switching it off upstream is one decision taken twelve times and remembered
+        # twelve - and the module artifacts stay as they were designed, which is what makes this
+        # reversible. A litematic cannot express removal, so a fern already standing in the world
+        # is untouched: it is simply no longer the printer's to place, or `/cscan check`'s to
+        # report. Moss BLOCK stays - it is the ground - and so do the leaves, the vines and every
+        # plant that emits light; see `mcbuild/ops/declutter.py` for why each.
+        removed, swapped = declutter_op(whole)
+        print("")
+        print(declutter_report(removed, swapped))
         # A DIAGONAL JOIN IS NOT A JOIN. A printer clicks a FACE, so two cells that meet only at a
         # corner leave everything behind them unreachable - and a break BETWEEN two modules belongs
         # to neither of them, so nothing upstream of this merge can see it. Measured before this

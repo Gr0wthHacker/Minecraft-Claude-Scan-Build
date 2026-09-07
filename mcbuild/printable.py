@@ -422,7 +422,7 @@ def model_cells(model, origin) -> dict:
 
 
 def stitch_model(model, origin, *, world_cells: dict | None = None, reach: int = REACH,
-                 name: str = "model") -> tuple[Survey, int]:
+                 name: str = "model", rounds: int = 3) -> tuple[Survey, int]:
     """Survey a model in memory and write the corner fills straight into it.
 
     This is the form a COMPOSITE needs. `Park Complete` is assembled from ~200 module artifacts and
@@ -430,21 +430,35 @@ def stitch_model(model, origin, *, world_cells: dict | None = None, reach: int =
     per-design pass can fix it - which is also why this runs at the moment the composite is written
     rather than being a command somebody remembers. A step that has to be remembered is a step that
     gets lost, and this project has written that down about `carve_for` already.
+
+    A FILL CAN OPEN A JOIN OF ITS OWN, so this runs to a FIXPOINT rather than once: a corner cell
+    written this round is a new face for the round after it, and one pass therefore leaves a short
+    tail of breaks that a reader would have to notice and close by hand. `rounds` bounds the work;
+    it stops as soon as a round writes nothing. The Survey returned is the FIRST one - the honest
+    measurement of the composite AS ASSEMBLED - while the count is every fill across every round.
     """
-    cells = model_cells(model, origin)
-    s = survey(name, None, reach=reach, cells=cells, world_cells=world_cells or {})
     ox, oy, oz = origin
     sy, sz, sx = model.ids.shape
+    first: Survey | None = None
     written = 0
-    for (x, y, z), block in sorted(s.stitches.items()):
-        i, j, k = y - oy, z - oz, x - ox
-        if not (0 <= i < sy and 0 <= j < sz and 0 <= k < sx):
-            continue
-        if model.ids[i, j, k] != 0:
-            continue
-        model.ids[i, j, k] = model.ensure_state(block)
-        written += 1
-    return s, written
+    for _ in range(max(1, rounds)):
+        cells = model_cells(model, origin)
+        s = survey(name, None, reach=reach, cells=cells, world_cells=world_cells or {})
+        if first is None:
+            first = s
+        wrote = 0
+        for (x, y, z), block in sorted(s.stitches.items()):
+            i, j, k = y - oy, z - oz, x - ox
+            if not (0 <= i < sy and 0 <= j < sz and 0 <= k < sx):
+                continue
+            if model.ids[i, j, k] != 0:
+                continue
+            model.ids[i, j, k] = model.ensure_state(block)
+            wrote += 1
+        written += wrote
+        if not wrote:
+            break
+    return first, written
 
 
 def apply(design: str, stitches: dict, *, out: str | None = None) -> tuple[int, int, str]:

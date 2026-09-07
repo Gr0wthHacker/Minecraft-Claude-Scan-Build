@@ -6,6 +6,7 @@
     python -m mcbuild downscale <file> --factor 2 [--out] [--cheapen] [--hollow]
     python -m mcbuild hollow    <file> [--out]
     python -m mcbuild cheapen   <file> [--out] [--keep orange_concrete]
+    python -m mcbuild declutter <design> [--in-place] [--also vine] [--keep fern]
     python -m mcbuild gen       <config.yaml> [--set params.trunk_height=18] [--ship]
     python -m mcbuild fromimage <image.png> --height 27 [--depth 10] [--out]
 """
@@ -131,6 +132,30 @@ def cmd_cheapen(a):
     schem.save(out, m)
     print("wrote", out)
     print(audit_mod.audit(m).report())
+
+
+def cmd_declutter(a):
+    """Hide the ground clutter and swap the blocks that are not earning their place."""
+    from .ops import declutter as declutter_op
+    from .ops.declutter import CLUTTER, SWAPS, report as declutter_report
+    lit, _ = scan_mod.resolve(a.file, Settings().schem_dir)
+    m = schem.load(lit)
+    remove = set(CLUTTER) | set(a.also or [])
+    swap = dict(SWAPS)
+    for s_ in a.swap or []:
+        k, v = s_.split("=", 1)
+        swap[k] = v
+    if a.no_swap:
+        swap = {}
+    removed, swapped = declutter_op(m, remove=remove, swap=swap, keep=set(a.keep or []))
+    print(declutter_report(removed, swapped))
+    if a.dry_run:
+        print("(dry run - nothing written)")
+        return 0
+    out = lit if a.in_place else _out(lit, a.out, "_clean")
+    schem.save(out, m)
+    print("wrote", out)
+    return 0
 
 
 def cmd_gen(a):
@@ -595,6 +620,15 @@ def main(argv=None):
                    help="use the SERVER's real prices (from /cscan prices) instead of the tier table")
     p.add_argument("--tolerance", type=float, default=30.0, help="max RGB distance a swap may move the colour")
     p.set_defaults(fn=cmd_cheapen)
+    p = sub.add_parser("declutter", help="hide ground clutter (moss carpet, ferns, shrubs, flowers) "
+                                         "and swap blocks that are not earning their place")
+    p.add_argument("file", help="design NAME or a path")
+    p.add_argument("--also", action="append", help="another block name to hide")
+    p.add_argument("--keep", action="append", help="a block name to leave alone")
+    p.add_argument("--swap", action="append", help="src=dst (default: andesite=dripstone_block)")
+    p.add_argument("--no-swap", action="store_true", help="hide clutter only, swap nothing")
+    p.add_argument("--dry-run", action="store_true"); p.add_argument("--in-place", action="store_true")
+    p.add_argument("--out"); p.set_defaults(fn=cmd_declutter)
     p = sub.add_parser("gen"); p.add_argument("config"); p.add_argument("--set", action="append", help="dotted.key=value")
     p.add_argument("--ship", action="store_true"); p.add_argument("--out-dir", default="out"); p.add_argument("--no-render", action="store_true"); p.set_defaults(fn=cmd_gen)
     p = sub.add_parser("scan", help="inspect/cut a chunkscan capture (name in schematics dir, or a path)")
