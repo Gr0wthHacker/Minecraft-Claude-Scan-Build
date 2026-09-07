@@ -8184,8 +8184,8 @@ design without regenerating it.
 - **Animals** — see the ANIMALS section above; it is the largest subsystem. `quadruped.py` (build),
   `taxonomy.py` (family + height → params), `anatomy.py` (per-family leg and head geometry),
   `loft.py` (superellipse sweeps, surface probing), `coat.py` (voronoi / rosettes / blotches /
-  shade), `smooth.py` (relax + roughness), `shell.py` (half-block surfacing: which cells earn a
-  slab, and which blocks may supply one). Data in `data/families.yaml`, `data/species.yaml`,
+  shade), `smooth.py` (relax + roughness), `shell.py` (half-block AND STAIR surfacing: which cells earn a
+  partial, and which blocks may supply one). Data in `data/families.yaml`, `data/species.yaml`,
   `data/rubric.yaml`; `data/animals.yaml` is the older per-species reference, still used for
   species that have no family.
 - `work.py` — `<design>.work.json`: the design flattened to world-coordinate cells so the mod can diff
@@ -10017,11 +10017,97 @@ which asserts the arithmetic rather than the picture. `_lr` compares full block 
 facing mirrored now, not bare names: a stair facing the wrong way is a real defect and a bare-name
 comparison cannot see it - the frog shipped 60 of 134 that way.
 
-**Still open:** the chamfer only reaches the BACK. Its rule is one step and one direction, and on a
-flank the inward neighbour and the along-body neighbour are usually both higher, so the cell is an
-inside corner and is skipped. A convex diagonal corner wants an OUTER-CORNER stair, which the game
-derives from `shape` on placement - so it is available and simply not attempted here. That is the
-next pass, and it is where the remaining blockiness lives.
+**Followed up the same day** - see `shell.stair_shell` below. The chamfer moved into `shell.py`,
+grew an UNDERSIDE case, and went from 35 ramps to 106. What it turned out NOT to be is an
+outer-corner problem: a stair ramps a cell's top or bottom, so a cell in the middle of a flank has
+no face to treat and no stair can help it. What is left is the section changing in whole cells,
+which is geometry rather than surfacing.
+
+### `shell.stair_shell` - stairs, and the note that said they were impossible (2026-09-07)
+
+Jack: *"attempt it, we should be always pushing the limits of our generators to make complex shapes
+so we can make really clean and sophisticated representations."*
+
+**IT IS IN `gen/shell.py`, NOT IN THE ANIMAL, AND THAT IS THE POINT OF DOING IT.** The module
+already owned "which cells earn a slab" and its own docstring said the geometry was "ready for"
+stairs; writing a second private copy inside one generator is how two rules for one question start
+disagreeing. `stair_shell` is now available to the elephant, the giraffe, the frog and everything
+after them, and `stair_for` derives its answer from `slab_for` rather than matching colour a second
+time - so the two can never disagree about what a coat is nearest to, and the `rotated_pillar`
+refusal that stops a log-coated animal getting partials at all is inherited rather than
+re-implemented.
+
+**BOTH REASONS `shell.py` GAVE FOR NOT DOING THIS WERE ALREADY FALSE, AND THE PARAGRAPH OUTLIVED
+THEM BY WEEKS.** It said a stair is directional with no evidence to settle the convention from,
+because *"the capture holds ten stair blocks and none of them records its state"*. CLAUDE.md
+records the correction on its own page: the capture holds **463** stairs and their states are in
+the palette NBT - the earlier reading looked at the bare NAME list, which drops properties. And it
+said a mirrored stair would be invisible in our own renderer, which was true when it was written
+and stopped being true the day `render3d.subdivide` went in for the frog's toes. **A stale
+"cannot" is more expensive than a stale "should": nobody re-reads it, because it reads as settled.**
+
+#### The rule, and where the cells actually are
+
+    TOP    the top is open and EXACTLY ONE lateral neighbour is solid one course UP
+           -> half=bottom, facing that neighbour
+    UNDER  the bottom is open and exactly one lateral neighbour is solid one course DOWN
+           -> half=top, facing that neighbour
+
+Counted over the animal's own skin before anything was written, which is what decided the shape of
+the pass:
+
+    834  interior, walled both ways        no face to treat
+    102  UNDER: flat underside
+     87  TOP: plateau or proud             -> slab_shell's job, already done
+     82  TOP: one higher                   -> a ramp, and only 35 were being placed
+     67  UNDER: one lower                  -> A RAMP, AND NONE WERE BEING PLACED
+     35  UNDER: two or more lower
+     32  TOP: two higher, perpendicular    an inside corner: a stair there reads as damage
+
+**THE UNDERSIDE WAS THE BIGGEST UNTAPPED CASE AND IT IS THE ONE THE CORPUS NAMES.** 27% of outside
+builders' stairs are `half=top` - eaves, soffits, corbels, the underside of an overhang - against
+none of ours. On an animal that is the belly line and the jaw, which together with the back line
+is the whole of what a profile silhouette IS.
+
+**AND `slab_shell`'s UNDERSIDE PASS IS OFF FOR A REASON THAT DOES NOT APPLY TO A STAIR.** A top
+SLAB removes half a cell and reads as a gap wherever the thing being cut is thin - it once cut
+visible slots through the elephant's ears. A `half=top` STAIR removes a QUARTER and leaves the full
+depth on the side the mass continues, so it fills a corner rather than opening one. The thickness
+guard is kept anyway and the ground course is never touched, or a foot hovers.
+
+**A VERTICAL STEP IN A FLANK CANNOT BE CHAMFERED BY A STAIR AT ALL**, and that is worth knowing
+before anyone tries: a stair ramps a cell's TOP or its BOTTOM, and a cell in the middle of a wall
+has solid above and below. Measured, every stair this pass places faces along the body, because
+those are the cells with an open face. The only tool for a vertical step is a vertical panel - an
+open trapdoor, which is the corpus's other big finding and is architecture rather than anatomy.
+What remains blocky on this animal is the flank's section changing in whole cells, and that is
+geometry, not surfacing.
+
+#### AND THE RENDERER DREW ALL 106 OF THEM AS CUBES
+
+`render3d.render` does not subdivide - `tools/look.py` calls `r3.subdivide(m)` when
+`r3.has_shapes(m)`, and the throwaway sheets I was judging from called `render` directly. So the
+first look after adding the stairs was **identical to the look before adding them**, and the honest
+conclusion from that picture would have been that the pass does nothing.
+
+That is the frog's own trap, recorded on this page in capitals - *"the feet were rebuilt with
+stairs and every sheet here drew them as full cubes, so the change was unjudgeable"* - fallen into
+by the person who had just read it. **Judge shape work through `tools/look.py`, or subdivide by
+hand; a scratch render script is not the renderer.**
+
+#### What it measures
+
+    shape blocks       99 -> 177 on 1,266 skin cells = 14%   (corpus median for detail: 17.3%)
+                       stairs 106 (55 top, 51 under), slabs 71
+    stair rate         0.64 per thousand cells across this repo -> 67 on this animal
+    left-right         0 shape, 0 colour, comparing FULL states with the facing mirrored
+    Isthmus            41,229 blocks, 0 problems, 0 leaks, 0 expensive
+
+Every partial placed is acacia or spruce, both witnessed in bulk on this server, because
+`trusted_slabs` already makes rule 12's inference rather than trusting a table: Minecraft ships a
+material family COMPLETE, so a server that has `acacia_planks` has `acacia_slab`. `stair_for` then
+checks the registry for the stair rather than carrying a hand-written map - `petrified_oak_slab`
+and `smooth_stone_slab` have no stair, and remembering which do is rule 11's exact failure.
 
 ### The panel verdict, recorded (2026-09-07)
 
@@ -13152,3 +13238,63 @@ anything.
   walls its own STATION in, and a station is a destination.** The honest fix is a different
   THRESHOLD, not a blind spot: two sides while digging or idle, all four while building. Four is not
   a doorway, a corridor or a wall going up. It is a box.
+
+### THE BOX GUARD COUNTED WALLS, AND WHAT MATTERS IS EXITS (2026-09-07, chunkscan 0.9.0)
+
+Jack, on the jar that shipped the guard above: *"consistently it will box itself in."* The guard was
+real, the reasoning behind it was right, and it was measuring a quantity that is **not** the one the
+question is about.
+
+**`Burial.walled` COUNTED SIDES WHERE BOTH BODY CELLS WERE SOLID.** Its own comment defended that:
+*"a block at the feet alone is a step to walk up and a block at the head alone is an overhang to duck
+under."* The first half is true. The second is not — **a player is 1.8 tall and no crouch in this game
+fits under a one-block gap** — and the case it lets through is not exotic, it is the commonest thing a
+printer builds:
+
+    the body hovers a course over the floor
+    the next course of the design is at HEAD height
+    four blocks go in, one per side
+
+Four sides shut, the body cannot move an inch, and `walled` returns **ZERO**. Every consumer of it was
+therefore blind in exactly the situation it exists for: `Burial.wants` saw a completely free player and
+never fired, and `Printer.wouldBoxIn` — which is `walled >= 4 && !canRise` — never refused a single one
+of those four blocks. The guard was correct code over the wrong measurement, which is why reading it
+twice did not find it.
+
+**A side is a way out or it is not**, and there are exactly two ways out: walk straight through (both
+cells clear), or step up onto one block — which needs somewhere to put your head over there AND
+headroom in your own column to make the jump. `Burial.canLeave` is that, `exits` counts them, and
+`walled` is `4 - exits`, so a wall, an overhang and a two-course face all count the same.
+
+Three things followed, and each was a separate hole:
+
+- **THE RESCUE WAS GATED OUT OF THE ONE CASE THAT IS ACTUALLY FATAL.** `boxedIn` required `canRise`,
+  written for the right reason — a mine gallery is walled by design and roofed, and rising there is
+  grinding a ceiling — but it means a body that has built itself a **lid** measures as fine and
+  nothing fires at all. Sealed is the emergency, not the exemption. `Burial.sealed` is its own answer
+  (`Move.LEAVE`), and the roofed-gallery case needs no exemption any more because a gallery has
+  EXITS: with `canLeave` doing the measuring, `walled` never reaches four in one.
+- **THE PRINTER ONLY REFUSED THE LID.** `walled >= 4 && !canRise` allows the block that leaves the
+  body standing in a one-wide open-top shaft — and the next course of the same design then builds
+  that shaft taller with the body still in it. The rule is not *do not seal yourself in*, it is
+  **keep a way out**: refuse any placement after which `exits == 0`. A shaft you can only fly up is
+  not a place a printer can work from.
+- **AND A LIFT THAT KEEPS BEING NEEDED IS NOT A FIX.** Rising re-opens the sides, the autopilot flies
+  the body back down to the same station, the same walls close round it: a one-second cycle placing
+  nothing that **no clock in this mod can see, because the body is moving the whole time.**
+  `LIFT_LIMIT` (3, over a minute) turns the fourth lift into `Move.LEAVE`.
+
+`Move.LEAVE` goes straight to the recovery ladder's **last rung** — `stage = GO_HOME`, which is
+`/is`, or giving the spot up when a fence is set. That is the shortcut `Recovery.stageFor` already
+makes for a sealed pocket, taken directly rather than through `trouble`, because **a body that has
+built itself in usually has no destination at all**, and with no destination the ladder never runs.
+Which is, again, precisely why nothing noticed.
+
+Two tests changed with the decision, which is this file's own rule about tests pinning decisions:
+`aBlockAtTheHEADALONEisAnOverhangAndNotAWall` was the bug written as a contract, and
+`aROOFEDplaceIsNotAPitHoweverWalledItIs` asserted the exemption that hid the sealed body. In their
+place `aRingAtHEADHEIGHTisABOXandTheOldCountCalledItOpenGround` is the failure Jack kept hitting, and
+`aROOFEDplaceWITHAWAYOUTisNotAPit` keeps the loop out of the undercroft for the honest reason.
+
+697 Java tests, 0 failures. **Not flown in game** — the geometry is unit-tested with no client in it,
+and whether the printer now leaves itself a door is a thing only a session can say.

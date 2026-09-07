@@ -924,13 +924,27 @@ final class Autopilot {
 		// THE STEP GOES THROUGH THE FENCE AND THEN THE WORLD, like every other one in this file. A
 		// rise that set its own velocity would be the single movement path never tested against a
 		// block, and contact ends flight — see Burial.wants, which owns the decision and no more.
-		if (Burial.wants(mc)) {
+		Burial.Move boxed = Burial.wants(mc);
+		if (boxed == Burial.Move.RISE) {
 			if (p.getAbilities().flying) {
 				p.setDeltaMovement(avoid(p, Bounds.clamp(p.position(), Burial.step(p))));
 			} else {
 				Burial.hop(p);
 			}
 			return;
+		}
+		if (boxed == Burial.Move.LEAVE) {
+			// ---- SEALED, or lifted out of the same trap once too often. Rising is not available
+			// (or has been tried and did not stick), so the rungs below the top are pointless: they
+			// are all about getting somewhere else IN THIS WORLD, and there is nowhere else to get
+			// to from inside a box. That is exactly the shortcut Recovery.stageFor already makes for
+			// a sealed pocket, taken directly because there may be no destination to accumulate
+			// trouble against - a body that has built itself in usually has nothing it is trying to
+			// reach, which is precisely why nothing noticed.
+			Burial.reset();
+			stage = Recovery.Stage.GO_HOME;
+			trouble = Recovery.GO_HOME_AT;
+			if (recover(mc, p, Hud.target())) return;
 		}
 
 		// ...and the quieter version of the same thing: on the ground, not flying, with somewhere to

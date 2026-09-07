@@ -381,12 +381,21 @@ final class Printer {
 	}
 
 	/**
-	 * Would placing here brick the player in?
+	 * Would placing here take the player's last way out?
 	 *
-	 * <p><b>Jack: <i>"its also still building completely around itself and getting fully stuck".</b></i>
-	 * Every gate here was about the BLOCK - is it legal, supported, affordable, on the plot, inside
-	 * the fence - and none of them was about the person holding the item. A station chosen inside
-	 * its own work builds the last wall of a box around itself, and then nothing can reach anything.
+	 * <p><b>Jack: <i>"its also still building completely around itself and getting fully stuck"</i>,
+	 * and then <i>"consistently it will box itself in".</b></i> Every gate here was about the BLOCK -
+	 * is it legal, supported, affordable, on the plot, inside the fence - and none of them was about
+	 * the person holding the item. A station chosen inside its own work builds the last wall of a box
+	 * around itself, and then nothing can reach anything.
+	 *
+	 * <p><b>AND THE FIRST VERSION ONLY REFUSED THE LID.</b> It asked for four walls AND a blocked
+	 * ceiling, so a body left standing in a one-wide open-top shaft was allowed - and the next course
+	 * of the same design then built that shaft taller with the body still in it. The rule is not
+	 * "do not seal yourself in", it is <b>keep a way out</b>: after this block there must still be a
+	 * side the body can walk or step through. A shaft you can only fly up is not a place a printer
+	 * can work from, and the four-walls-plus-lid test never sees the commonest box of all - a ring at
+	 * HEAD height, which {@link Burial#canLeave} is what finally measures.
 	 *
 	 * <p>The cell stays in `todo`: this is not a refusal for ever, it is a refusal FROM HERE. The
 	 * station moves on its own clock and the block goes in from outside, which is how a person
@@ -396,16 +405,16 @@ final class Printer {
 	static boolean wouldBoxIn(Minecraft mc, BlockPos pos) {
 		if (mc.player == null || mc.level == null) return false;
 		BlockPos feet = mc.player.blockPosition();
-		// Only a cell touching the body's own two-cell column can close it in; everything else is
-		// somebody else's wall and none of this check's business.
+		// Only a cell touching the body's own column, or the one over a neighbour's head, can close
+		// it in; everything else is somebody else's wall and none of this check's business. The
+		// second course up matters because it is what decides whether a step out is climbable.
 		int dx = Math.abs(pos.getX() - feet.getX()), dz = Math.abs(pos.getZ() - feet.getZ());
 		int dy = pos.getY() - feet.getY();
-		if (dx + dz > 1 || dy < -1 || dy > 2) return false;
+		if (dx + dz > 1 || dy < 0 || dy > 2) return false;
 		Burial.Solid world = Burial.of(mc.level);
 		Burial.Solid after = (x, y, z) ->
 			(x == pos.getX() && y == pos.getY() && z == pos.getZ()) || world.at(x, y, z);
-		// Walled on every side and no way up is a box. Three sides is a corner you can still leave.
-		return Burial.walled(after, feet) >= Burial.SIDES_BUILDING && !Burial.canRise(after, feet);
+		return Burial.exits(after, feet) == 0;
 	}
 
 	static boolean everPlaceable(Minecraft mc, BlockPos pos, String state) {
