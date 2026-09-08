@@ -264,7 +264,7 @@ final class Hud {
 	static final int SPLIT_FAILURE_LIMIT = 3;
 	private static int lastUnseen = -1;
 	/** The printer's report for this recount, drained ONCE at the top so it is never attributed twice. */
-	private static int[] lastReport = {0, 0};
+	private static int[] lastReport = {0, 0, 0};
 	private static int recounts = 0;
 	/** Every this many recounts the printer forgets its "never" verdicts and re-asks the world. */
 	static final int RELAX_EVERY = 15;
@@ -772,7 +772,7 @@ final class Hud {
 		// todo to unseen; counted as placed they inflated the session report, reset the stall
 		// clock, and blinded the thrash detector at exactly the moment spots were being abandoned.
 		// Only the part of a shrink that unseen does not account for is progress.
-		lastReport = Printer.driving() ? Printer.drainReport() : new int[] {0, 0};
+		lastReport = Printer.driving() ? Printer.drainReport() : new int[] {0, 0, 0};
 		int placedNow;
 		if (Printer.driving()) {
 			// OUR OWN PRINTER REPORTS, and that is the only count a chunk cannot fake: a chunk that
@@ -891,8 +891,9 @@ final class Hud {
         if (inReach.isEmpty()) {
             holdSince = 0;
             holdSaid = false;
-        } else if (!fetching && Loop.holdHere(inReach.size(), placedNow, now, holdSince, holdCoolUntil, STATION_MS)) {
-            if (placedNow > 0 || holdSince == 0) holdSince = now;
+        } else if (!fetching && Loop.holdHere(inReach.size(), placedNow, lastReport[2], now,
+                holdSince, holdCoolUntil, STATION_MS)) {
+            if (placedNow > 0 || lastReport[2] > 0 || holdSince == 0) holdSince = now;
             if (target == null || target.distSqr(me) > 4) {
                 // HOLD HERE, as a target: the body's own cell. The flight arrives at once and
                 // keeps its clearance - or stays landed if it landed - and the autopilot does not
@@ -1099,10 +1100,10 @@ final class Hud {
 				// face to click somewhere in the loaded area is a reason to go there rather than
 				// to stop - build-before-shop, at whatever quantity the trip actually brought.
 				int load = Loop.WORK_LOAD;
-				java.util.List<Work.Cell> mine = carriedPlaceable(mc, carrying, eligible, load);
+				java.util.List<Work.Cell> mine = carriedPlaceable(mc, carrying, eligible, load, anchor);
 				if (mine.isEmpty()) {
 					load = 1;
-					mine = carriedPlaceable(mc, carrying, eligible, load);
+					mine = carriedPlaceable(mc, carrying, eligible, load, anchor);
 				}
 				final int carried = load;
 				java.util.List<Work.Cell> near = Loop.focus(mine, anchor, workRadius);
@@ -1567,7 +1568,7 @@ final class Hud {
 		// such shrink read as "it is placing" and restarted the stall ladder from the top.
 		Loop.Station what = Printer.driving()
 			? Loop.stationFromReport(st.bin() == stationBin, arrived, here.size(), -1,
-				now - stationSince, STATION_MS, stationRetry, rep[0], rep[1])
+				now - stationSince, STATION_MS, stationRetry, rep[0], rep[1], rep[2])
 			: Loop.station(st.bin() == stationBin, arrived, here.size(), stationTodo,
 				now - stationSince, STATION_MS, stationRetry);
 		if (what != Loop.Station.NEW) {
@@ -1798,12 +1799,40 @@ final class Hud {
 	 */
 	static final long FETCH_REACH_MS = 45_000;
 
-	/** Cells of `all` this pack holds at least `load` of and the world has a face to click for. */
+	/**
+	 * How many cells a commitment is CONFIRMED over. See Printer.confirmPlaceable: the scan's
+	 * optimistic answer is fine to search with and must never be flown at, and confirming the
+	 * whole area would be the sweep this budget exists to bound.
+	 */
+	static final int CONFIRM = 24;
+
+	/**
+	 * Cells of `all` this pack holds at least `load` of and the world really has a face to click for.
+	 *
+	 * <p>Scanned cheaply, then the nearest {@link #CONFIRM} are ASKED FOR CERTAIN - because this
+	 * list is what the loop re-anchors and flies to, and a destination chosen on cells nobody
+	 * looked at is a destination the next recount retracts. That retraction is the "flies
+	 * somewhere then turns around"; the dead-end branch it lands in then cancels the flight.
+	 */
 	private static java.util.List<Work.Cell> carriedPlaceable(Minecraft mc,
-			Map<String, Integer> carrying, java.util.List<Work.Cell> all, int load) {
-		return Work.placeableNow(mc.level, Loop.carriedWork(carrying, all, load)).stream()
+			Map<String, Integer> carrying, java.util.List<Work.Cell> all, int load, BlockPos near) {
+		java.util.List<Work.Cell> maybe = Work.placeableNow(mc.level, Loop.carriedWork(carrying, all, load))
+			.stream()
 			.filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block()))
+			.sorted(java.util.Comparator.comparingDouble(c -> c.pos().distSqr(near)))
 			.toList();
+		int checked = Math.min(CONFIRM, maybe.size());
+		java.util.List<Work.Cell> sure = new java.util.ArrayList<>();
+		int confirmed = 0;
+		for (int i = 0; i < maybe.size(); i++) {
+			Work.Cell c = maybe.get(i);
+			if (i >= checked) { sure.add(c); continue; }          // past the budget: still a guess
+			if (Printer.confirmPlaceable(mc, c.pos(), c.block())) { sure.add(c); confirmed++; }
+		}
+		// NOT ONE OF THE NEAREST SURVIVED, so the tail is guesses of exactly the same kind and
+		// flying at them is the retraction this method exists to stop. The nearest IS the one the
+		// re-anchor picks, so a confirmed head is what makes the commitment honest.
+		return confirmed > 0 ? sure : java.util.List.of();
 	}
 
 	private static void fetchTo(Minecraft mc, BlockPos me, Plan.Restock want, int take,
@@ -1973,6 +2002,23 @@ final class Hud {
 	 * computes all of this every two seconds and then says almost none of it, because a loop that
 	 * narrates itself continuously is a loop nobody reads. Asked, it should answer completely.
 	 */
+	/**
+	 * What the ACTUATOR has done, which nothing ever said out loud.
+	 *
+	 * <p>The journal has held this all along and it took a script to read it: 1,215 attempts, 951
+	 * placed, 258 dropped, 6 wrong state - a fifth of every placement silently lost, and every
+	 * conversation about it was a conversation rather than a number. A dropped share that climbs
+	 * is the server throttling; wrong states are a slot or a state bug; given-up cells are the
+	 * design. Three different problems that all look like "it is not placing".
+	 */
+	static String printerTally() {
+		int[] t = Printer.tally();                     // placed, wrong, given up, dropped, attempts
+		if (t[4] == 0) return "printer: nothing attempted yet this session";
+		return "printer: " + t[0] + " placed, " + t[3] + " dropped by the server ("
+			+ (100 * t[3] / t[4]) + "% of " + t[4] + " attempts), " + t[1] + " wrong state, "
+			+ t[2] + " given up — pacing at " + Printer.pace() + " ticks/block";
+	}
+
 	static java.util.List<String> why(Minecraft mc) {
 		java.util.List<String> out = new java.util.ArrayList<>();
 		if (design == null) {
@@ -1983,6 +2029,7 @@ final class Hud {
 		out.add(design + (following ? (followAll ? "  (following all)" : "  (following)")
 			: "  (watching only — /cscan follow " + design + " to work it)"));
 		if (only != null) out.add("  ONLY " + String.join(", ", only) + " — every other material is not this session's work");
+		out.add("  " + printerTally());
 		try {
 			Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), design,
 				mc.player.blockPosition(), 0);
@@ -2448,8 +2495,13 @@ final class Hud {
 	/** What the loop has done since `follow` started — the report for a session you were not watching. */
 	static String sessionReport() {
 		long mins = Math.max(1, (System.currentTimeMillis() - startedMs) / 60_000);
-		return placedTotal + " placed in " + mins + " min (" + (placedTotal / mins) + "/min), "
-			+ spotsDone + " spot(s) finished, " + fetches + " restock(s), " + stalls + " stall(s)";
+		int[] t = Printer.tally();
+		// ...AND WHAT THE SERVER DID WITH THEM. A session that reports "0 placed" and nothing else
+		// is a session nobody can diagnose; the same session reporting "0 placed, 40 dropped" is
+		// one line from an answer.
+		String lost = t[3] > 0 ? ", " + t[3] + " dropped by the server" : "";
+		return placedTotal + " placed in " + mins + " min (" + (placedTotal / mins) + "/min)" + lost
+			+ ", " + spotsDone + " spot(s) finished, " + fetches + " restock(s), " + stalls + " stall(s)";
 	}
 
 	static boolean warmingUp() { return grace > 0; }

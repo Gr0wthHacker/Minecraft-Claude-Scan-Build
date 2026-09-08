@@ -116,4 +116,49 @@ class PrinterTest {
 		assertTrue(cannot.containsKey("terracotta"), "smelting clay must be named as out of scope");
 		assertTrue(cannot.get("terracotta").contains("furnace"));
 	}
+
+	// ---- THE PACE LADDER. Measured off 1,215 real placements: 951 placed, 258 dropped by the
+	// server, in runs of up to twenty. Both halves of the cause are pinned here.
+
+	@Test
+	void theFASTESTPACEisTheRATEAPLAYERCANACTUALLYACHIEVE() {
+		// Minecraft.rightClickDelay is 4, read off the 26.2 client jar. The docstring this replaced
+		// said "vanilla holding right-click is one per tick" and chose 2 - twice the legal rate, and
+		// the reason a fifth of every placement was dropped.
+		assertEquals(4, Printer.VANILLA_USE_DELAY);
+		assertEquals(Printer.VANILLA_USE_DELAY, Printer.INTERVAL_MIN,
+			"the floor is the vanilla rate: anything faster is a signature, not a speed");
+	}
+
+	@Test
+	void whatTheFAILURESTEACHisNOTTHROWNAWAYbyTheNextSuccess() {
+		// The bug: interval = INTERVAL_MIN on every landing. The pace adapted, then forgot, so it
+		// re-discovered the server's ceiling continuously and paid cells to do it.
+		int floor = Printer.paceAfterDrop(Printer.INTERVAL_MIN);
+		assertEquals(Printer.INTERVAL_MIN + 1, floor, "a drop costs a notch");
+		for (int i = 0; i < Printer.SPEED_UP_AFTER - 1; i++) {
+			assertEquals(floor, Printer.paceAfterSuccess(floor, i),
+				"a landing must NOT hand the speed back - that is the whole bug");
+		}
+		assertEquals(floor - 1, Printer.paceAfterSuccess(floor, Printer.SPEED_UP_AFTER - 1),
+			"...but a long clean run earns one notch back");
+	}
+
+	@Test
+	void thePaceNeverRunsAwayInEitherDirection() {
+		int floor = Printer.INTERVAL_MIN;
+		for (int i = 0; i < 100; i++) floor = Printer.paceAfterDrop(floor);
+		assertEquals(Printer.INTERVAL_MAX, floor, "a dead link must not back off for ever");
+		for (int i = 0; i < 10_000; i++) floor = Printer.paceAfterSuccess(floor, Printer.SPEED_UP_AFTER - 1);
+		assertEquals(Printer.INTERVAL_MIN, floor, "and a healthy one comes back to the vanilla rate");
+	}
+
+	@Test
+	void aDROPINSIDEARUNdoesNotSpendTheCellsTries() {
+		// MAX_TRIES is two and drops come in runs of twenty: counted, one burst writes off ten good
+		// cells for the session and the loop then calls the spot unbuildable.
+		assertTrue(Printer.spendsATry(0), "an isolated drop among landings is about the CELL");
+		assertFalse(Printer.spendsATry(1), "a drop inside a run is about the CHANNEL");
+		assertFalse(Printer.spendsATry(19));
+	}
 }

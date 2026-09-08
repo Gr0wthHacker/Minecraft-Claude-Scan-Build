@@ -1002,4 +1002,25 @@ class PlanTest {
 		int far = Plan.fitRadius(spread, new BlockPos(500, 100, 0), 20_000);
 		assertTrue(far > near, "every spot came out the same size: " + near + " and " + far);
 	}
+
+	/**
+	 * The index is namespaced and a design cell is not, and the first version of `stocked` compared
+	 * them raw - so it matched nothing, the shopping list's obtainable pass admitted nothing, and
+	 * the list came out bit-for-bit the broken one it was written to replace. Measured against the
+	 * real index at the time: 38,909 stone bricks on the park and the loop reporting nothing
+	 * indexed to fetch.
+	 *
+	 * <p>A no-op that looks like a fix is worse than no fix - it reads as evidence the theory was
+	 * wrong, and the next session starts over somewhere else.
+	 */
+	@Test
+	void whatIsInStockIsMatchedAgainstDesignCellNamesNotNamespacedIds() {
+		Storage.Container c = new Storage.Container();
+		c.items.put("minecraft:stone_bricks", 38909);
+		c.inBoxes.put("minecraft:moss_block", 2582);
+		var stocked = Storage.stocked(Map.of(c.key(), c));
+		assertTrue(stocked.contains("stone_bricks"), "a design cell asks for `stone_bricks`");
+		assertTrue(stocked.contains("moss_block"), "and boxed stock counts, which is this island's bulk");
+		assertFalse(stocked.contains("minecraft:stone_bricks"), "the namespaced id is not what anyone asks");
+	}
 }

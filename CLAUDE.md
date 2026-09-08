@@ -13429,3 +13429,93 @@ right - a new design deserves its own analysis - and `restartAfterRally` does no
 And it never throws at its caller. `Analyze.report` already catches for the same reason - the loop
 cannot afford an exception on the tick that starts it - and the call site catches again, because a
 REPORT must not be able to end a session.
+
+### A FIFTH OF EVERY PLACEMENT WAS BEING DROPPED, AND NOTHING SAID SO (2026-09-08, chunkscan 0.9.5)
+
+Jack, asked what would make it a proper full-cycle build: *"fix all"*. What follows came out of
+reading `.cscan-build-journal.jsonl`, which has recorded every attempt since the printer was
+written and which nothing had ever summarised.
+
+    1,215 placement attempts  ->  951 PLACED, 258 STILL_AIR, 6 MISMATCH
+    P(fail | previous succeeded) = 16.5%      P(fail | previous failed) = 40.5%
+    failure runs: 20, 20, 19, 17, 9, 8 ...
+
+**ONE ATTEMPT IN FIVE IS SILENTLY DROPPED BY THE SERVER, IN RUNS OF UP TO TWENTY.** That is a
+CONDITION lasting seconds, not per-cell geometry - and every clock in `Hud` read those seconds of
+nothing as *this spot cannot be built* and moved on. **An actuator failure was being diagnosed as a
+geometry failure, at every station**, which is most of the thrashing four sessions of watchdogs had
+been added to chase.
+
+Three causes, and the first two compound:
+
+- **THE PACE WAS TWICE THE FASTEST RATE A PLAYER CAN ACHIEVE.** `INTERVAL_MIN` was 2 ticks because
+  the docstring said *"vanilla holding right-click is one per tick; this is gentler"*. Read off the
+  jar rather than remembered - `javap -c net.minecraft.client.Minecraft | grep -B4 putfield.*rightClickDelay`
+  - it is **4**. Rule 11, in the one place a number is a rate rather than a block property.
+- **AND THE PACE FORGOT WHAT IT LEARNED.** It adapted - +1 on a refusal, doubled on a missing ack -
+  and then **snapped back to the minimum on the very next success**. So it re-discovered the
+  server's ceiling continuously and paid cells to do it, which is why the loss held steady at a
+  fifth instead of settling. `paceFloor` is sticky now and only comes down after 24 clean
+  placements; `paceAfterSuccess`/`paceAfterDrop` are pure so the ladder can be argued with rather
+  than watched.
+- **AND A DROPPED PACKET SPENT THE CELL'S TRIES.** `MAX_TRIES` is two and drops come in runs of
+  twenty, so **a single burst wrote about ten good cells off the frontier for the session** - and
+  the loop then reported the spot unbuildable, correctly, about a spot it had broken itself. A
+  drop only counts against a cell when it is ISOLATED (`spendsATry`): among landings it is evidence
+  about the CELL, inside a run it is evidence about the CHANNEL.
+
+`stationFromReport` and `holdHere` take a third number now. Placed is progress, REFUSED is the
+world saying no and there is nothing to wait for, DROPPED is the link saying wait - hold the
+station and let the pace back off. The ninety-second session stall is still the backstop, so a link
+that never recovers cannot park the loop for ever.
+
+**And it is reported.** `/cscan why` and every session report now print
+`951 placed, 258 dropped by the server (21% of 1215 attempts), 6 wrong state, 0 given up - pacing at
+4 ticks/block`. A dropped share that climbs is throttling, wrong states are a slot bug, given-up
+cells are the design: three different problems that all used to look like *it is not placing*.
+
+#### THE PREVIOUS SESSION'S FIX WAS A SILENT NO-OP, AND THE LOG PROVED IT
+
+`Storage.stocked` was added so the shopping list would prefer materials there is somewhere to get.
+It returned the index's own keys - `minecraft:stone_bricks` - and `Plan.loadPlan` tests a design
+cell's item, `stone_bricks`. **It matched nothing.** The obtainable pass admitted nothing, the list
+came out bit-for-bit the broken one it replaced, and 0.9.4's log showed the identical six
+unfetchable materials with 38,909 stone bricks and 2,582 moss sitting in park containers.
+
+`findExact` has always normalised both sides; this did not. **A no-op that looks like a fix is
+worse than no fix** - it reads as evidence the theory was wrong, and the next session starts over
+somewhere else. `whatIsInStockIsMatchedAgainstDesignCellNamesNotNamespacedIds` pins it.
+
+#### "IT WILL START TO FLY SOMEWHERE THEN TURN AROUND"
+
+`everPlaceableCached` treats a cell it has not had the budget to look at as PLACEABLE. That is the
+safe direction while SCANNING - a wasted trip beats silently dropping real work - and it is the
+wrong answer when the loop is about to COMMIT. Off the log: *"carrying 1024x moss_block - placing
+that before any trip: 49 cells, nearest at 97600 203 80575"*, then two seconds later *"no usable
+support/material combination"*, which cancels the flight, and then the same announcement again from
+somewhere else.
+
+The 49 cells were guesses made after the 400-per-recount budget ran out; the next recount held real
+verdicts and disagreed with itself. `Printer.confirmPlaceable` answers for certain whatever the
+budget says, and the nearest `CONFIRM` (24) cells of a commitment are asked with it - which is
+exactly the cell `reanchor` then flies to. **An optimistic guess is fine to search with and must
+never be flown at.**
+
+#### The supply chain, and the design that can finish
+
+    Park Complete: 291,285 of 524,033 cells have their material (56%)
+      FARM   moss_block 98,953 . vine 9,609 . jungle_leaves 8,872 . water_bucket 7,801
+      CRAFT  polished_blackstone_bricks 31,439 . cobblestone 11,491 . deepslate_bricks 8,415
+      SMELT  smooth_basalt 25,966 . stone 3,702
+      NONE   honeycomb 8,121 . blackstone 4,295 . ores
+
+44% of the design cannot be built by any means the loop has, so its honest answer is a dead end -
+which is what Jack kept watching. `mcbuild provision "Park Complete" --package --ship` wrote
+**`Park Complete Ready`, 295,893 cells**, at the parent's own origin, and it inherits the parent's
+`automation_approved` through `{**d.meta}` - so `/cscan follow "Park Complete Ready"` is a job that
+can actually finish, where the parent could not and could not say so.
+
+**Still open, and both need something only the game can give:** a moss farm loop (`/cscan farm` is
+already generic, and moss alone is 19% of the park), and a plot-scale capture of the three park
+islands so `sync` can measure progress at all - it currently answers NOT MEASURED, correctly,
+because the only park captures are the three bare starter pads.

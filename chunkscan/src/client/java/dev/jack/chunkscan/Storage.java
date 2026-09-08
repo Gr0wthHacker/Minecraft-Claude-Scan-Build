@@ -457,8 +457,16 @@ final class Storage {
 	static java.util.Set<String> stocked(Map<String, Container> index) {
 		java.util.Set<String> out = new java.util.HashSet<>();
 		for (Container c : index.values()) {
-			out.addAll(c.items.keySet());
-			out.addAll(c.inBoxes.keySet());
+			// ---- BARE, BECAUSE THE INDEX IS NAMESPACED AND A DESIGN CELL IS NOT.
+			//
+			// The index stores what the container screen gave it - `minecraft:stone_bricks` - and
+			// every caller here asks about `stone_bricks`. `findExact` has always normalised both
+			// sides; the first version of THIS did not, so the set it returned matched nothing at
+			// all, the shopping list's obtainable pass admitted nothing, and the list came out
+			// bit-for-bit the broken one it was written to replace. A no-op that looks like a fix
+			// is worse than no fix: it reads as evidence the theory was wrong.
+			for (String k : c.items.keySet()) out.add(bare(k));
+			for (String k : c.inBoxes.keySet()) out.add(bare(k));
 		}
 		return out;
 	}

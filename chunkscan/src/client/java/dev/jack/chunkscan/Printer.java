@@ -29,8 +29,30 @@ import java.util.Set;
 final class Printer {
 	/** Vanilla reach is ~4.5; stay inside it so a placement is never refused for distance alone. */
 	static final double REACH = 4.2;
-	/** Ticks between placements. Vanilla holding right-click is one per tick; this is gentler. */
-	static int interval = 2;
+	/** {@code Minecraft.rightClickDelay}, read off the 26.2 client jar. The fastest a player places. */
+	static final int VANILLA_USE_DELAY = 4;
+	/**
+	 * Ticks between placements, and the pace it settles at.
+	 *
+	 * <p><b>MEASURED, off 1,215 placements in the build journal: 951 PLACED, 258 STILL_AIR, 6
+	 * MISMATCH - one attempt in five silently dropped by the server.</b> And not scattered:
+	 * {@code P(fail | previous failed)} is 40.5% against a 16.5% baseline, in runs of up to twenty.
+	 * That is a CONDITION lasting seconds, not per-cell geometry.
+	 *
+	 * <p>Two things caused it, and the first is the docstring this replaces. It said <i>"vanilla
+	 * holding right-click is one per tick; this is gentler"</i> and chose 2. Vanilla is not one per
+	 * tick: {@code Minecraft.rightClickDelay} is set to <b>4</b> - read off the client jar rather
+	 * than remembered, which is this project's rule 11 and the reason the number was wrong for as
+	 * long as it was. At 2 the printer ran at twice the fastest rate a player can achieve, which is
+	 * both a plausible drop cause and exactly the signature an anticheat is built for.
+	 *
+	 * <p>The second is worse and is why the loss held steady at a fifth rather than settling. The
+	 * pace ADAPTED - +1 on a refusal, doubled on a missing ack - and then <b>snapped back to the
+	 * minimum on the very next success</b>, so it re-discovered the server's ceiling continuously
+	 * and paid cells to do it. What it learns is sticky now: {@link #paceFloor} only comes down
+	 * after a long clean run, so a session settles at the rate the server will actually take.
+	 */
+	static int interval = 4;
 	/** A cell that has failed this many times is somebody else's problem. */
 	static final int MAX_TRIES = 2;
 
@@ -128,10 +150,27 @@ final class Printer {
 	/** Consecutive placements the server never acknowledged. One is lag; a run is a dead link. */
 	private static int ackTimeouts;
 	static final int ACK_TIMEOUT_LIMIT = 5;
-	static final int INTERVAL_MIN = 2, INTERVAL_MAX = 12;
+	static final int INTERVAL_MIN = VANILLA_USE_DELAY, INTERVAL_MAX = 12;
+	/** The pace this session has learned the server will take. Sticky: see {@link #interval}. */
+	private static int paceFloor = INTERVAL_MIN;
+	/** Placements landed in a row. Enough of them and the floor comes down one notch. */
+	private static int cleanRun;
+	static final int SPEED_UP_AFTER = 24;
+	/**
+	 * Consecutive dropped placements. <b>A cell is only written off while the LINK is healthy.</b>
+	 * {@link #MAX_TRIES} is two, so before this a pair of dropped packets wrote a perfectly good
+	 * cell off for the whole session - and with 258 drops that is up to a hundred and thirty real
+	 * cells deleted from the frontier by a pacing bug. An isolated failure among landings is
+	 * evidence about the CELL; one inside a run is evidence about the CHANNEL.
+	 */
+	private static int dropRun;
+	/** Every dropped attempt, not only the ones that exhausted their tries. For /cscan why. */
+	private static int dropped, attempts;
 	// Since the loop last asked. THIS IS THE SIGNAL THE LOOP HAS NEVER HAD: a refusal is instant
 	// knowledge, where the five-second station clock had to wait and then guess.
-	private static int placedSince, refusedSince;	static void reset() {
+	private static int placedSince, refusedSince, droppedSince;
+
+	static void reset() {
 		tries.clear();
 		givenUp.clear();
 		noPlacementUntil.clear();
@@ -141,10 +180,13 @@ final class Printer {
         lastPlaceTick = Long.MIN_VALUE / 2;
         pendingLevel = null;
         pendingJournal = null;
-		placed = mismatched = failed = 0;
-		placedSince = refusedSince = 0;
+		placed = mismatched = failed = dropped = attempts = 0;
+		placedSince = refusedSince = droppedSince = 0;
 		ackTimeouts = 0;
-		interval = INTERVAL_MIN;
+		// THE LEARNED PACE IS NOT RESET WITH THE COUNTERS. It is a fact about the SERVER, and a
+		// reset - a new design, a rally - has not changed the server. Re-learning it costs cells.
+		cleanRun = dropRun = 0;
+		interval = paceFloor;
 	}
 
 	/**
@@ -178,10 +220,66 @@ final class Printer {
 	 * buildable from here and there is nothing to wait for.
 	 */
 	static int[] drainReport() {
-		int[] r = {placedSince, refusedSince};
-		placedSince = refusedSince = 0;
+		int[] r = {placedSince, refusedSince, droppedSince};
+		placedSince = refusedSince = droppedSince = 0;
 		return r;
 	}
+
+	/**
+	 * A placement landed: hold the learned pace, and only come down after a long clean run.
+	 *
+	 * <p>The whole point of the change. Snapping to the minimum here is what made the loss a steady
+	 * fifth rather than something that settles: every success threw away what the failures had just
+	 * taught, so the next burst was guaranteed.
+	 */
+	private static void speedUp() {
+		dropRun = 0;
+		int next = paceAfterSuccess(paceFloor, cleanRun);
+		cleanRun = next == paceFloor ? cleanRun + 1 : 0;
+		paceFloor = next;
+		interval = paceFloor;
+	}
+
+	/** The server dropped one: slow down, and stay slowed. */
+	private static void easeOff() {
+		cleanRun = 0;
+		paceFloor = paceAfterDrop(paceFloor);
+		interval = paceFloor;
+	}
+
+	// ---- THE LADDER ITSELF, PURE, so it can be argued with rather than watched. Every version of
+	// this that lived only inside `verify` was a version nobody could test, and the one it replaces
+	// - snap back to the minimum on any success - is exactly the kind of mistake that reads as
+	// obviously right and costs a fifth of every placement.
+
+	/** The pace floor after a placement lands: unchanged, unless a long clean run has earned a notch. */
+	static int paceAfterSuccess(int floor, int cleanRun) {
+		return cleanRun + 1 >= SPEED_UP_AFTER && floor > INTERVAL_MIN ? floor - 1 : floor;
+	}
+
+	/** The pace floor after the server drops one: a notch slower, and it STAYS there. */
+	static int paceAfterDrop(int floor) {
+		return Math.min(INTERVAL_MAX, floor + 1);
+	}
+
+	/**
+	 * Does a dropped attempt count against that cell's own {@link #MAX_TRIES}?
+	 *
+	 * <p>Only when it is ISOLATED. MAX_TRIES is two, so before this a pair of dropped packets wrote
+	 * a good cell off for the session - and drops come in runs of up to twenty, so a single burst
+	 * deleted ten cells from the frontier and the loop then reported the spot unbuildable.
+	 */
+	static boolean spendsATry(int dropRunBefore) {
+		return dropRunBefore == 0;
+	}
+
+	/** placed / mismatched / given up / dropped / attempted, for /cscan why. */
+	static int[] tally() {
+		return new int[]{placed, mismatched, failed, dropped, attempts};
+	}
+
+	/** The pace this session settled at, in ticks between placements. */
+	static int pace() { return paceFloor; }
 
 	static int placed() { return placed; }
 
@@ -367,6 +465,28 @@ final class Printer {
 			everStale.remove(k);
 			noPlacementUntil.remove(k);
 		}
+	}
+
+	/**
+	 * The same question, answered for certain, whatever the budget says.
+	 *
+	 * <p><b>Jack: <i>"it will start to fly somewhere then turn around"</i>.</b>
+	 * {@link #everPlaceableCached} treats a cell it has not had the budget to look at as PLACEABLE
+	 * - the safe direction while it is merely scanning, because a wasted trip beats silently
+	 * dropping real work. It is the wrong answer when the loop is about to COMMIT: it announced
+	 * "placing 49 cells, nearest at ...", flew off, and the next recount - by then holding real
+	 * verdicts for those cells - found nothing there, called it a dead end and cancelled the
+	 * flight. Then it found them again, and again.
+	 *
+	 * <p>An optimistic guess is fine to search with and must never be flown at. Bounded by the
+	 * caller to the handful of cells the decision actually rests on.
+	 */
+	static boolean confirmPlaceable(Minecraft mc, BlockPos pos, String state) {
+		Boolean seen = everCache.get(pos.asLong());
+		if (seen != null) return seen;
+		boolean ok = everPlaceable(mc, pos, state);
+		everCache.put(pos.asLong(), ok);
+		return ok;
 	}
 
 	static boolean everPlaceableCached(Minecraft mc, BlockPos pos, String state) {
@@ -758,6 +878,7 @@ final class Printer {
 			pendingSequence = ((PredictionAccess) mc.level).chunkscan$sequence();
 			pendingLevel = mc.level;
 			pending.add(new Attempt(pos, state, Verdict.STILL_AIR, ""));
+			attempts++;
 			lastPlaceTick = mc.level.getGameTime();
 		} catch (RuntimeException uncertain) {
 			// A packet may have left before a local failure. The start record intentionally remains.
@@ -787,7 +908,12 @@ final class Printer {
                 for (Attempt a : pending) journal(a, Verdict.STILL_AIR, "no ack");
                 pending.clear();
                 pendingJournal = null;
-                interval = Math.min(INTERVAL_MAX, interval * 2);
+                dropped += pending.size();
+                droppedSince += pending.size();
+                dropRun += pending.size();
+                cleanRun = 0;
+                paceFloor = Math.min(INTERVAL_MAX, Math.max(paceFloor + 1, paceFloor * 2));
+                interval = paceFloor;
                 if (++ackTimeouts >= ACK_TIMEOUT_LIMIT) {
                     ackTimeouts = 0;
                     if (mc.player != null) mc.player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
@@ -805,8 +931,15 @@ final class Printer {
 		for (Attempt a : new ArrayList<>(pending)) {
 			BlockState st = mc.level.getBlockState(a.pos());
 			if (st.isAir()) {
-				int n = tries.merge(key(a.pos()), 1, Integer::sum);
-				interval = Math.min(INTERVAL_MAX, interval + 1);   // the server is saying no: ease off
+				dropped++;
+				boolean healthy = spendsATry(dropRun);   // an isolated drop among landings: about the CELL
+				dropRun++;
+				droppedSince++;
+				easeOff();
+				// A DROP INSIDE A RUN IS ABOUT THE CHANNEL, so it must not spend the cell's tries.
+				// Counted anyway, a burst of twenty deletes ten good cells from the frontier for
+				// the session and the loop then reports the spot as unbuildable.
+				int n = healthy ? tries.merge(key(a.pos()), 1, Integer::sum) : tries.getOrDefault(key(a.pos()), 0);
 				if (n >= MAX_TRIES) {
 					givenUp.add(key(a.pos()));
 					failed++;
@@ -823,8 +956,7 @@ final class Printer {
 				placed++;
 				placedSince++;
 				forgetNear(a.pos());        // the neighbours it just gave a face to
-				
-				interval = INTERVAL_MIN;                            // it is taking them: full pace
+				speedUp();                                          // it is taking them - see interval
 				out.add(new Attempt(a.pos(), a.want(), Verdict.PLACED, got));
 			} else if (ActionRecipe.slabIntermediate(st, a.want()) || ActionRecipe.cauldronIntermediate(st, a.want())
 				|| ActionRecipe.vineIntermediate(st, a.want())
@@ -833,7 +965,7 @@ final class Printer {
 				// face; placement() builds them that way on purpose, and this then called the first
 				// click a MISMATCH, gave the cell up for thirty seconds and told the station to move.
 				placedSince++;                                      // progress, so the station stays
-				interval = INTERVAL_MIN;
+				speedUp();
 				out.add(new Attempt(a.pos(), a.want(), Verdict.PARTIAL, got));
 			} else {
 				mismatched++;

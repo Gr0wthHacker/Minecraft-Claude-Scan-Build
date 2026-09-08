@@ -674,4 +674,32 @@ class LoopTest {
 		assertEquals(Double.MAX_VALUE,
 			Loop.nearestDistance(java.util.List.of(), new BlockPos(0, 0, 0)), 0.0);
 	}
+
+	@Test
+	void aDroppedPacketIsNotEvidenceAboutTheSpot() {
+		// One attempt in five is silently dropped, in runs. Every clock read those five seconds of
+		// nothing as "this spot cannot be built" and moved - an actuator failure diagnosed as a
+		// geometry failure, at every station.
+		assertEquals(Loop.Station.RECENTRE,
+			Loop.stationFromReport(true, true, 9, -1, 60_000, 5_000, 0, 0, 0, 3),
+			"dropped, nothing refused: hold and let the pace back off");
+		// ...and a REFUSAL still wins, because that one is the world saying no.
+		assertEquals(Loop.Station.CLOSER,
+			Loop.stationFromReport(true, true, 9, -1, 60_000, 5_000, 0, 0, 1, 3));
+		assertEquals(Loop.Station.ABANDON,
+			Loop.stationFromReport(true, true, 9, -1, 60_000, 5_000, 1, 0, 1, 3));
+		// ...and silence is still silence: nothing attempted is not evidence of anything.
+		assertEquals(Loop.Station.ABANDON,
+			Loop.stationFromReport(true, true, 9, -1, 60_000, 5_000, 1, 0, 0, 0),
+			"with nothing attempted the clock still decides, exactly as before");
+	}
+
+	@Test
+	void theVicinityHoldSurvivesADroppedBurst() {
+		long now = 100_000;
+		assertFalse(Loop.holdHere(9, 0, 0, now, now - 9_000, 0, 5_000),
+			"nothing placed and nothing attempted for 9s: the station logic gets its turn");
+		assertTrue(Loop.holdHere(9, 0, 4, now, now - 9_000, 0, 5_000),
+			"the printer IS working and the server is dropping: stay on the work");
+	}
 }

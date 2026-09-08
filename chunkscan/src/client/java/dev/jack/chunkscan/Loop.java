@@ -423,8 +423,21 @@ final class Loop {
 	 * is not re-armed until `coolUntil`.
 	 */
 	static boolean holdHere(int inReach, int placedNow, long now, long heldSince, long coolUntil, long stallMs) {
+		return holdHere(inReach, placedNow, 0, now, heldSince, coolUntil, stallMs);
+	}
+
+	/**
+	 * @param dropped attempts the server never applied since the last recount
+	 *
+	 * <p>A DROPPED PACKET IS THE PRINTER WORKING, NOT THE SPOT FAILING - the same distinction
+	 * {@link #stationFromReport} draws, and this clock needed it for the same reason. One attempt
+	 * in five is dropped, in runs; without this the hold ends five seconds into a burst, the body
+	 * flies off perfectly good work, and the next station meets the same burst.
+	 */
+	static boolean holdHere(int inReach, int placedNow, int dropped, long now, long heldSince,
+	                        long coolUntil, long stallMs) {
 		if (inReach <= 0 || now < coolUntil) return false;
-		return placedNow > 0 || heldSince == 0 || now - heldSince <= stallMs;
+		return placedNow > 0 || dropped > 0 || heldSince == 0 || now - heldSince <= stallMs;
 	}
 
 	static BlockPos reanchor(List<Work.Cell> all, BlockPos from) {
@@ -523,11 +536,34 @@ final class Loop {
 	static Station stationFromReport(boolean sameBin, boolean arrived, int todoHere, int todoBefore,
 	                                 long sinceMs, long stallMs, int retries,
 	                                 int placed, int refused) {
+		return stationFromReport(sameBin, arrived, todoHere, todoBefore, sinceMs, stallMs, retries,
+			placed, refused, 0);
+	}
+
+	/**
+	 * @param dropped attempts the SERVER never applied - see Printer.interval
+	 *
+	 * <p><b>A DROPPED PACKET IS NOT EVIDENCE ABOUT THE SPOT.</b> Measured over 1,215 placements,
+	 * one attempt in five is silently dropped, in runs of up to twenty - and every clock in this
+	 * file then read those five seconds of nothing as <i>this spot cannot be built</i> and moved.
+	 * An actuator failure was being diagnosed as a geometry failure, at every station, which is
+	 * most of the thrashing this file has spent four sessions adding watchdogs for.
+	 *
+	 * <p>So the three answers are now three: something landed is progress, something was REFUSED
+	 * is the world saying no and there is nothing to wait for, and something was DROPPED is the
+	 * link saying wait - the pace backs off on its own and the next attempt is the evidence. The
+	 * ninety-second session stall is still the backstop, so a link that never recovers cannot
+	 * park the loop here for ever.
+	 */
+	static Station stationFromReport(boolean sameBin, boolean arrived, int todoHere, int todoBefore,
+	                                 long sinceMs, long stallMs, int retries,
+	                                 int placed, int refused, int dropped) {
 		if (!sameBin) return Station.NEW;
 		if (placed > 0) return Station.RECENTRE;
 		// A refusal is knowledge, not a timeout. One more try from closer in, because the commonest
 		// refusal is reach; then it is not this trip's work.
 		if (refused > 0) return retries == 0 ? Station.CLOSER : Station.ABANDON;
+		if (dropped > 0) return Station.RECENTRE;      // the channel, not the spot: hold and retry
 		return station(sameBin, arrived, todoHere, todoBefore, sinceMs, stallMs, retries);
 	}
 
