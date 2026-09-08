@@ -1380,13 +1380,18 @@ final class Hud {
 				// something this design has no room left for.
 				if (target != null || !said) {
 					said = true;
+					// ---- SAY WHERE IT LOOKED. Jack: "it doesnt say it has placeable stuff but when
+					// loaded it does say stuff is placeable". Both numbers are true and they answer
+					// different questions - the start report is the WHOLE design at radius 0, this is one
+					// course of a window round the anchor - and worded as a fact about the design it reads
+					// as the loop contradicting itself two lines apart.
 					mc.player.sendSystemMessage(Component.literal(phase == Loop.Phase.DEAD_END
-						? "[cscan] no usable support/material combination"
-							+ (refusedByState > 0 ? " — " + refusedByState + " cell(s) the printer"
+						? "[cscan] nothing I can place within " + workRadius + " of " + Wand.fmt(anchor)
+							+ " on course Y" + workLayer + " — the design has more elsewhere"
+							+ (refusedByState > 0 ? "; " + refusedByState + " cell(s) here the printer"
 								+ " cannot place at all (state will not survive there, or the cell is"
 								+ " obstructed): /cscan check " + sp.name() : "")
-							+ "; check floating cells, state mismatches, island registry and indexed stock"
-							+ " to fetch — /cscan bom " + sp.name()
+							+ ". /cscan why for the reason, /cscan bom " + sp.name() + " for materials"
 						: "[cscan] pack is full of what you cannot place here — store something, or"
 							+ " /cscan bom " + sp.name()));
 				}
@@ -2441,6 +2446,29 @@ final class Hud {
         try { Printer.setDesignWater(Work.load(ScanRunner.schematicsDir(Minecraft.getInstance()), name)); }
         catch (Exception ignored) { Printer.setDesignWater(java.util.List.of()); }
         ChunkScanClient.printDesign = name;
+        // ---- AND TAKE THE CLAIM, OR SAY WHY NOT, HERE.
+        //
+        // `/cscan print` has always refused a design held by another account, loudly, at the moment
+        // you typed it. `follow` - which is what actually arms the printer for the loop - never
+        // asked: it set printDesign and the printer's own tick then refused it silently, every
+        // tick, for the whole session. Measured: two placements in three minutes with `fleet.json`
+        // holding `park complete` for another name.
+        //
+        // Following a design IS asserting you are the one building it, so it claims. The common
+        // case - your own claim, or one whose lease has lapsed - self-heals in silence; a genuine
+        // conflict is said once, at the right moment, with the way out.
+        try {
+            Minecraft here = Minecraft.getInstance();
+            String said = Fleet.claim(ScanRunner.schematicsDir(here), name, Fleet.me(here));
+            if (said != null && said.contains("held by") && here.player != null) {
+                here.player.sendSystemMessage(Component.literal("[cscan] " + said
+                    + ". The printer will place NOTHING until that is resolved - /cscan fleet take "
+                    + name + " to override, or /cscan fleet to see it."));
+            }
+        } catch (Exception e) {
+            // A claim that cannot be written is not a reason to refuse the follow; the printer's
+            // own gate reports it now rather than returning in silence.
+        }
         Withdraw.cancel();
         fetching = false;
         forgetLoadPlan();

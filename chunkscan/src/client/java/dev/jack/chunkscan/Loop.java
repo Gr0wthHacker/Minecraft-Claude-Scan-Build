@@ -429,8 +429,26 @@ final class Loop {
 		return s;
 	}
 
-	/** Cells this far from the body's own cell are within the printer's reach, give or take the eye. */
-	static final int VICINITY = 5;
+	/**
+	 * Cells this far from the body's own cell the printer can ACTUALLY touch.
+	 *
+	 * <p><b>It was 5, and 5 is out of reach.</b> Off Jack's log, over and over: <i>"1 cell(s)
+	 * placeable from right here - staying until they are in"</i> and then, five seconds later,
+	 * <i>"1 cell(s) in reach but nothing placed for 5s - moving"</i>. The hold was promising cells
+	 * the printer then refused for DISTANCE, so the body stood over work it could not touch until
+	 * the stall moved it on - and the next station did the same thing.
+	 *
+	 * <p>The arithmetic, which is what settles it. {@link Printer#placement} requires the real ray
+	 * to land within {@link Printer#REACH} (4.2) of the EYE. For a cell level with the feet at
+	 * horizontal distance d the nearest face is at {@code d - 0.5}, and the eye sits 1.62 up
+	 * against a face centre 0.5 up:
+	 *
+	 * <pre>(d - 0.5)^2 + 1.12^2 &lt;= 4.2^2   ->   d &lt;= 4.55</pre>
+	 *
+	 * so four is inside the reach and five is not. The test re-derives this rather than trusting
+	 * the comment.
+	 */
+	static final int VICINITY = 4;
 
 	/**
 	 * Stay put and keep placing? Jack: <i>"it should look in its immediate vicinity and just keep

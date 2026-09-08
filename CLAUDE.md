@@ -13597,3 +13597,69 @@ design. It is not fixed here beyond the course stickiness, which removes most of
 made the two disagree so visibly; saying it in words is the obvious next line.
 
 **727 Java tests, 0 failures. Not flown.**
+
+### FOLLOW ARMED THE PRINTER AND NEVER TOOK THE CLAIM (2026-09-08, chunkscan 0.9.7)
+
+Jack: *"fix all"*, on the list the last session closed with.
+
+**THE ASYMMETRY IS THE WHOLE BUG.** `/cscan print` has always refused a design held by another
+account, loudly, at the moment you type it - *"two printers on one design fight ... refused rather
+than warned, because by the time you notice it has already cost both accounts their feedback"*.
+`/cscan follow`, which is what actually arms the printer for the LOOP, never asked: it set
+`printDesign` and the printer's tick refused it silently on every tick for the whole session.
+
+Following a design IS asserting that you are the one building it, so `follow` claims it now. Your
+own claim and one whose lease has lapsed both self-heal in silence; a genuine conflict is said ONCE,
+at the moment you asked for it, with the way out - not discovered ninety seconds later as a stall
+with three guesses attached.
+
+#### THE VICINITY HOLD PROMISED CELLS THE PRINTER CANNOT TOUCH
+
+Off the log, five seconds apart, over and over:
+
+    1 cell(s) placeable from right here - staying until they are in
+    1 cell(s) in reach but nothing placed for 5s - moving
+
+`Loop.VICINITY` was **5** and the printer's reach is 4.2 from the EYE. For a cell level with the
+feet at horizontal distance d, the nearest face is at `d - 0.5` and the eye sits 1.62 up against a
+face centre 0.5 up:
+
+    (d - 0.5)^2 + 1.12^2 <= 4.2^2   ->   d <= 4.55
+
+So four is inside the reach and five is not: **the hold was standing the body over work it could
+not reach, holding it there for five seconds, and then blaming the spot.** Four now, and
+`theVicinityHoldOnlyPromisesWhatThePrinterCanTouch` re-derives both bounds rather than trusting the
+comment - it also asserts the radius is not needlessly timid, because one block less would have the
+body sitting on top of its own work.
+
+`Autopilot.SAME_TARGET` came down 4.0 -> 3.0 with it, and the test that caught that is a better
+test than it was: bounding the drift tolerance by VICINITY started meaning something the moment
+VICINITY became the printer's real reach, because a drift of the full reach carries the body out of
+touch of the cells the station was chosen for.
+
+#### And the dead end says where it looked
+
+*"it doesnt say it has placeable stuff but when loaded it does say stuff is placeable"* - both
+numbers were always true and they answer different questions. The start report is the WHOLE design
+at radius 0; the frontier is one course of a window round the anchor. Worded as a fact about the
+design (*"no usable support/material combination"*) it read as the loop contradicting itself two
+lines apart. It now names the radius, the anchor and the course, and says the design has more
+elsewhere.
+
+**728 Java tests, 0 failures. Not flown.**
+
+#### Not built, and the reason is a hazard rather than effort
+
+**The moss farm.** `Farm` is a generic place-wait-harvest loop and moss does not have that shape:
+it spreads from BONE MEAL used on a moss block, which is a use-item rather than a placement - a
+`fertilise` mode is a fair generalisation and would serve saplings, kelp and grass too. What stops
+it being written blind is that **bone meal spread is not bounded by the box**: it converts a blob of
+whatever is in range, and on a park plot the thing in range is the park. The existing farm's safety
+rule - only ever break the crop, only inside the box - cannot cover a mechanic whose EFFECT leaves
+the box. It needs a sited medium with a margin, which is a wand box Jack draws, not a number this
+file can invent.
+
+**Four `stone` -> `smooth_stone` MISMATCHes** remain in the journal out of 1,217 attempts.
+`inventorySlot` matches the item path exactly so it cannot pick the wrong stack; the likelier
+explanation is another design or the declutter swap having moved the cell under us. Six in total,
+recorded rather than chased.

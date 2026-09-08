@@ -300,8 +300,15 @@ final class Autopilot {
 
 	// ---- THE RECOVERY LADDER. See Recovery: when every specific handler has had its turn and the
 	// flight is still going nowhere, the reason stops mattering and only the escalation does.
-	/** How far a destination may move and still be the same destination. See the drift note below. */
-	static final double SAME_TARGET = 4.0;
+	/**
+	 * How far a destination may move and still be the same destination. See the drift note below.
+	 *
+	 * <p>Bounded by {@link Loop#VICINITY}, and that bound started meaning something when VICINITY
+	 * became the printer's real reach rather than a vague working radius: a drift of the full reach
+	 * can carry the body out of touch of the very cells the station was chosen for, so a tolerance
+	 * that large would call two genuinely different places the same one.
+	 */
+	static final double SAME_TARGET = 3.0;
 	private static int trouble = 0;private static Recovery.Stage stage = Recovery.Stage.NONE;
 	/** A climb-out has already been spent on this destination. The next one is a give-up. */
 	private static boolean climbedOut = false;

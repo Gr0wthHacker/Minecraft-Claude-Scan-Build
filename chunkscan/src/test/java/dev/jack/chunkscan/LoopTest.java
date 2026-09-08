@@ -723,4 +723,26 @@ class LoopTest {
 		assertEquals(courses.size(), Loop.courseOrder(courses, 203).size());
 		assertTrue(Loop.courseOrder(courses, 203).containsAll(courses));
 	}
+
+	/**
+	 * The hold promised cells the printer then refused for DISTANCE. Off the log, five seconds
+	 * apart, repeatedly: "1 cell(s) placeable from right here - staying until they are in", then
+	 * "1 cell(s) in reach but nothing placed for 5s - moving". The body stood over work it could
+	 * not touch until the stall moved it on, and the next station did the same.
+	 */
+	@Test
+	void theVicinityHoldOnlyPromisesWhatThePrinterCanTouch() {
+		// Printer.placement requires the real ray inside REACH of the EYE. Worst case in the hold's
+		// own set: a cell level with the feet, at the full radius, reached at its nearest face.
+		double eye = 1.62, faceCentre = 0.5;
+		double flat = Loop.VICINITY - 0.5;                       // the near face, not the centre
+		double dy = eye - faceCentre;
+		double worst = Math.sqrt(flat * flat + dy * dy);
+		assertTrue(worst <= Printer.REACH,
+			"a cell the hold promises must be one the printer can actually ray-cast to: "
+				+ worst + " > " + Printer.REACH);
+		// ...and it must not be needlessly timid either, or the body sits on top of its own work.
+		double next = Math.sqrt((Loop.VICINITY + 0.5) * (Loop.VICINITY + 0.5) + dy * dy);
+		assertTrue(next > Printer.REACH, "one block further would be out of reach, so this is the most it can claim");
+	}
 }
