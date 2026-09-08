@@ -103,6 +103,8 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan follow all", "work every tracked design, one after another"));
 		r.add(new Row("/cscan only ", "<material>  follow places just this, everywhere the schematic wants it; only off lifts it"));
 		r.add(new Row("/cscan why", "what the loop is doing, and why it is not moving"));
+		r.add(new Row("/cscan rally", "stuck? go home, forget every dead end, look again, start over"));
+		r.add(new Row("/cscan home ", "<command>  what a reset types to get back to the work; /visit enroz by default"));
 		r.add(new Row("/cscan perf", "what this mod costs the client thread, per subsystem"));
 		r.add(new Row("/cscan progress", "every tracked design: how far, what is left, what to break"));
 		r.add(new Row("/cscan ignore", "places written off after failing twice, marked red"));

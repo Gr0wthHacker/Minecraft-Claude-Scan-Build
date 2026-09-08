@@ -195,7 +195,18 @@ final class Hud {
 	private static int lookFailures = 0;
 	/** When a foreign container screen was first seen holding the loop up; 0 when none is. */
 	private static long screenWaitSince = 0;
+	private static boolean screenSaid = false;
 	static final long SCREEN_WAIT_SAY_MS = 60_000;
+	/**
+	 * ...and how long before the loop closes it itself.
+	 *
+	 * <p>A container screen nobody here opened parks everything - correctly, because clicking
+	 * slots underneath somebody is worse than waiting. But a screen that never closes is a loop
+	 * that is alive, announcing itself once a minute, and doing nothing at all until morning:
+	 * a shop GUI the server opened, our own screen left behind by a failure, a menu that ate its
+	 * own close. Three minutes is long past a person doing something with it.
+	 */
+	static final long SCREEN_STUCK_MS = 180_000;
 	/** When the loop parked at a dead end with nothing else to do; 0 while it has work. */
 	/**
 	 * ONE MATERIAL, UNTIL THE SCHEMATIC HAS IT EVERYWHERE. `/cscan only moss_block`: every cell of
@@ -226,6 +237,18 @@ final class Hud {
 	private static boolean holdSaid = false;
 	static final long HOLD_COOL_MS = 10_000;
 	private static long deadEndSince = 0;
+	/**
+	 * Consecutive 90-second stalls with nothing placed anywhere between them, and the count at
+	 * the last one.
+	 *
+	 * <p>ONE STALL IS A SPOT PROBLEM and the next spot fixes it - that is what {@link
+	 * #abandonSpot} is for. Several in a row with the session's total unchanged is not about any
+	 * spot: the loop is in the wrong place, out of materials, or carrying a set of write-offs
+	 * that has gone stale. That is a {@link Rally}.
+	 */
+	private static int stallsWithoutProgress = 0;
+	private static int placedWhenStalled = 0;
+	static final int STALLS_BEFORE_RESET = 2;
 	/** Said once per redirect: the frontier course is being skipped for one I carry material for. */
 	private static boolean carryFirstSaid = false;
 	/** When the loop started flying back to an unloaded work anchor; 0 when it is not. */
@@ -589,19 +612,51 @@ final class Hud {
 	private static void advance(Minecraft mc, Work.Split sp) {
 		if (Screens.container() != null && !Withdraw.busy() && !Unbox.running()) {
 			// A CONTAINER SCREEN NOBODY HERE OPENED parks the loop, correctly - and used to do it
-			// in silence for as long as it stayed open. Say so once a minute.
+			// in silence for as long as it stayed open, for ever. Said once, then closed.
 			long t = System.currentTimeMillis();
 			if (screenWaitSince == 0) screenWaitSince = t;
-			else if (t - screenWaitSince > SCREEN_WAIT_SAY_MS) {
+			else if (t - screenWaitSince > SCREEN_STUCK_MS) {
+				// NOBODY IS COMING. Closing it is what a person would do, it is one packet, and it
+				// is the only move that gets the loop working again - see SCREEN_STUCK_MS.
 				screenWaitSince = t;
 				mc.player.sendSystemMessage(Component.literal("[cscan] a container screen has been"
-					+ " open for a minute - the loop is waiting for it to close (Escape)"));
+					+ " open for " + (SCREEN_STUCK_MS / 60_000) + " minutes with the loop parked behind"
+					+ " it - closing it and carrying on"));
+				mc.player.closeContainer();
+			}
+			else if (t - screenWaitSince > SCREEN_WAIT_SAY_MS && !screenSaid) {
+				screenSaid = true;
+				mc.player.sendSystemMessage(Component.literal("[cscan] a container screen has been"
+					+ " open for a minute - the loop is waiting for it to close (Escape). It will close"
+					+ " it itself in " + ((SCREEN_STUCK_MS - SCREEN_WAIT_SAY_MS) / 60_000) + " minutes."));
 			}
 		} else {
 			screenWaitSince = 0;
+			screenSaid = false;
 		}
         if (Withdraw.busy() || Unbox.running() || Screens.container() != null || AutomationControl.ownsGuidance()) return;
 		BlockPos me = mc.player.blockPosition();
+		// ---- HAVE WE LOST THE PLOT ENTIRELY? Not "is the work far away" - the loop flies to far
+		// work all the time - but "is it somewhere no route can even be searched for". The fall
+		// rescue types /is, which always works and which on an alt lands on that alt's own empty
+		// island; a server restart, a hub teleport or a failed warp do the same. From there
+		// nothing is wrong with the loop except that it is in the wrong world, and every clock
+		// below would happily spend the night measuring it. Held over 30s so a chunk loading, or
+		// a recount taken mid-teleport, is not evidence of anything.
+		BlockPos anyWork = sp.nearestTodo() != null ? sp.nearestTodo() : sp.nearestUnseen();
+		if (anyWork != null) {
+			double away = Math.sqrt(anyWork.distSqr(me));
+			if (Rally.noteDistance(away, System.currentTimeMillis())) {
+				String why = "the work is " + (int) away + " blocks away - this is not where the"
+					+ " build is";
+				// SAY IT WHEN THE FIX IS THE SETTING. A home command that lands somewhere the work
+				// is not would otherwise reset, measure the same distance, reset again - correct
+				// every time and never the thing that needs changing.
+				if (Rally.fruitless() >= 1) why += " (and /" + Rally.home() + " did not fix that"
+					+ " last time - /cscan home <command>?)";
+				if (rally(mc, why)) return;
+			}
+		}
 		// WHAT THIS SESSION WANTS OF THE TODO. With a material filter the list can be long and hold
 		// nothing to do; every "is there work" question below asks this count, not the list's size.
 		int wantedTodo = only == null ? sp.todoTotal() : (int) sp.todo().stream().filter(Hud::wanted).count();
@@ -759,6 +814,16 @@ final class Hud {
 							+ " on and that you are in survival with the blocks in hand.")));
 			}
 			abandonSpot(true);                             // it counts, and it is passed over
+			// ---- A STALL THAT REPEATS IS NOT A SPOT PROBLEM. One is an awkward corner and the
+			// next spot fixes it; three minutes of them with nothing placed anywhere is the loop
+			// being in the wrong place, out of materials, or holding a set of opinions that have
+			// gone stale. Reset rather than abandoning a fourth spot.
+			stallsWithoutProgress = placedTotal == placedWhenStalled ? stallsWithoutProgress + 1 : 1;
+			placedWhenStalled = placedTotal;
+			if (stallsWithoutProgress >= STALLS_BEFORE_RESET
+				&& rally(mc, stallsWithoutProgress + " stalls in a row with nothing placed")) {
+				stallsWithoutProgress = 0;
+			}
 			return;
 		}
 
@@ -1176,6 +1241,18 @@ final class Hud {
 			} else {
 				saidFarFetch = false;
 			}
+			// ...AND PAST TWICE THE ROUTER'S RANGE IT IS NOT A TRIP. See Loop.TRIP_LIMIT: no route
+			// can be searched for it, so the flight goes DIRECT and keeps going - and because the
+			// body is moving the whole time, no clock and no rung of the ladder can see it. Dropped
+			// and counted rather than sorted to the back.
+			int before = targets.size();
+			targets = Loop.withinTrip(targets, r -> r.where().pos(), me, Loop.TRIP_LIMIT);
+			if (targets.size() < before && !saidFarFetch) {
+				saidFarFetch = true;
+				mc.player.sendSystemMessage(Component.literal("[cscan] " + (before - targets.size())
+					+ " indexed source(s) are over " + Loop.TRIP_LIMIT + " blocks away - too far for any"
+					+ " route to be found, so not going. /cscan prune if they are gone."));
+			}
 			targets = Loop.byTrip(targets, r -> r.where().pos(), me, Loop.FETCH_RADIUS);
 			want = Plan.nextLoadFetch(targets, carrying, room);
 			// STAY ON THE CHEST YOU ARE GOING TO. The nearest source is re-picked every recount,
@@ -1285,16 +1362,17 @@ final class Hud {
 				// parked loop that stays "following" all night is the failure this file keeps
 				// writing rules about. Long enough for a hand to break the one block in the way.
 				if (deadEndSince == 0) deadEndSince = now;
-				if (now - deadEndSince > DEAD_END_STOP_MS) {
-					mc.player.sendSystemMessage(Component.literal("[cscan] parked at a dead end for "
-						+ (DEAD_END_STOP_MS / 60_000) + " minutes with nothing else to do — stopping."
-						+ " /cscan why for the reason, /cscan follow to start again."));
-					following = false;
-					ActiveBuild.clear();
-					ChunkScanClient.printDesign = null;
-					stopGuiding();
-					Highlight.clear("goto");
-					remember(mc);
+				// ---- PARKED LONG ENOUGH IS A RESET, NOT A STOP. This used to end the session: two
+				// minutes with nothing placeable and nowhere to go, and the loop switched itself off
+				// until somebody typed. Every reason a dead end can have - the wrong island, an empty
+				// pack, a chest list full of cooling-off entries, cells written off from somewhere we
+				// have since left - is a reason `Rally` addresses directly, and the ones it cannot
+				// cost a teleport and a look. The backoff is what stops this becoming a hot loop:
+				// fruitless resets double their interval to five minutes and stay there.
+				if (now - deadEndSince > DEAD_END_STOP_MS
+						&& rally(mc, "parked at a dead end for " + (DEAD_END_STOP_MS / 60_000)
+							+ " minutes with nothing else to do")) {
+					deadEndSince = 0;
 				}
 				return;
 			}
@@ -1323,14 +1401,14 @@ final class Hud {
 					return;
 				}
 			}
-			mc.player.sendSystemMessage(Component.literal("[cscan] stopping. /cscan why for what it"
-				+ " was trying, /cscan check " + sp.name() + " for cells the world disagrees about."));
-			following = false;
-        ActiveBuild.clear();
-            ChunkScanClient.printDesign = null;
-			stopGuiding();
-			Highlight.clear("goto");
-			remember(mc);
+			// ...AND THE ANSWER IS A RESET, NOT A STOP. Nothing about a design that thrashed from
+			// here says it cannot be built from somewhere else, with a full pack, without this
+			// session's accumulated write-offs. If the reset is still cooling off, carry on and
+			// let the next four abandonments ask again.
+			if (!rally(mc, THRASH_LIMIT + " spots given up on with nothing placed")) {
+				mc.player.sendSystemMessage(Component.literal("[cscan] /cscan why for what it was"
+					+ " trying, /cscan check " + sp.name() + " for cells the world disagrees about."));
+			}
 			return;
 		}
 
@@ -1379,8 +1457,15 @@ final class Hud {
 					if (other != null) {
 						mc.player.sendSystemMessage(Component.literal("[cscan] moving on to " + other));
 						switchTo(mc, other);
+						return;
 					}
 				}
+				// EVERY SPOT STRUCK TWICE AND NOWHERE ELSE TO GO. This returned quietly and did it
+				// again every two seconds for the rest of the night - the loop was alive, silent and
+				// doing nothing at all. The strike list is the most obviously stale thing a reset
+				// throws away, so this is the case it is best at. Another DESIGN is tried first,
+				// because moving on is cheaper than crossing the world and does not move the player.
+				rally(mc, "every spot left has failed twice");
 				return;
 			}
 			if (spotCentre != null && !wasFetching) spotsDone++;
@@ -1884,6 +1969,11 @@ final class Hud {
 		if (Ignored.count() > 0) {
 			out.add("  " + Ignored.count() + " place(s) IGNORED after failing twice — /cscan ignore");
 		}
+		out.add("  reset: /" + Rally.home() + "  (" + Rally.resets() + " this session"
+			+ (Rally.fruitless() > 0 ? ", " + Rally.fruitless() + " in a row with nothing placed" : "")
+			+ (Rally.pending() ? ", one landing now" : "")
+			+ ", next allowed in " + (Rally.readyIn(System.currentTimeMillis()) / 1000) + "s)");
+		if (!Rally.lastReason().isEmpty()) out.add("  last reset: " + Rally.lastReason());
 		if (following) out.add("  " + sessionReport());
 		out.addAll(Autopilot.why(mc));
 		return out;
@@ -1941,6 +2031,102 @@ final class Hud {
 		Highlight.clear("goto");
 	}
 
+	/** The design being followed or watched, for {@link Rally} to analyse after a reset. */
+	static String designName() {
+		return design;
+	}
+
+	/**
+	 * ASK FOR A RESET. See {@link Rally}: teleport to where the work is, forget every judgement
+	 * this session has made, look again, and come back with materials chosen for what the build
+	 * can actually take.
+	 *
+	 * <p>Only while a design is being FOLLOWED. A person who typed `/cscan goto` and wandered
+	 * into a corner has not asked to be teleported across the island, and the flight's own
+	 * ladder handles them perfectly well by giving the spot up.
+	 *
+	 * @return false when it did not fire - not following, or too soon since the last one - in
+	 *         which case the caller must do whatever it would have done instead.
+	 */
+	static boolean rally(Minecraft mc, String why) {
+		return rally(mc, why, false);
+	}
+
+	/** @param force asked for by hand: reset even with no design followed. */
+	static boolean rally(Minecraft mc, String why, boolean force) {
+		if (!following && !force) return false;
+		return Rally.request(mc, why, placedTotal);
+	}
+
+	/**
+	 * Every OPINION this session has formed about where to work, thrown away. Called by
+	 * {@link Rally} on the way out; the counters that measure whether the loop is achieving
+	 * anything are deliberately left alone, because they are what judges the reset itself.
+	 */
+	static void forgetForRally() {
+		stopGuiding();
+		Highlight.clear("goto");
+		fetching = false;
+		forgetLoadPlan();
+		saidLoadPlan = null;
+		saidLoadPlanAt = 0;
+		workAnchor = null;
+		workRadius = Loop.nearAgain();
+		workLayer = Integer.MIN_VALUE;
+		spotCentre = null;
+		stationBin = Long.MIN_VALUE;
+		stationTodo = -1;
+		stationRetry = 0;
+		stationArrivedAt = 0;
+		stationsTried.clear();
+		avoided.clear();
+		scaffoldFor = -1;
+		fetchChest = null;
+		approachTried.clear();
+		lookTarget = null;
+		lookFailures = 0;
+		// WRITTEN OFF FROM SOMEWHERE ELSE. `unseenGivenUp` says a design's hidden cells would not
+		// load from anywhere we could reach - which was true of the place we are leaving, and is
+		// exactly what a teleport to the work is meant to change. Same for `parked`: a design
+		// handed back unfinished deserves one more look from the right island. `doneThisSession`
+		// stays, because a design that is FINISHED is a measurement, not an opinion.
+		unseenGivenUp.clear();
+		parked.clear();
+		said = false;
+		deadEndSince = 0;
+		returnSince = 0;
+		hiccups = 0;
+		splitFailures = 0;
+		spotsAbandoned = 0;
+		placedWhenAbandoned = placedTotal;
+		stallsWithoutProgress = 0;
+		holdSince = 0;
+		holdCoolUntil = 0;
+		orbitLeg = 0;
+		orbitSince = 0;
+		lastProgressMs = System.currentTimeMillis();
+	}
+
+	/**
+	 * ...and start again, once the world has arrived.
+	 *
+	 * <p>The one thing set here that the ordinary machinery would not do for itself is
+	 * {@link #topUp}: FILL THE PACK FIRST. Jack asked for the reset to <i>"restart with new
+	 * materials after a cscan analyze"</i>, and that is exactly what a top-up is - the phase is
+	 * a FETCH sized to what the analysis says the build can take, rather than a build with
+	 * whatever happened to survive the trip.
+	 */
+	static void restartAfterRally(Minecraft mc) {
+		if (!following) return;
+		topUp = true;
+		lastProgressMs = System.currentTimeMillis();
+		movedAt = lastProgressMs;
+		lastAt = null;
+		grace = 0;
+		if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] reset done -"
+			+ " filling the pack for what the build can take, then back to work"));
+	}
+
 	static boolean fetching() {
 		return fetching;
 	}
@@ -1991,6 +2177,9 @@ final class Hud {
 		unseenGivenUp.clear();
 		splitFailures = 0;
 		hiccups = 0;
+		stallsWithoutProgress = 0;
+		placedWhenStalled = 0;
+		Rally.clearSession();          // the backoff belongs to a session, the home command does not
 		grace = 0;
 		stopGuiding();
 	}
@@ -2190,6 +2379,10 @@ final class Hud {
 		// Withdraw drives itself every tick, independent of whether a design is being followed:
 		// `/cscan take` is a chest command first and a build-loop step second.
 		Withdraw.tick(mc);
+		// A RESET LANDS ON ITS OWN CLOCK, and it must be able to finish even when there is no
+		// design and no world yet - the teleport it is waiting on is exactly what brings those
+		// back. It guards its own nulls.
+		Rally.tick(mc);
 		if (design == null || mc.level == null || mc.player == null) return;
 		if (grace > 0 && --grace > 0) return;             // let the world arrive before routing it
 		// EVERY TICK, not every recount: a three-second watchdog sampled at two-second intervals
@@ -2224,7 +2417,10 @@ final class Hud {
 			// can fail permanently - no work.json, bad JSON - and the catch below is right to stop
 			// for that. Everything after it is a judgement about a world that is being changed
 			// underneath us by another mod, and a transient failure there should cost one tick.
-			if (following) {
+			if (following && !Rally.pending()) {
+				// ...AND NOT WHILE A RESET IS LANDING. On the tick a teleport lands most of the
+				// world is unloaded, so every judgement below would be made about a world that is
+				// not there yet - and the first of them is "is the work unreachable".
 				try {
 					// TIMED SEPARATELY FROM THE DIFF, because they are separate costs and the
 					// profiler measured only the first: `recount` is the world diff, `loop decide`
@@ -2238,14 +2434,20 @@ final class Hud {
 							+ e + " — carrying on"));
 					}
 					if (hiccups >= 20) {
+						// TWENTY THROWS IN A ROW IS A STATE PROBLEM, and a reset is the one move that
+						// replaces the state. Stopping was right while there was nothing else to try;
+						// it is not right when forgetting everything and looking again is available.
 						mc.player.sendSystemMessage(Component.literal(
-							"[cscan] giving up after 20 failures in a row: " + e));
-						following = false;
-						ActiveBuild.clear();
-						ChunkScanClient.printDesign = null;
-						stopGuiding();
-						Highlight.clear("goto");
-						remember(mc);              // or session.json still says following, and the next join resumes into it
+							"[cscan] 20 failures in a row: " + e));
+						hiccups = 0;
+						if (!rally(mc, "20 errors in a row inside the loop")) {
+							following = false;
+							ActiveBuild.clear();
+							ChunkScanClient.printDesign = null;
+							stopGuiding();
+							Highlight.clear("goto");
+							remember(mc);              // or session.json still says following, and the next join resumes into it
+						}
 					}
 				}
 			}
@@ -2270,8 +2472,18 @@ final class Hud {
 			lines = List.of(design + ": " + e.getMessage());
 			if (++splitFailures >= SPLIT_FAILURE_LIMIT) {
 				if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan] "
-					+ design + ": cannot read its work list (" + e.getMessage() + ") — stopping."
-					+ " Regenerate it and /cscan follow again."));
+					+ design + ": cannot read its work list (" + e.getMessage() + ")."));
+				// A BROKEN FILE IS NOT FIXED BY A TELEPORT, so this one does not rally - but it is
+				// no reason to end an overnight run either. Park the design and take the next one;
+				// stopping is only right when it is the last one there is.
+				if (followAll && mc.player != null) {
+					parked.add(design);
+					String other = nextDesign(mc, design);
+					splitFailures = 0;
+					if (other != null && switchTo(mc, other)) return;
+				}
+				if (mc.player != null) mc.player.sendSystemMessage(Component.literal("[cscan]"
+					+ " stopping. Regenerate it and /cscan follow again."));
 				following = false;
 				ActiveBuild.clear();
 				ChunkScanClient.printDesign = null;

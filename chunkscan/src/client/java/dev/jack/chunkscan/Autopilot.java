@@ -846,6 +846,24 @@ final class Autopilot {
 	 * destination, so keeping it after the destination has been abandoned is keeping a plan to fly
 	 * at the thing that just stuck.
 	 */
+	/**
+	 * Forget the recovery LADDER itself.
+	 *
+	 * <p>{@link #forget} throws away the route; this throws away the accumulated TROUBLE. After a
+	 * reset the body is somewhere else entirely, so a trouble counter earned at the old place would
+	 * put the ladder back on its top rung within a second of landing - a reset whose first act is
+	 * to ask for another one.
+	 */
+	static void resetRecovery() {
+		trouble = 0;
+		stage = Recovery.Stage.NONE;
+		climbedOut = false;
+		climbTo = null;
+		breadcrumb = null;
+		bumps = 0;
+		wedged = 0;
+	}
+
 	static void forget() {
 		path = new java.util.ArrayList<>();
 		pathTo = null;
@@ -2330,27 +2348,24 @@ final class Autopilot {
 				return true;
 			}
 			case GO_HOME -> {
-				if (Bounds.active()) {
-					// A TELEPORT CANNOT BE FENCED, and this rung is convenience rather than safety
-					// (the fall rescue keeps its /is). Give the spot up instead and stay inside.
-					p.sendSystemMessage(Component.literal("[cscan] stuck, and /is would leave the"
-						+ " autofly bounds - giving this spot up instead."));
-					trouble = 0;
-					stage = Recovery.Stage.NONE;
-					forget();
-					Hud.abandonSpot();
-					return true;
-				}
-				if (p.connection != null && rescueCool == 0) {
-					rescueCool = RESCUE_COOLDOWN;
-					p.connection.sendCommand("is");
-					p.sendSystemMessage(Component.literal("[cscan] sent /is — the loop picks up again"
-						+ " from wherever that puts us."));
-				}
+				// THE TOP RUNG IS A RESET, NOT A TELEPORT. It used to type `/is` and hand the flight
+				// straight back - which on a fleet of alts building somebody else's plot lands you on
+				// YOUR island, 121,000 blocks from the work, holding a shopping list made beside a
+				// chest that is no longer there and an anchor whose chunks will never load. The rescue
+				// was itself the way the loop most reliably lost its location.
+				//
+				// `Rally` goes where the WORK is and throws away every opinion formed in the place we
+				// are leaving. It does its own fence check, its own rate limiting and its own
+				// announcing, so none of that is repeated here.
 				trouble = 0;
 				stage = Recovery.Stage.NONE;
 				forget();
-				Hud.abandonSpot();                      // whatever it was, it is not worth this
+				if (!Hud.rally(mc, "the flight has been getting nowhere for "
+						+ (Recovery.GO_HOME_AT / 20) + "s")) {
+					// Too soon since the last reset, or nothing to reset because no design is being
+					// followed. Give the spot up, which is what this rung did before it could teleport.
+					Hud.abandonSpot();
+				}
 				return true;
 			}
 			default -> {

@@ -203,6 +203,33 @@ final class Loop {
 	static final int FETCH_RADIUS = 400;
 
 	/**
+	 * ...and the distance past which a trip is not a trip at all.
+	 *
+	 * <p>{@link #FETCH_RADIUS} is a PREFERENCE - everything inside it comes first and the rest is
+	 * kept at the back, because if the only stock in the world is far away then going is still
+	 * better than stopping. That reasoning has a floor under it: past twice {@link Nav#MAX_RANGE}
+	 * no route can even be searched for, so the flight falls through to going DIRECT and simply
+	 * keeps going - into terrain, across an ocean, or at a container index entry left over from
+	 * another world 121,000 blocks away. The body is moving the whole time, so no clock and no
+	 * rung of the recovery ladder can see it.
+	 *
+	 * <p>The same number {@link Rally#LOST_AT} uses, for the same reason and from the same source.
+	 */
+	static final int TRIP_LIMIT = 2 * Nav.MAX_RANGE;
+
+	/** The targets a route could actually be searched for. See {@link #TRIP_LIMIT}. */
+	static <T> List<T> withinTrip(List<T> targets, java.util.function.Function<T, BlockPos> where,
+	                              BlockPos from, int limit) {
+		double r2 = (double) limit * limit;
+		List<T> out = new ArrayList<>();
+		for (T t : targets) {
+			BlockPos p = where.apply(t);
+			if (p == null || p.distSqr(from) <= r2) out.add(t);
+		}
+		return out;
+	}
+
+	/**
 	 * ONE COURSE AT A TIME, FROM THE BOTTOM.
 	 *
 	 * <p>Jack: <i>"what if we took baritone's approach where it does it by Y layer"</i>. It answers

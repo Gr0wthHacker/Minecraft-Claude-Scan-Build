@@ -71,7 +71,8 @@ public final class ChunkScanClient implements ClientModInitializer {
 		"wand", "why",
 		// the skyblock set
 		"add", "autodig", "buy", "craft", "farm", "forget", "income", "make", "photo", "plot",
-		"prices", "print", "sample", "smelt", "warp", "fleet", "unbox", "work", "perf");
+		"prices", "print", "sample", "smelt", "warp", "fleet", "unbox", "work", "perf",
+		"home", "rally");
 
 	/**
 	 * A design or clip name that is about to become a FILE PATH.
@@ -362,6 +363,31 @@ public final class ChunkScanClient implements ClientModInitializer {
 				.then(literal("bom")
 					.then(argument("design", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::bom)))
+				.then(literal("home")
+					.executes(ctx -> {
+						Rally.loadHome(ctx.getSource().getClient());
+						ok(ctx.getSource(), "home: /" + Rally.home() + " - what a reset types to get back to"
+							+ " the work. /cscan home <command> to change it");
+						return 1; })
+					.then(argument("command", StringArgumentType.greedyString())
+						.executes(ctx -> {
+							// NOT `/is`. On a fleet of alts building somebody else's plot, `/is` lands you
+							// on YOUR island - 121,000 blocks from the work - which is the way the loop
+							// most reliably loses its location. See Rally.
+							Rally.setHome(ctx.getSource().getClient(),
+								StringArgumentType.getString(ctx, "command"));
+							ok(ctx.getSource(), "home: /" + Rally.home());
+							return 1;
+						})))
+				.then(literal("rally").executes(ctx -> {
+					// The reset by hand. The loop calls it when it is out of answers; this is for when
+					// YOU can see it is stuck and would rather not wait for the clock.
+					Minecraft mc = ctx.getSource().getClient();
+					if (!Hud.rally(mc, "asked for by hand", true)) {
+						ok(ctx.getSource(), "a reset is already landing, or one ran less than "
+							+ (Rally.readyIn(System.currentTimeMillis()) / 1000) + "s ago");
+					}
+					return 1; }))
 				.then(literal("analyze")
 					.then(argument("design", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::analyze)))
@@ -1282,23 +1308,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 		String name = StringArgumentType.getString(ctx, "design");
 		try {
 			Minecraft mc = src.getClient();
-			Work.Split sp = Work.split(mc.level, dir(src), name, mc.player.blockPosition(), 0);
-			if (sp.todo().isEmpty()) { ok(src, sp.name() + " has nothing left to place in a loaded chunk"
-				+ digNote(sp)); return 1; }
-			java.util.List<Work.Cell> now = Work.placeableNow(mc.level, sp.todo());
-			Map<String, Integer> have = Work.carrying(mc.player);
-			Map<String, Storage.Container> index = Storage.load(dir(src));
-			ok(src, sp.name() + ": " + sp.todo().size() + " left in loaded chunks, " + now.size()
-				+ " placeable against what stands, " + sp.unseen() + " out of view");
-			ok(src, "  placeable / left / carrying / indexed  — fill the pack top-down");
-			int shown = 0;
-			for (Plan.Usable u : Plan.usable(sp.todo(), now)) {
-				if (shown++ >= 15) break;
-				int indexed = 0;
-				for (Storage.Hit h : Storage.findExact(index, u.item(), mc.player.blockPosition(), true)) indexed += h.count();
-				ok(src, "  " + u.placeable() + " / " + u.remaining() + " / " + have.getOrDefault(u.item(), 0)
-					+ " / " + indexed + "  " + u.item() + (u.placeable() == 0 ? "  (nothing to place against yet)" : ""));
-			}
+			// ONE SOURCE FOR THE REPORT. `Rally` runs the same analysis after a reset - see
+			// Analyze - so the loop and the command can never answer differently.
+			for (String line : Analyze.report(mc.level, dir(src), name, mc.player)) ok(src, line);
 			return 1;
 		} catch (Exception e) {
 			src.sendError(Component.literal("[cscan] " + e.getMessage()));

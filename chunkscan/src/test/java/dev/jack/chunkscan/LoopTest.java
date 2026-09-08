@@ -531,6 +531,20 @@ class LoopTest {
 	}
 
 	@Test
+	void butNotPastTheDistanceWhereARouteCanBeSearchedFor() {
+		// The floor under the rule above, and the reason it needs one: past twice Nav.MAX_RANGE no
+		// route can be found at all, so the flight falls through to going DIRECT and keeps going -
+		// and the body is moving the whole time, so nothing in the loop can see it. Kept at the back
+		// is a preference; this is a refusal.
+		java.util.List<BlockPos> targets = java.util.List.of(at(120_000, 0), at(600, 0));
+		java.util.List<BlockPos> kept = Loop.withinTrip(targets, p -> p, at(0, 0), Loop.TRIP_LIMIT);
+		assertEquals(1, kept.size(), "a trip across two worlds is still on offer");
+		assertEquals(at(600, 0), kept.get(0), "dropped a chest a routable distance away");
+		assertTrue(Loop.TRIP_LIMIT >= Nav.MAX_RANGE,
+			"the trip limit is inside the router's own range: " + Loop.TRIP_LIMIT);
+	}
+
+	@Test
 	void nothingToFetchIsNotAFarFetch() {
 		assertFalse(Loop.allFar(java.util.List.<BlockPos>of(), p -> p, at(0, 0), Loop.FETCH_RADIUS));
 	}
