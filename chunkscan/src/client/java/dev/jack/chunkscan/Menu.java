@@ -106,6 +106,7 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan rally", "stuck? go home, forget every dead end, look again, start over"));
 		r.add(new Row("/cscan home ", "<command>  what a reset types to get back to the work; /visit enroz by default"));
 		r.add(new Row("/cscan perf", "what this mod costs the client thread, per subsystem"));
+		r.add(new Row("/cscan screen", "write down every slot of the container menu that is open"));
 		r.add(new Row("/cscan progress", "every tracked design: how far, what is left, what to break"));
 		r.add(new Row("/cscan ignore", "places written off after failing twice, marked red"));
 		r.add(new Row("/cscan stop", "everything off: fetch, fly, follow, highlights, auto-scan"));

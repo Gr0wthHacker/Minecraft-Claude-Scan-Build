@@ -72,7 +72,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 		// the skyblock set
 		"add", "autodig", "buy", "craft", "farm", "forget", "income", "make", "photo", "plot",
 		"prices", "print", "sample", "smelt", "warp", "fleet", "unbox", "work", "perf",
-		"home", "rally");
+		"home", "rally", "screen");
 
 	/**
 	 * A design or clip name that is about to become a FILE PATH.
@@ -400,6 +400,14 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(argument("name", StringArgumentType.greedyString())
 						.executes(ChunkScanClient::undo)))
 				.then(literal("progress").executes(ChunkScanClient::progress))
+				.then(literal("screen")
+					.executes(ctx -> {
+						// EVERYTHING IN THE OPEN MENU, WRITTEN DOWN. Read-only by construction: driving a
+						// server's GUI needs its real slot indices, item ids and lore, and none of that can
+						// be guessed from a description or read off a screenshot.
+						FabricClientCommandSource src = ctx.getSource();
+						for (String line : ScreenDump.dump(Minecraft.getInstance())) ok(src, line);
+						return 1; }))
 				.then(literal("perf")
 					.executes(ctx -> {
 						// WHAT THIS MOD COSTS THE CLIENT THREAD. Written after a frame-rate report was
