@@ -535,6 +535,33 @@ final class Plan {
 	 */
 	static Map<String, Integer> loadPlan(List<Work.Cell> area, List<Work.Cell> frontier,
 	                                     BlockPos anchor, int cap) {
+		return loadPlan(area, frontier, anchor, cap, item -> true);
+	}
+
+	/**
+	 * ...preferring materials there is somewhere to GET.
+	 *
+	 * <p><b>Measured off Jack's own session log, three resets in a row.</b> The area round the
+	 * anchor offered six materials - froglight, chiseled stone brick, oak fence, smooth stone
+	 * slab, cracked stone brick, oak plank - and the index held not one of them, so `shortfalls`
+	 * came back empty, the phase was DEAD_END, and two minutes later the loop reset, re-anchored
+	 * in the same place, chose the same six and did it again. Nothing was placed in five minutes.
+	 * Sitting in that same index at that moment: 40,545 stone brick, 15,040 smooth basalt and
+	 * 4,057 moss block, against 23,106 placeable cells - and 1,403 of those were moss. Reported
+	 * as: it is not detecting things it can 100% place, e.g. moss blocks, right next to tons of
+	 * placeable ones.
+	 *
+	 * <p>The cap on MATERIALS is what makes a trip a trip and it stays; what was missing is that
+	 * six is a CHOICE, and choosing six things nobody has is choosing not to go. Obtainable
+	 * materials are offered the slots first, in exactly the order they were before; the rest fill
+	 * whatever is left, so a design whose index is empty produces the same list it always did and
+	 * the "nothing indexed to fetch" message still gets to be true.
+	 *
+	 * @param obtainable is there stock somewhere for this item - carried, or in the index
+	 */
+	static Map<String, Integer> loadPlan(List<Work.Cell> area, List<Work.Cell> frontier,
+	                                     BlockPos anchor, int cap,
+	                                     java.util.function.Predicate<String> obtainable) {
 		List<Work.Cell> sorted = new ArrayList<>(area);
 		Comparator<Work.Cell> byCourse = Comparator.comparingInt(c -> c.pos().getY());
 		if (anchor != null) byCourse = byCourse.thenComparingDouble(c -> c.pos().distSqr(anchor));
@@ -555,21 +582,26 @@ final class Plan {
 		//     different shopping list, announced, every two seconds. See Hud.saidLoadPlan.
 		// Capped at materials, the list is a decision rather than an accident, and it changes only
 		// when the WORK does.
-		for (Work.Cell c : frontier) {
-			if (!out.containsKey(c.item()) && out.size() >= MAX_MATERIALS) continue;
-			if (seen.add(c.pos().asLong())) {
-				out.merge(c.item(), 1, Integer::sum);
-				n++;
+		// TWO PASSES: what there is somewhere to get, and then the rest. A material past the cap
+		// is SKIPPED rather than ending the list, in both - the cells under it are still the next
+		// courses of this area, and their materials are still this trip's.
+		for (boolean canGet : new boolean[]{true, false}) {
+			for (Work.Cell c : frontier) {
+				if (obtainable.test(c.item()) != canGet) continue;
+				if (!out.containsKey(c.item()) && out.size() >= MAX_MATERIALS) continue;
+				if (seen.add(c.pos().asLong())) {
+					out.merge(c.item(), 1, Integer::sum);
+					n++;
+				}
 			}
-		}
-		for (Work.Cell c : sorted) {
-			if (n >= limit) break;
-			// A material past the cap is SKIPPED rather than ending the list: the cells under it
-			// are still the next courses of this area, and their materials are still this trip's.
-			if (!out.containsKey(c.item()) && out.size() >= MAX_MATERIALS) continue;
-			if (seen.add(c.pos().asLong())) {
-				out.merge(c.item(), 1, Integer::sum);
-				n++;
+			for (Work.Cell c : sorted) {
+				if (n >= limit) break;
+				if (obtainable.test(c.item()) != canGet) continue;
+				if (!out.containsKey(c.item()) && out.size() >= MAX_MATERIALS) continue;
+				if (seen.add(c.pos().asLong())) {
+					out.merge(c.item(), 1, Integer::sum);
+					n++;
+				}
 			}
 		}
 		// A BUCKET DOES NOT STACK. A 200-cell pool asked for 200 water buckets, which is 200 slots

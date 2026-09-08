@@ -419,6 +419,38 @@ class PlanTest {
 		assertEquals(2000, Plan.takeHowMany(targets.getFirst(), 2304));
 	}
 
+	/**
+	 * The shape of three resets in a row, off Jack's own session log: the area round the anchor
+	 * offered six materials nobody had any of, `shortfalls` came back empty, and the loop read
+	 * that as a dead end - with tens of thousands of stone brick and moss sitting in chests for
+	 * cells that were placeable the whole time.
+	 */
+	@Test
+	void theShoppingListPrefersMaterialsThereIsSomewhereToGet() {
+		List<Work.Cell> area = new java.util.ArrayList<>();
+		// SIX unobtainable materials come first, in course and distance order, and would have
+		// filled every slot on their own.
+		String[] nobodyHas = {"chiseled_stone_bricks", "oak_fence", "smooth_stone_slab",
+			"cracked_stone_bricks", "oak_planks", "ochre_froglight"};
+		for (int i = 0; i < nobodyHas.length; i++) area.add(cell(i, 100, 0, nobodyHas[i]));
+		area.add(cell(0, 101, 0, "moss_block"));
+		area.add(cell(1, 101, 0, "stone_bricks"));
+		java.util.Set<String> stocked = Set.of("moss_block", "stone_bricks");
+
+		var plan = Plan.loadPlan(area, List.of(), BlockPos.ZERO, 2304, stocked::contains);
+		assertTrue(plan.containsKey("moss_block"), "the moss it can actually fetch must be on the list");
+		assertTrue(plan.containsKey("stone_bricks"), "and so must the stone brick");
+		assertEquals("moss_block", plan.keySet().iterator().next(), "obtainable materials lead");
+
+		// ...AND THE REST STILL FILL WHAT IS LEFT. A design whose index is empty must produce the
+		// same list it always did, so that "nothing indexed to fetch" gets to be true rather than
+		// being manufactured by an empty list.
+		assertEquals(Plan.MAX_MATERIALS, plan.size(), "the cap on a trip is unchanged");
+		var none = Plan.loadPlan(area, List.of(), BlockPos.ZERO, 2304, item -> false);
+		assertEquals(Plan.loadPlan(area, List.of(), BlockPos.ZERO, 2304), none,
+			"with nothing obtainable the list is exactly what it was before");
+	}
+
 	@Test
 	void singleMaterialLoadStillUsesAllAvailableSpace() {
 		Storage.Container stone = chest(10, 64, 0, "stone", 5000);

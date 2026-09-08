@@ -1090,10 +1090,21 @@ final class Hud {
 					+ " — building with it first, no top-up trip"));
 			}
 			if (Loop.buildWhatYouCarry(canWork, fetching, true)) {
-				java.util.List<Work.Cell> mine = Work.placeableNow(mc.level,
-						Loop.carriedWork(carrying, eligible, Loop.WORK_LOAD)).stream()
-					.filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block()))
-					.toList();
+				// A WORKING LOAD FIRST, AND THEN ANY LOAD AT ALL. WORK_LOAD is four stacks and it
+				// is the right threshold for "do not go shopping, you already have plenty"; it is
+				// the wrong one for "am I stuck". A trip that came back with ONE stack of cobbled
+				// deepslate, for a design with 545 placeable cells of it, found no cell on the
+				// frontier course holding four stacks, declared the pack full of what it cannot
+				// place, and parked there until the two-minute reset. Anything I carry that has a
+				// face to click somewhere in the loaded area is a reason to go there rather than
+				// to stop - build-before-shop, at whatever quantity the trip actually brought.
+				int load = Loop.WORK_LOAD;
+				java.util.List<Work.Cell> mine = carriedPlaceable(mc, carrying, eligible, load);
+				if (mine.isEmpty()) {
+					load = 1;
+					mine = carriedPlaceable(mc, carrying, eligible, load);
+				}
+				final int carried = load;
 				java.util.List<Work.Cell> near = Loop.focus(mine, anchor, workRadius);
 				if (!near.isEmpty()) {
 					// A HIGHER COURSE WITH WHAT I HOLD BEATS A TRIP FOR THE LOWER ONE. Every cell
@@ -1106,7 +1117,7 @@ final class Hud {
 					if (!carryFirstSaid) {
 						carryFirstSaid = true;
 						mc.player.sendSystemMessage(Component.literal("[cscan] course Y" + workLayer
-							+ " has nothing I carry — placing " + Loop.describeCarried(carrying, near, Loop.WORK_LOAD)
+							+ " has nothing I carry — placing " + Loop.describeCarried(carrying, near, carried)
 							+ " on the courses above it first (" + near.size() + " cells)"));
 					}
 				} else if (!mine.isEmpty()) {
@@ -1117,7 +1128,7 @@ final class Hud {
 						workRadius = Loop.nearAgain();
 						if (target == null || !target.equals(moved)) {
 							mc.player.sendSystemMessage(Component.literal("[cscan] carrying "
-								+ Loop.describeCarried(carrying, mine, Loop.WORK_LOAD) + " — placing that"
+								+ Loop.describeCarried(carrying, mine, carried) + " — placing that"
 								+ " before any trip: " + mine.size() + " cells, nearest at " + Wand.fmt(moved)));
 							guide(moved, "placing what I carry");
 							lastProgressMs = now;
@@ -1165,8 +1176,14 @@ final class Hud {
 				// the most and opens the most - the walls before anyone fetches the roof.
 				java.util.List<Work.Cell> usableNow = Work.placeableNow(mc.level, area).stream()
 					.filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block())).toList();
+				// ...AND LED BY WHAT THERE IS SOMEWHERE TO GET. See Plan.loadPlan: a list of six
+				// materials the index has none of is a trip that cannot be made, and the loop
+				// reads that as a dead end rather than as a bad list - three resets in a row,
+				// nothing placed in five minutes, with tens of thousands of stone brick, basalt
+				// and moss sitting in chests for cells that were placeable the whole time.
+				java.util.Set<String> stocked = Storage.stocked(index);
 				loadPlan = Plan.loadPlan(area, usableNow.isEmpty() ? frontier : usableNow, anchor,
-					Work.loadCapacity(mc.player) + dumpFree);
+					Work.loadCapacity(mc.player) + dumpFree, stocked::contains);
 				Map<String, Integer> away = Work.dumpable(mc.player, needed);
 				// SAID WHEN THE TRIP CHANGES, NOT WHEN THE LIST IS REBUILT. See saidLoadPlan.
 				loadPlanAt = anchor;
@@ -1772,6 +1789,23 @@ final class Hud {
 	 */
 	static final long FETCH_STUCK_MS = 6_000;
 
+	/**
+	 * How long a chest whose chunk has not arrived is flown at before it is given up on.
+	 *
+	 * <p>Long enough to cross the island at cruise with the chunks coming in behind you, short
+	 * enough that a source no flight can reach costs one trip rather than a night. See the note
+	 * in {@link #fetchTo}: this is the only phase of the loop with no other clock over it.
+	 */
+	static final long FETCH_REACH_MS = 45_000;
+
+	/** Cells of `all` this pack holds at least `load` of and the world has a face to click for. */
+	private static java.util.List<Work.Cell> carriedPlaceable(Minecraft mc,
+			Map<String, Integer> carrying, java.util.List<Work.Cell> all, int load) {
+		return Work.placeableNow(mc.level, Loop.carriedWork(carrying, all, load)).stream()
+			.filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block()))
+			.toList();
+	}
+
 	private static void fetchTo(Minecraft mc, BlockPos me, Plan.Restock want, int take,
 	                            Map<String, Integer> carrying, java.util.Set<String> dump) {
 		long now = System.currentTimeMillis();
@@ -1808,6 +1842,22 @@ final class Hud {
 				mc.player.sendSystemMessage(Component.literal("[cscan] fetch: " + take + "x "
 					+ want.item() + " from " + want.where().describe() + " — flying there first"));
 				guide(at, "to " + want.where().describe());
+				return;
+			}
+			// ---- AND A FLIGHT TO A CHEST THAT NEVER ARRIVES IS THE ONE PHASE WITH NO CLOCK OVER
+			// IT AT ALL. Both the going-nowhere watchdog and the ninety-second stall skip while
+			// fetching (Loop.goingNowhere, Loop.stalled), and FETCH_STUCK_MS below only runs once
+			// an approach cell has been chosen - which needs the chunk. So a chest the flight
+			// cannot reach parked the loop here silently: past Nav.MAX_RANGE no route can even be
+			// searched, so the flight goes direct and keeps going, and because the body is moving
+			// the whole time nothing upstream can see it either.
+			if (now - fetchTargetSince > FETCH_REACH_MS) {
+				Withdraw.noteFailure(at);
+				mc.player.sendSystemMessage(Component.literal("[cscan] " + want.where().describe()
+					+ " has not come into view in " + (FETCH_REACH_MS / 1000) + "s — skipping it"
+					+ " for a minute and trying another source"));
+				stopGuiding();
+				Highlight.clear("goto");
 			}
 			return;
 		}
@@ -1849,7 +1899,14 @@ final class Hud {
 				return;
 			}
 		}
-		guideExact(approach, "go to chest for " + take + "x " + want.item());
+		// ---- LAND IN IT WHEN IT CANNOT BE HOVERED IN. See ContainerInteraction.mustLand: an
+		// approach beside a chest standing on a floor is a cell to STAND in, and a flight guided
+		// at one holds its ground clearance two blocks above it and never arrives.
+		if (ContainerInteraction.mustLand(mc, approach)) {
+			guideLand(approach, "land at chest for " + take + "x " + want.item());
+		} else {
+			guideExact(approach, "go to chest for " + take + "x " + want.item());
+		}
 	}
 
 	/**

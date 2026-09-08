@@ -59,20 +59,56 @@ final class ContainerInteraction {
 	static BlockPos approach(Minecraft mc, BlockPos target, Set<Long> tried) {
 		if (mc.player == null || mc.level == null || !mc.level.isLoaded(target)) return null;
 		boolean flying = mc.player.getAbilities().flying;
-		var space = Bounds.within(flying ? Nav.of(mc.level) : Nav.standable(mc.level));
 		double eyeHeight = mc.player.getEyePosition().y - mc.player.getY();
 		BlockPos me = mc.player.blockPosition();
+		Comparator<BlockPos> best = Comparator.comparingInt((BlockPos p) -> rank(p, target))
+			.thenComparingDouble(p -> p.distSqr(target))
+			.thenComparingDouble(p -> p.distSqr(me));
+		// A CELL TO HOVER IN IS PREFERRED, AND A CELL TO STAND IN IS STILL A CELL.
+		//
+		// Measured off Jack's own session log: three chests in a row answered `cannot find
+		// anywhere to open ... from` and were cooled off for a minute, and one of them was a
+		// chest the loop had successfully opened four minutes earlier. The difference was not
+		// the chest, it was whether the body happened to be FLYING: hovering asks for two clear
+		// cells UNDER the approach cell, and a chest stands on a floor. The only cell that can
+		// satisfy that is two courses above the floor beside it, so a chest under any ceiling
+		// lower than three - a shop, a store room, a niche, most of this island - has no
+		// hovering approach at all, and the whole index became unopenable the moment autofly
+		// was on. Reported as: the collection constantly breaks.
+		//
+		// Landing beside a chest is what a player does, and it is safe in the one way that
+		// matters here: there is a floor under you by construction, so losing flight costs a
+		// double-tap (Autopilot.regain) rather than the void. Hovering is still first choice -
+		// it keeps the flight - and this is the fallback rather than the rule.
+		if (flying) {
+			BlockPos hover = candidates(mc, target, tried, Nav.of(mc.level), eyeHeight)
+				.filter(p -> hoverable(mc, p)).min(best).orElse(null);
+			if (hover != null) return hover;
+		}
+		return candidates(mc, target, tried, Nav.standable(mc.level), eyeHeight).min(best).orElse(null);
+	}
+
+	/**
+	 * Does opening the chest from this cell mean landing in it?
+	 *
+	 * <p>The caller has to know, because a flight guided at a cell it cannot hover in holds its
+	 * ground clearance and never arrives - which is the six-second wait `Hud.FETCH_STUCK_MS`
+	 * exists to break out of. Told, the flight descends and lands instead.
+	 */
+	static boolean mustLand(Minecraft mc, BlockPos approach) {
+		return mc.player != null && mc.level != null
+			&& mc.player.getAbilities().flying && !hoverable(mc, approach);
+	}
+
+	private static Stream<BlockPos> candidates(Minecraft mc, BlockPos target, Set<Long> tried,
+	                                           Nav.Passable room, double eyeHeight) {
+		var space = Bounds.within(room);
 		return approachCells(target)
-						.filter(p -> !tried.contains(p.asLong()))
+			.filter(p -> !tried.contains(p.asLong()))
 			.filter(Bounds::contains)                   // an approach cell outside the fence is refused, six seconds at a time
 			.filter(p -> mc.level.isLoaded(p) && mc.level.isLoaded(p.above())
 				&& space.at(p.getX(), p.getY(), p.getZ())
-				&& (!flying || hoverable(mc, p))
-				&& openingHit(mc, target, eyeAt(p, eyeHeight)) != null)
-			.min(Comparator.comparingInt((BlockPos p) -> rank(p, target))
-				.thenComparingDouble(p -> p.distSqr(target))
-				.thenComparingDouble(p -> p.distSqr(me)))
-			.orElse(null);
+				&& openingHit(mc, target, eyeAt(p, eyeHeight)) != null);
 	}
 
 	/** Where the eyes are when the body hovers in a cell — the same point the flight aims at. */

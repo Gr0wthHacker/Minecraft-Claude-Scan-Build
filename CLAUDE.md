@@ -13298,3 +13298,102 @@ place `aRingAtHEADHEIGHTisABOXandTheOldCountCalledItOpenGround` is the failure J
 
 697 Java tests, 0 failures. **Not flown in game** — the geometry is unit-tested with no client in it,
 and whether the printer now leaves itself a door is a thing only a session can say.
+
+### THE SHOPPING LIST CHOSE SIX THINGS NOBODY HAD (2026-09-08, chunkscan 0.9.3)
+
+Jack: *"the autonomous collection, pathing etc now constantly breaks because i guess the objects
+are further than rendered, also is not detecting things it can 100% place e.g. moss blocks when
+right next to tons of placeable ones."*
+
+**BOTH HALVES WERE DIAGNOSED OFF `latest.log` RATHER THAN BY READING THE CODE, AND THAT IS THE
+LESSON.** Three sessions of this file have been spent reasoning about which of the loop's
+judgements could be wrong; the client writes every one of them to disk with a timestamp, and
+twenty minutes of it named two causes exactly. `%APPDATA%/CCBlueX/LiquidLauncher/data/gameDir/
+nextgen/logs/latest.log`, `grep cscan`. **Read the log first.**
+
+    23:49:50  park complete: 422846 left in loaded chunks, 23106 placeable, 0 out of view
+    23:49:50    placeable / left / carrying / indexed
+    23:49:50    5096 / 53692 / 0 / 15040  smooth_basalt
+    23:49:50    1403 / 62998 / 0 /  4057  moss_block
+    23:49:50     935 / 15098 / 0 / 40545  stone_bricks
+    23:49:50     908 /  2938 / 0 /     0  chiseled_stone_bricks
+    23:49:50  shopping list for 90 cells around 97600 208 80600: 7x ochre_froglight,
+              16x chiseled_stone_bricks, 23x oak_fence, 9x smooth_stone_slab,
+              32x cracked_stone_bricks, 3x oak_planks
+    23:49:50  nothing indexed to fetch - building with what you have
+    23:49:50  no usable support/material combination
+    23:51:51  RESET #3 - parked at a dead end for 2 minutes with nothing else to do
+
+**THE ANALYSIS AND THE TRIP WERE ANSWERING DIFFERENT QUESTIONS, TWELVE LINES APART.** `Rally`
+prints the right answer at every reset - 23,106 placeable cells, 40,545 stone brick and 4,057 moss
+in chests - and then `Plan.loadPlan` picks the first six materials it meets in course-and-distance
+order round the anchor, of which the index holds **none**. `shortfalls` comes back empty, the phase
+is DEAD_END, two minutes later the loop resets, re-anchors in the same place, chooses the same six,
+and does it again. **0 placed in five minutes**, three times over.
+
+`MAX_MATERIALS` is right and stays - a trip for forty things finishes none of them - but six is a
+CHOICE, and choosing six things nobody has is choosing not to go. The selection runs in two passes
+now, obtainable first, in exactly the order it had before; `Storage.stocked` is the one question it
+had to ask and never did. With nothing obtainable the list is bit-for-bit what it was, so *"nothing
+indexed to fetch"* still gets to be TRUE rather than being manufactured by a bad list - which is
+what `test_theShoppingListPrefersMaterialsThereIsSomewhereToGet` pins from both sides.
+
+That is Jack's *"not detecting things it can 100% place, e.g. moss blocks"* in full: the moss was
+detected, was placeable, and had four thousand blocks of stock indexed. Nothing ever asked for it.
+
+#### A CHEST STANDING ON A FLOOR HAD NO APPROACH CELL AT ALL WHILE FLYING
+
+The other half, from the same log:
+
+    23:42:36  fetch: 64x cobbled_deepslate from #432 Found shops - flying there first
+    23:42:42  cannot find anywhere to open #432 Found shops from - skipping it for a minute
+    23:42:44  cannot find anywhere to open #427 Found shops from - skipping it for a minute
+    23:42:46  fetch: 64x cobbled_deepslate from #428 Found shops (3264 there)
+    23:42:52  took 64x cobbled_deepslate
+    ...
+    23:43:36  cannot find anywhere to open #428 Found shops from - skipping it for a minute
+
+**THE SAME CHEST, OPENED AT 23:42 AND UNOPENABLE AT 23:43.** The chest did not change; whether the
+body was FLYING did. `ContainerInteraction.hoverable` asks for two clear cells UNDER the approach
+cell - the right rule, added because *"it can't be within 1 block beneath when flying to place
+because it will auto stop flying"* - and **a chest stands on a floor**. The only cell that can
+satisfy it is two courses above the floor beside the chest, so a chest under any ceiling lower than
+three has no hovering approach, and the whole index became unopenable the moment autofly was on.
+`approach` had no fallback and answered null, and the caller reads null as *"this chest's
+problem"* and cools it off for a minute - so the loop toured its own index blacklisting it.
+
+**Landing beside a chest is what a player does**, and it is safe in the one way that matters: there
+is a floor under you by construction, so losing flight costs a double-tap rather than the void.
+Hovering is still first choice; standing is the fallback. `ContainerInteraction.mustLand` tells the
+caller which it got, because a flight guided at a cell it cannot hover in holds its ground
+clearance two blocks above it and never arrives - which is the six-second `FETCH_STUCK_MS` wait,
+firing on a cell that was correct.
+
+#### Two more, both of them a clock that could not see a phase
+
+- **THE FLIGHT TO A CHEST WHOSE CHUNK HAS NOT ARRIVED HAD NO CLOCK OVER IT AT ALL.** Both
+  `Loop.goingNowhere` and the ninety-second `Loop.stalled` skip while fetching, and `FETCH_STUCK_MS`
+  only runs once an approach cell has been chosen - which needs the chunk. So the one branch that
+  handles a chest beyond render distance was `guide(at); return;` for ever. **Past `Nav.MAX_RANGE`
+  no route can even be searched** (`TRIP_LIMIT` is twice that, deliberately, so one direct leg can
+  bring the goal into range) - the flight goes direct and keeps going, and because the body is
+  moving the whole time nothing upstream can see it either. `FETCH_REACH_MS` (45s) gives it up.
+- **A LOAD WORTH BUILDING IS NOT FOUR STACKS.** `WORK_LOAD` is the right threshold for *do not go
+  shopping, you already have plenty* and the wrong one for *am I stuck*: a trip that came back with
+  ONE stack of cobbled deepslate, for a design with 545 placeable cells of it, found nothing on the
+  frontier course holding four stacks and reported `pack is full of what you cannot place here`
+  three seconds after `pack loaded`. It tries `WORK_LOAD` first and then any quantity at all -
+  build-before-shop, at whatever the trip actually brought.
+
+**718 Java tests, 0 failures. `chunkscan-0.9.3.jar` built, not flown.**
+
+**Still open, and it needs the next session's log rather than a guess.** Nothing was placed in that
+entire five minutes, and there is one window in it the fixes above do not explain: at 23:43:06 the
+loop reported *"22 cell(s) placeable from right here - staying until they are in"*, carrying those
+materials, and six seconds later *"3 cell(s) in reach but nothing placed for 5s"*. The printer was
+armed (`follow` sets `printDesign`) and the vicinity hold sets the phase to BUILD, so
+`AutomationControl` was not refusing it. That leaves `Printer.placement` refusing every cell -
+`wouldBoxIn` while the body sits in the middle of a floor course it is laying is the first suspect,
+and `Islands.outside` the second. **`/cscan why` while it is holding, and `/cscan perf`, would
+settle it in one line each**; guessing at it here would be the fourth round of exactly the reading
+this section is about.

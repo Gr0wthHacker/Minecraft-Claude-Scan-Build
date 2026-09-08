@@ -447,6 +447,22 @@ final class Storage {
 	 * stays. This is a filter on the way to answering a question, not a deletion — `/cscan prune` is
 	 * where throwing the record away is decided deliberately.
 	 */
+	/**
+	 * Every item name the index has stock of somewhere, loose or inside a shulker box.
+	 *
+	 * <p>The question a shopping list has to ask before it commits its six slots: is there
+	 * anywhere at all to GET this. See Plan.loadPlan - six materials nobody has is a trip that
+	 * cannot be made, and the loop reads that as a dead end rather than as a bad list.
+	 */
+	static java.util.Set<String> stocked(Map<String, Container> index) {
+		java.util.Set<String> out = new java.util.HashSet<>();
+		for (Container c : index.values()) {
+			out.addAll(c.items.keySet());
+			out.addAll(c.inBoxes.keySet());
+		}
+		return out;
+	}
+
 	static Map<String, Container> live(Map<String, Container> all, Level level) {
 		if (level == null) return all;
 		Map<String, Container> out = new LinkedHashMap<>();
