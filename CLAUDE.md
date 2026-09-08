@@ -13519,3 +13519,81 @@ can actually finish, where the parent could not and could not say so.
 already generic, and moss alone is 19% of the park), and a plot-scale capture of the three park
 islands so `sync` can measure progress at all - it currently answers NOT MEASURED, correctly,
 because the only park captures are the three bare starter pads.
+
+### THE PRINTER PLACED TWO BLOCKS IN THREE MINUTES, AND NO GATE SAID WHY (2026-09-08, chunkscan 0.9.6)
+
+Jack: *"still a very glitchy experience, it flies back and forth, it doesnt make it to destination
+and goes back to get more materials, it doesnt say it has placeable stuff but when loaded it does
+say stuff is placeable."* Four symptoms, four separate causes, all named off the log and the journal.
+
+**THE PACING FIX IS WORKING** - the drop rate is down from 21% to about 9% - and it did not matter,
+because in that whole session the printer **attempted two placements**. The journal total went
+1,215 -> 1,217 while the loop said *"2 cells placeable from right here"* and the analysis said
+24,718 placeable in the design.
+
+#### EIGHT SILENT RETURNS GUARD THE PRINTER, AND ONE OF THEM WAS CLOSED
+
+The printer's tick begins with eight bare `return`s - no design, warming up, busy, pacing, a
+container screen, a withdrawal, an unbox, following something else - and then
+`Fleet.heldByOther(dir, printDesign, Fleet.me(mc))`. **`fleet.json` had `park complete` claimed by
+the account `Enroz`, refreshed a minute earlier**, while this client's `mc.getUser().getName()` is
+whatever the launcher logged in as. A design held by another account is indistinguishable, from
+outside, from a printer that has nothing to do: no message, no counter, nothing in `/cscan why`.
+
+That is this file's oldest failure shape - *a thing that does nothing, quietly* - in the one place
+where it costs the entire session. `ChunkScanClient.printerBlocked` names the gate in words, and it
+is reported in `/cscan why` and in the STALL, which used to guess: *"Printer off, out of reach, or
+the spot cannot be built"* is three possibilities where the tick knows which. **A guard that stops
+everything must say so; the two HEALTHY waits (mid-placement, and pacing between placements) are
+deliberately not reasons and stay silent.**
+
+#### "IT FLIES BACK AND FORTH" IS A CIRCLE WITH NO DAMPING IN IT
+
+From the log, one recount apart, for minutes:
+
+    course Y203 done - up to Y202 (56 cells)
+    course Y202 done - up to Y203 (85 cells)
+    course Y203 done - up to Y202 (50 cells)
+
+**Nothing was finished either time.** The frontier is the lowest course of `here`; `here` is a
+window round the ANCHOR; the anchor is the spot being built - which is derived from the frontier.
+The body moves, the window moves with it, the lowest course flips, a new spot is chosen, and it
+flies there. Two seconds later, again.
+
+Spots and stations have both had hysteresis for months and the COURSE never did. `Loop.courseOrder`
+puts the course in hand first and the rest behind it in the old bottom-up order. It costs almost
+nothing in build order, because every cell in a frontier has already been proved to have a real
+face to click TODAY - bottom-up is a preference here, not a correctness rule - and it is the
+difference between working a course and touring one. The message only says a course is done when it
+yielded nothing, which is the only honest use of the word.
+
+#### "IT DOESNT MAKE IT TO DESTINATION AND GOES BACK TO GET MORE MATERIALS"
+
+A spot is chosen because it holds work we carry; two seconds later the body is still in the air,
+the window has moved with it, `canWork` reads false **about a place we have not reached** - and the
+loop turns round for a chest. The trip already has this rule in the other direction (*"the trip is
+over and the work is out of view: go back, and decide there"*) and it was never applied on the way
+out. `headingToWork` suppresses the fetch question while travelling; the three-second going-nowhere
+clock and the ninety-second stall both still run, so a spot that cannot be REACHED is still given
+up on - what cannot happen any more is abandoning one that simply has not been reached yet.
+
+#### A REMAINDER IS NOT A TRIP
+
+    fetch: 2x white_wool from #430 Found shops (1984 there, 2 still wanted, room for 131)
+
+A flight across the park, an approach, a chest and a withdrawal, for two blocks, because the list
+wanted sixty-six and the pack held sixty-four. `Plan.covered` allows a `REMAINDER` now - and
+PROPORTIONALLY, which the first version got wrong: an absolute threshold of sixteen calls a list of
+four lanterns covered while carrying none, and the loop would never fetch a lantern again. Four
+missing out of four is not a remainder, it is the whole reason the loop is going anywhere.
+
+#### And the mismatch Jack named directly
+
+*"it doesnt say it has placeable stuff but when loaded it does say stuff is placeable."* Both
+numbers are true and they answer different questions: the start report is the WHOLE design at
+radius 0, and the loop's frontier is one course of a window round the anchor. The gap is not a bug -
+it is the working area doing its job - but the dead-end message read as a statement about the
+design. It is not fixed here beyond the course stickiness, which removes most of the churn that
+made the two disagree so visibly; saying it in words is the obvious next line.
+
+**727 Java tests, 0 failures. Not flown.**

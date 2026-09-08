@@ -236,9 +236,30 @@ class AuditFixesTest {
 	@Test
 	void aListThePackAlreadyHoldsIsATripThatIsOver() {
 		var plan = java.util.Map.of("stone_bricks", 64, "lantern", 4);
-		assertFalse(Plan.covered(plan, java.util.Map.of("stone_bricks", 64)));
-		assertFalse(Plan.covered(plan, java.util.Map.of("stone_bricks", 63, "lantern", 9)));
 		assertTrue(Plan.covered(plan, java.util.Map.of("stone_bricks", 70, "lantern", 4)));
+		assertFalse(Plan.covered(plan, java.util.Map.of("lantern", 4)),
+			"sixty-four bricks short is the trip, not a remainder");
+	}
+
+	/**
+	 * A REMAINDER IS NOT A TRIP - and this test changed WITH that decision rather than being made
+	 * to pass. It used to demand every last item before a trip could end, and off Jack's log that
+	 * is {@code fetch: 2x white_wool from #430 Found shops (1984 there, 2 still wanted)}: a flight
+	 * across the park, an approach, a chest and a withdrawal, for two blocks.
+	 */
+	@Test
+	void theLastFewBlocksOfALoadAreNotWorthAnotherFlight() {
+		var big = java.util.Map.of("white_wool", 64, "red_wool", 24);   // 88 cells
+		assertTrue(Plan.covered(big, java.util.Map.of("white_wool", 62, "red_wool", 24)),
+			"two short of eighty-eight: it stays on the design and the next trip picks it up");
+		assertFalse(Plan.covered(big, java.util.Map.of("white_wool", 40, "red_wool", 24)),
+			"...but twenty-four short is still a load worth going for");
+		// ...AND A SMALL LIST IS STILL A TRIP. Four lanterns missing out of four is not a
+		// remainder, it is the whole reason the loop is going anywhere.
+		var small = java.util.Map.of("lantern", 4);
+		assertFalse(Plan.covered(small, java.util.Map.of()),
+			"absolute size alone would have called this covered and never fetched a lantern again");
+		assertTrue(Plan.covered(small, java.util.Map.of("lantern", 4)));
 	}
 
 	@Test

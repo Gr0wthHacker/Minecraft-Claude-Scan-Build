@@ -702,4 +702,25 @@ class LoopTest {
 		assertTrue(Loop.holdHere(9, 0, 4, now, now - 9_000, 0, 5_000),
 			"the printer IS working and the server is dropping: stay on the work");
 	}
+
+	/**
+	 * Jack: <i>"it flies back and forth"</i>. Off the log, one recount apart, for minutes:
+	 * "course Y203 done - up to Y202 (56 cells)", "course Y202 done - up to Y203 (85 cells)",
+	 * "course Y203 done - up to Y202 (50 cells)". Nothing was finished either time - the window
+	 * round the anchor moved with the body, the lowest course flipped, and a new spot was chosen
+	 * every two seconds.
+	 */
+	@Test
+	void theCourseBeingWorkedIsTriedFirst() {
+		var courses = java.util.List.of(200, 202, 203, 205);
+		assertEquals(java.util.List.of(202, 200, 203, 205), Loop.courseOrder(courses, 202),
+			"the course in hand leads; the rest keep their bottom-up order behind it");
+		assertEquals(courses, Loop.courseOrder(courses, Integer.MIN_VALUE),
+			"with no course in hand it is the old rule exactly: lowest first");
+		assertEquals(courses, Loop.courseOrder(courses, 999),
+			"a course that has left the window cannot hold the loop to it");
+		// ...and every course is still offered exactly once, or one of them can never be reached.
+		assertEquals(courses.size(), Loop.courseOrder(courses, 203).size());
+		assertTrue(Loop.courseOrder(courses, 203).containsAll(courses));
+	}
 }

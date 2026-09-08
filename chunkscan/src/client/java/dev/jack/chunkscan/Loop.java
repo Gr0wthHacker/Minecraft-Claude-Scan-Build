@@ -272,6 +272,27 @@ final class Loop {
 	 */
 	static final int FRONTIER_ENOUGH = 96;
 
+	/**
+	 * The courses to try, CURRENT ONE FIRST, then lowest to highest.
+	 *
+	 * <p><b>Jack: <i>"it flies back and forth"</i>.</b> The frontier was the lowest course of a
+	 * window round the anchor, and the anchor is the spot being built - which comes from the
+	 * frontier. A circle with no damping: the body moves, the window moves, the lowest course
+	 * flips, a new spot is chosen two seconds later, and it flies there. The log shows Y203 and
+	 * Y202 trading places every recount for minutes with nothing finished either time.
+	 *
+	 * <p>Sticking to the course being worked costs almost nothing in build ORDER, because every
+	 * cell in a frontier has already been proved to have a real face to click TODAY - bottom-up is
+	 * a preference here, not a correctness rule - and it is the difference between working a course
+	 * and touring one.
+	 */
+	static List<Integer> courseOrder(List<Integer> courses, int current) {
+		List<Integer> out = new ArrayList<>(courses.size());
+		if (courses.contains(current)) out.add(current);
+		for (int y : courses) if (y != current) out.add(y);
+		return out;
+	}
+
 	/** The distinct courses that still hold work, lowest first. */
 	static List<Integer> layers(List<Work.Cell> cells) {
 		java.util.TreeSet<Integer> ys = new java.util.TreeSet<>();

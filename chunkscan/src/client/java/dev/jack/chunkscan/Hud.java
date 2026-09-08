@@ -803,7 +803,12 @@ final class Hud {
 			lastProgressMs = now;
 			mc.player.sendSystemMessage(Component.literal("[cscan] STALLED — nothing placed in "
 				+ (STALL_MS / 1000) + "s at " + (target == null ? "?" : Wand.fmt(target))
-				+ ". Printer off, out of reach, or the spot cannot be built. " + sessionReport()));
+				// ...AND NAME THE GATE RATHER THAN LISTING THE POSSIBILITIES. "Printer off, out of
+				// reach, or the spot cannot be built" is three guesses; the tick knows which.
+				+ ". " + (ChunkScanClient.printerIdle != null
+					? "The printer is not placing: " + ChunkScanClient.printerIdle + ". "
+					: "Out of reach, or the spot cannot be built. ")
+				+ sessionReport()));
 			if (placedTotal == 0 && stalls == 2) {
 				Boolean live = Litematica.enabled(sp.name());
 				mc.player.sendSystemMessage(Component.literal("[cscan] nothing has been placed at"
@@ -1002,7 +1007,18 @@ final class Hud {
         java.util.List<Work.Cell> supported = java.util.List.of();
         java.util.List<Work.Cell> frontier = java.util.List.of();
         int layerY = Integer.MIN_VALUE;
-        java.util.List<Integer> courses = Loop.layers(here);
+        // ---- THE COURSE IS STICKY. See Loop.courseOrder.
+        //
+        // Off Jack's log, one recount apart, for minutes: "course Y203 done - up to Y202 (56)",
+        // "course Y202 done - up to Y203 (85)", "course Y203 done - up to Y202 (50)". Nothing was
+        // finished either time. The frontier is the lowest course of `here`, `here` is a window
+        // round the ANCHOR, and the anchor is the spot being built - which is derived from the
+        // frontier. That circle has no damping in it: the body moves, the window moves, the lowest
+        // course changes, a new spot is chosen, and it flies there. Reported as: it flies back and
+        // forth.
+        //
+        // Spots and stations have both had hysteresis for months. The course never did.
+        java.util.List<Integer> courses = Loop.courseOrder(Loop.layers(here), workLayer);
         // EVERY COURSE, not the first eight. Capped, eight consecutive courses whose cells the
         // printer refuses (lanterns waiting on posts, vines, state-refused stairs) emptied the
         // frontier and read as a DEAD_END with real work one course higher - and on a design with
@@ -1032,8 +1048,10 @@ final class Hud {
             supported = ok;                              // the best answer so far, if none yields
         }
         if (layerY != Integer.MIN_VALUE && layerY != workLayer) {
+            // ...and it is only "done" when it really is: with the course sticky, leaving one means
+            // it yielded nothing this recount, which is the only honest use of the word.
             if (workLayer != Integer.MIN_VALUE) mc.player.sendSystemMessage(Component.literal(
-                "[cscan] course Y" + workLayer + " done — up to Y" + layerY
+                "[cscan] course Y" + workLayer + " has nothing placeable left — moving to Y" + layerY
                     + " (" + frontier.size() + " cells)"));
             workLayer = layerY;
         }
@@ -1161,7 +1179,18 @@ final class Hud {
 		Plan.Room room = it -> Work.room(mc.player, it) + dumpFree;
 		// A trip that has a shopping list keeps asking until the list is covered - wherever the
 		// player is and whether or not anything is placeable there.
-		boolean askedToFetch = (fetching || !canWork || topUp)
+		// ---- ARRIVE BEFORE DECIDING. Jack: "it doesnt make it to destination and goes back to get
+		// more materials". A spot is chosen because it had work we carry; two seconds later the body
+		// is still in the air, the window has moved with it, `canWork` reads false about a place we
+		// have not reached - and the loop turns round for a chest. It is the same rule the trip
+		// already has in the other direction ("the trip is over and the work is out of view: go
+		// back, and decide there"), which was never applied on the way OUT.
+		//
+		// The three-second going-nowhere clock and the ninety-second stall both still run while
+		// travelling, so a spot that cannot be reached is still given up on; what cannot happen any
+		// more is abandoning one that simply has not been reached yet.
+		boolean headingToWork = travelling && !fetching && !topUp && loadPlan == null;
+		boolean askedToFetch = (fetching || !canWork || topUp) && !headingToWork
 			&& (!frontier.isEmpty() || topUp || loadPlan != null);
 		if (askedToFetch) {
 			if (loadPlan == null) {
@@ -2030,6 +2059,9 @@ final class Hud {
 			: "  (watching only — /cscan follow " + design + " to work it)"));
 		if (only != null) out.add("  ONLY " + String.join(", ", only) + " — every other material is not this session's work");
 		out.add("  " + printerTally());
+		if (ChunkScanClient.printerIdle != null) {
+			out.add("  THE PRINTER IS NOT PLACING: " + ChunkScanClient.printerIdle);
+		}
 		try {
 			Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), design,
 				mc.player.blockPosition(), 0);

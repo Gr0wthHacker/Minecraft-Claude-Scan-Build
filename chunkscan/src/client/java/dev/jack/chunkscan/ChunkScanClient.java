@@ -570,6 +570,32 @@ public final class ChunkScanClient implements ClientModInitializer {
 
 	/** The design {@link Printer} is placing, or null. Set by `/cscan print`. */
 	static String printDesign;
+	/** Why the printer placed nothing this tick, or null when it is free to work. See the tick. */
+	static String printerIdle;
+
+	/**
+	 * The gate that stopped the printer, in words.
+	 *
+	 * <p>Ordered so the most informative answer wins: "another account holds this design" is a
+	 * thing you can act on, where "waiting for the placement interval" is the healthy case and
+	 * means nothing on its own.
+	 */
+	static String printerBlocked(Minecraft mc) {
+		if (printDesign == null) return "no design armed — /cscan follow <design> or /cscan print <design>";
+		if (Hud.warmingUp()) return "waiting for the world to arrive after joining";
+		if (Screens.container() != null) return "a container screen is open";
+		if (Withdraw.busy()) return "a withdrawal is running";
+		if (Unbox.running()) return "a shulker box is being unpacked";
+		if (Hud.following() && !printDesign.equals(Hud.watching())) {
+			return "armed for " + printDesign + " but following " + Hud.watching();
+		}
+		String me = Fleet.me(mc);
+		if (Fleet.heldByOther(ScanRunner.schematicsDir(mc), printDesign, me)) {
+			return printDesign + " is claimed in fleet.json by another account, not " + me
+				+ " — /cscan fleet to see it, or delete the claim";
+		}
+		return null;    // busy and pacing are healthy waits, handled by the caller, not reasons
+	}
 
 	private static Path dir(FabricClientCommandSource src) {
 		return ScanRunner.schematicsDir(src.getClient());
@@ -2460,10 +2486,22 @@ public final class ChunkScanClient implements ClientModInitializer {
 							+ ": wanted " + a.want() + ", got " + a.got() + " — left for you"));
 					}
 				}
-				if (printDesign == null || Hud.warmingUp() || Printer.busy() || !Printer.ready(mc) || Screens.container() != null
-                    || Withdraw.busy() || Unbox.running()) return;
-                if (Hud.following() && !printDesign.equals(Hud.watching())) return;
-                if (Fleet.heldByOther(ScanRunner.schematicsDir(mc), printDesign, Fleet.me(mc))) return;
+				// ---- EIGHT SILENT RETURNS, AND ONE OF THEM STOPPED EVERYTHING FOR A SESSION.
+				//
+				// Measured off the build journal: in a session Jack reported as glitchy the printer
+				// attempted TWO placements in three minutes, while the loop said "2 cells placeable
+				// from right here" and the analysis said 24,718 placeable in the design. Every gate
+				// below returns without a word, so a design held by another account - `fleet.json`
+				// had `park complete` claimed by a different name than the one this client logs in
+				// with - is indistinguishable from a printer that simply has nothing to do.
+				//
+				// That is this file's oldest failure shape (a thing that does nothing, quietly) in
+				// the one place where it costs the whole session. Named, and reported.
+				printerIdle = printerBlocked(mc);
+				if (printerIdle != null) return;
+				// ...and the two HEALTHY waits, which are not a reason for anything: mid-placement,
+				// and between placements at the pace the server will take.
+				if (Printer.busy() || !Printer.ready(mc)) return;
 				long pt0 = System.nanoTime();
 				Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), printDesign,
 					mc.player.blockPosition(), (int) Printer.REACH + 2);

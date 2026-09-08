@@ -646,12 +646,31 @@ final class Plan {
 	 */
 	static final int MAX_MATERIALS = 6;
 
-	/** Is this list already in the pack? Then the trip is over, wherever the player is. */
+	/**
+	 * A REMAINDER IS NOT A TRIP. Off Jack's log: {@code fetch: 2x white_wool from #430 Found shops
+	 * (1984 there, 2 still wanted)} - a flight across the park, an approach, a chest opened and a
+	 * withdrawal, for two blocks, because the list wanted sixty-six and the pack held sixty-four.
+	 *
+	 * <p>A trip is a load, and a load is covered when the last of it is not worth going for. What
+	 * is left stays on the design and the next trip picks it up on the way past.
+	 */
+	static final int REMAINDER = 16;
+
+	/**
+	 * ...AND SMALL IN ABSOLUTE TERMS IS NOT ENOUGH ON ITS OWN. A list of four lanterns is four
+	 * blocks missing out of four, and that IS the trip - it is the whole reason the loop is going.
+	 * A remainder is a remainder relative to the load it is left over from.
+	 */
+	static final int REMAINDER_SHARE = 4;
+
+	/** Is this list already in the pack, near enough? Then the trip is over, wherever you are. */
 	static boolean covered(Map<String, Integer> plan, Map<String, Integer> carrying) {
+		int missing = 0, total = 0;
 		for (Map.Entry<String, Integer> e : plan.entrySet()) {
-			if (carrying.getOrDefault(e.getKey(), 0) < e.getValue()) return false;
+			total += e.getValue();
+			missing += Math.max(0, e.getValue() - carrying.getOrDefault(e.getKey(), 0));
 		}
-		return true;
+		return missing == 0 || (missing <= REMAINDER && missing * REMAINDER_SHARE <= total);
 	}
 
 	/** How many cells a shopping list covers. */
