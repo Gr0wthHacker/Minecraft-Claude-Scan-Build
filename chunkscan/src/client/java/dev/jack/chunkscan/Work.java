@@ -425,14 +425,12 @@ final class Work {
 		// wrong order with nothing to say why. 63 bits, and every field clamped to its own width.
 		for (int i = 0; i < n; i++) {
 			Cell c = flat[i];
-			long recipe = Math.min(255, Math.max(0, ActionRecipe.order(c.block())));   //  8 bits
-			long y = Math.min(4095, Math.max(0, c.pos().getY() + 2048L));              // 12 bits
-			long dist = Math.min(1_048_575L, (long) (Math.sqrt(c.pos().distSqr(near)) * 4));  // 20
-			key[i] = (recipe << 55) | (y << 43) | (dist << 23) | i;                   // 23 bits
+			key[i] = sortKey(ActionRecipe.order(c.block()), c.pos().getY(),
+				Math.sqrt(c.pos().distSqr(near)), i);
 		}
 		java.util.Arrays.sort(key);
 		List<Cell> sorted = new ArrayList<>(n);
-		for (long k : key) sorted.add(flat[(int) (k & 0xFFFFFF)]);
+		for (long k : key) sorted.add(flat[sortIndex(k)]);
 		todo = sorted;
 		Perf.record("split sort", System.nanoTime() - sortT0);
 		// Scoped by the same radius as the placements, so `need`/`next` stay about what is in reach
@@ -890,6 +888,37 @@ final class Work {
 	 *
 	 * <p>So this asks the world alone: is there a real face to click, right now.
 	 */
+	/**
+	 * The recount's sort key: recipe, then course, then distance, in one long.
+	 *
+	 * <p>Packed and unpacked HERE rather than inline, because the two halves were written twice -
+	 * once in {@link #split} and once again in {@code SplitOrderTest} - and the copies drifted by
+	 * one bit. The test masked 23 bits and the code masked 24, so the low bit of DISTANCE was read
+	 * back as part of the index: every cell at an odd quarter-block distance came out as
+	 * {@code i + 8388608} and the recount threw. The suite stayed green the whole time because it
+	 * was grading its own copy. One source, so two callers cannot disagree - the same rule
+	 * {@code proportions.measure} and {@code rubric.score} already share an entry point under.
+	 *
+	 * <p>THE KEY MUST STAY POSITIVE: 8 + 12 + 20 + 23 is 63 bits and the 64th is the sign, so a
+	 * recipe of 128 or more would sort before everything else, silently. Every field is clamped to
+	 * its own width.
+	 *
+	 * @param distance in blocks, quantised to a quarter - which only ever reorders cells of the
+	 *                 same material on the same course within a quarter block of each other
+	 */
+	static long sortKey(int recipe, int y, double distance, int index) {
+		long r = Math.min(255, Math.max(0, recipe));                          //  8 bits
+		long course = Math.min(4095, Math.max(0, y + 2048L));                 // 12 bits
+		long dist = Math.min(1_048_575L, (long) Math.max(0, distance * 4));   // 20 bits
+		long i = index & (SORT_INDEX_MAX - 1L);                               // 23 bits
+		return (r << 55) | (course << 43) | (dist << 23) | i;
+	}
+
+	/** ...and the cell it points at. Masked to the SAME width the key packs. */
+	static int sortIndex(long key) {
+		return (int) (key & (SORT_INDEX_MAX - 1L));
+	}
+
 	static List<Cell> placeableNow(Level level, List<Cell> cells) {
 		return placeableNow(solidIn(level), cells);
 	}

@@ -34,22 +34,60 @@ class SplitOrderTest {
 		Work.Cell[] flat = todo.toArray(new Work.Cell[0]);
 		for (int i = 0; i < n; i++) {
 			Work.Cell c = flat[i];
-			long recipe = Math.min(255, Math.max(0, ActionRecipe.order(c.block())));
-			long y = Math.min(4095, Math.max(0, c.pos().getY() + 2048L));
-			long dist = Math.min(1_048_575L, (long) (Math.sqrt(c.pos().distSqr(near)) * 4));
-			key[i] = (recipe << 55) | (y << 43) | (dist << 23) | i;
+			// THE PRODUCTION KEY, NOT A COPY OF IT. This method used to re-implement the packing,
+			// and the copy drifted by one bit from the code it was grading - see Work.sortKey.
+			key[i] = Work.sortKey(ActionRecipe.order(c.block()), c.pos().getY(),
+				Math.sqrt(c.pos().distSqr(near)), i);
 		}
 		java.util.Arrays.sort(key);
 		List<Work.Cell> out = new ArrayList<>(n);
-		for (long k : key) out.add(flat[(int) (k & 0x7FFFFF)]);
+		for (long k : key) out.add(flat[Work.sortIndex(k)]);
 		return out;
+	}
+
+	@Test
+	void theINDEXsurvivesTheROUNDTRIPatEveryDISTANCE() {
+		// THE BUG THIS FILE MISSED FOR A WEEK. The index is packed into 23 bits and was unpacked
+		// with a 24-bit mask, so bit 23 - the LOW BIT OF DISTANCE - came back as part of the index:
+		// every cell at an odd quarter-block distance recovered as i + 8388608 and the whole recount
+		// threw. In game: "Index 8772104 out of bounds for length 425726", on every command that
+		// reads a work list, which is all of them.
+		//
+		// It shipped green because THIS FILE re-implemented the packing and its copy had the right
+		// mask: the suite was grading itself. Both halves come from Work now, and this walks the
+		// distances rather than trusting one.
+		for (int quarters = 0; quarters < 64; quarters++) {
+			double d = quarters / 4.0;
+			for (int i : new int[] {0, 1, 383_496, Work.SORT_INDEX_MAX - 1}) {
+				long k = Work.sortKey(2, 200, d, i);
+				assertEquals(i, Work.sortIndex(k),
+					"index " + i + " did not survive a distance of " + d + " blocks");
+				assertTrue(k > 0, "the packed key went negative at index " + i);
+			}
+		}
+	}
+
+	@Test
+	void everyFieldKeepsItsOwnBitsWhenTheNextOneChanges() {
+		// The general form of the same fault: a field that bleeds into its neighbour. Move each one
+		// by one and the index - the only field anything reads back - must not notice.
+		int i = 12_345;
+		assertEquals(i, Work.sortIndex(Work.sortKey(0, 0, 0, i)));
+		assertEquals(i, Work.sortIndex(Work.sortKey(1, 0, 0, i)));
+		assertEquals(i, Work.sortIndex(Work.sortKey(255, 4095, 262_143.75, i)));
+		// ...and the order still means what it says, with the index as the tie-break it always was.
+		assertTrue(Work.sortKey(0, 200, 9, 0) < Work.sortKey(1, 0, 0, 0), "recipe stopped leading");
+		assertTrue(Work.sortKey(0, 199, 99, 0) < Work.sortKey(0, 200, 0, 0), "course stopped beating distance");
+		assertTrue(Work.sortKey(0, 200, 1, 0) < Work.sortKey(0, 200, 2, 0), "distance stopped ordering");
 	}
 
 	@Test
 	void theKeyIsNeverNegative() {
 		// 8 + 12 + 20 + 24 bits needs 64, and the top one is the SIGN - a recipe of 128 or more
 		// would have sorted before everything else, silently. 63 bits, every field clamped.
-		long worst = (255L << 55) | (4095L << 43) | (1_048_575L << 23) | 0x7FFFFF;
+		// ...ASKED OF THE REAL PACKER. Written out by hand this was a second copy of the layout,
+		// which is exactly how the index mask came to differ from the one the code used.
+		long worst = Work.sortKey(255, 4095, 262_143.75, Work.SORT_INDEX_MAX - 1);
 		assertTrue(worst > 0, "the packed key must stay positive or the order inverts");
 	}
 
