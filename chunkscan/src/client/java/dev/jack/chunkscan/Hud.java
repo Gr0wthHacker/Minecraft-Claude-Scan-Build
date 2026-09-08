@@ -2413,6 +2413,36 @@ final class Hud {
 		orbitLeg = 0;
 		orbitSince = 0;
 		Ignored.clear();                              // written-off places were THIS design's spots
+		analyseAtStart = true;
+	}
+
+	/**
+	 * Read out what the whole design can TAKE, once, at the start of a session.
+	 *
+	 * <p>Jack: <i>"we need, when it starts, for it to analyze entire schematic and provide a list
+	 * of top 5 materials that are immediately placeable."</i> The loop's own first act is a top-up
+	 * trip, and until now the only thing it said about that was the shopping list - which is
+	 * scoped to the working area round the anchor and says nothing about the design. The reset
+	 * already prints this; a session that never resets never saw it.
+	 *
+	 * <p>DEFERRED TO THE FIRST RECOUNT rather than run inside `follow`, and that is not tidiness:
+	 * `follow` is also how a session RESUMES after a join, where most of the world has not arrived
+	 * and every cell would be counted out of view. The grace period is exactly the wait this needs,
+	 * so it is the one both share.
+	 *
+	 * <p>It is a whole-design split - the 260ms one - so it happens ONCE, on a tick where the loop
+	 * has just started and nothing is in flight.
+	 */
+	private static boolean analyseAtStart;
+
+	private static void analyseAtStart(Minecraft mc) {
+		analyseAtStart = false;
+		mc.player.sendSystemMessage(Component.literal("[cscan] what " + design + " can take right"
+			+ " now — fill the pack from the top of this list:"));
+		for (String line : Analyze.report(mc.level, ScanRunner.schematicsDir(mc), design,
+				mc.player, Analyze.START_ROWS)) {
+			mc.player.sendSystemMessage(Component.literal("[cscan] " + line));
+		}
 	}
 
 	/** What the loop has done since `follow` started — the report for a session you were not watching. */
@@ -2478,6 +2508,10 @@ final class Hud {
 				// ...AND NOT WHILE A RESET IS LANDING. On the tick a teleport lands most of the
 				// world is unloaded, so every judgement below would be made about a world that is
 				// not there yet - and the first of them is "is the work unreachable".
+				if (analyseAtStart) {
+					try { analyseAtStart(mc); }
+					catch (Exception e) { analyseAtStart = false; }   // a report never ends a session
+				}
 				try {
 					// TIMED SEPARATELY FROM THE DIFF, because they are separate costs and the
 					// profiler measured only the first: `recount` is the world diff, `loop decide`

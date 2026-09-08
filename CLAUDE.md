@@ -13397,3 +13397,35 @@ armed (`follow` sets `printDesign`) and the vicinity hold sets the phase to BUIL
 and `Islands.outside` the second. **`/cscan why` while it is holding, and `/cscan perf`, would
 settle it in one line each**; guessing at it here would be the fourth round of exactly the reading
 this section is about.
+
+#### ...and it says what the design can take, before it goes shopping (chunkscan 0.9.4)
+
+Jack: *"we need, when it starts, for it to analyze entire schematic and provide a list of top 5
+materials that are immediately placeable."*
+
+`Analyze` already answered exactly this and only `Rally` ever called it - so **the report existed,
+and a session that never reset never saw it.** The loop's own first act is a top-up trip, and the
+only thing it said about that was the shopping list, which is scoped to the working area round the
+anchor and says nothing about the design. Five rows at the start, because this is the answer to
+*what should be in the pack* and a pack holds a handful (`Plan.MAX_MATERIALS`); fifteen stays as
+the reset's diagnostic, read when the question is why nothing worked.
+
+    [cscan] what park complete can take right now - fill the pack from the top of this list:
+    [cscan] park complete: 422846 left in loaded chunks, 23106 placeable, 0 out of view
+    [cscan]   placeable / left / carrying / indexed  - fill the pack top-down
+    [cscan]   5096 / 53692 / 0 / 15040  smooth_basalt
+    [cscan]   2391 /  5951 / 0 /  9746  light_gray_wool
+    [cscan]   1403 / 62998 / 0 /  4057  moss_block
+    ...
+
+**DEFERRED TO THE FIRST RECOUNT RATHER THAN RUN INSIDE `follow`, AND THAT IS NOT TIDINESS.**
+`follow` is also how a session RESUMES after a join, where most of the world has not arrived and
+every cell would be counted out of view - a report that is wrong at exactly the moment it is most
+useful. The grace period is already the wait for that, so it is the one both share; the flag is
+armed in `follow` and read on the far side of it. It fires per design under `follow all`, which is
+right - a new design deserves its own analysis - and `restartAfterRally` does not go through
+`follow`, so a reset still prints its own fifteen rather than both.
+
+And it never throws at its caller. `Analyze.report` already catches for the same reason - the loop
+cannot afford an exception on the tick that starts it - and the call site catches again, because a
+REPORT must not be able to end a session.
