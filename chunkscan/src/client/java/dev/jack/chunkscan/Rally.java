@@ -84,6 +84,10 @@ final class Rally {
 	private static boolean homeLoaded = false;
 	/** Consecutive resets with nothing placed between them. Zeroed by a single block. */
 	private static int fruitless = 0;
+	/** Consecutive resets whose teleport provably did not move the body. */
+	private static int deadHome = 0;
+	/** ...after which it is not sent again this session. Two proofs, not one: a lag spike is one. */
+	static final int DEAD_HOME_LIMIT = 2;
 	/** Total this session, for the report. */
 	private static int resets = 0;
 	private static long coolUntil = 0;
@@ -202,6 +206,7 @@ final class Rally {
 		landing = 0;
 		leftFrom = null;
 		lostSince = 0;
+		deadHome = 0;
 	}
 
 	/**
@@ -262,6 +267,20 @@ final class Rally {
 			return true;
 		}
 		loadHome(mc);
+		if (deadHome >= DEAD_HOME_LIMIT) {
+			// ---- A DETECTION THAT CHANGES NO BEHAVIOUR IS NOT A FIX. `land` has always NOTICED that
+			// the teleport did not move us and said so - and then printed the analysis and restarted
+			// the loop exactly as if it had worked, so the backoff repeated it every two, four and
+			// eight minutes all night against byte-identical output. That is verbatim the failure its
+			// own docstring says it exists to end. Two proofs is enough: the forgetting still happens,
+			// the flight does not, and the one thing that would fix it is named.
+			p.sendSystemMessage(Component.literal("[cscan] /" + home + " has not moved us "
+				+ deadHome + " times, so this reset is in place only. Set the right one with"
+				+ " /cscan home <command> - until then the loop cannot recover by teleporting."));
+			leftFrom = null;
+			landing = 20;
+			return true;
+		}
 		if (p.connection != null) {
 			p.connection.sendCommand(home);
 			p.sendSystemMessage(Component.literal("[cscan] /" + home + " - back in a moment"));
@@ -320,10 +339,14 @@ final class Rally {
 		// see it: a wrong command name, a closed island, a permission that has lapsed. Without this
 		// the loop announces a reset, does not move, backs off and repeats all night - which is the
 		// exact shape of failure the reset exists to end.
-		if (leftFrom != null
-				&& mc.player.blockPosition().distSqr(leftFrom) < MOVED_ENOUGH * MOVED_ENOUGH) {
-			mc.player.sendSystemMessage(Component.literal("[cscan] /" + home + " did not move us -"
-				+ " is that the right command on this server? /cscan home <command> to change it."));
+		if (leftFrom != null) {
+			if (mc.player.blockPosition().distSqr(leftFrom) < MOVED_ENOUGH * MOVED_ENOUGH) {
+				deadHome++;
+				mc.player.sendSystemMessage(Component.literal("[cscan] /" + home + " did not move us -"
+					+ " is that the right command on this server? /cscan home <command> to change it."));
+			} else {
+				deadHome = 0;                                  // it works: judge every future one afresh
+			}
 		}
 		leftFrom = null;
 		String design = Hud.designName();

@@ -265,6 +265,8 @@ final class Hud {
 	private static int lastUnseen = -1;
 	/** The printer's report for this recount, drained ONCE at the top so it is never attributed twice. */
 	private static int[] lastReport = {0, 0, 0};
+	/** What the printer has reported since the station verdict last read it. See the drain site. */
+	private static int[] pendingReport = {0, 0, 0};
 	private static int recounts = 0;
 	/** Every this many recounts the printer forgets its "never" verdicts and re-asks the world. */
 	static final int RELAX_EVERY = 15;
@@ -470,6 +472,18 @@ final class Hud {
 	static final long NOWHERE_MS = 3_000;
 	/** How long a spot that went nowhere is passed over for. */
 	static final long AVOID_MS = 60_000;
+	/**
+	 * How near a cluster must be to a spot just given up on to count as THAT spot.
+	 *
+	 * <p>ONE CONSTANT WAS SERVING TWO OPPOSITE QUESTIONS. {@code sameSpot} asks "am I still working
+	 * the same region", where a wide radius is the whole point - it is hysteresis. This asks "is
+	 * this the spot I just gave up on", where a wide radius is fatal: clusters form within
+	 * {@link Loop#NEAR_RADIUS} of the body, so at {@code Plan.MAX_RADIUS} (48) avoiding ONE spot
+	 * matched EVERY cluster in the working area, `next` came out null, and the fallback below then
+	 * cleared the list and handed back the spot that had just failed. Measured in the log: the same
+	 * spot re-chosen every four seconds, 2,041 times, with nothing placed.
+	 */
+	static final int AVOID_RADIUS = 8;
 	private static int spotsLeft = 0;
 
 	private Hud() {}
@@ -545,7 +559,21 @@ final class Hud {
 		guide(where, note, Mode.EXACT);
 	}
 
+	/**
+	 * When the CURRENT target was committed to. See the going-nowhere clock: a watchdog that asks
+	 * "have I moved lately" and nothing else fires the instant a fresh target is handed to a body
+	 * that has been standing still - which is every target after the first, because giving up on a
+	 * spot leaves the body standing still. Its two siblings, the look watchdog and the fetch
+	 * watchdog, both take {@code Math.max(movedAt, <since>)}; this one did not, and the log shows
+	 * the result: 2,041 spots given up on in one session, each within four seconds of being chosen,
+	 * with nothing placed at all.
+	 */
+	private static long targetSince = 0;
+
 	private static void guide(BlockPos where, String note, Mode how) {
+		// A NEW DESTINATION IS A NEW COMMITMENT AND GETS THE FULL CLOCK. Re-guiding to the same cell
+		// on every recount must NOT keep restarting it, or the watchdog can never fire at all.
+		if (where != null && !where.equals(target)) targetSince = System.currentTimeMillis();
 		target = where;
 		mode = how;
 		targetNote = note == null ? "" : note;
@@ -773,6 +801,15 @@ final class Hud {
 		// clock, and blinded the thrash detector at exactly the moment spots were being abandoned.
 		// Only the part of a shrink that unseen does not account for is progress.
 		lastReport = Printer.driving() ? Printer.drainReport() : new int[] {0, 0, 0};
+		// ---- ...AND IT SURVIVES AN EARLY RETURN. `drainReport` is DESTRUCTIVE and is called here,
+		// at the top; the station verdict that consumes it is six hundred lines below, behind eleven
+		// `return`s. Every one of them threw away real placements and refusals, and the next recount
+		// overwrote `lastReport` with a fresh (empty) drain - so `stationFromReport` saw 0/0/0 and
+		// fell through to the stopwatch, which is exactly the guess the report exists to replace. A
+		// station the printer was actively working could be abandoned and then STRUCK on that guess.
+		pendingReport[0] += lastReport[0];
+		pendingReport[1] += lastReport[1];
+		pendingReport[2] += lastReport[2];
 		int placedNow;
 		if (Printer.driving()) {
 			// OUR OWN PRINTER REPORTS, and that is the only count a chunk cannot fake: a chunk that
@@ -839,7 +876,8 @@ final class Hud {
 		// ONLY WHEN THE AUTOPILOT IS DRIVING. A player following the arrow by hand who stops to
 		// read chat for three seconds is not a stuck flight, and this used to give up their spot
 		// every three seconds for as long as they stood there.
-		if (Autopilot.on() && Loop.goingNowhere(now, movedAt, lastProgressMs, travelling, fetching, NOWHERE_MS)) {
+		if (Autopilot.on() && Loop.goingNowhere(now, Math.max(movedAt, targetSince), lastProgressMs,
+				travelling, fetching, NOWHERE_MS)) {
 			mc.player.sendSystemMessage(Component.literal("[cscan] not moving and not placing at "
 				+ Wand.fmt(target) + " — giving up on this spot and taking the next one"));
 			abandonSpot(false);                            // counted, not struck: three seconds is a moment
@@ -1413,6 +1451,28 @@ final class Hud {
 				// NOTHING ELSE TO DO, AND NOWHERE TO GO. Two minutes of that is a parked loop, and a
 				// parked loop that stays "following" all night is the failure this file keeps
 				// writing rules about. Long enough for a hand to break the one block in the way.
+				// ---- BEFORE PARKING, GO WHERE THE WORK IS. A dead end is a fact about this ANCHOR -
+				// one course of a window round it - and it was being treated as a fact about the
+				// DESIGN. The log has the reset printing "23,672 placeable" and the very next line
+				// reporting a dead end, then parking beside it for two minutes, teleporting, landing in
+				// the same place and repeating until morning. Asked ONCE per episode, because it is a
+				// whole-design scan and the answer cannot change while we stand still.
+				if (deadEndSince == 0 && phase == Loop.Phase.DEAD_END) {
+					BlockPos far = Analyze.nearestPlaceable(mc.level, ScanRunner.schematicsDir(mc),
+						sp.name(), mc.player);
+					// ...and only when it is genuinely SOMEWHERE ELSE. Inside the working radius it is
+					// the cell we have just failed on, and guiding at it is the loop arguing with itself.
+					if (far != null && far.distSqr(anchor) > (double) workRadius * workRadius) {
+						mc.player.sendSystemMessage(Component.literal("[cscan] nothing here, but "
+							+ sp.name() + " has work I can place at " + Wand.fmt(far) + " — going there"));
+						workAnchor = far;
+						workRadius = Loop.nearAgain();
+						guide(far, "work elsewhere in the design");
+						said = false;
+						lastProgressMs = now;
+						return;
+					}
+				}
 				if (deadEndSince == 0) deadEndSince = now;
 				// ---- PARKED LONG ENOUGH IS A RESET, NOT A STOP. This used to end the session: two
 				// minutes with nothing placeable and nowhere to go, and the loop switched itself off
@@ -1478,7 +1538,7 @@ final class Hud {
 				// nulls spotCentre, so the next recount re-picked the SAME best cluster, flew at the
 				// same wall and stuck again - abandon, re-pick, abandon, every two seconds, until
 				// THRASH_LIMIT killed a design that had one awkward spot in it.
-				if (Loop.avoided(avoided, c.centre(), now, Plan.MAX_RADIUS)) continue;
+				if (Loop.avoided(avoided, c.centre(), now, AVOID_RADIUS)) continue;
 				next = c;
 				break;
 			}
@@ -1486,7 +1546,9 @@ final class Hud {
 			// take it anyway rather than idling until the minute expires. An IGNORED spot is
 			// different — it has failed twice and is not on the table at all.
 			if (next == null) {
-				avoided.clear();
+				// NOT `avoided.clear()`. Clearing the map here made the cooling-off useless in exactly
+				// the case it exists for: take any spot rather than idle, yes - but throwing the record
+				// away means the NEXT recount has forgotten which spot just failed, and picks it again.
 				for (Plan.Cluster c : cl) {
 					if (!Ignored.has(c.centre())) {
 						next = c;
@@ -1596,7 +1658,10 @@ final class Hud {
 		// used to be silent; with a real report a placement is progress immediately and a refusal
 		// is proof immediately, where five seconds of nothing could only ever be a guess. Silence
 		// still falls through to the clock, because nothing attempted is not evidence of anything.
-		int[] rep = lastReport;
+		// Consumed HERE, and only here, which is what makes the accumulator safe: a recount that
+		// reaches this line has actually judged the station on the evidence.
+		int[] rep = pendingReport;
+		pendingReport = new int[] {0, 0, 0};
 		// WHILE OUR OWN PRINTER DRIVES, THE REPORT IS THE EVIDENCE AND THE COUNT IS NOT. `here`
 		// shrinks when a neighbour's chunk unloads or somebody else breaks a support, and each
 		// such shrink read as "it is placing" and restarted the stall ladder from the top.
@@ -1951,7 +2016,19 @@ final class Hud {
 			// while fetching, so a flight parked at an approach cell it cannot open the chest
 			// from used to sit there for ever, silently. Arrived and still not opening, or not
 			// moved for FETCH_STUCK_MS: that cell is no good, try the next angle.
-			boolean parked = Autopilot.arrivedAt(approach)
+			// ---- A CELL IS ONLY PROVED BAD FROM INSIDE IT. `Autopilot.arrivedAt` passes at
+			// EXACT_ARRIVED = 1.6 blocks and approach candidates are ONE block apart, so a body
+			// parked anywhere near the chest "arrives at" every candidate the instant it is offered,
+			// judges it un-openable without ever entering it, and burns through the 9x5x9 grid at
+			// recount speed. Measured in one session: 41 "cannot open" against 43 "fetch", alternating
+			// about 1.5s apart - one cell per recount, and the chest never opened.
+			//
+			// It also mended the watchdog by accident. Blacklisting nulls the target, so the next
+			// recount saw a DIFFERENT approach cell, took the branch above and reset fetchTargetSince
+			// - so FETCH_STUCK_MS restarted every cycle and could never accumulate, leaving the
+			// arrival flag as the only route to "parked". Holding the cell until the body is genuinely
+			// in it keeps the target stable, which is what lets the six seconds actually elapse.
+			boolean parked = (Autopilot.arrivedAt(approach) && me.equals(approach))
 				|| (now - Math.max(movedAt, fetchTargetSince) > FETCH_STUCK_MS);
 			if (parked) {
 				approachTried.add(approach.asLong());

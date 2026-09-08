@@ -1,6 +1,7 @@
 package dev.jack.chunkscan;
 
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
 import java.nio.file.Path;
@@ -38,6 +39,46 @@ final class Analyze {
 
 	static List<String> report(Level level, Path dir, String name, LocalPlayer who) {
 		return report(level, dir, name, who, ROWS);
+	}
+
+	/**
+	 * The nearest cell in the WHOLE design that can be placed right now with what is carried.
+	 *
+	 * <p><b>A DEAD END IS A FACT ABOUT AN ANCHOR, NOT ABOUT A DESIGN.</b> The loop's frontier is one
+	 * course of a window round the anchor, so "nothing I can place here" says nothing at all about
+	 * the other half a million cells - and the dead-end branch used to park for two minutes, teleport,
+	 * re-anchor in the same place and do it again, all night. The log is unambiguous: it printed
+	 * <i>23,672 placeable</i> from this very class and then reported a dead end on the next line.
+	 *
+	 * <p>Answered from the same pass {@link #report} already makes, so the reset stops throwing away
+	 * the one number it computes that would have told it where to go. Restricted to what is CARRIED:
+	 * flying to work we have no material for is the trip that started the dead end.
+	 *
+	 * @return null when there is nothing placeable anywhere, or nothing we hold the material for -
+	 *         which is a real dead end, and is the only kind worth parking on.
+	 */
+	static BlockPos nearestPlaceable(Level level, Path dir, String name, LocalPlayer who) {
+		try {
+			Work.Split sp = Work.split(level, dir, name, who.blockPosition(), 0);
+			if (sp.todo().isEmpty()) return null;
+			Map<String, Integer> have = Work.carrying(who);
+			BlockPos me = who.blockPosition();
+			BlockPos best = null;
+			double bestD = Double.MAX_VALUE;
+			for (Work.Cell c : Work.placeableNow(level, sp.todo())) {
+				if (have.getOrDefault(c.item(), 0) <= 0) continue;
+				double d = c.pos().distSqr(me);
+				if (d < bestD) {
+					bestD = d;
+					best = c.pos();
+				}
+			}
+			return best;
+		} catch (Exception e) {
+			// NEVER THROWS AT ITS CALLER, for the reason report() does not: this runs on the tick a
+			// dead end is decided, and an exception there ends the session.
+			return null;
+		}
 	}
 
 	/**
