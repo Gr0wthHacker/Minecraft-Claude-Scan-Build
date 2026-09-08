@@ -2143,6 +2143,11 @@ final class Hud {
 		out.add("  " + printerTally());
 		if (ChunkScanClient.printerIdle != null) {
 			out.add("  THE PRINTER IS NOT PLACING: " + ChunkScanClient.printerIdle);
+		} else {
+			// ...and when no GATE stopped it, the reason is in the scan: seven filters that used to
+			// end in a bare return, so "the printer is fine" and "nothing got through" read alike.
+			String whyScan = Printer.scanSummary();
+			if (whyScan != null) out.add("  LAST PRINTER SCAN: " + whyScan);
 		}
 		try {
 			Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), design,

@@ -3,6 +3,7 @@ package dev.jack.chunkscan;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -14,23 +15,32 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 /**
- * Everything in the last container screen you opened, written down.
+ * Everything in the last container menu you had open, written down.
  *
  * <p><b>WHY THIS EXISTS RATHER THAN A ROUND OF QUESTIONS.</b> Driving a server's GUI means knowing
  * its slot layout, its item ids and exactly what its lore says, and none of that can be guessed from
  * a description or read off a screenshot. Every menu this mod already drives was written against
- * real slots: {@link Withdraw} against a chest, {@link Crafter} against a grid, {@link Prices}
- * against shop lore. This is the same look, taken once, for a menu nobody has written a driver for.
+ * real slots: {@link Withdraw} against a chest, {@link Crafter} against a grid, {@link Shop} against
+ * shop lore. This is the same look, taken once, for a menu nobody has written a driver for.
  *
- * <p><b>IT SNAPSHOTS ON CLOSE, NOT ON COMMAND, AND THAT IS NOT A CONVENIENCE.</b> A container screen
- * captures the keyboard, so there is no way to type a command while one is open - and the contents
- * arrive some ticks after the screen does, so a snapshot taken at open time is an empty menu. Both
- * are the same reason {@link Prices} hooks {@code ScreenEvents.remove}: by the time it closes, the
- * server has filled it. Open the menu, close it, then run the command.
+ * <p><b>IT SNAPSHOTS FROM THE TICK, NOT FROM A SCREEN EVENT.</b> The first version hooked
+ * {@code ScreenEvents.remove} - the same event {@link Prices} uses - and on a live server it never
+ * fired once: three attempts, no snapshot, and nothing in the log because nothing had thrown. That
+ * is the whole failure shape this repo keeps writing rules about, so the dependency is gone rather
+ * than debugged. {@link Screens#container()} is set from {@code AFTER_INIT} and is demonstrably
+ * live - it is what pauses the build loop while a chest is open - so the tick reads THAT, and the
+ * newest reading wins. By the time you close the menu the last snapshot is a few ticks old, which
+ * is exactly what is wanted: the contents arrive some ticks after the screen does, so a snapshot
+ * taken at open time is an empty menu.
+ *
+ * <p>A container screen also takes the keyboard, so the command cannot be typed while one is up.
+ * Open the menu, close it, then run it.
  *
  * <p><b>IT NEVER CLICKS.</b> Not a nicety - a shop menu is somebody's money, and an inspector that
  * could buy something by accident is not an inspector.
@@ -46,30 +56,49 @@ final class ScreenDump {
 
 	/** Where the dumps go, beside the container index and the price book. */
 	static final String FOLDER = "screens";
+	/** Ticks between readings. A slot walk is cheap; sixty a second is not, and buys nothing. */
+	static final int EVERY_TICKS = 10;
+	/** How many screen sightings to remember, for when the answer is "that was not a container". */
+	static final int HISTORY = 12;
 
-	/** The last container screen seen, as finished lines. Null until one has been closed. */
 	private static List<String> last;
 	private static String lastTitle = "";
 	private static int lastSlots, lastFilled, lastTheirs;
+	private static int tick;
+	/** Every screen seen, container or not. The diagnostic for "nothing was captured". */
+	private static final Deque<String> seen = new ArrayDeque<>();
 
 	static void register() {
-		ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> {
-			if (!(screen instanceof AbstractContainerScreen<?> cs)) return;
-			ScreenEvents.remove(screen).register(s -> {
-				try {
-					snapshot(mc, cs);
-				} catch (Exception e) {
-					// A DIAGNOSTIC NEVER THROWS OUT OF A SCREEN EVENT. A throw here is the same
-					// class of fault as a throw out of a tick: it takes the client with it.
-					ChunkScanClient.LOG.warn("screen snapshot failed", e);
-				}
-			});
-		});
+		ScreenEvents.AFTER_INIT.register((mc, screen, w, h) -> note(screen));
 	}
 
-	/** Read the menu into lines. Called as it closes, when the server has actually filled it. */
+	/**
+	 * Remember that a screen existed at all.
+	 *
+	 * <p>EVERY screen, not only container ones. When nothing is captured the useful question is
+	 * whether the menu was a container at all, and a list of what WAS seen answers it - where a
+	 * filter that silently drops non-containers leaves the same empty result for two very different
+	 * causes.
+	 */
+	private static void note(Screen screen) {
+		if (screen == null) return;
+		String s = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")) + "  "
+			+ (screen instanceof AbstractContainerScreen<?> ? "CONTAINER  " : "plain      ")
+			+ screen.getClass().getName()
+			+ "  \"" + screen.getTitle().getString() + "\"";
+		seen.addLast(s);
+		while (seen.size() > HISTORY) seen.removeFirst();
+	}
+
+	/** Called every client tick; reads the open container a few times a second. */
+	static void tick(Minecraft mc) {
+		if (++tick % EVERY_TICKS != 0) return;
+		AbstractContainerScreen<?> cs = Screens.container();
+		if (cs == null || mc.player == null) return;
+		snapshot(mc, cs);
+	}
+
 	private static void snapshot(Minecraft mc, AbstractContainerScreen<?> cs) {
-		if (mc.player == null) return;
 		var inv = mc.player.getInventory();
 		List<String> body = new ArrayList<>();
 		String title = cs.getTitle().getString();
@@ -103,6 +132,10 @@ final class ScreenDump {
 				for (Component c : lore.lines()) body.add("         lore: " + c.getString());
 			}
 		}
+		// A MENU STILL FILLING IS NOT A BETTER READING THAN THE ONE BEFORE IT. The server sends
+		// contents some ticks after the screen, so the first readings of a menu are empty - and
+		// overwriting a good snapshot with an empty one is how this ends up reporting nothing.
+		if (theirs == 0 && last != null && lastTitle.equals(title) && lastTheirs > 0) return;
 		last = body;
 		lastTitle = title;
 		lastSlots = cs.getMenu().slots.size();
@@ -113,14 +146,22 @@ final class ScreenDump {
 	/**
 	 * Write the last menu down.
 	 *
-	 * @return the lines to print in chat - a summary and a path, never the menu itself, which is
-	 *         the point of writing it to a file. Never null and never empty.
+	 * @return the lines to print in chat - a summary and a path, never the menu itself, which is the
+	 *         point of writing it to a file. Never null and never empty: "nothing seen" is an answer,
+	 *         and it comes with the list of what WAS seen.
 	 */
 	static List<String> dump(Minecraft mc) {
 		List<String> out = new ArrayList<>();
 		if (last == null) {
-			out.add("no menu seen yet — open the one you want inspected, CLOSE it, then run this."
-				+ " A container screen takes the keyboard, so it cannot be read while it is up.");
+			out.add("no container menu captured. Open the one you want inspected, CLOSE it, then run"
+				+ " this — a container screen takes the keyboard and cannot be read while it is up.");
+			if (seen.isEmpty()) {
+				out.add("...and no screen of any kind has been seen since this client started,"
+					+ " which means the screen hook is not firing at all — tell me that.");
+			} else {
+				out.add("screens seen so far (newest last):");
+				for (String s : seen) out.add("  " + s);
+			}
 			return out;
 		}
 		try {

@@ -111,6 +111,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Hud.register();
 		Menu.register();
 		Screens.register();
+		ScreenDump.register();
 		Autopilot.register();
 		Ignored.register();
 		Bounds.register();
@@ -2446,6 +2447,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 	private static void printerTick() {
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             if (Screens.container() != null) Digger.pause(mc);
+            // Read the open menu a few times a second. See ScreenDump: the screen-close event
+            // it first hooked never fired once on a live server, so the dependency is gone.
+            try { ScreenDump.tick(mc); } catch (Exception e) { LOG.warn("screen read failed", e); }
             // A sign we placed owes the server exactly one text update, and it must go out on the
             // client thread. One per tick: these land on a block the server has just created.
             SignWriter.pump(mc);
@@ -2521,18 +2525,28 @@ public final class ChunkScanClient implements ClientModInitializer {
 				Work.Cell next = null;
 				double reach2 = (Printer.REACH + 1) * (Printer.REACH + 1);
 				net.minecraft.world.phys.Vec3 eye = mc.player.getEyePosition();
+				// ---- AND WHEN IT PLACES NOTHING, WHY. Seven filters ending in a bare `return`: a
+				// session where the loop reports "1 cell here" and the printer attempts nothing looked
+				// exactly like one with nothing to do. Counted per reason, read by /cscan why and by
+				// the stall - the two moments somebody is actually asking.
+				Printer.beginScan(sp.todo().size());
 				for (Work.Cell c : sp.todo()) {
-					if (!Hud.wanted(c)) continue;                                        // /cscan only <material>
-					if (Printer.givenUpOn(c.pos())) continue;
-					if (!Printer.everPlaceableCached(mc, c.pos(), c.block())) continue;   // the sweep is the stutter
-					if (eye.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(c.pos())) > reach2) continue;
-                    if (Printer.recentlyUnplaceable(mc.level, c.pos())) continue;
-                    int slot = Printer.inventorySlot(mc.player, c.block(), mc.level.getBlockState(c.pos()));
-                    if (slot < 0) continue;
+					if (!Hud.wanted(c)) { Printer.noteScan(0); continue; }        // /cscan only <material>
+					if (Printer.givenUpOn(c.pos())) { Printer.noteScan(1); continue; }
+					// the sweep is the stutter, so it is asked after the free tests
+					if (!Printer.everPlaceableCached(mc, c.pos(), c.block())) { Printer.noteScan(2); continue; }
+					if (eye.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(c.pos())) > reach2) {
+						Printer.noteScan(3);
+						continue;
+					}
+					if (Printer.recentlyUnplaceable(mc.level, c.pos())) { Printer.noteScan(4); continue; }
+					int slot = Printer.inventorySlot(mc.player, c.block(), mc.level.getBlockState(c.pos()));
+					if (slot < 0) { Printer.noteScan(5); continue; }
 					if (Printer.placement(mc, c.pos(), c.block(), slot) != null) {
 						next = c;
 						break;
 					}
+					Printer.noteScan(6);
 					Printer.noteNoPlacement(mc.level, c.pos());
 				}
 				if (next == null) return;

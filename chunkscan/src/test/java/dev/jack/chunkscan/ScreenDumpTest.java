@@ -78,18 +78,47 @@ class ScreenDumpTest {
 	}
 
 	/**
-	 * IT SNAPSHOTS ON CLOSE, AND THAT IS LOAD-BEARING.
+	 * IT READS FROM THE TICK, NOT FROM A SCREEN EVENT.
 	 *
-	 * <p>A container screen takes the keyboard, so the command cannot be typed while one is open;
-	 * and the contents arrive some ticks after the screen does, so a snapshot at open time is an
-	 * empty menu. Both are why {@link Prices} hooks the same event.
+	 * <p>The first version hooked {@code ScreenEvents.remove} — the same event {@link Prices} uses —
+	 * and on a live server it never fired once: three attempts, no snapshot, and nothing in the log
+	 * because nothing had thrown. {@link Screens#container()} is demonstrably live (it is what
+	 * pauses the build loop while a chest is open), so the tick reads that instead.
 	 */
 	@Test
-	void itSnapshotsWhenTheScreenCloses() throws Exception {
+	void itReadsTheOpenMenuFromTheTick() throws Exception {
 		String code = Files.readString(
 			Path.of("src/client/java/dev/jack/chunkscan/ScreenDump.java"));
-		assertTrue(code.contains("ScreenEvents.remove(screen).register("),
-			"snapshotting anywhere but on close reads an empty menu, and cannot be reached by a"
-				+ " command at all");
+		assertTrue(code.contains("static void tick(Minecraft mc)")
+				&& code.contains("Screens.container()"),
+			"the snapshot must not depend on a screen event again — that one never fired");
+		assertTrue(Files.readString(
+				Path.of("src/client/java/dev/jack/chunkscan/ChunkScanClient.java"))
+				.contains("ScreenDump.tick(mc)"),
+			"...and it has to be CALLED: a reader nothing drives is the silence it replaced");
+	}
+
+	/**
+	 * A MENU STILL FILLING IS NOT A BETTER READING THAN THE ONE BEFORE IT.
+	 *
+	 * <p>The server sends contents some ticks after the screen, so the first readings of a menu are
+	 * empty — and a reader that always overwrites reports an empty menu for a shop full of stock.
+	 */
+	@Test
+	void anEmptyReadingDoesNotOverwriteAGoodOne() throws Exception {
+		String code = Files.readString(
+			Path.of("src/client/java/dev/jack/chunkscan/ScreenDump.java"));
+		assertTrue(code.contains("if (theirs == 0 && last != null"),
+			"the guard against overwriting a full snapshot with an empty one has gone");
+	}
+
+	/** When nothing was captured, the list of what WAS seen is the diagnostic. */
+	@Test
+	void itSaysWhatScreensItDidSee() throws Exception {
+		String code = Files.readString(
+			Path.of("src/client/java/dev/jack/chunkscan/ScreenDump.java"));
+		assertTrue(code.contains("screens seen so far"),
+			"\"nothing captured\" and \"that was not a container menu\" are different answers and"
+				+ " must not look alike — that is what cost the first attempt a whole round trip");
 	}
 }

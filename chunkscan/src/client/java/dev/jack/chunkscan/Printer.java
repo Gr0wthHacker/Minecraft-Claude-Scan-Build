@@ -287,6 +287,49 @@ final class Printer {
 
 	static int failed() { return failed; }
 
+	/**
+	 * WHY THE LAST SCAN PLACED NOTHING, counted per reason.
+	 *
+	 * <p>The printer's cell loop has seven filters and ended in a bare {@code return}, so a session
+	 * in which the loop reports "1 cell here" and the printer attempts nothing looked identical to
+	 * one with nothing to do - and there was no way to tell which of the seven ate the cell. That is
+	 * this file's oldest failure shape, in the last place it still lived.
+	 *
+	 * <p>COUNTED RATHER THAN LOGGED: a message per rejected cell is a message per tick, which is a
+	 * reason to turn the whole thing off. {@link #scanSummary()} is read by {@code /cscan why} and
+	 * by the stall, which are the two moments somebody is actually asking.
+	 */
+	static final String[] SCAN_REASONS = {
+		"not the material /cscan only names", "given up on after two tries",
+		"nothing to place against", "out of reach - the loop has to move me closer",
+		"no angle worked recently", "NOT CARRYING IT", "no legal placement from here",
+	};
+	private static final int[] scanWhy = new int[SCAN_REASONS.length];
+	private static int scanSeen;
+
+	/** A new scan, and how many cells it is about to look at. */
+	static void beginScan(int seen) {
+		scanSeen = seen;
+		java.util.Arrays.fill(scanWhy, 0);
+	}
+
+	static void noteScan(int reason) {
+		if (reason >= 0 && reason < scanWhy.length) scanWhy[reason]++;
+	}
+
+	/** ...in words, or null when something WAS placeable and this scan is not the problem. */
+	static String scanSummary() {
+		if (scanSeen == 0) return "no cell of the design is within reach - the loop has to move me";
+		StringBuilder b = new StringBuilder(scanSeen + " cell(s) in reach, none placed:");
+		boolean any = false;
+		for (int i = 0; i < scanWhy.length; i++) {
+			if (scanWhy[i] == 0) continue;
+			b.append(any ? "," : "").append(' ').append(scanWhy[i]).append(' ').append(SCAN_REASONS[i]);
+			any = true;
+		}
+		return any ? b.toString() : null;
+	}
+
 	static boolean givenUpOn(BlockPos p) {
 		return givenUp.contains(key(p));
 	}
