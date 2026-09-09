@@ -207,12 +207,26 @@ def missing_colors(names) -> list[str]:
 # Plain `glass`, `tinted_glass` and the SOLID `_stained_glass` blocks are deliberately NOT
 # moved: nothing Jack said touches them, and a table that quietly widens past its evidence is
 # how four separate palette conclusions in this repo have already gone wrong.
+#
+# JACK, 2026-09-09: "copper is not expensive, we can use it." `copper_block` was in this set and
+# had NEVER BEEN MEASURED - filed among `netherite_block`, `diamond_block`, `gold_block` and
+# `emerald_block`, which is grouping by LOOKING LIKE AN ORE BLOCK rather than by what it costs
+# here. And the table contradicted itself in a way that needs nobody's word to see: every CUT
+# form of copper was already cheap, and `cut_copper` is crafted FROM `copper_block` - one block
+# into FOUR cut in a stonecutter. A table that prices an input dearer than four of its own
+# output is wrong on its own terms, whoever is asked.
+#
+# This is rule 12 pointed at the ECONOMY rather than at the registry. Cheap, available and
+# spendable are three different axes and only the last two were ever derived from evidence; the
+# rest of this set has the same provenance and simply has not been challenged yet, so suspect it
+# before suspecting the code - which is what CLAUDE.md already says about every reference table
+# in this project.
 EXPENSIVE_SUFFIXES = ("_terracotta", "_concrete", "_concrete_powder", "_stained_glass",
                       "_glazed_terracotta")
 EXPENSIVE_NAMES = {"terracotta", "quartz_block", "smooth_quartz", "quartz_pillar", "chiseled_quartz_block",
                    "quartz_bricks", "glass", "tinted_glass", "prismarine", "prismarine_bricks",
                    "dark_prismarine", "sea_lantern", "purpur_block", "purpur_pillar", "end_stone",
-                   "end_stone_bricks", "copper_block", "netherite_block", "diamond_block", "gold_block",
+                   "end_stone_bricks", "netherite_block", "diamond_block", "gold_block",
                    "emerald_block", "lapis_block", "amethyst_block", "calcite", "obsidian", "crying_obsidian",
                    "shroomlight", "glowstone", "redstone_lamp", "beacon", "sponge", "wet_sponge",
                    "honey_block", "hay_block", "bookshelf", "note_block", "jukebox"}

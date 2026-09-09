@@ -4114,6 +4114,172 @@ out as 6/2139 — and the velocity slope was out by about four times. `full_out:
 names a full-depth capture and progress and the shop list are measured against it; without one
 it falls back to the old behaviour, so nothing else moved.
 
+## THE LOOP WAS A LATCH: five deadlocks, one shape (2026-09-08, chunkscan 0.9.8)
+
+Jack: *"its really glitchy and at this point i would consider it not functional, it gets stuck,
+just sits there, doesnt move from a location, doesnt navigate to chests properly, constantly
+redirects itself, misses placements."* Every clause was one fault, all five were the same SHAPE,
+and none of them needed a guess — the client had written all of it to disk.
+
+**READ THE LOG FIRST. It is the third session in a row where the answer was in `latest.log` and the
+rotated logs beside it, and the first two are already written down on this page.** Twenty minutes
+of `zcat ... | grep cscan` named every cause below; the code reading afterwards only confirmed them.
+A message-frequency histogram is the single most useful view — `sed -E 's/-?[0-9]+/N/g' | sort |
+uniq -c | sort -rn` collapses a session into its repeating cycles:
+
+    2083  N cells at POS — N left in this spot, N more spots after it
+    2080  autofly is ON but has nowhere to go
+    2077  next spot: N cells around POS, N more after it
+    2041  not moving and not placing at POS — giving up on this spot and taking the next one
+     533  N spots given up on with nothing placed
+      34  RESET #N
+
+**One session: 2,041 identical give-ups, ZERO blocks placed**, against a design the same session's
+own analysis reported as holding 23,672 placeable cells. A second session: **41 "cannot open" against
+43 "fetch"**, alternating about 1.5 seconds apart, on one chest.
+
+### THE SHAPE: A RECOVERY THAT RE-CREATES ITS OWN TRIGGER IS A LATCH
+
+Every fault below is the same sentence: **a decision is re-made, or a watchdog fires, on the
+two-second recount cadence — before the action it commands has had time to finish — and the
+recovery it triggers puts the loop back into the state that triggered it.** Once entered it cannot
+be left, because leaving requires the very thing the recovery just prevented.
+
+That is the answer to *why so many individually-correct watchdogs add up to a loop that does
+nothing*. There are eighteen clocks in `Hud` and every one of them is defensible alone. What was
+missing is the idea that **a decision has a lifetime**: nothing marked an action as in flight, so
+every clock was free to judge an action that had not started. Each hysteresis added over the last
+month — `sameSpot`, `DWELL_MS`, `holdHere`, the station dwell — is a patch on one instance of it.
+
+### 1. THE GOING-NOWHERE CLOCK HAD NO COMMITMENT TERM, AND IT WAS THE LATCH
+
+`Loop.goingNowhere` asks *have I moved in three seconds, and placed nothing*. Nothing else. And
+**giving up on a spot leaves the body standing still** — so the next target inherits a clock that
+has already expired, and is abandoned before the flight can start. Abandon, re-pick, abandon, four
+seconds apart, for ever.
+
+**Its two siblings had it right and it did not.** The look watchdog is
+`t - Math.max(movedAt, lookSince)`; the fetch watchdog is `now - Math.max(movedAt, fetchTargetSince)`.
+Only this one measured on `movedAt` alone. `targetSince` is stamped in `guide()` and **only when the
+destination CHANGES** — re-stamping on every re-guide to the same cell means the watchdog can never
+fire at all, which is the opposite bug and just as quiet.
+
+### 2. AVOIDING ONE SPOT AVOIDED EVERY SPOT
+
+`abandonSpot` records the spot and the selector skips anything within **`Plan.MAX_RADIUS` = 48** of
+it — while clusters form within **`Loop.NEAR_RADIUS` = 16** of the body. So one entry matched every
+cluster in the working area, `next` came out null, and the *"a hard spot is better than no spot"*
+fallback then **cleared the whole map and handed back the spot that had just failed.**
+
+**ONE CONSTANT WAS SERVING TWO OPPOSITE QUESTIONS.** `sameSpot` asks *am I still working the same
+region*, where a wide radius IS the feature — it is hysteresis, and a drifting centroid must not
+read as a new region. `avoided` asks *is this the spot I just gave up on*, where a wide radius is
+fatal. `AVOID_RADIUS` is 8, and the fallback no longer wipes the record: taking a hard spot rather
+than idling is right, but throwing the record away is how the NEXT recount forgets which spot just
+failed.
+
+This is the same line the file already records as having *"been swallowed by the comment above it"*
+once. It was restored and then defeated by its own match radius, which nothing measured.
+
+### 3. A CHEST APPROACH CELL WAS BLACKLISTED FROM 1.6 BLOCKS OUTSIDE IT
+
+`Autopilot.EXACT_ARRIVED` is **1.6** and approach candidates are **one block apart**, so a body
+parked anywhere near a chest "arrives at" every candidate the instant it is offered, judges it
+un-openable without ever entering it, and burns through the 9x5x9 grid at recount speed. A cell is
+only proved bad from INSIDE it: `Autopilot.arrivedAt(approach) && me.equals(approach)`.
+
+**And it had mended its own watchdog by accident.** Blacklisting calls `stopGuiding()`, which nulls
+the target — so the next recount saw a DIFFERENT approach cell, took the announce branch and reset
+`fetchTargetSince`. `FETCH_STUCK_MS` restarted every cycle and could never accumulate, leaving the
+arrival flag as the only route to "parked". Holding the cell until the body is genuinely in it keeps
+the target stable, which is what lets the six seconds elapse. **One change, both halves** — which is
+the tell that they were one bug.
+
+### 4. A DEAD END IS A FACT ABOUT AN ANCHOR, NOT ABOUT A DESIGN
+
+The frontier is one course of a window round the anchor, so *"nothing I can place here"* says
+nothing at all about the other half a million cells. The log has the reset printing **23,672
+placeable** from `Analyze` and reporting a dead end on the very next line — then parking beside it
+for two minutes, teleporting, landing in the same place, and repeating until morning.
+
+`Analyze.nearestPlaceable` answers *where IS the work* from the same whole-design pass `report`
+already makes, restricted to what is CARRIED — flying to work we have no material for is the trip
+that started the dead end. Asked ONCE per episode, because it is a full scan and the answer cannot
+change while we stand still, and acted on only when the answer is genuinely outside the working
+radius. **The reset was computing the one number that would have told it where to go, and printing
+it rather than using it.**
+
+### 5. A DETECTION THAT CHANGES NO BEHAVIOUR IS NOT A FIX
+
+`Rally.land` has always NOTICED that the home teleport did not move the body, and said so — and then
+printed the analysis and restarted the loop exactly as if it had worked. Three resets in one session,
+each announcing `/visit enroz did not move us`, each followed by **byte-identical** analysis output,
+on a doubling backoff. That is verbatim the failure its own docstring says it exists to end.
+
+Two proofs and it stops sending the command: the forgetting still happens, the flight does not, and
+the one thing that would fix it is named. `deadHome` clears the moment a teleport works, or one bad
+minute disables the recovery for the session.
+
+### And the printer's report was being thrown away by eleven early returns
+
+`Printer.drainReport()` is **destructive** and is called at the top of `advance`; the station verdict
+that consumes it is six hundred lines below, behind eleven `return`s. Every one of them discarded
+real placements and refusals, and the next recount overwrote the field with a fresh empty drain — so
+`Loop.stationFromReport` saw 0/0/0 and fell through to the stopwatch, **which is exactly the guess
+the report exists to replace**. A station the printer was actively working could be abandoned and
+then struck on that guess. Accumulated into `pendingReport` now, cleared only where it is CONSUMED.
+
+### What the tests pin, and the trap inside writing them
+
+`tests/StuckLoopTest.java` (9). Several assertions read the SOURCE, which is the honest form for a
+rule whose whole content is *"this term is present"*: there is no state to inspect, and a snapshot of
+the behaviour would pass a build in which the term had been quietly dropped again.
+
+**And the first version failed on its own explanation.** The assertion forbidding `avoided.clear()`
+matched the comment left behind to say why the call had been removed — *a check that forbids naming a
+thing forbids explaining it*, which this file already records about the walk-gate tests. Comments are
+stripped first, exactly as `RallyTest` and `AutopilotTest` already do.
+
+Two working notes, both already on this page and both paid for again: **`Rally.java` is pure LF where
+`Hud.java` is 2,269 CRLF against 474 LF**, so a patch anchor written with the wrong ending matches
+nothing — the patcher fails loudly rather than silently no-op'ing, which is the only reason it was
+caught. And a **heredoc past ~100 lines fails in this shell**; write the file, then run it.
+
+### 737 Java tests, 0 failures. NOT FLOWN.
+
+Everything above is unit-tested and log-diagnosed; not one line of it has been in the game. The
+first thing to do with `chunkscan-0.9.8.jar` is watch whether the four-message cycle is gone — if
+`next spot` / `not moving` / `giving up` still alternate at four-second intervals, the commitment
+clock is not the whole story and the next evidence is `/cscan why` taken WHILE it is stuck.
+
+### Still open, and it is the vision rather than a defect
+
+Jack's actual goal, stated the same day: *"i give an account park complete, it goes and it builds the
+entire thing including `/shops find owned (material)` purchases etc when it runs out of supplies."*
+
+Two things stand between here and that, and the deadlocks above were only the first:
+
+- **THE LOOP CAN ONLY GET MATERIALS FROM CHESTS IT HAS ALREADY SEEN.** `Loop.phase` has FETCH and
+  DEAD_END and nothing between them. `craft`, `make`, `smelt`, `buy` and `farm` all exist and every
+  one of them is a command a human types — none is reachable from the autonomous loop. The missing
+  piece is an ACQUIRE phase: out of X, resolve how X is obtained, drive it, come back.
+- **`provision` says 291,285 of 524,033 cells have their material.** The other 44% has no source at
+  all, and `prices.json` is empty because the shop has never been walked, so `/cscan buy` is inert
+  today. `Prices` is a passive lore-scraper that needs a human to browse a shop; `/shops find owned`
+  is a server command and a far better mechanism. **Jack: it is a GUI**, which is the good case -
+  `Withdraw`, `Crafter`, `Smelter` and `Prices` all already drive container screens, so a shop menu
+  is the same shape as everything already built.
+
+  What is NOT guessable is what is IN it: slot indices, item ids, and the exact lore a price and a
+  location are hidden in. `/cscan screen` (`ScreenDump`) writes all of that down, once, so the
+  driver is written against real slots rather than against a description - which is how every menu
+  driver in this mod was written. **It snapshots on CLOSE, not on command, and that is not a
+  convenience:** a container screen takes the keyboard so the command cannot be typed while one is
+  open, and the contents arrive some ticks after the screen does, so a snapshot at open time is an
+  empty menu. Both are the same reason `Prices` hooks `ScreenEvents.remove`. It never clicks - a
+  shop menu is somebody's money - and its title is sanitised before it becomes a filename, which is
+  the hole `/cscan fill ../../x` once opened.
+
 ## Reading other people's builds: the download corpus (2026-08-27)
 
 Thirty-one `.litematic` files from other builders, in `~/Downloads`. **They are the only evidence in
@@ -8139,6 +8305,68 @@ Downs` terrain that replaced it. `tests/test_park_games.py` fails on it and on n
 And **the six Midway consoles stay retired** - `PF Midway Garden` holds that lot by Jack's own
 choice - but they now build correctly, so putting them back is a decision rather than a repair.
 
+## Park Complete: no tuff, and no heron (2026-09-07)
+
+Jack: *"park complete cant have tuff and we need to remove the heron"*. Two unrelated faults, both
+of a class this file already names.
+
+**TUFF IS A BLOCK THIS SERVER CANNOT SUPPLY, AND EVERY CHECK IN THE PIPELINE PASSED IT.** It is
+`ok` by the economy table, it is in the provisional 1.19 allowlist, `blocks.available` says yes -
+and measured against the captures of the real world (`island_full`, `island_now`) it stands in
+**ZERO cells**, because tuff generates in deep cave and a skyblock has no deep cave. That is rule
+12 from a fourth direction: *ask the WORLD, not the table*. 6,408 cells of it were shipped, all of
+them ROCK BODY - `PF Mine Ridge` 2,103, `PF Prism Downs` 2,829, `PF Plateau Vale` 1,050, the Bone
+Bed, the Cutting Yard, the Diggings and the coaster's ballast.
+
+`mossy_cobblestone` is what `palette.affordable_like("tuff")` answers on its own - the closest
+block that is cheap, WITNESSED here (9,172 cells standing in the world) and not a machine, at 22.3
+RGB - and it keeps tuff's JOB in every body it appears in. Tuff was always the LIGHT tone against
+dark rock (the ridge's mid band at 12%, the downs' "pale bed and the only real highlight", the
+Cutting Yard's tread) and mossy cobble is lighter still, 115 against 108. It is hue-distinct from
+the two tones it now stands beside - 43 RGB from `granite`, 55 from the `moss_block` turf - so no
+ladder collapses into it. **The park's cobblestone ban is about BUILDINGS, not terrain**: Jack
+threw out a park that was 17.7% cobblestone and every building generator carries that ban in its
+own tests, while the cells this touches are rock body, where the park already spends 18,185
+cobblestone as `rock_c`.
+
+**IT IS A COMPOSITE SWAP, BESIDE THE ANDESITE ONE**, for the reason `declutter.py` was written:
+seven generators emit tuff, and turning it off upstream is one decision taken seven times and
+remembered seven. `SWAPS` is now `{andesite: dripstone_block, tuff: mossy_cobblestone}`, applied by
+`tools/park_place.py` at the moment it writes `Park Complete` and `Park Buildings`, and reversible
+in one line.
+
+**THE SIGNAL HERON IS RETIRED, AND IT HAD NO LOT TO DELETE.** The bird was a single `gen: heron`
+source inside `configs/park_ways.yaml` at offset [26, 1, 176] - 1,790 cells of wool on the Claim
+Line reach - so the ground layer was the only place it existed. `mcbuild/gen/heron.py` is
+untouched and still builds; the lowland flamingo runs on it and `isthmus.py` still lists it as a
+siteable creature. **A retirement is a RECORD, not a deletion**, and one line is exactly the kind
+of thing that gets put back, so `test_the_ground_layer_builds_NO_HERON` is the tripwire.
+
+Three things still pointed at it and all three are the leftover class the signage audit was
+written about:
+
+- **`park_lots.py` said the bird "still stands"** in two places, having been written when only its
+  old artifact and its lot were superseded.
+- **`parkpacket.py` carried two camera views named for it.** A camera named for a retired module
+  renders an empty lawn under its own caption, which reads as a broken renderer rather than as a
+  module nobody placed.
+- **THE FEATURE LOT IS KEPT, AND ITS JOB CHANGED RATHER THAN LAPSING.** V34-60 x U174-210 lies
+  wholly inside `PF Water Claim Lake` (V24-112 x U173-211), and `park_water.put` treats a paved
+  cell, a lamp mast or a bench inside the lake as an ERROR naming the cell rather than a silent
+  skip - so deleting it with the bird would have freed the ground layer to furnish the middle of a
+  lake. Renamed `lake garden` for what it now protects.
+
+**Still open, and deliberately not touched:** the lake's own `heron_feet` (two columns kept dry on
+its shoal) and `heron_clear` (a 16 x 13 rectangle kept unplanted) now reserve ground for nothing.
+They are one line each to zero - `pf_water_wyrm_garden.yaml` already carries them empty - but the
+lake's `world:` is `Park Complete`, which CONTAINS the lake, so regenerating it is the
+self-reference trap and wants a pre-lake context rather than a config edit. `park_attractions.MAJOR`
+also still lists the heron among fifteen names, nine of which were already retired modules; that
+roster is its own audit.
+
+    Park Complete   526,385 -> 524,033 blocks . tuff 6,408 -> 0 . heron box EMPTY
+    Park Buildings  tuff 0
+
 ## The daily loop
 
 ```bash
@@ -10109,6 +10337,104 @@ material family COMPLETE, so a server that has `acacia_planks` has `acacia_slab`
 checks the registry for the stair rather than carrying a hand-written map - `petrified_oak_slab`
 and `smooth_stone_slab` have no stair, and remembering which do is rule 11's exact failure.
 
+### Measured against the giraffe, which is the only way this got fixed (2026-09-07)
+
+Jack: *"I feel like this is very rough and the face etc are less smooth than they should be, we
+want this to feel like the giraffe."* **A reference beats an adjective**, and the first move was to
+render the two side by side and put the repo's own roughness numbers on both:
+
+                    spike_rate   notches   jerk_rel
+    GIRAFFE               4.03         0        8.4
+    stegosaur            28.97        10       20.5
+
+That is not taste, and every one of the three names a defect you can see once you know to look:
+`spike_rate` is "a limb that seems to have gravel stuck to it", a notch is a one-block dent "the
+eye reads as damage", and `jerk` is the one that catches "it goes in and out".
+
+#### THE PARAMETERS WERE THERE ALL ALONG AND I HAD UNDER-SET THEM
+
+`quadruped.py` relaxes **four times at fill 11 and keep 11**. This ran ONCE at fill 15 and keep 8 -
+weaker on every one of the three axes - because of an over-reading of this file's own warning that
+*"every smoothing pass rewards thickening"*. **That warning is about tuning smoothing ALONE against
+the rubric**, which took the bear's proportion 0.88 -> 0.50; it is not an argument for
+under-smoothing, and the giraffe was standing in the world as the counter-example the whole time.
+Swept against every contract at once, four rounds costs 21% more cells and keeps the plan waist,
+the four feet, the eight crest pieces and exact symmetry.
+
+**AND ONLY THE LEGS ARE PROTECTED, which is also what `quadruped.py` does.** A protected cell is
+never shaved, so protecting the neck and the tail as well left them exactly as lumpy as they were
+built while the barrel smoothed around them - the two parts that read worst against the giraffe. A
+leg genuinely has too few neighbours to survive `keep`; a tail three cells thick does not.
+
+    relaxed mass:   spike_rate 8.6 -> 3.92     BETTER than the giraffe's 4.03
+                    notches 0, jerk_rel 20.5 -> 12.4
+
+The finished model still measures 25 because the CREST is one-block sheets and scores that way by
+construction; the giraffe has no such feature. The body skin is the fair comparison.
+
+#### THE FACE WAS A BALL WITH A BEAD ON IT
+
+Set beside the giraffe's head the gap is obvious: the giraffe has a pale muzzle narrowing to a
+nose, an eye set in it, a jaw. This had a SPHERE of radius 2.4 with a black cube stuck on it.
+**A skull is a TAPER** - a stegosaur's is long, low and narrow, ending in a toothless beak - and
+none of that survives being drawn as a ball. Two more things had to follow:
+
+- **THE NECK STOPS WHERE THE SKULL BEGINS.** Swept on to the nose it buried the head: only the
+  last four pale cells showed past the russet, so the animal read as a neck with a chip on the end.
+- **A NOSTRIL IS NOT BLACK, and it gets its OWN MATERIAL.** Black, two nostrils between two black
+  pupils read as a second pair of eyes - the frog shipped exactly that. And drawn in the plates'
+  own root stone, the crest mask counted each nostril as a one-cell PLATE with no back under it,
+  so the plate-count, the plate-rooting and the "the nose is all bone" contracts all failed on a
+  correct build. **A mark that means something different is a different block**, or every test that
+  masks by material is measuring two things at once.
+
+#### FIVE BUGS THE SCALE SWEEP FOUND, EVERY ONE SILENT AT LENGTH 34
+
+Turning the smoothing up and un-protecting the neck and tail destabilised four things that had been
+held together by under-smoothing. **Not one of them was visible at the length being looked at.**
+
+- **THE LEG-GAP GUARD WAS TRUE FOR EVERY CELL ON THE MIDLINE.** `abs(sd) - stance < r` is negative
+  at `sd = 0`, so the entire space between the legs counted as "inside a leg", was never forbidden,
+  and the fill pass welded the feet - two instead of four at most lengths. It is
+  `abs(abs(sd) - stance)`, the distance from the leg's own axis.
+- **...AND THE REACH HAD TO BE CLAMPED TO HALF THE LEG SPACING**, which is this file's own sentence
+  ("or it protects nothing"). At `r + 0.6` alone, a thigh 1.86 wide standing 2.34 off the midline
+  reaches the midline anyway: three feet instead of four.
+- **THE THAGOMIZER CAME AWAY AS ONE PIECE** at four lengths of seventeen. Un-protecting the tail is
+  what smoothed it, and the same shave MOVES ITS SURFACE - the spikes still rooted at
+  `_tail_y_at`, which is arithmetic. `loft.surface_out`'s rule, and it has already cost this
+  project a mane, a pair of ossicones and a tail that floated 45 cells clear.
+- **THE SKULL DETACHED AT LENGTHS 22 AND 26** for the same reason at the other end: the neck's thin
+  tip is shaved by an amount that depends on the length, so a skull abutted to its DESIGNED tip
+  ships headless. It threads back to whatever is actually there - and the THREAD reaches back while
+  the SWEEP does not, because moving the sweep's own start stretches its taper and the cheek came
+  out too narrow to carry a pair of eyes.
+- **A PLATE'S OUTER WING CAME AWAY** at length 30 and not at 26 or 34. Each column roots on its own
+  patch of back, and where the back drops two courses between one column and the next their ranges
+  stop overlapping. Each column now reaches down to its lower neighbour's root.
+
+**And the plate rows moved from one cell either side of the spine to two**, because at one the
+trough between them measured as TWELVE NOTCHES - every notch in the animal - and the crest read as
+a cracked ridge rather than as two rows. At two it is zero, which is what the giraffe measures.
+
+#### Two tests were the wrong SHAPE, not the wrong number
+
+- **"a plate meets the back at three or more cells"** failed the smallest plate of a correct build,
+  whose root row is two columns wide where the back has narrowed. The exact property is that EVERY
+  CELL OF A PLATE'S LOWEST COURSE sits on body - a threshold standing in for a property, which is
+  what this repo keeps having to unlearn.
+- **"the skin has zero notches"** cannot distinguish a crotch from damage. Four remain and all four
+  are on the midline under the belly, in the gap the forbid set deliberately keeps open; the
+  giraffe scores zero only because its legs are far apart and its belly is high. The assertion is
+  now that every dent IS that gap, which is exact and still catches a dent anywhere else.
+
+And `test_the_plates_are_PAIRED` reads the offset out of `_dims` instead of carrying the literal
+`1`, or it would have failed the fix rather than the fault.
+
+    Isthmus  41,461 blocks, 0 problems, 0 leaks, 0 expensive
+    lengths 22..54, all four facings: one piece, 4 feet, 2 eyes, crest = 2 x plates, 0 clipped,
+    0 asymmetric in shape and in colour
+
 ### The panel verdict, recorded (2026-09-07)
 
 Cut out of the FINISHED causeway as well as alone, at the bearings the walkway actually gives.
@@ -10169,6 +10495,524 @@ decision to change. And the seven pre-existing
 `test_isthmus.py::test_every_land_pair_builds_legally[*-prismworks]` failures are still the stale
 `wayfinding.known_destinations()` roster, unrelated and unfixed.
 
+
+## THE STEGOSAUR IS RETIRED: FOUR POLISH ROUNDS CANNOT FIX A CATEGORY (2026-09-07)
+
+Jack rejected it four times running, in four different words - *"it feels bad, its asymmetric,
+theres issues"*, *"it feels super blocky and rough"*, *"very rough and the face etc are less smooth
+then they should be, we want this to feel like the giraffe"*, and finally *"I think its an issue
+still, it doesnt look good"* - and every round I answered with a better version of the same thing:
+symmetry to zero, a plan spindle, legs that stop pushing through the flank, a skull that is a taper
+rather than a ball, `spike_rate` 28.97 -> 3.92 (BETTER than the giraffe's 4.03), a whole new stair
+surfacing pass in `shell.py`. Every one of those was a real improvement and it measured as one.
+**None of them touched what was wrong.**
+
+**IT IS A STANDING QUADRUPED, AND THIS FILE HAS SAID FOR WEEKS THAT THIS SYSTEM CANNOT BUILD ONE.**
+The download corpus's own finding, recorded here under "Reading other people's builds": *the line
+is not the species, it is whether the silhouette decomposes into LIMBS - a corpus of 31 outside
+builds contains no realistically-proportioned quadruped at all.* Eight mammals were retired on that
+evidence. I then read *"a stegosaur is a convex mass with planar plates (the ladybird category)"* -
+which this file also says, in the Lost Plateau's re-theme - and sited one, and the two sentences
+are about different halves of the same animal. **THE PLATES ARE THE LADYBIRD CATEGORY AND THE
+ANIMAL UNDER THEM IS A JAGUAR**, and the plates are 12% of the cells.
+
+The general lesson, and it is the expensive one:
+
+> **WHEN FOUR ROUNDS OF POLISH EACH MEASURE BETTER AND STILL LOOK WRONG, THE FAULT IS THE
+> CATEGORY, NOT THE EXECUTION.** A rejection that repeats in different words is evidence about
+> the CHOICE; only a rejection that moves is evidence about the craft.
+
+That is the same shape as this file's own note about the jaguar - *"the jaguar at 2.6x and 60,000
+blocks failed exactly as the 27-block one did"* - and I had it in front of me each time and treated
+the next round as a tuning problem. What broke the loop was not another render: it was stopping and
+laying out the whole field of candidates, at which point the answer was obvious from the rule.
+
+`gen/stegosaur.py` is kept, still builds, and keeps all of its tests. `taxonomy.live()`'s rule
+applies to a bespoke sculpture exactly as it does to a species: **a retirement is a RECORD, not a
+deletion** - it is out of `GAPS` and out of nothing else, because the eleven bugs its scale sweep
+found are eleven bugs the next animal inherits the moment somebody copies its machinery.
+
+### And the machinery came out into `loft.py` before it was copied
+
+`Frame`, `r()`, `ball`, `sweep`, `thread` and `STEP` were all private to `stegosaur.py` and were
+about to be pasted into a second file. Every one of them carries a bug this repo has already paid
+for once - `r()` is half-away-from-zero because `round()` is banker's rounding and turned four feet
+into eight combs; `thread` exists because a taper under one cell is a chain of DIAGONAL neighbours
+and cost the pterosaur three spans and the stegosaur its spikes; `Frame.clipped` is counted apart
+from `refused` because the sauropod shipped clipped to 22 blocks of 48 with nothing to say so. A
+private second copy is a second place for all of those to come back.
+
+## The Ankylosaur: the quadruped that does not decompose (2026-09-07)
+
+`configs/isthmus.yaml` (the Frontier Reach's first stop), `mcbuild/gen/ankylosaur.py`.
+**2,300 blocks, one piece, four feet, 0 clipped, 0 asymmetric, all cheap-or-ok.** Chosen off the
+full candidate field rather than by taste: of thirteen dinosaurs, it is the one whose OWN ANATOMY
+is the shape that survives here - a low armoured shield with the legs tucked under it, so the
+silhouette never breaks into posts however it is lit or turned. It is not a stegosaur with better
+smoothing; it is the animal that does not need the smoothing to rescue it.
+
+Everything below found a defect that shipped a clean audit, a correct bill of materials, one
+connected piece and a plausible render.
+
+### THE PART COUNTS WERE `put()` CALLS, AND MAKING THEM CELLS FOUND TWO MISSING FEATURES
+
+The squid's own recorded lesson - *"the sidecar reported 251,264 arm blocks in a 116,000-block
+animal, which reads as a measurement"* - was applied here on the way past, and it paid for itself
+inside a minute:
+
+    spikes 1440 -> 118    head 1479 -> 114    HORNS 124 -> 0
+
+**The horns placed 124 blocks and gained ZERO cells: they were entirely inside the skull.** Rooted
+at a computed half-width rather than on the surface the relax pass actually left, they were the
+frog's `forelegs: 0` exactly - a build with a part missing is still one piece with a clean audit -
+and no call count could ever have shown it. `loft.surface_out`'s rule, which has now cost this
+project a mane, a pair of ossicones, a tail that floated 45 cells clear and a pair of horns.
+
+### FOUR MORE FEATURES THAT HALF-EXISTED, AND THE SWEEP IS WHY THEY ARE NOT SHIPPED
+
+- **THE CLUB WAS A ONE-COURSE PADDLE BELOW LENGTH 34.** Its radii are fractions of the length, and
+  a fraction goes under one cell long before the animal stops being buildable: at 26 the vertical
+  radius is 0.73, `ball` fills a single course, and the club came out THINNER THAN THE TAIL
+  CARRYING IT - at two lengths out of five, and not the one that was being looked at. Radii have a
+  floor in BLOCKS now. It is `MIN_BLOCKS` said again: **a feature below its own legible size does
+  not shrink gracefully, it stops existing.**
+- **THE SKULL CAME TO A POINT.** The head is built as MASS, so the relax pass runs over it - and it
+  fills a narrow trough and shaves a thin tip, so a deep pinch and a fine taper bought a defect at
+  both ends: measured, the last five stations ran 7, 5, 5, 3, 1 and the animal had a SNOUT. An
+  Ankylosaurus skull is famously wider than it is long. The taper stops short of the tip and a
+  flattened wide ellipsoid caps it, which is what a beak is, and the pinch is shallow because a
+  deep one is filled anyway. **Which primitive a part is, not what number it is set to.**
+- **THE TAIL WAS A STUB, AND THEN A LOLLIPOP.** At 0.115 of the length past the rump the profile
+  silhouette read as an armadillo; lengthened to a real 38% and left thin, it read as a THREAD
+  WITH A LUMP ON IT. A club has to look carried, not hung, so the tail leaves the hip at nearly
+  the rump's own girth.
+- **AND THE KNOBS WERE POLKA DOTS.** In the PLAN - this animal's money view, and the one voxels
+  give away free - a field of stark `bone_block` osteoderms on a brown back is a regular grid of
+  white spots. The row-stagger test passed the entire time, because **staggered dots are still
+  dots**. They are `dripstone_block` now, 33 of luminance over the back rather than 146: a raised
+  bump catching light rather than a rivet. That leaves the bone to mean exactly one thing, which
+  is the features that stand PAST the animal's outline - the fringe, the horns and the club. The
+  frog's rule read backwards: *a mark that means something different is a different block*, so a
+  mark that means the SAME thing must not be.
+
+### Three test faults, and one of them deleted two tests silently
+
+- **A MIRRORED PAIR OF ROWS IS NOT TWO ROWS.** The knob-lattice test keyed on the COLUMN, and this
+  animal is exactly symmetric - so the row at +0.46 of the half-width and the row at -0.46 carry
+  identical stations by construction, and every correct build failed for being a lattice. It is
+  keyed on the distance from the spine.
+- **A KNOB SITS ON THE BODY AND A SPIKE STANDS PAST IT.** Masked as "armour above the belly" the
+  fringe came in too, and the fringe runs every station of the rim. The two are told apart by what
+  is UNDER them, which is what they actually are.
+- **TWO OF MY TEST NAMES COLLIDED WITH THE STEGOSAUR'S AND PYTHON SILENTLY SHADOWED THEM.** The
+  count stayed at 65 while I added three tests, which is the only reason it was caught -
+  `test_it_survives_EVERY_LENGTH_it_can_be_built_at` defined twice in one module is not an error,
+  it is two deleted tests. **A suite's own collected count is evidence and should be read.**
+
+### THE FACE WAS THE ONE THING NOTHING TESTED, AND IT SHIPPED AS A THUMB
+
+Jack, on the finished animal: *"the face sucks."* It did, and the head had passed every geometric
+contract this file had written for it - blunt, wide, a run of stations narrower than the shield,
+carrying a pair of eyes, symmetric. **All of those are true of a smooth brown lump.** A face is a
+DRAWN feature and nothing was asserting the drawing.
+
+- **THE SURFACING PASS WAS RUNNING OVER THE MUZZLE.** `shell.py` chamfers a step by replacing the
+  cell with a stair of the nearest colour, and on the head it picked a green-grey slab and an
+  orange stair out of the coat's own colour families - so the face was a staircase in three tones
+  nothing else on the animal uses. The frog states the rule for its own build - *only the skin,
+  and only single steps; the face, the belly, the eyes and the feet are drawn features and a stair
+  through one of them is a hole in a drawing* - and it belongs in `_skin` rather than in each
+  caller, or the next pass added here forgets it.
+- **THE EYES WERE ON THE SKULL ROOF.** Walking down from the crown for the first course carrying a
+  pair puts the beads on TOP of the head, where no bearing but the plan can see them. An eye
+  belongs on the skull's front corner - visible head-on at the silhouette's edge and in profile -
+  and that is where a real one is.
+- **AND THE HEAD HAD NO MOUTH.** The frog's own recorded finding is that five passes of eye work
+  went into a front that was a pale rectangle and what fixed it was ONE DARK LINE across it.
+  `_face` draws four marks: a pale keratin beak on the front cap, that line where the jaws meet
+  and carried three stations back along each jaw, two nostrils, and the bead.
+
+Five things it cost, in order:
+
+- **A BEAK IS THE FRONT CAP, ONE CELL DEEP.** Painted as every cell of the front three stations it
+  is not a beak, it is a grey HEAD - 84 cells, and the animal came out with a robot's face. It is
+  FOUND (the frontmost solid cell of each line through the skull) rather than filled: 8 cells.
+- **A MOUTH IS ONE COURSE.** Laid on the lowest cell of every beak column it read head-on as a
+  black cavern under a grey mask.
+- **A DRAWN FEATURE MUST NOT REPAINT ANOTHER ONE.** `Frame.put` records `fixed` and does not
+  enforce it, so the beak pass would happily paint over an eye - and an eye that has been painted
+  out is a build with a part missing that audits perfectly clean.
+- **THE EYE MERGED WITH THE MOUTH.** The jaw line runs back along the cheek, and at 0.30 down from
+  the crown the bead landed one course above it: two black cells touching are one black blob,
+  which is the axolotl's *"a two-cell bar, not a bead"* and the frog's sunglasses arrived at from a
+  third direction. Two courses of hide between them.
+- **A NOSTRIL IS NOT BLACK AND IT IS NOT THE FACE'S OWN TONE EITHER.** Black, two of them under two
+  black pupils read as a second pair of eyes - the frog shipped exactly that. Moved to the head's
+  own `dripstone_block` they were invisible, and reported 2 while placing nothing anybody could
+  find. They are the back's brown on the face's dripstone: 33 of luminance, a dimple.
+
+**AND THE FACE MOVED THE ANIMAL'S SIZE FLOOR.** `_eyes` began raising at length 26: the relax pass
+leaves a skull one course tall there, which cannot hold a bead either side of a midline. Two bugs
+came out of chasing it - a pinned eye STATION (at 26 and 30 the skull is one cell wide at the
+corner, so it must search back toward the cheek and take the frontmost station that carries a
+pair), and a course range whose start fell BELOW its own floor, so `range(1, 1, -1)` was EMPTY and
+**a loop that cannot execute looks exactly like a loop that found nothing.** With both fixed the
+floor is a real one and the declared minimum is **28**, not 26: `tools/scale.py`'s doctrine is that
+an animal's critical size is the largest of its features' own floors, and the face is now one of
+the features.
+
+`test_the_face_is_DRAWN_and_reads_head_on` and `test_the_SURFACING_pass_keeps_off_the_face` are
+what stop it going back. Two of that first test's assertions were weaker than they looked and both
+are worth keeping as a shape: **"the outermost black cells are the eyes"** picks the mouth's own
+jaw line about as often, so a bead is defined as black with no black above or below it; and
+**"the bead is not the top of its column"** fails a correct build, because at the skull's tapering
+front corner it is both the top of its column and on a side face - and the side face is the whole
+reason it reads. The property is that it faces OUTWARD.
+
+### The visual audit: eight bearings, a value panel and a distance ladder
+
+Rendered rather than reasoned about, and it found three things - one of which is a defect in
+`gen/shell.py` that every future animal would have inherited.
+
+**THE TAIL WAS 23% OF THE ANIMAL WHERE A REAL ONE IS ABOUT 38%.** Counted off the built model
+station by station: head 8, body 24, tail and club 10. The profile silhouette read as a hedgehog
+or an armadillo, because **the club is the feature that names this animal alongside the armour and
+a club needs a length of tail to be on the end of.** At `tail_f -0.560L` and `club_f -0.610L` it is
+32%, which is what a stranger reads as a clubbed tail. Two supporting measurements: the tail
+necked to a SINGLE CELL at two stations before the club - the lollipop again, the join showing as a
+stem between two masses - so its tip radius went up and the gap it has to be threaded across came
+down; and the reservation had to follow, because `_CREATURE_ZHALF` was 24 while the animal now
+reaches 27 rows back. **A stop that does not cover its own creature is a plinth with a tail hanging
+off it**, and the clamp exists as a safety net for short spans rather than as a licence, so the
+shipped `t` moved 0.25 -> 0.30 to keep it un-clamped.
+
+#### `shell.py` WAS PAINTING A WARM ANIMAL GREEN, AND EUCLIDEAN DISTANCE CANNOT SEE IT
+
+The plan - this animal's money view - came out mottled grey-green over a warm brown coat, and the
+surface histogram says why: 5% of the visible cells were `mossy_stone_brick_slab` and
+`mossy_stone_brick_stairs`. They are what `slab_for` picks for `dripstone_block`, which is the
+coat's dominant tone, and the pick is not close to wrong by its own measure - 26 apart in RGB, well
+inside the shift budget.
+
+**IT IS WRONG IN KIND.** `dripstone_block` is (134,108,93): red over blue by 41, a warm tan.
+`mossy_stone_brick_slab` is (115,121,105): red over blue by 10, and GREEN is the winning channel.
+Euclidean distance has no idea which channel is winning, so it will happily answer a warm block
+with a cool one and paint a fifth of an animal's most-seen surfaces the wrong hue family. **A
+partial is the same material seen thinner; it must not change what the material IS.** `MAX_HUE_SHIFT`
+compares red-minus-blue and is the cheapest test that catches it - and it turns down nothing that
+was ever right: `brown_wool -> spruce_slab` differs by 7 and `light_gray_wool -> andesite_slab` by
+8, while the mossy pick differs by 31.
+
+It is in `shell.py` rather than in this generator on purpose. Every animal that grows a coat
+outside the log families inherits the same pick, and a private guard here would have left the trap
+armed for the next one. What it costs is honest and small: `dripstone_block` now has NO trusted
+warm slab within budget, so the flank loses its chamfers - 155 shape blocks instead of 194, about
+5% of the surface - and the whole animal is one hue family.
+
+#### The negative result: STACKING THE VALUE LADDER WITH THE LIGHT IS WORSE
+
+The value panel showed one flat dark mass with the bone fringe as the only event in it, and the
+arithmetic behind that is real: a renderer - and Minecraft - shades a top face brightest, a side
+face mid and a bottom face darkest, so a countershaded ladder (dark back, pale belly) multiplies
+out to **the same rendered value at every course.** Widening the ladder cancels harder rather than
+helping. So the obvious move is to invert it - pale carapace, mid flanks, dark underside, which is
+also what a bony shield looks like - and it was built and rendered and is WORSE:
+
+- **the PROFILE got darker, not lighter**, because what a profile shows is almost entirely SIDE
+  faces and the inversion had just made the side band the darkest tone. The walkway gives you the
+  profile;
+- **and the plan went grey-green**, because the surfacing pass picks its slabs off the coat and a
+  paler back drew cooler ones. The skyway gives you the plan.
+
+Reverted, and recorded in the palette table so nobody re-derives it. The flatness is real and it is
+mostly a property of an armoured animal that is 21% bone at L225 against a body clustered between
+L79 and L141; the two views that matter are both better with the ladder the way round an animal
+actually wears it.
+
+    Isthmus  42,650 blocks, 0 problems, 0 leaks, 0 expensive, 0 lamps in any coat
+    head 8 stations . body 24 . tail and club 15 (32%)
+    the stop moved t 0.25 -> 0.30 and its reservation 24 -> 28, to cover the longer tail
+
+**What the audit did NOT fix, stated rather than left.** The head still merges into the shield in
+profile, which is anatomically right for an animal with no neck and does mean the profile's front
+end is its weakest quarter. At a quarter scale it is a dark smudge with pale dots rather than a
+nameable animal - expected for 43 blocks, and the plan holds up much further than the profile does.
+And nothing here has been placed in game: `render3d` draws with the same colour DB the palette
+picker optimises against, so every verdict above is about form, silhouette, mass and occlusion.
+
+### The head is BLUNT, and the contract had to change with it
+
+`test_the_head_is_PINCHED_off_the_shell` demanded a local minimum in the width profile. The relax
+pass correctly removes one - a shallow waist between two masses that each keep their neighbours is
+what survives four rounds - so the contract is not a dip. It is that the head is a RUN of stations
+markedly narrower than the shield, wide enough to carry a pair of eyes, and blunt rather than
+pointed. Same class as the plate-rooting test one animal earlier: **a threshold standing in for a
+property is a test that fails the fix rather than the fault.**
+
+    Isthmus  42,650 blocks, 0 problems, 0 leaks, 0 expensive, 0 lamps in any coat
+    lengths 28..56 x all four facings: one piece, 4 feet, 2 eyes, 0 clipped, 0 asymmetric,
+             every feature placing real cells
+    the stop moved t 0.22 -> 0.25 - the longer tail reaches 24 rows back, and at 0.22 the
+             clamp fired. A clamped stop is a safety net for short spans, never a licence
+
+**Still open:** nothing has been placed in game - `render3d` draws with the same colour DB the
+palette picker optimises against, so judge form and mass off the sheets and the palette in world.
+The club is still a boxy mass close up and reads best in plan. And the seven pre-existing
+`test_isthmus.py::test_every_land_pair_builds_legally[*-prismworks]` failures are still the stale
+`wayfinding.known_destinations()` roster, unrelated and unfixed.
+
+## DETAIL IS RESOLUTION, NOT DENSITY: the ankylosaur at 64 (2026-09-07)
+
+Jack: *"we need this as detailed and perfect as the squid but it cant be so massive, so whats the
+compromise."* The premise turned out to be wrong, and measuring it is what produced the answer.
+
+| | Abyss Squid | ankylosaur at 40 |
+|---|---|---|
+| accent tail (cells past the top 3 blocks) | 15.9% | **20.9%** |
+| dominant block | 59.0% | **48.4%** |
+| palette | 7 | 8 |
+| stairs and slabs per thousand cells | **0** | 62 |
+| **surface cells** | **44,104** | **1,078** |
+
+**THE SQUID IS NOT MORE DETAILED THAN THIS ANIMAL. IT IS FORTY-ONE TIMES THE SURFACE.** On every
+density measure this repo owns, the smaller animal already wins. What reads as detail at 275 blocks
+is RESOLUTION: a feature that is 2% of the squid is five blocks and reads, and the same fraction at
+40 blocks is one cell and does not exist. So the question is not what to add, it is how much
+surface the site can afford - and then how to spend it.
+
+### AND SCALING ALONE MADE IT WORSE, WHICH IS THE HALF THAT MATTERS
+
+Built at 40, 56 and 64 and rendered side by side, the bigger ones are EMPTIER: a wide brown field
+with sparse dots. `spike_len`, the club, the horns and the head are all fractions of the length and
+`_knobs` placed **one cell at every size**, so the carapace's pattern density fell as the square of
+the animal. That is this file's own "feature sizes must scale" trap running backwards - an absolute
+too small at large scale rather than too big at small - and it is why a bigger build of the same
+generator reads worse rather than better. **Size buys resolution; the pattern has to spend it.**
+
+### The compromise, as a number
+
+**L=64: 10,428 cells, 37 x 17 x 73, 7,148 surface.** More surface than `X elephant` (3,015), which
+is this repo's own control that "reads instantly"; a sixth of the squid's, which is the honest
+ceiling for a walkway stop rather than a landmark. The span fits it at t=0.38-0.50 without the
+clamp firing, and the causeway grew by 92 blocks of terrace to carry it.
+
+What was built into that resolution, all of it absent or one cell before:
+
+- **graded scutes** - `knob_r` is a fraction of the length now, and `knob_grade` makes the flank
+  scutes 1.45x and the spine ones 0.85x, because a field of identical studs is riveted plate at any
+  size;
+- **a keel down the midline** - **A LINE SURVIVES DISTANCE AND A FIELD OF DOTS DOES NOT.** The
+  jaguar's rosettes "turn to noise rather than pattern" at a quarter scale and that is the recorded
+  reason its coat failed; the keel is the only thing on the back that still reads as a smudge;
+- **transverse half-rings** over the shoulder - the feature an ankylosaur is actually diagnosed on,
+  and the one thing that breaks a uniform field of scutes into a structure;
+- **four horns, not two** - the squamosal pair off the skull roof and the quadratojugal pair under
+  them at the cheek, the lower pair aimed DOWN as well as back so head-on it widens the jaw rather
+  than doubling the upper pair;
+- **three toes a foot, tapered with stairs** - the frog's own recorded fix. A toe built of full
+  blocks ends at a vertical face, which is a plate, and that is why four arrangements of cubes on
+  that animal read as a rake, a comb, a plus sign and a set of random lines. **And the gaps are the
+  feature**: three prongs with air between them are a foot, the same three filled in are a boot;
+- **ossified tendon rings** along the tail, which is what makes it a rigid club-carrier;
+- **a keel along the club's own seam**, so the two lobes read as two rather than as a mallet.
+
+### IT READ AS AN ALLIGATOR, AND THE CAUSE WAS A RULE APPLIED ONE STEP TOO FAR
+
+Jack: *"i feel like this looks like a sea monster or something, alligator, not what we're trying to
+build."* He is right, and "alligator" turns out to be a measurable silhouette rather than a mood.
+Off the built model:
+
+    ground clearance of the barrel   0 courses
+    back line                        flat, 13-16, over the animal's whole length
+    tail                             dragging at y=3 for its entire length
+
+**Belly on the floor, flat back, tail down: that is a crocodilian term for term**, and it is not
+what an ankylosaur is - a DOMED carapace carried CLEAR on four short pillars with the tail held
+horizontally off the ground.
+
+**AND IT WAS MY OWN EARLIER DECISION.** `_legs`' docstring said it outright: *"four short columns,
+and they are meant to be nearly invisible - a leg that shows is a limb the silhouette decomposes
+into, which is the one thing this animal is chosen to avoid."* That is the download corpus's
+finding, and it is true of a barrel slung between LONG legs, which is the jaguar and the eight
+retired mammals. **Four short thick pillars under a wide dome is the TURTLE, and the turtle works
+in this repo.** Applying the rule to the ankylosaur's stance did not prevent a jaguar; it built a
+crocodile.
+
+The fix is three numbers and no new machinery - raise the spine's centre line so the belly clears
+the ground, arch it so the back is highest over the hips, and carry the tail at hip height rather
+than at the old belly's:
+
+    profile floor between the leg pairs   mean 1.87 -> 4.33 courses
+    midline clearance                     3.18 -> 6.33
+    barrel depth                          11.00 -> 11.59      (so the mass still dominates)
+
+#### The test that guarded this was measuring the wrong thing, and passed both builds
+
+`test_it_is_ONE_MASS_and_its_legs_do_not_show` was the contract behind the whole decision, and it
+passed the crocodile and the dinosaur identically. Two faults, and the second is the transferable
+one:
+
+- it measured air BETWEEN the highest and lowest solid cell of each profile column, which is a
+  test for internal voids and not for daylight under an animal;
+- and the replacement, written on the MIDLINE, still passed the crocodile by a hair - because
+  **what a walker sees in profile is the FLANK**, and on the old build the flank reached the ground
+  while the midline did not. The midline said 3.18 against 6.33 and neither number was the one that
+  mattered. **A test for how something READS has to measure the view it is read in.**
+
+`test_the_barrel_is_CARRIED_CLEAR_but_the_mass_still_dominates` replaces it and is deliberately
+two-sided, because this animal has now been wrong in both directions: there must be real daylight
+under the barrel, AND the barrel must still be deeper than the legs are long. It was run against
+the old spine to prove it fails there - a contract that passes the fault it was written for is
+worth less than no contract, and this file has three of those on record already.
+
+    Isthmus  44,001 blocks, 0 problems, 0 leaks, 0 expensive
+    64 builds - 16 lengths x 4 facings - one piece, four feet, 12 toes, 4 horns, 2 eyes,
+    0 clipped, 0 asymmetric
+
+### Six defects, and the last one had been silent since the stegosaur
+
+- **THE TOES DETACHED AT THREE LENGTHS OUT OF NINE.** Spaced by a multiple of the toe's radius the
+  outer pair walked off the pad; spaced across the foot they still missed it, because the pad is a
+  ball and the relax pass shaves it, so at the outer offset the ground course is sometimes not
+  there at all. Five components and a perfectly clean audit - **a detached toe is still a legal
+  block on a floor.** Each toe walks back to the pad's own frontmost solid cell and a toe with no
+  foot is skipped.
+- **THE CANVAS MARGINS WERE CONSTANTS.** Fixed at 3 and 5 they are generous at 40 and gone by 76:
+  everything that scales needs room past the nominal body that scales with it, and `clipped` came
+  back off zero above 70 while every other contract still passed. They are a fraction of the length
+  now, and the sweep is clean over 22 lengths x 4 facings.
+- **THE TAIL BANDS REPAINTED INSTEAD OF RAISING.** Written at the top course they recolour the cell
+  already there and add nothing: the part count read 0 while the pass reported success, which is
+  the horns-inside-the-skull failure in a second body. **A band you can only see in colour is not a
+  tendon ring, it is a stripe.**
+- **THE CHEEK HORN BURIED THE EYE**, because `_bead_pair` takes the outermost solid cell at its
+  course and the horn is now the outermost thing on the skull.
+- **A LAMP TARGET INSIDE A STOP WAS COUNTED AS A LAMP THAT COULD NOT BE PLACED.** The causeway's
+  light pass slides a lamp to the nearest free column - which is right for a bench or a fence in
+  the way - and its own docstring already says a stop lights itself. It tried to slide OUT of the
+  stop's footprint, could not, and counted three misses. **That could never fire while every stop
+  was narrower than the slide radius**; the first stop bigger than it turned a design decision into
+  a reported fault.
+- **`nbt.state_name` RETURNS ONLY THE NAME, so the mirror test has been comparing bare names since
+  it was written.** Its own docstring says it compares FULL BLOCK STATES with the facing mirrored
+  and exists to catch a stair leaning the wrong way on one flank - which is the frog's 60-of-134
+  defect, invisible in every sheet until `render3d.subdivide` learned to expand a stair. The
+  properties are in `state_props` and have to be asked for. `_full()` is the accessor; with it the
+  test genuinely checks what it claims, and the build passes.
+
+### And three tests were the wrong shape
+
+`test_the_face_is_DRAWN_and_reads_head_on` has now been written three ways to find the eyes
+geometrically - "the outermost black cells", then "black with no black above or below" - and both
+times it picked the MOUTH's own carry-back along the jaw, which is black, isolated vertically, and
+further out than the bead. **A BEAD IS FOUND BY ITS RING**, which is what makes it an eye; nothing
+else on the animal has one. That is the same lesson as the plate-rooting and head-pinch contracts:
+a threshold standing in for a property is a test that fails the fix rather than the fault.
+
+    Isthmus  43,761 blocks, 0 problems, 0 leaks, 0 expensive, 0 lamps unplaceable
+    the animal 10,428 cells, 7,148 surface, one piece, four feet, 12 toes, 4 horns,
+               2 eyes, 0 clipped, 0 asymmetric - over 22 lengths and all four facings
+    the stop   t 0.30 -> 0.42, plinth 8 -> 13, room 16 -> 21, flatten 11 -> 16, reach 28 -> 38
+
+## THE RIB WALK: the causeway is cut THROUGH a skeleton (2026-09-07)
+
+`configs/pf_rib_walk.yaml`, `mcbuild/gen/ribwalk.py`, `tests/test_ribwalk.py` (10).
+**3,647 blocks, 0 problems, overlap 0 in context, 0 leaks, all cheap-or-ok.**
+
+### SEVEN SUBJECTS WERE REJECTED, AND THE FAULT THEY SHARED WAS THE REGISTER
+
+The ankylosaur, then an ammonite, a pterosaur skull, a hatching egg, a giant dragonfly, a claw and
+a tree fern. Jack, on the last three: *"i dont think any of these are unique or interesting, we
+want something that is as awe inspiring as the other island elements."*
+
+**EVERY ONE OF THEM WAS AN OBJECT STANDING BESIDE THE WALK**, because I had sized them to the two
+stops already there - the balloon at 2,299 and the wyrm at 985. Nothing on this island that
+inspires awe is that shape of thing:
+
+    Abyss Squid    46,882 blocks hanging in the VOID under the park, found by parkour runners
+    Wyrm Gate      27,857 blocks straddling a LIVE RAILWAY, the train through its mouth
+    Mine Ridge     41,948 blocks of mountain with a COASTER CUT THROUGH IT
+
+**What they share is that each one USES ITS SITE**, and the causeway's own unused resource is that
+it is a walkway over nothing at all. So the sculpture is the corridor: a colossal ribcage, 75 long,
+the spine arched over the deck, the ribs coming down outside the walk - and, the move only this
+bridge can offer, **CARRYING ON PAST THE DECK INTO THE VOID**, so a guest at the rail looks down
+and the cage is still there with nothing under it.
+
+**AND A SKELETON IS THE ONE SHAPE THIS MEDIUM CANNOT GET WRONG.** This file's own words, from the
+bone bed: *"a spine is a line, a rib is a curve one block thick, a skull is a small box with holes
+in it."* No barrel, no haunch, no compound muscle and above all NO LIMBS - so the failure that
+retired eight mammals, then the stegosaur after four rounds of polish, then the ankylosaur after
+six, cannot occur here. That is a property of the subject rather than a hope about the execution.
+
+### THE CAUSEWAY IS REFUSED CELL BY CELL, AND THE REFUSAL IS THE EFFECT
+
+`loft.Frame.taken` is new and general: cells another design owns, declined and counted rather than
+clipped or refused, because it is neither a mistake nor an edge - it is this build correctly giving
+way. A rib arrives at the paving, stops, and picks up again underneath, so the bridge reads as
+having been cut through a fossil rather than as a hoop over a path. 424 cells declined; `overlap 0`
+is a property of the construction and the causeway can be regenerated under it.
+
+**It also means the design alone is in six pieces, and that is CORRECT** - the Mine Ridge's own
+recorded situation, where *"the design alone is in six pieces... the composite is the truth"*. A
+test demanding one piece from the design alone would be demanding that the causeway not pass
+through it, so what is asserted is that it builds whole when nothing is refused.
+
+### Five defects, and three of them were invisible in the render
+
+- **THE FRAME'S ORIGIN WENT WHERE THE CONTENT IS.** `Frame.at` maps forward as `cu + fz * f`, so
+  for a north-facing piece u DECREASES with f - and this design's content is entirely at POSITIVE
+  f, unlike an animal, which straddles its own origin. Set to the back margin the way an animal
+  sets it, every cell of a 128-long cage mapped off the canvas: **25,565 clipped, a skull that
+  placed NOTHING, and a render that still showed a plausible ribcage**, because what survived was
+  the near end.
+- **THE DECK'S HEIGHT IS DERIVED FROM THE DROP, NOT PASSED IN.** The ribs carry BELOW the walk -
+  that is the whole idea - so a deck at a fixed 7 puts nineteen courses of cage under the canvas
+  floor. Same 25,565, same clean-looking picture.
+- **A THIN CURVE HAS TO BE THREADED, NOT SWEPT.** Thinning the ribs from four cells to one - which
+  is what turns a culvert with stripes into a cage - took the model from seven pieces to **THREE
+  HUNDRED AND SIXTY**. Below about r=0.9 a ball is one cell, and two consecutive cells whose
+  centres moved on two axes at once are diagonal neighbours. It cost the pterosaur three spans and
+  the stegosaur its tail spikes before the rule was written down.
+- **AND THE CROWN LINE TOO**, because `sin(pi*t)**0.42` falls away VERTICALLY at both ends: its
+  derivative is unbounded as t approaches 0 or 1, so the last two spine stations differ by more
+  than a course. One 21-cell vertebra floating off the tail, one piece out of two, and it audits
+  clean because a detached vertebra is a legal block.
+- **THE PART COUNTS WERE `put()` CALLS**, reading 20,258 ribs on a 13,978-cell model. Counted as
+  unique cells they partition the build - the squid's lesson, and the thing that exposed the
+  ankylosaur's horns placing 124 blocks and gaining none.
+
+### The skull is OFF, and that is a decision
+
+Built, it came out a filled oval plate with a slot in it: consecutive rings overlap and fill, and a
+skull is a box with HOLES in it or it is nothing. More to the point **this park already has a
+walk-through skull at the Wyrm Gate**, and repeating it is precisely the reason the gecko and the
+bat were removed from the hollow reach. The machinery stays with the reason beside it; the cage
+alone is the stronger object.
+
+### And a test that measured the wrong band
+
+`test_it_is_a_CAGE_and_not_a_tunnel` first sampled six courses under the crown and reported 31%
+sky, which is true and is not the question: near the spine every rib converges on it by
+construction and the neural spines fill what is left. **A test for how something reads has to
+measure the band it is read in** - at a walker's own eye height it is 21 ribs across 85 columns,
+three quarters of it open. Same lesson as the ankylosaur's belly, which passed on the midline and
+failed on the flank.
+
+    the cage   75 long, 45 wide, 24 courses over the deck and 16 below it
+    z 80458..80533 of the Frontier Reach's 80450..80550, clear of the sloth at t=0.82
+
+**AND IT CAME DOWN 15% ON SIGHT.** Jack, on the 88-long build: *"can it be just maybe 15%
+smaller."* One number - every dimension here is a fraction of the length, which is this file's own
+named trap read the useful way round - and the siting followed from it: the cage keeps the same
+CENTRE on the reach (z 80496) and gains margin at both landfalls. 5,237 blocks -> 3,647.
+
+**Still open:** the ankylosaur is retired from `GAPS` and kept, exactly as the stegosaur is - both
+still build and keep every test. Nothing here has been placed in game. And the hatching-egg
+block-out is worth a home somewhere: measured, every dig site on the Lost Plateau is full - the
+largest clear rectangle in the bone bed, the diggings or the vale is a 3-wide strip - so a big one
+needs the Frontier's west verge (13 x 201 free at Y202), while a CLUTCH of small ones would fit the
+north pit's 15 x 3 beside the skeleton.
 
 ## The park overhaul: typed interfaces, capacity-aware streets, and a vertical park (2026-09-01)
 
@@ -11790,6 +12634,454 @@ photophore rows and the ventral band all being structure rather than decoration.
 - **46,882 blocks is a real trip.** 27,647 mangrove planks is about 6,900 logs; everything else is
   wool off sheep and one froglight type Jack already farms.
 
+## The Abyss Market: the squid's interior, and a shaft that leaves the parkour alone (2026-09-08)
+
+Jack: *"the squid is so massive and since its hollow we can technically design the interior ... make
+it a place that players want to go to (and maybe buy things from a shop)."* Then, on the two
+questions that decide the work: **a deep market in a derelict**, and **the shop is signage pointing
+at the server's own `/shops`**.
+
+`configs/abyss_market.yaml`, `mcbuild/gen/abyssmarket.py`, `tests/test_abyss_market.py` (13).
+**3,631 blocks, overlap 0, 0 placement problems in context, 0 leaks, all cheap-or-ok, 36 dig cells.**
+
+### THE CAVITY WAS A SIDE EFFECT AND IT IS THE BIGGEST INTERIOR ON THE ISLAND
+
+`finish.hollow` carved the animal at `shell: 2` and the config recorded the trade as *"66,000
+blocks nobody would ever have seen"*. Measured off the SHIPPED artifact rather than re-derived from
+`squid.SQUID` - the animal that is placed is the one in `out/`, and a fit-out computed from the
+parameters is a fit-out for a different animal the day anybody re-tunes one:
+
+    ONE connected sealed void of 54,994 cells, 250 blocks long        Z80494 -> Z80743
+    the floor rises                                                   Y104  -> Y145
+    11-15 wide at head height, 17-21 higher, 14-20 courses tall, on the axis X97600
+    a hard pinch at Z80674                                            see THE GULLET below
+    plus TWO sealed 107-cell pods at Y172-182                         one inside each EYE
+
+### THE ENTRANCE IS THE MEASUREMENT, AND THE KEEP-OUT IS UNTOUCHED
+
+The squid's own config exists around one safety rule - nothing may enter r56 of the Prism Well's
+fall column, because a surface in a column a runner falls eighty-six courses down does not save
+one, it strands one. So the way in does not come off the parkour at all: **Prismworks' own floor
+is Y202 over the animal**, and a shaft at **X97600 Z80665** is r150 from the well.
+
+    Y202 -> 45 courses of open void -> a TWO-CELL shell -> the cavity at Y155
+
+It lands on the animal's own mirror axis at the COLLAR, where the mantle meets the head, so the
+arrival is a JUNCTION with somewhere to go in both directions rather than the end of a corridor.
+
+**Two better-scoring columns were rejected and both rejections are the finding.**
+
+- **X97600 Z80704 is a DRAIN.** Two cells of shell, 42 courses, and 336 water cells within 22x22
+  with the surface at Y202 - it is under a Prismworks pond. Cutting it drops that pond forty-two
+  courses into a sealed animal, and this repo has drained 199,959 cells to Y-1908 once already
+  doing something less obviously dangerous. The search rejects any column within five of standing
+  water, and `test_the_shaft_is_DRY` re-derives it.
+- **X97583 Z80739 is a CHIMNEY.** Two cells of shell, twenty-nine courses, and a cavity ceiling at
+  Y171 that looks perfect on every number. That cavity is a **TWO-WIDE VERTICAL SLOT** - the inside
+  of an arm base, a hollow tube running up into the crown - and a visitor dropped into it lands
+  somewhere they cannot get out of. **A LANDING IS CHECKED FOR ROOM, NEVER FOR BEING CAVITY**
+  (>=100 cavity cells in a 7x7x5 box), and that check is the whole difference between the two.
+
+### THE GULLET IS A DOORWAY EIGHT COURSES UP, AND A FLOOR-WIDTH PROFILE CALLS IT A WALL
+
+At Z80674 the cavity reads width **0** at floor+1, +3 and +5, which is what a wall looks like in
+every profile this design was planned against. It is not a wall: it is a thirteen-wide oval
+floating at Y142-154 with the mantle's floor at Y136 underneath it. It is the oesophagus, the only
+way through is UP, and a walk laid on the floor simply stops there with nothing to say why.
+
+### WHAT IS IN IT, AND WHY EVERY ROOM HAS A VERB
+
+Jack has thrown work out of this park three times for the same reason - *"we don't want empty
+structures that sit there and are mostly useless"*.
+
+| | Z | |
+|---|---|---|
+| THE COLLAR | 80658-80672 | where you land; a board naming both ways |
+| THE GULLET | 80668-80684 | the throat stair into the head |
+| THE BAZAAR | 80684-80718 | **eight stalls, all signed.** The shop |
+| THE ARCADE | 80572-80658 | 86 blocks of descending gallery, lay-bys, distance signs |
+| THE SOUNDING HALL | 80518-80572 | the fin band, the widest room, and a **BELL** |
+| THE TAIL | 80500-80518 | the deepest cell you can stand in, marked and left raw |
+
+**The shop holds nothing.** A counter, a back board and the server's own shop command - no
+container anywhere, asserted, because a barrel standing empty in a public build reads as a shop
+somebody has already looted and a chest anyone can reach is a chest anyone can empty.
+
+### NOT ONE CELL OF THE ANIMAL IS TAKEN, AND THAT IS STRUCTURAL
+
+Every placement goes through one refusal that drops any cell the squid's artifact owns and counts
+it (272 refusals - so the guard is not decorative). A fit-out hanging inside another design cannot
+be checked for overlap afterwards and then patched: the two fight cell by cell in game and the
+loser is whoever places second. The squid can be regenerated under this.
+
+**The dig is the mouth and nothing else** - 3x3, two courses of Prismworks paving and two of the
+animal's skin, thirty-six cells, asserted. It is also the one place a cell is both dug and built,
+and that is not a clash: a ladder needs a rung in every course of a climb, `rimstair` settled the
+same thing on a flight cut into a cliff (*"the tread cell is itself a dig"*), and the boxes are
+declared so the context audit sees them as what they will be when the printer arrives, which is air.
+
+### Eight defects, and every one shipped a clean audit
+
+- **`_W.sign` DESCRIBED THE SUPPORT CHECK IN ITS DOCSTRING AND DID NOT MAKE IT.** Two signs shipped
+  floating in open air, which the game refuses to place, so the line is lost with nothing to say
+  so. Writing the check dropped the count 14 -> 2 and told me where the other twelve wanted to be:
+  **a docstring is not a guard**, and the drop is the check working.
+- **A RAW CAVITY SPAN IS THE WRONG MEASUREMENT AND THE FIN BAND PROVES IT.** At Z80534 the void is
+  forty-five cells across, because the fins are hollow too and their inside is a wedge closing to
+  nothing at the wings. Deck laid to that span put isolated cells where the ceiling is one course
+  over the floor. `_room_span` is the contiguous run with real HEADROOM, and a floor you cannot
+  stand on is not a floor.
+- **THE LADDER WAS ASSEMBLED FROM TWO PASSES THAT EACH STOPPED AT THEIR OWN END**, so the two
+  courses of skin between them - the dig - had no rung at all. A climb with a two-block gap in the
+  middle is not a climb, and **a ladder that stops looks exactly like a ladder that starts**.
+- **...AND THE REASON IT COULD NOT BE FIXED WAS THE ORDER OF TWO LINES.** `free()` checked the
+  animal BEFORE the dig exemption, so the exemption reached the park's paving and never the
+  squid's own skin - the only cells of the animal this design is allowed to touch refused every
+  rung. The guard that raised on the gap is what found it.
+- **THE SLAB RING REPAINTED THE LADDER'S OWN SPINE** every fourth course, hanging four rungs on
+  half a block in the only way down.
+- **THE BELL WAS FIVE AND A HALF BLOCKS OVER THE DAIS AGAINST A REACH OF FOUR AND A HALF.** Hung
+  from the cavity's own ceiling it is a picture of a bell: the one verb in the biggest room, and
+  every offline check passed it, because a bell nobody can touch is a legal, supported, affordable,
+  correctly-stated bell. It hangs from its own FRAME now, which is also what makes it read as one.
+- **THE STALL BOARDS WERE ONE CELL IN FROM THE WALL** - the span is the last CAVITY cell, so the
+  wall is one further out - and both flanks shipped as seventeen-cell clusters floating clear of
+  what they are bolted to.
+- **AND THE STALL SIGNS FACED THE WALL.** `face = "east" if side > 0` is the obvious way round and
+  it is backwards: the aisle is toward the AXIS.
+
+### LIGHT IS PROPAGATED, AND THE SCOPE IS THE DECK
+
+A lamp every six courses is a rhythm and was not an answer: propagated over the finished composite,
+**912 of 4,064 walkable cells came out at block light 3 or under, 622 of them in the room a visitor
+is meant to shop in.** A sealed cavity under a park with no sky light at any hour has no dim
+corners, only invisible ones.
+
+`_relight` is `Island Night`'s fixpoint - propagate, take every walkable cell under the threshold,
+set a froglight INTO the floor at a spread of them, propagate again - and it reports the remainder
+rather than stopping on a round cap, because **a solver that returns only what it placed says a
+floor is lit when it is not.** 144 lamps, `dark_left: 0`.
+
+**Two things about the scope.** The animal's own 450 skin froglights are IN the model, because the
+shell is two thick and some of that genuinely reaches the inside - modelling the cavity as unlit
+puts lamps where the animal has already lit itself. And what is lit is the DECK THIS DESIGN LAID,
+not the whole cavity: the raw trough either side of the walkway stays dark on purpose, and Jack's
+own note that mobs do not spawn here - which is why the squid was hollowed at all - is what makes
+that atmosphere rather than a hazard.
+
+### THE RIBS ARE WHAT TURNED A FLOOR INTO A ROOM
+
+The Sounding Hall came out a flat plank plain with a small bell on it and the arcade a bare
+corridor - a hundred blocks of floor with a lamp in it, which is the complaint this park has been
+rebuilt around three times. **A room this shape cannot be given mass by furniture, because the mass
+is the BODY.** A rib is traced on the cavity's REAL boundary at that station - up each flank and
+over the crown - so it is a rib of this animal here and every one differs by construction. 508
+cells, and it is the single biggest change in how the interior reads.
+
+**And the shaft was a barber pole.** Four-course bands of copper against deepslate is the largest
+hue contrast in the palette at the largest pitch. One dark course in four is a string course, which
+is what every other tower in this park draws with.
+
+### The palette, measured ACROSS families
+
+    polished_blackstone_bricks  45 . deepslate_bricks 71 . spruce_planks 89
+    cut_copper                 123 . smooth_stone    159 . ochre_froglight 232
+
+Steps of 26, 18, 34, 36, 73. CLAUDE.md records four separate times that this economy has no value
+contrast and all four searched INSIDE one family, where a ladder cannot exist by construction. The
+rung that matters is the structure against the FLESH: `mangrove_planks` is 67 and `red_wool` 65, so
+deepslate at 71 vanishes into the walls it is bolted to and copper at 123 does not - and it is the
+only warm hue in a cold room. It is also Prismworks' own material, from the land directly overhead,
+which is what makes the fiction read.
+
+**AND IT IS UNWAXED, ON JACK'S WORD, SO IT AGES - WHICH THE PALETTE SURVIVES.** That was the thing
+to check before agreeing rather than after: a waxed block is pinned to its stage for ever, and the
+whole interior was measured against fresh copper.
+
+    cut_copper           123  (191,107,81)     fresh: 56 clear of the flesh
+    exposed_cut_copper   128  (155,122,101)
+    weathered_copper     140  (108,153,110)
+    oxidized_cut_copper  136  ( 80,154,126)    green: 71 clear of the flesh
+
+**The contrast RISES, 56 -> 71**, and green against red flesh is complementary where warm against
+warm was not - so the design gets better on the way rather than merely tolerating the journey. It
+arrives patchy, through the two middle stages, because oxidation is per-block and random, which is
+what makes it read as age rather than as a repaint. A derelict going green inside a dead animal is
+also the story the whole fit-out is telling.
+
+### AND THE ECONOMY TABLE WAS WRONG ABOUT COPPER
+
+The design briefly carried `expensive_allowance: 94` for its `copper_block` posts. Jack: *"copper is
+not expensive, we can use it."*
+
+**IT HAD NEVER BEEN MEASURED.** `copper_block` sat in `palette.EXPENSIVE_NAMES` among
+`netherite_block`, `diamond_block`, `gold_block` and `emerald_block` - filed by LOOKING LIKE AN ORE
+BLOCK rather than by what it costs on this server. And **the table contradicted itself in a way that
+needs nobody's word to see**: every CUT form of copper was already cheap, and `cut_copper` is crafted
+FROM `copper_block` - one block into FOUR cut in a stonecutter. A table that prices an input dearer
+than four of its own output is wrong on its own terms.
+
+That is **rule 12 pointed at the ECONOMY rather than at the registry**. Cheap, available and
+spendable are three different axes and only the last two were ever derived from evidence; the rest
+of that set has the same provenance and simply has not been challenged yet, which is what CLAUDE.md
+already says about every reference table here - *suspect the tables before the code.*
+
+**Nothing asserted anywhere broke**, which is the tell that the entry was load-bearing for nothing:
+the two Prismworks tests that mention it only require copper NOT to be expensive, and
+`test_prismwell` forbids expensive blocks outright. What had to change was two DOCSTRINGS stating
+the wrong fact as evidence - the failure mode this file keeps recording, where a stale claim outlives
+the thing it described and the next reader believes it.
+
+### THE PROW, AND THE ANIMAL'S OWN OPEN MOUTH (2026-09-09)
+
+Jack: *"wondering if we swap the eye balls themselves for glass e.g. black glass so interior can
+see out ... theres also some gap left unused towards the mouth of the squid from the inside."* Both
+observations were right; neither was right in the place he expected, and the measuring is the part
+worth keeping. **3,793 blocks, overlap 0, 0 problems, 0 leaks, 15 tests.**
+
+#### THE EYES ARE THE WRONG WINDOW, AND IT IS A MEASUREMENT NOT AN OPINION
+
+    pod centroid  X97561 Y176 Z80755        eye centroid  X97574 Y169 Z80747
+    pod cells whose outward wall contains an eye cell:  2 of 111
+
+The eye pods sit thirteen blocks further out and eight further back than the eyes. Glazing an eye
+gives that chamber nothing, and the pods still have no way in. The eye DOES back onto the main
+cavity - twelve cells at X97581-84 / Y166-171, one cell of shell - but thirty courses above the
+head chamber's floor: something to look at, not through.
+
+#### AND A NINE-BY-SEVEN WINDOW IN THE FORWARD WALL IS A BLACK RECTANGLE
+
+    71 dig cells.  57 of its 63 sightlines end on NOTHING.  0 end on a light.
+
+The arm crown carries forty froglights and they are off to the SIDES, not in the forward cone. The
+limit on the whole idea was never the glass or the wall - the cavity wall is two cells thick across
+75-85% of every zone, so a window is cheap anywhere. **The limit is that there is nothing out
+there**, and the only honest answer to "can we see out" is to go and measure what is in the cone.
+
+#### THE GAP WAS REAL, WAS NOT WHERE THE VOLUME SAID, AND THE ANIMAL'S MOUTH IS OPEN
+
+Counted as volume the unused space looked like 2,260 cells reaching to Z80745 - four times the
+prow, and it would have been the biggest room in the animal. **Sliced, it is a dozen separate tubes
+two to five cells across**: the hollow insides of the ten arms and two tentacles, fanning out with
+the midline solid between them. A volume total is not a room, and this file has now made that
+mistake from both directions in one design - once believing a two-wide arm base was a landing, once
+believing a fan of arm bases was a hall.
+
+What IS there is better. Classified cell by cell rather than counted:
+
+    #  rock     M  the sealed body cavity     .  OPEN VOID
+    Y150  .......##MMMMMM###.....###MMMMMM##.......
+    Y149  #.......##MMMMM###.....###MMMMM##.......#
+
+**The squid's mouth is open.** A shaft of outside runs down the axis from Z80706, widening forward,
+and the body cavity forms a RING around it - one to three cells of rock at the closest. So the
+front of the market is two galleries either side of a hole that goes to the sea, and the window
+Jack wanted has been there since the animal was built.
+
+#### THE DECK STOPPED BECAUSE MY WIDTH DID, NOT BECAUSE THE ROOM DID
+
+`_bazaar` lays its aisle through `_room_span`, which asks about the run of cavity containing the
+AXIS. From Z80705 the axis is not cavity, so the deck stopped at Z80704 and about 1,300 reachable
+cells sat behind a measurement that could not see them. `_runs` asks the other question - every
+contiguous run at a course, not only the one through the middle - and the prow is 125 cells of deck
+in two galleries, entered by ten steps DOWN from the market, because `_profile` is a running maximum
+and the ring's own floor is two to three courses under the bazaar's.
+
+#### FOUR DEFECTS IN THE WINDOWS, EACH CAUGHT BY A TEST RATHER THAN A RENDER
+
+- **THE WALK STARTED IN THE GALLERY AND CROSSED THE WHOLE ANIMAL.** Written as "walk from the
+  gallery toward the axis", at a course where the mouth has not opened yet the cavity is CONTINUOUS
+  across the body - so the walk crossed the room and cut out through the far FLANK. That is a hole
+  in the animal's skin rather than a window onto its mouth, and it looks identical in every render
+  this repo can make. The axis is checked for being open void FIRST.
+- **THE WINDOWS WERE AT KNEE HEIGHT AND THE MOUTH IS NOT.** Searched at floor+1..+3, where a window
+  obviously goes, the rule found nothing and reported zero on a correct build. Measured, the axis is
+  open at Y147-152 against a ring floor of Y142-144: it is a CLERESTORY, four to eight courses up.
+- **A WINDOW IS A RUN ON ONE PLANE, NOT A SET OF CELLS.** Placed one at a time wherever the rule
+  allowed, forty-six panes came out as a scatter of black blobs at three different depths - the
+  mouth's wall is jagged, so each pane sat where its own cut happened to end. It rendered as damage.
+  The deck soffit's confetti, in glass, for the sixth time.
+- **AND A RUN OF COURSES IS NOT A RUN ON A PLANE.** With the run gate in, three qualifying courses
+  still left panes at three different x - a run of one each. The plane is chosen once per window and
+  the run re-checked against it. `tests/test_abyss_market.py` asserts the run rather than a count,
+  which is why it caught this: the count was fine both times.
+
+**Forty-six panes became fourteen on a shared plane and EIGHT in real runs** - two tall slit windows
+with copper caps, which is what the geometry supports. The test's floor is six and says so: a bigger
+number would be asserting a wish.
+
+#### The dig, and one thing that had already gone stale
+
+    36  the shaft's mouth      20  the prow's windows      56 total, budget 60
+
+`exclude_boxes` was two boxes drawn round the shaft by hand, written before the prow existed, and it
+silently did not cover it: thirty panes came out as thirty overlaps. It is DERIVED from the dig list
+now, one box per cell. **A declaration that has to be kept in step with the thing it declares is a
+declaration that goes stale**, which is this file's most-repeated finding pointed at itself.
+
+### THE STAIRS: FOUR BUILDERS, FOUR RISERS, AND ONLY ONE OF THEM RIGHT (2026-09-09)
+
+Jack, on the placed market: *"the stairs arent aligned, so theres a bunch that are placed wrongly or
+dont connect to lead to the upper areas as we progress towards mouth."* Measured over the shipped
+design, **six transitions were wrong with three different causes**, and two of the three were
+invisible to every check the design already had.
+
+    Z80561/66/70   the Sounding Hall lays deck course by course and placed NO tread at all
+    Z80703         a TWO-course drop with nothing in it: you can fall it, not climb it
+    Z80705/80710   the prow, which DESCENDS toward the mouth, given south-facing treads
+
+**All 197 stairs in the build faced south.** That is right for the arcade, which climbs toward the
+head, and backwards for the prow, which falls away into it - and this repo has recorded since
+`test_stairhead` that **our renderer draws a backwards flight identically to a correct one**. The
+only reason the convention has ever held here is that it is asserted.
+
+#### THE FIX IS ONE POST-PASS, NOT FOUR PATCHES
+
+`_walkway`, `_gullet`, `_sounding` and `_prow` each had their own riser logic. `_treads` runs over
+the FINISHED deck instead and states the rule once: **a tread sits at the HIGHER of the two courses,
+in the column on that side of the step, with its tall side facing the higher deck.** CLAUDE.md's "a
+flight that ascends toward D has every tread facing=D" falls out of that rather than being applied
+by hand, and a room added later gets correct treads for free. It runs to a fixpoint, because the
+cure for a two-course drop is an intermediate landing and that landing is itself a step wanting a
+tread.
+
+#### I PUT THE TREAD AT THE LOWER COURSE, AND MY OWN TEST AGREED WITH ME
+
+Jack walked the fixed build: *"you inserted a bunch of full blocks on tops of stairs right above the
+entrance and so you walk up stairs, have to jump then walk then jump its very strange."* He is
+describing the fix, not the original fault.
+
+**A tread at the LOWER course drops you half a block and then asks for a whole one.** Surface
+heights, which is what a body actually stands on:
+
+    deck Y+1 -> tread at the LOW course, top Y+1 -> deck Y+2      one 1.0 rise: A JUMP
+    deck Y+1 -> tread at the HIGH course, front Y+1.5, back Y+2.0  two 0.5s: a walk
+
+The convention was on this page, read off Jack's own flight, and says so exactly - *"four
+consecutive straight bottom-half treads, each ONE COURSE UP AND ONE STEP east"*. **The tread climbs
+WITH the step**; a riser laid beside the lower deck is a step you fall off before you climb it.
+
+**AND THE TEST I WROTE FOR IT ENCODED THE SAME WRONG RULE, so it passed on an unwalkable build** -
+276 transitions, 0 bad, and you cannot walk up it. It asserted a tread AT THE LOWER COURSE, which
+is where I had put them: **a test that re-states the rule the code states cannot catch that rule
+being wrong.** This repo already records the shape of that (`SplitOrderTest` grading its own copy of
+the packing arithmetic); this is the same failure written in geometry.
+
+So the test no longer asserts a convention at all. `test_the_walk_can_be_WALKED_without_jumping`
+models SURFACE HEIGHTS - a full block is 1.0, a bottom stair is 0.5 at the front and 1.0 at the
+back - and demands nothing on the walk rises more than half a block in either direction. Whatever
+the right arrangement of treads is, that is the thing it has to ACHIEVE, and it fails on the wrong
+one. **Assert the property, never the mechanism.**
+
+**Scoped wrongly it was far worse than the disease.** Pointed at `_floors` - every standable cell
+the design placed - it read a lay-by BENCH beside the walk, a rib top and the collar's platform as
+courses of the same route, found steps of nine and ten courses between them, and started inserting
+landings in mid-air: **six bad transitions became thirty-three.** A walk is its own material.
+
+#### THE GULLET WAS A SEVEN-COURSE WALL AND NOTHING COULD SEE IT
+
+The worst of it, and the one Jack actually walked into. The mantle's deck ends at Y137 down in the
+throat's narrow notch; the head's begins at Y144 up in the wide part; **the design laid nothing
+between them.** The cause was not a missing builder - `_gullet` laid its deck at `deck[z]`, the
+running-max profile, and `_room_span` correctly refuses that because at Y137 the throat is a
+one-cell notch with no headroom. It returned None for six courses running and the builder shrugged.
+
+Measured, the cavity above is thirteen wide from Y140 up. **There was never a wall, only a floor
+nobody built.** The gullet climbs now, one course per block, meeting the head's deck exactly.
+
+#### AND A TREAD CHECK CANNOT SEE A STRETCH WITH NO TREADS IN IT
+
+`test_..._RIGHT_TREAD` validates the steps that EXIST. It reported **0 bad** while the tail still
+had an eleven-block hole - Z80507-80517, between `_vault`'s five-course landing and the Sounding
+Hall's deck, belonging to no builder at all. The walk flood passed too, because **scrambling over
+the animal's raw rock IS walking.**
+
+`test_the_whole_walk_is_on_BUILT_FLOOR_not_the_animal_s_raw_rock` floods from the shaft's foot over
+cells whose floor THIS DESIGN PLACED. It found the tail at nine cells and named it. That is the
+test that matches what Jack said - *"dont connect"* - and the tread test is the one that matches
+*"placed wrongly"*; neither alone covers the complaint.
+
+#### Three smaller ones, each caught by the previous fix
+
+- **A stair may not take a lamp, and the fix for that had three bugs of its own.** `_relight` sets
+  a froglight INTO a floor cell, and after `_treads` a whole flight is floor cells - so with no
+  guard it un-builds the flight it is lighting, and with only four orthogonal candidates it gives
+  up on a flight and reports itself finished with treads at block light 6. Each of the three fixes
+  below shipped, was believed, and left the same three cells dark; see below.
+- **The prow took each course's own local floor** and wobbled 143, 142, 143, 142 - every wobble a
+  step down immediately followed by a step up, which is two treads where the animal meant one
+  slope. It runs a running MINIMUM forward, the mirror of `_profile`'s maximum.
+- **And `surf.py` lied three separate times** by reading the LOWEST standable cell in a column,
+  which finds the animal's raw throat *under* a built deck and reports the deck as missing.
+  CLAUDE.md already records that classifier being wrong three times; this is the fourth and fifth.
+
+#### A LIGHT SOLVER THAT IS OPTIMISTIC IS THE ONE KIND THAT MUST NOT EXIST
+
+Three cells of the gullet's climb stayed at block light 6 through five separate fixes, and every one
+of them was a guess. What settled it in twenty minutes was instrumenting the placement branch - not
+the search, which was the part I kept re-writing.
+
+- **THE SOLVER CROPPED ITS OWN LIGHT MODEL** to a padded box round the deck, so light behaved
+  differently at the crop edge than it does in the world, and it reported **`dark_left: 0` while
+  three treads sat at 6**. It says a floor is lit when it is not, which is the whole failure the
+  pass exists to prevent. The crop is gone: it propagates over the full canvas, which is what the
+  test does anyway, **and the two agreeing is the point** - the same drift `proportions.measure` and
+  `rubric.score` share an entry point to avoid.
+- **THE FALLBACK BURIED THE LAMP UNDER THE FLOOR.** It searches `dy` in (0, -1, +1) so it can reach
+  a neighbouring deck one course down - and on a flight, where every `dy=0` candidate is a stair, it
+  took the STRINGER at `dy=-1` instead: a froglight sealed beneath an opaque deck block, placed,
+  counted, lighting nothing. **A flush lamp must BE a floor**, so a candidate now has to have air
+  over it. Nothing else in the code could see this: `put` succeeded, the grid was updated, the
+  round reported progress.
+- **AND RE-PLACING THE SAME LAMP COUNTED AS PROGRESS.** `got > 0` is the "nothing left I can reach"
+  break, so choosing the same useless cell every round kept the solver alive for its whole
+  24-round budget re-placing one lamp. A cell used once is not a candidate again, and with that the
+  fixpoint converges in **4 rounds**.
+- **THEN THE LAST RESORT HUNG A LANTERN OUT OF RANGE.** The gullet's climb is one cell wide with the
+  animal's rock either side, so there is no floor to take and its ceiling is **eighteen courses up**
+  - four more than a lantern reaches. It is chained down to four over the step now (`iron_chain`,
+  not `chain`, in 26.x), which is the taproot entrance's own idiom for the same reason: light that
+  falls DOWN a shaft rather than onto its rim. 14 chains, and the two "hanging from air" problems
+  the flush version left went with them.
+
+    286 transitions, 0 needing a jump . 0 steps over one course . 825 treads . 21 landings
+    dark_left 0 in 4 rounds . 17 tests . 3,934 blocks . 0 new problems in context
+
+#### AND A SLICE BETWEEN TWO ANCHORS DELETED TWO FUNCTIONS
+
+Worth writing down because it cost more than any of the above. Replacing `_gullet` with
+`b[:b.index('def _gullet(')] + new + b[b.index('def _prow('):]` silently deleted **`_runs`,
+`_ribs` and `_bazaar`**, which lived between the two anchors - and the file is untracked, so there
+was no git copy to recover from. It surfaced as `NameError: _bazaar is not defined` two builds
+later.
+
+**A slice replacement must be bounded by the END of the function being replaced, not by the next
+anchor somebody remembers.** The safe form is to find the target's own terminator - the next
+top-level `def` AFTER it - and assert that nothing else was removed by counting `def` before and
+after.
+
+### Still open
+
+- **Nothing has been placed in game.** `render3d` has NO EMISSION, so the 144 froglights that are
+  the entire reason anything down there is visible draw as cream blocks here. Judge form and mass
+  off `out/market_*.png`; judge the light in world.
+- **THE TWO EYE PODS ARE NOT REACHED, AND THE PRICE IS MEASURED.** 107 cells each, at Y172-182,
+  one inside each eye - and a shaft from Prismworks lands on the crown with only TWO cells of shell
+  over the left pod at X97558 Z80754, which is the best reveal available on this island: you
+  descend eighteen blocks and arrive inside the squid's eye. What stops it is the other end - the
+  cheapest internal bore from a pod to the main cavity is **27 solid cells** one wide, so a
+  walkable 2x3 passage is roughly 150-200 dig cells through the head's own mass. That is a
+  decision about digging into the sculpture, not a defect, and it is Jack's.
+- **The arcade's deck is one flat plank field for 86 blocks.** The ribs give it a rhythm; a floor
+  pattern would give it a grain.
+- **The prow has TWO windows and the animal allows about that many.** A wider aperture needs a
+  thinner wall than the mouth's ring has, and a forward one has nothing in its cone. If more light
+  is wanted there it has to be put OUTSIDE - which is decorating the animal, and is Jack's call.
+- `walk.ducked` is 4 - four Z values where the cavity leaves under three courses over a deck. They
+  are at the tail taper and the walk closes over them; a fifth would be a hole.
+- **The market is NOT in `Park Complete`.** Like the squid it ships at its own recorded origin, so
+  `park_place.extras()` never lifts it to the park's build plane. Place it by name.
+
 ## The loop audit: every way the unattended build could sit still (2026-09-04)
 
 Jack: *"do a deep audit of all aspects of the autonomous work flows, navigation, fetching, etc"*,
@@ -13298,6 +14590,161 @@ place `aRingAtHEADHEIGHTisABOXandTheOldCountCalledItOpenGround` is the failure J
 
 697 Java tests, 0 failures. **Not flown in game** — the geometry is unit-tested with no client in it,
 and whether the printer now leaves itself a door is a thing only a session can say.
+
+### A STUCK LOOP RESETS ITSELF INSTEAD OF STOPPING (2026-09-07, chunkscan 0.9.1)
+
+Jack: *"need to fix bot stalling, if it gets stuck permanently it needs to do /visit enroz and reset
+itself, if it loses location or cant find, do the same and restart with new materials after a cscan
+analyze ... make it highly crash resistant so its always doing things."*
+
+**EVERY TERMINAL PATH IN THIS LOOP ENDED THE SAME WAY: `following = false` AND A SENTENCE.** A dead
+end held for two minutes, four spots abandoned with nothing placed, every spot struck twice, twenty
+exceptions in a row - all of them honest, all of them correct, and all of them a bot that switches
+itself off at 2am and waits for somebody to type. `mcbuild/../Rally.java` is the alternative:
+teleport to where the work is, throw away every judgement this session has made, LOOK again, and
+come back with materials chosen for what the build can take today.
+
+    /cscan rally                 reset now, by hand
+    /cscan home [command]        what a reset types to get back; `visit enroz` by default
+    /cscan why                   ...says how many resets, how many fruitless, when the next is due
+
+#### `/is` WAS THE WRONG TELEPORT, AND IT WAS THE RESCUE
+
+The recovery ladder's top rung has typed `/is` since it was written. On a fleet of alts building
+**somebody else's plot** that lands you on YOUR island - a bare starter pad **121,000 blocks** from
+the park, where every route is past `Nav.MAX_RANGE` and no chunk of the design will ever load - and
+it hands the flight straight back holding a shopping list made beside a chest that is no longer
+there and an anchor whose chunks cannot load. **The rescue was itself the way the loop most reliably
+lost its location.** The home command goes where the WORK is, and it is a SETTING rather than a
+literal because it is a fact about a server rather than about this mod.
+
+**The fall rescue KEEPS its `/is`, and that asymmetry is deliberate**: a fall is the whole inventory,
+`/is` cannot fail, and a `/visit` can (a closed island, a name that has changed). Landing on the
+wrong island is survivable and the lost-location check brings you back; falling past the bottom of
+the world is not. `RallyTest` pins both halves by reading the source, because it is asserting the
+ABSENCE of something and there is no state to look at.
+
+#### What a reset actually is
+
+The teleport is the cheap half. What makes it a reset is that **every OPINION goes and every
+MEASUREMENT stays**: struck spots, cooled-off chests, refused cells, chunks written off as
+unloadable, parked designs, the shopping list, the anchor, the station tries, the recovery ladder's
+own trouble counter. All of those are correct about the world they were formed in and worthless
+about a world we have just been teleported into - left standing, a reset lands somewhere new and
+immediately refuses the same spots and skips the same chests. What is KEPT is how much has been
+placed, how long we have been at it, and which designs are genuinely FINISHED (`doneThisSession`) -
+because a finished design is a measurement, not an opinion.
+
+Then it runs the analysis and sets `topUp`, so the next phase is a FETCH sized to what the build can
+actually take. `Analyze.java` is `/cscan analyze` lifted out of the command so the loop and the
+command read the same answer - a report that exists twice is a report two callers can disagree
+about, the same rule `proportions.measure` and `rubric.score` already share an entry point under.
+
+#### Three rules, and two of them are about not making it worse
+
+- **A reset that fixes nothing must not repeat at speed.** Resetting every thirty seconds for ever
+  is the same infinite loop with a teleport in it, and a louder one. The interval DOUBLES while
+  nothing is placed between attempts, capped at five minutes; **one block placed since the last one
+  puts it back to the beginning**, because that is the evidence it worked.
+- **A teleport cannot be fenced.** With `autofly bounds` set the reset does the FORGETTING half and
+  skips the flight, and says so - degrading silently would strand the loop outside its own fence.
+- **Landing is not instant.** 120 ticks before anything is decided: on the tick a teleport lands
+  most of the world is unloaded, `Nav` treats unloaded as passable, and the first question asked
+  afterwards is *is the work unreachable* - which would answer yes about every chunk still on its
+  way. `Rally.pending()` holds the whole loop until then.
+
+#### "Loses location" is a MEASUREMENT, not a feeling
+
+The distance from the body to the nearest cell the design still wants, held over 30 seconds.
+**Twice `Nav.MAX_RANGE`**, so a leg the router could plan never reads as lost - what it catches is
+the wrong island. A single far reading is not evidence: one recount taken mid-teleport, or while a
+chunk loads, measures far and means nothing.
+
+**And a teleport that did not teleport is a silent no-op**, which is the shape of failure the reset
+exists to end: a wrong command name, a closed island, a permission that has lapsed. The body's
+position is recorded when the command is sent and compared on landing, so `/visit enroz` failing
+says so instead of resetting, not moving, backing off and repeating all night.
+
+#### The trip limit: the flight nothing could see
+
+Found on the way. `Loop.byTrip` sorts far containers to the BACK rather than dropping them - *if the
+only stock in the world is far away, going is still better than stopping* - and that reasoning had
+no floor under it. Past twice `Nav.MAX_RANGE` no route can be searched for at all, so the flight
+falls through to going **direct** and simply keeps going, at a container index entry left over from
+another world. **The body is moving the whole time, so no clock and no rung of the ladder can see
+it** - `Recovery.inTrouble` is about movement, and this is a flight that never stops moving.
+`Loop.TRIP_LIMIT` drops them and counts them.
+
+#### And a stuck container screen closes itself
+
+A container screen nobody here opened parks the loop, correctly - clicking slots underneath somebody
+is worse than waiting. A screen that never closes is a loop that is alive, announcing itself once a
+minute, and doing nothing at all until morning. Three minutes and it closes it, which is what a
+person would do and is one packet.
+
+#### Where the resets fire, in the order they are tried
+
+| | |
+|---|---|
+| two 90-second stalls in a row with nothing placed | one stall is an awkward spot and the next spot fixes it |
+| a dead end held for two minutes | ...after `follow all` has tried every other design |
+| four spots given up on with nothing placed | ...after the next design, for the same reason |
+| every spot struck twice | ...after the next design: moving on is cheaper than crossing the world |
+| twenty exceptions in a row inside the loop | a state problem, and a reset is what replaces state |
+| the work measures over 1,024 blocks away for 30s | the wrong island |
+| the flight ladder's top rung | replaces the bare `/is` |
+
+**A broken work list deliberately does NOT rally** - a teleport does not fix a file - but it parks
+the design and takes the next one instead of ending the session, and stops only when it is the last
+one there is.
+
+**Still open:** none of this has been flown. The one thing to check before leaving it overnight is
+that **`/visit enroz` is the right command on this server** - run `/cscan rally` once by hand and
+watch what happens; if the body does not move it will say so, and `/cscan home <command>` fixes it.
+715 Java tests, 0 failures.
+
+#### ...and the reason it was stalling was ONE BIT (2026-09-07, chunkscan 0.9.2)
+
+Jack, on the jar above: *"now getting an index 8772104 out of bounds"*. Off `latest.log`:
+
+    [cscan] Index 8772104 out of bounds for length 425726
+
+**`Work.split` HAS BEEN THROWING ON EVERY RECOUNT OF A LARGE DESIGN**, which is every command that
+reads a work list and every tick of the loop. The recount's sort packs (recipe, course, distance,
+index) into one long - the 0.8.6 change that took it off a boxed comparator - and the index gets
+**23 bits**:
+
+    key[i] = (recipe << 55) | (y << 43) | (dist << 23) | i;    // pack: 23 bits of index
+    flat[(int) (k & 0xFFFFFF)]                                  // unpack: TWENTY-FOUR
+
+Bit 23 is the low bit of DISTANCE, so any cell at an odd quarter-block distance from `near` - about
+half of them, in every design - came back as `i + 8388608`. The arithmetic in the report is exact:
+8,772,104 - 8,388,608 = 383,496, inside a list of 425,726.
+
+**AND THE SUITE WAS GRADING ITS OWN COPY.** `SplitOrderTest.fast` re-implemented the packing
+line-for-line rather than calling it - and the copy masked `0x7FFFFF`, correctly. So the test
+asserted that the order MEANS what it says, proved it against an implementation that only exists
+in the test, and stayed green while production threw on every call. That is this repo's own
+one-source rule, broken inside the file whose whole job is to check the thing it duplicated:
+`proportions.measure` and `rubric.score` share an entry point for exactly this reason.
+
+`Work.sortKey` and `Work.sortIndex` are that entry point now, the mask is derived from
+`SORT_INDEX_MAX` so the two cannot differ, and the test walks every quarter-block distance from 0
+to 16 against four indices rather than trusting one. **Verified by putting the bug back**: with
+`0xFFFFFF` restored the suite fails; with it fixed, 717 pass.
+
+Two things worth keeping beyond the fix:
+
+- **A CONSTANT AND A MASK ARE ONE FACT WRITTEN TWICE.** `SORT_INDEX_MAX` was `1 << 23` and the
+  unpack was a hand-typed hex literal five lines away. Nothing connected them, and nothing ever
+  will unless one is derived from the other.
+- **A TEST THAT RE-IMPLEMENTS ITS SUBJECT MEASURES NOTHING.** It is the most convincing kind of
+  green there is: the assertions are real, the reasoning is real, and the artefact under test is
+  a copy. If a test file contains the same arithmetic as the code, that arithmetic belongs in the
+  code and the test should call it.
+
+**And the home command is confirmed**: `============ Welcome to Enroz's Island ============` in
+the log, seconds before the error. `/visit enroz` works.
 
 ### THE SHOPPING LIST CHOSE SIX THINGS NOBODY HAD (2026-09-08, chunkscan 0.9.3)
 

@@ -1,0 +1,101 @@
+# THE ABYSS MARKET - the inside of the Abyss Squid.
+#
+# Jack: "the squid is so massive and since its hollow we can technically design the interior ...
+# make it a place that players want to go to (and maybe buy things from a shop)."
+#
+# ---------------------------------------------------------------------------------------------
+# THE CAVITY, MEASURED OFF THE SHIPPED ARTIFACT RATHER THAN RE-DERIVED
+#
+#   ONE connected sealed void                    54,994 cells, Z80494 -> Z80743, 250 blocks
+#   the floor rises                              Y104 -> Y145
+#   the tube                                     11-15 wide at head height, 17-21 higher,
+#                                                14-20 courses tall, on the axis X97600
+#   a hard pinch at Z80674                       a 13-wide oval floating EIGHT courses over the
+#                                                mantle floor: the oesophagus, and a stair
+#   plus TWO sealed 107-cell pods at Y172-182    one inside each EYE - see "still open"
+#
+# It is the largest interior on the island and every cell of it was already paid for by
+# `finish.hollow` in `configs/abyss_squid.yaml`.
+#
+# ---------------------------------------------------------------------------------------------
+# THE ENTRANCE IS THE MEASUREMENT, AND IT LEAVES THE PARKOUR ALONE
+#
+# The squid's own config is built around one safety rule: nothing may enter r56 of the Prism
+# Well's fall column, because a surface in a column a runner falls eighty-six courses down does
+# not save one, it strands one. So the way in does not come off the parkour at all.
+#
+#   X97600 Z80665      the animal's own mirror axis, at the COLLAR where mantle meets head
+#   r150 from the well nowhere near the keep-out
+#   Y202 -> Y157       45 courses of open void under Prismworks' plaza
+#   TWO cells of shell 36 dig cells for a 3x3 mouth, and nothing else in the animal is broken
+#   Y155               the cavity, with the collar's deck eighteen courses below it
+#
+# Two better-scoring columns were rejected and both rejections are the point:
+#
+#   X97600 Z80704   two cells of shell, 42 courses - and UNDER A POND. 336 water cells within
+#                   22x22, surface at Y202. Cutting it drops that pond into a sealed animal;
+#                   this repo has drained 199,959 cells to Y-1908 once already.
+#   X97583 Z80739   two cells of shell, 29 courses, "cavity ceiling Y171" - and that cavity is
+#                   a TWO-WIDE VERTICAL SLOT, the inside of an arm base. A visitor would land
+#                   in a chimney. A landing is checked for ROOM, never for being cavity.
+#
+# ---------------------------------------------------------------------------------------------
+# WHAT IS IN IT, AND WHY EACH ROOM HAS A VERB
+#
+# Jack has thrown work out of this park three times for the same reason - "we don't want empty
+# structures that sit there and are mostly useless" - so no room here is scenery.
+#
+#   THE COLLAR      Z80658-80672   where you land. A junction with a board naming both ways.
+#   THE GULLET      Z80668-80684   the throat stair up into the head.
+#   THE BAZAAR      Z80684-80718   eight stalls. THE SHOP.
+#   THE ARCADE      Z80572-80658   86 blocks of descending gallery, lay-bys, distance signs.
+#   THE SOUNDING    Z80518-80572   the fin band, the widest room, and a BELL at the end of a
+#      HALL                        two-hundred-block walk.
+#   THE TAIL        Z80500-80518   the deepest cell you can stand in, marked and left raw.
+#
+# The shop is SIGNAGE on Jack's own choice: a counter, a back board and the server's own shop
+# command. Nothing here holds stock and nothing here is a container a stranger can empty - a
+# barrel standing empty in a public build reads as a shop somebody has already looted.
+#
+# ---------------------------------------------------------------------------------------------
+# NOT ONE CELL OF THE ANIMAL IS TAKEN
+#
+# Every placement goes through a refusal that drops any cell the squid's artifact owns, so
+# `overlap 0` is a property of the construction rather than a number to hope for, and the squid
+# can be regenerated under this. `verify_against` carries BOTH the animal and the park, because
+# the mouth is the one place this design and Prismworks share a column.
+#
+name: Abyss Market
+gen: abyssmarket
+params:
+  squid: out/Abyss Squid.litematic
+  park: out/Park Complete.litematic
+  shaft: [97600, 80665]
+  surface: 204
+  park_floor: [202, 203]
+  walk_w: 7
+  headroom: 3
+  lamp_every: 6
+  mark_every: 22
+
+finish:
+  cheapen: false          # every block in it is cheap-or-ok tier and 1.19
+  # THE COPPER IS UNWAXED, ON JACK'S WORD, AND IT WILL OXIDISE. That is the story - a derelict
+  # going green inside a dead animal - and the palette survives the journey rather than merely
+  # tolerating it: fresh cut copper is (191,107,81) at L123, oxidised is (80,154,126) at L136,
+  # so contrast against the animal's flesh (L65-67) RISES from 56 to 71, and green against red
+  # is complementary where warm against warm was not. It arrives patchy, through exposed and
+  # weathered, because oxidation is per-block and random - which is what makes it read as age.
+  #
+  # This design briefly carried `expensive_allowance: 94` for its `copper_block` posts, because
+  # the economy table had copper filed among the ore blocks. Jack: "copper is not expensive, we
+  # can use it" - and the table contradicted itself anyway, pricing `copper_block` above the
+  # `cut_copper` that is STONECUT FROM IT one-into-four. Corrected in `palette.EXPENSIVE_NAMES`,
+  # so there is nothing to declare and nothing here is expensive.
+  ground: false           # it hangs inside an animal that hangs in the void
+  drop_floaters: false    # the deck rests on the animal's shell, which is not in this design
+  verify_against:
+    - out/Abyss Squid.litematic
+    - out/Park Complete.litematic
+
+origin_lock: false        # LOUD: it is inside the squid, at the squid's own origin

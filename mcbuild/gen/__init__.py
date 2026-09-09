@@ -23,6 +23,10 @@ from . import park_entrance, park_frontage, park_vantage, park_water  # noqa: E4
 from . import bonebed, claimrow, diggings, fossils, frontier_scatter, mineridge  # noqa: E402
 from . import mineworks, overgrowth, park_games, plateau, pterosaur, sauropod, seam  # noqa: E402
 from . import stegosaur  # noqa: E402
+from . import ankylosaur  # noqa: E402
+from . import corgi  # noqa: E402
+from . import abyssmarket  # noqa: E402
+from . import ribwalk  # noqa: E402
 from . import downs  # noqa: E402
 from . import wyrmgate  # noqa: E402
 from . import arcstair  # noqa: E402
@@ -80,6 +84,10 @@ GENERATORS = {
     # the colossal squid hanging in the dead void under the whole park - the one
     # thing down there, and its own only light source
     "squid": squid,
+    # THE ABYSS MARKET - the fit-out of the squid's own 54,994-cell sealed cavity,
+    # entered by a shaft from Prismworks that never touches the well's fall column.
+    # mcbuild/gen/abyssmarket.py
+    "abyssmarket": abyssmarket,
     # the bone skull straddling the rim railway, mouth open around the track -
     # mcbuild/gen/wyrmgate.py. It touches NOTHING the railway made and is carried
     # from the rim, because the jaw is exactly as deep as the corridor is wide.
@@ -156,6 +164,17 @@ GENERATORS = {
     # built and looked at on its own; `isthmus.py` sites it through `creature_canvas` rather
     # than through this table, exactly as it does the balloon and the wyrm.
     "stegosaur": stegosaur,
+    # ...and the animal that replaced it on the causeway - RETIRED IN ITS TURN, and for the same
+    # reason: six rounds of polish each measured better and it still read as a standing quadruped,
+    # which the download corpus says is the one shape this system cannot build.
+    "ankylosaur": ankylosaur,
+    # A SITTING CORGI - mcbuild/gen/corgi.py. The seated pose is the whole reason it is
+    # here rather than on the retired list: a standing dog decomposes into limbs and a
+    # sitting one is one convex mass with two planar ears on it.
+    "corgi": corgi,
+    # WHAT ACTUALLY WENT ON THE FRONTIER REACH. Not an animal and not an object beside the walk:
+    # a colossal ribcage the causeway is cut THROUGH. mcbuild/gen/ribwalk.py
+    "ribwalk": ribwalk,
     "arrival": arrival,
     "attractions": attractions,
     "ticketing": ticketing,

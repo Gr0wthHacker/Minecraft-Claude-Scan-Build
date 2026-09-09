@@ -588,11 +588,15 @@ def _names_of(model):
 def test_every_building_wears_the_land_s_plant_metal(built, stem):
     """ONE COPPER BAND PER BUILDING, AT THE CORNICE, AND THAT IS THE LAND'S SIGNATURE.
 
-    `waxed_copper_block` is L124 against a L45 field - 79 points AND a full hue flip - and it is
-    CHEAP here where plain `copper_block` is expensive, which is not something to remember but
-    something `palette.tier` was asked. It is confined to a cornice, a setback collar and a
-    gantry: a warm metal used as a wall would turn a cold land warm, which is the opposite
-    failure and just as bad.
+    `waxed_copper_block` is L124 against a L45 field - 79 points AND a full hue flip - and it
+    is CHEAP here, which is not something to remember but something `palette.tier` was asked. It
+    is confined to a cornice, a setback collar and a gantry: a warm metal used as a wall would
+    turn a cold land warm, which is the opposite failure and just as bad.
+
+    (This docstring used to add "where plain `copper_block` is expensive". That was the TABLE
+    being wrong rather than the metal - it had copper filed among the ore blocks and priced it
+    above the `cut_copper` stonecut from it - and Jack corrected it on 2026-09-09. The whole
+    copper family is cheap. Nothing here changes: the band was always the waxed block.)
     """
     _cfg, _c, model = built[stem]
     got = set(_names_of(model).values())
@@ -612,9 +616,13 @@ def test_the_plant_metal_is_a_line_and_never_a_wall(built, stem):
 
 
 def test_the_plant_metal_is_cheap_available_and_has_a_matching_trim_family():
-    """Asked of the registry, never of a memory: `copper_block` is EXPENSIVE on this economy and
-    `waxed_copper_block` is cheap, which is exactly the sort of thing this repo has got wrong by
-    reaching for the obvious name."""
+    """Asked of the registry, never of a memory - which is the point whatever the answer is.
+
+    This used to read "`copper_block` is EXPENSIVE on this economy and `waxed_copper_block` is
+    cheap". The whole copper family is cheap since 2026-09-09: the table had copper among the
+    ore blocks and had never measured it, and it priced `copper_block` above the `cut_copper`
+    that is stonecut FROM it one-into-four. Asking `palette.tier` was still right; what was
+    wrong was the thing being asked."""
     for key in ("plant", "pstair", "pslab"):
         n = pb.PRISM[key]
         assert blocks.available(n), n
