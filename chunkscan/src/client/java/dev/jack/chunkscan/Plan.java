@@ -874,11 +874,15 @@ final class Plan {
 	static final int ARCS = 8;
 
 	static List<BlockPos> ring(Nav.Passable free, List<Work.Cell> cells, double reach, int maxOut) {
+		return ring(free, cells, reach, maxOut, null);
+	}
+
+	static List<BlockPos> ring(Nav.Passable free, List<Work.Cell> cells, double reach, int maxOut,
+	                           Reach canTouch) {
 		List<BlockPos> out = new ArrayList<>();
 		if (cells.isEmpty()) return out;
 		BlockPos mid = centroid(cells);
 		double r = Math.max(1.0, reach - 1.2);
-		double r2 = r * r;
 		BlockPos[] bestAt = new BlockPos[ARCS];
 		int[] bestCover = new int[ARCS];
 		int mostAnywhere = 0;
@@ -890,8 +894,11 @@ final class Plan {
 					if (!free.at(c.getX(), c.getY(), c.getZ())) continue;
 					if (!Nav.airBelow(free, c, Nav.AIR_BELOW)) continue;
 					if (!Nav.headroom(free, c, Nav.AIR_ABOVE)) continue;
-					int covered = 0;
-					for (Work.Cell w : cells) if (w.pos().distSqr(c) <= r2) covered++;
+					// THE SAME MEASURE AS bestStand. This was a third one - feet to the cell's centre,
+					// no sight line and no reach - so an orbit stop could score well on cells the
+					// printer could not touch from it, and "the next angle on this spot" was a tour of
+					// vantages that all placed nothing.
+					int covered = coveredFrom(cells, c, r, free, canTouch);
 					if (covered == 0) continue;
 					mostAnywhere = Math.max(mostAnywhere, covered);
 					int arc = arcOf(dx, dz);
@@ -920,6 +927,11 @@ final class Plan {
 
 	static BlockPos bestStand(Nav.Passable free, List<Work.Cell> cells, double reach, BlockPos from,
 	                          int maxOut, double slack) {
+		return bestStand(free, cells, reach, from, maxOut, slack, null);
+	}
+
+	static BlockPos bestStand(Nav.Passable free, List<Work.Cell> cells, double reach, BlockPos from,
+	                          int maxOut, double slack, Reach canTouch) {
 		if (cells.isEmpty()) return null;
 		BlockPos mid = centroid(cells);
 		// ---- SCORE AT THE REACH WE ACTUALLY HAVE.
@@ -945,7 +957,7 @@ final class Plan {
 					if (!Nav.headroom(free, c, Nav.AIR_ABOVE)) continue;
 					// FROM THE EYES, not the feet cell: the printer's ray leaves from the eyes, and
 					// a cell four courses below the feet is a block and a half further from them.
-					int covered = coveredFrom(cells, c, r, free);
+					int covered = coveredFrom(cells, c, r, free, canTouch);
 					double nearestCell = Double.MAX_VALUE;
 					for (Work.Cell w : cells) nearestCell = Math.min(nearestCell, eyeDistSqr(c, w.pos()));
 					if (covered == 0) continue;
@@ -1002,6 +1014,12 @@ final class Plan {
 	 */
 	static BlockPos groundStand(Nav.Passable free, java.util.function.Predicate<BlockPos> solid,
 	                            List<Work.Cell> cells, double reach, BlockPos from, int maxOut) {
+		return groundStand(free, solid, cells, reach, from, maxOut, null);
+	}
+
+	static BlockPos groundStand(Nav.Passable free, java.util.function.Predicate<BlockPos> solid,
+	                            List<Work.Cell> cells, double reach, BlockPos from, int maxOut,
+	                            Reach canTouch) {
 		if (cells.isEmpty()) return null;
 		Set<Long> work = new java.util.HashSet<>();
 		for (Work.Cell c : cells) work.add(c.pos().asLong());
@@ -1022,7 +1040,7 @@ final class Plan {
 						for (int ez = -1; ez <= 1; ez++)
 							if (solid.test(floor.offset(ex, 0, ez))) pad++;
 					if (pad < PAD_MIN) continue;
-					int covered = coveredFrom(cells, c, reach, free);
+					int covered = coveredFrom(cells, c, reach, free, canTouch);
 					if (covered == 0) continue;
 					double near = c.distSqr(from);
 					if (covered > bestCovered || (covered == bestCovered && near < bestNear)) {
@@ -1046,11 +1064,27 @@ final class Plan {
 	 * plate count the paving on top of it — a block and a half from the eyes, through a floor.
 	 */
 	static int coveredFrom(List<Work.Cell> cells, BlockPos stand, double reach, Nav.Passable free) {
+		return coveredFrom(cells, stand, reach, free, null);
+	}
+
+	/**
+	 * Can the printer TOUCH this cell from a body whose feet are in {@code stand}?
+	 *
+	 * <p>Supplied by the caller because only it has a world. Everything here measured to the cell's
+	 * CENTRE, and the printer clicks the SUPPORT's face - so a stand could score full marks on a
+	 * group it then could not place, and "moving in closer" moved to another such stand. See
+	 * {@link Printer#clickPoint}.
+	 */
+	interface Reach { boolean touches(BlockPos stand, Work.Cell cell); }
+
+	static int coveredFrom(List<Work.Cell> cells, BlockPos stand, double reach, Nav.Passable free,
+	                       Reach canTouch) {
 		double r2 = reach * reach;
 		int n = 0;
 		for (Work.Cell w : cells) {
 			if (eyeDistSqr(stand, w.pos()) > r2) continue;
 			if (free != null && !Nav.sees(free, stand, w.pos())) continue;
+			if (canTouch != null && !canTouch.touches(stand, w)) continue;
 			n++;
 		}
 		return n;

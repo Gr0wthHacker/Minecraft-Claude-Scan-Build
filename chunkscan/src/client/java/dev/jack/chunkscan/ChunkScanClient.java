@@ -2535,11 +2535,18 @@ public final class ChunkScanClient implements ClientModInitializer {
 					if (Printer.givenUpOn(c.pos())) { Printer.noteScan(1); continue; }
 					// the sweep is the stutter, so it is asked after the free tests
 					if (!Printer.everPlaceableCached(mc, c.pos(), c.block())) { Printer.noteScan(2); continue; }
+					// A CHEAP BOUND FIRST - no point on a cell's surface is more than a half-diagonal
+					// (0.87) from its centre, so a centre further than REACH+1 cannot have one in reach.
 					if (eye.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(c.pos())) > reach2) {
 						Printer.noteScan(3);
 						continue;
 					}
 					if (Printer.recentlyUnplaceable(mc.level, c.pos())) { Printer.noteScan(4); continue; }
+					// ...AND THEN THE REAL ONE. The click lands on the SUPPORT's face, not on the
+					// centre the bound above measured, so 30% of what that let through was refused by
+					// `placement` a moment later and counted as "no legal placement from here" - which
+					// reads as a cell that can never be built rather than one a metre out of the arm.
+					if (!Printer.withinReach(mc, eye, c.pos(), c.block())) { Printer.noteScan(3); continue; }
 					int slot = Printer.inventorySlot(mc.player, c.block(), mc.level.getBlockState(c.pos()));
 					if (slot < 0) { Printer.noteScan(5); continue; }
 					if (Printer.placement(mc, c.pos(), c.block(), slot) != null) {

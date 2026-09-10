@@ -649,6 +649,95 @@ final class Printer {
 		return false;
 	}
 
+	/**
+	 * Where a click aimed at {@code pos} through {@code face} actually LANDS: on the surface of the
+	 * SUPPORT, not on the cell being placed.
+	 *
+	 * <p><b>Factored out of {@link #placement} because nothing else could see it, and everything else
+	 * was guessing at it.</b> {@link #everPlaceable} is documented as {@link #placement} <i>"with the
+	 * two things that depend on WHERE YOU STAND removed - the reach and the eye ray - so it answers
+	 * about the cell rather than about the moment"</i>, and that left the MOMENT owned by nobody: the
+	 * vicinity hold, the stand chooser and the printer's own scan each invented a reach of their own
+	 * and all three measured to the cell's CENTRE. A click point is up to half a block further than
+	 * the centre when the support is on the far side, and further still on a slab or a stair - so all
+	 * three said IN REACH about cells the printer then refused, which is
+	 * <i>"1 or 2 blocks out of reach and cant place and just sits there"</i>.
+	 */
+	static Vec3 clickPoint(BlockPos nb, net.minecraft.world.phys.AABB box, Direction face, Vec3 aim) {
+		double x = Math.max(nb.getX()+box.minX+0.001, Math.min(aim.x, nb.getX()+box.maxX-0.001));
+		double y = Math.max(nb.getY()+box.minY+0.001, Math.min(aim.y, nb.getY()+box.maxY-0.001));
+		double z = Math.max(nb.getZ()+box.minZ+0.001, Math.min(aim.z, nb.getZ()+box.maxZ-0.001));
+		return switch (face) {
+			case UP -> new Vec3(x, nb.getY()+box.maxY, z);
+			case DOWN -> new Vec3(x, nb.getY()+box.minY, z);
+			case EAST -> new Vec3(nb.getX()+box.maxX, y, z);
+			case WEST -> new Vec3(nb.getX()+box.minX, y, z);
+			case SOUTH -> new Vec3(x, y, nb.getZ()+box.maxZ);
+			case NORTH -> new Vec3(x, y, nb.getZ()+box.minZ);
+		};
+	}
+
+	/**
+	 * Every point a click could land on to put {@code state} in {@code pos}, given the world as it
+	 * stands and NOT given where you are standing. Empty when nothing supports the cell.
+	 *
+	 * <p>Independent of the body on purpose: it is computed ONCE per cell and then measured against
+	 * as many candidate standing spots as the chooser wants, which is what makes a real reach test
+	 * affordable inside {@link Plan#bestStand} rather than something to approximate.
+	 */
+	static java.util.List<Vec3> clickPoints(Minecraft mc, BlockPos pos, String state) {
+		java.util.List<Vec3> out = new ArrayList<>();
+		if (mc.level == null || !mc.level.isLoaded(pos)) return out;
+		BlockState existing = mc.level.getBlockState(pos);
+		// THE PATHS THAT CLICK THE CELL RATHER THAN A SUPPORT - a bucket, and the slab, vine and
+		// glow lichen upgrades - ray at the cell itself, so their reach is to its own near surface.
+		// Answered permissively (the nearest point of the cell) because a false NO here would take
+		// a whole class of cell out of the frontier, which is the expensive direction to be wrong.
+		if (ActionRecipe.waterBucket(state)
+			|| ActionRecipe.cauldronIntermediate(existing, state)
+			|| ActionRecipe.slabIntermediate(existing, state)
+			|| ActionRecipe.vineIntermediate(existing, state)
+			|| ActionRecipe.glowLichenIntermediate(existing, state)) {
+			out.add(null);                       // 'the cell itself' - see nearestOn
+			return out;
+		}
+		boolean upper = "top".equals(props(state).get("half")) || "top".equals(props(state).get("type"));
+		for (Direction face : faces()) {
+			BlockPos nb = pos.relative(face.getOpposite());
+			if (!mc.level.isLoaded(nb)) continue;
+			BlockState sup = mc.level.getBlockState(nb);
+			if (!support(sup)) continue;
+			Vec3 aim = hit(pos, face, upper);
+			for (var box : sup.getShape(mc.level, nb).toAabbs()) out.add(clickPoint(nb, box, face, aim));
+		}
+		return out;
+	}
+
+	/** The point of {@code pos}'s own cell nearest an eye at {@code eye}. */
+	static Vec3 nearestOn(BlockPos pos, Vec3 eye) {
+		return new Vec3(Math.max(pos.getX(), Math.min(eye.x, pos.getX() + 1.0)),
+			Math.max(pos.getY(), Math.min(eye.y, pos.getY() + 1.0)),
+			Math.max(pos.getZ(), Math.min(eye.z, pos.getZ() + 1.0)));
+	}
+
+	/** Is any of them inside the printer's arm? A null entry means the cell's own surface. */
+	static boolean withinReach(Vec3 eye, BlockPos pos, java.util.List<Vec3> points) {
+		for (Vec3 pt : points) {
+			if (eye.distanceToSqr(pt == null ? nearestOn(pos, eye) : pt) <= REACH * REACH) return true;
+		}
+		return false;
+	}
+
+	/** Could the printer touch this cell from an eye here? The question the loop never asked. */
+	static boolean withinReach(Minecraft mc, Vec3 eye, BlockPos pos, String state) {
+		return withinReach(eye, pos, clickPoints(mc, pos, state));
+	}
+
+	/** Where the eyes are for a body whose FEET are in {@code stand}. */
+	static Vec3 eyeOver(BlockPos stand) {
+		return new Vec3(stand.getX() + 0.5, stand.getY() + Plan.EYE, stand.getZ() + 0.5);
+	}
+
     record Placement(BlockHitResult hit, float yaw, float pitch) {}
 
     /** Check the real ray and vanilla's placement state before sending an interaction. */
@@ -689,19 +778,9 @@ final class Printer {
                 if (!mc.level.isLoaded(nb) || !support(mc.level.getBlockState(nb))) continue;
                 var shape = mc.level.getBlockState(nb).getShape(mc.level, nb);
                 for (var box : shape.toAabbs()) {
-                    Vec3 pt = hit(pos, face, upper);
-                    // Actual shape surface: slabs are not full cubes.
-                    double x = Math.max(nb.getX()+box.minX+0.001, Math.min(pt.x, nb.getX()+box.maxX-0.001));
-                    double y = Math.max(nb.getY()+box.minY+0.001, Math.min(pt.y, nb.getY()+box.maxY-0.001));
-                    double z = Math.max(nb.getZ()+box.minZ+0.001, Math.min(pt.z, nb.getZ()+box.maxZ-0.001));
-                    pt = switch(face) {
-                        case UP -> new Vec3(x, nb.getY()+box.maxY, z);
-                        case DOWN -> new Vec3(x, nb.getY()+box.minY, z);
-                        case EAST -> new Vec3(nb.getX()+box.maxX, y, z);
-                        case WEST -> new Vec3(nb.getX()+box.minX, y, z);
-                        case SOUTH -> new Vec3(x, y, nb.getZ()+box.maxZ);
-                        case NORTH -> new Vec3(x, y, nb.getZ()+box.minZ);
-                    };
+                    // ONE SOURCE for where a click actually lands - see clickPoint. Every reach
+                    // test in the loop measures against exactly this now.
+                    Vec3 pt = clickPoint(nb, box, face, hit(pos, face, upper));
                     if (p.getEyePosition().distanceToSqr(pt) > REACH * REACH) continue;
                     Vec3 inside = pt.add(-face.getStepX()*0.001, -face.getStepY()*0.001, -face.getStepZ()*0.001);
                     BlockHitResult ray = mc.level.clip(new ClipContext(p.getEyePosition(), inside,

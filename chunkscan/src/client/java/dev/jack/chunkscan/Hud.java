@@ -597,6 +597,23 @@ final class Hud {
 	static final double LAND_SLACK = 0.4;
 
 	/**
+	 * Can the printer touch this cell from there — asked the way the printer asks it.
+	 *
+	 * <p>The stand choosers scored a candidate by eye-to-cell-CENTRE and the printer clicks the
+	 * SUPPORT's face, so a spot could score full marks on a group it then could not place: the
+	 * station stalled, "moved in closer" to another such spot, toured every angle and gave up.
+	 *
+	 * <p>The click points do not depend on where you stand, so they are computed ONCE per cell and
+	 * measured against every candidate — which is what makes the real test affordable inside a
+	 * search over several hundred candidate positions.
+	 */
+	private static Plan.Reach reachOf(Minecraft mc) {
+		Map<Long, java.util.List<net.minecraft.world.phys.Vec3>> aim = new java.util.HashMap<>();
+		return (stand, cell) -> Printer.withinReach(Printer.eyeOver(stand), cell.pos(),
+			aim.computeIfAbsent(cell.pos().asLong(), k -> Printer.clickPoints(mc, cell.pos(), cell.block())));
+	}
+
+	/**
 	 * Pick where to work THESE cells from, and guide there: on the ground when the ground covers
 	 * as much as the air does, in the air otherwise. Landing is preferred on a tie because a body
 	 * on a floor does not drift, does not have to hold altitude, and cannot lose flight by
@@ -606,10 +623,12 @@ final class Hud {
 		Nav.Passable free = Bounds.within(Nav.of(mc.level));      // a stand outside the fence is refused later
 		java.util.function.Predicate<BlockPos> solid = b -> mc.level.isLoaded(b)
 			&& mc.level.getBlockState(b).blocksMotion();
-		BlockPos ground = Plan.groundStand(free, solid, here, Plan.reachExact() - LAND_SLACK, me, STANDOFF + 3);
-		BlockPos hover = Plan.bestStand(free, here, Plan.reachExact(), me, STANDOFF + 2, Autopilot.ARRIVE_MIN);
-		int onGround = ground == null ? 0 : Plan.coveredFrom(here, ground, Plan.reachExact() - LAND_SLACK, free);
-		int inAir = hover == null ? 0 : Plan.coveredFrom(here, hover, Plan.reachExact() - Autopilot.ARRIVE_MIN, free);
+		// SCORED BY WHAT THE PRINTER CAN ACTUALLY TOUCH - see reachOf.
+		Plan.Reach canTouch = reachOf(mc);
+		BlockPos ground = Plan.groundStand(free, solid, here, Plan.reachExact() - LAND_SLACK, me, STANDOFF + 3, canTouch);
+		BlockPos hover = Plan.bestStand(free, here, Plan.reachExact(), me, STANDOFF + 2, Autopilot.ARRIVE_MIN, canTouch);
+		int onGround = ground == null ? 0 : Plan.coveredFrom(here, ground, Plan.reachExact() - LAND_SLACK, free, canTouch);
+		int inAir = hover == null ? 0 : Plan.coveredFrom(here, hover, Plan.reachExact() - Autopilot.ARRIVE_MIN, free, canTouch);
 		Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
 		if (ground != null && onGround >= inAir) {
 			guideLand(ground, "land: " + note);
@@ -622,8 +641,9 @@ final class Hud {
 
 	/** Standing at a landing that still reaches something of what is left: stay put. */
 	private static boolean landedAndReaching(java.util.List<Work.Cell> here) {
+		Minecraft mc = Minecraft.getInstance();
 		return targetLand() && Plan.coveredFrom(here, target, Plan.reachExact() - LAND_SLACK,
-			Bounds.within(Nav.of(Minecraft.getInstance().level))) > 0;
+			Bounds.within(Nav.of(mc.level)), reachOf(mc)) > 0;
 	}
 
 	static BlockPos target() {
@@ -840,11 +860,8 @@ final class Hud {
 			lastProgressMs = now;
 			mc.player.sendSystemMessage(Component.literal("[cscan] STALLED — nothing placed in "
 				+ (STALL_MS / 1000) + "s at " + (target == null ? "?" : Wand.fmt(target))
-				// ...AND NAME THE GATE RATHER THAN LISTING THE POSSIBILITIES. "Printer off, out of
-				// reach, or the spot cannot be built" is three guesses; the tick knows which.
-				+ ". " + (ChunkScanClient.printerIdle != null
-					? "The printer is not placing: " + ChunkScanClient.printerIdle + ". "
-					: "Out of reach, or the spot cannot be built. ")
+				// ...AND NAME THE REASON RATHER THAN LISTING THE POSSIBILITIES. See stallReason.
+				+ ". " + stallReason() + " "
 				+ sessionReport()));
 			if (placedTotal == 0 && stalls == 2) {
 				Boolean live = Litematica.enabled(sp.name());
@@ -927,9 +944,19 @@ final class Hud {
         // ---- STAY WHERE THE WORK IS. See Loop.holdHere. Before any question about anchors, courses,
         // spots or stations: is there anything placeable, that I am carrying, within reach of where
         // I am? Then this is the place, and the only thing to do is let the printer place it.
+        // ...AND WITHIN THE PRINTER'S ARM, WHICH NOTHING HERE USED TO ASK. Loop.VICINITY is a
+        // sphere on the FEET; the printer's ray leaves the EYES, 1.62 up, and lands on the
+        // SUPPORT's face rather than on the cell's centre. Of that sphere 4% has no reachable
+        // face at all and a further 26% is reachable only when the support happens to be on a
+        // near side - so this list routinely held cells the printer could not touch, announced
+        // them as "placeable from right here", held five seconds placing nothing, and then fought
+        // the station logic that would have moved closer. Jack: "1 or 2 blocks out of reach and
+        // cant place and just sits there". Printer.withinReach is the geometry `placement` uses.
+        net.minecraft.world.phys.Vec3 eyeNow = mc.player.getEyePosition();
         java.util.List<Work.Cell> inReach = Work.placeableNow(mc.level, Loop.focus(eligible, me, Loop.VICINITY)).stream()
             .filter(c -> carrying.getOrDefault(c.item(), 0) > 0)
             .filter(c -> Printer.everPlaceableCached(mc, c.pos(), c.block()))
+            .filter(c -> Printer.withinReach(mc, eyeNow, c.pos(), c.block()))
             .toList();
         if (inReach.isEmpty()) {
             holdSince = 0;
@@ -1706,7 +1733,7 @@ final class Hud {
 					standAt(mc, here, me, here.size() + " here");
 					return;
 				}
-				List<BlockPos> lap = Plan.ring(Bounds.within(Nav.of(mc.level)), here, Plan.reachExact(), STANDOFF + 2);
+				List<BlockPos> lap = Plan.ring(Bounds.within(Nav.of(mc.level)), here, Plan.reachExact(), STANDOFF + 2, reachOf(mc));
 				if (lap.size() >= 2) {
 					if (now - orbitSince >= ORBIT_MS || target == null) {
 						orbitSince = now;
@@ -1730,7 +1757,7 @@ final class Hud {
 				// group from a new angle every time some of it goes in — which is the difference
 				// between finishing a station and placing the near face of it and stopping.
 				BlockPos re = Plan.bestStand(Bounds.within(Nav.of(mc.level)), here, Plan.reachExact(),
-					mc.player.blockPosition(), STANDOFF + 2, Autopilot.ARRIVE_MIN);
+					mc.player.blockPosition(), STANDOFF + 2, Autopilot.ARRIVE_MIN, reachOf(mc));
 				if (re != null && !re.equals(target)) {
 					Highlight.show("goto", Work.positions(here, 200), 0x40FF60, 900);
 					guide(re, here.size() + " here");
@@ -2641,6 +2668,25 @@ final class Hud {
 	}
 
 	/** What the loop has done since `follow` started — the report for a session you were not watching. */
+	/**
+	 * WHY NOTHING WENT IN, in the words the tick already has.
+	 *
+	 * <p>This was <i>"Out of reach, or the spot cannot be built"</i> - two guesses, printed under a
+	 * comment saying the tick knows which. It does: a gate that stopped the printer names itself,
+	 * and otherwise the scan has counted every cell it rejected and why. Those are different
+	 * problems - a metre of distance is the loop's to fix by moving, a cell with no legal placement
+	 * is the design's - and telling them apart is the whole of Jack's <i>"1 or 2 blocks out of
+	 * reach and cant place and just sits there"</i>.
+	 */
+	static String stallReason() {
+		if (ChunkScanClient.printerIdle != null) {
+			return "The printer is not placing: " + ChunkScanClient.printerIdle + ".";
+		}
+		String scan = Printer.scanSummary();
+		return scan != null ? scan + "."
+			: "The printer had something to place and the server took none of it.";
+	}
+
 	static String sessionReport() {
 		long mins = Math.max(1, (System.currentTimeMillis() - startedMs) / 60_000);
 		int[] t = Printer.tally();
