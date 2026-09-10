@@ -11237,8 +11237,13 @@ on somebody else's correct change. What must not move is the KINDS.
   config three keep-out boxes was rejected: the digs belong to other designs and a typed box goes
   stale the day one of them moves, saying nothing when it does. The assembly is the only thing that
   knows all three.
-- **`tests/test_park_vantage.py` has 3 failures and 28 errors, all pre-existing** - it names
-  `configs/pf_vantage_midway_belvedere.yaml`, which is not in the tree. Identical with this
-  session's changes stashed.
+- **The composite moved, so every test that reads it was re-run against a stash: 12 failures
+  before and 12 after, and NOT ONE of them new.** They are `test_minestation` (4),
+  `test_park_vantage` (3), `test_park_water` (2), `test_overgrowth`, `test_park_frontage` and
+  `test_park_games` (1 each), plus 28 errors in `test_park_vantage` naming
+  `configs/pf_vantage_midway_belvedere.yaml`, which is not in the tree. **A sweep that removes
+  cells from an artifact half the suite reads is exactly the change that has to be baselined
+  rather than spot-checked** - the two files this session edited were clear on their own and said
+  nothing about the other eighteen.
 - Nothing here has been placed in game. `render3d` draws with the same colour DB the palette picker
   optimises against - judge form and mass offline, palette in world.
