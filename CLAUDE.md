@@ -11129,3 +11129,116 @@ photophore rows and the ventral band all being structure rather than decoration.
   empty**, so anyone siting a new deep design must read this section rather than the shadow.
 - **47,532 blocks is a real trip.** 27,635 mangrove planks is about 6,900 logs; everything else is
   wool off sheep and one froglight type Jack already farms.
+
+## A DIG ORPHANS WHAT STOOD ON IT (2026-09-10)
+
+Jack, on the shipped composite: *"on park complete lots of floating lamp posts and random things
+arches etc that arent part of prism or meant to be there."* All of it real, all of it measurable,
+and **every check this repo owns passed it** - legal states, clean economy, `module clashes: none`,
+a correct bill of materials, 0 placement problems on every part.
+
+    Park Complete, before:   508 cells with no path down to the plate, in 319 pieces
+                             254 of those 319 standing directly over a cell the dig removes
+
+### One line, and the whole of the complaint
+
+`park_place.complete()` lays the ground with `honour_dig=True`, which skips a ground cell the dig
+NAMES. **A dig names the PLATE COURSE. It does not name the eight-course lamp standard bolted to
+it.** So `Park Ways` - the ground layer, which paves and furnishes the whole 200x600 plate - kept
+every fixture whose floor was cut out from under it:
+
+| dig | cells | what `Park Ways` left standing above the plate |
+|---|---|---|
+| `PF Prism Well` | 6,883 | **12 lamp standards** and ~300 moss carpet, over a hundred-block mouth |
+| `PF Water Claim Lake` | 2,255 | the Signal Heron - which is FINE, see below |
+| `PF Water Wyrm Garden` | 708 | a lantern on a chain, and carpet |
+
+A standard is a deepslate tile base, four courses of `polished_blackstone_brick_wall`, a tile head,
+a lit `soul_lantern` in a four-cell `iron_bars` cage and an `end_rod` finial - which is also what
+"arches" is describing, because a lantern cage hanging in mid-air over a hole is exactly that
+shape. Twelve of them, in the one land Jack was standing in.
+
+**It is the fault `_drop_defer_orphans` already fixes one layer down** - *"a deferred cell
+abandoned its dependants"* - with a DIG in place of a defer. The docstring above it even states
+the right principle, *"a cell you are told to break is not a cell you are told to place"*, and
+applies it one course deep.
+
+### CONNECTIVITY WAS TOO WEAK, AND THE WELL PROVED IT IN THE SAME SESSION
+
+The first sweep dropped any ground cell with no 6-connected path to the plate. It took 395 cells
+and it was still wrong: a standard at **X97577 Z80809** stands over nothing and GRAZES `PF Prism
+Rig`'s copper at its fourth course, so it reaches the ground through somebody else's building and
+passes the flood test while hanging in the middle of the mouth. Two of the twelve did this.
+
+So there are two rules, and the first is the one that matters:
+
+- **THE GROUND LAYER DOES NOT FURNISH A HOLE.** A column whose plate cell is gone - dug and not
+  re-floored by whatever dug it - carries no lawn, no carpet and no lamp, *whatever that furniture
+  happens to be touching*. A per-column test, and it needs no exception for the lake: `PF Water
+  Claim Lake` digs the plate and lays its own bed back, so the Signal Heron's columns are floored
+  and the bird standing in them is standing on something. It keeps all 2,407 of its cells.
+- **...and then connectivity**, for anything either layer is left with no path down at all.
+
+Scoped to the GROUND and not the railway on purpose: **a viaduct spans a hole by design and a lawn
+does not.** Measured, `Park Rail` crosses no dug column at all, so the scoping costs nothing today
+and states the rule for the day one does.
+
+**443 cells dropped: 12 lamp standards and 300 moss carpet, and nothing else.**
+
+### A RIDE IS ENTITLED TO FLOAT, so the sweep is scoped rather than global
+
+`PF Crown Descent` is **84 cells of deliberately airborne parkour** - one-block `ochre_froglight`
+landings and `slime_block` jump pads hanging in the well's own shaft, which is the whole ride and
+which `gen/parkour.py`'s own docstring argues for at length (*"a ONE-BLOCK target is what makes it
+a jump instead of a walk"*). A sweep judging the composite as a whole would eat it and report a
+tidier number for having broken the thing the hole is there for. It is scoped to the cells the
+GROUND and RAILWAY passes laid, and what a module leaves hanging is **REPORTED and not touched**.
+
+That report immediately earned its keep - it found two more, in two other designs:
+
+- **`PF Vantage Frontier Lookout`: a signed orientation board and a bell hovering off the top of a
+  56-course tower**, 25 cells in two free-floating clusters. `_deck_fittings` started both at
+  `s + 1` where `s` IS the course a visitor stands in - `_crown`'s own parapet is "one course, at
+  the visitor's feet" at `s`, and the cabin's walls run `range(s, s + 4)`. The design went from
+  three components to ONE. This is the park's own recorded off-by-one - *the build plane is the
+  course you stand on, not the course under your feet* - in a third body.
+- **`PF Mine Works`: one cell of free-floating bronze.** Its tipple bell is `attachment=ceiling` at
+  `ly + 1`, and the tipple's only beam ring is five courses higher **with a hole in the middle of
+  it**; when the ore line was retired the detector rail under the bell went too, and it was left
+  with air above and below. The head beam goes in first now - two headers landing on the tipple's
+  own posts and a cross member to hang from - which is this repo's standing rule for anything that
+  hangs and which `park_vantage`'s own docstring states two files away.
+
+### What remains, and why it is not a defect
+
+87 airborne cells: **84 of Crown Descent's ride**, and **3 vines of `PF Frontier Overgrowth`** whose
+wall went to another design. A vine clings to a SIDE face, so a strand that lost its wall reads as
+airborne and is that design's to re-anchor rather than this sweep's to eat.
+
+### The test, and the mistake inside it
+
+`tests/test_park_no_floaters.py` (5). It is over the COMPOSITE, because that is the only artifact
+that knows all three digs - a module cannot see this about itself, since `Park Ways` is entirely
+right to furnish a plate and `PF Prism Well` is entirely right to cut a hole in one, and the fault
+exists only where they meet. Verified to FAIL on the pre-fix artifact, block for block.
+
+**Its first version keyed on MATERIAL and flagged a ride.** Naming the ground layer's furniture by
+block hit `PF Prism Rig` - 476 iron bars and 260 copper of gantry that hangs in the well on purpose,
+built from the same blocks a lamp cage is. **A set of things is not a set of cells**, which this
+repo has now written down three times; the fix is that a design's own cells are knowable exactly,
+because they are in its own litematic. And the parkour is pinned by a FLOOR rather than an equality
+- the ledge count moves when the descent's parameters do, and a test pinning the number would fail
+on somebody else's correct change. What must not move is the KINDS.
+
+### Still open
+
+- **`Park Ways` still PLANS the twelve standards and 300 carpet cells**; they are dropped at
+  assembly, so the composite Jack places is clean and the layer artifact is not. Teaching the
+  config three keep-out boxes was rejected: the digs belong to other designs and a typed box goes
+  stale the day one of them moves, saying nothing when it does. The assembly is the only thing that
+  knows all three.
+- **`tests/test_park_vantage.py` has 3 failures and 28 errors, all pre-existing** - it names
+  `configs/pf_vantage_midway_belvedere.yaml`, which is not in the tree. Identical with this
+  session's changes stashed.
+- Nothing here has been placed in game. `render3d` draws with the same colour DB the palette picker
+  optimises against - judge form and mass offline, palette in world.

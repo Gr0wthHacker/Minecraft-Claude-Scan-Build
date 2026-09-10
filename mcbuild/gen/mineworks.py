@@ -614,7 +614,21 @@ def _dock(lot: _Lot, p: dict) -> dict:
     if p.get("line"):
         lot.put(tv, ly, tu, WORKS["detect"], shape="north_south", powered="false",
                 waterlogged="false")
-    lot.put(tv, ly + 1, tu, WORKS["bell"], facing="west", attachment="ceiling", powered="false")
+    # **A CEILING BELL NEEDS A CEILING, AND THE TIPPLE'S ONLY BEAM RING IS FIVE COURSES HIGHER
+    # WITH A HOLE IN THE MIDDLE OF IT.** The bell hung at `ly + 1` with air above and, once the
+    # line went, air below: ONE cell of free-floating bronze over the loading bank, in a design
+    # reporting 0 problems and a correct bill. It draws exactly like a bell on a beam, and the
+    # only thing that ever caught it was a connectivity check over the whole assembled park.
+    # So the head beam goes in first, which is this repo's standing rule for anything that hangs:
+    # two headers landing on the tipple's own posts, and a cross member between them to hang from.
+    for s2 in (-2, 2):
+        for u in range(tu - 2, tu + 3):
+            lot.log(tv + s2, ly + 2, u, WORKS["beam"], axis="z")
+    for v in range(tv - 2, tv + 3):
+        lot.log(v, ly + 2, tu, WORKS["beam"], axis="x")
+    if lot.has(tv, ly + 2, tu):        # (v, y, u) - this _Lot's order, not (v, u, y)
+        lot.put(tv, ly + 1, tu, WORKS["bell"], facing="west", attachment="ceiling",
+                powered="false")
     # ...and the dock's goes on the tipple's own leg, which is the only vertical face it has:
     # its bank is three courses of platform and a sign wants a wall.
     signs = 1 if lot.sign(tv - 3, 4, tu - 2, "west",

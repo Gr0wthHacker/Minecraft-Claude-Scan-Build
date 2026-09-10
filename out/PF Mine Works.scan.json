@@ -322,15 +322,15 @@
       "narrative": "The mine's works: an elevated ore railway on timber trestles from the ridge's east foot, crossing the guest walk and the service lane over them; a three-step stamp mill stepping down the way the ore travels, with a five-head battery a guest fires from a console in its own plinth; and a tipple over a stone loading bank beside the park railway.\n"
     },
     "metrics": {
-      "blocks": 4779,
+      "blocks": 4788,
       "materials": 25,
-      "dominant_material_share": 0.3896,
+      "dominant_material_share": 0.3889,
       "light_blocks": 1,
       "massing": {
         "width": 14,
         "height": 28,
         "depth": 63,
-        "fill_ratio": 0.1935
+        "fill_ratio": 0.1939
       },
       "silhouette": {
         "top": {
@@ -342,25 +342,25 @@
           "fill_ratio": 0.3716
         },
         "side": {
-          "area": 920,
-          "fill_ratio": 0.23
+          "area": 923,
+          "fill_ratio": 0.2308
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.8062,
-          0.1913,
+          0.8066,
+          0.1909,
           0.0025
         ],
         "top_silhouette_perimeter": 296,
-        "surface_faces_per_block": 1.669
+        "surface_faces_per_block": 1.6717
       },
       "material_counts": {
         "stone_bricks": 1862,
         "spruce_planks": 1629,
         "dark_oak_stairs": 464,
-        "stripped_spruce_log": 206,
-        "spruce_log": 188,
+        "stripped_spruce_log": 219,
+        "spruce_log": 184,
         "polished_blackstone_bricks": 135,
         "spruce_trapdoor": 94,
         "dark_oak_slab": 42,
@@ -379,8 +379,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "0e274ba61c4823aa15f5c49d3a84fb6efb38fd44df3d1a4224dc008d77cd65b6",
-    "generator_source_digest": "4f7eef70feaf925456b2bda002ace98b7eb19436891f43d943a9bb8fd7294096",
+    "fingerprint": "52253b0760009a6d725a626b6e0ebd6103c1ff961d860cb872e03ad183b9b2c0",
+    "generator_source_digest": "d5ca3aa9d85f50e32108b8fbcd86e117652b79b975b0f895b074ad713ec1a23b",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -424,9 +424,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 57.910151,
-    "blocks": 4779,
-    "blocks_per_second": 82.52
+    "seconds": 59.624761,
+    "blocks": 4788,
+    "blocks_per_second": 80.3
   },
   "generator_contract": {
     "ok": false,
@@ -440,7 +440,7 @@
     "roles": [
       "ride"
     ],
-    "blocks": 4779,
+    "blocks": 4788,
     "mechanic_families": [
       "access",
       "container",

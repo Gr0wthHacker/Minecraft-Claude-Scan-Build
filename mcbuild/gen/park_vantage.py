@@ -708,6 +708,15 @@ def _deck_fittings(L, p, pal, sv, su, vi0, ui0, vi1, ui1, s) -> int:
     past that clips mid-word, which this park has shipped twice. **AND A BELL HANGS FROM A CEILING
     ATTACHMENT**, so its head beam goes in first: the same rule as a chain and a hanging lantern,
     and the reason a fitting placed blind comes away as a cluster with nothing to place against.
+
+    **`s` IS THE COURSE A VISITOR STANDS IN, NOT THE FLOOR UNDER THEM** - `_crown`'s own parapet
+    is "one course, at the visitor's feet" at `s`, and the cabin's walls run `range(s, s + 4)`.
+    Both fittings started at `s + 1`, so the board and the bell frame shipped with a clear course
+    of air beneath them: 25 cells in two free-floating clusters, a signed orientation board and a
+    bell hovering off the top of a 56-course tower. It audits clean and it renders identically,
+    because a post over a gap draws exactly like a post on a deck. That is the same off-by-one
+    this park already wrote down about anchors - the build plane is the course you stand on -
+    caught here only by a connectivity check over the whole composite.
     """
     lines = p.get("deck_board") or []
     if not lines and not p.get("deck_bell"):
@@ -717,38 +726,38 @@ def _deck_fittings(L, p, pal, sv, su, vi0, ui0, vi1, ui1, s) -> int:
     bv = vi1 - 2
     mid = (ui0 + ui1) // 2
     if lines:
-        for du in (-2, 2):                       # two posts
-            for y in (s + 1, s + 2, s + 3):
+        for du in (-2, 2):                       # two posts, standing ON the deck
+            for y in (s, s + 1, s + 2):
                 n += bool(L.put(bv, mid + du, y, pal["column"]))
         for du in range(-1, 2):                  # the board between them
-            for y in (s + 2, s + 3):
+            for y in (s + 1, s + 2):
                 n += bool(L.put(bv, mid + du, y, pal["board"]))
         for k, text in enumerate(lines[:3]):
             du = -1 + k
             over = [t for t in text if isinstance(t, str) and len(t) > SIGN_WIDTH]
             if over:
                 raise ValueError(f"a deck sign line clips past {SIGN_WIDTH} chars: {over}")
-            if L.has(bv, mid + du, s + 3) and not L.has(bv - 1, mid + du, s + 3):
+            if L.has(bv, mid + du, s + 2) and not L.has(bv - 1, mid + du, s + 2):
                 # the sign's block is taken from the land's own timber rather than a palette key
                 # this module does not have - only the Frontier opts in, and a `sign` key added to
                 # all three palettes would be a change to two lands that asked for nothing.
                 sign = pal.get("sign") or (
                     "spruce_wall_sign" if "spruce" in pal.get("column", "") else "oak_wall_sign")
-                if L.put(bv - 1, mid + du, s + 3, sign, facing="west",
+                if L.put(bv - 1, mid + du, s + 2, sign, facing="west",
                          waterlogged="false"):
-                    L.c.sign_text(bv - 1, s + 3, mid + du,
+                    L.c.sign_text(bv - 1, s + 2, mid + du,
                                   front=[str(t)[:SIGN_WIDTH] for t in list(text)[:4]] + [""] * 4,
                                   colour="white", glowing=True)
                     n += 1
     if p.get("deck_bell"):
         cv = vi1 - 5
         for du in (-1, 1):
-            for y in (s + 1, s + 2, s + 3):
+            for y in (s, s + 1, s + 2):
                 n += bool(L.put(cv, mid + du, y, pal["column"]))
         for du in (-1, 0, 1):
-            n += bool(L.put(cv, mid + du, s + 4, pal["column"]))
-        if L.has(cv, mid, s + 4):
-            n += bool(L.put(cv, mid, s + 3, "bell", attachment="ceiling", facing="west",
+            n += bool(L.put(cv, mid + du, s + 3, pal["column"]))
+        if L.has(cv, mid, s + 3):
+            n += bool(L.put(cv, mid, s + 2, "bell", attachment="ceiling", facing="west",
                             powered="false"))
     return n
 
