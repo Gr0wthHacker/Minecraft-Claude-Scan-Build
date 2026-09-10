@@ -133,8 +133,8 @@
           "fill_ratio": 1.0
         },
         "front": {
-          "area": 777,
-          "fill_ratio": 0.8162
+          "area": 775,
+          "fill_ratio": 0.8141
         },
         "side": {
           "area": 828,
@@ -148,7 +148,7 @@
           0.2872
         ],
         "top_silhouette_perimeter": 68,
-        "surface_faces_per_block": 2.1093
+        "surface_faces_per_block": 2.1078
       },
       "material_counts": {
         "stone_bricks": 1443,
@@ -174,8 +174,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "65a5dfd8e3bb570b63ee65b5ab553c19db8ab88cac599e040efd6a48f28fb110",
-    "generator_source_digest": "86de16b3e44baa0c81c27a49582de34503b060d79470edfae325425ddff0508e",
+    "fingerprint": "50ee904083687422e3e898ecc9c98f2bbf24f375b699127be9f9d22f7dc17355",
+    "generator_source_digest": "affaa57330ed6e7a92cf9b06a7fed3e3c58333006fe23e18b8ac7549d42cadcf",
     "anchors": [
       {
         "name": "street_front",
@@ -250,9 +250,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 51.413316,
+    "seconds": 53.406573,
     "blocks": 4154,
-    "blocks_per_second": 80.8
+    "blocks_per_second": 77.78
   },
   "generator_contract": {
     "ok": true,

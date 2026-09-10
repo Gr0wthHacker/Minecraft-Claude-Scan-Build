@@ -567,6 +567,47 @@ def _dig_of(names) -> list:
     return out
 
 
+def _unsupported(ids, plane: int) -> "set":
+    """Every solid cell with no 6-connected path down to the park's own plate.
+
+    A DIG ORPHANS WHAT STOOD ON IT, and nothing in this pipeline was asking. `lay(honour_dig=)`
+    skips a ground cell the dig NAMES - and a dig names the plate course, never the lamp standing
+    on it, so the mouth of the Prism Well shipped with TEN eight-course lamp standards and 275
+    cells of moss carpet hanging in mid-air over a hundred-block hole. Every check passed: the
+    states are legal, the economy is clean, the module clash count is zero, and a lamp post
+    renders identically whether or not there is anything underneath it.
+
+    It is the same shape as the fault `_drop_defer_orphans` already fixes one layer down - "a
+    deferred cell abandoned its dependants" - with a DIG in place of a defer, and it wants the
+    same answer: derive it, because a keep-out box typed into `park_ways.yaml` for each of the
+    three digs goes stale the day one of them moves and says nothing when it does.
+
+    THE TEST IS CONNECTIVITY, NOT "HAS A NEIGHBOUR". A lamp shaft is a column, so its cells hold
+    each other up: ask each one for any solid neighbour and a whole standard floats through the
+    check on its own mutual support. Reaching the plate is the honest question, and it is its own
+    fixpoint - a cell that reaches the plate does so through cells that also reach it, so nothing
+    dropped here can orphan anything kept.
+    """
+    import numpy as np
+    from collections import deque
+    solid = ids > 0
+    ny, nz, nx = solid.shape
+    seen = np.zeros_like(solid)
+    q = deque()
+    for y, z, x in zip(*solid[:plane + 1].nonzero()):
+        seen[y, z, x] = True
+        q.append((int(y), int(z), int(x)))
+    NB = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
+    while q:
+        y, z, x = q.popleft()
+        for dy, dz, dx in NB:
+            a, b, c = y + dy, z + dz, x + dx
+            if 0 <= a < ny and 0 <= b < nz and 0 <= c < nx and solid[a, b, c] and not seen[a, b, c]:
+                seen[a, b, c] = True
+                q.append((a, b, c))
+    return {(int(y), int(z), int(x)) for y, z, x in zip(*(solid & ~seen).nonzero())}
+
+
 def complete(items):
     """GROUND + RAILWAY + BUILDINGS AS ONE DESIGN, because three placements hide each other.
 
@@ -607,10 +648,13 @@ def complete(items):
 
     tiles = []
 
+    laid = {}                       # tag -> the COMPOSITE cells that tag actually placed
+
     def lay(m, ov, oy, ou, tag, honour_dig=False):
         names = {i: e.value["Name"].value for i, e in enumerate(m.palette)}
         props = {i: e.value.get("Properties") for i, e in enumerate(m.palette)}
         won = set()
+        mine = laid.setdefault(tag, set())
         for y, z, x in zip(*m.solid().nonzero()):
             Y, Z, X = int(y) + oy, int(z) + ou, int(x) + ov
             if not (0 <= Y < height and 0 <= Z < sz and 0 <= X < sx):
@@ -628,6 +672,7 @@ def complete(items):
                 slot = index[state] = len(pal); pal.append(m.palette[key])
             ids[Y, Z, X] = slot
             won.add((int(x), int(y), int(z)))
+            mine.add((Y, Z, X))
         # ...and its signs with it. This composite is the one Jack places, so a sign whose text
         # is dropped here is a blank sign in the world however correct the module was.
         for t in (getattr(m, "tile_entities", None) or []):
@@ -650,9 +695,58 @@ def complete(items):
     _rv = _yaml.safe_load((ROOT / "configs" / "park_rail.yaml").read_text(encoding="utf-8"))
     lay(rail, int(_rv["params"]["bounds"][0]), 0 - min(0, origin[1]), 0, "railway", True)
     lay(ways, 0, 0 - min(0, origin[1]), 0, "ground", True)
+
+    # ...and then take back what the dig left hanging. Scoped to the GROUND and the RAILWAY on
+    # purpose: a building is entitled to float. `PF Crown Descent` is 84 cells of deliberately
+    # airborne parkour - one-block froglight landings and slime pads hanging in the well's own
+    # shaft, which is the whole ride - and a sweep that judged the composite as a whole would eat
+    # it and report a tidier number for having broken the thing the hole is there for.
+    plane = 0 - min(0, origin[1])
+    orphans = Counter()
+
+    def drop(cells, tag):
+        for y, z, x in cells:
+            if not ids[y, z, x]:
+                continue
+            orphans[(tag, pal[ids[y, z, x]].value["Name"].value.split(":")[-1])] += 1
+            ids[y, z, x] = 0
+
+    # 1. THE GROUND LAYER DOES NOT FURNISH A HOLE. A column whose plate cell is gone - dug and
+    #    not re-floored by whatever dug it - carries no lawn, no carpet and no lamp, whatever
+    #    that furniture happens to be touching. Connectivity alone is too weak here and the well
+    #    proves it: a standard at X97577 Z80809 stands over nothing and grazes the Prism Rig's
+    #    copper at its fourth course, so it reaches the ground through somebody else's building
+    #    and passes the flood test while hanging in the middle of the mouth.
+    #    It is scoped to the GROUND and not the railway on purpose - a viaduct spans a hole by
+    #    design and a lawn does not. Measured today the railway crosses no dug column at all, so
+    #    the scoping costs nothing and states the rule for the day one does.
+    #    The lake keeps its heron by the same test rather than by an exception: `PF Water Claim
+    #    Lake` digs the plate and lays its own bed back, so those columns are floored and the
+    #    bird standing in them is standing on something.
+    hollow = ~(ids[plane] > 0)
+    drop([(y, z, x) for (y, z, x) in laid.get("ground", ()) if y > plane and hollow[z, x]],
+         "ground")
+
+    # 2. ...and then anything either layer has left with no path down to the plate at all.
+    loose = _unsupported(ids, plane)
+    for tag in ("ground", "railway"):
+        drop(laid.get(tag, ()) & loose, tag)
+    # A SIGN WHOSE BLOCK IS GONE IS A CORRUPT REGION, not a lost line - `slice_plan` states the
+    # same rule, and the ground layer does carry boards.
+    tiles[:] = [t for t in tiles
+                if ids[int(t.value["y"].value), int(t.value["z"].value), int(t.value["x"].value)]]
+    # what the buildings leave hanging is REPORTED and not touched: some of it is a ride, and the
+    # rest is somebody's design to fix rather than this assembly's to delete.
+    airborne = Counter()
+    for tag, cells in laid.items():
+        if tag in ("ground", "railway"):
+            continue
+        for y, z, x in cells & loose:
+            airborne[(tag, pal[ids[y, z, x]].value["Name"].value.split(":")[-1])] += 1
+
     out = schem.Model(ids, pal)
     out.tile_entities = tiles
-    return out, (0, min(0, origin[1]), 0), contested
+    return out, (0, min(0, origin[1]), 0), contested, orphans, airborne
 
 
 def main() -> int:
@@ -691,7 +785,7 @@ def main() -> int:
         (dest / "Park Buildings.scan.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
         print(f"\nshipped -> {dest / out.name}")
 
-        whole, worigin, contested = complete(items)
+        whole, worigin, contested, orphans, airborne = complete(items)
         wout = ROOT / "out" / "Park Complete.litematic"
         wmeta = {"origin": {"x": ANCHOR[0] + worigin[0], "y": ANCHOR[1] + worigin[1],
                             "z": ANCHOR[2] + worigin[2]},
@@ -713,6 +807,15 @@ def main() -> int:
         print("")
         print(f"Park Complete   {wx}x{wy}x{wz}  {int(whole.solid().sum()):,} blocks")
         print(f"   contested cells yielded to the winner: {dict(contested)}")
+        if orphans:
+            print(f"   ground/rail cells the DIG left hanging, dropped: {sum(orphans.values())}")
+            for (tag, blk), n in orphans.most_common():
+                print(f"      {n:5d}  {blk}  ({tag})")
+        if airborne:
+            print(f"   cells a MODULE leaves airborne, reported and not touched: "
+                  f"{sum(airborne.values())}")
+            for (tag, blk), n in airborne.most_common(12):
+                print(f"      {n:5d}  {blk}  ({tag})")
         print(f"shipped -> {dest / wout.name}")
     return 0
 
