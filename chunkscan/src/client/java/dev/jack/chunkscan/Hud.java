@@ -1027,8 +1027,8 @@ final class Hud {
                     workRadius = Loop.nearAgain();
                     if (target == null || !target.equals(moved)) {
                         mc.player.sendSystemMessage(Component.literal(
-                            "[cscan] nothing left within " + Loop.WORK_RADIUS + " — moving to "
-                                + Wand.fmt(moved)));
+                            "[cscan] nothing left within " + workRadius + " of "
+                                + Wand.fmt(anchor) + " — moving to " + Wand.fmt(moved)));
                         guide(moved, "next work");
                         lastProgressMs = now;
                     }
@@ -1458,16 +1458,22 @@ final class Hud {
 				// the same place and repeating until morning. Asked ONCE per episode, because it is a
 				// whole-design scan and the answer cannot change while we stand still.
 				if (deadEndSince == 0 && phase == Loop.Phase.DEAD_END) {
-					BlockPos far = Analyze.nearestPlaceable(mc.level, ScanRunner.schematicsDir(mc),
+					// ...AND WHERE THE PACK CAN DO THE MOST, NOT WHATEVER CELL IS NEAREST. See
+					// Analyze.bestWork: ranked by distance alone, a full inventory of copper and
+					// deepslate bought a sixty-three block flight to place ONE submerged froglight in
+					// a lake, because it was nearer than the twenty thousand cells the pack was
+					// actually full of. It got shut in there, climbed out, stalled twice and reset.
+					Analyze.Where far = Analyze.bestWork(mc.level, ScanRunner.schematicsDir(mc),
 						sp.name(), mc.player);
 					// ...and only when it is genuinely SOMEWHERE ELSE. Inside the working radius it is
 					// the cell we have just failed on, and guiding at it is the loop arguing with itself.
-					if (far != null && far.distSqr(anchor) > (double) workRadius * workRadius) {
+					if (far != null && far.at().distSqr(anchor) > (double) workRadius * workRadius) {
 						mc.player.sendSystemMessage(Component.literal("[cscan] nothing here, but "
-							+ sp.name() + " has work I can place at " + Wand.fmt(far) + " — going there"));
-						workAnchor = far;
+							+ sp.name() + " has " + far.cells() + " cell(s) I am carrying the material for"
+							+ " at " + Wand.fmt(far.at()) + " — going there"));
+						workAnchor = far.at();
 						workRadius = Loop.nearAgain();
-						guide(far, "work elsewhere in the design");
+						guide(far.at(), "work elsewhere in the design");
 						said = false;
 						lastProgressMs = now;
 						return;

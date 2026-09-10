@@ -175,13 +175,13 @@ class StuckLoopTest {
 	@Test
 	void aDeadEndLooksForWorkElsewhereBeforeItParks() throws Exception {
 		String hud = src("Hud"), analyze = src("Analyze");
-		assertTrue(analyze.contains("static BlockPos nearestPlaceable("),
+		assertTrue(analyze.contains("static Where bestWork("),
 			"nothing could answer 'where IS the work' - the reset printed the placeable count and"
 				+ " threw the positions away");
 		int at = hud.indexOf("case DEAD_END, PACK_FULL ->");
 		assertTrue(at > 0, "the dead-end branch has moved - re-anchor this test");
 		String branch = hud.substring(at, Math.min(hud.length(), at + 4000));
-		assertTrue(branch.contains("Analyze.nearestPlaceable("),
+		assertTrue(branch.contains("Analyze.bestWork("),
 			"the dead-end branch parked for two minutes beside 23,672 placeable cells that the"
 				+ " same session's analysis had just finished counting");
 	}
