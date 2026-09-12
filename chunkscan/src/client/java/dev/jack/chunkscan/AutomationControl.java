@@ -18,6 +18,10 @@ final class AutomationControl {
             case SHOP -> Shop.armed() && Screens.container() != null;
             case FARM -> Farm.running() && Screens.container() == null;
             case PHOTO -> Photo.running() && Screens.container() == null;
+            // NOT gated on the screen, unlike FARM and PHOTO: emptying the pack into the stash
+            // chest is part of the mining cycle, so the miner holds the gate THROUGH the screen
+            // rather than dropping it the moment one opens.
+            case MINE -> Miner.running();
         };
     }
 
@@ -29,9 +33,10 @@ final class AutomationControl {
         // silence until /cscan stop. See BuildJob.permits.
         if (Hud.following() && owner == ActionGate.Owner.PRINT && !BuildJob.permits(owner)) return false;
         if (Printer.busy() && owner != ActionGate.Owner.PRINT) return false;
-        if (caller == ActionGate.Owner.FARM && Digger.busy() && owner == ActionGate.Owner.PRINT) return false;
+        if ((caller == ActionGate.Owner.FARM || caller == ActionGate.Owner.MINE)
+            && Digger.busy() && owner == ActionGate.Owner.PRINT) return false;
         boolean delegated = (GATE.owner() == ActionGate.Owner.UNBOX && Unbox.phase() == Unbox.Phase.TAKING)
-            || caller == ActionGate.Owner.FARM;
+            || caller == ActionGate.Owner.FARM || caller == ActionGate.Owner.MINE;
         return GATE.enter(owner, AutomationControl::active, delegated);
     }
 
@@ -46,13 +51,18 @@ final class AutomationControl {
     static boolean blocksMovement() {
         GATE.refresh(AutomationControl::active);
         var owner = GATE.owner();
-        return Printer.busy() || (owner == ActionGate.Owner.FARM && Digger.busy())
-            || (owner != null && owner != ActionGate.Owner.FARM && owner != ActionGate.Owner.PHOTO);
+        return Printer.busy()
+            || ((owner == ActionGate.Owner.FARM || owner == ActionGate.Owner.MINE) && Digger.busy())
+            || (owner != null && owner != ActionGate.Owner.FARM && owner != ActionGate.Owner.PHOTO
+                // The miner WALKS - to the face, to the stash and back. A gate that blocked its
+                // own movement would leave it standing in the corridor it had just dug.
+                && owner != ActionGate.Owner.MINE);
     }
 
     static boolean ownsGuidance() {
         GATE.refresh(AutomationControl::active);
-        return GATE.owner() == ActionGate.Owner.FARM || GATE.owner() == ActionGate.Owner.PHOTO;
+        return GATE.owner() == ActionGate.Owner.FARM || GATE.owner() == ActionGate.Owner.PHOTO
+            || GATE.owner() == ActionGate.Owner.MINE;
     }
 
     static void clear() { GATE.clear(); }

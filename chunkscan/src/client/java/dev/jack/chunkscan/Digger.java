@@ -50,8 +50,8 @@ final class Digger {
 	static final int GIVE_UP_MAX = 1200;
 	private static int giveUpAt = GIVE_UP_MAX;
 
-	enum Verdict { BROKE, PROTECTED, OVER_VOID, OFF_PLOT, FENCED, OUT_OF_REACH, ALREADY_AIR, ALREADY_BUILT, STUCK,
-		UNDERFOOT, WORKING }
+	enum Verdict { BROKE, PROTECTED, OVER_VOID, OVER_LAVA, LAVA, OFF_PLOT, FENCED, OUT_OF_REACH, ALREADY_AIR,
+		ALREADY_BUILT, STUCK, UNDERFOOT, WORKING }
 
 	record Refusal(BlockPos pos, Verdict why, String block) {}
 
@@ -70,6 +70,58 @@ final class Digger {
 	 */
 	private static java.util.Map<BlockPos, String> wanted = java.util.Map.of();
 	private static String wantedFor;
+
+	/**
+	 * A box this digger is authorized to work in, REPLACING the island plot gate while it is set.
+	 *
+	 * <p>{@link Islands.Gate} authorizes only the recorded plots, and an island is recorded as an
+	 * X/Z rectangle with no dimension on it. In the Nether every cell is therefore outside every
+	 * plot and {@code judge} refuses all of them — no swing, no error, nothing to read. That is the
+	 * "does nothing, quietly" failure this project keeps writing rules about, and it would have been
+	 * the entire behaviour of a Nether miner.
+	 *
+	 * <p>The answer is not to weaken the plot gate: on the island it is the only thing standing
+	 * between a dig list and somebody's build. It is to make the authorization EXPLICIT where the
+	 * registry has nothing to say — a job that wants to dig outside a recorded plot has to name the
+	 * box it will stay inside, and is then held to it exactly as a design is held to its plot.
+	 *
+	 * <p><b>The dimension has to match.</b> A box is coordinates, and coordinates mean nothing
+	 * without a world — the rule {@link Wand} already lives under. Without this, an area declared in
+	 * the Nether would go on authorizing digs at the same X/Z after a walk through the portal, which
+	 * on this island is somebody's plate.
+	 */
+	private static BlockPos areaMin, areaMax;
+	private static String areaDimension = "";
+
+	/** Authorize a box. Idempotent and meant to be re-stated every tick by the job that owns it. */
+	static void authorize(BlockPos min, BlockPos max, String dimension) {
+		areaMin = min;
+		areaMax = max;
+		areaDimension = dimension == null ? "" : dimension;
+	}
+
+	static void clearAuthorization() {
+		areaMin = null;
+		areaMax = null;
+		areaDimension = "";
+	}
+
+	/** Is this cell inside a declared working area that speaks for the dimension we are in? */
+	static boolean authorizedHere(String dimension, BlockPos p) {
+		if (areaMin == null || areaMax == null) return false;
+		if (!areaDimension.equals(dimension)) return false;
+		return p.getX() >= Math.min(areaMin.getX(), areaMax.getX())
+			&& p.getX() <= Math.max(areaMin.getX(), areaMax.getX())
+			&& p.getY() >= Math.min(areaMin.getY(), areaMax.getY())
+			&& p.getY() <= Math.max(areaMin.getY(), areaMax.getY())
+			&& p.getZ() >= Math.min(areaMin.getZ(), areaMax.getZ())
+			&& p.getZ() <= Math.max(areaMin.getZ(), areaMax.getZ());
+	}
+
+	/** Whether a working area has been declared at all — for the report, and for tests. */
+	static boolean hasAuthorization() {
+		return areaMin != null && areaMax != null;
+	}
 
 	/** Tell the digger which design it is working, so it can tell finished from obstructing. */
 	static void design(java.nio.file.Path schematicsDir, String name) {
@@ -101,6 +153,9 @@ final class Digger {
 		broke = 0;
 		givenUp.clear();
 		refusals.clear();
+		// A design dig must never inherit a miner's working area: the box is the AUTHORIZATION,
+		// and one left standing would let the next list dig wherever the last job was allowed to.
+		clearAuthorization();
 	}
 
     static boolean busy() { return target != null; }
@@ -159,7 +214,17 @@ final class Digger {
 		if (want != null && Work.matches(st, want)) return Verdict.ALREADY_BUILT;
 		String name = BuiltInRegistries.BLOCK.getKey(st.getBlock()).toString();
 		if (Rules.isProtected(name)) return Verdict.PROTECTED;
-		if (Islands.outside(ScanRunner.schematicsDir(mc), p.getX(), p.getZ())) {
+		// LAVA ON ANY FACE, INCLUDING THE ONE OVERHEAD YOU CANNOT SEE FROM INSIDE A CORRIDOR.
+		// Checked before the plot and the fence because it is the least negotiable thing here:
+		// off-plot costs an apology and this costs the inventory. See LavaGuard for why the client
+		// can answer this at all - it holds the blocks behind the rock, which is the whole edge a
+		// bot has over a person swinging blind.
+		if (LavaGuard.touching(LavaGuard.of(mc.level), p)) return Verdict.LAVA;
+		// The declared working area REPLACES the plot gate where it speaks, and only in its own
+		// dimension. Without it the Nether is entirely off-plot and nothing is ever dug.
+		String dimension = mc.level.dimension().identifier().toString();
+		if (!authorizedHere(dimension, p)
+			&& Islands.outside(ScanRunner.schematicsDir(mc), p.getX(), p.getZ())) {
 			return Verdict.OFF_PLOT;
 		}
 		if (!Bounds.contains(p)) return Verdict.FENCED;    // the autofly fence, at the actuator
@@ -171,6 +236,10 @@ final class Digger {
 		if (!mc.player.getAbilities().flying && underfoot(mc.player, p)) return Verdict.UNDERFOOT;
 		VoidRisk.Cell under = VoidRisk.under(mc.level, p, mc.level.getMinY());
 		if (under.verdict() == VoidRisk.Verdict.VOID) return Verdict.OVER_VOID;
+		// A drop into lava is the same loss as a drop into the void, and until VoidRisk learned
+		// about lava it reported one as CAUGHT - lava is not solid, so the search walked past it to
+		// the bedrock underneath and called that a floor.
+		if (under.verdict() == VoidRisk.Verdict.BURNED) return Verdict.OVER_LAVA;
 		if (mc.player.getEyePosition().distanceToSqr(Vec3.atCenterOf(p)) > REACH * REACH) {
 			return Verdict.OUT_OF_REACH;
 		}
@@ -240,6 +309,11 @@ final class Digger {
 			// about the cell: given up here, the loop could never come back and dig it from the
 			// side, and the design would carry a cell nobody may ever break.
 			if (v == Verdict.UNDERFOOT) continue;
+			// SKIPPED, NOT WRITTEN OFF, for the same reason and a second one: lava is exactly what
+			// the miner's plug routine removes, so a cell refused for it now is routinely fine a
+			// moment later. OVER_LAVA is deliberately NOT in this list - a lake under a cell is a
+			// stable fact about the world and nothing this job does changes it.
+			if (v == Verdict.LAVA) continue;
 			if (v != Verdict.WORKING) {
 				if (givenUp.add(key(p))) {
 					refusals.add(new Refusal(p, v,
@@ -299,6 +373,8 @@ final class Digger {
 			b.append(e.getValue()).append(" ").append(switch (e.getKey()) {
 				case PROTECTED -> "PROTECTED (a mechanism, or wool that may be a sensor's silencer)";
 				case OVER_VOID -> "over OPEN VOID (the drop would be lost)";
+				case OVER_LAVA -> "over LAVA (the drop would burn)";
+				case LAVA -> "lava on a face of it";
 				case OFF_PLOT -> "outside the plot";
 				case FENCED -> "outside the autofly bounds";
 				case OUT_OF_REACH -> "out of reach from where you stood";

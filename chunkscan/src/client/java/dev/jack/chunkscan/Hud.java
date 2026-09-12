@@ -534,7 +534,7 @@ final class Hud {
 	}
 
 	/** What the flight is meant to do at the target. */
-	enum Mode { NEAR, EXACT, LAND }
+	enum Mode { NEAR, EXACT, LAND, MINE }
 	private static Mode mode = Mode.NEAR;
 
 	/**
@@ -549,6 +549,23 @@ final class Hud {
 	/** Whether the current target is a cell to land in. */
 	static boolean targetLand() {
 		return target != null && mode == Mode.LAND;
+	}
+
+	/**
+	 * Guide to a cell to STAND in and mine from, on foot.
+	 *
+	 * <p>Its own mode rather than a reused one, because the walk gate has to be able to tell a
+	 * mining destination from a build one. Building on foot is what that gate exists to refuse -
+	 * on this island the work hangs over the void, so a body walking to it is a body walking off
+	 * the edge. A mining stand is a floor in a corridor the miner cut itself.
+	 */
+	static void guideMine(BlockPos where, String note) {
+		guide(where, note, Mode.MINE);
+	}
+
+	/** Whether the current target is a cell to stand in and mine from. */
+	static boolean targetMine() {
+		return target != null && mode == Mode.MINE;
 	}
 
 	/**
@@ -581,7 +598,9 @@ final class Hud {
 
 	/** Whether the current target is one the flight must actually reach, not merely approach. */
 	static boolean targetExact() {
-		return target != null && mode == Mode.EXACT;
+		// A mining stand is a place to BE, not a place to hover near: the cell was chosen because
+		// the ore is in reach FROM IT, and arriving three blocks short is arriving nowhere.
+		return target != null && (mode == Mode.EXACT || mode == Mode.MINE);
 	}
 
 	static void stopGuiding() {

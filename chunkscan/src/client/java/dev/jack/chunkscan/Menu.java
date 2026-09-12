@@ -121,6 +121,10 @@ final class Menu extends Screen {
 		r.add(new Row("/cscan buy ", "<design>  what the shortfall costs; add a cap to actually buy"));
 		r.add(new Row("/cscan farm ", "<seed> <crop>  place-wait-harvest over the wand's box"));
 		r.add(new Row("/cscan photo ", "<design>  fly 8 bearings and screenshot each"));
+		// A ROW ENDING IN A SPACE takes an argument - see MenuTest. Without it you get
+		// `/cscan mine12` and wonder what happened.
+		r.add(new Row("/cscan mine ", "<radius>  branch-mine quartz on foot, stash it, repeat"));
+		r.add(new Row("/cscan mine escape ", "<command>  how the miner gets out of trouble"));
 		r.add(new Row("/cscan fleet", "who is building what, across your alts"));
 		r.add(new Row("/cscan fleet take ", "<design>  claim it for this account"));
 		r.add(new Row("/cscan fleet done ", "<design>  hand it back as finished"));

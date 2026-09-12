@@ -1628,7 +1628,12 @@ final class Autopilot {
 		// that the body stands beside the work and walks to the next patch of it. Written without
 		// this, needsFlight said "walk" and this gate said "not a fetch", and a landed body never
 		// moved again.
-		if (!Hud.fetching() && !Hud.targetLand()) {
+		// ...and a MINING stand, which is the third floor by construction. The rule this gate
+		// encodes is "only walk where there is ground", and the void is the ISLAND's hazard, not a
+		// universal one: in the Nether the thing that kills you is lava, which LavaGuard answers and
+		// which no amount of refusing to walk would have helped with. The ground condition below is
+		// the actual safety property and it still runs for every one of the three.
+		if (!Hud.fetching() && !Hud.targetLand() && !Hud.targetMine()) {
 			if (!warnedFalling) {
 				warnedFalling = true;
 				p.sendSystemMessage(Component.literal("[cscan] flight is off and building needs it"

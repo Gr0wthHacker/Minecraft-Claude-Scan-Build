@@ -323,7 +323,7 @@ class AutopilotTest {
 	}
 
 	@Test
-	void buildingRequiresFlightAndOnlyAFetchMayWalk() throws IOException {
+	void buildingRequiresFlightAndOnlyAFetchALandingOrAMineMayWalk() throws IOException {
 		// Jack's rule, and a better one than "walk whenever you cannot fly": where the loop BUILDS
 		// is out over the work — the belly, the underside of the plate, a lowland eighty blocks
 		// down — and on foot that is the air over the void. Where it FETCHES is a container somebody
@@ -331,8 +331,13 @@ class AutopilotTest {
 		String src = source();
 		// ...or a LANDING, which is a floor by construction - the one other place a body may be
 		// on foot, and the reason Hud.Mode.LAND exists. Without it a landed body never moved again.
-		assertTrue(src.contains("if (!Hud.fetching() && !Hud.targetLand())"),
-			"walking is no longer gated on the trip being a fetch or a landing");
+		// ...or a MINING stand, which is a corridor the miner cut itself. The rule this gate encodes
+		// is "only walk where there is ground", and the void is the ISLAND's hazard rather than a
+		// universal one - in the Nether what kills you is lava, which no amount of refusing to walk
+		// would have helped with. What must NOT change is the list being closed and the ground
+		// condition below it still running, and those are what the next two lines are about.
+		assertTrue(src.contains("if (!Hud.fetching() && !Hud.targetLand() && !Hud.targetMine())"),
+			"walking is no longer gated on a closed list of destinations that are floors");
 		assertTrue(src.contains("groundBelow"), "walking no longer checks there is a floor");
 		assertTrue(src.contains("wasFlying && !flying"),
 			"losing flight in mid-air is no longer treated as an emergency");

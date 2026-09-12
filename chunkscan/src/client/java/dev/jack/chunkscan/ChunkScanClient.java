@@ -72,7 +72,9 @@ public final class ChunkScanClient implements ClientModInitializer {
 		// the skyblock set
 		"add", "autodig", "buy", "craft", "farm", "forget", "income", "make", "photo", "plot",
 		"prices", "print", "sample", "smelt", "warp", "fleet", "unbox", "work", "perf",
-		"home", "rally", "screen");
+		"home", "rally", "screen",
+		// the Nether set
+		"mine", "escape");
 
 	/**
 	 * A design or clip name that is about to become a FILE PATH.
@@ -127,6 +129,11 @@ public final class ChunkScanClient implements ClientModInitializer {
                 MenuObservations.LIVE.clear();
                 AutomationControl.clear();
                 Crafter.stop(); Smelter.stop(); Shop.stop(); Farm.stop(); Photo.stop();
+                // The miner holds a box, a heading and a stash position - all coordinates, and
+                // all meaningless in whatever world you reconnect to. It is deliberately not
+                // resumed either: see Miner, a job that swings a pickaxe is the wrong one to
+                // restart into a world that has moved.
+                Miner.forget();
                 Digger.reset(); digDesign = null; printDesign = null;
 				Withdraw.cancel();
 				Withdraw.clearFailures();
@@ -520,6 +527,17 @@ public final class ChunkScanClient implements ClientModInitializer {
 					.then(argument("seed", StringArgumentType.word())
 						.then(argument("crop", StringArgumentType.word())
 							.executes(ctx -> farm(ctx, false)))))
+				.then(literal("mine")
+					.executes(ctx -> { ok(ctx.getSource(), Miner.status()); return 1; })
+					.then(literal("off").executes(ctx -> {
+						ok(ctx.getSource(), Miner.stop(ctx.getSource().getClient())); return 1; }))
+					.then(literal("escape")
+						.then(argument("command", StringArgumentType.greedyString())
+							.executes(ctx -> { ok(ctx.getSource(),
+								Miner.setEscape(StringArgumentType.getString(ctx, "command"))); return 1; })))
+					.then(argument("radius", IntegerArgumentType.integer(4, 128))
+						.executes(ctx -> { ok(ctx.getSource(), Miner.start(ctx.getSource().getClient(),
+							IntegerArgumentType.getInteger(ctx, "radius"))); return 1; })))
 				.then(literal("photo")
 					.executes(ctx -> { ok(ctx.getSource(), Photo.status()); return 1; })
 					.then(literal("off").executes(ctx -> photo(ctx, true)))
@@ -1664,6 +1682,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 		Minecraft mc = src.getClient();
 		String report = Hud.following() ? "  " + Hud.sessionReport() : "";
 		Withdraw.cancel();
+		String mining = Miner.running() ? "  miner: " + Miner.stop(mc) : "";
 		Autopilot.halt(mc);                              // also lets go of any key it was holding
 		Hud.off();
 		// EVERY layer, not the three the loop happens to use. `find`, `check`, `dig`, `dark`, `mark`
@@ -1680,7 +1699,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 		} catch (Exception ignored) {
 		}
 		ok(src, "stopped: withdrawal, autofly, follow, highlights"
-			+ (wasScanning ? " and auto-scan" : "") + " all off." + report);
+			+ (wasScanning ? " and auto-scan" : "") + " all off." + report + mining);
 		return 1;
 	}
 
@@ -2470,6 +2489,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 			say(mc, guarded(mc, "shop", Shop::tick, Shop::stop));
 			say(mc, guarded(mc, "farm", Farm::tick, Farm::stop));
 			say(mc, guarded(mc, "photo", Photo::tick, Photo::stop));
+			say(mc, guarded(mc, "miner", Miner::tick, () -> Miner.stop(mc)));
 			say(mc, guarded(mc, "unbox", Unbox::tick, Unbox::stop));
 			try {
 				// Keep this account's fleet claims alive while it is actually working. Rate-limited
@@ -2588,6 +2608,7 @@ public final class ChunkScanClient implements ClientModInitializer {
                 case "shop" -> ActionGate.Owner.SHOP;
                 case "farm" -> ActionGate.Owner.FARM;
                 case "photo" -> ActionGate.Owner.PHOTO;
+                case "miner" -> ActionGate.Owner.MINE;
                 case "unbox" -> ActionGate.Owner.UNBOX;
                 default -> throw new IllegalArgumentException("Unregistered automation: " + what);
             };

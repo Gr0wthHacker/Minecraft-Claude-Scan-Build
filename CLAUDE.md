@@ -8367,6 +8367,105 @@ roster is its own audit.
     Park Complete   526,385 -> 524,033 blocks . tuff 6,408 -> 0 . heron box EMPTY
     Park Buildings  tuff 0
 
+## THREE REACHES, NONE OF THEM THE PRINTER'S (2026-09-10, chunkscan 0.9.10)
+
+Jack: *"constantly the bot when trying to place is 1 or 2 blocks out of reach and cant place and
+just sits there."* Diagnosed off `latest.log` in twenty minutes - the fourth session running where
+the answer was already written to disk - and the cycle is in it verbatim, at four-second intervals
+for ninety seconds:
+
+    15:49:00  2 cell(s) placeable from right here - staying until they are in
+    15:49:03  built-in printer: enabled; 0 placed, 0 wrong state, 0 refused
+    15:49:03  target 97587 204 80451  0m                     <- AT the target
+    15:49:06  2 cell(s) in reach but nothing placed for 5s - moving
+    15:49:12  nothing placed here in 5s - moving in closer
+    15:49:18  9 cell(s) placeable from right here - staying until they are in
+    ...
+    15:50:20  every angle on this spot has been tried and nothing was placed - giving up on it
+    15:51:02  STALLED - nothing placed in 90s. 0 spot(s) finished
+
+### THE WORD "REACH" MEANT FOUR DIFFERENT THINGS, AND ONLY ONE OF THEM WAS THE PRINTER'S
+
+    the vicinity hold   Loop.focus(me, VICINITY=4)      a sphere on the FEET, no eye, no face
+    the stand chooser   Plan.coveredFrom, eye -> CENTRE  at reach - slack
+    the orbit ring      w.pos().distSqr(c)               FEET to centre, no sight line at all
+    THE PRINTER         eye -> the click point           on the SUPPORT'S FACE, at REACH 4.2
+
+**A CLICK LANDS ON THE SUPPORT, NOT ON THE CELL.** `placement()` clicks the neighbour that holds the
+cell up, on the face they share - so the point that has to be inside the arm is on the cell's
+BOUNDARY, and which boundary depends on which neighbour is solid. Every other measure used the
+centre, which is up to half a block wrong in whichever direction happens to matter.
+
+**And `everPlaceable`'s own docstring says why nobody noticed.** It is documented as `placement()`
+*"with the two things that depend on WHERE YOU STAND removed - the reach and the eye ray - so it
+answers about the cell rather than about the moment"*, which is correct and is what the frontier
+needs. What it left is a MOMENT owned by nobody: three callers each invented one, and the hold's
+list - named `inReach` - applied no reach test at all.
+
+**Measured over the vicinity sphere the hold actually uses** (257 cells, r=4 on the feet):
+
+| | |
+|---|---|
+| reachable if the support is on the best face | 248 (96%) |
+| reachable whichever face the support is on | **191 (74%)** |
+| no face reachable at all | **9 (4%)** |
+
+So a quarter of the sphere is a coin toss on which neighbour is solid, and 4% is never right. And
+**the commonest case is worse than any of that**: a floor course is supported from BELOW, so the
+click lands on the cell's own BOTTOM face, a whole block further from the eye than its top -
+**three courses down is already out of the arm and VICINITY reaches four**. A body hovering over
+paving it has come to lay is exactly the shape of "sitting there": the cells are real, carried,
+supported, and a metre past the fingertips.
+
+That is also why the two mechanisms fought. The hold said *stay, these are placeable*; the station
+said *nothing placed, move in closer* - and moved to another spot chosen by the same centre
+measure. Neither was wrong about what it measured. **When two correct mechanisms produce a loop the
+fix is to notice they are answering the same question**, and here the question was one neither of
+them was asking.
+
+### ONE SOURCE, WHICH IS THE RULE THAT WAS HALF-KEPT
+
+`Printer.clickPoint` is the geometry, factored OUT of `placement()` rather than paraphrased beside
+it, so the loop measures against the identical point the printer clicks. `clickPoints` answers per
+CELL and does not depend on where you stand, which is what makes a real test affordable inside a
+search over several hundred candidate positions - the caller memoises it per cell and the stand
+chooser then costs distances, not block lookups.
+
+- **the hold** filters by it, so `inReach` means it and the station machinery gets its turn at once
+  instead of after a five-second dead hold;
+- **`Plan.coveredFrom`, `bestStand`, `groundStand` and `ring`** take the same predicate, so "move in
+  closer" and "the next angle" land somewhere that works. `ring` had a THIRD measure - feet to
+  centre, no sight line, no reach - and now shares `coveredFrom` with the rest;
+- **a null predicate is the old measure exactly**, so no other caller moved.
+
+**THE CHEAP BOUND IS KEPT AND IS SOUND.** The scan still rejects a cell whose CENTRE is beyond
+`REACH + 1` before asking the real question, because no point on a cell's surface is more than a
+half-diagonal (0.867) from its centre - swept over a 19-cube rather than argued.
+
+### AND THE DIAGNOSTIC COULD NOT SAY "OUT OF REACH"
+
+The scan's own gate was that 5.2-to-centre bound, so everything between it and the true 4.2 fell
+into `no legal placement from here`. **Measured: 30% of the cells the scan looks at.** That reads
+as a cell that can never be built when it is a cell a metre out of the arm - the first is the
+design's problem and the second is the loop's, and the printer had no way to say which.
+
+The stall message was two guesses (*"Out of reach, or the spot cannot be built"*) printed directly
+under a comment claiming the tick knows which. It does, and it says so now.
+
+`tests/ReachTest.java` (9) pins the arithmetic rather than the behaviour, because the arithmetic is
+the whole of it: the eye offset, the four-courses-down case, the floor case, the far-side straddle,
+the slab clamp, the soundness of the cheap bound, and that the predicate is actually consulted -
+**verified red by putting the fix back out**, which is this file's own standing rule about a
+contract that passes the fault it was written for. 761 Java tests, 0 failures.
+
+**Still open, and it needs a flight rather than a guess.** The same log has the printer reporting
+`0 placed, 0 refused` while its own scan recorded no rejected cell, which can only happen if
+`place()` returned before `attempts++` - the `slot >= 9` hotbar-swap path is the one branch that
+does, and `swapSlot` always picks the FIRST hotbar slot holding a block, so two materials both
+wanted can in principle ping-pong one stack in and out for ever placing nothing. It was not the
+cause of the window above (the swap message is timestamped seven minutes later) and it is not
+guessed at here. `/cscan why` while it is sitting still now names the reason; read that first.
+
 ## The daily loop
 
 ```bash
@@ -15110,3 +15209,822 @@ file can invent.
 `inventorySlot` matches the item path exactly so it cannot pick the wrong stack; the likelier
 explanation is another design or the declutter swap having moved the cell under us. Six in total,
 recorded rather than chased.
+
+### A TRIP IS WORTH WHAT YOU CAN PLACE AT THE FAR END (2026-09-09, chunkscan 0.9.9)
+
+Jack: *"the pathfinding and priorities are screwed, i had a full inventory of copper blocks and
+deepl slate, placed right next to the prism park complete structure, and it flew away to do
+something else, so stupid"*. The whole session is in `latest.log` and it is nine lines long:
+
+    22:33:44  park complete: 308498 left in loaded chunks, 18418 placeable, 0 out of view
+    22:33:44    placeable / left / carrying / indexed
+    22:33:44    2407 / 5951 / 0 / 9746   light_gray_wool
+    22:33:44    1358 / 8503 / 0 / 15872  smooth_basalt        <- carrying 0, on every row
+    22:33:44  shopping list ... 18x oak_stairs, 12x oak_log, 6x chiseled_stone_bricks ...
+    22:33:44  nothing indexed to fetch - building with what you have
+    22:33:44  nothing I can place within 16 of 97594 209 80627 on course Y204
+    22:33:44  nothing here, but park complete has work I can place at 97599 201 80690 - going there
+    22:34:12  shut in on 4 sides at 97599 200 80690 - climbing out before it becomes a hole
+    22:35:45  STALLED - nothing placed in 90s.   0 placed in 3 min, 2 stalls, RESET #1
+
+**IT FLEW SIXTY-THREE BLOCKS TO PLACE ONE SUBMERGED FROGLIGHT.** Measured against the shipped
+composite, `97599 201 80690` is an `ochre_froglight` with `water` directly over it - a lamp in the
+bed of a lake. Meanwhile the pack was full of copper and deepslate, and the design wants **9,048
+`waxed_copper_block` and 11,643 `deepslate_bricks`** from Z80754 onward. It got shut in inside the
+pond, climbed out, stalled twice, and reset with nothing placed all session.
+
+**THE CAUSE IS ONE COMPARISON.** `Analyze.nearestPlaceable` - the dead-end escape, and the only
+thing in the loop that can see past the 32-block detail sphere - ranked candidates by
+`c.pos().distSqr(me)` and nothing else. One cell and a region are not comparable quantities, and
+ranking them together always picks the cell: there is nearly always *something* nearer than the
+place your pack is full of.
+
+    a candidate is a REGION (Analyze.REGION = 2 x Loop.NEAR_RADIUS), scored by Analyze.worth:
+    how many cells the pack could ACTUALLY put in there - cells, capped per material by what
+    is carried - and the NEAREST region within Analyze.ENOUGH (half) of the best score wins.
+
+The cap is what makes two places comparable: nine thousand cells of copper is not nine thousand
+blocks of work with seventeen hundred in the pack, and without it one abundant material outranks
+the place holding everything you are carrying. The band is what stops the fix becoming *always
+cross the park*: a marginal gain never buys a long flight and a large one always does.
+
+**A CANDIDATE IS A NEIGHBOURHOOD, NOT A BIN**, and the first version got that wrong. Scored on its
+own bin, a grid cuts a long wall into a dozen fragments that each look like a poor trip: four
+hundred cells of wall scored 32 and lost to a compact heap of forty. The score is the bin and its
+twenty-six neighbours, so a mass is measured whole wherever the grid falls across it - the bins
+exist to make that cheap and are not themselves what is ranked. **Both of the two tests that
+failed on the first run were my own fixtures straddling the grid**, and the honest reading of that
+was that the rule was wrong, not the fixture.
+
+And it aims at the middle of the mass rather than at whichever of its cells is nearest, because
+the loop's own window is `NEAR_RADIUS`: an anchor on the near edge of a region covers half of it
+and re-anchors again on the very next recount.
+
+#### THE REPORT SAID `carrying 0` ON EVERY ROW WHILE THE PACK WAS FULL
+
+The other half of "priorities are screwed", and it is a reporting failure with teeth. `/cscan
+analyze` ranks by placeable cells and says nothing at all about the inventory - so a session that
+begins with a full pack of copper is told, in its own header, to *"fill the pack from the top of
+this list"* and handed six materials it has none of. It then built a shopping list for them,
+found nothing indexed, and called that a dead end.
+
+The report leads with what the pack can already do now:
+
+    CARRYING WORK: 1728x waxed_copper_block, 640x deepslate - 2311 cell(s) of it placeable now;
+    best group is 1728 at 97590 210 80755
+
+...or says plainly that nothing in the pack can be placed anywhere loaded, which is the only
+honest reason to go shopping while carrying a full inventory.
+
+#### And "nothing left within 200" was said about a cell one block away
+
+`Loop.WORK_RADIUS` printed while `workRadius` - usually 16 - is the window actually looked in.
+Both the radius and the anchor are named now. A message that overstates where it looked reads as
+the loop contradicting itself two lines apart, which is exactly what Jack was reading.
+
+**752 Java tests, 0 failures.** `AnalyzeTest` pins the rule as arithmetic - `bestOf` is pure over a
+cell list, an inventory and a position - including the flight that started this: one froglight at
+60 blocks against a building at 300, and the pack decides.
+
+**Still open, and stated rather than guessed at.** `waxed_copper_block` and `copper_block` are
+different items, and so are `deepslate` and `cobbled_deepslate`/`deepslate_bricks`; if the pack
+holds the unwaxed or the wrong dressing, the loop is right that it can place none of it and only
+`/cscan analyze` will say so. Nothing here has been flown. And the session's own log carries a
+separate, unfixed line - *"There is no ENABLED Litematica placement called park complete"* - which
+is a diagnostic written when litematica-printer did the placing; this mod places its own blocks
+now, so that message names a cause that no longer applies and should be re-worded or removed.
+
+
+## HOLLOWING THE LANDSCAPE - AND TWO WAYS OF ASKING "CAN ANYONE SEE THIS" THAT ARE BOTH WRONG (2026-09-09)
+
+Jack: *"edit park complete so that all terraformed grass, mountains, etc are as hollow as possible
+so we reduce total blocks... make sure not to change any outer visible placements/layers."*
+
+`mcbuild/ops/unseen.py`, scoped by `park_place.terrain_mask`, run at the composite beside
+`declutter`. **Park Complete 524,033 -> 429,972 (-17.9%)**, every removed cell natural rock, the
+shipped artifact pixel-identical from eight bearings, printability exactly at baseline (2,755
+unreachable cells in 233 clumps, the same as un-hollowed). Provisioning coverage 56% -> 64%,
+`moss_block` short 98,953 -> 70,606, `smooth_basalt` out of the shortfall entirely: it was
+25,966 to smelt and 45,000 of its cells were inside a mountain.
+
+**IT SHIPPED BROKEN TWICE BEFORE IT SHIPPED RIGHT, and both failures are the same shape: a check
+that grades what it can measure in place of the thing that matters.** Both were found by Jack
+walking around in game, and neither was visible to the audit, the BOM, the printable survey, eight
+rendered bearings, or twenty-odd tests that were all green.
+
+### FIRST WRONG QUESTION: "can the OUTSIDE see it"
+
+Flood from outside the bounding box through everything you can see through; keep what the flood
+touches. It is a beautiful invariant - assert the reachable set is bit-for-bit unchanged - and it
+is catastrophically weaker than it sounds, because **a park is full of air the outside cannot
+reach**: a station room, a coaster's tunnel bore, a cavity in the rock. None of that is exterior,
+so every wall LINING one read as buried - and taking the lining exposed the next course, which the
+same mask had already condemned, in the same pass. Measured: **8,523 removed cells had air on a
+face**, mostly tunnel and station masonry. Jack: *"buildings roofs are missing too"*, *"a ton of
+the rollercoaster is missing"*.
+
+The invariant held HONESTLY throughout - gutting a sealed room does not connect it to the outside.
+
+    AN INVARIANT ABOUT THE OUTSIDE CANNOT SPEAK FOR THE INSIDE, however exactly it is asserted,
+    AND A RENDER CANNOT SEE A ROOM.
+
+"Reachable from outside" is a GLOBAL property; visibility is LOCAL. The flood went; the rule became
+`erode(opaque)` - a block goes only when its neighbours are all opaque full cubes.
+
+### SECOND WRONG QUESTION: "does this block RENDER" - and 6 is not 26
+
+The local rule was then written with 6-connectivity, on solid reasoning: Minecraft culls a face
+whose neighbour is an opaque cube, so a block with all six faces covered draws nothing, ever.
+
+**True, and it is the wrong question, because removing it exposes its NEIGHBOURS' faces to the
+cavity - and where two blocks meet along an EDGE there is a slit you can see straight through.**
+Jack: *"a lot of the rail way on the side of the prism etc is all hollowed out and empty"*, and
+before that *"theres also large gaps in the terrain where its air blocks into empty cavities"*.
+Measured on that build: **8,500 removed cells had a see-through cell among their 26 neighbours**,
+5,820 of them in Prismworks - which is exactly where he was standing.
+
+**The renderer here could not see it either**, and that is worth keeping: `render3d` marches rays
+through voxel CENTRES, so a sub-voxel diagonal slit is invisible to it by construction. Eight
+bearings came back pixel-identical on a build with thousands of holes in it. **Our renderer is
+ground truth about mass and occlusion at voxel resolution and about nothing finer.**
+
+The rule is `erode(opaque, conn=26)`: all twenty-six neighbours opaque, or the cell stays. That is
+not a fudge factor, it is the closure - if every 26-neighbour of every removed cell is opaque, then
+no see-through cell touches the cavity at a face, an edge or a corner, so no face of the shell is
+newly exposed to anything anyone can stand in. `_check` asserts exactly that, per cell, against the
+model as it was.
+
+### "I SAID LANDSCAPE TERRAFORMING ETC ONLY"
+
+The other thing wrong with the first run was scope, and it was mine to read narrowly. Jack asked
+for terraformed ground; I read "etc" as everything invisible and hollowed buildings, sculptures and
+the wyrm with it. `carve_only` is the fix - a mask of what the pass may TOUCH, everything else
+CONTEXT: still deciding what is hidden, never itself removed.
+
+`park_place.terrain_mask` is TWO conditions, because either alone is wrong:
+
+- **`TERRAIN_MODULES`** - the five modules that ARE ground (`PF Mine Ridge`, `PF Prism Downs`,
+  `PF Plateau Vale`, `PF Plateau Bone Bed`, `PF Lost Plateau`). The module list alone would still
+  offer a terrain pass's own lanterns, timber sets and rails.
+- **`TERRAIN_BLOCKS`** - natural rock and soil only. The material list alone would offer a
+  building's cobblestone core, and a station is exactly what this may not touch.
+
+Verified per module on the shipped composite: **0 cells removed from Mine Coaster, Mine Works, Wyrm
+Gate, Helter Skelter, Sky Lift, Prism Well, the Lookout and Mine Cart Escape**; 0 removed cells
+outside the mask; 0 non-ground materials. `Park Buildings` gets NO hollow pass - it is the
+buildings, and there is nothing in it the pass is allowed to touch.
+
+### A PRINTER CLICKS A FACE - Jack, mid-turn
+
+*"for printability we still need something on the inside attaching between layers so we cant easily
+print without manual diagonal placements etc."* Right, and at the time it was systematic: with the
+rule at 6, a one-deep skin took the park's printing islands from **1,582 to 3,409**, because a
+hollow slope is a staircase whose treads touch only along an edge.
+
+| | blocks | printing islands |
+|---|---|---|
+| as shipped | 524,033 | 1,582 |
+| one-deep skin at conn 6, nothing else | 356,918 | **3,409** |
+| a blanket two-deep skin | 433,461 | 1,587 |
+| **conn 26 + `_connect`, landscape only** | 429,972 | **1,584** |
+
+**At 26 the rule mostly carries this by itself** - nothing is taken beside a slit, so a staircase's
+corners survive anyway, and no synthetic fixture breaks with `connect` off any more. `_connect`
+still fires (130 cells on the shipped park) and is KEPT as the guarantee rather than the mechanism;
+the tests assert the PROPERTY (one connected piece) and test the mechanism directly on a join built
+by hand, so neither can stop being exercised.
+
+**And it was visiting every join twice.** An unordered pair appears in `EDGE12` as both `B - A` and
+`A - B`, so walking all twelve put BOTH corners back where one does the job. `EDGE_PAIRS` is the
+six whose leading step is +1, asserted as a partition of the twelve.
+
+### Six guards, each a way a hidden block is still load-bearing
+
+- **A GRAVITY BLOCK NEEDS THE BLOCK UNDER IT** - the Mine Ridge's gravel crust is skin and stays;
+  the cell beneath it is hidden. Rule 13 from underneath.
+- **A MECHANISM IS MORE THAN ITS OWN CELL** - what a repeater reads, what a torch stands on, the
+  block above a piston.
+- **...AND `protect.MECHANISM` HOLDS `wool`, WHICH IS 12,500 CELLS OF DINOSAUR.** The never-
+  OVERWRITE set read as a general keep-out, which this file already records twice. The first run
+  held **23,533** cells for the radius; narrowing the set to MACHINES - `water` alone was keeping
+  7,803 cells of lake bed three deep, and it has its own tighter guard - took it to ~4,000.
+  **Narrowing a set is not loosening a rule when what replaces it is the more precise one.**
+- **A FLUID FLOWS INTO WHAT YOU OPEN**, and `waterlogged` is a STATE, read off the palette entry.
+- **ANYTHING NOT A FULL CUBE IS ATTACHED TO SOMETHING.** Both of these are subsumed by the local
+  rule and kept anyway: they are what would still hold if `opaque` ever widened.
+- **A BLOCK THAT EMITS IS A FIXTURE**, against re-opening a spawnable cell nothing would report.
+
+### And the fixtures are why both bugs got through
+
+Every test was a property and every fixture was a solid cube or a smooth heightmap - so a sealed
+cavity could not arise, and neither could a buried air cell with a diagonal slit off it. The two
+that would have caught them are four lines each: `test_A_SEALED_ROOM_KEEPS_ITS_WALLS` (a mass with
+a room in it and no way in) and `test_A_CELL_VISIBLE_THROUGH_A_DIAGONAL_SLIT_IS_KEPT` (one cell of
+air buried in a mass). **A property is only as good as the geometry you hand it.**
+
+The sealed-room assertion had to be narrowed once on the way: a room's EDGE and CORNER cells really
+are invisible - every face of an edge cell is covered by a wall cell - so only the six wall planes
+are lining.
+
+### What it does NOT decide
+
+**A SEALED CAVITY IS DARK.** 94,080 cells of it, and nothing will ever reach them to light them.
+The squid was hollowed on exactly that trade, on Jack's own word that mobs do not spawn here, and
+the lowland already carries ~3,700 columns of the same thing recorded as an accepted mob-cap leak.
+The volume is REPORTED on every run. `python -m mcbuild unseen <design> --dry-run` runs it on
+anything.
+
+## FOURTEEN LAMP POSTS IN A HOLE, AND THE CONTEXT THAT COULD NOT SEE THEM (2026-09-10)
+
+Jack: *"the prism parkour area has floating full lamp posts in its area."* Measured off the shipped
+composite before anything was changed:
+
+| | |
+|---|---|
+| Prismworks signal masts standing inside the Prism Well's r50 mouth | **14** |
+| ...with NOT ONE solid cell in the 5x5 box at their own course | **9** |
+| what each one is | a pad, four wall cells, a caged soul lantern and an end rod, over ~200 courses of void |
+
+All nine sit between r17 and r47 of the well's axis - the middle of the shaft a parkour runner
+descends, which is the one place in this park anybody is looking sideways at open air.
+
+### THE CUT COULD NOT SEE THEM, AND IT IS STRUCTURAL RATHER THAN STALE
+
+`prismwell.cut` is careful and its own comment records why: an earlier WHITELIST *"shipped
+sixty-one cells hanging over the hole"* because `Park Ways` puts a mast on the verge every
+twenty-two cells and the four materials it is made of were not on the list. It was replaced by a
+blacklist of machines, which is right.
+
+**It reads `park_future`, and `prismchain.build_park_future` EMPTIES the well's whole cylinder to
+r62 - deliberately, so the well is never measured against its own previous self - keeping only the
+DECK COURSE.** So the cut sees exactly one block per mast column, digs the pad, and the eight
+courses above it survive in `Park Complete` **however many times the chain is rebuilt**. The dig
+list is correct about the context it was computed from, and the context is not the park.
+
+> **A CONTEXT THAT IS HONEST ABOUT A DESIGN'S GEOMETRY CAN BE BLIND ABOUT ITS DIG LIST.** The
+> sweep's own comment already says the deck course is kept *"because a context that has already
+> removed it cannot tell you whether the dig is right"* - and that reasoning is true of everything
+> else in the cylinder and was not extended to it.
+
+### THE FIX IS THAT THE GROUND LAYER DOES NOT PUT A MAST IN A HOLE
+
+`parkways.keep_clear` already exists for exactly this and its distinction is the right one: a
+feature lot refuses PAVING too, and `keep_clear` refuses furniture and nothing else. **The paving
+must stay** - the well digs the deck, and a context that has already lost it cannot say whether
+that dig is right - so only the furniture goes.
+
+- **A KEEP-CLEAR MAY BE ROUND, BECAUSE A HOLE IS.** As a bounding square the mouth's corners reach
+  r70, where the deck is real and a lamp on it is a lamp doing its job; a disc is 79% of its
+  square, so the rectangle-only version puts out about a fifth of a land's lighting to solve a
+  problem that exists only inside r50. `is_reserved` already handled circles for roundabout
+  islands - the grammar was half there.
+- **A VISTA IS A CORRIDOR AND A HOLE IS NOT, SO THEY GET DIFFERENT ANSWERS.** Nudging a mast along
+  its own street until it clears a sightline is a real fix - it still lights the street, which is
+  why both vista bands carry a cell of tolerance so a nudged mast *"cannot arrive back in the
+  vista from the end"*. There is no along-the-street inside a hole: the street stops. **It cost
+  the rhythm to find out** - refusing the mouth and letting the nudge run moved the avenue mast at
+  V42/U522 two cells to V40, out of the disc by half a block and off its own rhythm station, which
+  is the one thing `test_a_lamp_stands_on_one_line` exists to forbid. A disc refuses outright.
+- **AND THE DECLARATION IS DERIVED, OR IT GOES STALE IN SILENCE.**
+  `test_the_prism_well_mouth_is_kept_clear_AND_MATCHES_THE_WELL_S_OWN_CONFIG` reads the centre and
+  the radius out of `configs/pf_prism_well.yaml`, so moving the well fails a test rather than
+  putting fourteen masts back over the void.
+
+### A test was encoding the decision that had just been reversed
+
+`test_every_crossing_the_street_reaches_actually_gets_its_four` failed on the crossing at
+**V125/U524 - which is inside the mouth**, r36 from the axis. The well digs the deck out from
+under it, so the four corners the test asks for are four masts in open air. A crossing inside a
+hole is not a crossing; it stays in `_crossings` only because the PAVING is deliberately left for
+the well to dig. Same class as the frog's proportions and the stegosaur's plate rooting: **a test
+that pins a decision has to change in the same commit, or the suite quietly enforces the thing
+that was just rejected.**
+
+    masts standing with nothing beside them   9 of 43  ->  0 of 28
+    ground-layer mast material inside r50     14 masts ->  0 cells
+    Park Ways 128,913 blocks, 0 problems      Park Complete 429,762
+
+**Still open, and deliberately not touched.** One `iron_bars` cage cell at (97541, 209, 80822),
+r49.5, belongs to a mast standing on real deck at r50.5 and reaching one cell over the lip - which
+is the module's own stated rule, *"an arm may reach OVER a path, a post may not stand in one"*.
+`prismwell`'s cut still cannot see anything the ground layer puts in its cylinder; this closes the
+one case that exists today rather than the class, and the class's real fix is either a cut that
+reads the true composite or a sweep of what a dig leaves standing on air. And
+`test_every_module_is_either_placed_or_declared_not_to_need_ground` still fails on `Wyrm's
+Crossing`, which is pre-existing and another stream's.
+
+## GRAVEL IS OUT: THE ONLY GRAVITY BLOCK IN THE PARK (2026-09-10)
+
+Jack: *"remove all gravel and swap for something else."* It went through `declutter.SWAPS`, beside
+`andesite` and `tuff`, and it fails BOTH of the rules that killed those two.
+
+    gravel -> cobblestone     2,209 cells in Park Complete, 2,281 in Park Buildings, now 0
+
+### RULE 13, AND IT IS THE PARK PLATE THAT MAKES IT UNFIXABLE UPSTREAM
+
+A generator that uses gravel is careful with it. `mineridge` places it as *"a crust material: the
+top course of a column that is solid to the ground and never a face, so a falling block never has
+air under it"* - and that invariant belongs to ONE generator over ITS OWN model, which is not the
+model that ships. Measured on the shipped composite, **eleven gravel cells stand on air**.
+
+**TEN OF THE ELEVEN ARE ON THE PARK PLATE, which is the case no generator can be careful about:
+the park is ONE COURSE OF GROUND AT Y202 OVER OPEN VOID**, so every cell of it has air beneath it
+by construction and a gravity block laid on the ground falls off the world. They are the Claim
+Lake Menagerie's pond bed at V135-142 / U197-210. The eleventh is high in the terrain at
+(97553, 214, 80456) and **no source module owns that cell** - it arrives from the composite's own
+passes, which is the other half of the same point. Nothing re-checks a gravity block after
+composition and nothing can; the cure is not to carry one into a composite at all.
+
+**That measurement was nearly got wrong the same way twice in one session.** Air under a cell at
+Y202 is NORMAL for this park - it is what a one-block plate over void looks like, and the first
+task of the day had already caught me reading it as a fault. It is normal for a SOLID block and
+fatal for a gravity block, and those are different questions about the same reading.
+
+### RULE 12, AND IT IS `tuff`'s CASE EXACTLY
+
+Cheap by the economy table, in the provisional 1.19 allowlist, spendable - so every check in the
+pipeline passed it. Measured against the real captures it stands in **SIXTEEN cells of the whole
+world**, against cobblestone's 15,897. `mcbuild provision` put it **1,793 short with no recipe and
+no price**, classified FARM, which is the resolver saying there is no route to it at all.
+
+### `cobblestone` COSTS NOTHING TO TAKE, AND ONE THING IS LOST THAT CANNOT BE MEASURED HERE
+
+It is what `palette.affordable_like("gravel")` answers - the closest block that is cheap, WITNESSED
+here and not a machine - at **4.1 RGB** on the side face, L127.3 against gravel's L128.1. Gravel
+was never a rung in any bedded ladder: the Mine Ridge's runs `cobbled_deepslate` 77 / `moss_block`
+101 / `granite` 112 / `stone` 126 / `diorite` 188 and gravel is not in it, and the claim row's own
+ladder already had gravel 128 and cobblestone 127 as two names for one tone. Nothing collapses.
+
+**What is lost is TEXTURE, which is the one thing the colour DB cannot see.** Gravel is visibly
+granular and cobblestone is visibly lumpy and both average to the same grey - this file's oldest
+recorded circularity, arriving in a new place. Judge that in world.
+
+**And it is a SWAP, not a removal**, because a crust is the top COURSE of a mass: taken out rather
+than replaced it leaves 2,209 holes in the surface of the terrain it was covering.
+
+**The park's cobblestone goes 2.27% -> 2.77%.** The ban is on BUILDINGS - Jack threw out a park
+that was 17.7% of it - and every one of these cells is terrain: Mine Ridge 997, the coaster's
+ballast 518, the Diggings 576, the Bone Bed 407, the Plateau Vale 233.
+
+### The swap runs BEFORE the hollow pass, which matters
+
+`park_place` runs declutter -> `unseen` -> the printable stitch. `unseen`'s gravity guard is
+derived from `blocks.falls` over the model's OWN palette, so once the swap has run it correctly
+finds nothing under a gravity block and the ~348 cells it was holding back become hollowable. Both
+`gravel` and `cobblestone` are in `TERRAIN_BLOCKS`, so the carve mask does not move.
+
+`tests/test_declutter.py` gained the guard for the NEXT swap somebody adds, which is where this
+would actually happen again: **no swap target may itself be a gravity block**, and every target
+must be cheap and reachable by `palette.affordable_like`.
+
+### Still open, measured rather than acted on
+
+- **SEVENTEEN SAND CELLS, ALL OF THEM STANDING ON AIR**, in the same Menagerie pond bed as the ten
+  gravel ones. It is the identical fault in a different block and one line to fix
+  (`"sand": "..."` in `SWAPS`) - but sand is a BEACH and cobblestone is not, so what it should
+  become is a look decision rather than a mechanical one. Jack's call.
+- **`test_two_lamps_never_bunch` FAILS AT HEAD** and is not this work's: run against
+  `git show HEAD:configs/park_ways.yaml` it reports the identical seven bunched pairs. Two walk
+  verges four apart both take a lamp at the same U (V72/V76 at U228 and U243, V75/V79 at U357 and
+  U371), and the eight-block anti-bunch rule is only consulted by the NUDGE - a lamp placed at its
+  own station never asks. The Prism Well's keep-clear disc takes it from **seven pairs to four**.
+- `Park Complete Ready` was regenerated with the composite (301,793 cells, 70% coverage); it is
+  written by `mcbuild provision --package --ship` rather than by `park_place`, so it does NOT
+  follow a reship on its own and will go stale again the next time the park is shipped.
+## EVERY LAMP POST IN THE PARK, MEASURED (2026-09-10)
+
+Jack: *"analyze every single lamp post in park complete, identify which need to be there, which are
+badly placed, and remove any that arent placed, or dont need to be there, look for bad placements,
+bad symmetry, bad symmetry or spacing to objects around it."*
+
+**134 street lamps** - 48 frontier, 61 midway, 25 prismworks - plus **40 standards belonging to
+seven other designs**. Read off `out/Park Ways.litematic` and `out/Park Complete.litematic` block
+by block, never off a render: `render3d` draws a lightning rod, a fence, a wall and iron bars all
+as full cubes and has hidden six separate faults on this park already.
+
+### THE SYMMETRY TEST EXCLUDED THE ENTIRE SPINE, AND THAT IS WHY SIXTEEN UNPAIRED MASTS SHIPPED
+
+`test_the_two_verges_of_a_street_carry_the_same_lamps` skipped `half + 26` either side of every
+threshold AND every spur. Seventeen columns at thirty-two blocks each, and the union of those
+windows covers **609 cells of a 600-cell street**: it compared an empty list against an empty list
+and passed. The spine's fifty-four masts were never looked at, on the one street the whole park is
+composed about.
+
+    spine V4 vs V20, as shipped   19 matched . 3 OFFSET BY TWO . 10 with no partner
+    mid-block walks V74 and V77   0 of 4 pairs matched - every one STAGGERED BY FOUR
+    back promenade V121/V129      23 of 23 matched - the system works where nothing interferes
+
+It is `MenuTest`'s own failure in a new place - *a check configured not to see the thing it was
+written for*. The windows are `JUNCTION_CLEAR` and three cells now, which excuses 27% of the spine
+rather than 101%, and `test_the_exclusions_cannot_swallow_the_street` is the guard on the guard: an
+excuse wider than 40% of a street fails outright. Run against the shipped park the new assertions
+raise **six** times; against the rebuilt one, none.
+
+### THE NUDGE WAS THE ONE THING THAT COULD STILL BREAK A PAIR
+
+`run` drives both verges from one list of stations, so the two rows leave it identical - and then
+`place_lamp` stepped each mast along its own line, on its own, with no idea the other verge
+existed. `place_pair` settles the pair first: one shift that clears BOTH, or each verge takes the
+unshifted station and neither nudges alone. **What is forbidden is nudging alone, not standing
+alone** - a spur is on one side of its street, so the spine's east verge is paved at U407 and its
+west verge is not, and dropping the good verge for the blocked one's sake cost two lamps and opened
+a **95-block hole** where there had been two of 40 and 43.
+
+**AND THE ANTI-BUNCH RULE IS WHY BOTH WALKS STAGGERED, not a plaza in the way.** `MAST_CLEAR` is 8
+and a `half: 1` walk is 4 wide, so the second verge's mast was ALWAYS within eight of the first and
+could never stand opposite its own partner: nudged four along, every time, on both walks. The
+stagger was the collision being avoided, not a rhythm.
+
+**Then pairing them made it worse, which is what settled the shape of the answer.** A midway lamp's
+arms reach two cells either side, so two facing masts four apart SHARE their beam: one nine-wide
+gantry over a three-wide path, three lanterns, the outer two hanging over the lots. A street
+narrower than a crossbeam alternates instead - one post per station, sides by INDEX - which is what
+an avenue already does and for the same reason. **An alternating street halves its stations**, so
+every other one falls on a given verge and each verge keeps exactly the rhythm it was designed for;
+at the paired spacing a 43-block walk came out with two posts, which is a lamp rather than a lit
+street.
+
+    spine        22 matched . 0 offset . 10 unpaired - the 8 threshold masts, U407's spur, U447
+    promenade    23 of 23
+    walks        alternating at their own per-verge rhythm, 5 posts each
+    closest two masts 8 . 0 incomplete lamps . 0 cells claimed by two lamps at once
+
+### A STATION THAT CANNOT TAKE ITS OWN SIDE TAKES THE OTHER, RATHER THAN GOING DARK
+
+**`PF Plateau Vale`'s talus stands on 73 of the frontier avenue's 131 west-verge columns**
+(V28..V120 at U40) while the avenue's own paving at U43 carries nothing at all and its east verge
+carries three cells. The mast at V83/U40 had its collar and its lower rod REPLACED by cobbled
+deepslate and moss - a lightning rod and a lantern sticking out of a scree mound, which is not a
+lamp post - and every one of the 23 columns its nudge window can reach is buried, so there is
+nowhere on that verge to step to. A `keep_clear` declines the ground and the station takes the
+avenue's clear EAST verge: the run keeps all five of its lamps and none of them is in the mountain.
+Both verges are real lines, so a lamp on the far one is not a lamp off its line.
+
+### WHAT IS LEFT, MEASURED AND NOT ACTED ON
+
+- **THE SPINE'S NORTH VERGE HAS FOUR HOLES OF 58, 46, 43 AND 40 BLOCKS AGAINST A RHYTHM OF 22, AND
+  EACH SITS EXACTLY OVER A THRESHOLD.** A threshold leaves the spine southward, so `junction` lights
+  the south verge only - correctly, there is no northern quadrant to mirror - and `run` then anchors
+  BOTH verges on those masts, because that is what keeps their setbacks equal. Two rules that are
+  each right, and together they silence the far verge for two rhythms. Mirroring the pair onto V4
+  puts two masts 16 apart on a plain verge against a rhythm of 22, which reads as a crossing that is
+  not there; filling the middle puts one mast opposite the mouth, which is the asymmetry the module
+  removed on purpose. **It wants a decision, not a patch.**
+- **A PRISMWORKS SIGNAL MAST DOES A QUARTER OF A LAMP'S WORK.** Its soul lantern is light 10 and it
+  is mounted at foot+7, six courses over the walking surface, so it arrives at the street at 4.
+  Median street cells lit by one lamp: **midway 143, frontier 105, prismworks 37**, and Prismworks
+  is the darkest land at 66% lit with 1,337 pitch-dark street cells. The mast is deliberately a cold
+  signal rather than a mood - dropping the light to foot+4, or a second one at the collar, is a look
+  decision and Jack's.
+- **`midway V121/U308` keeps one arm inside a lot module's wall.** The wall runs U308-318 at V119 and
+  the midway-axis vista covers U294-306, so there is no station within `WINDOW_LONG` for the pair to
+  move to; moving it means losing the pair and a 73-block gap on the promenade. Left, and stated.
+- **Six masts stand on another design's plinth** - five prism masts whose pad is `PF Prism Well`'s
+  or `PF Prism Downs`' floor block, one midway collar that is `PF Midway Garden`'s. One cell each,
+  cosmetic, and the mast, its light and its rod all stand.
+- **Four lamps have another design's light within three blocks**, and three of them are the same
+  thing: each land's own frontage lights the spine's south verge, which is the band the street lamps
+  use. Systematic rather than three accidents.
+- **The Prism Well's keep-clear disc refuses 15 masts and costs almost nothing** - the street inside
+  it is **98% lit** because the well lights its own approach. Verified rather than assumed. What it
+  does cost is the prismworks mid-block walk at V79, whose six stations are all inside the disc:
+  a 54-block walk with no lighting at all.
+
+## THE ORE SEAM HAS NO ORE IN IT: granite, coal and gold out (2026-09-10)
+
+Jack: *"remove granite and ore blocks e.g. coal ore gold ore etc"*. They went through
+`declutter.SWAPS` beside `andesite`, `tuff` and `gravel`, and they are the last three blocks in
+the park that fail rule 12 - the ores fail it harder than anything swapped before them.
+
+    granite  2,973 -> dripstone_block      gold_ore 1,422 -> dripstone_block
+    coal_ore 2,396 -> smooth_basalt        Park Complete and Park Buildings: 0 of each
+
+**BOTH ORES CLASSIFY `NONE`, WHICH IS THE RESOLVER SAYING THERE IS NO ROUTE AT ALL** - no recipe,
+no price, no stock, no farm. That is the correct answer for an ore on a skyblock: ore generates in
+stone, and there is no stone to generate it in. `granite` classifies CRAFT and its recipe is
+diorite plus QUARTZ, which is itself short and comes from a dimension this park cannot reach - a
+route on paper. All three stand in ZERO cells of the real captures, and every check in the
+pipeline passed them: cheap-or-`ok` by the table, in the 1.19 allowlist, spendable, legal,
+supported, non-colliding. **Nothing but `provision` could see it and nothing but a shipped
+composite could count it.** Coverage 70% -> 71%, unroutable materials 14 -> 12.
+
+### `affordable_like` OPTIMISES ONE BLOCK AND KNOWS NOTHING ABOUT WHAT IS BESIDE IT
+
+The transferable finding, and it nearly shipped. `palette.affordable_like` answers
+`granite -> dripstone_block` (28.2), `coal_ore -> mossy_cobblestone` (29.5),
+`gold_ore -> cobblestone` (44.9) - all three through its three gates, and it is the function this
+file took at its word for `tuff` and for `gravel`. Taken all three at once it DESTROYS the Mine
+Ridge's ore seam. Measured over `mineridge._SEAM` and `_MID` with the existing swaps applied:
+
+    seam, affordable_like   dripstone 112 .44 . mossy_cobble 115 .20 . stone 126 .24 . cobble 127 .12
+    mid,  already           dripstone 112 .16 . mossy_cobble 115 .12 . stone 126 .48 . cobble 127 .24
+
+**THE SAME FOUR MATERIALS IN DIFFERENT PROPORTIONS**, inside 15 points of luminance: the seam
+stops being a bed at all. That is the "five materials inside twenty-one points is one grey" trap
+this file has recorded five times, arriving through a HELPER rather than by hand - which is why
+three separate correct answers add up to a wrong one.
+
+**SO THE MAPPING IS CHOSEN AGAINST THE LADDER, AND AN ORE SEAM IN REAL ROCK IS DARK:**
+
+    seam, chosen            smooth_basalt 73 .20 . dripstone 112 .56 . stone 126 .24
+
+- a warm bed with a dark fleck, 53 points below anything in `_MID`, smallest step 13.6 against the
+mid band's 1.3. `granite` and `gold_ore` were the seam's warm pair and its pale glint, so both take
+`dripstone_block`, which the Mine Ridge's own table already calls *"L112 - and its second tone"*;
+`coal_ore` was the dark fleck at L106 and takes `smooth_basalt` at L73, **a BIGGER step than the ore
+it replaces rather than a smaller one**. `smooth_basalt` is the only CHEAP dark rock (`cobbled_
+deepslate` 77 and `deepslate` 80 are both `ok`); it stands in none of the old island's captures and
+in 10,844 cells of this park, and `provision` does not list it short - **the container index is
+better evidence about what can be GOT than a capture of an island 121,000 blocks away.**
+
+The ores' other uses take the same swap and want it: the coaster's ballast speckle becomes dark
+crushed rock, and the tipped-ore spoil in `claimrow`, `frontier_scatter`, `mineworks` and the
+Diggings becomes dark spoil.
+
+### THE REST OF THE FAMILY IS NOT MAPPED, AND A TEST CATCHES IT INSTEAD
+
+`iron_ore`, `copper_ore`, `redstone_ore`, `lapis_ore` and the raw-ore blocks appear only in RETIRED
+modules (`The Mine Head`'s `frontiertown.VEINS`, `The Mine Works`, the Gold Sluice) and in no
+shipped composite. **Mapping a block nobody is looking at is a design decision made blind** - what a
+"vein" should read as without ore in it is a question for whoever re-sites that module.
+`test_NO_ORE_BLOCK_REACHES_A_SHIPPED_COMPOSITE` reads the two artifacts, so a re-sited module fails
+and forces the decision rather than being silently swapped or silently shipped. And
+`test_THE_SWAPS_KEEP_THE_MINE_RIDGE_S_SEAM_A_DISTINCT_BED` derives the bands from the generator's
+own tables and asserts the seam holds a tone the mid band does not, 15 luminance clear - **it is red
+for exactly the answers a future session is most likely to take.**
+
+**Still open:** `Park Complete Ready` was regenerated with the composite (303,208 cells) - it is
+written by `mcbuild provision --package --ship` and does NOT follow a reship on its own. And nine
+`test_worldrender` failures are PRE-EXISTING (`module Signal Heron footprint does not fit its
+plot`), verified by re-running with this change stashed.
+
+## THE BROKEN PLATEAU: the north end, and the axis the park had not used (2026-09-12)
+
+Jack, looking north from the middle of the Lost Plateau: *"this area of the map for park complete
+feels very weak, the buildings have unclear purposes, and i think the tower is a cop out and feels
+lazy ... we need to redo this area so it matches the wow factors of the other 2 sides."*
+
+**EVERY HALF OF THAT WAS A MEASUREMENT.** Off the shipped composite, before anything was drawn:
+
+| | b/col | >=3 tall | >=12 tall | tallest |
+|---|---|---|---|---|
+| Lost Plateau, mountain end | 6.10 | 63% | 45% | Y279 |
+| Lost Plateau, north end | 3.45 | 54% | 22% | Y253 |
+| ...the far end alone, tower out | 2.68 | 61% | **11%** | Y242 |
+
+`PF Vantage Frontier Lookout` was 4,154 blocks, 17 x 17, 56 courses and **100% of its own footprint
+at full height** - a shaft, one interactive block in it - standing at the LAND'S CLIMAX, because a
+guest enters from the Midway at U169 and walks north.
+
+**AND THE STRUCTURAL FINDING: both wow factors are terrain-scale geology with a route driven
+through it.** The Mine Ridge (41,948) with a coaster bored through it, the Prism Well (36,503) with
+a descent down it. UP is taken and DOWN is taken; the axis nobody had used is **OUT** - and the land
+is called the Lost Plateau, which is by definition flat land that ENDS IN CLIFFS, with the park's
+own rim sitting unused at U0 and open void past it.
+
+    far end U0-20:  >=12 tall 11% -> 37.5%,  b/col 2.68 -> 3.42,  and the tallest thing is a mast
+    on a cantilever over a 28-course gorge instead of a solid shaft
+
+### IT IS `bonebed.py` AT MOUNTAIN SCALE, NOT A NEW HILLSIDE
+
+A gorge is a very deep pit whose floor is the plane and whose relief is spoil, which that generator
+already builds - and it also already had the gallery, the ramps, the skeletons, the gantry and the
+arch. Four things were added and every one is opt-in, so the Vale and the Bone Bed rebuild
+**bit-identical**, asserted as the first test in `tests/test_broken_plateau.py`:
+
+    brink       a lot edge that gets NO dead-level apron: the mass runs to the boundary and BREAKS
+    seams       fossil beds exposed in the pit walls - the dig moves INTO the scarp
+    bridge      a LEVEL deck on sagging cables, at the crest, over the gorge
+    belvedere   the cantilever at the brink - what the tower is replaced BY
+
+**A BRINK IS ABOUT WHO STANDS AT THE FOOT OF IT, NOT ABOUT THE GEOMETRY.** Dropping the WEST apron
+too was tried: at the lot's own boundary the mass simply stops, so V24 came out as a thirty-course
+sawn plane facing the west promenade - a retaining wall. At U0 the identical cut is right, because
+that is the park's edge and there is nothing beyond it. Same arithmetic, opposite verdict.
+
+**THE SEQUENCE IS THE DESIGN, and it falls out of the slope rule.** `soft` binds on distance from
+the nearest street, and the nearest street is the avenue at U41-45, so the mass CLIMBS northward
+and is highest at the rim - which is also how a real canyon forms, cutting back from the edge. So
+the gorge is deepest at the mouth and shallows to nothing at its head, and the walk gets better the
+further you go: the arch on the avenue, a ramp down into a notch, the walls rising to thirty
+courses around you, the bridge crossing overhead against the sky, and the gorge opening at the rim
+with the belvedere cantilevered over your head. Walk-tested from the avenue, no jumps, every step
+reversible.
+
+### FIVE BUGS, EACH OF WHICH SHIPPED A CLEAN AUDIT
+
+- **A VINE HANGS ON A BLOCK, NOT ON A HEIGHT FIELD.** The belvedere, the bridge and the gallery all
+  CLEAR courses above their own decks, so a face the field calls solid is air by the time the
+  planting runs - six vines on nothing. Then two more survived, clinging to a `jungle_fence`:
+  `lot.has` is the canvas's own "is anything here". Rule 11 - `blocks.is_full_cube` is the question.
+- **AN ARCH'S PIERS MUST BOTH BE BUILT UP TO THE LINTEL, not each to its own height.** Latent in the
+  shared generator since it was written; it only shows when the two feet stand on different ground,
+  and the far half of the gate shipped as a 21-cell stray.
+- **A FLIPPED GALLERY'S FLIGHT RUNS THE OTHER WAY** - that is what the flip means - and at rising u
+  from that deck was the AVENUE. Eight courses of deck is eight cells of run, so the stair came down
+  into the street's own lanes at four places. The deck is one course over the mesa at both ends, so
+  it needs no flight at all.
+- **A CABLE AND A RAKING STRUT STEPPED DIAGONALLY.** The ear-tip rule, in ironwork and in timber.
+- **AND THE SHOP'S TERRACE PAVED TO ITS OWN DECLARED DEPTH RATHER THAN TO THE PLINTH** - one empty
+  course between them, and ninety cells of legal, supported, perfectly clean paving that nothing
+  joins.
+
+### THE FIRST PLOT-SCALE CAPTURE OF A PARK ISLAND
+
+`/cscan islandplateau` - this file has asked for one for weeks (*"the park has no capture at plot
+scale, so its progress is honestly unknown"*). It changed the decision twice:
+
+- the tower was **345 of 4,943 built (7%)**, so retiring it cost about three hundred placed blocks;
+- of the Vale's 4,542 built cells on this ground **4,046 are the Y202 moss lawn**, which is
+  `Park Ways`' and stays - so a replacement on the same lot costs almost nothing;
+- and the whole design's overlap against the real world is **283 cells, every one at Y203-205 and
+  every one grey rock for grey rock.**
+
+It is also the right `verify_against` for a design that REPLACES another: `Park Complete` still
+contained the Vale, and verifying against a composite that holds the thing being replaced is the
+self-reference trap for the eighth time.
+
+### THE FIELD SHOP, on the lot the tower left (`gen/plateaushop.py`, 577 blocks)
+
+Jack: *"the lot where the tower was is empty, just hanging vines - what can go there ... maybe we
+keep 1 building and put another shop there"*, and on where: *"tower lot"*.
+
+**THE VINES WERE A LEFTOVER OF MY OWN**: 450 of them, every one hanging on nothing, because
+`PF Frontier Overgrowth` had clung them to the tower's masonry and was not regenerated when the
+tower was retired. Same class as the frontage marquees the signage audit found - and the stale
+keep-out that had been reserving the lot for a module nobody places any more went with it.
+
+The lot is 17 x 17 at the land's climax on the V123-127 avenue, and its own north edge is the
+park's rim - so it is a shop AND the terrace the belvedere is seen from, which is the second thing
+for free. It is OPEN-FRONTED, which is the argument this park has already had three times:
+`Arrival Court`, `Boomtown Spine` and the `Skill Arcade` were all retired for being a hall on a lot.
+A hall reads as a building; a counter reads as a shop. **And it holds NOTHING** - the Abyss Market's
+rule - so the board names the server's own `/shops` and the counter carries a bell somebody can
+ring.
+
+Its palette is `bonebed.CAMP`, not `park.py`'s `frontier`, which is still the spruce-and-cobble
+mining town this land was re-themed away from. **Two buildings in one land in two woods is how a
+re-theme leaks**, and `test_plateau_shop.py` fails on any spruce but a sign.
+
+    the tower lot: 289 moss + 450 floating vines, 0 verbs
+              ->   875 blocks, 3.03 b/col, 65% of columns 3+ tall, a bell and three boards
+
+### Still open, and the recommendation changed once the numbers arrived
+
+**THE MINE WORKS.** I recommended retiring it before measuring what it was: it is **7,598 blocks,
+37% BUILT (2,806 placed), and it carries the land's only moving mechanism** - a five-head stamp
+battery with an enforced `fun_contract`. Retiring it costs 2,806 placed blocks and the one thing in
+the Frontier that moves.
+
+**Re-theme it instead.** It is 22 x 100 at 3.45 b/col with 36% of it standing three courses - a
+ribbon rather than a building - and it is the last MINING building in a palaeontology land. A
+crusher is exactly what a fossil lab uses to free bone from matrix, so the structure and the machine
+both keep working under a name that fits. That is a signage-and-config pass rather than a rebuild.
+
+**And the Assay + Prize Office stays**: 20 x 46, 73% of its footprint three courses tall, and it
+houses `PF Game Prize Office`, the redemption counter for the land's three games. Retiring it would
+orphan a working game, which this park has done to itself before.
+
+**Nothing here has been placed in game.** All of it is `render3d`, which draws with the same colour
+DB the palette picker optimises against - judge form and mass off the sheets, palette in world.
+
+## The Nether miner: quartz, on foot, without dying (2026-09-12, chunkscan 0.9.11)
+
+Jack: *"we need an autonomous miner so we can mine quartz in the nether, fill our inventory
+(avoiding lava + dying); we can only walk/run/jump in nether (and place blocks as necessary) but
+cant fly; find quartz, fill inventory with it, store it, and do it again."* Branch tunnel and a
+teleport escape were his calls, taken over the safer options offered.
+
+```
+/cscan mine <radius>          start where you stand, facing where you face
+/cscan mine off               stop, and say what it got
+/cscan mine escape <command>  how it gets out of trouble; defaults to Rally's home
+```
+
+**EVERYTHING IT NEEDS ALREADY EXISTED.** `Nav.standable` is a grounded router, `Autopilot` walks,
+`Digger` breaks one watched block at a time, `Printer` places one, `ContainerInteraction` opens a
+chest. `Digger.tick` even takes a `List<BlockPos>` — a design's dig list is only what the caller
+passes it — so the miner feeds it a scan-derived list and inherits every existing refusal rather
+than getting a second, weaker digger. What was missing was the CYCLE and **three gates that would
+each have made it do nothing, in silence.**
+
+### TWO OF THE THREE ARE NOT ABOUT MINING, AND ONE IS WRONG ON THE ISLAND TOO
+
+- **`VoidRisk.under` SEARCHED FOR A BLOCK THAT `blocksMotion()`, AND LAVA DOES NOT.** `Nav`'s own
+  comment says so in as many words. The search walked straight past a lava lake, found the bedrock
+  underneath it and returned CAUGHT — so `Digger`'s one loss-preventing gate cheerfully approved
+  every block whose drop burns. On the island that was nearly unreachable; in the Nether it is the
+  normal case. `Verdict.BURNED` now, refused like the void, and `warn()` says which. It is the same
+  class as the three separate times this file records a classifier reading "not air" as "solid" — a
+  fourth costume for it.
+- **`Islands.Gate` AUTHORIZES ONLY THE RECORDED PLOTS, AND AN ISLAND IS AN X/Z RECTANGLE WITH NO
+  DIMENSION ON IT.** In the Nether every cell is outside every plot, so `judge` answers OFF_PLOT for
+  all of them: no swing, no error, nothing to read. The fix is NOT to weaken the plot gate — on the
+  island it is the only thing between a dig list and somebody's build — it is to make the
+  authorization explicit where the registry has nothing to say. `Digger.authorize(min, max, dim)`
+  replaces the plot gate while it is set, **and only in its own dimension**: a box is coordinates,
+  and coordinates mean nothing without a world. `reset()` clears it, so a design dig can never
+  inherit a miner's box.
+- **The walk gate refused.** `Autopilot.walk` steers on foot only toward a fetch or a landing. That
+  rule's real content is *only walk where there is ground*, and the void is the ISLAND's hazard
+  rather than a universal one — in the Nether what kills you is lava, which no amount of refusing to
+  walk would have helped with. A mining stand is the third floor, and the ground condition the gate
+  actually turns on still runs for all three.
+
+### The lava model: the client can see behind the wall
+
+**THAT IS THE ENTIRE EDGE OVER A HUMAN.** A person branch-mining dies to a pocket they had no way to
+know about; this mod holds every block of every loaded chunk, the ones behind the rock included. So
+the guard is not "react to lava" — by then you have ten ticks. Three layers:
+
+1. **Segment pre-clear.** `LavaGuard.scan` over the next `LOOKAHEAD` cells of corridor before any of
+   them is committed to. Lava within `SEGMENT_CLEAR` → turn, and say what it saw.
+2. **Per swing.** Six neighbours plus the cell above, re-checked in `Digger.judge` immediately
+   before every break, because chunks load and the world moves between one plan and the next.
+3. **Reaction**, which has to be immediate: **Nether lava spreads one block every 10 ticks against
+   the Overworld's 30.** Half a second of deciding is two blocks of flow.
+
+Three rules inside it, and the middle one is the opposite of what the router does:
+
+- **`lava` IS MATCHED EXACTLY, NEVER AS A SUBSTRING.** `Rules.isProtected` matches substrings on
+  purpose — `gray_wool` is protected because `wool` is in the list — and the same trick here makes
+  `lava_cauldron`, a decoration, read as lethal and refuses every corridor near a brewing room.
+- **UNLOADED IS UNSAFE HERE.** `Nav` counts an unloaded chunk as PASSABLE, deliberately, because
+  refusing to route through one fails every long flight. For DIGGING the identical fact means the
+  opposite: a cell we cannot see is a cell whose lava we cannot see. **Routing is optimistic because
+  a wasted flight is cheap; mining is pessimistic because a wrong answer is the inventory.**
+- **A falling block overhead is the same class of death** — gravel is common down there and a column
+  of it on your head in a one-wide corridor is suffocation. Asked of the GAME (`FallingBlock`)
+  rather than of a name list.
+
+Distance is **Chebyshev**, a cube rather than a sphere: it over-refuses slightly at the corners, and
+that is the correct direction to be wrong in.
+
+### Three bugs found reviewing my own work, all the same shape
+
+Each is a job that sits perfectly still while every watchdog in the mod reports it healthy, because
+nothing is travelling and nothing is failing.
+
+- **THE CORRIDOR HAD NO REASON TO TURN AT THE EDGE OF ITS OWN BOX.** Past the boundary the digger
+  answers OFF_PLOT for every cell — correctly — so the plan stays full, no swing lands, and only a
+  LAVA threat could turn the corridor. The miner would have stood at the edge of its own working
+  area refusing its own work for the rest of the session. The box edge turns it now, exactly as lava
+  does.
+- **A CORRIDOR THAT OPENS INTO A DROP IS ONE THE MINER WALKS DOWN.** A tunnel breaking into a cavern
+  is the normal way a Nether corridor ends, and what is at the bottom of one is routinely the lava
+  the rest of the class exists to avoid. It bridges, and after `BRIDGE_TRIES` it treats the drop
+  exactly like lava and turns.
+- **ENTERING THE STASH LEFT THE DIGGER HOLDING ITS BLOCK.** Nothing ticks the digger while the stash
+  runs, so its target stayed set, and `AutomationControl.blocksMovement` pins the body while the
+  digger is busy — right for a swing, fatal for a trip. The miner would have stood at the face with
+  a full pack, unable to walk to the chest it was trying to reach.
+
+### Smaller decisions worth keeping
+
+- **The deposit rule is a KEEP list, not a deposit list.** A deposit list silently leaves behind
+  anything nobody thought of, which over a night is a pack of gold nuggets and a miner that believes
+  it is full and cannot empty itself. Tools, food, buckets, boxes and one stack of netherrack stay;
+  everything else goes in.
+- **The face goes LAST in the dig list.** `Digger` takes the first cell in reach and never the last
+  while any other remains, so ore is always stripped before the corridor moves past it — which is
+  the whole point of a branch tunnel, and it needed no new code.
+- **A vein unravels itself.** Only EXPOSED ore is offered, so taking the front block exposes the one
+  behind it on the next pass: no vein-following, no dig-in depth to tune, and no way to chase a seam
+  out of the working box.
+- **THE ESCAPE IS PROVED.** Jack picked the teleport over walling in, and the one thing that can go
+  wrong with a command is that it silently does nothing. `Rally` has that scar already — *"a
+  teleport that did not teleport is a silent no-op"* — so this records where the body was, compares
+  after the landing, and a command proved twice not to move us is not sent a third time. The
+  fallback is then the thing that needs no server at all: wall in where it stands, and SAY that,
+  rather than reporting an escape that did not happen.
+- **A turn re-origins on the STAND the corridor reached, never on the body.** The body lags the plan
+  — it is walking, and may be most of a corridor behind after a stash trip — so re-origining on it
+  would start a branch in the middle of the last one, from a different place every time the same
+  decision was taken.
+- **It is deliberately NOT persisted across a relog.** Every other job here resumes its intent from
+  `session.json`; this one holds a box, a heading and a stash position, and all three are
+  coordinates. Resuming a job that swings a pickaxe into a world that has moved is the dangerous
+  direction, and typing the command again costs nothing.
+
+`LavaGuardTest` (15) is pure geometry with no client in it — `Cells` is a functional interface, the
+shape `Nav.Passable` and `Burial.Solid` already use. `MinerTest` (29) covers the corridor geometry,
+the fullness reserve, the keep rule, the turn order, the escape proof and the digger's
+dimension-scoped authorization. **805 Java tests, 0 failures.**
+
+`AutopilotTest.buildingRequiresFlightAndOnlyAFetchMayWalk` failed on the walk-gate change, which is
+its job — it pins a DECISION and this session reversed part of it. It moved in the same commit and
+got stronger rather than looser: it now asserts the list is still CLOSED and that the ground
+condition survived, which is the half that actually keeps anybody alive.
+
+### Still open
+
+- **NOT FLOWN. Not one line of this has been in the game.** Everything is unit-tested and every API
+  was read out of the real source rather than remembered, but a corridor that is actually walkable
+  and a chest that actually takes a shift-click are things only a session can say.
+- **Run `/cscan mine escape <command>` once by hand before leaving it.** Whether a warp works from
+  the Nether on this server is the one fact nothing offline can settle. The proof makes a failure
+  loud rather than fatal, but a command that works is better than a fallback that fires.
+- **The stash must be a chest within 12 blocks of where you start**, or it refuses and says so. It
+  finds one itself rather than making you name it.
+- **Ghasts and piglins are not modelled.** A corridor is inherently safe from both; the open cavern
+  a tunnel breaks into is not, and the only answer there is the health gate and the escape.
