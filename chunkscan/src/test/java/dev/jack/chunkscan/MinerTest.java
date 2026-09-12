@@ -306,7 +306,7 @@ class MinerTest {
 		// to the chest it is trying to reach, and no clock in this mod can see it, because nothing is
 		// travelling and nothing is failing.
 		String src = source("Miner");
-		int trip = src.indexOf("stashing = Stash.GOING");
+		int trip = src.indexOf("step(Stash.GOING)");
 		assertTrue(trip > 0, "the stash trip is gone");
 		String before = src.substring(Math.max(0, trip - 400), trip);
 		assertTrue(before.contains("Digger.pause(mc)"),
@@ -314,11 +314,137 @@ class MinerTest {
 	}
 
 	@Test
+	void theDiggingItselfHasAClockOnIt() throws java.io.IOException {
+		// The stash trip has one and the escape has one; the digging had none at all. A body that
+		// cannot reach its own stand, or a face refused for a reason that is neither lava nor the
+		// boundary, is a miner standing still with a full plan and a healthy-looking state.
+		String src = source("Miner");
+		assertTrue(src.contains("progressAt > MINE_STALL_MS"), "nothing times out the digging");
+		assertTrue(src.contains("progressAt = stashLegAt"),
+			"a long walk to the chest eats the face's clock and turns the corridor on arrival");
+		assertTrue(Miner.MINE_STALL_MS > Miner.STASH_LEG_MS / 2,
+			"a stall shorter than half a stash leg will fire on ordinary slow progress");
+	}
+
+	@Test
+	void aRefusedBridgeIsNotATrySpent() throws java.io.IOException {
+		// Printer.place returns REFUSED while it is still holding the LAST placement. Counted as an
+		// attempt, three of those in a row give up on a drop nothing ever actually tried to bridge.
+		assertTrue(source("Miner").contains("v != Printer.Verdict.REFUSED && ++bridgeTries"),
+			"a refusal still burns one of the bridge attempts");
+	}
+
+	@Test
+	void theWallInPlacesONEBlockPerTickBecauseThePrinterRefusesTheRest() throws java.io.IOException {
+		// Printer.place opens with `if (busy() || ...) return REFUSED` and busy() is
+		// `!pending.isEmpty()`, so the SECOND call in a tick and every call after it is a no-op until
+		// the first placement has been acknowledged. Nine calls in a for-loop read exactly like a wall
+		// going up and built a single block - in the one routine whose whole job is to be the fallback
+		// after everything else has failed.
+		String src = source("Miner");
+		assertTrue(src.contains("Printer.place(mc, left.get(0), PLUG)"),
+			"the wall-in no longer places exactly one cell per tick");
+		assertEquals(2, src.split("Printer\\.place\\(", -1).length - 1,
+			"a new Printer.place call appeared - check it is not a loop that will be refused");
+	}
+
+	@Test
+	void theShellSealsAllFourSidesAtBothCoursesAndTheLid() {
+		BlockPos feet = new BlockPos(0, 64, 0);
+		List<BlockPos> shell = Miner.shell(feet);
+		assertEquals(9, shell.size(), "four sides at two courses, plus the lid");
+		assertEquals(9, new java.util.HashSet<>(shell).size(), "a cell listed twice wastes a tick");
+		assertFalse(shell.contains(feet), "sealing your own feet in is not sealing");
+		assertFalse(shell.contains(feet.above()), "...nor your own head");
+		assertTrue(shell.contains(feet.above(2)), "an open lid is an open shell");
+		for (Direction d : Direction.Plane.HORIZONTAL) {
+			assertTrue(shell.contains(feet.relative(d)), d + " at the feet");
+			assertTrue(shell.contains(feet.above().relative(d)), d + " at the head");
+		}
+	}
+
+	@Test
+	void theTurnSequenceTriesEVERYOtherHeadingWithinItsLimit() {
+		// Rotating from the heading we have just abandoned walks back through ones that already
+		// failed - clockwise then anticlockwise from the NEW heading is the ORIGINAL one again - and
+		// inside TURN_LIMIT that left one of the four cardinals never tried at all.
+		Direction base = Direction.EAST;
+		java.util.Set<Direction> tried = new java.util.HashSet<>();
+		for (int i = 0; i < Miner.TURN_LIMIT; i++) tried.add(Miner.turn(base, i));
+		assertEquals(3, tried.size(), "every heading but the one that failed has to be tried");
+		assertFalse(tried.contains(base), "the failed heading is never re-tried");
+	}
+
+	@Test
+	void theTurnRotatesFromAFIXEDBaseAndNotFromTheHeadingItJustAbandoned() throws java.io.IOException {
+		assertTrue(source("Miner").contains("turn(turnBase, turns - 1)"),
+			"turning from the current heading revisits headings that have already failed");
+	}
+
+	@Test
+	void thePlanNeverOutrunsTheBody() throws java.io.IOException {
+		// In an open cavern every face is already air, so without this the depth advanced once per
+		// replan - four ticks - while the body walked half a block. The corridor ran off into
+		// unexplored dark dragging a target the body could never catch, and a turn then re-origined
+		// the next branch somewhere nobody had ever stood.
+		String src = source("Miner");
+		assertTrue(src.contains("closerThan(stand, ARRIVE)"),
+			"the advance is not gated on the body arriving");
+		assertTrue(Miner.ARRIVE > 0 && Miner.ARRIVE < Digger.REACH,
+			"an arrival slack past the digger's reach lets the plan move while the face is unreachable");
+	}
+
+	@Test
+	void everyLegOfTheStashTripHasAClockOnIt() throws java.io.IOException {
+		// GOING and OPENING flipped between each other every tick, for ever, in silence: GOING saw the
+		// body already within reach of the approach cell and handed to OPENING, OPENING could not get
+		// a hit on the chest and handed straight back. No watchdog in this mod can see that, because
+		// the job believes it is making progress the whole time.
+		String src = source("Miner");
+		assertTrue(src.contains("stashLegAt > STASH_LEG_MS"), "a stash leg can run for ever");
+		assertTrue(src.contains("openTries > OPEN_TRIES"),
+			"a chest that cannot be opened is retried for ever rather than reported");
+		assertFalse(src.contains("stashing = Stash.GOING"),
+			"a leg changed without step(), so its clock never restarts");
+	}
+
+	@Test
+	void theToolSwapIsRateLimitedAndTheMinerDoesNotSwingBareHanded() throws java.io.IOException {
+		// A SWAP is not synchronous. Re-sending it on every replan is how one stack ping-pongs in and
+		// out of the pack for ever without a block being broken - which this project already has on
+		// record for the printer's own hotbar swap.
+		String src = source("Miner");
+		assertTrue(src.contains("now < nextSwap"), "the swap is re-sent on every replan");
+		assertTrue(src.contains("usablePick(p, 0, 9) < 0"),
+			"nothing stops it swinging a bare hand while the swap is in flight");
+	}
+
+	@Test
+	void burningAloneIsNotWorthEndingATripOver() throws java.io.IOException {
+		// In the Nether you catch light off a stray flame and it costs a heart or two. A trip that
+		// ends every time that happens ends in the first minute.
+		String src = source("Miner");
+		assertTrue(src.contains("p.isOnFire() && p.getHealth() <= BURNING_HEALTH"),
+			"being on fire alone still ends the trip");
+		assertTrue(Miner.BURNING_HEALTH > Miner.DANGER_HEALTH,
+			"a burning threshold at or under the plain one can never fire on its own");
+	}
+
+	@Test
+	void aTeleportThatChangesDimensionCountsAsTheEscapeWORKING() throws java.io.IOException {
+		// The dimension check runs first, before the escape is judged - so without this a successful
+		// teleport out of the Nether reported as an unexplained dimension change, and the command
+		// never got the credit for having worked.
+		assertTrue(source("Miner").contains("escapePhase == Escape.TELEPORT"),
+			"a cross-dimension escape is not recognised as a successful one");
+	}
+
+	@Test
 	void aRetiredEscapeStopsTheJobRatherThanReportingAnEscapeThatDidNotHappen() throws java.io.IOException {
 		// Waiting out the landing after sending nothing reports "out, and stopped" about a body that
 		// never went anywhere - the exact shape of reassuring message this project keeps deleting.
 		String src = source("Miner");
-		assertTrue(src.contains("walled in where it stood"),
+		assertTrue(src.contains("has already been proved not to move"),
 			"the fallback does not say what actually happened");
 	}
 

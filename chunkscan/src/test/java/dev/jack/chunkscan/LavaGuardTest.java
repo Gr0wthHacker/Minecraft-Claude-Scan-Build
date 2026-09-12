@@ -3,10 +3,8 @@ package dev.jack.chunkscan;
 import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,13 +22,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class LavaGuardTest {
 
-	/** A world made of the cells you name. Anything unnamed is netherrack; anything in {@code dark} is unloaded. */
-	private static LavaGuard.Cells world(Map<String, String> named, Set<String> dark, Set<String> falling) {
+	/**
+	 * A world made of the cells you name: anything unnamed is plain rock, anything in {@code dark}
+	 * is an unloaded chunk, anything in {@code falling} is gravel.
+	 */
+	private static LavaGuard.Cells world(Set<String> lava, Set<String> dark, Set<String> falling) {
 		return new LavaGuard.Cells() {
-			@Override public String at(int x, int y, int z) {
-				String k = x + "," + y + "," + z;
-				if (dark.contains(k)) return null;
-				return named.getOrDefault(k, "netherrack");
+			@Override public boolean loaded(int x, int y, int z) {
+				return !dark.contains(x + "," + y + "," + z);
+			}
+
+			@Override public boolean lava(int x, int y, int z) {
+				return loaded(x, y, z) && lava.contains(x + "," + y + "," + z);
 			}
 
 			@Override public boolean falls(int x, int y, int z) {
@@ -40,13 +43,11 @@ class LavaGuardTest {
 	}
 
 	private static LavaGuard.Cells plain() {
-		return world(Map.of(), Set.of(), Set.of());
+		return world(Set.of(), Set.of(), Set.of());
 	}
 
 	private static LavaGuard.Cells withLava(String... at) {
-		Map<String, String> m = new HashMap<>();
-		for (String a : at) m.put(a, "lava");
-		return world(m, Set.of(), Set.of());
+		return world(set(at), Set.of(), Set.of());
 	}
 
 	/** A two-course corridor face at the origin. */
@@ -123,7 +124,7 @@ class LavaGuardTest {
 		// fails every long flight. For DIGGING the same fact means the opposite - a cell we cannot
 		// see is a cell whose lava we cannot see. If this ever starts returning null the guard has
 		// gone blind in exactly the case it exists for.
-		LavaGuard.Cells dark = world(Map.of(), Set.of("2,0,0"), Set.of());
+		LavaGuard.Cells dark = world(Set.of(), Set.of("2,0,0"), Set.of());
 		LavaGuard.Threat t = LavaGuard.scan(dark, face(), LavaGuard.SEGMENT_CLEAR);
 		assertNotNull(t);
 		assertEquals(LavaGuard.Kind.UNSEEN, t.kind());
@@ -133,7 +134,7 @@ class LavaGuardTest {
 	void anUnloadedCellAroundTheBodyIsTheWorldArrivingAndNotADanger() {
 		// The body is STANDING there; a chunk still loading around it is not a reason to panic.
 		// Only actual lava is, and it still is.
-		LavaGuard.Cells dark = world(Map.of(), Set.of("2,0,0"), Set.of());
+		LavaGuard.Cells dark = world(Set.of(), Set.of("2,0,0"), Set.of());
 		assertNull(LavaGuard.aroundBody(dark, BlockPos.ZERO));
 		assertNotNull(LavaGuard.aroundBody(withLava("1,0,0"), BlockPos.ZERO));
 	}
@@ -142,7 +143,7 @@ class LavaGuardTest {
 
 	@Test
 	void gravelOverACellWeAreAboutToTakeIsAThreat() {
-		LavaGuard.Cells w = world(Map.of(), Set.of(), Set.of("0,2,0"));
+		LavaGuard.Cells w = world(Set.of(), Set.of(), Set.of("0,2,0"));
 		LavaGuard.Threat t = LavaGuard.scan(w, face(), LavaGuard.SEGMENT_CLEAR);
 		assertNotNull(t);
 		assertEquals(LavaGuard.Kind.FALLING, t.kind());
@@ -151,7 +152,7 @@ class LavaGuardTest {
 	@Test
 	void gravelMerelyNEARTheCorridorIsNotAThreat() {
 		// Over a cell we never take, it never moves. Refusing this would refuse most of the Nether.
-		LavaGuard.Cells w = world(Map.of(), Set.of(), Set.of("3,2,0"));
+		LavaGuard.Cells w = world(Set.of(), Set.of(), Set.of("3,2,0"));
 		assertNull(LavaGuard.scan(w, face(), LavaGuard.SEGMENT_CLEAR));
 	}
 
@@ -159,8 +160,8 @@ class LavaGuardTest {
 	void unstableAboveLooksAtOneCellAndNotTheWholeColumn() {
 		// A stack of gravel falls as a column, so catching its bottom catches all of it. Walking
 		// upward instead would refuse a corridor under any gravel anywhere above it.
-		assertTrue(LavaGuard.unstableAbove(world(Map.of(), Set.of(), Set.of("0,1,0")), BlockPos.ZERO));
-		assertFalse(LavaGuard.unstableAbove(world(Map.of(), Set.of(), Set.of("0,5,0")), BlockPos.ZERO));
+		assertTrue(LavaGuard.unstableAbove(world(Set.of(), Set.of(), Set.of("0,1,0")), BlockPos.ZERO));
+		assertFalse(LavaGuard.unstableAbove(world(Set.of(), Set.of(), Set.of("0,5,0")), BlockPos.ZERO));
 	}
 
 	// ------------------------------------------------------------------ degenerate input

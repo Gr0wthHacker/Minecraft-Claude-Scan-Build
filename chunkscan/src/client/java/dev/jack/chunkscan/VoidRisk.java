@@ -55,11 +55,10 @@ final class VoidRisk {
 			BlockPos q = new BlockPos(p.getX(), y, p.getZ());
 			if (!level.isLoaded(q)) return new Cell(p, Verdict.UNKNOWN, p.getY() - y);
 			// LAVA FIRST, because it is not solid and the solid test would walk past it. Source and
-			// flowing are the same BLOCK (Blocks.LAVA, differing only in `level`), so one name test
-			// catches both - and it is LavaGuard's name test, so the two cannot come to disagree
-			// about what lava is.
-			if (LavaGuard.isLava(net.minecraft.core.registries.BuiltInRegistries.BLOCK
-					.getKey(level.getBlockState(q).getBlock()).getPath())) {
+			// flowing are ONE question asked of LavaGuard, which is also the only place that
+			// question is answered - so the digger and this search cannot come to disagree about
+			// what lava is, and neither pays a registry lookup to find out.
+			if (LavaGuard.isLava(level.getBlockState(q))) {
 				return new Cell(p, Verdict.BURNED, p.getY() - y);
 			}
 			if (level.getBlockState(q).blocksMotion()) {

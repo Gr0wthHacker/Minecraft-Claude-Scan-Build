@@ -16028,3 +16028,73 @@ condition survived, which is the half that actually keeps anybody alive.
   finds one itself rather than making you name it.
 - **Ghasts and piglins are not modelled.** A corridor is inherently safe from both; the open cavern
   a tunnel breaks into is not, and the only answer there is the health gate and the escape.
+
+### The miner, audited before it ever flew (2026-09-12, chunkscan 0.9.12)
+
+Jack: *"audit and make improvements."* Nine findings, read adversarially off code written an hour
+earlier. **Every one would have shipped**, and the three worst are the same shape this project keeps
+writing rules about: a job standing still while every watchdog reports it healthy.
+
+- **THE EMERGENCY FALLBACK PLACED ONE BLOCK OF NINE.** `wallIn` looped over the shell calling
+  `Printer.place` — and `place` opens with `if (busy() || ...) return REFUSED` where `busy()` is
+  `!pending.isEmpty()`. **The second call in a tick and every call after it is a no-op until the
+  first placement is acknowledged.** Nine calls in a for-loop read exactly like a wall going up and
+  built a single block, in the one routine whose entire job is to work when everything else has
+  failed. It is one block per tick now, re-deriving what is still open each time so it cannot
+  double-place or stop early.
+- **GOING AND OPENING FLIPPED BETWEEN EACH OTHER FOR EVER, IN SILENCE.** `GOING` sees the body is
+  already within reach of the approach cell and hands to `OPENING`; `OPENING` cannot get a hit on
+  the chest — broken, blocked, or an approach cell that is not actually in reach — and hands
+  straight back. Every tick, for the rest of the session. **No watchdog in this mod can see that,
+  because the job believes it is making progress the whole time.** Every leg of the trip has a clock
+  on it now and `step()` is the only way to change leg, so a leg cannot be entered without starting
+  one.
+- **NOTHING HAD A CLOCK ON THE DIGGING.** The stash got one and the escape had one; the actual
+  mining had none at all. A body that cannot reach its own stand, or a face the digger refuses for a
+  reason that is neither lava nor the boundary — a protected block, a tool that will not break it —
+  is a miner standing still with a full plan and a healthy-looking state. It turns away after 45
+  seconds of producing nothing, and `TURN_LIMIT` is what eventually calls the box finished.
+
+Three more that were wrong rather than silent:
+
+- **THE PLAN OUTRAN THE BODY.** In an open cavern every face is already air, so `depth` advanced
+  once per replan — four ticks — while the body walked half a block. The corridor ran off into
+  unexplored dark dragging a target the body could never catch, and because a turn re-origins on
+  the STAND, the next branch would have started somewhere nobody had ever been. The advance is
+  gated on arriving.
+- **THE TURN SEQUENCE NEVER TRIED ONE OF THE FOUR CARDINALS.** It rotated from the heading it had
+  just abandoned, so clockwise-then-anticlockwise from the NEW heading is the ORIGINAL one again:
+  the run went `cw, back-to-start, opposite` and inside `TURN_LIMIT` the anticlockwise heading was
+  never reached. It rotates from a base fixed at the first turn of the run.
+- **THE TOOL SWAP WAS RE-SENT EVERY REPLAN.** A `SWAP` is not synchronous, so a swap still in
+  flight looked exactly like one that had not been asked for — which is how a stack ping-pongs in
+  and out of the pack for ever without a block being broken, a failure this project already has on
+  record for the printer's own hotbar swap. Rate-limited, and the miner no longer swings while the
+  hotbar has nothing but a bare hand in it: `usablePick` asks the hotbar and the pack as separate
+  questions.
+
+And three smaller ones:
+
+- **A SUCCESSFUL ESCAPE REPORTED AS A FAILURE.** The dimension check runs first, so a teleport that
+  worked well enough to leave the Nether halted as an unexplained dimension change and the command
+  never got the credit — which matters, because two failures retire it. A new world while a
+  teleport is in flight is the proof it worked.
+- **A REFUSED BRIDGE BURNED AN ATTEMPT.** `Printer.place` returns `REFUSED` while it is still
+  holding the last placement; counted as a try, three in a row gave up on a drop nothing had
+  actually tried to bridge yet.
+- **THE FOOD RULE CARRIED A DEAD CLAIM.** `keep` said food stays *"because eating is how the health
+  gate is survived"* and **nothing anywhere eats.** Implementing it needs the use-key held with a
+  food item selected and nothing targetable in front of you, which is a real risk of right-clicking
+  something by accident for a feature nobody asked for. The claim is corrected instead: food stays
+  because it is yours and not the miner's to spend, and a long run ending on health is now in the
+  open list rather than hidden behind a comment that described behaviour that did not exist.
+
+**And one that was only ever a cost.** `LavaGuard` asked the world for a block NAME per cell — a
+registry lookup and a string compare — over ~800 cells per replan and 150 per tick for the body
+check. Nothing in it ever needed to know which block it was looking at, so `Cells` is three
+booleans now (`loaded`, `lava`, `falls`), the body check is the twelve faces of the two cells a
+player occupies rather than a radius-2 box, and `isLava(BlockState)` is the single definition that
+`VoidRisk` asks too — so the digger and the drop check cannot come to disagree about what lava is,
+and neither pays a lookup to find out.
+
+**816 Java tests, 0 failures** (55 of them the miner's). Still NOT FLOWN.

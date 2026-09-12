@@ -84,6 +84,15 @@ final class Miner {
 	/** Health at which the trip is over. Ten is five hearts: enough to survive the walk out. */
 	static final float DANGER_HEALTH = 10.0f;
 
+	/**
+	 * ...and the health below which being ON FIRE is also a reason to go.
+	 *
+	 * <p>Burning alone is too twitchy to escape on. In the Nether you catch light off a stray flame
+	 * and it costs a heart or two; a trip that ends every time that happens ends in the first
+	 * minute. It is a danger when it is burning you DOWN, which is what this pairs it with.
+	 */
+	static final float BURNING_HEALTH = 14.0f;
+
 	/** How far the escape command has to move us before we believe it ran. Rally's number. */
 	static final double MOVED_ENOUGH = 8.0;
 
@@ -98,6 +107,31 @@ final class Miner {
 
 	/** Consecutive turns with nothing dug between them, after which the box is finished. */
 	static final int TURN_LIMIT = 4;
+
+	/** How near the stand the body has to be before the plan may move past it. */
+	static final double ARRIVE = 2.0;
+
+	/** Ticks between two attempts to move a pickaxe out of the pack. A SWAP is not synchronous. */
+	static final int SWAP_COOLDOWN = 20;
+
+	/** Ticks a wall-in may spend before it reports what it managed and stops. */
+	static final int WALL_TRIES = 80;
+
+	/**
+	 * Nothing broken and no ground gained for this long, and this face is not working.
+	 *
+	 * <p>The stash trip has a clock and the escape has one; the DIGGING had none at all. A body that
+	 * cannot reach its own stand, or a face the digger refuses for a reason that is neither lava nor
+	 * the boundary — a protected block, a tool that will not break it — is a miner standing still
+	 * with a full plan and a healthy-looking state, which is this project's signature failure.
+	 */
+	static final long MINE_STALL_MS = 45_000;
+
+	/** Ticks any one leg of a stash trip may take before it is not going to happen. */
+	static final long STASH_LEG_MS = 60_000;
+
+	/** Attempts to open the stash from a spot we have already walked to. */
+	static final int OPEN_TRIES = 40;
 
 	/** Bridging attempts over one drop before the drop is treated as a wall. */
 	static final int BRIDGE_TRIES = 3;
@@ -122,10 +156,21 @@ final class Miner {
 	private static String lastWord = "";
 
 	private static String escapeCommand = "";
-	private static boolean escaping;
+	private enum Escape { NO, TELEPORT, WALLING }
+	private static Escape escapePhase = Escape.NO;
 	private static int escapeLanding;
 	private static BlockPos escapeFrom;
 	private static int deadEscape;
+	private static List<BlockPos> wallCells = List.of();
+	private static int wallTries;
+	private static long nextSwap;
+	/** The heading the current run of turns started from - see turnAway. */
+	private static Direction turnBase;
+	/** When the current leg of a stash trip began, so a leg that cannot finish says so. */
+	private static long stashLegAt;
+	/** When this face last produced anything - a block broken, or a step forward. */
+	private static long progressAt;
+	private static int openTries;
 
 	private enum Stash { NO, GOING, OPENING, PUTTING, RETURNING }
 	private static Stash stashing = Stash.NO;
@@ -136,9 +181,6 @@ final class Miner {
 		return on;
 	}
 
-	static int mined() {
-		return mined;
-	}
 
 	// ---------------------------------------------------------------- the decisions (pure)
 
@@ -183,7 +225,9 @@ final class Miner {
 	 */
 	static boolean keep(String item, boolean damageable, boolean edible, int count, int plugHeld) {
 		if (damageable) return true;                       // the pickaxe, and anything else with a bar
-		if (edible) return true;                           // eating is how the health gate is survived
+		// Food is yours and not the miner's to spend. NOTHING HERE EATS - see the class note; the
+		// health gate escapes rather than heals, so a long run ends on health eventually.
+		if (edible) return true;
 		if (item.endsWith("_bucket") || item.equals("bucket")) return true;
 		if (item.contains("shulker_box")) return true;     // a box is storage, not cargo
 		if (item.equals(PLUG)) return plugHeld < PLUG_KEEP; // a stack to plug and bridge with
@@ -244,10 +288,15 @@ final class Miner {
 		stash = chest;
 		stashing = Stash.NO;
 		stashFails = 0;
-		escaping = false;
+		escapePhase = Escape.NO;
+		wallCells = List.of();
+		turnBase = null;
+		nextSwap = 0;
+		openTries = 0;
 		deadEscape = 0;
 		escapeFrom = null;
 		nextPlan = 0;
+		progressAt = System.currentTimeMillis();
 		lastWord = "";
 		if (escapeCommand.isBlank()) escapeCommand = Rally.home();
 		areaMin = new BlockPos(here.getX() - radius, here.getY() - AREA_DOWN, here.getZ() - radius);
@@ -274,7 +323,8 @@ final class Miner {
 	static String stop(Minecraft mc) {
 		boolean was = on;
 		on = false;
-		escaping = false;
+		escapePhase = Escape.NO;
+		wallCells = List.of();
 		stashing = Stash.NO;
 		plan = List.of();
 		Digger.pause(mc);
@@ -292,7 +342,7 @@ final class Miner {
 		if (!on) return "the miner is off. /cscan mine <radius> starts it where you stand.";
 		return "mining " + heading.getName() + ", " + depth + " cells in, " + report()
 			+ (stashing != Stash.NO ? " [stashing: " + stashing + "]" : "")
-			+ (escaping ? " [ESCAPING]" : "");
+			+ (escapePhase != Escape.NO ? " [" + escapePhase + "]" : "");
 	}
 
 	/** Stop, say why, and leave the sentence where the report can find it. */
@@ -312,11 +362,19 @@ final class Miner {
 		// Checked before anything, including the danger gate: a box, a heading and a stash position
 		// carried through a portal address somebody else's build.
 		if (!mc.level.dimension().identifier().toString().equals(dimension)) {
+			// ...unless we ASKED to be somewhere else, in which case a new world is the proof the
+			// escape worked. Judged here rather than in escapeTick because this check runs first, and
+			// without it a successful teleport out of the Nether reported as an unexplained dimension
+			// change and never counted as the escape working.
+			if (escapePhase == Escape.TELEPORT) {
+				escapePhase = Escape.NO;
+				return halt(mc, "out — /" + escapeCommand() + " moved us to another dimension. " + report());
+			}
 			return halt(mc, "the dimension changed — the miner stopped rather than digging at the"
 				+ " same numbers somewhere else");
 		}
 
-		if (escaping) return escapeTick(mc, p);
+		if (escapePhase != Escape.NO) return escapeTick(mc, p);
 
 		String danger = danger(mc, p);
 		if (danger != null) return beginEscape(mc, p, danger);
@@ -338,6 +396,7 @@ final class Miner {
 		if (Digger.broke() > before) {
 			mined += Digger.broke() - before;
 			turns = 0;                                     // progress: the box is not finished
+			progressAt = System.currentTimeMillis();
 		}
 		return said;
 	}
@@ -350,14 +409,29 @@ final class Miner {
 			// is busy, which is right for a swing and fatal here: the miner would have stood at the
 			// face with a full pack, unable to walk to the chest, and nothing would have said why.
 			Digger.pause(mc);
-			stashing = Stash.GOING;
+			step(Stash.GOING);
 			stashFails = 0;
 			return "pack full — " + mined + " ore so far, taking it to the stash";
 		}
 		String tool = ensureTool(mc, p);
 		if (tool != null) return halt(mc, tool);
+		// Nothing usable in the HOTBAR yet: a click uses what is held, so swinging now is swinging a
+		// bare hand at netherrack with the give-up clock running, which writes the cell off.
+		if (usablePick(p, 0, 9) < 0) {
+			plan = List.of();
+			return null;
+		}
 
 		LavaGuard.Cells world = LavaGuard.of(mc.level);
+
+		// A CLOCK ON THE DIGGING, because every other way of being stuck here has one and this did
+		// not. Treated as a reason to turn rather than to stop: a face that has produced nothing in
+		// three quarters of a minute is one worth giving up on, and TURN_LIMIT is what decides the
+		// box is finished.
+		if (System.currentTimeMillis() - progressAt > MINE_STALL_MS) {
+			return turnAway(mc, p, "nothing broken or gained here for "
+				+ (MINE_STALL_MS / 1000) + " seconds");
+		}
 
 		// THE CORRIDOR IS LOOKED AT BEFORE IT IS COMMITTED TO. This is the layer that makes branch
 		// mining safe rather than lucky: the lava is already in the client's hands, so the corridor
@@ -383,9 +457,20 @@ final class Miner {
 		}
 		plan = List.copyOf(work);
 
+		BlockPos stand = standFor(origin, heading, depth);
 		if (!work.isEmpty()) {
 			bridgeTries = 0;
-			Hud.guideMine(standFor(origin, heading, depth), "mining " + heading.getName());
+			Hud.guideMine(stand, "mining " + heading.getName());
+			return null;
+		}
+
+		// THE PLAN MUST NOT OUTRUN THE BODY. In an open cavern every face is already air, so without
+		// this the depth advanced once per replan - four ticks - while the body walked half a block,
+		// and the corridor ran off into unexplored dark dragging a target the body could never catch.
+		// It also decides where a turn re-origins, so a runaway plan puts the next branch somewhere
+		// nobody has ever stood.
+		if (!p.blockPosition().closerThan(stand, ARRIVE)) {
+			Hud.guideMine(stand, "walking up to the face");
 			return null;
 		}
 
@@ -398,14 +483,17 @@ final class Miner {
 			// cavern is the normal way that happens in the Nether, and what is at the bottom is
 			// routinely the lava this whole class exists to stay out of. Bridge it, and if there is
 			// nothing to bridge with, treat the drop exactly like lava and turn.
-			if (++bridgeTries > BRIDGE_TRIES) {
+			Printer.Verdict v = Printer.place(mc, floor, PLUG);
+			// A REFUSAL is the printer still holding the LAST placement, not a try we have spent. Counted
+			// as one, three refusals in a row give up on a drop nothing ever actually tried to bridge.
+			if (v != Printer.Verdict.REFUSED && ++bridgeTries > BRIDGE_TRIES) {
 				return turnAway(mc, p, "a drop at " + Wand.fmt(next) + " and no " + PLUG + " to bridge it");
 			}
-			Printer.place(mc, floor, PLUG);
 			return null;
 		}
 		bridgeTries = 0;
 		turns = 0;                                       // the corridor moved: the box is not finished
+		progressAt = System.currentTimeMillis();
 		depth++;
 		Hud.guideMine(standFor(origin, heading, depth), "mining " + heading.getName());
 		return null;
@@ -420,14 +508,20 @@ final class Miner {
 	 * of the last one, from a position that is different every time the same decision is taken.
 	 */
 	private static String turnAway(Minecraft mc, LocalPlayer p, String why) {
+		// THE ROTATION IS FROM A FIXED BASE, not from the heading we have just abandoned. Rotating
+		// from the current one walks back through headings that have already failed - clockwise then
+		// anticlockwise from the NEW heading is the original one again - and inside TURN_LIMIT that
+		// left one of the four cardinals never tried at all.
+		if (turns == 0) turnBase = heading;
 		if (++turns > TURN_LIMIT) {
 			return halt(mc, "boxed in — every way on from " + Wand.fmt(standFor(origin, heading, depth))
 				+ " runs into " + why + ". " + report());
 		}
 		// ...and the same insurance: the old target is on a cell we have just turned away from.
 		Digger.pause(mc);
+		progressAt = System.currentTimeMillis();          // a new face gets its own clock
 		origin = standFor(origin, heading, depth);
-		heading = turn(heading, turns - 1);
+		heading = turn(turnBase, turns - 1);
 		depth = 1;
 		plan = List.of();
 		bridgeTries = 0;
@@ -447,19 +541,23 @@ final class Miner {
 	static List<BlockPos> exposedOre(Minecraft mc, LocalPlayer p) {
 		List<BlockPos> out = new ArrayList<>();
 		BlockPos me = p.blockPosition();
+		// One mutable cursor rather than 1,331 BlockPos per sweep, five sweeps a second. The registry
+		// lookup is the real cost here and it is only paid for cells that are not air.
+		BlockPos.MutableBlockPos q = new BlockPos.MutableBlockPos();
 		for (int dx = -HARVEST_RADIUS; dx <= HARVEST_RADIUS; dx++) {
 			for (int dy = -HARVEST_RADIUS; dy <= HARVEST_RADIUS; dy++) {
 				for (int dz = -HARVEST_RADIUS; dz <= HARVEST_RADIUS; dz++) {
-					BlockPos q = me.offset(dx, dy, dz);
+					q.set(me.getX() + dx, me.getY() + dy, me.getZ() + dz);
 					if (!mc.level.isLoaded(q)) continue;
-					if (!ORE.equals(BuiltInRegistries.BLOCK.getKey(
-						mc.level.getBlockState(q).getBlock()).getPath())) continue;
+					var st = mc.level.getBlockState(q);
+					if (st.isAir()) continue;
+					if (!ORE.equals(BuiltInRegistries.BLOCK.getKey(st.getBlock()).getPath())) continue;
 					if (!exposed(mc, q)) continue;
-					out.add(q);
+					out.add(q.immutable());
 				}
 			}
 		}
-		out.sort(Comparator.comparingDouble(q -> q.distSqr(me)));
+		out.sort(Comparator.comparingDouble(ore -> ore.distSqr(me)));
 		return out;
 	}
 
@@ -473,33 +571,47 @@ final class Miner {
 
 	// ---------------------------------------------------------------- the tool
 
-	/** Null while there is something worth swinging, else the sentence to stop on. */
-	static String ensureTool(Minecraft mc, LocalPlayer p) {
+	/**
+	 * The best slot holding something that will still break rock, or -1.
+	 *
+	 * <p>A tool at or below {@link #PICK_RESERVE} is not offered at all: starting a block with it
+	 * finishes the tool rather than the block, and the swing that breaks it leaves the miner
+	 * punching netherrack with the give-up clock running.
+	 */
+	static int usablePick(LocalPlayer p, int from, int to) {
 		var inv = p.getInventory();
-		var netherrack = net.minecraft.world.level.block.Blocks.NETHERRACK.defaultBlockState();
+		var rock = net.minecraft.world.level.block.Blocks.NETHERRACK.defaultBlockState();
 		int best = -1;
-		float bestSpeed = 1.0f;
-		int slots = Math.min(36, inv.getContainerSize());
-		for (int i = 0; i < slots; i++) {
+		float bestSpeed = 1.0f;                             // a bare hand: anything at or under is no tool
+		int slots = Math.min(to, inv.getContainerSize());
+		for (int i = from; i < slots; i++) {
 			ItemStack st = inv.getItem(i);
 			if (st.isEmpty()) continue;
-			if (st.isDamageableItem() && st.getMaxDamage() - st.getDamageValue() <= PICK_RESERVE) {
-				continue;                                   // nearly dead: not worth starting on
-			}
-			float s = st.getDestroySpeed(netherrack);
+			if (st.isDamageableItem() && st.getMaxDamage() - st.getDamageValue() <= PICK_RESERVE) continue;
+			float s = st.getDestroySpeed(rock);
 			if (s > bestSpeed) { bestSpeed = s; best = i; }
 		}
-		if (best < 0) {
+		return best;
+	}
+
+	/** Null while there is something worth swinging, else the sentence to stop on. */
+	static String ensureTool(Minecraft mc, LocalPlayer p) {
+		if (usablePick(p, 0, 9) >= 0) return null;          // in the hotbar: Digger.holdBestTool picks it
+		int spare = usablePick(p, 9, 36);
+		if (spare < 0) {
 			return "no pickaxe left with more than " + PICK_RESERVE + " uses on it. " + report();
 		}
-		if (best >= 9) {
-			// Into the hotbar, because a click uses what is HELD. Printer.swapSlot picks a
-			// destination that is not a tool and not the selected slot, for exactly this reason.
-			int dest = Printer.swapSlot(p);
-			inv.setSelectedSlot(dest);
-			mc.gameMode.handleContainerInput(p.inventoryMenu.containerId, best, dest,
-				ContainerInput.SWAP, p);
-		}
+		// A SWAP IS NOT SYNCHRONOUS - you ask, the server decides, and the stack arrives some ticks
+		// later. Re-sending it on every replan is how one stack ping-pongs in and out of the pack for
+		// ever without a block being broken, which is a failure this project already has on record
+		// for the printer's own hotbar swap.
+		long now = mc.level.getGameTime();
+		if (now < nextSwap) return null;
+		nextSwap = now + SWAP_COOLDOWN;
+		int dest = Printer.swapSlot(p);
+		p.getInventory().setSelectedSlot(dest);
+		mc.gameMode.handleContainerInput(p.inventoryMenu.containerId, spare, dest,
+			ContainerInput.SWAP, p);
 		return null;
 	}
 
@@ -511,7 +623,11 @@ final class Miner {
 		if (p.getHealth() <= DANGER_HEALTH) {
 			return "health down to " + (int) p.getHealth() + " of " + (int) p.getMaxHealth();
 		}
-		if (p.isOnFire()) return "on fire";
+		// BURNING ALONE IS TOO TWITCHY - see BURNING_HEALTH. It is a reason to go when it is
+		// actually burning us down, not the first time a flame is brushed past.
+		if (p.isOnFire() && p.getHealth() <= BURNING_HEALTH) {
+			return "on fire at " + (int) p.getHealth() + " health";
+		}
 		LavaGuard.Threat t = LavaGuard.aroundBody(LavaGuard.of(mc.level), p.blockPosition());
 		return t == null ? null : t.describe();
 	}
@@ -529,67 +645,105 @@ final class Miner {
 	private static String beginEscape(Minecraft mc, LocalPlayer p, String why) {
 		Digger.pause(mc);
 		Hud.stopGuiding();
-		escaping = true;
+		escapeFrom = null;
+		wallTries = 0;
+		if (deadEscape >= DEAD_ESCAPE_LIMIT || escapeCommand().isBlank()) {
+			escapePhase = Escape.WALLING;
+			wallCells = shell(p.blockPosition());
+			return "DANGER (" + why + ") — /" + escapeCommand() + " has already been proved not to move"
+				+ " us, so walling in where it stands instead.";
+		}
+		escapePhase = Escape.TELEPORT;
 		escapeLanding = LANDING_TICKS;
 		escapeFrom = p.blockPosition();
-		if (deadEscape >= DEAD_ESCAPE_LIMIT || escapeCommand.isBlank()) {
-			// Nothing was sent, so there is nothing to wait for and nothing to judge. Waiting out the
-			// landing here would have reported "out, and stopped" about a body that never went
-			// anywhere - the exact shape of reassuring message this project keeps having to delete.
-			escaping = false;
-			escapeFrom = null;
-			wallIn(mc, p);
-			return halt(mc, "DANGER (" + why + ") — walled in where it stood, because /" + escapeCommand()
-				+ " has already been proved not to move us. " + report());
-		}
-		p.connection.sendCommand(escapeCommand);
-		return "DANGER (" + why + ") — escaping with /" + escapeCommand + ". " + report();
+		p.connection.sendCommand(escapeCommand());
+		return "DANGER (" + why + ") — escaping with /" + escapeCommand() + ". " + report();
 	}
 
 	private static String escapeTick(Minecraft mc, LocalPlayer p) {
+		if (escapePhase == Escape.WALLING) return wallTick(mc, p);
 		if (escapeLanding-- > 0) return null;
-		escaping = false;
 		if (escapeFrom != null && !moved(escapeFrom, p.blockPosition())) {
 			deadEscape++;
-			wallIn(mc, p);
-			return halt(mc, "/" + escapeCommand + " did not move us — walled in instead."
-				+ " Set a command that works here with /cscan mine escape <command>. " + report());
+			escapePhase = Escape.WALLING;
+			wallCells = shell(p.blockPosition());
+			wallTries = 0;
+			return "/" + escapeCommand() + " did not move us — walling in instead. Set one that works"
+				+ " here with /cscan mine escape <command>.";
 		}
+		escapePhase = Escape.NO;
 		return halt(mc, "out, and stopped. " + report());
 	}
 
-	/**
-	 * Seal the body in where it stands.
-	 *
-	 * <p>Needs no server command, no route and no flight — which is the whole reason it is the
-	 * fallback rather than the first move. It places into whatever is there, flowing lava included:
-	 * a block in a lava cell is how you stop a flow, and refusing to place there would leave the
-	 * one face that matters open.
-	 */
-	private static void wallIn(Minecraft mc, LocalPlayer p) {
-		BlockPos feet = p.blockPosition();
-		List<BlockPos> shell = new ArrayList<>();
+	/** The cells that seal a body in where it stands: four sides at both courses, and the lid. */
+	static List<BlockPos> shell(BlockPos feet) {
+		List<BlockPos> out = new ArrayList<>();
 		for (Direction d : Direction.Plane.HORIZONTAL) {
-			shell.add(feet.relative(d));
-			shell.add(feet.above().relative(d));
+			out.add(feet.relative(d));
+			out.add(feet.above().relative(d));
 		}
-		shell.add(feet.above(2));
-		for (BlockPos q : shell) {
+		out.add(feet.above(2));
+		return out;
+	}
+
+	/**
+	 * Seal the body in where it stands, ONE BLOCK PER TICK.
+	 *
+	 * <p><b>The loop this replaces placed exactly one block and silently refused the other eight.</b>
+	 * {@link Printer#place} is {@code if (busy() || ...) return REFUSED} and {@code busy()} is
+	 * {@code !pending.isEmpty()} — so the second call in a tick, and every call after it, is a no-op
+	 * until the first placement has been acknowledged. Nine calls in a for-loop looked exactly like a
+	 * wall going up and built a single block, in the one routine whose whole job is to be the
+	 * fallback when everything else has failed.
+	 *
+	 * <p>It places into whatever is there, flowing lava included: a block in a lava cell is how you
+	 * stop a flow, and refusing to place there would leave open the one face that matters.
+	 */
+	private static String wallTick(Minecraft mc, LocalPlayer p) {
+		List<BlockPos> left = new ArrayList<>();
+		for (BlockPos q : wallCells) {
 			if (!mc.level.isLoaded(q)) continue;
 			if (mc.level.getBlockState(q).blocksMotion()) continue;
-			Printer.place(mc, q, PLUG);
+			left.add(q);
 		}
+		wallCells = left;
+		if (left.isEmpty()) {
+			escapePhase = Escape.NO;
+			return halt(mc, "walled in where it stood — break out when you get here. " + report());
+		}
+		if (++wallTries > WALL_TRIES) {
+			escapePhase = Escape.NO;
+			return halt(mc, "walled in as far as it could — " + left.size() + " side(s) still open, and"
+				+ " no " + PLUG + " to close them. " + report());
+		}
+		Printer.place(mc, left.get(0), PLUG);
+		return null;
 	}
 
 	// ---------------------------------------------------------------- the stash
 
+	/**
+	 * Walk to the stash, empty the pack, walk back.
+	 *
+	 * <p><b>EVERY LEG HAS A CLOCK ON IT.</b> Written without one, the GOING and OPENING legs flipped
+	 * between each other on every tick, for ever, in silence: GOING sees the body is already within
+	 * reach of the approach cell and hands over to OPENING, OPENING cannot get a hit on the chest —
+	 * it was broken, or a mob is standing in it, or the approach cell is not actually in reach — and
+	 * hands straight back. Nothing moves, nothing is placed, no watchdog anywhere in this mod can
+	 * see it, because the job believes it is making progress the whole time.
+	 */
 	private static String stashTick(Minecraft mc, LocalPlayer p) {
+		if (System.currentTimeMillis() - stashLegAt > STASH_LEG_MS) {
+			return halt(mc, "could not " + stashing.name().toLowerCase(java.util.Locale.ROOT)
+				+ " at the stash " + Wand.fmt(stash) + " within a minute — it may be gone, blocked or"
+				+ " out of reach. " + report());
+		}
 		switch (stashing) {
 			case GOING -> {
 				BlockPos approach = ContainerInteraction.approach(mc, stash);
 				BlockPos aim = approach == null ? stash : approach;
 				if (p.blockPosition().closerThan(aim, 1.5)) {
-					stashing = Stash.OPENING;
+					step(Stash.OPENING);
 					return null;
 				}
 				Hud.guideMine(aim, "stash the quartz");
@@ -597,13 +751,18 @@ final class Miner {
 			}
 			case OPENING -> {
 				if (Screens.container() != null) {
-					stashing = Stash.PUTTING;
+					step(Stash.PUTTING);
 					nextPut = 0;
 					return null;
 				}
 				var hit = ContainerInteraction.openingHit(mc, stash);
 				if (hit == null) {
-					stashing = Stash.GOING;
+					// COUNTED, not flipped straight back. Handing to GOING from here is the ping-pong the
+					// class note is about: GOING finds the body already there and hands it right back.
+					if (++openTries > OPEN_TRIES) {
+						return halt(mc, "cannot open the stash at " + Wand.fmt(stash)
+							+ " from where the miner can stand. Move it somewhere with a clear face. " + report());
+					}
 					return null;
 				}
 				mc.gameMode.useItemOn(p, net.minecraft.world.InteractionHand.MAIN_HAND, hit);
@@ -614,8 +773,8 @@ final class Miner {
 			}
 			case RETURNING -> {
 				BlockPos stand = standFor(origin, heading, depth);
-				if (p.blockPosition().closerThan(stand, 2.0)) {
-					stashing = Stash.NO;
+				if (p.blockPosition().closerThan(stand, ARRIVE)) {
+					step(Stash.NO);
 					nextPlan = 0;
 					return null;
 				}
@@ -639,7 +798,7 @@ final class Miner {
 	private static String put(Minecraft mc, LocalPlayer p) {
 		var screen = Screens.container();
 		if (screen == null) {                               // it closed under us
-			stashing = Stash.GOING;
+			step(Stash.GOING);
 			return null;
 		}
 		long now = mc.level.getGameTime();
@@ -673,11 +832,21 @@ final class Miner {
 				return halt(mc, "the stash at " + Wand.fmt(stash) + " will not take any more —"
 					+ " empty it, or put a bigger one there. " + report());
 			}
-			stashing = Stash.GOING;
+			step(Stash.GOING);
 			return null;
 		}
-		stashing = Stash.RETURNING;
+		step(Stash.RETURNING);
 		return "stashed — " + report();
+	}
+
+	/** Move to the next leg of the stash trip, and start that leg's own clock. */
+	private static void step(Stash next) {
+		stashing = next;
+		stashLegAt = System.currentTimeMillis();
+		// ...and the FACE's clock too, or a two-minute walk to the chest and back reads as two
+		// minutes of a face producing nothing and turns the corridor the moment the miner gets home.
+		progressAt = stashLegAt;
+		if (next != Stash.OPENING) openTries = 0;
 	}
 
 	// ---------------------------------------------------------------- odds and ends
@@ -723,7 +892,8 @@ final class Miner {
 	/** Coordinates mean nothing without a world: everything positional goes on a disconnect. */
 	static void forget() {
 		on = false;
-		escaping = false;
+		escapePhase = Escape.NO;
+		wallCells = List.of();
 		stashing = Stash.NO;
 		origin = areaMin = areaMax = stash = escapeFrom = null;
 		heading = null;
