@@ -15869,17 +15869,29 @@ re-theme leaks**, and `test_plateau_shop.py` fails on any spruce but a sign.
     the tower lot: 289 moss + 450 floating vines, 0 verbs
               ->   875 blocks, 3.03 b/col, 65% of columns 3+ tall, a bell and three boards
 
-### Still open, and the recommendation changed once the numbers arrived
+### THE MINE WORKS IS RE-THEMED, NOT RETIRED - and the recommendation changed once it was measured
 
-**THE MINE WORKS.** I recommended retiring it before measuring what it was: it is **7,598 blocks,
-37% BUILT (2,806 placed), and it carries the land's only moving mechanism** - a five-head stamp
-battery with an enforced `fun_contract`. Retiring it costs 2,806 placed blocks and the one thing in
-the Frontier that moves.
+I recommended retiring it before measuring what it was. It is **7,598 blocks, 37% BUILT (2,806
+placed), and it carries the land's only moving mechanism** - a five-head battery with an enforced
+`fun_contract`. Retiring it would have cost both. Jack: *"retheme it."*
 
-**Re-theme it instead.** It is 22 x 100 at 3.45 b/col with 36% of it standing three courses - a
-ribbon rather than a building - and it is the last MINING building in a palaeontology land. A
-crusher is exactly what a fossil lab uses to free bone from matrix, so the structure and the machine
-both keep working under a name that fits. That is a signage-and-config pass rather than a rebuild.
+**`PF Mine Works` -> `PF Prep Works`, and NOT ONE BLOCK MOVED** - same origin, same shape, **0 cells
+whose block state differs**, asserted before the rename shipped. A crusher is exactly what a fossil
+lab uses to free bone from matrix, so the structure, the redstone and the contract all keep working
+under a name that fits. What changed is the design name, the prose, and three boards - one of which
+still said *"shipped by rail"* for an ore line the config had already switched OFF.
+
+**THE MODULE FILE KEEPS ITS NAME.** `gen/mineworks.py` builds a generic stepped works with a machine
+in it and a loading dock; renaming the file would touch the registry, the tests and every import for
+nothing a guest can see. Its docstring says what it builds now, which is the part that goes stale.
+
+**AND ITS BUTTON IS REACHABLE, which was measured rather than assumed** - and the first test of it
+was WRONG in a way worth keeping. Asked about the button's OWN column it reported NOT REACHED: that
+column is inside the machine bay, and a button at Y207 is pressed from a floor at Y206 one or two
+cells over. Asked properly - every standable cell whose EYE is within four and a half blocks, which
+is how the printer asks the same question - the nearest is **Y206 U50 V159, two blocks away and on
+the guest network**. A machine nobody can reach is a prop, and a reachability answer means nothing
+without the movement model stated beside it.
 
 **And the Assay + Prize Office stays**: 20 x 46, 73% of its footprint three courses tall, and it
 houses `PF Game Prize Office`, the redemption counter for the land's three games. Retiring it would
@@ -16098,3 +16110,652 @@ player occupies rather than a radius-2 box, and `isLava(BlockState)` is the sing
 and neither pays a lookup to find out.
 
 **816 Java tests, 0 failures** (55 of them the miner's). Still NOT FLOWN.
+
+## `reference/amazingsteal`: a nine-year veteran's island, on OUR server (2026-09-13)
+
+A `/cscan` capture of another player's island on skyblock.net. **204x384x204, 604,686 blocks, 665
+distinct block names, 3,353 tile entities.** It is the first evidence this project has that was made
+by somebody else *under our own constraints* - the download corpus is a different Minecraft with a
+different economy, and everything else here is ours. Filed in `reference/` beside the other outside
+builds; `tools/corpus.py` and `tools/look.py` both read it.
+
+### WHAT DOES NOT TRANSFER, AND JACK NAMED IT BEFORE I BUILT ON IT
+
+**17.5% of that build is `expensive` tier** - 105,502 cells: 39,940 gold blocks, 13,463 amethyst,
+7,230 lapis, terracotta and concrete used freely. Jack: *"this is a very long time player who has
+more grass blocks economical access to materials than we do, theyve been playing for 9 years."*
+
+That is a fact about a WALLET and it transfers to nothing. I was one measurement away from
+concluding our austerity was self-imposed. **A capture proves what a player HAS, never what a
+player can AFFORD**, and the two look identical in a block count.
+
+### WHAT DOES: AVAILABILITY, AND IT IS 665 ANSWERS TO RULE 12 AT ONCE
+
+Every name in it is a block the 1.19 server has actually sent a client. Diffed against every capture
+of Jack's own island (204 names), **474 were blocks we had never witnessed** - and the provisional
+allowlist held 191, so it was rejecting most of the game.
+
+- **"Sandstone does not exist on this skyblock" IS FALSE.** ~10,000 cells of `sandstone` and
+  `sandstone_slab` stand in it, plus `end_stone`, `netherrack`, `nether_bricks`, crimson and warped.
+  That claim has been in this file for weeks and was never evidence, only absence of it.
+- **THE 1.19 CLAIM IS NOW INDEPENDENTLY CONFIRMED.** 665 distinct blocks from a veteran using
+  everything he can reach, and **not one post-1.19 block**: no cherry, bamboo blocks, suspicious
+  sand, tuff bricks, copper bulbs, trial chambers, vault, crafter or pale oak. A witness set that
+  large with a clean cut at exactly one version is much stronger evidence than the server MOTD.
+- `tools/server_blocks.py` takes it as a capture: **191 -> 680 blocks**, and `allium` and
+  `deepslate_bricks` - the two this file already recorded as wrongly rejected while four designs
+  were built from them - are in.
+
+**Two bugs in that tool, both found before using it, both the shape this file keeps recording:**
+
+- **REGENERATING WOULD HAVE SILENTLY SWITCHED THE GATE ON.** `blocks.available` reads
+  `srv.get("enforce", True)` - defaulting to TRUE - and the writer emitted only
+  `version/source/authoritative/blocks`. So the one command that improves the list would have
+  dropped the `enforce: false` Jack set and started rejecting blocks across every generator, with a
+  `note` beside it explaining a decision that was no longer in force. The policy keys are carried
+  across now and `test_the_allowlist_keeps_its_policy_keys` is the tripwire.
+- **A capture that failed to load was skipped in SILENCE**, so the list quietly shrank to whatever
+  happened to parse and nobody learned which witness went missing. It prints `SKIPPED <name>`.
+
+`POST_1_19` was defined INSIDE one test and a second test needed it; it is module-level now, because
+two copies of that set is the drift the one-source rule exists to stop.
+
+### AND WHAT ELSE TRANSFERS IS FREE
+
+| | theirs | our `Park Buildings` |
+|---|---|---|
+| detail families (slab/stair/wall/pane/trapdoor/fence/carpet) | **12.0%** | 3.4% |
+| `type=top` slabs, of non-double slabs | **66%** | 10% |
+| `half=top` (upside-down) stairs | **46%** | 21% |
+| `open=true` trapdoors | 55% | 52% - we already match |
+| accent tail past the top 3 blocks | 78% | 68.7% - we already match |
+| dominant block | 8.0% | 15.4% |
+
+**CUT BLOCKS ARE CHEAPER THAN FULL ONES, WHICH INVERTS THE WHOLE ARGUMENT.** Off the stonecutter
+recipes rather than from memory: **1 block -> 2 slabs, 1 block -> 1 stair.** Slabs are 43% of their
+detail. So closing that gap is cost-neutral at worst and halves the material wherever a slab does
+the job - and a `type=top` slab is the same item as a `type=bottom` one, so 10% -> 66% is free by
+definition. It is the one finding here with no budget attached at all.
+
+### DENSITY, measured against an outside reference for the first time
+
+| | amazingsteal | `Park Complete` |
+|---|---|---|
+| columns >= 3 courses tall | **65%** | 42% |
+| blocks per occupied column | **10.3** | 3.59 |
+| columns >= 4 from any 3+ tall mass | **4.7%** | **25.9%** |
+| columns >= 10 away | 0.2% | 4.0% |
+
+Our park is 99% paved and 42% furnished; a quarter of it is four blocks from anything with height.
+That is Jack's repeated complaint - *"so much wasted empty crap"*, *"buildings with unclear
+purposes"* - with a number and an outside benchmark against it at last.
+
+**And the composition is FOUR MASSES WITH REAL AIR BETWEEN THEM**: a ground plate, gothic spires, a
+dense main island, a floating colonnade and a crown, across 384 courses with Y73-78, Y199-213 and
+Y262-269 empty. The Prism Well and the Broken Plateau are the same bet; this is the first
+confirmation it is what a good builder here actually does.
+
+## Cut courses in `park.py`, and the reflection nobody could see (2026-09-13)
+
+`park.py` generates more cells than any other module in the park and was the only one with **no
+detail floor in its tests at all**, which is why it drifted to 2.05%. It is **13.46% now, at exactly
+the same cell count** - 11,121 across all kinds and lands, before and after, which is the
+cost-neutral claim verified rather than asserted.
+
+    _cut(name, suffix)          `stone_bricks` -> `stone_brick_slab`, `spruce_planks` -> `spruce_stairs`
+    _ring_and_core(f, lo, hi)   a proud square split into its ring - each cell with its lean - and its core
+    _coping(...)                the ring as stairs: `half=top` is a corbel, `half=bottom` a plinth splay
+    _lid(...)                   a roof or ceiling as `type=top` slabs
+
+- **THE COURSE KEEPS ITS OWN FAMILY.** `pal["stair"]` is NOT `pal["trim"]` - on the midway the trim
+  is `polished_blackstone_bricks` (45) and the stair is `stone_brick_stairs` (128) - so laying a
+  trim ring out of `pal["stair"]` erases the one dark line the trim exists to draw. `_cut` asks the
+  REGISTRY for the family's own partial (rule 11), with a plural stem for the bricks and a
+  `_planks` stem for the woods, and anything the game does not have - `smooth_basalt`, every wool,
+  `dripstone_block` - answers None so the caller keeps its full cube. **A cornice in the wrong
+  material is worse than a cornice in full blocks.**
+- **A `type=top` SLAB'S TOP FACE IS THE CELL BOUNDARY**, so a roof laid as one is still walked on
+  and the merlons still stand on it. That is what makes a lid free rather than a trade.
+- **BUT A LANTERN UNDER A SLAB HANGS FROM AIR** - this file's own lowland finding, and the lid runs
+  straight over the walkthrough's ceiling. `_hang_light` re-puts a full block at its own anchor and
+  runs after the lid, so it self-heals; the test asserts the OUTCOME (every `hanging=true` cell has
+  a full cube above it) rather than the ordering, so moving either call fails here instead of
+  shipping a room of floating lanterns.
+
+### THE SAWTOOTH: a coordinate-space bug wearing a facing bug's clothes
+
+The first build rendered every string course as a **serrated sawtooth** instead of one continuous
+moulding. The facings were uniform along each run, which is what a correct course looks like - so it
+read as a facing bug and was not one.
+
+**`_Frame`'s i-AXIS IS A REFLECTION OF ITS d-AXIS, NOT A ROTATION.** `sx, sz = -dz, -dx`. So the
+hand-written `left = {"east": "north", ...}` table inside `_Frame.inward` is right for north and
+south and **inverted for east and west** - and east is the facing every test defaults to, so every
+test agreed with the bug. Two consequences:
+
+- my ring leaned outward on half its runs, putting each stair's step profile ALONG its own run
+  instead of across it, which is exactly what draws a sawtooth;
+- and **every cornice `_cornice` has ever laid on an east- or west-facing building leaned the wrong
+  way** - pre-existing, on half the park.
+
+It was invisible until `render3d.subdivide` learned to draw a stair's real shape: before that, this
+repo's own recorded rule was that *our renderer draws a stair the wrong way round identically to a
+right one*. The renderer earning its keep for the third time.
+
+`inward` derives the i-axis from the frame's own `(sx, sz)` now (`_DIR` is the inverse of `_STEP`)
+rather than from a table, and `_ring_and_core` REUSES `inward` rather than carrying a second copy of
+the rotation - which is what I should have done first and is the whole of why this happened.
+
+**Three new tests, each verified RED against HEAD before being kept**: a 10% detail floor over every
+kind and land, the lid-and-lantern pair, and `..._leans_INTO_the_mass_at_every_facing` parametrised
+over all four facings, because the facing is where it was wrong. The lid test's first version was
+VACUOUS - it asserted that *some* `type=top` slab existed, which the gate's six-cell ticket counter
+already satisfied on the old code; it asserts a whole COURSE of at least 40 now.
+
+**No new test failures.** The 22 in the affected suites are all pre-existing and verified so by
+running with these changes reverted: 16 `test_park.py::...[*-paths]`, one
+`test_every_measured_trough_gains_something_to_look_at`, and five lamp-arm tests belonging to
+another stream's in-flight `parkways.py` work.
+
+### Still open
+
+- **`smooth_basalt` is 15.4% of `Park Buildings` and has NO slab or stair at any price.** It is
+  `path`/`trim` in prismworks and the `KERB` in two more modules, so a sixth of the build cannot
+  take detail at all. Swapping it for `polished_deepslate` or `deepslate_bricks` would open it up -
+  that is a look change across a whole land and is Jack's call, not a silent one.
+- **The other building modules were surveyed and not touched**: `civic.py` (`_plinth` base and cap),
+  `arcade.py` (fascia boards, plinths), `frontiertown.py` (fascia, boardwalk kerb) all still lay
+  full-cube trim. `prismworks_builds.py:_cornice`/`_skirt` and `midway_builds.py` were already
+  correct and are the pattern to copy.
+- **Nothing here has been placed in game.** Judge form off `render3d`, palette in world.
+
+## THE PARK, MEASURED AGAINST THE WORLD FOR THE FIRST TIME (2026-09-13)
+
+Jack captured the whole park in three scans - `dinoisland` z80299-80545, `carnivalisland` z80494-80769,
+`prismisland1` z80670-80901 - and `python -m mcbuild merge` unions them into
+**`out/park_world.litematic`**, 203x369x603 at (97499, -64, 80299). **Every design cell is inside
+it**: `progress` reports `0 outside the scan box`, which is the first time that has been true.
+CLAUDE.md has asked for a plot-scale capture for weeks; this is it, and it changed three answers.
+
+- **379,768 blocks standing, 73% of the design** (311,089 of 426,548), 1,710 deviations.
+- **98.5% of what is built belongs to a design.** Only 5,569 cells are unaccounted for, most of
+  them one hand-built thing in acacia and water at x97520-97535 / z80688-80719. There has been no
+  drift from plan at all.
+- **THE SIDECAR'S `non_air_blocks` IS WRONG ON A MERGE** - it read 33,021,122. The union carries
+  TWO air palette entries and only `Model.solid()` knows both. Count the model, never the meta.
+
+### THE PARK IS SPARSE, NOT EMPTY, AND THAT DECIDES WHAT CAN BE ADDED
+
+| | park, built | park, design FINISHED | `reference/amazingsteal` |
+|---|---|---|---|
+| blocks per occupied column | **3.29** | **3.69** | **10.30** |
+| ground columns carrying 3+ courses above the lawn | **17.3%** | - | **65%** |
+
+**FINISHING THE PARK DOES NOT CLOSE THE GAP** - 3.29 to 3.69 against 10.30. That is a fact about
+the DESIGN, not about the building, and it is why more of the same plan is not the answer.
+
+And there is nowhere left to put a new module on the ground. Of 82,482 bare lawn columns only
+20,769 are two clear of anything standing, and a maximal-rectangle search over those finds
+**27 free pads of 8x8 or better in the whole 600x200** - one at 15x54, six with a short side of 13.
+**The lawn is a mesh of verges, not a set of plots.**
+
+What IS empty is the air. 78% of everything built sits in the twelve courses above the lawn;
+**the Lost Plateau has 21 cells above Y250 in the entire land**, and the median column's headroom
+to the build limit is 117 courses. The railway is already an elevated spine at Y214 - down the
+EAST edge only.
+
+## Dressing, retuned against the world (2026-09-13)
+
+Jack: *"we can add and dress more from where we are and build upwards in smart ways."* The dressing
+half first, because it needed no new design at all.
+
+**THE DIAL WAS NEVER THE PROBLEM.** `PF Park Green` covered 3,575 of the ~20,769 plantable columns
+at 1.2 cells each - ground COVER, not the mass the park is short of. The cause is two gates in
+`parkgreen`: `open_min` refused to plant within THREE of anything built, and a column below
+`(open_min + open_full) // 2` could only draw a FLAT kind. **On a park whose lawn IS verges, almost
+every column was one or the other.** Swept:
+
+    o_min o_full dens step    cells   cols  3+tall
+        3      7 0.75    3     4246   3575     184     <- as shipped
+        2      5 0.90    3     7449   5221     682
+        2      4 0.95    2    18152   8849    2895     <- taken
+
+| | before | after |
+|---|---|---|
+| `PF Park Green` | 3,706 | **17,799** |
+| `PF Park Rim Green` | 1,814 | **3,733** |
+| `PF Frontier Scatter` | 2,310 | 2,578 |
+| dead ground the passes remove (columns 4+ from anything) | 4,928 -> ~1,700 | **4,928 -> 514** |
+
+0 NEW problems in context on all three, and `tools/park_empty.py --walk` reports **0 columns cut
+off** behind the denser planting.
+
+- **A KERB IS PROTECTED BY `path_clear`, NOT BY `open_min`**, and that is why lowering `open_min`
+  is safe: `_Ground.clearing` refuses any candidate whose whole `path_clear` neighbourhood is not
+  lawn, so a column two from a path is refused whatever the openness gate says. What `open_min`
+  alone governs is the gap between BUILDINGS - and a narrow gap still draws only a flat kind.
+- **`PF Frontier Scatter` BARELY MOVED** (2,310 -> 2,578) and the reason is worth keeping: it is
+  limited by its KEEP-OUTS, not its density. It reserves all nine module lots, because a material
+  test cannot tell its own jungle tree from the Diggings' one. `claimrow` solved that exact problem
+  with `shipped_cells` - exact cells from the artifact rather than a lot - and pointing Scatter at
+  the same mechanism is the obvious next gain.
+- **THE RIM RESERVE GOT A MODEST LIFT AND KEPT ITS KIT** - no trees, no hedges, capped at three
+  courses. Its job is an OUTWARD SIGHTLINE, and the one thing that would spoil it is mass tall
+  enough to close the view.
+
+### Two tests moved WITH the decision, and one of them was a snapshot
+
+- `test_the_openness_gate_leaves_a_verge_alone` asserted `open_min >= 3`, which is the decision
+  this pass reversed on measurement. It asserts the surviving property instead - a ONE-cell verge
+  is never planted, the ramp ramps, and the kerb keeps its own guard - and names the real check for
+  passage, which is the walk flood rather than a constant.
+- `test_the_cleanup_actually_cleans_up` guarded its ratio with `before > 5000`, **a snapshot of one
+  day's park**: the baseline legitimately falls as the park gets denser, and it hit 4,928 the day
+  the dressing improved - a magic number failing for the very improvement it exists to witness. It
+  is a share of the bare ground now. Its `without=` list had also been leaking: it excluded two
+  dressing designs and not the third, so the "before" moved when something it was not measuring
+  got denser.
+
+**Still open:** `PF Frontier Overgrowth`'s two vines naming a face that is air in a pass-disabled
+composite is PRE-EXISTING - verified by running against HEAD's artifacts.
+
+## THE CANOPY WALK - the park's first upward addition (2026-09-13)
+
+`configs/pf_canopy_walk.yaml`, `mcbuild/gen/canopywalk.py`, `tests/test_canopywalk.py` (8).
+**1,138 blocks, ONE connected piece, 0 problems, 0 new problems in context, all cheap.** A timber
+walkway at Y228 across the Lost Plateau's ridge, x97555-97645 at z80402-80417, with a flight down
+to the rock at either end.
+
+**IT IS UPWARD BECAUSE THE GROUND IS FULL** - 27 free pads of 8x8 or better in the whole 600x200 -
+and a canopy walk is the one upward thing that needs no ground at all: it stands on piers in the
+verges, which is the park's one surplus.
+
+### THE ROUTE IS FOUND, AND THAT IS THE WHOLE DESIGN
+
+The ridge's top surface runs Y202-250 with a median of 219, and both naive answers fail on those
+numbers: a CONSTANT deck collides with the four peaks over Y237, and a deck that FOLLOWS the
+surface undulates Y210-252, which is a staircase. What works is to hold the deck level and move the
+ROUTE - a least-cost line over the corridor, where being inside the rock is fatal, being far above
+it is a cost, and every sideways cell is paid for so the walk wanders only where the rock makes it.
+
+**RE-DERIVED ON EVERY BUILD, never hard-coded.** `PF Mine Ridge` is 36% built: waypoints would be a
+snapshot of one day's rock, and the mountain under this walk is going to keep arriving.
+
+### Five faults, and each one is a rule this repo already carries
+
+- **ONE CELL OF SIDEWAYS PER CELL OF FORWARD.** Left free, the least-cost path jumped several cells
+  of u between adjacent columns of v - and a deck whose next course starts three cells over is not
+  joined to it. The first build came out in **SIX pieces**. A walkway does not teleport.
+- **THE SADDLE IS A SPAN, AND IT IS THE TERRAIN'S ANSWER.** x97618-97635 has no ground a pier could
+  stand on within reach of the deck at ANY corridor width - swept at `u_slack` 9, 12, 15 and 18,
+  the route is forced across the same eighteen columns every time. So it is BUILT as a bridge:
+  `max_span` is raised deliberately rather than by accident, and a pylon at each end with a fence
+  catenary between them makes the span read as carried.
+- **THE CABLE IS ONE CELL WIDE, SO EVERY STEP IT TAKES HAS TO BE THREADED.** The deck gets away
+  with a sideways step because it is three wide and the courses overlap; a single line of fence
+  does not, and neither does a change of sag. Both shipped as diagonal-only joins - the ear-tip
+  rule, on a mane, a pair of ossicones, a tail and now a bridge cable. The sag is gone: a catenary
+  is worth nothing if it arrives as a stray.
+- **`width` IS THE WALKABLE WIDTH, AND THE RAIL STANDS OUTSIDE IT.** Laid with the rail on the
+  deck's own kerb, a three-wide walk has ONE clear lane: 128 standable cells for 91 columns of
+  deck, which is a plank rather than a walk. Only `test_..._can_actually_be_WALKED` could see it -
+  every other check is about blocks and this one is about a person.
+- **A KERB NEEDS THE LANE CELL BESIDE IT**, not merely a lane somewhere in its column. Where the
+  rock refuses the outermost plank the kerb has nothing to be the edge of and ships as a one-cell
+  island of slab.
+
+`_prune_strays` guarantees the single piece and **reports its own count (6 of 1,144)**, with the
+bound asserted - `stegosaur`'s rule that a geometry needing a lot of stitching is a geometry that
+is wrong, and that the net must never become how the contract is met.
+
+### Still open, and stated rather than hidden
+
+**The setting is 31% built.** `PF Lost Plateau` (the jungle canopy, 10,558 cells left) and
+`PF Mine Ridge` under it (27,029 left) are what make this read as a walk through TREETOPS rather
+than as a gantry beside a hill - and in the context render that is exactly what it still is. The
+walk lands on real built rock either way; it will not look like its own name until the canopy is in.
+
+It is shipped and placeable by name. It is **not** in `park_place.EXTRAS_READY`, so it is not in
+`Park Complete` - that is a decision about the composite, not about the design.
+
+### The merge grew a second AIR entry, and it poisoned everything that asked `ids != 0`
+
+Found while pointing the canopy walk at the merged world, and it is the most transferable bug of
+the session. `coop.merge_scans` seeds its palette with `pal = [scans[0].model.palette[0]]` - air at
+index 0 - and left `key_index` EMPTY, so the first scan's air matched nothing and was appended as a
+**second air entry holding 2.3 million cells**.
+
+`Model.solid()` knows both and is right. **Everything that asks the ordinary question is wrong:**
+
+    merged world   ids != 0  ->  33,021,122        solid()  ->  379,768
+    the sidecar's own `non_air_blocks`             33,021,122
+
+...and `finish.verify_against` reported **every cell** of a design verified against a cut of it as
+an overlap, which is what surfaced it. `compact_palette` cannot help: the two tags are genuinely
+different objects with the same key.
+
+Fixed at the seed (`key_index = {state_key(pal[0]): 0}`) and belt-and-braces in `_paste_columns`,
+which now maps any air-like state to 0 whatever its NBT. `non_air_blocks` is `m.solid().sum()`.
+**The first attempt at the guard silently did nothing**, because `state_key` returns a TUPLE and
+`str(...).split(":")[-1]` of one is `"air', ())"` - a membership test that can only ever be false,
+which is this file's own most-repeated failure shape.
+
+## THE CANOPY WALK RAN THROUGH THE ROLLERCOASTER, AND BOTH CHECKS MISSED IT (2026-09-13)
+
+Jack: *"canopy and the rollercoaster intersect? audit all."* They did. **81 cells**, and five of
+them stood in the two courses over live track.
+
+    canopy x Mine Coaster   81 shared    36 spruce_log (the trestle) + 39 stone_bricks (lift hill)
+    on the track             0
+    in the rider clearance   5    x97532 y205-206, over rail at y204 - planks, stairs and fence
+    ...and two of the walk's PIERS driven down through the ride's own trestle at x97615, x97621
+
+### THE FIRST MEASUREMENT WAS WRONG BY 48 BLOCKS, AND IT WAS THE SIDECAR THAT LIED
+
+Read straight off `out/Mine Coaster.scan.json` the answer came out **248 cells including a
+`powered_rail` replaced by a jungle plank** - a much more alarming finding, and false.
+
+**A LOT MODULE IS NOT PLACED AT ITS OWN SIDECAR ORIGIN.** `park_place.modules()` puts it at its
+lot `(v, u)` and at the park's own build plane; only a `PF ` design in `extras()` is placed from
+the origin its sidecar records. There are THREE coaster artifacts in `out/` and they are not the
+same thing:
+
+| | shape | solid | placed? |
+|---|---|---|---|
+| `out/Mine Coaster.litematic` | 69x94x97 | 56,635 | **no** - legacy, and its sidecar origin is 48 blocks off |
+| `out/park_final/artifacts/Mine Coaster.litematic` | 56x61x101 | 31,196 | only if the `PF ` file is missing |
+| `out/PF Mine Coaster.litematic` | 56x61x101 | 31,197 | **yes**, at lot (v24, u99), plane 13 |
+
+A design's own sidecar answers *where was this generated*; only the composite answers *where does
+the park put it*. Auditing a lot module against its sidecar measures a ride that is not in the
+park - and it looks exactly like a real answer, because every coordinate in it is plausible.
+
+### BOTH CHECKS THAT EXIST MISSED IT, FOR DIFFERENT REASONS
+
+- **`finish.verify_against` AUDITS AGAINST A CAPTURE, AND A CAPTURE HOLDS ONLY WHAT IS BUILT.** The
+  coaster is **62% placed** (19,342 of 31,197) and **every one of the 81 contested cells is in the
+  unbuilt 38%**. The audit reported overlap 0 honestly. Third costume for the finding this file
+  already records about the Prism Well's stale cut and about `park_place.clashes` itself: *a
+  context that is honest about a design's geometry can be blind about what is not built yet.*
+- **`park_place.clashes` ASKS THE RIGHT QUESTION AND NEVER SAW THIS DESIGN.** It compares the
+  modules in the composite, and `PF Canopy Walk` is not in `EXTRAS_READY` - deliberately, because
+  it has not landed. So the one check that could have caught this is the one a not-yet-shipped
+  design is exempt from, which is exactly when it is cheapest to fix.
+
+### The fix, and it is `gen/mineridge.py`'s own idiom
+
+That generator already solved this: *"it reads the coaster's own artifact, and a cell the ride owns
+is refused"*. The canopy walk does the same now, in the SAME lot frame - which is what makes
+`ride_at` derivable rather than typed: the coaster's lot is (v24, u99) off the park anchor and this
+lot's anchor IS the park anchor.
+
+    ride: out/PF Mine Coaster.litematic   ride_at: [24, 99]   ride_plane: 13   ride_clear: 2
+
+**THE RIDE'S CELLS AND THE RIDER'S CLEARANCE ARE KEPT APART AND REPORTED APART**, because they are
+different faults: one is two designs contending for a cell, the other is a beam in the face of
+somebody riding past at speed. `route.legal` refuses a column the ride stands in - the DECK is the
+thing that cannot move cell by cell - and `_Walk.put` refuses everything else.
+
+Three things it cost, each a rule this repo already carries:
+
+- **THE CORRIDOR CLOSED AT ONE COLUMN.** With the ride refused, v118 has only u101-102 legal
+  against a v117 whose lowest choice is u104 - and a walkway may only step one cell of u per cell
+  of v. `u_slack` 9 -> **10**; swept at 10, 11, 12, 13 and 14 the route that comes out is
+  IDENTICAL (u100-117, an 18-column worst span), so ten is the width the terrain and the ride
+  actually ask for rather than a number picked to make an error go away.
+- **A STAIRHEAD WALKS UNTIL THE ROCK STOPS IT, AND FROM v55 THE ROCK DOES NOT STOP IT.** It
+  descended twenty-three courses past the coaster's western structure to the park floor - a ramp
+  beside a rollercoaster rather than a way off a canopy walk - and the keep-out then cut it in two,
+  leaving its foot as a 17-cell island. Swept over every v0 from 45 to 100, the westmost head whose
+  whole descent is clear of the ride is **65**: seven courses down to rock at y221, ON THE RIDGE,
+  which is where a walk through treetops should put you. The collision fix and the design fix turn
+  out to be the same fix.
+- **A PYLON IS ALL OR NOTHING, AND A CABLE RUNS THE WHOLE SPAN OR IS NOT STRUNG.** Refusing cell by
+  cell holes a mast and breaks a one-wide line, and the prune then removes the fragments - which
+  hides the fact that the truss is short (15 cells pruned against a bound of 12, which is the test
+  that caught it). `_piers` already states the rule for the other end of the same post (*"nothing
+  to stand on: take the post back out"*); this is it upward. **And the cable genuinely cannot be
+  strung here**: the coaster's lift hill climbs y236 to y244 through u101-103 across this very
+  span, above any mast worth building - so the masts stand, the deck passes UNDER the ride, and
+  `truss_cables_declined` says so rather than leaving it to be inferred from a block count.
+
+    826 blocks, ONE piece, 0 problems, 0 cells of the ride, 0 in the rider's clearance,
+    pruned 4 of 830 against a bound of 12, 10/10 tests
+
+`test_the_walk_takes_NOT_ONE_CELL_OF_THE_RIDE_and_nothing_a_rider_passes_through` is the tripwire,
+and it derives the coaster's placed position from the config's own `ride_at`, so it cannot drift
+from what the generator refuses. **Verified RED**: with the guard off and the old `v0`/`u_slack`
+the design takes 81 ride cells and 5 clearance cells, exactly the fault.
+
+### And the rest of the sweep, because "audit all" was the other half
+
+Every design with cells in the Lost Plateau band, pairwise, against the park AS PLACED, plus every
+ride's track and the two courses over it:
+
+- **NOTHING IN THE SHIPPED PARK STANDS IN ANY TRACK OR ANY RIDER'S CLEARANCE.** The Mine Coaster,
+  the Mine Cart Escape, the Carousel and `Park Rail` (1,206 rails) are all clear. The only
+  intrusions anywhere are **vines** - 8 in the coaster's clearance from `PF Lost Plateau`, 8 in the
+  railway's from `PF Frontier Overgrowth` - and a vine is passable, so a cart goes through it.
+- **`PF Rib Walk` is the other unshipped design and it has the same blind spot**: 36 cells shared
+  with `PF Park Green`, 16 with `PF Water Claim Lake` (two of them WATER), 2 with `PF Mine Ridge`.
+  Small, and unaudited for the same reason - it is not in `EXTRAS_READY` either.
+- Shipped contention in the band is dressing only: `PF Frontier Scatter` x `PF Park Green` 76 (41
+  the same block), `PF Park Green` x `PF Water Claim Lake` 11.
+- The canopy walk still shares **95 cells with `PF Lost Plateau`** - jungle leaves and vines - and
+  that is LEFT, because a canopy walk passing through a canopy is the design.
+
+**THE GENERAL RULE:** a design that crosses another design's ground must refuse that design's
+ARTIFACT, not the world under it. The world is a photograph of what has been built; the artifact is
+what will be. Between the two sits every module that is half-placed, which on this park is most of
+them.
+
+## THE PARK HAD NO SKY, AND THE TWO LANDS NEEDED OPPOSITE ANSWERS (2026-09-13)
+
+Jack: *"audit entire area and make sure all design elements are sophisticated visually, impactful,
+and we should look to add more sky elements that are disconnected e.g. maybe a high up plane or
+something interesting"* - then, mid-build: *"this applies to carnival area as well."*
+
+### THE MEASUREMENT, and it is one number per land
+
+Cells standing above Y250, over the park as placed, against a build limit of 320:
+
+| land | total | >Y250 | >Y280 | tallest | what is up there |
+|---|---|---|---|---|---|
+| Lost Plateau | 169,640 | **1,260 (0.88%)** | 0 | Y279 | 538 of it the ridge's own canopy, 691 the pterosaur - and it is PERCHED |
+| Midway | 82,319 | 5,515 (6.70%) | **0** | Y276 | Wyrm Gate 4,488, Sky Lift 730 |
+| Prismworks | 164,997 | 6,054 | 1,405 | Y302 | Prism Well, Prism Rig, Crown Descent |
+
+**THE LOST PLATEAU'S WHOLE MASS SITS IN A THIRTY-COURSE BAND** - 87% of it below Y230 - and its
+measured skyline runs Y211 to Y252 the entire way across with a single spike at x97600-97620, which
+is the pterosaur's crag. Every render from every bearing is the same picture: a dense green strip
+across the bottom third and two thirds of empty blue over it.
+
+**AND THE GROUND CANNOT FIX IT.** 27 free pads of 8x8 or better in the whole 600x200, and this land
+already holds the park's two largest terrain designs. What it has none of is anything a guest looks
+UP at.
+
+### THE TWO LANDS ARE SHORT OF DIFFERENT THINGS, so they got different designs
+
+- **The Lost Plateau is short of MASS**: one object in 34,000 columns. `gen/skies.py` gives it
+  the aircraft Jack asked for and a **flock of four pteranodons on the wing** around it - see
+  "the floating isles were built and thrown out", below, for what that replaced and why.
+- **The Midway is short of ALTITUDE**: it already has a middle sky (a skull you ride a train
+  through, a wheel topping Y276) and then fifty courses of nothing. A second floating mountain here
+  would crowd what is already up there. `gen/carnivalsky.py` gives it the fair's **airship** and
+  **three firework bursts** - the first things in the land higher than the wheel.
+
+Every piece of both is on the good side of this file's own measured line. An isle is one convex
+mass carrying a pattern (the ladybird's category); an aeroplane is sheets, a taper and columns; an
+airship hull is one convex mass; a burst is pure radial columns. **Nothing in either has a joint
+that describes compound muscle**, which is what retired eight mammals and then a stegosaur.
+
+    PF Plateau Skies   3,729 blocks, 5 pieces (the aircraft + 4 pteranodons), 0 problems
+    PF Midway Skies    7,110 blocks, 4 pieces (the airship + 3 bursts), 0 problems
+    ...and ZERO cells contended with any of the 44 modules in the park. They hang in open air
+
+    Lost Plateau >Y250   1,260 -> 4,917      Midway >Y280   0 -> 7,044
+    Lost Plateau tallest Y279  -> Y300       Midway tallest Y276 -> Y311
+
+### **DISCONNECTED IS THE DESIGN, SO THE USUAL CONTRACT IS EXACTLY BACKWARDS**
+
+One connected component would mean two of them were touching, which is the one thing a sky
+composition must not do. `finish.drop_floaters` is off and every check that normally demands one
+piece demands N instead - and then demands that each piece is WHOLE, which is where the real bugs
+were. All four of these shipped with a clean audit, a correct bill of materials and a plausible
+render:
+
+- **SEVEN TREE CROWNS AS 29-CELL ISLANDS.** The crown skipped its own centre cell at dy=0 - the
+  obvious way to keep the trunk visible - and that cell is the crown's ONLY join to the trunk.
+- **THE UNDERCARRIAGE HANGING OFF THE AIR BEHIND THE WING.** Placed at f = L*0.16 it is past the
+  trailing edge; a strut hanging from nothing renders exactly like one hanging from something.
+- **THE AXLE ONE CELL SHORT OF ITS OWN LEGS.** `range(int(-span*0.13), int(span*0.13)+1)` against
+  legs placed at the unrounded value.
+- **THE AIRSHIP'S GONDOLA AS A 199-CELL ISLAND UNDER ITS OWN AIRSHIP.** Its struts were a fixed
+  height and **the hull's underside is a course higher at the flanks than on the centreline,
+  because a hull is a sphere.** `loft.Frame.solid` is the only honest witness; this repo has had a
+  mane, a pair of ossicones and a tail come away from computed radii.
+
+### THE BANK WAS BUILT, SWEPT AND THROWN AWAY
+
+The aeroplane was rolled into a turn, because level it is a CROSS - which is exactly how the
+pterosaur reads from the ground, a small dark crucifix on a rock. **A banked wing is a STAIRCASE**,
+and at 46 cells of span every one of its steps is visible edge-on. Two courses of thickness made it
+worse, not better: each step became a chunky tread and the wing read as venetian blinds.
+
+Rendered at 0, 7 and 16 degrees side by side the answer is not close - at 16 it is a flight of
+stairs, at 7 it is slats, at 0 it is two clean sheets with a fuselage between them and the aircraft
+reads instantly from every bearing including from directly below. **The composition carries the
+motion instead**: it is flying through the gap between two of the isles.
+
+`test_a_level_wing_is_a_SHEET_and_a_banked_one_is_a_STAIRCASE` pins the ARITHMETIC - how many
+distinct courses the aircraft occupies at each angle - because a render of a banked wing and a
+level one are both perfectly good renders and only one of them reads as a wing.
+
+### Four more, each a rule this file already carries
+
+- **A PART COUNT IS CHANGED CELLS. NOT `put` CALLS, AND NOT `Frame.placed`.** `placed` counts
+  WRITES, so two sweeps that overlap increment it twice: measured that way the aircraft's body and
+  wings came to 5,437 cells in a 2,124-cell aeroplane. Counted as NEW cells instead, a roundel and
+  a cockpit read 0 - they are PAINT, they recolour the wing and the fuselage they sit on - which is
+  indistinguishable from the part not having been placed, and that ambiguity is the whole reason
+  the count exists. The ankylosaur's horns reported 124 placements and gained ZERO cells.
+- **A PROPELLER IS ABOUT A FIFTH OF THE SPAN ACROSS, NOT HALF.** At 0.24 of the span each way the
+  blades were a 22-course vertical bar off the nose - a mast, and in a render of the whole land the
+  tallest thing on the aircraft by a factor of three. Anything in absolute or near-absolute
+  fractions has this latent.
+- **A STRIPE ALONG THE LENGTH IS WHAT READS BROADSIDE, AND BROADSIDE IS THE VIEW.** Five one-cell
+  rings round a fifty-six block airship came out 78% white and read as unpainted: a band seen
+  end-on is a band nobody sees. The identity of a convex mass is the pattern on it - the ladybird's
+  own claim - and the pattern has to run the way the eye does.
+- **A FIN'S CHORD SHRINKS WITH ITS REACH; ITS REACH DOES NOT SHIFT WITH ITS CHORD.** Built the
+  other way - each ring of the fin stepping forward as it went out - all four came out as a ragged
+  red lump at the tail, because every cell was offset from its neighbour on two axes at once.
+
+### THE FLOATING ISLES WERE BUILT, SHIPPED, AND THROWN OUT ON THEME
+
+The first version of the Lost Plateau's sky hung three lenses of the ridge's own rock over the
+land - jungle on their backs, vines off their rims, dark keels underneath. They built clean, they
+hollowed clean, they passed every contract, and they read as floating islands from every bearing.
+Jack: *"I don't think floating islands are on theme in this case. I like the plane and maybe we
+can add other elements."*
+
+**A FLOATING ISLAND IS A FANTASY TROPE AND THE LOST PLATEAU IS NOT A FANTASY.** It is a
+palaeontology expedition camp on a remote tableland - Conan Doyle, not Skyblock - and the whole
+premise of such a place is that it is REAL and merely unreachable. Rock that defies gravity says
+"magic realm" and undoes the one thing the land is built on. Nothing about the build was wrong;
+the SUBJECT was, and no amount of further craft would have found that.
+
+> **A MEASUREMENT CAN TELL YOU A SKY IS EMPTY. IT CANNOT TELL YOU WHAT BELONGS IN IT.** Everything
+> in this file's audit - 0.88% above Y250, one perched object in 34,000 columns, a skyline flat
+> from Y211 to Y252 - was true and was the right reason to build something. Which something is a
+> question about the FICTION, and the fiction is Jack's.
+
+`isles:` is empty in the config rather than gone from the generator, and
+`test_an_isle_is_a_LENS_AND_A_KEEL_even_though_nothing_ships_one_any_more` builds one to keep the
+contract exercised. **They would suit Prismworks**, whose own fiction is a crystal that does
+exactly this.
+
+### WHAT REPLACED THEM IS THE LAND'S OWN ANIMAL
+
+Four pteranodons on the wing around the biplane - the creatures the camp below came to find and
+the machine that got it there, sharing the sky. It is the Lost World's own image and it needed
+nothing invented for it: `gen/pterosaur.py` builds a flying one straight off with `perch: False`,
+one component, zero strays, at every span from 28 to 80.
+
+**AND THE REUSED-ASSET LINE IS ABOUT THE OBJECT, NOT THE SPECIES.** Jack refused two on the
+causeway - *"get rid of the gecko and bat - those are used assets, we want NEW things"* - and both
+were creatures lifted out of the lowland into a place with no claim on them. This land already has
+a pteranodon roosting on its summit and a nesting colony on its rim; adults on the wing over it is
+that story FINISHED. What would have been the repeat is the perched animal again, so none of these
+carries a crag and every one is spread 0.84-0.92 against the roosting one's 0.72 - the difference
+has to be the ATTITUDE, not only the altitude, and the test asserts both.
+
+**THE BIGGEST THING IN THAT SKY IS NOW AN ANIMAL, WHICH IS THE WHOLE POINT.** The flock runs 68,
+40, 28 and 24 blocks of span against the aircraft's 46 - a real azhdarchid out-spans a light
+aeroplane - so the size ladder does the job the floating rock was doing badly, and on theme.
+`test_the_flock_IS_THE_LAND_S_OWN_ANIMAL_and_none_of_them_is_PERCHED` pins the ladder, the poses
+and the absence of a crag.
+
+**And one test stopped testing anything while staying green.** The bank measurement counts how
+many distinct courses the design occupies at 0, 7 and 16 degrees; with the flock left in the
+picture the birds swamp it and all three read 41. Scoped to the aircraft alone it works again -
+the same failure shape as `MenuTest`'s exemption list and the store hall's own vacuous doorway
+check, and worth looking for whenever a fixture grows.
+
+### AND THE AEROPLANE MOVED TO THE CARNIVAL END (2026-09-13)
+
+Jack, on the placed park: *"the park complete plane should be moved towards the carnival and not
+be in the center of all the dinosaurs."* Both halves are one fault, and it is a COMPOSITION fault
+rather than a siting error: at z80358 the machine sat in the middle of a band whose ground carries
+the sauropod, the bone bed and the nesting rim, with the flock spread around it - so **the one
+thing in that sky that is not an animal read as one more animal in the group.** The two elevations
+from the Midway say it in one glance: before, the plane is a small side-on shape among four birds;
+after, it is the near, large, unmistakable object and the birds are behind it.
+
+**THE OPEN SKY AT THAT END IS 22 COLUMNS WIDE AND THE AIRCRAFT NEEDED 51, SO THE HEADING HAD TO
+CHANGE AND THAT IS WHAT MADE IT BETTER.** Measured off the land's own skyline, the crag's mass runs
+to u147 at Y277 and beyond it the land falls to Y219-238 - u148-169, twenty-two columns. Nose east
+or west the 51-cell span lies along Z and does not fit; turned, the span lies along X and the
+aircraft wants 30 columns of Z. What the turn buys is the view a guest actually gets: they arrive
+from the fair walking north, and the full wingspan is now spread across that sightline rather than
+pointing away down it. **The config's old note - "facing WEST so it crosses the view of a guest
+walking north" - was reasoning about a crossing MOTION and forgot that a crossing aircraft presents
+its narrow 28-block length.**
+
+Two numbers keep it honest, both measured over OCCUPIED cells rather than over the bounding box:
+the nearest ground under any cell of the aircraft is **47 courses** down (its tail passes east of
+the crag's shoulder, not over its peak), and the causeway's own tallest thing in that band - the
+Rib Walk's cage at Y228 - is 54 below. It stays inside the land: z80439-80468 against a boundary of
+z80469, so `test_it_stays_under_the_BUILD_LIMIT_and_inside_the_LAND` needed no relaxing, which is
+the cheaper outcome than moving a design out over the causeway and rewriting the contract for it.
+
+**And the flock did not follow it**, which is the better composition anyway: three pteranodons hold
+the sky over the plateau and the smallest - already at [168,150] - is now 11 blocks off the
+aeroplane's starboard wing, so the machine is not alone and the land is not emptied. The config's
+narrative and two comments were rewritten in the same edit; a design whose prose still describes
+where a thing used to be is this file's most-repeated defect.
+
+### The visual audit that came with it, measured against the download corpus
+
+Outside architecture runs 17.3% detail families (slab/stair/wall/fence/pane/trapdoor) and a palette
+of 37. Split by what a design IS - because terrain does not take stairs and comparing it against
+architecture is comparing the wrong things:
+
+| | cells | palette | detail |
+|---|---|---|---|
+| Lost Plateau, TERRAIN | 120,300 | 58 | 2.7% |
+| Lost Plateau, ARCHITECTURE | 43,613 | 64 | **7.9%** |
+| Lost Plateau, SCULPTURE | 5,727 | 11 | 0.0% |
+| the Midway, whole | 82,319 | 119 | **8.9%** |
+
+**The palettes are healthy and the detail is half the corpus's**, and the architecture figure is
+itself dragged down by the Mine Coaster - 31,197 cells of timber trestle at 4.1%. The actual
+BUILDINGS measure 13-36% (Assay and Prize Office 36.5%, Snack Window 35.6%, Works Yard 27.5%,
+Midway Row 20.1%). `gen/park.py` was taken from 2.05% to 13.46% at an identical cell count a
+session ago; the modules that have not had that pass are where the remaining gap is, and
+`smooth_basalt` - 15.4% of `Park Buildings`, with no slab or stair at any price - is the one
+material that blocks it outright.
+
+**Still open:** nothing here has been placed in game, and `render3d` has no emission - the bursts'
+froglight cores and the isles' lamps draw as cream blocks in every sheet above. Judge form and mass
+offline; judge the light in world.
