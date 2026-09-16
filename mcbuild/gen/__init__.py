@@ -26,17 +26,26 @@ from . import stegosaur  # noqa: E402
 from . import ankylosaur  # noqa: E402
 from . import corgi  # noqa: E402
 from . import abyssmarket  # noqa: E402
+from . import abyssaccess  # noqa: E402
 from . import ribwalk  # noqa: E402
 from . import downs  # noqa: E402
 from . import wyrmgate  # noqa: E402
 from . import arcstair  # noqa: E402
+from . import canopywalk  # noqa: E402
+from . import skies  # noqa: E402
+from . import carnivalsky  # noqa: E402
+from . import plateaushop  # noqa: E402
 from . import menagerie  # noqa: E402
 from . import helter  # noqa: E402
 from . import gamesrow  # noqa: E402
 from . import midgarden  # noqa: E402
 from . import parkgreen  # noqa: E402
 from . import rookery  # noqa: E402
+from . import parkrefinement  # noqa: E402
 from . import squid  # noqa: E402
+from . import spermwhale  # noqa: E402
+from . import abysssound  # noqa: E402
+from . import abysswreck  # noqa: E402
 
 
 GENERATORS = {
@@ -84,10 +93,14 @@ GENERATORS = {
     # the colossal squid hanging in the dead void under the whole park - the one
     # thing down there, and its own only light source
     "squid": squid,
+    "sperm_whale": spermwhale,
+    "abyss_sounding": abysssound,
+    "abyss_wreck": abysswreck,
     # THE ABYSS MARKET - the fit-out of the squid's own 54,994-cell sealed cavity,
     # entered by a shaft from Prismworks that never touches the well's fall column.
     # mcbuild/gen/abyssmarket.py
     "abyssmarket": abyssmarket,
+    "abyss_access": abyssaccess,
     # the bone skull straddling the rim railway, mouth open around the track -
     # mcbuild/gen/wyrmgate.py. It touches NOTHING the railway made and is carried
     # from the rim, because the jaw is exactly as deep as the corridor is wide.
@@ -100,6 +113,19 @@ GENERATORS = {
     # "its just buildings, the dig zone is crappy ... i really dont like this
     # splatter of buildings." mcbuild/gen/bonebed.py
     "bonebed": bonebed,
+    # THE FIELD SHOP - what stands on the lot `PF Vantage Frontier Lookout` was retired from.
+    # Jack: "so now the lot where the tower was is empty ... maybe we keep 1 building and put
+    # another shop there", and, on where: "tower lot". mcbuild/gen/plateaushop.py
+    # THE CANOPY WALK - the Lost Plateau's route through its own treetops, and the park's
+    # first upward addition. mcbuild/gen/canopywalk.py
+    "canopywalk": canopywalk,
+    # THE SKY OVER THE LOST PLATEAU - floating isles and the expedition biplane banking
+    # over them. The one land in the park with an empty sky. mcbuild/gen/skies.py
+    "skies": skies,
+    # THE SKY OVER THE MIDWAY - the fair's airship and the display over the wheel.
+    # The land has a MIDDLE sky and nothing above it. mcbuild/gen/carnivalsky.py
+    "carnivalsky": carnivalsky,
+    "plateaushop": plateaushop,
     # THE GROUND THE MODULES NEVER BUILT. Frontier column A is 54% bare moss and the two biggest
     # holes are INSIDE its lots: the Trailhead Gate's walled court has an empty middle and the
     # Prospecting Porch is a strip on one flank with twenty columns of unbuilt back. The scatter
@@ -265,3 +291,4 @@ GENERATORS = {
 }
 
 __all__ = ["GENERATORS", "Canvas", "hash01"]
+GENERATORS['park_refinement'] = parkrefinement

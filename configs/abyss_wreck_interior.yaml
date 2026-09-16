@@ -1,0 +1,27 @@
+name: Abyss Wreck Interior Greybox
+gen: abyss_wreck
+params:
+  at: [97505, 100, 80365]
+  size: [185, 75, 90]
+  greybox: false
+  walk: true          # all one grey, so the LAYOUT reads (the detailed ship is abyss_wreck.yaml)
+  interior: true      # hollow hull + decks + bulkheads; the crush breach is the way in
+  shell: 2
+roles: [construction]
+design:
+  purpose: layout
+  hierarchy: supporting
+  style: prismworks
+  visual_review: true
+  narrative: Walkable greybox of the wreck interior - decks, bulkheads, compartments, entry.
+quality:
+  min_blocks: 30000
+  min_materials: 1
+  enforce: false
+  visual_review: true
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+origin_lock: false

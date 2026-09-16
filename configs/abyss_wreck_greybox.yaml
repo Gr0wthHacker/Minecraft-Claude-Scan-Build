@@ -1,0 +1,21 @@
+name: Abyss Prismworks Wreck Greybox
+gen: abyss_wreck
+params:
+  at: [97505, 100, 80365]
+  size: [185, 75, 90]
+  greybox: true
+roles: [construction]
+design:
+  purpose: landmark
+  hierarchy: supporting
+  style: prismworks
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against:
+    - out/Park Complete.litematic
+    - out/Abyss Squid.litematic
+    - out/Abyss Market.litematic
+origin_lock: false

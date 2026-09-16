@@ -1,0 +1,49 @@
+name: Abyss Prismworks Wreck
+gen: abyss_wreck
+params:
+  at: [97505, 100, 80365]
+  size: [185, 75, 90]
+  greybox: false
+  interior: true      # hollow, walkable, fitted-out; the crush breach is the only way in
+  walk: false
+  shell: 2
+roles: [construction]
+design:
+  purpose: landmark
+  hierarchy: supporting
+  style: prismworks
+  visual_review: true
+  narrative: >-
+    A crushed Prismworks Sounder research vessel records the squid encounter - and
+    can be entered through the breach and walked end to end: five compartments from
+    the torpedo room to the flooded engine room.
+quality:
+  min_blocks: 30000
+  min_materials: 7
+  enforce: true
+  visual_review: true
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against:
+    - out/Park Complete.litematic
+    - out/Abyss Squid.litematic
+    - out/Abyss Market.litematic
+origin_lock: false
+expensive_allowance: 1100
+expensive_reason: >-
+  Two declared spends, both confined and both load-bearing for the read.
+  (1) ~178 cyan_stained_glass: the surviving panes of the mullioned observation
+  viewport, RECESSED into the bow flank (dished a course into the hull and framed
+  by the plating, not a blister stuck on top). The blown-out top and broken panes
+  are dark cracks, not glass. A submersible's viewport is glass and no cheap block
+  reads as translucent cyan. (2) ~380 cells of instrument trim on a vessel named
+  the PRISMWORKS Sounder, trimmed in the prismarine it is named for: a
+  dark_prismarine bridge coaming and scope housing, a tinted_glass scope optic,
+  an amethyst dead-sensor lens on the snapped bow arm, and a handful of sea_lantern
+  for the scope glint and the one surviving sensor, plus a prismarine_bricks sail
+  insignia and a few sea_lantern lighting the fitted interior (reactor core, control
+  room, observation gallery). Fine instruments and interior lighting only - nothing
+  spent on skin - and pinned to their regions by the tests. Total under 600.
