@@ -11129,3 +11129,91 @@ photophore rows and the ventral band all being structure rather than decoration.
   empty**, so anyone siting a new deep design must read this section rather than the shadow.
 - **47,532 blocks is a real trip.** 27,635 mangrove planks is about 6,900 logs; everything else is
   wool off sheep and one froglight type Jack already farms.
+
+## The Abyss Drift, and the jelly (2026-09-16)
+
+Jack, on the squid: "lets add other objects underneath in the empty gaps as appropriate, small
+rocks floating or something else, think critically." Chosen: a jellyfish, and the WHOLE void.
+
+`mcbuild/gen/abyssdrift.py` (the field, 32,300 blocks) and `mcbuild/gen/jellyfish.py` (the jelly,
+7,987), `configs/abyss_drift.yaml` and `configs/abyss_jelly.yaml`, `tests/test_abyss.py` (11).
+Both ship their own design at their own recorded origin, like the squid - NOT in `Park Complete` -
+so `/cscan place "Abyss Drift"` and `/cscan place "Abyss Jelly"`. Both hang in void, so both float
+and the audit says so; both are self-lit because the void is pitch dark at every hour.
+
+### THE THING TO THINK CRITICALLY ABOUT WAS NOT THE ROCKS, IT WAS THE CAMERA
+
+The void is 117,350 of 120,000 columns empty, and seen by NOBODY except a runner on the two Prism
+Well helices (r14-50, falling Y300->Y95) and whoever stands at the pool floor. A floating rock at
+the far south, 500 blocks from the well in pitch black, is a black rock in black nothing seen by no
+one. So "fill the empty gaps" uniformly is the wrong instinct - it spends effort where there is no
+camera. The field is GRADED by distance to the well axis: dense, bright and detailed just outside
+the r56 fall column, thinning to sparse dark silhouettes in the far south. Jack asked for the whole
+void, so the far density is a floor, not a zero - but it is a floor. The squid gets a weaker second
+attractor (0.6) so it reads as swimming THROUGH a current rather than alone in a box.
+
+And Jack's word "small rocks floating" would have been CONFETTI done the naive way - a uniform
+sprinkle, the deck soffit's grid / the thicket's drifts / the frog's blotches for a fifth time. The
+clustering lives in a low-frequency drift field, so the rocks come out as clouds and clearings; the
+size is one distribution from a two-cell crystal MOTE up to a nine-radius BOULDER (capped at 14, or
+a few big silhouettes become the whole field), so there is no separate "mote system" to go confetti
+on its own. Everything carries its own light - the squid's exact palette, `ochre_froglight` (the one
+WITNESSED full-block light) for the bright nodes and amethyst for the crystal - so the near field
+glows and the far field is a silhouette that only resolves as you fall past it.
+
+### THE FIELD, AND THE TWO BUGS THAT SHIPPED A "WRONG" GRADIENT CLEAN
+
+- **A HARD BLOCK BUDGET PLUS A SPATIAL ITERATION ORDER PUTS EVERYTHING IN THE WRONG PLACE.** The
+  first build iterated south-to-north and stopped at 16,000 blocks - and the well is near the NORTH
+  end, so it spent the whole budget in the far south before ever reaching the one zone that has to
+  be densest. The nearest cell to the well came out 224 blocks away. Totals are ruled by DENSITY
+  now (a finite lattice, graded by visibility, needs no cutoff), the candidate order is a hash so no
+  position is favoured, and boulders are capped by COUNT so four big rocks cannot eat the field.
+  Closest-to-well is 57 now, just outside the fall column, exactly where it should be.
+- **`hanging_roots` DO NOT STACK.** The streamers were a column of them and the audit called every
+  cell past the first `from air`, correctly: hanging_roots attach one block to a ceiling and do not
+  chain. The streamers are berried `cave_vines` now - which DO stack, hang from the block above, and
+  glow (light 14) - the thicket's own idiom, and self-lit into the bargain.
+- **The exclusion is a 2D mask** (well r56 cylinder + squid footprint + park columns + the jelly,
+  each dilated) consulted by the one `put`, because the squid nearly fills the vertical band so a
+  column-wise exclusion loses almost no usable void and costs one array instead of a 10-million-cell
+  dilation. `amethyst_block` and `calcite` are both expensive tier, so a geode is grown straight out
+  of the rock's own stone rather than lined with a violet backing; `budding_amethyst` is not
+  obtainable in survival, so a crystal spark is a deepslate nugget with a cluster on it.
+
+### THE JELLY: A DOME ON TRAILING LINES, AND IT WAS BUILT UPSIDE DOWN FIRST
+
+It is here for the squid's reason - the bell is a convex dome carrying a pattern (the ladybird /
+`balloon.py`'s "a dome on lines over a box"), the oral arms and tentacles are pure taper and line,
+no compound muscle anywhere - and it is the second thing a runner discovers, sited by a distance-
+transform search for the most-clear point in the well's visibility ring: (97655, 80855), 37 clear
+on every side, 76 off the well axis, north-east so the squid is south and the jelly north-east, two
+discoveries on two bearings.
+
+Three bugs, each of which rendered as a plausible jellyfish from every orthographic angle:
+
+- **IT WAS UPSIDE DOWN.** +Y is up; the first build put the crown at the floor and ran the tentacles
+  UPWARD. Every sheet de-jags it and looks correct; in game it hangs inverted. Crown high, margin
+  below, tentacles trailing DOWN now, and a test asserts the bell's mass is above the mean.
+- **THE ORAL ARMS HUNG FROM A HOLLOW CUP** - the bell is a shell, so its centre underside has no
+  cell, and the arms came off as a separate 179-cell component. There is a MANUBRIUM now (a solid
+  glowing stalk down the axis from the crown - the stomach), and the arms hang from its foot. One
+  connected piece.
+- **IN A PITCH-DARK VOID A WOOL BELL IS INVISIBLE.** The glow IS the design: a margin ring of
+  froglight, a froglight crown cap so the dome itself carries light rather than reading as a bare
+  ring, a froglight manubrium core showing through the hollow bottom, froglight beads down the
+  tentacles, amethyst spots (surface-probe rule, never a computed radius), and berried cave-vine
+  tips.
+
+### Still open, stated rather than left
+
+- **Nothing has been placed in game.** All of it is `render3d`, which draws with the same colour DB
+  the palette picker optimises against and has NO EMISSION - so every light, which is the entire
+  point down here, renders as a dull block. Judge form and mass off the sheets; judge the glow in
+  world. In plan the whole scene reads: the red squid and the blue jelly as two heroes on two
+  bearings, a debris current flowing around them, the fall column a clean empty circle.
+- **The drift is ~32,000 mostly-ok-tier stone**, a real placement job though all cheap. The
+  densities (`near_density`, `far_density`), the boulder cap and the drift cell are all in the
+  config if Jack wants the void lighter or heavier.
+- **One jelly is placed; the generator takes a second cheaply** - a different site, a different
+  scale/seed - if the far void wants its own landmark for a free-flying explorer.

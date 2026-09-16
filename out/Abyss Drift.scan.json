@@ -1,0 +1,158 @@
+{
+  "origin": {
+    "x": 97500,
+    "y": 100,
+    "z": 80300
+  },
+  "size": {
+    "x": 200,
+    "y": 91,
+    "z": 600
+  },
+  "generated_by": "abyssdrift",
+  "kind": "abyssdrift",
+  "well": [
+    97590.0,
+    80815.0,
+    56.0
+  ],
+  "closest_to_well": 57.1,
+  "blocks": 32317,
+  "features_built": {
+    "rocks": 66,
+    "motes": 66,
+    "boulders": 11,
+    "sparks": 22,
+    "streamers": 11
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 32317,
+      "materials": 10,
+      "dominant_material_share": 0.2934,
+      "light_blocks": 0,
+      "massing": {
+        "width": 194,
+        "height": 91,
+        "depth": 594,
+        "fill_ratio": 0.0031
+      },
+      "silhouette": {
+        "top": {
+          "area": 5252,
+          "fill_ratio": 0.0438
+        },
+        "front": {
+          "area": 4743,
+          "fill_ratio": 0.2606
+        },
+        "side": {
+          "area": 5006,
+          "fill_ratio": 0.0917
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.2962,
+          0.4226,
+          0.2812
+        ],
+        "top_silhouette_perimeter": 6480,
+        "surface_faces_per_block": 1.0709
+      },
+      "material_counts": {
+        "cobbled_deepslate": 9481,
+        "tuff": 6015,
+        "blackstone": 5456,
+        "cobblestone": 4611,
+        "andesite": 3306,
+        "deepslate": 3140,
+        "cave_vines_plant": 113,
+        "amethyst_cluster": 97,
+        "ochre_froglight": 78,
+        "cave_vines": 20
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "3641f34c6894e062202bdad5c0a088990ecc9755896fbbee3f1b9cd088a2226a",
+    "generator_source_digest": "2ea8b80f5d83c514c1741c07468e4dc5556825c14c239e5e945b3b2110aaa771",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 35.72817,
+    "blocks": 32317,
+    "blocks_per_second": 904.52
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 32317,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: amethyst_cluster",
+    "not in the provisional skyblock-1.19 list: blackstone",
+    "not in the provisional skyblock-1.19 list: cave_vines",
+    "not in the provisional skyblock-1.19 list: cave_vines_plant",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: deepslate",
+    "not in the provisional skyblock-1.19 list: tuff"
+  ],
+  "file": "Abyss Drift.litematic",
+  "name": "Abyss Drift"
+}
