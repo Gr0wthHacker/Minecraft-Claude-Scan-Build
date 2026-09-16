@@ -31,6 +31,8 @@ from . import midgarden  # noqa: E402
 from . import parkgreen  # noqa: E402
 from . import rookery  # noqa: E402
 from . import squid  # noqa: E402
+from . import abyssdrift  # noqa: E402
+from . import jellyfish  # noqa: E402
 
 
 GENERATORS = {
@@ -78,6 +80,11 @@ GENERATORS = {
     # the colossal squid hanging in the dead void under the whole park - the one
     # thing down there, and its own only light source
     "squid": squid,
+    # the field of lit floating rocks, crystal motes and streamers the squid swims through -
+    # the whole void under the park, graded by how close it is to the Prism Well sightline.
+    "abyssdrift": abyssdrift,
+    # a giant bioluminescent jellyfish - the squid's companion, a dome on trailing lines
+    "jelly": jellyfish,
     # the bone skull straddling the rim railway, mouth open around the track -
     # mcbuild/gen/wyrmgate.py. It touches NOTHING the railway made and is carried
     # from the rim, because the jaw is exactly as deep as the corridor is wide.

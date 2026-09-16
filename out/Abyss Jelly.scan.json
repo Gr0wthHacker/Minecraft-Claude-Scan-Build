@@ -1,0 +1,153 @@
+{
+  "origin": {
+    "x": 97617,
+    "y": 117,
+    "z": 80817
+  },
+  "size": {
+    "x": 77,
+    "y": 69,
+    "z": 77
+  },
+  "generated_by": "jelly",
+  "kind": "jelly",
+  "scale": 1.0,
+  "facing": [
+    0,
+    1
+  ],
+  "keep_out": null,
+  "closest_to_keep_out": null,
+  "features_built": {
+    "bell": 6620,
+    "rim": 120,
+    "spots": 16,
+    "oral": 4,
+    "tentacles": 18,
+    "beads": 126
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 7987,
+      "materials": 8,
+      "dominant_material_share": 0.7819,
+      "light_blocks": 0,
+      "massing": {
+        "width": 51,
+        "height": 61,
+        "depth": 53,
+        "fill_ratio": 0.0484
+      },
+      "silhouette": {
+        "top": {
+          "area": 1342,
+          "fill_ratio": 0.2263
+        },
+        "front": {
+          "area": 1283,
+          "fill_ratio": 0.2415
+        },
+        "side": {
+          "area": 1245,
+          "fill_ratio": 0.2343
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.0467,
+          0.0819,
+          0.8714
+        ],
+        "top_silhouette_perimeter": 1196,
+        "surface_faces_per_block": 1.3019
+      },
+      "material_counts": {
+        "light_blue_wool": 6245,
+        "cyan_wool": 837,
+        "white_wool": 433,
+        "ochre_froglight": 276,
+        "pink_wool": 176,
+        "amethyst_cluster": 16,
+        "cave_vines": 2,
+        "cave_vines_plant": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "be5d3d0180ea461536f894c9c0ba3bdbad87e19678df6aa3d136b86c792822c2",
+    "generator_source_digest": "3c6f9ffcdbc27d025274b465d47b2a4b462ad743d8336cbc461cb28ac7448051",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 25.275271,
+    "blocks": 7987,
+    "blocks_per_second": 316.0
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 7987,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: amethyst_cluster",
+    "not in the provisional skyblock-1.19 list: cave_vines",
+    "not in the provisional skyblock-1.19 list: cave_vines_plant"
+  ],
+  "file": "Abyss Jelly.litematic",
+  "name": "Abyss Jelly"
+}
