@@ -55,6 +55,22 @@ class ActionRecipeTest {
 		assertFalse(ActionRecipe.slabIntermediate(Blocks.STONE.defaultBlockState(), "stone_slab[type=double]"));
 	}
 
+	@Test void aDoubleSlabBootstrapsFromAirAsASingle() {
+		// THE BUG THIS CATCHES: on air, vanilla gives a SINGLE slab on the first click; without a
+		// progress clause `matches(single, [type=double])` is false, placement() returns null, and a
+		// design with a double slab parks the loop for ever. The first click is legitimate progress;
+		// slabIntermediate then carries the single->double second click.
+		var air = Blocks.AIR.defaultBlockState();
+		var single = Blocks.STONE_SLAB.defaultBlockState();          // vanilla default is type=bottom
+		assertTrue(ActionRecipe.slabProgress(air, single, "stone_slab[type=double]"),
+			"placing the first single slab from air is progress toward the double");
+		assertFalse(ActionRecipe.slabProgress(single, single, "stone_slab[type=double]"),
+			"only the bootstrap from air is slabProgress; single->double is slabIntermediate/slabUpgrade");
+		assertFalse(ActionRecipe.slabProgress(air, single, "stone_slab[type=bottom]"),
+			"a wanted single slab is a plain placement, not a double-slab bootstrap");
+		assertFalse(ActionRecipe.slabProgress(air, Blocks.STONE.defaultBlockState(), "stone_slab[type=double]"));
+	}
+
 	@Test void multiFaceVineAccumulatesOnlyRequiredAttachments() {
 		var north = Blocks.VINE.defaultBlockState().setValue(VineBlock.NORTH, true);
 		var northEast = north.setValue(VineBlock.EAST, true);

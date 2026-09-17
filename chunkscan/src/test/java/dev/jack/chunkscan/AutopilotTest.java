@@ -844,4 +844,44 @@ class AutopilotTest {
 		assertTrue(body.contains("bumps = 0") && body.contains("wedged = 0"),
 			"arriving no longer clears the contact state");
 	}
+
+	@Test
+	void wedgedSurvivesTheEscapesCleanTicks() throws IOException {
+		// The escape reroutes OUT of a shaft, and flying out is all clean (non-colliding) ticks.
+		// Zeroing wedged on a clean tick reset the give-up every cycle, so WEDGED_GIVE_UP could never
+		// accumulate across the in/out oscillation it exists to bound. It is cumulative for a pursuit
+		// now, cleared only when the target changes, on forget(), and on arrive().
+		String src = source();
+		assertTrue(src.contains("cumulative threading-contact"),
+			"the clean-tick branch must not zero wedged, or the shaft loop is unbounded again");
+		int forgetAt = src.indexOf("static void forget()");
+		assertTrue(forgetAt > 0 && src.substring(forgetAt, forgetAt + 300).contains("wedged = 0"),
+			"forget() must clear wedged so a new pursuit starts with no threading debt");
+	}
+
+	@Test
+	void regainHasItsOwnTapStateSeparateFromRescue() throws IOException {
+		// They shared rescueStage/rescueTimer, and rescue() runs first and zeroes rescueStage whenever
+		// the player is not FALLING — always true while standing on a floor trying to re-fly — so it
+		// wiped regain's sequence every tick and the double-tap never executed. Auto-regain was dead.
+		String src = source();
+		int at = src.indexOf("private static boolean regain(");
+		int end = src.indexOf("static boolean goHomeAtOnce");
+		assertTrue(at > 0 && end > at);
+		String body = src.substring(at, end);
+		assertFalse(body.contains("rescueStage"), "regain must not touch rescue's stage");
+		assertFalse(body.contains("rescueTimer"), "regain must not touch rescue's timer");
+		assertTrue(body.contains("regainStage"), "regain drives its own tap sequence");
+	}
+
+	@Test
+	void routingCanTakeAWarpToSkipALongLeg() throws IOException {
+		// Warps was fully built and never consulted by routing; a deck<->lowland descent was flown
+		// straight down through loading chunks — the worst void-loss case — when a free /is warp
+		// would skip it. It is wired into the repath decision now, gated by Warps.best/cooling.
+		String src = source();
+		assertTrue(src.contains("Warps.best(Warps.forServer(mc)"),
+			"the repath decision must consult a warp before flying the long leg itself");
+		assertTrue(src.contains("Warps.take(mc, w, target)"), "and take it when one saves enough");
+	}
 }

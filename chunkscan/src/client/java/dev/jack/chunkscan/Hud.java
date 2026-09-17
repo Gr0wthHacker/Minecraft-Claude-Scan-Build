@@ -137,6 +137,20 @@ final class Hud {
 	static final long NOWHERE_MS = 3_000;
 	/** How long a spot that went nowhere is passed over for. */
 	static final long AVOID_MS = 60_000;
+	/**
+	 * The LOOK branch has no other watchdog. It guides to the nearest out-of-view cell and returns
+	 * BEFORE every stall clock, never consults {@link Ignored}, and re-picks the same target each
+	 * recount — so if that chunk never loads or the cell is unreachable (built-in, no route) the loop
+	 * flies at it for ever, silently. A full minute in which `unseen` does not drop at all is enough
+	 * to call the out-of-view work unreachable and move on. Reset whenever unseen drops (real progress
+	 * toward loading those chunks) or the target changes, so a long island-crossing flight is fine.
+	 */
+	static final long LOOK_MS = 60_000;
+	private static BlockPos lookTarget = null;
+	private static int lookUnseen = -1;
+	private static long lookSince = 0;
+	/** Designs whose out-of-view cells proved unreachable this session, so LOOK does not re-pick them. */
+	private static final java.util.Set<String> lookExhausted = new java.util.HashSet<>();
 	private static int spotsLeft = 0;
 
 	private Hud() {}
@@ -213,17 +227,52 @@ final class Hud {
 		// `follow all` walks the whole list announcing victory in about a second.
 		//
 		// Go and look instead. Flying there loads the chunks, and the next recount has real work.
-		if (sp.todo().isEmpty() && sp.unseen() > 0 && sp.nearestUnseen() != null) {
-			if (target == null || !target.equals(sp.nearestUnseen())) {
+		if (sp.todo().isEmpty() && sp.unseen() > 0 && sp.nearestUnseen() != null
+			&& !lookExhausted.contains(sp.name())) {
+			BlockPos u = sp.nearestUnseen();
+			long lnow = System.currentTimeMillis();
+			// WATCHDOG. Reset the clock when the target changes or `unseen` actually drops (the chunks
+			// are loading); otherwise let it run. A full minute of zero progress means these cells
+			// cannot be reached — do not keep flying at them in silence.
+			if (lookTarget == null || !lookTarget.equals(u) || sp.unseen() < lookUnseen) {
+				lookTarget = u;
+				lookUnseen = sp.unseen();
+				lookSince = lnow;
+			}
+			if (lnow - lookSince > LOOK_MS) {
+				lookExhausted.add(sp.name());
+				lookTarget = null;
+				mc.player.sendSystemMessage(Component.literal("[cscan] cannot reach the " + sp.unseen()
+					+ " out-of-view cell(s) of " + sp.name() + " (sealed in, or the chunk will not"
+					+ " load). Leaving them."));
+				if (followAll) {
+					String next = nextDesign(mc, sp.name());
+					if (next != null) {
+						mc.player.sendSystemMessage(Component.literal("[cscan] moving on to " + next));
+						follow(next);
+						followAll = true;
+						remember(mc);
+						return;
+					}
+				}
+				following = false;
+				ActiveBuild.clear();
+				ChunkScanClient.printDesign = null;
+				stopGuiding();
+				Highlight.clear("goto");
+				remember(mc);
+				return;
+			}
+			if (target == null || !target.equals(u)) {
 				fetching = false;
 				// Flying to the far side of the island is not a stall. Without this the 90s watch
 				// counts through the trip and reports a stall for doing exactly the right thing.
 				lastProgressMs = System.currentTimeMillis();
 				Highlight.clear("goto");
-				guide(sp.nearestUnseen(), sp.unseen() + " cells out of view");
+				guide(u, sp.unseen() + " cells out of view");
 				mc.player.sendSystemMessage(Component.literal("[cscan] nothing left in sight, but "
 					+ sp.unseen() + " cells are in chunks I do not have — going to look at "
-					+ Wand.fmt(sp.nearestUnseen())));
+					+ Wand.fmt(u)));
 			}
 			return;
 		}
@@ -316,6 +365,7 @@ final class Hud {
 			// Give up on this SPOT rather than sitting against it: the next recount picks another.
 			// Dropping only the arrow left `spotCentre` set, so the hysteresis above chose the same
 			// region straight back again and the stall repeated for as long as you left it.
+			noteAbandon();     // feeds the thrash detector — a stall is a spot given up on
 			spotCentre = null;
 			stationBin = Long.MIN_VALUE;
 			stationsTried.clear();
@@ -331,6 +381,7 @@ final class Hud {
 		if (Loop.goingNowhere(now, movedAt, lastProgressMs, travelling, fetching, NOWHERE_MS)) {
 			mc.player.sendSystemMessage(Component.literal("[cscan] not moving and not placing at "
 				+ Wand.fmt(target) + " — giving up on this spot and taking the next one"));
+			noteAbandon();     // feeds the thrash detector — this is the fast path that drives A->B->A
 			avoidSpot = spotCentre;
 			avoidUntil = now + AVOID_MS;
 			spotCentre = null;
@@ -714,6 +765,22 @@ final class Hud {
 	private static int spotsAbandoned = 0;
 	private static int placedWhenAbandoned = 0;
 
+	/**
+	 * Record a spot given up on, for the thrash detector. Several abandonments with NOTHING placed
+	 * between them is the slow loop-going-nowhere that no single watchdog catches. This MUST be called
+	 * from every place that gives up on a spot — the autopilot's {@link #abandonSpot}, the 3s
+	 * going-nowhere watch and the 90s stall — or the classic A->B->A->B cycle driven by the fast
+	 * clock places nothing for ever and never trips {@link Loop#thrashing}.
+	 */
+	private static void noteAbandon() {
+		if (placedTotal == placedWhenAbandoned) {
+			spotsAbandoned++;
+		} else {
+			spotsAbandoned = 1;
+			placedWhenAbandoned = placedTotal;
+		}
+	}
+
 	static void abandonSpot() {
 		// A strike against the PLACE, not just a minute of avoiding it. Two and the loop stops
 		// coming back at all — a timer forgets, and a place that has beaten it twice will not be
@@ -721,14 +788,7 @@ final class Hud {
 		if (spotCentre != null && Ignored.strike(spotCentre)) {
 			Highlight.show("ignore", Ignored.marks(), 0xFF3030, 600);
 		}
-		// Count the giving-up, and remember what had been placed at the time: several abandonments
-		// with NOTHING built between them is thrashing, which no single watchdog can see.
-		if (placedTotal == placedWhenAbandoned) {
-			spotsAbandoned++;
-		} else {
-			spotsAbandoned = 1;
-			placedWhenAbandoned = placedTotal;
-		}
+		noteAbandon();
 		avoidSpot = spotCentre;
 		avoidUntil = System.currentTimeMillis() + AVOID_MS;
 		spotCentre = null;
@@ -811,6 +871,7 @@ final class Hud {
 			all = Designs.inBuildOrder(dir, all);
 			for (String name : all) {
 				if (name.equals(after)) continue;
+				if (lookExhausted.contains(name)) continue;   // its out-of-view cells are unreachable this session
 				try {
 					Work.Split sp = Work.split(mc.level, dir, name, mc.player.blockPosition(), 0);
 					// ...including what it cannot see. Otherwise standing at one end of the island
@@ -974,6 +1035,9 @@ final class Hud {
 		scaffoldFor = -1;
 		hiccups = 0;
 		grace = 0;
+		lookTarget = null;
+		lookUnseen = -1;
+		lookExhausted.clear();
 		stopGuiding();
 	}
 
@@ -1099,6 +1163,9 @@ final class Hud {
 		spotsAbandoned = 0;
 		placedWhenAbandoned = 0;
 		scaffoldFor = -1;
+		lookTarget = null;
+		lookUnseen = -1;
+		lookExhausted.clear();
 	}
 
 	/** What the loop has done since `follow` started — the report for a session you were not watching. */
@@ -1155,6 +1222,7 @@ final class Hud {
         ActiveBuild.clear();
             ChunkScanClient.printDesign = null;
 						stopGuiding();
+						remember(mc);   // following=false clears the session note, so a relog does not resume into it
 					}
 				}
 			}
@@ -1174,7 +1242,24 @@ final class Hud {
 		} catch (Exception e) {
 			// A missing work.json is a normal thing to be told once, not sixty times a second.
 			lines = List.of(design + ": " + e.getMessage());
+			// ONE BAD SIDECAR MUST NOT END AN OVERNIGHT RUN. The work list failing to load (no
+			// work.json, or half-written mid-regeneration) nulled `design` and stopped the whole
+			// session — contradicting nextDesign's own "one un-regenerated sidecar must not end the
+			// run" contract. Under follow-all, skip to the next design instead.
+			if (following && followAll) {
+				String next = nextDesign(mc, design);
+				if (next != null) {
+					mc.player.sendSystemMessage(Component.literal("[cscan] " + design + " will not load ("
+						+ e.getMessage() + ") — skipping to " + next));
+					follow(next);
+					followAll = true;
+					remember(mc);
+					return;
+				}
+			}
 			design = null;
+			following = false;
+			remember(mc);   // clears the session note so a relog does not resume into the bad design
 		}
 	}
 }

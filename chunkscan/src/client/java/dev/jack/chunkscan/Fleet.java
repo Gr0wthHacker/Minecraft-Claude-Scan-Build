@@ -176,6 +176,12 @@ final class Fleet {
 
 	static String finish(Path dir, String design, String account) throws Exception {
 		State s = load(dir);
+		Claim c = s.claims.get(design);
+		// Do not let one alt wipe another's LIVE claim and mark the design done - that both hands the
+		// design to a fight and resurrects it as finished. An expired or unheld claim is fair game.
+		if (c != null && !c.account.equals(account) && !expired(c)) {
+			return design + " is held by " + c.account + " - not yours to finish";
+		}
 		s.claims.remove(design);
 		if (!s.done.contains(design)) s.done.add(design);
 		save(dir, s);

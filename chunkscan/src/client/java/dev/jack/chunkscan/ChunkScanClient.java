@@ -2180,6 +2180,11 @@ public final class ChunkScanClient implements ClientModInitializer {
 					+ "account - /cscan fleet to see who, or /cscan fleet take to override"));
 				return 0;
 			}
+			// CLAIM IT, or the lease is inert and two alts each running `print` on a free design both
+			// build the same cells - the exact fight Fleet exists to prevent. The guard above means it
+			// is free or already ours, so this cannot refuse; the printer's own heartbeat keeps it.
+			try { ok(src, Fleet.claim(dir(src), sp.name(), Fleet.me(mc))); }
+			catch (Exception e) { LOG.warn("fleet claim failed for {}: {}", sp.name(), e.toString()); }
 			Printer.reset();
 			noItemSaid = null;          // a new run must be allowed to say what it is missing
 			printDesign = sp.name();
@@ -2619,6 +2624,7 @@ public final class ChunkScanClient implements ClientModInitializer {
 				printDesign = null;
 				Printer.reset();
 				noItemSaid = null;
+				Hud.followAll(mc, false);   // one assigned design, not the whole tracked list
 				Hud.follow(d);
 				ok(src, me + " working " + d + ": " + sp.todo().size() + " cell(s) left"
 					+ " (of " + mine.size() + " assigned)");

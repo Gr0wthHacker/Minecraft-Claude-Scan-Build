@@ -470,6 +470,16 @@ final class Autopilot {
 	private static int regainCool = 0;
 	private static int regainTries = 0;
 	private static boolean regainSaid = false;
+	/**
+	 * regain() has its OWN tap sequence state, separate from rescue()'s. They used to share
+	 * rescueStage/rescueTimer, and since rescue() runs first every tick and zeroes rescueStage
+	 * whenever the player is not FALLING — which is always true while standing on the ground trying
+	 * to re-fly — it wiped regain's in-progress sequence every tick. regain restarted from case 0 and
+	 * incremented regainTries each tick, hitting the give-up in ~4 ticks, so the double-tap never
+	 * executed and auto-regain was dead: a bump that dropped you onto a floor parked the loop.
+	 */
+	private static int regainStage = 0;
+	private static int regainTimer = 0;
 
 	/** Should we be flying and are not, with the server's permission to fix that? */
 	static boolean canRegainFlight(boolean flying, boolean mayfly, boolean hasTarget) {
@@ -486,8 +496,8 @@ final class Autopilot {
 		if (p.getAbilities().flying) {
 			regainTries = 0;
 			regainSaid = false;
-			if (rescueStage != 0 && !isFalling(p.getDeltaMovement().y, false, p.onGround(), true)) {
-				rescueStage = 0;
+			if (regainStage != 0) {
+				regainStage = 0;
 				release(mc);
 			}
 			return false;
@@ -508,36 +518,36 @@ final class Autopilot {
 			}
 			return false;
 		}
-		if (regainCool > 0) return rescueStage != 0;       // mid-sequence, or waiting to try again
+		if (regainCool > 0) return regainStage != 0;       // mid-sequence, or waiting to try again
 
-		// The same two taps as the fall rescue. From the ground the first is a jump and the second
-		// lands while airborne, which is exactly the gesture a player makes.
-		rescueTimer++;
-		switch (rescueStage) {
+		// The same two taps as the fall rescue, on regain's OWN state. From the ground the first is a
+		// jump and the second lands while airborne, which is exactly the gesture a player makes.
+		regainTimer++;
+		switch (regainStage) {
 			case 0 -> {
-				rescueStage = 1;
-				rescueTimer = 0;
+				regainStage = 1;
+				regainTimer = 0;
 				regainTries++;
 				hold(mc, true, false);
 			}
 			case 1 -> {
-				if (rescueTimer >= TAP_GAP) {
-					rescueStage = 2;
-					rescueTimer = 0;
+				if (regainTimer >= TAP_GAP) {
+					regainStage = 2;
+					regainTimer = 0;
 					hold(mc, false, false);
 				}
 			}
 			case 2 -> {
-				if (rescueTimer >= TAP_GAP) {
-					rescueStage = 3;
-					rescueTimer = 0;
+				if (regainTimer >= TAP_GAP) {
+					regainStage = 3;
+					regainTimer = 0;
 					hold(mc, true, false);
 				}
 			}
 			default -> {
-				if (rescueTimer >= TAP_GAP) {
-					rescueStage = 0;
-					rescueTimer = 0;
+				if (regainTimer >= TAP_GAP) {
+					regainStage = 0;
+					regainTimer = 0;
 					regainCool = REGAIN_EVERY;
 					hold(mc, false, false);
 				}
@@ -688,6 +698,8 @@ final class Autopilot {
 		rescueCool = 0;
 		regainCool = 0;
 		regainTries = 0;
+		regainStage = 0;
+		regainTimer = 0;
 		regainSaid = false;
 		// Turning it OFF starts the watch; turning it on does not need one, because it is watching.
 		if (on && !v) guardUntil = System.currentTimeMillis() + GUARD_MS;
@@ -709,6 +721,7 @@ final class Autopilot {
 		pathTo = null;
 		legFrom = null;
 		bumps = 0;
+		wedged = 0;
 		bestDist = Double.MAX_VALUE;
 		sinceCloser = 0;
 	}
@@ -917,7 +930,11 @@ final class Autopilot {
 			}
 		} else {
 			bumps = 0;
-			wedged = 0;
+			// NOT wedged = 0 here. `wedged` is cumulative threading-contact for THIS pursuit, cleared
+			// only when the target changes, on arrive(), or on forget(). Zeroing it on any clean tick
+			// meant the escape's own fly-OUT of a shaft (all clean ticks) reset it, so it could never
+			// reach WEDGED_GIVE_UP across the in/out oscillation — the give-up that exists to bound
+			// exactly that shaft loop could never fire.
 		}
 		if (wedged > WEDGED_GIVE_UP) {
 			// Threaded, aligned, crept, and still going nowhere. The shaft is not the problem to
@@ -974,14 +991,31 @@ final class Autopilot {
 			announcedArrival = false;
 			bestDist = Double.MAX_VALUE;                   // a new destination has never been near
 			sinceCloser = 0;
+			wedged = 0;                                    // a new pursuit starts with no threading debt
 		}
 		sinceRepath++;
 		repathIn--;
 		if (needsRepath(pathTo, target, repathIn, routedFlying, flying, sinceRepath)) {
+			BlockPos here = p.blockPosition();
+			// ---- WARP IF IT SAVES A LONG LEG. A teleport is a free routing primitive on this server,
+			// and the deck<->lowland descent — ~150 blocks straight down through chunks that load on
+			// the way, the worst void-loss case there is — is exactly the leg it skips. Only when a
+			// recorded warp lands at least MIN_SAVING closer; take() is rate-limited and announces it.
+			// With no warps recorded this is a no-op, so behaviour is unchanged until Jack records one.
+			if (Warps.enabled() && !Warps.cooling(System.currentTimeMillis())) {
+				Warps.Warp w = Warps.best(Warps.forServer(mc), here, target);
+				if (w != null) {
+					String msg = Warps.take(mc, w, target);
+					if (msg != null) {
+						p.sendSystemMessage(Component.literal("[cscan] " + msg));
+						forget();   // the current route is from the OLD position; re-plan after landing
+						return;
+					}
+				}
+			}
 			// A WALKING ROUTE IS A DIFFERENT ROUTE. Clearance alone sends you along a line of air
 			// above a floor, which flies beautifully and walks into a hole.
 			Nav.Passable free = flying ? Nav.of(mc.level) : Nav.standable(mc.level);
-			BlockPos here = p.blockPosition();
 			java.util.List<BlockPos> raw = java.util.List.of();
 			if (flying) {
 				// ---- ROOMY FIRST. A route that keeps a block of air off every surface is a route
