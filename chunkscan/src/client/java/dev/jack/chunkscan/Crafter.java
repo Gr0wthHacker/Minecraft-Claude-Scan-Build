@@ -195,9 +195,19 @@ final class Crafter {
 						why = "out of " + alts.get(0);
 						return "make stopped: " + why + " — the grid was emptied back to you";
 					}
-					// PICKUP from the source, PICKUP into the grid slot: two clicks, one item moved.
-					mc.gameMode.handleContainerInput(id, from, 1, ContainerInput.PICKUP, mc.player);
-					mc.gameMode.handleContainerInput(id, menuSlot, 1, ContainerInput.PICKUP, mc.player);
+					// Move EXACTLY ONE item, and end this cell with an EMPTY cursor.
+					// The old two-click version was `PICKUP button 1` (right-click) on the source, which
+					// picks up HALF the stack — not one — then placed one in the cell, stranding the rest
+					// on the cursor. On a single-ingredient craft that leaves ~28 items on the cursor
+					// (dropped in the world if the pack is full = item loss); on a multi-ingredient craft
+					// the leftover cursor deposits the WRONG ingredient into the next cell and the recipe
+					// silently fails. Three deterministic clicks instead: left-click the source to take
+					// the WHOLE stack, right-click the cell to drop ONE, left-click the (now empty) source
+					// to return the remainder. Cursor is empty at the end of every cell step, so a screen
+					// closed between ticks never drops a held stack.
+					mc.gameMode.handleContainerInput(id, from, 0, ContainerInput.PICKUP, mc.player);      // take whole stack
+					mc.gameMode.handleContainerInput(id, menuSlot, 1, ContainerInput.PICKUP, mc.player);  // place one in the cell
+					mc.gameMode.handleContainerInput(id, from, 0, ContainerInput.PICKUP, mc.player);      // return the remainder
 					slotCursor++;
 					return null;
 				}

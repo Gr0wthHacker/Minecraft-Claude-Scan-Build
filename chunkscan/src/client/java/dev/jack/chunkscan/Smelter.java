@@ -49,6 +49,16 @@ final class Smelter {
 	private static int wanted, made;
 	private static long nextAt;
 	private static String note = "";
+	/** The stonecutter recipe index currently being tried (-1 = none selected yet), and how many
+	 *  tick steps we have waited for the server to fill the output after clicking it. */
+	private static int cutButton = -1;
+	private static int cutWaited = 0;
+	/** Upper bound on stonecutter recipe indices to try. Clicking an out-of-range index is a
+	 *  server-side no-op, so this only bounds how long a genuinely-impossible cut scans before it
+	 *  reports; real inputs have far fewer than this. */
+	static final int MAX_CUT_RECIPES = 40;
+	/** Tick steps to let the server answer a selection before deciding the index produces nothing. */
+	static final int CUT_GRACE = 2;
 
 	private Smelter() {}
 
@@ -60,6 +70,8 @@ final class Smelter {
 	static void stop() {
 		target = "";
 		note = "";
+		cutButton = -1;
+		cutWaited = 0;
 	}
 
 	static boolean running() {
@@ -85,6 +97,8 @@ final class Smelter {
 		made = 0;
 		note = "";
 		nextAt = 0;
+		cutButton = -1;
+		cutWaited = 0;
 		return (k == Kind.FURNACE ? "smelting " : "cutting ") + wanted + "x " + target
 			+ " — leave the screen open. /cscan smelt off to stop";
 	}
@@ -151,15 +165,11 @@ final class Smelter {
 	private static String stonecutter(Minecraft mc, AbstractContainerScreen<?> cs) {
 		int id = cs.getMenu().containerId;
 		ItemStack out = cs.getMenu().slots.get(1).getItem();
-		if (!out.isEmpty()) {
-			String got = BuiltInRegistries.ITEM.getKey(out.getItem()).getPath();
-			// THE INDEX IS THE ONLY THING NAMING THE RECIPE, and the order is the server's. Read
-			// the output back rather than trusting it, or stone bricks quietly become the wrong stair.
-			if (!got.equals(target)) {
-				note = "wrong recipe selected (" + got + ")";
-				return null;
-			}
+
+		// Harvest first: whenever the selected recipe's output is what we asked for, take it.
+		if (!out.isEmpty() && BuiltInRegistries.ITEM.getKey(out.getItem()).getPath().equals(target)) {
 			made += out.getCount();
+			cutWaited = 0;
 			mc.gameMode.handleContainerInput(id, 1, 0, ContainerInput.QUICK_MOVE, mc.player);
 			if (made >= wanted) {
 				String t = target;
@@ -167,9 +177,12 @@ final class Smelter {
 				stop();
 				return "cut " + n + "x " + t;
 			}
-			return null;
+			return null;                          // input remains: it regenerates the output next tick
 		}
+
 		if (cs.getMenu().slots.get(0).getItem().isEmpty()) {
+			cutButton = -1;                        // a new input needs a fresh recipe scan
+			cutWaited = 0;
 			Integer src = findSource(cs);
 			if (src == null) {
 				String t = target;
@@ -180,18 +193,34 @@ final class Smelter {
 			mc.gameMode.handleContainerInput(id, src, 0, ContainerInput.QUICK_MOVE, mc.player);
 			return null;
 		}
-		// Input is in and no output: walk the recipe buttons until one produces what we asked for.
-		for (int i = 0; i < 32; i++) {
-			mc.gameMode.handleInventoryButtonClick(id, i);
-			ItemStack now = cs.getMenu().slots.get(1).getItem();
-			if (!now.isEmpty()
-				&& BuiltInRegistries.ITEM.getKey(now.getItem()).getPath().equals(target)) {
-				return null;
-			}
+
+		// Input is present. THE INDEX IS THE ONLY THING NAMING THE RECIPE and the order is the
+		// server's, so we cannot trust it: select ONE index, then read the output back on a LATER
+		// tick. The old version clicked all 32 indices in a single tick and read the output slot
+		// immediately - before the server had filled it - so it always ended on the last index and
+		// wedged. This is the same async-click lesson the furnace section and Crafter already carry.
+		if (!out.isEmpty()) {
+			// A recipe is selected but it makes the wrong thing: move on to the next index.
+			return selectNextCut(mc, id);
 		}
-		String t = target;
-		stop();
-		return "stopped: this stonecutter has no recipe making " + t + " from what you gave it";
+		// Output empty with input present: either we have not selected yet, or the server has not
+		// answered the last selection. Give it CUT_GRACE steps before deeming the index barren.
+		if (cutButton < 0) return selectNextCut(mc, id);
+		if (++cutWaited < CUT_GRACE) return null;
+		return selectNextCut(mc, id);
+	}
+
+	/** Advance to the next stonecutter recipe index and click it, or stop when all are exhausted. */
+	private static String selectNextCut(Minecraft mc, int id) {
+		cutButton++;
+		cutWaited = 0;
+		if (cutButton >= MAX_CUT_RECIPES) {
+			String t = target;
+			stop();
+			return "stopped: this stonecutter has no recipe making " + t + " from what you gave it";
+		}
+		mc.gameMode.handleInventoryButtonClick(id, cutButton);
+		return null;
 	}
 
 	/** A player slot holding an ingredient that smelts or cuts into the target. */

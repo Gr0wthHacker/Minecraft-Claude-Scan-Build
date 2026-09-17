@@ -47,6 +47,12 @@ final class Shop {
 	private static int bought;
 	private static boolean armed;
 	private static long nextAt;
+	/** A click is settled on the NEXT tick by measuring the inventory delta: a shop may hand over a
+	 *  whole stack per click, so charging one per-item price per click both miscounts and blows the
+	 *  cap. Null when no purchase is in flight. */
+	private static String pendingName;
+	private static int pendingBefore;
+	private static double pendingEach;
 
 	private Shop() {}
 
@@ -57,6 +63,7 @@ final class Shop {
 	static void stop() {
 		armed = false;
 		want.clear();
+		pendingName = null;
 	}
 
 	static String status() {
@@ -76,6 +83,7 @@ final class Shop {
 		cap = coinCap;
 		spent = 0;
 		bought = 0;
+		pendingName = null;
 		Prices.Book book = Prices.load(ScanRunner.schematicsDir(mc));
 		double est = 0;
 		int unpriced = 0;
@@ -106,6 +114,40 @@ final class Shop {
 		if (mc.level.getGameTime() < nextAt) return null;
 		nextAt = mc.level.getGameTime() + STEP_TICKS;
 		if (!(Screens.container() instanceof AbstractContainerScreen<?> cs)) return null;
+
+		// SETTLE THE LAST CLICK BY WHAT ACTUALLY ARRIVED. A shop may hand over a whole stack per
+		// click, so the amount bought and the amount spent are only known by the inventory DELTA -
+		// never by assuming one item at the per-item price, which is how a 64-per-click shop bought
+		// 4096 and sailed past the cap while the code believed it had spent for one.
+		if (pendingName != null) {
+			int gained = held(mc, pendingName) - pendingBefore;
+			String name = pendingName;
+			pendingName = null;
+			if (gained <= 0) {
+				// A purchase that did not arrive is a stop condition: out of stock, or it went
+				// somewhere we cannot see. Money-safe failure is to stop rather than click again.
+				armed = false;
+				return String.format("stopping: a purchase of %s did not arrive — %d item(s) for "
+					+ "about %.0f coins so far", name, bought, spent);
+			}
+			spent += pendingEach * gained;
+			bought += gained;
+			Integer need = want.get(name);
+			int left = (need == null ? 0 : need) - gained;
+			if (left <= 0) want.remove(name);
+			else want.put(name, left);
+			if (want.isEmpty()) {
+				armed = false;
+				return String.format("bought %d item(s) for about %.0f coins", bought, spent);
+			}
+			if (spent >= cap) {
+				armed = false;
+				return String.format("reached the cap: about %.0f of %.0f coins, %d item(s)",
+					spent, cap, bought);
+			}
+			return null;
+		}
+
 		if (want.isEmpty()) {
 			armed = false;
 			return String.format("bought %d item(s) for about %.0f coins", bought, spent);
@@ -130,22 +172,37 @@ final class Shop {
 			Prices.Price p = Prices.read(lore);
 			if (p == null || p.buy < 0) continue;          // unknown here and now: leave it alone
 
-			double each = p.buy;
-			if (spent + each > cap) {
+			double each = p.buy;                            // per ITEM (Prices divides by listed qty)
+			// A shop click usually hands over the listed stack, so pre-check the cap against that
+			// predicted quantity, not against one item — otherwise one click can blow the cap.
+			int qty = Math.max(1, st.getCount());
+			if (spent + each * qty > cap) {
 				armed = false;
-				return String.format("stopping at the cap: %.0f coins spent, next item is %.0f more",
-					spent, each);
+				return String.format("stopping at the cap: about %.0f coins spent, next purchase is "
+					+ "about %.0f more (%dx %.0f)", spent, each * qty, qty, each);
 			}
+			// Click, then settle on the next tick by the real delta.
+			pendingName = name;
+			pendingBefore = held(mc, name);
+			pendingEach = each;
 			mc.gameMode.handleContainerInput(cs.getMenu().containerId, i, 0,
 				ContainerInput.PICKUP, mc.player);
-			spent += each;
-			bought++;
-			int left = need - 1;
-			if (left <= 0) want.remove(name);
-			else want.put(name, left);
 			return null;
 		}
 		return null;                                        // nothing we want in this menu
+	}
+
+	/** How many of a block/item are in the player's main inventory now — the delta is the buy. */
+	private static int held(Minecraft mc, String name) {
+		int n = 0;
+		var inv = mc.player.getInventory();
+		for (int i = 0; i < 36; i++) {
+			ItemStack st = inv.getItem(i);
+			if (!st.isEmpty() && BuiltInRegistries.ITEM.getKey(st.getItem()).getPath().equals(name)) {
+				n += st.getCount();
+			}
+		}
+		return n;
 	}
 
 	/** What it would cost, without buying anything — the line to read BEFORE arming. */

@@ -37,7 +37,7 @@ final class Printer {
 	private Printer() {}
 
 	/** What one attempt turned into, once the world has been looked at again. */
-	enum Verdict { PLACED, MISMATCH, STILL_AIR, BLOCKED, NO_ITEM, NO_FACE, OUT_OF_REACH, REFUSED }
+	enum Verdict { PLACED, PROGRESS, MISMATCH, STILL_AIR, BLOCKED, NO_ITEM, NO_FACE, OUT_OF_REACH, REFUSED }
 
 	record Attempt(BlockPos pos, String want, Verdict verdict, String got) {}
 
@@ -234,7 +234,8 @@ final class Printer {
                             if (context == null || !context.getClickedPos().equals(pos) || !context.canPlace()) continue;
                             BlockState predicted = item.getBlock().getStateForPlacement(context);
 							if (predicted != null && (Work.matches(predicted, state) || ActionRecipe.vineProgress(existing, predicted, state)
-								|| ActionRecipe.glowLichenProgress(existing, predicted, state)) && predicted.canSurvive(mc.level, pos)
+								|| ActionRecipe.glowLichenProgress(existing, predicted, state)
+								|| ActionRecipe.slabProgress(existing, predicted, state)) && predicted.canSurvive(mc.level, pos)
                                 && mc.level.isUnobstructed(predicted, pos, net.minecraft.world.phys.shapes.CollisionContext.empty()))
                                 return new Placement(hit, yaw, pitch);
                         }
@@ -405,6 +406,16 @@ final class Printer {
 				placed++;
 				placedSince++;
 				out.add(new Attempt(a.pos(), a.want(), Verdict.PLACED, got));
+			} else if (ActionRecipe.slabIntermediate(st, a.want())
+				|| ActionRecipe.vineIntermediate(st, a.want())
+				|| ActionRecipe.glowLichenIntermediate(st, a.want())) {
+				// A legitimate multi-step block mid-way: a slab awaiting its second half, a vine or
+				// glow_lichen awaiting another face. NOT built and NOT wrong — leave it out of givenUp
+				// so the next tick places the remainder, and count it as activity so the loop's stall
+				// clocks see the progress that a per-face build makes. Exact-matching here (the old
+				// behaviour) marked every such cell MISMATCH and defeated the whole multi-step path.
+				placedSince++;
+				out.add(new Attempt(a.pos(), a.want(), Verdict.PROGRESS, got));
 			} else {
 				mismatched++;
 				refusedSince++;

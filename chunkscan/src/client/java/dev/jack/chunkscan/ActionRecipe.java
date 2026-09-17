@@ -65,6 +65,19 @@ final class ActionRecipe {
 			&& state.getValue(SlabBlock.TYPE) != net.minecraft.world.level.block.state.properties.SlabType.DOUBLE;
 	}
 
+	/**
+	 * Bootstrapping a double slab from AIR: vanilla gives a single slab on the first click, and only
+	 * a second click on that single makes it double (via slabUpgrade/slabIntermediate). Without this
+	 * the predicted single never matches the wanted double, placement() returns null, and any design
+	 * containing a {@code type=double} slab parks the loop forever.
+	 */
+	static boolean slabProgress(BlockState before, BlockState after, String wanted) {
+		return doubleSlab(wanted) && before.isAir()
+			&& BuiltInRegistries.BLOCK.getKey(after.getBlock()).getPath().equals(Rules.shortName(wanted))
+			&& after.hasProperty(SlabBlock.TYPE)
+			&& after.getValue(SlabBlock.TYPE) != net.minecraft.world.level.block.state.properties.SlabType.DOUBLE;
+	}
+
 	/** A vine may require several uses; each observed subset is a valid intermediate. */
 	static boolean vineIntermediate(BlockState state, String wanted) {
 		if (!Rules.shortName(wanted).equals("vine")
