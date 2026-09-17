@@ -230,6 +230,27 @@ final class Autopilot {
 	private static boolean wasFlying = false;
 	/** Said once: we are hands-off because you are falling. */
 	private static boolean warnedFalling = false;
+	/**
+	 * Is the autopilot AIMING THE CAMERA / DRIVING TRAVEL this tick?
+	 *
+	 * <p><b>The look angle has two writers on a build session and no arbiter between them.</b> This
+	 * points the camera at the next waypoint every tick it steers; {@link Printer#place} snaps it at
+	 * the block it is placing and sends its own {@code Rot} packet. They run in separate
+	 * {@code END_CLIENT_TICK} handlers — Autopilot before the printer — so during the approach to a
+	 * station, where the printer's reach (~5) overlaps the flight's arrival ceiling (3), BOTH fire:
+	 * the camera whips between the waypoint and the block, tick after tick, and the placement pauses
+	 * the flight for a server round-trip each time. That is the twitching-and-stopping.
+	 *
+	 * <p>Reset false at the top of {@link #tick} and set true only where the autopilot actually
+	 * steers, so the build printer can gate its placement on {@link #navigating()} and hold until the
+	 * flight is PARKED. Then the camera has a single owner: the autopilot while travelling, the
+	 * printer while parked and building. It only defers the opportunistic mid-flight placement — the
+	 * loop already flies you to a standing spot and expects you to build from there — so nothing the
+	 * loop relies on is lost, and {@link #hasArrived}'s "stopped getting closer" branch guarantees
+	 * the flight parks within {@link #CLOSING_PATIENCE} ticks even against an obstacle, so placement
+	 * can never be starved.
+	 */
+	private static boolean navigating = false;
 	/** Consecutive ticks spent pressed against something. See tick(). */
 	private static int bumps = 0;
 	/** Ticks of solid contact before the route itself is declared wrong rather than stale. */
@@ -324,6 +345,17 @@ final class Autopilot {
 
 	static boolean on() {
 		return on;
+	}
+
+	/**
+	 * Is the autopilot steering the camera / driving travel right now?
+	 *
+	 * <p>The build printer reads this so it never places a block in a tick the autopilot is aiming
+	 * the look angle somewhere else — the two-camera-writers twitch. See {@link #navigating}. False
+	 * whenever autofly is off, so manual building is unaffected.
+	 */
+	static boolean navigating() {
+		return on && navigating;
 	}
 
 	/** Hard stop: drop the target, the route, the motion and any key we were holding. */
@@ -683,6 +715,7 @@ final class Autopilot {
 		announcedArrival = false;
 		warnedFalling = false;
 		wasFlying = false;
+		navigating = false;
 		bumps = 0;
 		rescueStage = 0;
 		rescueCool = 0;
@@ -728,6 +761,10 @@ final class Autopilot {
 	}
 
 	private static void tick(Minecraft mc) {
+		// Reset each tick and set true only where we actually steer (the aim section, and the
+		// recovery moves that early-return before it), so the build printer can hold its placement
+		// while we own the camera. See navigating.
+		navigating = false;
 		LocalPlayer p = mc.player;
 		if (!on) {
 			// ---- THE SAFETY OUTLIVES THE AUTOPILOT. See GUARD_MS. Switching off is the most
@@ -1062,7 +1099,9 @@ final class Autopilot {
 				LOOKAHEAD);
 		}
 
-		// ---- aim
+		// ---- aim. From here down we drive the camera and the body, so claim the tick: the build
+		// printer must not also aim the look angle while we are steering. See navigating.
+		navigating = true;
 		Vec3 dir = aim.subtract(me).normalize();
 		float wantYaw = (float) Math.toDegrees(Math.atan2(-dir.x, dir.z));
 		// Level on foot. A walking player does not stare at the floor to walk toward it, and the
@@ -1649,6 +1688,7 @@ final class Autopilot {
 					breadcrumb = null;                  // used it; if that was not enough, climb
 					return false;
 				}
+				navigating = true;                      // driving across the world: keep the printer off
 				p.setDeltaMovement(keepAirborne(mc, p,
 					back.subtract(p.position()).normalize().scale(BLIND_SPEED * 2)));
 				return true;
@@ -1663,6 +1703,7 @@ final class Autopilot {
 					trouble = Recovery.BACK_OFF_AT;     // give the normal flight another go
 					return false;
 				}
+				navigating = true;                      // climbing out: keep the printer off
 				p.setDeltaMovement(new Vec3(0, Math.min(SPEED, 0.4), 0));
 				return true;
 			}

@@ -844,4 +844,47 @@ class AutopilotTest {
 		assertTrue(body.contains("bumps = 0") && body.contains("wedged = 0"),
 			"arriving no longer clears the contact state");
 	}
+
+	// ---------------------------------------------------------------- one camera owner
+
+	@Test
+	void theTickClaimsTheCameraWhereItSteers() throws IOException {
+		// The look angle had TWO writers and no arbiter: this aims it at the next waypoint every tick
+		// it flies, and Printer.place snaps it at the block and sends its own Rot packet, in a separate
+		// tick handler. Mid-approach — where the printer's reach overlaps the arrival ceiling — both
+		// fire, and the camera whips between the waypoint and the block, tick after tick. `navigating`
+		// is reset at the top of tick and set true only where we actually steer, so the build printer
+		// can hold its placement until the flight is parked and the camera has a single owner.
+		String src = source();
+		int tick = src.indexOf("private static void tick(Minecraft mc)");
+		assertTrue(tick > 0, "tick() moved");
+		int reset = src.indexOf("navigating = false", tick);
+		int claim = src.indexOf("navigating = true", tick);
+		assertTrue(reset > tick, "navigating is not reset inside the tick");
+		assertTrue(claim > reset, "the tick claims the camera before it has reset the flag");
+		// Claimed AT the aim, which is where the camera is actually written — not somewhere the flight
+		// is only holding position.
+		int aim = src.indexOf("Vec3 dir = aim.subtract(me).normalize()");
+		assertTrue(aim > 0 && claim < aim && aim - claim < 200,
+			"the camera claim is not at the aim section");
+	}
+
+	@Test
+	void theBuildPrinterHoldsWhileTheAutopilotSteers() throws IOException {
+		// The other half of the seam: the build print tick must gate on it, or the autopilot deferring
+		// buys nothing. Read the client source rather than run a tick — the placement guard needs a
+		// live level, but the invariant is a text one.
+		String client = Files.readString(
+			Path.of("src/client/java/dev/jack/chunkscan/ChunkScanClient.java"), StandardCharsets.UTF_8);
+		assertTrue(client.contains("Autopilot.navigating()"),
+			"the build printer no longer holds while autofly is steering — the two-camera-writers twitch");
+	}
+
+	@Test
+	void navigatingIsFalseWhenAutoflyIsOff() {
+		// Manual building must be unaffected: with autofly off nothing is steering, so the printer is
+		// never held.
+		Autopilot.set(false);
+		assertFalse(Autopilot.navigating(), "held the printer with autofly off");
+	}
 }

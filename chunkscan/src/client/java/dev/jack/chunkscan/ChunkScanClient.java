@@ -2288,8 +2288,15 @@ public final class ChunkScanClient implements ClientModInitializer {
 							+ ": wanted " + a.want() + ", got " + a.got() + " — left for you"));
 					}
 				}
+				// ---- ONE CAMERA OWNER. Do not place while autofly is still steering: place() aims the
+				// look angle at the block and sends a Rot packet, and the autopilot aims it at the next
+				// waypoint every tick it flies, in a separate handler with no arbiter — so mid-approach
+				// the camera whips between the two and the flight stutters for a server round-trip on
+				// every opportunistic placement. Hold until the flight is parked; the loop flies you to
+				// a standing spot to build from, and hasArrived guarantees it parks within a few ticks,
+				// so building is not starved. See Autopilot.navigating.
 				if (printDesign == null || Hud.warmingUp() || Printer.busy() || !Printer.ready(mc) || Screens.container() != null
-                    || Withdraw.busy() || Unbox.running()) return;
+                    || Withdraw.busy() || Unbox.running() || Autopilot.navigating()) return;
                 if (Hud.following() && !printDesign.equals(Hud.watching())) return;
                 if (Fleet.heldByOther(ScanRunner.schematicsDir(mc), printDesign, Fleet.me(mc))) return;
 				Work.Split sp = Work.split(mc.level, ScanRunner.schematicsDir(mc), printDesign,
