@@ -88,12 +88,15 @@ def test_the_adopted_ride_is_the_artifact_cell_for_cell_except_what_the_config_a
     and a rail's `shape`, a stair's `facing` and a trapdoor's `half` are decisions this repo's
     renderer draws identically whichever way round they are."""
     art = _states(schem.load(ART))
-    got = _states(minestation.build(params))
+    built = minestation.build(params)
+    got = _states(built)
     asked = _asked(params)
+    fills = {tuple(k) for k in built.meta["corner_fills"]}
     added, gone = set(got) - set(art), set(art) - set(got)
     assert not gone, f"the copy is missing {len(gone)} cells of the artifact, eg {sorted(gone)[:4]}"
-    assert added == {k for k, v in asked.items() if v == "button"}, (
-        f"the copy adds {sorted(added)} but the config asks for the dispatch only")
+    assert added == {k for k, v in asked.items() if v == "button"} | fills, (
+        f"the copy adds {sorted(added - fills)[:8]} but the config asks for the dispatch and "
+        f"the corner fills only")
     changed = {k for k in art if k in got and art[k] != got[k]}
     assert changed == {k for k, v in asked.items() if v in ("gate", "isolator")}, (
         f"changed {sorted(changed)} against asked {sorted(asked)}")
@@ -404,3 +407,23 @@ def test_a_rider_can_stand_beside_every_braked_rail_on_both_flanks():
         assert near and far, (
             f"the braked rail at V{v} U{u} has no platform: near={near} far={far} - a rider "
             f"cannot get on or off here")
+
+
+def test_the_slopes_print_as_one_piece_and_no_fill_touches_the_ride(params):
+    """Jack: "it has diagnol sections." The slopes were flat runs of track bed stepping up one
+    course at a time, meeting the next run only corner to corner - and a printer places by clicking
+    a FACE. The fills close that, but a fill in a rail cell, in the two courses a cart and rider
+    pass through, or over a floor someone walks on would trade one fault for a worse one."""
+    from mcbuild import printable
+    built = minestation.build(params)
+    fills = {tuple(k) for k in built.meta["corner_fills"]}
+    assert fills, "stitch_corners is on and nothing was filled"
+    got = _states(built)
+    rails = {k for k, v in got.items() if v.split("[")[0] in ("rail", "powered_rail")}
+    for x, y, z in fills:
+        assert (x, y, z) not in rails
+        assert (x, y - 1, z) not in rails and (x, y - 2, z) not in rails, (
+            f"a corner fill at {(x, y, z)} is in the cart's path")
+    cells = {k: v.split("[")[0] for k, v in got.items()}
+    s = printable.survey("PF Mine Coaster", cells=cells, stitch=False)
+    assert not s.orphans, f"{len(s.orphans)} cells the printer cannot reach"

@@ -35,8 +35,14 @@ failure shape.
 """
 from __future__ import annotations
 
-from .. import nbt, schem
+from .. import blocks, nbt, schem
 from .vertical import World
+
+#: the twelve EDGE diagonals: two axes off by one, the third level
+_EDGES = tuple((a, b, c) for a in (-1, 0, 1) for b in (-1, 0, 1) for c in (-1, 0, 1)
+               if abs(a) + abs(b) + abs(c) == 2)
+_FACES = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
+_RAILS = ("rail", "powered_rail", "detector_rail", "activator_rail")
 
 MINESTATION = {
     "source": None,        # the artifact to adopt
@@ -45,7 +51,76 @@ MINESTATION = {
     "gates": None,         # [{v, u: [u0, u1], h, facing}] fence cells that become gates
     "plain": None,         # [{v, u: [u0, u1], h}] powered rails that become PLAIN rail
     "dispatch": None,      # {plinth: {v,u,h,block}, button: {v,u,h,facing}}
+    "stitch_corners": False,  # close every corner-only join so the printer can chain along it
 }
+
+
+def _fill_spot(mids, cells, stitches):
+    """Of the two cells that would close a corner join, the one to fill - or None.
+
+    Never a rail cell, never the two courses a cart and its rider pass through over a rail, never
+    the head space over a floor, and never anything already there. Of what is left: TUCKED under a block first (a stringer under a
+    tread nobody sees from above), then not somewhere a player stands, then the least exposed."""
+    from ..analyze import clickable       # here, not at the top: analyze imports gen
+
+    def taken(q):
+        return q in cells or q in stitches
+
+    def cart(q):
+        x, y, z = q
+        return any(cells.get((x, y - d, z), ("",))[0] in _RAILS for d in (1, 2))
+
+    def standable(q):
+        x, y, z = q
+        under = cells.get((x, y - 1, z)) or stitches.get((x, y - 1, z))
+        return (under is not None and clickable(under[0])
+                and not taken((x, y + 1, z)) and not taken((x, y + 2, z)))
+
+    def headroom(q):
+        # the course over a floor someone stands on: filling it bricks up the walk
+        x, y, z = q
+        under = cells.get((x, y - 2, z)) or stitches.get((x, y - 2, z))
+        return not taken((x, y - 1, z)) and under is not None and clickable(under[0])
+
+    ok = [q for q in mids if not taken(q) and not cart(q) and not headroom(q)]
+    ok.sort(key=lambda q: (not taken((q[0], q[1] + 1, q[2])), standable(q),
+                           sum(not taken((q[0] + a, q[1] + b, q[2] + c)) for a, b, c in _FACES)))
+    return ok[0] if ok else None
+
+
+def _fill_material(spot, pair, cells):
+    """A full cube the join already spends: one of its own two ends, else a face neighbour."""
+    near = [cells.get((spot[0] + a, spot[1] + b, spot[2] + c)) for a, b, c in _FACES]
+    for st in [cells[p] for p in pair] + [s for s in near if s]:
+        if blocks.is_full_cube(st[0]):
+            return st
+    return None
+
+
+def corner_fills(cells: dict) -> dict:
+    """{cell: (name, props)} that closes every join between two buildable blocks that touch only
+    along an EDGE - the printer places by clicking a FACE, so a slope laid as flat runs stepping
+    up one course at a time is a chain of pieces it cannot build from one to the next.
+
+    `cells` is {(x, y, z): (name, props)}. Fills only ever go into empty cells between two blocks
+    the ride already has, so the model's box cannot grow."""
+    from ..analyze import clickable       # here, not at the top: analyze imports gen
+    stitches: dict = {}
+    solid = sorted(p for p, st in cells.items() if clickable(st[0]))
+    for p in solid:
+        for d in _EDGES:
+            q = (p[0] + d[0], p[1] + d[1], p[2] + d[2])
+            if q <= p or q not in cells or not clickable(cells[q][0]):
+                continue
+            mids = [tuple(p[i] + (d[i] if i == j else 0) for i in range(3))
+                    for j in range(3) if d[j]]
+            if any(m in cells or m in stitches for m in mids):
+                continue
+            spot = _fill_spot(mids, cells, stitches)
+            st = spot and _fill_material(spot, (p, q), cells)
+            if st:
+                stitches[spot] = st
+    return stitches
 
 
 def build(cfg: dict, donors=None):
@@ -155,6 +230,10 @@ def build(cfg: dict, donors=None):
               face=face, facing=str(bt.get("facing", "north")), powered="false")
         dispatch = {"button": [bx, by, bz], "support": list(sup), "face": face}
 
+    stitched = corner_fills(w.cells) if p.get("stitch_corners") else {}
+    for (x, y, z), (name, pr) in stitched.items():
+        w.put(x, y, z, name, **pr)
+
     sy, sz, sx = m.ids.shape
     c = w.canvas({
         "kind": "minestation",
@@ -162,6 +241,7 @@ def build(cfg: dict, donors=None):
         "gates_opened": opened,
         "rails_isolated": isolated,
         "dispatch": dispatch,
+        "corner_fills": sorted(list(k) for k in stitched),
         "size": [int(sx), int(sy), int(sz)],
         "contract": "the Mine Coaster's own artifact, copied state for state in its own axes, "
                     "with named fence cells of its station turned into open fence gates so the "

@@ -81,6 +81,12 @@ params:
   # is a block and a half away from it.
   dispatch:
     button: {v: 31, u: 111, h: 2, face: floor, facing: north}
+  # THE SLOPES WERE LAID AS FLAT RUNS OF FOUR STEPPING UP ONE COURSE AT A TIME, so each run of
+  # track bed - and of the stringers either side - met the next only CORNER TO CORNER. A printer
+  # places by clicking a face, so every slope printed as loose sections it could not build from
+  # one to the next. This closes every edge-only join with a block TUCKED under the upper cell:
+  # invisible from above, never in the cart's two courses, never on a walk.
+  stitch_corners: true
 finish:
   # NO `verify_against`. This design carries no world origin - `tools/park_place` positions it
   # from `PLACEMENT`, in the park's own lattice - so compositing it onto a world capture asks
