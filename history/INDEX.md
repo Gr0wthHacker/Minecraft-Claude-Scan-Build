@@ -1,0 +1,114 @@
+<!--
+  history/INDEX.md -- manifest of the mctest build journal.
+  Never auto-loaded. Read this, find the entry relevant to the
+  current task, then Read only that file. Do not read the whole
+  history/ directory.
+-->
+
+# Build history index
+
+- `history/001-2026-08-19-the-lowland-scene.md` -- 2026-08-19 -- The lowland scene
+- `history/002-2026-08-19-what-this-system-can-and-cannot-build.md` -- 2026-08-19 -- What this system can and cannot build
+- `history/003-2026-08-19-the-lowland-scene-as-shipped.md` -- 2026-08-19 -- The lowland scene, as shipped
+- `history/004-2026-08-19-the-void-ladybird.md` -- 2026-08-19 -- The void ladybird
+- `history/005-2026-08-28-seeing-it-in-3d-tools-look-py.md` -- 2026-08-28 -- Seeing it in 3D: tools/look.py
+- `history/006-undated-the-panel-review-the-last-step-before-shipping.md` --  -- The panel review — the last step before shipping
+- `history/007-2026-08-19-faces-and-the-visual-audit-that-found-them.md` -- 2026-08-19 -- Faces, and the visual audit that found them
+- `history/008-undated-known-wrong-for-whoever-picks-this-up.md` --  -- Known-wrong, for whoever picks this up
+- `history/009-2026-08-19-the-taproot-staircase-head.md` -- 2026-08-19 -- The taproot staircase head
+- `history/010-2026-08-19-the-deck-floor.md` -- 2026-08-19 -- The deck floor
+- `history/011-2026-08-19-the-root-break-and-the-machine-room-under-the-tree.md` -- 2026-08-19 -- The root break, and the machine room under the tree
+- `history/012-2026-08-20-the-steak-wand.md` -- 2026-08-20 -- The steak wand
+- `history/013-2026-08-21-the-lowland-scene-completed-the-ring-gate-and-the-axolotl.md` -- 2026-08-21 -- The lowland scene, completed: the ring-gate and the axolotl
+- `history/014-undated-the-ruins-quarter-and-the-world-as-master-copy-2026-08-21-19.md` --  -- The ruins quarter, and the world as master copy (2026-08-21, 19:28 scan)
+- `history/015-undated-the-lowland-town-2026-08-22-15-01-scan.md` --  -- The lowland town (2026-08-22, 15:01 scan)
+- `history/016-2026-08-22-the-descent-the-spiral-continues-to-the-lowland.md` -- 2026-08-22 -- The descent: the spiral continues to the lowland
+- `history/017-undated-build-test.md` --  -- Build & test
+- `history/018-2026-08-20-the-store-hall-got-a-room-and-the-court-got-a-way-in.md` -- 2026-08-20 -- The store hall got a room, and the court got a way in
+- `history/019-2026-08-20-the-court-hall-apocalyptic-beauty-and-where-the-glass-may-go.md` -- 2026-08-20 -- The court hall: apocalyptic beauty, and where the glass may go
+- `history/020-2026-08-22-the-lowland-glow-lighting-solved-by-propagation.md` -- 2026-08-22 -- The lowland glow: lighting solved by propagation
+- `history/021-undated-all-designs-accepted-as-complete-2026-08-23-15-54-scan.md` --  -- All designs accepted as complete (2026-08-23, 15:54 scan)
+- `history/022-2026-08-23-the-falls-and-the-island-night-the-two-new-projects.md` -- 2026-08-23 -- The Falls, and the Island Night  — the two new projects
+- `history/023-undated-the-loop-was-a-latch-five-deadlocks-one-shape-2026-09-08-chu.md` --  -- THE LOOP WAS A LATCH: five deadlocks, one shape (2026-09-08, chunkscan 0.9.8)
+- `history/024-2026-08-27-reading-other-people-s-builds-the-download-corpus.md` -- 2026-08-27 -- Reading other people's builds: the download corpus
+- `history/025-2026-08-23-the-lowland-thicket-the-cave-was-quarried-but-never-planted.md` -- 2026-08-23 -- The Lowland Thicket: the cave was quarried but never planted
+- `history/026-2026-08-27-the-chunkscan-audit-a-scan-had-eaten-a-design.md` -- 2026-08-27 -- The chunkscan audit  — a scan had eaten a design
+- `history/027-2026-08-23-island-enrichment-the-detail-our-buildings-never-had.md` -- 2026-08-23 -- Island Enrichment: the detail our buildings never had
+- `history/028-2026-08-23-the-island-run-a-parkour-descent-and-two-things-it-got-wrong.md` -- 2026-08-23 -- The Island Run: a parkour descent, and two things it got wrong first
+- `history/029-2026-08-28-the-churchyard-frog-one-convex-mass-and-the-pattern-does-the.md` -- 2026-08-28 -- The churchyard frog  - ONE CONVEX MASS, and the pattern does the work
+- `history/030-2026-08-28-the-island-line-a-minecart-spiral-deck-to-lowland.md` -- 2026-08-28 -- The Island Line: a minecart spiral, deck to lowland
+- `history/031-2026-08-30-the-skyblock-pass-cost-craft-income-boundary-void-warps.md` -- 2026-08-30 -- The skyblock pass: cost, craft, income, boundary, void, warps
+- `history/032-undated-the-automation-pass-the-mod-places-its-own-blocks-2026-08-30.md` --  -- The automation pass: the mod places its own blocks (2026-08-30, chunkscan 0.4.0)
+- `history/033-undated-full-automation-the-loop-closes-2026-08-30-chunkscan-0-5-0.md` --  -- Full automation: the loop closes (2026-08-30, chunkscan 0.5.0)
+- `history/034-2026-08-30-redstone-that-is-verified-not-drawn.md` -- 2026-08-30 -- Redstone that is VERIFIED, not drawn
+- `history/035-undated-the-casino-the-planner-and-the-fleet-2026-08-30-chunkscan-0.md` --  -- The casino, the planner and the fleet (2026-08-30, chunkscan 0.6.0)
+- `history/036-undated-shulker-pulls-and-an-alt-that-works-its-own-assignment-2026.md` --  -- Shulker pulls, and an alt that works its own assignment (2026-08-30, chunkscan 0.7.0)
+- `history/037-undated-more-than-one-island-and-the-last-red-tests-2026-08-30-chunk.md` --  -- More than one island, and the last red tests (2026-08-30, chunkscan 0.8.0)
+- `history/038-2026-08-30-two-reference-builds-and-the-mistake-they-caught.md` -- 2026-08-30 -- Two reference builds, and the mistake they caught
+- `history/039-2026-08-30-the-wiki-closes-the-odds-question.md` -- 2026-08-30 -- The wiki closes the odds question
+- `history/040-2026-08-30-four-reference-builds-calibrated-the-inspection-74-findings.md` -- 2026-08-30 -- Four reference builds calibrated the inspection: 74 findings -> 1
+- `history/041-2026-08-30-a-real-casino-and-the-third-schematic-format.md` -- 2026-08-30 -- A real casino, and the third schematic format
+- `history/042-2026-08-30-the-casino-rebuilt-against-the-reference-and-it-does-not-fit.md` -- 2026-08-30 -- The casino, rebuilt against the reference — and it does not fit
+- `history/043-2026-09-03-the-frontier-a-mountain-a-works-and-four-games-nobody-had-pl.md` -- 2026-09-03 -- The Frontier: a mountain, a works, and four games nobody had placed
+- `history/044-2026-09-03-the-west-half-of-the-lost-plateau-is-terrain-and-one-excavat.md` -- 2026-09-03 -- THE WEST HALF OF THE LOST PLATEAU IS TERRAIN AND ONE EXCAVATION
+- `history/045-2026-09-03-the-helter-skelter-the-midway-s-third-ride-and-the-four-mach.md` -- 2026-09-03 -- The Helter Skelter: the Midway's third ride, and the four machines nobody had placed
+- `history/046-2026-09-03-pf-games-row-the-skill-arcade-and-the-prize-point-retired-an.md` -- 2026-09-03 -- PF Games Row: the Skill Arcade and the Prize Point retired, and the self-reference that gutted a machine
+- `history/047-2026-09-07-park-complete-no-tuff-and-no-heron.md` -- 2026-09-07 -- Park Complete: no tuff, and no heron
+- `history/048-undated-three-reaches-none-of-them-the-printer-s-2026-09-10-chunksca.md` --  -- THREE REACHES, NONE OF THEM THE PRINTER'S (2026-09-10, chunkscan 0.9.10)
+- `history/049-undated-the-daily-loop.md` --  -- The daily loop
+- `history/050-undated-architecture.md` --  -- Architecture
+- `history/051-undated-rules-that-were-learned-the-hard-way.md` --  -- Rules that were learned the hard way
+- `history/052-2026-08-18-where-things-stand.md` -- 2026-08-18 -- Where things stand
+- `history/053-undated-the-island-as-of-2026-08-18.md` --  -- The island (as of 2026-08-18)
+- `history/054-undated-working-style-for-this-project.md` --  -- Working style for this project
+- `history/055-2026-08-31-the-casino-and-the-four-faults-that-cancelled-each-other-out.md` -- 2026-08-31 -- The casino, and the four faults that cancelled each other out
+- `history/056-2026-08-31-the-casino-became-a-building.md` -- 2026-08-31 -- The casino became a BUILDING
+- `history/057-2026-08-31-the-theme-park-three-zones-on-three-islands.md` -- 2026-08-31 -- The theme park: three zones on three islands
+- `history/058-2026-08-31-the-park-finally-looked-at.md` -- 2026-08-31 -- The park, finally looked at
+- `history/059-2026-09-01-wayfinding-and-the-flow-audit-that-found-the-park-s-real-gap.md` -- 2026-09-01 -- Wayfinding, and the flow audit that found the park's real gap
+- `history/060-2026-09-01-the-park-becomes-a-place-purpose-packing-and-the-bugs-that-w.md` -- 2026-09-01 -- The park becomes a place: purpose, packing, and the bugs that were silent
+- `history/061-2026-09-01-the-causeway-sculptures-replaced-and-the-pass-that-was-eatin.md` -- 2026-09-01 -- The causeway sculptures, replaced - and the pass that was eating them
+- `history/062-2026-09-01-the-causeway-s-two-new-sculptures.md` -- 2026-09-01 -- The causeway's two new sculptures
+- `history/063-2026-09-07-the-causeway-s-heron-became-a-stegosaur.md` -- 2026-09-07 -- The causeway's heron became a stegosaur
+- `history/064-2026-09-07-the-stegosaur-is-retired-four-polish-rounds-cannot-fix-a-cat.md` -- 2026-09-07 -- THE STEGOSAUR IS RETIRED: FOUR POLISH ROUNDS CANNOT FIX A CATEGORY
+- `history/065-2026-09-07-the-ankylosaur-the-quadruped-that-does-not-decompose.md` -- 2026-09-07 -- The Ankylosaur: the quadruped that does not decompose
+- `history/066-2026-09-07-detail-is-resolution-not-density-the-ankylosaur-at-64.md` -- 2026-09-07 -- DETAIL IS RESOLUTION, NOT DENSITY: the ankylosaur at 64
+- `history/067-2026-09-07-the-rib-walk-the-causeway-is-cut-through-a-skeleton.md` -- 2026-09-07 -- THE RIB WALK: the causeway is cut THROUGH a skeleton
+- `history/068-2026-09-01-the-park-overhaul-typed-interfaces-capacity-aware-streets-an.md` -- 2026-09-01 -- The park overhaul: typed interfaces, capacity-aware streets, and a vertical park
+- `history/069-2026-09-02-the-midway-entrance-the-walk-up-from-the-gate-to-the-wheel.md` -- 2026-09-02 -- The Midway entrance: the walk-up from the gate to the wheel
+- `history/070-2026-09-03-the-wyrm-gate-the-skull-straddling-the-rim-railway.md` -- 2026-09-03 -- The Wyrm Gate: the skull straddling the rim railway
+- `history/071-2026-09-03-the-zoo-filled-its-lot-the-claim-lake-menagerie-rebuilt.md` -- 2026-09-03 -- The zoo filled its lot: the Claim Lake Menagerie, rebuilt
+- `history/072-2026-09-03-the-park-line-on-function-and-automation.md` -- 2026-09-03 -- The Park Line, on function and automation
+- `history/073-2026-09-03-the-empty-ground-cleanup-dead-ground-measured-and-the-distan.md` -- 2026-09-03 -- The empty-ground cleanup: dead ground measured, and the distance IS the density
+- `history/074-2026-09-03-the-leftovers-audit-apparatus-for-machinery-that-was-removed.md` -- 2026-09-03 -- The leftovers audit: apparatus for machinery that was removed
+- `history/075-2026-09-03-the-abyss-squid-the-one-thing-under-the-theme-park.md` -- 2026-09-03 -- The Abyss Squid: the one thing under the theme park
+- `history/076-2026-09-08-the-abyss-market-the-squid-s-interior-and-a-shaft-that-leave.md` -- 2026-09-08 -- The Abyss Market: the squid's interior, and a shaft that leaves the parkour alone
+- `history/077-2026-09-04-the-loop-audit-every-way-the-unattended-build-could-sit-stil.md` -- 2026-09-04 -- The loop audit: every way the unattended build could sit still
+- `history/078-2026-09-04-the-autofly-fence-two-corners-and-it-stays-between-them.md` -- 2026-09-04 -- The autofly fence: two corners, and it stays between them
+- `history/079-2026-09-04-the-autonomy-audit-three-readers-55-findings-28-fixed.md` -- 2026-09-04 -- The autonomy audit: three readers, 55 findings, 28 fixed
+- `history/080-2026-09-04-the-friend-island-s-corner-stairs.md` -- 2026-09-04 -- The friend island's corner stairs
+- `history/081-2026-09-04-the-trip-leaves-from-the-work-and-comes-back-to-it.md` -- 2026-09-04 -- The trip leaves from the work and comes back to it
+- `history/082-2026-09-05-baritone-reads-a-litematic-s-air-as-must-be-air-and-the-loop.md` -- 2026-09-05 -- Baritone reads a litematic's air as MUST-BE-AIR, and the loop's three audits
+- `history/083-2026-09-06-a-diagonal-join-is-not-a-join-printable.md` -- 2026-09-06 -- A DIAGONAL JOIN IS NOT A JOIN: printable
+- `history/084-undated-the-frame-rate-and-the-bot-that-dug-itself-in-2026-09-06-chu.md` --  -- The frame rate, and the bot that dug itself in (2026-09-06, chunkscan 0.8.6)
+- `history/085-2026-09-06-the-autonomy-audit-and-the-thing-underneath-all-of-it.md` -- 2026-09-06 -- The autonomy audit  — and the thing underneath all of it
+- `history/086-2026-09-06-the-clutter-pass-the-park-stops-asking-the-printer-to-plant.md` -- 2026-09-06 -- The clutter pass: the park stops asking the printer to plant a garden
+- `history/087-2026-09-07-all-six-the-audit-s-plan-done.md` -- 2026-09-07 -- All six: the audit's plan, done
+- `history/088-2026-09-07-the-frame-rate-measured-at-last.md` -- 2026-09-07 -- The frame rate, measured at last
+- `history/089-2026-09-09-hollowing-the-landscape-and-two-ways-of-asking-can-anyone-se.md` -- 2026-09-09 -- HOLLOWING THE LANDSCAPE - AND TWO WAYS OF ASKING "CAN ANYONE SEE THIS" THAT ARE BOTH WRONG
+- `history/090-2026-09-10-fourteen-lamp-posts-in-a-hole-and-the-context-that-could-not.md` -- 2026-09-10 -- FOURTEEN LAMP POSTS IN A HOLE, AND THE CONTEXT THAT COULD NOT SEE THEM
+- `history/091-2026-09-10-gravel-is-out-the-only-gravity-block-in-the-park.md` -- 2026-09-10 -- GRAVEL IS OUT: THE ONLY GRAVITY BLOCK IN THE PARK
+- `history/092-2026-09-10-every-lamp-post-in-the-park-measured.md` -- 2026-09-10 -- EVERY LAMP POST IN THE PARK, MEASURED
+- `history/093-2026-09-10-the-ore-seam-has-no-ore-in-it-granite-coal-and-gold-out.md` -- 2026-09-10 -- THE ORE SEAM HAS NO ORE IN IT: granite, coal and gold out
+- `history/094-2026-09-12-the-broken-plateau-the-north-end-and-the-axis-the-park-had-n.md` -- 2026-09-12 -- THE BROKEN PLATEAU: the north end, and the axis the park had not used
+- `history/095-undated-the-nether-miner-quartz-on-foot-without-dying-2026-09-12-chu.md` --  -- The Nether miner: quartz, on foot, without dying (2026-09-12, chunkscan 0.9.11)
+- `history/096-2026-09-13-reference-amazingsteal-a-nine-year-veteran-s-island-on-our-s.md` -- 2026-09-13 -- reference/amazingsteal: a nine-year veteran's island, on OUR server
+- `history/097-2026-09-13-cut-courses-in-park-py-and-the-reflection-nobody-could-see.md` -- 2026-09-13 -- Cut courses in park.py, and the reflection nobody could see
+- `history/098-2026-09-13-the-park-measured-against-the-world-for-the-first-time.md` -- 2026-09-13 -- THE PARK, MEASURED AGAINST THE WORLD FOR THE FIRST TIME
+- `history/099-2026-09-13-dressing-retuned-against-the-world.md` -- 2026-09-13 -- Dressing, retuned against the world
+- `history/100-2026-09-13-the-canopy-walk-the-park-s-first-upward-addition.md` -- 2026-09-13 -- THE CANOPY WALK - the park's first upward addition
+- `history/101-2026-09-13-the-canopy-walk-ran-through-the-rollercoaster-and-both-check.md` -- 2026-09-13 -- THE CANOPY WALK RAN THROUGH THE ROLLERCOASTER, AND BOTH CHECKS MISSED IT
+- `history/102-2026-09-13-the-park-had-no-sky-and-the-two-lands-needed-opposite-answer.md` -- 2026-09-13 -- THE PARK HAD NO SKY, AND THE TWO LANDS NEEDED OPPOSITE ANSWERS
+- `history/103-2026-09-13-the-dressing-audit-a-third-of-the-park-s-planting-was-eating.md` -- 2026-09-13 -- THE DRESSING AUDIT: a third of the park's planting was eating itself
+- `history/104-2026-09-26-quartzminer-the-miner-rebuilt-as-its-own-mod.md` -- 2026-09-26 -- quartzminer: the Nether miner rebuilt as its own mod
+- `history/105-2026-09-26-autopilot-flies-with-keys.md` -- 2026-09-26 -- The autopilot flies with real key presses
